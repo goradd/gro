@@ -1,0 +1,9 @@
+{
+  "comment": "A configuration file for local development and testing",
+  "databases": [
+    {
+      "type": "mysql",
+      ""
+    }
+  ]
+}
