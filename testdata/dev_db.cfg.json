@@ -1,9 +1,10 @@
-{
-  "comment": "A configuration file for local development and testing",
-  "databases": [
+[
     {
-      "type": "mysql",
-      ""
+      "type": "pgsql",
+      "database": "goradd",
+      "key": "goradd",
+      "user": "root",
+      "password": "12345",
+      "host": "localhost"
     }
-  ]
-}
+]

@@ -1,0 +1,713 @@
+[
+  {
+    "key": "goradd",
+    "package": "goradd",
+    "reference_suffix": "_id",
+    "enum_table_suffix": "_enum",
+    "assn_table_suffix": "_assn",
+    "tables": [
+      {
+        "name": "employee_info",
+        "schema": "",
+        "columns": [
+          {
+            "name": "id",
+            "type": "Int",
+            "identifier": "ID",
+            "title": "Id",
+            "max_length": 32,
+            "default_value": 0,
+            "is_optional": false,
+            "index_level": "Primary",
+            "case_insensitive": false
+          },
+          {
+            "name": "person_id",
+            "type": "Int",
+            "identifier": "PersonID",
+            "title": "Person Id",
+            "max_length": 32,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "Unique",
+            "case_insensitive": false,
+            "reference": {
+              "table": "person",
+              "column": "id",
+              "reverse_title": "Employee Info",
+              "reverse_identifier": "EmployeeInfo"
+            }
+          },
+          {
+            "name": "employee_number",
+            "type": "Int",
+            "identifier": "EmployeeNumber",
+            "title": "Employee Number",
+            "max_length": 32,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          }
+        ],
+        "multi_column_indexes": null,
+        "title": "Employee Info",
+        "title_plural": "Employee Infos",
+        "identifier": "EmployeeInfo",
+        "identifier_plural": "EmployeeInfos",
+        "key": "employee_info",
+        "no_orm": false
+      },
+      {
+        "name": "milestone",
+        "schema": "",
+        "columns": [
+          {
+            "name": "id",
+            "type": "Int",
+            "identifier": "ID",
+            "title": "Id",
+            "max_length": 32,
+            "default_value": 0,
+            "is_optional": false,
+            "index_level": "Primary",
+            "case_insensitive": false
+          },
+          {
+            "name": "project_id",
+            "type": "Int",
+            "identifier": "ProjectID",
+            "title": "Project Id",
+            "max_length": 32,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false,
+            "reference": {
+              "table": "project",
+              "column": "id",
+              "reverse_title": "Milestone",
+              "reverse_title_plural": "Milestones",
+              "reverse_identifier": "Milestone",
+              "reverse_identifier_plural": "Milestones"
+            }
+          },
+          {
+            "name": "name",
+            "type": "String",
+            "identifier": "Name",
+            "title": "Name",
+            "max_length": 50,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          }
+        ],
+        "multi_column_indexes": null,
+        "title": "Milestone",
+        "title_plural": "Milestones",
+        "identifier": "Milestone",
+        "identifier_plural": "Milestones",
+        "key": "milestone",
+        "no_orm": false
+      },
+      {
+        "name": "person_with_lock",
+        "schema": "",
+        "columns": [
+          {
+            "name": "id",
+            "type": "Int",
+            "identifier": "ID",
+            "title": "Id",
+            "max_length": 32,
+            "default_value": 0,
+            "is_optional": false,
+            "index_level": "Primary",
+            "case_insensitive": false
+          },
+          {
+            "name": "first_name",
+            "type": "String",
+            "identifier": "FirstName",
+            "title": "First Name",
+            "max_length": 50,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "last_name",
+            "type": "String",
+            "identifier": "LastName",
+            "title": "Last Name",
+            "max_length": 50,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "sys_timestamp",
+            "type": "Time",
+            "identifier": "SysTimestamp",
+            "title": "Sys Timestamp",
+            "max_length": 0,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": false
+          }
+        ],
+        "multi_column_indexes": null,
+        "title": "Person With Lock",
+        "title_plural": "Person With Locks",
+        "identifier": "PersonWithLock",
+        "identifier_plural": "PersonWithLocks",
+        "key": "person_with_lock",
+        "no_orm": false
+      },
+      {
+        "name": "address",
+        "schema": "",
+        "columns": [
+          {
+            "name": "id",
+            "type": "Int",
+            "identifier": "ID",
+            "title": "Id",
+            "max_length": 32,
+            "default_value": 0,
+            "is_optional": false,
+            "index_level": "Primary",
+            "case_insensitive": false
+          },
+          {
+            "name": "person_id",
+            "type": "Int",
+            "identifier": "PersonID",
+            "title": "Person Id",
+            "max_length": 32,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false,
+            "reference": {
+              "table": "person",
+              "column": "id",
+              "reverse_title": "Address",
+              "reverse_title_plural": "Addresses",
+              "reverse_identifier": "Address",
+              "reverse_identifier_plural": "Addresses"
+            }
+          },
+          {
+            "name": "street",
+            "type": "String",
+            "identifier": "Street",
+            "title": "Street",
+            "max_length": 100,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "city",
+            "type": "String",
+            "identifier": "City",
+            "title": "City",
+            "max_length": 100,
+            "default_value": "BOB",
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": false
+          }
+        ],
+        "multi_column_indexes": null,
+        "title": "Address",
+        "title_plural": "Addresses",
+        "identifier": "Address",
+        "identifier_plural": "Addresses",
+        "key": "address",
+        "no_orm": false
+      },
+      {
+        "name": "gift",
+        "schema": "",
+        "columns": [
+          {
+            "name": "number",
+            "type": "Int",
+            "identifier": "Number",
+            "title": "Number",
+            "max_length": 32,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "Primary",
+            "case_insensitive": false
+          },
+          {
+            "name": "name",
+            "type": "String",
+            "identifier": "Name",
+            "title": "Name",
+            "max_length": 50,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          }
+        ],
+        "multi_column_indexes": null,
+        "title": "Gift",
+        "title_plural": "Gifts",
+        "identifier": "Gift",
+        "identifier_plural": "Gifts",
+        "key": "gift",
+        "no_orm": false
+      },
+      {
+        "name": "person",
+        "schema": "",
+        "columns": [
+          {
+            "name": "id",
+            "type": "Int",
+            "identifier": "ID",
+            "title": "Id",
+            "max_length": 32,
+            "default_value": 0,
+            "is_optional": false,
+            "index_level": "Primary",
+            "case_insensitive": false
+          },
+          {
+            "name": "first_name",
+            "type": "String",
+            "identifier": "FirstName",
+            "title": "First Name",
+            "max_length": 50,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "last_name",
+            "type": "String",
+            "identifier": "LastName",
+            "title": "Last Name",
+            "max_length": 50,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          }
+        ],
+        "multi_column_indexes": null,
+        "title": "Person",
+        "title_plural": "People",
+        "identifier": "Person",
+        "identifier_plural": "People",
+        "key": "person",
+        "no_orm": false
+      },
+      {
+        "name": "project",
+        "schema": "",
+        "columns": [
+          {
+            "name": "id",
+            "type": "Int",
+            "identifier": "ID",
+            "title": "Id",
+            "max_length": 32,
+            "default_value": 0,
+            "is_optional": false,
+            "index_level": "Primary",
+            "case_insensitive": false
+          },
+          {
+            "name": "num",
+            "type": "Int",
+            "identifier": "Num",
+            "title": "Num",
+            "max_length": 32,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "Unique",
+            "case_insensitive": false
+          },
+          {
+            "name": "status_id",
+            "type": "Int",
+            "identifier": "StatusID",
+            "title": "Status Id",
+            "max_length": 32,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false,
+            "reference": {
+              "table": "project_status_enum",
+              "column": "id",
+              "reverse_title": "status Project",
+              "reverse_title_plural": "status Projects",
+              "reverse_identifier": "StatusProject",
+              "reverse_identifier_plural": "StatusProjects"
+            }
+          },
+          {
+            "name": "manager_id",
+            "type": "Int",
+            "identifier": "ManagerID",
+            "title": "Manager Id",
+            "max_length": 32,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": false,
+            "reference": {
+              "table": "person",
+              "column": "id",
+              "reverse_title": "manager Project",
+              "reverse_title_plural": "manager Projects",
+              "reverse_identifier": "ManagerProject",
+              "reverse_identifier_plural": "ManagerProjects"
+            }
+          },
+          {
+            "name": "name",
+            "type": "String",
+            "identifier": "Name",
+            "title": "Name",
+            "max_length": 100,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "description",
+            "type": "String",
+            "identifier": "Description",
+            "title": "Description",
+            "max_length": 65535,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "start_date",
+            "type": "Time",
+            "identifier": "StartDate",
+            "title": "Start Date",
+            "max_length": 0,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "end_date",
+            "type": "Time",
+            "identifier": "EndDate",
+            "title": "End Date",
+            "max_length": 0,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "budget",
+            "type": "String",
+            "identifier": "Budget",
+            "title": "Budget",
+            "max_length": 3,
+            "default_value": "NULL::numeric",
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "spent",
+            "type": "String",
+            "identifier": "Spent",
+            "title": "Spent",
+            "max_length": 3,
+            "default_value": "NULL::numeric",
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": false
+          }
+        ],
+        "multi_column_indexes": null,
+        "title": "Project",
+        "title_plural": "Projects",
+        "identifier": "Project",
+        "identifier_plural": "Projects",
+        "key": "project",
+        "no_orm": false
+      },
+      {
+        "name": "login",
+        "schema": "",
+        "columns": [
+          {
+            "name": "id",
+            "type": "Int",
+            "identifier": "ID",
+            "title": "Id",
+            "max_length": 32,
+            "default_value": 0,
+            "is_optional": false,
+            "index_level": "Primary",
+            "case_insensitive": false
+          },
+          {
+            "name": "person_id",
+            "type": "Int",
+            "identifier": "PersonID",
+            "title": "Person Id",
+            "max_length": 32,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "Unique",
+            "case_insensitive": false,
+            "reference": {
+              "table": "person",
+              "column": "id",
+              "reverse_title": "Login",
+              "reverse_identifier": "Login"
+            }
+          },
+          {
+            "name": "username",
+            "type": "String",
+            "identifier": "Username",
+            "title": "Username",
+            "max_length": 20,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "Unique",
+            "case_insensitive": false
+          },
+          {
+            "name": "password",
+            "type": "String",
+            "identifier": "Password",
+            "title": "Password",
+            "max_length": 20,
+            "default_value": "NULL::character varying",
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "is_enabled",
+            "type": "Bool",
+            "identifier": "IsEnabled",
+            "title": "Is Enabled",
+            "max_length": 0,
+            "default_value": true,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          }
+        ],
+        "multi_column_indexes": null,
+        "title": "Login",
+        "title_plural": "Logins",
+        "identifier": "Login",
+        "identifier_plural": "Logins",
+        "key": "login",
+        "no_orm": false
+      }
+    ],
+    "enum_tables": [
+      {
+        "name": "project_status_enum",
+        "schema": "",
+        "fields": [
+          {
+            "Name": "id",
+            "Title": "Ids",
+            "TitlePlural": "",
+            "Identifier": "ID",
+            "IdentifierPlural": "IDs",
+            "Type": "Int"
+          },
+          {
+            "Name": "name",
+            "Title": "Names",
+            "TitlePlural": "",
+            "Identifier": "Name",
+            "IdentifierPlural": "Names",
+            "Type": "String"
+          },
+          {
+            "Name": "description",
+            "Title": "Descriptions",
+            "TitlePlural": "",
+            "Identifier": "Description",
+            "IdentifierPlural": "Descriptions",
+            "Type": "String"
+          },
+          {
+            "Name": "guidelines",
+            "Title": "Guidelines",
+            "TitlePlural": "",
+            "Identifier": "Guidelines",
+            "IdentifierPlural": "Guidelines",
+            "Type": "String"
+          },
+          {
+            "Name": "is_active",
+            "Title": "Is Actives",
+            "TitlePlural": "",
+            "Identifier": "IsActive",
+            "IdentifierPlural": "IsActives",
+            "Type": "Bool"
+          }
+        ],
+        "values": [
+          [
+            1,
+            "Open",
+            "The project is currently active",
+            "All projects that we are working on should be in this state",
+            true
+          ],
+          [
+            2,
+            "Cancelled",
+            "The project has been canned",
+            null,
+            true
+          ],
+          [
+            3,
+            "Completed",
+            "The project has been completed successfully",
+            "Celebrate successes!",
+            true
+          ],
+          [
+            4,
+            "Planned",
+            "Project is in the planning stages and has not been assigned a manager",
+            "Get ready",
+            false
+          ]
+        ],
+        "title": "Project Status",
+        "title_plural": "Project Statuses",
+        "identifier": "ProjectStatus",
+        "identifier_plural": "ProjectStatuses"
+      },
+      {
+        "name": "person_type_enum",
+        "schema": "",
+        "fields": [
+          {
+            "Name": "id",
+            "Title": "Ids",
+            "TitlePlural": "",
+            "Identifier": "ID",
+            "IdentifierPlural": "IDs",
+            "Type": "Int"
+          },
+          {
+            "Name": "name",
+            "Title": "Names",
+            "TitlePlural": "",
+            "Identifier": "Name",
+            "IdentifierPlural": "Names",
+            "Type": "String"
+          }
+        ],
+        "values": [
+          [
+            1,
+            "Contractor"
+          ],
+          [
+            2,
+            "Manager"
+          ],
+          [
+            3,
+            "Inactive"
+          ],
+          [
+            4,
+            "Company Car"
+          ],
+          [
+            5,
+            "Works From Home"
+          ]
+        ],
+        "title": "Person Type",
+        "title_plural": "Person Types",
+        "identifier": "PersonType",
+        "identifier_plural": "PersonTypes"
+      }
+    ],
+    "association_tables": [
+      {
+        "name": "related_project_assn",
+        "schema": "",
+        "table1": "project",
+        "column1": "parent_id",
+        "title1": "Parent",
+        "title1_plural": "projects",
+        "identifier1": "Parent",
+        "identifier1_plural": "Parents",
+        "table2": "project",
+        "column2": "child_id",
+        "title2": "Child",
+        "title2_plural": "Children",
+        "identifier2": "Child",
+        "identifier2_plural": "Children"
+      },
+      {
+        "name": "team_member_project_assn",
+        "schema": "",
+        "table1": "person",
+        "column1": "team_member_id",
+        "title1": "Team Member",
+        "title1_plural": "people",
+        "identifier1": "TeamMember",
+        "identifier1_plural": "TeamMembers",
+        "table2": "project",
+        "column2": "project_id",
+        "title2": "Project",
+        "title2_plural": "Projects",
+        "identifier2": "Project",
+        "identifier2_plural": "Projects"
+      },
+      {
+        "name": "person_persontype_assn",
+        "schema": "",
+        "table1": "person",
+        "column1": "person_id",
+        "title1": "Person",
+        "title1_plural": "people",
+        "identifier1": "Person",
+        "identifier1_plural": "People",
+        "table2": "person_type_enum",
+        "column2": "person_type_id",
+        "title2": "Person Type",
+        "title2_plural": "Person Types",
+        "identifier2": "PersonType",
+        "identifier2_plural": "PersonTypes"
+      }
+    ]
+  }
+]

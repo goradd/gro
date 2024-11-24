@@ -1,15 +1,16 @@
 package query
 
 import (
+	"spekary/goradd/orm/pkg/schema"
 	"strconv"
 	"time"
 )
 
-// GoColumnType represents the GO type that corresponds to a database column
-type GoColumnType int
+// ReceiverType represents the Go type that a query will be received as.
+type ReceiverType int
 
 const (
-	ColTypeUnknown GoColumnType = iota
+	ColTypeUnknown ReceiverType = iota
 	ColTypeBytes
 	ColTypeString
 	ColTypeInteger
@@ -23,7 +24,7 @@ const (
 )
 
 // String returns the constant type name as a string
-func (g GoColumnType) String() string {
+func (g ReceiverType) String() string {
 	switch g {
 	case ColTypeUnknown:
 		return "ColTypeUnknown"
@@ -52,7 +53,7 @@ func (g GoColumnType) String() string {
 }
 
 // GoType returns the actual GO type as go code
-func (g GoColumnType) GoType() string {
+func (g ReceiverType) GoType() string {
 	switch g {
 	case ColTypeUnknown:
 		return "Unknown"
@@ -81,7 +82,7 @@ func (g GoColumnType) GoType() string {
 }
 
 // DefaultValue returns a string that represents the GO default value for the corresponding type
-func (g GoColumnType) DefaultValue() string {
+func (g ReceiverType) DefaultValue() string {
 	switch g {
 	case ColTypeUnknown:
 		return ""
@@ -109,7 +110,7 @@ func (g GoColumnType) DefaultValue() string {
 	return ""
 }
 
-func ColTypeFromGoTypeString(name string) GoColumnType {
+func ColTypeFromGoTypeString(name string) ReceiverType {
 	switch name {
 	case "Unknown":
 		return ColTypeUnknown
@@ -140,7 +141,7 @@ func ColTypeFromGoTypeString(name string) GoColumnType {
 
 // FromString will convert from a string to the correct Go type.
 // Time strings must be in RFC3339 format.
-func (g GoColumnType) FromString(s string) any {
+func (g ReceiverType) FromString(s string) any {
 	switch g {
 	case ColTypeUnknown:
 		return nil
@@ -194,4 +195,46 @@ func (g GoColumnType) FromString(s string) any {
 		return s == "true"
 	}
 	return ""
+}
+
+// ReceiverTypeFromSchema converts a schema column type to a Go language type.
+// If maxLength is zero, the default will be chosen.
+func ReceiverTypeFromSchema(columnType schema.ColumnType, maxLength uint64) ReceiverType {
+	switch columnType {
+	case schema.ColTypeUnknown:
+		return ColTypeUnknown
+	case schema.ColTypeBytes:
+		return ColTypeBytes
+	case schema.ColTypeString:
+		return ColTypeString
+	case schema.ColTypeInt:
+		if maxLength == 64 {
+			return ColTypeInteger64
+		}
+		return ColTypeInteger
+	case schema.ColTypeUint:
+		if maxLength == 64 {
+			return ColTypeUnsigned64
+		}
+		return ColTypeUnsigned
+	case schema.ColTypeTime:
+		return ColTypeTime
+	case schema.ColTypeFloat:
+		if maxLength == 32 {
+			return ColTypeFloat32
+		}
+		return ColTypeFloat64
+	case schema.ColTypeBool:
+		return ColTypeBool
+	case schema.ColTypeAutoPrimaryKey:
+		return ColTypeString
+	case schema.ColTypeJSON:
+		return ColTypeString
+	case schema.ColTypeReference:
+		// Note that in the case of references to manually entered foreign keys, they
+		// will always get queried as strings. Also, if this is pointing to an enum table,
+		// the caller will need to change it to a ColTypeInt.
+		return ColTypeString
+	}
+	return ColTypeUnknown
 }

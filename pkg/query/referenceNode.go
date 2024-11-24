@@ -41,7 +41,7 @@ type ReferenceNode struct {
 	// Is this pointing to a enum table item?
 	isEnumTable bool
 	// The type of item acting as a pointer. This should be the same on both sides of the reference.
-	goType GoColumnType
+	goType ReceiverType
 }
 
 // NewReferenceNode creates a forward reference node.
@@ -54,7 +54,7 @@ func NewReferenceNode(
 	refTableName string,
 	refColumn string, // only used in NoSQL situation
 	isEnum bool,
-	goType GoColumnType,
+	goType ReceiverType,
 ) *ReferenceNode {
 	n := &ReferenceNode{
 		dbKey:        dbKey,
@@ -154,7 +154,7 @@ type referenceNodeEncoded struct {
 	RefTable     string
 	RefColumn    string
 	IsEnumTable  bool
-	GoType       GoColumnType
+	GoType       ReceiverType
 }
 
 func (n *ReferenceNode) GobEncode() (data []byte, err error) {

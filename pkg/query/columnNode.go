@@ -27,7 +27,7 @@ type ColumnNode struct {
 	// The name of the function used to access the property as a node or ORM item
 	gName string
 	// The go type for the column
-	goType GoColumnType
+	goType ReceiverType
 	// Used by OrderBy clauses
 	sortDescending bool
 	// True if this is the private key of its parent table
@@ -35,7 +35,7 @@ type ColumnNode struct {
 }
 
 // NewColumnNode is used by the code generator to create a new column node.
-func NewColumnNode(dbKey string, dbTable string, dbName string, goName string, goType GoColumnType, isPK bool) *ColumnNode {
+func NewColumnNode(dbKey string, dbTable string, dbName string, goName string, goType ReceiverType, isPK bool) *ColumnNode {
 	n := &ColumnNode{
 		dbKey:    dbKey,
 		dbTable:  dbTable,
@@ -131,7 +131,7 @@ func (n *ColumnNode) log(level int) {
 }
 
 // ColumnNodeGoType is used internally by the framework to return the go type corresponding to the given column.
-func ColumnNodeGoType(n *ColumnNode) GoColumnType {
+func ColumnNodeGoType(n *ColumnNode) ReceiverType {
 	return n.goType
 }
 
