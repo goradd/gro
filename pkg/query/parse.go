@@ -1,14 +1,13 @@
 package query
 
 import (
-	"log/slog"
 	"strconv"
 	"strings"
 	"time"
 )
 
-// ParseTime will convert a SQL Date, Time, DateTime, Timestamp or RFC3339 string to a time.Time. Various databases
-// express their times slightly differently, and this tries to interpret what is
+// ParseTime will convert a SQL Date, Time, DateTime, Timestamp or RFC3339 string to a time.Time.
+// Various databases express their times differently, and this tries to interpret what is
 // attempting to be expressed. It can handle unix time strings that are +- from
 // the 1970 epoch, including fractional times up to the microsecond level.
 //
@@ -73,8 +72,8 @@ func ParseTime(s string) (t time.Time) {
 	if err == nil {
 		t = t.UTC()
 	} else {
-		// We can't return the error, but we can log it
-		slog.Info(err.Error())
+		z := time.Time{}
+		t = z // make sure we return a zero time
 	}
 	return
 }

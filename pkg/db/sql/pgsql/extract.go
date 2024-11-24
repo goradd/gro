@@ -10,7 +10,6 @@ import (
 	log2 "log/slog"
 	"slices"
 	"sort"
-	"spekary/goradd/orm/pkg/db"
 	sql2 "spekary/goradd/orm/pkg/db/sql"
 	. "spekary/goradd/orm/pkg/query"
 	"spekary/goradd/orm/pkg/schema"
@@ -497,7 +496,7 @@ func (m *DB) getTableSchema(t pgTable) schema.Table {
 	var columnSchemas []*schema.Column
 
 	// Build the indexes
-	indexes := make(map[string]*db.IndexDescription)
+	indexes := make(map[string]*schema.MultiColumnIndex)
 	pkColumns := maps.NewSet[string]()
 	uniqueColumns := maps.NewSet[string]()
 	singleIndexes := maps.NewSet[string]()
@@ -508,10 +507,10 @@ func (m *DB) getTableSchema(t pgTable) schema.Table {
 		if idx.primary {
 			pkColumns.Add(idx.columnName)
 		} else if i, ok2 := indexes[idx.name]; ok2 {
-			i.ColumnNames = append(i.ColumnNames, idx.columnName)
-			sort.Strings(i.ColumnNames) // make sure this list stays in a predictable order each time
+			i.Columns = append(i.Columns, idx.columnName)
+			sort.Strings(i.Columns) // make sure this list stays in a predictable order each time
 		} else {
-			i = &db.IndexDescription{IsUnique: idx.unique, ColumnNames: []string{idx.columnName}}
+			i = &schema.MultiColumnIndex{IsUnique: idx.unique, Columns: []string{idx.columnName}}
 			indexes[idx.name] = i
 		}
 	}
@@ -519,10 +518,10 @@ func (m *DB) getTableSchema(t pgTable) schema.Table {
 	// Fill the uniqueColumns map with all the columns that have a single unique index,
 	// including any PK columns. Single indexes are used to determine 1 to 1 relationships.
 	for _, idx := range indexes {
-		if len(idx.ColumnNames) == 1 && idx.IsUnique {
-			singleIndexes.Add(idx.ColumnNames[0])
+		if len(idx.Columns) == 1 && idx.IsUnique {
+			singleIndexes.Add(idx.Columns[0])
 			if idx.IsUnique {
-				uniqueColumns.Add(idx.ColumnNames[0])
+				uniqueColumns.Add(idx.Columns[0])
 			}
 		}
 	}
@@ -558,13 +557,9 @@ func (m *DB) getTableSchema(t pgTable) schema.Table {
 
 	// Create the multi-column index array
 	for _, idx := range indexes {
-		if len(idx.ColumnNames) > 1 {
-			mc := schema.MultiColumnIndex{
-				IsUnique: idx.IsUnique,
-				Columns:  idx.ColumnNames,
-			}
-			slices.Sort(mc.Columns)
-			td.MultiColumnIndexes = append(td.MultiColumnIndexes, mc)
+		if len(idx.Columns) > 1 {
+			slices.Sort(idx.Columns)
+			td.MultiColumnIndexes = append(td.MultiColumnIndexes, *idx)
 		}
 	}
 	if pkColumns.Len() == 2 {
@@ -620,7 +615,7 @@ func (m *DB) getEnumTableSchema(t pgTable) (ed schema.EnumTable, err error) {
 
 		columnNames = append(columnNames, c.Name)
 		quotedNames = append(quotedNames, iq(c.Name))
-		recType := ReceiverTypeFromSchema(c.Type, c.MaxLength)
+		recType := ReceiverTypeFromSchema(c.Type, c.Size)
 		if i == 0 {
 			recType = ColTypeInteger // Force first value to be treated like an integer
 		}
@@ -677,7 +672,7 @@ func (m *DB) getColumnSchema(table pgTable, column pgColumn, isIndexed bool, isP
 		Name: column.name,
 	}
 	var err error
-	cd.Type, cd.MaxLength, cd.DefaultValue, err = processTypeInfo(column)
+	cd.Type, cd.Size, cd.DefaultValue, err = processTypeInfo(column)
 	if err != nil {
 		log2.Warn(err.Error() + ". Table = " + table.name + "; Column = " + column.name)
 	}

@@ -24,12 +24,12 @@ type Column struct {
 	// Title is the human-readable description of the item. Leave blank to base it on the Name.
 	Title string `json:"title"`
 
-	// If a string column, MaxLength is the maximum length of runes that the column can accommodate.
-	// If a []byte column, MaxLength is the maximum number of bytes allowed in the column.
-	// If an int, unsigned int, or float, MaxLength is the number of bits allowed in the number and will also
+	// If a string column, Size is the maximum length of runes that the column can accommodate.
+	// If a []byte column, Size is the maximum number of bytes allowed in the column.
+	// If an int, unsigned int, or float, Size is the number of bits allowed in the number and will also
 	// determine the Go number type that will represent the column. This can be a zero in order to use the default,
 	// (int, uint or float64).
-	MaxLength uint64 `json:"max_length"`
+	Size uint64 `json:"size"`
 
 	// DefaultValue is the default value as specified by the database. We will initialize new ORM objects
 	// with this value. Non-nullable values that do not have a default value are required to be set by the application.
@@ -97,7 +97,7 @@ func (c *Column) FillDefaults(table *Table, referenceSuffix string) {
 		}
 
 		if c.Reference.ReverseTitle == "" {
-			c.Reference.ReverseTitle = any2.If(objName, objName+" "+table.Title, table.Title)
+			c.Reference.ReverseTitle = any2.If(objName, snaker.ForceCamelIdentifier(objName)+" "+table.Title, table.Title)
 		}
 		if c.Reference.ReverseTitlePlural == "" && c.IndexLevel != IndexLevelUnique {
 			c.Reference.ReverseTitlePlural = strings2.Plural(c.Reference.ReverseTitle)

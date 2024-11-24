@@ -109,7 +109,7 @@ func NewDB(dbKey string, connectionString string, config *mysql.Config) *DB {
 func OverrideConfigSettings(config *mysql.Config, jsonContent map[string]interface{}) {
 	for k, v := range jsonContent {
 		switch k {
-		case "name":
+		case "database":
 			config.DBName = v.(string)
 		case "user":
 			config.User = v.(string)

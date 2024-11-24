@@ -71,8 +71,9 @@ func (m *Database) importSchema(schema *schema.Database) {
 
 	// import references after the columns are in place
 	for _, schemaTable := range schema.Tables {
-		t := m.Table(schemaTable.Name)
-		m.importReferences(t, schemaTable)
+		if t := m.Table(schemaTable.Name); t != nil {
+			m.importReferences(t, schemaTable)
+		}
 	}
 
 	for _, assn := range schema.AssociationTables {
@@ -131,7 +132,7 @@ func (m *Database) importReference(table *Table, schemaCol *schema.Column) {
 		refTable := m.Table(schemaCol.Reference.Table)
 		et := m.EnumTable(schemaCol.Reference.Table)
 		if refTable == nil && et == nil {
-			slog.Warn(fmt.Sprintf("Reference skipped, table not found. From %s:%s", schemaCol.Reference.Table, schemaCol.Name))
+			slog.Warn(fmt.Sprintf("Reference skipped, table not found. From %s:%s", table.QueryName, schemaCol.Name))
 			return
 		}
 		var thisCol, refCol *Column

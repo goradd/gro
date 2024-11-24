@@ -7,26 +7,91 @@
     "assn_table_suffix": "_assn",
     "tables": [
       {
+        "name": "address",
+        "schema": "",
+        "columns": [
+          {
+            "name": "id",
+            "type": "AutoPrimaryKey",
+            "identifier": "ID",
+            "title": "Id",
+            "size": 0,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "person_id",
+            "type": "Uint",
+            "identifier": "PersonID",
+            "title": "Person Id",
+            "size": 0,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "Indexed",
+            "case_insensitive": false,
+            "reference": {
+              "table": "person",
+              "column": "id",
+              "reverse_title": "Address",
+              "reverse_title_plural": "Addresses",
+              "reverse_identifier": "Address",
+              "reverse_identifier_plural": "Addresses"
+            }
+          },
+          {
+            "name": "street",
+            "type": "String",
+            "identifier": "Street",
+            "title": "Street",
+            "size": 100,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": true
+          },
+          {
+            "name": "city",
+            "type": "String",
+            "identifier": "City",
+            "title": "City",
+            "size": 100,
+            "default_value": "BOB",
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": true
+          }
+        ],
+        "multi_column_indexes": null,
+        "title": "Address",
+        "title_plural": "Addresses",
+        "identifier": "Address",
+        "identifier_plural": "Addresses",
+        "key": "address",
+        "no_orm": false
+      },
+      {
         "name": "employee_info",
         "schema": "",
         "columns": [
           {
             "name": "id",
-            "type": "Int",
+            "type": "AutoPrimaryKey",
             "identifier": "ID",
             "title": "Id",
-            "max_length": 32,
-            "default_value": 0,
+            "size": 0,
+            "default_value": null,
             "is_optional": false,
-            "index_level": "Primary",
+            "index_level": "None",
             "case_insensitive": false
           },
           {
             "name": "person_id",
-            "type": "Int",
+            "type": "Uint",
             "identifier": "PersonID",
             "title": "Person Id",
-            "max_length": 32,
+            "size": 0,
             "default_value": null,
             "is_optional": false,
             "index_level": "Unique",
@@ -43,7 +108,7 @@
             "type": "Int",
             "identifier": "EmployeeNumber",
             "title": "Employee Number",
-            "max_length": 32,
+            "size": 0,
             "default_value": null,
             "is_optional": false,
             "index_level": "None",
@@ -59,182 +124,6 @@
         "no_orm": false
       },
       {
-        "name": "milestone",
-        "schema": "",
-        "columns": [
-          {
-            "name": "id",
-            "type": "Int",
-            "identifier": "ID",
-            "title": "Id",
-            "max_length": 32,
-            "default_value": 0,
-            "is_optional": false,
-            "index_level": "Primary",
-            "case_insensitive": false
-          },
-          {
-            "name": "project_id",
-            "type": "Int",
-            "identifier": "ProjectID",
-            "title": "Project Id",
-            "max_length": 32,
-            "default_value": null,
-            "is_optional": false,
-            "index_level": "None",
-            "case_insensitive": false,
-            "reference": {
-              "table": "project",
-              "column": "id",
-              "reverse_title": "Milestone",
-              "reverse_title_plural": "Milestones",
-              "reverse_identifier": "Milestone",
-              "reverse_identifier_plural": "Milestones"
-            }
-          },
-          {
-            "name": "name",
-            "type": "String",
-            "identifier": "Name",
-            "title": "Name",
-            "max_length": 50,
-            "default_value": null,
-            "is_optional": false,
-            "index_level": "None",
-            "case_insensitive": false
-          }
-        ],
-        "multi_column_indexes": null,
-        "title": "Milestone",
-        "title_plural": "Milestones",
-        "identifier": "Milestone",
-        "identifier_plural": "Milestones",
-        "key": "milestone",
-        "no_orm": false
-      },
-      {
-        "name": "person_with_lock",
-        "schema": "",
-        "columns": [
-          {
-            "name": "id",
-            "type": "Int",
-            "identifier": "ID",
-            "title": "Id",
-            "max_length": 32,
-            "default_value": 0,
-            "is_optional": false,
-            "index_level": "Primary",
-            "case_insensitive": false
-          },
-          {
-            "name": "first_name",
-            "type": "String",
-            "identifier": "FirstName",
-            "title": "First Name",
-            "max_length": 50,
-            "default_value": null,
-            "is_optional": false,
-            "index_level": "None",
-            "case_insensitive": false
-          },
-          {
-            "name": "last_name",
-            "type": "String",
-            "identifier": "LastName",
-            "title": "Last Name",
-            "max_length": 50,
-            "default_value": null,
-            "is_optional": false,
-            "index_level": "None",
-            "case_insensitive": false
-          },
-          {
-            "name": "sys_timestamp",
-            "type": "Time",
-            "identifier": "SysTimestamp",
-            "title": "Sys Timestamp",
-            "max_length": 0,
-            "default_value": null,
-            "is_optional": true,
-            "index_level": "None",
-            "case_insensitive": false
-          }
-        ],
-        "multi_column_indexes": null,
-        "title": "Person With Lock",
-        "title_plural": "Person With Locks",
-        "identifier": "PersonWithLock",
-        "identifier_plural": "PersonWithLocks",
-        "key": "person_with_lock",
-        "no_orm": false
-      },
-      {
-        "name": "address",
-        "schema": "",
-        "columns": [
-          {
-            "name": "id",
-            "type": "Int",
-            "identifier": "ID",
-            "title": "Id",
-            "max_length": 32,
-            "default_value": 0,
-            "is_optional": false,
-            "index_level": "Primary",
-            "case_insensitive": false
-          },
-          {
-            "name": "person_id",
-            "type": "Int",
-            "identifier": "PersonID",
-            "title": "Person Id",
-            "max_length": 32,
-            "default_value": null,
-            "is_optional": false,
-            "index_level": "None",
-            "case_insensitive": false,
-            "reference": {
-              "table": "person",
-              "column": "id",
-              "reverse_title": "Address",
-              "reverse_title_plural": "Addresses",
-              "reverse_identifier": "Address",
-              "reverse_identifier_plural": "Addresses"
-            }
-          },
-          {
-            "name": "street",
-            "type": "String",
-            "identifier": "Street",
-            "title": "Street",
-            "max_length": 100,
-            "default_value": null,
-            "is_optional": false,
-            "index_level": "None",
-            "case_insensitive": false
-          },
-          {
-            "name": "city",
-            "type": "String",
-            "identifier": "City",
-            "title": "City",
-            "max_length": 100,
-            "default_value": "BOB",
-            "is_optional": true,
-            "index_level": "None",
-            "case_insensitive": false
-          }
-        ],
-        "multi_column_indexes": null,
-        "title": "Address",
-        "title_plural": "Addresses",
-        "identifier": "Address",
-        "identifier_plural": "Addresses",
-        "key": "address",
-        "no_orm": false
-      },
-      {
         "name": "gift",
         "schema": "",
         "columns": [
@@ -243,7 +132,7 @@
             "type": "Int",
             "identifier": "Number",
             "title": "Number",
-            "max_length": 32,
+            "size": 0,
             "default_value": null,
             "is_optional": false,
             "index_level": "Primary",
@@ -254,11 +143,11 @@
             "type": "String",
             "identifier": "Name",
             "title": "Name",
-            "max_length": 50,
+            "size": 50,
             "default_value": null,
             "is_optional": false,
             "index_level": "None",
-            "case_insensitive": false
+            "case_insensitive": true
           }
         ],
         "multi_column_indexes": null,
@@ -270,211 +159,26 @@
         "no_orm": false
       },
       {
-        "name": "person",
-        "schema": "",
-        "columns": [
-          {
-            "name": "id",
-            "type": "Int",
-            "identifier": "ID",
-            "title": "Id",
-            "max_length": 32,
-            "default_value": 0,
-            "is_optional": false,
-            "index_level": "Primary",
-            "case_insensitive": false
-          },
-          {
-            "name": "first_name",
-            "type": "String",
-            "identifier": "FirstName",
-            "title": "First Name",
-            "max_length": 50,
-            "default_value": null,
-            "is_optional": false,
-            "index_level": "None",
-            "case_insensitive": false
-          },
-          {
-            "name": "last_name",
-            "type": "String",
-            "identifier": "LastName",
-            "title": "Last Name",
-            "max_length": 50,
-            "default_value": null,
-            "is_optional": false,
-            "index_level": "None",
-            "case_insensitive": false
-          }
-        ],
-        "multi_column_indexes": null,
-        "title": "Person",
-        "title_plural": "People",
-        "identifier": "Person",
-        "identifier_plural": "People",
-        "key": "person",
-        "no_orm": false
-      },
-      {
-        "name": "project",
-        "schema": "",
-        "columns": [
-          {
-            "name": "id",
-            "type": "Int",
-            "identifier": "ID",
-            "title": "Id",
-            "max_length": 32,
-            "default_value": 0,
-            "is_optional": false,
-            "index_level": "Primary",
-            "case_insensitive": false
-          },
-          {
-            "name": "num",
-            "type": "Int",
-            "identifier": "Num",
-            "title": "Num",
-            "max_length": 32,
-            "default_value": null,
-            "is_optional": false,
-            "index_level": "Unique",
-            "case_insensitive": false
-          },
-          {
-            "name": "status_id",
-            "type": "Int",
-            "identifier": "StatusID",
-            "title": "Status Id",
-            "max_length": 32,
-            "default_value": null,
-            "is_optional": false,
-            "index_level": "None",
-            "case_insensitive": false,
-            "reference": {
-              "table": "project_status_enum",
-              "column": "id",
-              "reverse_title": "status Project",
-              "reverse_title_plural": "status Projects",
-              "reverse_identifier": "StatusProject",
-              "reverse_identifier_plural": "StatusProjects"
-            }
-          },
-          {
-            "name": "manager_id",
-            "type": "Int",
-            "identifier": "ManagerID",
-            "title": "Manager Id",
-            "max_length": 32,
-            "default_value": null,
-            "is_optional": true,
-            "index_level": "None",
-            "case_insensitive": false,
-            "reference": {
-              "table": "person",
-              "column": "id",
-              "reverse_title": "manager Project",
-              "reverse_title_plural": "manager Projects",
-              "reverse_identifier": "ManagerProject",
-              "reverse_identifier_plural": "ManagerProjects"
-            }
-          },
-          {
-            "name": "name",
-            "type": "String",
-            "identifier": "Name",
-            "title": "Name",
-            "max_length": 100,
-            "default_value": null,
-            "is_optional": false,
-            "index_level": "None",
-            "case_insensitive": false
-          },
-          {
-            "name": "description",
-            "type": "String",
-            "identifier": "Description",
-            "title": "Description",
-            "max_length": 65535,
-            "default_value": null,
-            "is_optional": true,
-            "index_level": "None",
-            "case_insensitive": false
-          },
-          {
-            "name": "start_date",
-            "type": "Time",
-            "identifier": "StartDate",
-            "title": "Start Date",
-            "max_length": 0,
-            "default_value": null,
-            "is_optional": true,
-            "index_level": "None",
-            "case_insensitive": false
-          },
-          {
-            "name": "end_date",
-            "type": "Time",
-            "identifier": "EndDate",
-            "title": "End Date",
-            "max_length": 0,
-            "default_value": null,
-            "is_optional": true,
-            "index_level": "None",
-            "case_insensitive": false
-          },
-          {
-            "name": "budget",
-            "type": "String",
-            "identifier": "Budget",
-            "title": "Budget",
-            "max_length": 3,
-            "default_value": "NULL::numeric",
-            "is_optional": true,
-            "index_level": "None",
-            "case_insensitive": false
-          },
-          {
-            "name": "spent",
-            "type": "String",
-            "identifier": "Spent",
-            "title": "Spent",
-            "max_length": 3,
-            "default_value": "NULL::numeric",
-            "is_optional": true,
-            "index_level": "None",
-            "case_insensitive": false
-          }
-        ],
-        "multi_column_indexes": null,
-        "title": "Project",
-        "title_plural": "Projects",
-        "identifier": "Project",
-        "identifier_plural": "Projects",
-        "key": "project",
-        "no_orm": false
-      },
-      {
         "name": "login",
         "schema": "",
         "columns": [
           {
             "name": "id",
-            "type": "Int",
+            "type": "AutoPrimaryKey",
             "identifier": "ID",
             "title": "Id",
-            "max_length": 32,
-            "default_value": 0,
+            "size": 0,
+            "default_value": null,
             "is_optional": false,
-            "index_level": "Primary",
+            "index_level": "None",
             "case_insensitive": false
           },
           {
             "name": "person_id",
-            "type": "Int",
+            "type": "Uint",
             "identifier": "PersonID",
             "title": "Person Id",
-            "max_length": 32,
+            "size": 0,
             "default_value": null,
             "is_optional": true,
             "index_level": "Unique",
@@ -491,29 +195,29 @@
             "type": "String",
             "identifier": "Username",
             "title": "Username",
-            "max_length": 20,
+            "size": 20,
             "default_value": null,
             "is_optional": false,
             "index_level": "Unique",
-            "case_insensitive": false
+            "case_insensitive": true
           },
           {
             "name": "password",
             "type": "String",
             "identifier": "Password",
             "title": "Password",
-            "max_length": 20,
-            "default_value": "NULL::character varying",
+            "size": 20,
+            "default_value": null,
             "is_optional": true,
             "index_level": "None",
-            "case_insensitive": false
+            "case_insensitive": true
           },
           {
             "name": "is_enabled",
             "type": "Bool",
             "identifier": "IsEnabled",
             "title": "Is Enabled",
-            "max_length": 0,
+            "size": 0,
             "default_value": true,
             "is_optional": false,
             "index_level": "None",
@@ -527,9 +231,353 @@
         "identifier_plural": "Logins",
         "key": "login",
         "no_orm": false
+      },
+      {
+        "name": "milestone",
+        "schema": "",
+        "columns": [
+          {
+            "name": "id",
+            "type": "AutoPrimaryKey",
+            "identifier": "ID",
+            "title": "Id",
+            "size": 0,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "project_id",
+            "type": "Uint",
+            "identifier": "ProjectID",
+            "title": "Project Id",
+            "size": 0,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "Indexed",
+            "case_insensitive": false,
+            "reference": {
+              "table": "project",
+              "column": "id",
+              "reverse_title": "Milestone",
+              "reverse_title_plural": "Milestones",
+              "reverse_identifier": "Milestone",
+              "reverse_identifier_plural": "Milestones"
+            }
+          },
+          {
+            "name": "name",
+            "type": "String",
+            "identifier": "Name",
+            "title": "Name",
+            "size": 50,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": true
+          }
+        ],
+        "multi_column_indexes": null,
+        "title": "Milestone",
+        "title_plural": "Milestones",
+        "identifier": "Milestone",
+        "identifier_plural": "Milestones",
+        "key": "milestone",
+        "no_orm": false
+      },
+      {
+        "name": "person",
+        "schema": "",
+        "columns": [
+          {
+            "name": "id",
+            "type": "AutoPrimaryKey",
+            "identifier": "ID",
+            "title": "Id",
+            "size": 0,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "first_name",
+            "type": "String",
+            "identifier": "FirstName",
+            "title": "First Name",
+            "size": 50,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": true
+          },
+          {
+            "name": "last_name",
+            "type": "String",
+            "identifier": "LastName",
+            "title": "Last Name",
+            "size": 50,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "Indexed",
+            "case_insensitive": true
+          }
+        ],
+        "multi_column_indexes": null,
+        "title": "Person",
+        "title_plural": "People",
+        "identifier": "Person",
+        "identifier_plural": "People",
+        "key": "person",
+        "no_orm": false
+      },
+      {
+        "name": "person_with_lock",
+        "schema": "",
+        "columns": [
+          {
+            "name": "id",
+            "type": "AutoPrimaryKey",
+            "identifier": "ID",
+            "title": "Id",
+            "size": 0,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "first_name",
+            "type": "String",
+            "identifier": "FirstName",
+            "title": "First Name",
+            "size": 50,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": true
+          },
+          {
+            "name": "last_name",
+            "type": "String",
+            "identifier": "LastName",
+            "title": "Last Name",
+            "size": 50,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": true
+          },
+          {
+            "name": "sys_timestamp",
+            "type": "Time",
+            "identifier": "SysTimestamp",
+            "title": "Sys Timestamp",
+            "size": 0,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": false
+          }
+        ],
+        "multi_column_indexes": null,
+        "title": "Person With Lock",
+        "title_plural": "Person With Locks",
+        "identifier": "PersonWithLock",
+        "identifier_plural": "PersonWithLocks",
+        "key": "person_with_lock",
+        "no_orm": false
+      },
+      {
+        "name": "project",
+        "schema": "",
+        "columns": [
+          {
+            "name": "id",
+            "type": "AutoPrimaryKey",
+            "identifier": "ID",
+            "title": "Id",
+            "size": 0,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "num",
+            "type": "Int",
+            "identifier": "Num",
+            "title": "Num",
+            "size": 0,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "Unique",
+            "case_insensitive": false
+          },
+          {
+            "name": "status_id",
+            "type": "Uint",
+            "identifier": "StatusID",
+            "title": "Status Id",
+            "size": 0,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "Indexed",
+            "case_insensitive": false,
+            "reference": {
+              "table": "project_status_enum",
+              "column": "id",
+              "reverse_title": "Status Project",
+              "reverse_title_plural": "Status Projects",
+              "reverse_identifier": "StatusProject",
+              "reverse_identifier_plural": "StatusProjects"
+            }
+          },
+          {
+            "name": "manager_id",
+            "type": "Uint",
+            "identifier": "ManagerID",
+            "title": "Manager Id",
+            "size": 0,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "Indexed",
+            "case_insensitive": false,
+            "reference": {
+              "table": "person",
+              "column": "id",
+              "reverse_title": "Manager Project",
+              "reverse_title_plural": "Manager Projects",
+              "reverse_identifier": "ManagerProject",
+              "reverse_identifier_plural": "ManagerProjects"
+            }
+          },
+          {
+            "name": "name",
+            "type": "String",
+            "identifier": "Name",
+            "title": "Name",
+            "size": 100,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": true
+          },
+          {
+            "name": "description",
+            "type": "String",
+            "identifier": "Description",
+            "title": "Description",
+            "size": 65535,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": true
+          },
+          {
+            "name": "start_date",
+            "type": "Time",
+            "identifier": "StartDate",
+            "title": "Start Date",
+            "size": 0,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "end_date",
+            "type": "Time",
+            "identifier": "EndDate",
+            "title": "End Date",
+            "size": 0,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "budget",
+            "type": "String",
+            "identifier": "Budget",
+            "title": "Budget",
+            "size": 15,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "spent",
+            "type": "String",
+            "identifier": "Spent",
+            "title": "Spent",
+            "size": 15,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": false
+          }
+        ],
+        "multi_column_indexes": null,
+        "title": "Project",
+        "title_plural": "Projects",
+        "identifier": "Project",
+        "identifier_plural": "Projects",
+        "key": "project",
+        "no_orm": false
       }
     ],
     "enum_tables": [
+      {
+        "name": "person_type_enum",
+        "schema": "",
+        "fields": [
+          {
+            "Name": "id",
+            "Title": "Ids",
+            "TitlePlural": "",
+            "Identifier": "ID",
+            "IdentifierPlural": "IDs",
+            "Type": "AutoPrimaryKey"
+          },
+          {
+            "Name": "name",
+            "Title": "Names",
+            "TitlePlural": "",
+            "Identifier": "Name",
+            "IdentifierPlural": "Names",
+            "Type": "String"
+          }
+        ],
+        "values": [
+          [
+            1,
+            "Contractor"
+          ],
+          [
+            2,
+            "Manager"
+          ],
+          [
+            3,
+            "Inactive"
+          ],
+          [
+            4,
+            "Company Car"
+          ],
+          [
+            5,
+            "Works From Home"
+          ]
+        ],
+        "title": "Person Type",
+        "title_plural": "Person Types",
+        "identifier": "PersonType",
+        "identifier_plural": "PersonTypes"
+      },
       {
         "name": "project_status_enum",
         "schema": "",
@@ -540,7 +588,7 @@
             "TitlePlural": "",
             "Identifier": "ID",
             "IdentifierPlural": "IDs",
-            "Type": "Int"
+            "Type": "AutoPrimaryKey"
           },
           {
             "Name": "name",
@@ -609,57 +657,25 @@
         "title_plural": "Project Statuses",
         "identifier": "ProjectStatus",
         "identifier_plural": "ProjectStatuses"
-      },
-      {
-        "name": "person_type_enum",
-        "schema": "",
-        "fields": [
-          {
-            "Name": "id",
-            "Title": "Ids",
-            "TitlePlural": "",
-            "Identifier": "ID",
-            "IdentifierPlural": "IDs",
-            "Type": "Int"
-          },
-          {
-            "Name": "name",
-            "Title": "Names",
-            "TitlePlural": "",
-            "Identifier": "Name",
-            "IdentifierPlural": "Names",
-            "Type": "String"
-          }
-        ],
-        "values": [
-          [
-            1,
-            "Contractor"
-          ],
-          [
-            2,
-            "Manager"
-          ],
-          [
-            3,
-            "Inactive"
-          ],
-          [
-            4,
-            "Company Car"
-          ],
-          [
-            5,
-            "Works From Home"
-          ]
-        ],
-        "title": "Person Type",
-        "title_plural": "Person Types",
-        "identifier": "PersonType",
-        "identifier_plural": "PersonTypes"
       }
     ],
     "association_tables": [
+      {
+        "name": "person_persontype_assn",
+        "schema": "",
+        "table1": "person",
+        "column1": "person_id",
+        "title1": "Person",
+        "title1_plural": "people",
+        "identifier1": "Person",
+        "identifier1_plural": "People",
+        "table2": "person_type_enum",
+        "column2": "person_type_id",
+        "title2": "Person Type",
+        "title2_plural": "Person Types",
+        "identifier2": "PersonType",
+        "identifier2_plural": "PersonTypes"
+      },
       {
         "name": "related_project_assn",
         "schema": "",
@@ -691,23 +707,843 @@
         "title2_plural": "Projects",
         "identifier2": "Project",
         "identifier2_plural": "Projects"
-      },
-      {
-        "name": "person_persontype_assn",
-        "schema": "",
-        "table1": "person",
-        "column1": "person_id",
-        "title1": "Person",
-        "title1_plural": "people",
-        "identifier1": "Person",
-        "identifier1_plural": "People",
-        "table2": "person_type_enum",
-        "column2": "person_type_id",
-        "title2": "Person Type",
-        "title2_plural": "Person Types",
-        "identifier2": "PersonType",
-        "identifier2_plural": "PersonTypes"
       }
     ]
+  },
+  {
+    "key": "goradd_unit",
+    "package": "goraddunit",
+    "reference_suffix": "_id",
+    "enum_table_suffix": "_enum",
+    "assn_table_suffix": "_assn",
+    "tables": [
+      {
+        "name": "double_index",
+        "schema": "",
+        "columns": [
+          {
+            "name": "id",
+            "type": "Int",
+            "identifier": "ID",
+            "title": "Id",
+            "size": 0,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "Primary",
+            "case_insensitive": false
+          },
+          {
+            "name": "field_int",
+            "type": "Int",
+            "identifier": "FieldInt",
+            "title": "Field Int",
+            "size": 0,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "field_string",
+            "type": "String",
+            "identifier": "FieldString",
+            "title": "Field String",
+            "size": 50,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": true
+          }
+        ],
+        "multi_column_indexes": [
+          {
+            "columns": [
+              "field_int",
+              "field_string"
+            ],
+            "is_unique": true
+          }
+        ],
+        "title": "Double Index",
+        "title_plural": "Double Indices",
+        "identifier": "DoubleIndex",
+        "identifier_plural": "DoubleIndices",
+        "key": "double_index",
+        "no_orm": false
+      },
+      {
+        "name": "forward_cascade",
+        "schema": "",
+        "columns": [
+          {
+            "name": "id",
+            "type": "AutoPrimaryKey",
+            "identifier": "ID",
+            "title": "Id",
+            "size": 0,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "name",
+            "type": "String",
+            "identifier": "Name",
+            "title": "Name",
+            "size": 100,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": true
+          },
+          {
+            "name": "reverse_id",
+            "type": "Int",
+            "identifier": "ReverseID",
+            "title": "Reverse Id",
+            "size": 0,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "Indexed",
+            "case_insensitive": false,
+            "reference": {
+              "table": "reverse",
+              "column": "id",
+              "reverse_title": "Forward Cascade",
+              "reverse_title_plural": "Forward Cascades",
+              "reverse_identifier": "ForwardCascade",
+              "reverse_identifier_plural": "ForwardCascades"
+            }
+          }
+        ],
+        "multi_column_indexes": null,
+        "title": "Forward Cascade",
+        "title_plural": "Forward Cascades",
+        "identifier": "ForwardCascade",
+        "identifier_plural": "ForwardCascades",
+        "key": "forward_cascade",
+        "no_orm": false
+      },
+      {
+        "name": "forward_cascade_unique",
+        "schema": "",
+        "columns": [
+          {
+            "name": "id",
+            "type": "AutoPrimaryKey",
+            "identifier": "ID",
+            "title": "Id",
+            "size": 0,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "name",
+            "type": "String",
+            "identifier": "Name",
+            "title": "Name",
+            "size": 100,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": true
+          },
+          {
+            "name": "reverse_id",
+            "type": "Int",
+            "identifier": "ReverseID",
+            "title": "Reverse Id",
+            "size": 0,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "Unique",
+            "case_insensitive": false,
+            "reference": {
+              "table": "reverse",
+              "column": "id",
+              "reverse_title": "Forward Cascade Unique",
+              "reverse_identifier": "ForwardCascadeUnique"
+            }
+          }
+        ],
+        "multi_column_indexes": null,
+        "title": "Forward Cascade Unique",
+        "title_plural": "Forward Cascade Uniques",
+        "identifier": "ForwardCascadeUnique",
+        "identifier_plural": "ForwardCascadeUniques",
+        "key": "forward_cascade_unique",
+        "no_orm": false
+      },
+      {
+        "name": "forward_null",
+        "schema": "",
+        "columns": [
+          {
+            "name": "id",
+            "type": "AutoPrimaryKey",
+            "identifier": "ID",
+            "title": "Id",
+            "size": 0,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "name",
+            "type": "String",
+            "identifier": "Name",
+            "title": "Name",
+            "size": 100,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": true
+          },
+          {
+            "name": "reverse_id",
+            "type": "Int",
+            "identifier": "ReverseID",
+            "title": "Reverse Id",
+            "size": 0,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "Indexed",
+            "case_insensitive": false,
+            "reference": {
+              "table": "reverse",
+              "column": "id",
+              "reverse_title": "Forward Null",
+              "reverse_title_plural": "Forward Nulls",
+              "reverse_identifier": "ForwardNull",
+              "reverse_identifier_plural": "ForwardNulls"
+            }
+          }
+        ],
+        "multi_column_indexes": null,
+        "title": "Forward Null",
+        "title_plural": "Forward Nulls",
+        "identifier": "ForwardNull",
+        "identifier_plural": "ForwardNulls",
+        "key": "forward_null",
+        "no_orm": false
+      },
+      {
+        "name": "forward_null_unique",
+        "schema": "",
+        "columns": [
+          {
+            "name": "id",
+            "type": "AutoPrimaryKey",
+            "identifier": "ID",
+            "title": "Id",
+            "size": 0,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "name",
+            "type": "String",
+            "identifier": "Name",
+            "title": "Name",
+            "size": 100,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": true
+          },
+          {
+            "name": "reverse_id",
+            "type": "Int",
+            "identifier": "ReverseID",
+            "title": "Reverse Id",
+            "size": 0,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "Unique",
+            "case_insensitive": false,
+            "reference": {
+              "table": "reverse",
+              "column": "id",
+              "reverse_title": "Forward Null Unique",
+              "reverse_identifier": "ForwardNullUnique"
+            }
+          }
+        ],
+        "multi_column_indexes": null,
+        "title": "Forward Null Unique",
+        "title_plural": "Forward Null Uniques",
+        "identifier": "ForwardNullUnique",
+        "identifier_plural": "ForwardNullUniques",
+        "key": "forward_null_unique",
+        "no_orm": false
+      },
+      {
+        "name": "forward_restrict",
+        "schema": "",
+        "columns": [
+          {
+            "name": "id",
+            "type": "AutoPrimaryKey",
+            "identifier": "ID",
+            "title": "Id",
+            "size": 0,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "name",
+            "type": "String",
+            "identifier": "Name",
+            "title": "Name",
+            "size": 100,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": true
+          },
+          {
+            "name": "reverse_id",
+            "type": "Int",
+            "identifier": "ReverseID",
+            "title": "Reverse Id",
+            "size": 0,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "Indexed",
+            "case_insensitive": false,
+            "reference": {
+              "table": "reverse",
+              "column": "id",
+              "reverse_title": "Forward Restrict",
+              "reverse_title_plural": "Forward Restricts",
+              "reverse_identifier": "ForwardRestrict",
+              "reverse_identifier_plural": "ForwardRestricts"
+            }
+          }
+        ],
+        "multi_column_indexes": null,
+        "title": "Forward Restrict",
+        "title_plural": "Forward Restricts",
+        "identifier": "ForwardRestrict",
+        "identifier_plural": "ForwardRestricts",
+        "key": "forward_restrict",
+        "no_orm": false
+      },
+      {
+        "name": "forward_restrict_unique",
+        "schema": "",
+        "columns": [
+          {
+            "name": "id",
+            "type": "AutoPrimaryKey",
+            "identifier": "ID",
+            "title": "Id",
+            "size": 0,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "name",
+            "type": "String",
+            "identifier": "Name",
+            "title": "Name",
+            "size": 100,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": true
+          },
+          {
+            "name": "reverse_id",
+            "type": "Int",
+            "identifier": "ReverseID",
+            "title": "Reverse Id",
+            "size": 0,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "Unique",
+            "case_insensitive": false,
+            "reference": {
+              "table": "reverse",
+              "column": "id",
+              "reverse_title": "Forward Restrict Unique",
+              "reverse_identifier": "ForwardRestrictUnique"
+            }
+          }
+        ],
+        "multi_column_indexes": null,
+        "title": "Forward Restrict Unique",
+        "title_plural": "Forward Restrict Uniques",
+        "identifier": "ForwardRestrictUnique",
+        "identifier_plural": "ForwardRestrictUniques",
+        "key": "forward_restrict_unique",
+        "no_orm": false
+      },
+      {
+        "name": "reverse",
+        "schema": "",
+        "columns": [
+          {
+            "name": "id",
+            "type": "AutoPrimaryKey",
+            "identifier": "ID",
+            "title": "Id",
+            "size": 0,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "name",
+            "type": "String",
+            "identifier": "Name",
+            "title": "Name",
+            "size": 100,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": true
+          }
+        ],
+        "multi_column_indexes": null,
+        "title": "Reverse",
+        "title_plural": "Reverses",
+        "identifier": "Reverse",
+        "identifier_plural": "Reverses",
+        "key": "reverse",
+        "no_orm": false
+      },
+      {
+        "name": "two_key",
+        "schema": "",
+        "columns": [
+          {
+            "name": "server",
+            "type": "String",
+            "identifier": "Server",
+            "title": "Server",
+            "size": 50,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "Primary",
+            "case_insensitive": true
+          },
+          {
+            "name": "directory",
+            "type": "String",
+            "identifier": "Directory",
+            "title": "Directory",
+            "size": 50,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "Primary",
+            "case_insensitive": true
+          },
+          {
+            "name": "file_name",
+            "type": "String",
+            "identifier": "FileName",
+            "title": "File Name",
+            "size": 50,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": true
+          }
+        ],
+        "multi_column_indexes": [
+          {
+            "columns": [
+              "directory",
+              "server"
+            ],
+            "is_unique": true
+          }
+        ],
+        "title": "Two Key",
+        "title_plural": "Two Keys",
+        "identifier": "TwoKey",
+        "identifier_plural": "TwoKeys",
+        "key": "two_key",
+        "no_orm": false
+      },
+      {
+        "name": "type_test",
+        "schema": "",
+        "columns": [
+          {
+            "name": "id",
+            "type": "AutoPrimaryKey",
+            "identifier": "ID",
+            "title": "Id",
+            "size": 64,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "date",
+            "type": "Time",
+            "identifier": "Date",
+            "title": "Date",
+            "size": 0,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "time",
+            "type": "Time",
+            "identifier": "Time",
+            "title": "Time",
+            "size": 0,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "date_time",
+            "type": "Time",
+            "identifier": "DateTime",
+            "title": "Date Time",
+            "size": 0,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "ts",
+            "type": "Time",
+            "identifier": "Ts",
+            "title": "Ts",
+            "size": 0,
+            "default_value": "now",
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "test_int",
+            "type": "Int",
+            "identifier": "TestInt",
+            "title": "Test Int",
+            "size": 0,
+            "default_value": 5,
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "test_float",
+            "type": "Float",
+            "identifier": "TestFloat",
+            "title": "Test Float",
+            "size": 32,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "test_double",
+            "type": "Float",
+            "identifier": "TestDouble",
+            "title": "Test Double",
+            "size": 64,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "test_text",
+            "type": "String",
+            "identifier": "TestText",
+            "title": "Test Text",
+            "size": 65535,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": true
+          },
+          {
+            "name": "test_bit",
+            "type": "Bool",
+            "identifier": "TestBit",
+            "title": "Test Bit",
+            "size": 0,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "test_varchar",
+            "type": "String",
+            "identifier": "TestVarchar",
+            "title": "Test Varchar",
+            "size": 10,
+            "default_value": null,
+            "is_optional": true,
+            "index_level": "None",
+            "case_insensitive": true
+          },
+          {
+            "name": "test_blob",
+            "type": "Bytes",
+            "identifier": "TestBlob",
+            "title": "Test Blob",
+            "size": 65535,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          }
+        ],
+        "multi_column_indexes": null,
+        "title": "Type Test",
+        "title_plural": "Type Tests",
+        "identifier": "TypeTest",
+        "identifier_plural": "TypeTests",
+        "key": "type_test",
+        "no_orm": false
+      },
+      {
+        "name": "unsupported_type",
+        "schema": "",
+        "columns": [
+          {
+            "name": "type_serial",
+            "type": "AutoPrimaryKey",
+            "identifier": "TypeSerial",
+            "title": "Type Serial",
+            "size": 64,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "type_set",
+            "type": "String",
+            "identifier": "TypeSet",
+            "title": "Type Set",
+            "size": 5,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": true
+          },
+          {
+            "name": "type_enum",
+            "type": "String",
+            "identifier": "TypeEnum",
+            "title": "Type Enum",
+            "size": 1,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": true
+          },
+          {
+            "name": "type_decimal",
+            "type": "String",
+            "identifier": "TypeDecimal",
+            "title": "Type Decimal",
+            "size": 13,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "type_double",
+            "type": "Float",
+            "identifier": "TypeDouble",
+            "title": "Type Double",
+            "size": 64,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "type_geo",
+            "type": "Unknown",
+            "identifier": "TypeGeo",
+            "title": "Type Geo",
+            "size": 0,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "type_tiny_blob",
+            "type": "Bytes",
+            "identifier": "TypeTinyBlob",
+            "title": "Type Tiny Blob",
+            "size": 255,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "type_medium_blob",
+            "type": "Bytes",
+            "identifier": "TypeMediumBlob",
+            "title": "Type Medium Blob",
+            "size": 16777215,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "type_varbinary",
+            "type": "Unknown",
+            "identifier": "TypeVarbinary",
+            "title": "Type Varbinary",
+            "size": 0,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "type_longtext",
+            "type": "String",
+            "identifier": "TypeLongtext",
+            "title": "Type Longtext",
+            "size": 4294967295,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": true
+          },
+          {
+            "name": "type_binary",
+            "type": "Unknown",
+            "identifier": "TypeBinary",
+            "title": "Type Binary",
+            "size": 0,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "type_small",
+            "type": "Int",
+            "identifier": "TypeSmall",
+            "title": "Type Small",
+            "size": 16,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "type_medium",
+            "type": "Int",
+            "identifier": "TypeMedium",
+            "title": "Type Medium",
+            "size": 32,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "type_big",
+            "type": "Int",
+            "identifier": "TypeBig",
+            "title": "Type Big",
+            "size": 64,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "type_polygon",
+            "type": "Unknown",
+            "identifier": "TypePolygon",
+            "title": "Type Polygon",
+            "size": 0,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "type_unsigned",
+            "type": "Uint",
+            "identifier": "TypeUnsigned",
+            "title": "Type Unsigned",
+            "size": 0,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": false
+          },
+          {
+            "name": "type_multFk1",
+            "type": "String",
+            "identifier": "TypeMultfk1",
+            "title": "Type Mult Fk1",
+            "size": 50,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": true
+          },
+          {
+            "name": "type_multiFk2",
+            "type": "String",
+            "identifier": "TypeMultifk2",
+            "title": "Type Multi Fk2",
+            "size": 50,
+            "default_value": null,
+            "is_optional": false,
+            "index_level": "None",
+            "case_insensitive": true
+          }
+        ],
+        "multi_column_indexes": [
+          {
+            "columns": [
+              "type_multFk1",
+              "type_multiFk2"
+            ],
+            "is_unique": false
+          }
+        ],
+        "title": "Unsupported Type",
+        "title_plural": "Unsupported Types",
+        "identifier": "UnsupportedType",
+        "identifier_plural": "UnsupportedTypes",
+        "key": "unsupported_type",
+        "no_orm": false
+      }
+    ],
+    "enum_tables": null,
+    "association_tables": null
   }
 ]

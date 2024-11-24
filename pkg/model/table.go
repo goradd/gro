@@ -107,9 +107,10 @@ func (t *Table) HasGetterName(name string) (hasName bool, desc string) {
 
 // newTable will import the table provided by tableSchema.
 func newTable(dbKey string, tableSchema *schema.Table) *Table {
+	queryName := strings2.If(tableSchema.Schema == "", tableSchema.Name, tableSchema.Schema+"."+tableSchema.Name)
 	t := &Table{
 		DbKey:            dbKey,
-		QueryName:        tableSchema.Name,
+		QueryName:        queryName,
 		Title:            tableSchema.Title,
 		TitlePlural:      tableSchema.TitlePlural,
 		Identifier:       tableSchema.Identifier,
@@ -120,7 +121,7 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 	t.DecapIdentifier = strings2.Decap(tableSchema.Identifier)
 
 	if t.Identifier == t.IdentifierPlural {
-		slog.Warn("Table skipped: table " + t.QueryName + " is using a plural name. Change it to a singular name or assign a singular and plural go name in the comments.")
+		slog.Warn("Table skipped: table " + t.QueryName + " is using a plural name.")
 		return nil
 	}
 
@@ -132,8 +133,7 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 		if newCol.IsPk {
 			pkCount++
 			if pkCount > 1 {
-				slog.Warn("table " + t.QueryName + " has a multi-column primary key.")
-				return nil
+				slog.Warn("Table " + t.QueryName + " has a multi-column primary key. A multi-column unique index with a single column primary key is prefered.")
 			}
 		}
 		if schemaCol.IndexLevel != schema.IndexLevelNone {

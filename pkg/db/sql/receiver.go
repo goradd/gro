@@ -393,3 +393,15 @@ func (r SqlReceiver) UnpackDefaultValue(typ schema.ColumnType, size int) interfa
 		return r.R
 	}
 }
+
+func parseTime(s string) interface{} {
+	if s == "NULL" {
+		return nil
+	}
+	u := strings.ToUpper(s)
+	if strings2.StartsWith(u, "CURRENT_TIMESTAMP") {
+		return "now"
+	}
+	return ParseTime(s)
+	// TODO: SQL Lite, may return an int or float. Not sure we can support these.
+}

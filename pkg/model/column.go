@@ -142,8 +142,8 @@ func newColumn(schemaCol *schema.Column) *Column {
 	col := &Column{
 		QueryName:    schemaCol.Name,
 		Identifier:   schemaCol.Identifier,
-		Type:         ReceiverTypeFromSchema(schemaCol.Type, schemaCol.MaxLength),
-		MaxLength:    schemaCol.MaxLength,
+		Type:         ReceiverTypeFromSchema(schemaCol.Type, schemaCol.Size),
+		MaxLength:    schemaCol.Size,
 		DefaultValue: schemaCol.DefaultValue,
 		IsAutoId:     schemaCol.Type == schema.ColTypeAutoPrimaryKey,
 		IsPk:         schemaCol.Type == schema.ColTypeAutoPrimaryKey || schemaCol.IndexLevel == schema.IndexLevelManualPrimaryKey,

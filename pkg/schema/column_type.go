@@ -8,7 +8,7 @@ import "encoding/json"
 // puts limitations on what kinds of data can be represented and how it is stored.
 // The ORM provides some flexibility by allowing each column to specify its database
 // type, while also specifying its Go type by using a combination of the DatabaseType,
-// VariableType and MaxLength fields as described below.
+// VariableType and Size fields as described below.
 //
 // # ColTypeUnknown
 //
@@ -32,7 +32,7 @@ import "encoding/json"
 // # ColTypeString
 //
 // ColTypeString is always represented as a string in Go, but may have a variety of representations in
-// the database depending on the MaxSize value and the database. If a Column.MaxLength is set,
+// the database depending on the MaxSize value and the database. If a Column.Size is set,
 // the generated code will truncate strings to this number of runes before sending it to the database.
 //
 // Postgres doc states the TEXT type is the fastest and most efficient text storage type,
@@ -49,7 +49,7 @@ import "encoding/json"
 //
 // These integer column types will be represented in Go as int or uint, and in the database as a
 // 32-bit integer or unsigned integer by default. To specifically set the storage size, specify either
-// 8, 16, 32 or 64 in the MaxLength value, and the corresponding Go type will be used, as well as
+// 8, 16, 32 or 64 in the Size value, and the corresponding Go type will be used, as well as
 // the corresponding type in the database. Not all databases support 8-bit integers. Check
 // your database vendor to be sure.
 //
@@ -59,9 +59,12 @@ import "encoding/json"
 // in the database, and when read back from the database, will initially be in UTC time.
 // Usually this is what is wanted, since it allows times from different timezones to be correctly
 // sorted, and javascript and other libraries are capable of converting UTC time to local
-// time in the client locale for display purposes. MySQL will store the value as a DateTime and not
-// a Timestamp, since Timestamps are assumed to be in server local time and not UTC time and get time shifted
+// time in the client locale for display purposes.
+// MySQL will store the value as a DateTime and not a Timestamp, since Timestamps are assumed
+// to be in server local time and not UTC time and get time shifted
 // in transit. Postgres uses Timestamp without timezone (which is the default).
+// When specifying a default time, enter a Go time.Time type, or the string "now" to have
+// the ORM set it to the time the object was created.
 //
 // # ColTypeFloat
 //
