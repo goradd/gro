@@ -20,8 +20,7 @@ func FromSchemas(schemas []*schema.Database) (dbs Model) {
 
 func FromSchema(s *schema.Database) *Database {
 	d := Database{
-		DbKey:           s.Key,
-		Package:         s.Package,
+		Key:             s.Key,
 		ReferenceSuffix: s.ReferenceSuffix,
 		EnumTableSuffix: s.EnumTableSuffix,
 		AssnTableSuffix: s.AssnTableSuffix,
@@ -34,9 +33,7 @@ func FromSchema(s *schema.Database) *Database {
 // It is used in code generation and query creation.
 type Database struct {
 	// The database key corresponding to its key in the global database cluster
-	DbKey string
-	// The package name and directory name that holds the orm
-	Package string
+	Key string
 	// Tables are the tables in the database, keyed by database table name
 	Tables map[string]*Table
 	// EnumTables contains a description of the enumerated types from the enum tables in the database, keyed by database table name
@@ -66,7 +63,7 @@ func (m *Database) importSchema(schema *schema.Database) {
 
 	// get the regular tables
 	for _, table := range schema.Tables {
-		t := newTable(m.DbKey, table)
+		t := newTable(m.Key, table)
 		if t != nil {
 			m.Tables[t.QueryName] = t
 		}

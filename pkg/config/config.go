@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/go-sql-driver/mysql"
 	"github.com/goradd/goradd/pkg/log"
+	"github.com/goradd/strings"
 	"github.com/jackc/pgx/v5"
 	"os"
 	"spekary/goradd/orm/pkg/db"
@@ -74,6 +75,10 @@ func OpenConfigFile(path string) (databaseConfigs []map[string]any, err error) {
 		key := dbConfig["key"].(string)
 		if key == "" {
 			err = fmt.Errorf(`missing "key" value for database %d`, i)
+			return
+		}
+		if strings.IsSnake(key) {
+			err = fmt.Errorf(`"key" value "%s" must be lower_snake_case`, key)
 			return
 		}
 	}

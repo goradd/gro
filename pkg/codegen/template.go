@@ -6,12 +6,12 @@ import (
 )
 
 type Template interface {
-	FileName() string
+	FileName(string) string
 	Overwrite() bool
 }
 
 type DatabaseGenerator interface {
-	GenerateDatabase(*model.Database, io.Writer)
+	GenerateDatabase(*model.Database, io.Writer) error
 }
 
 type TableGenerator interface {

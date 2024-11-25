@@ -7,6 +7,7 @@ import (
 	"spekary/goradd/orm/pkg/model"
 	"io"
 	"fmt"
+	"path/filepath"
 )
 
 func init() {
@@ -15,11 +16,12 @@ func init() {
 
 type DbTemplate struct {}
 
-func (n DbTemplate) FileName() string {
-	return "db.go"
+func (n DbTemplate) FileName(dbKey string) string {
+	return filepath.Join(dbKey, "orm","db.go")
 }
 
 func (n DbTemplate) GenerateDatabase(database *model.Database, _w io.Writer) (err error) {
+    packageName := "orm"
 	{{: "db/db.tmpl" }}
 	return
 }
