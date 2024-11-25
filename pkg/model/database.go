@@ -21,6 +21,7 @@ func FromSchemas(schemas []*schema.Database) (dbs Model) {
 func FromSchema(s *schema.Database) *Database {
 	d := Database{
 		DbKey:           s.Key,
+		Package:         s.Package,
 		ReferenceSuffix: s.ReferenceSuffix,
 		EnumTableSuffix: s.EnumTableSuffix,
 		AssnTableSuffix: s.AssnTableSuffix,
@@ -34,6 +35,8 @@ func FromSchema(s *schema.Database) *Database {
 type Database struct {
 	// The database key corresponding to its key in the global database cluster
 	DbKey string
+	// The package name and directory name that holds the orm
+	Package string
 	// Tables are the tables in the database, keyed by database table name
 	Tables map[string]*Table
 	// EnumTables contains a description of the enumerated types from the enum tables in the database, keyed by database table name

@@ -13,7 +13,7 @@ type LimitInfo struct {
 	Offset      int
 }
 
-// QueryBuilder is a helper to implement the QueryBuilderI interface in various builder classes.
+// QueryBuilder is a mix-in to help implement the QueryBuilderI interface in various builder classes.
 // It is designed to be embedded in a database specific implementation.
 // It gathers the builder instructions as the query is built. It leaves the implementation
 // of the functions that actually query a database -- Load, Delete, Count -- to the containing structure.

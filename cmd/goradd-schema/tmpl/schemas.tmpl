@@ -1,9 +1,0 @@
-{{
-package {{= package}}
-
-var Schemas map[string]*schema.Database
-
-    {{for _,database := range schemas}}
-        {{include "db.tmpl" }}
-    {{for}}
-}}

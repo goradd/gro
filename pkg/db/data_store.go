@@ -3,17 +3,15 @@ package db
 import (
 	"context"
 	"github.com/goradd/maps"
+	"iter"
 	. "spekary/goradd/orm/pkg/query"
 	"spekary/goradd/orm/pkg/schema"
-	"unicode"
 )
 
 type DatabaseMap = maps.SliceMap[string, DatabaseI]
 
 // The dataStore is the central database collection used in code generation and the orm.
-var datastore struct {
-	databases *DatabaseMap
-}
+var datastore *DatabaseMap
 
 type TransactionID int
 
@@ -58,27 +56,21 @@ type DatabaseI interface {
 
 // AddDatabase adds a database to the global database store. Only call this during app startup.
 func AddDatabase(d DatabaseI, key string) {
-	for _, r := range key {
-		if !unicode.IsLetter(r) {
-			panic("database keys can only have letters in them. Please change " + key)
-		}
+	if datastore == nil {
+		datastore = new(DatabaseMap)
 	}
 
-	if datastore.databases == nil {
-		datastore.databases = new(DatabaseMap)
-	}
-
-	datastore.databases.Set(key, d)
+	datastore.Set(key, d)
 }
 
 // GetDatabase returns the database given the database's key.
 func GetDatabase(key string) DatabaseI {
-	return datastore.databases.Get(key)
+	return datastore.Get(key)
 }
 
-// GetDatabases returns all databases in the datastore
-func GetDatabases() []DatabaseI {
-	return datastore.databases.Values()
+// DatabaseIter returns an iterator over the databases in key order.
+func DatabaseIter() iter.Seq2[string, DatabaseI] {
+	return datastore.All()
 }
 
 // NewContext returns a new context with the database contexts inserted into the given
@@ -86,14 +78,11 @@ func GetDatabases() []DatabaseI {
 //
 // A database context is required by the various database calls to track results
 // and transactions.
-// Normally you would use the Goradd context passed to you by the Web server, but
-// in situations where you do not have that, like in independent go routines or unit
-// tests, you can call this so that you can access the databases.
 func NewContext(ctx context.Context) context.Context {
 	if ctx == nil {
 		ctx = context.Background()
 	}
-	for _, d := range GetDatabases() {
+	for _, d := range DatabaseIter() {
 		ctx = d.NewContext(ctx)
 	}
 	return ctx

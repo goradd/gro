@@ -1,0 +1,30 @@
+package template
+
+// This template generates a got template for the db.go file in the orm directory
+
+import (
+	"spekary/goradd/orm/pkg/codegen"
+	"spekary/goradd/orm/pkg/model"
+	"io"
+	"fmt"
+)
+
+func init() {
+	codegen.RegisterTemplate(new(DbTemplate))
+}
+
+type DbTemplate struct {}
+
+func (n DbTemplate) FileName() string {
+	return "db.go"
+}
+
+func (n DbTemplate) GenerateDatabase(database *model.Database, _w io.Writer) (err error) {
+	{{: "db/db.tmpl" }}
+	return
+}
+
+func (n DbTemplate) Overwrite() bool {
+	return true
+}
+

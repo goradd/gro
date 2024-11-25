@@ -16,7 +16,7 @@ type ConfigFormat struct {
 	Databases []map[string]any `json:"databases"`
 }
 
-func DatabaseFromConfig(config map[string]any) (database db.DatabaseI, err error) {
+func NewDatabase(config map[string]any) (database db.DatabaseI, err error) {
 	typ := config["type"].(string)
 	if typ == "" {
 		log.Error(`missing "type" value for database `)
@@ -78,4 +78,15 @@ func OpenConfigFile(path string) (databaseConfigs []map[string]any, err error) {
 		}
 	}
 	return
+}
+
+func InitDatastore(configs []map[string]interface{}) error {
+	for _, c := range configs {
+		db2, err := NewDatabase(c)
+		if err != nil {
+			return err
+		}
+		db.AddDatabase(db2, c["key"].(string))
+	}
+	return nil
 }

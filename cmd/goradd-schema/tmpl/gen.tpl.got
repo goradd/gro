@@ -1,5 +1,0 @@
-package tmpl
-
-func Generate(schemas []*schema.Database, package string, _w io.Writer) {
-    {{include "schemas.tmpl"}}
-}
