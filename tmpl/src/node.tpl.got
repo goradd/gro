@@ -1,0 +1,31 @@
+package template
+
+import (
+	"io"
+	"fmt"
+	"spekary/goradd/orm/pkg/codegen"
+	"spekary/goradd/orm/pkg/model"
+	"path/filepath"
+
+)
+
+func init() {
+	codegen.RegisterTemplate(new(NodeTemplate))
+}
+
+type NodeTemplate struct {
+}
+
+func (n *NodeTemplate) FileName(table *model.Table) string {
+    return filepath.Join(table.DbKey, "orm","node",table.FileName())
+}
+
+func (n *NodeTemplate) GenerateTable(table *model.Table, _w io.Writer) (err error) {
+    return n.gen(table, _w)
+}
+
+func (n *NodeTemplate) Overwrite() bool {
+	return true
+}
+
+{{: "node/node.tmpl" }}

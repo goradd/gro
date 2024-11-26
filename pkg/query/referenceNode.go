@@ -24,9 +24,9 @@ type ReferenceNode struct {
 	nodeLink
 	// Which database in the global list of databases does the node belong to
 	dbKey string
-	// Name of table in the database we point to
+	// QueryName of table in the database we point to
 	dbTable string
-	// The name of the table that is the foreign key
+	// The name of the unique column in dbTable that is the foreign key
 	dbColumn string
 	// The name of the table related to this reference
 	goColumnName string
@@ -52,7 +52,7 @@ func NewReferenceNode(
 	goColumnName string,
 	goName string,
 	refTableName string,
-	refColumn string, // only used in NoSQL situation
+	refColumn string,
 	isEnum bool,
 	goType ReceiverType,
 ) *ReferenceNode {

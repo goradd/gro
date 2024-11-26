@@ -73,7 +73,7 @@ func (m *ManyManyReference) PrimaryKey() string {
 	if m.DestinationTable != nil {
 		return m.DestinationTable.PrimaryKeyColumn().QueryName
 	} else {
-		return m.DestinationEnumTable.Fields[0].Name
+		return m.DestinationEnumTable.Fields[0].QueryName
 	}
 }
 

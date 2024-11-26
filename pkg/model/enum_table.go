@@ -31,6 +31,15 @@ type EnumTable struct {
 	Constants map[int]string
 }
 
+// PkQueryName returns the name of the primary key field as used in database queries.
+func (tt *EnumTable) PkQueryName() string {
+	return tt.FieldQueryName(0)
+}
+
+func (tt *EnumTable) FieldQueryName(i int) string {
+	return tt.Fields[i].QueryName
+}
+
 // FieldIdentifier returns the go name corresponding to the given field offset
 func (tt *EnumTable) FieldIdentifier(i int) string {
 	return tt.Fields[i].Identifier
@@ -68,7 +77,7 @@ func newEnumTable(ets *schema.EnumTable) *EnumTable {
 
 	for _, field := range ets.Fields {
 		f := EnumField{
-			Name:             field.Name,
+			QueryName:        field.Name,
 			Title:            field.Title,
 			TitlePlural:      field.TitlePlural,
 			Identifier:       field.Identifier,
@@ -84,16 +93,16 @@ func newEnumTable(ets *schema.EnumTable) *EnumTable {
 		if !ok {
 			panic("first column of enum table must be an integer")
 		}
-		valueMap[t.Fields[0].Name] = key
+		valueMap[t.Fields[0].QueryName] = key
 		value, ok := row[1].(string)
 		if !ok {
 			panic("second column of enum table must be a string")
 		}
-		valueMap[t.Fields[1].Name] = value
+		valueMap[t.Fields[1].QueryName] = value
 		t.Constants[key] = enumValueToConstant(t.Identifier, value)
 
 		for i, val := range row[2:] {
-			valueMap[t.Fields[i+2].Name] = val
+			valueMap[t.Fields[i+2].QueryName] = val
 		}
 	}
 	return t
@@ -105,11 +114,11 @@ func enumValueToConstant(prefix string, v string) string {
 }
 
 type EnumField struct {
-	// Name is the name of the field in the database.
+	// QueryName is the name of the field in the database.
 	// The name of the first field is typically "id" by convention.
 	// The name of the second field must be "name".
 	// The name of the following fields is up to you, but should be lower_snake_case.
-	Name string
+	QueryName string
 	// Title is the title of the data stored in the field.
 	Title string
 	// TitlePlural is the plural form of the Title.

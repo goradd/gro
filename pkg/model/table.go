@@ -38,7 +38,7 @@ type Table struct {
 }
 
 func (t *Table) PrimaryKeyColumn() *Column {
-	if len(t.Columns) == 0 {
+	if len(t.Columns) != 1 {
 		return nil
 	}
 	if !t.Columns[0].IsPk {
@@ -55,13 +55,6 @@ func (t *Table) PrimaryKeyGoType() string {
 // or nil if not found.
 func (t *Table) ColumnByName(name string) *Column {
 	return t.columnMap[name]
-}
-
-// DefaultHtmlID is the default id of corresponding form object when used in generated HTML.
-func (t *Table) DefaultHtmlID() string {
-	defaultID := snaker.CamelToSnake(t.Identifier)
-	defaultID = strings2.SnakeToKebab(defaultID)
-	return defaultID
 }
 
 // FileName is the base name of generated file names that correspond to this database table.
@@ -128,6 +121,7 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 	var pkCount int
 	for _, schemaCol := range tableSchema.Columns {
 		newCol := newColumn(schemaCol)
+		newCol.Table = t
 		t.Columns = append(t.Columns, newCol)
 		t.columnMap[newCol.QueryName] = newCol
 		if newCol.IsPk {

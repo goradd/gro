@@ -57,14 +57,20 @@ type Column struct {
 type Reference struct {
 	// If this column is a reference to an object in another table, this is the name of that other table.
 	// If using schemas, the format should be "SchemaName.TableName".
-	// The Name of the Column should end in "_id" or whatever the value of Database.ReferenceSuffix is for the database.
-	// If the Table is the same as the Name of the column, it creates a parent-child relationship.
+	// The QueryName of the Column should end in "_id" or whatever the value of Database.ReferenceSuffix is for the database.
+	// If the Table is the same as the QueryName of the column, it creates a parent-child relationship.
 	// This can point to an enum table.
 	Table string `json:"table"`
 
-	// Column is the Name of the column referred to. Leave blank to refer to the primary key field
+	// Column is the QueryName of the column referred to. Leave blank to refer to the primary key field
 	// of the Table.
 	Column string `json:"column"`
+
+	// Identifier is the Go name used for the referenced object.
+	Identifier string `json:"identifier"`
+
+	// Title is the human-readable name for the referenced object.
+	Title string `json:"title"`
 
 	// The singular description of this table's objects as referred to by the referenced table.
 	// If not specified, one will be created.
@@ -92,10 +98,12 @@ func (c *Column) FillDefaults(table *Table, referenceSuffix string) {
 	}
 	if c.Reference != nil {
 		objName := strings.TrimSuffix(c.Name, referenceSuffix)
+
+		c.Reference.Identifier = snaker.ForceCamelIdentifier(objName)
+		c.Reference.Title = strings2.Title(c.Reference.Identifier)
 		if objName == c.Reference.Table {
 			objName = ""
 		}
-
 		if c.Reference.ReverseTitle == "" {
 			c.Reference.ReverseTitle = any2.If(objName, snaker.ForceCamelIdentifier(objName)+" "+table.Title, table.Title)
 		}

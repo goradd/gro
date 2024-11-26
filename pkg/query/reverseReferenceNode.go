@@ -24,8 +24,6 @@ type ReverseReferenceNode struct {
 	dbTable string
 	// dbKeyColumn is the primary key of that table
 	dbKeyColumn string
-	// dbColumn is NoSQL only. It is the table containing an array of primary keys for the records pointing back to this one.
-	dbColumn string
 	// goPropName is the property we are using to refer to the many side of the relationship
 	goPropName string
 	// refTable is the table containing the pointer back to us
@@ -42,8 +40,6 @@ func NewReverseReferenceNode(
 	dbTable string,
 	// dbKeyColumn is the primary key of that table
 	dbKeyColumn string,
-	// dbColumn is for NoSQL and is the column containing an array of primary keys that point to the items referring back to us.
-	dbColumn string,
 	// Property we are using to refer to the many side of the relationship
 	goName string,
 	// The table containing the pointer back to us
@@ -56,7 +52,6 @@ func NewReverseReferenceNode(
 		dbKey:       dbKey,
 		dbTable:     dbTable,
 		dbKeyColumn: dbKeyColumn,
-		dbColumn:    dbColumn,
 		goPropName:  goName,
 		refTable:    refTable,
 		refColumn:   refColumn,
@@ -70,7 +65,6 @@ func (n *ReverseReferenceNode) copy() NodeI {
 		dbKey:         n.dbKey,
 		dbTable:       n.dbTable,
 		dbKeyColumn:   n.dbKeyColumn,
-		dbColumn:      n.dbColumn,
 		goPropName:    n.goPropName,
 		refTable:      n.refTable,
 		refColumn:     n.refColumn,
@@ -156,7 +150,6 @@ func (n *ReverseReferenceNode) GobEncode() (data []byte, err error) {
 		DbKey:       n.dbKey,
 		DbTable:     n.dbTable,
 		DbKeyColumn: n.dbKeyColumn,
-		DbColumn:    n.dbColumn,
 		GoPropName:  n.goPropName,
 		RefTable:    n.refTable,
 		RefColumn:   n.refColumn,
@@ -183,10 +176,8 @@ func (n *ReverseReferenceNode) GobDecode(data []byte) (err error) {
 	n.condition = s.Condition
 	n.dbKey = s.DbKey
 	n.dbTable = s.DbTable
-	n.dbColumn = s.DbColumn
 	n.dbKeyColumn = s.DbKeyColumn
 	n.goPropName = s.GoPropName
-	n.dbColumn = s.DbColumn
 	n.goPropName = s.GoPropName
 	n.refTable = s.RefTable
 	n.refColumn = s.RefColumn
@@ -212,12 +203,6 @@ func ReverseReferenceNodeRefTable(n *ReverseReferenceNode) string {
 // ReverseReferenceNodeRefColumn is used internally by the framework to get the referenced column
 func ReverseReferenceNodeRefColumn(n *ReverseReferenceNode) string {
 	return n.refColumn
-}
-
-// ReverseReferenceNodeDbColumnName is used internally by the framework to get the database column on this side of the
-// relationship. This is for NoSQL only
-func ReverseReferenceNodeDbColumnName(n *ReverseReferenceNode) string {
-	return n.dbColumn
 }
 
 // ReverseReferenceNodeKeyColumnName is used internally by the framework to get the database column on this side of the

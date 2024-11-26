@@ -6,24 +6,25 @@ import (
 )
 
 type Template interface {
-	FileName(string) string
 	Overwrite() bool
 }
 
 type DatabaseGenerator interface {
+	Template
+	FileName(string) string
 	GenerateDatabase(*model.Database, io.Writer) error
 }
 
 type TableGenerator interface {
-	GenerateTable()
+	Template
+	FileName(*model.Table) string
+	GenerateTable(*model.Table, io.Writer) error
 }
 
 type EnumGenerator interface {
+	Template
+	FileName(*model.EnumTable) string
 	GenerateEnum()
-}
-
-type AssociationGenerator interface {
-	GenerateAssociation()
 }
 
 var templates []Template

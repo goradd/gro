@@ -20,6 +20,8 @@ const (
 type Column struct {
 	// QueryName is the name of the column in the database.
 	QueryName string
+	// Table is a pointer back to the table that this column is part of
+	Table *Table
 	// Identifier is the name of the column in go code.
 	Identifier string
 	// DecapIdentifier is a cache for the lower case identifier for the column.

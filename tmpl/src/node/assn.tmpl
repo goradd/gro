@@ -1,0 +1,58 @@
+
+func (n *NodeTemplate)genAssn(table *model.Table, _w io.Writer) (err error) {
+    for _,mm := range table.ManyManyReferences {
+        if mm.DestinationTable != nil {
+            if err = n.genAssnTable(table, mm, _w); err != nil {return}
+        } else {
+            if err = n.genAssnEnumTable(table, mm, _w); err != nil {return}
+        }
+    }
+    return
+}
+
+func (n *NodeTemplate)genAssnTable(table *model.Table, mm *model.ManyManyReference, _w io.Writer) (err error) {
+{{
+// {{= mm.IdentifierPlural }} represents the many-to-many relationship formed by the {{= mm.AssnTableName }} table.
+func (n *{{= table.Identifier }}Node) {{= mm.IdentifierPlural }}() *{{= mm.DestinationTable.Identifier }}Node  {
+	cn := &{{= mm.DestinationTable.Identifier }}Node {
+		query.NewManyManyNode (
+			"{{= table.DbKey }}",
+			"{{= mm.AssnTableName }}",
+			"{{= mm.AssnSourceColumnName }}",
+			"{{= mm.IdentifierPlural }}",
+			"{{= mm.DestinationTable.QueryName }}",
+			"{{= mm.AssnDestColumnName }}",
+			"{{= mm.DestinationTable.PrimaryKeyColumn().QueryName }}",
+			false,
+		),
+	}
+	query.SetParentNode(cn, n)
+	return cn
+}
+}}
+    return
+}
+
+
+func (n *NodeTemplate)genAssnEnumTable(table *model.Table, mm *model.ManyManyReference, _w io.Writer) (err error) {
+{{
+// {{= mm.IdentifierPlural }} represents the many-to-many relationship formed by the {{= mm.AssnTableName }} table.
+func (n *{{= table.Identifier }}Node) {{= mm.IdentifierPlural }}() *{{= mm.DestinationEnumTable.Identifier }}Node  {
+ 	cn := &{{= mm.DestinationEnumTable.Identifier }}Node {
+ 		query.NewManyManyNode (
+ 			"{{= table.DbKey }}",
+ 			"{{= mm.AssnTableName }}",
+ 			"{{= mm.AssnSourceColumnName }}",
+ 			"{{= mm.IdentifierPlural }}",
+ 			"{{= mm.DestinationEnumTable.QueryName }}",
+ 			"{{= mm.AssnDestColumnName }}",
+ 			"{{= mm.DestinationEnumTable.PkQueryName() }}",
+ 			false,
+ 		),
+ 	}
+ 	query.SetParentNode(cn, n)
+ 	return cn
+}
+}}
+    return
+}

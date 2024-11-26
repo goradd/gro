@@ -20,7 +20,7 @@ type ColumnNode struct {
 	nodeLink
 	// Which database in the global list of databases does the node belong to
 	dbKey string
-	// Name of table in the database we point to
+	// QueryName of table in the database we point to
 	dbTable string
 	// The name of the column in the database
 	dbColumn string

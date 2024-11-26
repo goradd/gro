@@ -14,40 +14,68 @@ import (
 func Generate(schemas []*schema.Database) {
 	m := model.FromSchemas(schemas)
 	for _, db := range m {
-		genDB(db)
+		gen(db)
 	}
 }
 
-func genDB(db *model.Database) {
+func gen(db *model.Database) {
 	for _, t := range templates {
-		filename := t.FileName(db.Key)
-		if !t.Overwrite() && fileExists(filename) {
-			continue
-		}
-		filename, _ = filepath.Abs(filename)
-		fp := filepath.Dir(filename)
-		if err := os.MkdirAll(fp, 0777); err != nil {
-			log.Print(err)
-			continue
-		}
-		f, err := os.Create(filename)
-		if err != nil {
-			log.Print(err)
-			continue
-		}
-
-		if d, ok := t.(DatabaseGenerator); ok {
-			if err := d.GenerateDatabase(db, f); err != nil {
-				log.Print(err)
+		if g, ok := t.(DatabaseGenerator); ok {
+			genDatabaseTemplate(g, db)
+		} else if g, ok := t.(TableGenerator); ok {
+			for _, t := range db.Tables {
+				genTableTemplate(g, t)
 			}
 		}
-		err = f.Close()
-		if err != nil {
-			log.Print(err)
-			continue
-		}
-		runGoImports(filename)
 	}
+}
+
+func genDatabaseTemplate(g DatabaseGenerator, db *model.Database) {
+	filename := g.FileName(db.Key)
+	if !g.Overwrite() && fileExists(filename) {
+		return
+	}
+	f, err := openFile(filename)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	defer f.Close()
+
+	if err = g.GenerateDatabase(db, f); err != nil {
+		log.Print(err)
+		return
+	}
+	runGoImports(filename)
+}
+
+func genTableTemplate(g TableGenerator, table *model.Table) {
+	filename := g.FileName(table)
+	if !g.Overwrite() && fileExists(filename) {
+		return
+	}
+	f, err := openFile(filename)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	defer f.Close()
+
+	if err = g.GenerateTable(table, f); err != nil {
+		log.Print(err)
+		return
+	}
+	runGoImports(filename)
+}
+
+func openFile(filename string) (f *os.File, err error) {
+	filename, _ = filepath.Abs(filename)
+	fp := filepath.Dir(filename)
+	if err := os.MkdirAll(fp, 0777); err != nil {
+		return
+	}
+	f, err = os.Create(filename)
+	return
 }
 
 func fileExists(filePath string) bool {

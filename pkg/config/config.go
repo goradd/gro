@@ -77,7 +77,7 @@ func OpenConfigFile(path string) (databaseConfigs []map[string]any, err error) {
 			err = fmt.Errorf(`missing "key" value for database %d`, i)
 			return
 		}
-		if strings.IsSnake(key) {
+		if !strings.IsSnake(key) {
 			err = fmt.Errorf(`"key" value "%s" must be lower_snake_case`, key)
 			return
 		}

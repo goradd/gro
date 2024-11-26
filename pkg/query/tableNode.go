@@ -25,7 +25,7 @@ type TableNode struct {
 	nodeLink
 	// Which database in the global list of databases does the node belong to
 	dbKey string
-	// Name of table in the database we point to
+	// QueryName of table in the database we point to
 	dbTable string
 	// The name of the function used to access the property as a node or ORM item
 	goPropName string
