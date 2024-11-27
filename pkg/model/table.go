@@ -23,6 +23,7 @@ type Table struct {
 	// DecapIdentifier is the same as Identifier, but with first letter lower case.
 	DecapIdentifier string
 	// Columns is a list of Columns, one for each column in the table.
+	// Primary keys are sorted to the front.
 	Columns []*Column
 	// Indexes are the indexes defined on the table.
 	Indexes []Index
@@ -38,7 +39,9 @@ type Table struct {
 }
 
 func (t *Table) PrimaryKeyColumn() *Column {
-	if len(t.Columns) != 1 {
+
+	if len(t.Columns) > 1 && t.Columns[1].IsPk {
+		// A multi-column primary key, which we have limited support for.
 		return nil
 	}
 	if !t.Columns[0].IsPk {

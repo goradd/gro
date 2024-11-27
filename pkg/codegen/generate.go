@@ -71,7 +71,7 @@ func genTableTemplate(g TableGenerator, table *model.Table) {
 func openFile(filename string) (f *os.File, err error) {
 	filename, _ = filepath.Abs(filename)
 	fp := filepath.Dir(filename)
-	if err := os.MkdirAll(fp, 0777); err != nil {
+	if err = os.MkdirAll(fp, 0777); err != nil {
 		return
 	}
 	f, err = os.Create(filename)
