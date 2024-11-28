@@ -1,16 +1,26 @@
 package model
 
 import (
+	"cmp"
+	any2 "github.com/goradd/any"
 	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
 	"log/slog"
+	"slices"
 	. "spekary/goradd/orm/pkg/query"
 	"spekary/goradd/orm/pkg/schema"
 )
 
+type ConstVal struct {
+	Value int
+	Const string
+}
+
 // EnumTable describes an table that represents a fixed, enumerated type that will
 // not change during the application's use.
 type EnumTable struct {
+	// DbKey is the key used to find the database in the global database cluster
+	DbKey string
 	// QueryName is the name of the table to use in querying the database.
 	QueryName string
 	// Title is the english name of the object when describing it to the world.
@@ -23,12 +33,14 @@ type EnumTable struct {
 	IdentifierPlural string
 	// DecapIdentifier is the Identifier with the first letter lower case.
 	DecapIdentifier string
-	// FieldNames are the names of the fields defined in the table. The first field name MUST be the name of the id field, and 2nd MUST be the name of the name field, the others are optional extra fields.
+	// Fields are the names of the fields defined in the table. The first field name MUST be the name of the id field, and 2nd MUST be the name of the name field, the others are optional extra fields.
 	Fields []EnumField
 	// Values are the go values that will be hardcoded and returned in accessor functions.
-	Values []map[string]interface{}
+	// The map is keyed by row id, and then by field query name
+	Values map[int]map[string]any
 	// Constants are the constant identifiers that will be used for each enumerated value.
-	Constants map[int]string
+	// These are in ascending order by keys.
+	Constants []ConstVal
 }
 
 // PkQueryName returns the name of the primary key field as used in database queries.
@@ -38,6 +50,15 @@ func (tt *EnumTable) PkQueryName() string {
 
 func (tt *EnumTable) FieldQueryName(i int) string {
 	return tt.Fields[i].QueryName
+}
+
+func (tt *EnumTable) FieldValue(row int, fieldNum int) any {
+	name := tt.FieldQueryName(fieldNum)
+	v := tt.Values[row][name]
+	if any2.IsNil(v) {
+		v = tt.Fields[fieldNum].Type.DefaultValue()
+	}
+	return v
 }
 
 // FieldIdentifier returns the go name corresponding to the given field offset
@@ -61,17 +82,18 @@ func (tt *EnumTable) FileName() string {
 }
 
 // newEnumTable will import the enum table from ets
-func newEnumTable(ets *schema.EnumTable) *EnumTable {
+func newEnumTable(dbKey string, ets *schema.EnumTable) *EnumTable {
 	t := &EnumTable{
+		DbKey:            dbKey,
 		QueryName:        ets.QualifiedName(),
 		Title:            ets.Title,
 		TitlePlural:      ets.TitlePlural,
 		Identifier:       ets.Identifier,
 		IdentifierPlural: ets.IdentifierPlural,
 		DecapIdentifier:  strings2.Decap(ets.Identifier),
+		Values:           make(map[int]map[string]any),
 	}
-	t.Constants = make(map[int]string, len(ets.Fields))
-	if len(ets.Fields) == 0 {
+	if len(ets.Values) == 0 {
 		slog.Warn("enum table " + t.QueryName + " has no data entries. Specify constants by adding entries to this table.")
 	}
 
@@ -99,12 +121,15 @@ func newEnumTable(ets *schema.EnumTable) *EnumTable {
 			panic("second column of enum table must be a string")
 		}
 		valueMap[t.Fields[1].QueryName] = value
-		t.Constants[key] = enumValueToConstant(t.Identifier, value)
-
+		t.Constants = append(t.Constants, ConstVal{key, enumValueToConstant(t.Identifier, value)})
 		for i, val := range row[2:] {
 			valueMap[t.Fields[i+2].QueryName] = val
 		}
+		t.Values[key] = valueMap
 	}
+	slices.SortFunc(t.Constants, func(a, b ConstVal) int {
+		return cmp.Compare(a.Value, b.Value)
+	})
 	return t
 }
 

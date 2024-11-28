@@ -24,7 +24,7 @@ type TableGenerator interface {
 type EnumGenerator interface {
 	Template
 	FileName(*model.EnumTable) string
-	GenerateEnum()
+	GenerateEnum(*model.EnumTable, io.Writer) error
 }
 
 var templates []Template

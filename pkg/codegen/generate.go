@@ -26,6 +26,10 @@ func gen(db *model.Database) {
 			for _, t := range db.Tables {
 				genTableTemplate(g, t)
 			}
+		} else if g, ok := t.(EnumGenerator); ok {
+			for _, t := range db.EnumTables {
+				genEnumTemplate(g, t)
+			}
 		}
 	}
 }
@@ -62,6 +66,25 @@ func genTableTemplate(g TableGenerator, table *model.Table) {
 	defer f.Close()
 
 	if err = g.GenerateTable(table, f); err != nil {
+		log.Print(err)
+		return
+	}
+	runGoImports(filename)
+}
+
+func genEnumTemplate(g EnumGenerator, table *model.EnumTable) {
+	filename := g.FileName(table)
+	if !g.Overwrite() && fileExists(filename) {
+		return
+	}
+	f, err := openFile(filename)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	defer f.Close()
+
+	if err = g.GenerateEnum(table, f); err != nil {
 		log.Print(err)
 		return
 	}

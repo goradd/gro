@@ -1,8 +1,8 @@
 package query
 
 import (
+	"fmt"
 	"spekary/goradd/orm/pkg/schema"
-	"strconv"
 	"time"
 )
 
@@ -52,149 +52,53 @@ func (g ReceiverType) String() string {
 	return ""
 }
 
+// DefaultValue returns a zero Go value for the type
+func (g ReceiverType) DefaultValue() any {
+	switch g {
+	case ColTypeUnknown:
+		return nil
+	case ColTypeBytes:
+		return []byte{}
+	case ColTypeString:
+		return ""
+	case ColTypeInteger:
+		return int(0)
+	case ColTypeUnsigned:
+		return uint(0)
+	case ColTypeInteger64:
+		return int64(0)
+	case ColTypeUnsigned64:
+		return uint64(0)
+	case ColTypeTime:
+		return time.Time{}
+	case ColTypeFloat32:
+		return float32(0.0)
+	case ColTypeFloat64:
+		return float64(0.0)
+	case ColTypeBool:
+		return false
+	}
+	return nil
+}
+
 // GoType returns the actual GO type as go code
 func (g ReceiverType) GoType() string {
-	switch g {
-	case ColTypeUnknown:
-		return "Unknown"
-	case ColTypeBytes:
-		return "[]byte"
-	case ColTypeString:
-		return "string"
-	case ColTypeInteger:
-		return "int"
-	case ColTypeUnsigned:
-		return "uint"
-	case ColTypeInteger64:
-		return "int64"
-	case ColTypeUnsigned64:
-		return "uint64"
-	case ColTypeTime:
-		return "time.Time"
-	case ColTypeFloat32:
-		return "float32" // always internally represent with max bits
-	case ColTypeFloat64:
-		return "float64" // always internally represent with max bits
-	case ColTypeBool:
-		return "bool"
+	t := g.DefaultValue()
+	if t != nil {
+		return fmt.Sprintf("%T", g.DefaultValue())
+	} else {
+		return ""
 	}
-	return ""
 }
 
-// DefaultValue returns a string that represents the GO default value for the corresponding type
-func (g ReceiverType) DefaultValue() string {
+// DefaultValueString returns a string that represents the GO default value for the corresponding type
+func (g ReceiverType) DefaultValueString() string {
 	switch g {
-	case ColTypeUnknown:
-		return ""
-	case ColTypeBytes:
-		return ""
-	case ColTypeString:
-		return "\"\""
-	case ColTypeInteger:
-		return "0"
-	case ColTypeUnsigned:
-		return "0"
-	case ColTypeInteger64:
-		return "0"
-	case ColTypeUnsigned64:
-		return "0"
 	case ColTypeTime:
 		return "time.Time{}"
-	case ColTypeFloat32:
-		return "0.0" // always internally represent with max bits
-	case ColTypeFloat64:
-		return "0.0" // always internally represent with max bits
-	case ColTypeBool:
-		return "false"
-	}
-	return ""
-}
-
-func ColTypeFromGoTypeString(name string) ReceiverType {
-	switch name {
-	case "Unknown":
-		return ColTypeUnknown
-	case "[]byte":
-		return ColTypeBytes
-	case "string":
-		return ColTypeString
-	case "int":
-		return ColTypeInteger
-	case "uint":
-		return ColTypeUnsigned
-	case "int64":
-		return ColTypeInteger64
-	case "uint64":
-		return ColTypeUnsigned64
-	case "time.Time":
-		return ColTypeTime
-	case "float32":
-		return ColTypeFloat32
-	case "float64":
-		return ColTypeFloat64
-	case "bool":
-		return ColTypeBool
 	default:
-		panic("unknown column go type " + name)
+		return fmt.Sprintf("%#v", g.DefaultValue())
 	}
-}
-
-// FromString will convert from a string to the correct Go type.
-// Time strings must be in RFC3339 format.
-func (g ReceiverType) FromString(s string) any {
-	switch g {
-	case ColTypeUnknown:
-		return nil
-	case ColTypeBytes:
-		return nil
-	case ColTypeString:
-		return s
-	case ColTypeInteger:
-		if s == "" {
-			return int(0)
-		}
-		i, _ := strconv.Atoi(s)
-		return i
-	case ColTypeUnsigned:
-		if s == "" {
-			return uint(0)
-		}
-		i, _ := strconv.ParseUint(s, 10, 64)
-		return uint(i)
-	case ColTypeInteger64:
-		if s == "" {
-			return int64(0)
-		}
-		i, _ := strconv.ParseInt(s, 10, 64)
-		return i
-	case ColTypeUnsigned64:
-		if s == "" {
-			return uint64(0)
-		}
-		i, _ := strconv.ParseUint(s, 10, 64)
-		return i
-	case ColTypeTime:
-		if s == "" {
-			return time.Time{}
-		}
-		d, _ := time.Parse(time.RFC3339, s)
-		return d
-	case ColTypeFloat32:
-		if s == "" {
-			return float32(0)
-		}
-		f, _ := strconv.ParseFloat(s, 32)
-		return float32(f)
-	case ColTypeFloat64:
-		if s == "" {
-			return float64(0)
-		}
-		f, _ := strconv.ParseFloat(s, 32)
-		return f
-	case ColTypeBool:
-		return s == "true"
-	}
-	return ""
 }
 
 // ReceiverTypeFromSchema converts a schema column type to a Go language type.

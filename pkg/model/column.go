@@ -68,7 +68,7 @@ func (cd *Column) DefaultConstantName(tableName string) string {
 // DefaultValueAsValue returns the default value of the column as a GO value
 func (cd *Column) DefaultValueAsValue() string {
 	if cd.DefaultValue == nil || cd.IsAutoId {
-		v := cd.Type.DefaultValue()
+		v := cd.Type.DefaultValueString()
 		if v == "" {
 			return "nil"
 		} else {
@@ -103,7 +103,7 @@ func (cd *Column) DefaultValueAsConstant() string {
 			}
 		}
 	} else if cd.DefaultValue == nil || cd.IsAutoId {
-		return cd.Type.DefaultValue()
+		return cd.Type.DefaultValueString()
 	} else {
 		return fmt.Sprintf("%#v", cd.DefaultValue)
 	}

@@ -57,7 +57,7 @@ func (m *Database) importSchema(schema *schema.Database) {
 
 	// deal with enum tables first
 	for _, et := range schema.EnumTables {
-		tt := newEnumTable(et)
+		tt := newEnumTable(m.Key, et)
 		m.EnumTables[tt.QueryName] = tt
 	}
 

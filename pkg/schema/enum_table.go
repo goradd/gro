@@ -94,7 +94,7 @@ func (t *EnumTable) FillDefaults(suffix string) {
 			f.Title = strings2.Title(f.Name)
 		}
 		if f.TitlePlural == "" {
-			f.Title = strings2.Plural(f.Title)
+			f.TitlePlural = strings2.Plural(f.Title)
 		}
 		if f.Identifier == "" {
 			f.Identifier = snaker.SnakeToCamelIdentifier(f.Name)
