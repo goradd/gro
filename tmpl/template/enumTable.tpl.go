@@ -811,7 +811,7 @@ func `); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, ` {
-	    // 0 item will be a blank
+	    // 0 item will be a zero value
 	    `); err != nil {
 			return
 		}

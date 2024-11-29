@@ -177,7 +177,7 @@ func (e {{= table.Identifier }}) {{= field.Identifier }}() {{= field.Type.GoType
 // doc: type={{= table.Identifier }}
 func {{= table.Identifier }}{{= field.IdentifierPlural }}() []{{= field.Type.GoType() }} {
 	return []{{= field.Type.GoType() }} {
-	    // 0 item will be a blank
+	    // 0 item will be a zero value
 	    {{= field.Type.DefaultValueString() }},
 {{for _,con := range table.Constants }}
 	    {{L table.FieldValue(con.Value, fieldNum) }},

@@ -61,14 +61,15 @@ func (tt *EnumTable) FieldValue(row int, fieldNum int) any {
 	return v
 }
 
-// FieldIdentifier returns the go name corresponding to the given field offset
+// FieldIdentifier returns the go name corresponding to the given field offset, or an empty string if out of bounds.
 func (tt *EnumTable) FieldIdentifier(i int) string {
-	return tt.Fields[i].Identifier
+
+	return any2.If(tt.Fields[i], tt.Fields[i].Identifier, "")
 }
 
-// FieldIdentifierPlural returns the go plural name corresponding to the given field offset
+// FieldIdentifierPlural returns the go plural name corresponding to the given field offset, or an empty string if out of bounds.
 func (tt *EnumTable) FieldIdentifierPlural(i int) string {
-	return tt.Fields[i].IdentifierPlural
+	return any2.If(tt.Fields[i], tt.Fields[i].IdentifierPlural, "")
 }
 
 // FieldReceiverType returns the ReceiverType corresponding to the given field offset
