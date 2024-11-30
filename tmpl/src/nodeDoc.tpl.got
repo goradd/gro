@@ -1,0 +1,30 @@
+package template
+
+import (
+	"spekary/goradd/orm/pkg/codegen"
+	"spekary/goradd/orm/pkg/model"
+	"io"
+	"fmt"
+	"path/filepath"
+)
+
+func init() {
+	codegen.RegisterTemplate(new(NodeDocTemplate))
+}
+
+type NodeDocTemplate struct {}
+
+func (n NodeDocTemplate) FileName(dbKey string) string {
+	return filepath.Join(dbKey, "orm","node","doc.go")
+}
+
+func (n NodeDocTemplate) GenerateDatabase(database *model.Database, _w io.Writer) (err error) {
+	{{: "node/doc.tmpl" }}
+	return
+}
+
+func (n NodeDocTemplate) Overwrite() bool {
+	return true
+}
+
+
