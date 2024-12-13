@@ -1,8 +1,8 @@
 package codegen
 
 import (
+	"github.com/goradd/orm/pkg/model"
 	"io"
-	"spekary/goradd/orm/pkg/model"
 )
 
 type Template interface {

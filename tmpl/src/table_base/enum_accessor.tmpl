@@ -1,0 +1,54 @@
+
+//*** {{includeName}}
+
+{{
+func (o *{{= table.Identifier}}Base) {{= column.Reference.Identifier }}() {{= column.Reference.Identifier }} {
+	if o._restored && !o.{{= column.DecapIdentifier }}IsValid {
+		panic ("{{= column.DecapIdentifier }} was not selected in the last query and so is not valid")
+	}
+	return {{= column.Reference.Identifier }}(o.{{= column.DecapIdentifier }})
+}
+
+{{if column.IsNullable}}
+
+func (o *{{= table.Identifier}}Base) {{= column.Reference.Identifier }}IsNull() bool {
+	return o.{{= column.DecapIdentifier }}IsNull
+}
+
+func (o *{{= table.Identifier}}Base) Set{{= column.Reference.Identifier }}(i interface{}) {
+	if i == nil {
+		if !o.{{= column.DecapIdentifier }}IsNull {
+			o.{{= column.DecapIdentifier }}IsNull = true
+			o.{{= column.DecapIdentifier }}IsDirty = true
+			o.{{= column.DecapIdentifier }}IsValid = true
+			o.{{= column.DecapIdentifier }} = {{= column.DefaultValueAsValue() }}
+		}
+	} else {
+		v := i.({{= column.GoType()
+
+ }})
+		if o.{{= column.DecapIdentifier }}IsNull  {
+			o.{{= column.DecapIdentifier }}IsNull = false
+			o.{{= column.DecapIdentifier }} = v
+			o.{{= column.DecapIdentifier }}IsDirty = true
+		}
+	}
+}
+
+{{else}} {{# not null }}
+
+func (o *{{= table.Identifier}}Base) Set{{= column.Reference.Identifier }}(v {{= column.Reference.Identifier }}) {
+	if o.{{= column.DecapIdentifier }} != {{= column.GoType()
+
+ }}(v) {
+		o.{{= column.DecapIdentifier }} = {{= column.GoType()
+
+ }}(v)
+		o.{{= column.DecapIdentifier }}IsDirty = true
+		o.{{= column.DecapIdentifier }}IsValid = true
+	}
+}
+
+{{if}}
+
+}}

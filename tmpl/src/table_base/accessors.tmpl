@@ -1,0 +1,96 @@
+
+//*** {{includeName}}
+
+func (tmpl *TableBaseTemplate)genAccessors(table *model.Table, _w io.Writer) (err error) {
+    for _,col := range table.Columns {
+        if col.IsAutoId {
+            if err = tmpl.genAutoIdGetter(table, col, _w); err != nil {return}
+            continue
+        }
+
+        if err = tmpl.genColGetter(table, col, _w); err != nil {return}
+        if col.IsNullable {
+            if err = tmpl.genColNullGetter(table, col, _w); err != nil {return}
+            if err = tmpl.genColNullSetter(table, col, _w); err != nil {return}
+        } else {
+        }
+        if col.Reference != nil {
+            if err = tmpl.genColReferenceGetter(table, col, _w); err != nil {return}
+            if col.IsNullable {
+                if err = tmpl.genColNullReferenceSetter(table, col, _w); err != nil {return}
+            } else {
+                if err = tmpl.genColNotNullReferenceSetter(table, col, _w); err != nil {return}
+            }
+        }
+    }
+
+    if err = tmpl.genAliasGetter(table, _w); err != nil {return}
+    if err = tmpl.genIsNew(table, _w); err != nil {return}
+
+    return
+}
+
+func (tmpl *TableBaseTemplate)genAutoIdGetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
+{{: "accessors/auto_id_getter.tmpl" }}
+    return
+}
+
+func (tmpl *TableBaseTemplate)genColGetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
+{{: "accessors/column_getter.tmpl" }}
+    return
+}
+
+
+func (tmpl *TableBaseTemplate)genColNullGetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
+{{: "accessors/column_null_getter.tmpl" }}
+    return
+}
+
+
+func (tmpl *TableBaseTemplate)genColReferenceGetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
+{{: "accessors/column_reference_getter.tmpl" }}
+    return
+}
+
+
+func (tmpl *TableBaseTemplate)genColNullSetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
+{{: "accessors/column_null_setter.tmpl" }}
+    return
+}
+
+
+func (tmpl *TableBaseTemplate)genColNullReferenceSetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
+{{: "accessors/column_null_reference_setter.tmpl" }}
+    return
+}
+
+
+func (tmpl *TableBaseTemplate)genColNotNullSetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
+{{: "accessors/column_not_null_setter.tmpl" }}
+    return
+}
+
+
+func (tmpl *TableBaseTemplate)genColNotNullReferenceSetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
+{{: "accessors/column_not_null_reference_setter.tmpl" }}
+    return
+}
+
+
+func (tmpl *TableBaseTemplate)genAliasGetter(table *model.Table, _w io.Writer) (err error) {
+{{: "accessors/alias_getter.tmpl" }}
+    return
+}
+
+
+func (tmpl *TableBaseTemplate)genIsNew(table *model.Table, _w io.Writer) (err error) {
+{{: "accessors/is_new.tmpl" }}
+    return
+}
+
+
+
+
+
+
+

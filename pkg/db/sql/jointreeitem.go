@@ -1,6 +1,6 @@
 package sql
 
-import "spekary/goradd/orm/pkg/query"
+import "github.com/goradd/orm/pkg/query"
 
 // JoinTreeItem is used to build the join tree. The join tree creates a hierarchy of joined nodes that let us
 // generate aliases, serialize the query, and afterwards unpack the results.

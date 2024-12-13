@@ -1,0 +1,60 @@
+
+//*** {{includeName}}
+
+{{
+// insert will insert the object into the database. Related items will be saved.
+func (o *{{= table.Identifier}}Base) insert(ctx context.Context) {
+    d := Database()
+	db.ExecuteTransaction(ctx, d, func() {
+
+{{# Here we save forward references, get the id, and then set the corresponding foreign key }}
+{{for _,col := range table.Columns}}
+    {{if col.IsReference() }}
+    if o.{{= col.VariableIdentifier()
+ }} != nil {
+        o.{{= col.VariableIdentifier()
+ }}.Save(ctx)
+        o.Set{{= col.Reference.Identifier }}(o.{{= col.VariableIdentifier()
+ }})
+    }
+    {{if}}
+{{for}}
+
+{{for _,col := range table.Columns}}
+    {{if !col.IsAutoId && !col.IsNullable && col.DefaultValue == nil}}
+        {{# Note: Most likely the user is inserting a new record, but forgot to set a required value, but there is the
+              possibility that this is a retrieved record with missing fields (through the Select statement) and those
+              missing fields are required, and the user is forcing an insert. }}
+    if !o.{{= col.VariableIdentifier() }}IsValid {
+        panic("a value for {{= col.Identifier }} is required, and there is no default value. Call Set{{= col.Identifier }}() before inserting the record.")
+    }
+    {{if}}
+{{for}}
+
+    m := o.getValidFields()
+
+{{if table.PrimaryKeyColumn().IsAutoId }}
+	id := d.Insert(ctx, "{{= table.QueryName }}", m)
+	o.{{= table.PrimaryKeyColumn().VariableIdentifier()
+ }} = id
+	o._originalPK = id
+{{else}}
+	d.Insert(ctx, "{{= table.QueryName }}", m)
+	id := o.PrimaryKey()
+	o._originalPK = id
+{{if}}
+
+{{: "insert_rev.tmpl"  }}
+{{: "insert_mm.tmpl"  }}
+
+
+
+    }) // transaction
+
+	o.resetDirtyStatus()
+	o._restored = true
+	broadcast.Insert(ctx, "{{= table.DbKey }}", "{{= table.QueryName }}", o.PrimaryKey())
+}
+
+}}
+

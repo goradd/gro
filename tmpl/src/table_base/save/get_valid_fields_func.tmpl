@@ -1,0 +1,26 @@
+
+//*** {{includeName}}
+
+{{
+// getValidFields returns the fields that have valid data in them.
+func (o *{{= table.Identifier}}Base) getValidFields() (fields map[string]interface{}) {
+	fields = map[string]interface{}{}
+{{for _,col := range table.Columns}}
+{{g if col.IsAutoId {continue} }}
+
+	if o.{{= col.VariableIdentifier() }}IsValid {
+{{if col.IsNullable}}
+        if 	o.{{= col.VariableIdentifier() }}IsNull {
+            fields["{{= col.QueryName }}"] = nil
+        } else {
+  		    fields["{{= col.QueryName }}"] = o.{{= col.VariableIdentifier() }}
+        }
+{{else}}
+		fields["{{= col.QueryName }}"] = o.{{= col.VariableIdentifier() }}
+{{if}}
+	}
+{{for}}
+	return
+}
+
+}}

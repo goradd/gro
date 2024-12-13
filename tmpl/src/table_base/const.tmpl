@@ -1,0 +1,42 @@
+
+//*** {{includeName}}
+
+{{
+// Default values for the fields in the {{= table.QueryName }} table.
+// When a {{= table.Identifier}} object is created, the fields in the object will be initialized to these values.
+// doc: type={{= table.Identifier }}
+const  (
+{{for _,col := range table.Columns}}
+{{if v := col.DefaultValueAsConstant(); v != ""}}
+    {{= col.DefaultConstantName() }} = {{= v }} // {{= col.QueryName }}
+{{if}}
+{{for}}
+)
+
+// IDs used to access the {{= table.Identifier }} object fields by name using the Get function.
+// doc: type={{= table.Identifier }}
+const  (
+
+{{for _,col := range table.Columns}}
+    {{= table.Identifier }}_{{= col.Identifier}} = `{{= col.Identifier }}`
+{{if col.IsReference()}}
+    {{= table.Identifier }}_{{= col.Reference.Identifier }} = `{{= col.Reference.Identifier }}`
+{{if}}
+{{for}}
+
+{{for _,col := range table.ReverseReferences}}
+{{if col.IsUnique }}
+    {{= table.Identifier }}{{= col.Reference.ReverseIdentifier }} = `{{= col.Reference.ReverseIdentifier }}`
+{{else}}
+    {{= table.Identifier }}{{= col.Reference.ReverseIdentifierPlural }} = `{{= col.Reference.ReverseIdentifierPlural }}`
+{{if}}
+{{for}}
+
+{{for _,mm := range table.ManyManyReferences}}
+    {{= table.Identifier }}{{= mm.Identifier }} = `{{= mm.Identifier }}`
+    {{= table.Identifier }}{{= mm.IdentifierPlural }} = `{{= mm.IdentifierPlural }}`
+{{for}}
+
+) {{# const}}
+
+}}

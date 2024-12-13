@@ -1,10 +1,10 @@
 package main
 
 import (
-	"spekary/goradd/orm/pkg/config"
-	db2 "spekary/goradd/orm/pkg/db"
-	"spekary/goradd/orm/pkg/model"
-	"spekary/goradd/orm/pkg/schema"
+	"github.com/goradd/orm/pkg/config"
+	db2 "github.com/goradd/orm/pkg/db"
+	"github.com/goradd/orm/pkg/model"
+	"github.com/goradd/orm/pkg/schema"
 )
 
 func extract(dbConfigFile, outFile string) {

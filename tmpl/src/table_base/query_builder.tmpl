@@ -1,0 +1,211 @@
+
+//*** {{includeName}}
+
+builderName := table.IdentifierPlural + "Builder"
+{{
+
+// The {{= builderName}} uses the QueryBuilderI interface from the database to build a query.
+// All query operations go through this query builder.
+// End a query by calling either Load, Count, or Delete
+type {{= builderName }} struct {
+	builder query.QueryBuilderI
+}
+
+func new{{= table.Identifier }}Builder(ctx context.Context) *{{= builderName }} {
+	b := &{{= builderName }}{
+		builder: db.GetDatabase("{{table.DbKey}}").NewBuilder(ctx),
+	}
+	return b.Join(node.{{= table.Identifier }}())
+}
+
+// Load terminates the query builder, performs the query, and returns a slice of {{= table.Identifier }} objects. If there are
+// any errors, they are returned in the context object. If no results come back from the query, it will return
+// an empty slice
+func (b *{{= builderName }}) Load() ({{= table.VariableNamePlural() }}[]*{{= table.Identifier }}) {
+	results := b.builder.Load()
+	if results == nil {
+		return
+	}
+	for _,item := range results {
+		o := new({{= table.Identifier }})
+		o.load(item, o, nil, "")
+		{{= table.VariableNamePlural() }} = append({{= table.VariableNamePlural() }}, o)
+	}
+	return
+}
+
+// LoadI terminates the query builder, performs the query, and returns a slice of interfaces. If there are
+// any errors, they are returned in the context object. If no results come back from the query, it will return
+// an empty slice.
+func (b *{{= builderName }}) LoadI() ({{= table.VariableNamePlural() }} []interface{}) {
+	results := b.builder.Load()
+	if results == nil {
+		return
+	}
+	for _,item := range results {
+		o := new({{= table.Identifier }})
+		o.load(item, o, nil, "")
+		{{= table.VariableNamePlural() }} = append({{= table.VariableNamePlural() }}, o)
+	}
+	return
+}
+
+
+// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
+//
+// A query cursor is useful for dealing with large amounts of query results. However, there are some
+// limitations to its use. When working with SQL databases, you cannot use a cursor while querying
+// many-to-many or reverse relationships that will create an array of values.
+//
+// Call Next() on the returned cursor object to step through the results. Make sure you call Close
+// on the cursor object when you are done. You should use
+//   defer cursor.Close()
+// to make sure the cursor gets closed.
+func (b *{{= builderName }}) LoadCursor() {{= table.VariableNamePlural() }}Cursor {
+	cursor := b.builder.LoadCursor()
+
+	return {{= table.VariableNamePlural() }}Cursor{cursor}
+}
+
+type {{= table.VariableNamePlural() }}Cursor struct {
+	query.CursorI
+}
+
+// Next returns the current {{= table.Identifier }} object and moves the cursor to the next one.
+//
+// If there are no more records, it returns nil.
+func (c {{= table.VariableNamePlural() }}Cursor) Next() *{{= table.Identifier }} {
+	row := c.CursorI.Next()
+	if row == nil {
+		return nil
+	}
+	o := new({{= table.Identifier }})
+	o.load(row, o, nil, "")
+	return o
+}
+
+// Get is a convenience method to return only the first item found in a query.
+// The entire query is performed, so you should generally use this only if you know
+// you are selecting on one or very few items.
+func (b *{{= builderName }}) Get() *{{= table.Identifier }} {
+	results := b.Load()
+	if results != nil && len(results) > 0 {
+	    obj := results[0]
+		return obj
+	} else {
+		return nil
+	}
+}
+
+// Expand expands an array type node so that it will produce individual rows instead of an array of items
+func (b *{{= builderName }}) Expand(n query.NodeI) *{{= builderName }} {
+	b.builder.Expand(n)
+	return b
+}
+
+// Join adds a node to the node tree so that its fields will appear in the query. Optionally add conditions to filter
+// what gets included. The conditions will be AND'd with the basic condition matching the primary keys of the join.
+func (b *{{= builderName }}) Join(n query.NodeI, conditions... query.NodeI) *{{= builderName }} {
+	var condition query.NodeI
+	if len(conditions) > 1 {
+		condition = And(conditions)
+	} else if len(conditions) == 1 {
+		condition = conditions[0]
+	}
+	b.builder.Join(n, condition)
+	return b
+}
+
+// Where adds a condition to filter what gets selected.
+func (b *{{= builderName }})  Where(c query.NodeI) *{{= builderName }} {
+	b.builder.Condition(c)
+	return b
+}
+
+// OrderBy specifies how the resulting data should be sorted.
+func (b *{{= builderName }})  OrderBy(nodes... query.NodeI) *{{= builderName }} {
+	b.builder.OrderBy(nodes...)
+	return b
+}
+
+// Limit will return a subset of the data, limited to the offset and number of rows specified
+func (b *{{= builderName }})  Limit(maxRowCount int, offset int) *{{= builderName }} {
+	b.builder.Limit(maxRowCount, offset)
+	return b
+}
+
+// Select optimizes the query to only return the specified fields. Once you put a Select in your query, you must
+// specify all the fields that you will eventually read out. Be careful when selecting fields in joined tables, as joined
+// tables will also contain pointers back to the parent table, and so the parent node should have the same field selected
+// as the child node if you are querying those fields.
+func (b *{{= builderName }})  Select(nodes... query.NodeI) *{{= builderName }} {
+	b.builder.Select(nodes...)
+	return b
+}
+
+// Alias lets you add a node with a custom name. After the query, you can read out the data using GetAlias() on a
+// returned object. Alias is useful for adding calculations or subqueries to the query.
+func (b *{{= builderName }})  Alias(name string, n query.NodeI) *{{= builderName }} {
+	b.builder.Alias(name, n)
+	return b
+}
+
+// Distinct removes duplicates from the results of the query. Adding a Select() may help you get to the data you want, although
+// using Distinct with joined tables is often not effective, since we force joined tables to include primary keys in the query, and this
+// often ruins the effect of Distinct.
+func (b *{{= builderName }})  Distinct() *{{= builderName }} {
+	b.builder.Distinct()
+	return b
+}
+
+// GroupBy controls how results are grouped when using aggregate functions in an Alias() call.
+func (b *{{= builderName }})  GroupBy(nodes... query.NodeI) *{{= builderName }} {
+	b.builder.GroupBy(nodes...)
+	return b
+}
+
+// Having does additional filtering on the results of the query.
+func (b *{{= builderName }})  Having(node query.NodeI)  *{{= builderName }} {
+	 b.builder.Having(node)
+	 return b
+}
+
+// Count terminates a query and returns just the number of items selected.
+//
+// distinct wll count the number of distinct items, ignoring duplicates.
+//
+// nodes will select individual fields, and should be accompanied by a GroupBy.
+func (b *{{= builderName }})  Count(distinct bool, nodes... query.NodeI) uint {
+	return b.builder.Count(distinct, nodes...)
+}
+
+// Delete uses the query builder to delete a group of records that match the criteria
+func (b *{{= builderName }})  Delete() {
+	 b.builder.Delete()
+	 broadcast.BulkChange(b.builder.Context(), "{{= table.DbKey}}", "{{= table.QueryName}}")
+}
+
+// Subquery uses the query builder to define a subquery within a larger query. You MUST include what
+// you are selecting by adding Alias or Select functions on the subquery builder. Generally you would use
+// this as a node to an Alias function on the surrounding query builder.
+func (b *{{= builderName }})  Subquery() *query.SubqueryNode {
+	 return b.builder.Subquery()
+}
+
+
+// joinOrSelect is a private helper function for the Load* functions
+func (b *{{= builderName }}) joinOrSelect(nodes ...query.NodeI) *{{= builderName }} {
+	for _,n := range nodes {
+		switch n.(type) {
+		case query.TableNodeI:
+			b.builder.Join(n, nil)
+		case *query.ColumnNode:
+			b.Select(n)
+		}
+	}
+	return b
+}
+
+
+}}
+

@@ -3,7 +3,7 @@ package sql
 import (
 	"fmt"
 	"github.com/goradd/iter"
-	. "spekary/goradd/orm/pkg/query"
+	. "github.com/goradd/orm/pkg/query"
 	"strings"
 )
 

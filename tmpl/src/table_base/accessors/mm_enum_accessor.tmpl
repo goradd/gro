@@ -1,0 +1,23 @@
+
+//*** {{includeName}}
+
+{{
+
+// {{= mm.IdentifierPlural }} returns a slice of {{= mm.ObjectType() }} values if loaded.
+func (o *{{= table.Identifier}}Base) {{= mm.IdentifierPlural }}() []{{= mm.ObjectType() }} {
+	if o.{{= mm.VariableIdentifier() }} == nil {
+		return nil
+	}
+	return o.{{= mm.VariableIdentifier() }}
+}
+
+// Set{{= mm.IdentifierPlural }} sets the associated values to objs.
+// It will also disassociate from all previously associated values.
+// Note that it saves a reference to objs, and so if you change objs before saving, the changes will be written
+// when you call Save. To avoid this, pass a copy of objs.
+func (o *{{= table.Identifier}}Base) Set{{= mm.IdentifierPlural }}(objs []{{= mm.ObjectType() }}) {
+	o.{{= mm.VariableIdentifier() }} = objs
+	o.{{= mm.VariableIdentifier() }}IsDirty = true
+}
+
+}}

@@ -1,0 +1,15 @@
+
+//*** {{includeName}}
+
+{{
+{{# Insert many-many references }}
+    if o.{{= mm.VariableIdentifier() }} != nil {
+        o.{{= mm.VariableIdentifier() }}.Clear()
+        for _,obj := range o.{{= mm.VariableIdentifier() }}.All() {
+            obj.Save(ctx)
+
+        }
+
+        // TODO: Fix associations
+    }
+}}

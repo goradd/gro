@@ -1,0 +1,49 @@
+
+//*** {{includeName}}
+
+{{
+
+
+// UnmarshalJSON unmarshalls the given json data into the {{= table.Identifier}}. The {{= table.Identifier}} can be a
+// newly created object, or one loaded from the database.
+//
+// After unmarshalling, the object is not  saved. You must call Save to insert it into the database
+// or update it.
+//
+// Unmarshalling of sub-objects, as in objects linked via foreign keys, is not currently supported.
+//
+// The fields it expects are:
+{{for _,col := range table.Columns}}
+//   "{{= col.JsonKey() }}" - {{= col.GoType() }}{{if col.IsNullable}}, nullable{{if}}
+{{for}}
+func (o *{{= table.Identifier}}Base) UnmarshalJSON (data []byte) (err error) {
+    var v map[string]interface{}
+    if err = json.Unmarshal(data, &v); err != nil { return err}
+    return o.UnmarshalStringMap(v)
+}
+
+// UnmarshalStringMap will load the values from the stringmap into the object.
+//
+// Override this in {{= table.Identifier}} to modify the json before sending it here.
+func (o *{{= table.Identifier}}Base) UnmarshalStringMap(m map[string]interface{}) (err error) {
+    for k,v := range m {
+        switch k {
+
+}}
+
+for _,col := range table.Columns {
+    if col.IsAutoId {continue}
+    {{: "marshal/unmarshal_stringmap_col.tmpl" }}
+}
+
+for _,mm := range table.ManyManyReferences {
+    {{: "marshal/unmarshal_stringmap_mm.tmpl" }}
+}
+
+{{
+        }
+    }
+    return
+}
+
+}}

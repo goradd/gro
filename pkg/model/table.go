@@ -1,10 +1,10 @@
 package model
 
 import (
+	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
 	"log/slog"
-	"spekary/goradd/orm/pkg/schema"
 )
 
 type Table struct {
@@ -29,11 +29,11 @@ type Table struct {
 	Indexes []Index
 	// Options are key-value pairs of values that can be used to customize how code generation is performed
 	Options map[string]interface{}
-
-	// The following items are filled in by the importSchema process
-
 	// columnMap is an internal map of the columns by database name of the column
 	columnMap map[string]*Column
+	// ReverseReferences are the columns from other tables, or even this table,
+	// that point to this column.
+	ReverseReferences []*Column
 	// ManyManyReferences describe the many-to-many references pointing to this table
 	ManyManyReferences []*ManyManyReference
 }
@@ -60,6 +60,10 @@ func (t *Table) ColumnByName(name string) *Column {
 	return t.columnMap[name]
 }
 
+func (t *Table) VariableNamePlural() string {
+	return LowerCaseIdentifier(t.IdentifierPlural)
+}
+
 // FileName is the base name of generated file names that correspond to this database table.
 // Typically, Go files are lower case snake case by convention.
 func (t *Table) FileName() string {
@@ -80,7 +84,7 @@ func (t *Table) HasGetterName(name string) (hasName bool, desc string) {
 		if c.Identifier == name {
 			return false, "conflicts with column " + c.Identifier
 		}
-		for _, rr := range c.ReverseReferences {
+		for _, rr := range t.ReverseReferences {
 			if rr.Reference.ReverseIdentifier == name {
 				return false, "conflicts with reverse reference singular name " + rr.Reference.ReverseIdentifier
 			}

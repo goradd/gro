@@ -1,5 +1,8 @@
+
+//*** {{includeName}}
+
 func (n *NodeTemplate)genReverse(table *model.Table, col *model.Column, _w io.Writer) (err error) {
-    for _,refCol := range col.ReverseReferences {
+    for _,refCol := range table.ReverseReferences {
 	    if refCol.IsUnique {
             if err = n.genReverseOne(table, refCol, _w); err != nil {return}
         } else {

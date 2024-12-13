@@ -1,0 +1,22 @@
+
+//*** {{includeName}}
+
+{{
+
+// {{= col.Identifier }}IsNull returns true if the related database value is null.
+func (o *{{= table.Identifier}}Base) {{= col.Identifier }}IsNull() bool {
+	return o.{{= col.DecapIdentifier }}IsNull
+}
+
+// {{= col.Identifier }}_I returns the loaded value of {{= col.Identifier }} as an interface.
+// If the value in the database is NULL, a nil interface is returned.
+func (o *{{= table.Identifier}}Base) {{= col.Identifier }}_I() interface{} {
+	if o._restored && !o.{{= col.DecapIdentifier }}IsValid {
+		panic ("{{= col.DecapIdentifier }} was not selected in the last query and has not been set, and so is not valid")
+	} else if o.{{= col.DecapIdentifier }}IsNull {
+	    return nil
+	}
+	return o.{{= col.DecapIdentifier }}
+}
+
+}}

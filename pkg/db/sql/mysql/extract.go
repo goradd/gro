@@ -5,15 +5,15 @@ import (
 	"fmt"
 	"github.com/goradd/iter"
 	"github.com/goradd/maps"
+	sql2 "github.com/goradd/orm/pkg/db/sql"
+	. "github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
 	"log"
 	log2 "log/slog"
 	"math"
 	"slices"
 	"sort"
-	sql2 "spekary/goradd/orm/pkg/db/sql"
-	. "spekary/goradd/orm/pkg/query"
-	"spekary/goradd/orm/pkg/schema"
 	"strings"
 )
 
@@ -55,13 +55,14 @@ type mysqlIndex struct {
 }
 
 type mysqlForeignKey struct {
-	constraintName       string
-	tableName            string
-	columnName           string
-	referencedTableName  sql.NullString
-	referencedColumnName sql.NullString
-	updateRule           sql.NullString
-	deleteRule           sql.NullString
+	constraintName            string
+	tableName                 string
+	columnName                string
+	referencedTableName       sql.NullString
+	referencedColumnName      sql.NullString
+	referencedColumnIndexName sql.NullString
+	updateRule                sql.NullString
+	deleteRule                sql.NullString
 }
 
 func (m *DB) ExtractSchema(options map[string]any) schema.Database {
@@ -88,7 +89,7 @@ func (m *DB) getRawTables() map[string]mysqlTable {
 		for _, fk := range foreignKeys[table.name] {
 			if fk.referencedColumnName.Valid && fk.referencedTableName.Valid {
 				if _, ok := table.fkMap[fk.columnName]; ok {
-					log2.Warn(fmt.Sprintf("Column %s:%s multi-table foreign keys are not supported.", table.name, fk.columnName))
+					log2.Warn(fmt.Sprintf("Column %s:%s multi-column foreign keys are not supported.", table.name, fk.columnName))
 					delete(table.fkMap, fk.columnName)
 				} else {
 					table.fkMap[fk.columnName] = fk
@@ -268,19 +269,24 @@ func (m *DB) getForeignKeys() (foreignKeys map[string][]mysqlForeignKey, err err
 	fkMap := make(map[string]mysqlForeignKey)
 
 	rows, err := m.SqlDb().Query(fmt.Sprintf(`
-	SELECT
-	constraint_name,
-	table_name,
-	column_name,
-	referenced_table_name,
-	referenced_column_name
-	FROM
-	information_schema.key_column_usage
-	WHERE
-	constraint_schema = '%s'
-	ORDER BY
-	ordinal_position;
-	`, dbName))
+SELECT
+    t1.constraint_name,
+    t1.table_name,
+    t1.column_name,
+    t1.referenced_table_name,
+    t1.referenced_column_name,
+    t2.index_name
+FROM
+    information_schema.key_column_usage AS t1
+JOIN
+    information_schema.statistics AS t2
+    ON t2.table_name = t1.referenced_table_name
+    AND t2.column_name = t1.referenced_column_name
+WHERE
+    t1.constraint_schema = '%s'
+ORDER BY
+    t1.ordinal_position
+`, dbName))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -289,7 +295,7 @@ func (m *DB) getForeignKeys() (foreignKeys map[string][]mysqlForeignKey, err err
 
 	for rows.Next() {
 		fk := mysqlForeignKey{}
-		err = rows.Scan(&fk.constraintName, &fk.tableName, &fk.columnName, &fk.referencedTableName, &fk.referencedColumnName)
+		err = rows.Scan(&fk.constraintName, &fk.tableName, &fk.columnName, &fk.referencedTableName, &fk.referencedColumnName, &fk.referencedColumnIndexName)
 		if err != nil {
 			log.Fatal(err)
 			return nil, err
@@ -694,10 +700,12 @@ func (m *DB) getColumnSchema(table mysqlTable, column mysqlColumn, isIndexed boo
 
 	cd.IsOptional = column.isNullable == "YES"
 
-	if fk, ok2 := table.fkMap[cd.Name]; ok2 {
+	if fk, ok2 := table.fkMap[column.name]; ok2 {
+		if fk.referencedColumnIndexName.String != "PRIMARY" {
+			log2.Warn(fmt.Sprintf("Foregin key for %s:%s appears to not be pointing to a primary key. Only primary key foreign keys are supported.", table.name, column.name))
+		}
 		cd.Reference = &schema.Reference{
-			Table:  fk.referencedTableName.String,
-			Column: fk.referencedColumnName.String,
+			Table: fk.referencedTableName.String,
 		}
 	}
 

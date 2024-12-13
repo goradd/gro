@@ -1,4 +1,4 @@
-module spekary/goradd/orm
+module github.com/goradd/orm
 
 require (
 	github.com/gedex/inflector v0.0.0-20170307190818-16278e9db813

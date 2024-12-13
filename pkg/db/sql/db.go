@@ -9,8 +9,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/goradd/orm/pkg/db"
 	"log/slog"
-	"spekary/goradd/orm/pkg/db"
 	"strings"
 	"time"
 )

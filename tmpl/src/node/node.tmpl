@@ -1,5 +1,7 @@
-// node.tmpl
-// The master template for the nodes for a particular column.
+
+//*** {{includeName}}
+
+{{# The master template for the nodes for a particular column.}}
 
 func (n *NodeTemplate)gen(table *model.Table, _w io.Writer) (err error) {
     if err = n.genHeader(table, _w); err != nil { return }

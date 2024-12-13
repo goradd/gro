@@ -5,11 +5,11 @@ import (
 	sqldb "database/sql"
 	"fmt"
 	any2 "github.com/goradd/any"
+	sql2 "github.com/goradd/orm/pkg/db/sql"
+	"github.com/goradd/orm/pkg/model"
+	. "github.com/goradd/orm/pkg/query"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/stdlib"
-	sql2 "spekary/goradd/orm/pkg/db/sql"
-	"spekary/goradd/orm/pkg/model"
-	. "spekary/goradd/orm/pkg/query"
 	"strings"
 )
 

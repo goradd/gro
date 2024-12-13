@@ -1,0 +1,37 @@
+
+//*** {{includeName}}
+
+{{
+
+    if err := encoder.Encode(o.{{= col.VariableIdentifier() }}); err != nil {
+        return nil, err
+    }
+{{if col.IsNullable}}
+    if err := encoder.Encode(o.{{= col.VariableIdentifier() }}IsNull); err != nil {
+        return nil, err
+    }
+{{if}}
+    if err := encoder.Encode(o.{{= col.VariableIdentifier() }}IsValid); err != nil {
+        return nil, err
+    }
+    if err := encoder.Encode(o.{{= col.VariableIdentifier() }}IsDirty); err != nil {
+        return nil, err
+    }
+
+{{if col.IsReference() }}
+    if o.{{= col.ReferenceVariableIdentifier() }} == nil {
+        if err := encoder.Encode(false); err != nil {
+            return nil, err
+        }
+    } else {
+        if err := encoder.Encode(true); err != nil {
+            return nil, err
+        }
+        if err := encoder.Encode(o.{{= col.ReverseVariableIdentifier()
+ }}); err != nil {
+            return nil, err
+        }
+    }
+{{if}}
+
+}}

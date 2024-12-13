@@ -2,7 +2,7 @@ package query
 
 import (
 	"fmt"
-	"spekary/goradd/orm/pkg/schema"
+	"github.com/goradd/orm/pkg/schema"
 	"time"
 )
 
@@ -97,7 +97,11 @@ func (g ReceiverType) DefaultValueString() string {
 	case ColTypeTime:
 		return "time.Time{}"
 	default:
-		return fmt.Sprintf("%#v", g.DefaultValue())
+		v := g.DefaultValue()
+		if v == nil {
+			return "nil"
+		}
+		return fmt.Sprintf("%#v", v)
 	}
 }
 

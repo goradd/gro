@@ -1,7 +1,5 @@
 package model
 
-import "github.com/goradd/strings"
-
 // The ManyManyReference structure is used by the templates during the codegen process to describe a many-to-many relationship.
 // Underlying the structure is an association table that has two values that are foreign keys pointing
 // to the records that are linked. The names of these fields will determine the names of the corresponding accessors
@@ -19,7 +17,7 @@ type ManyManyReference struct {
 	// DestinationEnumTable is the enum table being linked if this is an enum association
 	DestinationEnumTable *EnumTable
 
-	// Title is the human-readable title of the ojects pointed to.
+	// Title is the human-readable title of the objects pointed to.
 	Title string
 	// TitlePlural is the plural of Title
 	TitlePlural string
@@ -33,12 +31,13 @@ type ManyManyReference struct {
 	IdentifierPlural string
 
 	// MM is the many-many reference on the other end of the relationship that points back to this one.
+	// This will be nil if the other side is an enum table.
 	MM *ManyManyReference
 }
 
 // JsonKey returns the key used when referring to the associated objects in JSON.
-func (m *ManyManyReference) JsonKey(dd *Database) string {
-	return strings.Decap(m.IdentifierPlural)
+func (m *ManyManyReference) JsonKey() string {
+	return LowerCaseIdentifier(m.IdentifierPlural)
 }
 
 // ObjectType returns the name of the object type the association links to.
@@ -50,8 +49,8 @@ func (m *ManyManyReference) ObjectType() string {
 	}
 }
 
-// ObjectTypes returns the plural name of the object type the association links to.
-func (m *ManyManyReference) ObjectTypes() string {
+// ObjectTypePlural returns the plural name of the object type the association links to.
+func (m *ManyManyReference) ObjectTypePlural() string {
 	if m.DestinationTable != nil {
 		return m.DestinationTable.IdentifierPlural
 	} else {
@@ -75,6 +74,20 @@ func (m *ManyManyReference) PrimaryKey() string {
 	} else {
 		return m.DestinationEnumTable.Fields[0].QueryName
 	}
+}
+
+// VariableIdentifier is the local variable name used to identify queried objects attached to the local object
+// through the many-many relationship.
+func (m *ManyManyReference) VariableIdentifier() string {
+	return "mm" + m.IdentifierPlural
+}
+
+func (m *ManyManyReference) PkIdentifier() string {
+	return "mm" + m.IdentifierPlural + "Pks"
+}
+
+func (m *ManyManyReference) IsEnum() bool {
+	return m.DestinationEnumTable != nil
 }
 
 func makeManyManyRef(

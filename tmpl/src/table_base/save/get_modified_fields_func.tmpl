@@ -1,0 +1,25 @@
+
+//*** {{includeName}}
+
+{{
+// getModifiedFields returns the database columns that have been modified. This
+// will determine which specific fields are sent to the database to be changed.
+func (o *{{= table.Identifier }}Base) getModifiedFields() (fields map[string]interface{}) {
+	fields = map[string]interface{}{}
+{{for _,col := range table.Columns }}
+	if o.{{= col.VariableIdentifier() }}IsDirty {
+{{if col.IsNullable}}
+        if 	o.{{= col.VariableIdentifier() }}IsNull {
+            fields["{{= col.QueryName }}"] = nil
+        } else {
+  		    fields["{{= col.QueryName }}"] = o.{{= col.VariableIdentifier() }}
+        }
+{{else}}
+		fields["{{= col.QueryName }}"] = o.{{= col.VariableIdentifier() }}
+{{if}}
+	}
+{{for}}
+	return
+}
+
+}}

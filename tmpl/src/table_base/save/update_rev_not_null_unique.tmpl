@@ -1,0 +1,14 @@
+
+//*** {{includeName}}
+
+{{
+                    // Since the other side of the relationship cannot be null, if there is an object already attached,
+                    // we panic. 
+                    // TODO: return an error instead
+                    obj := Query{{= col.Table.Identifier }}(ctx).
+                              Where(Equal(node.{{= col.Table.Identifier}}().{{= col.Identifier }}(), o.PrimaryKey())).
+                              Get()
+                    if obj != nil  && obj.PrimaryKey() != o.{{= col.ReverseVariableIdentifier() }}.PrimaryKey() {
+                        panic("cannot set a unique non-null reference when another object is already set to it. Record " + obj.PrimaryKey + " is pointing to " + o.PrimaryKey())
+                    }
+}}

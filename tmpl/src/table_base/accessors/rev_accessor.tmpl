@@ -1,0 +1,130 @@
+
+//*** {{includeName}}
+
+{{
+// {{= col.Reference.ReverseIdentifier }} returns a single {{= col.Table.Identifier }} object by primary key, if one was loaded.
+// Otherwise, it will return nil. It will not return {{= col.Table.Identifier }} objects that are not saved.
+func (o *{{= table.Identifier }}Base) {{= col.Reference.ReverseIdentifier }}(pk {{= col.Table.PrimaryKeyGoType() }}) *{{= col.Table.Identifier }} {
+	if o.{{= col.ReverseVariableIdentifier() }} == nil {
+		return nil
+	}
+	v := o.{{= col.ReverseVariableIdentifier() }}.Get(pk)
+	return v
+}
+
+// {{= col.Reference.ReverseIdentifierPlural }} returns a slice of {{= col.Table.Identifier }} objects if loaded.
+func (o *{{= table.Identifier}}Base) {{= col.Reference.ReverseIdentifierPlural }}() []*{{= col.Table.Identifier }} {
+	if o.{{= col.ReverseVariableIdentifier() }} == nil {
+		return nil
+	}
+	return o.{{= col.ReverseVariableIdentifier() }}.Values()
+}
+
+// Load{{= col.Reference.ReverseIdentifierPlural }} loads a new slice of {{= col.Table.Identifier }} objects and returns it.
+func (o *{{= table.Identifier}}Base) Load{{= col.Reference.ReverseIdentifierPlural }}(ctx context.Context, conditions ...interface{}) []*{{= col.Table.Identifier }} {
+	if o.IsNew() {
+		return nil
+	}
+	for obj := range o.{{= col.ReverseVariableIdentifier() }}.ValuesIter() {
+        if obj.IsDirty() {
+            panic("You cannot load over items that have changed but have not been saved.")
+        }
+    }
+
+	qb := query{{= col.Table.IdentifierPlural }}(ctx)
+	var cond *query.OperationNode
+	if o.{{= col.ReversePkIdentifier() }} != nil {
+	    cond = In(node.{{= col.Table.Identifier }}().PrimaryKeyNode(), o.{{= col.ReversePkIdentifier() }}...)
+	} else {
+        cond = Equal(node.{{= col.Table.Identifier }}().{{= col.Identifier }}(), o.PrimaryKey())
+    }
+    if conditions != nil {
+        conditions = append(conditions, cond)
+        cond = And(conditions...)
+    }
+
+    objs := qb.Where(cond).Load()
+    if len(objs == 0) {
+	    o.{{= col.ReverseVariableIdentifier() }} = nil
+	} else {
+		o.{{= col.ReverseVariableIdentifier() }} = maps.NewSliceMap[{{= col.Table.PrimaryKeyGoType() }}, *{{= col.Table.Identifier }}] ()
+        for _,obj := range objs {
+            pk := obj.{{= col.Table.PrimaryKeyColumn().Identifier }}()
+            o.{{= col.ReverseVariableIdentifier() }}.Set(pk, obj)
+        }
+	}
+	o.{{= col.ReversePkIdentifier() }} = nil
+
+    if o.{{= col.ReverseVariableIdentifier() }} == nil {
+        return nil
+    }
+	return o.{{= col.ReverseVariableIdentifier() }}.Values()
+}
+
+// Count{{= col.Reference.ReverseIdentifierPlural }} returns the number of {{= col.Table.Identifier }} objects in the database connected to this object.
+func (o *{{= table.Identifier}}Base) Count{{= col.Reference.ReverseIdentifierPlural }}(ctx context.Context) int {
+    return Count{{= col.Table.Identifier }}By{{= col.Identifier }}(ctx, o.PrimaryKey())
+}
+
+// Set{{= col.Reference.ReverseIdentifierPlural }} associates the objects in objs with the {{= table.Identifier }}.
+{{if col.IsNullable }}
+// If it has items already associated with it that will not be associated after a save,
+// the foreign keys for those items will be set to null.
+// If you did not use a join to query the items in the first place, used a conditional join,
+// or joined with an expansion, be particularly careful, since you may be changing items
+// that are not currently attached to this {{= table.Identifier }}.
+{{else}}
+// WARNING! If it has items already associated with it that will not be associated after a save,
+// Save will panic. Be sure to delete those items or otherwise fix those pointers before calling save.
+{{if}}
+func (o *{{= table.Identifier}}Base) Set{{= col.Reference.ReverseIdentifierPlural }}(objs []*{{= col.Table.Identifier }}) {
+    for _,obj := range o.{{= col.ReverseVariableIdentifier() }} {
+        if obj.IsDirty() {
+            panic("You cannot overwrite items that have changed but have not been saved.")
+        }
+    }
+
+    if len(objs == 0) {
+        o.{{= col.ReverseVariableIdentifier() }} = nil
+    } else {
+        o.{{= col.ReverseVariableIdentifier() }} = maps.NewSliceMap[{{= col.Table.PrimaryKeyGoType() }}, *{{= col.Table.Identifier }}] ()
+        for _,obj := range objs {
+            pk := obj.{{= col.Table.PrimaryKeyColumn().Identifier }}()
+            o.{{= col.ReverseVariableIdentifier() }}.Set(pk, obj)
+        }
+    }
+    o.{{= col.ReversePkIdentifier() }} = nil
+	o.{{= col.ReverseVariableIdentifier() }}IsDirty = true
+}
+
+
+// Set{{= col.Identifier }}{{= col.Table.IdentifierPlural }}
+// associates this {{= table.Identifier }} with the {{= col.Table.IdentifierPlural }}
+// that have primary keys in pks.
+// The association is done through the {{= col.Table.Identifier }}.{{= col.Identifier }} reverse relationship.
+//
+// The association is temporary until you call Save().
+//
+{{if col.IsNullable }}
+// If there are {{= col.Table.Identifier }} objects currently associated with this {{= table.Identifier }} that are not included
+// in pks, those objects will have their {{= col.Identifier }} value set to null when Save is called.
+// If you did not use a join to query the items in the first place, used a conditional join,
+// or joined with an expansion, be particularly careful, since you may be inadvertently changing items
+// that are not currently loaded in this {{= table.Identifier }} object.
+{{else}}
+// WARNING! If it has items already associated with it that will not be associated after a save,
+// Save will panic. You should delete those items first.
+{{if}}
+func (o *{{= table.Identifier }}Base) Set{{= col.Identifier }}{{= col.Table.IdentifierPlural }}(pks []{{= col.Table.PrimaryKeyGoType() }}) {
+    for obj := range o.{{= col.ReverseVariableIdentifier() }}.ValuesIter() {
+        if obj.IsDirty() {
+            panic("You cannot overwrite items that have changed but have not been saved.")
+        }
+    }
+
+    o.{{= col.ReverseVariableIdentifier() }} = nil
+	o.{{= col.ReversePkIdentifier() }} = pks
+	o.{{= col.ReverseVariableIdentifier() }}IsDirty = true
+}
+
+}}

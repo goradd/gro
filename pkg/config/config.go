@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"github.com/go-sql-driver/mysql"
 	"github.com/goradd/goradd/pkg/log"
+	"github.com/goradd/orm/pkg/db"
+	mysql2 "github.com/goradd/orm/pkg/db/sql/mysql"
+	"github.com/goradd/orm/pkg/db/sql/pgsql"
 	"github.com/goradd/strings"
 	"github.com/jackc/pgx/v5"
 	"os"
-	"spekary/goradd/orm/pkg/db"
-	mysql2 "spekary/goradd/orm/pkg/db/sql/mysql"
-	"spekary/goradd/orm/pkg/db/sql/pgsql"
 )
 
 type ConfigFormat struct {

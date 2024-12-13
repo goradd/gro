@@ -1,0 +1,48 @@
+
+//*** {{includeName}}
+
+{{
+// load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
+// between the object chain requested by the user in the query.
+// Care must be taken in the query, as Select clauses might not be honored if the child object has fields selected which the parent object does not have.
+func (o *{{= table.Identifier}}Base) load (m map[string]interface{}, objThis *{{table.Identifier}}, objParent interface{}, parentKey string) {
+
+{{for _, col := range table.Columns }}
+	{{if col.IsNullable }}
+	    {{: "loaders/null_column_loader.tmpl" }}
+	{{else}}
+        {{: "loaders/not_null_column_loader.tmpl" }}
+    {{if}}
+
+	{{if col.IsReference() }}
+	    {{: "loaders/reference_loader.tmpl" }}
+    {{if}}
+{{for}}
+
+{{if len(table.ManyManyReferences) > 0 }}
+// Many-Many references
+{{if}}
+{{for _,mm := range table.ManyManyReferences }}
+	{{if mm.IsEnum() }}
+	    {{: "loaders/mm_enum.tmpl" }}
+	{{else}}
+	    {{: "loaders/mm.tmpl" }}
+    {{if}}
+{{for}}
+
+{{if len(table.ReverseReferences) > 0 }}
+// Reverse references
+{{if}}
+{{for _,col := range table.ReverseReferences }}
+	{{if col.IsUnique}}
+	    {{: "loaders/reverse_unique.tmpl" }}
+	{{else}} {{# not unique}}
+	    {{: "loaders/reverse.tmpl" }}
+	{{if}}
+{{for}}
+
+{{: "loaders/extra.tmpl" }}
+
+}
+
+}}

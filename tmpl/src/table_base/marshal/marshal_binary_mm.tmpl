@@ -1,0 +1,32 @@
+
+//*** {{includeName}}
+
+{{
+    if o.{{= mm.VariableIdentifier() }} == nil {
+        if err := encoder.Encode(false); err != nil {
+            return nil, err
+        }
+    } else {
+        if err := encoder.Encode(true); err != nil {
+            return nil, err
+        }
+        if err := encoder.Encode(o.{{= mm.VariableIdentifier() }}); err != nil {
+            return nil, err
+        }
+    }
+    if err := encoder.Encode(o.{{= mm.VariableIdentifier() }}IsDirty); err != nil {
+        return nil, err
+    }
+{{if !mm.IsEnum() }}
+    if err := encoder.Encode(o.{{= mm.PkIdentifier() }} != nil); err != nil {
+        return nil, err
+    }
+    if o.{{= mm.PkIdentifier() }} != nil {
+        if err := encoder.Encode(o.{{= mm.PkIdentifier() }}); err != nil {
+            return nil, err
+        }
+    }
+{{if}}
+
+{{# We will need to rebuild the map (when not a enum table association) based on the object decoded, since they are pointers to the same objects}}
+}}

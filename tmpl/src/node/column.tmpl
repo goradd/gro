@@ -1,4 +1,6 @@
-// column.tmpl
+
+//*** {{includeName}}
+
 
 func (n *NodeTemplate)genColumn(table *model.Table, col *model.Column, _w io.Writer) (err error) {
     if err = n.genColumnNode(table, col, _w); err != nil { return }
@@ -44,7 +46,7 @@ func (n *{{= table.Identifier}}Node) {{= col.Reference.Identifier }}() *{{= col.
 			"{{= col.QueryName }}",
 			"{{= col.Identifier }}",
 			"{{= col.Reference.Table.QueryName }}",
-			"{{= col.Reference.Column.QueryName }}",
+			"{{= col.Reference.Table.PrimaryKeyColumn().QueryName }}",
 			false,
 			query.{{= col.Type.String() }},
 		),

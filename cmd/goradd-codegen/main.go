@@ -3,12 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/goradd/orm/pkg/codegen"
+	"github.com/goradd/orm/pkg/schema"
+	_ "github.com/goradd/orm/tmpl/template"
 	"log"
 	"os"
 	"path/filepath"
-	"spekary/goradd/orm/pkg/codegen"
-	"spekary/goradd/orm/pkg/schema"
-	_ "spekary/goradd/orm/tmpl/template"
 )
 
 func main() {

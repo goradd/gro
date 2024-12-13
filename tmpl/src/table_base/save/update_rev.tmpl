@@ -1,0 +1,26 @@
+
+//*** {{includeName}}
+
+{{
+{{for _,col := range table.ReverseReferences }}
+        if o.{{= col.ReverseVariableIdentifier() }}IsDirty {
+            // relation connection changed
+    {{if col.IsNullable }}
+        {{if col.IsUnique}}
+            {{: "update_rev_null_unique.tmpl" }}
+        {{else}}
+            {{: "update_rev_null.tmpl" }}
+        {{if}}
+    {{else}} {{# not nullable}}
+        {{if col.IsUnique}}
+            {{: "update_rev_not_null_unique.tmpl" }}
+        {{else}}
+            {{: "update_rev_not_null.tmpl" }}
+
+        {{if}}
+    {{if}}
+        } else {
+    {{: "update_rev_save.tmpl" }}
+        }
+{{for}} {{# Reverse References }}
+}}

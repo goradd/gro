@@ -3,8 +3,8 @@ package db
 import (
 	"context"
 	"github.com/goradd/maps"
-	"spekary/goradd/orm/pkg/op"
-	. "spekary/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/op"
+	. "github.com/goradd/orm/pkg/query"
 )
 
 // LimitInfo is the information needed to limit the rows being requested.

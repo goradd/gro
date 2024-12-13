@@ -5,8 +5,8 @@ package sql
 import (
 	"database/sql"
 	"encoding/json"
+	"github.com/goradd/orm/pkg/query"
 	"log"
-	"spekary/goradd/orm/pkg/query"
 	"strconv"
 	"strings"
 )

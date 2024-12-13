@@ -1,8 +1,8 @@
 package query_test
 
 import (
+	"github.com/goradd/orm/pkg/query"
 	"github.com/stretchr/testify/assert"
-	"spekary/goradd/orm/pkg/query"
 	"testing"
 )
 

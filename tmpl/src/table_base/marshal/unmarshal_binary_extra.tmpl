@@ -1,0 +1,20 @@
+
+//*** {{includeName}}
+
+{{
+    if err = dec.Decode(&isPtr); err != nil {
+        return
+    }
+    if isPtr {
+        if err = dec.Decode(&o._aliases); err != nil {
+            return
+        }
+    }
+
+    if err = dec.Decode(&o._restored); err != nil {
+        return
+    }
+    if err = dec.Decode(&o._originalPK); err != nil {
+        return
+    }
+}}

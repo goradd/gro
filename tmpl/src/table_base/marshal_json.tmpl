@@ -1,0 +1,38 @@
+
+//*** {{includeName}}
+
+{{
+// MarshalJSON serializes the object into a JSON object.
+// Only valid data will be serialized, meaning, you can control what gets serialized by using Select to
+// select only the fields you want when you query for the object. Another way to control the output
+// is to call MarshalStringMap, modify the map, then encode the map.
+func (o *{{= table.Identifier}}Base) MarshalJSON() (data []byte, err error) {
+    v := o.MarshalStringMap()
+    return json.Marshal(v)
+}
+
+// MarshalStringMap serializes the object into a string map of interfaces.
+// Only valid data will be serialized, meaning, you can control what gets serialized by using Select to
+// select only the fields you want when you query for the object. The keys are the same as the json keys.
+func (o *{{= table.Identifier}}Base) MarshalStringMap() (map[string]interface{}) {
+    v := make(map[string]interface{})
+}}
+
+for _,col := range table.Columns {
+    {{: "marshal/marshal_stringmap_col.tmpl" }}
+}
+
+for _,rev := range table.ReverseReferences {
+    {{: "marshal/marshal_stringmap_rev.tmpl" }}
+}
+
+for _,mm := range table.ManyManyReferences {
+    {{: "marshal/marshal_stringmap_mm.tmpl" }}
+}
+
+{{: "marshal/marshal_stringmap_extra.tmpl" }}
+
+{{
+    return v
+}
+}}

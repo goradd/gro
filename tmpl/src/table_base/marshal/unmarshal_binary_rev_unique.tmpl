@@ -1,0 +1,28 @@
+
+//*** {{includeName}}
+
+{{
+    if err = dec.Decode(&isPtr); err != nil {
+        return
+    }
+    if isPtr {
+        if err = dec.Decode(&o.{{= rev.ReverseVariableIdentifier()
+ }}); err != nil {
+            return
+        }
+    }
+
+    if err = dec.Decode(&isPtr); err != nil {
+        return
+    }
+    if isPtr {
+        if err = dec.Decode(&o.{{= rev.ReversePkIdentifier() }}); err != nil {
+            return
+        }
+    }
+
+    if err = dec.Decode(&o.{{= rev.ReverseVariableIdentifier()
+ }}IsDirty); err != nil {
+        return
+    }
+}}

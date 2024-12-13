@@ -1,0 +1,24 @@
+
+//*** {{includeName}}
+
+{{
+
+	if v, ok := m["{{= mm.IdentifierPlural }}"]; ok {
+		if v2, ok2 := v.([]db.ValueMap); ok2 {
+			o.{{= mm.VariableIdentifier() }} = maps.NewSliceMap[{{= mm.PrimaryKeyType() }}, *{{= mm.ObjectType() }}]()
+
+			for _,v3 := range v2 {
+				obj := new({{= mm.ObjectType() }})
+				obj.load(v3, obj, objThis, "{{= mm.MM.IdentifierPlural }}")
+				o.{{= mm.VariableIdentifier() }}.Set(obj.PrimaryKey(), obj)
+			}
+			o.{{= mm.PkIdentifier() }} = nil
+		} else {
+			panic("Wrong type found for {{= mm.VariableIdentifier() }} object.")
+		}
+	} else {
+		o.{{= mm.VariableIdentifier() }} = nil
+		o.{{= mm.PkIdentifier() }} = nil
+	}
+
+}}

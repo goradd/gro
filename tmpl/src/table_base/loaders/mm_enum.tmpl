@@ -1,0 +1,19 @@
+
+//*** {{includeName}}
+
+{{
+
+	if v, ok := m["{{= mm.IdentifierPlural }}"]; ok {
+		if v2, ok2 := v.([]int); ok2 {
+			o.{{= mm.VariableIdentifier() }} = make([]{{= mm.ObjectType() }},0,len(v2))
+			for _,m := range v2 {
+				o.{{= mm.VariableIdentifier() }} = append(o.{{= mm.VariableIdentifier() }}, {{= mm.ObjectType() }}(m))
+			}
+		} else {
+			panic("Wrong type found for {{= mm.IdentifierPlural }} object.")
+		}
+	} else {
+		o.{{= mm.VariableIdentifier() }} = nil
+	}
+
+}}

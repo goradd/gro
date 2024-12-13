@@ -1,0 +1,32 @@
+
+//*** {{includeName}}
+
+{{
+{{# Update many-many references }}
+
+{{for _,col := range table.ReverseReferences }}
+    {{# Nullable or not nullable, we do the same thing since there is no need to detach anything since this is new}}
+
+    {{if col.IsUnique }}
+
+    if o.{{= col.ReverseVariableIdentifier() }} != nil {
+        o.{{= col.ReverseVariableIdentifier() }}.Set{{= col.Identifier }}(id)
+        o.{{= col.ReverseVariableIdentifier() }}.Save(ctx)
+    }
+
+    {{else}}
+
+    if o.{{= col.ReverseVariableIdentifier() }} != nil {
+        o.{{= col.ReverseVariableIdentifier() }}.Clear()
+        for _,obj := range o.{{= col.ReverseVariableIdentifier() }}.All() {
+            obj.Set{{= col.Identifier }}(id)
+            obj.Save(ctx)
+            o.{{= col.ReverseVariableIdentifier() }}.Set(obj.PrimaryKey(), obj)
+        }
+    }
+
+    {{if}}
+
+{{for}}
+
+}}

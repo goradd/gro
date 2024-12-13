@@ -1,0 +1,65 @@
+
+//*** {{includeName}}
+
+{{
+// Load{{= table.Identifier }} returns a {{= table.Identifier}} from the database.
+// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
+// be considered Join nodes, and column nodes will be Select nodes. See [{{= table.IdentifierPlural }}Builder.Join] and [{{= table.IdentifierPlural }}Builder.Select] for more info.
+func Load{{= table.Identifier }}(ctx context.Context, primaryKey {{= table.PrimaryKeyGoType() }}, joinOrSelectNodes ...query.NodeI) *{{= table.Identifier}} {
+	return query{{= table.IdentifierPlural }}(ctx).Where(Equal(node.{{= table.Identifier }}().{{= table.PrimaryKeyColumn().Identifier }}(), primaryKey)).joinOrSelect(joinOrSelectNodes...).Get()
+}
+
+// Has{{= table.Identifier }} returns true if a {{= table.Identifier }} with the given primaryKey exists in the database.
+// doc: type={{= table.Identifier }}
+func Has{{= table.Identifier }}(ctx context.Context, primaryKey {{= table.PrimaryKeyGoType() }}) bool {
+    q := query{{= table.IdentifierPlural }}(ctx)
+    q = q.Where(Equal(node.{{= table.Identifier}}().{{= table.PrimaryKeyColumn().Identifier }}(), primaryKey))
+    return q.Count(false) == 1
+}
+
+{{for _,idx := range table.Indexes}}
+{{if idx.IsUnique}}
+// Load{{= table.Identifier }}By{{for _,col := range idx.Columns}}{{= col.Identifier }}{{for}} queries for a single {{= table.Identifier }} object by the given unique index values.
+// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
+// be considered Join nodes, and column nodes will be Select nodes. See [{{= table.IdentifierPlural }}Builder.Join] and [{{= table.IdentifierPlural }}Builder.Select] for more info.
+// If you need a more elaborate query, use Query{{= table.IdentifierPlural }}() to start a query builder.
+func Load{{= table.Identifier }}By{{for _,col := range idx.Columns}}{{= col.Identifier }}{{for}} (ctx context.Context{{for _,col := range idx.Columns}}, {{= col.DecapIdentifier }} {{if col.IsNullable}}interface{}{{else}}{{= col.GoType() }}{{if}} {{for}}, joinOrSelectNodes ...query.NodeI) *{{= table.Identifier}} {
+    q := query{{= table.IdentifierPlural }}(ctx)
+{{for _,col := range idx.Columns}}
+{{if col.IsNullable}}
+    if {{= col.DecapIdentifier }} == nil {
+        q = q.Where(IsNull(node.{{= table.Identifier}}().{{= col.Identifier }}()))
+    } else {
+        q = q.Where(Equal(node.{{= table.Identifier}}().{{= col.Identifier }}(), {{= col.DecapIdentifier }}))
+    }
+{{else}}
+    q = q.Where(Equal(node.{{= table.Identifier}}().{{= col.Identifier }}(), {{= col.DecapIdentifier }}))
+{{if}}
+{{for}}
+    return q.joinOrSelect(joinOrSelectNodes...).Get()
+}
+
+// Has{{= table.Identifier}}By{{for _,col := range idx.Columns}}{{= col.Identifier }}{{for}} returns true if the
+// given unique index values exist in the database.
+// doc: type={{= table.Identifier}}
+func Has{{= table.Identifier }}By{{for _,col := range idx.Columns}}{{= col.Identifier }}{{for}} (ctx context.Context{{for _,col := range idx.Columns}}, {{= col.DecapIdentifier }} {{if col.IsNullable}}interface{}{{else}}{{= col.GoType()
+
+ }}{{if}} {{for}}) bool {
+    q := query{{= table.IdentifierPlural }}(ctx)
+{{for _,col := range idx.Columns}}
+{{if col.IsNullable}}
+    if {{= col.DecapIdentifier }} == nil {
+        q = q.Where(IsNull(node.{{= table.Identifier}}().{{= col.Identifier }}()))
+    } else {
+        q = q.Where(Equal(node.{{= table.Identifier}}().{{= col.Identifier }}(), {{= col.DecapIdentifier }}))
+    }
+{{else}}
+    q = q.Where(Equal(node.{{= table.Identifier}}().{{= col.Identifier }}(), {{= col.DecapIdentifier }}))
+{{if}}
+{{for}}
+    return q.Count(false) == 1
+}
+{{if}} {{# unique}}
+{{for}}
+}}
+

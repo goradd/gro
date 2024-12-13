@@ -5,14 +5,14 @@ import (
 	"fmt"
 	iter2 "github.com/goradd/iter"
 	"github.com/goradd/maps"
+	sql2 "github.com/goradd/orm/pkg/db/sql"
+	. "github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
 	"log"
 	log2 "log/slog"
 	"slices"
 	"sort"
-	sql2 "spekary/goradd/orm/pkg/db/sql"
-	. "spekary/goradd/orm/pkg/query"
-	"spekary/goradd/orm/pkg/schema"
 	"strings"
 )
 
@@ -55,13 +55,14 @@ type pgIndex struct {
 }
 
 type pgForeignKey struct {
-	constraintName       string
-	tableName            string
-	columnName           string
-	referencedTableName  string
-	referencedColumnName sql.NullString
-	updateRule           sql.NullString
-	deleteRule           sql.NullString
+	constraintName          string
+	tableName               string
+	columnName              string
+	referencedTableName     string
+	referencedColumnName    sql.NullString
+	updateRule              sql.NullString
+	deleteRule              sql.NullString
+	referencedColumnKeyType sql.NullString
 }
 
 func (m *DB) ExtractSchema(options map[string]any) schema.Database {
@@ -306,27 +307,46 @@ func (m *DB) getForeignKeys(schemas []string, defaultSchemaName string) (foreign
 
 	stmt := fmt.Sprintf(`
 SELECT
-    tc.constraint_name, 
-    tc.table_name, 
-    tc.table_schema, 
-    kcu.column_name, 
-    ccu.table_schema AS foreign_table_schema,
-    ccu.table_name AS foreign_table_name,
-    ccu.column_name AS foreign_column_name, 
-    pgc.confdeltype,
-    pgc.confupdtype
+    pc.conname AS constraint_name,
+    cl.relname AS table_name,
+    nsp.nspname AS table_schema,
+    att.attname AS column_name,
+    fcl.relname AS foreign_table_name,
+    fnsp.nspname AS foreign_table_schema,
+    fatt.attname AS foreign_column_name,
+    pc.confdeltype,
+    pc.confupdtype,
+    fpc.contype AS foreign_column_contype
 FROM 
-    information_schema.table_constraints AS tc 
-    JOIN information_schema.key_column_usage AS kcu
-      ON tc.constraint_name = kcu.constraint_name
-      AND tc.table_schema = kcu.table_schema
-    JOIN information_schema.constraint_column_usage AS ccu
-      ON ccu.constraint_name = tc.constraint_name
-      AND ccu.table_schema = tc.table_schema
-    JOIN pg_constraint as pgc
-      ON tc.constraint_name = pgc.conname
-WHERE tc.constraint_type = 'FOREIGN KEY' AND
-      tc.table_schema IN ('%s')
+    pg_constraint pc
+-- Join to get the table and schema of the constraint
+JOIN pg_class cl 
+    ON cl.oid = pc.conrelid
+JOIN pg_namespace nsp 
+    ON nsp.oid = cl.relnamespace
+-- Join to get the constrained column names
+JOIN unnest(pc.conkey) WITH ORDINALITY AS conkey (attnum, ord) 
+    ON TRUE
+JOIN pg_attribute att
+    ON att.attnum = conkey.attnum
+    AND att.attrelid = cl.oid
+-- Join to get the foreign table and column if it is a foreign key
+LEFT JOIN pg_class fcl 
+    ON fcl.oid = pc.confrelid
+LEFT JOIN pg_namespace fnsp 
+    ON fnsp.oid = fcl.relnamespace
+LEFT JOIN unnest(pc.confkey) WITH ORDINALITY AS confkey (attnum, ord) 
+    ON confkey.ord = conkey.ord
+LEFT JOIN pg_attribute fatt
+    ON fatt.attnum = confkey.attnum
+    AND fatt.attrelid = fcl.oid
+-- Join to get the constraint type of the foreign key column
+LEFT JOIN pg_constraint fpc
+    ON fpc.conrelid = pc.confrelid
+    AND confkey.attnum = ANY(fpc.conkey)
+WHERE 
+    pc.contype = 'f' -- Foreign keys only
+    AND nsp.nspname IN ('%s'); 
 	`, strings.Join(schemas, "','"))
 
 	rows, err := m.SqlDb().Query(stmt)
@@ -350,7 +370,8 @@ WHERE tc.constraint_type = 'FOREIGN KEY' AND
 			&referencedTable,
 			&fk.referencedColumnName,
 			&fk.updateRule,
-			&fk.deleteRule)
+			&fk.deleteRule,
+			&fk.referencedColumnKeyType)
 
 		if err != nil {
 			log.Fatal(err)
@@ -693,10 +714,12 @@ func (m *DB) getColumnSchema(table pgTable, column pgColumn, isIndexed bool, isP
 
 	if fk, ok2 := table.fkMap[cd.Name]; ok2 {
 		tableName := fk.referencedTableName
+		if fk.referencedColumnKeyType.String != "p" {
+			log2.Warn(fmt.Sprintf("Foregin key for %s:%s appears to not be pointing to a primary key. Only primary key foreign keys are supported.", table.name, column.name))
+		}
 
 		cd.Reference = &schema.Reference{
-			Table:  tableName,
-			Column: fk.referencedColumnName.String,
+			Table: tableName,
 		}
 	}
 

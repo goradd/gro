@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
-	"spekary/goradd/orm/pkg/codegen"
-	"spekary/goradd/orm/pkg/model"
+
+	"github.com/goradd/orm/pkg/codegen"
+	"github.com/goradd/orm/pkg/model"
 )
 
 func init() {
@@ -29,8 +30,7 @@ func (n *NodeTemplate) Overwrite() bool {
 	return true
 }
 
-// node.tmpl
-// The master template for the nodes for a particular column.
+//*** node.tmpl
 
 func (n *NodeTemplate) gen(table *model.Table, _w io.Writer) (err error) {
 	if err = n.genHeader(table, _w); err != nil {
@@ -353,7 +353,7 @@ func (n *NodeTemplate) genColumns(table *model.Table, _w io.Writer) (err error) 
 	return
 }
 
-// column.tmpl
+//*** column.tmpl
 
 func (n *NodeTemplate) genColumn(table *model.Table, col *model.Column, _w io.Writer) (err error) {
 	if err = n.genColumnNode(table, col, _w); err != nil {
@@ -591,7 +591,7 @@ func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.Reference.Column.QueryName); err != nil {
+	if _, err = io.WriteString(_w, col.Reference.Table.PrimaryKeyColumn().QueryName); err != nil {
 		return
 	}
 
@@ -747,6 +747,8 @@ func (n *`); err != nil {
 
 	return
 }
+
+//*** assn.tmpl
 
 func (n *NodeTemplate) genAssn(table *model.Table, _w io.Writer) (err error) {
 	for _, mm := range table.ManyManyReferences {
@@ -1023,8 +1025,10 @@ func (n *`); err != nil {
 	return
 }
 
+//*** reverse.tmpl
+
 func (n *NodeTemplate) genReverse(table *model.Table, col *model.Column, _w io.Writer) (err error) {
-	for _, refCol := range col.ReverseReferences {
+	for _, refCol := range table.ReverseReferences {
 		if refCol.IsUnique {
 			if err = n.genReverseOne(table, refCol, _w); err != nil {
 				return

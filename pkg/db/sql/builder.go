@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/goradd/maps"
-	"spekary/goradd/orm/pkg/db"
-	"spekary/goradd/orm/pkg/model"
-	. "spekary/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/db"
+	"github.com/goradd/orm/pkg/model"
+	. "github.com/goradd/orm/pkg/query"
 	"strconv"
 )
 

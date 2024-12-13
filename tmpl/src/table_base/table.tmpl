@@ -1,0 +1,142 @@
+
+//*** {{includeName}}
+
+
+// The master template for the table base classes
+
+func (tmpl *TableBaseTemplate) gen(table *model.Table, _w io.Writer) (err error) {
+    if err = tmpl.genHeader(table, _w); err != nil { return }
+    if err = tmpl.genStruct(table, _w); err != nil { return }
+    if err = tmpl.genConst(table, _w); err != nil { return }
+    if err = tmpl.genInit(table, _w); err != nil { return }
+    if err = tmpl.genPK(table, _w); err != nil { return }
+    if err = tmpl.genCopy(table, _w); err != nil { return }
+    if err = tmpl.genAccessors(table, _w); err != nil { return }
+    if err = tmpl.genEnumAccessors(table, _w); err != nil { return }
+    if err = tmpl.genManyManyAccessors(table, _w); err != nil { return }
+    if err = tmpl.genReverseRefAccessors(table, _w); err != nil { return }
+    if err = tmpl.genQuery(table, _w); err != nil { return }
+    if err = tmpl.genBuilder(table, _w); err != nil { return }
+    if err = tmpl.genCount(table, _w); err != nil { return }
+    if err = tmpl.genLoader(table, _w); err != nil { return }
+    if err = tmpl.genSave(table, _w); err != nil { return }
+    if err = tmpl.genDelete(table, _w); err != nil { return }
+    if err = tmpl.genDirty(table, _w); err != nil { return }
+    if err = tmpl.genGet(table, _w); err != nil { return }
+    if err = tmpl.genBinary(table, _w); err != nil { return }
+    if err = tmpl.genJson(table, _w); err != nil { return }
+    if err = tmpl.genInclude(table, _w); err != nil { return }
+    return
+}
+
+
+func (tmpl *TableBaseTemplate)genHeader(table *model.Table, _w io.Writer) (err error) {
+{{: "import.tmpl" }}
+    return
+}
+
+func (tmpl *TableBaseTemplate)genStruct(table *model.Table, _w io.Writer) (err error) {
+{{: "struct.tmpl" }}
+    return
+}
+
+func (tmpl *TableBaseTemplate)genConst(table *model.Table, _w io.Writer) (err error) {
+{{: "const.tmpl" }}
+    return
+}
+
+func (tmpl *TableBaseTemplate)genInit(table *model.Table, _w io.Writer) (err error) {
+{{: "init.tmpl" }}
+    return
+}
+
+func (tmpl *TableBaseTemplate)genPK(table *model.Table, _w io.Writer) (err error) {
+{{: "pk.tmpl" }}
+    return
+}
+
+func (tmpl *TableBaseTemplate)genCopy(table *model.Table, _w io.Writer) (err error) {
+{{: "copy.tmpl" }}
+    return
+}
+
+{{: "accessors.tmpl" }}
+
+func (tmpl *TableBaseTemplate)genEnumAccessors(table *model.Table, _w io.Writer) (err error) {
+    for _,column := range table.Columns {
+	    if column.IsEnumReference() {
+            {{: "enum_accessor.tmpl" }}
+        }
+    }
+    return
+}
+
+
+func (tmpl *TableBaseTemplate)genManyManyAccessors(table *model.Table, _w io.Writer) (err error) {
+{{: "many_many_accessors.tmpl" }}
+    return
+}
+
+func (tmpl *TableBaseTemplate)genReverseRefAccessors(table *model.Table, _w io.Writer) (err error) {
+{{: "reverse_ref_accessors.tmpl" }}
+    return
+}
+
+func (tmpl *TableBaseTemplate)genQuery(table *model.Table, _w io.Writer) (err error) {
+{{: "query.tmpl" }}
+    return
+}
+
+func (tmpl *TableBaseTemplate)genBuilder(table *model.Table, _w io.Writer) (err error) {
+{{: "query_builder.tmpl" }}
+    return
+}
+
+func (tmpl *TableBaseTemplate)genCount(table *model.Table, _w io.Writer) (err error) {
+{{: "count.tmpl" }}
+    return
+}
+
+func (tmpl *TableBaseTemplate)genLoader(table *model.Table, _w io.Writer) (err error) {
+{{: "loader.tmpl" }}
+    return
+}
+
+func (tmpl *TableBaseTemplate)genSave(table *model.Table, _w io.Writer) (err error) {
+{{: "save.tmpl" }}
+    return
+}
+
+func (tmpl *TableBaseTemplate)genDelete(table *model.Table, _w io.Writer) (err error) {
+{{: "delete.tmpl" }}
+    return
+}
+
+func (tmpl *TableBaseTemplate)genDirty(table *model.Table, _w io.Writer) (err error) {
+{{: "dirty.tmpl" }}
+    return
+}
+
+func (tmpl *TableBaseTemplate)genGet(table *model.Table, _w io.Writer) (err error) {
+{{: "get.tmpl" }}
+    return
+}
+
+func (tmpl *TableBaseTemplate)genBinary(table *model.Table, _w io.Writer) (err error) {
+{{: "marshal_binary.tmpl" }}
+{{: "unmarshal_binary.tmpl" }}
+    return
+}
+
+func (tmpl *TableBaseTemplate)genJson(table *model.Table, _w io.Writer) (err error) {
+{{: "marshal_json.tmpl" }}
+{{: "unmarshal_json.tmpl" }}
+    return
+}
+
+func (tmpl *TableBaseTemplate)genInclude(table *model.Table, _w io.Writer) (err error) {
+{{: "include.tmpl" }}
+    return
+}
+
+

@@ -1,0 +1,31 @@
+
+//*** {{includeName}}
+
+{{
+    if err = dec.Decode(&o.{{= col.VariableIdentifier() }}); err != nil {
+        return
+    }
+{{if col.IsNullable}}
+    if err = dec.Decode(&o.{{= col.VariableIdentifier() }}IsNull); err != nil {
+        return
+    }
+{{if}}
+    if err = dec.Decode(&o.{{= col.VariableIdentifier() }}IsValid); err != nil {
+        return
+    }
+    if err = dec.Decode(&o.{{= col.VariableIdentifier() }}IsDirty); err != nil {
+        return
+    }
+
+{{if col.IsReference()}}
+    if err = dec.Decode(&isPtr); err != nil {
+        return
+    }
+    if isPtr {
+        if err = dec.Decode(&o.{{= col.ReverseVariableIdentifier()
+ }}); err != nil {
+            return
+        }
+    }
+{{if}}
+}}

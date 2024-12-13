@@ -1,0 +1,46 @@
+
+//*** {{includeName}}
+
+{{
+// Initialize or re-initialize a {{= table.Identifier }} database object to default values.
+{{if pk := table.PrimaryKeyColumn(); pk != nil && pk.IsAutoId }}
+// The primary key will get a temporary negative number which will be replaced when the object is saved.
+// Multiple calls to Initialize are not guaranteed to create sequential values for the primary key.
+{{if}}
+func (o *{{= table.Identifier}}Base) Initialize() {
+
+{{for _,col := range table.Columns}}
+
+{{if col.IsAutoId}}
+    newObjectPkCounter = newObjectPkCounter - 1
+    o.{{= col.VariableIdentifier() }} = fmt.Sprintf("%d", newObjectPkCounter)
+{{else}}
+	o.{{= col.VariableIdentifier() }} = {{= col.DefaultValueAsValue() }}
+{{if}}
+
+{{if col.IsNullable}}
+{{if col.DefaultValue == nil}}
+	o.{{= col.VariableIdentifier() }}IsNull = true
+	o.{{= col.VariableIdentifier() }}IsValid = true
+	o.{{= col.VariableIdentifier() }}IsDirty = true
+{{else}}
+	o.{{= col.VariableIdentifier() }}IsNull = false
+	o.{{= col.VariableIdentifier() }}IsValid = true
+	o.{{= col.VariableIdentifier() }}IsDirty = true
+{{if}}
+{{else}} {{# not null }}
+{{if col.DefaultValue == nil}}
+	o.{{= col.VariableIdentifier() }}IsValid = false
+	o.{{= col.VariableIdentifier() }}IsDirty = false
+{{else}}
+	o.{{= col.VariableIdentifier() }}IsValid = true
+	o.{{= col.VariableIdentifier() }}IsDirty = true
+{{if}}
+{{if}}
+
+{{for}}
+
+	o._restored = false
+}
+
+}}

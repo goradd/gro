@@ -2,9 +2,10 @@ package model
 
 import (
 	"fmt"
+	"github.com/goradd/orm/pkg/schema"
+	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
 	"log/slog"
-	"spekary/goradd/orm/pkg/schema"
 	"strings"
 )
 
@@ -135,13 +136,8 @@ func (m *Database) importReference(table *Table, schemaCol *schema.Column) {
 			slog.Warn(fmt.Sprintf("Reference skipped, table not found. From %s:%s", table.QueryName, schemaCol.Name))
 			return
 		}
-		var thisCol, refCol *Column
+		var thisCol *Column
 		if refTable != nil {
-			refCol = refTable.ColumnByName(schemaCol.Reference.Column)
-			if refCol == nil {
-				slog.Warn(fmt.Sprintf("Reference skipped, column not found. From %s:%s to %s:%s", refTable.QueryName, schemaCol.Name, schemaCol.Reference.Table, schemaCol.Reference.Column))
-				return
-			}
 			thisCol = table.ColumnByName(schemaCol.Name)
 			if thisCol == nil {
 				slog.Warn(fmt.Sprintf("Reference skipped, column not found. From %s:%s", refTable.QueryName, schemaCol.Name))
@@ -150,7 +146,6 @@ func (m *Database) importReference(table *Table, schemaCol *schema.Column) {
 		}
 		f := &Reference{
 			Table:                   refTable,
-			Column:                  refCol,
 			EnumTable:               et,
 			Identifier:              schemaCol.Reference.Identifier,
 			Title:                   schemaCol.Reference.Title,
@@ -159,9 +154,10 @@ func (m *Database) importReference(table *Table, schemaCol *schema.Column) {
 			ReverseIdentifier:       schemaCol.Reference.ReverseIdentifier,
 			ReverseIdentifierPlural: schemaCol.Reference.ReverseIdentifierPlural,
 		}
+		f.DecapIdentifier = strings2.Decap(f.Identifier)
 		if thisCol != nil {
 			thisCol.Reference = f
-			refCol.ReverseReferences = append(refCol.ReverseReferences, thisCol)
+			table.ReverseReferences = append(table.ReverseReferences, thisCol)
 		}
 	}
 }

@@ -1,0 +1,21 @@
+
+//*** {{includeName}}
+
+{{
+
+// Copy copies all valid fields (except for the primary key) to a new {{= table.Identifier}} object.
+// Forward reference ids will be copied, but reverse and many-many references will not.
+{{if !table.PrimaryKeyColumn().IsAutoId }}// You will need to manually set the primary key field.{{if}}
+// Call Save() on the new object to save it into the database.
+func (o *{{= table.Identifier}}Base) Copy() (newObject *{{= table.Identifier}}) {
+    newObject = New{{= table.Identifier }}()
+{{for _,col := range table.Columns }}
+{{if !col.IsPk }}
+    if o.{{= col.VariableIdentifier() }}IsValid {
+        newObject.Set{{= col.Identifier }}(o.{{= col.VariableIdentifier() }})
+    }
+{{if}}
+{{for}}
+    return
+}
+}}

@@ -3,9 +3,9 @@ package db
 import (
 	"context"
 	"github.com/goradd/maps"
+	. "github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
 	"iter"
-	. "spekary/goradd/orm/pkg/query"
-	"spekary/goradd/orm/pkg/schema"
 )
 
 type DatabaseMap = maps.SliceMap[string, DatabaseI]

@@ -1,0 +1,39 @@
+
+//*** {{includeName}}
+
+{{
+// Get returns the value of a field in the object based on the field's name.
+// It will also get related objects if they are loaded.
+// Invalid fields and objects are returned as nil
+func (o *{{= table.Identifier}}Base) Get(key string) interface{} {
+
+    switch key {
+
+{{for _,col := range table.Columns }}
+    case "{{= col.Identifier }}":
+        if !o.{{= col.DecapIdentifier }}IsValid {
+            return nil
+        }
+        return o.{{= col.DecapIdentifier }}
+
+	{{if col.IsReference()}}
+    case "{{= col.Reference.Identifier }}":
+        return o.{{= col.Reference.Identifier }}()
+    {{if}}
+
+{{for}}
+
+{{for _,col := range table.ReverseReferences }}
+    case "{{= col.ReverseFunction() }}":
+        return o.{{= col.ReverseVariableIdentifier() }}()
+{{for}}
+
+{{for _,mm := range table.ManyManyReferences}}
+    case "{{= mm.IdentifierPlural }}":
+        return o.{{= mm.VariableIdentifier() }}.Values()
+{{for}}
+
+    }
+    return nil
+}
+}}

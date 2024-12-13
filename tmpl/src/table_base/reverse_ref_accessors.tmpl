@@ -1,0 +1,10 @@
+
+//*** {{includeName}}
+
+for _,col := range table.ReverseReferences {
+	if col.IsUnique {
+        {{: "accessors/rev_accessor_unique.tmpl" }}
+	} else { // Unique
+	    {{: "accessors/rev_accessor.tmpl" }}
+	}
+}

@@ -1,0 +1,36 @@
+
+//*** {{includeName}}
+
+{{
+// MarshalBinary serializes the object into a buffer that is deserializable using UnmarshalBinary.
+// It should be used for transmitting database objects over the wire, or for temporary storage. It does not send
+// a version number, so if the data format changes, its up to you to invalidate the old stored objects.
+// The framework uses this to serialize the object when it is stored in a control.
+func (o *{{= table.Identifier}}Base) MarshalBinary() ([]byte, error) {
+	buf := new(bytes.Buffer)
+	encoder := gob.NewEncoder(buf)
+}}
+
+
+for _,col := range table.Columns {
+    {{: "marshal/marshal_binary_col.tmpl" }}
+}
+
+for _,rev := range table.ReverseReferences {
+    if rev.IsUnique {
+        {{: "marshal/marshal_binary_rev_unique.tmpl" }}
+    } else {
+        {{: "marshal/marshal_binary_rev.tmpl" }}
+    }
+}
+
+for _,mm := range table.ManyManyReferences {
+    {{: "marshal/marshal_binary_mm.tmpl" }}
+}
+
+{{: "marshal/marshal_binary_extra.tmpl" }}
+
+{{
+    return buf.Bytes(), nil
+}
+}}

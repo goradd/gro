@@ -1,0 +1,26 @@
+
+//*** {{includeName}}
+
+{{
+    if o.{{= col.VariableIdentifier() }}IsValid {
+{{if col.IsNullable}}
+        if o.{{= col.VariableIdentifier() }}IsNull {
+            v["{{= col.JsonKey() }}"] = nil
+        } else {
+            v["{{= col.JsonKey() }}"] = o.{{= col.VariableIdentifier() }}
+        }
+{{else}}
+        v["{{= col.JsonKey() }}"] = o.{{= col.VariableIdentifier() }}
+{{if}}
+    }
+
+{{if col.IsEnumReference() }}
+    if o.{{= col.VariableIdentifier() }}IsValid {
+        v["{{= col.ReferenceJsonKey() }}"] = o.{{= col.ReferenceFunction() }}().String()
+    }
+{{elseif col.IsReference() }}
+    if val := o.{{= col.ReferenceFunction() }}(); val != nil {
+        v["{{= col.ReferenceJsonKey() }}"] = val.MarshalStringMap()
+    }
+{{if}}
+}}

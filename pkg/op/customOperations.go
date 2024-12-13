@@ -1,6 +1,6 @@
 package op
 
-import . "spekary/goradd/orm/pkg/query"
+import . "github.com/goradd/orm/pkg/query"
 
 func StartsWith(arg1 interface{}, arg2 string) *OperationNode {
 	return NewOperationNode(OpStartsWith, arg1, arg2)

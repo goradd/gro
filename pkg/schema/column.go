@@ -16,6 +16,8 @@ type Column struct {
 	Name string `json:"name"`
 
 	// Type is the type of column. See the doc for ColumnType for more info.
+	// If this is an auto generated primary key column, or a reference, the type must be a string,
+	// even if the underlying type in the database is a different type.
 	Type ColumnType `json:"type"`
 
 	// Identifier is the name of the column in Go code. Leave blank to base it on the Name.
@@ -31,8 +33,13 @@ type Column struct {
 	// (int, uint or float64).
 	Size uint64 `json:"size"`
 
-	// DefaultValue is the default value as specified by the database. We will initialize new ORM objects
-	// with this value. Non-nullable values that do not have a default value are required to be set by the application.
+	// DefaultValue is the value that this field will be initialized to when a new object is created.
+	// If not specified, it will be the zero value of the column's type.
+	// Non-nullable columns that do not have a default value are required to be set by the application
+	// before the object is saved.
+	// Time columns can use the string "now" to set the value to the current time when the object
+	// is first saved, and "update" to also set the value to the current time every time the object
+	// is modified and saved.
 	DefaultValue interface{} `json:"default_value"`
 
 	// IsOptional is true if the column can be given a NULL value.
@@ -58,13 +65,9 @@ type Reference struct {
 	// If this column is a reference to an object in another table, this is the name of that other table.
 	// If using schemas, the format should be "SchemaName.TableName".
 	// The QueryName of the Column should end in "_id" or whatever the value of Database.ReferenceSuffix is for the database.
-	// If the Table is the same as the QueryName of the column, it creates a parent-child relationship.
-	// This can point to an enum table.
+	// If Table is the same as the QueryName of the column's table, it creates a parent-child relationship.
+	// This can point to an enum table, in which case Table should end in the EnumTableSuffix.
 	Table string `json:"table"`
-
-	// Column is the QueryName of the column referred to. Leave blank to refer to the primary key field
-	// of the Table.
-	Column string `json:"column"`
 
 	// Identifier is the Go name used for the referenced object.
 	Identifier string `json:"identifier"`
@@ -89,18 +92,19 @@ type Reference struct {
 	ReverseIdentifierPlural string `json:"reverse_identifier_plural,omitempty"`
 }
 
-func (c *Column) FillDefaults(table *Table, referenceSuffix string) {
+func (c *Column) FillDefaults(table *Table, referenceSuffix string, enumSuffix string) {
 	if c.Title == "" {
 		c.Title = strings2.Title(c.Name)
-	}
-	if c.Identifier == "" {
-		c.Identifier = snaker.SnakeToCamelIdentifier(c.Name)
 	}
 	if c.Reference != nil {
 		objName := strings.TrimSuffix(c.Name, referenceSuffix)
 
-		c.Reference.Identifier = snaker.ForceCamelIdentifier(objName)
-		c.Reference.Title = strings2.Title(c.Reference.Identifier)
+		if c.Reference.Identifier == "" {
+			c.Reference.Identifier = snaker.ForceCamelIdentifier(objName)
+		}
+		if c.Reference.Title == "" {
+			c.Reference.Title = strings2.Title(c.Reference.Identifier)
+		}
 		if objName == c.Reference.Table {
 			objName = ""
 		}
@@ -116,7 +120,16 @@ func (c *Column) FillDefaults(table *Table, referenceSuffix string) {
 		if c.Reference.ReverseIdentifierPlural == "" && c.IndexLevel != IndexLevelUnique {
 			c.Reference.ReverseIdentifierPlural = strings2.Plural(c.Reference.ReverseIdentifier)
 		}
+
+		// Enum references do not have a public difference between the name of the id field and the object itself.
+		if c.Identifier == "" && strings.HasSuffix(c.Reference.Table, enumSuffix) {
+			c.Identifier = c.Reference.Identifier
+		}
 	}
+	if c.Identifier == "" {
+		c.Identifier = snaker.SnakeToCamelIdentifier(c.Name)
+	}
+
 }
 
 func (c *Column) IsPrimaryKey() bool {

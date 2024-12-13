@@ -2,8 +2,8 @@ package sql
 
 import (
 	"database/sql"
+	"github.com/goradd/orm/pkg/query"
 	"log"
-	"spekary/goradd/orm/pkg/query"
 )
 
 type sqlCursor struct {

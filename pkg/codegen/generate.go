@@ -2,12 +2,12 @@ package codegen
 
 import (
 	"github.com/goradd/gofile/pkg/sys"
+	"github.com/goradd/orm/pkg/model"
+	"github.com/goradd/orm/pkg/schema"
 	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"spekary/goradd/orm/pkg/model"
-	"spekary/goradd/orm/pkg/schema"
 	"strings"
 )
 

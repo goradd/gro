@@ -1,0 +1,18 @@
+
+//*** {{includeName}}
+
+{{
+{{# save reverse reference objects that are dirty, but relationship has not changed }}
+
+        {{if col.IsUnique }}
+            // save related object
+            if o.{{= col.ReverseVariableIdentifier() }} != nil {
+                o.{{= col.ReverseVariableIdentifier() }}.Save(ctx)
+            }
+        {{else}}
+            // save related objects
+            for _,obj := range o.{{= col.ReverseVariableIdentifier() }} {
+                obj.Save(ctx)
+            }
+        {{if}}
+}}

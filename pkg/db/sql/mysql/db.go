@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"github.com/go-sql-driver/mysql"
 	any2 "github.com/goradd/any"
-	sql2 "spekary/goradd/orm/pkg/db/sql"
-	. "spekary/goradd/orm/pkg/query"
+	sql2 "github.com/goradd/orm/pkg/db/sql"
+	. "github.com/goradd/orm/pkg/query"
 	"strings"
 	"time"
 )

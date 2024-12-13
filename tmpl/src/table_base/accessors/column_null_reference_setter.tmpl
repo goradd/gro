@@ -1,0 +1,27 @@
+
+//*** {{includeName}}
+
+{{
+
+// Set{{= col.Reference.Identifier }} will set the reference to {{= col.Reference.DecapIdentifier }}. The referenced object
+// will be saved when {{= table.Identifier}} is saved. Pass nil to break the connection.
+func (o *{{= table.Identifier}}Base) Set{{= col.Reference.Identifier }}({{= col.Reference.DecapIdentifier }} *{{= col.Reference.Identifier }}) {
+	o.{{= col.DecapIdentifier }}IsValid = true
+	if {{= col.Reference.DecapIdentifier }} == nil {
+		if !o.{{= col.DecapIdentifier }}IsNull || !o._restored {
+			o.{{= col.DecapIdentifier }}IsNull = true
+			o.{{= col.DecapIdentifier }}IsDirty = true
+			o.{{= col.DecapIdentifier }} = {{= col.DefaultValueAsValue() }}
+			o.{{= col.DecapIdentifier }} = nil
+		}
+	} else {
+		o.{{= col.DecapIdentifier }}  = {{= col.Reference.DecapIdentifier }}
+		if o.{{= col.DecapIdentifier }}IsNull || !o._restored || o.{{= col.DecapIdentifier }} != {{= col.Reference.DecapIdentifier }}.PrimaryKey() {
+			o.{{= col.DecapIdentifier }}IsNull = false
+			o.{{= col.DecapIdentifier }} = {{= col.Reference.DecapIdentifier }}.PrimaryKey()
+			o.{{= col.DecapIdentifier }}IsDirty = true
+		}
+	}
+}
+
+}}

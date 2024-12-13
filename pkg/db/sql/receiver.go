@@ -2,10 +2,10 @@ package sql
 
 import (
 	"fmt"
+	. "github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
 	"log"
-	. "spekary/goradd/orm/pkg/query"
-	"spekary/goradd/orm/pkg/schema"
 	"strconv"
 	"strings"
 	"time"

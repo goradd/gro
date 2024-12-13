@@ -3,12 +3,12 @@ package model
 import (
 	"cmp"
 	any2 "github.com/goradd/any"
+	. "github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
 	"log/slog"
 	"slices"
-	. "spekary/goradd/orm/pkg/query"
-	"spekary/goradd/orm/pkg/schema"
 )
 
 type ConstVal struct {
@@ -158,4 +158,8 @@ type EnumField struct {
 	// The second column must be type ColTypeString.
 	// Other columns can be one of the other types, but not ColTypeReference.
 	Type ReceiverType
+}
+
+func (f EnumField) GoType() string {
+	return f.Type.GoType()
 }

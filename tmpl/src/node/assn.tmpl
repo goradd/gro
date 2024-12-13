@@ -1,4 +1,7 @@
 
+//*** {{includeName}}
+
+
 func (n *NodeTemplate)genAssn(table *model.Table, _w io.Writer) (err error) {
     for _,mm := range table.ManyManyReferences {
         if mm.DestinationTable != nil {

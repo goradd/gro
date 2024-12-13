@@ -1,0 +1,19 @@
+
+//*** {{includeName}}
+
+{{
+// Set{{= col.Reference.Identifier }} sets the value of {{= col.Reference.Identifier }} in the object, to be saved later using the Save() function.
+func (o *{{= table.Identifier}}Base) Set{{= col.Reference.Identifier }}({{= col.DecapIdentifier }} *{{= col.Reference.Identifier }})  {
+	if {{= col.DecapIdentifier }} == nil {
+		panic("Cannot set {{= col.Reference.Identifier }} to a null value.")
+	} else {
+		o.{{= col.DecapIdentifier }} = {{= col.DecapIdentifier }}
+		o.{{= col.DecapIdentifier }}IsValid = true
+		if o.{{= col.DecapIdentifier }} != {{= col.DecapIdentifier }}.PrimaryKey() {
+			o.{{= col.DecapIdentifier }} = {{= col.DecapIdentifier }}.PrimaryKey()
+			o.{{= col.DecapIdentifier }}IsDirty = true
+		}
+	}
+}
+
+}}

@@ -1,7 +1,7 @@
 package op
 
 import (
-	. "spekary/goradd/orm/pkg/query"
+	. "github.com/goradd/orm/pkg/query"
 )
 
 func Equal(arg1 interface{}, arg2 interface{}) *OperationNode {

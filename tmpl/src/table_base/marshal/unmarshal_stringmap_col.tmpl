@@ -1,0 +1,173 @@
+
+//*** {{includeName}}
+
+{{
+        case "{{= col.JsonKey()}}":
+        {
+{{if !col.IsNullable}}
+            if v == nil {
+                return fmt.Errorf("json field %s cannot be null", k)
+            }
+{{else}}
+            if v == nil {
+                o.Set{{= col.Identifier }}(v)
+                continue
+            }
+{{if}}
+
+{{if col.IsEnumReference()}}
+{{# handle enum tables specially}}
+           if n,ok := v.(int); ok {
+                o.Set{{= col.ReferenceFunction() }}({{= col.Reference.Identifier }}(n))
+           } else if n,ok := v.(float64); ok {
+                o.Set{{= col.ReferenceFunction() }}({{= col.Reference.Identifier }}(int(n)))
+           } else {
+                return fmt.Errorf("json field %s must be a number", k)
+           }
+{{else}}
+
+
+{{g
+switch col.Type {
+
+case query.ColTypeInteger:
+{{
+            if n,ok := v.(int); ok {
+                o.Set{{= col.Identifier }}(int(n))
+            } else if n,ok := v.(float64); ok {
+                o.Set{{= col.Identifier }}(int(n))
+            } else {
+                return fmt.Errorf("json field %s must be a number", k)
+            }
+}}
+case query.ColTypeUnsigned:
+{{
+            if n,ok := v.(int); ok {
+                o.Set{{= col.Identifier }}(uint(n))
+            } else if n,ok := v.(float64); ok {
+                o.Set{{= col.Identifier }}(uint(n))
+            } else {
+                return fmt.Errorf("json field %s must be a number", k)
+            }
+}}
+case query.ColTypeInteger64:
+{{
+            if n,ok := v.(int); ok {
+                o.Set{{= col.Identifier }}(int64(n))
+            } else if n,ok := v.(float64); ok {
+                o.Set{{= col.Identifier }}(int64(n))
+            } else {
+                return fmt.Errorf("json field %s must be a number", k)
+            }
+}}
+case query.ColTypeUnsigned64:
+{{
+            if n,ok := v.(int); ok {
+                o.Set{{= col.Identifier }}(uint64(n))
+            } else if n,ok := v.(float64); ok {
+                o.Set{{= col.Identifier }}(uint64(n))
+            } else {
+                return fmt.Errorf("json field %s must be a number", k)
+            }
+}}
+case query.ColTypeFloat32:
+{{
+            if n,ok := v.(float64); ok {
+                o.Set{{= col.Identifier }}(float32(n))
+            } else {
+                return fmt.Errorf("json field %s must be a number", k)
+            }
+}}
+case query.ColTypeFloat64:
+{{
+            if n,ok := v.(float64); ok {
+                o.Set{{= col.Identifier }}(n)
+            } else {
+                return fmt.Errorf("json field %s must be a number", k)
+            }
+}}
+case query.ColTypeBytes:
+{{
+            switch d := v.(type) {
+            case string:
+            {
+                // A base 64 encoded string
+                if b,err2 := base64.StdEncoding.DecodeString(d); err2 == nil {
+                    o.Set{{= col.Identifier }}(b)
+                } else {
+                    return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+                }
+            }
+            case []interface{}:
+            {
+                // An array of byte values. Unfortunately, these come through as float64s, and so need to be converted
+                b := make([]byte, len(d), len(d))
+                for i,b1 := range d {
+                    if f,ok := b1.(float64); !ok {
+                        return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+                    } else {
+                        b[i] = uint8(f)
+                    }
+                }
+                o.Set{{= col.Identifier }}(b)
+            }
+            default:
+                return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+            }
+
+}}
+case query.ColTypeString:
+{{
+            if s,ok := v.(string); !ok {
+                return fmt.Errorf("json field %s must be a string", k)
+            } else {
+                o.Set{{= col.Identifier }}(s)
+            }
+}}
+case query.ColTypeBool:
+{{
+            if b,ok := v.(bool); !ok {
+                return fmt.Errorf("json field %s must be a boolean", k)
+            } else {
+                o.Set{{= col.Identifier }}(b)
+            }
+}}
+case query.ColTypeTime:
+{{
+             switch d := v.(type) {
+             case float64:
+                // a numeric value, which for JSON, means milliseconds since epoc
+                o.Set{{= col.Identifier }}(time.UnixMilli(int64(d)).UTC())
+             case string:
+                // an ISO8601 string (hopefully)
+                var t time.Time
+                err = t.UnmarshalJSON([]byte(`"` + d + `"`))
+                if err != nil {
+                    return fmt.Errorf("JSON format error for time field %s: %w", k, err)
+                }
+                t = t.UTC()
+                o.Set{{= col.Identifier }}(t)
+             default:
+                return fmt.Errorf("json field %s must be a number or a string", k)
+             }
+}}
+
+}
+}}
+{{if}}
+           }
+{{if col.IsEnumReference()}}
+{{# Add setting type value by string}}
+        case "{{= col.ReferenceJsonKey() }}":
+            if s,ok := v.(string); !ok {
+                return fmt.Errorf("json field %s must be a string", k)
+            } else {
+                t := {{= col.Reference.Identifier }}FromName(s)
+                if int(t) == 0 {
+                    return fmt.Errorf("invalid value for field %s", k)
+                }
+                o.Set{{= col.ReferenceFunction() }}(t)
+            }
+
+{{if}}
+}}

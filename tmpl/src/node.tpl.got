@@ -3,8 +3,8 @@ package template
 import (
 	"io"
 	"fmt"
-	"spekary/goradd/orm/pkg/codegen"
-	"spekary/goradd/orm/pkg/model"
+	"github.com/goradd/orm/pkg/codegen"
+	"github.com/goradd/orm/pkg/model"
 	"path/filepath"
 
 )

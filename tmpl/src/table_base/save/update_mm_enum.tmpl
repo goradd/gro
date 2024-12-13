@@ -1,0 +1,15 @@
+
+//*** {{includeName}}
+
+{{
+{{# Update many-many reference enums }}
+        if o.{{= mm.VariableIdentifier() }}IsDirty {
+            d.Associate(ctx,
+                "{{= mm.AssnTableName }}",
+                "{{= mm.AssnSourceColumnName }}",
+                o.PrimaryKey(),
+                "{{= mm.DestinationEnumTable.QueryName }}",
+                "{{= mm.AssnDestColumnName }}",
+                o.{{= mm.VariableIdentifier() }})
+        }
+}}

@@ -1,0 +1,19 @@
+
+//*** {{includeName}}
+
+{{
+
+	if v, ok := m["{{= col.Reference.Identifier }}"]; ok {
+		if {{= col.VariableIdentifier() }}, ok2 := v.(map[string]interface{}); ok2 {
+			o.{{= col.VariableIdentifier() }} = new({{= col.Reference.Identifier }})
+			o.{{= col.VariableIdentifier() }}.load({{= col.VariableIdentifier() }}, o.{{= col.VariableIdentifier() }}, objThis, "{{= col.ReverseFunction() }}")
+			o.{{= col.VariableIdentifier() }}IsValid = true
+			o.{{= col.VariableIdentifier() }}IsDirty = false
+		} else {
+			panic("Wrong type found for {{= col.VariableIdentifier() }} object.")
+		}
+	} else {
+		o.{{= col.VariableIdentifier() }} = nil
+	}
+
+}}

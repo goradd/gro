@@ -61,7 +61,7 @@ func (t *Table) QualifiedName() string {
 	}
 }
 
-func (t *Table) FillDefaults(referenceSuffix string) {
+func (t *Table) FillDefaults(referenceSuffix string, enumSuffix string) {
 	if t.Title == "" {
 		t.Title = strings2.Title(t.Name)
 	}
@@ -76,6 +76,6 @@ func (t *Table) FillDefaults(referenceSuffix string) {
 	}
 
 	for _, c := range t.Columns {
-		c.FillDefaults(t, referenceSuffix)
+		c.FillDefaults(t, referenceSuffix, enumSuffix)
 	}
 }
