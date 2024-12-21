@@ -1,6 +1,7 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
 {{# Update many-many references }}
 
@@ -16,13 +17,11 @@
 
     {{else}}
 
-    if o.{{= col.ReverseVariableIdentifier() }} != nil {
-        o.{{= col.ReverseVariableIdentifier() }}.Clear()
-        for _,obj := range o.{{= col.ReverseVariableIdentifier() }}.All() {
-            obj.Set{{= col.Identifier }}(id)
-            obj.Save(ctx)
-            o.{{= col.ReverseVariableIdentifier() }}.Set(obj.PrimaryKey(), obj)
-        }
+    o.{{= col.ReverseVariableIdentifier() }}.Clear()
+    for _,obj := range o.{{= col.ReverseVariableIdentifier() }}.All() {
+        obj.Set{{= col.Identifier }}(id)
+        obj.Save(ctx)
+        o.{{= col.ReverseVariableIdentifier() }}.Set(obj.PrimaryKey(), obj)
     }
 
     {{if}}

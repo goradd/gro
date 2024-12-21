@@ -1,6 +1,7 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
     if err = dec.Decode(&o.{{= col.VariableIdentifier() }}); err != nil {
         return
@@ -22,7 +23,7 @@
         return
     }
     if isPtr {
-        if err = dec.Decode(&o.{{= col.ReverseVariableIdentifier()
+        if err = dec.Decode(&o.{{= col.ReferenceVariableIdentifier()
  }}); err != nil {
             return
         }

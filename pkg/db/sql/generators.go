@@ -403,7 +403,7 @@ func (g *selectGenerator) generateOrderBySql() (sql string) {
 }
 
 // GenerateUpdate is a helper function for database implementations to generate an update statement.
-func GenerateUpdate(db DbI, table string, fields map[string]any, pkName string, pkValue any) (sql string, args []any) {
+func GenerateUpdate(db DbI, table string, fields map[string]any, where map[string]any) (sql string, args []any) {
 	if len(fields) == 0 {
 		panic("No fields to set")
 	}
@@ -421,9 +421,16 @@ func GenerateUpdate(db DbI, table string, fields map[string]any, pkName string, 
 	}
 
 	sql += strings.Join(sets, ", ")
-	args = append(args, pkValue)
-	sql += "\nWHERE " + db.QuoteIdentifier(pkName) +
-		fmt.Sprintf(" = %s", db.FormatArgument(len(args)))
+
+	clear(sets)
+	for k, v := range iter.KeySort(where) {
+		args = append(args, v)
+		s := fmt.Sprintf("%s=%s", db.QuoteIdentifier(k), db.FormatArgument(len(args)))
+		sets = append(sets, s)
+	}
+
+	sql += "\nWHERE "
+	sql += strings.Join(sets, ", ")
 
 	return
 }
@@ -450,4 +457,22 @@ func GenerateInsert(db DbI, table string, fields map[string]any) (sql string, ar
 	sql += strings.Join(values, ",") + ")\n"
 	return
 
+}
+
+func GenerateDelete(db DbI, table string, where map[string]any) (sql string, args []any) {
+	sql = "DELETE FROM " + db.QuoteIdentifier(table) + "\n"
+	sql += "WHERE "
+	var sets []string
+
+	// We range on sorted keys to give SQL optimizers a chance to use a prepared
+	// statement by making sure the same fields show up in the same order.
+	for k, v := range iter.KeySort(where) {
+		args = append(args, v)
+		s := fmt.Sprintf("%s=%s", db.QuoteIdentifier(k), db.FormatArgument(len(args)))
+		sets = append(sets, s)
+	}
+
+	sql += strings.Join(sets, ", ")
+
+	return
 }

@@ -2,7 +2,8 @@ package model
 
 import (
 	"cmp"
-	any2 "github.com/goradd/any"
+	"fmt"
+	. "github.com/goradd/all"
 	. "github.com/goradd/orm/pkg/query"
 	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
@@ -55,7 +56,7 @@ func (tt *EnumTable) FieldQueryName(i int) string {
 func (tt *EnumTable) FieldValue(row int, fieldNum int) any {
 	name := tt.FieldQueryName(fieldNum)
 	v := tt.Values[row][name]
-	if any2.IsNil(v) {
+	if IsNil(v) {
 		v = tt.Fields[fieldNum].Type.DefaultValue()
 	}
 	return v
@@ -64,12 +65,12 @@ func (tt *EnumTable) FieldValue(row int, fieldNum int) any {
 // FieldIdentifier returns the go name corresponding to the given field offset, or an empty string if out of bounds.
 func (tt *EnumTable) FieldIdentifier(i int) string {
 
-	return any2.If(tt.Fields[i], tt.Fields[i].Identifier, "")
+	return If(tt.Fields[i], tt.Fields[i].Identifier, "")
 }
 
 // FieldIdentifierPlural returns the go plural name corresponding to the given field offset, or an empty string if out of bounds.
 func (tt *EnumTable) FieldIdentifierPlural(i int) string {
-	return any2.If(tt.Fields[i], tt.Fields[i].IdentifierPlural, "")
+	return If(tt.Fields[i], tt.Fields[i].IdentifierPlural, "")
 }
 
 // FieldReceiverType returns the ReceiverType corresponding to the given field offset
@@ -82,23 +83,29 @@ func (tt *EnumTable) FileName() string {
 	return snaker.CamelToSnake(tt.Identifier)
 }
 
-// newEnumTable will import the enum table from ets
-func newEnumTable(dbKey string, ets *schema.EnumTable) *EnumTable {
+// newEnumTable will import the enum table from tableSchema.
+// If an error occurs, the table will be returned with no Values.
+func newEnumTable(dbKey string, tableSchema *schema.EnumTable) *EnumTable {
 	t := &EnumTable{
 		DbKey:            dbKey,
-		QueryName:        ets.QualifiedName(),
-		Title:            ets.Title,
-		TitlePlural:      ets.TitlePlural,
-		Identifier:       ets.Identifier,
-		IdentifierPlural: ets.IdentifierPlural,
-		DecapIdentifier:  strings2.Decap(ets.Identifier),
+		QueryName:        tableSchema.QualifiedName(),
+		Title:            tableSchema.Title,
+		TitlePlural:      tableSchema.TitlePlural,
+		Identifier:       tableSchema.Identifier,
+		IdentifierPlural: tableSchema.IdentifierPlural,
+		DecapIdentifier:  strings2.Decap(tableSchema.Identifier),
 		Values:           make(map[int]map[string]any),
 	}
-	if len(ets.Values) == 0 {
-		slog.Warn("enum table " + t.QueryName + " has no data entries. Specify constants by adding entries to this table.")
+	if len(tableSchema.Values) == 0 {
+		slog.Error("Enum table " + t.QueryName + " has no Values entries. Specify constants by adding entries to this table schema.")
+		return t
+	}
+	if len(tableSchema.Fields) < 2 {
+		slog.Error("Enum table " + t.QueryName + " does not have at least 2 Fields entries. Specify fields by adding Fields to this table schema.")
+		return t
 	}
 
-	for _, field := range ets.Fields {
+	for _, field := range tableSchema.Fields {
 		f := EnumField{
 			QueryName:        field.Name,
 			Title:            field.Title,
@@ -107,19 +114,38 @@ func newEnumTable(dbKey string, ets *schema.EnumTable) *EnumTable {
 			IdentifierPlural: field.IdentifierPlural,
 			Type:             ReceiverTypeFromSchema(field.Type, 0),
 		}
+		if len(t.Fields) == 0 && f.Type != ColTypeInteger {
+			slog.Error("Enum table " + t.QueryName + " must have an integer first column.")
+			return t
+		}
+		if len(t.Fields) == 1 && f.Type != ColTypeString {
+			slog.Error("Enum table " + t.QueryName + " must have an string second column.")
+			return t
+		}
 		t.Fields = append(t.Fields, f)
 	}
 
-	for _, row := range ets.Values {
+	for i, row := range tableSchema.Values {
+		if len(row) != len(t.Fields) {
+			slog.Error(fmt.Sprintf("Enum table %s, Values row %d, does not have the same number of values as Fields.", t.QueryName, i))
+			clear(t.Values)
+			return t
+		}
+
 		valueMap := make(map[string]interface{})
 		key, ok := row[0].(int)
+
 		if !ok {
-			panic("first column of enum table must be an integer")
+			slog.Error(fmt.Sprintf("Enum table %s, Values row %d, does not have an integer first column.", t.QueryName, i))
+			clear(t.Values)
+			return t
 		}
 		valueMap[t.Fields[0].QueryName] = key
 		value, ok := row[1].(string)
 		if !ok {
-			panic("second column of enum table must be a string")
+			slog.Error(fmt.Sprintf("Enum table %s, Values row %d, does not have a string second column.", t.QueryName, i))
+			clear(t.Values)
+			return t
 		}
 		valueMap[t.Fields[1].QueryName] = value
 		t.Constants = append(t.Constants, ConstVal{key, enumValueToConstant(t.Identifier, value)})

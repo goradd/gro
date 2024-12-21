@@ -1,21 +1,22 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
-func (o *{{= table.Identifier}}Base) {{= column.Reference.Identifier }}() {{= column.Reference.Identifier }} {
+func (o *{{= table.DecapIdentifier}}Base) {{= column.ReferenceIdentifier() }}() {{= column.ReferenceIdentifier() }} {
 	if o._restored && !o.{{= column.DecapIdentifier }}IsValid {
 		panic ("{{= column.DecapIdentifier }} was not selected in the last query and so is not valid")
 	}
-	return {{= column.Reference.Identifier }}(o.{{= column.DecapIdentifier }})
+	return {{= column.ReferenceIdentifier() }}(o.{{= column.DecapIdentifier }})
 }
 
 {{if column.IsNullable}}
 
-func (o *{{= table.Identifier}}Base) {{= column.Reference.Identifier }}IsNull() bool {
+func (o *{{= table.DecapIdentifier}}Base) {{= column.ReferenceIdentifier() }}IsNull() bool {
 	return o.{{= column.DecapIdentifier }}IsNull
 }
 
-func (o *{{= table.Identifier}}Base) Set{{= column.Reference.Identifier }}(i interface{}) {
+func (o *{{= table.DecapIdentifier}}Base) Set{{= column.ReferenceIdentifier() }}(i interface{}) {
 	if i == nil {
 		if !o.{{= column.DecapIdentifier }}IsNull {
 			o.{{= column.DecapIdentifier }}IsNull = true
@@ -37,7 +38,7 @@ func (o *{{= table.Identifier}}Base) Set{{= column.Reference.Identifier }}(i int
 
 {{else}} {{# not null }}
 
-func (o *{{= table.Identifier}}Base) Set{{= column.Reference.Identifier }}(v {{= column.Reference.Identifier }}) {
+func (o *{{= table.DecapIdentifier}}Base) Set{{= column.ReferenceIdentifier() }}(v {{= column.ReferenceIdentifier() }}) {
 	if o.{{= column.DecapIdentifier }} != {{= column.GoType()
 
  }}(v) {

@@ -24,14 +24,14 @@ type DatabaseI interface {
 	// NewBuilder returns a newly created query builder
 	NewBuilder(ctx context.Context) QueryBuilderI
 
-	// Update will put the given values into a record that already exists in the database. The "fields" value
-	// should include only fields that have changed.
-	Update(ctx context.Context, table string, fields map[string]interface{}, pkName string, pkValue interface{})
+	// Update will put the given values into a record that already exists in the database. The fields value
+	// should include only fields that have changed. All records that match the keys and values in where are changed.
+	Update(ctx context.Context, table string, fields map[string]interface{}, where map[string]interface{})
 	// Insert will insert a new record into the database with the given values, and return the new record's primary key value.
 	// The fields value should include all the required values in the database.
 	Insert(ctx context.Context, table string, fields map[string]interface{}) string
-	// Delete will delete the given record from the database
-	Delete(ctx context.Context, table string, pkName string, pkValue interface{})
+	// Delete will delete records from the database that match the key value pairs in where.
+	Delete(ctx context.Context, table string, where map[string]interface{})
 	// Associate sets a many-many relationship to the given values.
 	// The values are taken from the ORM, and are treated differently depending on whether this is a SQL or NoSQL database.
 	Associate(ctx context.Context,

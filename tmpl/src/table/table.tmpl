@@ -1,0 +1,75 @@
+//*** table.tmpl
+
+// The master template for the table classes
+
+{{
+package {{= tmpl.Package }}
+
+// This is the implementation file for the {{= table.Identifier }} ORM object.
+// This is where you build the api to your data model for your web application and potentially mobile apps.
+// Your edits to this file will be preserved.
+
+import (
+    "fmt"
+    "context"
+)
+
+// {{= table.Identifier }} represents an item in the {{= table.QueryName }} table in the database.
+type {{= table.Identifier }} struct {
+	{{= table.DecapIdentifier }}Base
+}
+
+// New{{= table.Identifier }} creates a new {{= table.Identifier }} object and initializes it to default values.
+func New{{= table.Identifier }}() *{{= table.Identifier }} {
+	o := new({{= table.Identifier }})
+	o.Initialize()
+	return o
+}
+
+// Initialize will initialize or re-initialize a {{= table.Identifier }} database object to default values.
+func (o *{{= table.Identifier }}) Initialize() {
+	o.{{= table.DecapIdentifier }}Base.Initialize()
+    // Add your own initializations here
+}
+
+// String implements the Stringer interface and returns the default label for the object as it appears in html lists.
+// Typically you would change this to whatever was pertinent to your application.
+func (o *{{= table.Identifier }}) String() string  {
+    if o == nil {
+        return ""   // Possibly - Select One -?
+    }
+{{if col := table.ColumnByName("name"); col != nil}}
+    return o.{{= col.VariableIdentifier() }}
+{{else}}
+    return fmt.Sprintf("{{= table.Identifier }} %v", o.PrimaryKey())
+{{if}}
+}
+
+// Query{{= table.IdentifierPlural }} returns a new query builder.
+func Query{{= table.IdentifierPlural }}(ctx context.Context) *{{= table.IdentifierPlural }}Builder {
+	return query{{= table.IdentifierPlural }}(ctx)
+}
+
+// query{{= table.IdentifierPlural }} creates a new builder and is the central spot where all queries are directed.
+// You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
+// access the data.
+func query{{= table.IdentifierPlural }}(ctx context.Context) *{{= table.IdentifierPlural }}Builder {
+	return new{{= table.Identifier }}Builder(ctx)
+}
+
+
+{{if table.PrimaryKeyColumn() != nil}}
+// Delete{{= table.Identifier }} deletes a {{= table.QueryName }} record from the database given its primary key.
+// Note that you can also delete loaded {{= table.Identifier }} objects by calling Delete on them.
+// doc: type={{= table.Identifier }}
+func Delete{{= table.Identifier }}(ctx context.Context, pk {{= table.PrimaryKeyColumn().GoType() }}) {
+	delete{{= table.Identifier }}(ctx, pk)
+}
+{{if}}
+
+
+func init() {
+    gob.RegisterName("{{= table.DbKey }}{{= table.Identifier }}", new({{= table.Identifier }}))
+}
+
+}}

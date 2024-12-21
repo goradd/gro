@@ -1,28 +1,27 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
 
 // {{= table.Identifier}}Base is embedded in a {{= table.Identifier }} object and provides the ORM access to the database.
 // The member variables of the structure are private and should not normally be accessed by the {{= table.Identifier }} embedder.
 // Instead, use the accessor functions.
-type {{= table.Identifier}}Base struct {
+type {{= table.DecapIdentifier}}Base struct {
 
 {{for _,col := range table.Columns}}
 {{if col.IsAutoId}}
-	{{= col.DecapIdentifier }} string
+	{{= col.VariableIdentifier() }} string
 {{else}}
-	{{= col.DecapIdentifier }} {{= col.GoType()
-
- }}
+	{{= col.VariableIdentifier() }} {{= col.GoType() }}
 {{if}}
 {{if col.IsNullable}}
-	{{= col.DecapIdentifier }}IsNull bool
+	{{= col.VariableIdentifier() }}IsNull bool
 {{if}}
-	{{= col.DecapIdentifier }}IsValid bool
-	{{= col.DecapIdentifier }}IsDirty bool
+	{{= col.VariableIdentifier() }}IsValid bool
+	{{= col.VariableIdentifier() }}IsDirty bool
 {{if col.IsReference() }}
-	{{= col.Reference.DecapIdentifier }} *{{= col.Reference.Table.Identifier }}
+	{{= col.ReferenceVariableIdentifier() }} *{{= col.ReferenceType() }}
 {{if}}
 
 {{for}}
@@ -45,13 +44,12 @@ type {{= table.Identifier}}Base struct {
 {{if len(table.ManyManyReferences) > 0}}
 // Many-Many reference objects.
 {{for _,mm := range table.ManyManyReferences }}
-    {{if mm.IsEnum() }}
-	    {{= mm.VariableIdentifier() }} []{{= mm.ObjectType() }}
-    {{else}}
-    	{{= mm.VariableIdentifier() }} maps.SliceMap[{{= mm.PrimaryKeyType() }}, *{{= mm.ObjectType() }}]
-    {{if}}
+{{if mm.IsEnum() }}
+	{{= mm.VariableIdentifier() }} []{{= mm.ObjectType() }}
+{{else}}
+    {{= mm.VariableIdentifier() }} maps.SliceMap[{{= mm.PrimaryKeyType() }}, *{{= mm.ObjectType() }}]
+{{if}}
     {{= mm.PkIdentifier() }} []{{= mm.PrimaryKeyType() }}                // Primary keys to associate at Save time
-
     {{= mm.VariableIdentifier() }}IsDirty bool
 {{for}}
 {{if}}
@@ -62,11 +60,7 @@ type {{= table.Identifier}}Base struct {
 	// Indicates whether this is a new object, or one loaded from the database. Used by Save to know whether to Insert or Update.
 	_restored bool
 
-	// The original primary key to update the record if the primary key changes.
-	_originalPK {{= table.PrimaryKeyColumn().GoType()
-
- }}
-
+    _originalPK {{= table.PrimaryKeyGoType() }}
 }
 
 }}

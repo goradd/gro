@@ -1,6 +1,7 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 
 func (n *NodeTemplate)genColumn(table *model.Table, col *model.Column, _w io.Writer) (err error) {
     if err = n.genColumnNode(table, col, _w); err != nil { return }
@@ -11,7 +12,6 @@ func (n *NodeTemplate)genColumn(table *model.Table, col *model.Column, _w io.Wri
             if err = n.genEnumTableRefNode(table, col, _w); err != nil { return }
         }
     }
-    if err = n.genReverse(table, col, _w); err != nil { return }
     return
 }
 
@@ -37,14 +37,15 @@ func (n *{{= table.Identifier}}Node) {{= col.Identifier }}() *query.ColumnNode {
 
 func (n *NodeTemplate)genTableRefNode(table *model.Table, col *model.Column, _w io.Writer) (err error) {
 {{
-// {{= col.Reference.Identifier }} represents the link to a {{= col.Reference.Table.Identifier }} object.
-func (n *{{= table.Identifier}}Node) {{= col.Reference.Identifier }}() *{{= col.Reference.Table.Identifier }}Node {
-	cn := &{{= col.Reference.Table.Identifier }}Node {
+// {{= col.ReferenceIdentifier() }} represents the link to a {{= col.ReferenceType() }} object.
+func (n *{{= table.Identifier}}Node) {{= col.ReferenceIdentifier() }}() *{{= col.ReferenceType() }}Node {
+	cn := &{{= col.ReferenceType() }}Node {
 		query.NewReferenceNode (
 			"{{= table.DbKey }}",
 			"{{= table.QueryName }}",
 			"{{= col.QueryName }}",
 			"{{= col.Identifier }}",
+			"{{= col.ReferenceIdentifier() }}",
 			"{{= col.Reference.Table.QueryName }}",
 			"{{= col.Reference.Table.PrimaryKeyColumn().QueryName }}",
 			false,
@@ -61,8 +62,8 @@ func (n *{{= table.Identifier}}Node) {{= col.Reference.Identifier }}() *{{= col.
 
 func (n *NodeTemplate)genEnumTableRefNode(table *model.Table, col *model.Column, _w io.Writer) (err error) {
 {{
-// {{= col.Reference.Identifier }} represents the link to a {{= col.Reference.EnumTable.Identifier }} object.
-func (n *{{= table.Identifier}}Node) {{= col.Reference.Identifier }}() *{{= col.Reference.EnumTable.Identifier }}Node {
+// {{= col.ReferenceIdentifier() }} represents the link to a {{= col.Reference.EnumTable.Identifier }} object.
+func (n *{{= table.Identifier}}Node) {{= col.ReferenceIdentifier() }}() *{{= col.Reference.EnumTable.Identifier }}Node {
     cn := &{{= col.Reference.EnumTable.Identifier }}Node {
         query.NewReferenceNode (
             "{{= table.DbKey }}",

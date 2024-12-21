@@ -28,7 +28,7 @@ type ReferenceNode struct {
 	dbTable string
 	// The name of the unique column in dbTable that is the foreign key
 	dbColumn string
-	// The name of the table related to this reference
+	// The name of the column related to this reference
 	goColumnName string
 	// The name of the function used to access the property as a node or ORM item
 	goPropName string
@@ -36,7 +36,7 @@ type ReferenceNode struct {
 	goVarName string
 	// The name of the table we are joining to
 	refTable string
-	// If a forward reference and NoSQL, the name of the table that will contain the reference or references backwards to us. If SQL, the Pk of the RefTable
+	// The name of primary key in refTable
 	refColumn string
 	// Is this pointing to a enum table item?
 	isEnumTable bool

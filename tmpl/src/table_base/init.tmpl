@@ -1,13 +1,14 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
 // Initialize or re-initialize a {{= table.Identifier }} database object to default values.
 {{if pk := table.PrimaryKeyColumn(); pk != nil && pk.IsAutoId }}
 // The primary key will get a temporary negative number which will be replaced when the object is saved.
 // Multiple calls to Initialize are not guaranteed to create sequential values for the primary key.
 {{if}}
-func (o *{{= table.Identifier}}Base) Initialize() {
+func (o *{{= table.DecapIdentifier}}Base) Initialize() {
 
 {{for _,col := range table.Columns}}
 

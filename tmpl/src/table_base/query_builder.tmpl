@@ -1,6 +1,7 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 builderName := table.IdentifierPlural + "Builder"
 {{
 
@@ -108,7 +109,7 @@ func (b *{{= builderName }}) Expand(n query.NodeI) *{{= builderName }} {
 func (b *{{= builderName }}) Join(n query.NodeI, conditions... query.NodeI) *{{= builderName }} {
 	var condition query.NodeI
 	if len(conditions) > 1 {
-		condition = And(conditions)
+		condition = op.And(conditions)
 	} else if len(conditions) == 1 {
 		condition = conditions[0]
 	}

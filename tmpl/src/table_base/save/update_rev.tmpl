@@ -1,6 +1,7 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
 {{for _,col := range table.ReverseReferences }}
         if o.{{= col.ReverseVariableIdentifier() }}IsDirty {

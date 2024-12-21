@@ -1,20 +1,19 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{for _,col := range table.Columns }}
 
 // Count{{table.Identifier}}By{{col.Identifier}} queries the database and returns the number of {{table.Identifier}} objects that
 // have {{= col.DecapIdentifier }}.
 // doc: type={{table.Identifier}}
-func Count{{table.Identifier}}By{{col.Identifier}}(ctx context.Context, {{= col.DecapIdentifier }} {{= col.GoType()
-
- }}) int {
+func Count{{table.Identifier}}By{{col.Identifier}}(ctx context.Context, {{= col.VariableIdentifier() }} {{= col.GoType()}}) int {
 {{if col.Reference != nil}}
-    if {{= col.DecapIdentifier}} == {{L col.Type.DefaultValue() }} {
+    if {{= col.VariableIdentifier() }} == {{= col.DefaultValueAsValue() }} {
         return 0
     }
 {{if}}
-	return int(query{{= table.IdentifierPlural }}(ctx).Where(Equal(node.{{= table.Identifier }}().{{= col.Identifier }}(), {{= col.DecapIdentifier }})).Count(false))
+	return int(query{{= table.IdentifierPlural }}(ctx).Where(op.Equal(node.{{= table.Identifier }}().{{= col.Identifier }}(), {{= col.DecapIdentifier }})).Count(false))
 }
 
 {{for}}

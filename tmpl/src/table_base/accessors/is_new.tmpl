@@ -1,10 +1,11 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
 
 // IsNew returns true if the object will create a new record when saved.
-func (o *{{= table.Identifier}}Base) IsNew() bool {
+func (o *{{= table.DecapIdentifier}}Base) IsNew() bool {
 	return !o._restored
 }
 

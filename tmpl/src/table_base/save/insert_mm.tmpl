@@ -1,16 +1,11 @@
 
+{{g
 //*** {{includeName}}
-
-{{
-{{# Update many-many references }}
-
-{{for _,mm := range table.ManyManyReferences }}
-
-{{if mm.IsEnum() }}
-    {{: "insert_mm_enum.tmpl" }}
-{{else}}
-    {{: "insert_mm_col.tmpl" }}
-{{if}}
-{{for}}
-
 }}
+for _,mm := range table.ManyManyReferences {
+    if mm.IsEnum() {
+{{: "insert_mm_enum.tmpl" }}
+    } else {
+{{: "insert_mm_col.tmpl" }}
+    }
+}

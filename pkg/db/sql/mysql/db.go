@@ -5,7 +5,7 @@ import (
 	sqldb "database/sql"
 	"fmt"
 	"github.com/go-sql-driver/mysql"
-	any2 "github.com/goradd/any"
+	"github.com/goradd/all"
 	sql2 "github.com/goradd/orm/pkg/db/sql"
 	. "github.com/goradd/orm/pkg/query"
 	"strings"
@@ -121,7 +121,7 @@ func OverrideConfigSettings(config *mysql.Config, jsonContent map[string]interfa
 			config.Addr = v.(string) // Note: if you set address, you MUST set net also.
 		case "params":
 			// Convert from map[string]any to map[string]string
-			config.Params = any2.StringMap(v.(map[string]interface{}))
+			config.Params = all.StringMap(v.(map[string]interface{}))
 		case "collation":
 			config.Collation = v.(string)
 		case "maxAllowedPacket":
@@ -200,10 +200,10 @@ func (m *DB) OperationSql(op Operator, operandStrings []string) (sql string) {
 func (m *DB) Update(ctx context.Context,
 	table string,
 	fields map[string]any,
-	pkName string,
-	pkValue any) {
+	where map[string]any,
+) {
 
-	sql, args := sql2.GenerateUpdate(m, table, fields, pkName, pkValue)
+	sql, args := sql2.GenerateUpdate(m, table, fields, where)
 	_, e := m.Exec(ctx, sql, args...)
 	if e != nil {
 		panic(e.Error())
@@ -227,10 +227,9 @@ func (m *DB) Insert(ctx context.Context, table string, fields map[string]interfa
 }
 
 // Delete deletes the indicated record from the database.
-func (m *DB) Delete(ctx context.Context, table string, pkName string, pkValue interface{}) {
-	var sql = "DELETE FROM " + iq(table) + "\n"
-	sql += "WHERE " + iq(pkName) + " = ?"
-	_, e := m.Exec(ctx, sql, pkValue)
+func (m *DB) Delete(ctx context.Context, table string, where map[string]any) {
+	sql, args := sql2.GenerateDelete(m, table, where)
+	_, e := m.Exec(ctx, sql, args...)
 	if e != nil {
 		panic(e.Error())
 	}

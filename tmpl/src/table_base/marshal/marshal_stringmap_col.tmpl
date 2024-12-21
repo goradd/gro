@@ -1,6 +1,7 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
     if o.{{= col.VariableIdentifier() }}IsValid {
 {{if col.IsNullable}}
@@ -16,10 +17,10 @@
 
 {{if col.IsEnumReference() }}
     if o.{{= col.VariableIdentifier() }}IsValid {
-        v["{{= col.ReferenceJsonKey() }}"] = o.{{= col.ReferenceFunction() }}().String()
+        v["{{= col.ReferenceJsonKey() }}"] = o.{{= col.ReferenceIdentifier() }}().String()
     }
 {{elseif col.IsReference() }}
-    if val := o.{{= col.ReferenceFunction() }}(); val != nil {
+    if val := o.{{= col.ReferenceIdentifier() }}(); val != nil {
         v["{{= col.ReferenceJsonKey() }}"] = val.MarshalStringMap()
     }
 {{if}}

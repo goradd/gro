@@ -76,6 +76,15 @@ func (m *ManyManyReference) PrimaryKey() string {
 	}
 }
 
+// QueryName returns the database table name of the destination table.
+func (m *ManyManyReference) QueryName() string {
+	if m.DestinationTable != nil {
+		return m.DestinationTable.QueryName
+	} else {
+		return m.DestinationEnumTable.QueryName
+	}
+}
+
 // VariableIdentifier is the local variable name used to identify queried objects attached to the local object
 // through the many-many relationship.
 func (m *ManyManyReference) VariableIdentifier() string {

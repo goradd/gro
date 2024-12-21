@@ -1,11 +1,12 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
 {{# Update many-many references }}
 
         if o.{{= mm.VariableIdentifier() }}IsDirty {
-            for _,obj := range o.{{= mm.VariableIdentifier() }} {
+            for obj := range o.{{= mm.VariableIdentifier() }}.ValuesIter() {
                 obj.Save(ctx)
             }
             // TODO: fix associations

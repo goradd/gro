@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/goradd/maps"
 	"github.com/goradd/orm/pkg/db"
-	"github.com/goradd/orm/pkg/model"
 	. "github.com/goradd/orm/pkg/query"
 	"strconv"
 )
@@ -500,7 +499,7 @@ that each object arrives, but then look for items in order.
 // unpackResult takes a flattened result set from the database that is a series of values keyed by alias, and turns them
 // into a hierarchical result set that is keyed by join table alias and key.
 func (b *Builder) unpackResult(rows []map[string]interface{}) (out []map[string]interface{}) {
-	var o2 model.ValueMap
+	var o2 db.ValueMap
 
 	oMap := new(objectMapType)
 	aliasMap := new(aliasMapType)
@@ -512,9 +511,9 @@ func (b *Builder) unpackResult(rows []map[string]interface{}) (out []map[string]
 	}
 
 	// We then walk the tree and create the final data structure as arrays
-	oMap.Range(func(key string, value any) bool {
+	for key, value := range oMap.All() {
 		// Duplicate rows that are part of a join that is not an array join
-		out2 := b.expandNode(b.RootJoinTreeItem, value.(model.ValueMap))
+		out2 := b.expandNode(b.RootJoinTreeItem, value.(db.ValueMap))
 		// Add the Alias calculations specifically requested by the caller
 		for _, o2 = range out2 {
 			if m := aliasMap.Get(key); m != nil {
@@ -522,16 +521,15 @@ func (b *Builder) unpackResult(rows []map[string]interface{}) (out []map[string]
 			}
 			out = append(out, o2)
 		}
-		return true
-	})
+	}
 	return out
 }
 
 // unpackObject finds the object that corresponds to parent in the row, and either adds it to the oMap, or if its
 // already in the oMap, reuses the old one and adds more data to it. oMap should only contain objects of parent type.
 // Returns the row id to use to refer to the row later.
-func (b *Builder) unpackObject(parent *JoinTreeItem, row model.ValueMap, oMap *objectMapType) (rowId string) {
-	var obj model.ValueMap
+func (b *Builder) unpackObject(parent *JoinTreeItem, row db.ValueMap, oMap *objectMapType) (rowId string) {
+	var obj db.ValueMap
 	var arrayKey string
 	var currentArray *objectMapType
 
@@ -551,9 +549,9 @@ func (b *Builder) unpackObject(parent *JoinTreeItem, row model.ValueMap, oMap *o
 	}
 
 	if curObj := oMap.Get(rowId); curObj != nil {
-		obj = curObj.(model.ValueMap)
+		obj = curObj.(db.ValueMap)
 	} else {
-		obj = model.NewValueMap()
+		obj = db.NewValueMap()
 		oMap.Set(rowId, obj)
 	}
 
@@ -581,7 +579,7 @@ func (b *Builder) unpackObject(parent *JoinTreeItem, row model.ValueMap, oMap *o
 	return
 }
 
-func (b *Builder) unpackLeaf(j *JoinTreeItem, row model.ValueMap, obj model.ValueMap) {
+func (b *Builder) unpackLeaf(j *JoinTreeItem, row db.ValueMap, obj db.ValueMap) {
 	var key string
 	var fieldName string
 
@@ -603,7 +601,7 @@ func (b *Builder) unpackLeaf(j *JoinTreeItem, row model.ValueMap, obj model.Valu
 
 // makeObjectKey makes the key for the object of the row. This should be called only once per row.
 // the key is used in subsequent calls to determine what row joined data belongs to.
-func (b *Builder) makeObjectKey(j *JoinTreeItem, row model.ValueMap) string {
+func (b *Builder) makeObjectKey(j *JoinTreeItem, row db.ValueMap) string {
 	var alias interface{}
 
 	pkItem := b.getPkJoinTreeItem(j)
@@ -711,14 +709,14 @@ func (b *Builder) GetAliasedNode(node AliasNodeI) NodeI {
 }
 
 // Craziness of handling situation where an array node wants to be individually expanded.
-func (b *Builder) expandNode(j *JoinTreeItem, nodeObject model.ValueMap) (outArray []model.ValueMap) {
-	var item model.ValueMap
-	var innerNodeObject model.ValueMap
-	var copies []model.ValueMap
-	var innerCopies []model.ValueMap
-	var newArray []model.ValueMap
+func (b *Builder) expandNode(j *JoinTreeItem, nodeObject db.ValueMap) (outArray []db.ValueMap) {
+	var item db.ValueMap
+	var innerNodeObject db.ValueMap
+	var copies []db.ValueMap
+	var innerCopies []db.ValueMap
+	var newArray []db.ValueMap
 
-	outArray = append(outArray, model.NewValueMap())
+	outArray = append(outArray, db.NewValueMap())
 
 	// order of reference or leaf processing is not important
 	for _, childItem := range j.Leafs {
@@ -731,7 +729,7 @@ func (b *Builder) expandNode(j *JoinTreeItem, nodeObject model.ValueMap) (outArr
 	}
 
 	for _, childItem := range append(j.ChildReferences) {
-		copies = []model.ValueMap{}
+		copies = []db.ValueMap{}
 		tableGoName := NodeGoName(childItem.Node)
 
 		for _, item = range outArray {
@@ -742,11 +740,11 @@ func (b *Builder) expandNode(j *JoinTreeItem, nodeObject model.ValueMap) (outArr
 				if om.Len() > 1 {
 					panic("Cannot have an array with more than one item here.")
 				} else if om.Len() == 1 {
-					innerNodeObject = nodeObject[tableGoName].(*objectMapType).GetAt(0).(model.ValueMap)
+					innerNodeObject = nodeObject[tableGoName].(*objectMapType).GetAt(0).(db.ValueMap)
 					innerCopies = b.expandNode(childItem, innerNodeObject)
 					if len(innerCopies) > 1 {
 						for _, cp2 := range innerCopies {
-							nodeCopy := item.Copy().(model.ValueMap)
+							nodeCopy := item.Copy().(db.ValueMap)
 							nodeCopy[tableGoName] = cp2
 							copies = append(copies, nodeCopy)
 						}
@@ -757,9 +755,9 @@ func (b *Builder) expandNode(j *JoinTreeItem, nodeObject model.ValueMap) (outArr
 				// else we likely were not included because of a conditional join
 			case ReverseReferenceNodeType:
 				if childItem.Expanded { // unique reverse or single expansion many
-					newArray = []model.ValueMap{}
+					newArray = []db.ValueMap{}
 					nodeObject[tableGoName].(*objectMapType).Range(func(key string, value interface{}) bool {
-						innerNodeObject = value.(model.ValueMap)
+						innerNodeObject = value.(db.ValueMap)
 						innerCopies = b.expandNode(childItem, innerNodeObject)
 						for _, ic := range innerCopies {
 							newArray = append(newArray, ic)
@@ -767,16 +765,16 @@ func (b *Builder) expandNode(j *JoinTreeItem, nodeObject model.ValueMap) (outArr
 						return true
 					})
 					for _, cp2 := range newArray {
-						nodeCopy := item.Copy().(model.ValueMap)
+						nodeCopy := item.Copy().(db.ValueMap)
 						nodeCopy[tableGoName] = cp2
 						copies = append(copies, nodeCopy)
 					}
 				} else {
 					// From this point up, we should not be creating additional copies, since from this point down, we
 					// are gathering an array
-					newArray = []model.ValueMap{}
+					newArray = []db.ValueMap{}
 					nodeObject[tableGoName].(*objectMapType).Range(func(key string, value interface{}) bool {
-						innerNodeObject = value.(model.ValueMap)
+						innerNodeObject = value.(db.ValueMap)
 						innerCopies = b.expandNode(childItem, innerNodeObject)
 						for _, ic := range innerCopies {
 							newArray = append(newArray, ic)
@@ -790,7 +788,7 @@ func (b *Builder) expandNode(j *JoinTreeItem, nodeObject model.ValueMap) (outArr
 				if ManyManyNodeIsEnumTable(childItem.Node.(TableNodeI).EmbeddedNode_().(*ManyManyNode)) {
 					var intArray []uint
 					nodeObject[tableGoName].(*objectMapType).Range(func(key string, value interface{}) bool {
-						innerNodeObject = value.(model.ValueMap)
+						innerNodeObject = value.(db.ValueMap)
 						typeKey := innerNodeObject[ColumnNodeDbName(childItem.Node.(TableNodeI).PrimaryKeyNode())]
 						switch v := typeKey.(type) {
 						case uint:
@@ -806,16 +804,16 @@ func (b *Builder) expandNode(j *JoinTreeItem, nodeObject model.ValueMap) (outArr
 						item[tableGoName] = intArray
 					} else {
 						for _, cp2 := range intArray {
-							nodeCopy := item.Copy().(model.ValueMap)
+							nodeCopy := item.Copy().(db.ValueMap)
 							nodeCopy[tableGoName] = []uint{cp2}
 							copies = append(copies, nodeCopy)
 						}
 					}
 
 				} else {
-					newArray = []model.ValueMap{}
+					newArray = []db.ValueMap{}
 					nodeObject[tableGoName].(*objectMapType).Range(func(key string, value interface{}) bool {
-						innerNodeObject = value.(model.ValueMap)
+						innerNodeObject = value.(db.ValueMap)
 						innerCopies = b.expandNode(childItem, innerNodeObject)
 						for _, ic := range innerCopies {
 							newArray = append(newArray, ic)
@@ -826,8 +824,8 @@ func (b *Builder) expandNode(j *JoinTreeItem, nodeObject model.ValueMap) (outArr
 						item[tableGoName] = newArray
 					} else {
 						for _, cp2 := range newArray {
-							nodeCopy := item.Copy().(model.ValueMap)
-							nodeCopy[tableGoName] = []model.ValueMap{cp2}
+							nodeCopy := item.Copy().(db.ValueMap)
+							nodeCopy[tableGoName] = []db.ValueMap{cp2}
 							copies = append(copies, nodeCopy)
 						}
 					}
@@ -844,13 +842,13 @@ func (b *Builder) expandNode(j *JoinTreeItem, nodeObject model.ValueMap) (outArr
 }
 
 // unpack the manually aliased items from the result
-func (b *Builder) unpackSpecialAliases(rowId string, row model.ValueMap, aliasMap *aliasMapType) {
-	var obj model.ValueMap
+func (b *Builder) unpackSpecialAliases(rowId string, row db.ValueMap, aliasMap *aliasMapType) {
+	var obj db.ValueMap
 
 	if curObj := aliasMap.Get(rowId); curObj != nil {
 		return // already added these to the row
 	} else {
-		obj = model.NewValueMap()
+		obj = db.NewValueMap()
 	}
 
 	if b.AliasNodes != nil {

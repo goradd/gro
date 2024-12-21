@@ -1,6 +1,7 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
 {{# save reverse reference objects that are dirty, but relationship has not changed }}
 
@@ -11,7 +12,7 @@
             }
         {{else}}
             // save related objects
-            for _,obj := range o.{{= col.ReverseVariableIdentifier() }} {
+            for obj := range o.{{= col.ReverseVariableIdentifier() }}.ValuesIter() {
                 obj.Save(ctx)
             }
         {{if}}

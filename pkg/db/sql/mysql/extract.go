@@ -618,7 +618,7 @@ func (m *DB) getEnumTableSchema(t mysqlTable) (ed schema.EnumTable, err error) {
 
 	if td.Columns[1].Type == schema.ColTypeAutoPrimaryKey ||
 		td.Columns[1].IndexLevel == schema.IndexLevelManualPrimaryKey {
-		err = fmt.Errorf("error: An enum table must cannot have more than one primary key column")
+		err = fmt.Errorf("error: An enum table cannot have more than one primary key column")
 		return
 	}
 
@@ -631,17 +631,20 @@ func (m *DB) getEnumTableSchema(t mysqlTable) (ed schema.EnumTable, err error) {
 		}
 		columnNames = append(columnNames, c.Name)
 		recType := ReceiverTypeFromSchema(c.Type, c.Size)
+		typ := c.Type
 		if i == 0 {
 			recType = ColTypeInteger // Force first value to be treated like an integer
+			typ = schema.ColTypeInt
 		}
 		if c.Type == schema.ColTypeUnknown {
 			recType = ColTypeBytes
+			typ = schema.ColTypeBytes
 		}
 
 		receiverTypes = append(receiverTypes, recType)
 		ft := schema.EnumField{
 			Name: c.Name,
-			Type: c.Type,
+			Type: typ,
 		}
 		if ed.Name == "name" {
 			if len(ed.Fields) == 0 {

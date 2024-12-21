@@ -1,6 +1,7 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
 
     if err := encoder.Encode(o.{{= col.VariableIdentifier() }}); err != nil {
@@ -27,8 +28,7 @@
         if err := encoder.Encode(true); err != nil {
             return nil, err
         }
-        if err := encoder.Encode(o.{{= col.ReverseVariableIdentifier()
- }}); err != nil {
+        if err := encoder.Encode(o.{{= col.ReferenceVariableIdentifier() }}); err != nil {
             return nil, err
         }
     }

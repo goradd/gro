@@ -39,7 +39,9 @@ type EnumTable struct {
 	// Databases that do not support schemas will have this prepended to the name of the table.
 	Schema string `json:"schema"`
 
-	// FieldNames are the names of the fields defined in the table. The first field name MUST be the name of the id field, and 2nd MUST be the name of the name field, the others are optional extra fields.
+	// Fields describe the fields defined in the enum table.
+	// The first field name MUST be the id field, and 2nd MUST be the name field.
+	// The others are optional extra fields.
 	Fields []*EnumField `json:"fields"`
 
 	// Values are the enum values themselves.

@@ -1,11 +1,12 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 
 // The master template for the table base classes
 
-func (tmpl *TableBaseTemplate) gen(table *model.Table, _w io.Writer) (err error) {
-    if err = tmpl.genHeader(table, _w); err != nil { return }
+func (tmpl *TableBaseTemplate) gen(table *model.Table, _w io.Writer, importPath string) (err error) {
+    if err = tmpl.genHeader(table, _w, importPath); err != nil { return }
     if err = tmpl.genStruct(table, _w); err != nil { return }
     if err = tmpl.genConst(table, _w); err != nil { return }
     if err = tmpl.genInit(table, _w); err != nil { return }
@@ -30,7 +31,7 @@ func (tmpl *TableBaseTemplate) gen(table *model.Table, _w io.Writer) (err error)
 }
 
 
-func (tmpl *TableBaseTemplate)genHeader(table *model.Table, _w io.Writer) (err error) {
+func (tmpl *TableBaseTemplate)genHeader(table *model.Table, _w io.Writer, importPath string) (err error) {
 {{: "import.tmpl" }}
     return
 }

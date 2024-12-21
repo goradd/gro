@@ -1,21 +1,20 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
 // insert will insert the object into the database. Related items will be saved.
-func (o *{{= table.Identifier}}Base) insert(ctx context.Context) {
+func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) {
     d := Database()
 	db.ExecuteTransaction(ctx, d, func() {
 
 {{# Here we save forward references, get the id, and then set the corresponding foreign key }}
 {{for _,col := range table.Columns}}
     {{if col.IsReference() }}
-    if o.{{= col.VariableIdentifier()
- }} != nil {
-        o.{{= col.VariableIdentifier()
- }}.Save(ctx)
-        o.Set{{= col.Reference.Identifier }}(o.{{= col.VariableIdentifier()
- }})
+    if o.{{= col.ReferenceVariableIdentifier() }} != nil {
+        o.{{= col.ReferenceVariableIdentifier() }}.Save(ctx)
+        id := o.{{= col.ReferenceVariableIdentifier() }}.PrimaryKey()
+        o.Set{{= col.Identifier }}(id)
     }
     {{if}}
 {{for}}
@@ -33,7 +32,7 @@ func (o *{{= table.Identifier}}Base) insert(ctx context.Context) {
 
     m := o.getValidFields()
 
-{{if table.PrimaryKeyColumn().IsAutoId }}
+{{if table.HasAutoId() }}
 	id := d.Insert(ctx, "{{= table.QueryName }}", m)
 	o.{{= table.PrimaryKeyColumn().VariableIdentifier()
  }} = id
@@ -44,9 +43,12 @@ func (o *{{= table.Identifier}}Base) insert(ctx context.Context) {
 	o._originalPK = id
 {{if}}
 
+{{g
+
 {{: "insert_rev.tmpl"  }}
 {{: "insert_mm.tmpl"  }}
 
+}}
 
 
     }) // transaction

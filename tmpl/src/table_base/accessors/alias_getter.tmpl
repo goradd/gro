@@ -1,10 +1,11 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
 
 // GetAlias returns the alias for the given key.
-func (o *{{= table.Identifier}}Base) GetAlias(key string) query.AliasValue {
+func (o *{{= table.DecapIdentifier}}Base) GetAlias(key string) query.AliasValue {
 	if a,ok := o._aliases[key]; ok {
 		return query.NewAliasValue(a)
 	} else {

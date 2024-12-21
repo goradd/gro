@@ -1,7 +1,9 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
+{{if mm.IsEnum() }}
     if o.{{= mm.VariableIdentifier() }} == nil {
         if err := encoder.Encode(false); err != nil {
             return nil, err
@@ -17,7 +19,14 @@
     if err := encoder.Encode(o.{{= mm.VariableIdentifier() }}IsDirty); err != nil {
         return nil, err
     }
-{{if !mm.IsEnum() }}
+
+{{else}}
+    if err := encoder.Encode(o.{{= mm.VariableIdentifier() }}); err != nil {
+        return nil, err
+    }
+    if err := encoder.Encode(o.{{= mm.VariableIdentifier() }}IsDirty); err != nil {
+        return nil, err
+    }
     if err := encoder.Encode(o.{{= mm.PkIdentifier() }} != nil); err != nil {
         return nil, err
     }

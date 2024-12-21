@@ -1,9 +1,7 @@
 package template
 
 import (
-	"io"
-	"strings"
-	"strconv"
+	"github.com/goradd/orm/pkg/codegen"
 )
 
 func init() {
@@ -18,15 +16,15 @@ type TableBaseTemplate struct {
 }
 
 func (tmpl *TableBaseTemplate) FileName(table *model.Table) string {
-    return filepath.Join(table.DbKey,tmpl.Package,table.FileName() + ".go")
+    return filepath.Join(table.DbKey,tmpl.Package,table.FileName() + "_base.go")
 }
 
-func (tmpl *TableBaseTemplate) GenerateTable(table *model.Table, _w io.Writer) (err error) {
-    return tmpl.gen(table, _w)
+func (tmpl *TableBaseTemplate) GenerateTable(table *model.Table, _w io.Writer, importPath string) (err error) {
+    return tmpl.gen(table, _w, importPath)
 }
 
 func (tmpl *TableBaseTemplate) Overwrite() bool {
 	return true
 }
 
-{{: "table_base/table.tmpl" }}
+{{: "table_base/table_base.tmpl" }}

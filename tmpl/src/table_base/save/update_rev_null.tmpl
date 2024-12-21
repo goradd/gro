@@ -1,30 +1,31 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
                 if o.{{= col.ReversePkIdentifier() }} != nil {
                     // Get objects we are going to associate if not already loaded
                     objs := Query{{= col.Table.IdentifierPlural }}(ctx).
-                          Where(In(node.{{= col.Table.Identifier }}().PrimaryKeyNode(), o.{{= col.ReversePkIdentifier() }}...)).
+                          Where(op.In(node.{{= col.Table.Identifier }}().PrimaryKeyNode(), o.{{= col.ReversePkIdentifier() }}...)).
                           Select(node.{{= col.Table.Identifier }}().{{= col.Identifier }}()).
                           Load()
-
+                    _ = objs
                     // TODO: save new group of objects
                 }
                 objs := Query{{= col.Table.IdentifierPlural }}(ctx).
-                          Where(Equal(node.{{= col.Table.Identifier }}().{{= col.Identifier }}(), o.PrimaryKey())).
+                          Where(op.Equal(node.{{= col.Table.Identifier }}().{{= col.Identifier }}(), o.PrimaryKey())).
                           Select(node.{{= col.Table.Identifier }}().{{= col.Identifier }}()).
                           Load()
 
                 for _,obj := range objs {
-                    if _,ok := o.{{= col.ReverseVariableIdentifier() }}[obj.PrimaryKey()]; !ok {
+                    if !o.{{= col.ReverseVariableIdentifier() }}.Has(obj.PrimaryKey()) {
                         // The old object is not in the group of new objects
                         obj.Set{{= col.Identifier }}(nil)
                         obj.Save(ctx)
                     }
                 }
-                for _,obj := range o.{{= col.ReverseVariableIdentifier() }} {
-                    obj.{{= col.ReverseVariableIdentifier() }}IsDirty = true // force a change in case data is stale
+                for obj := range o.{{= col.ReverseVariableIdentifier() }}.ValuesIter() {
+                    obj.{{= col.VariableIdentifier() }}IsDirty = true // force a change in case data is stale
                     obj.Set{{= col.Identifier }}(o.PrimaryKey())
                     obj.Save(ctx)
                 }

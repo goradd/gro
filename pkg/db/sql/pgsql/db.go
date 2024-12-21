@@ -4,7 +4,7 @@ import (
 	"context"
 	sqldb "database/sql"
 	"fmt"
-	any2 "github.com/goradd/any"
+	"github.com/goradd/all"
 	sql2 "github.com/goradd/orm/pkg/db/sql"
 	"github.com/goradd/orm/pkg/model"
 	. "github.com/goradd/orm/pkg/query"
@@ -75,7 +75,7 @@ func OverrideConfigSettings(config *pgx.ConnConfig, jsonContent map[string]inter
 		case "port":
 			config.Port = uint16(v.(float64))
 		case "runtimeParams":
-			config.RuntimeParams = any2.StringMap(v.(map[string]interface{}))
+			config.RuntimeParams = all.StringMap(v.(map[string]interface{}))
 		case "kerberosServerName":
 			config.KerberosSrvName = v.(string)
 		case "kerberosSPN":
@@ -127,10 +127,9 @@ func (m *DB) OperationSql(op Operator, operandStrings []string) (sql string) {
 func (m *DB) Update(ctx context.Context,
 	table string,
 	fields map[string]any,
-	pkName string,
-	pkValue any) {
+	where map[string]any) {
 
-	sql, args := sql2.GenerateUpdate(m, table, fields, pkName, pkValue)
+	sql, args := sql2.GenerateUpdate(m, table, fields, where)
 	_, e := m.Exec(ctx, sql, args...)
 	if e != nil {
 		panic(e.Error())
@@ -161,10 +160,9 @@ func (m *DB) Insert(ctx context.Context, table string, fields map[string]interfa
 }
 
 // Delete deletes the indicated record from the database.
-func (m *DB) Delete(ctx context.Context, table string, pkName string, pkValue interface{}) {
-	var sql = "DELETE FROM " + iq(table) + "\n"
-	sql += "WHERE " + iq(pkName) + " = $1"
-	_, e := m.Exec(ctx, sql, pkValue)
+func (m *DB) Delete(ctx context.Context, table string, where map[string]any) {
+	sql, args := sql2.GenerateDelete(m, table, where)
+	_, e := m.Exec(ctx, sql, args...)
 	if e != nil {
 		panic(e.Error())
 	}

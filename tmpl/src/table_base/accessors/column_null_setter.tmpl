@@ -1,36 +1,35 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
 
-func (o *{{= table.Identifier}}Base) Set{{= col.Identifier }}(i interface{}) {
+func (o *{{= table.DecapIdentifier}}Base) Set{{= col.Identifier }}(i interface{}) {
 	o.{{= col.DecapIdentifier }}IsValid = true
 	if i == nil {
 		if !o.{{= col.DecapIdentifier }}IsNull {
 			o.{{= col.DecapIdentifier }}IsNull = true
 			o.{{= col.DecapIdentifier }}IsDirty = true
-			o.{{= col.DecapIdentifier }} = {{= col.DefaultValueAsValue() }}
+			o.{{= col.VariableIdentifier() }} = {{= col.DefaultValueAsValue() }}
 {{if col.Reference != nil }}
-			o.{{= col.DecapIdentifier }} = nil
+			o.{{= col.ReferenceVariableIdentifier() }} = nil
 {{if}}
 		}
 	} else {
-		v := i.({{= col.GoType()
-
- }})
+		v := i.({{= col.GoType() }})
 		if o.{{= col.DecapIdentifier }}IsNull ||
 		    !o._restored ||
-		    {{if col.Type != query.ColTypeBytes }} o.{{= col.DecapIdentifier }} != v {{else}} !bytes.Equal(o.{{= col.DecapIdentifier }}, v) {{if}} {
+		    {{if col.Type != query.ColTypeBytes }} o.{{= col.VariableIdentifier() }} != v {{else}} !bytes.Equal(o.{{= col.VariableIdentifier() }}, v) {{if}} {
 
 			    o.{{= col.DecapIdentifier }}IsNull = false
 {{if col.Type != query.ColTypeBytes }}
-			    o.{{= col.DecapIdentifier }} = v
+			    o.{{= col.VariableIdentifier() }} = v
 {{else}}
-                o.{{= col.DecapIdentifier }} = append([]byte(nil), v...)
+                o.{{= col.VariableIdentifier() }} = append([]byte(nil), v...)
 {{if}}
 			    o.{{= col.DecapIdentifier }}IsDirty = true
 {{if col.IsReference() }}
-			    o.{{= col.DecapIdentifier }} = nil
+			    o.{{= col.ReferenceVariableIdentifier() }} = nil
 {{if}}
 		}
 	}

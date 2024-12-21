@@ -1,13 +1,13 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
     if err = dec.Decode(&isPtr); err != nil {
         return
     }
     if isPtr {
-        if err = dec.Decode(&o.{{= rev.ReverseVariableIdentifier()
- }}); err != nil {
+        if err = dec.Decode(&o.{{= rev.ReverseVariableIdentifier()}}); err != nil {
             return
         }
     }
@@ -21,8 +21,7 @@
         }
     }
 
-    if err = dec.Decode(&o.{{= rev.ReverseVariableIdentifier()
- }}IsDirty); err != nil {
+    if err = dec.Decode(&o.{{= rev.ReverseVariableIdentifier()}}IsDirty); err != nil {
         return
     }
 }}

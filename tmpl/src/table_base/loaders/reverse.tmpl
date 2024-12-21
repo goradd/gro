@@ -1,30 +1,31 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 
 {{
 
-	if v, ok := m["{{= col.ReverseFunction() }}"]; ok {
+	if v, ok := m["{{= col.ReverseIdentifier() }}"]; ok {
 		switch v2 := v.(type) {
 		case []db.ValueMap: // array expansion
-		    o.{{= col.ReverseVariableIdentifier() }} = maps.NewSliceMap[{{= col.Table.PrimaryKeyGoType() }}, *{{= col.Table.Identifier }}]()
+		    o.{{= col.ReverseVariableIdentifier() }}.Clear()
 			o.{{= col.ReverseVariableIdentifier() }}IsDirty = false
 			for _,v3 := range v2 {
 				obj := new({{= col.Table.Identifier }})
-				obj.load(v3, obj, objThis, "{{= col.Reference.Identifier }}")
+				obj.load(v3, obj, objThis, "{{= col.ReferenceIdentifier() }}")
 				o.{{= col.ReverseVariableIdentifier() }}.Set(obj.PrimaryKey(), obj)
 			}
 		case db.ValueMap:	// single expansion
 			obj := new({{= col.Table.Identifier }})
-			obj.load(v3, obj, objThis, "{{= col.Reference.Identifier }}")
-		    o.{{= col.ReverseVariableIdentifier() }} = maps.NewSliceMap[{{= col.Table.PrimaryKeyGoType() }}, *{{= col.Table.Identifier }}]()
+			obj.load(v2, obj, objThis, "{{= col.ReferenceIdentifier() }}")
+		    o.{{= col.ReverseVariableIdentifier() }}.Clear()
 			o.{{= col.ReverseVariableIdentifier() }}.Set(obj.PrimaryKey(), obj)
 			o.{{= col.ReverseVariableIdentifier() }}IsDirty = false
 		default:
 			panic("Wrong type found for {{= col.ReverseVariableIdentifier() }} object.")
 		}
 	} else {
-		o.{{= col.ReverseVariableIdentifier() }} = nil
+		o.{{= col.ReverseVariableIdentifier() }}.Clear()
 		o.{{= col.ReverseVariableIdentifier() }}IsDirty = false
 	}
 

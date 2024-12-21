@@ -1,28 +1,26 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
 
 // {{= mm.Identifier}} returns a single {{= mm.ObjectType() }} object by primary key pk, if one was loaded.
 // Otherwise, it will return nil.
-func (o *{{= table.Identifier}}Base) {{= mm.Identifier }}(pk {{= mm.PrimaryKeyType() }}) *{{= mm.ObjectType() }} {
-	if o.{{= mm.VariableIdentifier() }} == nil {
-		return nil
-	}
+func (o *{{= table.DecapIdentifier}}Base) {{= mm.Identifier }}(pk {{= mm.PrimaryKeyType() }}) *{{= mm.ObjectType() }} {
 	return o.{{= mm.VariableIdentifier() }}.Get(pk)
 }
 
 // {{= mm.IdentifierPlural }} returns a slice of {{= mm.ObjectType() }} objects if loaded. If not loaded, will return nil.
 // The values will be ordered by the latest query or in the order they were assigned.
-func (o *{{= table.Identifier}}Base) {{= mm.IdentifierPlural }}() []*{{= mm.ObjectType() }} {
+func (o *{{= table.DecapIdentifier}}Base) {{= mm.IdentifierPlural }}() []*{{= mm.ObjectType() }} {
 	return o.{{= mm.VariableIdentifier() }}.Values()
 }
 
 // Set{{= mm.IdentifierPlural }} sets the associated objects to the given slice of {{= mm.ObjectType() }} objects
 // in preparation for saving. The associations will not be updated until Save() is called.
 // Objects that are modified or are new will be saved before completing the association.
-func (o *{{= table.Identifier}}Base) Set{{= mm.IdentifierPlural }}(objs []*{{= mm.ObjectType() }}) {
-    o.{{= mm.VariableIdentifier() }} = maps.NewSliceMap[{{= mm.PrimaryKeyType() }}, *{{= mm.ObjectType() }}]()
+func (o *{{= table.DecapIdentifier}}Base) Set{{= mm.IdentifierPlural }}(objs []*{{= mm.ObjectType() }}) {
+    o.{{= mm.VariableIdentifier() }}.Clear()
 	o.{{= mm.VariableIdentifier() }}IsDirty = true
 	o.{{= mm.PkIdentifier() }} = nil
     for _,obj := range objs {
@@ -30,21 +28,21 @@ func (o *{{= table.Identifier}}Base) Set{{= mm.IdentifierPlural }}(objs []*{{= m
     }
 }
 
-// Set{{= mm.VariableIdentifier() }}PrimaryKeys prepares for setting the associated {{= mm.ObjectType() }} objects to the
+// Set{{= mm.IdentifierPlural }}ByPrimaryKeys prepares for setting the associated {{= mm.ObjectType() }} objects to the
 // given slice of primary keys.
 // If objects are currently loaded, they will be unloaded.
 // The association does not take place until Save() is called. Calling Load before calling
 // Save will load the items that will be associated in the database after the Save call.
 // After calling Save, the objects will be unloaded, and you must call Load again if you want
 // them loaded.
-func (o *{{= table.Identifier}}Base) Set{{= mm.VariableIdentifier() }}PrimaryKeys(objs []{{= mm.DestinationTable.PrimaryKeyGoType() }}) {
-	o.{{= mm.VariableIdentifier() }} = nil
+func (o *{{= table.DecapIdentifier}}Base) Set{{= mm.IdentifierPlural }}ByPrimaryKeys(objs []{{= mm.DestinationTable.PrimaryKeyGoType() }}) {
+	o.{{= mm.VariableIdentifier() }}.Clear()
 	o.{{= mm.PkIdentifier() }} = objs
 	o.{{= mm.VariableIdentifier() }}IsDirty = true
 }
 
-// Load{{= mm.IdentifierPlural }} loads the associated {{= mm.ObjectType() }} objects.
-func (o *{{= table.Identifier}}Base) Load{{= mm.IdentifierPlural }}(ctx context.Context) {
+// Load{{= mm.IdentifierPlural }} loads the {{= mm.ObjectType() }} objects associated through the {{= mm.Identifier }}-{{= mm.MM.Identifier }} relationship.
+func (o *{{= table.DecapIdentifier}}Base) Load{{= mm.IdentifierPlural }}(ctx context.Context) []*{{= mm.ObjectType() }} {
     if o.{{= mm.VariableIdentifier() }}IsDirty && o.{{= mm.PkIdentifier() }} == nil {
         panic("dirty many-many relationships cannot be loaded; call Save() first")
     }
@@ -58,26 +56,23 @@ func (o *{{= table.Identifier}}Base) Load{{= mm.IdentifierPlural }}(ctx context.
             Load()
     } else {
         objs = Query{{= mm.ObjectTypePlural() }}(ctx).
-            Where(op.Equal(node.{{= mm.ObjectType() }}().{{= mm.IdentifierPlural }}(), o.PrimaryKey())).
+            Where(op.Equal(node.{{= mm.ObjectType() }}().{{= mm.MM.IdentifierPlural}}(), o.PrimaryKey())).
             Load()
     }
 
-    if o.{{= mm.VariableIdentifier() }} == nil {
-        o.{{= mm.VariableIdentifier() }} = maps.NewSliceMap[{{= mm.PrimaryKeyType() }}, *{{= mm.ObjectType() }}]()
-    } else {
-        o.{{= mm.VariableIdentifier() }}.Clear()
-    }
+    o.{{= mm.VariableIdentifier() }}.Clear()
 	for _,obj := range objs {
 	    o.{{= mm.VariableIdentifier() }}.Set(obj.PrimaryKey(), obj)
 	}
+	return o.{{= mm.VariableIdentifier() }}.Values()
 }
 
 // Count{{= mm.IdentifierPlural }} counts the number of associated {{= mm.VariableIdentifier() }} objects in the database.
 // Note that this returns what is reflected by the database at that instant, and not what
 // is the count of the loaded objects.
-func (o *{{= table.Identifier }}Base) Count{{= mm.IdentifierPlural }}(ctx context.Context) int {
+func (o *{{= table.DecapIdentifier }}Base) Count{{= mm.IdentifierPlural }}(ctx context.Context) int {
 	return int(Query{{= mm.ObjectTypePlural() }}(ctx).
-		Where(op.Equal(node.{{= mm.ObjectType() }}().{{= mm.IdentifierPlural }}(), o.PrimaryKey())).
+		Where(op.Equal(node.{{= mm.ObjectType() }}().{{= mm.MM.IdentifierPlural }}(), o.PrimaryKey())).
 		Count(false))
 
 }

@@ -1,18 +1,19 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
 {{if rev.IsUnique }}
-    if val := o.{{= rev.ReverseVariableIdentifier() }}(); val != nil {
-        v["{{= rev.ReverseJsonKey() }}"] = val.MarshalStringMap()
+    if obj := o.{{= rev.ReverseVariableIdentifier() }}; obj != nil {
+        v["{{= rev.ReverseJsonKey() }}"] = obj.MarshalStringMap()
     }
 {{else}}
-    if val := o.{{= rev.ReverseVariableIdentifier() }}(); val != nil {
-        var val2 []map[string]interface{}
-        for _,v2 := range val {
-            val2 = append(val2, v2.MarshalStringMap())
+    if o.{{= rev.ReverseVariableIdentifier() }}.Len() != 0 {
+        var vals []map[string]interface{}
+        for obj := range o.{{= rev.ReverseVariableIdentifier() }}.ValuesIter() {
+            vals = append(vals, obj.MarshalStringMap())
         }
-        v["{{= rev.ReverseJsonKey() }}"] = val2
+        v["{{= rev.ReverseJsonKey() }}"] = vals
     }
 {{if}}
 }}

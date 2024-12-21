@@ -1,25 +1,26 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
 
-// {{= col.Reference.Identifier }} returns the current value of the loaded {{= col.Reference.Identifier }}, and nil if its not loaded.
-func (o *{{= table.Identifier}}Base) {{= col.Reference.Identifier }}() *{{= col.Reference.Table.Identifier }} {
-	return o.{{= col.Reference.DecapIdentifier }}
+// {{= col.ReferenceIdentifier() }} returns the current value of the loaded {{= col.ReferenceIdentifier() }}, and nil if its not loaded.
+func (o *{{= table.DecapIdentifier}}Base) {{= col.ReferenceIdentifier() }}() *{{= col.ReferenceType() }} {
+	return o.{{= col.ReferenceVariableIdentifier() }}
 }
 
-// Load{{= col.Reference.Identifier }} returns the related {{= col.Reference.Identifier }}. If it is not already loaded,
+// Load{{= col.ReferenceIdentifier() }} returns the related {{= col.ReferenceIdentifier() }}. If it is not already loaded,
 // it will attempt to load it, provided the {{= col.Identifier }} column has been loaded first.
-func (o *{{= table.Identifier}}Base) Load{{= col.Reference.Identifier }}(ctx context.Context) *{{= col.Reference.Identifier }} {
-	if !o.{{= col.Identifier }}IsValid  {
+func (o *{{= table.DecapIdentifier}}Base) Load{{= col.ReferenceIdentifier() }}(ctx context.Context) *{{= col.ReferenceType() }} {
+	if !o.{{= col.VariableIdentifier() }}IsValid  {
 		return nil
 	}
 
-	if o.{{= col.DecapIdentifier }} == nil {
+	if o.{{= col.ReferenceVariableIdentifier() }} == nil {
 		// Load and cache
-		o.{{= col.DecapIdentifier }} = Load{{= col.Reference.Identifier }}(ctx, o.{{= col.Identifier }}())
+		o.{{= col.ReferenceVariableIdentifier() }} = Load{{= col.ReferenceType() }}(ctx, o.{{= col.VariableIdentifier() }})
 	}
-	return o.{{= col.DecapIdentifier }}
+	return o.{{= col.ReferenceVariableIdentifier() }}
 }
 
 }}

@@ -18,13 +18,13 @@ type DatabaseGenerator interface {
 type TableGenerator interface {
 	Template
 	FileName(*model.Table) string
-	GenerateTable(*model.Table, io.Writer) error
+	GenerateTable(table *model.Table, f io.Writer, importPath string) error
 }
 
 type EnumGenerator interface {
 	Template
 	FileName(*model.EnumTable) string
-	GenerateEnum(*model.EnumTable, io.Writer) error
+	GenerateEnum(table *model.EnumTable, f io.Writer, importPath string) error
 }
 
 var templates []Template

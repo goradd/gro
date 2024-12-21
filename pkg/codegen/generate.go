@@ -58,14 +58,21 @@ func genTableTemplate(g TableGenerator, table *model.Table) {
 	if !g.Overwrite() && fileExists(filename) {
 		return
 	}
+	if g.Overwrite() && len(table.Columns) == 0 {
+		// an error occurred with the schema
+		deleteFile(filename)
+		return
+	}
 	f, err := openFile(filename)
 	if err != nil {
 		log.Print(err)
 		return
 	}
 	defer f.Close()
+	var importPath string
+	importPath, err = sys.ImportPath(filename)
 
-	if err = g.GenerateTable(table, f); err != nil {
+	if err = g.GenerateTable(table, f, importPath); err != nil {
 		log.Print(err)
 		return
 	}
@@ -77,14 +84,22 @@ func genEnumTemplate(g EnumGenerator, table *model.EnumTable) {
 	if !g.Overwrite() && fileExists(filename) {
 		return
 	}
+	if g.Overwrite() && len(table.Values) == 0 {
+		// an error occurred with the schema
+		deleteFile(filename)
+		return
+	}
+
 	f, err := openFile(filename)
 	if err != nil {
 		log.Print(err)
 		return
 	}
 	defer f.Close()
+	var importPath string
+	importPath, err = sys.ImportPath(filename)
 
-	if err = g.GenerateEnum(table, f); err != nil {
+	if err = g.GenerateEnum(table, f, importPath); err != nil {
 		log.Print(err)
 		return
 	}
@@ -106,6 +121,12 @@ func fileExists(filePath string) bool {
 	if os.IsNotExist(err) {
 		return false
 	}
+	return err == nil
+}
+
+func deleteFile(filename string) bool {
+	filename, _ = filepath.Abs(filename)
+	err := os.Remove(filename)
 	return err == nil
 }
 

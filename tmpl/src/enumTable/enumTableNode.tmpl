@@ -1,6 +1,7 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 
 func (tmpl *EnumTableNodeTemplate)gen(table *model.EnumTable, _w io.Writer) (err error) {
     if err = tmpl.genHeader(table, _w); err != nil { return }
@@ -19,7 +20,7 @@ package node
 
 import (
     "encoding/gob"
-	"github.com/goradd/goradd/pkg/orm/query"
+	"github.com/goradd/orm/pkg/query"
 )
 
 type {{= table.Identifier }}Node struct {

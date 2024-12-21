@@ -1,24 +1,25 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
                     // Since the other side of the relationship cannot be null, there cannot be objects that will be detached
                     // TODO: Make this check earlier to lock the rows being changed
 
                     objs := Query{{= col.Table.IdentifierPlural }}(ctx).
-                               Where(Equal(node.{{= col.Table.Identifier }}().{{= col.Identifier }}(), o.PrimaryKey())).
+                               Where(op.Equal(node.{{= col.Table.Identifier }}().{{= col.Identifier }}(), o.PrimaryKey())).
                                Select(node.{{= col.Table.Identifier }}().{{= col.Identifier }}()).
                                Load()
                     for _,obj := range objs {
-                       if _,ok := !o.{{= col.ReverseVariableIdentifier() }}.Has(obj.PrimaryKey()) {
+                       if !o.{{= col.ReverseVariableIdentifier() }}.Has(obj.PrimaryKey()) {
                            // The old object is not in the group of new objects
-                           panic("cannot remove a non-null reference. Object: " + obj
+                           panic("cannot remove a non-null reference. ")
                        }
                     }
 
-                    for _,obj := range o.{{= col.ReverseVariableIdentifier() }} {
+                    for obj := range o.{{= col.ReverseVariableIdentifier() }}.ValuesIter() {
                        obj.{{= col.VariableIdentifier() }}IsDirty = true // force a change in case data is stale
-                       obj.Set{{= col.VariableIdentifier() }}(o.PrimaryKey())
+                       obj.Set{{= col.Identifier }}(o.PrimaryKey())
                        obj.Save(ctx)
                     }
 }}

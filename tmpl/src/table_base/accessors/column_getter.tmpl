@@ -1,20 +1,19 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
 // {{= col.Identifier }} returns the loaded value of {{= col.Identifier }}.
-func (o *{{= table.Identifier}}Base) {{= col.Identifier }}() {{= col.GoType()
-
- }} {
-	if o._restored && !o.{{= col.DecapIdentifier }}IsValid {
-		panic ("{{= col.DecapIdentifier }} was not selected in the last query and has not been set, and so is not valid")
+func (o *{{= table.DecapIdentifier}}Base) {{= col.Identifier }}() {{= col.GoType()}} {
+	if o._restored && !o.{{= col.VariableIdentifier() }}IsValid {
+		panic ("{{= col.Identifier }} was not selected in the last query and has not been set, and so is not valid")
 	}
-	return o.{{= col.DecapIdentifier }}
+	return o.{{= col.VariableIdentifier() }}
 }
 
 // {{= col.Identifier }}IsValid returns true if the value was loaded from the database or has been set.
-func (o *{{= table.Identifier}}Base) {{= col.Identifier }}IsValid() bool {
-	return o.{{= col.DecapIdentifier }}IsValid
+func (o *{{= table.DecapIdentifier}}Base) {{= col.Identifier }}IsValid() bool {
+	return o.{{= col.VariableIdentifier() }}IsValid
 }
 
 }}

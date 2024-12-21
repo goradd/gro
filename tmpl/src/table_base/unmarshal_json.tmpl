@@ -1,6 +1,7 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
 
 
@@ -16,7 +17,7 @@
 {{for _,col := range table.Columns}}
 //   "{{= col.JsonKey() }}" - {{= col.GoType() }}{{if col.IsNullable}}, nullable{{if}}
 {{for}}
-func (o *{{= table.Identifier}}Base) UnmarshalJSON (data []byte) (err error) {
+func (o *{{= table.DecapIdentifier}}Base) UnmarshalJSON (data []byte) (err error) {
     var v map[string]interface{}
     if err = json.Unmarshal(data, &v); err != nil { return err}
     return o.UnmarshalStringMap(v)
@@ -25,7 +26,7 @@ func (o *{{= table.Identifier}}Base) UnmarshalJSON (data []byte) (err error) {
 // UnmarshalStringMap will load the values from the stringmap into the object.
 //
 // Override this in {{= table.Identifier}} to modify the json before sending it here.
-func (o *{{= table.Identifier}}Base) UnmarshalStringMap(m map[string]interface{}) (err error) {
+func (o *{{= table.DecapIdentifier}}Base) UnmarshalStringMap(m map[string]interface{}) (err error) {
     for k,v := range m {
         switch k {
 

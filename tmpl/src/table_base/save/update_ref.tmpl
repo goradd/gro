@@ -1,16 +1,14 @@
-
+{{g
 //*** {{includeName}}
+}}
 
 {{
 {{for _,col := range table.Columns }}
     {{if col.IsReference() }}
-        // Save loaded {{= col.Reference.Identifier }} object to get its new pk and update it here.
-        if o.{{= col.VariableIdentifier()
- }} != nil {
-            o.{{= col.VariableIdentifier()
- }}.Save(ctx)
-            id := o.{{= col.VariableIdentifier()
- }}.PrimaryKey()
+        // Save loaded {{= col.ReferenceIdentifier() }} object to get its new pk and update it here.
+        if o.{{= col.ReferenceVariableIdentifier() }} != nil {
+            o.{{= col.ReferenceVariableIdentifier() }}.Save(ctx)
+            id := o.{{= col.ReferenceVariableIdentifier() }}.PrimaryKey()
             o.Set{{= col.Identifier }}(id)
         }
     {{if}}

@@ -1,6 +1,7 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 func (tmpl *TableBaseTemplate)genAccessors(table *model.Table, _w io.Writer) (err error) {
     for _,col := range table.Columns {
         if col.IsAutoId {
@@ -13,6 +14,7 @@ func (tmpl *TableBaseTemplate)genAccessors(table *model.Table, _w io.Writer) (er
             if err = tmpl.genColNullGetter(table, col, _w); err != nil {return}
             if err = tmpl.genColNullSetter(table, col, _w); err != nil {return}
         } else {
+            if err = tmpl.genColSetter(table, col, _w); err != nil {return}
         }
         if col.Reference != nil {
             if err = tmpl.genColReferenceGetter(table, col, _w); err != nil {return}
@@ -39,6 +41,12 @@ func (tmpl *TableBaseTemplate)genColGetter(table *model.Table, col *model.Column
 {{: "accessors/column_getter.tmpl" }}
     return
 }
+
+func (tmpl *TableBaseTemplate)genColSetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
+{{: "accessors/column_not_null_setter.tmpl" }}
+    return
+}
+
 
 
 func (tmpl *TableBaseTemplate)genColNullGetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {

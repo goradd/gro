@@ -1,10 +1,11 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
 
 // UnmarshalBinary converts a structure that was created with MarshalBinary into a {{= table.Identifier }} object.
-func (o *{{= table.Identifier}}Base) UnmarshalBinary(data []byte) (err error) {
+func (o *{{= table.DecapIdentifier}}Base) UnmarshalBinary(data []byte) (err error) {
 
 	buf := bytes.NewBuffer(data)
 	dec := gob.NewDecoder(buf)

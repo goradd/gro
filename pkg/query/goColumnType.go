@@ -58,7 +58,7 @@ func (g ReceiverType) DefaultValue() any {
 	case ColTypeUnknown:
 		return nil
 	case ColTypeBytes:
-		return []byte{}
+		return []byte(nil)
 	case ColTypeString:
 		return ""
 	case ColTypeInteger:
@@ -87,7 +87,7 @@ func (g ReceiverType) GoType() string {
 	if t != nil {
 		return fmt.Sprintf("%T", g.DefaultValue())
 	} else {
-		return ""
+		return "[]byte" // all unknown types are byte slices
 	}
 }
 

@@ -65,15 +65,13 @@ func (m *Database) importSchema(schema *schema.Database) {
 	// get the regular tables
 	for _, table := range schema.Tables {
 		t := newTable(m.Key, table)
-		if t != nil {
-			m.Tables[t.QueryName] = t
-		}
+		m.Tables[t.QueryName] = t
 	}
 
 	// import references after the columns are in place
-	for _, schemaTable := range schema.Tables {
-		if t := m.Table(schemaTable.Name); t != nil {
-			m.importReferences(t, schemaTable)
+	for _, table := range schema.Tables {
+		if t := m.Table(table.Name); t != nil {
+			m.importReferences(t, table)
 		}
 	}
 
@@ -110,21 +108,8 @@ func (m *Database) importAssociation(schemaAssn *schema.AssociationTable) {
 }
 
 func (m *Database) importReferences(t *Table, schemaTable *schema.Table) {
-	if t.PrimaryKeyColumn() == nil {
-		hasForeignKey := false
-		for _, col := range schemaTable.Columns {
-			if col.Reference != nil {
-				hasForeignKey = true
-				break
-			}
-		}
-		if hasForeignKey {
-			slog.Error(fmt.Sprintf("table %s must have a primary key since it has a foreign key.", schemaTable.Name))
-		}
-	} else {
-		for _, col := range schemaTable.Columns {
-			m.importReference(t, col)
-		}
+	for _, col := range schemaTable.Columns {
+		m.importReference(t, col)
 	}
 }
 
@@ -157,7 +142,7 @@ func (m *Database) importReference(table *Table, schemaCol *schema.Column) {
 		f.DecapIdentifier = strings2.Decap(f.Identifier)
 		if thisCol != nil {
 			thisCol.Reference = f
-			table.ReverseReferences = append(table.ReverseReferences, thisCol)
+			refTable.ReverseReferences = append(refTable.ReverseReferences, thisCol)
 		}
 	}
 }

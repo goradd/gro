@@ -1,19 +1,20 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
 
-	if v, ok := m["{{= col.ReverseFunction() }}"]; ok {
+	if v, ok := m["{{= col.ReverseIdentifier() }}"]; ok {
 		if v2, ok2 := v.(db.ValueMap); ok2 {
 			o.{{= col.ReverseVariableIdentifier() }} = new({{= col.Table.Identifier }})
-			o.{{= col.ReverseVariableIdentifier() }}.load(v2, o.{{= col.VariableIdentifier() }}, objThis, "{{= col.Reference.Identifier }}")
+			o.{{= col.ReverseVariableIdentifier() }}.load(v2, o.{{= col.ReverseVariableIdentifier() }}, objThis, "{{= col.ReferenceIdentifier() }}")
 			o.{{= col.ReverseVariableIdentifier() }}IsDirty = false
 		} else {
 			panic("Wrong type found for {{= col.VariableIdentifier() }} object.")
 		}
 	} else {
-		o.{{= col.VariableIdentifier() }} = nil
-		o.{{= col.VariableIdentifier() }}IsDirty = false
+		o.{{= col.ReverseVariableIdentifier() }} = nil
+		o.{{= col.ReverseVariableIdentifier() }}IsDirty = false
 	}
 
 }}

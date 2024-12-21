@@ -1,6 +1,7 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
         case "{{= col.JsonKey()}}":
         {
@@ -15,12 +16,18 @@
             }
 {{if}}
 
-{{if col.IsEnumReference()}}
-{{# handle enum tables specially}}
+{{if col.IsReference()}}
+            if s,ok := v.(string); !ok {
+                return fmt.Errorf("json field %s must be a string", k)
+            } else {
+                o.Set{{= col.Identifier }}(s)
+            }
+
+{{elseif col.IsEnumReference()}}
            if n,ok := v.(int); ok {
-                o.Set{{= col.ReferenceFunction() }}({{= col.Reference.Identifier }}(n))
+                o.Set{{= col.ReferenceIdentifier() }}({{= col.ReferenceIdentifier() }}(n))
            } else if n,ok := v.(float64); ok {
-                o.Set{{= col.ReferenceFunction() }}({{= col.Reference.Identifier }}(int(n)))
+                o.Set{{= col.ReferenceIdentifier() }}({{= col.ReferenceIdentifier() }}(int(n)))
            } else {
                 return fmt.Errorf("json field %s must be a number", k)
            }
@@ -162,11 +169,11 @@ case query.ColTypeTime:
             if s,ok := v.(string); !ok {
                 return fmt.Errorf("json field %s must be a string", k)
             } else {
-                t := {{= col.Reference.Identifier }}FromName(s)
+                t := {{= col.ReferenceIdentifier() }}FromName(s)
                 if int(t) == 0 {
                     return fmt.Errorf("invalid value for field %s", k)
                 }
-                o.Set{{= col.ReferenceFunction() }}(t)
+                o.Set{{= col.ReferenceIdentifier() }}(t)
             }
 
 {{if}}

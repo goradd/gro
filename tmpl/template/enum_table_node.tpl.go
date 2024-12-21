@@ -26,7 +26,7 @@ func (tmpl *EnumTableNodeTemplate) FileName(table *model.EnumTable) string {
 	return filepath.Join(table.DbKey, tmpl.Package, "node", table.FileName()+".go")
 }
 
-func (tmpl *EnumTableNodeTemplate) GenerateEnum(table *model.EnumTable, _w io.Writer) (err error) {
+func (tmpl *EnumTableNodeTemplate) GenerateEnum(table *model.EnumTable, _w io.Writer, importPath string) (err error) {
 	return tmpl.gen(table, _w)
 }
 
@@ -57,7 +57,7 @@ package node
 
 import (
     "encoding/gob"
-	"github.com/goradd/goradd/pkg/orm/query"
+	"github.com/goradd/orm/pkg/query"
 )
 
 type `); err != nil {

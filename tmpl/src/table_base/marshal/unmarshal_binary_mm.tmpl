@@ -1,7 +1,10 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
+
+{{if mm.IsEnum()}}
     if err = dec.Decode(&isPtr); err != nil {
         return
     }
@@ -13,12 +16,18 @@
     if err = dec.Decode(&o.{{= mm.VariableIdentifier() }}IsDirty); err != nil {
         return
     }
-{{if !mm.IsEnum()}}
+{{else}}
+    if err = dec.Decode(&o.{{= mm.PkIdentifier() }}); err != nil {
+        return
+    }
+    if err = dec.Decode(&o.{{= mm.VariableIdentifier() }}IsDirty); err != nil {
+        return
+    }
     if err = dec.Decode(&isPtr); err != nil {
         return
     }
     if isPtr {
-        if err = dec.Decode(&o.{{= mm.PkIdentifier() }}); err != nil {
+        if err = dec.Decode(&o.{{= mm.PkIdentifier() }} ); err != nil {
             return
         }
     }

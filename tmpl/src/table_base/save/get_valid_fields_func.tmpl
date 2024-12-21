@@ -1,9 +1,10 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
 // getValidFields returns the fields that have valid data in them.
-func (o *{{= table.Identifier}}Base) getValidFields() (fields map[string]interface{}) {
+func (o *{{= table.DecapIdentifier}}Base) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 {{for _,col := range table.Columns}}
 {{g if col.IsAutoId {continue} }}

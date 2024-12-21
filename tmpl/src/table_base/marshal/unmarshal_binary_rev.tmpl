@@ -1,33 +1,23 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
-    if o.{{= rev.ReverseVariableIdentifier()
- }} == nil {
-        if err := encoder.Encode(false); err != nil {
-            return nil, err
-        }
-    } else {
-        if err := encoder.Encode(true); err != nil {
-            return nil, err
-        }
-        if err := encoder.Encode(o.{{= rev.ReverseVariableIdentifier()
- }}); err != nil {
-            return nil, err
-        }
+    if err = dec.Decode(&o.{{= rev.ReverseVariableIdentifier()}}); err != nil {
+        return
     }
-    if err := encoder.Encode(o.{{= rev.ReversePkIdentifier() }} != nil); err != nil {
-        return nil, err
+
+    if err = dec.Decode(&isPtr); err != nil {
+        return
     }
-    if o.{{= rev.ReversePkIdentifier() }} != nil {
-        if err := encoder.Encode(o.{{= rev.ReversePkIdentifier() }} ); err != nil {
-            return nil, err
+    if isPtr {
+        if err = dec.Decode(&o.{{= rev.ReversePkIdentifier() }}); err != nil {
+            return
         }
     }
 
-    if err := encoder.Encode(o.{{= rev.ReverseVariableIdentifier()
- }}IsDirty); err != nil {
-        return nil, err
+    if err = dec.Decode(&o.{{= rev.ReverseVariableIdentifier()}}IsDirty); err != nil {
+        return
     }
 
     {{# We will need to rebuild the map based on the object decoded, since they are pointers to the same objects}}

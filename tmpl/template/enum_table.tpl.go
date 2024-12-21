@@ -27,7 +27,7 @@ func (tmpl *EnumTableTemplate) FileName(table *model.EnumTable) string {
 	return filepath.Join(table.DbKey, tmpl.Package, table.FileName()+".go")
 }
 
-func (tmpl *EnumTableTemplate) GenerateEnum(table *model.EnumTable, _w io.Writer) (err error) {
+func (tmpl *EnumTableTemplate) GenerateEnum(table *model.EnumTable, _w io.Writer, importPath string) (err error) {
 	return tmpl.gen(table, _w)
 }
 

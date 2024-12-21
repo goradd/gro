@@ -1,16 +1,17 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
 // {{= col.Identifier }} returns the loaded value of {{= col.Identifier }} or
 // the zero value if not loaded. Call {{= col.Identifier }}IsValid() to determine
 // if it is loaded.
-func (o *{{= table.Identifier}}Base) {{= col.Identifier }}() string {
+func (o *{{= table.DecapIdentifier}}Base) {{= col.Identifier }}() string {
 	return fmt.Sprint(o.{{= col.DecapIdentifier }})
 }
 
 // {{= col.Identifier }}IsValid returns true if the value was loaded from the database or has been set.
-func (o *{{= table.Identifier}}Base) {{= col.Identifier }}IsValid() bool {
+func (o *{{= table.DecapIdentifier}}Base) {{= col.Identifier }}IsValid() bool {
 	return o._restored && o.{{= col.DecapIdentifier }}IsValid
 }
 }}

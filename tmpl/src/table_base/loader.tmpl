@@ -1,11 +1,12 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
 // Care must be taken in the query, as Select clauses might not be honored if the child object has fields selected which the parent object does not have.
-func (o *{{= table.Identifier}}Base) load (m map[string]interface{}, objThis *{{table.Identifier}}, objParent interface{}, parentKey string) {
+func (o *{{= table.DecapIdentifier}}Base) load (m map[string]interface{}, objThis *{{table.Identifier}}, objParent interface{}, parentKey string) {
 
 {{for _, col := range table.Columns }}
 	{{if col.IsNullable }}

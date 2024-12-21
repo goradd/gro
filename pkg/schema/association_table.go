@@ -75,7 +75,7 @@ func (t *AssociationTable) FillDefaults(suffix string) {
 		t.Title1 = strings2.Title(col1)
 	}
 	if t.Title1Plural == "" {
-		t.Title1Plural = strings2.Plural(t.Table1)
+		t.Title1Plural = strings2.Plural(t.Title1)
 	}
 	if t.Identifier1 == "" {
 		t.Identifier1 = snaker.SnakeToCamelIdentifier(col1)

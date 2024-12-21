@@ -1,17 +1,8 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
-// Default values for the fields in the {{= table.QueryName }} table.
-// When a {{= table.Identifier}} object is created, the fields in the object will be initialized to these values.
-// doc: type={{= table.Identifier }}
-const  (
-{{for _,col := range table.Columns}}
-{{if v := col.DefaultValueAsConstant(); v != ""}}
-    {{= col.DefaultConstantName() }} = {{= v }} // {{= col.QueryName }}
-{{if}}
-{{for}}
-)
 
 // IDs used to access the {{= table.Identifier }} object fields by name using the Get function.
 // doc: type={{= table.Identifier }}
@@ -20,7 +11,7 @@ const  (
 {{for _,col := range table.Columns}}
     {{= table.Identifier }}_{{= col.Identifier}} = `{{= col.Identifier }}`
 {{if col.IsReference()}}
-    {{= table.Identifier }}_{{= col.Reference.Identifier }} = `{{= col.Reference.Identifier }}`
+    {{= table.Identifier }}_{{= col.ReferenceIdentifier() }} = `{{= col.ReferenceIdentifier() }}`
 {{if}}
 {{for}}
 

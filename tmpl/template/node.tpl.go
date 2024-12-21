@@ -22,7 +22,7 @@ func (n *NodeTemplate) FileName(table *model.Table) string {
 	return filepath.Join(table.DbKey, "orm", "node", table.FileName()+".go")
 }
 
-func (n *NodeTemplate) GenerateTable(table *model.Table, _w io.Writer) (err error) {
+func (n *NodeTemplate) GenerateTable(table *model.Table, _w io.Writer, importPath string) (err error) {
 	return n.gen(table, _w)
 }
 
@@ -67,7 +67,7 @@ package node
 import (
     "bytes"
     "encoding/gob"
-	"github.com/goradd/goradd/pkg/orm/query"
+	"github.com/goradd/orm/pkg/query"
 )
 `); err != nil {
 		return
@@ -370,9 +370,6 @@ func (n *NodeTemplate) genColumn(table *model.Table, col *model.Column, _w io.Wr
 			}
 		}
 	}
-	if err = n.genReverse(table, col, _w); err != nil {
-		return
-	}
 	return
 }
 
@@ -494,7 +491,7 @@ func (n *NodeTemplate) genTableRefNode(table *model.Table, col *model.Column, _w
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.Reference.Identifier); err != nil {
+	if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
 		return
 	}
 
@@ -502,7 +499,7 @@ func (n *NodeTemplate) genTableRefNode(table *model.Table, col *model.Column, _w
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.Reference.Table.Identifier); err != nil {
+	if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
 		return
 	}
 
@@ -519,7 +516,7 @@ func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.Reference.Identifier); err != nil {
+	if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
 		return
 	}
 
@@ -527,7 +524,7 @@ func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.Reference.Table.Identifier); err != nil {
+	if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
 		return
 	}
 
@@ -536,7 +533,7 @@ func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.Reference.Table.Identifier); err != nil {
+	if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
 		return
 	}
 
@@ -574,6 +571,15 @@ func (n *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, col.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `",
+			"`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
 		return
 	}
 
@@ -624,7 +630,7 @@ func (n *NodeTemplate) genEnumTableRefNode(table *model.Table, col *model.Column
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.Reference.Identifier); err != nil {
+	if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
 		return
 	}
 
@@ -649,7 +655,7 @@ func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.Reference.Identifier); err != nil {
+	if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
 		return
 	}
 
@@ -752,14 +758,8 @@ func (n *`); err != nil {
 
 func (n *NodeTemplate) genAssn(table *model.Table, _w io.Writer) (err error) {
 	for _, mm := range table.ManyManyReferences {
-		if mm.DestinationTable != nil {
-			if err = n.genAssnTable(table, mm, _w); err != nil {
-				return
-			}
-		} else {
-			if err = n.genAssnEnumTable(table, mm, _w); err != nil {
-				return
-			}
+		if err = n.genAssnTable(table, mm, _w); err != nil {
+			return
 		}
 	}
 	return
@@ -804,7 +804,7 @@ func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, mm.DestinationTable.Identifier); err != nil {
+	if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
 		return
 	}
 
@@ -813,7 +813,7 @@ func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, mm.DestinationTable.Identifier); err != nil {
+	if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
 		return
 	}
 
@@ -859,7 +859,7 @@ func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, mm.DestinationTable.QueryName); err != nil {
+	if _, err = io.WriteString(_w, mm.QueryName()); err != nil {
 		return
 	}
 
@@ -877,7 +877,7 @@ func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, mm.DestinationTable.PrimaryKeyColumn().QueryName); err != nil {
+	if _, err = io.WriteString(_w, mm.PrimaryKey()); err != nil {
 		return
 	}
 
@@ -887,136 +887,6 @@ func (n *`); err != nil {
 	}
 	query.SetParentNode(cn, n)
 	return cn
-}
-`); err != nil {
-		return
-	}
-
-	return
-}
-
-func (n *NodeTemplate) genAssnEnumTable(table *model.Table, mm *model.ManyManyReference, _w io.Writer) (err error) {
-
-	if _, err = io.WriteString(_w, `// `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, ` represents the many-to-many relationship formed by the `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, mm.AssnTableName); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, ` table.
-func (n *`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `Node) `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `() *`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, mm.DestinationEnumTable.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `Node  {
- 	cn := &`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, mm.DestinationEnumTable.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `Node {
- 		query.NewManyManyNode (
- 			"`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.DbKey); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `",
- 			"`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, mm.AssnTableName); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `",
- 			"`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, mm.AssnSourceColumnName); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `",
- 			"`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `",
- 			"`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, mm.DestinationEnumTable.QueryName); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `",
- 			"`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, mm.AssnDestColumnName); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `",
- 			"`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, mm.DestinationEnumTable.PkQueryName()); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `",
- 			false,
- 		),
- 	}
- 	query.SetParentNode(cn, n)
- 	return cn
 }
 `); err != nil {
 		return

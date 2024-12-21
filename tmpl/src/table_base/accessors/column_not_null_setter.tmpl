@@ -1,10 +1,11 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 
 {{
 // Set{{= col.Identifier }} sets the value of {{= col.Identifier }} in the object, to be saved later using the Save() function.
-func (o *{{= table.Identifier }}Base) Set{{= col.Identifier }}({{= col.DecapIdentifier }} {{= col.GoType()
+func (o *{{= table.DecapIdentifier }}Base) Set{{= col.Identifier }}({{= col.DecapIdentifier }} {{= col.GoType()
 
  }}) {
 	o.{{= col.DecapIdentifier }}IsValid = true
@@ -16,7 +17,7 @@ func (o *{{= table.Identifier }}Base) Set{{= col.Identifier }}({{= col.DecapIden
 		o.{{= col.DecapIdentifier }} = {{= col.DecapIdentifier }}
 		o.{{= col.DecapIdentifier }}IsDirty = true
 {{if col.Reference != nil}}
-		o.{{= col.Reference.DecapIdentifier }} = nil
+		o.{{= col.ReferenceVariableIdentifier() }} = nil
 {{if}}
 	}
 {{if}}

@@ -1,22 +1,23 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
 {{if mm.IsEnum() }}
-    if val := o.{{= mm.VariableIdentifier() }}(); val != nil {
-        var val2 []int
-        for _,v2 := range val {
-            val2 = append(val2, int(v2))
+    if len(o.{{= mm.VariableIdentifier() }}) != 0 {
+        var vals []int
+        for _,v := range o.{{= mm.VariableIdentifier() }} {
+            vals = append(vals, int(v))
         }
-        v["{{= mm.JsonKey() }}"] = val2
+        v["{{= mm.JsonKey() }}"] = vals
     }
 {{else}}
-    if val := o.{{= mm.VariableIdentifier() }}(); val != nil {
-        var val2 []map[string]interface{}
-        for _,v2 := range val {
-            val2 = append(val2, v2.MarshalStringMap())
+    if o.{{= mm.VariableIdentifier() }}.Len() != 0 {
+        var vals []map[string]interface{}
+        for obj := range o.{{= mm.VariableIdentifier() }}.ValuesIter() {
+            vals = append(vals, obj.MarshalStringMap())
         }
-        v["{{= mm.JsonKey() }}"] = val2
+        v["{{= mm.JsonKey() }}"] = vals
     }
 {{if}}
 }}

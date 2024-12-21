@@ -1,17 +1,18 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
-// Set{{= col.Reference.Identifier }} sets the value of {{= col.Reference.Identifier }} in the object, to be saved later using the Save() function.
-func (o *{{= table.Identifier}}Base) Set{{= col.Reference.Identifier }}({{= col.DecapIdentifier }} *{{= col.Reference.Identifier }})  {
-	if {{= col.DecapIdentifier }} == nil {
-		panic("Cannot set {{= col.Reference.Identifier }} to a null value.")
+// Set{{= col.ReferenceIdentifier() }} sets the value of {{= col.ReferenceIdentifier() }} in the object, to be saved later using the Save() function.
+func (o *{{= table.DecapIdentifier}}Base) Set{{= col.ReferenceIdentifier() }}({{= col.ReferenceVariableIdentifier() }} *{{= col.ReferenceType() }})  {
+	if {{= col.ReferenceVariableIdentifier() }} == nil {
+		panic("Cannot set {{= col.ReferenceIdentifier() }} to a null value.")
 	} else {
-		o.{{= col.DecapIdentifier }} = {{= col.DecapIdentifier }}
-		o.{{= col.DecapIdentifier }}IsValid = true
-		if o.{{= col.DecapIdentifier }} != {{= col.DecapIdentifier }}.PrimaryKey() {
-			o.{{= col.DecapIdentifier }} = {{= col.DecapIdentifier }}.PrimaryKey()
-			o.{{= col.DecapIdentifier }}IsDirty = true
+		o.{{= col.ReferenceVariableIdentifier() }} = {{= col.ReferenceVariableIdentifier() }}
+		o.{{= col.VariableIdentifier() }}IsValid = true
+		if o.{{= col.VariableIdentifier() }} != {{= col.ReferenceVariableIdentifier() }}.PrimaryKey() {
+			o.{{= col.VariableIdentifier() }} = {{= col.ReferenceVariableIdentifier() }}.PrimaryKey()
+			o.{{= col.VariableIdentifier() }}IsDirty = true
 		}
 	}
 }

@@ -1,7 +1,7 @@
 package schema
 
 import (
-	any2 "github.com/goradd/any"
+	. "github.com/goradd/all"
 	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
 	"strings"
@@ -109,7 +109,7 @@ func (c *Column) FillDefaults(table *Table, referenceSuffix string, enumSuffix s
 			objName = ""
 		}
 		if c.Reference.ReverseTitle == "" {
-			c.Reference.ReverseTitle = any2.If(objName, snaker.ForceCamelIdentifier(objName)+" "+table.Title, table.Title)
+			c.Reference.ReverseTitle = If(objName, snaker.ForceCamelIdentifier(objName)+" "+table.Title, table.Title)
 		}
 		if c.Reference.ReverseTitlePlural == "" && c.IndexLevel != IndexLevelUnique {
 			c.Reference.ReverseTitlePlural = strings2.Plural(c.Reference.ReverseTitle)

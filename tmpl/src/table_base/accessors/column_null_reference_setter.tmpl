@@ -1,24 +1,25 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
 
-// Set{{= col.Reference.Identifier }} will set the reference to {{= col.Reference.DecapIdentifier }}. The referenced object
+// Set{{= col.ReferenceIdentifier() }} will set the reference to {{= col.Reference.DecapIdentifier }}. The referenced object
 // will be saved when {{= table.Identifier}} is saved. Pass nil to break the connection.
-func (o *{{= table.Identifier}}Base) Set{{= col.Reference.Identifier }}({{= col.Reference.DecapIdentifier }} *{{= col.Reference.Identifier }}) {
+func (o *{{= table.DecapIdentifier}}Base) Set{{= col.ReferenceIdentifier() }}({{= col.ReferenceVariableIdentifier() }} *{{= col.ReferenceType() }}) {
 	o.{{= col.DecapIdentifier }}IsValid = true
-	if {{= col.Reference.DecapIdentifier }} == nil {
+	if {{= col.ReferenceVariableIdentifier() }} == nil {
 		if !o.{{= col.DecapIdentifier }}IsNull || !o._restored {
 			o.{{= col.DecapIdentifier }}IsNull = true
 			o.{{= col.DecapIdentifier }}IsDirty = true
-			o.{{= col.DecapIdentifier }} = {{= col.DefaultValueAsValue() }}
-			o.{{= col.DecapIdentifier }} = nil
+			o.{{= col.VariableIdentifier() }} = {{= col.DefaultValueAsValue() }}
+			o.{{= col.ReferenceVariableIdentifier() }} = nil
 		}
 	} else {
-		o.{{= col.DecapIdentifier }}  = {{= col.Reference.DecapIdentifier }}
-		if o.{{= col.DecapIdentifier }}IsNull || !o._restored || o.{{= col.DecapIdentifier }} != {{= col.Reference.DecapIdentifier }}.PrimaryKey() {
+		o.{{= col.ReferenceVariableIdentifier() }}  = {{= col.ReferenceVariableIdentifier() }}
+		if o.{{= col.DecapIdentifier }}IsNull || !o._restored || o.{{= col.DecapIdentifier }} != {{= col.ReferenceVariableIdentifier() }}.PrimaryKey() {
 			o.{{= col.DecapIdentifier }}IsNull = false
-			o.{{= col.DecapIdentifier }} = {{= col.Reference.DecapIdentifier }}.PrimaryKey()
+			o.{{= col.VariableIdentifier() }} = {{= col.ReferenceVariableIdentifier() }}.PrimaryKey()
 			o.{{= col.DecapIdentifier }}IsDirty = true
 		}
 	}

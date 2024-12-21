@@ -1,6 +1,7 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{# The master template for the nodes for a particular column.}}
 
 func (n *NodeTemplate)gen(table *model.Table, _w io.Writer) (err error) {
@@ -24,7 +25,7 @@ package node
 import (
     "bytes"
     "encoding/gob"
-	"github.com/goradd/goradd/pkg/orm/query"
+	"github.com/goradd/orm/pkg/query"
 )
 }}
     return

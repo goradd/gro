@@ -1,20 +1,18 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
-{{if table.PrimaryKeyColumn() != nil}}
 
 // PrimaryKey returns the current value of the primary key field.
-func (o *{{= table.Identifier}}Base) PrimaryKey() {{= table.PrimaryKeyGoType() }} {
+func (o *{{= table.DecapIdentifier}}Base) PrimaryKey() {{= table.PrimaryKeyGoType() }} {
 	return o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}
 }
 
 // OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
 // read from the database.
-func (o *{{= table.Identifier}}Base) OriginalPrimaryKey() {{= table.PrimaryKeyGoType() }} {
+func (o *{{= table.DecapIdentifier}}Base) OriginalPrimaryKey() {{= table.PrimaryKeyGoType() }} {
 	return o._originalPK
 }
-
-{{if}}
 
 }}

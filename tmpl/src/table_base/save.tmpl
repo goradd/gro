@@ -1,6 +1,7 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 // TODO: Make sure dirty related objects are saved first
 // TODO: Make sure id field cannot be set or updated
 
@@ -8,7 +9,7 @@
 
 // Save will update or insert the object, depending on the state of the object.
 // If it has any auto-generated ids, those will be updated.
-func (o *{{= table.Identifier}}Base) Save(ctx context.Context)  {
+func (o *{{= table.DecapIdentifier}}Base) Save(ctx context.Context)  {
 	if o._restored {
 		o.update(ctx)
 	} else {

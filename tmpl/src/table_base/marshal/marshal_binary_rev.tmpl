@@ -1,32 +1,21 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 {{
-    if o.{{= rev.ReverseVariableIdentifier()
- }} == nil {
-        if err := encoder.Encode(false); err != nil {
-            return nil, err
-        }
-    } else {
-        if err := encoder.Encode(true); err != nil {
-            return nil, err
-        }
-        if err := encoder.Encode(o.{{= rev.ReverseVariableIdentifier()
- }}); err != nil {
-            return nil, err
-        }
-    }
-    if err := encoder.Encode(o.{{= rev.ReversePkIdentifier() }} != nil); err != nil {
+    if err := encoder.Encode(o.{{= rev.ReverseVariableIdentifier() }} ); err != nil {
         return nil, err
     }
-    if o.{{= rev.ReversePkIdentifier() }} != nil {
+    if err := encoder.Encode(len(o.{{= rev.ReversePkIdentifier() }}) != 0); err != nil {
+        return nil, err
+    }
+    if len(o.{{= rev.ReversePkIdentifier() }}) != 0 {
         if err := encoder.Encode(o.{{= rev.ReversePkIdentifier() }} ); err != nil {
             return nil, err
         }
     }
 
-    if err := encoder.Encode(o.{{= rev.ReverseVariableIdentifier()
- }}IsDirty); err != nil {
+    if err := encoder.Encode(o.{{= rev.ReverseVariableIdentifier() }}IsDirty); err != nil {
         return nil, err
     }
 

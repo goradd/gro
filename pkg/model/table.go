@@ -5,6 +5,7 @@ import (
 	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
 	"log/slog"
+	"slices"
 )
 
 type Table struct {
@@ -38,20 +39,16 @@ type Table struct {
 	ManyManyReferences []*ManyManyReference
 }
 
+// PrimaryKeyColumn returns the primary key column
 func (t *Table) PrimaryKeyColumn() *Column {
-
-	if len(t.Columns) > 1 && t.Columns[1].IsPk {
-		// A multi-column primary key, which we have limited support for.
-		return nil
-	}
-	if !t.Columns[0].IsPk {
+	if len(t.Columns) == 0 {
 		return nil
 	}
 	return t.Columns[0]
 }
 
 func (t *Table) PrimaryKeyGoType() string {
-	return t.PrimaryKeyColumn().Type.GoType()
+	return t.PrimaryKeyColumn().GoType()
 }
 
 // ColumnByName returns a Column given the query name of the column,
@@ -105,7 +102,13 @@ func (t *Table) HasGetterName(name string) (hasName bool, desc string) {
 	return false, ""
 }
 
+// HasAutoId returns true if the table has an automatically generated primary key
+func (t *Table) HasAutoId() bool {
+	return t.PrimaryKeyColumn().IsAutoId
+}
+
 // newTable will import the table provided by tableSchema.
+// If an error occurs, the table is returned with no columns.
 func newTable(dbKey string, tableSchema *schema.Table) *Table {
 	queryName := strings2.If(tableSchema.Schema == "", tableSchema.Name, tableSchema.Schema+"."+tableSchema.Name)
 	t := &Table{
@@ -121,22 +124,31 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 	t.DecapIdentifier = strings2.Decap(tableSchema.Identifier)
 
 	if t.Identifier == t.IdentifierPlural {
-		slog.Warn("Table skipped: table " + t.QueryName + " is using a plural name.")
-		return nil
+		slog.Error("Table " + t.QueryName + " is using a plural name.")
+		return t
+	}
+
+	if len(tableSchema.Columns) == 0 {
+		slog.Error("Table " + t.QueryName + " has no columns.")
+		return t
 	}
 
 	var pkCount int
 	for _, schemaCol := range tableSchema.Columns {
 		newCol := newColumn(schemaCol)
 		newCol.Table = t
-		t.Columns = append(t.Columns, newCol)
-		t.columnMap[newCol.QueryName] = newCol
 		if newCol.IsPk {
 			pkCount++
 			if pkCount > 1 {
-				slog.Warn("Table " + t.QueryName + " has a multi-column primary key. A multi-column unique index with a single column primary key is prefered.")
+				slog.Error("Table " + t.QueryName + " has a multi-column primary key. Instead combine a multi-column unique index with a single column auto-generated primary key.")
+				t.Columns = nil
+				return t
 			}
+			t.Columns = slices.Insert(t.Columns, 0, newCol)
+		} else {
+			t.Columns = append(t.Columns, newCol)
 		}
+		t.columnMap[newCol.QueryName] = newCol
 		if schemaCol.IndexLevel != schema.IndexLevelNone {
 			idx := Index{Columns: []*Column{newCol},
 				IsUnique: schemaCol.IndexLevel != schema.IndexLevelIndexed}
@@ -149,8 +161,8 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 		for _, name := range idx.Columns {
 			col := t.ColumnByName(name)
 			if col == nil {
-				slog.Warn("Table skipped: cannot find column " + name + " of table " + t.QueryName + " in multi-column index")
-				return nil
+				slog.Error("Cannot find column " + name + " of table " + t.QueryName + " in multi-column index")
+				return t
 			}
 			columns = append(columns, col)
 		}

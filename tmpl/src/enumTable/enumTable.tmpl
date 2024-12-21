@@ -1,6 +1,7 @@
 
+{{g
 //*** {{includeName}}
-
+}}
 func (tmpl *EnumTableTemplate)gen(table *model.EnumTable, _w io.Writer) (err error) {
     if err = tmpl.genHeader(table, _w); err != nil { return }
     if err = tmpl.genConstants(table, _w); err != nil { return }

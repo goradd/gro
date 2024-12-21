@@ -2,6 +2,8 @@ package model
 
 import (
 	"fmt"
+	"github.com/gedex/inflector"
+	"github.com/goradd/goradd/pkg/strings"
 	. "github.com/goradd/orm/pkg/query"
 	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
@@ -60,19 +62,29 @@ func (cd *Column) VariableIdentifier() string {
 	return cd.DecapIdentifier
 }
 
+func (cd *Column) VariableIdentifierPlural() string {
+	return inflector.Pluralize(cd.DecapIdentifier)
+}
+
 // DefaultValueAsValue returns the default value of the column as a GO value
 func (cd *Column) DefaultValueAsValue() string {
-	if cd.DefaultValue == nil || cd.IsAutoId {
-		v := cd.Type.DefaultValueString()
-		return v
-	} else if cd.Type == ColTypeTime {
-		if cd.DefaultValue == currentTime {
-			return "time.Now().UTC()"
-		} else {
-			t := cd.DefaultValue.(time.Time)
-			return fmt.Sprintf("time2.NewDateTime(%d, %d, %d, %d, %d, %d, %d)", t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond())
+	if cd.DefaultValue == nil {
+		if cd.IsAutoId || cd.IsReference() {
+			return `""`
 		}
+		return cd.Type.DefaultValueString()
 	} else {
+		if cd.Type == ColTypeTime {
+			if cd.DefaultValue == currentTime {
+				return "time.Now().UTC()"
+			} else {
+				t := cd.DefaultValue.(time.Time)
+				if t.IsZero() {
+					return "time.Time{}"
+				}
+				return fmt.Sprintf("time2.NewDateTime(%d, %d, %d, %d, %d, %d, %d)", t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond())
+			}
+		}
 		return fmt.Sprintf("%#v", cd.DefaultValue)
 	}
 }
@@ -119,10 +131,15 @@ func (cd *Column) IsEnumReference() bool {
 	return cd.Reference != nil && cd.Reference.EnumTable != nil
 }
 
-// ReferenceFunction returns the function name that should be used to refer to the object
-// that is referred to by a forward reference.
-func (cd *Column) ReferenceFunction() string {
-	return cd.Reference.Identifier
+// ReferenceIdentifier returns the capitalizde name that should be used to refer to the object
+// in a forward reference. This is not the object's type.
+func (cd *Column) ReferenceIdentifier() string {
+	return strings.If(cd.Reference == nil, "", cd.Reference.Identifier)
+}
+
+// ReferenceType returns the name of the Go struct type in a forward reference.
+func (cd *Column) ReferenceType() string {
+	return strings.If(cd.Reference == nil, "", cd.Reference.Table.Identifier)
 }
 
 // ReferenceVariableIdentifier returns the name of the local variable that will
@@ -135,9 +152,9 @@ func (cd *Column) ReferenceVariableIdentifier() string {
 	}
 }
 
-// ReverseFunction returns the function name that should be used to refer to the object
+// ReverseIdentifier returns the function name that should be used to refer to the object
 // that is referred to by the reverse reference.
-func (cd *Column) ReverseFunction() string {
+func (cd *Column) ReverseIdentifier() string {
 	if cd.Reference == nil {
 		return ""
 	} else if cd.IsUnique {
@@ -195,6 +212,9 @@ func (cd *Column) ReverseJsonKey() string {
 
 // GoType returns the Go variable type corresponding to the column.
 func (cd *Column) GoType() string {
+	if cd.Reference != nil && cd.Reference.Table.PrimaryKeyColumn().IsAutoId {
+		return "string" // auto id keys are always strings
+	}
 	return cd.Type.GoType()
 }
 

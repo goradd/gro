@@ -1,19 +1,15 @@
-
+{{g
 //*** {{includeName}}
-
+}}
 {{
-{{# Update many-many enum references }}
-
-    if len(o.{{= mm.VariableIdentifier()
- }}) != 0 {
+    if len(o.{{= mm.VariableIdentifier() }}) != 0 {
         d.Associate(ctx,
             "{{= mm.AssnTableName }}",
             "{{= mm.AssnSourceColumnName }}",
             o.PrimaryKey(),
-            "{{= mm.DestinationTable.QueryName }}",
+            "{{= mm.DestinationEnumTable.QueryName }}",
             "{{= mm.AssnDestColumnName }}",
-            o.{{= mm.VariableIdentifier()
- }})
+            o.{{= mm.VariableIdentifier() }})
     }
 
 }}

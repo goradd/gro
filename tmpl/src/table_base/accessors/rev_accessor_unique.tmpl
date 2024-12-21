@@ -1,84 +1,84 @@
-
+{{g
 //*** {{includeName}}
-
+}}
 {{
 
-// {{= col.Reference.ReverseIdentifier}} returns the connected {{= col.Table.Identifier }} object, if one was loaded.
+// {{= rev.ReverseIdentifier() }} returns the connected {{= rev.Table.Identifier }} object, if one was loaded.
 // Otherwise, it will return nil.
-func (o *{{= table.Identifier}}Base) {{= col.Reference.ReverseIdentifier }}() *{{= col.Table.Identifier}} {
-	if o.{{= col.ReverseVariableIdentifier() }} == nil {
+func (o *{{= table.DecapIdentifier}}Base) {{= rev.ReverseIdentifier() }}() *{{= rev.Table.Identifier}} {
+	if o.{{= rev.ReverseVariableIdentifier() }} == nil {
 		return nil
 	}
-	return o.{{= col.ReverseVariableIdentifier() }}
+	return o.{{= rev.ReverseVariableIdentifier() }}
 }
 
-// Load{{= col.Reference.ReverseIdentifier }} returns the connected {{= col.Table.Identifier }} object, if one was loaded.
+// Load{{= rev.ReverseIdentifier() }} returns the connected {{= rev.Table.Identifier }} object, if one was loaded.
 // Otherwise, it will load a new one and return it.
-func (o *{{= table.Identifier}}Base) Load{{= col.Reference.ReverseIdentifier }}(ctx context.Context) *{{= col.Table.Identifier }} {
-    if o.{{= col.ReverseVariableIdentifier() }} != nil && o.{{= col.ReverseVariableIdentifier() }}.IsDirty() {
-        panic("The {{= col.Reference.ReverseIdentifier }} has changed. You must save it first before changing to a different one.")
+func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.ReverseIdentifier() }}(ctx context.Context) *{{= rev.Table.Identifier }} {
+    if o.{{= rev.ReverseVariableIdentifier() }} != nil && o.{{= rev.ReverseVariableIdentifier() }}.IsDirty() {
+        panic("The {{= rev.ReverseIdentifier() }} has changed. You must save it first before changing to a different one.")
     }
-	if o.{{= col.ReverseVariableIdentifier() }} == nil {
-	    var pk {{= col.Table.PrimaryKeyColumn().GoType() }}
-	    if o.{{= col.ReversePkIdentifier() }} != nil {
-	        pk = *o.{{= col.ReversePkIdentifier() }}
+	if o.{{= rev.ReverseVariableIdentifier() }} == nil {
+	    var pk {{= rev.Table.PrimaryKeyColumn().GoType() }}
+	    if o.{{= rev.ReversePkIdentifier() }} != nil {
+	        pk = *o.{{= rev.ReversePkIdentifier() }}
 	    } else {
-	        pk = o.{{= col.Table.PrimaryKeyColumn().Identifier }}()
+	        pk = o.{{= rev.Table.PrimaryKeyColumn().Identifier }}()
 	    }
-		o.{{= col.ReverseVariableIdentifier() }} = Load{{= col.Table.Identifier }}By{{= col.Identifier }}(ctx, pk)
+		o.{{= rev.ReverseVariableIdentifier() }} = Load{{= rev.Table.Identifier }}By{{= rev.Identifier }}(ctx, pk)
 	}
-	return o.{{= col.ReverseVariableIdentifier() }}
+	return o.{{= rev.ReverseVariableIdentifier() }}
 }
 
-// Set{{= col.Reference.ReverseIdentifier }} associates obj with this {{= table.Identifier }}
-// through the reverse relationship in {{= col.Table.Identifier }}.{{= col.Identifier }}.
+// Set{{= rev.ReverseIdentifier() }} associates obj with this {{= table.Identifier }}
+// through the reverse relationship in {{= rev.Table.Identifier }}.{{= rev.Identifier }}.
 //
 // The association is temporary until you call Save().
-{{if col.IsNullable }}
-// Since this is a unique relationship, if a different {{= col.Table.Identifier }} object is currently pointing to this {{= table.Identifier }},
-// that {{= col.Table.Identifier }}'s {{= col.Identifier }} value will be set to null when Save is called.
-// If you did not use a join to query the attached {{= col.Table.Identifier }} in the first place, used a conditional join,
+{{if rev.IsNullable }}
+// Since this is a unique relationship, if a different {{= rev.Table.Identifier }} object is currently pointing to this {{= table.Identifier }},
+// that {{= rev.Table.Identifier }}'s {{= rev.Identifier }} value will be set to null when Save is called.
+// If you did not use a join to query the attached {{= rev.Table.Identifier }} in the first place, used a conditional join,
 // or joined with an expansion, be particularly careful, since you may be inadvertently  changing an item
 // that is not currently attached to this {{table.Identifier}}.
 {{else}}
 // WARNING! Since this is a non-nullable unique relationship,
-// if a different {{= col.Table.Identifier }} object is currently pointing to this {{= table.Identifier }},
+// if a different {{= rev.Table.Identifier }} object is currently pointing to this {{= table.Identifier }},
 // Save() will panic. You should delete that object first.
 {{if}}
-func (o *{{= table.Identifier}}Base) Set{{= col.Identifier }}(obj *{{= col.GoType() }}) {
-    if o.{{= col.ReverseVariableIdentifier() }} != nil && o.{{= col.ReverseVariableIdentifier() }}.IsDirty() {
-        panic("The {{= col.Reference.ReverseIdentifier }} has changed. You must save it first before changing to a different one.")
+func (o *{{= table.DecapIdentifier}}Base) Set{{= rev.ReverseIdentifier() }}(obj *{{= rev.Table.Identifier }}) {
+    if o.{{= rev.ReverseVariableIdentifier() }} != nil && o.{{= rev.ReverseVariableIdentifier() }}.IsDirty() {
+        panic("The {{= rev.ReverseIdentifier() }} has changed. You must save it first before changing to a different one.")
     }
-	o.{{= col.ReverseVariableIdentifier() }} = obj
-	o.{{= col.ReversePkIdentifier() }} = nil
-	o.{{= col.ReverseVariableIdentifier() }}IsDirty = true
+	o.{{= rev.ReverseVariableIdentifier() }} = obj
+	o.{{= rev.ReversePkIdentifier() }} = nil
+	o.{{= rev.ReverseVariableIdentifier() }}IsDirty = true
 }
 
-// Set{{= col.Reference.ReverseIdentifier }}By{{= col.Table.PrimaryKeyColumn().Identifier }}
-// associates this {{= table.Identifier }} with the {{= col.Table.Identifier }}
-// that has primary key pk.
+// Set{{= rev.ReverseIdentifier() }}By{{= rev.Table.PrimaryKeyColumn().Identifier }}
+// associates this {{= table.Identifier }} with the {{= rev.Table.Identifier }}
+// that has primary key {{= rev.Table.PrimaryKeyColumn().VariableIdentifierPlural() }}.
 //
 // The association is temporary until you call Save().
-// If a {{= col.Table.Identifier }} is loaded, it will be unloaded.
+// If a {{= rev.Table.Identifier }} is loaded, it will be unloaded.
 //
-{{if col.IsNullable }}
-// Since this is a unique relationship, if a different {{= col.Table.Identifier }} object is currently pointing to this {{= table.Identifier }},
-// that {{= col.Table.Identifier }}'s {{= col.Identifier }} value will be set to null when Save is called.
-// If you did not use a join to query the attached {{= col.Table.Identifier }} in the first place, used a conditional join,
+{{if rev.IsNullable }}
+// Since this is a unique relationship, if a different {{= rev.Table.Identifier }} object is currently pointing to this {{= table.Identifier }},
+// that {{= rev.Table.Identifier }}'s {{= rev.Identifier }} value will be set to null when Save is called.
+// If you did not use a join to query the attached {{= rev.Table.Identifier }} in the first place, used a conditional join,
 // or joined with an expansion, be particularly careful, since you may be inadvertently  changing an item
 // that is not currently loaded in this {{table.Identifier}}.
 {{else}}
 // WARNING! Since this is a non-nullable unique relationship,
-// if a different {{= col.Table.Identifier }} object is currently pointing to this {{= table.Identifier }},
+// if a different {{= rev.Table.Identifier }} object is currently pointing to this {{= table.Identifier }},
 // Save() will panic. You should delete that object first.
 {{if}}
-func (o *{{= table.Identifier}}Base) Set{{= col.Reference.ReverseIdentifier }}By{{= col.Table.PrimaryKeyColumn().Identifier }}(pk {{= col.Table.PrimaryKeyGoType() }}) {
-    if o.{{= col.ReverseVariableIdentifier() }} != nil && o.{{= col.ReverseVariableIdentifier() }}.IsDirty() {
-        panic("The {{= col.Identifier }} value has changed. You must save it first before changing to a different one.")
+func (o *{{= table.DecapIdentifier}}Base) Set{{= rev.ReverseIdentifier() }}By{{= rev.Table.PrimaryKeyColumn().Identifier }}({{= rev.Table.PrimaryKeyColumn().VariableIdentifier() }} {{= rev.Table.PrimaryKeyGoType() }}) {
+    if o.{{= rev.ReverseVariableIdentifier() }} != nil && o.{{= rev.ReverseVariableIdentifier() }}.IsDirty() {
+        panic("The {{= rev.Identifier }} value has changed. You must save it first before changing to a different one.")
     }
-	o.{{= col.ReverseVariableIdentifier() }} = nil
-	o.{{= col.ReverseVariableIdentifier() }}IsDirty = true
-	o.{{= col.ReversePkIdentifier() }} = &pk
+	o.{{= rev.ReverseVariableIdentifier() }} = nil
+	o.{{= rev.ReverseVariableIdentifier() }}IsDirty = true
+	o.{{= rev.ReversePkIdentifier() }} = &{{= rev.Table.PrimaryKeyColumn().VariableIdentifier() }}
 }
 
 }}
