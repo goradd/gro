@@ -14,6 +14,7 @@ func init() {
 	codegen.RegisterTemplate(new(NodeDocTemplate))
 }
 
+// NodeDocTemplate generates the code for the node package documentation
 type NodeDocTemplate struct{}
 
 func (n NodeDocTemplate) FileName(dbKey string) string {

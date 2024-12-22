@@ -13,6 +13,7 @@ func init() {
 	codegen.RegisterTemplate(new(NodeTemplate))
 }
 
+// NodeTemplate generates the code for table nodes.
 type NodeTemplate struct {
 }
 

@@ -17,6 +17,7 @@ func init() {
 	codegen.RegisterTemplate(&t)
 }
 
+// DbTemplate generates the db.go file
 type DbTemplate struct {
 	Package string
 }

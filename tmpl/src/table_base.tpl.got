@@ -10,6 +10,7 @@ func init() {
 	codegen.RegisterTemplate(&t)
 }
 
+// TableBaseTemplate generates code for the base tables.
 type TableBaseTemplate struct {
     Package string
 }

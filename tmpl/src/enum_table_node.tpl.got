@@ -12,6 +12,7 @@ func init() {
 	codegen.RegisterTemplate(&t)
 }
 
+// EnumTableNodeTemplate generates the node code for enumerated types
 type EnumTableNodeTemplate struct {
     Package string
 }

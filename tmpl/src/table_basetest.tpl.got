@@ -1,0 +1,31 @@
+package template
+
+import (
+	"github.com/goradd/orm/pkg/codegen"
+	"github.com/goradd/orm/pkg/query"
+)
+
+func init() {
+    t := TableBaseTestTemplate{}
+	codegen.RegisterTemplate(&t)
+}
+
+// TableBaseTestTemplate generates code for the base table tests.
+type TableBaseTestTemplate struct {
+    Package string
+}
+
+func (tmpl *TableBaseTestTemplate) FileName(table *model.Table) string {
+    return filepath.Join("orm", table.DbKey, table.FileName() + "_base_test.go")
+}
+
+func (tmpl *TableBaseTestTemplate) GenerateTable(table *model.Table, _w io.Writer, importPath string) (err error) {
+    tmpl.Package = table.DbKey
+{{: "table_base_test/table_base_test.tmpl" }}
+    return
+}
+
+func (tmpl *TableBaseTestTemplate) Overwrite() bool {
+	return true
+}
+

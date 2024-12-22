@@ -1,0 +1,12 @@
+//*** {{includeName}}
+
+for _,col := range table.Columns {
+
+    switch col.Type {
+    case query.ColTypeUnknown: fallthrough
+    case query.ColTypeBytes:
+    {{: "set/bytes.tmpl" }}
+    case query.ColTypeString:
+    {{: "set/string.tmpl" }}
+    }
+}

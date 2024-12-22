@@ -15,6 +15,8 @@ func init() {
 	codegen.RegisterTemplate(&t)
 }
 
+// TableTemplate generates the code for tables.
+// This is one-time generated and allows the programmer to edit it to override the base table code.
 type TableTemplate struct {
 	Package string
 }
@@ -407,5 +409,5 @@ func init() {
 }
 
 func (tmpl *TableTemplate) Overwrite() bool {
-	return true
+	return false
 }
