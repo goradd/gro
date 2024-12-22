@@ -10,7 +10,6 @@ func (o *{{= table.DecapIdentifier}}Base) GetAlias(key string) query.AliasValue 
 		return query.NewAliasValue(a)
 	} else {
 		panic ("Alias " + key + " not found.")
-		return query.NewAliasValue([]byte{})
 	}
 }
 

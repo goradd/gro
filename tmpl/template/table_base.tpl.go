@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"strconv"
 
 	"github.com/goradd/orm/pkg/codegen"
 	"github.com/goradd/orm/pkg/model"
@@ -13,9 +14,7 @@ import (
 )
 
 func init() {
-	t := TableBaseTemplate{
-		Package: "orm",
-	}
+	t := TableBaseTemplate{}
 	codegen.RegisterTemplate(&t)
 }
 
@@ -24,10 +23,11 @@ type TableBaseTemplate struct {
 }
 
 func (tmpl *TableBaseTemplate) FileName(table *model.Table) string {
-	return filepath.Join(table.DbKey, tmpl.Package, table.FileName()+"_base.go")
+	return filepath.Join("orm", table.DbKey, table.FileName()+"_base.go")
 }
 
 func (tmpl *TableBaseTemplate) GenerateTable(table *model.Table, _w io.Writer, importPath string) (err error) {
+	tmpl.Package = table.DbKey
 	return tmpl.gen(table, _w, importPath)
 }
 
@@ -802,6 +802,75 @@ const  (
 		return
 	}
 
+	for _, col := range table.Columns {
+
+		if col.Size > 0 {
+
+			if col.Type == query.ColTypeString {
+
+				if _, err = io.WriteString(_w, `    const `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, table.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `MaxLength = `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, strconv.FormatUint(uint64(col.Size), 10)); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ` // The number of runes the column can hold
+`); err != nil {
+					return
+				}
+
+			} else if col.Type == query.ColTypeBytes {
+
+				if _, err = io.WriteString(_w, `    const `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, table.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `MaxLength = `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, strconv.FormatUint(uint64(col.Size), 10)); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ` // The number of bytes the column can hold
+`); err != nil {
+					return
+				}
+
+			}
+
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
+`); err != nil {
+		return
+	}
+
 	return
 }
 
@@ -1142,6 +1211,8 @@ func (tmpl *TableBaseTemplate) genCopy(table *model.Table, _w io.Writer) (err er
 
 	if _, err = io.WriteString(_w, `
 // Call Save() on the new object to save it into the database.
+// Copy might panic if any fields in the database were set to a size larger than the
+// maximum size through a process that accessed the database outside of the ORM.
 func (o *`); err != nil {
 		return
 	}
@@ -1535,7 +1606,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 		return
 	}
 
@@ -1552,7 +1623,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 		return
 	}
 
@@ -1563,11 +1634,58 @@ func (o *`); err != nil {
 
 	if col.Type == query.ColTypeBytes {
 
+		if col.Size > 0 {
+
+			if _, err = io.WriteString(_w, `    if len(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `) > `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `MaxLength {
+        panic("attempted to set `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` to a value larger than its maximum length")
+    }
+`); err != nil {
+				return
+			}
+
+		}
+
 		if _, err = io.WriteString(_w, `	o.`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 			return
 		}
 
@@ -1575,7 +1693,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 			return
 		}
 
@@ -1584,7 +1702,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 			return
 		}
 
@@ -1595,11 +1713,58 @@ func (o *`); err != nil {
 
 	} else {
 
+		if col.Type == query.ColTypeString && col.Size > 0 {
+
+			if _, err = io.WriteString(_w, `    if utf8.RuneCountInString(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `) > `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `MaxLength {
+        panic("attempted to set `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` to a value larger than its maximum length in runes")
+    }
+`); err != nil {
+				return
+			}
+
+		}
+
 		if _, err = io.WriteString(_w, `	if o.`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 			return
 		}
 
@@ -1607,7 +1772,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 			return
 		}
 
@@ -1616,7 +1781,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 			return
 		}
 
@@ -1624,7 +1789,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 			return
 		}
 
@@ -1633,7 +1798,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 			return
 		}
 
@@ -2000,7 +2165,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 		return
 	}
 
@@ -2010,7 +2175,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 		return
 	}
 
@@ -2019,7 +2184,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 		return
 	}
 
@@ -2028,7 +2193,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 		return
 	}
 
@@ -2082,11 +2247,95 @@ func (o *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `)
-		if o.`); err != nil {
+`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+	if col.Size > 0 {
+
+		if col.Type == query.ColTypeBytes {
+
+			if _, err = io.WriteString(_w, `        if len(v) > `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `MaxLength {
+            panic("attempted to set `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` to a value larger than its maximum length")
+        }
+`); err != nil {
+				return
+			}
+
+		} else if col.Type == query.ColTypeString {
+
+			if _, err = io.WriteString(_w, `        if utf8.RuneCountInString(v) > `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `MaxLength {
+            panic("attempted to set `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` to a value larger than its maximum length in runes")
+        }
+`); err != nil {
+				return
+			}
+
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `		if o.`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 		return
 	}
 
@@ -2132,7 +2381,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 		return
 	}
 
@@ -2177,7 +2426,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 		return
 	}
 
@@ -2480,7 +2729,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 		return
 	}
 
@@ -2497,7 +2746,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 		return
 	}
 
@@ -2508,11 +2757,58 @@ func (o *`); err != nil {
 
 	if col.Type == query.ColTypeBytes {
 
+		if col.Size > 0 {
+
+			if _, err = io.WriteString(_w, `    if len(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `) > `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `MaxLength {
+        panic("attempted to set `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` to a value larger than its maximum length")
+    }
+`); err != nil {
+				return
+			}
+
+		}
+
 		if _, err = io.WriteString(_w, `	o.`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 			return
 		}
 
@@ -2520,7 +2816,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 			return
 		}
 
@@ -2529,7 +2825,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 			return
 		}
 
@@ -2540,11 +2836,58 @@ func (o *`); err != nil {
 
 	} else {
 
+		if col.Type == query.ColTypeString && col.Size > 0 {
+
+			if _, err = io.WriteString(_w, `    if utf8.RuneCountInString(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `) > `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `MaxLength {
+        panic("attempted to set `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` to a value larger than its maximum length in runes")
+    }
+`); err != nil {
+				return
+			}
+
+		}
+
 		if _, err = io.WriteString(_w, `	if o.`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 			return
 		}
 
@@ -2552,7 +2895,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 			return
 		}
 
@@ -2561,7 +2904,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 			return
 		}
 
@@ -2569,7 +2912,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 			return
 		}
 
@@ -2578,7 +2921,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 			return
 		}
 
@@ -2792,7 +3135,6 @@ func (o *`); err != nil {
 		return query.NewAliasValue(a)
 	} else {
 		panic ("Alias " + key + " not found.")
-		return query.NewAliasValue([]byte{})
 	}
 }
 

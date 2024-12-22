@@ -24,21 +24,28 @@ import "encoding/json"
 // # ColTypeBytes
 //
 // This is known as a BLOB type in many SQL databases, and is represented as a []byte slice in Go.
-// If there is a MaxSize value on the column, the data definition will use this in the schema definition.
+// If Column.Size is non-zero, the data definition will use this in the schema definition.
 // Different databases treat this differently, and may or may not truncate the data internally.
-// The ORM will truncate the data and issue a warning to the log file if an attempt to insert
-// too big of a byte blob is attempted.
+//
+// Attempting to insert a byte blob with a size bigger than Column.Size will panic in
+// order to protect the integrity of the database. However, if a process outside the ORM
+// sets the value to a size bigger than Column.Size, the value can be read by the ORM and it
+// will not be truncated.
 //
 // # ColTypeString
 //
 // ColTypeString is always represented as a string in Go, but may have a variety of representations in
-// the database depending on the MaxSize value and the database. If a Column.Size is set,
-// the generated code will truncate strings to this number of runes before sending it to the database.
+// the database depending on the Size value and the database.
+//
+// In order to protect data integrity, if a Column.Size is non-zero, the generated code will panic if an attempt is made to
+// set the value to a string whose rune size is greater than Column.Size. Note that rune size is not the same as
+// byte size. If a process outside the ORM sets the value larger than Column.Size runes, the value
+// can be read by the ORM and will not be truncated.
 //
 // Postgres doc states the TEXT type is the fastest and most efficient text storage type,
 // and by default this will always be the corresponding data type in Postgres.
 //
-// MySQL will use a VarChar(MaxSize) if a maximum size is present, and a Text if not. Mysql stores VarChar
+// MySQL will use a VarChar(Size) if a Column.Size is present, and a Text if not. Mysql stores VarChar
 // variables inside the table, and Text data outside of the table with a reference, so VarChar is more efficient.
 //
 // By default, collation will be by UTF8 case-sensitive rules. Set the Sort to case-insensitive to

@@ -11,10 +11,7 @@ import (
 )
 
 func init() {
-	t := EnumTableNodeTemplate{
-		Package: "orm",
-	}
-
+	t := EnumTableNodeTemplate{}
 	codegen.RegisterTemplate(&t)
 }
 
@@ -23,7 +20,7 @@ type EnumTableNodeTemplate struct {
 }
 
 func (tmpl *EnumTableNodeTemplate) FileName(table *model.EnumTable) string {
-	return filepath.Join(table.DbKey, tmpl.Package, "node", table.FileName()+".go")
+	return filepath.Join("orm", table.DbKey, "node", table.FileName()+".go")
 }
 
 func (tmpl *EnumTableNodeTemplate) GenerateEnum(table *model.EnumTable, _w io.Writer, importPath string) (err error) {

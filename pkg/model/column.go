@@ -29,11 +29,12 @@ type Column struct {
 	DecapIdentifier string
 	//  Type indicates the Go type that matches the column.
 	Type ReceiverType
-	// MaxLength is the maximum length of runes to allow in the column if a string type column.
-	// If an attempt at entering more than this amount occurs, we will panic.
-	// If an integer or float type, its the number of bits in the data type.
-	// If a byte array, its the number of bytes permitted.
-	MaxLength uint64
+	// Size is the maximum length of runes to allow in the column if a string type column.
+	// If a byte array, it is the number of bytes permitted.
+	// If an attempt at entering more than this amount occurs, it is considered a programming bug
+	// and we will panic.
+	// If an integer or float type, it is the number of bits in the data type.
+	Size uint64
 	// DefaultValue is the default value as specified by the database. We will initialize new ORM objects
 	// with this value.
 	DefaultValue interface{}
@@ -224,7 +225,7 @@ func newColumn(schemaCol *schema.Column) *Column {
 		Identifier:      schemaCol.Identifier,
 		DecapIdentifier: strings2.Decap(schemaCol.Identifier),
 		Type:            ReceiverTypeFromSchema(schemaCol.Type, schemaCol.Size),
-		MaxLength:       schemaCol.Size,
+		Size:            schemaCol.Size,
 		DefaultValue:    schemaCol.DefaultValue,
 		IsAutoId:        schemaCol.Type == schema.ColTypeAutoPrimaryKey,
 		IsPk:            schemaCol.Type == schema.ColTypeAutoPrimaryKey || schemaCol.IndexLevel == schema.IndexLevelManualPrimaryKey,

@@ -13,9 +13,7 @@ import (
 )
 
 func init() {
-	t := DbTemplate{
-		Package: "orm",
-	}
+	t := DbTemplate{}
 	codegen.RegisterTemplate(&t)
 }
 
@@ -23,11 +21,12 @@ type DbTemplate struct {
 	Package string
 }
 
-func (tmpl DbTemplate) FileName(dbKey string) string {
-	return filepath.Join(dbKey, tmpl.Package, "db.go")
+func (tmpl *DbTemplate) FileName(dbKey string) string {
+	return filepath.Join("orm", dbKey, "db.go")
 }
 
-func (tmpl DbTemplate) GenerateDatabase(database *model.Database, _w io.Writer) (err error) {
+func (tmpl *DbTemplate) GenerateDatabase(database *model.Database, _w io.Writer) (err error) {
+	tmpl.Package = database.Key
 
 	//*** db.tmpl
 
@@ -125,6 +124,6 @@ func Database() db.DatabaseI {
 	return
 }
 
-func (tmpl DbTemplate) Overwrite() bool {
+func (tmpl *DbTemplate) Overwrite() bool {
 	return true
 }

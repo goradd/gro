@@ -5,11 +5,11 @@
 {{
 
 func (o *{{= table.DecapIdentifier}}Base) Set{{= col.Identifier }}(i interface{}) {
-	o.{{= col.DecapIdentifier }}IsValid = true
+	o.{{= col.VariableIdentifier() }}IsValid = true
 	if i == nil {
-		if !o.{{= col.DecapIdentifier }}IsNull {
-			o.{{= col.DecapIdentifier }}IsNull = true
-			o.{{= col.DecapIdentifier }}IsDirty = true
+		if !o.{{= col.VariableIdentifier() }}IsNull {
+			o.{{= col.VariableIdentifier() }}IsNull = true
+			o.{{= col.VariableIdentifier() }}IsDirty = true
 			o.{{= col.VariableIdentifier() }} = {{= col.DefaultValueAsValue() }}
 {{if col.Reference != nil }}
 			o.{{= col.ReferenceVariableIdentifier() }} = nil
@@ -17,17 +17,28 @@ func (o *{{= table.DecapIdentifier}}Base) Set{{= col.Identifier }}(i interface{}
 		}
 	} else {
 		v := i.({{= col.GoType() }})
-		if o.{{= col.DecapIdentifier }}IsNull ||
+{{if col.Size > 0}}
+{{if col.Type == query.ColTypeBytes}}
+        if len(v) > {{= table.Identifier}}{{= col.Identifier}}MaxLength {
+            panic("attempted to set {{= table.Identifier}}.{{= col.Identifier }} to a value larger than its maximum length")
+        }
+{{elseif col.Type == query.ColTypeString}}
+        if utf8.RuneCountInString(v) > {{= table.Identifier}}{{= col.Identifier}}MaxLength {
+            panic("attempted to set {{= table.Identifier}}.{{= col.Identifier }} to a value larger than its maximum length in runes")
+        }
+{{if}}
+{{if}}
+		if o.{{= col.VariableIdentifier() }}IsNull ||
 		    !o._restored ||
 		    {{if col.Type != query.ColTypeBytes }} o.{{= col.VariableIdentifier() }} != v {{else}} !bytes.Equal(o.{{= col.VariableIdentifier() }}, v) {{if}} {
 
-			    o.{{= col.DecapIdentifier }}IsNull = false
+			    o.{{= col.VariableIdentifier() }}IsNull = false
 {{if col.Type != query.ColTypeBytes }}
 			    o.{{= col.VariableIdentifier() }} = v
 {{else}}
                 o.{{= col.VariableIdentifier() }} = append([]byte(nil), v...)
 {{if}}
-			    o.{{= col.DecapIdentifier }}IsDirty = true
+			    o.{{= col.VariableIdentifier() }}IsDirty = true
 {{if col.IsReference() }}
 			    o.{{= col.ReferenceVariableIdentifier() }} = nil
 {{if}}

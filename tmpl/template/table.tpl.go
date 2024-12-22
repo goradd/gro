@@ -11,9 +11,7 @@ import (
 )
 
 func init() {
-	t := TableTemplate{
-		Package: "orm",
-	}
+	t := TableTemplate{}
 	codegen.RegisterTemplate(&t)
 }
 
@@ -22,10 +20,11 @@ type TableTemplate struct {
 }
 
 func (tmpl *TableTemplate) FileName(table *model.Table) string {
-	return filepath.Join(table.DbKey, tmpl.Package, table.FileName()+".go")
+	return filepath.Join("orm", table.DbKey, table.FileName()+".go")
 }
 
 func (tmpl *TableTemplate) GenerateTable(table *model.Table, _w io.Writer, importPath string) (err error) {
+	tmpl.Package = table.DbKey
 	//*** table.tmpl
 
 	// The master template for the table classes

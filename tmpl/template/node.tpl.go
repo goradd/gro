@@ -19,7 +19,7 @@ type NodeTemplate struct {
 }
 
 func (n *NodeTemplate) FileName(table *model.Table) string {
-	return filepath.Join(table.DbKey, "orm", "node", table.FileName()+".go")
+	return filepath.Join("orm", table.DbKey, "node", table.FileName()+".go")
 }
 
 func (n *NodeTemplate) GenerateTable(table *model.Table, _w io.Writer, importPath string) (err error) {
