@@ -3,7 +3,6 @@ package model
 import (
 	"fmt"
 	"github.com/gedex/inflector"
-	"github.com/goradd/goradd/pkg/strings"
 	. "github.com/goradd/orm/pkg/query"
 	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
@@ -72,22 +71,25 @@ func (cd *Column) DefaultValueAsValue() string {
 	if cd.DefaultValue == nil {
 		if cd.IsAutoId || cd.IsReference() {
 			return `""`
+		} else if cd.IsEnumReference() {
+			return cd.ReferenceType() + "(0)"
 		}
 		return cd.Type.DefaultValueString()
-	} else {
-		if cd.Type == ColTypeTime {
-			if cd.DefaultValue == currentTime {
-				return "time.Now().UTC()"
-			} else {
-				t := cd.DefaultValue.(time.Time)
-				if t.IsZero() {
-					return "time.Time{}"
-				}
-				return fmt.Sprintf("time2.NewDateTime(%d, %d, %d, %d, %d, %d, %d)", t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond())
-			}
-		}
-		return fmt.Sprintf("%#v", cd.DefaultValue)
 	}
+
+	if cd.Type == ColTypeTime {
+		if cd.DefaultValue == currentTime {
+			return "time.Now().UTC()"
+		} else {
+			t := cd.DefaultValue.(time.Time)
+			if t.IsZero() {
+				return "time.Time{}"
+			}
+			return fmt.Sprintf("time2.NewDateTime(%d, %d, %d, %d, %d, %d, %d)", t.Year(), t.Month(), t.Day(), t.Hour(), t.Minute(), t.Second(), t.Nanosecond())
+		}
+	}
+	return fmt.Sprintf("%#v", cd.DefaultValue)
+
 }
 
 // DefaultValueAsConstant returns the default value of the column as a Go constant
@@ -132,32 +134,44 @@ func (cd *Column) IsEnumReference() bool {
 	return cd.Reference != nil && cd.Reference.EnumTable != nil
 }
 
-// ReferenceIdentifier returns the capitalizde name that should be used to refer to the object
+// ReferenceIdentifier returns the capitalized name that should be used to refer to the object
 // in a forward reference. This is not the object's type.
 func (cd *Column) ReferenceIdentifier() string {
-	return strings.If(cd.Reference == nil, "", cd.Reference.Identifier)
+	if cd.Reference == nil {
+		panic(fmt.Sprintf("column %s.%s is not a reference", cd.Table.Identifier, cd.Identifier))
+	}
+
+	return cd.Reference.Identifier
 }
 
 // ReferenceType returns the name of the Go struct type in a forward reference.
 func (cd *Column) ReferenceType() string {
-	return strings.If(cd.Reference == nil, "", cd.Reference.Table.Identifier)
+	if cd.Reference == nil {
+		panic(fmt.Sprintf("column %s.%s is not a reference", cd.Table.Identifier, cd.Identifier))
+	}
+	if cd.Reference.Table != nil {
+		return cd.Reference.Table.Identifier
+	}
+	if cd.Reference.EnumTable != nil {
+		return cd.Reference.EnumTable.Identifier
+	}
+	panic("reference does not have a Table or an EnumTable")
 }
 
 // ReferenceVariableIdentifier returns the name of the local variable that will
 // hold the object loaded in the reference.
 func (cd *Column) ReferenceVariableIdentifier() string {
 	if cd.Reference == nil {
-		return ""
-	} else {
-		return "obj" + cd.Reference.Identifier
+		panic(fmt.Sprintf("column %s.%s is not a reference", cd.Table.Identifier, cd.Identifier))
 	}
+	return "obj" + cd.Reference.Identifier
 }
 
 // ReverseIdentifier returns the function name that should be used to refer to the object
 // that is referred to by the reverse reference.
 func (cd *Column) ReverseIdentifier() string {
 	if cd.Reference == nil {
-		return ""
+		panic(fmt.Sprintf("column %s.%s is not a reference", cd.Table.Identifier, cd.Identifier))
 	} else if cd.IsUnique {
 		return cd.Reference.ReverseIdentifier
 	} else {
@@ -169,7 +183,7 @@ func (cd *Column) ReverseIdentifier() string {
 // hold the object(s) loaded in the reverse reference.
 func (cd *Column) ReverseVariableIdentifier() string {
 	if cd.Reference == nil {
-		return ""
+		panic(fmt.Sprintf("column %s.%s is not a reference", cd.Table.Identifier, cd.Identifier))
 	} else {
 		if cd.IsUnique {
 			return "rev" + cd.Reference.ReverseIdentifier
@@ -182,7 +196,7 @@ func (cd *Column) ReverseVariableIdentifier() string {
 // ReversePkIdentifier is the identifier to use for the local primary key storage of a reference.
 func (cd *Column) ReversePkIdentifier() string {
 	if cd.Reference == nil {
-		return ""
+		panic(fmt.Sprintf("column %s.%s is not a reference", cd.Table.Identifier, cd.Identifier))
 	}
 	if cd.IsUnique {
 		return "rev" + cd.Reference.ReverseIdentifier + "Pk"
@@ -194,7 +208,7 @@ func (cd *Column) ReversePkIdentifier() string {
 // ReferenceJsonKey returns the key that will be used for the referenced object in JSON.
 func (cd *Column) ReferenceJsonKey() string {
 	if cd.Reference == nil {
-		return ""
+		panic(fmt.Sprintf("column %s.%s is not a reference", cd.Table.Identifier, cd.Identifier))
 	}
 	return cd.Reference.DecapIdentifier
 }
@@ -202,7 +216,7 @@ func (cd *Column) ReferenceJsonKey() string {
 // ReverseJsonKey returns the key that will be used for the reverse referenced object in JSON.
 func (cd *Column) ReverseJsonKey() string {
 	if cd.Reference == nil {
-		return ""
+		panic(fmt.Sprintf("column %s.%s is not a reference", cd.Table.Identifier, cd.Identifier))
 	}
 	if cd.IsUnique {
 		return LowerCaseIdentifier(cd.Reference.ReverseIdentifier)
@@ -213,8 +227,19 @@ func (cd *Column) ReverseJsonKey() string {
 
 // GoType returns the Go variable type corresponding to the column.
 func (cd *Column) GoType() string {
-	if cd.Reference != nil && cd.Reference.Table.PrimaryKeyColumn().IsAutoId {
-		return "string" // auto id keys are always strings
+	if ref := cd.Reference; ref != nil {
+		if table := cd.Reference.Table; table != nil {
+			if col := table.PrimaryKeyColumn(); col != nil {
+				if col.IsAutoId {
+					return "string" // auto id keys are always strings
+				}
+			}
+		} else if enumTable := cd.Reference.EnumTable; enumTable != nil {
+			// enum tables are an enumerated type
+			return enumTable.Identifier
+		} else {
+			panic("reference is missing either a Table or EnumTable entry")
+		}
 	}
 	return cd.Type.GoType()
 }

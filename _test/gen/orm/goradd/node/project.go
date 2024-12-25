@@ -94,7 +94,7 @@ func (n *ProjectNode) Status() *query.ColumnNode {
 		"project",
 		"status_id",
 		"Status",
-		query.ColTypeUnsigned,
+		query.ColTypeInteger,
 		false,
 	)
 	query.SetParentNode(cn, n)

@@ -25,9 +25,11 @@
 
 {{elseif col.IsEnumReference()}}
            if n,ok := v.(int); ok {
-                o.Set{{= col.ReferenceIdentifier() }}({{= col.ReferenceIdentifier() }}(n))
+                o.Set{{= col.ReferenceIdentifier() }}({{= col.ReferenceType() }}(n))
            } else if n,ok := v.(float64); ok {
-                o.Set{{= col.ReferenceIdentifier() }}({{= col.ReferenceIdentifier() }}(int(n)))
+                o.Set{{= col.ReferenceIdentifier() }}({{= col.ReferenceType() }}(int(n)))
+           } else if n,ok := v.(string); ok {
+                o.Set{{= col.ReferenceIdentifier() }}({{= col.ReferenceType() }}From{{= col.Reference.EnumTable.FieldIdentifier(1) }}(n))
            } else {
                 return fmt.Errorf("json field %s must be a number", k)
            }
@@ -163,18 +165,5 @@ case query.ColTypeTime:
 }}
 {{if}}
            }
-{{if col.IsEnumReference()}}
-{{# Add setting type value by string}}
-        case "{{= col.ReferenceJsonKey() }}":
-            if s,ok := v.(string); !ok {
-                return fmt.Errorf("json field %s must be a string", k)
-            } else {
-                t := {{= col.ReferenceIdentifier() }}FromName(s)
-                if int(t) == 0 {
-                    return fmt.Errorf("invalid value for field %s", k)
-                }
-                o.Set{{= col.ReferenceIdentifier() }}(t)
-            }
 
-{{if}}
 }}

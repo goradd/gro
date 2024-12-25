@@ -11,7 +11,7 @@ func (o *{{= table.DecapIdentifier}}Base) Set{{= col.Identifier }}(i interface{}
 			o.{{= col.VariableIdentifier() }}IsNull = true
 			o.{{= col.VariableIdentifier() }}IsDirty = true
 			o.{{= col.VariableIdentifier() }} = {{= col.DefaultValueAsValue() }}
-{{if col.Reference != nil }}
+{{if col.IsReference() }}
 			o.{{= col.ReferenceVariableIdentifier() }} = nil
 {{if}}
 		}

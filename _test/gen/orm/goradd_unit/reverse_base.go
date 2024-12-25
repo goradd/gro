@@ -1888,6 +1888,7 @@ func (o *reverseBase) MarshalJSON() (data []byte, err error) {
 // select only the fields you want when you query for the object. The keys are the same as the json keys.
 func (o *reverseBase) MarshalStringMap() map[string]interface{} {
 	v := make(map[string]interface{})
+
 	if o.idIsValid {
 		v["id"] = o.id
 	}
@@ -1971,6 +1972,7 @@ func (o *reverseBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					o.SetName(s)
 				}
 			}
+
 		}
 	}
 	return

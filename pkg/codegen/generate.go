@@ -19,16 +19,16 @@ func Generate(schemas []*schema.Database) {
 }
 
 func gen(db *model.Database) {
-	for _, t := range templates {
-		if g, ok := t.(DatabaseGenerator); ok {
+	for _, tmpl := range templates {
+		if g, ok := tmpl.(DatabaseGenerator); ok {
 			genDatabaseTemplate(g, db)
-		} else if g, ok := t.(TableGenerator); ok {
-			for _, t := range db.Tables {
-				genTableTemplate(g, t)
+		} else if g, ok := tmpl.(TableGenerator); ok {
+			for _, tbl := range db.Tables {
+				genTableTemplate(g, tbl)
 			}
-		} else if g, ok := t.(EnumGenerator); ok {
-			for _, t := range db.EnumTables {
-				genEnumTemplate(g, t)
+		} else if g, ok := tmpl.(EnumGenerator); ok {
+			for _, tbl := range db.EnumTables {
+				genEnumTemplate(g, tbl)
 			}
 		}
 	}

@@ -2182,6 +2182,7 @@ func (o *unsupportedTypeBase) MarshalJSON() (data []byte, err error) {
 // select only the fields you want when you query for the object. The keys are the same as the json keys.
 func (o *unsupportedTypeBase) MarshalStringMap() map[string]interface{} {
 	v := make(map[string]interface{})
+
 	if o.typeSerialIsValid {
 		v["typeSerial"] = o.typeSerial
 	}
@@ -2315,6 +2316,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 					o.SetTypeSet(s)
 				}
 			}
+
 		case "typeEnum":
 			{
 				if v == nil {
@@ -2327,6 +2329,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 					o.SetTypeEnum(s)
 				}
 			}
+
 		case "typeDecimal":
 			{
 				if v == nil {
@@ -2339,6 +2342,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 					o.SetTypeDecimal(s)
 				}
 			}
+
 		case "typeDouble":
 			{
 				if v == nil {
@@ -2351,6 +2355,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 					return fmt.Errorf("json field %s must be a number", k)
 				}
 			}
+
 		case "typeGeo":
 			{
 				if v == nil {
@@ -2358,6 +2363,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 				}
 
 			}
+
 		case "typeTinyBlob":
 			{
 				if v == nil {
@@ -2392,6 +2398,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 				}
 
 			}
+
 		case "typeMediumBlob":
 			{
 				if v == nil {
@@ -2426,6 +2433,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 				}
 
 			}
+
 		case "typeVarbinary":
 			{
 				if v == nil {
@@ -2433,6 +2441,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 				}
 
 			}
+
 		case "typeLongtext":
 			{
 				if v == nil {
@@ -2445,6 +2454,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 					o.SetTypeLongtext(s)
 				}
 			}
+
 		case "typeBinary":
 			{
 				if v == nil {
@@ -2452,6 +2462,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 				}
 
 			}
+
 		case "typeSmall":
 			{
 				if v == nil {
@@ -2466,6 +2477,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 					return fmt.Errorf("json field %s must be a number", k)
 				}
 			}
+
 		case "typeMedium":
 			{
 				if v == nil {
@@ -2480,6 +2492,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 					return fmt.Errorf("json field %s must be a number", k)
 				}
 			}
+
 		case "typeBig":
 			{
 				if v == nil {
@@ -2494,6 +2507,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 					return fmt.Errorf("json field %s must be a number", k)
 				}
 			}
+
 		case "typePolygon":
 			{
 				if v == nil {
@@ -2501,6 +2515,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 				}
 
 			}
+
 		case "typeUnsigned":
 			{
 				if v == nil {
@@ -2515,6 +2530,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 					return fmt.Errorf("json field %s must be a number", k)
 				}
 			}
+
 		case "typeMultfk1":
 			{
 				if v == nil {
@@ -2527,6 +2543,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 					o.SetTypeMultfk1(s)
 				}
 			}
+
 		case "typeMultifk2":
 			{
 				if v == nil {
@@ -2539,6 +2556,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 					o.SetTypeMultifk2(s)
 				}
 			}
+
 		}
 	}
 	return

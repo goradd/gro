@@ -1170,6 +1170,7 @@ func (o *loginBase) MarshalJSON() (data []byte, err error) {
 // select only the fields you want when you query for the object. The keys are the same as the json keys.
 func (o *loginBase) MarshalStringMap() map[string]interface{} {
 	v := make(map[string]interface{})
+
 	if o.idIsValid {
 		v["id"] = o.id
 	}
@@ -1185,6 +1186,7 @@ func (o *loginBase) MarshalStringMap() map[string]interface{} {
 	if val := o.Person(); val != nil {
 		v["person"] = val.MarshalStringMap()
 	}
+
 	if o.usernameIsValid {
 		v["username"] = o.username
 	}
@@ -1251,6 +1253,7 @@ func (o *loginBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 				}
 
 			}
+
 		case "username":
 			{
 				if v == nil {
@@ -1263,6 +1266,7 @@ func (o *loginBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					o.SetUsername(s)
 				}
 			}
+
 		case "password":
 			{
 				if v == nil {
@@ -1276,6 +1280,7 @@ func (o *loginBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					o.SetPassword(s)
 				}
 			}
+
 		case "isEnabled":
 			{
 				if v == nil {
@@ -1288,6 +1293,7 @@ func (o *loginBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					o.SetIsEnabled(b)
 				}
 			}
+
 		}
 	}
 	return

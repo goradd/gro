@@ -46,6 +46,7 @@ package `); err != nil {
 import (
 	"github.com/stretchr/testify/assert"
 	strings2 "github.com/goradd/strings"
+	"github.com/goradd/orm/pkg/test"
 	"testing"
 )
 `); err != nil {
@@ -55,88 +56,104 @@ import (
 	//*** set.tmpl
 
 	for _, col := range table.Columns {
+		if col.IsAutoId {
+			continue
+		}
 
-		switch col.Type {
-		case query.ColTypeUnknown:
-			fallthrough
-		case query.ColTypeBytes:
-			//*** bytes.tmpl
+		if _, err = io.WriteString(_w, `func Test`); err != nil {
+			return
+		}
 
-			size := col.Size
-			if col.Size == 0 || col.Size > 10 {
-				size = 10
-			}
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `func Test`); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, `_Set`); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, table.Identifier); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `_Set`); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, `(t *testing.T) {
 
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `(t *testing.T) {
     obj := New`); err != nil {
-				return
-			}
+			return
+		}
 
-			if _, err = io.WriteString(_w, table.Identifier); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `()
+		if _, err = io.WriteString(_w, `()
 
     `); err != nil {
-				return
-			}
+			return
+		}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, ` := 	[]byte(strings2.RandomString(strings2.AlphaAll, `); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, ` := 	test.RandomValue[`); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, strconv.FormatUint(uint64(size), 10)); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, col.GoType()); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `))
+		if _, err = io.WriteString(_w, `](`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, strconv.FormatUint(uint64(col.Size), 10)); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `)
     obj.Set`); err != nil {
-				return
-			}
+			return
+		}
 
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `(`); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, `(`); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `)
+		if _, err = io.WriteString(_w, `)
     assert.Equal(t, `); err != nil {
-				return
-			}
+			return
+		}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `, obj.`); err != nil {
+		if _, err = io.WriteString(_w, `, obj.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `())
+`); err != nil {
+			return
+		}
+
+		if col.IsNullable {
+
+			if _, err = io.WriteString(_w, `    assert.False(t, obj.`); err != nil {
 				return
 			}
 
@@ -144,29 +161,21 @@ import (
 				return
 			}
 
-			if _, err = io.WriteString(_w, `())
+			if _, err = io.WriteString(_w, `IsNull())
 `); err != nil {
 				return
 			}
 
-			if col.IsNullable {
+		}
 
-				if _, err = io.WriteString(_w, `    assert.False(t, obj.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsNull())
+		if _, err = io.WriteString(_w, `
 `); err != nil {
-					return
-				}
+			return
+		}
 
-			}
+		if col.IsNullable {
 
-			if _, err = io.WriteString(_w, `
+			if _, err = io.WriteString(_w, `    // Test nil
     obj.Set`); err != nil {
 				return
 			}
@@ -176,7 +185,15 @@ import (
 			}
 
 			if _, err = io.WriteString(_w, `(nil)
-    assert.Equal(t, []byte{}, obj.`); err != nil {
+    assert.Equal(t, `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.DefaultValueAsValue()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `, obj.`); err != nil {
 				return
 			}
 
@@ -185,29 +202,64 @@ import (
 			}
 
 			if _, err = io.WriteString(_w, `(), "set nil")
+    assert.True(t, obj.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsNull())
 `); err != nil {
 				return
 			}
 
-			if col.IsNullable {
+		}
 
-				if _, err = io.WriteString(_w, `    assert.True(t, obj.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsNull())
-`); err != nil {
-					return
-				}
-
-			}
-
-			if _, err = io.WriteString(_w, `
+		if _, err = io.WriteString(_w, `
+    // test zero
     obj.Set`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.DefaultValueAsValue()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `)
+    assert.Equal(t, `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.DefaultValueAsValue()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `, obj.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(), "set empty")
+`); err != nil {
+			return
+		}
+
+		if col.IsNullable {
+
+			if _, err = io.WriteString(_w, `    assert.False(t, obj.`); err != nil {
 				return
 			}
 
@@ -215,82 +267,21 @@ import (
 				return
 			}
 
-			if _, err = io.WriteString(_w, `([]byte{})
-    assert.Equal(t, []byte{}, obj.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `(), "set empty")
+			if _, err = io.WriteString(_w, `IsNull())
 `); err != nil {
 				return
 			}
 
-			if col.IsNullable {
+		}
 
-				if _, err = io.WriteString(_w, `    assert.False(t, obj.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsNull())
+		if _, err = io.WriteString(_w, `
 `); err != nil {
-					return
-				}
+			return
+		}
 
-			}
+		if col.Size > 0 && (col.Type == query.ColTypeBytes || col.Type == query.ColTypeString) {
 
-			if _, err = io.WriteString(_w, `}
-
-`); err != nil {
-				return
-			}
-
-		case query.ColTypeString:
-			//*** string.tmpl
-
-			if col.IsAutoId {
-				continue // auto id values are not setable
-			}
-
-			size := col.Size
-			if col.Size == 0 || col.Size > 10 {
-				size = 10
-			}
-
-			if _, err = io.WriteString(_w, `func Test`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `_Set`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `(t *testing.T) {
-    obj := New`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `()
-
+			if _, err = io.WriteString(_w, `    // test panic on setting value larger than maximum size allowed
     `); err != nil {
 				return
 			}
@@ -299,16 +290,25 @@ import (
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` := strings2.RandomString(strings2.AlphaAll, `); err != nil {
+			if _, err = io.WriteString(_w, ` = test.RandomValue[`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, strconv.FormatUint(uint64(size), 10)); err != nil {
+			if _, err = io.WriteString(_w, col.GoType()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `](`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, strconv.FormatUint(uint64(col.Size+1), 10)); err != nil {
 				return
 			}
 
 			if _, err = io.WriteString(_w, `)
-    obj.Set`); err != nil {
+    assert.Panics(t, func() {
+        obj.Set`); err != nil {
 				return
 			}
 
@@ -325,122 +325,18 @@ import (
 			}
 
 			if _, err = io.WriteString(_w, `)
-    assert.Equal(t, `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `, obj.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `())
-`); err != nil {
-				return
-			}
-
-			if col.IsNullable {
-
-				if _, err = io.WriteString(_w, `    assert.False(t, obj.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsNull())
-`); err != nil {
-					return
-				}
-
-			}
-
-			if _, err = io.WriteString(_w, `
-`); err != nil {
-				return
-			}
-
-			if col.IsNullable {
-
-				if _, err = io.WriteString(_w, `   obj.Set`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(nil)
-   assert.True(t, obj.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsNull())
-`); err != nil {
-					return
-				}
-
-			}
-
-			if _, err = io.WriteString(_w, `
-    obj.Set`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `("")
-    assert.Equal(t, "", obj.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `(), "set empty")
-`); err != nil {
-				return
-			}
-
-			if col.IsNullable {
-
-				if _, err = io.WriteString(_w, `    assert.False(t, obj.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsNull())
-`); err != nil {
-					return
-				}
-
-			}
-
-			if _, err = io.WriteString(_w, `
-}
+    })
 `); err != nil {
 				return
 			}
 
 		}
+
+		if _, err = io.WriteString(_w, `}
+`); err != nil {
+			return
+		}
+
 	}
 	return
 }

@@ -8,7 +8,7 @@
 // have {{= col.DecapIdentifier }}.
 // doc: type={{table.Identifier}}
 func Count{{table.Identifier}}By{{col.Identifier}}(ctx context.Context, {{= col.VariableIdentifier() }} {{= col.GoType()}}) int {
-{{if col.Reference != nil}}
+{{if col.IsReference() }}
     if {{= col.VariableIdentifier() }} == {{= col.DefaultValueAsValue() }} {
         return 0
     }

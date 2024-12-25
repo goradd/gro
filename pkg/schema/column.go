@@ -21,6 +21,9 @@ type Column struct {
 	Type ColumnType `json:"type"`
 
 	// Identifier is the name of the column in Go code. Leave blank to base it on the Name.
+	// References should keep the "ID" at the name to differentiate between the value of the
+	// foreign key and the loaded object.
+	// Enum references should NOT keep the "ID" value in this name.
 	Identifier string `json:"identifier"`
 
 	// Title is the human-readable description of the item. Leave blank to base it on the Name.
@@ -126,6 +129,7 @@ func (c *Column) FillDefaults(table *Table, referenceSuffix string, enumSuffix s
 			c.Identifier = c.Reference.Identifier
 		}
 	}
+
 	if c.Identifier == "" {
 		c.Identifier = snaker.SnakeToCamelIdentifier(c.Name)
 	}

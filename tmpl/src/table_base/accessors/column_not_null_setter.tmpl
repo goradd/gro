@@ -24,7 +24,7 @@ func (o *{{= table.DecapIdentifier }}Base) Set{{= col.Identifier }}({{= col.Vari
 	if o.{{= col.VariableIdentifier() }} != {{= col.VariableIdentifier() }} || !o._restored {
 		o.{{= col.VariableIdentifier() }} = {{= col.VariableIdentifier() }}
 		o.{{= col.VariableIdentifier() }}IsDirty = true
-{{if col.Reference != nil}}
+{{if col.IsReference() }}
 		o.{{= col.ReferenceVariableIdentifier() }} = nil
 {{if}}
 	}

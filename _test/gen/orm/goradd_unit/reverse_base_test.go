@@ -5,18 +5,25 @@ package goradd_unit
 import (
 	"testing"
 
-	strings2 "github.com/goradd/strings"
+	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestReverse_SetName(t *testing.T) {
+
 	obj := NewReverse()
 
-	name := strings2.RandomString(strings2.AlphaAll, 10)
+	name := test.RandomValue[string](100)
 	obj.SetName(name)
 	assert.Equal(t, name, obj.Name())
 
+	// test zero
 	obj.SetName("")
 	assert.Equal(t, "", obj.Name(), "set empty")
 
+	// test panic on setting value larger than maximum size allowed
+	name = test.RandomValue[string](101)
+	assert.Panics(t, func() {
+		obj.SetName(name)
+	})
 }

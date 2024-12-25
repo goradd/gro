@@ -27,6 +27,14 @@ func Test{{= table.Identifier }}_Set{{= col.Identifier }}(t *testing.T) {
 {{if col.IsNullable }}
     assert.False(t, obj.{{= col.Identifier }}IsNull())
 {{if}}
+
+{{if col.Size > 0}}
+    {{= col.VariableIdentifier() }} = []byte(strings2.RandomString(strings2.AlphaAll, {{u col.Size + 1}}))
+    assert.Panics(t, func() {
+        obj.Set{{= col.Identifier }}({{= col.VariableIdentifier() }})
+    })
+{{if}}
+
 }
 
 }}

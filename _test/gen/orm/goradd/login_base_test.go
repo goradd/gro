@@ -5,34 +5,83 @@ package goradd
 import (
 	"testing"
 
-	strings2 "github.com/goradd/strings"
+	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestLogin_SetUsername(t *testing.T) {
+func TestLogin_SetPersonID(t *testing.T) {
+
 	obj := NewLogin()
 
-	username := strings2.RandomString(strings2.AlphaAll, 10)
+	personID := test.RandomValue[string](0)
+	obj.SetPersonID(personID)
+	assert.Equal(t, personID, obj.PersonID())
+	assert.False(t, obj.PersonIDIsNull())
+
+	// Test nil
+	obj.SetPersonID(nil)
+	assert.Equal(t, "", obj.PersonID(), "set nil")
+	assert.True(t, obj.PersonIDIsNull())
+
+	// test zero
+	obj.SetPersonID("")
+	assert.Equal(t, "", obj.PersonID(), "set empty")
+	assert.False(t, obj.PersonIDIsNull())
+
+}
+func TestLogin_SetUsername(t *testing.T) {
+
+	obj := NewLogin()
+
+	username := test.RandomValue[string](20)
 	obj.SetUsername(username)
 	assert.Equal(t, username, obj.Username())
 
+	// test zero
 	obj.SetUsername("")
 	assert.Equal(t, "", obj.Username(), "set empty")
 
+	// test panic on setting value larger than maximum size allowed
+	username = test.RandomValue[string](21)
+	assert.Panics(t, func() {
+		obj.SetUsername(username)
+	})
 }
 func TestLogin_SetPassword(t *testing.T) {
+
 	obj := NewLogin()
 
-	password := strings2.RandomString(strings2.AlphaAll, 10)
+	password := test.RandomValue[string](20)
 	obj.SetPassword(password)
 	assert.Equal(t, password, obj.Password())
 	assert.False(t, obj.PasswordIsNull())
 
+	// Test nil
 	obj.SetPassword(nil)
+	assert.Equal(t, "", obj.Password(), "set nil")
 	assert.True(t, obj.PasswordIsNull())
 
+	// test zero
 	obj.SetPassword("")
 	assert.Equal(t, "", obj.Password(), "set empty")
 	assert.False(t, obj.PasswordIsNull())
+
+	// test panic on setting value larger than maximum size allowed
+	password = test.RandomValue[string](21)
+	assert.Panics(t, func() {
+		obj.SetPassword(password)
+	})
+}
+func TestLogin_SetIsEnabled(t *testing.T) {
+
+	obj := NewLogin()
+
+	isEnabled := test.RandomValue[bool](0)
+	obj.SetIsEnabled(isEnabled)
+	assert.Equal(t, isEnabled, obj.IsEnabled())
+
+	// test zero
+	obj.SetIsEnabled(true)
+	assert.Equal(t, true, obj.IsEnabled(), "set empty")
 
 }

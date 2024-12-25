@@ -5,29 +5,43 @@ package goradd
 import (
 	"testing"
 
-	strings2 "github.com/goradd/strings"
+	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestPerson_SetFirstName(t *testing.T) {
+
 	obj := NewPerson()
 
-	firstName := strings2.RandomString(strings2.AlphaAll, 10)
+	firstName := test.RandomValue[string](50)
 	obj.SetFirstName(firstName)
 	assert.Equal(t, firstName, obj.FirstName())
 
+	// test zero
 	obj.SetFirstName("")
 	assert.Equal(t, "", obj.FirstName(), "set empty")
 
+	// test panic on setting value larger than maximum size allowed
+	firstName = test.RandomValue[string](51)
+	assert.Panics(t, func() {
+		obj.SetFirstName(firstName)
+	})
 }
 func TestPerson_SetLastName(t *testing.T) {
+
 	obj := NewPerson()
 
-	lastName := strings2.RandomString(strings2.AlphaAll, 10)
+	lastName := test.RandomValue[string](50)
 	obj.SetLastName(lastName)
 	assert.Equal(t, lastName, obj.LastName())
 
+	// test zero
 	obj.SetLastName("")
 	assert.Equal(t, "", obj.LastName(), "set empty")
 
+	// test panic on setting value larger than maximum size allowed
+	lastName = test.RandomValue[string](51)
+	assert.Panics(t, func() {
+		obj.SetLastName(lastName)
+	})
 }

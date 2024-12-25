@@ -5,18 +5,38 @@ package goradd_unit
 import (
 	"testing"
 
-	strings2 "github.com/goradd/strings"
+	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestForwardRestrict_SetName(t *testing.T) {
+
 	obj := NewForwardRestrict()
 
-	name := strings2.RandomString(strings2.AlphaAll, 10)
+	name := test.RandomValue[string](100)
 	obj.SetName(name)
 	assert.Equal(t, name, obj.Name())
 
+	// test zero
 	obj.SetName("")
 	assert.Equal(t, "", obj.Name(), "set empty")
+
+	// test panic on setting value larger than maximum size allowed
+	name = test.RandomValue[string](101)
+	assert.Panics(t, func() {
+		obj.SetName(name)
+	})
+}
+func TestForwardRestrict_SetReverseID(t *testing.T) {
+
+	obj := NewForwardRestrict()
+
+	reverseID := test.RandomValue[string](0)
+	obj.SetReverseID(reverseID)
+	assert.Equal(t, reverseID, obj.ReverseID())
+
+	// test zero
+	obj.SetReverseID("")
+	assert.Equal(t, "", obj.ReverseID(), "set empty")
 
 }

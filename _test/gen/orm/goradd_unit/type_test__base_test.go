@@ -4,53 +4,230 @@ package goradd_unit
 
 import (
 	"testing"
+	"time"
 
-	strings2 "github.com/goradd/strings"
+	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTypeTest_SetTestText(t *testing.T) {
+func TestTypeTest_SetDate(t *testing.T) {
+
 	obj := NewTypeTest()
 
-	testText := strings2.RandomString(strings2.AlphaAll, 10)
+	date := test.RandomValue[time.Time](0)
+	obj.SetDate(date)
+	assert.Equal(t, date, obj.Date())
+	assert.False(t, obj.DateIsNull())
+
+	// Test nil
+	obj.SetDate(nil)
+	assert.Equal(t, time.Time{}, obj.Date(), "set nil")
+	assert.True(t, obj.DateIsNull())
+
+	// test zero
+	obj.SetDate(time.Time{})
+	assert.Equal(t, time.Time{}, obj.Date(), "set empty")
+	assert.False(t, obj.DateIsNull())
+
+}
+func TestTypeTest_SetTime(t *testing.T) {
+
+	obj := NewTypeTest()
+
+	time := test.RandomValue[time.Time](0)
+	obj.SetTime(time)
+	assert.Equal(t, time, obj.Time())
+	assert.False(t, obj.TimeIsNull())
+
+	// Test nil
+	obj.SetTime(nil)
+	assert.Equal(t, time.Time{}, obj.Time(), "set nil")
+	assert.True(t, obj.TimeIsNull())
+
+	// test zero
+	obj.SetTime(time.Time{})
+	assert.Equal(t, time.Time{}, obj.Time(), "set empty")
+	assert.False(t, obj.TimeIsNull())
+
+}
+func TestTypeTest_SetDateTime(t *testing.T) {
+
+	obj := NewTypeTest()
+
+	dateTime := test.RandomValue[time.Time](0)
+	obj.SetDateTime(dateTime)
+	assert.Equal(t, dateTime, obj.DateTime())
+	assert.False(t, obj.DateTimeIsNull())
+
+	// Test nil
+	obj.SetDateTime(nil)
+	assert.Equal(t, time.Time{}, obj.DateTime(), "set nil")
+	assert.True(t, obj.DateTimeIsNull())
+
+	// test zero
+	obj.SetDateTime(time.Time{})
+	assert.Equal(t, time.Time{}, obj.DateTime(), "set empty")
+	assert.False(t, obj.DateTimeIsNull())
+
+}
+func TestTypeTest_SetTs(t *testing.T) {
+
+	obj := NewTypeTest()
+
+	ts := test.RandomValue[time.Time](0)
+	obj.SetTs(ts)
+	assert.Equal(t, ts, obj.Ts())
+	assert.False(t, obj.TsIsNull())
+
+	// Test nil
+	obj.SetTs(nil)
+	assert.Equal(t, time.Now().UTC(), obj.Ts(), "set nil")
+	assert.True(t, obj.TsIsNull())
+
+	// test zero
+	obj.SetTs(time.Now().UTC())
+	assert.Equal(t, time.Now().UTC(), obj.Ts(), "set empty")
+	assert.False(t, obj.TsIsNull())
+
+}
+func TestTypeTest_SetTestInt(t *testing.T) {
+
+	obj := NewTypeTest()
+
+	testInt := test.RandomValue[int](0)
+	obj.SetTestInt(testInt)
+	assert.Equal(t, testInt, obj.TestInt())
+	assert.False(t, obj.TestIntIsNull())
+
+	// Test nil
+	obj.SetTestInt(nil)
+	assert.Equal(t, 5, obj.TestInt(), "set nil")
+	assert.True(t, obj.TestIntIsNull())
+
+	// test zero
+	obj.SetTestInt(5)
+	assert.Equal(t, 5, obj.TestInt(), "set empty")
+	assert.False(t, obj.TestIntIsNull())
+
+}
+func TestTypeTest_SetTestFloat(t *testing.T) {
+
+	obj := NewTypeTest()
+
+	testFloat := test.RandomValue[float32](32)
+	obj.SetTestFloat(testFloat)
+	assert.Equal(t, testFloat, obj.TestFloat())
+	assert.False(t, obj.TestFloatIsNull())
+
+	// Test nil
+	obj.SetTestFloat(nil)
+	assert.Equal(t, 0, obj.TestFloat(), "set nil")
+	assert.True(t, obj.TestFloatIsNull())
+
+	// test zero
+	obj.SetTestFloat(0)
+	assert.Equal(t, 0, obj.TestFloat(), "set empty")
+	assert.False(t, obj.TestFloatIsNull())
+
+}
+func TestTypeTest_SetTestDouble(t *testing.T) {
+
+	obj := NewTypeTest()
+
+	testDouble := test.RandomValue[float64](64)
+	obj.SetTestDouble(testDouble)
+	assert.Equal(t, testDouble, obj.TestDouble())
+
+	// test zero
+	obj.SetTestDouble(0)
+	assert.Equal(t, 0, obj.TestDouble(), "set empty")
+
+}
+func TestTypeTest_SetTestText(t *testing.T) {
+
+	obj := NewTypeTest()
+
+	testText := test.RandomValue[string](65535)
 	obj.SetTestText(testText)
 	assert.Equal(t, testText, obj.TestText())
 	assert.False(t, obj.TestTextIsNull())
 
+	// Test nil
 	obj.SetTestText(nil)
+	assert.Equal(t, "", obj.TestText(), "set nil")
 	assert.True(t, obj.TestTextIsNull())
 
+	// test zero
 	obj.SetTestText("")
 	assert.Equal(t, "", obj.TestText(), "set empty")
 	assert.False(t, obj.TestTextIsNull())
 
+	// test panic on setting value larger than maximum size allowed
+	testText = test.RandomValue[string](65536)
+	assert.Panics(t, func() {
+		obj.SetTestText(testText)
+	})
 }
-func TestTypeTest_SetTestVarchar(t *testing.T) {
+func TestTypeTest_SetTestBit(t *testing.T) {
+
 	obj := NewTypeTest()
 
-	testVarchar := strings2.RandomString(strings2.AlphaAll, 10)
+	testBit := test.RandomValue[bool](0)
+	obj.SetTestBit(testBit)
+	assert.Equal(t, testBit, obj.TestBit())
+	assert.False(t, obj.TestBitIsNull())
+
+	// Test nil
+	obj.SetTestBit(nil)
+	assert.Equal(t, false, obj.TestBit(), "set nil")
+	assert.True(t, obj.TestBitIsNull())
+
+	// test zero
+	obj.SetTestBit(false)
+	assert.Equal(t, false, obj.TestBit(), "set empty")
+	assert.False(t, obj.TestBitIsNull())
+
+}
+func TestTypeTest_SetTestVarchar(t *testing.T) {
+
+	obj := NewTypeTest()
+
+	testVarchar := test.RandomValue[string](10)
 	obj.SetTestVarchar(testVarchar)
 	assert.Equal(t, testVarchar, obj.TestVarchar())
 	assert.False(t, obj.TestVarcharIsNull())
 
+	// Test nil
 	obj.SetTestVarchar(nil)
+	assert.Equal(t, "", obj.TestVarchar(), "set nil")
 	assert.True(t, obj.TestVarcharIsNull())
 
+	// test zero
 	obj.SetTestVarchar("")
 	assert.Equal(t, "", obj.TestVarchar(), "set empty")
 	assert.False(t, obj.TestVarcharIsNull())
 
+	// test panic on setting value larger than maximum size allowed
+	testVarchar = test.RandomValue[string](11)
+	assert.Panics(t, func() {
+		obj.SetTestVarchar(testVarchar)
+	})
 }
 func TestTypeTest_SetTestBlob(t *testing.T) {
+
 	obj := NewTypeTest()
 
-	testBlob := []byte(strings2.RandomString(strings2.AlphaAll, 10))
+	testBlob := test.RandomValue[[]uint8](65535)
 	obj.SetTestBlob(testBlob)
 	assert.Equal(t, testBlob, obj.TestBlob())
 
-	obj.SetTestBlob(nil)
-	assert.Equal(t, []byte{}, obj.TestBlob(), "set nil")
+	// test zero
+	obj.SetTestBlob([]byte(nil))
+	assert.Equal(t, []byte(nil), obj.TestBlob(), "set empty")
 
-	obj.SetTestBlob([]byte{})
-	assert.Equal(t, []byte{}, obj.TestBlob(), "set empty")
+	// test panic on setting value larger than maximum size allowed
+	testBlob = test.RandomValue[[]uint8](65536)
+	assert.Panics(t, func() {
+		obj.SetTestBlob(testBlob)
+	})
 }

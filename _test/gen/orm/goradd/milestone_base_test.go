@@ -5,18 +5,38 @@ package goradd
 import (
 	"testing"
 
-	strings2 "github.com/goradd/strings"
+	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMilestone_SetName(t *testing.T) {
+func TestMilestone_SetProjectID(t *testing.T) {
+
 	obj := NewMilestone()
 
-	name := strings2.RandomString(strings2.AlphaAll, 10)
+	projectID := test.RandomValue[string](0)
+	obj.SetProjectID(projectID)
+	assert.Equal(t, projectID, obj.ProjectID())
+
+	// test zero
+	obj.SetProjectID("")
+	assert.Equal(t, "", obj.ProjectID(), "set empty")
+
+}
+func TestMilestone_SetName(t *testing.T) {
+
+	obj := NewMilestone()
+
+	name := test.RandomValue[string](50)
 	obj.SetName(name)
 	assert.Equal(t, name, obj.Name())
 
+	// test zero
 	obj.SetName("")
 	assert.Equal(t, "", obj.Name(), "set empty")
 
+	// test panic on setting value larger than maximum size allowed
+	name = test.RandomValue[string](51)
+	assert.Panics(t, func() {
+		obj.SetName(name)
+	})
 }

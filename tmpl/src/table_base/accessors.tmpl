@@ -16,7 +16,7 @@ func (tmpl *TableBaseTemplate)genAccessors(table *model.Table, _w io.Writer) (er
         } else {
             if err = tmpl.genColSetter(table, col, _w); err != nil {return}
         }
-        if col.Reference != nil {
+        if col.IsReference() {
             if err = tmpl.genColReferenceGetter(table, col, _w); err != nil {return}
             if col.IsNullable {
                 if err = tmpl.genColNullReferenceSetter(table, col, _w); err != nil {return}

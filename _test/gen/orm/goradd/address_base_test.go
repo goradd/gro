@@ -5,34 +5,63 @@ package goradd
 import (
 	"testing"
 
-	strings2 "github.com/goradd/strings"
+	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestAddress_SetStreet(t *testing.T) {
+func TestAddress_SetPersonID(t *testing.T) {
+
 	obj := NewAddress()
 
-	street := strings2.RandomString(strings2.AlphaAll, 10)
+	personID := test.RandomValue[string](0)
+	obj.SetPersonID(personID)
+	assert.Equal(t, personID, obj.PersonID())
+
+	// test zero
+	obj.SetPersonID("")
+	assert.Equal(t, "", obj.PersonID(), "set empty")
+
+}
+func TestAddress_SetStreet(t *testing.T) {
+
+	obj := NewAddress()
+
+	street := test.RandomValue[string](100)
 	obj.SetStreet(street)
 	assert.Equal(t, street, obj.Street())
 
+	// test zero
 	obj.SetStreet("")
 	assert.Equal(t, "", obj.Street(), "set empty")
 
+	// test panic on setting value larger than maximum size allowed
+	street = test.RandomValue[string](101)
+	assert.Panics(t, func() {
+		obj.SetStreet(street)
+	})
 }
 func TestAddress_SetCity(t *testing.T) {
+
 	obj := NewAddress()
 
-	city := strings2.RandomString(strings2.AlphaAll, 10)
+	city := test.RandomValue[string](100)
 	obj.SetCity(city)
 	assert.Equal(t, city, obj.City())
 	assert.False(t, obj.CityIsNull())
 
+	// Test nil
 	obj.SetCity(nil)
+	assert.Equal(t, "BOB", obj.City(), "set nil")
 	assert.True(t, obj.CityIsNull())
 
-	obj.SetCity("")
-	assert.Equal(t, "", obj.City(), "set empty")
+	// test zero
+	obj.SetCity("BOB")
+	assert.Equal(t, "BOB", obj.City(), "set empty")
 	assert.False(t, obj.CityIsNull())
 
+	// test panic on setting value larger than maximum size allowed
+	city = test.RandomValue[string](101)
+	assert.Panics(t, func() {
+		obj.SetCity(city)
+	})
 }

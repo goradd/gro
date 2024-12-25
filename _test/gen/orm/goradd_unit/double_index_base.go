@@ -801,6 +801,7 @@ func (o *doubleIndexBase) MarshalJSON() (data []byte, err error) {
 // select only the fields you want when you query for the object. The keys are the same as the json keys.
 func (o *doubleIndexBase) MarshalStringMap() map[string]interface{} {
 	v := make(map[string]interface{})
+
 	if o.idIsValid {
 		v["id"] = o.id
 	}
@@ -861,6 +862,7 @@ func (o *doubleIndexBase) UnmarshalStringMap(m map[string]interface{}) (err erro
 					return fmt.Errorf("json field %s must be a number", k)
 				}
 			}
+
 		case "fieldInt":
 			{
 				if v == nil {
@@ -875,6 +877,7 @@ func (o *doubleIndexBase) UnmarshalStringMap(m map[string]interface{}) (err erro
 					return fmt.Errorf("json field %s must be a number", k)
 				}
 			}
+
 		case "fieldString":
 			{
 				if v == nil {
@@ -887,6 +890,7 @@ func (o *doubleIndexBase) UnmarshalStringMap(m map[string]interface{}) (err erro
 					o.SetFieldString(s)
 				}
 			}
+
 		}
 	}
 	return

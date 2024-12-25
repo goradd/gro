@@ -2015,6 +2015,7 @@ func (o *typeTestBase) MarshalJSON() (data []byte, err error) {
 // select only the fields you want when you query for the object. The keys are the same as the json keys.
 func (o *typeTestBase) MarshalStringMap() map[string]interface{} {
 	v := make(map[string]interface{})
+
 	if o.idIsValid {
 		v["id"] = o.id
 	}
@@ -2166,6 +2167,7 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 					return fmt.Errorf("json field %s must be a number or a string", k)
 				}
 			}
+
 		case "time":
 			{
 				if v == nil {
@@ -2190,6 +2192,7 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 					return fmt.Errorf("json field %s must be a number or a string", k)
 				}
 			}
+
 		case "dateTime":
 			{
 				if v == nil {
@@ -2214,6 +2217,7 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 					return fmt.Errorf("json field %s must be a number or a string", k)
 				}
 			}
+
 		case "ts":
 			{
 				if v == nil {
@@ -2238,6 +2242,7 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 					return fmt.Errorf("json field %s must be a number or a string", k)
 				}
 			}
+
 		case "testInt":
 			{
 				if v == nil {
@@ -2253,6 +2258,7 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 					return fmt.Errorf("json field %s must be a number", k)
 				}
 			}
+
 		case "testFloat":
 			{
 				if v == nil {
@@ -2266,6 +2272,7 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 					return fmt.Errorf("json field %s must be a number", k)
 				}
 			}
+
 		case "testDouble":
 			{
 				if v == nil {
@@ -2278,6 +2285,7 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 					return fmt.Errorf("json field %s must be a number", k)
 				}
 			}
+
 		case "testText":
 			{
 				if v == nil {
@@ -2291,6 +2299,7 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 					o.SetTestText(s)
 				}
 			}
+
 		case "testBit":
 			{
 				if v == nil {
@@ -2304,6 +2313,7 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 					o.SetTestBit(b)
 				}
 			}
+
 		case "testVarchar":
 			{
 				if v == nil {
@@ -2317,6 +2327,7 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 					o.SetTestVarchar(s)
 				}
 			}
+
 		case "testBlob":
 			{
 				if v == nil {
@@ -2351,6 +2362,7 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 				}
 
 			}
+
 		}
 	}
 	return

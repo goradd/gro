@@ -980,6 +980,7 @@ func (o *addressBase) MarshalJSON() (data []byte, err error) {
 // select only the fields you want when you query for the object. The keys are the same as the json keys.
 func (o *addressBase) MarshalStringMap() map[string]interface{} {
 	v := make(map[string]interface{})
+
 	if o.idIsValid {
 		v["id"] = o.id
 	}
@@ -991,6 +992,7 @@ func (o *addressBase) MarshalStringMap() map[string]interface{} {
 	if val := o.Person(); val != nil {
 		v["person"] = val.MarshalStringMap()
 	}
+
 	if o.streetIsValid {
 		v["street"] = o.street
 	}
@@ -1051,6 +1053,7 @@ func (o *addressBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 				}
 
 			}
+
 		case "street":
 			{
 				if v == nil {
@@ -1063,6 +1066,7 @@ func (o *addressBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					o.SetStreet(s)
 				}
 			}
+
 		case "city":
 			{
 				if v == nil {
@@ -1076,6 +1080,7 @@ func (o *addressBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					o.SetCity(s)
 				}
 			}
+
 		}
 	}
 	return

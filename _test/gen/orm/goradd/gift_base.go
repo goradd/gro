@@ -686,6 +686,7 @@ func (o *giftBase) MarshalJSON() (data []byte, err error) {
 // select only the fields you want when you query for the object. The keys are the same as the json keys.
 func (o *giftBase) MarshalStringMap() map[string]interface{} {
 	v := make(map[string]interface{})
+
 	if o.numberIsValid {
 		v["number"] = o.number
 	}
@@ -741,6 +742,7 @@ func (o *giftBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					return fmt.Errorf("json field %s must be a number", k)
 				}
 			}
+
 		case "name":
 			{
 				if v == nil {
@@ -753,6 +755,7 @@ func (o *giftBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					o.SetName(s)
 				}
 			}
+
 		}
 	}
 	return

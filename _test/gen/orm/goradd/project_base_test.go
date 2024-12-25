@@ -4,67 +4,188 @@ package goradd
 
 import (
 	"testing"
+	"time"
 
-	strings2 "github.com/goradd/strings"
+	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestProject_SetName(t *testing.T) {
+func TestProject_SetNum(t *testing.T) {
+
 	obj := NewProject()
 
-	name := strings2.RandomString(strings2.AlphaAll, 10)
+	num := test.RandomValue[int](0)
+	obj.SetNum(num)
+	assert.Equal(t, num, obj.Num())
+
+	// test zero
+	obj.SetNum(0)
+	assert.Equal(t, 0, obj.Num(), "set empty")
+
+}
+func TestProject_SetStatus(t *testing.T) {
+
+	obj := NewProject()
+
+	status := test.RandomValue[ProjectStatus](0)
+	obj.SetStatus(status)
+	assert.Equal(t, status, obj.Status())
+
+	// test zero
+	obj.SetStatus(ProjectStatus(0))
+	assert.Equal(t, ProjectStatus(0), obj.Status(), "set empty")
+
+}
+func TestProject_SetManagerID(t *testing.T) {
+
+	obj := NewProject()
+
+	managerID := test.RandomValue[string](0)
+	obj.SetManagerID(managerID)
+	assert.Equal(t, managerID, obj.ManagerID())
+	assert.False(t, obj.ManagerIDIsNull())
+
+	// Test nil
+	obj.SetManagerID(nil)
+	assert.Equal(t, "", obj.ManagerID(), "set nil")
+	assert.True(t, obj.ManagerIDIsNull())
+
+	// test zero
+	obj.SetManagerID("")
+	assert.Equal(t, "", obj.ManagerID(), "set empty")
+	assert.False(t, obj.ManagerIDIsNull())
+
+}
+func TestProject_SetName(t *testing.T) {
+
+	obj := NewProject()
+
+	name := test.RandomValue[string](100)
 	obj.SetName(name)
 	assert.Equal(t, name, obj.Name())
 
+	// test zero
 	obj.SetName("")
 	assert.Equal(t, "", obj.Name(), "set empty")
 
+	// test panic on setting value larger than maximum size allowed
+	name = test.RandomValue[string](101)
+	assert.Panics(t, func() {
+		obj.SetName(name)
+	})
 }
 func TestProject_SetDescription(t *testing.T) {
+
 	obj := NewProject()
 
-	description := strings2.RandomString(strings2.AlphaAll, 10)
+	description := test.RandomValue[string](65535)
 	obj.SetDescription(description)
 	assert.Equal(t, description, obj.Description())
 	assert.False(t, obj.DescriptionIsNull())
 
+	// Test nil
 	obj.SetDescription(nil)
+	assert.Equal(t, "", obj.Description(), "set nil")
 	assert.True(t, obj.DescriptionIsNull())
 
+	// test zero
 	obj.SetDescription("")
 	assert.Equal(t, "", obj.Description(), "set empty")
 	assert.False(t, obj.DescriptionIsNull())
 
+	// test panic on setting value larger than maximum size allowed
+	description = test.RandomValue[string](65536)
+	assert.Panics(t, func() {
+		obj.SetDescription(description)
+	})
 }
-func TestProject_SetBudget(t *testing.T) {
+func TestProject_SetStartDate(t *testing.T) {
+
 	obj := NewProject()
 
-	budget := strings2.RandomString(strings2.AlphaAll, 10)
+	startDate := test.RandomValue[time.Time](0)
+	obj.SetStartDate(startDate)
+	assert.Equal(t, startDate, obj.StartDate())
+	assert.False(t, obj.StartDateIsNull())
+
+	// Test nil
+	obj.SetStartDate(nil)
+	assert.Equal(t, time.Time{}, obj.StartDate(), "set nil")
+	assert.True(t, obj.StartDateIsNull())
+
+	// test zero
+	obj.SetStartDate(time.Time{})
+	assert.Equal(t, time.Time{}, obj.StartDate(), "set empty")
+	assert.False(t, obj.StartDateIsNull())
+
+}
+func TestProject_SetEndDate(t *testing.T) {
+
+	obj := NewProject()
+
+	endDate := test.RandomValue[time.Time](0)
+	obj.SetEndDate(endDate)
+	assert.Equal(t, endDate, obj.EndDate())
+	assert.False(t, obj.EndDateIsNull())
+
+	// Test nil
+	obj.SetEndDate(nil)
+	assert.Equal(t, time.Time{}, obj.EndDate(), "set nil")
+	assert.True(t, obj.EndDateIsNull())
+
+	// test zero
+	obj.SetEndDate(time.Time{})
+	assert.Equal(t, time.Time{}, obj.EndDate(), "set empty")
+	assert.False(t, obj.EndDateIsNull())
+
+}
+func TestProject_SetBudget(t *testing.T) {
+
+	obj := NewProject()
+
+	budget := test.RandomValue[string](15)
 	obj.SetBudget(budget)
 	assert.Equal(t, budget, obj.Budget())
 	assert.False(t, obj.BudgetIsNull())
 
+	// Test nil
 	obj.SetBudget(nil)
+	assert.Equal(t, "", obj.Budget(), "set nil")
 	assert.True(t, obj.BudgetIsNull())
 
+	// test zero
 	obj.SetBudget("")
 	assert.Equal(t, "", obj.Budget(), "set empty")
 	assert.False(t, obj.BudgetIsNull())
 
+	// test panic on setting value larger than maximum size allowed
+	budget = test.RandomValue[string](16)
+	assert.Panics(t, func() {
+		obj.SetBudget(budget)
+	})
 }
 func TestProject_SetSpent(t *testing.T) {
+
 	obj := NewProject()
 
-	spent := strings2.RandomString(strings2.AlphaAll, 10)
+	spent := test.RandomValue[string](15)
 	obj.SetSpent(spent)
 	assert.Equal(t, spent, obj.Spent())
 	assert.False(t, obj.SpentIsNull())
 
+	// Test nil
 	obj.SetSpent(nil)
+	assert.Equal(t, "", obj.Spent(), "set nil")
 	assert.True(t, obj.SpentIsNull())
 
+	// test zero
 	obj.SetSpent("")
 	assert.Equal(t, "", obj.Spent(), "set empty")
 	assert.False(t, obj.SpentIsNull())
 
+	// test panic on setting value larger than maximum size allowed
+	spent = test.RandomValue[string](16)
+	assert.Panics(t, func() {
+		obj.SetSpent(spent)
+	})
 }

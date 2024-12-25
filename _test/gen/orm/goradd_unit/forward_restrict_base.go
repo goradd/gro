@@ -836,6 +836,7 @@ func (o *forwardRestrictBase) MarshalJSON() (data []byte, err error) {
 // select only the fields you want when you query for the object. The keys are the same as the json keys.
 func (o *forwardRestrictBase) MarshalStringMap() map[string]interface{} {
 	v := make(map[string]interface{})
+
 	if o.idIsValid {
 		v["id"] = o.id
 	}
@@ -897,6 +898,7 @@ func (o *forwardRestrictBase) UnmarshalStringMap(m map[string]interface{}) (err 
 					o.SetName(s)
 				}
 			}
+
 		case "reverseID":
 			{
 				if v == nil {
@@ -910,6 +912,7 @@ func (o *forwardRestrictBase) UnmarshalStringMap(m map[string]interface{}) (err 
 				}
 
 			}
+
 		}
 	}
 	return

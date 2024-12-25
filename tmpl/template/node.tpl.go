@@ -357,18 +357,19 @@ func (n *NodeTemplate) genColumns(table *model.Table, _w io.Writer) (err error) 
 //*** column.tmpl
 
 func (n *NodeTemplate) genColumn(table *model.Table, col *model.Column, _w io.Writer) (err error) {
-	if err = n.genColumnNode(table, col, _w); err != nil {
-		return
-	}
-	if col.Reference != nil {
-		if col.Reference.Table != nil {
-			if err = n.genTableRefNode(table, col, _w); err != nil {
-				return
-			}
-		} else {
-			if err = n.genEnumTableRefNode(table, col, _w); err != nil {
-				return
-			}
+
+	if col.IsReference() {
+		if err = n.genColumnNode(table, col, _w); err != nil {
+			return
+		}
+		if err = n.genTableRefNode(table, col, _w); err != nil {
+			return
+		}
+		//} else if col.IsEnumReference() {
+		//    if err = n.genEnumTableRefNode(table, col, _w); err != nil { return }
+	} else {
+		if err = n.genColumnNode(table, col, _w); err != nil {
+			return
 		}
 	}
 	return
@@ -711,6 +712,15 @@ func (n *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, col.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `",
+            "`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, col.Reference.Identifier); err != nil {
 		return
 	}
 

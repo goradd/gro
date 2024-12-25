@@ -32,7 +32,7 @@ type projectBase struct {
 	numIsValid bool
 	numIsDirty bool
 
-	status        uint
+	status        ProjectStatus
 	statusIsValid bool
 	statusIsDirty bool
 
@@ -143,7 +143,7 @@ func (o *projectBase) Initialize() {
 	o.numIsValid = false
 	o.numIsDirty = false
 
-	o.status = 0x0
+	o.status = ProjectStatus(0)
 
 	o.statusIsValid = false
 	o.statusIsDirty = false
@@ -276,7 +276,7 @@ func (o *projectBase) SetNum(num int) {
 }
 
 // Status returns the loaded value of Status.
-func (o *projectBase) Status() uint {
+func (o *projectBase) Status() ProjectStatus {
 	if o._restored && !o.statusIsValid {
 		panic("Status was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -289,7 +289,7 @@ func (o *projectBase) StatusIsValid() bool {
 }
 
 // SetStatus sets the value of Status in the object, to be saved later using the Save() function.
-func (o *projectBase) SetStatus(status uint) {
+func (o *projectBase) SetStatus(status ProjectStatus) {
 	o.statusIsValid = true
 	if o.status != status || !o._restored {
 		o.status = status
@@ -1255,7 +1255,7 @@ func CountProjectByNum(ctx context.Context, num int) int {
 // CountProjectByStatus queries the database and returns the number of Project objects that
 // have status.
 // doc: type=Project
-func CountProjectByStatus(ctx context.Context, status uint) int {
+func CountProjectByStatus(ctx context.Context, status ProjectStatus) int {
 	return int(queryProjects(ctx).Where(op.Equal(node.Project().Status(), status)).Count(false))
 }
 
@@ -1345,7 +1345,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project, objParent
 	}
 
 	if v, ok := m["status_id"]; ok && v != nil {
-		if o.status, ok = v.(uint); ok {
+		if o.status, ok = v.(ProjectStatus); ok {
 			o.statusIsValid = true
 			o.statusIsDirty = false
 
@@ -1354,7 +1354,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project, objParent
 		}
 	} else {
 		o.statusIsValid = false
-		o.status = 0x0
+		o.status = ProjectStatus(0)
 	}
 
 	if v, ok := m["manager_id"]; ok {
@@ -2510,6 +2510,7 @@ func (o *projectBase) MarshalJSON() (data []byte, err error) {
 // select only the fields you want when you query for the object. The keys are the same as the json keys.
 func (o *projectBase) MarshalStringMap() map[string]interface{} {
 	v := make(map[string]interface{})
+
 	if o.idIsValid {
 		v["id"] = o.id
 	}
@@ -2519,7 +2520,7 @@ func (o *projectBase) MarshalStringMap() map[string]interface{} {
 	}
 
 	if o.statusIsValid {
-		v["status"] = o.status
+		v["status"] = o.Status().String()
 	}
 
 	if o.managerIDIsValid {
@@ -2533,6 +2534,7 @@ func (o *projectBase) MarshalStringMap() map[string]interface{} {
 	if val := o.Manager(); val != nil {
 		v["manager"] = val.MarshalStringMap()
 	}
+
 	if o.nameIsValid {
 		v["name"] = o.name
 	}
@@ -2623,7 +2625,7 @@ func (o *projectBase) MarshalStringMap() map[string]interface{} {
 //
 //	"id" - string
 //	"num" - int
-//	"status" - uint
+//	"status" - ProjectStatus
 //	"managerID" - string, nullable
 //	"name" - string
 //	"description" - string, nullable
@@ -2660,6 +2662,7 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					return fmt.Errorf("json field %s must be a number", k)
 				}
 			}
+
 		case "status":
 			{
 				if v == nil {
@@ -2667,13 +2670,16 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 				}
 
 				if n, ok := v.(int); ok {
-					o.SetStatus(uint(n))
+					o.SetStatus(ProjectStatus(n))
 				} else if n, ok := v.(float64); ok {
-					o.SetStatus(uint(n))
+					o.SetStatus(ProjectStatus(int(n)))
+				} else if n, ok := v.(string); ok {
+					o.SetStatus(ProjectStatusFromName(n))
 				} else {
 					return fmt.Errorf("json field %s must be a number", k)
 				}
 			}
+
 		case "managerID":
 			{
 				if v == nil {
@@ -2688,6 +2694,7 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 				}
 
 			}
+
 		case "name":
 			{
 				if v == nil {
@@ -2700,6 +2707,7 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					o.SetName(s)
 				}
 			}
+
 		case "description":
 			{
 				if v == nil {
@@ -2713,6 +2721,7 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					o.SetDescription(s)
 				}
 			}
+
 		case "startDate":
 			{
 				if v == nil {
@@ -2737,6 +2746,7 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					return fmt.Errorf("json field %s must be a number or a string", k)
 				}
 			}
+
 		case "endDate":
 			{
 				if v == nil {
@@ -2761,6 +2771,7 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					return fmt.Errorf("json field %s must be a number or a string", k)
 				}
 			}
+
 		case "budget":
 			{
 				if v == nil {
@@ -2774,6 +2785,7 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					o.SetBudget(s)
 				}
 			}
+
 		case "spent":
 			{
 				if v == nil {
@@ -2787,6 +2799,7 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					o.SetSpent(s)
 				}
 			}
+
 		}
 	}
 	return

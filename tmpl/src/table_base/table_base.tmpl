@@ -12,7 +12,6 @@ func (tmpl *TableBaseTemplate) gen(table *model.Table, _w io.Writer, importPath 
     if err = tmpl.genPK(table, _w); err != nil { return }
     if err = tmpl.genCopy(table, _w); err != nil { return }
     if err = tmpl.genAccessors(table, _w); err != nil { return }
-    if err = tmpl.genEnumAccessors(table, _w); err != nil { return }
     if err = tmpl.genManyManyAccessors(table, _w); err != nil { return }
     if err = tmpl.genReverseRefAccessors(table, _w); err != nil { return }
     if err = tmpl.genQuery(table, _w); err != nil { return }
@@ -61,15 +60,6 @@ func (tmpl *TableBaseTemplate)genCopy(table *model.Table, _w io.Writer) (err err
 }
 
 {{: "accessors.tmpl" }}
-
-func (tmpl *TableBaseTemplate)genEnumAccessors(table *model.Table, _w io.Writer) (err error) {
-    for _,column := range table.Columns {
-	    if column.IsEnumReference() {
-            {{: "enum_accessor.tmpl" }}
-        }
-    }
-    return
-}
 
 
 func (tmpl *TableBaseTemplate)genManyManyAccessors(table *model.Table, _w io.Writer) (err error) {

@@ -891,6 +891,7 @@ func (o *personWithLockBase) MarshalJSON() (data []byte, err error) {
 // select only the fields you want when you query for the object. The keys are the same as the json keys.
 func (o *personWithLockBase) MarshalStringMap() map[string]interface{} {
 	v := make(map[string]interface{})
+
 	if o.idIsValid {
 		v["id"] = o.id
 	}
@@ -958,6 +959,7 @@ func (o *personWithLockBase) UnmarshalStringMap(m map[string]interface{}) (err e
 					o.SetFirstName(s)
 				}
 			}
+
 		case "lastName":
 			{
 				if v == nil {
@@ -970,6 +972,7 @@ func (o *personWithLockBase) UnmarshalStringMap(m map[string]interface{}) (err e
 					o.SetLastName(s)
 				}
 			}
+
 		case "sysTimestamp":
 			{
 				if v == nil {
@@ -994,6 +997,7 @@ func (o *personWithLockBase) UnmarshalStringMap(m map[string]interface{}) (err e
 					return fmt.Errorf("json field %s must be a number or a string", k)
 				}
 			}
+
 		}
 	}
 	return

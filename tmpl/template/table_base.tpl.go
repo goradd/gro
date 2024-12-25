@@ -62,9 +62,6 @@ func (tmpl *TableBaseTemplate) gen(table *model.Table, _w io.Writer, importPath 
 	if err = tmpl.genAccessors(table, _w); err != nil {
 		return
 	}
-	if err = tmpl.genEnumAccessors(table, _w); err != nil {
-		return
-	}
 	if err = tmpl.genManyManyAccessors(table, _w); err != nil {
 		return
 	}
@@ -1318,7 +1315,7 @@ func (tmpl *TableBaseTemplate) genAccessors(table *model.Table, _w io.Writer) (e
 				return
 			}
 		}
-		if col.Reference != nil {
+		if col.IsReference() {
 			if err = tmpl.genColReferenceGetter(table, col, _w); err != nil {
 				return
 			}
@@ -1808,7 +1805,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if col.Reference != nil {
+		if col.IsReference() {
 
 			if _, err = io.WriteString(_w, `		o.`); err != nil {
 				return
@@ -2220,7 +2217,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if col.Reference != nil {
+	if col.IsReference() {
 
 		if _, err = io.WriteString(_w, `			o.`); err != nil {
 			return
@@ -2931,7 +2928,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if col.Reference != nil {
+		if col.IsReference() {
 
 			if _, err = io.WriteString(_w, `		o.`); err != nil {
 				return
@@ -3168,340 +3165,6 @@ func (o *`); err != nil {
 		return
 	}
 
-	return
-}
-
-func (tmpl *TableBaseTemplate) genEnumAccessors(table *model.Table, _w io.Writer) (err error) {
-	for _, column := range table.Columns {
-		if column.IsEnumReference() {
-
-			//*** enum_accessor.tmpl
-
-			if _, err = io.WriteString(_w, `func (o *`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `Base) `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, column.ReferenceIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `() `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, column.ReferenceIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` {
-	if o._restored && !o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, column.DecapIdentifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `IsValid {
-		panic ("`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, column.DecapIdentifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` was not selected in the last query and so is not valid")
-	}
-	return `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, column.ReferenceIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `(o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, column.DecapIdentifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `)
-}
-
-`); err != nil {
-				return
-			}
-
-			if column.IsNullable {
-
-				if _, err = io.WriteString(_w, `
-func (o *`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `Base) `); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, column.ReferenceIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsNull() bool {
-	return o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, column.DecapIdentifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsNull
-}
-
-func (o *`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `Base) Set`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, column.ReferenceIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(i interface{}) {
-	if i == nil {
-		if !o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, column.DecapIdentifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsNull {
-			o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, column.DecapIdentifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsNull = true
-			o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, column.DecapIdentifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsDirty = true
-			o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, column.DecapIdentifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsValid = true
-			o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, column.DecapIdentifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, ` = `); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, column.DefaultValueAsValue()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `
-		}
-	} else {
-		v := i.(`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, column.GoType()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `)
-		if o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, column.DecapIdentifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsNull  {
-			o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, column.DecapIdentifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsNull = false
-			o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, column.DecapIdentifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, ` = v
-			o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, column.DecapIdentifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsDirty = true
-		}
-	}
-}
-
-`); err != nil {
-					return
-				}
-
-			} else {
-
-				if _, err = io.WriteString(_w, ` `); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `
-
-func (o *`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `Base) Set`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, column.ReferenceIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(v `); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, column.ReferenceIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `) {
-	if o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, column.DecapIdentifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, ` != `); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, column.GoType()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(v) {
-		o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, column.DecapIdentifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, ` = `); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, column.GoType()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(v)
-		o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, column.DecapIdentifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsDirty = true
-		o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, column.DecapIdentifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsValid = true
-	}
-}
-
-`); err != nil {
-					return
-				}
-
-			}
-
-			if _, err = io.WriteString(_w, `
-`); err != nil {
-				return
-			}
-
-		}
-	}
 	return
 }
 
@@ -7066,7 +6729,7 @@ func Count`); err != nil {
 			return
 		}
 
-		if col.Reference != nil {
+		if col.IsReference() {
 
 			if _, err = io.WriteString(_w, `    if `); err != nil {
 				return
@@ -11877,89 +11540,7 @@ func (o *`); err != nil {
 
 		//*** marshal_stringmap_col.tmpl
 
-		if _, err = io.WriteString(_w, `    if o.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `IsValid {
-`); err != nil {
-			return
-		}
-
-		if col.IsNullable {
-
-			if _, err = io.WriteString(_w, `        if o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `IsNull {
-            v["`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.JsonKey()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `"] = nil
-        } else {
-            v["`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.JsonKey()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `"] = o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `
-        }
-`); err != nil {
-				return
-			}
-
-		} else {
-
-			if _, err = io.WriteString(_w, `        v["`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.JsonKey()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `"] = o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `
-`); err != nil {
-				return
-			}
-
-		}
-
-		if _, err = io.WriteString(_w, `    }
-
+		if _, err = io.WriteString(_w, `
 `); err != nil {
 			return
 		}
@@ -11997,7 +11578,102 @@ func (o *`); err != nil {
 				return
 			}
 
-		} else if col.IsReference() {
+		} else {
+
+			if _, err = io.WriteString(_w, `    if o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsValid {
+`); err != nil {
+				return
+			}
+
+			if col.IsNullable {
+
+				if _, err = io.WriteString(_w, `        if o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `IsNull {
+            v["`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.JsonKey()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `"] = nil
+        } else {
+            v["`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.JsonKey()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `"] = o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `
+        }
+`); err != nil {
+					return
+				}
+
+			} else {
+
+				if _, err = io.WriteString(_w, `        v["`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.JsonKey()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `"] = o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `
+`); err != nil {
+					return
+				}
+
+			}
+
+			if _, err = io.WriteString(_w, `    }
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `
+`); err != nil {
+			return
+		}
+
+		if col.IsReference() {
 
 			if _, err = io.WriteString(_w, `    if val := o.`); err != nil {
 				return
@@ -12390,7 +12066,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
 				return
 			}
 
@@ -12408,11 +12084,37 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
 				return
 			}
 
 			if _, err = io.WriteString(_w, `(int(n)))
+           } else if n,ok := v.(string); ok {
+                o.Set`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `From`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Reference.EnumTable.FieldIdentifier(1)); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(n))
            } else {
                 return fmt.Errorf("json field %s must be a number", k)
            }
@@ -12714,51 +12416,9 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `           }
+
 `); err != nil {
 			return
-		}
-
-		if col.IsEnumReference() {
-
-			if _, err = io.WriteString(_w, `        case "`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.ReferenceJsonKey()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `":
-            if s,ok := v.(string); !ok {
-                return fmt.Errorf("json field %s must be a string", k)
-            } else {
-                t := `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `FromName(s)
-                if int(t) == 0 {
-                    return fmt.Errorf("invalid value for field %s", k)
-                }
-                o.Set`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `(t)
-            }
-
-`); err != nil {
-				return
-			}
-
 		}
 
 	}

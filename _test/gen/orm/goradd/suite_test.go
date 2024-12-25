@@ -25,7 +25,7 @@ func setup(m *testing.M) {
 	fmt.Println("Current working directory: ", dir)
 
 	if dbConfigFile == "" {
-		panic("config file not specified")
+		panic("config file not specified. Use -args -c <filepath> to specify a database config file to the go test command.")
 	}
 	dbConfigFile, _ = filepath.Abs(dbConfigFile)
 	fmt.Println("Initializing databases using config file: ", dbConfigFile)

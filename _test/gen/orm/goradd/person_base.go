@@ -1817,6 +1817,7 @@ func (o *personBase) MarshalJSON() (data []byte, err error) {
 // select only the fields you want when you query for the object. The keys are the same as the json keys.
 func (o *personBase) MarshalStringMap() map[string]interface{} {
 	v := make(map[string]interface{})
+
 	if o.idIsValid {
 		v["id"] = o.id
 	}
@@ -1909,6 +1910,7 @@ func (o *personBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					o.SetFirstName(s)
 				}
 			}
+
 		case "lastName":
 			{
 				if v == nil {
@@ -1921,6 +1923,7 @@ func (o *personBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					o.SetLastName(s)
 				}
 			}
+
 		case "personTypes":
 			if vals, ok := v.([]interface{}); !ok {
 				return fmt.Errorf("json field %s must be an array", k)
