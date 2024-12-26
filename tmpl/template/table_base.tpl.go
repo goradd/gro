@@ -1185,7 +1185,7 @@ func (tmpl *TableBaseTemplate) genCopy(table *model.Table, _w io.Writer) (err er
 	//*** copy.tmpl
 
 	if _, err = io.WriteString(_w, `
-// Copy copies all valid fields (except for the primary key) to a new `); err != nil {
+// Copy copies all valid fields to a new `); err != nil {
 		return
 	}
 
@@ -1195,13 +1195,14 @@ func (tmpl *TableBaseTemplate) genCopy(table *model.Table, _w io.Writer) (err er
 
 	if _, err = io.WriteString(_w, ` object.
 // Forward reference ids will be copied, but reverse and many-many references will not.
-`); err != nil {
+// Attached objects will not be included in the copy.`); err != nil {
 		return
 	}
 
 	if !table.HasAutoId() {
 
-		if _, err = io.WriteString(_w, `// You will need to manually set the primary key field.`); err != nil {
+		if _, err = io.WriteString(_w, `
+// You will need to manually set the primary key field before saving.`); err != nil {
 			return
 		}
 
@@ -1243,7 +1244,7 @@ func (o *`); err != nil {
 
 	for _, col := range table.Columns {
 
-		if !col.IsPk {
+		if col.HasSetter() {
 
 			if _, err = io.WriteString(_w, `    if o.`); err != nil {
 				return
@@ -1564,6 +1565,9 @@ func (o *`); err != nil {
 }
 
 func (tmpl *TableBaseTemplate) genColSetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
+	if !col.HasSetter() {
+		return
+	}
 
 	//*** column_not_null_setter.tmpl
 
@@ -2138,6 +2142,9 @@ func (o *`); err != nil {
 }
 
 func (tmpl *TableBaseTemplate) genColNullSetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
+	if !col.HasSetter() {
+		return
+	}
 
 	//*** column_null_setter.tmpl
 
@@ -11977,7 +11984,7 @@ func (o *`); err != nil {
 	}
 
 	for _, col := range table.Columns {
-		if col.IsAutoId {
+		if !col.HasSetter() {
 			continue
 		}
 

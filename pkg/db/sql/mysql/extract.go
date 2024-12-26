@@ -474,6 +474,9 @@ func processTypeInfo(column mysqlColumn) (
 	}
 
 	defaultValue = column.defaultValue.UnpackDefaultValue(typ, int(maxLength))
+	if typ == schema.ColTypeTime && strings.Contains(strings.ToUpper(column.extra), "ON UPDATE") {
+		defaultValue = "update"
+	}
 	return
 }
 

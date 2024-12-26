@@ -141,7 +141,7 @@ func (o *typeTestBase) Initialize() {
 	o.dateTimeIsValid = true
 	o.dateTimeIsDirty = true
 
-	o.ts = time.Now().UTC()
+	o.ts = time.Time{}
 
 	o.tsIsNull = false
 	o.tsIsValid = true
@@ -201,9 +201,9 @@ func (o *typeTestBase) OriginalPrimaryKey() string {
 	return o._originalPK
 }
 
-// Copy copies all valid fields (except for the primary key) to a new TypeTest object.
+// Copy copies all valid fields to a new TypeTest object.
 // Forward reference ids will be copied, but reverse and many-many references will not.
-
+// Attached objects will not be included in the copy.
 // Call Save() on the new object to save it into the database.
 // Copy might panic if any fields in the database were set to a size larger than the
 // maximum size through a process that accessed the database outside of the ORM.
@@ -217,9 +217,6 @@ func (o *typeTestBase) Copy() (newObject *TypeTest) {
 	}
 	if o.dateTimeIsValid {
 		newObject.SetDateTime(o.dateTime)
-	}
-	if o.tsIsValid {
-		newObject.SetTs(o.ts)
 	}
 	if o.testIntIsValid {
 		newObject.SetTestInt(o.testInt)
@@ -434,27 +431,6 @@ func (o *typeTestBase) Ts_I() interface{} {
 		return nil
 	}
 	return o.ts
-}
-
-func (o *typeTestBase) SetTs(i interface{}) {
-	o.tsIsValid = true
-	if i == nil {
-		if !o.tsIsNull {
-			o.tsIsNull = true
-			o.tsIsDirty = true
-			o.ts = time.Now().UTC()
-		}
-	} else {
-		v := i.(time.Time)
-		if o.tsIsNull ||
-			!o._restored ||
-			o.ts != v {
-
-			o.tsIsNull = false
-			o.ts = v
-			o.tsIsDirty = true
-		}
-	}
 }
 
 // TestInt returns the loaded value of TestInt.
@@ -1155,7 +1131,7 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest, objPare
 
 	if v, ok := m["ts"]; ok {
 		if v == nil {
-			o.ts = time.Now().UTC()
+			o.ts = time.Time{}
 			o.tsIsNull = true
 			o.tsIsValid = true
 			o.tsIsDirty = false
@@ -1169,7 +1145,7 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest, objPare
 	} else {
 		o.tsIsValid = false
 		o.tsIsNull = true
-		o.ts = time.Now().UTC()
+		o.ts = time.Time{}
 	}
 
 	if v, ok := m["test_int"]; ok {
@@ -2213,31 +2189,6 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 					}
 					t = t.UTC()
 					o.SetDateTime(t)
-				default:
-					return fmt.Errorf("json field %s must be a number or a string", k)
-				}
-			}
-
-		case "ts":
-			{
-				if v == nil {
-					o.SetTs(v)
-					continue
-				}
-
-				switch d := v.(type) {
-				case float64:
-					// a numeric value, which for JSON, means milliseconds since epoc
-					o.SetTs(time.UnixMilli(int64(d)).UTC())
-				case string:
-					// an ISO8601 string (hopefully)
-					var t time.Time
-					err = t.UnmarshalJSON([]byte(`"` + d + `"`))
-					if err != nil {
-						return fmt.Errorf("JSON format error for time field %s: %w", k, err)
-					}
-					t = t.UTC()
-					o.SetTs(t)
 				default:
 					return fmt.Errorf("json field %s must be a number or a string", k)
 				}

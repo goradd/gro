@@ -70,8 +70,7 @@ import "encoding/json"
 // MySQL will store the value as a DateTime and not a Timestamp, since Timestamps are assumed
 // to be in server local time and not UTC time and get time shifted
 // in transit. Postgres uses Timestamp without timezone (which is the default).
-// When specifying a default time, enter a Go time.Time type, or the string "now" to have
-// the ORM set it to the time the object was created.
+// See the Column.DefaultValue doc for time specific behavior of default values.
 //
 // # ColTypeFloat
 //

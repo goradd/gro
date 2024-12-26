@@ -56,7 +56,7 @@ import (
 	//*** set.tmpl
 
 	for _, col := range table.Columns {
-		if col.IsAutoId {
+		if !col.HasSetter() {
 			continue
 		}
 

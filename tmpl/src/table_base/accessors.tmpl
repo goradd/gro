@@ -43,6 +43,9 @@ func (tmpl *TableBaseTemplate)genColGetter(table *model.Table, col *model.Column
 }
 
 func (tmpl *TableBaseTemplate)genColSetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
+    if !col.HasSetter() {
+        return
+    }
 {{: "accessors/column_not_null_setter.tmpl" }}
     return
 }
@@ -62,6 +65,9 @@ func (tmpl *TableBaseTemplate)genColReferenceGetter(table *model.Table, col *mod
 
 
 func (tmpl *TableBaseTemplate)genColNullSetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
+    if !col.HasSetter() {
+        return
+    }
 {{: "accessors/column_null_setter.tmpl" }}
     return
 }

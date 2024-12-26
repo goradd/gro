@@ -379,7 +379,7 @@
             "identifier": "SysTimestamp",
             "title": "Sys Timestamp",
             "size": 0,
-            "default_value": null,
+            "default_value": "update",
             "is_optional": true,
             "index_level": "None",
             "case_insensitive": false

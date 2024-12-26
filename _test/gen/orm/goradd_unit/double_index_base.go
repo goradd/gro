@@ -85,14 +85,18 @@ func (o *doubleIndexBase) OriginalPrimaryKey() int {
 	return o._originalPK
 }
 
-// Copy copies all valid fields (except for the primary key) to a new DoubleIndex object.
+// Copy copies all valid fields to a new DoubleIndex object.
 // Forward reference ids will be copied, but reverse and many-many references will not.
-// You will need to manually set the primary key field.
+// Attached objects will not be included in the copy.
+// You will need to manually set the primary key field before saving.
 // Call Save() on the new object to save it into the database.
 // Copy might panic if any fields in the database were set to a size larger than the
 // maximum size through a process that accessed the database outside of the ORM.
 func (o *doubleIndexBase) Copy() (newObject *DoubleIndex) {
 	newObject = NewDoubleIndex()
+	if o.idIsValid {
+		newObject.SetID(o.id)
+	}
 	if o.fieldIntIsValid {
 		newObject.SetFieldInt(o.fieldInt)
 	}

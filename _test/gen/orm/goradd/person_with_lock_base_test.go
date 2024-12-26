@@ -4,7 +4,6 @@ package goradd
 
 import (
 	"testing"
-	"time"
 
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -45,24 +44,4 @@ func TestPersonWithLock_SetLastName(t *testing.T) {
 	assert.Panics(t, func() {
 		obj.SetLastName(lastName)
 	})
-}
-func TestPersonWithLock_SetSysTimestamp(t *testing.T) {
-
-	obj := NewPersonWithLock()
-
-	sysTimestamp := test.RandomValue[time.Time](0)
-	obj.SetSysTimestamp(sysTimestamp)
-	assert.Equal(t, sysTimestamp, obj.SysTimestamp())
-	assert.False(t, obj.SysTimestampIsNull())
-
-	// Test nil
-	obj.SetSysTimestamp(nil)
-	assert.Equal(t, time.Time{}, obj.SysTimestamp(), "set nil")
-	assert.True(t, obj.SysTimestampIsNull())
-
-	// test zero
-	obj.SetSysTimestamp(time.Time{})
-	assert.Equal(t, time.Time{}, obj.SysTimestamp(), "set empty")
-	assert.False(t, obj.SysTimestampIsNull())
-
 }

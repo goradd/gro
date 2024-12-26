@@ -33,7 +33,7 @@ func (o *{{= table.DecapIdentifier}}Base) UnmarshalStringMap(m map[string]interf
 }}
 
 for _,col := range table.Columns {
-    if col.IsAutoId {continue}
+    if !col.HasSetter() {continue}
     {{: "marshal/unmarshal_stringmap_col.tmpl" }}
 }
 

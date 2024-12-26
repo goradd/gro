@@ -70,26 +70,6 @@ func TestTypeTest_SetDateTime(t *testing.T) {
 	assert.False(t, obj.DateTimeIsNull())
 
 }
-func TestTypeTest_SetTs(t *testing.T) {
-
-	obj := NewTypeTest()
-
-	ts := test.RandomValue[time.Time](0)
-	obj.SetTs(ts)
-	assert.Equal(t, ts, obj.Ts())
-	assert.False(t, obj.TsIsNull())
-
-	// Test nil
-	obj.SetTs(nil)
-	assert.Equal(t, time.Now().UTC(), obj.Ts(), "set nil")
-	assert.True(t, obj.TsIsNull())
-
-	// test zero
-	obj.SetTs(time.Now().UTC())
-	assert.Equal(t, time.Now().UTC(), obj.Ts(), "set empty")
-	assert.False(t, obj.TsIsNull())
-
-}
 func TestTypeTest_SetTestInt(t *testing.T) {
 
 	obj := NewTypeTest()

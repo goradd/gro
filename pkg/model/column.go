@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	currentTime = "now"
+	CreatedTime  = "now"
+	ModifiedTime = "update"
 )
 
 // Column describes a database column. Most of the information is either
@@ -78,8 +79,8 @@ func (cd *Column) DefaultValueAsValue() string {
 	}
 
 	if cd.Type == ColTypeTime {
-		if cd.DefaultValue == currentTime {
-			return "time.Now().UTC()"
+		if cd.DefaultValue == CreatedTime || cd.DefaultValue == ModifiedTime {
+			return "time.Time{}" // These times will be updated when the object is saved.
 		} else {
 			t := cd.DefaultValue.(time.Time)
 			if t.IsZero() {
@@ -92,10 +93,11 @@ func (cd *Column) DefaultValueAsValue() string {
 
 }
 
+/*
 // DefaultValueAsConstant returns the default value of the column as a Go constant
 func (cd *Column) DefaultValueAsConstant() string {
 	if cd.Type == ColTypeTime {
-		if cd.DefaultValue == currentTime {
+		if cd.DefaultValue == CreatedTime || cd.DefaultValue == ModifiedTime {
 			return `time2.Current`
 		} else if cd.DefaultValue == nil {
 			return `time2.Zero`
@@ -118,6 +120,7 @@ func (cd *Column) DefaultValueAsConstant() string {
 		return fmt.Sprintf("%#v", cd.DefaultValue)
 	}
 }
+*/
 
 // JsonKey returns the key used for the column when outputting JSON.
 func (cd *Column) JsonKey() string {
@@ -242,6 +245,20 @@ func (cd *Column) GoType() string {
 		}
 	}
 	return cd.Type.GoType()
+}
+
+// HasSetter returns true if the column should be allowed to be set by the programmer. Some columns should not be alterable,
+// including AutoID columns, and time based columns that automatically set or update their times.
+func (cd *Column) HasSetter() bool {
+	if cd.IsAutoId {
+		return false
+	}
+	if cd.Type == ColTypeTime {
+		if cd.DefaultValue == CreatedTime || cd.DefaultValue == ModifiedTime {
+			return false
+		}
+	}
+	return true
 }
 
 func newColumn(schemaCol *schema.Column) *Column {

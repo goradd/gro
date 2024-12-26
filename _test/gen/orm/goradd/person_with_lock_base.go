@@ -84,7 +84,7 @@ func (o *personWithLockBase) Initialize() {
 
 	o.sysTimestamp = time.Time{}
 
-	o.sysTimestampIsNull = true
+	o.sysTimestampIsNull = false
 	o.sysTimestampIsValid = true
 	o.sysTimestampIsDirty = true
 
@@ -102,9 +102,9 @@ func (o *personWithLockBase) OriginalPrimaryKey() string {
 	return o._originalPK
 }
 
-// Copy copies all valid fields (except for the primary key) to a new PersonWithLock object.
+// Copy copies all valid fields to a new PersonWithLock object.
 // Forward reference ids will be copied, but reverse and many-many references will not.
-
+// Attached objects will not be included in the copy.
 // Call Save() on the new object to save it into the database.
 // Copy might panic if any fields in the database were set to a size larger than the
 // maximum size through a process that accessed the database outside of the ORM.
@@ -115,9 +115,6 @@ func (o *personWithLockBase) Copy() (newObject *PersonWithLock) {
 	}
 	if o.lastNameIsValid {
 		newObject.SetLastName(o.lastName)
-	}
-	if o.sysTimestampIsValid {
-		newObject.SetSysTimestamp(o.sysTimestamp)
 	}
 	return
 }
@@ -211,27 +208,6 @@ func (o *personWithLockBase) SysTimestamp_I() interface{} {
 		return nil
 	}
 	return o.sysTimestamp
-}
-
-func (o *personWithLockBase) SetSysTimestamp(i interface{}) {
-	o.sysTimestampIsValid = true
-	if i == nil {
-		if !o.sysTimestampIsNull {
-			o.sysTimestampIsNull = true
-			o.sysTimestampIsDirty = true
-			o.sysTimestamp = time.Time{}
-		}
-	} else {
-		v := i.(time.Time)
-		if o.sysTimestampIsNull ||
-			!o._restored ||
-			o.sysTimestamp != v {
-
-			o.sysTimestampIsNull = false
-			o.sysTimestamp = v
-			o.sysTimestampIsDirty = true
-		}
-	}
 }
 
 // GetAlias returns the alias for the given key.
@@ -970,31 +946,6 @@ func (o *personWithLockBase) UnmarshalStringMap(m map[string]interface{}) (err e
 					return fmt.Errorf("json field %s must be a string", k)
 				} else {
 					o.SetLastName(s)
-				}
-			}
-
-		case "sysTimestamp":
-			{
-				if v == nil {
-					o.SetSysTimestamp(v)
-					continue
-				}
-
-				switch d := v.(type) {
-				case float64:
-					// a numeric value, which for JSON, means milliseconds since epoc
-					o.SetSysTimestamp(time.UnixMilli(int64(d)).UTC())
-				case string:
-					// an ISO8601 string (hopefully)
-					var t time.Time
-					err = t.UnmarshalJSON([]byte(`"` + d + `"`))
-					if err != nil {
-						return fmt.Errorf("JSON format error for time field %s: %w", k, err)
-					}
-					t = t.UTC()
-					o.SetSysTimestamp(t)
-				default:
-					return fmt.Errorf("json field %s must be a number or a string", k)
 				}
 			}
 

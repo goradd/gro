@@ -294,32 +294,32 @@ func (r SqlReceiver) TimeI() interface{} {
 		return nil
 	}
 
-	var t time.Time
-	var err error
 	switch v := r.R.(type) {
 	case time.Time:
-		t = v
+		return v
 	case string:
-		t = ParseTime(v) // Note that this must always include timezone information if coming from a timestamp with timezone column
+		return parseTime(v) // Note that this must always include timezone information if coming from a timestamp with timezone column
 	case []byte:
-		s := string(v)
-		if s == "NULL" {
-			return nil
-		}
-		u := strings.ToUpper(s)
-		if strings2.StartsWith(u, "CURRENT_TIMESTAMP") {
-			return "now"
-		}
-		t = ParseTime(s)
-		if err != nil {
-			return nil
-		}
+		return parseTime(string(v))
 		// TODO: SQL Lite, may return an int or float. Not sure we can support these.
 	default:
 		log.Panicln("Unknown type returned from sql driver")
 		return nil
 	}
+}
 
+func parseTime(s string) interface{} {
+	if s == "NULL" {
+		return nil
+	}
+	u := strings.ToUpper(s)
+	if strings2.StartsWith(u, "CURRENT_TIMESTAMP") {
+		return "now"
+	}
+	t := ParseTime(s)
+	if t.IsZero() {
+		return t
+	}
 	return t.UTC()
 }
 
@@ -392,16 +392,4 @@ func (r SqlReceiver) UnpackDefaultValue(typ schema.ColumnType, size int) interfa
 	default:
 		return r.R
 	}
-}
-
-func parseTime(s string) interface{} {
-	if s == "NULL" {
-		return nil
-	}
-	u := strings.ToUpper(s)
-	if strings2.StartsWith(u, "CURRENT_TIMESTAMP") {
-		return "now"
-	}
-	return ParseTime(s)
-	// TODO: SQL Lite, may return an int or float. Not sure we can support these.
 }

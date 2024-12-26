@@ -103,9 +103,9 @@ func (o *addressBase) OriginalPrimaryKey() string {
 	return o._originalPK
 }
 
-// Copy copies all valid fields (except for the primary key) to a new Address object.
+// Copy copies all valid fields to a new Address object.
 // Forward reference ids will be copied, but reverse and many-many references will not.
-
+// Attached objects will not be included in the copy.
 // Call Save() on the new object to save it into the database.
 // Copy might panic if any fields in the database were set to a size larger than the
 // maximum size through a process that accessed the database outside of the ORM.
