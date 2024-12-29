@@ -1,0 +1,66 @@
+{{g
+    orderedTables := database.MarshalOrder()
+    var processedTables maps.Set[string]
+}}
+
+
+{{
+
+func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
+	encoder := json.NewEncoder(writer)
+	encoder.SetIndent("", "  ")
+
+	if _,err := io.WriteString(writer, "[\n"); err != nil {
+		return err
+	}
+
+{{for tableNum,table := range orderedTables}}
+{{g
+    processedTables.Add(table.QueryName)
+}}
+	{	// Write {{= table.IdentifierPlural }}
+		if _,err := io.WriteString(writer, "["); err != nil {
+			return err
+		}
+
+		if _,err := io.WriteString(writer, `"{{= table.QueryName }}",\n[`); err != nil {
+			return err
+		}
+
+		cursor := Query{{= table.IdentifierPlural }}(ctx).LoadCursor()
+		defer cursor.Close()
+		if obj := cursor.Next(); obj != nil {
+			if err := encoder.Encode(obj); err != nil {
+				return err
+			}
+		}
+
+		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+			if _, err := io.WriteString(writer, ",\n"); err != nil {
+				return err
+			}
+			if err := encoder.Encode(obj); err != nil {
+				return err
+			}
+		}
+
+		if _,err := io.WriteString(writer, "]"); err != nil {
+			return err
+		}
+
+{{if tableNum < len(orderedTables) - 1}}
+        if _,err := io.WriteString(writer, ","); err != nil {
+            return err
+        }
+{{if}}
+		if _,err := io.WriteString(writer, "\n"); err != nil {
+			return err
+		}
+	}
+{{for}}
+
+	_, err := io.WriteString(writer, "]")
+	return err
+}
+
+}}

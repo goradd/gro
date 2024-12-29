@@ -50,4 +50,6 @@ func Database() db.DatabaseI {
     return db.GetDatabase("{{= database.Key}}")
 }
 
+{{: "json_encode.tmpl" }}
+
 }}
