@@ -5,11 +5,11 @@
 {{
 {{# Update many-many reference enums }}
         if o.{{= mm.VariableIdentifier() }}IsDirty {
-            d.Associate(ctx,
+            db.Associate(ctx,
+                d,
                 "{{= mm.AssnTableName }}",
                 "{{= mm.AssnSourceColumnName }}",
                 o.PrimaryKey(),
-                "{{= mm.DestinationEnumTable.QueryName }}",
                 "{{= mm.AssnDestColumnName }}",
                 o.{{= mm.VariableIdentifier() }})
         }

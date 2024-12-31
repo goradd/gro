@@ -103,9 +103,9 @@ func (m *Database) importAssociation(schemaAssn *schema.AssociationTable) {
 		slog.Warn(fmt.Sprintf("Skipped association table %s: only one associated table can be an enum table, not both.", schemaAssn.Name))
 		return
 	} else if e1 != nil && t2 != nil {
-		makeManyManyEnumRef(schemaAssn.Name, schemaAssn.Column1, schemaAssn.Column2, t2, e1, schemaAssn.Title1, schemaAssn.Title1Plural, schemaAssn.Identifier1, schemaAssn.Identifier1Plural)
+		makeManyManyEnumRef(schemaAssn.Name, schemaAssn.Column2, schemaAssn.Column1, t2, e1, schemaAssn.Title1, schemaAssn.Title1Plural, schemaAssn.Identifier1, schemaAssn.Identifier1Plural)
 	} else if e2 != nil && t1 != nil {
-		makeManyManyEnumRef(schemaAssn.Name, schemaAssn.Column2, schemaAssn.Column1, t1, e2, schemaAssn.Title2, schemaAssn.Title2Plural, schemaAssn.Identifier2, schemaAssn.Identifier2Plural)
+		makeManyManyEnumRef(schemaAssn.Name, schemaAssn.Column1, schemaAssn.Column2, t1, e2, schemaAssn.Title2, schemaAssn.Title2Plural, schemaAssn.Identifier2, schemaAssn.Identifier2Plural)
 	} else {
 		slog.Warn(fmt.Sprintf("Skipped association table %s: missing associated table.", schemaAssn.Name))
 		return

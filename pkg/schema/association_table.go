@@ -26,7 +26,7 @@ type AssociationTable struct {
 	// Title1 is the singular description that will be used to describe the objects to human readers.
 	// This will be used to create the corresponding reference field name in the database and Go identifier.
 	// Note that this isn't necessarily the table name. For example a "person" table might be used in a relationship
-	// to describe members of a group. The title in that case should be "Member".
+	// to describe members of a group. The title in that case could be "Member".
 	Title1 string `json:"title1,omitempty"`
 
 	// Title1Plural is the plural description that will be used to describe the objects to human readers.

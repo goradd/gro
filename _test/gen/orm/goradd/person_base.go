@@ -1184,12 +1184,12 @@ func (o *personBase) update(ctx context.Context) {
 		}
 
 		if o.mmPersonTypesIsDirty {
-			d.Associate(ctx,
+			db.Associate(ctx,
+				d,
 				"person_persontype_assn",
-				"person_type_id",
-				o.PrimaryKey(),
-				"person_type_enum",
 				"person_id",
+				o.PrimaryKey(),
+				"person_type_id",
 				o.mmPersonTypes)
 		}
 
@@ -1252,12 +1252,12 @@ func (o *personBase) insert(ctx context.Context) {
 		}
 
 		if len(o.mmPersonTypes) != 0 {
-			d.Associate(ctx,
+			db.Associate(ctx,
+				d,
 				"person_persontype_assn",
-				"person_type_id",
-				o.PrimaryKey(),
-				"person_type_enum",
 				"person_id",
+				o.PrimaryKey(),
+				"person_type_id",
 				o.mmPersonTypes)
 		}
 
@@ -1361,21 +1361,21 @@ func (o *personBase) Delete(ctx context.Context) {
 			o.revManagerProjects.Clear()
 		}
 
-		d.Associate(ctx,
+		db.Associate(ctx,
+			d,
 			"person_persontype_assn",
-			"person_type_id",
+			"person_id",
 			o.PrimaryKey(),
-			"",
 			"id",
-			nil)
+			[]PersonType(nil))
 
-		d.Associate(ctx,
+		db.Associate(ctx,
+			d,
 			"team_member_project_assn",
 			"team_member_id",
 			o.PrimaryKey(),
-			"project",
 			"id",
-			nil)
+			[]Project(nil))
 
 		d.Delete(ctx, "person", map[string]any{"ID": o.id})
 	})

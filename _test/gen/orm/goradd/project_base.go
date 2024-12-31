@@ -1891,29 +1891,29 @@ func (o *projectBase) Delete(ctx context.Context) {
 			o.revMilestones.Clear()
 		}
 
-		d.Associate(ctx,
+		db.Associate(ctx,
+			d,
 			"related_project_assn",
 			"parent_id",
 			o.PrimaryKey(),
-			"project",
 			"id",
-			nil)
+			[]Project(nil))
 
-		d.Associate(ctx,
+		db.Associate(ctx,
+			d,
 			"related_project_assn",
 			"child_id",
 			o.PrimaryKey(),
-			"project",
 			"id",
-			nil)
+			[]Project(nil))
 
-		d.Associate(ctx,
+		db.Associate(ctx,
+			d,
 			"team_member_project_assn",
 			"project_id",
 			o.PrimaryKey(),
-			"person",
 			"id",
-			nil)
+			[]Person(nil))
 
 		d.Delete(ctx, "project", map[string]any{"ID": o.id})
 	})

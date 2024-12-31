@@ -100,10 +100,10 @@ func (n *PersonNode) PersonTypes() *PersonTypeNode {
 		query.NewManyManyNode(
 			"goradd",
 			"person_persontype_assn",
-			"person_type_id",
+			"person_id",
 			"PersonTypes",
 			"",
-			"person_id",
+			"person_type_id",
 			"id",
 			false,
 		),

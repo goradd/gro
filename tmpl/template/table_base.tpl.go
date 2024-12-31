@@ -8806,7 +8806,8 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `IsDirty {
-            d.Associate(ctx,
+            db.Associate(ctx,
+                d,
                 "`); err != nil {
 				return
 			}
@@ -8826,15 +8827,6 @@ func (o *`); err != nil {
 
 			if _, err = io.WriteString(_w, `",
                 o.PrimaryKey(),
-                "`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, mm.DestinationEnumTable.QueryName); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `",
                 "`); err != nil {
 				return
 			}
@@ -9286,7 +9278,8 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `) != 0 {
-        d.Associate(ctx,
+        db.Associate(ctx,
+            d,
             "`); err != nil {
 				return
 			}
@@ -9306,15 +9299,6 @@ func (o *`); err != nil {
 
 			if _, err = io.WriteString(_w, `",
             o.PrimaryKey(),
-            "`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, mm.DestinationEnumTable.QueryName); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `",
             "`); err != nil {
 				return
 			}
@@ -10048,7 +10032,8 @@ func (o *`); err != nil {
 		for _, mm := range table.ManyManyReferences {
 
 			if _, err = io.WriteString(_w, `
-        d.Associate(ctx,
+        db.Associate(ctx,
+            d,
             "`); err != nil {
 				return
 			}
@@ -10072,21 +10057,20 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.QueryName()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `",
-            "`); err != nil {
-				return
-			}
-
 			if _, err = io.WriteString(_w, mm.PrimaryKey()); err != nil {
 				return
 			}
 
 			if _, err = io.WriteString(_w, `",
-            nil)
+            []`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(nil))
 
     `); err != nil {
 				return

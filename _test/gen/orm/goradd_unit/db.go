@@ -55,43 +55,6 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 		return err
 	}
 
-	{ // Write TypeTests
-		if _, err := io.WriteString(writer, "["); err != nil {
-			return err
-		}
-
-		if _, err := io.WriteString(writer, `"type_test",\n[`); err != nil {
-			return err
-		}
-
-		cursor := QueryTypeTests(ctx).LoadCursor()
-		defer cursor.Close()
-		if obj := cursor.Next(); obj != nil {
-			if err := encoder.Encode(obj); err != nil {
-				return err
-			}
-		}
-
-		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
-			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
-			}
-			if err := encoder.Encode(obj); err != nil {
-				return err
-			}
-		}
-
-		if _, err := io.WriteString(writer, "]"); err != nil {
-			return err
-		}
-
-		if _, err := io.WriteString(writer, ","); err != nil {
-			return err
-		}
-		if _, err := io.WriteString(writer, "\n"); err != nil {
-			return err
-		}
-	}
 	{ // Write UnsupportedTypes
 		if _, err := io.WriteString(writer, "["); err != nil {
 			return err
@@ -129,16 +92,16 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 			return err
 		}
 	}
-	{ // Write DoubleIndices
+	{ // Write TypeTests
 		if _, err := io.WriteString(writer, "["); err != nil {
 			return err
 		}
 
-		if _, err := io.WriteString(writer, `"double_index",\n[`); err != nil {
+		if _, err := io.WriteString(writer, `"type_test",\n[`); err != nil {
 			return err
 		}
 
-		cursor := QueryDoubleIndices(ctx).LoadCursor()
+		cursor := QueryTypeTests(ctx).LoadCursor()
 		defer cursor.Close()
 		if obj := cursor.Next(); obj != nil {
 			if err := encoder.Encode(obj); err != nil {
@@ -240,6 +203,43 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 			return err
 		}
 	}
+	{ // Write DoubleIndices
+		if _, err := io.WriteString(writer, "["); err != nil {
+			return err
+		}
+
+		if _, err := io.WriteString(writer, `"double_index",\n[`); err != nil {
+			return err
+		}
+
+		cursor := QueryDoubleIndices(ctx).LoadCursor()
+		defer cursor.Close()
+		if obj := cursor.Next(); obj != nil {
+			if err := encoder.Encode(obj); err != nil {
+				return err
+			}
+		}
+
+		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+			if _, err := io.WriteString(writer, ",\n"); err != nil {
+				return err
+			}
+			if err := encoder.Encode(obj); err != nil {
+				return err
+			}
+		}
+
+		if _, err := io.WriteString(writer, "]"); err != nil {
+			return err
+		}
+
+		if _, err := io.WriteString(writer, ","); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(writer, "\n"); err != nil {
+			return err
+		}
+	}
 	{ // Write ForwardCascades
 		if _, err := io.WriteString(writer, "["); err != nil {
 			return err
@@ -314,53 +314,16 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 			return err
 		}
 	}
-	{ // Write ForwardRestrictUniques
+	{ // Write ForwardNullUniques
 		if _, err := io.WriteString(writer, "["); err != nil {
 			return err
 		}
 
-		if _, err := io.WriteString(writer, `"forward_restrict_unique",\n[`); err != nil {
+		if _, err := io.WriteString(writer, `"forward_null_unique",\n[`); err != nil {
 			return err
 		}
 
-		cursor := QueryForwardRestrictUniques(ctx).LoadCursor()
-		defer cursor.Close()
-		if obj := cursor.Next(); obj != nil {
-			if err := encoder.Encode(obj); err != nil {
-				return err
-			}
-		}
-
-		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
-			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
-			}
-			if err := encoder.Encode(obj); err != nil {
-				return err
-			}
-		}
-
-		if _, err := io.WriteString(writer, "]"); err != nil {
-			return err
-		}
-
-		if _, err := io.WriteString(writer, ","); err != nil {
-			return err
-		}
-		if _, err := io.WriteString(writer, "\n"); err != nil {
-			return err
-		}
-	}
-	{ // Write ForwardNulls
-		if _, err := io.WriteString(writer, "["); err != nil {
-			return err
-		}
-
-		if _, err := io.WriteString(writer, `"forward_null",\n[`); err != nil {
-			return err
-		}
-
-		cursor := QueryForwardNulls(ctx).LoadCursor()
+		cursor := QueryForwardNullUniques(ctx).LoadCursor()
 		defer cursor.Close()
 		if obj := cursor.Next(); obj != nil {
 			if err := encoder.Encode(obj); err != nil {
@@ -425,16 +388,53 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 			return err
 		}
 	}
-	{ // Write ForwardNullUniques
+	{ // Write ForwardNulls
 		if _, err := io.WriteString(writer, "["); err != nil {
 			return err
 		}
 
-		if _, err := io.WriteString(writer, `"forward_null_unique",\n[`); err != nil {
+		if _, err := io.WriteString(writer, `"forward_null",\n[`); err != nil {
 			return err
 		}
 
-		cursor := QueryForwardNullUniques(ctx).LoadCursor()
+		cursor := QueryForwardNulls(ctx).LoadCursor()
+		defer cursor.Close()
+		if obj := cursor.Next(); obj != nil {
+			if err := encoder.Encode(obj); err != nil {
+				return err
+			}
+		}
+
+		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+			if _, err := io.WriteString(writer, ",\n"); err != nil {
+				return err
+			}
+			if err := encoder.Encode(obj); err != nil {
+				return err
+			}
+		}
+
+		if _, err := io.WriteString(writer, "]"); err != nil {
+			return err
+		}
+
+		if _, err := io.WriteString(writer, ","); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(writer, "\n"); err != nil {
+			return err
+		}
+	}
+	{ // Write ForwardRestrictUniques
+		if _, err := io.WriteString(writer, "["); err != nil {
+			return err
+		}
+
+		if _, err := io.WriteString(writer, `"forward_restrict_unique",\n[`); err != nil {
+			return err
+		}
+
+		cursor := QueryForwardRestrictUniques(ctx).LoadCursor()
 		defer cursor.Close()
 		if obj := cursor.Next(); obj != nil {
 			if err := encoder.Encode(obj); err != nil {

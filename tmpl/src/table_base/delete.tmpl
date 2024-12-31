@@ -69,13 +69,13 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) {
     {{for}}
 
     {{for _,mm := range table.ManyManyReferences}}
-        d.Associate(ctx,
+        db.Associate(ctx,
+            d,
             "{{= mm.AssnTableName }}",
             "{{= mm.AssnSourceColumnName }}",
             o.PrimaryKey(),
-            "{{= mm.QueryName() }}",
             "{{= mm.PrimaryKey() }}",
-            nil)
+            []{{= mm.ObjectType() }}(nil))
 
     {{for}}
 
