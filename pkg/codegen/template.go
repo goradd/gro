@@ -23,8 +23,8 @@ type TableGenerator interface {
 
 type EnumGenerator interface {
 	Template
-	FileName(*model.EnumTable) string
-	GenerateEnum(table *model.EnumTable, f io.Writer, importPath string) error
+	FileName(*model.Enum) string
+	GenerateEnum(table *model.Enum, f io.Writer, importPath string) error
 }
 
 var templates []Template

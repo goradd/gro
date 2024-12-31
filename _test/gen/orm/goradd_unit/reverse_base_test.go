@@ -3,10 +3,13 @@
 package goradd_unit
 
 import (
+	"context"
 	"testing"
 
+	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestReverse_SetName(t *testing.T) {
@@ -26,4 +29,34 @@ func TestReverse_SetName(t *testing.T) {
 	assert.Panics(t, func() {
 		obj.SetName(name)
 	})
+}
+
+// createMinimalSampleReverse creates and saves a minimal version of a Reverse object
+// for testing.
+func createMinimalSampleReverse(ctx context.Context) *Reverse {
+	obj := NewReverse()
+
+	name := test.RandomValue[string](100)
+	obj.SetName(name)
+
+	obj.Save(ctx)
+	return obj
+}
+func TestReverse_CRUD(t *testing.T) {
+	obj := NewReverse()
+	ctx := db.NewContext(nil)
+
+	name := test.RandomValue[string](100)
+	obj.SetName(name)
+
+	// Test retrieval
+	obj = LoadReverse(ctx, obj.PrimaryKey())
+	require.NotNil(t, obj)
+
+	assert.True(t, obj.IDIsValid())
+	assert.NotEmpty(t, obj.ID())
+
+	assert.True(t, obj.NameIsValid())
+	assert.Equal(t, name, obj.Name())
+
 }

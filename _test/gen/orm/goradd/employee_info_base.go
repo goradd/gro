@@ -132,6 +132,7 @@ func (o *employeeInfoBase) PersonIDIsValid() bool {
 // SetPersonID sets the value of PersonID in the object, to be saved later using the Save() function.
 func (o *employeeInfoBase) SetPersonID(personID string) {
 	o.personIDIsValid = true
+
 	if o.personID != personID || !o._restored {
 		o.personID = personID
 		o.personIDIsDirty = true
@@ -188,6 +189,7 @@ func (o *employeeInfoBase) EmployeeNumberIsValid() bool {
 // SetEmployeeNumber sets the value of EmployeeNumber in the object, to be saved later using the Save() function.
 func (o *employeeInfoBase) SetEmployeeNumber(employeeNumber int) {
 	o.employeeNumberIsValid = true
+
 	if o.employeeNumber != employeeNumber || !o._restored {
 		o.employeeNumber = employeeNumber
 		o.employeeNumberIsDirty = true

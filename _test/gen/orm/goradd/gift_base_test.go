@@ -3,10 +3,13 @@
 package goradd
 
 import (
+	"context"
 	"testing"
 
+	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGift_SetNumber(t *testing.T) {
@@ -39,4 +42,40 @@ func TestGift_SetName(t *testing.T) {
 	assert.Panics(t, func() {
 		obj.SetName(name)
 	})
+}
+
+// createMinimalSampleGift creates and saves a minimal version of a Gift object
+// for testing.
+func createMinimalSampleGift(ctx context.Context) *Gift {
+	obj := NewGift()
+
+	number := test.RandomValue[int](0)
+	obj.SetNumber(number)
+
+	name := test.RandomValue[string](50)
+	obj.SetName(name)
+
+	obj.Save(ctx)
+	return obj
+}
+func TestGift_CRUD(t *testing.T) {
+	obj := NewGift()
+	ctx := db.NewContext(nil)
+
+	number := test.RandomValue[int](0)
+	obj.SetNumber(number)
+
+	name := test.RandomValue[string](50)
+	obj.SetName(name)
+
+	// Test retrieval
+	obj = LoadGift(ctx, obj.PrimaryKey())
+	require.NotNil(t, obj)
+
+	assert.True(t, obj.NumberIsValid())
+	assert.Equal(t, number, obj.Number())
+
+	assert.True(t, obj.NameIsValid())
+	assert.Equal(t, name, obj.Name())
+
 }

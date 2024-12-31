@@ -193,7 +193,6 @@ func (o *loginBase) SetPersonID(i interface{}) {
 		if o.personIDIsNull ||
 			!o._restored ||
 			o.personID != v {
-
 			o.personIDIsNull = false
 			o.personID = v
 			o.personIDIsDirty = true
@@ -258,6 +257,7 @@ func (o *loginBase) UsernameIsValid() bool {
 // SetUsername sets the value of Username in the object, to be saved later using the Save() function.
 func (o *loginBase) SetUsername(username string) {
 	o.usernameIsValid = true
+
 	if utf8.RuneCountInString(username) > LoginUsernameMaxLength {
 		panic("attempted to set Login.Username to a value larger than its maximum length in runes")
 	}
@@ -312,7 +312,6 @@ func (o *loginBase) SetPassword(i interface{}) {
 		if o.passwordIsNull ||
 			!o._restored ||
 			o.password != v {
-
 			o.passwordIsNull = false
 			o.password = v
 			o.passwordIsDirty = true
@@ -336,6 +335,7 @@ func (o *loginBase) IsEnabledIsValid() bool {
 // SetIsEnabled sets the value of IsEnabled in the object, to be saved later using the Save() function.
 func (o *loginBase) SetIsEnabled(isEnabled bool) {
 	o.isEnabledIsValid = true
+
 	if o.isEnabled != isEnabled || !o._restored {
 		o.isEnabled = isEnabled
 		o.isEnabledIsDirty = true

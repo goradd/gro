@@ -3,10 +3,13 @@
 package goradd
 
 import (
+	"context"
 	"testing"
 
+	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAddress_SetPersonID(t *testing.T) {
@@ -64,4 +67,54 @@ func TestAddress_SetCity(t *testing.T) {
 	assert.Panics(t, func() {
 		obj.SetCity(city)
 	})
+}
+
+// createMinimalSampleAddress creates and saves a minimal version of a Address object
+// for testing.
+func createMinimalSampleAddress(ctx context.Context) *Address {
+	obj := NewAddress()
+
+	// A required forward reference will need to be fulfilled just to save the minimal version of this object
+	objPerson := createMinimalSamplePerson(ctx)
+	obj.SetPerson(objPerson)
+
+	street := test.RandomValue[string](100)
+	obj.SetStreet(street)
+
+	city := test.RandomValue[string](100)
+	obj.SetCity(city)
+
+	obj.Save(ctx)
+	return obj
+}
+func TestAddress_CRUD(t *testing.T) {
+	obj := NewAddress()
+	ctx := db.NewContext(nil)
+
+	objPerson := createMinimalSamplePerson(ctx)
+	obj.SetPerson(objPerson)
+
+	street := test.RandomValue[string](100)
+	obj.SetStreet(street)
+
+	city := test.RandomValue[string](100)
+	obj.SetCity(city)
+
+	// Test retrieval
+	obj = LoadAddress(ctx, obj.PrimaryKey())
+	require.NotNil(t, obj)
+
+	assert.True(t, obj.IDIsValid())
+	assert.NotEmpty(t, obj.ID())
+
+	assert.True(t, obj.PersonIDIsValid())
+	assert.NotEmpty(t, obj.PersonID())
+
+	assert.True(t, obj.StreetIsValid())
+	assert.Equal(t, street, obj.Street())
+
+	assert.True(t, obj.CityIsValid())
+	assert.False(t, obj.CityIsNull())
+	assert.Equal(t, city, obj.City())
+
 }

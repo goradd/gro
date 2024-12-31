@@ -379,7 +379,7 @@ func processTypeInfo(column mysqlColumn) (
 		}
 
 	case "int":
-		maxLength = 0
+		maxLength = 32 // mysql standard int has a 32-bit limit even in 64-bit implementations
 		if isUnsigned {
 			typ = schema.ColTypeUint
 		} else {
@@ -395,7 +395,7 @@ func processTypeInfo(column mysqlColumn) (
 		}
 
 	case "mediumint":
-		maxLength = 32
+		maxLength = 24
 		if isUnsigned {
 			typ = schema.ColTypeUint
 		} else {
@@ -452,8 +452,8 @@ func processTypeInfo(column mysqlColumn) (
 	case "decimal":
 		// No native equivalent in Go.
 		// See the shopspring/decimal package for possible support.
-		// You will need to shepherd numbers into and out of string format to move data to the database.
-		typ = schema.ColTypeString
+		// You will need to shepherd numbers into and out of byte format to move data to the database.
+		typ = schema.ColTypeUnknown
 		maxLength = uint64(dataLen) + 3
 
 	case "year":
@@ -461,12 +461,12 @@ func processTypeInfo(column mysqlColumn) (
 
 	case "set":
 		err = fmt.Errorf("using association tables is preferred to using DB SET columns")
-		typ = schema.ColTypeString
+		typ = schema.ColTypeUnknown
 		maxLength = uint64(column.characterMaxLen.Int64)
 
 	case "enum":
 		err = fmt.Errorf("using enum tables is preferred to using DB ENUM columns")
-		typ = schema.ColTypeString
+		typ = schema.ColTypeUnknown
 		maxLength = uint64(column.characterMaxLen.Int64)
 
 	default:
@@ -507,14 +507,14 @@ func (m *DB) schemaFromRawTables(rawTables map[string]mysqlTable, options map[st
 				dd.AssociationTables = append(dd.AssociationTables, &mm)
 			}
 		} else {
-			t := m.getTableSchema(rawTable)
+			t := m.getTableSchema(rawTable, dd.EnumTableSuffix)
 			dd.Tables = append(dd.Tables, &t)
 		}
 	}
 	return dd
 }
 
-func (m *DB) getTableSchema(t mysqlTable) schema.Table {
+func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema.Table {
 	var columnSchemas []*schema.Column
 
 	// Build the indexes
@@ -556,7 +556,7 @@ func (m *DB) getTableSchema(t mysqlTable) schema.Table {
 
 	var pkCount int
 	for _, col := range t.columns {
-		cd := m.getColumnSchema(t, col, singleIndexes.Has(col.name), pkColumns.Has(col.name), uniqueColumns.Has(col.name))
+		cd := m.getColumnSchema(t, col, singleIndexes.Has(col.name), pkColumns.Has(col.name), uniqueColumns.Has(col.name), enumTableSuffix)
 
 		if cd.Type == schema.ColTypeAutoPrimaryKey || cd.IndexLevel == schema.IndexLevelManualPrimaryKey {
 			// private keys go first
@@ -606,7 +606,7 @@ func (m *DB) getTableSchema(t mysqlTable) schema.Table {
 }
 
 func (m *DB) getEnumTableSchema(t mysqlTable) (ed schema.EnumTable, err error) {
-	td := m.getTableSchema(t)
+	td := m.getTableSchema(t, "")
 
 	var columnNames []string
 	var receiverTypes []ReceiverType
@@ -683,7 +683,13 @@ func (m *DB) getEnumTableSchema(t mysqlTable) (ed schema.EnumTable, err error) {
 	return
 }
 
-func (m *DB) getColumnSchema(table mysqlTable, column mysqlColumn, isIndexed bool, isPk bool, isUnique bool) schema.Column {
+func (m *DB) getColumnSchema(table mysqlTable,
+	column mysqlColumn,
+	isIndexed bool,
+	isPk bool,
+	isUnique bool,
+	enumTableSuffix string) schema.Column {
+
 	cd := schema.Column{
 		Name: column.name,
 	}
@@ -696,6 +702,7 @@ func (m *DB) getColumnSchema(table mysqlTable, column mysqlColumn, isIndexed boo
 	isAuto := strings.Contains(column.extra, "auto_increment")
 	if isAuto {
 		cd.Type = schema.ColTypeAutoPrimaryKey
+		cd.Size = 0
 	} else if isPk {
 		cd.IndexLevel = schema.IndexLevelManualPrimaryKey
 	} else if isUnique {
@@ -704,7 +711,7 @@ func (m *DB) getColumnSchema(table mysqlTable, column mysqlColumn, isIndexed boo
 		cd.IndexLevel = schema.IndexLevelIndexed
 	}
 
-	cd.IsOptional = column.isNullable == "YES"
+	cd.IsNullable = column.isNullable == "YES"
 
 	if fk, ok2 := table.fkMap[column.name]; ok2 {
 		if fk.referencedColumnIndexName.String != "PRIMARY" {
@@ -712,6 +719,12 @@ func (m *DB) getColumnSchema(table mysqlTable, column mysqlColumn, isIndexed boo
 		}
 		cd.Reference = &schema.Reference{
 			Table: fk.referencedTableName.String,
+		}
+		if strings.HasSuffix(fk.referencedTableName.String, enumTableSuffix) {
+			cd.Type = schema.ColTypeEnum
+		} else {
+			cd.Type = schema.ColTypeReference
+			cd.Size = 0
 		}
 	}
 
@@ -723,7 +736,7 @@ func (m *DB) getColumnSchema(table mysqlTable, column mysqlColumn, isIndexed boo
 }
 
 func (m *DB) getAssociationSchema(t mysqlTable, enumTableSuffix string) (mm schema.AssociationTable, err error) {
-	td := m.getTableSchema(t)
+	td := m.getTableSchema(t, enumTableSuffix)
 	if len(td.Columns) != 2 {
 		err = fmt.Errorf("association table must have only 2 columns")
 		return
@@ -739,12 +752,12 @@ func (m *DB) getAssociationSchema(t mysqlTable, enumTableSuffix string) (mm sche
 			return
 		}
 
-		if cd.IsOptional {
+		if cd.IsNullable {
 			err = fmt.Errorf("column " + cd.Name + " cannot be nullable.")
 			return
 		}
 
-		if strings.HasSuffix(cd.Reference.Table, enumTableSuffix) {
+		if cd.Type == schema.ColTypeEnum {
 			if typeIndex != -1 {
 				err = fmt.Errorf("column " + cd.Name + " cannot have two foreign keys to enum tables.")
 				return

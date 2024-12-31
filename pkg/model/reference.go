@@ -7,7 +7,7 @@ type Reference struct {
 	// Table is the table on the other end of the foreign key.
 	Table *Table
 	// If this is a reference to an enum table, EnumTable will point to that enum table
-	EnumTable *EnumTable
+	EnumTable *Enum
 	// The go name of the forward referenced object
 	Identifier string
 	// The local name used to refer to the referenced object

@@ -122,6 +122,7 @@ func (o *doubleIndexBase) IDIsValid() bool {
 // SetID sets the value of ID in the object, to be saved later using the Save() function.
 func (o *doubleIndexBase) SetID(id int) {
 	o.idIsValid = true
+
 	if o.id != id || !o._restored {
 		o.id = id
 		o.idIsDirty = true
@@ -144,6 +145,7 @@ func (o *doubleIndexBase) FieldIntIsValid() bool {
 // SetFieldInt sets the value of FieldInt in the object, to be saved later using the Save() function.
 func (o *doubleIndexBase) SetFieldInt(fieldInt int) {
 	o.fieldIntIsValid = true
+
 	if o.fieldInt != fieldInt || !o._restored {
 		o.fieldInt = fieldInt
 		o.fieldIntIsDirty = true
@@ -166,6 +168,7 @@ func (o *doubleIndexBase) FieldStringIsValid() bool {
 // SetFieldString sets the value of FieldString in the object, to be saved later using the Save() function.
 func (o *doubleIndexBase) SetFieldString(fieldString string) {
 	o.fieldStringIsValid = true
+
 	if utf8.RuneCountInString(fieldString) > DoubleIndexFieldStringMaxLength {
 		panic("attempted to set DoubleIndex.FieldString to a value larger than its maximum length in runes")
 	}

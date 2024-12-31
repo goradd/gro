@@ -11,20 +11,20 @@ type EnumField struct {
 	// The name of the first field is typically "id" by convention.
 	// The name of the second field must be "name".
 	// The name of the following fields is up to you, but should be lower_snake_case.
-	Name string
+	Name string `json:"name"`
 	// Title is the title of the data stored in the field.
-	Title string
+	Title string `json:"title,omitempty"`
 	// TitlePlural is the plural of the Title.
-	TitlePlural string
+	TitlePlural string `json:"title_plural,omitempty"`
 	// Identifier is the name used in Go code to access the data.
-	Identifier string
+	Identifier string `json:"identifier,omitempty"`
 	// IdentifierPlural is the plural of the Identifier.
-	IdentifierPlural string
+	IdentifierPlural string `json:"identifier_plural,omitempty"`
 	// Type is the type of the column.
 	// The first column must be type ColTypeInt.
 	// The second column must be type ColTypeString.
 	// Other columns can be one of the other types, but not ColTypeReference.
-	Type ColumnType
+	Type ColumnType `json:"type"`
 }
 
 // EnumTable describes a table that contains enumerated values. The resulting Go code will be a type
@@ -37,7 +37,7 @@ type EnumTable struct {
 	// For databases that support schemas, this is the name of the schema of the table.
 	// Leave blank for the default schema.
 	// Databases that do not support schemas will have this prepended to the name of the table.
-	Schema string `json:"schema"`
+	Schema string `json:"schema,omitempty"`
 
 	// Fields describe the fields defined in the enum table.
 	// The first field name MUST be the id field, and 2nd MUST be the name field.
@@ -56,17 +56,17 @@ type EnumTable struct {
 	// If creating a multi-language app, your app would provide translation from this string to the language of choice.
 	// Can be multiple words. Should be lower-case. The app will use github.com/goradd/strings.ReverseTitle() to capitalize this if needed.
 	// If left blank, the app will base this on the Name of the table.
-	Title string `json:"title"`
+	Title string `json:"title,omitempty"`
 
 	// TitlePlural is the plural form of the Title.
-	TitlePlural string `json:"title_plural"`
+	TitlePlural string `json:"title_plural,omitempty"`
 
 	// Identifier is the corresponding Go object name. It must obey Go identifier labeling rules. Leave blank
 	// to base it on the Name.
-	Identifier string `json:"identifier"`
+	Identifier string `json:"identifier,omitempty"`
 
 	// IdentifierPlural is the plural form of Identifier.
-	IdentifierPlural string `json:"identifier_plural"`
+	IdentifierPlural string `json:"identifier_plural,omitempty"`
 }
 
 func (t *EnumTable) QualifiedName() string {

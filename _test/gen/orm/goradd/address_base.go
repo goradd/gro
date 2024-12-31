@@ -151,6 +151,7 @@ func (o *addressBase) PersonIDIsValid() bool {
 // SetPersonID sets the value of PersonID in the object, to be saved later using the Save() function.
 func (o *addressBase) SetPersonID(personID string) {
 	o.personIDIsValid = true
+
 	if o.personID != personID || !o._restored {
 		o.personID = personID
 		o.personIDIsDirty = true
@@ -207,6 +208,7 @@ func (o *addressBase) StreetIsValid() bool {
 // SetStreet sets the value of Street in the object, to be saved later using the Save() function.
 func (o *addressBase) SetStreet(street string) {
 	o.streetIsValid = true
+
 	if utf8.RuneCountInString(street) > AddressStreetMaxLength {
 		panic("attempted to set Address.Street to a value larger than its maximum length in runes")
 	}
@@ -261,7 +263,6 @@ func (o *addressBase) SetCity(i interface{}) {
 		if o.cityIsNull ||
 			!o._restored ||
 			o.city != v {
-
 			o.cityIsNull = false
 			o.city = v
 			o.cityIsDirty = true

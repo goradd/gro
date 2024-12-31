@@ -14,7 +14,7 @@ type AssociationTable struct {
 	// For databases that support schemas, this is the name of the schema of the table.
 	// Leave blank for the default schema.
 	// Databases that do not support schemas will have this prepended to the name of the table.
-	Schema string `json:"schema"`
+	Schema string `json:"schema,omitempty"`
 
 	// Table1 is the name of first table in the association.
 	// If it has a schema, should be of the form "schema.table"
@@ -27,17 +27,17 @@ type AssociationTable struct {
 	// This will be used to create the corresponding reference field name in the database and Go identifier.
 	// Note that this isn't necessarily the table name. For example a "person" table might be used in a relationship
 	// to describe members of a group. The title in that case should be "Member".
-	Title1 string `json:"title1"`
+	Title1 string `json:"title1,omitempty"`
 
 	// Title1Plural is the plural description that will be used to describe the objects to human readers.
 	// This will be used to create the corresponding Go identifier.
-	Title1Plural string `json:"title1_plural"`
+	Title1Plural string `json:"title1_plural,omitempty"`
 
 	// Identifier1 is the singular Go name that will be used for one object pointed at.
-	Identifier1 string `json:"identifier1"`
+	Identifier1 string `json:"identifier1,omitempty"`
 
 	// Identifier1Plural is the plural Go name that will be used for the objects pointed at.
-	Identifier1Plural string `json:"identifier1_plural"`
+	Identifier1Plural string `json:"identifier1_plural,omitempty"`
 
 	// Table2 is the name of second table in the association.
 	// If it has a schema, should be of the form "schema.table"
@@ -48,17 +48,17 @@ type AssociationTable struct {
 
 	// Title2 is the singular description that will be used to describe the objects to human readers.
 	// This will be used to create the corresponding reference field name in the database and Go identifier.
-	Title2 string `json:"title2"`
+	Title2 string `json:"title2,omitempty"`
 
 	// Title2Plural is the plural description that will be used to describe the objects to human readers.
 	// This will be used to create the corresponding Go identifier.
-	Title2Plural string `json:"title2_plural"`
+	Title2Plural string `json:"title2_plural,omitempty"`
 
 	// Identifier2 is the singular Go name that will be used for one object pointed at.
-	Identifier2 string `json:"identifier2"`
+	Identifier2 string `json:"identifier2,omitempty"`
 
 	// Identifier2Plural is the plural Go name that will be used for the objects pointed at.
-	Identifier2Plural string `json:"identifier2_plural"`
+	Identifier2Plural string `json:"identifier2_plural,omitempty"`
 }
 
 func (t *AssociationTable) QualifiedName() string {

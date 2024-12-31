@@ -45,6 +45,7 @@ package `); err != nil {
 
 import (
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	strings2 "github.com/goradd/strings"
 	"github.com/goradd/orm/pkg/test"
 	"testing"
@@ -279,7 +280,7 @@ import (
 			return
 		}
 
-		if col.Size > 0 && (col.Type == query.ColTypeBytes || col.Type == query.ColTypeString) {
+		if col.Size > 0 && (col.Type == query.ColTypeBytes || col.Type == query.ColTypeString || col.Type == query.ColTypeUnknown) {
 
 			if _, err = io.WriteString(_w, `    // test panic on setting value larger than maximum size allowed
     `); err != nil {
@@ -338,6 +339,444 @@ import (
 		}
 
 	}
+
+	//*** sample.tmpl
+
+	if _, err = io.WriteString(_w, `// createMinimalSample`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` creates and saves a minimal version of a `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` object
+// for testing.
+func createMinimalSample`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `(ctx context.Context) *`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` {
+    obj := New`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `()
+
+`); err != nil {
+		return
+	}
+
+	for _, col := range table.Columns {
+
+		if col.Type == query.ColTypeUnknown {
+			continue
+		} // cannot know what the set of valid input characters are.
+
+		if col.HasSetter() {
+
+			if _, err = io.WriteString(_w, `    `); err != nil {
+				return
+			}
+
+			if col.IsReference() {
+
+				if _, err = io.WriteString(_w, `
+        `); err != nil {
+					return
+				}
+
+				if !col.IsNullable {
+
+					if _, err = io.WriteString(_w, `
+    // A required forward reference will need to be fulfilled just to save the minimal version of this object
+    `); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, ` := createMinimalSample`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `(ctx)
+    obj.Set`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `(`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `)
+        `); err != nil {
+						return
+					}
+
+				}
+
+				if _, err = io.WriteString(_w, `
+        `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `
+    `); err != nil {
+					return
+				}
+
+			} else {
+
+				if _, err = io.WriteString(_w, `
+    `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ` := 	test.RandomValue[`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.GoType()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `](`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, strconv.FormatUint(uint64(col.Size), 10)); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `)
+    obj.Set`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `)
+    `); err != nil {
+					return
+				}
+
+			}
+
+			if _, err = io.WriteString(_w, `
+`); err != nil {
+				return
+			}
+
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `    obj.Save(ctx)
+    return obj
+}
+`); err != nil {
+		return
+	}
+
+	//*** save.tmpl
+
+	if _, err = io.WriteString(_w, `func Test`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `_CRUD(t *testing.T) {
+    obj := New`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `()
+    ctx := db.NewContext(nil)
+
+`); err != nil {
+		return
+	}
+
+	for _, col := range table.Columns {
+
+		if col.Type == query.ColTypeUnknown {
+			continue
+		} // cannot know what the set of valid input characters are.
+
+		if _, err = io.WriteString(_w, `
+`); err != nil {
+			return
+		}
+
+		if col.HasSetter() {
+
+			if _, err = io.WriteString(_w, `    `); err != nil {
+				return
+			}
+
+			if col.IsReference() {
+
+				if _, err = io.WriteString(_w, `
+    `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ` := createMinimalSample`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(ctx)
+    obj.Set`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `)
+    `); err != nil {
+					return
+				}
+
+			} else {
+
+				if _, err = io.WriteString(_w, `
+    `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ` := 	test.RandomValue[`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.GoType()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `](`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, strconv.FormatUint(uint64(col.Size), 10)); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `)
+    obj.Set`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `)
+    `); err != nil {
+					return
+				}
+
+			}
+
+			if _, err = io.WriteString(_w, `
+`); err != nil {
+				return
+			}
+
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
+    // Test retrieval
+    obj = Load`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey())
+    require.NotNil(t, obj)
+
+`); err != nil {
+		return
+	}
+
+	for _, col := range table.Columns {
+
+		if col.Type == query.ColTypeUnknown {
+			continue
+		} // cannot know what the set of valid input characters are.
+
+		if _, err = io.WriteString(_w, `
+    assert.True(t, obj.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `IsValid())
+`); err != nil {
+			return
+		}
+
+		if col.IsNullable {
+
+			if _, err = io.WriteString(_w, `    assert.False(t, obj.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsNull())
+`); err != nil {
+				return
+			}
+
+		}
+
+		if col.HasSetter() && !col.IsReference() {
+
+			if _, err = io.WriteString(_w, `    assert.Equal(t, `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `, obj.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `())
+`); err != nil {
+				return
+			}
+
+		} else {
+
+			if _, err = io.WriteString(_w, `    assert.NotEmpty(t, obj.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `())
+`); err != nil {
+				return
+			}
+
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
+}
+`); err != nil {
+		return
+	}
+
 	return
 }
 

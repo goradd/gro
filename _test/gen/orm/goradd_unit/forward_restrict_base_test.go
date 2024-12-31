@@ -3,10 +3,13 @@
 package goradd_unit
 
 import (
+	"context"
 	"testing"
 
+	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestForwardRestrict_SetName(t *testing.T) {
@@ -38,5 +41,45 @@ func TestForwardRestrict_SetReverseID(t *testing.T) {
 	// test zero
 	obj.SetReverseID("")
 	assert.Equal(t, "", obj.ReverseID(), "set empty")
+
+}
+
+// createMinimalSampleForwardRestrict creates and saves a minimal version of a ForwardRestrict object
+// for testing.
+func createMinimalSampleForwardRestrict(ctx context.Context) *ForwardRestrict {
+	obj := NewForwardRestrict()
+
+	name := test.RandomValue[string](100)
+	obj.SetName(name)
+
+	// A required forward reference will need to be fulfilled just to save the minimal version of this object
+	objReverse := createMinimalSampleReverse(ctx)
+	obj.SetReverse(objReverse)
+
+	obj.Save(ctx)
+	return obj
+}
+func TestForwardRestrict_CRUD(t *testing.T) {
+	obj := NewForwardRestrict()
+	ctx := db.NewContext(nil)
+
+	name := test.RandomValue[string](100)
+	obj.SetName(name)
+
+	objReverse := createMinimalSampleReverse(ctx)
+	obj.SetReverse(objReverse)
+
+	// Test retrieval
+	obj = LoadForwardRestrict(ctx, obj.PrimaryKey())
+	require.NotNil(t, obj)
+
+	assert.True(t, obj.IDIsValid())
+	assert.NotEmpty(t, obj.ID())
+
+	assert.True(t, obj.NameIsValid())
+	assert.Equal(t, name, obj.Name())
+
+	assert.True(t, obj.ReverseIDIsValid())
+	assert.NotEmpty(t, obj.ReverseID())
 
 }

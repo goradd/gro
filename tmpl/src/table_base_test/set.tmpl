@@ -28,7 +28,7 @@ func Test{{= table.Identifier }}_Set{{= col.Identifier }}(t *testing.T) {
     assert.False(t, obj.{{= col.Identifier }}IsNull())
 {{if}}
 
-{{if col.Size > 0 && (col.Type == query.ColTypeBytes || col.Type == query.ColTypeString) }}
+{{if col.Size > 0 && (col.Type == query.ColTypeBytes || col.Type == query.ColTypeString || col.Type == query.ColTypeUnknown) }}
     // test panic on setting value larger than maximum size allowed
     {{= col.VariableIdentifier() }} = test.RandomValue[{{= col.GoType() }}]({{u col.Size + 1}})
     assert.Panics(t, func() {

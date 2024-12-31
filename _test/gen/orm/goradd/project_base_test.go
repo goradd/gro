@@ -3,11 +3,14 @@
 package goradd
 
 import (
+	"context"
 	"testing"
 	"time"
 
+	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestProject_SetNum(t *testing.T) {
@@ -143,23 +146,23 @@ func TestProject_SetBudget(t *testing.T) {
 
 	obj := NewProject()
 
-	budget := test.RandomValue[string](15)
+	budget := test.RandomValue[[]uint8](15)
 	obj.SetBudget(budget)
 	assert.Equal(t, budget, obj.Budget())
 	assert.False(t, obj.BudgetIsNull())
 
 	// Test nil
 	obj.SetBudget(nil)
-	assert.Equal(t, "", obj.Budget(), "set nil")
+	assert.Equal(t, []byte(nil), obj.Budget(), "set nil")
 	assert.True(t, obj.BudgetIsNull())
 
 	// test zero
-	obj.SetBudget("")
-	assert.Equal(t, "", obj.Budget(), "set empty")
+	obj.SetBudget([]byte(nil))
+	assert.Equal(t, []byte(nil), obj.Budget(), "set empty")
 	assert.False(t, obj.BudgetIsNull())
 
 	// test panic on setting value larger than maximum size allowed
-	budget = test.RandomValue[string](16)
+	budget = test.RandomValue[[]uint8](16)
 	assert.Panics(t, func() {
 		obj.SetBudget(budget)
 	})
@@ -168,24 +171,109 @@ func TestProject_SetSpent(t *testing.T) {
 
 	obj := NewProject()
 
-	spent := test.RandomValue[string](15)
+	spent := test.RandomValue[[]uint8](15)
 	obj.SetSpent(spent)
 	assert.Equal(t, spent, obj.Spent())
 	assert.False(t, obj.SpentIsNull())
 
 	// Test nil
 	obj.SetSpent(nil)
-	assert.Equal(t, "", obj.Spent(), "set nil")
+	assert.Equal(t, []byte(nil), obj.Spent(), "set nil")
 	assert.True(t, obj.SpentIsNull())
 
 	// test zero
-	obj.SetSpent("")
-	assert.Equal(t, "", obj.Spent(), "set empty")
+	obj.SetSpent([]byte(nil))
+	assert.Equal(t, []byte(nil), obj.Spent(), "set empty")
 	assert.False(t, obj.SpentIsNull())
 
 	// test panic on setting value larger than maximum size allowed
-	spent = test.RandomValue[string](16)
+	spent = test.RandomValue[[]uint8](16)
 	assert.Panics(t, func() {
 		obj.SetSpent(spent)
 	})
+}
+
+// createMinimalSampleProject creates and saves a minimal version of a Project object
+// for testing.
+func createMinimalSampleProject(ctx context.Context) *Project {
+	obj := NewProject()
+
+	num := test.RandomValue[int](0)
+	obj.SetNum(num)
+
+	status := test.RandomValue[ProjectStatus](0)
+	obj.SetStatus(status)
+
+	name := test.RandomValue[string](100)
+	obj.SetName(name)
+
+	description := test.RandomValue[string](65535)
+	obj.SetDescription(description)
+
+	startDate := test.RandomValue[time.Time](0)
+	obj.SetStartDate(startDate)
+
+	endDate := test.RandomValue[time.Time](0)
+	obj.SetEndDate(endDate)
+
+	obj.Save(ctx)
+	return obj
+}
+func TestProject_CRUD(t *testing.T) {
+	obj := NewProject()
+	ctx := db.NewContext(nil)
+
+	num := test.RandomValue[int](0)
+	obj.SetNum(num)
+
+	status := test.RandomValue[ProjectStatus](0)
+	obj.SetStatus(status)
+
+	objManager := createMinimalSamplePerson(ctx)
+	obj.SetManager(objManager)
+
+	name := test.RandomValue[string](100)
+	obj.SetName(name)
+
+	description := test.RandomValue[string](65535)
+	obj.SetDescription(description)
+
+	startDate := test.RandomValue[time.Time](0)
+	obj.SetStartDate(startDate)
+
+	endDate := test.RandomValue[time.Time](0)
+	obj.SetEndDate(endDate)
+
+	// Test retrieval
+	obj = LoadProject(ctx, obj.PrimaryKey())
+	require.NotNil(t, obj)
+
+	assert.True(t, obj.IDIsValid())
+	assert.NotEmpty(t, obj.ID())
+
+	assert.True(t, obj.NumIsValid())
+	assert.Equal(t, num, obj.Num())
+
+	assert.True(t, obj.StatusIsValid())
+	assert.Equal(t, status, obj.Status())
+
+	assert.True(t, obj.ManagerIDIsValid())
+	assert.False(t, obj.ManagerIDIsNull())
+	assert.NotEmpty(t, obj.ManagerID())
+
+	assert.True(t, obj.NameIsValid())
+	assert.Equal(t, name, obj.Name())
+
+	assert.True(t, obj.DescriptionIsValid())
+	assert.False(t, obj.DescriptionIsNull())
+	assert.Equal(t, description, obj.Description())
+
+	assert.True(t, obj.StartDateIsValid())
+	assert.False(t, obj.StartDateIsNull())
+	assert.Equal(t, startDate, obj.StartDate())
+
+	assert.True(t, obj.EndDateIsValid())
+	assert.False(t, obj.EndDateIsNull())
+	assert.Equal(t, endDate, obj.EndDate())
+
 }

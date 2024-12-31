@@ -171,6 +171,7 @@ func (o *personBase) FirstNameIsValid() bool {
 // SetFirstName sets the value of FirstName in the object, to be saved later using the Save() function.
 func (o *personBase) SetFirstName(firstName string) {
 	o.firstNameIsValid = true
+
 	if utf8.RuneCountInString(firstName) > PersonFirstNameMaxLength {
 		panic("attempted to set Person.FirstName to a value larger than its maximum length in runes")
 	}
@@ -196,6 +197,7 @@ func (o *personBase) LastNameIsValid() bool {
 // SetLastName sets the value of LastName in the object, to be saved later using the Save() function.
 func (o *personBase) SetLastName(lastName string) {
 	o.lastNameIsValid = true
+
 	if utf8.RuneCountInString(lastName) > PersonLastNameMaxLength {
 		panic("attempted to set Person.LastName to a value larger than its maximum length in runes")
 	}
@@ -260,20 +262,46 @@ func (o *personBase) SetProjects(objs []*Project) {
 	}
 }
 
-// SetProjectsByPrimaryKeys prepares for setting the associated Project objects to the
-// given slice of primary keys.
+// SetProjectsByID prepares to associate Project objects by
+// the primary keys in ids.
 // If objects are currently loaded, they will be unloaded.
 // The association does not take place until Save() is called. Calling Load before calling
 // Save will load the items that will be associated in the database after the Save call.
 // After calling Save, the objects will be unloaded, and you must call Load again if you want
 // them loaded.
-func (o *personBase) SetProjectsByPrimaryKeys(objs []string) {
+func (o *personBase) SetProjectsByID(ids []string) {
 	o.mmProjects.Clear()
-	o.mmProjectsPks = objs
+	o.mmProjectsPks = ids
 	o.mmProjectsIsDirty = true
 }
 
 // LoadProjects loads the Project objects associated through the Project-TeamMember relationship.
+func (o *personBase) LoadProjects(ctx context.Context) []*Project {
+	if o.mmProjectsIsDirty && o.mmProjectsPks == nil {
+		panic("dirty many-many relationships cannot be loaded; call Save() first")
+	}
+
+	var objs []*Project
+
+	if o.mmProjectsPks != nil {
+		// Load the objects that will be associated after a Save
+		objs = QueryProjects(ctx).
+			Where(op.In(node.Project().PrimaryKeyNode(), o.mmProjectsPks...)).
+			Load()
+	} else {
+		objs = QueryProjects(ctx).
+			Where(op.Equal(node.Project().TeamMembers(), o.PrimaryKey())).
+			Load()
+	}
+
+	o.mmProjects.Clear()
+	for _, obj := range objs {
+		o.mmProjects.Set(obj.PrimaryKey(), obj)
+	}
+	return o.mmProjects.Values()
+}
+
+// GetProjects loads the Project objects associated through the Project-TeamMember relationship.
 func (o *personBase) LoadProjects(ctx context.Context) []*Project {
 	if o.mmProjectsIsDirty && o.mmProjectsPks == nil {
 		panic("dirty many-many relationships cannot be loaded; call Save() first")

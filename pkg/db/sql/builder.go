@@ -86,7 +86,7 @@ func (b *Builder) Load() (result []map[string]interface{}) {
 	columnTypes := make([]ReceiverType, len(names))
 	colCount := b.ColumnAliases.Len()
 	for i := 0; i < colCount; i++ {
-		columnTypes[i] = ColumnNodeGoType(b.ColumnAliases.Get(names[i]).Node.(*ColumnNode))
+		columnTypes[i] = ColumnNodeReceiverType(b.ColumnAliases.Get(names[i]).Node.(*ColumnNode))
 	}
 	// add special aliases
 	for i := colCount; i < len(names); i++ {
@@ -132,7 +132,7 @@ func (b *Builder) LoadCursor() CursorI {
 	columnTypes := make([]ReceiverType, len(names))
 	colCount := b.ColumnAliases.Len()
 	for i := 0; i < colCount; i++ {
-		columnTypes[i] = ColumnNodeGoType(b.ColumnAliases.Get(names[i]).Node.(*ColumnNode))
+		columnTypes[i] = ColumnNodeReceiverType(b.ColumnAliases.Get(names[i]).Node.(*ColumnNode))
 	}
 	// add special aliases
 	for i := colCount; i < len(names); i++ {

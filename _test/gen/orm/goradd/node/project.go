@@ -197,7 +197,7 @@ func (n *ProjectNode) Budget() *query.ColumnNode {
 		"project",
 		"budget",
 		"Budget",
-		query.ColTypeString,
+		query.ColTypeUnknown,
 		false,
 	)
 	query.SetParentNode(cn, n)
@@ -211,7 +211,7 @@ func (n *ProjectNode) Spent() *query.ColumnNode {
 		"project",
 		"spent",
 		"Spent",
-		query.ColTypeString,
+		query.ColTypeUnknown,
 		false,
 	)
 	query.SetParentNode(cn, n)

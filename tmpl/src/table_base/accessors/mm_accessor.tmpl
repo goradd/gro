@@ -28,16 +28,16 @@ func (o *{{= table.DecapIdentifier}}Base) Set{{= mm.IdentifierPlural }}(objs []*
     }
 }
 
-// Set{{= mm.IdentifierPlural }}ByPrimaryKeys prepares for setting the associated {{= mm.ObjectType() }} objects to the
-// given slice of primary keys.
+// Set{{= mm.IdentifierPlural }}By{{= mm.DestinationTable.PrimaryKeyColumn().Identifier }} prepares to associate {{= mm.ObjectType() }} objects by
+// the primary keys in {{= mm.DestinationTable.PrimaryKeyColumn().VariableIdentifierPlural() }}.
 // If objects are currently loaded, they will be unloaded.
 // The association does not take place until Save() is called. Calling Load before calling
 // Save will load the items that will be associated in the database after the Save call.
 // After calling Save, the objects will be unloaded, and you must call Load again if you want
 // them loaded.
-func (o *{{= table.DecapIdentifier}}Base) Set{{= mm.IdentifierPlural }}ByPrimaryKeys(objs []{{= mm.DestinationTable.PrimaryKeyGoType() }}) {
+func (o *{{= table.DecapIdentifier}}Base) Set{{= mm.IdentifierPlural }}By{{= mm.DestinationTable.PrimaryKeyColumn().Identifier }}({{= mm.DestinationTable.PrimaryKeyColumn().VariableIdentifierPlural() }} []{{= mm.DestinationTable.PrimaryKeyGoType() }}) {
 	o.{{= mm.VariableIdentifier() }}.Clear()
-	o.{{= mm.PkIdentifier() }} = objs
+	o.{{= mm.PkIdentifier() }} = {{= mm.DestinationTable.PrimaryKeyColumn().VariableIdentifierPlural() }}
 	o.{{= mm.VariableIdentifier() }}IsDirty = true
 }
 

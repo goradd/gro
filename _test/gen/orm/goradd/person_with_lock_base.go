@@ -147,6 +147,7 @@ func (o *personWithLockBase) FirstNameIsValid() bool {
 // SetFirstName sets the value of FirstName in the object, to be saved later using the Save() function.
 func (o *personWithLockBase) SetFirstName(firstName string) {
 	o.firstNameIsValid = true
+
 	if utf8.RuneCountInString(firstName) > PersonWithLockFirstNameMaxLength {
 		panic("attempted to set PersonWithLock.FirstName to a value larger than its maximum length in runes")
 	}
@@ -172,6 +173,7 @@ func (o *personWithLockBase) LastNameIsValid() bool {
 // SetLastName sets the value of LastName in the object, to be saved later using the Save() function.
 func (o *personWithLockBase) SetLastName(lastName string) {
 	o.lastNameIsValid = true
+
 	if utf8.RuneCountInString(lastName) > PersonWithLockLastNameMaxLength {
 		panic("attempted to set PersonWithLock.LastName to a value larger than its maximum length in runes")
 	}

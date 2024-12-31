@@ -137,6 +137,7 @@ func (o *forwardCascadeBase) NameIsValid() bool {
 // SetName sets the value of Name in the object, to be saved later using the Save() function.
 func (o *forwardCascadeBase) SetName(name string) {
 	o.nameIsValid = true
+
 	if utf8.RuneCountInString(name) > ForwardCascadeNameMaxLength {
 		panic("attempted to set ForwardCascade.Name to a value larger than its maximum length in runes")
 	}
@@ -189,7 +190,6 @@ func (o *forwardCascadeBase) SetReverseID(i interface{}) {
 		if o.reverseIDIsNull ||
 			!o._restored ||
 			o.reverseID != v {
-
 			o.reverseIDIsNull = false
 			o.reverseID = v
 			o.reverseIDIsDirty = true

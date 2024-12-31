@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/goradd/orm/pkg/config"
 	db2 "github.com/goradd/orm/pkg/db"
-	"github.com/goradd/orm/pkg/model"
 	"github.com/goradd/orm/pkg/schema"
 )
 
@@ -22,14 +21,13 @@ func extract(dbConfigFile, outFile string) {
 			}
 			if e, ok := db.(db2.SchemaExtractor); ok {
 				s := e.ExtractSchema(c)
-				s.FillDefaults()
 				schemas = append(schemas, &s)
 			}
 		}
 
 		schema.WriteJsonFile(schemas, outFile)
-		m := model.FromSchemas(schemas)
-		_ = m
+		//m := model.FromSchemas(schemas)
+		//_ = m
 	}
 }
 

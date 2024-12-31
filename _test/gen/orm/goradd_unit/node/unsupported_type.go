@@ -88,7 +88,7 @@ func (n *UnsupportedTypeNode) TypeSet() *query.ColumnNode {
 		"unsupported_type",
 		"type_set",
 		"TypeSet",
-		query.ColTypeString,
+		query.ColTypeUnknown,
 		false,
 	)
 	query.SetParentNode(cn, n)
@@ -102,7 +102,7 @@ func (n *UnsupportedTypeNode) TypeEnum() *query.ColumnNode {
 		"unsupported_type",
 		"type_enum",
 		"TypeEnum",
-		query.ColTypeString,
+		query.ColTypeUnknown,
 		false,
 	)
 	query.SetParentNode(cn, n)
@@ -116,7 +116,7 @@ func (n *UnsupportedTypeNode) TypeDecimal() *query.ColumnNode {
 		"unsupported_type",
 		"type_decimal",
 		"TypeDecimal",
-		query.ColTypeString,
+		query.ColTypeUnknown,
 		false,
 	)
 	query.SetParentNode(cn, n)

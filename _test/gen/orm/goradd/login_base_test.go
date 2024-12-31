@@ -3,10 +3,13 @@
 package goradd
 
 import (
+	"context"
 	"testing"
 
+	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestLogin_SetPersonID(t *testing.T) {
@@ -83,5 +86,61 @@ func TestLogin_SetIsEnabled(t *testing.T) {
 	// test zero
 	obj.SetIsEnabled(true)
 	assert.Equal(t, true, obj.IsEnabled(), "set empty")
+
+}
+
+// createMinimalSampleLogin creates and saves a minimal version of a Login object
+// for testing.
+func createMinimalSampleLogin(ctx context.Context) *Login {
+	obj := NewLogin()
+
+	username := test.RandomValue[string](20)
+	obj.SetUsername(username)
+
+	password := test.RandomValue[string](20)
+	obj.SetPassword(password)
+
+	isEnabled := test.RandomValue[bool](0)
+	obj.SetIsEnabled(isEnabled)
+
+	obj.Save(ctx)
+	return obj
+}
+func TestLogin_CRUD(t *testing.T) {
+	obj := NewLogin()
+	ctx := db.NewContext(nil)
+
+	objPerson := createMinimalSamplePerson(ctx)
+	obj.SetPerson(objPerson)
+
+	username := test.RandomValue[string](20)
+	obj.SetUsername(username)
+
+	password := test.RandomValue[string](20)
+	obj.SetPassword(password)
+
+	isEnabled := test.RandomValue[bool](0)
+	obj.SetIsEnabled(isEnabled)
+
+	// Test retrieval
+	obj = LoadLogin(ctx, obj.PrimaryKey())
+	require.NotNil(t, obj)
+
+	assert.True(t, obj.IDIsValid())
+	assert.NotEmpty(t, obj.ID())
+
+	assert.True(t, obj.PersonIDIsValid())
+	assert.False(t, obj.PersonIDIsNull())
+	assert.NotEmpty(t, obj.PersonID())
+
+	assert.True(t, obj.UsernameIsValid())
+	assert.Equal(t, username, obj.Username())
+
+	assert.True(t, obj.PasswordIsValid())
+	assert.False(t, obj.PasswordIsNull())
+	assert.Equal(t, password, obj.Password())
+
+	assert.True(t, obj.IsEnabledIsValid())
+	assert.Equal(t, isEnabled, obj.IsEnabled())
 
 }

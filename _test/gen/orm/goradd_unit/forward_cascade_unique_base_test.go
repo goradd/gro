@@ -3,10 +3,13 @@
 package goradd_unit
 
 import (
+	"context"
 	"testing"
 
+	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestForwardCascadeUnique_SetName(t *testing.T) {
@@ -45,5 +48,42 @@ func TestForwardCascadeUnique_SetReverseID(t *testing.T) {
 	obj.SetReverseID("")
 	assert.Equal(t, "", obj.ReverseID(), "set empty")
 	assert.False(t, obj.ReverseIDIsNull())
+
+}
+
+// createMinimalSampleForwardCascadeUnique creates and saves a minimal version of a ForwardCascadeUnique object
+// for testing.
+func createMinimalSampleForwardCascadeUnique(ctx context.Context) *ForwardCascadeUnique {
+	obj := NewForwardCascadeUnique()
+
+	name := test.RandomValue[string](100)
+	obj.SetName(name)
+
+	obj.Save(ctx)
+	return obj
+}
+func TestForwardCascadeUnique_CRUD(t *testing.T) {
+	obj := NewForwardCascadeUnique()
+	ctx := db.NewContext(nil)
+
+	name := test.RandomValue[string](100)
+	obj.SetName(name)
+
+	objReverse := createMinimalSampleReverse(ctx)
+	obj.SetReverse(objReverse)
+
+	// Test retrieval
+	obj = LoadForwardCascadeUnique(ctx, obj.PrimaryKey())
+	require.NotNil(t, obj)
+
+	assert.True(t, obj.IDIsValid())
+	assert.NotEmpty(t, obj.ID())
+
+	assert.True(t, obj.NameIsValid())
+	assert.Equal(t, name, obj.Name())
+
+	assert.True(t, obj.ReverseIDIsValid())
+	assert.False(t, obj.ReverseIDIsNull())
+	assert.NotEmpty(t, obj.ReverseID())
 
 }

@@ -24,17 +24,17 @@ type Column struct {
 	// References should keep the "ID" at the name to differentiate between the value of the
 	// foreign key and the loaded object.
 	// Enum references should NOT keep the "ID" value in this name.
-	Identifier string `json:"identifier"`
+	Identifier string `json:"identifier,omitempty"`
 
 	// Title is the human-readable description of the item. Leave blank to base it on the Name.
-	Title string `json:"title"`
+	Title string `json:"title,omitempty"`
 
 	// If a string column, Size is the maximum length of runes that the column can accommodate.
 	// If a []byte column, Size is the maximum number of bytes allowed in the column.
 	// If an int, unsigned int, or float, Size is the number of bits allowed in the number and will also
 	// determine the Go number type that will represent the column. This can be a zero in order to use the default,
 	// (int, uint or float64).
-	Size uint64 `json:"size"`
+	Size uint64 `json:"size,omitempty"`
 
 	// DefaultValue is the value that this field will be initialized to when a new object is created.
 	// If not specified, it will be the zero value of the column's type.
@@ -43,19 +43,19 @@ type Column struct {
 	// Time columns can use the string "now" to set the value to the current time when the object
 	// is first saved, and "update" to also set the value to the current time every time the object
 	// is modified and saved.
-	DefaultValue interface{} `json:"default_value"`
+	DefaultValue interface{} `json:"default_value,omitempty"`
 
-	// IsOptional is true if the column can be given a NULL value.
-	IsOptional bool `json:"is_optional"`
+	// IsNullable is true if the column can be given a NULL value.
+	IsNullable bool `json:"is_nullable,omitempty"`
 
 	// IndexLevel indicates what kind of index is associated with this column.
 	// ColTypeAutoPrimaryKey columns are automatically indexed uniquely, so this can be left blank for those columns.
-	IndexLevel IndexLevel `json:"index_level"`
+	IndexLevel IndexLevel `json:"index_level,omitempty"`
 
 	// For string columns that have an index, this will cause the
 	// index on the column to be sorted in a case-insensitive way and OrderBy and Unique tests to likewise be
 	// case-insensitive.
-	CaseInsensitive bool `json:"case_insensitive"`
+	CaseInsensitive bool `json:"case_insensitive,omitempty"`
 
 	// Reference is required to be set if this is a reference type column.
 	Reference *Reference `json:"reference,omitempty"`
@@ -73,14 +73,14 @@ type Reference struct {
 	Table string `json:"table"`
 
 	// Identifier is the Go name used for the referenced object.
-	Identifier string `json:"identifier"`
+	Identifier string `json:"identifier,omitempty"`
 
 	// Title is the human-readable name for the referenced object.
-	Title string `json:"title"`
+	Title string `json:"title,omitempty"`
 
 	// The singular description of this table's objects as referred to by the referenced table.
 	// If not specified, one will be created.
-	ReverseTitle string `json:"reverse_title"`
+	ReverseTitle string `json:"reverse_title,omitempty"`
 
 	// The plural description of this table's objects as referred to by the reference object.
 	// If not specified, the ReverseTitle will be pluralized.
@@ -88,7 +88,7 @@ type Reference struct {
 
 	// The singular Go identifier that will be used for the reverse relationships.
 	// If not specified, the ReverseTitle will be used to create one.
-	ReverseIdentifier string `json:"reverse_identifier"`
+	ReverseIdentifier string `json:"reverse_identifier,omitempty"`
 
 	// The plural Go identifier that will be used for the reverse relationships.
 	// If not specified, the ReverseIdentifier will be pluralized.

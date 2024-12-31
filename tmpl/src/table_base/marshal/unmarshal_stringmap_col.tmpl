@@ -95,7 +95,8 @@ case query.ColTypeFloat64:
                 return fmt.Errorf("json field %s must be a number", k)
             }
 }}
-case query.ColTypeBytes:
+case query.ColTypeBytes:fallthrough
+case query.ColTypeUnknown:
 {{
             switch d := v.(type) {
             case string:

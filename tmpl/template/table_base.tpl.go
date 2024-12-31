@@ -831,7 +831,7 @@ const  (
 					return
 				}
 
-			} else if col.Type == query.ColTypeBytes {
+			} else if col.Type == query.ColTypeBytes || col.Type == query.ColTypeUnknown {
 
 				if _, err = io.WriteString(_w, `    const `); err != nil {
 					return
@@ -1634,7 +1634,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if col.Type == query.ColTypeBytes {
+	if col.Type == query.ColTypeBytes || col.Type == query.ColTypeUnknown {
 
 		if col.Size > 0 {
 
@@ -1714,6 +1714,15 @@ func (o *`); err != nil {
 		}
 
 	} else {
+
+		if _, err = io.WriteString(_w, ` `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `
+`); err != nil {
+			return
+		}
 
 		if col.Type == query.ColTypeString && col.Size > 0 {
 
@@ -2258,7 +2267,7 @@ func (o *`); err != nil {
 
 	if col.Size > 0 {
 
-		if col.Type == query.ColTypeBytes {
+		if col.Type == query.ColTypeBytes || col.Type == query.ColTypeUnknown {
 
 			if _, err = io.WriteString(_w, `        if len(v) > `); err != nil {
 				return
@@ -2350,7 +2359,21 @@ func (o *`); err != nil {
 		return
 	}
 
-	if col.Type != query.ColTypeBytes {
+	if col.Type == query.ColTypeBytes || col.Type == query.ColTypeUnknown {
+
+		if _, err = io.WriteString(_w, `!bytes.Equal(o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `, v) `); err != nil {
+			return
+		}
+
+	} else {
 
 		if _, err = io.WriteString(_w, ` o.`); err != nil {
 			return
@@ -2364,24 +2387,9 @@ func (o *`); err != nil {
 			return
 		}
 
-	} else {
-
-		if _, err = io.WriteString(_w, ` !bytes.Equal(o.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `, v) `); err != nil {
-			return
-		}
-
 	}
 
 	if _, err = io.WriteString(_w, ` {
-
 			    o.`); err != nil {
 		return
 	}
@@ -2395,22 +2403,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if col.Type != query.ColTypeBytes {
-
-		if _, err = io.WriteString(_w, `			    o.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, ` = v
-`); err != nil {
-			return
-		}
-
-	} else {
+	if col.Type == query.ColTypeBytes || col.Type == query.ColTypeUnknown {
 
 		if _, err = io.WriteString(_w, `                o.`); err != nil {
 			return
@@ -2421,6 +2414,21 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, ` = append([]byte(nil), v...)
+`); err != nil {
+			return
+		}
+
+	} else {
+
+		if _, err = io.WriteString(_w, `			    o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` = v
 `); err != nil {
 			return
 		}
@@ -2760,7 +2768,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if col.Type == query.ColTypeBytes {
+	if col.Type == query.ColTypeBytes || col.Type == query.ColTypeUnknown {
 
 		if col.Size > 0 {
 
@@ -2840,6 +2848,15 @@ func (o *`); err != nil {
 		}
 
 	} else {
+
+		if _, err = io.WriteString(_w, ` `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `
+`); err != nil {
+			return
+		}
 
 		if col.Type == query.ColTypeString && col.Size > 0 {
 
@@ -3556,7 +3573,15 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `ByPrimaryKeys prepares for setting the associated `); err != nil {
+			if _, err = io.WriteString(_w, `By`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.DestinationTable.PrimaryKeyColumn().Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` prepares to associate `); err != nil {
 				return
 			}
 
@@ -3564,8 +3589,16 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` objects to the
-// given slice of primary keys.
+			if _, err = io.WriteString(_w, ` objects by
+// the primary keys in `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.DestinationTable.PrimaryKeyColumn().VariableIdentifierPlural()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.
 // If objects are currently loaded, they will be unloaded.
 // The association does not take place until Save() is called. Calling Load before calling
 // Save will load the items that will be associated in the database after the Save call.
@@ -3587,7 +3620,23 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `ByPrimaryKeys(objs []`); err != nil {
+			if _, err = io.WriteString(_w, `By`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.DestinationTable.PrimaryKeyColumn().Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.DestinationTable.PrimaryKeyColumn().VariableIdentifierPlural()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` []`); err != nil {
 				return
 			}
 
@@ -3613,7 +3662,15 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` = objs
+			if _, err = io.WriteString(_w, ` = `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.DestinationTable.PrimaryKeyColumn().VariableIdentifierPlural()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `
 	o.`); err != nil {
 				return
 			}
@@ -3703,6 +3760,192 @@ func (o *`); err != nil {
         panic("dirty many-many relationships cannot be loaded; call Save() first")
     }
     
+    var objs []*`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `
+
+    if o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` != nil {
+        // Load the objects that will be associated after a Save
+        objs = Query`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.ObjectTypePlural()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(ctx).
+            Where(op.In(node.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().PrimaryKeyNode(), o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `...)).
+            Load()
+    } else {
+        objs = Query`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.ObjectTypePlural()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(ctx).
+            Where(op.Equal(node.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.MM.IdentifierPlural); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(), o.PrimaryKey())).
+            Load()
+    }
+
+    o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.Clear()
+	for _,obj := range objs {
+	    o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.Set(obj.PrimaryKey(), obj)
+	}
+	return o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.Values()
+}
+
+// Get`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` loads the `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` objects associated through the `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `-`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.MM.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` relationship.
+func (o *`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `Base) Load`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(ctx context.Context) []*`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` {
+    if o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsDirty && o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` == nil {
+        panic("dirty many-many relationships cannot be loaded; call Save() first")
+    }
+
     var objs []*`); err != nil {
 				return
 			}
@@ -12294,6 +12537,8 @@ func (o *`); err != nil {
 				}
 
 			case query.ColTypeBytes:
+				fallthrough
+			case query.ColTypeUnknown:
 
 				if _, err = io.WriteString(_w, `            switch d := v.(type) {
             case string:

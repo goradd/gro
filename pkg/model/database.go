@@ -2,11 +2,14 @@ package model
 
 import (
 	"fmt"
+	"github.com/goradd/maps"
 	"github.com/goradd/orm/pkg/query"
 	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
 	"log/slog"
+	maps2 "maps"
+	"slices"
 	"strings"
 )
 
@@ -38,8 +41,8 @@ type Database struct {
 	Key string
 	// Tables are the tables in the database, keyed by database table name
 	Tables map[string]*Table
-	// EnumTables contains a description of the enumerated types from the enum tables in the database, keyed by database table name
-	EnumTables map[string]*EnumTable
+	// Enums contains a description of the enumerated types linked to the database, keyed by database table name
+	Enums map[string]*Enum
 
 	// ReferenceSuffix is the text to strip off the end of foreign key references when converting to names.
 	// Defaults to "_id"
@@ -54,13 +57,13 @@ type Database struct {
 // importSchema will convert a database description to a model which generally treats
 // tables as objects and columns as member variables.
 func (m *Database) importSchema(schema *schema.Database) {
-	m.EnumTables = make(map[string]*EnumTable)
+	m.Enums = make(map[string]*Enum)
 	m.Tables = make(map[string]*Table)
 
 	// deal with enum tables first
 	for _, et := range schema.EnumTables {
 		tt := newEnumTable(m.Key, et)
-		m.EnumTables[tt.QueryName] = tt
+		m.Enums[tt.QueryName] = tt
 	}
 
 	// get the regular tables
@@ -85,8 +88,8 @@ func (m *Database) importSchema(schema *schema.Database) {
 // Association tables are used by SQL databases to create many-many relationships. NoSQL databases can define their
 // association columns directly and store an array of records on either end of the association.
 func (m *Database) importAssociation(schemaAssn *schema.AssociationTable) {
-	e1 := m.EnumTable(schemaAssn.Table1)
-	e2 := m.EnumTable(schemaAssn.Table2)
+	e1 := m.Enum(schemaAssn.Table1)
+	e2 := m.Enum(schemaAssn.Table2)
 	t1 := m.Table(schemaAssn.Table1)
 	t2 := m.Table(schemaAssn.Table2)
 
@@ -117,7 +120,7 @@ func (m *Database) importReferences(t *Table, schemaTable *schema.Table) {
 func (m *Database) importReference(table *Table, schemaCol *schema.Column) {
 	if schemaCol.Reference != nil {
 		refTable := m.Table(schemaCol.Reference.Table)
-		et := m.EnumTable(schemaCol.Reference.Table)
+		et := m.Enum(schemaCol.Reference.Table)
 		if refTable == nil && et == nil {
 			slog.Error(fmt.Sprintf("Reference skipped, table not found. From %s:%s", table.QueryName, schemaCol.Name))
 			return
@@ -160,14 +163,14 @@ func (m *Database) Table(name string) *Table {
 	}
 }
 
-// EnumTable returns a EnumTable from the database given the table name.
-func (m *Database) EnumTable(name string) *EnumTable {
-	return m.EnumTables[name]
+// Enum returns an Enum from the database given the table name.
+func (m *Database) Enum(name string) *Enum {
+	return m.Enums[name]
 }
 
 // IsEnumTable returns true if the given name is the name of an enum table in the database
 func (m *Database) IsEnumTable(name string) bool {
-	_, ok := m.EnumTables[name]
+	_, ok := m.Enums[name]
 	return ok
 }
 
@@ -255,5 +258,38 @@ func UpperCaseIdentifier(s string) (i string) {
 	if i == "" {
 		panic("Cannot use blank as an identifier.")
 	}
+	return
+}
+
+// MarshalOrder returns an array of tables in the order they should be marshaled such that
+// if they then get unmarshalled in the same order, there will not be problems with foreign
+// keys not existing when the object is saved.
+func (m *Database) MarshalOrder() (tables []*Table) {
+	var unusedTables maps.Set[*Table]
+
+	unusedTables.Add(slices.Collect(maps2.Values(m.Tables))...)
+	// First add the tables that have no forward references
+	for { // repeat until unusedTables is empty
+	nexttable:
+		for t := range unusedTables.All() {
+			for _, col := range t.Columns {
+				if col.IsReference() {
+					if !slices.Contains(tables, col.Reference.Table) {
+						continue nexttable
+					}
+				}
+			}
+			// This has no forward references we care about
+			tables = append(tables, t)
+		}
+		// Remove the found tables
+		for _, t := range tables {
+			unusedTables.Delete(t)
+		}
+		if unusedTables.Len() == 0 {
+			break
+		}
+	}
+
 	return
 }

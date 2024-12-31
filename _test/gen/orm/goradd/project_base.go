@@ -5,6 +5,7 @@ package goradd
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
@@ -61,12 +62,12 @@ type projectBase struct {
 	endDateIsValid bool
 	endDateIsDirty bool
 
-	budget        string
+	budget        []uint8
 	budgetIsNull  bool
 	budgetIsValid bool
 	budgetIsDirty bool
 
-	spent        string
+	spent        []uint8
 	spentIsNull  bool
 	spentIsValid bool
 	spentIsDirty bool
@@ -124,8 +125,8 @@ const (
 
 const ProjectNameMaxLength = 100          // The number of runes the column can hold
 const ProjectDescriptionMaxLength = 65535 // The number of runes the column can hold
-const ProjectBudgetMaxLength = 15         // The number of runes the column can hold
-const ProjectSpentMaxLength = 15          // The number of runes the column can hold
+const ProjectBudgetMaxLength = 15         // The number of bytes the column can hold
+const ProjectSpentMaxLength = 15          // The number of bytes the column can hold
 
 // Initialize or re-initialize a Project database object to default values.
 // The primary key will get a temporary negative number which will be replaced when the object is saved.
@@ -177,13 +178,13 @@ func (o *projectBase) Initialize() {
 	o.endDateIsValid = true
 	o.endDateIsDirty = true
 
-	o.budget = ""
+	o.budget = []byte(nil)
 
 	o.budgetIsNull = true
 	o.budgetIsValid = true
 	o.budgetIsDirty = true
 
-	o.spent = ""
+	o.spent = []byte(nil)
 
 	o.spentIsNull = true
 	o.spentIsValid = true
@@ -269,6 +270,7 @@ func (o *projectBase) NumIsValid() bool {
 // SetNum sets the value of Num in the object, to be saved later using the Save() function.
 func (o *projectBase) SetNum(num int) {
 	o.numIsValid = true
+
 	if o.num != num || !o._restored {
 		o.num = num
 		o.numIsDirty = true
@@ -291,6 +293,7 @@ func (o *projectBase) StatusIsValid() bool {
 // SetStatus sets the value of Status in the object, to be saved later using the Save() function.
 func (o *projectBase) SetStatus(status ProjectStatus) {
 	o.statusIsValid = true
+
 	if o.status != status || !o._restored {
 		o.status = status
 		o.statusIsDirty = true
@@ -340,7 +343,6 @@ func (o *projectBase) SetManagerID(i interface{}) {
 		if o.managerIDIsNull ||
 			!o._restored ||
 			o.managerID != v {
-
 			o.managerIDIsNull = false
 			o.managerID = v
 			o.managerIDIsDirty = true
@@ -405,6 +407,7 @@ func (o *projectBase) NameIsValid() bool {
 // SetName sets the value of Name in the object, to be saved later using the Save() function.
 func (o *projectBase) SetName(name string) {
 	o.nameIsValid = true
+
 	if utf8.RuneCountInString(name) > ProjectNameMaxLength {
 		panic("attempted to set Project.Name to a value larger than its maximum length in runes")
 	}
@@ -459,7 +462,6 @@ func (o *projectBase) SetDescription(i interface{}) {
 		if o.descriptionIsNull ||
 			!o._restored ||
 			o.description != v {
-
 			o.descriptionIsNull = false
 			o.description = v
 			o.descriptionIsDirty = true
@@ -509,7 +511,6 @@ func (o *projectBase) SetStartDate(i interface{}) {
 		if o.startDateIsNull ||
 			!o._restored ||
 			o.startDate != v {
-
 			o.startDateIsNull = false
 			o.startDate = v
 			o.startDateIsDirty = true
@@ -559,7 +560,6 @@ func (o *projectBase) SetEndDate(i interface{}) {
 		if o.endDateIsNull ||
 			!o._restored ||
 			o.endDate != v {
-
 			o.endDateIsNull = false
 			o.endDate = v
 			o.endDateIsDirty = true
@@ -568,7 +568,7 @@ func (o *projectBase) SetEndDate(i interface{}) {
 }
 
 // Budget returns the loaded value of Budget.
-func (o *projectBase) Budget() string {
+func (o *projectBase) Budget() []uint8 {
 	if o._restored && !o.budgetIsValid {
 		panic("Budget was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -602,26 +602,25 @@ func (o *projectBase) SetBudget(i interface{}) {
 		if !o.budgetIsNull {
 			o.budgetIsNull = true
 			o.budgetIsDirty = true
-			o.budget = ""
+			o.budget = []byte(nil)
 		}
 	} else {
-		v := i.(string)
-		if utf8.RuneCountInString(v) > ProjectBudgetMaxLength {
-			panic("attempted to set Project.Budget to a value larger than its maximum length in runes")
+		v := i.([]uint8)
+		if len(v) > ProjectBudgetMaxLength {
+			panic("attempted to set Project.Budget to a value larger than its maximum length")
 		}
 		if o.budgetIsNull ||
 			!o._restored ||
-			o.budget != v {
-
+			!bytes.Equal(o.budget, v) {
 			o.budgetIsNull = false
-			o.budget = v
+			o.budget = append([]byte(nil), v...)
 			o.budgetIsDirty = true
 		}
 	}
 }
 
 // Spent returns the loaded value of Spent.
-func (o *projectBase) Spent() string {
+func (o *projectBase) Spent() []uint8 {
 	if o._restored && !o.spentIsValid {
 		panic("Spent was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -655,19 +654,18 @@ func (o *projectBase) SetSpent(i interface{}) {
 		if !o.spentIsNull {
 			o.spentIsNull = true
 			o.spentIsDirty = true
-			o.spent = ""
+			o.spent = []byte(nil)
 		}
 	} else {
-		v := i.(string)
-		if utf8.RuneCountInString(v) > ProjectSpentMaxLength {
-			panic("attempted to set Project.Spent to a value larger than its maximum length in runes")
+		v := i.([]uint8)
+		if len(v) > ProjectSpentMaxLength {
+			panic("attempted to set Project.Spent to a value larger than its maximum length")
 		}
 		if o.spentIsNull ||
 			!o._restored ||
-			o.spent != v {
-
+			!bytes.Equal(o.spent, v) {
 			o.spentIsNull = false
-			o.spent = v
+			o.spent = append([]byte(nil), v...)
 			o.spentIsDirty = true
 		}
 	}
@@ -711,20 +709,46 @@ func (o *projectBase) SetChildren(objs []*Project) {
 	}
 }
 
-// SetChildrenByPrimaryKeys prepares for setting the associated Project objects to the
-// given slice of primary keys.
+// SetChildrenByID prepares to associate Project objects by
+// the primary keys in ids.
 // If objects are currently loaded, they will be unloaded.
 // The association does not take place until Save() is called. Calling Load before calling
 // Save will load the items that will be associated in the database after the Save call.
 // After calling Save, the objects will be unloaded, and you must call Load again if you want
 // them loaded.
-func (o *projectBase) SetChildrenByPrimaryKeys(objs []string) {
+func (o *projectBase) SetChildrenByID(ids []string) {
 	o.mmChildren.Clear()
-	o.mmChildrenPks = objs
+	o.mmChildrenPks = ids
 	o.mmChildrenIsDirty = true
 }
 
 // LoadChildren loads the Project objects associated through the Child-Parent relationship.
+func (o *projectBase) LoadChildren(ctx context.Context) []*Project {
+	if o.mmChildrenIsDirty && o.mmChildrenPks == nil {
+		panic("dirty many-many relationships cannot be loaded; call Save() first")
+	}
+
+	var objs []*Project
+
+	if o.mmChildrenPks != nil {
+		// Load the objects that will be associated after a Save
+		objs = QueryProjects(ctx).
+			Where(op.In(node.Project().PrimaryKeyNode(), o.mmChildrenPks...)).
+			Load()
+	} else {
+		objs = QueryProjects(ctx).
+			Where(op.Equal(node.Project().Parents(), o.PrimaryKey())).
+			Load()
+	}
+
+	o.mmChildren.Clear()
+	for _, obj := range objs {
+		o.mmChildren.Set(obj.PrimaryKey(), obj)
+	}
+	return o.mmChildren.Values()
+}
+
+// GetChildren loads the Project objects associated through the Child-Parent relationship.
 func (o *projectBase) LoadChildren(ctx context.Context) []*Project {
 	if o.mmChildrenIsDirty && o.mmChildrenPks == nil {
 		panic("dirty many-many relationships cannot be loaded; call Save() first")
@@ -784,20 +808,46 @@ func (o *projectBase) SetParents(objs []*Project) {
 	}
 }
 
-// SetParentsByPrimaryKeys prepares for setting the associated Project objects to the
-// given slice of primary keys.
+// SetParentsByID prepares to associate Project objects by
+// the primary keys in ids.
 // If objects are currently loaded, they will be unloaded.
 // The association does not take place until Save() is called. Calling Load before calling
 // Save will load the items that will be associated in the database after the Save call.
 // After calling Save, the objects will be unloaded, and you must call Load again if you want
 // them loaded.
-func (o *projectBase) SetParentsByPrimaryKeys(objs []string) {
+func (o *projectBase) SetParentsByID(ids []string) {
 	o.mmParents.Clear()
-	o.mmParentsPks = objs
+	o.mmParentsPks = ids
 	o.mmParentsIsDirty = true
 }
 
 // LoadParents loads the Project objects associated through the Parent-Child relationship.
+func (o *projectBase) LoadParents(ctx context.Context) []*Project {
+	if o.mmParentsIsDirty && o.mmParentsPks == nil {
+		panic("dirty many-many relationships cannot be loaded; call Save() first")
+	}
+
+	var objs []*Project
+
+	if o.mmParentsPks != nil {
+		// Load the objects that will be associated after a Save
+		objs = QueryProjects(ctx).
+			Where(op.In(node.Project().PrimaryKeyNode(), o.mmParentsPks...)).
+			Load()
+	} else {
+		objs = QueryProjects(ctx).
+			Where(op.Equal(node.Project().Children(), o.PrimaryKey())).
+			Load()
+	}
+
+	o.mmParents.Clear()
+	for _, obj := range objs {
+		o.mmParents.Set(obj.PrimaryKey(), obj)
+	}
+	return o.mmParents.Values()
+}
+
+// GetParents loads the Project objects associated through the Parent-Child relationship.
 func (o *projectBase) LoadParents(ctx context.Context) []*Project {
 	if o.mmParentsIsDirty && o.mmParentsPks == nil {
 		panic("dirty many-many relationships cannot be loaded; call Save() first")
@@ -857,16 +907,16 @@ func (o *projectBase) SetTeamMembers(objs []*Person) {
 	}
 }
 
-// SetTeamMembersByPrimaryKeys prepares for setting the associated Person objects to the
-// given slice of primary keys.
+// SetTeamMembersByID prepares to associate Person objects by
+// the primary keys in ids.
 // If objects are currently loaded, they will be unloaded.
 // The association does not take place until Save() is called. Calling Load before calling
 // Save will load the items that will be associated in the database after the Save call.
 // After calling Save, the objects will be unloaded, and you must call Load again if you want
 // them loaded.
-func (o *projectBase) SetTeamMembersByPrimaryKeys(objs []string) {
+func (o *projectBase) SetTeamMembersByID(ids []string) {
 	o.mmTeamMembers.Clear()
-	o.mmTeamMembersPks = objs
+	o.mmTeamMembersPks = ids
 	o.mmTeamMembersIsDirty = true
 }
 
@@ -1300,14 +1350,14 @@ func CountProjectByEndDate(ctx context.Context, endDate time.Time) int {
 // CountProjectByBudget queries the database and returns the number of Project objects that
 // have budget.
 // doc: type=Project
-func CountProjectByBudget(ctx context.Context, budget string) int {
+func CountProjectByBudget(ctx context.Context, budget []uint8) int {
 	return int(queryProjects(ctx).Where(op.Equal(node.Project().Budget(), budget)).Count(false))
 }
 
 // CountProjectBySpent queries the database and returns the number of Project objects that
 // have spent.
 // doc: type=Project
-func CountProjectBySpent(ctx context.Context, spent string) int {
+func CountProjectBySpent(ctx context.Context, spent []uint8) int {
 	return int(queryProjects(ctx).Where(op.Equal(node.Project().Spent(), spent)).Count(false))
 }
 
@@ -1461,11 +1511,11 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project, objParent
 
 	if v, ok := m["budget"]; ok {
 		if v == nil {
-			o.budget = ""
+			o.budget = []byte(nil)
 			o.budgetIsNull = true
 			o.budgetIsValid = true
 			o.budgetIsDirty = false
-		} else if o.budget, ok = v.(string); ok {
+		} else if o.budget, ok = v.([]uint8); ok {
 			o.budgetIsNull = false
 			o.budgetIsValid = true
 			o.budgetIsDirty = false
@@ -1475,16 +1525,16 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project, objParent
 	} else {
 		o.budgetIsValid = false
 		o.budgetIsNull = true
-		o.budget = ""
+		o.budget = []byte(nil)
 	}
 
 	if v, ok := m["spent"]; ok {
 		if v == nil {
-			o.spent = ""
+			o.spent = []byte(nil)
 			o.spentIsNull = true
 			o.spentIsValid = true
 			o.spentIsDirty = false
-		} else if o.spent, ok = v.(string); ok {
+		} else if o.spent, ok = v.([]uint8); ok {
 			o.spentIsNull = false
 			o.spentIsValid = true
 			o.spentIsDirty = false
@@ -1494,7 +1544,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project, objParent
 	} else {
 		o.spentIsValid = false
 		o.spentIsNull = true
-		o.spent = ""
+		o.spent = []byte(nil)
 	}
 
 	// Many-Many references
@@ -2631,8 +2681,8 @@ func (o *projectBase) MarshalStringMap() map[string]interface{} {
 //	"description" - string, nullable
 //	"startDate" - time.Time, nullable
 //	"endDate" - time.Time, nullable
-//	"budget" - string, nullable
-//	"spent" - string, nullable
+//	"budget" - []uint8, nullable
+//	"spent" - []uint8, nullable
 func (o *projectBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
 	if err = json.Unmarshal(data, &v); err != nil {
@@ -2779,11 +2829,33 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					continue
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetBudget(s)
+				switch d := v.(type) {
+				case string:
+					{
+						// A base 64 encoded string
+						if b, err2 := base64.StdEncoding.DecodeString(d); err2 == nil {
+							o.SetBudget(b)
+						} else {
+							return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+						}
+					}
+				case []interface{}:
+					{
+						// An array of byte values. Unfortunately, these come through as float64s, and so need to be converted
+						b := make([]byte, len(d), len(d))
+						for i, b1 := range d {
+							if f, ok := b1.(float64); !ok {
+								return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+							} else {
+								b[i] = uint8(f)
+							}
+						}
+						o.SetBudget(b)
+					}
+				default:
+					return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
 				}
+
 			}
 
 		case "spent":
@@ -2793,11 +2865,33 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					continue
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetSpent(s)
+				switch d := v.(type) {
+				case string:
+					{
+						// A base 64 encoded string
+						if b, err2 := base64.StdEncoding.DecodeString(d); err2 == nil {
+							o.SetSpent(b)
+						} else {
+							return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+						}
+					}
+				case []interface{}:
+					{
+						// An array of byte values. Unfortunately, these come through as float64s, and so need to be converted
+						b := make([]byte, len(d), len(d))
+						for i, b1 := range d {
+							if f, ok := b1.(float64); !ok {
+								return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+							} else {
+								b[i] = uint8(f)
+							}
+						}
+						o.SetSpent(b)
+					}
+				default:
+					return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
 				}
+
 			}
 
 		}

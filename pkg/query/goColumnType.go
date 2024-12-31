@@ -56,7 +56,7 @@ func (g ReceiverType) String() string {
 func (g ReceiverType) DefaultValue() any {
 	switch g {
 	case ColTypeUnknown:
-		return nil
+		return []byte(nil)
 	case ColTypeBytes:
 		return []byte(nil)
 	case ColTypeString:
@@ -138,10 +138,11 @@ func ReceiverTypeFromSchema(columnType schema.ColumnType, maxLength uint64) Rece
 		return ColTypeString
 	case schema.ColTypeJSON:
 		return ColTypeString
+	case schema.ColTypeEnum:
+		return ColTypeInteger
 	case schema.ColTypeReference:
 		// Note that in the case of references to manually entered foreign keys, they
-		// will always get queried as strings. Also, if this is pointing to an enum table,
-		// the caller will need to change it to a ColTypeInt.
+		// will always get queried as strings.
 		return ColTypeString
 	}
 	return ColTypeUnknown

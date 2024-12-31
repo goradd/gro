@@ -3,11 +3,14 @@
 package goradd_unit
 
 import (
+	"context"
 	"testing"
 	"time"
 
+	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTypeTest_SetDate(t *testing.T) {
@@ -210,4 +213,127 @@ func TestTypeTest_SetTestBlob(t *testing.T) {
 	assert.Panics(t, func() {
 		obj.SetTestBlob(testBlob)
 	})
+}
+
+// createMinimalSampleTypeTest creates and saves a minimal version of a TypeTest object
+// for testing.
+func createMinimalSampleTypeTest(ctx context.Context) *TypeTest {
+	obj := NewTypeTest()
+
+	date := test.RandomValue[time.Time](0)
+	obj.SetDate(date)
+
+	time := test.RandomValue[time.Time](0)
+	obj.SetTime(time)
+
+	dateTime := test.RandomValue[time.Time](0)
+	obj.SetDateTime(dateTime)
+
+	testInt := test.RandomValue[int](0)
+	obj.SetTestInt(testInt)
+
+	testFloat := test.RandomValue[float32](32)
+	obj.SetTestFloat(testFloat)
+
+	testDouble := test.RandomValue[float64](64)
+	obj.SetTestDouble(testDouble)
+
+	testText := test.RandomValue[string](65535)
+	obj.SetTestText(testText)
+
+	testBit := test.RandomValue[bool](0)
+	obj.SetTestBit(testBit)
+
+	testVarchar := test.RandomValue[string](10)
+	obj.SetTestVarchar(testVarchar)
+
+	testBlob := test.RandomValue[[]uint8](65535)
+	obj.SetTestBlob(testBlob)
+
+	obj.Save(ctx)
+	return obj
+}
+func TestTypeTest_CRUD(t *testing.T) {
+	obj := NewTypeTest()
+	ctx := db.NewContext(nil)
+
+	date := test.RandomValue[time.Time](0)
+	obj.SetDate(date)
+
+	time := test.RandomValue[time.Time](0)
+	obj.SetTime(time)
+
+	dateTime := test.RandomValue[time.Time](0)
+	obj.SetDateTime(dateTime)
+
+	testInt := test.RandomValue[int](0)
+	obj.SetTestInt(testInt)
+
+	testFloat := test.RandomValue[float32](32)
+	obj.SetTestFloat(testFloat)
+
+	testDouble := test.RandomValue[float64](64)
+	obj.SetTestDouble(testDouble)
+
+	testText := test.RandomValue[string](65535)
+	obj.SetTestText(testText)
+
+	testBit := test.RandomValue[bool](0)
+	obj.SetTestBit(testBit)
+
+	testVarchar := test.RandomValue[string](10)
+	obj.SetTestVarchar(testVarchar)
+
+	testBlob := test.RandomValue[[]uint8](65535)
+	obj.SetTestBlob(testBlob)
+
+	// Test retrieval
+	obj = LoadTypeTest(ctx, obj.PrimaryKey())
+	require.NotNil(t, obj)
+
+	assert.True(t, obj.IDIsValid())
+	assert.NotEmpty(t, obj.ID())
+
+	assert.True(t, obj.DateIsValid())
+	assert.False(t, obj.DateIsNull())
+	assert.Equal(t, date, obj.Date())
+
+	assert.True(t, obj.TimeIsValid())
+	assert.False(t, obj.TimeIsNull())
+	assert.Equal(t, time, obj.Time())
+
+	assert.True(t, obj.DateTimeIsValid())
+	assert.False(t, obj.DateTimeIsNull())
+	assert.Equal(t, dateTime, obj.DateTime())
+
+	assert.True(t, obj.TsIsValid())
+	assert.False(t, obj.TsIsNull())
+	assert.NotEmpty(t, obj.Ts())
+
+	assert.True(t, obj.TestIntIsValid())
+	assert.False(t, obj.TestIntIsNull())
+	assert.Equal(t, testInt, obj.TestInt())
+
+	assert.True(t, obj.TestFloatIsValid())
+	assert.False(t, obj.TestFloatIsNull())
+	assert.Equal(t, testFloat, obj.TestFloat())
+
+	assert.True(t, obj.TestDoubleIsValid())
+	assert.Equal(t, testDouble, obj.TestDouble())
+
+	assert.True(t, obj.TestTextIsValid())
+	assert.False(t, obj.TestTextIsNull())
+	assert.Equal(t, testText, obj.TestText())
+
+	assert.True(t, obj.TestBitIsValid())
+	assert.False(t, obj.TestBitIsNull())
+	assert.Equal(t, testBit, obj.TestBit())
+
+	assert.True(t, obj.TestVarcharIsValid())
+	assert.False(t, obj.TestVarcharIsNull())
+	assert.Equal(t, testVarchar, obj.TestVarchar())
+
+	assert.True(t, obj.TestBlobIsValid())
+	assert.Equal(t, testBlob, obj.TestBlob())
+
 }

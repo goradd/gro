@@ -2,7 +2,6 @@ package model
 
 import (
 	"fmt"
-	"github.com/gedex/inflector"
 	. "github.com/goradd/orm/pkg/query"
 	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
@@ -64,7 +63,7 @@ func (cd *Column) VariableIdentifier() string {
 }
 
 func (cd *Column) VariableIdentifierPlural() string {
-	return inflector.Pluralize(cd.DecapIdentifier)
+	return strings2.Plural(cd.DecapIdentifier)
 }
 
 // DefaultValueAsValue returns the default value of the column as a GO value
@@ -158,7 +157,7 @@ func (cd *Column) ReferenceType() string {
 	if cd.Reference.EnumTable != nil {
 		return cd.Reference.EnumTable.Identifier
 	}
-	panic("reference does not have a Table or an EnumTable")
+	panic("reference does not have a Table or an Enum")
 }
 
 // ReferenceVariableIdentifier returns the name of the local variable that will
@@ -241,7 +240,7 @@ func (cd *Column) GoType() string {
 			// enum tables are an enumerated type
 			return enumTable.Identifier
 		} else {
-			panic("reference is missing either a Table or EnumTable entry")
+			panic("reference is missing either a Table or Enum entry")
 		}
 	}
 	return cd.Type.GoType()
@@ -271,7 +270,7 @@ func newColumn(schemaCol *schema.Column) *Column {
 		DefaultValue:    schemaCol.DefaultValue,
 		IsAutoId:        schemaCol.Type == schema.ColTypeAutoPrimaryKey,
 		IsPk:            schemaCol.Type == schema.ColTypeAutoPrimaryKey || schemaCol.IndexLevel == schema.IndexLevelManualPrimaryKey,
-		IsNullable:      schemaCol.IsOptional,
+		IsNullable:      schemaCol.IsNullable,
 		IsUnique: schemaCol.Type == schema.ColTypeAutoPrimaryKey ||
 			schemaCol.IndexLevel == schema.IndexLevelManualPrimaryKey ||
 			schemaCol.IndexLevel == schema.IndexLevelUnique,

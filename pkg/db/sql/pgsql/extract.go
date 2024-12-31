@@ -461,8 +461,8 @@ func processTypeInfo(column pgColumn) (
 	case "numeric":
 		// No native equivalent in Go.
 		// See the shopspring/decimal package for support.
-		// You will need to shepherd numbers into and out of string format to move data to the database.
-		typ = schema.ColTypeString
+		// You will need to shepherd numbers into and out of []byte format to move data to the database.
+		typ = schema.ColTypeUnknown
 		maxLength = uint64(column.characterMaxLen.Int64) + 3
 
 	case "year":
@@ -506,14 +506,14 @@ func (m *DB) schemaFromRawTables(rawTables map[string]pgTable, options map[strin
 				dd.AssociationTables = append(dd.AssociationTables, &mm)
 			}
 		} else {
-			t := m.getTableSchema(rawTable)
+			t := m.getTableSchema(rawTable, dd.EnumTableSuffix)
 			dd.Tables = append(dd.Tables, &t)
 		}
 	}
 	return dd
 }
 
-func (m *DB) getTableSchema(t pgTable) schema.Table {
+func (m *DB) getTableSchema(t pgTable, enumTableSuffix string) schema.Table {
 	var columnSchemas []*schema.Column
 
 	// Build the indexes
@@ -523,7 +523,7 @@ func (m *DB) getTableSchema(t pgTable) schema.Table {
 	singleIndexes := maps.NewSet[string]()
 
 	// Fill pkColumns map with the column names of all the pk columns
-	// Also file the indexes map with a list of columns for each index
+	// Also fill the indexes map with a list of columns for each index
 	for _, idx := range t.indexes {
 		if idx.primary {
 			pkColumns.Add(idx.columnName)
@@ -557,7 +557,7 @@ func (m *DB) getTableSchema(t pgTable) schema.Table {
 			continue
 		}
 
-		cd := m.getColumnSchema(t, col, singleIndexes.Has(col.name), pkColumns.Has(col.name), uniqueColumns.Has(col.name))
+		cd := m.getColumnSchema(t, col, singleIndexes.Has(col.name), pkColumns.Has(col.name), uniqueColumns.Has(col.name), enumTableSuffix)
 
 		if cd.Type == schema.ColTypeAutoPrimaryKey || cd.IndexLevel == schema.IndexLevelManualPrimaryKey {
 			// private keys go first
@@ -601,7 +601,7 @@ func (m *DB) getTableSchema(t pgTable) schema.Table {
 }
 
 func (m *DB) getEnumTableSchema(t pgTable) (ed schema.EnumTable, err error) {
-	td := m.getTableSchema(t)
+	td := m.getTableSchema(t, "")
 
 	var columnNames []string
 	var quotedNames []string
@@ -688,7 +688,7 @@ ORDER BY
 	return
 }
 
-func (m *DB) getColumnSchema(table pgTable, column pgColumn, isIndexed bool, isPk bool, isUnique bool) schema.Column {
+func (m *DB) getColumnSchema(table pgTable, column pgColumn, isIndexed bool, isPk bool, isUnique bool, enumTableSuffix string) schema.Column {
 	cd := schema.Column{
 		Name: column.name,
 	}
@@ -702,6 +702,7 @@ func (m *DB) getColumnSchema(table pgTable, column pgColumn, isIndexed bool, isP
 	// treat auto incrementing values as id values
 	if isAuto {
 		cd.Type = schema.ColTypeAutoPrimaryKey
+		cd.Size = 0
 	} else if isPk {
 		cd.IndexLevel = schema.IndexLevelManualPrimaryKey
 	} else if isUnique {
@@ -710,7 +711,7 @@ func (m *DB) getColumnSchema(table pgTable, column pgColumn, isIndexed bool, isP
 		cd.IndexLevel = schema.IndexLevelIndexed
 	}
 
-	cd.IsOptional = column.isNullable
+	cd.IsNullable = column.isNullable
 
 	if fk, ok2 := table.fkMap[cd.Name]; ok2 {
 		tableName := fk.referencedTableName
@@ -720,6 +721,11 @@ func (m *DB) getColumnSchema(table pgTable, column pgColumn, isIndexed bool, isP
 
 		cd.Reference = &schema.Reference{
 			Table: tableName,
+		}
+		if strings.HasSuffix(tableName, enumTableSuffix) {
+			cd.Type = schema.ColTypeEnum
+		} else {
+			cd.Type = schema.ColTypeReference
 		}
 	}
 
@@ -731,7 +737,7 @@ func (m *DB) getColumnSchema(table pgTable, column pgColumn, isIndexed bool, isP
 }
 
 func (m *DB) getAssociationSchema(t pgTable, enumTableSuffix string) (mm schema.AssociationTable, err error) {
-	td := m.getTableSchema(t)
+	td := m.getTableSchema(t, enumTableSuffix)
 	if len(td.Columns) != 2 {
 		err = fmt.Errorf("table " + td.Name + " must have only 2 primary key columns.")
 		return
@@ -748,12 +754,12 @@ func (m *DB) getAssociationSchema(t pgTable, enumTableSuffix string) (mm schema.
 			return
 		}
 
-		if cd.IsOptional {
+		if cd.IsNullable {
 			err = fmt.Errorf("column " + cd.Name + " cannot be nullable.")
 			return
 		}
 
-		if strings.HasSuffix(cd.Reference.Table, enumTableSuffix) {
+		if cd.Type == schema.ColTypeEnum {
 			if typeIndex != -1 {
 				err = fmt.Errorf("column " + cd.Name + " cannot have two foreign keys to enum tables.")
 				return

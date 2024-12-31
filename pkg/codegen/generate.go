@@ -27,7 +27,7 @@ func gen(db *model.Database) {
 				genTableTemplate(g, tbl)
 			}
 		} else if g, ok := tmpl.(EnumGenerator); ok {
-			for _, tbl := range db.EnumTables {
+			for _, tbl := range db.Enums {
 				genEnumTemplate(g, tbl)
 			}
 		}
@@ -79,7 +79,7 @@ func genTableTemplate(g TableGenerator, table *model.Table) {
 	runGoImports(filename)
 }
 
-func genEnumTemplate(g EnumGenerator, table *model.EnumTable) {
+func genEnumTemplate(g EnumGenerator, table *model.Enum) {
 	filename := g.FileName(table)
 	if !g.Overwrite() && fileExists(filename) {
 		return

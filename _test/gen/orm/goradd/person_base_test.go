@@ -3,10 +3,13 @@
 package goradd
 
 import (
+	"context"
 	"testing"
 
+	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPerson_SetFirstName(t *testing.T) {
@@ -44,4 +47,43 @@ func TestPerson_SetLastName(t *testing.T) {
 	assert.Panics(t, func() {
 		obj.SetLastName(lastName)
 	})
+}
+
+// createMinimalSamplePerson creates and saves a minimal version of a Person object
+// for testing.
+func createMinimalSamplePerson(ctx context.Context) *Person {
+	obj := NewPerson()
+
+	firstName := test.RandomValue[string](50)
+	obj.SetFirstName(firstName)
+
+	lastName := test.RandomValue[string](50)
+	obj.SetLastName(lastName)
+
+	obj.Save(ctx)
+	return obj
+}
+func TestPerson_CRUD(t *testing.T) {
+	obj := NewPerson()
+	ctx := db.NewContext(nil)
+
+	firstName := test.RandomValue[string](50)
+	obj.SetFirstName(firstName)
+
+	lastName := test.RandomValue[string](50)
+	obj.SetLastName(lastName)
+
+	// Test retrieval
+	obj = LoadPerson(ctx, obj.PrimaryKey())
+	require.NotNil(t, obj)
+
+	assert.True(t, obj.IDIsValid())
+	assert.NotEmpty(t, obj.ID())
+
+	assert.True(t, obj.FirstNameIsValid())
+	assert.Equal(t, firstName, obj.FirstName())
+
+	assert.True(t, obj.LastNameIsValid())
+	assert.Equal(t, lastName, obj.LastName())
+
 }

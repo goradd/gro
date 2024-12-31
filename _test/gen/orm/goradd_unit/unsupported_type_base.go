@@ -27,15 +27,15 @@ type unsupportedTypeBase struct {
 	typeSerialIsValid bool
 	typeSerialIsDirty bool
 
-	typeSet        string
+	typeSet        []uint8
 	typeSetIsValid bool
 	typeSetIsDirty bool
 
-	typeEnum        string
+	typeEnum        []uint8
 	typeEnumIsValid bool
 	typeEnumIsDirty bool
 
-	typeDecimal        string
+	typeDecimal        []uint8
 	typeDecimalIsValid bool
 	typeDecimalIsDirty bool
 
@@ -43,7 +43,7 @@ type unsupportedTypeBase struct {
 	typeDoubleIsValid bool
 	typeDoubleIsDirty bool
 
-	typeGeo        []byte
+	typeGeo        []uint8
 	typeGeoIsValid bool
 	typeGeoIsDirty bool
 
@@ -55,7 +55,7 @@ type unsupportedTypeBase struct {
 	typeMediumBlobIsValid bool
 	typeMediumBlobIsDirty bool
 
-	typeVarbinary        []byte
+	typeVarbinary        []uint8
 	typeVarbinaryIsValid bool
 	typeVarbinaryIsDirty bool
 
@@ -63,7 +63,7 @@ type unsupportedTypeBase struct {
 	typeLongtextIsValid bool
 	typeLongtextIsDirty bool
 
-	typeBinary        []byte
+	typeBinary        []uint8
 	typeBinaryIsValid bool
 	typeBinaryIsDirty bool
 
@@ -79,7 +79,7 @@ type unsupportedTypeBase struct {
 	typeBigIsValid bool
 	typeBigIsDirty bool
 
-	typePolygon        []byte
+	typePolygon        []uint8
 	typePolygonIsValid bool
 	typePolygonIsDirty bool
 
@@ -128,9 +128,9 @@ const (
 )
 
 const UnsupportedTypeTypeSerialMaxLength = 64           // The number of runes the column can hold
-const UnsupportedTypeTypeSetMaxLength = 5               // The number of runes the column can hold
-const UnsupportedTypeTypeEnumMaxLength = 1              // The number of runes the column can hold
-const UnsupportedTypeTypeDecimalMaxLength = 13          // The number of runes the column can hold
+const UnsupportedTypeTypeSetMaxLength = 5               // The number of bytes the column can hold
+const UnsupportedTypeTypeEnumMaxLength = 1              // The number of bytes the column can hold
+const UnsupportedTypeTypeDecimalMaxLength = 13          // The number of bytes the column can hold
 const UnsupportedTypeTypeTinyBlobMaxLength = 255        // The number of bytes the column can hold
 const UnsupportedTypeTypeMediumBlobMaxLength = 16777215 // The number of bytes the column can hold
 const UnsupportedTypeTypeLongtextMaxLength = 4294967295 // The number of runes the column can hold
@@ -148,17 +148,17 @@ func (o *unsupportedTypeBase) Initialize() {
 	o.typeSerialIsValid = false
 	o.typeSerialIsDirty = false
 
-	o.typeSet = ""
+	o.typeSet = []byte(nil)
 
 	o.typeSetIsValid = false
 	o.typeSetIsDirty = false
 
-	o.typeEnum = ""
+	o.typeEnum = []byte(nil)
 
 	o.typeEnumIsValid = false
 	o.typeEnumIsDirty = false
 
-	o.typeDecimal = ""
+	o.typeDecimal = []byte(nil)
 
 	o.typeDecimalIsValid = false
 	o.typeDecimalIsDirty = false
@@ -168,7 +168,7 @@ func (o *unsupportedTypeBase) Initialize() {
 	o.typeDoubleIsValid = false
 	o.typeDoubleIsDirty = false
 
-	o.typeGeo = nil
+	o.typeGeo = []byte(nil)
 
 	o.typeGeoIsValid = false
 	o.typeGeoIsDirty = false
@@ -183,7 +183,7 @@ func (o *unsupportedTypeBase) Initialize() {
 	o.typeMediumBlobIsValid = false
 	o.typeMediumBlobIsDirty = false
 
-	o.typeVarbinary = nil
+	o.typeVarbinary = []byte(nil)
 
 	o.typeVarbinaryIsValid = false
 	o.typeVarbinaryIsDirty = false
@@ -193,7 +193,7 @@ func (o *unsupportedTypeBase) Initialize() {
 	o.typeLongtextIsValid = false
 	o.typeLongtextIsDirty = false
 
-	o.typeBinary = nil
+	o.typeBinary = []byte(nil)
 
 	o.typeBinaryIsValid = false
 	o.typeBinaryIsDirty = false
@@ -213,7 +213,7 @@ func (o *unsupportedTypeBase) Initialize() {
 	o.typeBigIsValid = false
 	o.typeBigIsDirty = false
 
-	o.typePolygon = nil
+	o.typePolygon = []byte(nil)
 
 	o.typePolygonIsValid = false
 	o.typePolygonIsDirty = false
@@ -322,7 +322,7 @@ func (o *unsupportedTypeBase) TypeSerialIsValid() bool {
 }
 
 // TypeSet returns the loaded value of TypeSet.
-func (o *unsupportedTypeBase) TypeSet() string {
+func (o *unsupportedTypeBase) TypeSet() []uint8 {
 	if o._restored && !o.typeSetIsValid {
 		panic("TypeSet was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -335,19 +335,17 @@ func (o *unsupportedTypeBase) TypeSetIsValid() bool {
 }
 
 // SetTypeSet sets the value of TypeSet in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeSet(typeSet string) {
+func (o *unsupportedTypeBase) SetTypeSet(typeSet []uint8) {
 	o.typeSetIsValid = true
-	if utf8.RuneCountInString(typeSet) > UnsupportedTypeTypeSetMaxLength {
-		panic("attempted to set UnsupportedType.TypeSet to a value larger than its maximum length in runes")
+	if len(typeSet) > UnsupportedTypeTypeSetMaxLength {
+		panic("attempted to set UnsupportedType.TypeSet to a value larger than its maximum length")
 	}
-	if o.typeSet != typeSet || !o._restored {
-		o.typeSet = typeSet
-		o.typeSetIsDirty = true
-	}
+	o.typeSet = typeSet // TODO: Copy bytes??
+	o.typeSetIsDirty = true
 }
 
 // TypeEnum returns the loaded value of TypeEnum.
-func (o *unsupportedTypeBase) TypeEnum() string {
+func (o *unsupportedTypeBase) TypeEnum() []uint8 {
 	if o._restored && !o.typeEnumIsValid {
 		panic("TypeEnum was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -360,19 +358,17 @@ func (o *unsupportedTypeBase) TypeEnumIsValid() bool {
 }
 
 // SetTypeEnum sets the value of TypeEnum in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeEnum(typeEnum string) {
+func (o *unsupportedTypeBase) SetTypeEnum(typeEnum []uint8) {
 	o.typeEnumIsValid = true
-	if utf8.RuneCountInString(typeEnum) > UnsupportedTypeTypeEnumMaxLength {
-		panic("attempted to set UnsupportedType.TypeEnum to a value larger than its maximum length in runes")
+	if len(typeEnum) > UnsupportedTypeTypeEnumMaxLength {
+		panic("attempted to set UnsupportedType.TypeEnum to a value larger than its maximum length")
 	}
-	if o.typeEnum != typeEnum || !o._restored {
-		o.typeEnum = typeEnum
-		o.typeEnumIsDirty = true
-	}
+	o.typeEnum = typeEnum // TODO: Copy bytes??
+	o.typeEnumIsDirty = true
 }
 
 // TypeDecimal returns the loaded value of TypeDecimal.
-func (o *unsupportedTypeBase) TypeDecimal() string {
+func (o *unsupportedTypeBase) TypeDecimal() []uint8 {
 	if o._restored && !o.typeDecimalIsValid {
 		panic("TypeDecimal was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -385,15 +381,13 @@ func (o *unsupportedTypeBase) TypeDecimalIsValid() bool {
 }
 
 // SetTypeDecimal sets the value of TypeDecimal in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeDecimal(typeDecimal string) {
+func (o *unsupportedTypeBase) SetTypeDecimal(typeDecimal []uint8) {
 	o.typeDecimalIsValid = true
-	if utf8.RuneCountInString(typeDecimal) > UnsupportedTypeTypeDecimalMaxLength {
-		panic("attempted to set UnsupportedType.TypeDecimal to a value larger than its maximum length in runes")
+	if len(typeDecimal) > UnsupportedTypeTypeDecimalMaxLength {
+		panic("attempted to set UnsupportedType.TypeDecimal to a value larger than its maximum length")
 	}
-	if o.typeDecimal != typeDecimal || !o._restored {
-		o.typeDecimal = typeDecimal
-		o.typeDecimalIsDirty = true
-	}
+	o.typeDecimal = typeDecimal // TODO: Copy bytes??
+	o.typeDecimalIsDirty = true
 }
 
 // TypeDouble returns the loaded value of TypeDouble.
@@ -412,6 +406,7 @@ func (o *unsupportedTypeBase) TypeDoubleIsValid() bool {
 // SetTypeDouble sets the value of TypeDouble in the object, to be saved later using the Save() function.
 func (o *unsupportedTypeBase) SetTypeDouble(typeDouble float64) {
 	o.typeDoubleIsValid = true
+
 	if o.typeDouble != typeDouble || !o._restored {
 		o.typeDouble = typeDouble
 		o.typeDoubleIsDirty = true
@@ -419,7 +414,7 @@ func (o *unsupportedTypeBase) SetTypeDouble(typeDouble float64) {
 }
 
 // TypeGeo returns the loaded value of TypeGeo.
-func (o *unsupportedTypeBase) TypeGeo() []byte {
+func (o *unsupportedTypeBase) TypeGeo() []uint8 {
 	if o._restored && !o.typeGeoIsValid {
 		panic("TypeGeo was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -432,12 +427,10 @@ func (o *unsupportedTypeBase) TypeGeoIsValid() bool {
 }
 
 // SetTypeGeo sets the value of TypeGeo in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeGeo(typeGeo []byte) {
+func (o *unsupportedTypeBase) SetTypeGeo(typeGeo []uint8) {
 	o.typeGeoIsValid = true
-	if o.typeGeo != typeGeo || !o._restored {
-		o.typeGeo = typeGeo
-		o.typeGeoIsDirty = true
-	}
+	o.typeGeo = typeGeo // TODO: Copy bytes??
+	o.typeGeoIsDirty = true
 }
 
 // TypeTinyBlob returns the loaded value of TypeTinyBlob.
@@ -487,7 +480,7 @@ func (o *unsupportedTypeBase) SetTypeMediumBlob(typeMediumBlob []uint8) {
 }
 
 // TypeVarbinary returns the loaded value of TypeVarbinary.
-func (o *unsupportedTypeBase) TypeVarbinary() []byte {
+func (o *unsupportedTypeBase) TypeVarbinary() []uint8 {
 	if o._restored && !o.typeVarbinaryIsValid {
 		panic("TypeVarbinary was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -500,12 +493,10 @@ func (o *unsupportedTypeBase) TypeVarbinaryIsValid() bool {
 }
 
 // SetTypeVarbinary sets the value of TypeVarbinary in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeVarbinary(typeVarbinary []byte) {
+func (o *unsupportedTypeBase) SetTypeVarbinary(typeVarbinary []uint8) {
 	o.typeVarbinaryIsValid = true
-	if o.typeVarbinary != typeVarbinary || !o._restored {
-		o.typeVarbinary = typeVarbinary
-		o.typeVarbinaryIsDirty = true
-	}
+	o.typeVarbinary = typeVarbinary // TODO: Copy bytes??
+	o.typeVarbinaryIsDirty = true
 }
 
 // TypeLongtext returns the loaded value of TypeLongtext.
@@ -524,6 +515,7 @@ func (o *unsupportedTypeBase) TypeLongtextIsValid() bool {
 // SetTypeLongtext sets the value of TypeLongtext in the object, to be saved later using the Save() function.
 func (o *unsupportedTypeBase) SetTypeLongtext(typeLongtext string) {
 	o.typeLongtextIsValid = true
+
 	if utf8.RuneCountInString(typeLongtext) > UnsupportedTypeTypeLongtextMaxLength {
 		panic("attempted to set UnsupportedType.TypeLongtext to a value larger than its maximum length in runes")
 	}
@@ -534,7 +526,7 @@ func (o *unsupportedTypeBase) SetTypeLongtext(typeLongtext string) {
 }
 
 // TypeBinary returns the loaded value of TypeBinary.
-func (o *unsupportedTypeBase) TypeBinary() []byte {
+func (o *unsupportedTypeBase) TypeBinary() []uint8 {
 	if o._restored && !o.typeBinaryIsValid {
 		panic("TypeBinary was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -547,12 +539,10 @@ func (o *unsupportedTypeBase) TypeBinaryIsValid() bool {
 }
 
 // SetTypeBinary sets the value of TypeBinary in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeBinary(typeBinary []byte) {
+func (o *unsupportedTypeBase) SetTypeBinary(typeBinary []uint8) {
 	o.typeBinaryIsValid = true
-	if o.typeBinary != typeBinary || !o._restored {
-		o.typeBinary = typeBinary
-		o.typeBinaryIsDirty = true
-	}
+	o.typeBinary = typeBinary // TODO: Copy bytes??
+	o.typeBinaryIsDirty = true
 }
 
 // TypeSmall returns the loaded value of TypeSmall.
@@ -571,6 +561,7 @@ func (o *unsupportedTypeBase) TypeSmallIsValid() bool {
 // SetTypeSmall sets the value of TypeSmall in the object, to be saved later using the Save() function.
 func (o *unsupportedTypeBase) SetTypeSmall(typeSmall int) {
 	o.typeSmallIsValid = true
+
 	if o.typeSmall != typeSmall || !o._restored {
 		o.typeSmall = typeSmall
 		o.typeSmallIsDirty = true
@@ -593,6 +584,7 @@ func (o *unsupportedTypeBase) TypeMediumIsValid() bool {
 // SetTypeMedium sets the value of TypeMedium in the object, to be saved later using the Save() function.
 func (o *unsupportedTypeBase) SetTypeMedium(typeMedium int) {
 	o.typeMediumIsValid = true
+
 	if o.typeMedium != typeMedium || !o._restored {
 		o.typeMedium = typeMedium
 		o.typeMediumIsDirty = true
@@ -615,6 +607,7 @@ func (o *unsupportedTypeBase) TypeBigIsValid() bool {
 // SetTypeBig sets the value of TypeBig in the object, to be saved later using the Save() function.
 func (o *unsupportedTypeBase) SetTypeBig(typeBig int64) {
 	o.typeBigIsValid = true
+
 	if o.typeBig != typeBig || !o._restored {
 		o.typeBig = typeBig
 		o.typeBigIsDirty = true
@@ -622,7 +615,7 @@ func (o *unsupportedTypeBase) SetTypeBig(typeBig int64) {
 }
 
 // TypePolygon returns the loaded value of TypePolygon.
-func (o *unsupportedTypeBase) TypePolygon() []byte {
+func (o *unsupportedTypeBase) TypePolygon() []uint8 {
 	if o._restored && !o.typePolygonIsValid {
 		panic("TypePolygon was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -635,12 +628,10 @@ func (o *unsupportedTypeBase) TypePolygonIsValid() bool {
 }
 
 // SetTypePolygon sets the value of TypePolygon in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypePolygon(typePolygon []byte) {
+func (o *unsupportedTypeBase) SetTypePolygon(typePolygon []uint8) {
 	o.typePolygonIsValid = true
-	if o.typePolygon != typePolygon || !o._restored {
-		o.typePolygon = typePolygon
-		o.typePolygonIsDirty = true
-	}
+	o.typePolygon = typePolygon // TODO: Copy bytes??
+	o.typePolygonIsDirty = true
 }
 
 // TypeUnsigned returns the loaded value of TypeUnsigned.
@@ -659,6 +650,7 @@ func (o *unsupportedTypeBase) TypeUnsignedIsValid() bool {
 // SetTypeUnsigned sets the value of TypeUnsigned in the object, to be saved later using the Save() function.
 func (o *unsupportedTypeBase) SetTypeUnsigned(typeUnsigned uint) {
 	o.typeUnsignedIsValid = true
+
 	if o.typeUnsigned != typeUnsigned || !o._restored {
 		o.typeUnsigned = typeUnsigned
 		o.typeUnsignedIsDirty = true
@@ -681,6 +673,7 @@ func (o *unsupportedTypeBase) TypeMultfk1IsValid() bool {
 // SetTypeMultfk1 sets the value of TypeMultfk1 in the object, to be saved later using the Save() function.
 func (o *unsupportedTypeBase) SetTypeMultfk1(typeMultfk1 string) {
 	o.typeMultfk1IsValid = true
+
 	if utf8.RuneCountInString(typeMultfk1) > UnsupportedTypeTypeMultfk1MaxLength {
 		panic("attempted to set UnsupportedType.TypeMultfk1 to a value larger than its maximum length in runes")
 	}
@@ -706,6 +699,7 @@ func (o *unsupportedTypeBase) TypeMultifk2IsValid() bool {
 // SetTypeMultifk2 sets the value of TypeMultifk2 in the object, to be saved later using the Save() function.
 func (o *unsupportedTypeBase) SetTypeMultifk2(typeMultifk2 string) {
 	o.typeMultifk2IsValid = true
+
 	if utf8.RuneCountInString(typeMultifk2) > UnsupportedTypeTypeMultifk2MaxLength {
 		panic("attempted to set UnsupportedType.TypeMultifk2 to a value larger than its maximum length in runes")
 	}
@@ -959,21 +953,21 @@ func CountUnsupportedTypeByTypeSerial(ctx context.Context, typeSerial string) in
 // CountUnsupportedTypeByTypeSet queries the database and returns the number of UnsupportedType objects that
 // have typeSet.
 // doc: type=UnsupportedType
-func CountUnsupportedTypeByTypeSet(ctx context.Context, typeSet string) int {
+func CountUnsupportedTypeByTypeSet(ctx context.Context, typeSet []uint8) int {
 	return int(queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeSet(), typeSet)).Count(false))
 }
 
 // CountUnsupportedTypeByTypeEnum queries the database and returns the number of UnsupportedType objects that
 // have typeEnum.
 // doc: type=UnsupportedType
-func CountUnsupportedTypeByTypeEnum(ctx context.Context, typeEnum string) int {
+func CountUnsupportedTypeByTypeEnum(ctx context.Context, typeEnum []uint8) int {
 	return int(queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeEnum(), typeEnum)).Count(false))
 }
 
 // CountUnsupportedTypeByTypeDecimal queries the database and returns the number of UnsupportedType objects that
 // have typeDecimal.
 // doc: type=UnsupportedType
-func CountUnsupportedTypeByTypeDecimal(ctx context.Context, typeDecimal string) int {
+func CountUnsupportedTypeByTypeDecimal(ctx context.Context, typeDecimal []uint8) int {
 	return int(queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeDecimal(), typeDecimal)).Count(false))
 }
 
@@ -987,7 +981,7 @@ func CountUnsupportedTypeByTypeDouble(ctx context.Context, typeDouble float64) i
 // CountUnsupportedTypeByTypeGeo queries the database and returns the number of UnsupportedType objects that
 // have typeGeo.
 // doc: type=UnsupportedType
-func CountUnsupportedTypeByTypeGeo(ctx context.Context, typeGeo []byte) int {
+func CountUnsupportedTypeByTypeGeo(ctx context.Context, typeGeo []uint8) int {
 	return int(queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeGeo(), typeGeo)).Count(false))
 }
 
@@ -1008,7 +1002,7 @@ func CountUnsupportedTypeByTypeMediumBlob(ctx context.Context, typeMediumBlob []
 // CountUnsupportedTypeByTypeVarbinary queries the database and returns the number of UnsupportedType objects that
 // have typeVarbinary.
 // doc: type=UnsupportedType
-func CountUnsupportedTypeByTypeVarbinary(ctx context.Context, typeVarbinary []byte) int {
+func CountUnsupportedTypeByTypeVarbinary(ctx context.Context, typeVarbinary []uint8) int {
 	return int(queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeVarbinary(), typeVarbinary)).Count(false))
 }
 
@@ -1022,7 +1016,7 @@ func CountUnsupportedTypeByTypeLongtext(ctx context.Context, typeLongtext string
 // CountUnsupportedTypeByTypeBinary queries the database and returns the number of UnsupportedType objects that
 // have typeBinary.
 // doc: type=UnsupportedType
-func CountUnsupportedTypeByTypeBinary(ctx context.Context, typeBinary []byte) int {
+func CountUnsupportedTypeByTypeBinary(ctx context.Context, typeBinary []uint8) int {
 	return int(queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeBinary(), typeBinary)).Count(false))
 }
 
@@ -1050,7 +1044,7 @@ func CountUnsupportedTypeByTypeBig(ctx context.Context, typeBig int64) int {
 // CountUnsupportedTypeByTypePolygon queries the database and returns the number of UnsupportedType objects that
 // have typePolygon.
 // doc: type=UnsupportedType
-func CountUnsupportedTypeByTypePolygon(ctx context.Context, typePolygon []byte) int {
+func CountUnsupportedTypeByTypePolygon(ctx context.Context, typePolygon []uint8) int {
 	return int(queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypePolygon(), typePolygon)).Count(false))
 }
 
@@ -1096,7 +1090,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	}
 
 	if v, ok := m["type_set"]; ok && v != nil {
-		if o.typeSet, ok = v.(string); ok {
+		if o.typeSet, ok = v.([]uint8); ok {
 			o.typeSetIsValid = true
 			o.typeSetIsDirty = false
 
@@ -1105,11 +1099,11 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 		}
 	} else {
 		o.typeSetIsValid = false
-		o.typeSet = ""
+		o.typeSet = []byte(nil)
 	}
 
 	if v, ok := m["type_enum"]; ok && v != nil {
-		if o.typeEnum, ok = v.(string); ok {
+		if o.typeEnum, ok = v.([]uint8); ok {
 			o.typeEnumIsValid = true
 			o.typeEnumIsDirty = false
 
@@ -1118,11 +1112,11 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 		}
 	} else {
 		o.typeEnumIsValid = false
-		o.typeEnum = ""
+		o.typeEnum = []byte(nil)
 	}
 
 	if v, ok := m["type_decimal"]; ok && v != nil {
-		if o.typeDecimal, ok = v.(string); ok {
+		if o.typeDecimal, ok = v.([]uint8); ok {
 			o.typeDecimalIsValid = true
 			o.typeDecimalIsDirty = false
 
@@ -1131,7 +1125,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 		}
 	} else {
 		o.typeDecimalIsValid = false
-		o.typeDecimal = ""
+		o.typeDecimal = []byte(nil)
 	}
 
 	if v, ok := m["type_double"]; ok && v != nil {
@@ -1148,7 +1142,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	}
 
 	if v, ok := m["type_geo"]; ok && v != nil {
-		if o.typeGeo, ok = v.([]byte); ok {
+		if o.typeGeo, ok = v.([]uint8); ok {
 			o.typeGeoIsValid = true
 			o.typeGeoIsDirty = false
 
@@ -1157,7 +1151,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 		}
 	} else {
 		o.typeGeoIsValid = false
-		o.typeGeo = nil
+		o.typeGeo = []byte(nil)
 	}
 
 	if v, ok := m["type_tiny_blob"]; ok && v != nil {
@@ -1187,7 +1181,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	}
 
 	if v, ok := m["type_varbinary"]; ok && v != nil {
-		if o.typeVarbinary, ok = v.([]byte); ok {
+		if o.typeVarbinary, ok = v.([]uint8); ok {
 			o.typeVarbinaryIsValid = true
 			o.typeVarbinaryIsDirty = false
 
@@ -1196,7 +1190,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 		}
 	} else {
 		o.typeVarbinaryIsValid = false
-		o.typeVarbinary = nil
+		o.typeVarbinary = []byte(nil)
 	}
 
 	if v, ok := m["type_longtext"]; ok && v != nil {
@@ -1213,7 +1207,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	}
 
 	if v, ok := m["type_binary"]; ok && v != nil {
-		if o.typeBinary, ok = v.([]byte); ok {
+		if o.typeBinary, ok = v.([]uint8); ok {
 			o.typeBinaryIsValid = true
 			o.typeBinaryIsDirty = false
 
@@ -1222,7 +1216,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 		}
 	} else {
 		o.typeBinaryIsValid = false
-		o.typeBinary = nil
+		o.typeBinary = []byte(nil)
 	}
 
 	if v, ok := m["type_small"]; ok && v != nil {
@@ -1265,7 +1259,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	}
 
 	if v, ok := m["type_polygon"]; ok && v != nil {
-		if o.typePolygon, ok = v.([]byte); ok {
+		if o.typePolygon, ok = v.([]uint8); ok {
 			o.typePolygonIsValid = true
 			o.typePolygonIsDirty = false
 
@@ -1274,7 +1268,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 		}
 	} else {
 		o.typePolygonIsValid = false
-		o.typePolygon = nil
+		o.typePolygon = []byte(nil)
 	}
 
 	if v, ok := m["type_unsigned"]; ok && v != nil {
@@ -2272,20 +2266,20 @@ func (o *unsupportedTypeBase) MarshalStringMap() map[string]interface{} {
 // The fields it expects are:
 //
 //	"typeSerial" - string
-//	"typeSet" - string
-//	"typeEnum" - string
-//	"typeDecimal" - string
+//	"typeSet" - []uint8
+//	"typeEnum" - []uint8
+//	"typeDecimal" - []uint8
 //	"typeDouble" - float64
-//	"typeGeo" - []byte
+//	"typeGeo" - []uint8
 //	"typeTinyBlob" - []uint8
 //	"typeMediumBlob" - []uint8
-//	"typeVarbinary" - []byte
+//	"typeVarbinary" - []uint8
 //	"typeLongtext" - string
-//	"typeBinary" - []byte
+//	"typeBinary" - []uint8
 //	"typeSmall" - int
 //	"typeMedium" - int
 //	"typeBig" - int64
-//	"typePolygon" - []byte
+//	"typePolygon" - []uint8
 //	"typeUnsigned" - uint
 //	"typeMultfk1" - string
 //	"typeMultifk2" - string
@@ -2310,11 +2304,33 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 					return fmt.Errorf("json field %s cannot be null", k)
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetTypeSet(s)
+				switch d := v.(type) {
+				case string:
+					{
+						// A base 64 encoded string
+						if b, err2 := base64.StdEncoding.DecodeString(d); err2 == nil {
+							o.SetTypeSet(b)
+						} else {
+							return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+						}
+					}
+				case []interface{}:
+					{
+						// An array of byte values. Unfortunately, these come through as float64s, and so need to be converted
+						b := make([]byte, len(d), len(d))
+						for i, b1 := range d {
+							if f, ok := b1.(float64); !ok {
+								return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+							} else {
+								b[i] = uint8(f)
+							}
+						}
+						o.SetTypeSet(b)
+					}
+				default:
+					return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
 				}
+
 			}
 
 		case "typeEnum":
@@ -2323,11 +2339,33 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 					return fmt.Errorf("json field %s cannot be null", k)
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetTypeEnum(s)
+				switch d := v.(type) {
+				case string:
+					{
+						// A base 64 encoded string
+						if b, err2 := base64.StdEncoding.DecodeString(d); err2 == nil {
+							o.SetTypeEnum(b)
+						} else {
+							return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+						}
+					}
+				case []interface{}:
+					{
+						// An array of byte values. Unfortunately, these come through as float64s, and so need to be converted
+						b := make([]byte, len(d), len(d))
+						for i, b1 := range d {
+							if f, ok := b1.(float64); !ok {
+								return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+							} else {
+								b[i] = uint8(f)
+							}
+						}
+						o.SetTypeEnum(b)
+					}
+				default:
+					return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
 				}
+
 			}
 
 		case "typeDecimal":
@@ -2336,11 +2374,33 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 					return fmt.Errorf("json field %s cannot be null", k)
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetTypeDecimal(s)
+				switch d := v.(type) {
+				case string:
+					{
+						// A base 64 encoded string
+						if b, err2 := base64.StdEncoding.DecodeString(d); err2 == nil {
+							o.SetTypeDecimal(b)
+						} else {
+							return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+						}
+					}
+				case []interface{}:
+					{
+						// An array of byte values. Unfortunately, these come through as float64s, and so need to be converted
+						b := make([]byte, len(d), len(d))
+						for i, b1 := range d {
+							if f, ok := b1.(float64); !ok {
+								return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+							} else {
+								b[i] = uint8(f)
+							}
+						}
+						o.SetTypeDecimal(b)
+					}
+				default:
+					return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
 				}
+
 			}
 
 		case "typeDouble":
@@ -2360,6 +2420,33 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 			{
 				if v == nil {
 					return fmt.Errorf("json field %s cannot be null", k)
+				}
+
+				switch d := v.(type) {
+				case string:
+					{
+						// A base 64 encoded string
+						if b, err2 := base64.StdEncoding.DecodeString(d); err2 == nil {
+							o.SetTypeGeo(b)
+						} else {
+							return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+						}
+					}
+				case []interface{}:
+					{
+						// An array of byte values. Unfortunately, these come through as float64s, and so need to be converted
+						b := make([]byte, len(d), len(d))
+						for i, b1 := range d {
+							if f, ok := b1.(float64); !ok {
+								return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+							} else {
+								b[i] = uint8(f)
+							}
+						}
+						o.SetTypeGeo(b)
+					}
+				default:
+					return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
 				}
 
 			}
@@ -2440,6 +2527,33 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 					return fmt.Errorf("json field %s cannot be null", k)
 				}
 
+				switch d := v.(type) {
+				case string:
+					{
+						// A base 64 encoded string
+						if b, err2 := base64.StdEncoding.DecodeString(d); err2 == nil {
+							o.SetTypeVarbinary(b)
+						} else {
+							return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+						}
+					}
+				case []interface{}:
+					{
+						// An array of byte values. Unfortunately, these come through as float64s, and so need to be converted
+						b := make([]byte, len(d), len(d))
+						for i, b1 := range d {
+							if f, ok := b1.(float64); !ok {
+								return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+							} else {
+								b[i] = uint8(f)
+							}
+						}
+						o.SetTypeVarbinary(b)
+					}
+				default:
+					return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+				}
+
 			}
 
 		case "typeLongtext":
@@ -2459,6 +2573,33 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 			{
 				if v == nil {
 					return fmt.Errorf("json field %s cannot be null", k)
+				}
+
+				switch d := v.(type) {
+				case string:
+					{
+						// A base 64 encoded string
+						if b, err2 := base64.StdEncoding.DecodeString(d); err2 == nil {
+							o.SetTypeBinary(b)
+						} else {
+							return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+						}
+					}
+				case []interface{}:
+					{
+						// An array of byte values. Unfortunately, these come through as float64s, and so need to be converted
+						b := make([]byte, len(d), len(d))
+						for i, b1 := range d {
+							if f, ok := b1.(float64); !ok {
+								return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+							} else {
+								b[i] = uint8(f)
+							}
+						}
+						o.SetTypeBinary(b)
+					}
+				default:
+					return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
 				}
 
 			}
@@ -2512,6 +2653,33 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 			{
 				if v == nil {
 					return fmt.Errorf("json field %s cannot be null", k)
+				}
+
+				switch d := v.(type) {
+				case string:
+					{
+						// A base 64 encoded string
+						if b, err2 := base64.StdEncoding.DecodeString(d); err2 == nil {
+							o.SetTypePolygon(b)
+						} else {
+							return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+						}
+					}
+				case []interface{}:
+					{
+						// An array of byte values. Unfortunately, these come through as float64s, and so need to be converted
+						b := make([]byte, len(d), len(d))
+						for i, b1 := range d {
+							if f, ok := b1.(float64); !ok {
+								return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+							} else {
+								b[i] = uint8(f)
+							}
+						}
+						o.SetTypePolygon(b)
+					}
+				default:
+					return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
 				}
 
 			}

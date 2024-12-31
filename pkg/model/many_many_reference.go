@@ -15,7 +15,7 @@ type ManyManyReference struct {
 	// DestinationTable is the table being linked (the table that we are joining to)
 	DestinationTable *Table
 	// DestinationEnumTable is the enum table being linked if this is an enum association
-	DestinationEnumTable *EnumTable
+	DestinationEnumTable *Enum
 
 	// Title is the human-readable title of the objects pointed to.
 	Title string
@@ -81,7 +81,7 @@ func (m *ManyManyReference) QueryName() string {
 	if m.DestinationTable != nil {
 		return m.DestinationTable.QueryName
 	} else {
-		return m.DestinationEnumTable.QueryName
+		return ""
 	}
 }
 
@@ -120,7 +120,7 @@ func makeManyManyRef(
 
 func makeManyManyEnumRef(
 	assnTable, column1, column2 string,
-	t1 *Table, t2 *EnumTable,
+	t1 *Table, t2 *Enum,
 	title, titles, id, ids string,
 ) *ManyManyReference {
 	ref := ManyManyReference{

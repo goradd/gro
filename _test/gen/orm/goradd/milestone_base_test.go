@@ -3,10 +3,13 @@
 package goradd
 
 import (
+	"context"
 	"testing"
 
+	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMilestone_SetProjectID(t *testing.T) {
@@ -39,4 +42,44 @@ func TestMilestone_SetName(t *testing.T) {
 	assert.Panics(t, func() {
 		obj.SetName(name)
 	})
+}
+
+// createMinimalSampleMilestone creates and saves a minimal version of a Milestone object
+// for testing.
+func createMinimalSampleMilestone(ctx context.Context) *Milestone {
+	obj := NewMilestone()
+
+	// A required forward reference will need to be fulfilled just to save the minimal version of this object
+	objProject := createMinimalSampleProject(ctx)
+	obj.SetProject(objProject)
+
+	name := test.RandomValue[string](50)
+	obj.SetName(name)
+
+	obj.Save(ctx)
+	return obj
+}
+func TestMilestone_CRUD(t *testing.T) {
+	obj := NewMilestone()
+	ctx := db.NewContext(nil)
+
+	objProject := createMinimalSampleProject(ctx)
+	obj.SetProject(objProject)
+
+	name := test.RandomValue[string](50)
+	obj.SetName(name)
+
+	// Test retrieval
+	obj = LoadMilestone(ctx, obj.PrimaryKey())
+	require.NotNil(t, obj)
+
+	assert.True(t, obj.IDIsValid())
+	assert.NotEmpty(t, obj.ID())
+
+	assert.True(t, obj.ProjectIDIsValid())
+	assert.NotEmpty(t, obj.ProjectID())
+
+	assert.True(t, obj.NameIsValid())
+	assert.Equal(t, name, obj.Name())
+
 }

@@ -76,6 +76,7 @@ import "encoding/json"
 //
 // By default, this will be a float64 value in Go, and double precision float in the database.
 // Specify a MaxSize of 32 to make this a float32 and single precision float in the database (if supported).
+// Note float32 only has 7 digits of precision, while float64 has 15.
 //
 // # ColTypeBool
 //
@@ -119,6 +120,7 @@ const (
 	ColTypeAutoPrimaryKey
 	ColTypeJSON
 	ColTypeReference
+	ColTypeEnum
 )
 
 // String returns the string representation of a ColumnType.
@@ -144,6 +146,8 @@ func (ct ColumnType) String() string {
 		return "JSON"
 	case ColTypeReference:
 		return "Reference"
+	case ColTypeEnum:
+		return "Enum"
 	default:
 		return "Unknown"
 	}
@@ -184,6 +188,8 @@ func (ct *ColumnType) UnmarshalJSON(data []byte) error {
 		*ct = ColTypeJSON
 	case "Reference":
 		*ct = ColTypeReference
+	case "Enum":
+		*ct = ColTypeEnum
 	default:
 		*ct = ColTypeUnknown
 	}

@@ -1,41 +1,45 @@
 //*** {{includeName}}
 
 {{
-func Test{{= table.Identifier }}_Insert(t *testing.T) {
+func Test{{= table.Identifier }}_CRUD(t *testing.T) {
     obj := New{{= table.Identifier }}()
+    ctx := db.NewContext(nil)
 
-for _,col := range table.Columns {
-    if !col.HasSetter() {continue}
+{{for _,col := range table.Columns}}
+{{g
+    if col.Type == query.ColTypeUnknown {continue} // cannot know what the set of valid input characters are.
+}}
 
-
+{{if col.HasSetter()}}
+    {{if col.IsReference()}}
+    {{= col.ReferenceVariableIdentifier() }} := createMinimalSample{{= col.ReferenceType() }}(ctx)
+    obj.Set{{= col.ReferenceIdentifier() }}({{= col.ReferenceVariableIdentifier() }})
+    {{else}}
     {{= col.VariableIdentifier() }} := 	test.RandomValue[{{= col.GoType() }}]({{u col.Size }})
     obj.Set{{= col.Identifier }}({{= col.VariableIdentifier() }})
+    {{if}}
+{{if}}
+{{for}}
+
+    // Test retrieval
+    obj = Load{{= table.Identifier }}(ctx, obj.PrimaryKey())
+    require.NotNil(t, obj)
+
+{{for _,col := range table.Columns}}
+{{g
+    if col.Type == query.ColTypeUnknown {continue} // cannot know what the set of valid input characters are.
+}}
+
+    assert.True(t, obj.{{= col.Identifier }}IsValid())
+{{if col.IsNullable}}
+    assert.False(t, obj.{{= col.Identifier }}IsNull())
+{{if}}
+{{if col.HasSetter() && !col.IsReference() }}
     assert.Equal(t, {{= col.VariableIdentifier() }}, obj.{{= col.Identifier }}())
-{{if col.IsNullable }}
-    assert.False(t, obj.{{= col.Identifier }}IsNull())
+{{else}}
+    assert.NotEmpty(t, obj.{{= col.Identifier }}())
 {{if}}
+{{for}}
 
-{{if col.IsNullable }}
-    // Test nil
-    obj.Set{{= col.Identifier }}(nil)
-    assert.Equal(t, {{= col.DefaultValueAsValue() }}, obj.{{= col.Identifier }}(), "set nil")
-    assert.True(t, obj.{{= col.Identifier }}IsNull())
-{{if}}
-
-    // test zero
-    obj.Set{{= col.Identifier }}({{= col.DefaultValueAsValue() }})
-    assert.Equal(t, {{= col.DefaultValueAsValue() }}, obj.{{= col.Identifier }}(), "set empty")
-{{if col.IsNullable }}
-    assert.False(t, obj.{{= col.Identifier }}IsNull())
-{{if}}
-
-{{if col.Size > 0 && (col.Type == query.ColTypeBytes || col.Type == query.ColTypeString) }}
-    // test panic on setting value larger than maximum size allowed
-    {{= col.VariableIdentifier() }} = test.RandomValue[{{= col.GoType() }}]({{u col.Size + 1}})
-    assert.Panics(t, func() {
-        obj.Set{{= col.Identifier }}({{= col.VariableIdentifier() }})
-    })
-{{if}}
 }
 }}
-}

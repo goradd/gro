@@ -16,19 +16,19 @@ type Database struct {
 
 	// Package is the name of the package and directory that will be created to hold the generated code.
 	// Should be all lower case, with no hyphens or underscores. Will be based on Key if omitted.
-	Package string `json:"package"`
+	Package string `json:"package,omitempty"`
 
 	// ReferenceSuffix is the ending to expect at the end of column names that are referencing other
 	// tables (also known as foreign keys in SQL databases).
 	// Defaults to "_id". Will be added to references if missing.
-	ReferenceSuffix string `json:"reference_suffix"`
+	ReferenceSuffix string `json:"reference_suffix,omitempty"`
 
 	// EnumTableSuffix is the text to strip off the end of an enum table name when converting it to a type name.
 	// Defaults to "_enum". Will be added to enum table names if missing.
-	EnumTableSuffix string `json:"enum_table_suffix"`
+	EnumTableSuffix string `json:"enum_table_suffix,omitempty"`
 
 	// AssnTableSuffix is the suffix for association table names.
-	AssnTableSuffix string `json:"assn_table_suffix"`
+	AssnTableSuffix string `json:"assn_table_suffix,omitempty"`
 
 	// Tables are the standard tables in the database.
 	Tables []*Table `json:"tables"`
@@ -70,9 +70,4 @@ func (db *Database) FillDefaults() {
 	for _, t := range db.EnumTables {
 		t.FillDefaults(db.EnumTableSuffix)
 	}
-
-	for _, t := range db.AssociationTables {
-		t.FillDefaults(db.ReferenceSuffix)
-	}
-
 }

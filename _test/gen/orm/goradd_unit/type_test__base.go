@@ -296,7 +296,6 @@ func (o *typeTestBase) SetDate(i interface{}) {
 		if o.dateIsNull ||
 			!o._restored ||
 			o.date != v {
-
 			o.dateIsNull = false
 			o.date = v
 			o.dateIsDirty = true
@@ -346,7 +345,6 @@ func (o *typeTestBase) SetTime(i interface{}) {
 		if o.timeIsNull ||
 			!o._restored ||
 			o.time != v {
-
 			o.timeIsNull = false
 			o.time = v
 			o.timeIsDirty = true
@@ -396,7 +394,6 @@ func (o *typeTestBase) SetDateTime(i interface{}) {
 		if o.dateTimeIsNull ||
 			!o._restored ||
 			o.dateTime != v {
-
 			o.dateTimeIsNull = false
 			o.dateTime = v
 			o.dateTimeIsDirty = true
@@ -475,7 +472,6 @@ func (o *typeTestBase) SetTestInt(i interface{}) {
 		if o.testIntIsNull ||
 			!o._restored ||
 			o.testInt != v {
-
 			o.testIntIsNull = false
 			o.testInt = v
 			o.testIntIsDirty = true
@@ -525,7 +521,6 @@ func (o *typeTestBase) SetTestFloat(i interface{}) {
 		if o.testFloatIsNull ||
 			!o._restored ||
 			o.testFloat != v {
-
 			o.testFloatIsNull = false
 			o.testFloat = v
 			o.testFloatIsDirty = true
@@ -549,6 +544,7 @@ func (o *typeTestBase) TestDoubleIsValid() bool {
 // SetTestDouble sets the value of TestDouble in the object, to be saved later using the Save() function.
 func (o *typeTestBase) SetTestDouble(testDouble float64) {
 	o.testDoubleIsValid = true
+
 	if o.testDouble != testDouble || !o._restored {
 		o.testDouble = testDouble
 		o.testDoubleIsDirty = true
@@ -600,7 +596,6 @@ func (o *typeTestBase) SetTestText(i interface{}) {
 		if o.testTextIsNull ||
 			!o._restored ||
 			o.testText != v {
-
 			o.testTextIsNull = false
 			o.testText = v
 			o.testTextIsDirty = true
@@ -650,7 +645,6 @@ func (o *typeTestBase) SetTestBit(i interface{}) {
 		if o.testBitIsNull ||
 			!o._restored ||
 			o.testBit != v {
-
 			o.testBitIsNull = false
 			o.testBit = v
 			o.testBitIsDirty = true
@@ -703,7 +697,6 @@ func (o *typeTestBase) SetTestVarchar(i interface{}) {
 		if o.testVarcharIsNull ||
 			!o._restored ||
 			o.testVarchar != v {
-
 			o.testVarcharIsNull = false
 			o.testVarchar = v
 			o.testVarcharIsDirty = true

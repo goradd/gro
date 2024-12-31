@@ -154,6 +154,7 @@ func (o *reverseBase) NameIsValid() bool {
 // SetName sets the value of Name in the object, to be saved later using the Save() function.
 func (o *reverseBase) SetName(name string) {
 	o.nameIsValid = true
+
 	if utf8.RuneCountInString(name) > ReverseNameMaxLength {
 		panic("attempted to set Reverse.Name to a value larger than its maximum length in runes")
 	}

@@ -15,6 +15,10 @@ type sqlCursor struct {
 	columnValueReceivers []interface{}
 }
 
+// NewSqlCursor is a new cursor created from the result of a sql query.
+// columnTypes are the receiver types in the order of the query.
+// columnNames are optional, and if left off, will be taken from the rows value as described in the database.
+// builder is optional, and is used for unpacking joined tables.
 func NewSqlCursor(rows *sql.Rows,
 	columnTypes []query.ReceiverType,
 	columnNames []string,
@@ -45,8 +49,10 @@ func NewSqlCursor(rows *sql.Rows,
 }
 
 // Next returns the values of the next row in the result set.
-//
 // Returns nil if there are no more rows in the result set.
+//
+// The returned map is keyed by column name, which is either the column names provided
+// when the cursor was created, or taken from the database itself.
 //
 // If an error occurs, will panic with the error.
 func (r sqlCursor) Next() map[string]interface{} {

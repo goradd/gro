@@ -109,6 +109,7 @@ func (o *giftBase) NumberIsValid() bool {
 // SetNumber sets the value of Number in the object, to be saved later using the Save() function.
 func (o *giftBase) SetNumber(number int) {
 	o.numberIsValid = true
+
 	if o.number != number || !o._restored {
 		o.number = number
 		o.numberIsDirty = true
@@ -131,6 +132,7 @@ func (o *giftBase) NameIsValid() bool {
 // SetName sets the value of Name in the object, to be saved later using the Save() function.
 func (o *giftBase) SetName(name string) {
 	o.nameIsValid = true
+
 	if utf8.RuneCountInString(name) > GiftNameMaxLength {
 		panic("attempted to set Gift.Name to a value larger than its maximum length in runes")
 	}

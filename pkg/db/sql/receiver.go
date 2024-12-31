@@ -224,6 +224,21 @@ func (r SqlReceiver) StringI() interface{} {
 	}
 }
 
+// ByteI returns the value as an interface to a byte array
+func (r SqlReceiver) ByteI() interface{} {
+	if r.R == nil {
+		return nil
+	}
+	switch v := r.R.(type) {
+	case string:
+		return []byte(v)
+	case []byte:
+		return v
+	default:
+		return r.R // let it pass through driver
+	}
+}
+
 // FloatI returns the value as an interface to a float32 value.
 func (r SqlReceiver) FloatI() interface{} {
 	if r.R == nil {
@@ -356,7 +371,16 @@ func (r SqlReceiver) Unpack(typ ReceiverType) interface{} {
 func (r SqlReceiver) UnpackDefaultValue(typ schema.ColumnType, size int) interface{} {
 	switch typ {
 	case schema.ColTypeBytes:
-		return r.R
+		fallthrough
+	case schema.ColTypeUnknown:
+		b := r.ByteI()
+		if b == nil {
+			return b
+		}
+		if string(b.([]byte)) == "NULL" {
+			return nil
+		}
+		return b
 	case schema.ColTypeString:
 		s := r.StringI()
 		if s == nil {

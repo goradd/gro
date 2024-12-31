@@ -9,6 +9,7 @@ package {{= tmpl.Package }}
 
 import (
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	strings2 "github.com/goradd/strings"
 	"github.com/goradd/orm/pkg/test"
 	"testing"
@@ -16,3 +17,7 @@ import (
 }}
 
 {{: set.tmpl }}
+
+{{: sample.tmpl }}
+
+{{: save.tmpl }}

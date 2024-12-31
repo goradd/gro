@@ -17,9 +17,10 @@ type ConstVal struct {
 	Const string
 }
 
-// EnumTable describes an table that represents a fixed, enumerated type that will
-// not change during the application's use.
-type EnumTable struct {
+// Enum describes a structure that represents a fixed, enumerated type that will
+// not change during the application's use. This will generate types that can be
+// used as values for fields in the database.
+type Enum struct {
 	// DbKey is the key used to find the database in the global database cluster
 	DbKey string
 	// QueryName is the name of the table to use in querying the database.
@@ -45,15 +46,15 @@ type EnumTable struct {
 }
 
 // PkQueryName returns the name of the primary key field as used in database queries.
-func (tt *EnumTable) PkQueryName() string {
+func (tt *Enum) PkQueryName() string {
 	return tt.FieldQueryName(0)
 }
 
-func (tt *EnumTable) FieldQueryName(i int) string {
+func (tt *Enum) FieldQueryName(i int) string {
 	return tt.Fields[i].QueryName
 }
 
-func (tt *EnumTable) FieldValue(row int, fieldNum int) any {
+func (tt *Enum) FieldValue(row int, fieldNum int) any {
 	name := tt.FieldQueryName(fieldNum)
 	v := tt.Values[row][name]
 	if IsNil(v) {
@@ -63,30 +64,30 @@ func (tt *EnumTable) FieldValue(row int, fieldNum int) any {
 }
 
 // FieldIdentifier returns the go name corresponding to the given field offset, or an empty string if out of bounds.
-func (tt *EnumTable) FieldIdentifier(i int) string {
+func (tt *Enum) FieldIdentifier(i int) string {
 
 	return If(tt.Fields[i], tt.Fields[i].Identifier, "")
 }
 
 // FieldIdentifierPlural returns the go plural name corresponding to the given field offset, or an empty string if out of bounds.
-func (tt *EnumTable) FieldIdentifierPlural(i int) string {
+func (tt *Enum) FieldIdentifierPlural(i int) string {
 	return If(tt.Fields[i], tt.Fields[i].IdentifierPlural, "")
 }
 
 // FieldReceiverType returns the ReceiverType corresponding to the given field offset
-func (tt *EnumTable) FieldReceiverType(i int) ReceiverType {
+func (tt *Enum) FieldReceiverType(i int) ReceiverType {
 	return tt.Fields[i].Type
 }
 
 // FileName returns the default file name corresponding to the enum table.
-func (tt *EnumTable) FileName() string {
+func (tt *Enum) FileName() string {
 	return snaker.CamelToSnake(tt.Identifier)
 }
 
 // newEnumTable will import the enum table from tableSchema.
 // If an error occurs, the table will be returned with no Values.
-func newEnumTable(dbKey string, tableSchema *schema.EnumTable) *EnumTable {
-	t := &EnumTable{
+func newEnumTable(dbKey string, tableSchema *schema.EnumTable) *Enum {
+	t := &Enum{
 		DbKey:            dbKey,
 		QueryName:        tableSchema.QualifiedName(),
 		Title:            tableSchema.Title,

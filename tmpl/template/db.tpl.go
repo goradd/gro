@@ -8,6 +8,7 @@ import (
 	"io"
 	"path/filepath"
 
+	"github.com/goradd/maps"
 	"github.com/goradd/orm/pkg/codegen"
 	"github.com/goradd/orm/pkg/model"
 )
@@ -118,6 +119,125 @@ func Database() db.DatabaseI {
 	if _, err = io.WriteString(_w, `")
 }
 
+`); err != nil {
+		return
+	}
+
+	orderedTables := database.MarshalOrder()
+	var processedTables maps.Set[string]
+
+	if _, err = io.WriteString(_w, `
+
+`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `
+func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
+	encoder := json.NewEncoder(writer)
+	encoder.SetIndent("", "  ")
+
+	if _,err := io.WriteString(writer, "[\n"); err != nil {
+		return err
+	}
+
+`); err != nil {
+		return
+	}
+
+	for tableNum, table := range orderedTables {
+
+		processedTables.Add(table.QueryName)
+
+		if _, err = io.WriteString(_w, `	{	// Write `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `
+		if _,err := io.WriteString(writer, "["); err != nil {
+			return err
+		}
+
+		if _,err := io.WriteString(writer, `+"`"+`"`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.QueryName); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `",\n[`+"`"+`); err != nil {
+			return err
+		}
+
+		cursor := Query`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx).LoadCursor()
+		defer cursor.Close()
+		if obj := cursor.Next(); obj != nil {
+			if err := encoder.Encode(obj); err != nil {
+				return err
+			}
+		}
+
+		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+			if _, err := io.WriteString(writer, ",\n"); err != nil {
+				return err
+			}
+			if err := encoder.Encode(obj); err != nil {
+				return err
+			}
+		}
+
+		if _,err := io.WriteString(writer, "]"); err != nil {
+			return err
+		}
+
+`); err != nil {
+			return
+		}
+
+		if tableNum < len(orderedTables)-1 {
+
+			if _, err = io.WriteString(_w, `        if _,err := io.WriteString(writer, ","); err != nil {
+            return err
+        }
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `		if _,err := io.WriteString(writer, "\n"); err != nil {
+			return err
+		}
+	}
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
+	_, err := io.WriteString(writer, "]")
+	return err
+}
+
+`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `
 `); err != nil {
 		return
 	}

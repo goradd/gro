@@ -26,8 +26,8 @@ type ColumnNode struct {
 	dbColumn string
 	// The name of the function used to access the property as a node or ORM item
 	gName string
-	// The go type for the column
-	goType ReceiverType
+	// The receiver type for the column
+	receiverType ReceiverType
 	// Used by OrderBy clauses
 	sortDescending bool
 	// True if this is the private key of its parent table
@@ -37,12 +37,12 @@ type ColumnNode struct {
 // NewColumnNode is used by the code generator to create a new column node.
 func NewColumnNode(dbKey string, dbTable string, dbName string, goName string, goType ReceiverType, isPK bool) *ColumnNode {
 	n := &ColumnNode{
-		dbKey:    dbKey,
-		dbTable:  dbTable,
-		dbColumn: dbName,
-		gName:    goName,
-		goType:   goType,
-		isPK:     isPK,
+		dbKey:        dbKey,
+		dbTable:      dbTable,
+		dbColumn:     dbName,
+		gName:        goName,
+		receiverType: goType,
+		isPK:         isPK,
 	}
 	return n
 }
@@ -50,13 +50,13 @@ func NewColumnNode(dbKey string, dbTable string, dbName string, goName string, g
 // Returns a copy of the node, satisfying the copy interface
 func (n *ColumnNode) copy() NodeI {
 	ret := &ColumnNode{
-		dbKey:     n.dbKey,
-		dbTable:   n.dbTable,
-		dbColumn:  n.dbColumn,
-		gName:     n.gName,
-		goType:    n.goType,
-		isPK:      n.isPK,
-		nodeAlias: nodeAlias{n.alias},
+		dbKey:        n.dbKey,
+		dbTable:      n.dbTable,
+		dbColumn:     n.dbColumn,
+		gName:        n.gName,
+		receiverType: n.receiverType,
+		isPK:         n.isPK,
+		nodeAlias:    nodeAlias{n.alias},
 		// don't copy links!
 	}
 	return ret
@@ -130,9 +130,9 @@ func (n *ColumnNode) log(level int) {
 	slog.Debug(tabs + "Col: " + n.dbTable + "." + n.dbColumn + alias)
 }
 
-// ColumnNodeGoType is used internally by the framework to return the go type corresponding to the given column.
-func ColumnNodeGoType(n *ColumnNode) ReceiverType {
-	return n.goType
+// ColumnNodeReceiverType is used internally by the framework to return the go type corresponding to the given column.
+func ColumnNodeReceiverType(n *ColumnNode) ReceiverType {
+	return n.receiverType
 }
 
 // ColumnNodeDbName is used internally by the framework to return the name of the column in the database.
@@ -171,7 +171,7 @@ func (n *ColumnNode) GobEncode() (data []byte, err error) {
 	if err = e.Encode(n.gName); err != nil {
 		panic(err)
 	}
-	if err = e.Encode(n.goType); err != nil {
+	if err = e.Encode(n.receiverType); err != nil {
 		panic(err)
 	}
 	if err = e.Encode(n.sortDescending); err != nil {
@@ -205,7 +205,7 @@ func (n *ColumnNode) GobDecode(data []byte) (err error) {
 	if err = dec.Decode(&n.gName); err != nil {
 		panic(err)
 	}
-	if err = dec.Decode(&n.goType); err != nil {
+	if err = dec.Decode(&n.receiverType); err != nil {
 		panic(err)
 	}
 	if err = dec.Decode(&n.sortDescending); err != nil {

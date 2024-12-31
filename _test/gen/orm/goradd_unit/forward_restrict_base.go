@@ -135,6 +135,7 @@ func (o *forwardRestrictBase) NameIsValid() bool {
 // SetName sets the value of Name in the object, to be saved later using the Save() function.
 func (o *forwardRestrictBase) SetName(name string) {
 	o.nameIsValid = true
+
 	if utf8.RuneCountInString(name) > ForwardRestrictNameMaxLength {
 		panic("attempted to set ForwardRestrict.Name to a value larger than its maximum length in runes")
 	}
@@ -160,6 +161,7 @@ func (o *forwardRestrictBase) ReverseIDIsValid() bool {
 // SetReverseID sets the value of ReverseID in the object, to be saved later using the Save() function.
 func (o *forwardRestrictBase) SetReverseID(reverseID string) {
 	o.reverseIDIsValid = true
+
 	if o.reverseID != reverseID || !o._restored {
 		o.reverseID = reverseID
 		o.reverseIDIsDirty = true
