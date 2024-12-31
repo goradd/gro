@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"github.com/goradd/all"
 	"github.com/goradd/maps"
 	"github.com/goradd/orm/pkg/query"
 	"github.com/goradd/orm/pkg/schema"
@@ -271,20 +272,30 @@ func (m *Database) MarshalOrder() (tables []*Table) {
 	unusedTables.Add(slices.Collect(maps2.Values(m.Tables))...)
 	// First add the tables that have no forward references
 	for { // repeat until unusedTables is empty
+		var newTables []*Table
 	nexttable:
 		for t := range unusedTables.All() {
 			for _, col := range t.Columns {
 				if col.IsReference() {
-					if !slices.Contains(tables, col.Reference.Table) {
+					if !slices.Contains(tables, col.Reference.Table) &&
+						!slices.Contains(newTables, col.Reference.Table) {
 						continue nexttable
 					}
 				}
 			}
 			// This has no forward references we care about
-			tables = append(tables, t)
+			newTables = append(newTables, t)
 		}
+		slices.SortFunc(newTables, func(a, b *Table) int {
+			if a.QueryName < b.QueryName {
+				return -1
+			} else {
+				return all.If(a.QueryName > b.QueryName, 1, 0)
+			}
+		})
+		tables = append(tables, newTables...)
 		// Remove the found tables
-		for _, t := range tables {
+		for _, t := range newTables {
 			unusedTables.Delete(t)
 		}
 		if unusedTables.Len() == 0 {

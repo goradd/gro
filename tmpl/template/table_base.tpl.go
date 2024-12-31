@@ -6968,24 +6968,68 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `IsDirty = false
-		} else if o.`); err != nil {
+`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
+			if col.IsEnumReference() {
+
+				if _, err = io.WriteString(_w, `		} else if i, ok2 := v.(`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Type.GoType()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `); ok2 {
+		    o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ` = `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.GoType()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(i)
+`); err != nil {
+					return
+				}
+
+			} else {
+
+				if _, err = io.WriteString(_w, `		} else if o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `, ok = v.(`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.GoType()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `); ok {
+`); err != nil {
+					return
+				}
+
 			}
 
-			if _, err = io.WriteString(_w, `, ok = v.(`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.GoType()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `); ok {
-			o.`); err != nil {
+			if _, err = io.WriteString(_w, `			o.`); err != nil {
 				return
 			}
 
@@ -7093,24 +7137,68 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `"]; ok && v != nil {
-		if o.`); err != nil {
+`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
+			if col.IsEnumReference() {
+
+				if _, err = io.WriteString(_w, `    	if i, ok2 := v.(`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Type.GoType()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `); ok2 {
+            o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ` = `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.GoType()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(i)
+`); err != nil {
+					return
+				}
+
+			} else {
+
+				if _, err = io.WriteString(_w, `    	if o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `, ok = v.(`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.GoType()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `); ok {
+`); err != nil {
+					return
+				}
+
 			}
 
-			if _, err = io.WriteString(_w, `, ok = v.(`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.GoType()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `); ok {
-			o.`); err != nil {
+			if _, err = io.WriteString(_w, `			o.`); err != nil {
 				return
 			}
 

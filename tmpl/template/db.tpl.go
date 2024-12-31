@@ -170,9 +170,12 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `",\n[`+"`"+`); err != nil {
+		if _, err = io.WriteString(_w, `"`+"`"+`); err != nil {
 			return err
 		}
+        if _,err := io.WriteString(writer, ",\n["); err != nil {
+            return err
+        }
 
 		cursor := Query`); err != nil {
 			return
@@ -199,7 +202,7 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 			}
 		}
 
-		if _,err := io.WriteString(writer, "]"); err != nil {
+		if _,err := io.WriteString(writer, "]\n]"); err != nil {
 			return err
 		}
 

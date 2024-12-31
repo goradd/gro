@@ -10,7 +10,12 @@
 			o.{{= col.VariableIdentifier() }}IsNull = true
 			o.{{= col.VariableIdentifier() }}IsValid = true
 			o.{{= col.VariableIdentifier() }}IsDirty = false
+{{if col.IsEnumReference() }}
+		} else if i, ok2 := v.({{= col.Type.GoType() }}); ok2 {
+		    o.{{= col.VariableIdentifier() }} = {{= col.GoType() }}(i)
+{{else}}
 		} else if o.{{= col.VariableIdentifier() }}, ok = v.({{= col.GoType() }}); ok {
+{{if}}
 			o.{{= col.VariableIdentifier() }}IsNull = false
 			o.{{= col.VariableIdentifier() }}IsValid = true
 			o.{{= col.VariableIdentifier() }}IsDirty = false

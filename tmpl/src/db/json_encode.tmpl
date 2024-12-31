@@ -23,9 +23,12 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 			return err
 		}
 
-		if _,err := io.WriteString(writer, `"{{= table.QueryName }}",\n[`); err != nil {
+		if _,err := io.WriteString(writer, `"{{= table.QueryName }}"`); err != nil {
 			return err
 		}
+        if _,err := io.WriteString(writer, ",\n["); err != nil {
+            return err
+        }
 
 		cursor := Query{{= table.IdentifierPlural }}(ctx).LoadCursor()
 		defer cursor.Close()
@@ -44,7 +47,7 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 			}
 		}
 
-		if _,err := io.WriteString(writer, "]"); err != nil {
+		if _,err := io.WriteString(writer, "]\n]"); err != nil {
 			return err
 		}
 

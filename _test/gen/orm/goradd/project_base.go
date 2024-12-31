@@ -1343,7 +1343,8 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project, objParent
 	}
 
 	if v, ok := m["status_id"]; ok && v != nil {
-		if o.status, ok = v.(ProjectStatus); ok {
+		if i, ok2 := v.(int); ok2 {
+			o.status = ProjectStatus(i)
 			o.statusIsValid = true
 			o.statusIsDirty = false
 
