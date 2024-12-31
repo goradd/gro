@@ -53,10 +53,9 @@ func NewDB(dbKey string,
 		panic("Could not ping database " + dbKey + ":" + err.Error())
 	}
 
-	m := DB{
-		DbHelper: sql2.NewSqlDb(dbKey, db3),
-	}
-	return &m
+	m := new(DB)
+	m.DbHelper = sql2.NewSqlDb(dbKey, db3, m)
+	return m
 }
 
 // OverrideConfigSettings will use a map read in from a json file to modify
@@ -89,20 +88,22 @@ func (m *DB) NewBuilder(ctx context.Context) QueryBuilderI {
 	return sql2.NewSqlBuilder(ctx, m)
 }
 
-func iq(v string) string {
-	parts := strings.Split(v, ".")
-
-	// if the identifier has a schema, quote the parts separately
-	if len(parts) == 2 {
-		return `"` + parts[0] + `"."` + parts[1] + `"`
-	}
-	return `"` + v + `"`
-}
-
 // QuoteIdentifier surrounds the given identifier with quote characters
 // appropriate for Postgres
 func (m *DB) QuoteIdentifier(v string) string {
-	return iq(v)
+	var b strings.Builder
+	b.WriteRune('"')
+
+	if i := strings.Index(v, "."); i != -1 {
+		b.WriteString(v[:i])
+		b.WriteString(`"."`)
+		b.WriteString(v[i+1:])
+	} else {
+		b.WriteString(v)
+	}
+
+	b.WriteRune('"')
+	return b.String()
 }
 
 // FormatArgument formats the given argument number for embedding in a SQL statement.
@@ -123,26 +124,13 @@ func (m *DB) OperationSql(op Operator, operandStrings []string) (sql string) {
 	return
 }
 
-// Update sets specific fields of a record that already exists in the database to the given data.
-func (m *DB) Update(ctx context.Context,
-	table string,
-	fields map[string]any,
-	where map[string]any) {
-
-	sql, args := sql2.GenerateUpdate(m, table, fields, where)
-	_, e := m.Exec(ctx, sql, args...)
-	if e != nil {
-		panic(e.Error())
-	}
-}
-
 // Insert inserts the given data as a new record in the database.
 // It returns the record id of the new record.
 func (m *DB) Insert(ctx context.Context, table string, fields map[string]interface{}) string {
 	sql, args := sql2.GenerateInsert(m, table, fields)
 	sql += " RETURNING "
 	sql += m.Model.Table(table).PrimaryKeyColumn().QueryName
-	if rows, err := m.Query(ctx, sql, args...); err != nil {
+	if rows, err := m.SqlQuery(ctx, sql, args...); err != nil {
 		panic(err.Error())
 	} else {
 		var id string
@@ -157,31 +145,4 @@ func (m *DB) Insert(ctx context.Context, table string, fields map[string]interfa
 			return id
 		}
 	}
-}
-
-// Delete deletes the indicated record from the database.
-func (m *DB) Delete(ctx context.Context, table string, where map[string]any) {
-	sql, args := sql2.GenerateDelete(m, table, where)
-	_, e := m.Exec(ctx, sql, args...)
-	if e != nil {
-		panic(e.Error())
-	}
-}
-
-// Associate sets up the many-many association pointing from the given table and column to another table and column.
-// table is the name of the association table.
-// column is the name of the column in the association table that contains the pk for the record we are associating.
-// pk is the value of the primary key.
-// relatedTable is the table the association is pointing to.
-// relatedColumn is the column in the association table that points to the relatedTable's pk.
-// relatedPks are the new primary keys in the relatedTable we are associating.
-func (m *DB) Associate(ctx context.Context,
-	table string,
-	column string,
-	pk interface{},
-	_ string,
-	relatedColumn string,
-	relatedPks interface{}) {
-
-	sql2.Associate(ctx, m, table, column, pk, relatedColumn, relatedPks)
 }

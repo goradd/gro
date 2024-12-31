@@ -224,7 +224,7 @@ func (o *`); err != nil {
 
 	if _, err = io.WriteString(_w, `}
 
-// Query`); err != nil {
+// SqlQuery`); err != nil {
 		return
 	}
 
@@ -233,7 +233,7 @@ func (o *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, ` returns a new query builder.
-func Query`); err != nil {
+func SqlQuery`); err != nil {
 		return
 	}
 

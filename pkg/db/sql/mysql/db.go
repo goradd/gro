@@ -71,15 +71,6 @@ type DB struct {
 // NewDB returns a new DB database object that you can add to the datastore.
 // If connectionString is set, it will be used to create the configuration. Otherwise,
 // use a config setting.
-//
-// The postgres driver specifies that you must use ParseConfig
-// to create the initial configuration, although that can be sent a blank string to
-// gather initial values from environment variables. You can then change items in
-// the configuration structure. For example:
-//
-//	config,_ := pgx.ParseConfig(connectionString)
-//	config.Password = "mysecret"
-//	db := pgsql.NewDB(key, "", config)
 func NewDB(dbKey string, connectionString string, config *mysql.Config) *DB {
 	if connectionString == "" && config == nil {
 		panic("must specify how to connect to the database")
@@ -97,11 +88,10 @@ func NewDB(dbKey string, connectionString string, config *mysql.Config) *DB {
 		panic("Could not ping database " + dbKey + ":" + err.Error())
 	}
 
-	m := DB{
-		DbHelper: sql2.NewSqlDb(dbKey, db3),
-	}
+	m := new(DB)
+	m.DbHelper = sql2.NewSqlDb(dbKey, db3, m)
 	m.databaseName = config.DBName // save off the database name for later use
-	return &m
+	return m
 }
 
 // OverrideConfigSettings will use a map read in from a json file to modify
@@ -157,15 +147,14 @@ func (m *DB) NewBuilder(ctx context.Context) QueryBuilderI {
 	return sql2.NewSqlBuilder(ctx, m)
 }
 
-// iq surrounds the given value with sql identifier quotes.
-func iq(v string) string {
-	return string('`') + v + string('`')
-}
-
 // QuoteIdentifier surrounds the given identifier with quote characters
-// appropriate for Postgres
+// appropriate for mysql
 func (m *DB) QuoteIdentifier(v string) string {
-	return iq(v)
+	var b strings.Builder
+	b.WriteRune('`')
+	b.WriteString(v)
+	b.WriteRune('`')
+	return b.String()
 }
 
 // FormatArgument formats the given argument number for embedding in a SQL statement.
@@ -175,12 +164,12 @@ func (m *DB) FormatArgument(n int) string {
 }
 
 // DeleteUsesAlias indicates the database requires the alias of a table after
-// a delete clause when using aliases in the delete
+// a delete clause when using aliases in the delete.
 func (m *DB) DeleteUsesAlias() bool {
 	return true
 }
 
-// OperationSql provides Postgres specific SQL for certain operators.
+// OperationSql provides Mysql specific SQL for certain operators.
 func (m *DB) OperationSql(op Operator, operandStrings []string) (sql string) {
 	switch op {
 	case OpDateAddSeconds:
@@ -194,62 +183,4 @@ func (m *DB) OperationSql(op Operator, operandStrings []string) (sql string) {
 		sql = " (" + strings.Join(operandStrings, sOp) + ") "
 	}
 	return
-}
-
-// Update sets specific fields of a record that already exists in the database to the given data.
-func (m *DB) Update(ctx context.Context,
-	table string,
-	fields map[string]any,
-	where map[string]any,
-) {
-
-	sql, args := sql2.GenerateUpdate(m, table, fields, where)
-	_, e := m.Exec(ctx, sql, args...)
-	if e != nil {
-		panic(e.Error())
-	}
-}
-
-// Insert inserts the given data as a new record in the database.
-// It returns the record id of the new record.
-func (m *DB) Insert(ctx context.Context, table string, fields map[string]interface{}) string {
-	sql, args := sql2.GenerateInsert(m, table, fields)
-	if r, err := m.Exec(ctx, sql, args...); err != nil {
-		panic(err.Error())
-	} else {
-		if id, err2 := r.LastInsertId(); err2 != nil {
-			panic(err2.Error())
-			return ""
-		} else {
-			return fmt.Sprint(id)
-		}
-	}
-}
-
-// Delete deletes the indicated record from the database.
-func (m *DB) Delete(ctx context.Context, table string, where map[string]any) {
-	sql, args := sql2.GenerateDelete(m, table, where)
-	_, e := m.Exec(ctx, sql, args...)
-	if e != nil {
-		panic(e.Error())
-	}
-}
-
-// Associate sets up the many-many association pointing from the given table and column to another table and column.
-// table is the name of the association table.
-// column is the name of the column in the association table that contains the pk for the record we are associating.
-// pk is the value of the primary key.
-// relatedTable is the table the association is pointing to.
-// relatedColumn is the column in the association table that points to the relatedTable's pk.
-// relatedPks are the new primary keys in the relatedTable we are associating.
-func (m *DB) Associate(ctx context.Context,
-	table string,
-	column string,
-	pk interface{},
-	_ string,
-	relatedColumn string,
-	relatedPks interface{}) {
-
-	sql2.Associate(ctx, m, table, column, pk, relatedColumn, relatedPks)
-
 }

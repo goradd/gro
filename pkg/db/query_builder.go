@@ -103,7 +103,7 @@ func (b *QueryBuilder) OrderBy(nodes ...NodeI) {
 // Limit sets the limit parameters of what is returned.
 func (b *QueryBuilder) Limit(maxRowCount int, offset int) {
 	if b.LimitInfo != nil {
-		panic("Query already has a limit")
+		panic("SqlQuery already has a limit")
 	}
 	b.LimitInfo = &LimitInfo{maxRowCount, offset}
 }

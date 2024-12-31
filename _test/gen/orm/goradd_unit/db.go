@@ -2,7 +2,7 @@
 
 // Package goradd_unit contains the object relational model for the goradd_unit database.
 //
-// Queries use a builder pattern, started with a Query* function. Add functions to the builder to further constrain the query,
+// Queries use a builder pattern, started with a SqlQuery* function. Add functions to the builder to further constrain the query,
 // using nodes from the [node] package to refer to tables and columns in the database. End the query with either a Load call to get a
 // list of items, a Get call to get one item, or a Count call to count the number of items in the query.
 //

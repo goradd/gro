@@ -27,7 +27,7 @@ func Associate(ctx context.Context,
 	// First delete all previous associations
 	var sql = "DELETE FROM " + db.QuoteIdentifier(table) + " WHERE " +
 		db.QuoteIdentifier(column) + "=" + db.FormatArgument(1)
-	_, e := db.Exec(ctx, sql, pk)
+	_, e := db.SqlExec(ctx, sql, pk)
 	if e != nil {
 		panic(e.Error())
 	}
@@ -40,7 +40,7 @@ func Associate(ctx context.Context,
 		sql = "INSERT INTO " + db.QuoteIdentifier(table) + "(" +
 			db.QuoteIdentifier(column) + "," + db.QuoteIdentifier(relatedColumn) +
 			") VALUES (" + db.FormatArgument(1) + "," + db.FormatArgument(2) + ")"
-		_, e = db.Exec(ctx, sql, pk, relatedPk)
+		_, e = db.SqlExec(ctx, sql, pk, relatedPk)
 		if e != nil {
 			panic(e.Error())
 		}

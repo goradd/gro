@@ -18,7 +18,7 @@ type objectMapType = maps.SliceMap[string, any]
 type aliasMapType = maps.SliceMap[string, any]
 type JoinTreeItemSliceMap = maps.SliceMap[string, *JoinTreeItem]
 
-// A Builder is a helper object to organize a Query object eventually into a SQL string.
+// A Builder is a helper object to organize a SqlQuery object eventually into a SQL string.
 // It builds the join tree and creates the aliases that will eventually be used to generate
 // the sql and then unpack it into fields and objects. It implements the QueryBuilderI interface.
 // It is used both as the overriding controller of a query, and the controller of a subquery, so its recursive.
@@ -71,7 +71,7 @@ func (b *Builder) Load() (result []map[string]interface{}) {
 	b.makeColumnAliases()
 
 	sql, args := b.generateSelectSql()
-	rows, err := b.db.Query(b.Ctx, sql, args...)
+	rows, err := b.db.SqlQuery(b.Ctx, sql, args...)
 
 	if err != nil {
 		// This is possibly generating an error related to the sql itself, so put the sql in the error message.
@@ -103,7 +103,7 @@ func (b *Builder) Load() (result []map[string]interface{}) {
 //
 // LoadCursor is helpful when loading a large set of data that you want to output in chunks.
 // You cannot use this with Joins that create multiple connections to other objects,
-// like reverse FKs or Multi-multi relationships
+// like reverse FKs or Multi-multi relationships. Forward relationships are fine.
 func (b *Builder) LoadCursor() CursorI {
 	for _, n := range db.Nodes(b.QueryBuilder) {
 		if NodeIsExpander(n) && !NodeIsExpanded(n) {
@@ -118,7 +118,7 @@ func (b *Builder) LoadCursor() CursorI {
 	// Hand off the generation of sql select statements to the database, since different databases generate sql differently
 	sql, args := b.generateSelectSql()
 
-	rows, err := b.db.Query(b.Ctx, sql, args...)
+	rows, err := b.db.SqlQuery(b.Ctx, sql, args...)
 
 	if err != nil {
 		// This is possibly generating an error related to the sql itself, so put the sql in the error message.
@@ -145,7 +145,7 @@ func (b *Builder) Delete() {
 	b.IsDelete = true
 	b.buildJoinTree()
 	sql, args := b.generateDeleteSql()
-	_, err := b.db.Exec(b.Ctx, sql, args...)
+	_, err := b.db.SqlExec(b.Ctx, sql, args...)
 	if err != nil {
 		panic(err)
 	}
@@ -176,7 +176,7 @@ func (b *Builder) Count(distinct bool, nodes ...NodeI) uint {
 	b.buildJoinTree()
 
 	sql, args := b.generateSelectSql()
-	rows, err := b.db.Query(b.Ctx, sql, args...)
+	rows, err := b.db.SqlQuery(b.Ctx, sql, args...)
 
 	if err != nil {
 		panic(err)

@@ -462,17 +462,52 @@ func GenerateInsert(db DbI, table string, fields map[string]any) (sql string, ar
 func GenerateDelete(db DbI, table string, where map[string]any) (sql string, args []any) {
 	sql = "DELETE FROM " + db.QuoteIdentifier(table) + "\n"
 	sql += "WHERE "
-	var sets []string
 
-	// We range on sorted keys to give SQL optimizers a chance to use a prepared
-	// statement by making sure the same fields show up in the same order.
-	for k, v := range iter.KeySort(where) {
-		args = append(args, v)
-		s := fmt.Sprintf("%s=%s", db.QuoteIdentifier(k), db.FormatArgument(len(args)))
-		sets = append(sets, s)
+	var s string
+	s, args = generateWhereClause(db, where)
+	sql += s
+	return
+}
+
+func GenerateSelect(db DbI, table string, fieldNames []string, where map[string]any, orderBy []string) (sql string, args []any) {
+	if len(fieldNames) == 0 {
+		panic("No fields to select")
+	}
+	sql = "SELECT "
+	sql += strings.Join(fieldNames, ",\n")
+	sql += "\nFROM " + db.QuoteIdentifier(table)
+	if len(where) > 0 {
+		sql += "\nWHERE "
+		var s string
+		s, args = generateWhereClause(db, where)
+		sql += s
 	}
 
-	sql += strings.Join(sets, ", ")
+	if len(orderBy) > 0 {
+		sql += "\nORDER BY "
+		sql += strings.Join(orderBy, ", ")
+	}
+	return
+}
 
+func generateWhereClause(db DbI, where map[string]any) (sql string, args []any) {
+	var ors []string
+	for kOr, vOr := range iter.KeySort(where) {
+		if m, ok := vOr.(map[string]any); ok {
+			var ands []string
+			for kAnd, vAnd := range m {
+				args = append(args, vAnd)
+				s := fmt.Sprintf("%s=%s", db.QuoteIdentifier(kAnd), db.FormatArgument(len(args)))
+				ands = append(ands, s)
+			}
+			and := strings.Join(ands, " AND ")
+			ors = append(ors, and)
+		} else {
+			args = append(args, vOr)
+			s := fmt.Sprintf("%s=%s", db.QuoteIdentifier(kOr), db.FormatArgument(len(args)))
+			ors = append(ors, s)
+		}
+	}
+	sql = strings.Join(ors, " OR ")
 	return
 }

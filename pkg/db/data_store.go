@@ -23,7 +23,6 @@ type SchemaExtractor interface {
 type DatabaseI interface {
 	// NewBuilder returns a newly created query builder
 	NewBuilder(ctx context.Context) QueryBuilderI
-
 	// Update will put the given values into a record that already exists in the database. The fields value
 	// should include only fields that have changed. All records that match the keys and values in where are changed.
 	Update(ctx context.Context, table string, fields map[string]interface{}, where map[string]interface{})
@@ -32,17 +31,17 @@ type DatabaseI interface {
 	Insert(ctx context.Context, table string, fields map[string]interface{}) string
 	// Delete will delete records from the database that match the key value pairs in where.
 	Delete(ctx context.Context, table string, where map[string]interface{})
-	// Associate sets a many-many relationship to the given values.
-	// The values are taken from the ORM, and are treated differently depending on whether this is a SQL or NoSQL database.
-	Associate(ctx context.Context,
-		table string,
-		column string,
-		pk interface{},
-		relatedTable string,
-		relatedColumn string,
-		relatedPks interface{})
-
+	// Query executes a simple query on table using fields, where the keys of fields are the names of database fields,
+	// and the values are the types of data to return for each field.
+	//
+	// If where is not nil, it specifies fields and values that will limit the search.
+	// Multiple field-value combinations will be Or'd together.
+	// Values in the where map may also be a map[string]any type, in which case those values will be And'd together.
+	//
+	// If orderBy is not nil, it specifies field names to sort the data on, in ascending order.
+	Query(ctx context.Context, table string, fields map[string]ReceiverType, where map[string]any, orderBy []string) CursorI
 	// Begin will begin a transaction in the database and return the transaction id
+	// Instead of calling Begin directly, use the ExecuteTransaction wrapper.
 	Begin(ctx context.Context) TransactionID
 	// Commit will commit the given transaction
 	Commit(ctx context.Context, txid TransactionID)

@@ -10,21 +10,22 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/goradd/orm/pkg/db"
+	. "github.com/goradd/orm/pkg/query"
 	"log/slog"
 	"strings"
 	"time"
 )
 
 // The DbI interface describes the interface that a sql database needs to implement so that
-// it will work with the Builder object. If you know a DatabaseI object is
+// it will work with the Builder object. If you know a DatabaseI object is a
 // standard Go database/sql database, you can
 // cast it to this type to gain access to the low level SQL driver and send it raw SQL commands.
 type DbI interface {
-	// Exec executes a query that does not expect to return values
-	Exec(ctx context.Context, sql string, args ...interface{}) (r sql.Result, err error)
-	// Query executes a query that returns values
-	Query(ctx context.Context, sql string, args ...interface{}) (r *sql.Rows, err error)
-	// QuoteIdentifier will put quotes around an identifier
+	// SqlExec executes a query that does not expect to return values.
+	SqlExec(ctx context.Context, sql string, args ...interface{}) (r sql.Result, err error)
+	// SqlQuery executes a SQL query that returns values.
+	SqlQuery(ctx context.Context, sql string, args ...interface{}) (r *sql.Rows, err error)
+	// QuoteIdentifier will put quotes around an identifier in a database specific way.
 	QuoteIdentifier(string) string
 	// FormatArgument will return the placeholder string for the n'th argument
 	// in a sql string. Some sqls just use "?" while others identify an argument
@@ -43,7 +44,8 @@ type ProfileEntry struct {
 	Sql       string
 }
 
-// sqlContext is what is stored in the current context to keep track of queries. You must save a copy of this in the
+// sqlContext is what is stored in the current context to keep track of queries.
+// You must save a copy of this in the
 // current context with the sqlContext key before calling database functions in order to use transactions or
 // database profiling, or anything else the context is required for. The framework does this for you, but you will need
 // to do this yourself if using the orm without the framework.
@@ -53,26 +55,29 @@ type sqlContext struct {
 	profiles []ProfileEntry
 }
 
-// DbHelper is a mixin for SQL database drivers. It implements common code needed by all SQL database drivers.
+// DbHelper is a mixin for SQL database drivers.
+// It implements common code needed by all SQL database drivers and default implementations of database code.
 type DbHelper struct {
 	dbKey     string  // key of the database as used in the global database map
 	db        *sql.DB // Internal copy of a Go database/sql object
+	dbi       DbI
 	profiling bool
 }
 
 // NewSqlDb creates a default DbHelper mixin.
-func NewSqlDb(dbKey string, db *sql.DB) DbHelper {
+func NewSqlDb(dbKey string, db *sql.DB, dbi DbI) DbHelper {
 	s := DbHelper{
 		dbKey: dbKey,
 		db:    db,
+		dbi:   dbi,
 	}
 	return s
 }
 
 // Begin starts a transaction. You should immediately defer a Rollback using the returned transaction id.
 // If you Commit before the Rollback happens, no Rollback will occur. The Begin-Commit-Rollback pattern is nestable.
-func (s *DbHelper) Begin(ctx context.Context) (txid db.TransactionID) {
-	c := s.getContext(ctx)
+func (h *DbHelper) Begin(ctx context.Context) (txid db.TransactionID) {
+	c := h.getContext(ctx)
 	if c == nil {
 		panic("Can't use transactions without pre-loading a context")
 	}
@@ -81,7 +86,7 @@ func (s *DbHelper) Begin(ctx context.Context) (txid db.TransactionID) {
 	if c.txCount == 1 {
 		var err error
 
-		c.tx, err = s.db.Begin()
+		c.tx, err = h.db.Begin()
 		if err != nil {
 			_ = c.tx.Rollback()
 			c.txCount-- // transaction did not begin
@@ -92,8 +97,8 @@ func (s *DbHelper) Begin(ctx context.Context) (txid db.TransactionID) {
 }
 
 // Commit commits the transaction, and if an error occurs, will panic with the error.
-func (s *DbHelper) Commit(ctx context.Context, txid db.TransactionID) {
-	c := s.getContext(ctx)
+func (h *DbHelper) Commit(ctx context.Context, txid db.TransactionID) {
+	c := h.getContext(ctx)
 	if c == nil {
 		panic("Can't use transactions without pre-loading a context")
 	}
@@ -119,8 +124,8 @@ func (s *DbHelper) Commit(ctx context.Context, txid db.TransactionID) {
 // that if you call Rollback on a transaction that has already been committed, no Rollback will happen. This makes it easier
 // to implement a transaction management scheme, because you simply always defer a Rollback after a Begin. Pass the txid
 // that you got from the Begin to the Rollback. To trigger a Rollback, simply panic.
-func (s *DbHelper) Rollback(ctx context.Context, txid db.TransactionID) {
-	c := s.getContext(ctx)
+func (h *DbHelper) Rollback(ctx context.Context, txid db.TransactionID) {
+	c := h.getContext(ctx)
 	if c == nil {
 		panic("Can't use transactions without pre-loading a context")
 	}
@@ -135,29 +140,29 @@ func (s *DbHelper) Rollback(ctx context.Context, txid db.TransactionID) {
 	}
 }
 
-// Exec executes the given SQL code, without returning any result rows.
-func (s *DbHelper) Exec(ctx context.Context, sql string, args ...interface{}) (r sql.Result, err error) {
-	c := s.getContext(ctx)
-	slog.Debug("Exec: ", sql, args)
+// SqlExec executes the given SQL code, without returning any result rows.
+func (h *DbHelper) SqlExec(ctx context.Context, sql string, args ...interface{}) (r sql.Result, err error) {
+	c := h.getContext(ctx)
+	slog.Debug("SqlExec: ", sql, args)
 
 	var beginTime = time.Now()
 
 	if c != nil && c.tx != nil {
 		r, err = c.tx.ExecContext(ctx, sql, args...)
 	} else {
-		r, err = s.db.ExecContext(ctx, sql, args...)
+		r, err = h.db.ExecContext(ctx, sql, args...)
 	}
 
 	var endTime = time.Now()
 
-	if c != nil && s.profiling {
+	if c != nil && h.profiling {
 		if args != nil {
 			for _, arg := range args {
 				sql = strings.TrimSpace(sql)
 				sql += fmt.Sprintf(",\n%#v", arg)
 			}
 		}
-		c.profiles = append(c.profiles, ProfileEntry{DbKey: s.dbKey, BeginTime: beginTime, EndTime: endTime, Typ: "Exec", Sql: sql})
+		c.profiles = append(c.profiles, ProfileEntry{DbKey: h.dbKey, BeginTime: beginTime, EndTime: endTime, Typ: "SqlExec", Sql: sql})
 	}
 
 	return
@@ -185,26 +190,26 @@ func (s *DbHelper) Prepare(ctx context.Context, sql string) (r *sql.Stmt, err er
 	return
 }*/
 
-// Query executes the given sql, and returns a row result set.
-func (s *DbHelper) Query(ctx context.Context, sql string, args ...interface{}) (r *sql.Rows, err error) {
-	c := s.getContext(ctx)
-	slog.Debug("Query: ", sql, args)
+// SqlQuery executes the given sql, and returns a row result set.
+func (h *DbHelper) SqlQuery(ctx context.Context, sql string, args ...interface{}) (r *sql.Rows, err error) {
+	c := h.getContext(ctx)
+	slog.Debug("SqlQuery: ", sql, args)
 
 	var beginTime = time.Now()
 	if c != nil && c.tx != nil {
 		r, err = c.tx.QueryContext(ctx, sql, args...)
 	} else {
-		r, err = s.db.QueryContext(ctx, sql, args...)
+		r, err = h.db.QueryContext(ctx, sql, args...)
 	}
 	var endTime = time.Now()
-	if c != nil && s.profiling {
+	if c != nil && h.profiling {
 		if args != nil {
 			for _, arg := range args {
 				sql = strings.TrimSpace(sql)
 				sql += fmt.Sprintf(",\n%#v", arg)
 			}
 		}
-		c.profiles = append(c.profiles, ProfileEntry{DbKey: s.dbKey, BeginTime: beginTime, EndTime: endTime, Typ: "Query", Sql: sql})
+		c.profiles = append(c.profiles, ProfileEntry{DbKey: h.dbKey, BeginTime: beginTime, EndTime: endTime, Typ: "SqlQuery", Sql: sql})
 	}
 
 	return
@@ -212,16 +217,16 @@ func (s *DbHelper) Query(ctx context.Context, sql string, args ...interface{}) (
 
 // NewContext puts a blank context into the context chain to track transactions and other
 // special database situations.
-func (s *DbHelper) NewContext(ctx context.Context) context.Context {
-	return context.WithValue(ctx, s.contextKey(), &sqlContext{})
+func (h *DbHelper) NewContext(ctx context.Context) context.Context {
+	return context.WithValue(ctx, h.contextKey(), &sqlContext{})
 }
 
-func (s *DbHelper) contextKey() contextKey {
-	return contextKey("db-" + s.DbKey())
+func (h *DbHelper) contextKey() contextKey {
+	return contextKey("db-" + h.DbKey())
 }
 
-func (s *DbHelper) getContext(ctx context.Context) *sqlContext {
-	i := ctx.Value(s.contextKey())
+func (h *DbHelper) getContext(ctx context.Context) *sqlContext {
+	i := ctx.Value(h.contextKey())
 	if i != nil {
 		if c, ok := i.(*sqlContext); ok {
 			return c
@@ -231,24 +236,24 @@ func (s *DbHelper) getContext(ctx context.Context) *sqlContext {
 }
 
 // DbKey returns the key of the database in the global database store.
-func (s *DbHelper) DbKey() string {
-	return s.dbKey
+func (h *DbHelper) DbKey() string {
+	return h.dbKey
 }
 
 // SqlDb returns the underlying database/sql database object.
-func (s *DbHelper) SqlDb() *sql.DB {
-	return s.db
+func (h *DbHelper) SqlDb() *sql.DB {
+	return h.db
 }
 
 // StartProfiling will start the database profiling process.
-func (s *DbHelper) StartProfiling() {
-	s.profiling = true
+func (h *DbHelper) StartProfiling() {
+	h.profiling = true
 }
 
 // GetProfiles returns currently collected profile information
 // TODO: Move profiles to a session variable so we can access ajax queries too
-func (s *DbHelper) GetProfiles(ctx context.Context) []ProfileEntry {
-	c := s.getContext(ctx)
+func (h *DbHelper) GetProfiles(ctx context.Context) []ProfileEntry {
+	c := h.getContext(ctx)
 	if c == nil {
 		panic("Profiling requires a preloaded context.")
 	}
@@ -256,4 +261,63 @@ func (s *DbHelper) GetProfiles(ctx context.Context) []ProfileEntry {
 	p := c.profiles
 	c.profiles = nil
 	return p
+}
+
+// Query queries table for fields and returns a cursor that can be used to scan the result set.
+// If where is provided, it will limit the result set to rows with fields that match the where values.
+// If orderBy is provided, the result set will be sorted in ascending order by the fields indicated there.
+func (h *DbHelper) Query(ctx context.Context, table string, fields map[string]ReceiverType, where map[string]any, orderBy []string) CursorI {
+	var fieldNames []string
+	var receivers []ReceiverType
+	for k, v := range fields {
+		fieldNames = append(fieldNames, k)
+		receivers = append(receivers, v)
+	}
+	s, args := GenerateSelect(h.dbi, table, fieldNames, where, orderBy)
+	if rows, err := h.SqlQuery(ctx, s, args...); err != nil {
+		panic(err.Error())
+	} else {
+		return NewSqlCursor(rows, receivers, fieldNames, nil)
+	}
+}
+
+// Delete deletes the indicated record from the database.
+func (h *DbHelper) Delete(ctx context.Context, table string, where map[string]any) {
+	sql, args := GenerateDelete(h.dbi, table, where)
+	_, e := h.SqlExec(ctx, sql, args...)
+	if e != nil {
+		panic(e.Error())
+	}
+}
+
+// Insert inserts the given data as a new record in the database.
+// It returns the record id of the new record.
+func (h *DbHelper) Insert(ctx context.Context, table string, fields map[string]interface{}) string {
+	sql, args := GenerateInsert(h.dbi, table, fields)
+	if r, err := h.SqlExec(ctx, sql, args...); err != nil {
+		panic(err.Error())
+	} else {
+		// Not all database implementations support LastInsertId
+		// If yours does not, you will need to override this implementation
+		if id, err2 := r.LastInsertId(); err2 != nil {
+			panic(err2.Error())
+			return ""
+		} else {
+			return fmt.Sprint(id)
+		}
+	}
+}
+
+// Update sets specific fields of a record that already exists in the database to the given data.
+func (h *DbHelper) Update(ctx context.Context,
+	table string,
+	fields map[string]any,
+	where map[string]any,
+) {
+
+	sql, args := GenerateUpdate(h.dbi, table, fields, where)
+	_, e := h.SqlExec(ctx, sql, args...)
+	if e != nil {
+		panic(e.Error())
+	}
 }

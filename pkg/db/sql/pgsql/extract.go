@@ -635,7 +635,7 @@ func (m *DB) getEnumTableSchema(t pgTable) (ed schema.EnumTable, err error) {
 		}
 
 		columnNames = append(columnNames, c.Name)
-		quotedNames = append(quotedNames, iq(c.Name))
+		quotedNames = append(quotedNames, m.QuoteIdentifier(c.Name))
 		recType := ReceiverTypeFromSchema(c.Type, c.Size)
 		if i == 0 {
 			recType = ColTypeInteger // Force first value to be treated like an integer
@@ -668,7 +668,7 @@ ORDER BY
     %s
 `,
 		strings.Join(quotedNames, `,`),
-		iq(td.Name),
+		m.QuoteIdentifier(td.Name),
 		quotedNames[0])
 
 	result, err := m.SqlDb().Query(stmt)
