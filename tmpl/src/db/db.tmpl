@@ -34,6 +34,9 @@ package {{= tmpl.Package }}
 
 import (
 	"github.com/goradd/orm/pkg/db"
+	"context"
+	"io"
+	"encoding/json"
 )
 
 // The newObjectPkCounter is used to assign a temporary primary key to an auto generated primary key that

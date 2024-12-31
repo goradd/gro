@@ -86,27 +86,27 @@ func (tt *Enum) FileName() string {
 
 // newEnumTable will import the enum table from tableSchema.
 // If an error occurs, the table will be returned with no Values.
-func newEnumTable(dbKey string, tableSchema *schema.EnumTable) *Enum {
+func newEnumTable(dbKey string, enumSchema *schema.EnumTable) *Enum {
 	t := &Enum{
 		DbKey:            dbKey,
-		QueryName:        tableSchema.QualifiedName(),
-		Title:            tableSchema.Title,
-		TitlePlural:      tableSchema.TitlePlural,
-		Identifier:       tableSchema.Identifier,
-		IdentifierPlural: tableSchema.IdentifierPlural,
-		DecapIdentifier:  strings2.Decap(tableSchema.Identifier),
+		QueryName:        enumSchema.QualifiedName(),
+		Title:            enumSchema.Title,
+		TitlePlural:      enumSchema.TitlePlural,
+		Identifier:       enumSchema.Identifier,
+		IdentifierPlural: enumSchema.IdentifierPlural,
+		DecapIdentifier:  strings2.Decap(enumSchema.Identifier),
 		Values:           make(map[int]map[string]any),
 	}
-	if len(tableSchema.Values) == 0 {
+	if len(enumSchema.Values) == 0 {
 		slog.Error("Enum table " + t.QueryName + " has no Values entries. Specify constants by adding entries to this table schema.")
 		return t
 	}
-	if len(tableSchema.Fields) < 2 {
+	if len(enumSchema.Fields) < 2 {
 		slog.Error("Enum table " + t.QueryName + " does not have at least 2 Fields entries. Specify fields by adding Fields to this table schema.")
 		return t
 	}
 
-	for _, field := range tableSchema.Fields {
+	for _, field := range enumSchema.Fields {
 		f := EnumField{
 			QueryName:        field.Name,
 			Title:            field.Title,
@@ -126,7 +126,7 @@ func newEnumTable(dbKey string, tableSchema *schema.EnumTable) *Enum {
 		t.Fields = append(t.Fields, f)
 	}
 
-	for i, row := range tableSchema.Values {
+	for i, row := range enumSchema.Values {
 		if len(row) != len(t.Fields) {
 			slog.Error(fmt.Sprintf("Enum table %s, Values row %d, does not have the same number of values as Fields.", t.QueryName, i))
 			clear(t.Values)

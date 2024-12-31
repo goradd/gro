@@ -1,6 +1,7 @@
 {{g
     orderedTables := database.MarshalOrder()
     var processedTables maps.Set[string]
+    assnTables := make(map[string]*model.ManyManyReference)
 }}
 
 
@@ -17,6 +18,9 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 {{for tableNum,table := range orderedTables}}
 {{g
     processedTables.Add(table.QueryName)
+    for _,mm := range table.ManyManyReferences {
+        assnTables[mm.AssnTableName] = mm
+    }
 }}
 	{	// Write {{= table.IdentifierPlural }}
 		if _,err := io.WriteString(writer, "["); err != nil {
@@ -60,7 +64,46 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 			return err
 		}
 	}
+{{for}} {{# tables}}
+
+{{if len(assnTables) > 0 }}
+    db := Database()
+{{for _, mm := range assnTables}}
+    {
+        if _,err := io.WriteString(writer, ",\n["); err != nil {
+            return err
+        }
+        if _,err := io.WriteString(writer, `{{L mm.AssnTableName}},[`); err != nil {
+            return err
+        }
+
+
+        cursor := db.Query(ctx, {{L mm.AssnTableName}},
+            map[string]query.ReceiverType{
+                {{L mm.AssnSourceColumnName}}: query.{{= mm.AssnSourceColumnType.String() }},
+                {{L mm.AssnDestColumnName}}: query.{{= mm.AssnDestColumnType.String() }},
+            },
+            nil,
+            nil)
+        if rec := cursor.Next(); rec != nil {
+            if err := encoder.Encode(rec); err != nil {
+                return err
+            }
+        }
+        for rec := cursor.Next(); rec != nil; rec = cursor.Next() {
+            if _,err := io.WriteString(writer, ",\n"); err != nil {
+                return err
+            }
+            if err := encoder.Encode(rec); err != nil {
+                return err
+            }
+        }
+        if _,err := io.WriteString(writer, `]]`); err != nil {
+            return err
+        }
+    }
 {{for}}
+{{if}}
 
 	_, err := io.WriteString(writer, "]")
 	return err

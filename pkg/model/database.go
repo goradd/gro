@@ -100,11 +100,9 @@ func (m *Database) importAssociation(schemaAssn *schema.AssociationTable) {
 		ref2 := makeManyManyRef(schemaAssn.Name, schemaAssn.Column2, schemaAssn.Column1, t2, t1, schemaAssn.Table1, schemaAssn.Title1Plural, schemaAssn.Identifier1, schemaAssn.Identifier1Plural)
 		ref1.MM = ref2
 		ref2.MM = ref1
-	} else if e1 != nil && e2 != nil {
-		slog.Warn(fmt.Sprintf("Skipped association table %s: only one associated table can be an enum table, not both.", schemaAssn.Name))
+	} else if e1 != nil {
+		slog.Warn(fmt.Sprintf("Skipped association table %s: Table1 cannot be an enum table.", schemaAssn.Name))
 		return
-	} else if e1 != nil && t2 != nil {
-		makeManyManyEnumRef(schemaAssn.Name, schemaAssn.Column2, schemaAssn.Column1, t2, e1, schemaAssn.Title1, schemaAssn.Title1Plural, schemaAssn.Identifier1, schemaAssn.Identifier1Plural)
 	} else if e2 != nil && t1 != nil {
 		makeManyManyEnumRef(schemaAssn.Name, schemaAssn.Column1, schemaAssn.Column2, t1, e2, schemaAssn.Title2, schemaAssn.Title2Plural, schemaAssn.Identifier2, schemaAssn.Identifier2Plural)
 	} else {

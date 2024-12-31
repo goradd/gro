@@ -5,6 +5,7 @@ package template
 // This template generates a got template for the db.go file in the orm directory
 
 import (
+	"fmt"
 	"io"
 	"path/filepath"
 
@@ -87,6 +88,9 @@ package `); err != nil {
 
 import (
 	"github.com/goradd/orm/pkg/db"
+	"context"
+	"io"
+	"encoding/json"
 )
 
 // The newObjectPkCounter is used to assign a temporary primary key to an auto generated primary key that
@@ -125,6 +129,7 @@ func Database() db.DatabaseI {
 
 	orderedTables := database.MarshalOrder()
 	var processedTables maps.Set[string]
+	assnTables := make(map[string]*model.ManyManyReference)
 
 	if _, err = io.WriteString(_w, `
 
@@ -148,6 +153,9 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 	for tableNum, table := range orderedTables {
 
 		processedTables.Add(table.QueryName)
+		for _, mm := range table.ManyManyReferences {
+			assnTables[mm.AssnTableName] = mm
+		}
 
 		if _, err = io.WriteString(_w, `	{	// Write `); err != nil {
 			return
@@ -227,6 +235,114 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 	}
 `); err != nil {
 			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, ` `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `
+
+`); err != nil {
+		return
+	}
+
+	if len(assnTables) > 0 {
+
+		if _, err = io.WriteString(_w, `    db := Database()
+`); err != nil {
+			return
+		}
+
+		for _, mm := range assnTables {
+
+			if _, err = io.WriteString(_w, `    {
+        if _,err := io.WriteString(writer, ",\n["); err != nil {
+            return err
+        }
+        if _,err := io.WriteString(writer, `+"`"+``); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnTableName)); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `,[`+"`"+`); err != nil {
+            return err
+        }
+
+
+        cursor := db.Query(ctx, `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnTableName)); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `,
+            map[string]query.ReceiverType{
+                `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnSourceColumnName)); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `: query.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.AssnSourceColumnType.String()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `,
+                `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnDestColumnName)); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `: query.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.AssnDestColumnType.String()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `,
+            },
+            nil,
+            nil)
+        if rec := cursor.Next(); rec != nil {
+            if err := encoder.Encode(rec); err != nil {
+                return err
+            }
+        }
+        for rec := cursor.Next(); rec != nil; rec = cursor.Next() {
+            if _,err := io.WriteString(writer, ",\n"); err != nil {
+                return err
+            }
+            if err := encoder.Encode(rec); err != nil {
+                return err
+            }
+        }
+        if _,err := io.WriteString(writer, `+"`"+`]]`+"`"+`); err != nil {
+            return err
+        }
+    }
+`); err != nil {
+				return
+			}
+
 		}
 
 	}

@@ -1,5 +1,7 @@
 package model
 
+import "github.com/goradd/orm/pkg/query"
+
 // The ManyManyReference structure is used by the templates during the codegen process to describe a many-to-many relationship.
 // Underlying the structure is an association table that has two values that are foreign keys pointing
 // to the records that are linked. The names of these fields will determine the names of the corresponding accessors
@@ -10,8 +12,12 @@ type ManyManyReference struct {
 	AssnTableName string
 	// AssnSourceColumnName is the database column in the association table that points at the source table's primary key.
 	AssnSourceColumnName string
+	// AssnSourceColumnType is the type of the column in the association table.
+	AssnSourceColumnType query.ReceiverType
 	// AssnDestColumnName is the database column in the association table that points at the destination table's primary key.
 	AssnDestColumnName string
+	// AssnDestColumnType is the type of the column in the association table.
+	AssnDestColumnType query.ReceiverType
 	// DestinationTable is the table being linked (the table that we are joining to)
 	DestinationTable *Table
 	// DestinationEnumTable is the enum table being linked if this is an enum association
@@ -104,10 +110,14 @@ func makeManyManyRef(
 	t1, t2 *Table,
 	title, titles, id, ids string,
 ) *ManyManyReference {
+	type1 := t1.PrimaryKeyColumn().Type
+	type2 := t2.PrimaryKeyColumn().Type
 	ref := ManyManyReference{
 		AssnTableName:        assnTable,
 		AssnSourceColumnName: column1,
+		AssnSourceColumnType: type1,
 		AssnDestColumnName:   column2,
+		AssnDestColumnType:   type2,
 		DestinationTable:     t2,
 		Title:                title,
 		TitlePlural:          titles,
@@ -123,10 +133,13 @@ func makeManyManyEnumRef(
 	t1 *Table, t2 *Enum,
 	title, titles, id, ids string,
 ) *ManyManyReference {
+	type1 := t1.PrimaryKeyColumn().Type
 	ref := ManyManyReference{
 		AssnTableName:        assnTable,
 		AssnSourceColumnName: column1,
+		AssnSourceColumnType: type1,
 		AssnDestColumnName:   column2,
+		AssnDestColumnType:   query.ColTypeInteger,
 		DestinationEnumTable: t2,
 		Title:                title,
 		TitlePlural:          titles,

@@ -17,7 +17,8 @@ type AssociationTable struct {
 	Schema string `json:"schema,omitempty"`
 
 	// Table1 is the name of first table in the association.
-	// If it has a schema, should be of the form "schema.table"
+	// If it has a schema, should be of the form "schema.table".
+	// Should not be an enum table.
 	Table1 string `json:"table1"`
 
 	// The name of the column in the association table that will be used to point to table 1.
@@ -41,6 +42,7 @@ type AssociationTable struct {
 
 	// Table2 is the name of second table in the association.
 	// If it has a schema, should be of the form "schema.table"
+	// If an enum table, should end with Database.EnumTableSuffix.
 	Table2 string `json:"table2"`
 
 	// The name of the column in the association table that will be used to point to table 2.
