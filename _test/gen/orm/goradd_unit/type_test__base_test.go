@@ -77,7 +77,7 @@ func TestTypeTest_SetTestInt(t *testing.T) {
 
 	obj := NewTypeTest()
 
-	testInt := test.RandomValue[int](0)
+	testInt := test.RandomValue[int](32)
 	obj.SetTestInt(testInt)
 	assert.Equal(t, testInt, obj.TestInt())
 	assert.False(t, obj.TestIntIsNull())
@@ -229,7 +229,7 @@ func createMinimalSampleTypeTest(ctx context.Context) *TypeTest {
 	dateTime := test.RandomValue[time.Time](0)
 	obj.SetDateTime(dateTime)
 
-	testInt := test.RandomValue[int](0)
+	testInt := test.RandomValue[int](32)
 	obj.SetTestInt(testInt)
 
 	testFloat := test.RandomValue[float32](32)
@@ -266,7 +266,7 @@ func TestTypeTest_CRUD(t *testing.T) {
 	dateTime := test.RandomValue[time.Time](0)
 	obj.SetDateTime(dateTime)
 
-	testInt := test.RandomValue[int](0)
+	testInt := test.RandomValue[int](32)
 	obj.SetTestInt(testInt)
 
 	testFloat := test.RandomValue[float32](32)

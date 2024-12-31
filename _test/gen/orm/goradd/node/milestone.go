@@ -73,7 +73,7 @@ func (n *MilestoneNode) ProjectID() *query.ColumnNode {
 		"milestone",
 		"project_id",
 		"ProjectID",
-		query.ColTypeUnsigned,
+		query.ColTypeString,
 		false,
 	)
 	query.SetParentNode(cn, n)
@@ -92,7 +92,7 @@ func (n *MilestoneNode) Project() *ProjectNode {
 			"project",
 			"id",
 			false,
-			query.ColTypeUnsigned,
+			query.ColTypeString,
 		),
 	}
 	query.SetParentNode(cn, n)

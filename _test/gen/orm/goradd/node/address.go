@@ -74,7 +74,7 @@ func (n *AddressNode) PersonID() *query.ColumnNode {
 		"address",
 		"person_id",
 		"PersonID",
-		query.ColTypeUnsigned,
+		query.ColTypeString,
 		false,
 	)
 	query.SetParentNode(cn, n)
@@ -93,7 +93,7 @@ func (n *AddressNode) Person() *PersonNode {
 			"person",
 			"id",
 			false,
-			query.ColTypeUnsigned,
+			query.ColTypeString,
 		),
 	}
 	query.SetParentNode(cn, n)

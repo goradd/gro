@@ -87,7 +87,7 @@ func (n *ForwardCascadeNode) ReverseID() *query.ColumnNode {
 		"forward_cascade",
 		"reverse_id",
 		"ReverseID",
-		query.ColTypeInteger,
+		query.ColTypeString,
 		false,
 	)
 	query.SetParentNode(cn, n)
@@ -106,7 +106,7 @@ func (n *ForwardCascadeNode) Reverse() *ReverseNode {
 			"reverse",
 			"id",
 			false,
-			query.ColTypeInteger,
+			query.ColTypeString,
 		),
 	}
 	query.SetParentNode(cn, n)

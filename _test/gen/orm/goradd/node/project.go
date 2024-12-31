@@ -108,7 +108,7 @@ func (n *ProjectNode) ManagerID() *query.ColumnNode {
 		"project",
 		"manager_id",
 		"ManagerID",
-		query.ColTypeUnsigned,
+		query.ColTypeString,
 		false,
 	)
 	query.SetParentNode(cn, n)
@@ -127,7 +127,7 @@ func (n *ProjectNode) Manager() *PersonNode {
 			"person",
 			"id",
 			false,
-			query.ColTypeUnsigned,
+			query.ColTypeString,
 		),
 	}
 	query.SetParentNode(cn, n)

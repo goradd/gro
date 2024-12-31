@@ -69,8 +69,9 @@ func (t *AssociationTable) QualifiedName() string {
 	}
 }
 
-func (t *AssociationTable) FillDefaults(suffix string) {
-	col1 := strings.TrimSuffix(t.Column1, suffix)
+// FillDefaults will fill default values where none have been set.
+func (t *AssociationTable) FillDefaults(referenceSuffix string) {
+	col1 := strings.TrimSuffix(t.Column1, referenceSuffix)
 	if t.Title1 == "" {
 		t.Title1 = strings2.Title(col1)
 	}
@@ -84,7 +85,7 @@ func (t *AssociationTable) FillDefaults(suffix string) {
 		t.Identifier1Plural = strings2.Plural(t.Identifier1)
 	}
 
-	col2 := strings.TrimSuffix(t.Column2, suffix)
+	col2 := strings.TrimSuffix(t.Column2, referenceSuffix)
 	if t.Title2 == "" {
 		t.Title2 = strings2.Title(col2)
 	}

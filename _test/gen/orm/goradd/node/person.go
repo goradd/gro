@@ -102,7 +102,7 @@ func (n *PersonNode) PersonTypes() *PersonTypeNode {
 			"person_persontype_assn",
 			"person_type_id",
 			"PersonTypes",
-			"person_type_enum",
+			"",
 			"person_id",
 			"id",
 			false,

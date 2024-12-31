@@ -189,7 +189,7 @@ func TestUnsupportedType_SetTypeMedium(t *testing.T) {
 
 	obj := NewUnsupportedType()
 
-	typeMedium := test.RandomValue[int](32)
+	typeMedium := test.RandomValue[int](24)
 	obj.SetTypeMedium(typeMedium)
 	assert.Equal(t, typeMedium, obj.TypeMedium())
 
@@ -228,7 +228,7 @@ func TestUnsupportedType_SetTypeUnsigned(t *testing.T) {
 
 	obj := NewUnsupportedType()
 
-	typeUnsigned := test.RandomValue[uint](0)
+	typeUnsigned := test.RandomValue[uint](32)
 	obj.SetTypeUnsigned(typeUnsigned)
 	assert.Equal(t, typeUnsigned, obj.TypeUnsigned())
 
@@ -294,13 +294,13 @@ func createMinimalSampleUnsupportedType(ctx context.Context) *UnsupportedType {
 	typeSmall := test.RandomValue[int](16)
 	obj.SetTypeSmall(typeSmall)
 
-	typeMedium := test.RandomValue[int](32)
+	typeMedium := test.RandomValue[int](24)
 	obj.SetTypeMedium(typeMedium)
 
 	typeBig := test.RandomValue[int64](64)
 	obj.SetTypeBig(typeBig)
 
-	typeUnsigned := test.RandomValue[uint](0)
+	typeUnsigned := test.RandomValue[uint](32)
 	obj.SetTypeUnsigned(typeUnsigned)
 
 	typeMultfk1 := test.RandomValue[string](50)
@@ -331,13 +331,13 @@ func TestUnsupportedType_CRUD(t *testing.T) {
 	typeSmall := test.RandomValue[int](16)
 	obj.SetTypeSmall(typeSmall)
 
-	typeMedium := test.RandomValue[int](32)
+	typeMedium := test.RandomValue[int](24)
 	obj.SetTypeMedium(typeMedium)
 
 	typeBig := test.RandomValue[int64](64)
 	obj.SetTypeBig(typeBig)
 
-	typeUnsigned := test.RandomValue[uint](0)
+	typeUnsigned := test.RandomValue[uint](32)
 	obj.SetTypeUnsigned(typeUnsigned)
 
 	typeMultfk1 := test.RandomValue[string](50)

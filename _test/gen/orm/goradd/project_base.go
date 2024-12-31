@@ -748,32 +748,6 @@ func (o *projectBase) LoadChildren(ctx context.Context) []*Project {
 	return o.mmChildren.Values()
 }
 
-// GetChildren loads the Project objects associated through the Child-Parent relationship.
-func (o *projectBase) LoadChildren(ctx context.Context) []*Project {
-	if o.mmChildrenIsDirty && o.mmChildrenPks == nil {
-		panic("dirty many-many relationships cannot be loaded; call Save() first")
-	}
-
-	var objs []*Project
-
-	if o.mmChildrenPks != nil {
-		// Load the objects that will be associated after a Save
-		objs = QueryProjects(ctx).
-			Where(op.In(node.Project().PrimaryKeyNode(), o.mmChildrenPks...)).
-			Load()
-	} else {
-		objs = QueryProjects(ctx).
-			Where(op.Equal(node.Project().Parents(), o.PrimaryKey())).
-			Load()
-	}
-
-	o.mmChildren.Clear()
-	for _, obj := range objs {
-		o.mmChildren.Set(obj.PrimaryKey(), obj)
-	}
-	return o.mmChildren.Values()
-}
-
 // CountChildren counts the number of associated mmChildren objects in the database.
 // Note that this returns what is reflected by the database at that instant, and not what
 // is the count of the loaded objects.
@@ -822,32 +796,6 @@ func (o *projectBase) SetParentsByID(ids []string) {
 }
 
 // LoadParents loads the Project objects associated through the Parent-Child relationship.
-func (o *projectBase) LoadParents(ctx context.Context) []*Project {
-	if o.mmParentsIsDirty && o.mmParentsPks == nil {
-		panic("dirty many-many relationships cannot be loaded; call Save() first")
-	}
-
-	var objs []*Project
-
-	if o.mmParentsPks != nil {
-		// Load the objects that will be associated after a Save
-		objs = QueryProjects(ctx).
-			Where(op.In(node.Project().PrimaryKeyNode(), o.mmParentsPks...)).
-			Load()
-	} else {
-		objs = QueryProjects(ctx).
-			Where(op.Equal(node.Project().Children(), o.PrimaryKey())).
-			Load()
-	}
-
-	o.mmParents.Clear()
-	for _, obj := range objs {
-		o.mmParents.Set(obj.PrimaryKey(), obj)
-	}
-	return o.mmParents.Values()
-}
-
-// GetParents loads the Project objects associated through the Parent-Child relationship.
 func (o *projectBase) LoadParents(ctx context.Context) []*Project {
 	if o.mmParentsIsDirty && o.mmParentsPks == nil {
 		panic("dirty many-many relationships cannot be loaded; call Save() first")

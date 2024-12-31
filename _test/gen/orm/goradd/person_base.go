@@ -301,32 +301,6 @@ func (o *personBase) LoadProjects(ctx context.Context) []*Project {
 	return o.mmProjects.Values()
 }
 
-// GetProjects loads the Project objects associated through the Project-TeamMember relationship.
-func (o *personBase) LoadProjects(ctx context.Context) []*Project {
-	if o.mmProjectsIsDirty && o.mmProjectsPks == nil {
-		panic("dirty many-many relationships cannot be loaded; call Save() first")
-	}
-
-	var objs []*Project
-
-	if o.mmProjectsPks != nil {
-		// Load the objects that will be associated after a Save
-		objs = QueryProjects(ctx).
-			Where(op.In(node.Project().PrimaryKeyNode(), o.mmProjectsPks...)).
-			Load()
-	} else {
-		objs = QueryProjects(ctx).
-			Where(op.Equal(node.Project().TeamMembers(), o.PrimaryKey())).
-			Load()
-	}
-
-	o.mmProjects.Clear()
-	for _, obj := range objs {
-		o.mmProjects.Set(obj.PrimaryKey(), obj)
-	}
-	return o.mmProjects.Values()
-}
-
 // CountProjects counts the number of associated mmProjects objects in the database.
 // Note that this returns what is reflected by the database at that instant, and not what
 // is the count of the loaded objects.
@@ -1391,7 +1365,7 @@ func (o *personBase) Delete(ctx context.Context) {
 			"person_persontype_assn",
 			"person_type_id",
 			o.PrimaryKey(),
-			"person_type_enum",
+			"",
 			"id",
 			nil)
 

@@ -29,7 +29,7 @@ func TestEmployeeInfo_SetEmployeeNumber(t *testing.T) {
 
 	obj := NewEmployeeInfo()
 
-	employeeNumber := test.RandomValue[int](0)
+	employeeNumber := test.RandomValue[int](32)
 	obj.SetEmployeeNumber(employeeNumber)
 	assert.Equal(t, employeeNumber, obj.EmployeeNumber())
 
@@ -48,7 +48,7 @@ func createMinimalSampleEmployeeInfo(ctx context.Context) *EmployeeInfo {
 	objPerson := createMinimalSamplePerson(ctx)
 	obj.SetPerson(objPerson)
 
-	employeeNumber := test.RandomValue[int](0)
+	employeeNumber := test.RandomValue[int](32)
 	obj.SetEmployeeNumber(employeeNumber)
 
 	obj.Save(ctx)
@@ -61,7 +61,7 @@ func TestEmployeeInfo_CRUD(t *testing.T) {
 	objPerson := createMinimalSamplePerson(ctx)
 	obj.SetPerson(objPerson)
 
-	employeeNumber := test.RandomValue[int](0)
+	employeeNumber := test.RandomValue[int](32)
 	obj.SetEmployeeNumber(employeeNumber)
 
 	// Test retrieval

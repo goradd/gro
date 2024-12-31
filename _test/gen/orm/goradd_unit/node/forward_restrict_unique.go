@@ -87,7 +87,7 @@ func (n *ForwardRestrictUniqueNode) ReverseID() *query.ColumnNode {
 		"forward_restrict_unique",
 		"reverse_id",
 		"ReverseID",
-		query.ColTypeInteger,
+		query.ColTypeString,
 		false,
 	)
 	query.SetParentNode(cn, n)
@@ -106,7 +106,7 @@ func (n *ForwardRestrictUniqueNode) Reverse() *ReverseNode {
 			"reverse",
 			"id",
 			false,
-			query.ColTypeInteger,
+			query.ColTypeString,
 		),
 	}
 	query.SetParentNode(cn, n)

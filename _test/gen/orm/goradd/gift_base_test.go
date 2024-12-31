@@ -16,7 +16,7 @@ func TestGift_SetNumber(t *testing.T) {
 
 	obj := NewGift()
 
-	number := test.RandomValue[int](0)
+	number := test.RandomValue[int](32)
 	obj.SetNumber(number)
 	assert.Equal(t, number, obj.Number())
 
@@ -49,7 +49,7 @@ func TestGift_SetName(t *testing.T) {
 func createMinimalSampleGift(ctx context.Context) *Gift {
 	obj := NewGift()
 
-	number := test.RandomValue[int](0)
+	number := test.RandomValue[int](32)
 	obj.SetNumber(number)
 
 	name := test.RandomValue[string](50)
@@ -62,7 +62,7 @@ func TestGift_CRUD(t *testing.T) {
 	obj := NewGift()
 	ctx := db.NewContext(nil)
 
-	number := test.RandomValue[int](0)
+	number := test.RandomValue[int](32)
 	obj.SetNumber(number)
 
 	name := test.RandomValue[string](50)

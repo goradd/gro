@@ -16,7 +16,7 @@ func TestDoubleIndex_SetID(t *testing.T) {
 
 	obj := NewDoubleIndex()
 
-	id := test.RandomValue[int](0)
+	id := test.RandomValue[int](32)
 	obj.SetID(id)
 	assert.Equal(t, id, obj.ID())
 
@@ -29,7 +29,7 @@ func TestDoubleIndex_SetFieldInt(t *testing.T) {
 
 	obj := NewDoubleIndex()
 
-	fieldInt := test.RandomValue[int](0)
+	fieldInt := test.RandomValue[int](32)
 	obj.SetFieldInt(fieldInt)
 	assert.Equal(t, fieldInt, obj.FieldInt())
 
@@ -62,10 +62,10 @@ func TestDoubleIndex_SetFieldString(t *testing.T) {
 func createMinimalSampleDoubleIndex(ctx context.Context) *DoubleIndex {
 	obj := NewDoubleIndex()
 
-	id := test.RandomValue[int](0)
+	id := test.RandomValue[int](32)
 	obj.SetID(id)
 
-	fieldInt := test.RandomValue[int](0)
+	fieldInt := test.RandomValue[int](32)
 	obj.SetFieldInt(fieldInt)
 
 	fieldString := test.RandomValue[string](50)
@@ -78,10 +78,10 @@ func TestDoubleIndex_CRUD(t *testing.T) {
 	obj := NewDoubleIndex()
 	ctx := db.NewContext(nil)
 
-	id := test.RandomValue[int](0)
+	id := test.RandomValue[int](32)
 	obj.SetID(id)
 
-	fieldInt := test.RandomValue[int](0)
+	fieldInt := test.RandomValue[int](32)
 	obj.SetFieldInt(fieldInt)
 
 	fieldString := test.RandomValue[string](50)

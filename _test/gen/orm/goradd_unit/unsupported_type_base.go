@@ -127,7 +127,6 @@ const (
 	UnsupportedType_TypeMultifk2   = `TypeMultifk2`
 )
 
-const UnsupportedTypeTypeSerialMaxLength = 64           // The number of runes the column can hold
 const UnsupportedTypeTypeSetMaxLength = 5               // The number of bytes the column can hold
 const UnsupportedTypeTypeEnumMaxLength = 1              // The number of bytes the column can hold
 const UnsupportedTypeTypeDecimalMaxLength = 13          // The number of bytes the column can hold

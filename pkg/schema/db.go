@@ -36,7 +36,7 @@ type Database struct {
 	// EnumTables contains a description of the enumerated types from the enum tables in the database.
 	EnumTables []*EnumTable `json:"enum_tables"`
 
-	// AssociationTables form many-to-many relationships between tables in the database
+	// AssociationTables form many-to-many relationships between tables in the database.
 	AssociationTables []*AssociationTable `json:"association_tables"`
 }
 
@@ -69,5 +69,9 @@ func (db *Database) FillDefaults() {
 
 	for _, t := range db.EnumTables {
 		t.FillDefaults(db.EnumTableSuffix)
+	}
+
+	for _, t := range db.AssociationTables {
+		t.FillDefaults(db.ReferenceSuffix)
 	}
 }

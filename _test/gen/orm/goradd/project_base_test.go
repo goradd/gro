@@ -17,7 +17,7 @@ func TestProject_SetNum(t *testing.T) {
 
 	obj := NewProject()
 
-	num := test.RandomValue[int](0)
+	num := test.RandomValue[int](32)
 	obj.SetNum(num)
 	assert.Equal(t, num, obj.Num())
 
@@ -30,7 +30,7 @@ func TestProject_SetStatus(t *testing.T) {
 
 	obj := NewProject()
 
-	status := test.RandomValue[ProjectStatus](0)
+	status := test.RandomValue[ProjectStatus](32)
 	obj.SetStatus(status)
 	assert.Equal(t, status, obj.Status())
 
@@ -198,10 +198,10 @@ func TestProject_SetSpent(t *testing.T) {
 func createMinimalSampleProject(ctx context.Context) *Project {
 	obj := NewProject()
 
-	num := test.RandomValue[int](0)
+	num := test.RandomValue[int](32)
 	obj.SetNum(num)
 
-	status := test.RandomValue[ProjectStatus](0)
+	status := test.RandomValue[ProjectStatus](32)
 	obj.SetStatus(status)
 
 	name := test.RandomValue[string](100)
@@ -223,10 +223,10 @@ func TestProject_CRUD(t *testing.T) {
 	obj := NewProject()
 	ctx := db.NewContext(nil)
 
-	num := test.RandomValue[int](0)
+	num := test.RandomValue[int](32)
 	obj.SetNum(num)
 
-	status := test.RandomValue[ProjectStatus](0)
+	status := test.RandomValue[ProjectStatus](32)
 	obj.SetStatus(status)
 
 	objManager := createMinimalSamplePerson(ctx)

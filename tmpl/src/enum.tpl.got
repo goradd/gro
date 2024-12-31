@@ -1,0 +1,32 @@
+package template
+
+import (
+	"io"
+	"strings"
+	"strconv"
+)
+
+func init() {
+    t := EnumTemplate{}
+	codegen.RegisterTemplate(&t)
+}
+
+// EnumTemplate generates code for enumerated types.
+type EnumTemplate struct {
+    Package string
+}
+
+func (tmpl *EnumTemplate) FileName(table *model.Enum) string {
+    return filepath.Join("orm", table.DbKey, table.FileName() + ".go")
+}
+
+func (tmpl *EnumTemplate) GenerateEnum(table *model.Enum, _w io.Writer, importPath string) (err error) {
+    tmpl.Package = table.DbKey
+    return tmpl.gen(table, _w)
+}
+
+func (tmpl *EnumTemplate) Overwrite() bool {
+	return true
+}
+
+{{: "enum/enum.tmpl" }}

@@ -1,0 +1,32 @@
+package template
+
+import (
+	"io"
+	"path/filepath"
+	"github.com/goradd/orm/pkg/codegen"
+    "github.com/goradd/orm/pkg/model"
+)
+
+func init() {
+    t := EnumNodeTemplate{}
+	codegen.RegisterTemplate(&t)
+}
+
+// EnumNodeTemplate generates the node code for enumerated types
+type EnumNodeTemplate struct {
+    Package string
+}
+
+func (tmpl *EnumNodeTemplate) FileName(table *model.Enum) string {
+    return filepath.Join("orm", table.DbKey, "node",table.FileName() + ".go")
+}
+
+func (tmpl *EnumNodeTemplate) GenerateEnum(table *model.Enum, _w io.Writer, importPath string) (err error) {
+    return tmpl.gen(table, _w)
+}
+
+func (tmpl *EnumNodeTemplate) Overwrite() bool {
+    return true
+}
+
+{{: "enum/enum_node.tmpl" }}

@@ -17,6 +17,7 @@ type Model []*Database
 
 func FromSchemas(schemas []*schema.Database) (dbs Model) {
 	for _, s := range schemas {
+		s.FillDefaults()
 		db := FromSchema(s)
 		dbs = append(dbs, db)
 	}
