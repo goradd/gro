@@ -107,6 +107,8 @@ const (
 	TypeTest_TestBlob    = `TestBlob`
 )
 
+const TypeTestTestIntMax = 2147483647
+const TypeTestTestIntMin = -2147483648
 const TypeTestTestTextMaxLength = 65535 // The number of runes the column can hold
 const TypeTestTestVarcharMaxLength = 10 // The number of runes the column can hold
 const TypeTestTestBlobMaxLength = 65535 // The number of bytes the column can hold

@@ -46,6 +46,8 @@ const (
 	Gift_Name   = `Name`
 )
 
+const GiftNumberMax = 2147483647
+const GiftNumberMin = -2147483648
 const GiftNameMaxLength = 50 // The number of runes the column can hold
 
 // Initialize or re-initialize a Gift database object to default values.

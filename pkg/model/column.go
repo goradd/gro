@@ -260,6 +260,53 @@ func (cd *Column) HasSetter() bool {
 	return true
 }
 
+// MaxInt returns the maximum integer that the column can hold if it is an integer type.
+// Returns 0 if not.
+func (cd *Column) MaxInt() int64 {
+	if cd.Type == ColTypeInteger {
+		switch cd.Size {
+		case 8:
+			return 127
+		case 16:
+			return 32767
+		case 24:
+			return 8388607
+		case 32:
+			return 2147483647
+		}
+	} else if cd.Type == ColTypeUnsigned {
+		switch cd.Size {
+		case 8:
+			return 255
+		case 16:
+			return 65535
+		case 24:
+			return 16777215
+		case 32:
+			return 4294967295
+		}
+	}
+	return 0
+}
+
+// MinInt returns the minimum integer that the column can hold if it is an integer type.
+// Returns 0 if not.
+func (cd *Column) MinInt() int64 {
+	if cd.Type == ColTypeInteger {
+		switch cd.Size {
+		case 8:
+			return -128
+		case 16:
+			return -32768
+		case 24:
+			return -8388608
+		case 32:
+			return -2147483648
+		}
+	}
+	return 0
+}
+
 func newColumn(schemaCol *schema.Column) *Column {
 	col := &Column{
 		QueryName:       schemaCol.Name,

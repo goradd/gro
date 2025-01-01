@@ -52,6 +52,9 @@ const (
 	EmployeeInfo_EmployeeNumber = `EmployeeNumber`
 )
 
+const EmployeeInfoEmployeeNumberMax = 2147483647
+const EmployeeInfoEmployeeNumberMin = -2147483648
+
 // Initialize or re-initialize a EmployeeInfo database object to default values.
 // The primary key will get a temporary negative number which will be replaced when the object is saved.
 // Multiple calls to Initialize are not guaranteed to create sequential values for the primary key.

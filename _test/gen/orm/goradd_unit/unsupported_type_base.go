@@ -133,8 +133,14 @@ const UnsupportedTypeTypeDecimalMaxLength = 13          // The number of bytes t
 const UnsupportedTypeTypeTinyBlobMaxLength = 255        // The number of bytes the column can hold
 const UnsupportedTypeTypeMediumBlobMaxLength = 16777215 // The number of bytes the column can hold
 const UnsupportedTypeTypeLongtextMaxLength = 4294967295 // The number of runes the column can hold
-const UnsupportedTypeTypeMultfk1MaxLength = 50          // The number of runes the column can hold
-const UnsupportedTypeTypeMultifk2MaxLength = 50         // The number of runes the column can hold
+const UnsupportedTypeTypeSmallMax = 32767
+const UnsupportedTypeTypeSmallMin = -32768
+const UnsupportedTypeTypeMediumMax = 8388607
+const UnsupportedTypeTypeMediumMin = -8388608
+const UnsupportedTypeTypeUnsignedMax = 4294967295
+const UnsupportedTypeTypeUnsignedMin = 0
+const UnsupportedTypeTypeMultfk1MaxLength = 50  // The number of runes the column can hold
+const UnsupportedTypeTypeMultifk2MaxLength = 50 // The number of runes the column can hold
 
 // Initialize or re-initialize a UnsupportedType database object to default values.
 // The primary key will get a temporary negative number which will be replaced when the object is saved.

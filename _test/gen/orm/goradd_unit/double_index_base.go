@@ -51,6 +51,10 @@ const (
 	DoubleIndex_FieldString = `FieldString`
 )
 
+const DoubleIndexIDMax = 2147483647
+const DoubleIndexIDMin = -2147483648
+const DoubleIndexFieldIntMax = 2147483647
+const DoubleIndexFieldIntMin = -2147483648
 const DoubleIndexFieldStringMaxLength = 50 // The number of runes the column can hold
 
 // Initialize or re-initialize a DoubleIndex database object to default values.

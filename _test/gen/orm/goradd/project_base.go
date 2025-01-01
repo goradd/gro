@@ -123,6 +123,10 @@ const (
 	ProjectTeamMembers = `TeamMembers`
 )
 
+const ProjectNumMax = 2147483647
+const ProjectNumMin = -2147483648
+const ProjectStatusMax = 2147483647
+const ProjectStatusMin = -2147483648
 const ProjectNameMaxLength = 100          // The number of runes the column can hold
 const ProjectDescriptionMaxLength = 65535 // The number of runes the column can hold
 const ProjectBudgetMaxLength = 15         // The number of bytes the column can hold

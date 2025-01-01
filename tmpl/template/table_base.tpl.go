@@ -858,6 +858,54 @@ const  (
 					return
 				}
 
+			} else if col.Type == query.ColTypeInteger || col.Type == query.ColTypeUnsigned {
+
+				if _, err = io.WriteString(_w, `    const `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, table.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `Max = `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, fmt.Sprintf("%#v", col.MaxInt())); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `
+    const `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, table.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `Min = `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, fmt.Sprintf("%#v", col.MinInt())); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `
+`); err != nil {
+					return
+				}
+
 			}
 
 		}
