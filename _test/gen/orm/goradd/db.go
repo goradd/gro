@@ -48,6 +48,25 @@ func Database() db.DatabaseI {
 	return db.GetDatabase("goradd")
 }
 
+// ClearAll deletes all the data in the database, except for data in Enum tables.
+func ClearAll(ctx context.Context) {
+	db := Database()
+
+	db.Delete(ctx, "related_project_assn", nil)
+	db.Delete(ctx, "team_member_project_assn", nil)
+	db.Delete(ctx, "person_persontype_assn", nil)
+
+	db.Delete(ctx, "milestone", nil)
+	db.Delete(ctx, "login", nil)
+	db.Delete(ctx, "employee_info", nil)
+	db.Delete(ctx, "project", nil)
+	db.Delete(ctx, "person_with_lock", nil)
+	db.Delete(ctx, "person", nil)
+	db.Delete(ctx, "gift", nil)
+	db.Delete(ctx, "address", nil)
+
+}
+
 func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 	encoder.SetIndent("", "  ")
@@ -69,6 +88,46 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 		}
 
 		cursor := QueryAddresses(ctx).LoadCursor()
+		defer cursor.Close()
+		if obj := cursor.Next(); obj != nil {
+			if err := encoder.Encode(obj); err != nil {
+				return err
+			}
+		}
+
+		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+			if _, err := io.WriteString(writer, ",\n"); err != nil {
+				return err
+			}
+			if err := encoder.Encode(obj); err != nil {
+				return err
+			}
+		}
+
+		if _, err := io.WriteString(writer, "]\n]"); err != nil {
+			return err
+		}
+
+		if _, err := io.WriteString(writer, ","); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(writer, "\n"); err != nil {
+			return err
+		}
+	}
+	{ // Write EmployeeInfos
+		if _, err := io.WriteString(writer, "["); err != nil {
+			return err
+		}
+
+		if _, err := io.WriteString(writer, `"employee_info"`); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(writer, ",\n["); err != nil {
+			return err
+		}
+
+		cursor := QueryEmployeeInfos(ctx).LoadCursor()
 		defer cursor.Close()
 		if obj := cursor.Next(); obj != nil {
 			if err := encoder.Encode(obj); err != nil {
@@ -256,46 +315,6 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 			return err
 		}
 	}
-	{ // Write EmployeeInfos
-		if _, err := io.WriteString(writer, "["); err != nil {
-			return err
-		}
-
-		if _, err := io.WriteString(writer, `"employee_info"`); err != nil {
-			return err
-		}
-		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
-		}
-
-		cursor := QueryEmployeeInfos(ctx).LoadCursor()
-		defer cursor.Close()
-		if obj := cursor.Next(); obj != nil {
-			if err := encoder.Encode(obj); err != nil {
-				return err
-			}
-		}
-
-		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
-			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
-			}
-			if err := encoder.Encode(obj); err != nil {
-				return err
-			}
-		}
-
-		if _, err := io.WriteString(writer, "]\n]"); err != nil {
-			return err
-		}
-
-		if _, err := io.WriteString(writer, ","); err != nil {
-			return err
-		}
-		if _, err := io.WriteString(writer, "\n"); err != nil {
-			return err
-		}
-	}
 	{ // Write Logins
 		if _, err := io.WriteString(writer, "["); err != nil {
 			return err
@@ -379,38 +398,6 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 		if _, err := io.WriteString(writer, ",\n["); err != nil {
 			return err
 		}
-		if _, err := io.WriteString(writer, `"related_project_assn",[`); err != nil {
-			return err
-		}
-
-		cursor := db.Query(ctx, "related_project_assn",
-			map[string]query.ReceiverType{
-				"child_id":  query.ColTypeString,
-				"parent_id": query.ColTypeString,
-			},
-			nil,
-			nil)
-		if rec := cursor.Next(); rec != nil {
-			if err := encoder.Encode(rec); err != nil {
-				return err
-			}
-		}
-		for rec := cursor.Next(); rec != nil; rec = cursor.Next() {
-			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
-			}
-			if err := encoder.Encode(rec); err != nil {
-				return err
-			}
-		}
-		if _, err := io.WriteString(writer, `]]`); err != nil {
-			return err
-		}
-	}
-	{
-		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
-		}
 		if _, err := io.WriteString(writer, `"person_persontype_assn",[`); err != nil {
 			return err
 		}
@@ -451,6 +438,38 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 			map[string]query.ReceiverType{
 				"project_id":     query.ColTypeString,
 				"team_member_id": query.ColTypeString,
+			},
+			nil,
+			nil)
+		if rec := cursor.Next(); rec != nil {
+			if err := encoder.Encode(rec); err != nil {
+				return err
+			}
+		}
+		for rec := cursor.Next(); rec != nil; rec = cursor.Next() {
+			if _, err := io.WriteString(writer, ",\n"); err != nil {
+				return err
+			}
+			if err := encoder.Encode(rec); err != nil {
+				return err
+			}
+		}
+		if _, err := io.WriteString(writer, `]]`); err != nil {
+			return err
+		}
+	}
+	{
+		if _, err := io.WriteString(writer, ",\n["); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(writer, `"related_project_assn",[`); err != nil {
+			return err
+		}
+
+		cursor := db.Query(ctx, "related_project_assn",
+			map[string]query.ReceiverType{
+				"child_id":  query.ColTypeString,
+				"parent_id": query.ColTypeString,
 			},
 			nil,
 			nil)

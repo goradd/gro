@@ -263,7 +263,9 @@ func UpperCaseIdentifier(s string) (i string) {
 
 // MarshalOrder returns an array of tables in the order they should be marshaled such that
 // if they then get unmarshalled in the same order, there will not be problems with foreign
-// keys not existing when the object is saved.
+// keys not existing when an object is eventually saved.
+// Note that it cannot do this for circular references, and so if your database has circular
+// references, including self references, any foreign key checking will need to be turned off while importing the database.
 func (m *Database) MarshalOrder() (tables []*Table) {
 	var unusedTables maps.Set[*Table]
 
@@ -275,8 +277,10 @@ func (m *Database) MarshalOrder() (tables []*Table) {
 		for t := range unusedTables.All() {
 			for _, col := range t.Columns {
 				if col.IsReference() {
+					// skip this table if it has references to a table we have not yet seen
 					if !slices.Contains(tables, col.Reference.Table) &&
-						!slices.Contains(newTables, col.Reference.Table) {
+						!slices.Contains(newTables, col.Reference.Table) &&
+						col.Table != col.Reference.Table {
 						continue nexttable
 					}
 				}
@@ -299,7 +303,24 @@ func (m *Database) MarshalOrder() (tables []*Table) {
 		if unusedTables.Len() == 0 {
 			break
 		}
+		if len(newTables) == 0 {
+			// circular references are what is left, so just add everything and return
+			tables = append(tables, unusedTables.Values()...)
+			break
+		}
 	}
 
 	return
+}
+
+// UniqueManyManyReferences returns all the many-many references, but returning only one per association table.
+func (m *Database) UniqueManyManyReferences() []*ManyManyReference {
+	refs := make(map[string]*ManyManyReference)
+	for _, table := range m.Tables {
+		for _, mm := range table.ManyManyReferences {
+			refs[mm.AssnTableName] = mm
+		}
+	}
+
+	return slices.Collect(maps2.Values(refs))
 }

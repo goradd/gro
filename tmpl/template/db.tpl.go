@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"slices"
 
 	"github.com/goradd/maps"
 	"github.com/goradd/orm/pkg/codegen"
@@ -127,17 +128,78 @@ func Database() db.DatabaseI {
 		return
 	}
 
-	orderedTables := database.MarshalOrder()
-	var processedTables maps.Set[string]
-	assnTables := make(map[string]*model.ManyManyReference)
+	if _, err = io.WriteString(_w, `
+// ClearAll deletes all the data in the database, except for data in Enum tables.
+func ClearAll(ctx context.Context) {
+    db := Database()
+
+`); err != nil {
+		return
+	}
+
+	for _, mm := range database.UniqueManyManyReferences() {
+
+		if _, err = io.WriteString(_w, `    db.Delete(ctx, `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnTableName)); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `, nil)
+`); err != nil {
+			return
+		}
+
+	}
 
 	if _, err = io.WriteString(_w, `
+`); err != nil {
+		return
+	}
+
+	for _, table := range slices.Backward(database.MarshalOrder()) {
+
+		if _, err = io.WriteString(_w, `    db.Delete(ctx, `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, fmt.Sprintf("%#v", table.QueryName)); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `, nil)
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
+}
 
 `); err != nil {
 		return
 	}
 
 	if _, err = io.WriteString(_w, `
+`); err != nil {
+		return
+	}
+
+	{
+		orderedTables := database.MarshalOrder()
+		var processedTables maps.Set[string]
+		assnTables := database.UniqueManyManyReferences()
+
+		if _, err = io.WriteString(_w, `
+
+`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `
 func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 	encoder.SetIndent("", "  ")
@@ -147,38 +209,35 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 	}
 
 `); err != nil {
-		return
-	}
-
-	for tableNum, table := range orderedTables {
-
-		processedTables.Add(table.QueryName)
-		for _, mm := range table.ManyManyReferences {
-			assnTables[mm.AssnTableName] = mm
-		}
-
-		if _, err = io.WriteString(_w, `	{	// Write `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
-			return
-		}
+		for tableNum, table := range orderedTables {
 
-		if _, err = io.WriteString(_w, `
+			processedTables.Add(table.QueryName)
+
+			if _, err = io.WriteString(_w, `	{	// Write `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `
 		if _,err := io.WriteString(writer, "["); err != nil {
 			return err
 		}
 
 		if _,err := io.WriteString(writer, `+"`"+`"`); err != nil {
-			return
-		}
+				return
+			}
 
-		if _, err = io.WriteString(_w, table.QueryName); err != nil {
-			return
-		}
+			if _, err = io.WriteString(_w, table.QueryName); err != nil {
+				return
+			}
 
-		if _, err = io.WriteString(_w, `"`+"`"+`); err != nil {
+			if _, err = io.WriteString(_w, `"`+"`"+`); err != nil {
 			return err
 		}
         if _,err := io.WriteString(writer, ",\n["); err != nil {
@@ -186,14 +245,14 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
         }
 
 		cursor := Query`); err != nil {
-			return
-		}
+				return
+			}
 
-		if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
-			return
-		}
+			if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+				return
+			}
 
-		if _, err = io.WriteString(_w, `(ctx).LoadCursor()
+			if _, err = io.WriteString(_w, `(ctx).LoadCursor()
 		defer cursor.Close()
 		if obj := cursor.Next(); obj != nil {
 			if err := encoder.Encode(obj); err != nil {
@@ -215,110 +274,110 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 		}
 
 `); err != nil {
-			return
-		}
-
-		if tableNum < len(orderedTables)-1 {
-
-			if _, err = io.WriteString(_w, `        if _,err := io.WriteString(writer, ","); err != nil {
-            return err
-        }
-`); err != nil {
 				return
 			}
 
-		}
+			if tableNum < len(orderedTables)-1 {
 
-		if _, err = io.WriteString(_w, `		if _,err := io.WriteString(writer, "\n"); err != nil {
+				if _, err = io.WriteString(_w, `        if _,err := io.WriteString(writer, ","); err != nil {
+            return err
+        }
+`); err != nil {
+					return
+				}
+
+			}
+
+			if _, err = io.WriteString(_w, `		if _,err := io.WriteString(writer, "\n"); err != nil {
 			return err
 		}
 	}
 `); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, ` `); err != nil {
 			return
 		}
 
-	}
+		if _, err = io.WriteString(_w, `
 
-	if _, err = io.WriteString(_w, ` `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `
-
-`); err != nil {
-		return
-	}
-
-	if len(assnTables) > 0 {
-
-		if _, err = io.WriteString(_w, `    db := Database()
 `); err != nil {
 			return
 		}
 
-		for _, mm := range assnTables {
+		if len(assnTables) > 0 {
 
-			if _, err = io.WriteString(_w, `    {
+			if _, err = io.WriteString(_w, `    db := Database()
+`); err != nil {
+				return
+			}
+
+			for _, mm := range assnTables {
+
+				if _, err = io.WriteString(_w, `    {
         if _,err := io.WriteString(writer, ",\n["); err != nil {
             return err
         }
         if _,err := io.WriteString(writer, `+"`"+``); err != nil {
-				return
-			}
+					return
+				}
 
-			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnTableName)); err != nil {
-				return
-			}
+				if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnTableName)); err != nil {
+					return
+				}
 
-			if _, err = io.WriteString(_w, `,[`+"`"+`); err != nil {
+				if _, err = io.WriteString(_w, `,[`+"`"+`); err != nil {
             return err
         }
 
 
         cursor := db.Query(ctx, `); err != nil {
-				return
-			}
+					return
+				}
 
-			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnTableName)); err != nil {
-				return
-			}
+				if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnTableName)); err != nil {
+					return
+				}
 
-			if _, err = io.WriteString(_w, `,
+				if _, err = io.WriteString(_w, `,
             map[string]query.ReceiverType{
                 `); err != nil {
-				return
-			}
+					return
+				}
 
-			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnSourceColumnName)); err != nil {
-				return
-			}
+				if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnSourceColumnName)); err != nil {
+					return
+				}
 
-			if _, err = io.WriteString(_w, `: query.`); err != nil {
-				return
-			}
+				if _, err = io.WriteString(_w, `: query.`); err != nil {
+					return
+				}
 
-			if _, err = io.WriteString(_w, mm.AssnSourceColumnType.String()); err != nil {
-				return
-			}
+				if _, err = io.WriteString(_w, mm.AssnSourceColumnType.String()); err != nil {
+					return
+				}
 
-			if _, err = io.WriteString(_w, `,
+				if _, err = io.WriteString(_w, `,
                 `); err != nil {
-				return
-			}
+					return
+				}
 
-			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnDestColumnName)); err != nil {
-				return
-			}
+				if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnDestColumnName)); err != nil {
+					return
+				}
 
-			if _, err = io.WriteString(_w, `: query.`); err != nil {
-				return
-			}
+				if _, err = io.WriteString(_w, `: query.`); err != nil {
+					return
+				}
 
-			if _, err = io.WriteString(_w, mm.AssnDestColumnType.String()); err != nil {
-				return
-			}
+				if _, err = io.WriteString(_w, mm.AssnDestColumnType.String()); err != nil {
+					return
+				}
 
-			if _, err = io.WriteString(_w, `,
+				if _, err = io.WriteString(_w, `,
             },
             nil,
             nil)
@@ -340,20 +399,27 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
         }
     }
 `); err != nil {
-				return
+					return
+				}
+
 			}
 
 		}
 
-	}
-
-	if _, err = io.WriteString(_w, `
+		if _, err = io.WriteString(_w, `
 	_, err := io.WriteString(writer, "]")
 	return err
 }
 
 `); err != nil {
-		return
+			return
+		}
+
+		if _, err = io.WriteString(_w, `
+`); err != nil {
+			return
+		}
+
 	}
 
 	if _, err = io.WriteString(_w, `

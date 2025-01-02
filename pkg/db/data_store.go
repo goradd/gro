@@ -30,6 +30,7 @@ type DatabaseI interface {
 	// The fields value should include all the required values in the database.
 	Insert(ctx context.Context, table string, fields map[string]interface{}) string
 	// Delete will delete records from the database that match the key value pairs in where.
+	// If where is nil, all the data will be deleted.
 	Delete(ctx context.Context, table string, where map[string]interface{})
 	// Query executes a simple query on table using fields, where the keys of fields are the names of database fields,
 	// and the values are the types of data to return for each field.

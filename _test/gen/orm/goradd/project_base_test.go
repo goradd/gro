@@ -146,23 +146,23 @@ func TestProject_SetBudget(t *testing.T) {
 
 	obj := NewProject()
 
-	budget := test.RandomValue[[]uint8](15)
+	budget := test.RandomValue[string](15)
 	obj.SetBudget(budget)
 	assert.Equal(t, budget, obj.Budget())
 	assert.False(t, obj.BudgetIsNull())
 
 	// Test nil
 	obj.SetBudget(nil)
-	assert.Equal(t, []byte(nil), obj.Budget(), "set nil")
+	assert.Equal(t, "", obj.Budget(), "set nil")
 	assert.True(t, obj.BudgetIsNull())
 
 	// test zero
-	obj.SetBudget([]byte(nil))
-	assert.Equal(t, []byte(nil), obj.Budget(), "set empty")
+	obj.SetBudget("")
+	assert.Equal(t, "", obj.Budget(), "set empty")
 	assert.False(t, obj.BudgetIsNull())
 
 	// test panic on setting value larger than maximum size allowed
-	budget = test.RandomValue[[]uint8](16)
+	budget = test.RandomValue[string](16)
 	assert.Panics(t, func() {
 		obj.SetBudget(budget)
 	})
@@ -171,23 +171,23 @@ func TestProject_SetSpent(t *testing.T) {
 
 	obj := NewProject()
 
-	spent := test.RandomValue[[]uint8](15)
+	spent := test.RandomValue[string](15)
 	obj.SetSpent(spent)
 	assert.Equal(t, spent, obj.Spent())
 	assert.False(t, obj.SpentIsNull())
 
 	// Test nil
 	obj.SetSpent(nil)
-	assert.Equal(t, []byte(nil), obj.Spent(), "set nil")
+	assert.Equal(t, "", obj.Spent(), "set nil")
 	assert.True(t, obj.SpentIsNull())
 
 	// test zero
-	obj.SetSpent([]byte(nil))
-	assert.Equal(t, []byte(nil), obj.Spent(), "set empty")
+	obj.SetSpent("")
+	assert.Equal(t, "", obj.Spent(), "set empty")
 	assert.False(t, obj.SpentIsNull())
 
 	// test panic on setting value larger than maximum size allowed
-	spent = test.RandomValue[[]uint8](16)
+	spent = test.RandomValue[string](16)
 	assert.Panics(t, func() {
 		obj.SetSpent(spent)
 	})
@@ -216,6 +216,12 @@ func createMinimalSampleProject(ctx context.Context) *Project {
 	endDate := test.RandomValue[time.Time](0)
 	obj.SetEndDate(endDate)
 
+	budget := test.RandomValue[string](15)
+	obj.SetBudget(budget)
+
+	spent := test.RandomValue[string](15)
+	obj.SetSpent(spent)
+
 	obj.Save(ctx)
 	return obj
 }
@@ -243,6 +249,12 @@ func TestProject_CRUD(t *testing.T) {
 
 	endDate := test.RandomValue[time.Time](0)
 	obj.SetEndDate(endDate)
+
+	budget := test.RandomValue[string](15)
+	obj.SetBudget(budget)
+
+	spent := test.RandomValue[string](15)
+	obj.SetSpent(spent)
 
 	// Test retrieval
 	obj = LoadProject(ctx, obj.PrimaryKey())
@@ -275,5 +287,13 @@ func TestProject_CRUD(t *testing.T) {
 	assert.True(t, obj.EndDateIsValid())
 	assert.False(t, obj.EndDateIsNull())
 	assert.Equal(t, endDate, obj.EndDate())
+
+	assert.True(t, obj.BudgetIsValid())
+	assert.False(t, obj.BudgetIsNull())
+	assert.Equal(t, budget, obj.Budget())
+
+	assert.True(t, obj.SpentIsValid())
+	assert.False(t, obj.SpentIsNull())
+	assert.Equal(t, spent, obj.Spent())
 
 }

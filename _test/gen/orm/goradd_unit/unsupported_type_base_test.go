@@ -52,16 +52,16 @@ func TestUnsupportedType_SetTypeDecimal(t *testing.T) {
 
 	obj := NewUnsupportedType()
 
-	typeDecimal := test.RandomValue[[]uint8](13)
+	typeDecimal := test.RandomValue[string](13)
 	obj.SetTypeDecimal(typeDecimal)
 	assert.Equal(t, typeDecimal, obj.TypeDecimal())
 
 	// test zero
-	obj.SetTypeDecimal([]byte(nil))
-	assert.Equal(t, []byte(nil), obj.TypeDecimal(), "set empty")
+	obj.SetTypeDecimal("")
+	assert.Equal(t, "", obj.TypeDecimal(), "set empty")
 
 	// test panic on setting value larger than maximum size allowed
-	typeDecimal = test.RandomValue[[]uint8](14)
+	typeDecimal = test.RandomValue[string](14)
 	assert.Panics(t, func() {
 		obj.SetTypeDecimal(typeDecimal)
 	})
@@ -279,6 +279,9 @@ func TestUnsupportedType_SetTypeMultifk2(t *testing.T) {
 func createMinimalSampleUnsupportedType(ctx context.Context) *UnsupportedType {
 	obj := NewUnsupportedType()
 
+	typeDecimal := test.RandomValue[string](13)
+	obj.SetTypeDecimal(typeDecimal)
+
 	typeDouble := test.RandomValue[float64](64)
 	obj.SetTypeDouble(typeDouble)
 
@@ -316,6 +319,9 @@ func TestUnsupportedType_CRUD(t *testing.T) {
 	obj := NewUnsupportedType()
 	ctx := db.NewContext(nil)
 
+	typeDecimal := test.RandomValue[string](13)
+	obj.SetTypeDecimal(typeDecimal)
+
 	typeDouble := test.RandomValue[float64](64)
 	obj.SetTypeDouble(typeDouble)
 
@@ -352,6 +358,9 @@ func TestUnsupportedType_CRUD(t *testing.T) {
 
 	assert.True(t, obj.TypeSerialIsValid())
 	assert.NotEmpty(t, obj.TypeSerial())
+
+	assert.True(t, obj.TypeDecimalIsValid())
+	assert.Equal(t, typeDecimal, obj.TypeDecimal())
 
 	assert.True(t, obj.TypeDoubleIsValid())
 	assert.Equal(t, typeDouble, obj.TypeDouble())

@@ -5,7 +5,6 @@ package goradd
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
@@ -62,12 +61,12 @@ type projectBase struct {
 	endDateIsValid bool
 	endDateIsDirty bool
 
-	budget        []uint8
+	budget        string
 	budgetIsNull  bool
 	budgetIsValid bool
 	budgetIsDirty bool
 
-	spent        []uint8
+	spent        string
 	spentIsNull  bool
 	spentIsValid bool
 	spentIsDirty bool
@@ -129,8 +128,8 @@ const ProjectStatusMax = 2147483647
 const ProjectStatusMin = -2147483648
 const ProjectNameMaxLength = 100          // The number of runes the column can hold
 const ProjectDescriptionMaxLength = 65535 // The number of runes the column can hold
-const ProjectBudgetMaxLength = 15         // The number of bytes the column can hold
-const ProjectSpentMaxLength = 15          // The number of bytes the column can hold
+const ProjectBudgetMaxLength = 15         // The number of runes the column can hold
+const ProjectSpentMaxLength = 15          // The number of runes the column can hold
 
 // Initialize or re-initialize a Project database object to default values.
 // The primary key will get a temporary negative number which will be replaced when the object is saved.
@@ -182,13 +181,13 @@ func (o *projectBase) Initialize() {
 	o.endDateIsValid = true
 	o.endDateIsDirty = true
 
-	o.budget = []byte(nil)
+	o.budget = ""
 
 	o.budgetIsNull = true
 	o.budgetIsValid = true
 	o.budgetIsDirty = true
 
-	o.spent = []byte(nil)
+	o.spent = ""
 
 	o.spentIsNull = true
 	o.spentIsValid = true
@@ -572,7 +571,7 @@ func (o *projectBase) SetEndDate(i interface{}) {
 }
 
 // Budget returns the loaded value of Budget.
-func (o *projectBase) Budget() []uint8 {
+func (o *projectBase) Budget() string {
 	if o._restored && !o.budgetIsValid {
 		panic("Budget was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -606,25 +605,25 @@ func (o *projectBase) SetBudget(i interface{}) {
 		if !o.budgetIsNull {
 			o.budgetIsNull = true
 			o.budgetIsDirty = true
-			o.budget = []byte(nil)
+			o.budget = ""
 		}
 	} else {
-		v := i.([]uint8)
-		if len(v) > ProjectBudgetMaxLength {
-			panic("attempted to set Project.Budget to a value larger than its maximum length")
+		v := i.(string)
+		if utf8.RuneCountInString(v) > ProjectBudgetMaxLength {
+			panic("attempted to set Project.Budget to a value larger than its maximum length in runes")
 		}
 		if o.budgetIsNull ||
 			!o._restored ||
-			!bytes.Equal(o.budget, v) {
+			o.budget != v {
 			o.budgetIsNull = false
-			o.budget = append([]byte(nil), v...)
+			o.budget = v
 			o.budgetIsDirty = true
 		}
 	}
 }
 
 // Spent returns the loaded value of Spent.
-func (o *projectBase) Spent() []uint8 {
+func (o *projectBase) Spent() string {
 	if o._restored && !o.spentIsValid {
 		panic("Spent was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -658,18 +657,18 @@ func (o *projectBase) SetSpent(i interface{}) {
 		if !o.spentIsNull {
 			o.spentIsNull = true
 			o.spentIsDirty = true
-			o.spent = []byte(nil)
+			o.spent = ""
 		}
 	} else {
-		v := i.([]uint8)
-		if len(v) > ProjectSpentMaxLength {
-			panic("attempted to set Project.Spent to a value larger than its maximum length")
+		v := i.(string)
+		if utf8.RuneCountInString(v) > ProjectSpentMaxLength {
+			panic("attempted to set Project.Spent to a value larger than its maximum length in runes")
 		}
 		if o.spentIsNull ||
 			!o._restored ||
-			!bytes.Equal(o.spent, v) {
+			o.spent != v {
 			o.spentIsNull = false
-			o.spent = append([]byte(nil), v...)
+			o.spent = v
 			o.spentIsDirty = true
 		}
 	}
@@ -1302,14 +1301,14 @@ func CountProjectByEndDate(ctx context.Context, endDate time.Time) int {
 // CountProjectByBudget queries the database and returns the number of Project objects that
 // have budget.
 // doc: type=Project
-func CountProjectByBudget(ctx context.Context, budget []uint8) int {
+func CountProjectByBudget(ctx context.Context, budget string) int {
 	return int(queryProjects(ctx).Where(op.Equal(node.Project().Budget(), budget)).Count(false))
 }
 
 // CountProjectBySpent queries the database and returns the number of Project objects that
 // have spent.
 // doc: type=Project
-func CountProjectBySpent(ctx context.Context, spent []uint8) int {
+func CountProjectBySpent(ctx context.Context, spent string) int {
 	return int(queryProjects(ctx).Where(op.Equal(node.Project().Spent(), spent)).Count(false))
 }
 
@@ -1464,11 +1463,11 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project, objParent
 
 	if v, ok := m["budget"]; ok {
 		if v == nil {
-			o.budget = []byte(nil)
+			o.budget = ""
 			o.budgetIsNull = true
 			o.budgetIsValid = true
 			o.budgetIsDirty = false
-		} else if o.budget, ok = v.([]uint8); ok {
+		} else if o.budget, ok = v.(string); ok {
 			o.budgetIsNull = false
 			o.budgetIsValid = true
 			o.budgetIsDirty = false
@@ -1478,16 +1477,16 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project, objParent
 	} else {
 		o.budgetIsValid = false
 		o.budgetIsNull = true
-		o.budget = []byte(nil)
+		o.budget = ""
 	}
 
 	if v, ok := m["spent"]; ok {
 		if v == nil {
-			o.spent = []byte(nil)
+			o.spent = ""
 			o.spentIsNull = true
 			o.spentIsValid = true
 			o.spentIsDirty = false
-		} else if o.spent, ok = v.([]uint8); ok {
+		} else if o.spent, ok = v.(string); ok {
 			o.spentIsNull = false
 			o.spentIsValid = true
 			o.spentIsDirty = false
@@ -1497,7 +1496,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project, objParent
 	} else {
 		o.spentIsValid = false
 		o.spentIsNull = true
-		o.spent = []byte(nil)
+		o.spent = ""
 	}
 
 	// Many-Many references
@@ -2634,8 +2633,8 @@ func (o *projectBase) MarshalStringMap() map[string]interface{} {
 //	"description" - string, nullable
 //	"startDate" - time.Time, nullable
 //	"endDate" - time.Time, nullable
-//	"budget" - []uint8, nullable
-//	"spent" - []uint8, nullable
+//	"budget" - string, nullable
+//	"spent" - string, nullable
 func (o *projectBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
 	if err = json.Unmarshal(data, &v); err != nil {
@@ -2782,33 +2781,11 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					continue
 				}
 
-				switch d := v.(type) {
-				case string:
-					{
-						// A base 64 encoded string
-						if b, err2 := base64.StdEncoding.DecodeString(d); err2 == nil {
-							o.SetBudget(b)
-						} else {
-							return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
-						}
-					}
-				case []interface{}:
-					{
-						// An array of byte values. Unfortunately, these come through as float64s, and so need to be converted
-						b := make([]byte, len(d), len(d))
-						for i, b1 := range d {
-							if f, ok := b1.(float64); !ok {
-								return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
-							} else {
-								b[i] = uint8(f)
-							}
-						}
-						o.SetBudget(b)
-					}
-				default:
-					return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+				if s, ok := v.(string); !ok {
+					return fmt.Errorf("json field %s must be a string", k)
+				} else {
+					o.SetBudget(s)
 				}
-
 			}
 
 		case "spent":
@@ -2818,33 +2795,11 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					continue
 				}
 
-				switch d := v.(type) {
-				case string:
-					{
-						// A base 64 encoded string
-						if b, err2 := base64.StdEncoding.DecodeString(d); err2 == nil {
-							o.SetSpent(b)
-						} else {
-							return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
-						}
-					}
-				case []interface{}:
-					{
-						// An array of byte values. Unfortunately, these come through as float64s, and so need to be converted
-						b := make([]byte, len(d), len(d))
-						for i, b1 := range d {
-							if f, ok := b1.(float64); !ok {
-								return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
-							} else {
-								b[i] = uint8(f)
-							}
-						}
-						o.SetSpent(b)
-					}
-				default:
-					return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+				if s, ok := v.(string); !ok {
+					return fmt.Errorf("json field %s must be a string", k)
+				} else {
+					o.SetSpent(s)
 				}
-
 			}
 
 		}

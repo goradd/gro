@@ -116,7 +116,7 @@ func (n *UnsupportedTypeNode) TypeDecimal() *query.ColumnNode {
 		"unsupported_type",
 		"type_decimal",
 		"TypeDecimal",
-		query.ColTypeUnknown,
+		query.ColTypeString,
 		false,
 	)
 	query.SetParentNode(cn, n)

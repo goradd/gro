@@ -452,8 +452,8 @@ func processTypeInfo(column mysqlColumn) (
 	case "decimal":
 		// No native equivalent in Go.
 		// See the shopspring/decimal package for possible support.
-		// You will need to shepherd numbers into and out of byte format to move data to the database.
-		typ = schema.ColTypeUnknown
+		// You will need to shepherd numbers into and out of string format to move data to the database.
+		typ = schema.ColTypeString
 		maxLength = uint64(dataLen) + 3
 
 	case "year":
@@ -461,12 +461,12 @@ func processTypeInfo(column mysqlColumn) (
 
 	case "set":
 		err = fmt.Errorf("using association tables is preferred to using DB SET columns")
-		typ = schema.ColTypeUnknown
+		typ = schema.ColTypeString
 		maxLength = uint64(column.characterMaxLen.Int64)
 
 	case "enum":
 		err = fmt.Errorf("using enum tables is preferred to using DB ENUM columns")
-		typ = schema.ColTypeUnknown
+		typ = schema.ColTypeString
 		maxLength = uint64(column.characterMaxLen.Int64)
 
 	default:

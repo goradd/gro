@@ -1,0 +1,18 @@
+
+{{
+
+// ClearAll deletes all the data in the database, except for data in Enum tables.
+func ClearAll(ctx context.Context) {
+    db := Database()
+
+{{for _,mm := range database.UniqueManyManyReferences() }}
+    db.Delete(ctx, {{L mm.AssnTableName }}, nil)
+{{for}}
+
+{{for _,table := range slices.Backward(database.MarshalOrder()) }}
+    db.Delete(ctx, {{L table.QueryName }}, nil)
+{{for}}
+
+}
+
+}}

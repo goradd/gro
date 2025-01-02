@@ -247,13 +247,13 @@
           },
           {
             "name": "budget",
-            "type": "Unknown",
+            "type": "String",
             "size": 15,
             "is_nullable": true
           },
           {
             "name": "spent",
-            "type": "Unknown",
+            "type": "String",
             "size": 15,
             "is_nullable": true
           }
@@ -709,7 +709,7 @@
           },
           {
             "name": "type_decimal",
-            "type": "Unknown",
+            "type": "String",
             "size": 13
           },
           {

@@ -1,7 +1,8 @@
 {{g
+{
     orderedTables := database.MarshalOrder()
     var processedTables maps.Set[string]
-    assnTables := make(map[string]*model.ManyManyReference)
+    assnTables := database.UniqueManyManyReferences()
 }}
 
 
@@ -18,9 +19,6 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 {{for tableNum,table := range orderedTables}}
 {{g
     processedTables.Add(table.QueryName)
-    for _,mm := range table.ManyManyReferences {
-        assnTables[mm.AssnTableName] = mm
-    }
 }}
 	{	// Write {{= table.IdentifierPlural }}
 		if _,err := io.WriteString(writer, "["); err != nil {
@@ -107,6 +105,12 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 
 	_, err := io.WriteString(writer, "]")
 	return err
+}
+
+}}
+
+{{g
+
 }
 
 }}
