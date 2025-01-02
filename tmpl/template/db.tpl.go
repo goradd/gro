@@ -427,6 +427,208 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 		return
 	}
 
+	{
+		orderedTables := database.MarshalOrder()
+
+		if _, err = io.WriteString(_w, `
+`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `
+func JsonDecodeAll(ctx context.Context,  reader io.Reader) error {
+	decoder := json.NewDecoder(reader)
+
+	token, err := decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading opening token:", err)
+		return err
+	}
+	// Ensure the first token is a start of an array
+	if delim, ok := token.(json.Delim); !ok || delim != '[' {
+		fmt.Println("Error: Expected the JSON to start with an array")
+		return err
+	}
+
+	for decoder.More() {
+		if err := jsonDecodeTable(ctx, decoder); err != nil {
+			return err
+		}
+	}
+
+	// Check if the last token is the end of the array
+	token, err = decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading the last token:", err)
+		return err
+	}
+
+	if delim, ok := token.(json.Delim); !ok || delim != ']' {
+		fmt.Println("Error: Expected the JSON to end with a closing array token")
+		return err
+	}
+
+	return nil
+}
+
+func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
+	token, err := decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading opening token:", err)
+		return err
+	}
+	// Ensure the first token is a start of an array
+	if delim, ok := token.(json.Delim); !ok || delim != '[' {
+		fmt.Println("Error: Expected the duple to start with an array")
+		return err
+	}
+
+	token, err = decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading name of table:", err)
+		return err
+	}
+
+	if tableName, ok := token.(string); !ok {
+		fmt.Println("Error: Expected a name of a table.")
+		return err
+	} else {
+		switch tableName {
+`); err != nil {
+			return
+		}
+
+		for _, table := range orderedTables {
+
+			if _, err = io.WriteString(_w, ` `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `
+		case `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", table.QueryName)); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `:
+			err = jsonDecode`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(ctx, decoder)
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `		}
+		if err != nil {
+			return err
+		}
+	}
+
+	// Check if the last token is the end of the array
+	token, err = decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading the last token:", err)
+		return err
+	}
+
+	if delim, ok := token.(json.Delim); !ok || delim != ']' {
+		fmt.Println("Error: Expected the JSON to end with a closing array token")
+		return err
+	}
+
+	return nil
+}
+
+`); err != nil {
+			return
+		}
+
+		for _, table := range orderedTables {
+
+			if _, err = io.WriteString(_w, `func jsonDecode`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(ctx context.Context,  decoder *json.Decoder) error {
+	token, err := decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading opening token:", err)
+		return err
+	}
+	// Ensure the first token is a start of an array
+	if delim, ok := token.(json.Delim); !ok || delim != '[' {
+		fmt.Println("Error: Expected the duple to start with an array")
+		return err
+	}
+
+	for decoder.More() {
+		obj := New`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()
+		if err = decoder.Decode(&obj); err != nil {
+			return err
+		}
+		obj.Save(ctx)
+	}
+
+	// Check if the last token is the end of the array
+	token, err = decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading the last token:", err)
+		return err
+	}
+
+	if delim, ok := token.(json.Delim); !ok || delim != ']' {
+		fmt.Println("Error: Expected the JSON to end with a closing array token")
+		return err
+	}
+
+	return nil
+}
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `
+`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
+`); err != nil {
+		return
+	}
+
 	return
 }
 
