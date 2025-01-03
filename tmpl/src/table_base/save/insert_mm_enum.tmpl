@@ -3,7 +3,7 @@
 }}
 {{
     if len(o.{{= mm.VariableIdentifier() }}) != 0 {
-        db.Associate(ctx,
+        db.AssociateOnly(ctx,
             d,
             "{{= mm.AssnTableName }}",
             "{{= mm.AssnSourceColumnName }}",

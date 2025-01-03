@@ -8942,7 +8942,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `IsDirty {
-            db.Associate(ctx,
+            db.AssociateOnly(ctx,
                 d,
                 "`); err != nil {
 				return
@@ -9414,7 +9414,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `) != 0 {
-        db.Associate(ctx,
+        db.AssociateOnly(ctx,
             d,
             "`); err != nil {
 				return
@@ -10168,7 +10168,7 @@ func (o *`); err != nil {
 		for _, mm := range table.ManyManyReferences {
 
 			if _, err = io.WriteString(_w, `
-        db.Associate(ctx,
+        db.AssociateOnly(ctx,
             d,
             "`); err != nil {
 				return

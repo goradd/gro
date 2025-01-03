@@ -1184,7 +1184,7 @@ func (o *personBase) update(ctx context.Context) {
 		}
 
 		if o.mmPersonTypesIsDirty {
-			db.Associate(ctx,
+			db.AssociateOnly(ctx,
 				d,
 				"person_persontype_assn",
 				"person_id",
@@ -1252,7 +1252,7 @@ func (o *personBase) insert(ctx context.Context) {
 		}
 
 		if len(o.mmPersonTypes) != 0 {
-			db.Associate(ctx,
+			db.AssociateOnly(ctx,
 				d,
 				"person_persontype_assn",
 				"person_id",
@@ -1361,7 +1361,7 @@ func (o *personBase) Delete(ctx context.Context) {
 			o.revManagerProjects.Clear()
 		}
 
-		db.Associate(ctx,
+		db.AssociateOnly(ctx,
 			d,
 			"person_persontype_assn",
 			"person_id",
@@ -1369,7 +1369,7 @@ func (o *personBase) Delete(ctx context.Context) {
 			"id",
 			[]PersonType(nil))
 
-		db.Associate(ctx,
+		db.AssociateOnly(ctx,
 			d,
 			"team_member_project_assn",
 			"team_member_id",

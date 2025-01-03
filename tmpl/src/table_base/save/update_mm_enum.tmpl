@@ -5,7 +5,7 @@
 {{
 {{# Update many-many reference enums }}
         if o.{{= mm.VariableIdentifier() }}IsDirty {
-            db.Associate(ctx,
+            db.AssociateOnly(ctx,
                 d,
                 "{{= mm.AssnTableName }}",
                 "{{= mm.AssnSourceColumnName }}",

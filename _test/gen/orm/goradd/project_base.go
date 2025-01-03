@@ -1895,7 +1895,7 @@ func (o *projectBase) Delete(ctx context.Context) {
 			o.revMilestones.Clear()
 		}
 
-		db.Associate(ctx,
+		db.AssociateOnly(ctx,
 			d,
 			"related_project_assn",
 			"parent_id",
@@ -1903,7 +1903,7 @@ func (o *projectBase) Delete(ctx context.Context) {
 			"id",
 			[]Project(nil))
 
-		db.Associate(ctx,
+		db.AssociateOnly(ctx,
 			d,
 			"related_project_assn",
 			"child_id",
@@ -1911,7 +1911,7 @@ func (o *projectBase) Delete(ctx context.Context) {
 			"id",
 			[]Project(nil))
 
-		db.Associate(ctx,
+		db.AssociateOnly(ctx,
 			d,
 			"team_member_project_assn",
 			"project_id",

@@ -128,6 +128,13 @@ func Database() db.DatabaseI {
 		return
 	}
 
+	//*** clear_all.tmpl
+
+	if _, err = io.WriteString(_w, `
+`); err != nil {
+		return
+	}
+
 	if _, err = io.WriteString(_w, `
 // ClearAll deletes all the data in the database, except for data in Enum tables.
 func ClearAll(ctx context.Context) {
@@ -187,6 +194,8 @@ func ClearAll(ctx context.Context) {
 `); err != nil {
 		return
 	}
+
+	//*** json_encode.tmpl
 
 	{
 		orderedTables := database.MarshalOrder()
@@ -427,8 +436,11 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 		return
 	}
 
+	//*** json_decode.tmpl
+
 	{
 		orderedTables := database.MarshalOrder()
+		assnTables := database.UniqueManyManyReferences()
 
 		if _, err = io.WriteString(_w, `
 `); err != nil {
@@ -500,12 +512,7 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 
 		for _, table := range orderedTables {
 
-			if _, err = io.WriteString(_w, ` `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `
-		case `); err != nil {
+			if _, err = io.WriteString(_w, `		case `); err != nil {
 				return
 			}
 
@@ -529,7 +536,34 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 
 		}
 
-		if _, err = io.WriteString(_w, `		}
+		for _, mm := range assnTables {
+
+			if _, err = io.WriteString(_w, `		case `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnTableName)); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `:
+			err = jsonDecode`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.TableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(ctx, decoder)
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `
+		}
 		if err != nil {
 			return err
 		}
@@ -572,7 +606,15 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 	}
 	// Ensure the first token is a start of an array
 	if delim, ok := token.(json.Delim); !ok || delim != '[' {
-		fmt.Println("Error: Expected the duple to start with an array")
+		fmt.Println("Error: Expected the `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` list to start with an array")
 		return err
 	}
 
@@ -613,6 +655,131 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 		}
 
 		if _, err = io.WriteString(_w, `
+`); err != nil {
+			return
+		}
+
+		for _, mm := range assnTables {
+
+			if _, err = io.WriteString(_w, `func jsonDecode`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.TableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(ctx context.Context,  decoder *json.Decoder) error {
+	token, err := decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading opening token:", err)
+		return err
+	}
+	// Ensure the first token is a start of an array
+	if delim, ok := token.(json.Delim); !ok || delim != '[' {
+		fmt.Println("Error: Expected the `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.TableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` list to start with an array")
+		return err
+	}
+
+    database := Database()
+	for decoder.More() {
+	    var imp struct {
+            Src `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.AssnSourceColumnType.GoType()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` `+"`"+`json:"`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.AssnSourceColumnName); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `"`+"`"+`
+            Dest `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.AssnDestColumnType.GoType()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` `+"`"+`json:"`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.AssnDestColumnName); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `"`+"`"+`
+        }
+
+		if err = decoder.Decode(&imp); err != nil {
+			return err
+		}
+		db.Associate(ctx, database, `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnTableName)); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `, `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnSourceColumnName)); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `, imp.Src, `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnDestColumnName)); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `, imp.Dest)
+	}
+
+	// Check if the last token is the end of the array
+	token, err = decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading the last token:", err)
+		return err
+	}
+
+	if delim, ok := token.(json.Delim); !ok || delim != ']' {
+		fmt.Println("Error: Expected the JSON to end with a closing array token")
+		return err
+	}
+
+	return nil
+}
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `
+
 `); err != nil {
 			return
 		}

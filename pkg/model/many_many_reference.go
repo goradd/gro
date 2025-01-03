@@ -41,6 +41,11 @@ type ManyManyReference struct {
 	MM *ManyManyReference
 }
 
+// TableIdentifier returns a name to use to describe the relationship in code.
+func (m *ManyManyReference) TableIdentifier() string {
+	return UpperCaseIdentifier(m.IdentifierPlural)
+}
+
 // JsonKey returns the key used when referring to the associated objects in JSON.
 func (m *ManyManyReference) JsonKey() string {
 	return LowerCaseIdentifier(m.IdentifierPlural)

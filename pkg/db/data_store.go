@@ -96,7 +96,7 @@ func ExecuteTransaction(ctx context.Context, d DatabaseI, f func()) {
 	d.Commit(ctx, txid)
 }
 
-// Associate resets a many-many relationship in the database.
+// AssociateOnly resets a many-many relationship in the database.
 // The assnTable is the name of the association table that contains the many-many relationships.
 // The srcColumnName is the name of the column that points to the primary key in the source table.
 // The value of that column is pk.
@@ -104,7 +104,7 @@ func ExecuteTransaction(ctx context.Context, d DatabaseI, f func()) {
 // with relatedPks having all the primary keys of objects that should be associated with the object with
 // primary key pk.
 // All previous associations with the source object are deleted.
-func Associate[J, K any](ctx context.Context,
+func AssociateOnly[J, K any](ctx context.Context,
 	d DatabaseI,
 	assnTable string,
 	srcColumnName string,
@@ -117,4 +117,15 @@ func Associate[J, K any](ctx context.Context,
 			d.Insert(ctx, assnTable, map[string]any{srcColumnName: pk, relatedColumnName: relatedPk})
 		}
 	})
+}
+
+// Associate adds a record to the assnTable table.
+func Associate[J, K any](ctx context.Context,
+	d DatabaseI,
+	assnTable string,
+	srcColumnName string,
+	pk J,
+	relatedColumnName string,
+	relatedPk K) {
+	d.Insert(ctx, assnTable, map[string]any{srcColumnName: pk, relatedColumnName: relatedPk})
 }

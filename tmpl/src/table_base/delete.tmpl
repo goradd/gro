@@ -69,7 +69,7 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) {
     {{for}}
 
     {{for _,mm := range table.ManyManyReferences}}
-        db.Associate(ctx,
+        db.AssociateOnly(ctx,
             d,
             "{{= mm.AssnTableName }}",
             "{{= mm.AssnSourceColumnName }}",
