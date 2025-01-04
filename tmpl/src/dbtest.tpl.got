@@ -1,0 +1,36 @@
+
+package template
+
+// This template generates a got template for the db.go file in the orm directory
+
+import (
+	"github.com/goradd/orm/pkg/codegen"
+	"github.com/goradd/orm/pkg/model"
+	"io"
+	"path/filepath"
+)
+
+func init() {
+    t := DbTestTemplate{}
+	codegen.RegisterTemplate(&t)
+}
+
+// DbTestTemplate generates the db_test.go file
+type DbTestTemplate struct {
+    Package string
+}
+
+func (tmpl *DbTestTemplate) FileName(dbKey string) string {
+	return filepath.Join("orm", dbKey, "db_test.go")
+}
+
+func (tmpl *DbTestTemplate) GenerateDatabase(database *model.Database, _w io.Writer) (err error) {
+    tmpl.Package = database.Key
+	{{: "db/dbtest.tmpl" }}
+	return
+}
+
+func (tmpl *DbTestTemplate) Overwrite() bool {
+	return true
+}
+

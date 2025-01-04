@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
-	"slices"
 
 	"github.com/goradd/maps"
 	"github.com/goradd/orm/pkg/codegen"
@@ -128,73 +127,6 @@ func Database() db.DatabaseI {
 		return
 	}
 
-	//*** clear_all.tmpl
-
-	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `
-// ClearAll deletes all the data in the database, except for data in Enum tables.
-func ClearAll(ctx context.Context) {
-    db := Database()
-
-`); err != nil {
-		return
-	}
-
-	for _, mm := range database.UniqueManyManyReferences() {
-
-		if _, err = io.WriteString(_w, `    db.Delete(ctx, `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnTableName)); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `, nil)
-`); err != nil {
-			return
-		}
-
-	}
-
-	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
-	}
-
-	for _, table := range slices.Backward(database.MarshalOrder()) {
-
-		if _, err = io.WriteString(_w, `    db.Delete(ctx, `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, fmt.Sprintf("%#v", table.QueryName)); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `, nil)
-`); err != nil {
-			return
-		}
-
-	}
-
-	if _, err = io.WriteString(_w, `
-}
-
-`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
-	}
-
 	//*** json_encode.tmpl
 
 	{
@@ -209,6 +141,7 @@ func ClearAll(ctx context.Context) {
 		}
 
 		if _, err = io.WriteString(_w, `
+// JsonEncodeAll sends the entire database to writer as JSON.
 func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 	encoder.SetIndent("", "  ")
@@ -448,6 +381,7 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 		}
 
 		if _, err = io.WriteString(_w, `
+// JsonDecodeAll imports the entire database from JSON that was created using JsonEncodeAll.
 func JsonDecodeAll(ctx context.Context,  reader io.Reader) error {
 	decoder := json.NewDecoder(reader)
 

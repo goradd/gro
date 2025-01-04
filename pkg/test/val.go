@@ -2,10 +2,17 @@ package test
 
 import (
 	"github.com/goradd/strings"
-	"math/rand"
 	"strconv"
 	"time"
 )
+
+func randomString(source string, n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = source[rng.Intn(len(source))]
+	}
+	return string(b)
+}
 
 // RandomValue provides to the generated tests random values for types corresponding to ReceiverType Go types.
 // For strings and []byte types, if size is 0, a size of 10 will be used as a reasonable limit.
@@ -20,27 +27,27 @@ func RandomValue[T any](size int) T {
 			size = 10 // some reasonable value
 		}
 		for j := 0; j < size; j++ {
-			b = append(b, uint8(rand.Intn(256)))
+			b = append(b, uint8(rng.Intn(256)))
 		}
 		i = b
 	case string:
 		if size == 0 {
 			size = 10
 		}
-		i = strings.RandomString(strings.AlphaAll, size)
+		i = randomString(strings.AlphaAll, size)
 	case int:
 		var v int
 		switch size {
 		case 8:
-			v = rand.Intn(256) - 128
+			v = rng.Intn(256) - 128
 		case 16:
-			v = rand.Intn(0xffff) - 0x7fff
+			v = rng.Intn(0xffff) - 0x7fff
 		case 32:
-			v = int(rand.Uint32()) - 0x7fffffff
+			v = int(rng.Uint32()) - 0x7fffffff
 		case 64:
-			v = int(rand.Int63() * int64(rand.Intn(2)*2-1))
+			v = int(rng.Int63() * int64(rng.Intn(2)*2-1))
 		default:
-			v = rand.Int()
+			v = rng.Int()
 		}
 		i = v
 
@@ -48,33 +55,33 @@ func RandomValue[T any](size int) T {
 		var v uint
 		switch size {
 		case 8:
-			v = uint(rand.Intn(256))
+			v = uint(rng.Intn(256))
 		case 16:
-			v = uint(rand.Intn(0xffff))
+			v = uint(rng.Intn(0xffff))
 		case 32:
-			v = uint(rand.Uint32())
+			v = uint(rng.Uint32())
 		case 64:
-			v = uint(rand.Uint64())
+			v = uint(rng.Uint64())
 		default:
 			if strconv.IntSize == 32 {
-				v = uint(rand.Uint32())
+				v = uint(rng.Uint32())
 			} else {
-				v = uint(rand.Uint64())
+				v = uint(rng.Uint64())
 			}
 		}
 		i = v
 	case int64:
-		i = rand.Int63() * int64(rand.Intn(2)*2-1)
+		i = rng.Int63() * int64(rng.Intn(2)*2-1)
 	case uint64:
-		i = rand.Uint64()
+		i = rng.Uint64()
 	case bool:
-		i = rand.Intn(2) == 0
+		i = rng.Intn(2) == 0
 	case float64:
-		i = rand.Float64()
+		i = rng.Float64()
 	case float32:
-		i = rand.Float32()
+		i = rng.Float32()
 	case time.Time:
-		i = time.Unix(int64(rand.Uint32()), 0)
+		i = time.Unix(int64(rng.Uint32()), 0)
 	}
 	return i.(T)
 }

@@ -7,8 +7,8 @@ import (
 
 const Version = 1
 
-// Database is the description of a single database in a database type agnostic way.
-// A database can have foreign keys making connections between tables within the database.
+// Database is a description of the structure of the data in a database that is agnostic of the type
+// of the database, including whether its SQL or NoSQL.
 type Database struct {
 	// Key is the database key corresponding to its key in the global database cluster.
 	// Should be unique among the other databases in use.

@@ -10,6 +10,7 @@
 
 {{
 
+// JsonEncodeAll sends the entire database to writer as JSON.
 func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 	encoder.SetIndent("", "  ")

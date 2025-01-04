@@ -8,6 +8,9 @@ import (
 )
 
 func TestRandomValue(t *testing.T) {
+	seed := NewSeed()
+	fmt.Println("Seed=", seed)
+
 	i := RandomValue[int](0)
 	fmt.Println(i)
 
@@ -58,4 +61,11 @@ func TestRandomValue(t *testing.T) {
 	u32 := RandomValue[uint](32)
 	fmt.Println(u32)
 	assert.Less(t, u32, uint(0xffffffff)+1)
+
+	// verify reusing a seed will produce same value
+	UseSeed(seed)
+
+	i2 := RandomValue[int](0)
+	assert.Equal(t, i2, i)
+
 }

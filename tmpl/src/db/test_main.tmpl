@@ -1,0 +1,31 @@
+{{g
+//*** {{includeName}}
+}}
+
+{{
+
+func TestMain(m *testing.M) {
+	setup(m)
+	defer teardown()
+	code := m.Run()
+	os.Exit(code)
+}
+
+func setup(m *testing.M) {
+	fmt.Println("Setting up tests...")
+
+	fmt.Println(test.NewSeed())
+
+	// uncomment the next line to re-use a previously created seed to recreate a test
+	// UseSeed(seed)
+
+	InitDB()
+}
+
+func teardown() {
+	// Cleanup logic here
+	fmt.Println("Cleaning up after tests...")
+}
+
+
+}}

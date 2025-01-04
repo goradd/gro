@@ -9,6 +9,7 @@
 
 {{
 
+// JsonDecodeAll imports the entire database from JSON that was created using JsonEncodeAll.
 func JsonDecodeAll(ctx context.Context,  reader io.Reader) error {
 	decoder := json.NewDecoder(reader)
 
