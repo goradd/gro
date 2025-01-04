@@ -1,4 +1,3 @@
-
 package goradd_unit
 
 // Though this file is generated initially, if it exists, it will not be altered.
@@ -7,12 +6,13 @@ package goradd_unit
 import (
 	"encoding/json"
 	"flag"
+	"os"
+
 	"github.com/go-sql-driver/mysql"
 	"github.com/goradd/orm/pkg/db"
 	mysql2 "github.com/goradd/orm/pkg/db/sql/mysql"
 	"github.com/goradd/orm/pkg/db/sql/pgsql"
 	"github.com/jackc/pgx/v5"
-	"os"
 )
 
 // Default credentials for purposes of local development.
@@ -53,7 +53,7 @@ func initPostgres(overrides map[string]any) {
 // with database settings.
 func InitDB() {
 	var configFile string
-	flag.StringVar(&configFile, "goradd_unit", "", "Path to "goradd_unit" database configuration file")
+	flag.StringVar(&configFile, "goradd_unit", "", "Path to goradd_unit database configuration file")
 	flag.Parse()
 
 	var overrides map[string]any
@@ -72,5 +72,3 @@ func InitDB() {
 	initMysql(overrides)
 	//initPostgres(overrides)
 }
-
-
