@@ -271,3 +271,21 @@ func (n *ProjectNode) TeamMembers() *PersonNode {
 	query.SetParentNode(cn, n)
 	return cn
 }
+
+// Milestones represents the many-to-one relationship formed by the reverse reference from the
+// project_id column in the milestone table.
+func (n *ProjectNode) Milestones() *MilestoneNode {
+	cn := &MilestoneNode{
+		query.NewReverseReferenceNode(
+			"goradd",
+			"project",
+			"id",
+			"Milestones",
+			"milestone",
+			"project_id",
+			true,
+		),
+	}
+	query.SetParentNode(cn, n)
+	return cn
+}

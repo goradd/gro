@@ -133,10 +133,13 @@ func ClearAll(ctx context.Context) {
 
 	if _, err = io.WriteString(_w, `
 func TestMain(m *testing.M) {
+	os.Exit(runTests(m))
+}
+
+func runTests(m *testing.M) int {
 	setup(m)
 	defer teardown()
-	code := m.Run()
-	os.Exit(code)
+	return m.Run()
 }
 
 func setup(m *testing.M) {

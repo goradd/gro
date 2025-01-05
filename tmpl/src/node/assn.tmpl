@@ -1,4 +1,3 @@
-
 {{g
 //*** {{includeName}}
 }}
@@ -23,7 +22,7 @@ func (n *{{= table.Identifier }}Node) {{= mm.IdentifierPlural }}() *{{= mm.Objec
 			"{{= mm.QueryName() }}",
 			"{{= mm.AssnDestColumnName }}",
 			"{{= mm.PrimaryKey() }}",
-			false,
+			{{b mm.DestinationEnumTable != nil }},
 		),
 	}
 	query.SetParentNode(cn, n)

@@ -2,32 +2,32 @@
 {{g
 //*** {{includeName}}
 }}
-func (n *NodeTemplate)genReverse(table *model.Table, col *model.Column, _w io.Writer) (err error) {
-    for _,refCol := range table.ReverseReferences {
-	    if refCol.IsUnique {
-            if err = n.genReverseOne(table, refCol, _w); err != nil {return}
+func (n *NodeTemplate)genReverse(table *model.Table, _w io.Writer) (err error) {
+    for _,rev := range table.ReverseReferences {
+	    if rev.IsUnique {
+            if err = n.genReverseOne(table, rev, _w); err != nil {return}
         } else {
-            if err = n.genReverseMany(table, refCol, _w); err != nil {return}
+            if err = n.genReverseMany(table, rev, _w); err != nil {return}
         }
     }
     return
 }
 
 
-func (n *NodeTemplate)genReverseOne(table *model.Table, refCol *model.Column, _w io.Writer) (err error) {
+func (n *NodeTemplate)genReverseOne(table *model.Table, rev *model.Column, _w io.Writer) (err error) {
 {{
-// {{= refCol.Reference.ReverseIdentifier }} represents the one-to-one relationship formed by the reverse reference from the
-// {{= refCol.QueryName }} column in the {{= refCol.Table.QueryName }} table.
-func (n *{{= table.Identifier}}Node) {{= refCol.Reference.ReverseIdentifier }}() *{{= refCol.Table.Identifier }}Node  {
+// {{= rev.Reference.ReverseIdentifier }} represents the one-to-one relationship formed by the reverse reference from the
+// {{= rev.QueryName }} column in the {{= rev.Table.QueryName }} table.
+func (n *{{= table.Identifier}}Node) {{= rev.Reference.ReverseIdentifier }}() *{{= rev.Table.Identifier }}Node  {
 
-	cn := &{{= refCol.Table.Identifier }}Node {
+	cn := &{{= rev.Table.Identifier }}Node {
 		query.NewReverseReferenceNode (
 			"{{= table.DbKey }}",
 			"{{= table.QueryName }}",
 			"{{= table.PrimaryKeyColumn().QueryName }}",
-			"{{= refCol.Reference.ReverseIdentifier }}",
-			"{{= refCol.Table.QueryName }}",
-			"{{= refCol.QueryName }}",
+			"{{= rev.Reference.ReverseIdentifier }}",
+			"{{= rev.Table.QueryName }}",
+			"{{= rev.QueryName }}",
 			false,
 		),
 	}
@@ -39,20 +39,20 @@ func (n *{{= table.Identifier}}Node) {{= refCol.Reference.ReverseIdentifier }}()
     return
 }
 
-func (n *NodeTemplate)genReverseMany(table *model.Table, refCol *model.Column, _w io.Writer) (err error) {
+func (n *NodeTemplate)genReverseMany(table *model.Table, rev *model.Column, _w io.Writer) (err error) {
 {{
 
-// {{= refCol.Reference.ReverseIdentifierPlural }} represents the many-to-one relationship formed by the reverse reference from the
-// {{= refCol.QueryName }} column in the {{= refCol.Table.QueryName }} table.
-func (n *{{= table.Identifier }}Node) {{= refCol.Reference.ReverseIdentifierPlural }}() *{{= refCol.Table.Identifier }}Node  {
-	cn := &{{= refCol.Table.Identifier }}Node {
+// {{= rev.Reference.ReverseIdentifierPlural }} represents the many-to-one relationship formed by the reverse reference from the
+// {{= rev.QueryName }} column in the {{= rev.Table.QueryName }} table.
+func (n *{{= table.Identifier }}Node) {{= rev.Reference.ReverseIdentifierPlural }}() *{{= rev.Table.Identifier }}Node  {
+	cn := &{{= rev.Table.Identifier }}Node {
 		query.NewReverseReferenceNode (
 			"{{= table.DbKey }}",
 			"{{= table.QueryName }}",
 			"{{= table.PrimaryKeyColumn().QueryName }}",
-			"{{= refCol.Reference.ReverseIdentifierPlural }}",
-			"{{= refCol.Table.QueryName }}",
-			"{{= refCol.QueryName }}",
+			"{{= rev.Reference.ReverseIdentifierPlural }}",
+			"{{= rev.Table.QueryName }}",
+			"{{= rev.QueryName }}",
 			true,
 		),
 	}

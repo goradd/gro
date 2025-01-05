@@ -12,6 +12,7 @@ func (n *NodeTemplate)gen(table *model.Table, _w io.Writer) (err error) {
     if err = n.genPrimaryKey(table, _w); err != nil { return }
     if err = n.genColumns(table, _w); err != nil { return }
     if err = n.genAssn(table, _w); err != nil { return }
+    if err = n.genReverse(table, _w); err != nil { return }
     return
 }
 

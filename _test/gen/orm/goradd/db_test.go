@@ -15,8 +15,8 @@ import (
 func ClearAll(ctx context.Context) {
 	db := Database()
 
-	db.Delete(ctx, "related_project_assn", nil)
 	db.Delete(ctx, "team_member_project_assn", nil)
+	db.Delete(ctx, "related_project_assn", nil)
 	db.Delete(ctx, "person_persontype_assn", nil)
 
 	db.Delete(ctx, "project", nil)
@@ -31,10 +31,13 @@ func ClearAll(ctx context.Context) {
 }
 
 func TestMain(m *testing.M) {
+	os.Exit(runTests(m))
+}
+
+func runTests(m *testing.M) int {
 	setup(m)
 	defer teardown()
-	code := m.Run()
-	os.Exit(code)
+	return m.Run()
 }
 
 func setup(m *testing.M) {

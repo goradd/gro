@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"strconv"
 
 	"github.com/goradd/orm/pkg/codegen"
 	"github.com/goradd/orm/pkg/model"
@@ -53,6 +54,9 @@ func (n *NodeTemplate) gen(table *model.Table, _w io.Writer) (err error) {
 		return
 	}
 	if err = n.genAssn(table, _w); err != nil {
+		return
+	}
+	if err = n.genReverse(table, _w); err != nil {
 		return
 	}
 	return
@@ -893,7 +897,15 @@ func (n *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `",
-			false,
+			`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, strconv.FormatBool(mm.DestinationEnumTable != nil)); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `,
 		),
 	}
 	query.SetParentNode(cn, n)
@@ -908,14 +920,14 @@ func (n *`); err != nil {
 
 //*** reverse.tmpl
 
-func (n *NodeTemplate) genReverse(table *model.Table, col *model.Column, _w io.Writer) (err error) {
-	for _, refCol := range table.ReverseReferences {
-		if refCol.IsUnique {
-			if err = n.genReverseOne(table, refCol, _w); err != nil {
+func (n *NodeTemplate) genReverse(table *model.Table, _w io.Writer) (err error) {
+	for _, rev := range table.ReverseReferences {
+		if rev.IsUnique {
+			if err = n.genReverseOne(table, rev, _w); err != nil {
 				return
 			}
 		} else {
-			if err = n.genReverseMany(table, refCol, _w); err != nil {
+			if err = n.genReverseMany(table, rev, _w); err != nil {
 				return
 			}
 		}
@@ -923,13 +935,13 @@ func (n *NodeTemplate) genReverse(table *model.Table, col *model.Column, _w io.W
 	return
 }
 
-func (n *NodeTemplate) genReverseOne(table *model.Table, refCol *model.Column, _w io.Writer) (err error) {
+func (n *NodeTemplate) genReverseOne(table *model.Table, rev *model.Column, _w io.Writer) (err error) {
 
 	if _, err = io.WriteString(_w, `// `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, refCol.Reference.ReverseIdentifier); err != nil {
+	if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
 		return
 	}
 
@@ -938,7 +950,7 @@ func (n *NodeTemplate) genReverseOne(table *model.Table, refCol *model.Column, _
 		return
 	}
 
-	if _, err = io.WriteString(_w, refCol.QueryName); err != nil {
+	if _, err = io.WriteString(_w, rev.QueryName); err != nil {
 		return
 	}
 
@@ -946,7 +958,7 @@ func (n *NodeTemplate) genReverseOne(table *model.Table, refCol *model.Column, _
 		return
 	}
 
-	if _, err = io.WriteString(_w, refCol.Table.QueryName); err != nil {
+	if _, err = io.WriteString(_w, rev.Table.QueryName); err != nil {
 		return
 	}
 
@@ -963,7 +975,7 @@ func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, refCol.Reference.ReverseIdentifier); err != nil {
+	if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
 		return
 	}
 
@@ -971,7 +983,7 @@ func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, refCol.Table.Identifier); err != nil {
+	if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
 		return
 	}
 
@@ -981,7 +993,7 @@ func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, refCol.Table.Identifier); err != nil {
+	if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
 		return
 	}
 
@@ -1018,7 +1030,7 @@ func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, refCol.Reference.ReverseIdentifier); err != nil {
+	if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
 		return
 	}
 
@@ -1027,7 +1039,7 @@ func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, refCol.Table.QueryName); err != nil {
+	if _, err = io.WriteString(_w, rev.Table.QueryName); err != nil {
 		return
 	}
 
@@ -1036,7 +1048,7 @@ func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, refCol.QueryName); err != nil {
+	if _, err = io.WriteString(_w, rev.QueryName); err != nil {
 		return
 	}
 
@@ -1055,14 +1067,14 @@ func (n *`); err != nil {
 	return
 }
 
-func (n *NodeTemplate) genReverseMany(table *model.Table, refCol *model.Column, _w io.Writer) (err error) {
+func (n *NodeTemplate) genReverseMany(table *model.Table, rev *model.Column, _w io.Writer) (err error) {
 
 	if _, err = io.WriteString(_w, `
 // `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, refCol.Reference.ReverseIdentifierPlural); err != nil {
+	if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifierPlural); err != nil {
 		return
 	}
 
@@ -1071,7 +1083,7 @@ func (n *NodeTemplate) genReverseMany(table *model.Table, refCol *model.Column, 
 		return
 	}
 
-	if _, err = io.WriteString(_w, refCol.QueryName); err != nil {
+	if _, err = io.WriteString(_w, rev.QueryName); err != nil {
 		return
 	}
 
@@ -1079,7 +1091,7 @@ func (n *NodeTemplate) genReverseMany(table *model.Table, refCol *model.Column, 
 		return
 	}
 
-	if _, err = io.WriteString(_w, refCol.Table.QueryName); err != nil {
+	if _, err = io.WriteString(_w, rev.Table.QueryName); err != nil {
 		return
 	}
 
@@ -1096,7 +1108,7 @@ func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, refCol.Reference.ReverseIdentifierPlural); err != nil {
+	if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifierPlural); err != nil {
 		return
 	}
 
@@ -1104,7 +1116,7 @@ func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, refCol.Table.Identifier); err != nil {
+	if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
 		return
 	}
 
@@ -1113,7 +1125,7 @@ func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, refCol.Table.Identifier); err != nil {
+	if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
 		return
 	}
 
@@ -1150,7 +1162,7 @@ func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, refCol.Reference.ReverseIdentifierPlural); err != nil {
+	if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifierPlural); err != nil {
 		return
 	}
 
@@ -1159,7 +1171,7 @@ func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, refCol.Table.QueryName); err != nil {
+	if _, err = io.WriteString(_w, rev.Table.QueryName); err != nil {
 		return
 	}
 
@@ -1168,7 +1180,7 @@ func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, refCol.QueryName); err != nil {
+	if _, err = io.WriteString(_w, rev.QueryName); err != nil {
 		return
 	}
 

@@ -43,7 +43,7 @@ type ManyManyReference struct {
 
 // TableIdentifier returns a name to use to describe the relationship in code.
 func (m *ManyManyReference) TableIdentifier() string {
-	return UpperCaseIdentifier(m.IdentifierPlural)
+	return UpperCaseIdentifier(m.AssnTableName)
 }
 
 // JsonKey returns the key used when referring to the associated objects in JSON.
@@ -92,7 +92,7 @@ func (m *ManyManyReference) QueryName() string {
 	if m.DestinationTable != nil {
 		return m.DestinationTable.QueryName
 	} else {
-		return ""
+		return m.DestinationEnumTable.QueryName
 	}
 }
 

@@ -786,17 +786,17 @@ func (b *Builder) expandNode(j *JoinTreeItem, nodeObject db.ValueMap) (outArray 
 
 			case ManyManyNodeType:
 				if ManyManyNodeIsEnumTable(childItem.Node.(TableNodeI).EmbeddedNode_().(*ManyManyNode)) {
-					var intArray []uint
+					var intArray []int
 					nodeObject[tableGoName].(*objectMapType).Range(func(key string, value interface{}) bool {
 						innerNodeObject = value.(db.ValueMap)
 						typeKey := innerNodeObject[ColumnNodeDbName(childItem.Node.(TableNodeI).PrimaryKeyNode())]
 						switch v := typeKey.(type) {
 						case uint:
-							intArray = append(intArray, v)
+							intArray = append(intArray, int(v))
 						case int:
-							intArray = append(intArray, uint(v))
+							intArray = append(intArray, v)
 						case int64:
-							intArray = append(intArray, uint(v))
+							intArray = append(intArray, int(v))
 						}
 						return true
 					})
@@ -805,7 +805,7 @@ func (b *Builder) expandNode(j *JoinTreeItem, nodeObject db.ValueMap) (outArray 
 					} else {
 						for _, cp2 := range intArray {
 							nodeCopy := item.Copy().(db.ValueMap)
-							nodeCopy[tableGoName] = []uint{cp2}
+							nodeCopy[tableGoName] = []int{cp2}
 							copies = append(copies, nodeCopy)
 						}
 					}
@@ -830,6 +830,7 @@ func (b *Builder) expandNode(j *JoinTreeItem, nodeObject db.ValueMap) (outArray 
 						}
 					}
 				}
+			default: // columns, do nothing
 			}
 
 		}

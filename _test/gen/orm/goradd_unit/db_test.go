@@ -15,6 +15,7 @@ import (
 func ClearAll(ctx context.Context) {
 	db := Database()
 
+	db.Delete(ctx, "forward_cascade", nil)
 	db.Delete(ctx, "unsupported_type", nil)
 	db.Delete(ctx, "type_test", nil)
 	db.Delete(ctx, "two_key", nil)
@@ -24,16 +25,18 @@ func ClearAll(ctx context.Context) {
 	db.Delete(ctx, "forward_null_unique", nil)
 	db.Delete(ctx, "forward_null", nil)
 	db.Delete(ctx, "forward_cascade_unique", nil)
-	db.Delete(ctx, "forward_cascade", nil)
 	db.Delete(ctx, "double_index", nil)
 
 }
 
 func TestMain(m *testing.M) {
+	os.Exit(runTests(m))
+}
+
+func runTests(m *testing.M) int {
 	setup(m)
 	defer teardown()
-	code := m.Run()
-	os.Exit(code)
+	return m.Run()
 }
 
 func setup(m *testing.M) {

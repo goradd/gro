@@ -1,8 +1,10 @@
-{{g
-//*** {{includeName}}
-}}
+package ci
 
-{{
+import (
+	"fmt"
+	"os"
+	"testing"
+)
 
 func TestMain(m *testing.M) {
 	os.Exit(runTests(m))
@@ -16,12 +18,7 @@ func runTests(m *testing.M) int {
 
 func setup(m *testing.M) {
 	fmt.Println("Setting up tests...")
-
-	fmt.Println(test.NewSeed())
-
-	// uncomment the next line to re-use a previously created seed to recreate a test
-	// UseSeed(seed)
-
+	
 	InitDB()
 }
 
@@ -29,6 +26,3 @@ func teardown() {
 	// Cleanup logic here
 	fmt.Println("Cleaning up after tests...")
 }
-
-
-}}
