@@ -87,8 +87,8 @@ func (n *ReferenceNode) copy() NodeI {
 	return ret
 }
 
-// Equals is used internally by the framework to determine if two nodes are equal.
-func (n *ReferenceNode) Equals(n2 NodeI) bool {
+// equals is used internally by the framework to determine if two nodes are equal.
+func (n *ReferenceNode) equals(n2 NodeI) bool {
 	if tn, ok := n2.(TableNodeI); !ok {
 		return false
 	} else if cn, ok := tn.EmbeddedNode_().(*ReferenceNode); !ok {

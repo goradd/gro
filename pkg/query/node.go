@@ -102,8 +102,8 @@ func (c *nodeCondition) getCondition() NodeI {
 // to be able to query any kind of database. Obviously, this doesn't work for all possible database structures, but
 // it generally works well enough to solve most of the situations that you will come across.
 type NodeI interface {
-	// Equals returns true if the given node is equal to this node.
-	Equals(NodeI) bool
+	//Equals(NodeI) bool
+	equals(NodeI) bool
 	tableName() string
 	log(level int)
 	nodeType() NodeType
@@ -259,4 +259,8 @@ func NodePrimaryKey(n NodeI) NodeI {
 		return tn.PrimaryKeyNode()
 	}
 	return nil
+}
+
+func NodeIsEqual(n NodeI, n2 NodeI) bool {
+	return n.equals(n2)
 }

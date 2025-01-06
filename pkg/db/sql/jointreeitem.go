@@ -20,7 +20,7 @@ type JoinTreeItem struct {
 func (j *JoinTreeItem) addChildItem(child *JoinTreeItem) (added bool, match *JoinTreeItem) {
 	if _, ok := child.Node.(query.TableNodeI); ok {
 		for _, j2 := range j.ChildReferences {
-			if j2.Node.Equals(child.Node) {
+			if query.NodeIsEqual(j2.Node, child.Node) {
 				// The node was already here
 				return false, j2
 			}
@@ -29,7 +29,7 @@ func (j *JoinTreeItem) addChildItem(child *JoinTreeItem) (added bool, match *Joi
 		j.ChildReferences = append(j.ChildReferences, child)
 	} else {
 		for _, j2 := range j.Leafs {
-			if j2.Node.Equals(child.Node) {
+			if query.NodeIsEqual(j2.Node, child.Node) {
 				// Leaf item was found, just skip it, but save node reference
 				return false, j2
 			}

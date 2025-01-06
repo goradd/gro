@@ -29,8 +29,8 @@ func (n *SubqueryNode) nodeType() NodeType {
 	return SubqueryNodeType
 }
 
-// Equals is used internally by the framework to determine if two nodes are equal
-func (n *SubqueryNode) Equals(n2 NodeI) bool {
+// equals is used internally by the framework to determine if two nodes are equal
+func (n *SubqueryNode) equals(n2 NodeI) bool {
 	if cn, ok := n2.(*SubqueryNode); ok {
 		return cn.b == n.b
 	}

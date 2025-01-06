@@ -61,7 +61,7 @@ func (n *TableNode) goName() string {
 	return n.goPropName
 }
 
-func (n *TableNode) Equals(n2 NodeI) bool {
+func (n *TableNode) equals(n2 NodeI) bool {
 	if tn, ok := n2.(TableNodeI); !ok {
 		return false
 	} else if cn, ok := tn.EmbeddedNode_().(*TableNode); !ok {

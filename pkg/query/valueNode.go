@@ -94,8 +94,8 @@ func NewValueNode(i interface{}) NodeI {
 	return n
 }
 
-// Equals returns whether the given node is equal to this node.
-func (n *ValueNode) Equals(n2 NodeI) bool {
+// equals returns whether the given node is equal to this node.
+func (n *ValueNode) equals(n2 NodeI) bool {
 	if cn, ok := n2.(*ValueNode); ok {
 		if an2, ok2 := cn.value.([]NodeI); ok2 {
 			if an1, ok3 := n.value.([]NodeI); !ok3 {
@@ -104,7 +104,7 @@ func (n *ValueNode) Equals(n2 NodeI) bool {
 				return false
 			} else {
 				for i, n3 := range an1 {
-					if !n3.Equals(an2[i]) {
+					if !n3.equals(an2[i]) {
 						return false
 					}
 				}

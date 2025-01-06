@@ -90,8 +90,8 @@ func (n *ColumnNode) SetValue(v interface{}) error {
 }
 */
 
-// Equals is used internally by the framework to determine if two nodes are equal.
-func (n *ColumnNode) Equals(n2 NodeI) bool {
+// equals is used internally by the framework to determine if two nodes are equal.
+func (n *ColumnNode) equals(n2 NodeI) bool {
 	if cn, ok := n2.(*ColumnNode); ok {
 		if cn.dbTable == n.dbTable && cn.dbColumn == n.dbColumn {
 			// Allow new nodes to be evaluated as equal, but manual aliased nodes are not equal.

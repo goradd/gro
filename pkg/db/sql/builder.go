@@ -277,7 +277,7 @@ func (b *Builder) logNode(node NodeI, level int) {
 
 // Assuming that both nodes point to the same location, merges the source node and its children into the destination node tree
 func (b *Builder) mergeNode(srcNode NodeI, destJoinItem *JoinTreeItem) {
-	if !srcNode.Equals(destJoinItem.Node) {
+	if !NodeIsEqual(srcNode, destJoinItem.Node) {
 		panic("mergeNode must start with equal nodes")
 	}
 	// make sure node is mapped
@@ -302,7 +302,7 @@ func (b *Builder) mergeNode(srcNode NodeI, destJoinItem *JoinTreeItem) {
 		if prevCond := NodeCondition(srcNode); prevCond != nil {
 			if destJoinItem.JoinCondition == nil {
 				destJoinItem.JoinCondition = prevCond
-			} else if !destJoinItem.JoinCondition.Equals(prevCond) {
+			} else if !NodeIsEqual(destJoinItem.JoinCondition, prevCond) {
 				// TODO: We need a mechanism to allow different kinds of conditional joins, perhaps through aliases so that
 				// items further down the chain can be identified as to which conditional join they belong to.
 				panic("Error, attempting to Join with conditions on a node which already has different conditions.")
@@ -325,7 +325,7 @@ func (b *Builder) mergeNode(srcNode NodeI, destJoinItem *JoinTreeItem) {
 	} else {
 		found := false
 		for _, destChild := range destJoinItem.ChildReferences {
-			if destChild.Node.Equals(childNode) {
+			if NodeIsEqual(destChild.Node, childNode) {
 				// found a matching child node, recurse
 				b.mergeNode(childNode, destChild)
 				found = true
@@ -629,13 +629,13 @@ func (b *Builder) getPkJoinTreeItem(j *JoinTreeItem) *JoinTreeItem {
 func (b *Builder) findChildJoinItem(childNode NodeI, parent *JoinTreeItem) (match *JoinTreeItem) {
 	if _, ok := childNode.(TableNodeI); ok {
 		for _, cj := range parent.ChildReferences {
-			if cj.Node.Equals(childNode) {
+			if NodeIsEqual(cj.Node, childNode) {
 				return cj
 			}
 		}
 	} else {
 		for _, cj := range parent.Leafs {
-			if cj.Node.Equals(childNode) {
+			if NodeIsEqual(cj.Node, childNode) {
 				return cj
 			}
 		}

@@ -90,8 +90,8 @@ func (n *ReverseReferenceNode) isExpander() bool {
 	return true
 }
 
-// Equals is used internally by the framework to determine if two nodes are equal.
-func (n *ReverseReferenceNode) Equals(n2 NodeI) bool {
+// equals is used internally by the framework to determine if two nodes are equal.
+func (n *ReverseReferenceNode) equals(n2 NodeI) bool {
 	if tn, ok := n2.(TableNodeI); !ok {
 		return false
 	} else if cn, ok := tn.EmbeddedNode_().(*ReverseReferenceNode); !ok {

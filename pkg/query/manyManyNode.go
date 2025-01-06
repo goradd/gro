@@ -102,8 +102,8 @@ func (n *ManyManyNode) isExpander() bool {
 	return true
 }
 
-// Equals is used internally by the framework to test if the node is the same as another node.
-func (n *ManyManyNode) Equals(n2 NodeI) bool {
+// equals is used internally by the framework to test if the node is the same as another node.
+func (n *ManyManyNode) equals(n2 NodeI) bool {
 	if tn, ok := n2.(TableNodeI); !ok {
 		return false
 	} else if cn, ok2 := tn.EmbeddedNode_().(*ManyManyNode); !ok2 {

@@ -13,27 +13,27 @@ import (
 func TestNodeEquality(t *testing.T) {
 
 	n := node.Person()
-	if !n.Equals(n) {
+	if !query.NodeIsEqual(n, n) {
 		t.Error("Table node not equal to self")
 	}
 
 	n = node.Project().Manager()
-	if !n.Equals(n) {
+	if !query.NodeIsEqual(n, n) {
 		t.Error("Reference node not equal to self")
 	}
 
 	n2 := node.Person().ManagerProjects()
-	if !n2.Equals(n2) {
+	if !query.NodeIsEqual(n2, n2) {
 		t.Error("Reverse Reference node not equal to self")
 	}
 
 	n3 := node.Person().Projects()
-	if !n3.Equals(n3) {
+	if !query.NodeIsEqual(n3, n3) {
 		t.Error("Many-Many node not equal to self")
 	}
 
 	n4 := query.NewValueNode(goradd.PersonTypeContractor)
-	if !n4.Equals(n4) {
+	if !query.NodeIsEqual(n4, n4) {
 		t.Error("Type node not equal to self")
 	}
 
@@ -75,5 +75,5 @@ func TestNodeSerialize(t *testing.T) {
 	err = dec.Decode(&n2)
 	assert.NoError(t, err)
 
-	assert.True(t, n2.Equals(n))
+	assert.True(t, query.NodeIsEqual(n2, n))
 }

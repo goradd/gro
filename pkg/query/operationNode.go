@@ -167,8 +167,8 @@ func (n *OperationNode) sortDesc() bool {
 }
 */
 
-// Equals is used internally by the framework to tell if two nodes are equal
-func (n *OperationNode) Equals(n2 NodeI) bool {
+// equals is used internally by the framework to tell if two nodes are equal
+func (n *OperationNode) equals(n2 NodeI) bool {
 	if cn, ok := n2.(*OperationNode); ok {
 		if cn.op != n.op {
 			return false
@@ -193,7 +193,7 @@ func (n *OperationNode) Equals(n2 NodeI) bool {
 		}
 
 		for i, o := range n.operands {
-			if !o.Equals(cn.operands[i]) {
+			if !o.equals(cn.operands[i]) {
 				return false
 			}
 		}
