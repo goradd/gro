@@ -9,6 +9,17 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
+// PersonWithLockI is the builder interface to the PersonWithLock nodes.
+type PersonWithLockNodeI interface {
+	query.NodeI
+	PrimaryKeyNode() *query.ColumnNode
+
+	ID() *query.ColumnNode
+	FirstName() *query.ColumnNode
+	LastName() *query.ColumnNode
+	SysTimestamp() *query.ColumnNode
+}
+
 // PersonWithLockNode represents the person_with_lock table in a query. It uses a builder pattern to chain
 // together other tables and columns to form a node in a query.
 //
@@ -20,7 +31,7 @@ type PersonWithLockNode struct {
 }
 
 // PersonWithLock returns a table node that starts a node chain that begins with the person_with_lock table.
-func PersonWithLock() *PersonWithLockNode {
+func PersonWithLock() PersonWithLockNodeI {
 	n := PersonWithLockNode{
 		query.NewTableNode("goradd", "person_with_lock", "PersonWithLock"),
 	}

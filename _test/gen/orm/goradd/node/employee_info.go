@@ -9,6 +9,17 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
+// EmployeeInfoI is the builder interface to the EmployeeInfo nodes.
+type EmployeeInfoNodeI interface {
+	query.NodeI
+	PrimaryKeyNode() *query.ColumnNode
+
+	ID() *query.ColumnNode
+	PersonID() *query.ColumnNode
+	Person() PersonNodeI
+	EmployeeNumber() *query.ColumnNode
+}
+
 // EmployeeInfoNode represents the employee_info table in a query. It uses a builder pattern to chain
 // together other tables and columns to form a node in a query.
 //
@@ -20,7 +31,7 @@ type EmployeeInfoNode struct {
 }
 
 // EmployeeInfo returns a table node that starts a node chain that begins with the employee_info table.
-func EmployeeInfo() *EmployeeInfoNode {
+func EmployeeInfo() EmployeeInfoNodeI {
 	n := EmployeeInfoNode{
 		query.NewTableNode("goradd", "employee_info", "EmployeeInfo"),
 	}
@@ -84,7 +95,7 @@ func (n *EmployeeInfoNode) PersonID() *query.ColumnNode {
 }
 
 // Person represents the link to a Person object.
-func (n *EmployeeInfoNode) Person() *PersonNode {
+func (n *EmployeeInfoNode) Person() PersonNodeI {
 	cn := &PersonNode{
 		query.NewReferenceNode(
 			"goradd",

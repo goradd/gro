@@ -9,6 +9,25 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
+// TypeTestI is the builder interface to the TypeTest nodes.
+type TypeTestNodeI interface {
+	query.NodeI
+	PrimaryKeyNode() *query.ColumnNode
+
+	ID() *query.ColumnNode
+	Date() *query.ColumnNode
+	Time() *query.ColumnNode
+	DateTime() *query.ColumnNode
+	Ts() *query.ColumnNode
+	TestInt() *query.ColumnNode
+	TestFloat() *query.ColumnNode
+	TestDouble() *query.ColumnNode
+	TestText() *query.ColumnNode
+	TestBit() *query.ColumnNode
+	TestVarchar() *query.ColumnNode
+	TestBlob() *query.ColumnNode
+}
+
 // TypeTestNode represents the type_test table in a query. It uses a builder pattern to chain
 // together other tables and columns to form a node in a query.
 //
@@ -20,7 +39,7 @@ type TypeTestNode struct {
 }
 
 // TypeTest returns a table node that starts a node chain that begins with the type_test table.
-func TypeTest() *TypeTestNode {
+func TypeTest() TypeTestNodeI {
 	n := TypeTestNode{
 		query.NewTableNode("goradd_unit", "type_test", "TypeTest"),
 	}

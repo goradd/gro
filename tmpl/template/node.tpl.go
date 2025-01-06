@@ -91,7 +91,164 @@ func (n *NodeTemplate) genStruct(table *model.Table, _w io.Writer) (err error) {
 
 	//*** struct.tmpl
 
-	if _, err = io.WriteString(_w, `// `); err != nil {
+	if _, err = io.WriteString(_w, `
+// `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `I is the builder interface to the `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` nodes.
+type `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `NodeI interface {
+    query.NodeI
+    PrimaryKeyNode() *query.ColumnNode
+
+`); err != nil {
+		return
+	}
+
+	for _, col := range table.Columns {
+
+		if _, err = io.WriteString(_w, `    `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `() *query.ColumnNode
+`); err != nil {
+			return
+		}
+
+		if col.IsReference() {
+
+			if _, err = io.WriteString(_w, `    `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `() `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `NodeI
+`); err != nil {
+				return
+			}
+
+		}
+
+	}
+
+	for _, mm := range table.ManyManyReferences {
+
+		if _, err = io.WriteString(_w, `    `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `() *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Node
+`); err != nil {
+			return
+		}
+
+	}
+
+	for _, rev := range table.ReverseReferences {
+
+		if rev.IsUnique {
+
+			if _, err = io.WriteString(_w, `    `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `() *`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `Node
+`); err != nil {
+				return
+			}
+
+		} else {
+
+			if _, err = io.WriteString(_w, `    `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifierPlural); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `() *`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `Node
+`); err != nil {
+				return
+			}
+
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
+
+}
+
+// `); err != nil {
 		return
 	}
 
@@ -192,7 +349,7 @@ func `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `() *`); err != nil {
+	if _, err = io.WriteString(_w, `() `); err != nil {
 		return
 	}
 
@@ -200,7 +357,7 @@ func `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Node {
+	if _, err = io.WriteString(_w, `NodeI {
 	n := `); err != nil {
 		return
 	}
@@ -342,7 +499,7 @@ func (n *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `Node) PrimaryKeyNode() (*query.ColumnNode) {
+		if _, err = io.WriteString(_w, `Node) PrimaryKeyNode() *query.ColumnNode {
     return n.`); err != nil {
 			return
 		}
@@ -645,7 +802,7 @@ func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `() *`); err != nil {
+	if _, err = io.WriteString(_w, `() `); err != nil {
 		return
 	}
 
@@ -653,7 +810,7 @@ func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Node {
+	if _, err = io.WriteString(_w, `NodeI {
 	cn := &`); err != nil {
 		return
 	}

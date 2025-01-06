@@ -391,15 +391,28 @@ func (b *ForwardCascadeUniquesBuilder) Get() *ForwardCascadeUnique {
 	}
 }
 
-// Expand expands an array type node so that it will produce individual rows instead of an array of items
-func (b *ForwardCascadeUniquesBuilder) Expand(n query.NodeI) *ForwardCascadeUniquesBuilder {
+// Expand causes node to produce separate rows in the results instead of a single row with an array of items.
+func (b *ForwardCascadeUniquesBuilder) Expand(node query.Expander) *ForwardCascadeUniquesBuilder {
+	n := node.(query.NodeI)
+	if query.NodeTableName(query.RootNode(n)) != "forward_cascade_unique" {
+		panic("you can only expand a node that is rooted at node.ForwardCascadeUnique()")
+	}
+
 	b.builder.Expand(n)
 	return b
 }
 
-// Join adds a node to the node tree so that its fields will appear in the query. Optionally add conditions to filter
-// what gets included. The conditions will be AND'd with the basic condition matching the primary keys of the join.
+// Join adds node n to the node tree so that its fields will appear in the query.
+// Optionally add conditions to filter what gets included.
 func (b *ForwardCascadeUniquesBuilder) Join(n query.NodeI, conditions ...query.NodeI) *ForwardCascadeUniquesBuilder {
+	if !query.NodeIsTableNodeI(n) {
+		panic("you can only join Table, Reference, ReverseReference and ManyManyReference nodes")
+	}
+
+	if query.NodeTableName(query.RootNode(n)) != "forward_cascade_unique" {
+		panic("you can only join a node that is rooted at node.ForwardCascadeUnique()")
+	}
+
 	var condition query.NodeI
 	if len(conditions) > 1 {
 		condition = op.And(conditions)

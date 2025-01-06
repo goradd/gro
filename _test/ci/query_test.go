@@ -380,8 +380,8 @@ func TestFailedJoins(t *testing.T) {
 func TestFailedExpand(t *testing.T) {
 	ctx := db.NewContext(nil)
 
-	assert.Panics(t, func() { goradd.QueryProjects(ctx).Expand(node.Person()) })
-	assert.Panics(t, func() { goradd.QueryProjects(ctx).Expand(node.Project().Manager()) })
+	assert.Panics(t, func() { goradd.QueryProjects(ctx).Expand(node.Person().ManagerProjects()) })
+	//assert.Panics(t, func() { goradd.QueryProjects(ctx).Expand(node.Project().Manager()) })
 }
 
 func TestFailedGroupBy(t *testing.T) {

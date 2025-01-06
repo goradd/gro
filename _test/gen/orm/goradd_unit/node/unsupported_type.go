@@ -9,6 +9,31 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
+// UnsupportedTypeI is the builder interface to the UnsupportedType nodes.
+type UnsupportedTypeNodeI interface {
+	query.NodeI
+	PrimaryKeyNode() *query.ColumnNode
+
+	TypeSerial() *query.ColumnNode
+	TypeSet() *query.ColumnNode
+	TypeEnum() *query.ColumnNode
+	TypeDecimal() *query.ColumnNode
+	TypeDouble() *query.ColumnNode
+	TypeGeo() *query.ColumnNode
+	TypeTinyBlob() *query.ColumnNode
+	TypeMediumBlob() *query.ColumnNode
+	TypeVarbinary() *query.ColumnNode
+	TypeLongtext() *query.ColumnNode
+	TypeBinary() *query.ColumnNode
+	TypeSmall() *query.ColumnNode
+	TypeMedium() *query.ColumnNode
+	TypeBig() *query.ColumnNode
+	TypePolygon() *query.ColumnNode
+	TypeUnsigned() *query.ColumnNode
+	TypeMultfk1() *query.ColumnNode
+	TypeMultifk2() *query.ColumnNode
+}
+
 // UnsupportedTypeNode represents the unsupported_type table in a query. It uses a builder pattern to chain
 // together other tables and columns to form a node in a query.
 //
@@ -20,7 +45,7 @@ type UnsupportedTypeNode struct {
 }
 
 // UnsupportedType returns a table node that starts a node chain that begins with the unsupported_type table.
-func UnsupportedType() *UnsupportedTypeNode {
+func UnsupportedType() UnsupportedTypeNodeI {
 	n := UnsupportedTypeNode{
 		query.NewTableNode("goradd_unit", "unsupported_type", "UnsupportedType"),
 	}

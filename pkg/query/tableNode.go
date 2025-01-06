@@ -18,7 +18,7 @@ type TableNodeI interface {
 }
 
 // A TableNode is a representation of the top level of a chain of nodes that point to a particular field in a query, even after
-// aliases and joins are taken into account. TableNodes are create by the code generation
+// aliases and joins are taken into account. TableNodes are created by the code generation
 // process, one for each table in the database.
 type TableNode struct {
 	nodeAlias

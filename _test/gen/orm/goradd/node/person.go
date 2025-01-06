@@ -9,6 +9,22 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
+// PersonI is the builder interface to the Person nodes.
+type PersonNodeI interface {
+	query.NodeI
+	PrimaryKeyNode() *query.ColumnNode
+
+	ID() *query.ColumnNode
+	FirstName() *query.ColumnNode
+	LastName() *query.ColumnNode
+	PersonTypes() *PersonTypeNode
+	Projects() *ProjectNode
+	Addresses() *AddressNode
+	EmployeeInfo() *EmployeeInfoNode
+	Login() *LoginNode
+	ManagerProjects() *ProjectNode
+}
+
 // PersonNode represents the person table in a query. It uses a builder pattern to chain
 // together other tables and columns to form a node in a query.
 //
@@ -20,7 +36,7 @@ type PersonNode struct {
 }
 
 // Person returns a table node that starts a node chain that begins with the person table.
-func Person() *PersonNode {
+func Person() PersonNodeI {
 	n := PersonNode{
 		query.NewTableNode("goradd", "person", "Person"),
 	}

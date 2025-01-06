@@ -3,6 +3,32 @@
 }}
 
 {{
+
+// {{= table.Identifier}}I is the builder interface to the {{= table.Identifier}} nodes.
+type {{= table.Identifier}}NodeI interface {
+    query.NodeI
+    PrimaryKeyNode() *query.ColumnNode
+
+{{for _,col := range table.Columns}}
+    {{= col.Identifier }}() *query.ColumnNode
+{{if col.IsReference() }}
+    {{= col.ReferenceIdentifier() }}() {{= col.ReferenceType() }}NodeI
+{{if}}
+{{for}}
+{{for _,mm := range table.ManyManyReferences}}
+    {{= mm.IdentifierPlural }}() *{{= mm.ObjectType() }}Node
+{{for}}
+{{for _,rev := range table.ReverseReferences}}
+{{if rev.IsUnique}}
+    {{= rev.Reference.ReverseIdentifier }}() *{{= rev.Table.Identifier }}Node
+{{else}}
+    {{= rev.Reference.ReverseIdentifierPlural }}() *{{= rev.Table.Identifier }}Node
+{{if}}
+{{for}}
+
+
+}
+
 // {{= table.Identifier}}Node represents the {{= table.QueryName}} table in a query. It uses a builder pattern to chain
 // together other tables and columns to form a node in a query.
 //

@@ -9,6 +9,15 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
+// GiftI is the builder interface to the Gift nodes.
+type GiftNodeI interface {
+	query.NodeI
+	PrimaryKeyNode() *query.ColumnNode
+
+	Number() *query.ColumnNode
+	Name() *query.ColumnNode
+}
+
 // GiftNode represents the gift table in a query. It uses a builder pattern to chain
 // together other tables and columns to form a node in a query.
 //
@@ -20,7 +29,7 @@ type GiftNode struct {
 }
 
 // Gift returns a table node that starts a node chain that begins with the gift table.
-func Gift() *GiftNode {
+func Gift() GiftNodeI {
 	n := GiftNode{
 		query.NewTableNode("goradd", "gift", "Gift"),
 	}

@@ -9,6 +9,17 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
+// ForwardRestrictUniqueI is the builder interface to the ForwardRestrictUnique nodes.
+type ForwardRestrictUniqueNodeI interface {
+	query.NodeI
+	PrimaryKeyNode() *query.ColumnNode
+
+	ID() *query.ColumnNode
+	Name() *query.ColumnNode
+	ReverseID() *query.ColumnNode
+	Reverse() ReverseNodeI
+}
+
 // ForwardRestrictUniqueNode represents the forward_restrict_unique table in a query. It uses a builder pattern to chain
 // together other tables and columns to form a node in a query.
 //
@@ -20,7 +31,7 @@ type ForwardRestrictUniqueNode struct {
 }
 
 // ForwardRestrictUnique returns a table node that starts a node chain that begins with the forward_restrict_unique table.
-func ForwardRestrictUnique() *ForwardRestrictUniqueNode {
+func ForwardRestrictUnique() ForwardRestrictUniqueNodeI {
 	n := ForwardRestrictUniqueNode{
 		query.NewTableNode("goradd_unit", "forward_restrict_unique", "ForwardRestrictUnique"),
 	}
@@ -98,7 +109,7 @@ func (n *ForwardRestrictUniqueNode) ReverseID() *query.ColumnNode {
 }
 
 // Reverse represents the link to a Reverse object.
-func (n *ForwardRestrictUniqueNode) Reverse() *ReverseNode {
+func (n *ForwardRestrictUniqueNode) Reverse() ReverseNodeI {
 	cn := &ReverseNode{
 		query.NewReferenceNode(
 			"goradd_unit",

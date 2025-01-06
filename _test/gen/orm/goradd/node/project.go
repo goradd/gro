@@ -9,6 +9,28 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
+// ProjectI is the builder interface to the Project nodes.
+type ProjectNodeI interface {
+	query.NodeI
+	PrimaryKeyNode() *query.ColumnNode
+
+	ID() *query.ColumnNode
+	Num() *query.ColumnNode
+	Status() *query.ColumnNode
+	ManagerID() *query.ColumnNode
+	Manager() PersonNodeI
+	Name() *query.ColumnNode
+	Description() *query.ColumnNode
+	StartDate() *query.ColumnNode
+	EndDate() *query.ColumnNode
+	Budget() *query.ColumnNode
+	Spent() *query.ColumnNode
+	Children() *ProjectNode
+	Parents() *ProjectNode
+	TeamMembers() *PersonNode
+	Milestones() *MilestoneNode
+}
+
 // ProjectNode represents the project table in a query. It uses a builder pattern to chain
 // together other tables and columns to form a node in a query.
 //
@@ -20,7 +42,7 @@ type ProjectNode struct {
 }
 
 // Project returns a table node that starts a node chain that begins with the project table.
-func Project() *ProjectNode {
+func Project() ProjectNodeI {
 	n := ProjectNode{
 		query.NewTableNode("goradd", "project", "Project"),
 	}
@@ -119,7 +141,7 @@ func (n *ProjectNode) ManagerID() *query.ColumnNode {
 }
 
 // Manager represents the link to a Person object.
-func (n *ProjectNode) Manager() *PersonNode {
+func (n *ProjectNode) Manager() PersonNodeI {
 	cn := &PersonNode{
 		query.NewReferenceNode(
 			"goradd",

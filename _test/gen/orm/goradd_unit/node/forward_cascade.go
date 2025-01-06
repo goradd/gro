@@ -9,6 +9,17 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
+// ForwardCascadeI is the builder interface to the ForwardCascade nodes.
+type ForwardCascadeNodeI interface {
+	query.NodeI
+	PrimaryKeyNode() *query.ColumnNode
+
+	ID() *query.ColumnNode
+	Name() *query.ColumnNode
+	ReverseID() *query.ColumnNode
+	Reverse() ReverseNodeI
+}
+
 // ForwardCascadeNode represents the forward_cascade table in a query. It uses a builder pattern to chain
 // together other tables and columns to form a node in a query.
 //
@@ -20,7 +31,7 @@ type ForwardCascadeNode struct {
 }
 
 // ForwardCascade returns a table node that starts a node chain that begins with the forward_cascade table.
-func ForwardCascade() *ForwardCascadeNode {
+func ForwardCascade() ForwardCascadeNodeI {
 	n := ForwardCascadeNode{
 		query.NewTableNode("goradd_unit", "forward_cascade", "ForwardCascade"),
 	}
@@ -98,7 +109,7 @@ func (n *ForwardCascadeNode) ReverseID() *query.ColumnNode {
 }
 
 // Reverse represents the link to a Reverse object.
-func (n *ForwardCascadeNode) Reverse() *ReverseNode {
+func (n *ForwardCascadeNode) Reverse() ReverseNodeI {
 	cn := &ReverseNode{
 		query.NewReferenceNode(
 			"goradd_unit",

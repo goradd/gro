@@ -9,6 +9,21 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
+// ReverseI is the builder interface to the Reverse nodes.
+type ReverseNodeI interface {
+	query.NodeI
+	PrimaryKeyNode() *query.ColumnNode
+
+	ID() *query.ColumnNode
+	Name() *query.ColumnNode
+	ForwardCascades() *ForwardCascadeNode
+	ForwardCascadeUnique() *ForwardCascadeUniqueNode
+	ForwardNulls() *ForwardNullNode
+	ForwardNullUnique() *ForwardNullUniqueNode
+	ForwardRestricts() *ForwardRestrictNode
+	ForwardRestrictUnique() *ForwardRestrictUniqueNode
+}
+
 // ReverseNode represents the reverse table in a query. It uses a builder pattern to chain
 // together other tables and columns to form a node in a query.
 //
@@ -20,7 +35,7 @@ type ReverseNode struct {
 }
 
 // Reverse returns a table node that starts a node chain that begins with the reverse table.
-func Reverse() *ReverseNode {
+func Reverse() ReverseNodeI {
 	n := ReverseNode{
 		query.NewTableNode("goradd_unit", "reverse", "Reverse"),
 	}

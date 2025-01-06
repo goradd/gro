@@ -9,6 +9,19 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
+// LoginI is the builder interface to the Login nodes.
+type LoginNodeI interface {
+	query.NodeI
+	PrimaryKeyNode() *query.ColumnNode
+
+	ID() *query.ColumnNode
+	PersonID() *query.ColumnNode
+	Person() PersonNodeI
+	Username() *query.ColumnNode
+	Password() *query.ColumnNode
+	IsEnabled() *query.ColumnNode
+}
+
 // LoginNode represents the login table in a query. It uses a builder pattern to chain
 // together other tables and columns to form a node in a query.
 //
@@ -20,7 +33,7 @@ type LoginNode struct {
 }
 
 // Login returns a table node that starts a node chain that begins with the login table.
-func Login() *LoginNode {
+func Login() LoginNodeI {
 	n := LoginNode{
 		query.NewTableNode("goradd", "login", "Login"),
 	}
@@ -86,7 +99,7 @@ func (n *LoginNode) PersonID() *query.ColumnNode {
 }
 
 // Person represents the link to a Person object.
-func (n *LoginNode) Person() *PersonNode {
+func (n *LoginNode) Person() PersonNodeI {
 	cn := &PersonNode{
 		query.NewReferenceNode(
 			"goradd",

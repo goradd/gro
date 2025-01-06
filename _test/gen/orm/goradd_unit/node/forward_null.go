@@ -9,6 +9,17 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
+// ForwardNullI is the builder interface to the ForwardNull nodes.
+type ForwardNullNodeI interface {
+	query.NodeI
+	PrimaryKeyNode() *query.ColumnNode
+
+	ID() *query.ColumnNode
+	Name() *query.ColumnNode
+	ReverseID() *query.ColumnNode
+	Reverse() ReverseNodeI
+}
+
 // ForwardNullNode represents the forward_null table in a query. It uses a builder pattern to chain
 // together other tables and columns to form a node in a query.
 //
@@ -20,7 +31,7 @@ type ForwardNullNode struct {
 }
 
 // ForwardNull returns a table node that starts a node chain that begins with the forward_null table.
-func ForwardNull() *ForwardNullNode {
+func ForwardNull() ForwardNullNodeI {
 	n := ForwardNullNode{
 		query.NewTableNode("goradd_unit", "forward_null", "ForwardNull"),
 	}
@@ -98,7 +109,7 @@ func (n *ForwardNullNode) ReverseID() *query.ColumnNode {
 }
 
 // Reverse represents the link to a Reverse object.
-func (n *ForwardNullNode) Reverse() *ReverseNode {
+func (n *ForwardNullNode) Reverse() ReverseNodeI {
 	cn := &ReverseNode{
 		query.NewReferenceNode(
 			"goradd_unit",

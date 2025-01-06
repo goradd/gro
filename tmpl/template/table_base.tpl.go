@@ -6421,7 +6421,7 @@ func (b *`); err != nil {
 	}
 }
 
-// Expand expands an array type node so that it will produce individual rows instead of an array of items
+// Expand causes node to produce separate rows in the results instead of a single row with an array of items.
 func (b *`); err != nil {
 		return
 	}
@@ -6430,7 +6430,7 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `) Expand(n query.NodeI) *`); err != nil {
+	if _, err = io.WriteString(_w, `) Expand(node query.Expander) *`); err != nil {
 		return
 	}
 
@@ -6439,12 +6439,33 @@ func (b *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, ` {
+	n := node.(query.NodeI)
+	if query.NodeTableName(query.RootNode(n)) != `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, fmt.Sprintf("%#v", table.QueryName)); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` {
+		panic("you can only expand a node that is rooted at node.`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `()")
+	}
+
 	b.builder.Expand(n)
 	return b
 }
 
-// Join adds a node to the node tree so that its fields will appear in the query. Optionally add conditions to filter
-// what gets included. The conditions will be AND'd with the basic condition matching the primary keys of the join.
+// Join adds node n to the node tree so that its fields will appear in the query.
+// Optionally add conditions to filter what gets included.
 func (b *`); err != nil {
 		return
 	}
@@ -6462,6 +6483,30 @@ func (b *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, ` {
+    if !query.NodeIsTableNodeI(n) {
+        panic("you can only join Table, Reference, ReverseReference and ManyManyReference nodes")
+    }
+
+    if query.NodeTableName(query.RootNode(n)) != `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, fmt.Sprintf("%#v", table.QueryName)); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` {
+        panic("you can only join a node that is rooted at node.`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `()")
+    }
+
 	var condition query.NodeI
 	if len(conditions) > 1 {
 		condition = op.And(conditions)

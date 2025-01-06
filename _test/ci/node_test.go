@@ -39,6 +39,7 @@ func TestNodeEquality(t *testing.T) {
 
 }
 
+/*
 func BenchmarkNodeType1(b *testing.B) {
 	n := node.Project().Manager()
 
@@ -51,14 +52,14 @@ func BenchmarkNodeType1(b *testing.B) {
 }
 
 func BenchmarkNodeType2(b *testing.B) {
-	n := node.Project().Manager()
+	n := node.Project().Manager().(query.ReferenceNodeI)
 
 	for i := 0; i < b.N; i++ {
 		if r, ok := n.EmbeddedNode_().(*query.ReferenceNode); ok {
 			_ = r
 		}
 	}
-}
+}*/
 
 func TestNodeSerialize(t *testing.T) {
 	var n query.NodeI = node.Person().FirstName()

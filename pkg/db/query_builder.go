@@ -50,16 +50,6 @@ func (b *QueryBuilder) Join(n NodeI, condition NodeI) {
 	// times with different conditions, we could use an alias to name each join. We would
 	// then need to create an Alias node to specify which join is meant in different clauses.
 
-	if b.Joins != nil {
-		if !NodeIsReferenceI(n) {
-			panic("you can only join Reference, ReverseReference and ManyManyReference nodes")
-		}
-
-		if NodeTableName(RootNode(n)) != NodeTableName(b.Joins[0]) {
-			panic("you can only join nodes starting from the same table as the root node. This node must start from " + NodeTableName(b.Joins[0]))
-		}
-	}
-
 	NodeSetCondition(n, condition)
 	b.Joins = append(b.Joins, n)
 }

@@ -37,7 +37,7 @@ func (n *{{= table.Identifier}}Node) {{= col.Identifier }}() *query.ColumnNode {
 func (n *NodeTemplate)genTableRefNode(table *model.Table, col *model.Column, _w io.Writer) (err error) {
 {{
 // {{= col.ReferenceIdentifier() }} represents the link to a {{= col.ReferenceType() }} object.
-func (n *{{= table.Identifier}}Node) {{= col.ReferenceIdentifier() }}() *{{= col.ReferenceType() }}Node {
+func (n *{{= table.Identifier}}Node) {{= col.ReferenceIdentifier() }}() {{= col.ReferenceType() }}NodeI {
 	cn := &{{= col.ReferenceType() }}Node {
 		query.NewReferenceNode (
 			"{{= table.DbKey }}",

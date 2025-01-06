@@ -9,6 +9,17 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
+// MilestoneI is the builder interface to the Milestone nodes.
+type MilestoneNodeI interface {
+	query.NodeI
+	PrimaryKeyNode() *query.ColumnNode
+
+	ID() *query.ColumnNode
+	ProjectID() *query.ColumnNode
+	Project() ProjectNodeI
+	Name() *query.ColumnNode
+}
+
 // MilestoneNode represents the milestone table in a query. It uses a builder pattern to chain
 // together other tables and columns to form a node in a query.
 //
@@ -20,7 +31,7 @@ type MilestoneNode struct {
 }
 
 // Milestone returns a table node that starts a node chain that begins with the milestone table.
-func Milestone() *MilestoneNode {
+func Milestone() MilestoneNodeI {
 	n := MilestoneNode{
 		query.NewTableNode("goradd", "milestone", "Milestone"),
 	}
@@ -84,7 +95,7 @@ func (n *MilestoneNode) ProjectID() *query.ColumnNode {
 }
 
 // Project represents the link to a Project object.
-func (n *MilestoneNode) Project() *ProjectNode {
+func (n *MilestoneNode) Project() ProjectNodeI {
 	cn := &ProjectNode{
 		query.NewReferenceNode(
 			"goradd",

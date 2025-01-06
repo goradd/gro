@@ -9,6 +9,16 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
+// DoubleIndexI is the builder interface to the DoubleIndex nodes.
+type DoubleIndexNodeI interface {
+	query.NodeI
+	PrimaryKeyNode() *query.ColumnNode
+
+	ID() *query.ColumnNode
+	FieldInt() *query.ColumnNode
+	FieldString() *query.ColumnNode
+}
+
 // DoubleIndexNode represents the double_index table in a query. It uses a builder pattern to chain
 // together other tables and columns to form a node in a query.
 //
@@ -20,7 +30,7 @@ type DoubleIndexNode struct {
 }
 
 // DoubleIndex returns a table node that starts a node chain that begins with the double_index table.
-func DoubleIndex() *DoubleIndexNode {
+func DoubleIndex() DoubleIndexNodeI {
 	n := DoubleIndexNode{
 		query.NewTableNode("goradd_unit", "double_index", "DoubleIndex"),
 	}

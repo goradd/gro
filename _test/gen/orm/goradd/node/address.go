@@ -9,6 +9,18 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
+// AddressI is the builder interface to the Address nodes.
+type AddressNodeI interface {
+	query.NodeI
+	PrimaryKeyNode() *query.ColumnNode
+
+	ID() *query.ColumnNode
+	PersonID() *query.ColumnNode
+	Person() PersonNodeI
+	Street() *query.ColumnNode
+	City() *query.ColumnNode
+}
+
 // AddressNode represents the address table in a query. It uses a builder pattern to chain
 // together other tables and columns to form a node in a query.
 //
@@ -20,7 +32,7 @@ type AddressNode struct {
 }
 
 // Address returns a table node that starts a node chain that begins with the address table.
-func Address() *AddressNode {
+func Address() AddressNodeI {
 	n := AddressNode{
 		query.NewTableNode("goradd", "address", "Address"),
 	}
@@ -85,7 +97,7 @@ func (n *AddressNode) PersonID() *query.ColumnNode {
 }
 
 // Person represents the link to a Person object.
-func (n *AddressNode) Person() *PersonNode {
+func (n *AddressNode) Person() PersonNodeI {
 	cn := &PersonNode{
 		query.NewReferenceNode(
 			"goradd",
