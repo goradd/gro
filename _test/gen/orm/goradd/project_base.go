@@ -2451,7 +2451,7 @@ func (o *projectBase) UnmarshalBinary(data []byte) (err error) {
 		return fmt.Errorf("error decoding Project.revMilestonesIsDirty: %w", err)
 	}
 
-	if err = dec.Decode(&o.mmChildrenPks); err != nil {
+	if err = dec.Decode(&o.mmChildren); err != nil {
 		return fmt.Errorf("error decoding Project.mmChildrenPks: %w", err)
 	}
 	if err = dec.Decode(&o.mmChildrenIsDirty); err != nil {
@@ -2466,7 +2466,7 @@ func (o *projectBase) UnmarshalBinary(data []byte) (err error) {
 		}
 	}
 
-	if err = dec.Decode(&o.mmParentsPks); err != nil {
+	if err = dec.Decode(&o.mmParents); err != nil {
 		return fmt.Errorf("error decoding Project.mmParentsPks: %w", err)
 	}
 	if err = dec.Decode(&o.mmParentsIsDirty); err != nil {
@@ -2481,7 +2481,7 @@ func (o *projectBase) UnmarshalBinary(data []byte) (err error) {
 		}
 	}
 
-	if err = dec.Decode(&o.mmTeamMembersPks); err != nil {
+	if err = dec.Decode(&o.mmTeamMembers); err != nil {
 		return fmt.Errorf("error decoding Project.mmTeamMembersPks: %w", err)
 	}
 	if err = dec.Decode(&o.mmTeamMembersIsDirty); err != nil {

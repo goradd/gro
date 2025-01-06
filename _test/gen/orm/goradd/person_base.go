@@ -1788,7 +1788,7 @@ func (o *personBase) UnmarshalBinary(data []byte) (err error) {
 		return fmt.Errorf("error decoding Person.mmPersonTypesIsDirty: %w", err)
 	}
 
-	if err = dec.Decode(&o.mmProjectsPks); err != nil {
+	if err = dec.Decode(&o.mmProjects); err != nil {
 		return fmt.Errorf("error decoding Person.mmProjectsPks: %w", err)
 	}
 	if err = dec.Decode(&o.mmProjectsIsDirty); err != nil {

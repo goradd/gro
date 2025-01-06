@@ -17,7 +17,7 @@
         return fmt.Errorf("error decoding {{= table.Identifier }}.{{= mm.VariableIdentifier() }}IsDirty: %w", err)
     }
 {{else}}
-    if err = dec.Decode(&o.{{= mm.PkIdentifier() }}); err != nil {
+    if err = dec.Decode(&o.{{= mm.VariableIdentifier() }}); err != nil {
         return fmt.Errorf("error decoding {{= table.Identifier }}.{{= mm.PkIdentifier() }}: %w", err)
     }
     if err = dec.Decode(&o.{{= mm.VariableIdentifier() }}IsDirty); err != nil {

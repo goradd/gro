@@ -12151,7 +12151,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
 				return
 			}
 
