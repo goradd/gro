@@ -708,23 +708,23 @@ func (o *milestoneBase) MarshalBinary() ([]byte, error) {
 	encoder := gob.NewEncoder(buf)
 
 	if err := encoder.Encode(o.id); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Milestone.id: %w", err)
 	}
 	if err := encoder.Encode(o.idIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Milestone.idIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.idIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Milestone.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.projectID); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Milestone.projectID: %w", err)
 	}
 	if err := encoder.Encode(o.projectIDIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Milestone.projectIDIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.projectIDIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Milestone.projectIDIsDirty: %w", err)
 	}
 
 	if o.objProject == nil {
@@ -736,18 +736,18 @@ func (o *milestoneBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o.objProject); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Milestone.objProject: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o.name); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Milestone.name: %w", err)
 	}
 	if err := encoder.Encode(o.nameIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Milestone.nameIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.nameIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Milestone.nameIsDirty: %w", err)
 	}
 
 	if o._aliases == nil {
@@ -759,15 +759,15 @@ func (o *milestoneBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o._aliases); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Milestone._aliases: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o._restored); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Milestone._restored: %w", err)
 	}
 	if err := encoder.Encode(o._originalPK); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Milestone._originalPK: %w", err)
 	}
 
 	return buf.Bytes(), nil
@@ -784,41 +784,41 @@ func (o *milestoneBase) UnmarshalBinary(data []byte) (err error) {
 
 	_ = isPtr
 	if err = dec.Decode(&o.id); err != nil {
-		return
+		return fmt.Errorf("error decoding Milestone.id: %w", err)
 	}
 	if err = dec.Decode(&o.idIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Milestone.idIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.idIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Milestone.idIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.projectID); err != nil {
-		return
+		return fmt.Errorf("error decoding Milestone.projectID: %w", err)
 	}
 	if err = dec.Decode(&o.projectIDIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Milestone.projectIDIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.projectIDIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Milestone.projectIDIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Milestone.objProject isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.objProject); err != nil {
-			return
+			return fmt.Errorf("error decoding Milestone.objProject: %w", err)
 		}
 	}
 	if err = dec.Decode(&o.name); err != nil {
-		return
+		return fmt.Errorf("error decoding Milestone.name: %w", err)
 	}
 	if err = dec.Decode(&o.nameIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Milestone.nameIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.nameIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Milestone.nameIsDirty: %w", err)
 	}
 
 	return

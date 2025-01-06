@@ -71,7 +71,9 @@ func (m *Database) importSchema(schema *schema.Database) {
 	// get the regular tables
 	for _, table := range schema.Tables {
 		t := newTable(m.Key, table)
-		m.Tables[t.QueryName] = t
+		if t != nil {
+			m.Tables[t.QueryName] = t
+		}
 	}
 
 	// import references after the columns are in place

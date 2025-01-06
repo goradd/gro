@@ -1,0 +1,9 @@
+{{g
+//*** {{includeName}}
+}}
+
+{{
+func init() {
+	gob.Register(&{{= table.Identifier }}Node{})
+}
+}}

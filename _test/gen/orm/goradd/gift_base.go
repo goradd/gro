@@ -605,23 +605,23 @@ func (o *giftBase) MarshalBinary() ([]byte, error) {
 	encoder := gob.NewEncoder(buf)
 
 	if err := encoder.Encode(o.number); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Gift.number: %w", err)
 	}
 	if err := encoder.Encode(o.numberIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Gift.numberIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.numberIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Gift.numberIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.name); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Gift.name: %w", err)
 	}
 	if err := encoder.Encode(o.nameIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Gift.nameIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.nameIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Gift.nameIsDirty: %w", err)
 	}
 
 	if o._aliases == nil {
@@ -633,15 +633,15 @@ func (o *giftBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o._aliases); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Gift._aliases: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o._restored); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Gift._restored: %w", err)
 	}
 	if err := encoder.Encode(o._originalPK); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Gift._originalPK: %w", err)
 	}
 
 	return buf.Bytes(), nil
@@ -658,23 +658,23 @@ func (o *giftBase) UnmarshalBinary(data []byte) (err error) {
 
 	_ = isPtr
 	if err = dec.Decode(&o.number); err != nil {
-		return
+		return fmt.Errorf("error decoding Gift.number: %w", err)
 	}
 	if err = dec.Decode(&o.numberIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Gift.numberIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.numberIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Gift.numberIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.name); err != nil {
-		return
+		return fmt.Errorf("error decoding Gift.name: %w", err)
 	}
 	if err = dec.Decode(&o.nameIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Gift.nameIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.nameIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Gift.nameIsDirty: %w", err)
 	}
 
 	return

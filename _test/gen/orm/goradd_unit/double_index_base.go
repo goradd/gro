@@ -703,33 +703,33 @@ func (o *doubleIndexBase) MarshalBinary() ([]byte, error) {
 	encoder := gob.NewEncoder(buf)
 
 	if err := encoder.Encode(o.id); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding DoubleIndex.id: %w", err)
 	}
 	if err := encoder.Encode(o.idIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding DoubleIndex.idIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.idIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding DoubleIndex.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.fieldInt); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding DoubleIndex.fieldInt: %w", err)
 	}
 	if err := encoder.Encode(o.fieldIntIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding DoubleIndex.fieldIntIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.fieldIntIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding DoubleIndex.fieldIntIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.fieldString); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding DoubleIndex.fieldString: %w", err)
 	}
 	if err := encoder.Encode(o.fieldStringIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding DoubleIndex.fieldStringIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.fieldStringIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding DoubleIndex.fieldStringIsDirty: %w", err)
 	}
 
 	if o._aliases == nil {
@@ -741,15 +741,15 @@ func (o *doubleIndexBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o._aliases); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding DoubleIndex._aliases: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o._restored); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding DoubleIndex._restored: %w", err)
 	}
 	if err := encoder.Encode(o._originalPK); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding DoubleIndex._originalPK: %w", err)
 	}
 
 	return buf.Bytes(), nil
@@ -766,33 +766,33 @@ func (o *doubleIndexBase) UnmarshalBinary(data []byte) (err error) {
 
 	_ = isPtr
 	if err = dec.Decode(&o.id); err != nil {
-		return
+		return fmt.Errorf("error decoding DoubleIndex.id: %w", err)
 	}
 	if err = dec.Decode(&o.idIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding DoubleIndex.idIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.idIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding DoubleIndex.idIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.fieldInt); err != nil {
-		return
+		return fmt.Errorf("error decoding DoubleIndex.fieldInt: %w", err)
 	}
 	if err = dec.Decode(&o.fieldIntIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding DoubleIndex.fieldIntIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.fieldIntIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding DoubleIndex.fieldIntIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.fieldString); err != nil {
-		return
+		return fmt.Errorf("error decoding DoubleIndex.fieldString: %w", err)
 	}
 	if err = dec.Decode(&o.fieldStringIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding DoubleIndex.fieldStringIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.fieldStringIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding DoubleIndex.fieldStringIsDirty: %w", err)
 	}
 
 	return

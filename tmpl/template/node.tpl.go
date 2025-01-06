@@ -59,6 +59,12 @@ func (n *NodeTemplate) gen(table *model.Table, _w io.Writer) (err error) {
 	if err = n.genReverse(table, _w); err != nil {
 		return
 	}
+	if err = n.genGob(table, _w); err != nil {
+		return
+	}
+	if err = n.genInit(table, _w); err != nil {
+		return
+	}
 	return
 }
 
@@ -82,6 +88,8 @@ import (
 }
 
 func (n *NodeTemplate) genStruct(table *model.Table, _w io.Writer) (err error) {
+
+	//*** struct.tmpl
 
 	if _, err = io.WriteString(_w, `// `); err != nil {
 		return
@@ -156,6 +164,8 @@ type `); err != nil {
 }
 
 func (n *NodeTemplate) genTableNode(table *model.Table, _w io.Writer) (err error) {
+
+	//*** table.tmpl
 
 	if _, err = io.WriteString(_w, `// `); err != nil {
 		return
@@ -238,8 +248,9 @@ func `); err != nil {
 
 func (n *NodeTemplate) genPrivate(table *model.Table, _w io.Writer) (err error) {
 
-	if _, err = io.WriteString(_w, `
-// SelectNodes_ is used internally by the framework to return the list of all the column nodes.
+	//*** private.tmpl
+
+	if _, err = io.WriteString(_w, `// SelectNodes_ is used internally by the framework to return the list of all the column nodes.
 // doc: hide
 func (n *`); err != nil {
 		return
@@ -309,7 +320,6 @@ func (n *`); err != nil {
 
 	if _, err = io.WriteString(_w, `Node{query.CopyNode(n.ReferenceNodeI)}
 }
-
 `); err != nil {
 		return
 	}
@@ -319,6 +329,8 @@ func (n *`); err != nil {
 
 func (n *NodeTemplate) genPrimaryKey(table *model.Table, _w io.Writer) (err error) {
 	if col := table.PrimaryKeyColumn(); col != nil {
+
+		//*** pk.tmpl
 
 		if _, err = io.WriteString(_w, `// PrimaryKeyNode returns a node that points to the primary key column, if
 // a single primary key exists in the table.
@@ -358,6 +370,115 @@ func (n *NodeTemplate) genColumns(table *model.Table, _w io.Writer) (err error) 
 	return
 }
 
+func (n *NodeTemplate) genGob(table *model.Table, _w io.Writer) (err error) {
+
+	//*** gob.tmpl
+
+	if _, err = io.WriteString(_w, `
+type `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `NodeEncoded struct {
+	RefNode query.ReferenceNodeI
+}
+
+// GobEncode makes the node serializable.
+// doc:hide
+func (n *`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Node) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	s := `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `NodeEncoded {
+		RefNode: n.ReferenceNodeI,
+	}
+
+	if err = e.Encode(s); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+// GobDecode makes the node deserializable.
+// doc: hide
+func (n *`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Node) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	var s `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `NodeEncoded
+	if err = dec.Decode(&s); err != nil {
+		panic(err)
+	}
+	n.ReferenceNodeI = s.RefNode
+	query.SetParentNode(n, query.ParentNode(n)) // Reinforce types
+	return
+}
+`); err != nil {
+		return
+	}
+
+	return
+}
+
+func (n *NodeTemplate) genInit(table *model.Table, _w io.Writer) (err error) {
+
+	//*** init.tmpl
+
+	if _, err = io.WriteString(_w, `func init() {
+	gob.Register(&`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Node{})
+}
+`); err != nil {
+		return
+	}
+
+	return
+}
+
 //*** column.tmpl
 
 func (n *NodeTemplate) genColumn(table *model.Table, col *model.Column, _w io.Writer) (err error) {
@@ -369,8 +490,6 @@ func (n *NodeTemplate) genColumn(table *model.Table, col *model.Column, _w io.Wr
 		if err = n.genTableRefNode(table, col, _w); err != nil {
 			return
 		}
-		//} else if col.IsEnumReference() {
-		//    if err = n.genEnumTableRefNode(table, col, _w); err != nil { return }
 	} else {
 		if err = n.genColumnNode(table, col, _w); err != nil {
 			return

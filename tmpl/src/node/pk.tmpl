@@ -1,0 +1,11 @@
+{{g
+//*** {{includeName}}
+}}
+
+{{
+// PrimaryKeyNode returns a node that points to the primary key column, if
+// a single primary key exists in the table.
+func (n *{{= table.Identifier }}Node) PrimaryKeyNode() (*query.ColumnNode) {
+    return n.{{col.Identifier}}()
+}
+}}

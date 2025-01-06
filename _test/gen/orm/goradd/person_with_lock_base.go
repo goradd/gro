@@ -734,46 +734,46 @@ func (o *personWithLockBase) MarshalBinary() ([]byte, error) {
 	encoder := gob.NewEncoder(buf)
 
 	if err := encoder.Encode(o.id); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding PersonWithLock.id: %w", err)
 	}
 	if err := encoder.Encode(o.idIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding PersonWithLock.idIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.idIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding PersonWithLock.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.firstName); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding PersonWithLock.firstName: %w", err)
 	}
 	if err := encoder.Encode(o.firstNameIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding PersonWithLock.firstNameIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.firstNameIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding PersonWithLock.firstNameIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.lastName); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding PersonWithLock.lastName: %w", err)
 	}
 	if err := encoder.Encode(o.lastNameIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding PersonWithLock.lastNameIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.lastNameIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding PersonWithLock.lastNameIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.sysTimestamp); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding PersonWithLock.sysTimestamp: %w", err)
 	}
 	if err := encoder.Encode(o.sysTimestampIsNull); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding PersonWithLock.sysTimestampIsNull: %w", err)
 	}
 	if err := encoder.Encode(o.sysTimestampIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding PersonWithLock.sysTimestampIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.sysTimestampIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding PersonWithLock.sysTimestampIsDirty: %w", err)
 	}
 
 	if o._aliases == nil {
@@ -785,15 +785,15 @@ func (o *personWithLockBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o._aliases); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding PersonWithLock._aliases: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o._restored); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding PersonWithLock._restored: %w", err)
 	}
 	if err := encoder.Encode(o._originalPK); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding PersonWithLock._originalPK: %w", err)
 	}
 
 	return buf.Bytes(), nil
@@ -810,46 +810,46 @@ func (o *personWithLockBase) UnmarshalBinary(data []byte) (err error) {
 
 	_ = isPtr
 	if err = dec.Decode(&o.id); err != nil {
-		return
+		return fmt.Errorf("error decoding PersonWithLock.id: %w", err)
 	}
 	if err = dec.Decode(&o.idIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding PersonWithLock.idIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.idIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding PersonWithLock.idIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.firstName); err != nil {
-		return
+		return fmt.Errorf("error decoding PersonWithLock.firstName: %w", err)
 	}
 	if err = dec.Decode(&o.firstNameIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding PersonWithLock.firstNameIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.firstNameIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding PersonWithLock.firstNameIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.lastName); err != nil {
-		return
+		return fmt.Errorf("error decoding PersonWithLock.lastName: %w", err)
 	}
 	if err = dec.Decode(&o.lastNameIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding PersonWithLock.lastNameIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.lastNameIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding PersonWithLock.lastNameIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.sysTimestamp); err != nil {
-		return
+		return fmt.Errorf("error decoding PersonWithLock.sysTimestamp: %w", err)
 	}
 	if err = dec.Decode(&o.sysTimestampIsNull); err != nil {
-		return
+		return fmt.Errorf("error decoding PersonWithLock.sysTimestampIsNull: %w", err)
 	}
 	if err = dec.Decode(&o.sysTimestampIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding PersonWithLock.sysTimestampIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.sysTimestampIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding PersonWithLock.sysTimestampIsDirty: %w", err)
 	}
 
 	return

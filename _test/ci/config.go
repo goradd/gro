@@ -21,32 +21,40 @@ import (
 // DO NOT put live passwords here!
 const defaultUser = "root"
 const defaultPassword = "12345"
-const key = "goradd"
-const databaseName = "goradd"
+const goraddKey = "goradd"
+const goraddDatabaseName = "goradd"
+const goraddUnitKey = "goradd_unit"
+const goraddUnitDatabaseName = "goradd_unit"
 
-func initMysql(overrides map[string]any) {
+func initMysql() {
 	cfg := mysql.NewConfig()
 	cfg.ParseTime = true
-	cfg.DBName = databaseName
+	cfg.DBName = goraddDatabaseName
 	cfg.User = defaultUser
 	cfg.Passwd = defaultPassword
-	mysql2.OverrideConfigSettings(cfg, overrides)
 
-	database := mysql2.NewDB(key, "", cfg)
-	db.AddDatabase(database, key)
+	database := mysql2.NewDB(goraddKey, "", cfg)
+	db.AddDatabase(database, goraddKey)
+
+	cfg.DBName = goraddUnitDatabaseName
+	database = mysql2.NewDB(goraddUnitKey, "", cfg)
+	db.AddDatabase(database, goraddUnitKey)
 }
 
-func initPostgres(overrides map[string]any) {
+func initPostgres() {
 	cfg, _ := pgx.ParseConfig("")
 
 	cfg.Host = "localhost"
 	cfg.User = defaultUser
 	cfg.Password = defaultPassword
-	cfg.Database = databaseName
+	cfg.Database = goraddDatabaseName
 
-	pgsql.OverrideConfigSettings(cfg, overrides)
-	database := pgsql.NewDB(key, "", cfg)
-	db.AddDatabase(database, key)
+	database := pgsql.NewDB(goraddKey, "", cfg)
+	db.AddDatabase(database, goraddKey)
+
+	cfg.Database = goraddUnitDatabaseName
+	database = pgsql.NewDB(goraddUnitKey, "", cfg)
+	db.AddDatabase(database, goraddUnitKey)
 }
 
 // InitDB initializes the database.
@@ -56,9 +64,7 @@ func InitDB() {
 	var configFile string
 	flag.StringVar(&configFile, "c", "", "Path to database configuration file")
 	flag.Parse()
-
-	var overrides map[string]any
-
+	
 	// If a config file is provided, use it instead
 	if configFile != "" {
 		if databaseConfigs, err := config.OpenConfigFile(configFile); err != nil {
@@ -70,6 +76,6 @@ func InitDB() {
 	}
 
 	// pick a database to initialize here if no config file
-	initMysql(overrides)
-	//initPostgres(overrides)
+	initMysql()
+	//initPostgres()
 }

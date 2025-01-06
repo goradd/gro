@@ -3,7 +3,7 @@
 //*** {{includeName}}
 }}
 {{
-    if err := encoder.Encode(o.{{= rev.ReverseVariableIdentifier() }} ); err != nil {
+    if err := encoder.Encode(&o.{{= rev.ReverseVariableIdentifier() }} ); err != nil {
         return nil, err
     }
     if err := encoder.Encode(len(o.{{= rev.ReversePkIdentifier() }}) != 0); err != nil {

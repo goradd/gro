@@ -1487,36 +1487,36 @@ func (o *personBase) MarshalBinary() ([]byte, error) {
 	encoder := gob.NewEncoder(buf)
 
 	if err := encoder.Encode(o.id); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Person.id: %w", err)
 	}
 	if err := encoder.Encode(o.idIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Person.idIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.idIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Person.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.firstName); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Person.firstName: %w", err)
 	}
 	if err := encoder.Encode(o.firstNameIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Person.firstNameIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.firstNameIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Person.firstNameIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.lastName); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Person.lastName: %w", err)
 	}
 	if err := encoder.Encode(o.lastNameIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Person.lastNameIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.lastNameIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Person.lastNameIsDirty: %w", err)
 	}
 
-	if err := encoder.Encode(o.revAddresses); err != nil {
+	if err := encoder.Encode(&o.revAddresses); err != nil {
 		return nil, err
 	}
 	if err := encoder.Encode(len(o.revAddressesPks) != 0); err != nil {
@@ -1541,7 +1541,7 @@ func (o *personBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o.revEmployeeInfo); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Person.revEmployeeInfo: %w", err)
 		}
 	}
 
@@ -1554,12 +1554,12 @@ func (o *personBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(*o.revEmployeeInfoPk); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Person.revEmployeeInfoPk: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o.revEmployeeInfoIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Person.revEmployeeInfoIsDirty: %w", err)
 	}
 	if o.revLogin == nil {
 		if err := encoder.Encode(false); err != nil {
@@ -1570,7 +1570,7 @@ func (o *personBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o.revLogin); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Person.revLogin: %w", err)
 		}
 	}
 
@@ -1583,14 +1583,14 @@ func (o *personBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(*o.revLoginPk); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Person.revLoginPk: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o.revLoginIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Person.revLoginIsDirty: %w", err)
 	}
-	if err := encoder.Encode(o.revManagerProjects); err != nil {
+	if err := encoder.Encode(&o.revManagerProjects); err != nil {
 		return nil, err
 	}
 	if err := encoder.Encode(len(o.revManagerProjectsPks) != 0); err != nil {
@@ -1614,26 +1614,26 @@ func (o *personBase) MarshalBinary() ([]byte, error) {
 		if err := encoder.Encode(true); err != nil {
 			return nil, err
 		}
-		if err := encoder.Encode(o.mmPersonTypes); err != nil {
-			return nil, err
+		if err := encoder.Encode(&o.mmPersonTypes); err != nil {
+			return nil, fmt.Errorf("error encoding Person.mmPersonTypes: %w", err)
 		}
 	}
 	if err := encoder.Encode(o.mmPersonTypesIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Person.mmPersonTypesIsDirty: %w", err)
 	}
 
-	if err := encoder.Encode(o.mmProjects); err != nil {
-		return nil, err
+	if err := encoder.Encode(&o.mmProjects); err != nil {
+		return nil, fmt.Errorf("error encoding Person.mmProjects: %w", err)
 	}
 	if err := encoder.Encode(o.mmProjectsIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Person.mmProjectsIsDirty: %w", err)
 	}
 	if err := encoder.Encode(o.mmProjectsPks != nil); err != nil {
 		return nil, err
 	}
 	if o.mmProjectsPks != nil {
 		if err := encoder.Encode(o.mmProjectsPks); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Person.mmProjectsPks: %w", err)
 		}
 	}
 
@@ -1646,15 +1646,15 @@ func (o *personBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o._aliases); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Person._aliases: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o._restored); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Person._restored: %w", err)
 	}
 	if err := encoder.Encode(o._originalPK); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Person._originalPK: %w", err)
 	}
 
 	return buf.Bytes(), nil
@@ -1671,135 +1671,135 @@ func (o *personBase) UnmarshalBinary(data []byte) (err error) {
 
 	_ = isPtr
 	if err = dec.Decode(&o.id); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.id: %w", err)
 	}
 	if err = dec.Decode(&o.idIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.idIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.idIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.idIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.firstName); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.firstName: %w", err)
 	}
 	if err = dec.Decode(&o.firstNameIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.firstNameIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.firstNameIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.firstNameIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.lastName); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.lastName: %w", err)
 	}
 	if err = dec.Decode(&o.lastNameIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.lastNameIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.lastNameIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.lastNameIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.revAddresses); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.revAddresses: %w", err)
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.revAddressesPks isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.revAddressesPks); err != nil {
-			return
+			return fmt.Errorf("error decoding Person.revAddressesPks: %w", err)
 		}
 	}
 
 	if err = dec.Decode(&o.revAddressesIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.revAddressesIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.revEmployeeInfo isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.revEmployeeInfo); err != nil {
-			return
+			return fmt.Errorf("error decoding Person.revEmployeeInfo: %w", err)
 		}
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.revEmployeeInfoPk isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.revEmployeeInfoPk); err != nil {
-			return
+			return fmt.Errorf("error decoding Person.revEmployeeInfoPk: %w", err)
 		}
 	}
 
 	if err = dec.Decode(&o.revEmployeeInfoIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.revEmployeeInfoIsDirty: %w", err)
 	}
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.revLogin isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.revLogin); err != nil {
-			return
+			return fmt.Errorf("error decoding Person.revLogin: %w", err)
 		}
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.revLoginPk isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.revLoginPk); err != nil {
-			return
+			return fmt.Errorf("error decoding Person.revLoginPk: %w", err)
 		}
 	}
 
 	if err = dec.Decode(&o.revLoginIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.revLoginIsDirty: %w", err)
 	}
 	if err = dec.Decode(&o.revManagerProjects); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.revManagerProjects: %w", err)
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.revManagerProjectsPks isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.revManagerProjectsPks); err != nil {
-			return
+			return fmt.Errorf("error decoding Person.revManagerProjectsPks: %w", err)
 		}
 	}
 
 	if err = dec.Decode(&o.revManagerProjectsIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.revManagerProjectsIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.mmPersonTypes isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.mmPersonTypes); err != nil {
-			return
+			return fmt.Errorf("error decoding Person.mmPersonTypes: %w", err)
 		}
 	}
 	if err = dec.Decode(&o.mmPersonTypesIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.mmPersonTypesIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.mmProjectsPks); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.mmProjectsPks: %w", err)
 	}
 	if err = dec.Decode(&o.mmProjectsIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.mmProjectsIsDirty: %w", err)
 	}
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Person.mmProjectsPks isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.mmProjectsPks); err != nil {
-			return
+			return fmt.Errorf("error decoding Person.mmProjectsPks: %w", err)
 		}
 	}
 	return

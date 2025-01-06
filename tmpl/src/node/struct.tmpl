@@ -1,0 +1,15 @@
+{{g
+//*** {{includeName}}
+}}
+
+{{
+// {{= table.Identifier}}Node represents the {{= table.QueryName}} table in a query. It uses a builder pattern to chain
+// together other tables and columns to form a node in a query.
+//
+// To use the {{= table.Identifier }}Node, call [{{= table.Identifier }}] to start a reference chain when querying the {{= table.QueryName }} table.
+type {{= table.Identifier}}Node struct {
+    // ReferenceNodeI is an internal object that represents the capabilities of the node. Since it is embedded, all
+    // of its functions are exported and are callable along with the {{= table.DecapIdentifier}}Node functions here.
+	query.ReferenceNodeI
+}
+}}

@@ -10951,7 +10951,23 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `); err != nil {
-        return nil, err
+        return nil, fmt.Errorf("error encoding `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `: %w", err)
     }
 `); err != nil {
 			return
@@ -10968,7 +10984,23 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `IsNull); err != nil {
-        return nil, err
+        return nil, fmt.Errorf("error encoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsNull: %w", err)
     }
 `); err != nil {
 				return
@@ -10985,7 +11017,23 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `IsValid); err != nil {
-        return nil, err
+        return nil, fmt.Errorf("error encoding `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `IsValid: %w", err)
     }
     if err := encoder.Encode(o.`); err != nil {
 			return
@@ -10996,7 +11044,23 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `IsDirty); err != nil {
-        return nil, err
+        return nil, fmt.Errorf("error encoding `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `IsDirty: %w", err)
     }
 
 `); err != nil {
@@ -11030,7 +11094,23 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `); err != nil {
-            return nil, err
+            return nil, fmt.Errorf("error encoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `: %w", err)
         }
     }
 `); err != nil {
@@ -11076,7 +11156,23 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `); err != nil {
-            return nil, err
+            return nil, fmt.Errorf("error encoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `: %w", err)
         }
     }
 
@@ -11105,7 +11201,23 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `); err != nil {
-            return nil, err
+            return nil, fmt.Errorf("error encoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `: %w", err)
         }
     }
 
@@ -11118,7 +11230,23 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `IsDirty); err != nil {
-        return nil, err
+        return nil, fmt.Errorf("error encoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsDirty: %w", err)
     }
 `); err != nil {
 				return
@@ -11128,7 +11256,7 @@ func (o *`); err != nil {
 
 			//*** marshal_binary_rev.tmpl
 
-			if _, err = io.WriteString(_w, `    if err := encoder.Encode(o.`); err != nil {
+			if _, err = io.WriteString(_w, `    if err := encoder.Encode(&o.`); err != nil {
 				return
 			}
 
@@ -11218,7 +11346,7 @@ func (o *`); err != nil {
         if err := encoder.Encode(true); err != nil {
             return nil, err
         }
-        if err := encoder.Encode(o.`); err != nil {
+        if err := encoder.Encode(&o.`); err != nil {
 				return
 			}
 
@@ -11227,7 +11355,23 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `); err != nil {
-            return nil, err
+            return nil, fmt.Errorf("error encoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `: %w", err)
         }
     }
     if err := encoder.Encode(o.`); err != nil {
@@ -11239,7 +11383,23 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `IsDirty); err != nil {
-        return nil, err
+        return nil, fmt.Errorf("error encoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsDirty: %w", err)
     }
 
 `); err != nil {
@@ -11248,7 +11408,7 @@ func (o *`); err != nil {
 
 		} else {
 
-			if _, err = io.WriteString(_w, `    if err := encoder.Encode(o.`); err != nil {
+			if _, err = io.WriteString(_w, `    if err := encoder.Encode(&o.`); err != nil {
 				return
 			}
 
@@ -11257,7 +11417,23 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `); err != nil {
-        return nil, err
+        return nil, fmt.Errorf("error encoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `: %w", err)
     }
     if err := encoder.Encode(o.`); err != nil {
 				return
@@ -11268,7 +11444,23 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `IsDirty); err != nil {
-        return nil, err
+        return nil, fmt.Errorf("error encoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsDirty: %w", err)
     }
     if err := encoder.Encode(o.`); err != nil {
 				return
@@ -11299,7 +11491,23 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `); err != nil {
-            return nil, err
+            return nil, fmt.Errorf("error encoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `: %w", err)
         }
     }
 `); err != nil {
@@ -11327,15 +11535,39 @@ func (o *`); err != nil {
             return nil, err
         }
         if err := encoder.Encode(o._aliases); err != nil {
-            return nil, err
+            return nil, fmt.Errorf("error encoding `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `._aliases: %w", err)
         }
     }
 
     if err := encoder.Encode(o._restored); err != nil {
-        return nil, err
+        return nil, fmt.Errorf("error encoding `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `._restored: %w", err)
     }
     if err := encoder.Encode(o._originalPK); err != nil {
-        return nil, err
+        return nil, fmt.Errorf("error encoding `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `._originalPK: %w", err)
     }
 
     return buf.Bytes(), nil
@@ -11394,7 +11626,23 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `); err != nil {
-        return
+        return fmt.Errorf("error decoding `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `: %w", err)
     }
 `); err != nil {
 			return
@@ -11411,7 +11659,23 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `IsNull); err != nil {
-        return
+        return fmt.Errorf("error decoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsNull: %w", err)
     }
 `); err != nil {
 				return
@@ -11428,7 +11692,23 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `IsValid); err != nil {
-        return
+        return fmt.Errorf("error decoding `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `IsValid: %w", err)
     }
     if err = dec.Decode(&o.`); err != nil {
 			return
@@ -11439,7 +11719,23 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `IsDirty); err != nil {
-        return
+        return fmt.Errorf("error decoding `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `IsDirty: %w", err)
     }
 
 `); err != nil {
@@ -11449,7 +11745,23 @@ func (o *`); err != nil {
 		if col.IsReference() {
 
 			if _, err = io.WriteString(_w, `    if err = dec.Decode(&isPtr); err != nil {
-        return
+        return fmt.Errorf("error decoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` isPtr: %w", err)
     }
     if isPtr {
         if err = dec.Decode(&o.`); err != nil {
@@ -11461,7 +11773,23 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `); err != nil {
-            return
+            return fmt.Errorf("error decoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `: %w", err)
         }
     }
 `); err != nil {
@@ -11478,7 +11806,23 @@ func (o *`); err != nil {
 			//*** unmarshal_binary_rev_unique.tmpl
 
 			if _, err = io.WriteString(_w, `    if err = dec.Decode(&isPtr); err != nil {
-        return
+        return fmt.Errorf("error decoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` isPtr: %w", err)
     }
     if isPtr {
         if err = dec.Decode(&o.`); err != nil {
@@ -11490,12 +11834,44 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `); err != nil {
-            return
+            return fmt.Errorf("error decoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `: %w", err)
         }
     }
 
     if err = dec.Decode(&isPtr); err != nil {
-        return
+        return fmt.Errorf("error decoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` isPtr: %w", err)
     }
     if isPtr {
         if err = dec.Decode(&o.`); err != nil {
@@ -11507,7 +11883,23 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `); err != nil {
-            return
+            return fmt.Errorf("error decoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `: %w", err)
         }
     }
 
@@ -11520,7 +11912,23 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `IsDirty); err != nil {
-        return
+        return fmt.Errorf("error decoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsDirty: %w", err)
     }
 `); err != nil {
 				return
@@ -11539,11 +11947,43 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `); err != nil {
-        return
+        return fmt.Errorf("error decoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `: %w", err)
     }
 
     if err = dec.Decode(&isPtr); err != nil {
-        return
+        return fmt.Errorf("error decoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` isPtr: %w", err)
     }
     if isPtr {
         if err = dec.Decode(&o.`); err != nil {
@@ -11555,7 +11995,23 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `); err != nil {
-            return
+            return fmt.Errorf("error decoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `: %w", err)
         }
     }
 
@@ -11568,7 +12024,23 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `IsDirty); err != nil {
-        return
+        return fmt.Errorf("error decoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsDirty: %w", err)
     }
 
     `); err != nil {
@@ -11595,7 +12067,23 @@ func (o *`); err != nil {
 		if mm.IsEnum() {
 
 			if _, err = io.WriteString(_w, `    if err = dec.Decode(&isPtr); err != nil {
-        return
+        return fmt.Errorf("error decoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` isPtr: %w", err)
     }
     if isPtr {
         if err = dec.Decode(&o.`); err != nil {
@@ -11607,7 +12095,23 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, ` ); err != nil {
-            return
+            return fmt.Errorf("error decoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `: %w", err)
         }
     }
     if err = dec.Decode(&o.`); err != nil {
@@ -11619,7 +12123,23 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `IsDirty); err != nil {
-        return
+        return fmt.Errorf("error decoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsDirty: %w", err)
     }
 `); err != nil {
 				return
@@ -11636,7 +12156,23 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `); err != nil {
-        return
+        return fmt.Errorf("error decoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `: %w", err)
     }
     if err = dec.Decode(&o.`); err != nil {
 				return
@@ -11647,10 +12183,42 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `IsDirty); err != nil {
-        return
+        return fmt.Errorf("error decoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsDirty: %w", err)
     }
     if err = dec.Decode(&isPtr); err != nil {
-        return
+        return fmt.Errorf("error decoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` isPtr: %w", err)
     }
     if isPtr {
         if err = dec.Decode(&o.`); err != nil {
@@ -11661,8 +12229,24 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` ); err != nil {
-            return
+			if _, err = io.WriteString(_w, `); err != nil {
+            return fmt.Errorf("error decoding `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `: %w", err)
         }
     }
 `); err != nil {

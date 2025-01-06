@@ -12,7 +12,7 @@
             return nil, err
         }
         if err := encoder.Encode(o.{{= rev.ReverseVariableIdentifier() }}); err != nil {
-            return nil, err
+            return nil, fmt.Errorf("error encoding {{= table.Identifier }}.{{= rev.ReverseVariableIdentifier() }}: %w", err)
         }
     }
 
@@ -25,11 +25,11 @@
             return nil, err
         }
         if err := encoder.Encode(*o.{{= rev.ReversePkIdentifier() }}); err != nil {
-            return nil, err
+            return nil, fmt.Errorf("error encoding {{= table.Identifier }}.{{= rev.ReversePkIdentifier() }}: %w", err)
         }
     }
 
     if err := encoder.Encode(o.{{= rev.ReverseVariableIdentifier() }}IsDirty); err != nil {
-        return nil, err
+        return nil, fmt.Errorf("error encoding {{= table.Identifier }}.{{= rev.ReverseVariableIdentifier() }}IsDirty: %w", err)
     }
 }}

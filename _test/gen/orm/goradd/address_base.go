@@ -825,23 +825,23 @@ func (o *addressBase) MarshalBinary() ([]byte, error) {
 	encoder := gob.NewEncoder(buf)
 
 	if err := encoder.Encode(o.id); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Address.id: %w", err)
 	}
 	if err := encoder.Encode(o.idIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Address.idIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.idIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Address.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.personID); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Address.personID: %w", err)
 	}
 	if err := encoder.Encode(o.personIDIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Address.personIDIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.personIDIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Address.personIDIsDirty: %w", err)
 	}
 
 	if o.objPerson == nil {
@@ -853,31 +853,31 @@ func (o *addressBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o.objPerson); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Address.objPerson: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o.street); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Address.street: %w", err)
 	}
 	if err := encoder.Encode(o.streetIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Address.streetIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.streetIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Address.streetIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.city); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Address.city: %w", err)
 	}
 	if err := encoder.Encode(o.cityIsNull); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Address.cityIsNull: %w", err)
 	}
 	if err := encoder.Encode(o.cityIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Address.cityIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.cityIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Address.cityIsDirty: %w", err)
 	}
 
 	if o._aliases == nil {
@@ -889,15 +889,15 @@ func (o *addressBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o._aliases); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Address._aliases: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o._restored); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Address._restored: %w", err)
 	}
 	if err := encoder.Encode(o._originalPK); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Address._originalPK: %w", err)
 	}
 
 	return buf.Bytes(), nil
@@ -914,54 +914,54 @@ func (o *addressBase) UnmarshalBinary(data []byte) (err error) {
 
 	_ = isPtr
 	if err = dec.Decode(&o.id); err != nil {
-		return
+		return fmt.Errorf("error decoding Address.id: %w", err)
 	}
 	if err = dec.Decode(&o.idIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Address.idIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.idIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Address.idIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.personID); err != nil {
-		return
+		return fmt.Errorf("error decoding Address.personID: %w", err)
 	}
 	if err = dec.Decode(&o.personIDIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Address.personIDIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.personIDIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Address.personIDIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Address.objPerson isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.objPerson); err != nil {
-			return
+			return fmt.Errorf("error decoding Address.objPerson: %w", err)
 		}
 	}
 	if err = dec.Decode(&o.street); err != nil {
-		return
+		return fmt.Errorf("error decoding Address.street: %w", err)
 	}
 	if err = dec.Decode(&o.streetIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Address.streetIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.streetIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Address.streetIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.city); err != nil {
-		return
+		return fmt.Errorf("error decoding Address.city: %w", err)
 	}
 	if err = dec.Decode(&o.cityIsNull); err != nil {
-		return
+		return fmt.Errorf("error decoding Address.cityIsNull: %w", err)
 	}
 	if err = dec.Decode(&o.cityIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Address.cityIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.cityIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Address.cityIsDirty: %w", err)
 	}
 
 	return

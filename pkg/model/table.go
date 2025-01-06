@@ -108,7 +108,7 @@ func (t *Table) HasAutoId() bool {
 }
 
 // newTable will import the table provided by tableSchema.
-// If an error occurs, the table is returned with no columns.
+// If an error occurs, nil is returned.
 func newTable(dbKey string, tableSchema *schema.Table) *Table {
 	queryName := strings2.If(tableSchema.Schema == "", tableSchema.Name, tableSchema.Schema+"."+tableSchema.Name)
 	t := &Table{
@@ -125,12 +125,12 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 
 	if t.Identifier == t.IdentifierPlural {
 		slog.Error("Table " + t.QueryName + " is using a plural name.")
-		return t
+		return nil
 	}
 
 	if len(tableSchema.Columns) == 0 {
 		slog.Error("Table " + t.QueryName + " has no columns.")
-		return t
+		return nil
 	}
 
 	var pkCount int
@@ -141,8 +141,7 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 			pkCount++
 			if pkCount > 1 {
 				slog.Error("Table " + t.QueryName + " has a multi-column primary key. Instead combine a multi-column unique index with a single column auto-generated primary key.")
-				t.Columns = nil
-				return t
+				return nil
 			}
 			t.Columns = slices.Insert(t.Columns, 0, newCol)
 		} else {
@@ -162,7 +161,7 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 			col := t.ColumnByName(name)
 			if col == nil {
 				slog.Error("Cannot find column " + name + " of table " + t.QueryName + " in multi-column index")
-				return t
+				return nil
 			}
 			columns = append(columns, col)
 		}

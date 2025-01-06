@@ -14,15 +14,15 @@
             return nil, err
         }
         if err := encoder.Encode(o._aliases); err != nil {
-            return nil, err
+            return nil, fmt.Errorf("error encoding {{= table.Identifier }}._aliases: %w", err)
         }
     }
 
     if err := encoder.Encode(o._restored); err != nil {
-        return nil, err
+        return nil, fmt.Errorf("error encoding {{= table.Identifier }}._restored: %w", err)
     }
     if err := encoder.Encode(o._originalPK); err != nil {
-        return nil, err
+        return nil, fmt.Errorf("error encoding {{= table.Identifier }}._originalPK: %w", err)
     }
 
     return buf.Bytes(), nil

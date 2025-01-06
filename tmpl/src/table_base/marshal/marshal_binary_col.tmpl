@@ -5,18 +5,18 @@
 {{
 
     if err := encoder.Encode(o.{{= col.VariableIdentifier() }}); err != nil {
-        return nil, err
+        return nil, fmt.Errorf("error encoding {{= table.Identifier }}.{{= col.VariableIdentifier() }}: %w", err)
     }
 {{if col.IsNullable}}
     if err := encoder.Encode(o.{{= col.VariableIdentifier() }}IsNull); err != nil {
-        return nil, err
+        return nil, fmt.Errorf("error encoding {{= table.Identifier }}.{{= col.VariableIdentifier() }}IsNull: %w", err)
     }
 {{if}}
     if err := encoder.Encode(o.{{= col.VariableIdentifier() }}IsValid); err != nil {
-        return nil, err
+        return nil, fmt.Errorf("error encoding {{= table.Identifier }}.{{= col.VariableIdentifier() }}IsValid: %w", err)
     }
     if err := encoder.Encode(o.{{= col.VariableIdentifier() }}IsDirty); err != nil {
-        return nil, err
+        return nil, fmt.Errorf("error encoding {{= table.Identifier }}.{{= col.VariableIdentifier() }}IsDirty: %w", err)
     }
 
 {{if col.IsReference() }}
@@ -29,7 +29,7 @@
             return nil, err
         }
         if err := encoder.Encode(o.{{= col.ReferenceVariableIdentifier() }}); err != nil {
-            return nil, err
+            return nil, fmt.Errorf("error encoding {{= table.Identifier }}.{{= col.ReferenceVariableIdentifier() }}: %w", err)
         }
     }
 {{if}}

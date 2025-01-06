@@ -754,36 +754,36 @@ func (o *forwardCascadeBase) MarshalBinary() ([]byte, error) {
 	encoder := gob.NewEncoder(buf)
 
 	if err := encoder.Encode(o.id); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardCascade.id: %w", err)
 	}
 	if err := encoder.Encode(o.idIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardCascade.idIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.idIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardCascade.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.name); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardCascade.name: %w", err)
 	}
 	if err := encoder.Encode(o.nameIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardCascade.nameIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.nameIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardCascade.nameIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.reverseID); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardCascade.reverseID: %w", err)
 	}
 	if err := encoder.Encode(o.reverseIDIsNull); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardCascade.reverseIDIsNull: %w", err)
 	}
 	if err := encoder.Encode(o.reverseIDIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardCascade.reverseIDIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.reverseIDIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardCascade.reverseIDIsDirty: %w", err)
 	}
 
 	if o.objReverse == nil {
@@ -795,7 +795,7 @@ func (o *forwardCascadeBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o.objReverse); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding ForwardCascade.objReverse: %w", err)
 		}
 	}
 
@@ -808,15 +808,15 @@ func (o *forwardCascadeBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o._aliases); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding ForwardCascade._aliases: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o._restored); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardCascade._restored: %w", err)
 	}
 	if err := encoder.Encode(o._originalPK); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardCascade._originalPK: %w", err)
 	}
 
 	return buf.Bytes(), nil
@@ -833,44 +833,44 @@ func (o *forwardCascadeBase) UnmarshalBinary(data []byte) (err error) {
 
 	_ = isPtr
 	if err = dec.Decode(&o.id); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardCascade.id: %w", err)
 	}
 	if err = dec.Decode(&o.idIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardCascade.idIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.idIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardCascade.idIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.name); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardCascade.name: %w", err)
 	}
 	if err = dec.Decode(&o.nameIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardCascade.nameIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.nameIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardCascade.nameIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.reverseID); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardCascade.reverseID: %w", err)
 	}
 	if err = dec.Decode(&o.reverseIDIsNull); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardCascade.reverseIDIsNull: %w", err)
 	}
 	if err = dec.Decode(&o.reverseIDIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardCascade.reverseIDIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.reverseIDIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardCascade.reverseIDIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardCascade.objReverse isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.objReverse); err != nil {
-			return
+			return fmt.Errorf("error decoding ForwardCascade.objReverse: %w", err)
 		}
 	}
 	return

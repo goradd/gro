@@ -15,16 +15,15 @@ import (
 func ClearAll(ctx context.Context) {
 	db := Database()
 
-	db.Delete(ctx, "forward_cascade", nil)
-	db.Delete(ctx, "unsupported_type", nil)
-	db.Delete(ctx, "type_test", nil)
-	db.Delete(ctx, "two_key", nil)
-	db.Delete(ctx, "reverse", nil)
-	db.Delete(ctx, "forward_restrict_unique", nil)
 	db.Delete(ctx, "forward_restrict", nil)
 	db.Delete(ctx, "forward_null_unique", nil)
 	db.Delete(ctx, "forward_null", nil)
 	db.Delete(ctx, "forward_cascade_unique", nil)
+	db.Delete(ctx, "unsupported_type", nil)
+	db.Delete(ctx, "type_test", nil)
+	db.Delete(ctx, "reverse", nil)
+	db.Delete(ctx, "forward_restrict_unique", nil)
+	db.Delete(ctx, "forward_cascade", nil)
 	db.Delete(ctx, "double_index", nil)
 
 }

@@ -781,36 +781,36 @@ func (o *forwardNullUniqueBase) MarshalBinary() ([]byte, error) {
 	encoder := gob.NewEncoder(buf)
 
 	if err := encoder.Encode(o.id); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardNullUnique.id: %w", err)
 	}
 	if err := encoder.Encode(o.idIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardNullUnique.idIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.idIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardNullUnique.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.name); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardNullUnique.name: %w", err)
 	}
 	if err := encoder.Encode(o.nameIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardNullUnique.nameIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.nameIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardNullUnique.nameIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.reverseID); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardNullUnique.reverseID: %w", err)
 	}
 	if err := encoder.Encode(o.reverseIDIsNull); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardNullUnique.reverseIDIsNull: %w", err)
 	}
 	if err := encoder.Encode(o.reverseIDIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardNullUnique.reverseIDIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.reverseIDIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardNullUnique.reverseIDIsDirty: %w", err)
 	}
 
 	if o.objReverse == nil {
@@ -822,7 +822,7 @@ func (o *forwardNullUniqueBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o.objReverse); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding ForwardNullUnique.objReverse: %w", err)
 		}
 	}
 
@@ -835,15 +835,15 @@ func (o *forwardNullUniqueBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o._aliases); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding ForwardNullUnique._aliases: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o._restored); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardNullUnique._restored: %w", err)
 	}
 	if err := encoder.Encode(o._originalPK); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardNullUnique._originalPK: %w", err)
 	}
 
 	return buf.Bytes(), nil
@@ -860,44 +860,44 @@ func (o *forwardNullUniqueBase) UnmarshalBinary(data []byte) (err error) {
 
 	_ = isPtr
 	if err = dec.Decode(&o.id); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardNullUnique.id: %w", err)
 	}
 	if err = dec.Decode(&o.idIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardNullUnique.idIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.idIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardNullUnique.idIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.name); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardNullUnique.name: %w", err)
 	}
 	if err = dec.Decode(&o.nameIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardNullUnique.nameIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.nameIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardNullUnique.nameIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.reverseID); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardNullUnique.reverseID: %w", err)
 	}
 	if err = dec.Decode(&o.reverseIDIsNull); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardNullUnique.reverseIDIsNull: %w", err)
 	}
 	if err = dec.Decode(&o.reverseIDIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardNullUnique.reverseIDIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.reverseIDIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardNullUnique.reverseIDIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardNullUnique.objReverse isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.objReverse); err != nil {
-			return
+			return fmt.Errorf("error decoding ForwardNullUnique.objReverse: %w", err)
 		}
 	}
 	return

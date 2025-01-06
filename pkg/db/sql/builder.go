@@ -320,6 +320,7 @@ func (b *Builder) mergeNode(srcNode NodeI, destJoinItem *JoinTreeItem) {
 
 	if destJoinItem.ChildReferences == nil {
 		// We have found the end of the table chain, so insert what is left
+		// TODO: if !IsColumnNode(childNode) {panic("end of node chain is not a column node")}
 		b.insertNode(childNode, destJoinItem)
 	} else {
 		found := false

@@ -1550,26 +1550,26 @@ func (o *reverseBase) MarshalBinary() ([]byte, error) {
 	encoder := gob.NewEncoder(buf)
 
 	if err := encoder.Encode(o.id); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Reverse.id: %w", err)
 	}
 	if err := encoder.Encode(o.idIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Reverse.idIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.idIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Reverse.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.name); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Reverse.name: %w", err)
 	}
 	if err := encoder.Encode(o.nameIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Reverse.nameIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.nameIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Reverse.nameIsDirty: %w", err)
 	}
 
-	if err := encoder.Encode(o.revForwardCascades); err != nil {
+	if err := encoder.Encode(&o.revForwardCascades); err != nil {
 		return nil, err
 	}
 	if err := encoder.Encode(len(o.revForwardCascadesPks) != 0); err != nil {
@@ -1594,7 +1594,7 @@ func (o *reverseBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o.revForwardCascadeUnique); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Reverse.revForwardCascadeUnique: %w", err)
 		}
 	}
 
@@ -1607,14 +1607,14 @@ func (o *reverseBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(*o.revForwardCascadeUniquePk); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Reverse.revForwardCascadeUniquePk: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o.revForwardCascadeUniqueIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Reverse.revForwardCascadeUniqueIsDirty: %w", err)
 	}
-	if err := encoder.Encode(o.revForwardNulls); err != nil {
+	if err := encoder.Encode(&o.revForwardNulls); err != nil {
 		return nil, err
 	}
 	if err := encoder.Encode(len(o.revForwardNullsPks) != 0); err != nil {
@@ -1639,7 +1639,7 @@ func (o *reverseBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o.revForwardNullUnique); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Reverse.revForwardNullUnique: %w", err)
 		}
 	}
 
@@ -1652,14 +1652,14 @@ func (o *reverseBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(*o.revForwardNullUniquePk); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Reverse.revForwardNullUniquePk: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o.revForwardNullUniqueIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Reverse.revForwardNullUniqueIsDirty: %w", err)
 	}
-	if err := encoder.Encode(o.revForwardRestricts); err != nil {
+	if err := encoder.Encode(&o.revForwardRestricts); err != nil {
 		return nil, err
 	}
 	if err := encoder.Encode(len(o.revForwardRestrictsPks) != 0); err != nil {
@@ -1684,7 +1684,7 @@ func (o *reverseBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o.revForwardRestrictUnique); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Reverse.revForwardRestrictUnique: %w", err)
 		}
 	}
 
@@ -1697,12 +1697,12 @@ func (o *reverseBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(*o.revForwardRestrictUniquePk); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Reverse.revForwardRestrictUniquePk: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o.revForwardRestrictUniqueIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Reverse.revForwardRestrictUniqueIsDirty: %w", err)
 	}
 
 	if o._aliases == nil {
@@ -1714,15 +1714,15 @@ func (o *reverseBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o._aliases); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Reverse._aliases: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o._restored); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Reverse._restored: %w", err)
 	}
 	if err := encoder.Encode(o._originalPK); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Reverse._originalPK: %w", err)
 	}
 
 	return buf.Bytes(), nil
@@ -1739,138 +1739,138 @@ func (o *reverseBase) UnmarshalBinary(data []byte) (err error) {
 
 	_ = isPtr
 	if err = dec.Decode(&o.id); err != nil {
-		return
+		return fmt.Errorf("error decoding Reverse.id: %w", err)
 	}
 	if err = dec.Decode(&o.idIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Reverse.idIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.idIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Reverse.idIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.name); err != nil {
-		return
+		return fmt.Errorf("error decoding Reverse.name: %w", err)
 	}
 	if err = dec.Decode(&o.nameIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Reverse.nameIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.nameIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Reverse.nameIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.revForwardCascades); err != nil {
-		return
+		return fmt.Errorf("error decoding Reverse.revForwardCascades: %w", err)
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Reverse.revForwardCascadesPks isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.revForwardCascadesPks); err != nil {
-			return
+			return fmt.Errorf("error decoding Reverse.revForwardCascadesPks: %w", err)
 		}
 	}
 
 	if err = dec.Decode(&o.revForwardCascadesIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Reverse.revForwardCascadesIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Reverse.revForwardCascadeUnique isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.revForwardCascadeUnique); err != nil {
-			return
+			return fmt.Errorf("error decoding Reverse.revForwardCascadeUnique: %w", err)
 		}
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Reverse.revForwardCascadeUniquePk isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.revForwardCascadeUniquePk); err != nil {
-			return
+			return fmt.Errorf("error decoding Reverse.revForwardCascadeUniquePk: %w", err)
 		}
 	}
 
 	if err = dec.Decode(&o.revForwardCascadeUniqueIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Reverse.revForwardCascadeUniqueIsDirty: %w", err)
 	}
 	if err = dec.Decode(&o.revForwardNulls); err != nil {
-		return
+		return fmt.Errorf("error decoding Reverse.revForwardNulls: %w", err)
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Reverse.revForwardNullsPks isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.revForwardNullsPks); err != nil {
-			return
+			return fmt.Errorf("error decoding Reverse.revForwardNullsPks: %w", err)
 		}
 	}
 
 	if err = dec.Decode(&o.revForwardNullsIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Reverse.revForwardNullsIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Reverse.revForwardNullUnique isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.revForwardNullUnique); err != nil {
-			return
+			return fmt.Errorf("error decoding Reverse.revForwardNullUnique: %w", err)
 		}
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Reverse.revForwardNullUniquePk isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.revForwardNullUniquePk); err != nil {
-			return
+			return fmt.Errorf("error decoding Reverse.revForwardNullUniquePk: %w", err)
 		}
 	}
 
 	if err = dec.Decode(&o.revForwardNullUniqueIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Reverse.revForwardNullUniqueIsDirty: %w", err)
 	}
 	if err = dec.Decode(&o.revForwardRestricts); err != nil {
-		return
+		return fmt.Errorf("error decoding Reverse.revForwardRestricts: %w", err)
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Reverse.revForwardRestrictsPks isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.revForwardRestrictsPks); err != nil {
-			return
+			return fmt.Errorf("error decoding Reverse.revForwardRestrictsPks: %w", err)
 		}
 	}
 
 	if err = dec.Decode(&o.revForwardRestrictsIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Reverse.revForwardRestrictsIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Reverse.revForwardRestrictUnique isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.revForwardRestrictUnique); err != nil {
-			return
+			return fmt.Errorf("error decoding Reverse.revForwardRestrictUnique: %w", err)
 		}
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Reverse.revForwardRestrictUniquePk isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.revForwardRestrictUniquePk); err != nil {
-			return
+			return fmt.Errorf("error decoding Reverse.revForwardRestrictUniquePk: %w", err)
 		}
 	}
 
 	if err = dec.Decode(&o.revForwardRestrictUniqueIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Reverse.revForwardRestrictUniqueIsDirty: %w", err)
 	}
 	return
 }

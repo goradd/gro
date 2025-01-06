@@ -8,8 +8,6 @@ func (n *NodeTemplate)genColumn(table *model.Table, col *model.Column, _w io.Wri
     if col.IsReference() {
        if err = n.genColumnNode(table, col, _w); err != nil { return }
        if err = n.genTableRefNode(table, col, _w); err != nil { return }
-    //} else if col.IsEnumReference() {
-    //    if err = n.genEnumTableRefNode(table, col, _w); err != nil { return }
     } else {
         if err = n.genColumnNode(table, col, _w); err != nil { return }
     }

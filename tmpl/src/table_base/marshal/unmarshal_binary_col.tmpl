@@ -4,28 +4,27 @@
 }}
 {{
     if err = dec.Decode(&o.{{= col.VariableIdentifier() }}); err != nil {
-        return
+        return fmt.Errorf("error decoding {{= table.Identifier }}.{{= col.VariableIdentifier() }}: %w", err)
     }
 {{if col.IsNullable}}
     if err = dec.Decode(&o.{{= col.VariableIdentifier() }}IsNull); err != nil {
-        return
+        return fmt.Errorf("error decoding {{= table.Identifier }}.{{= col.VariableIdentifier() }}IsNull: %w", err)
     }
 {{if}}
     if err = dec.Decode(&o.{{= col.VariableIdentifier() }}IsValid); err != nil {
-        return
+        return fmt.Errorf("error decoding {{= table.Identifier }}.{{= col.VariableIdentifier() }}IsValid: %w", err)
     }
     if err = dec.Decode(&o.{{= col.VariableIdentifier() }}IsDirty); err != nil {
-        return
+        return fmt.Errorf("error decoding {{= table.Identifier }}.{{= col.VariableIdentifier() }}IsDirty: %w", err)
     }
 
 {{if col.IsReference()}}
     if err = dec.Decode(&isPtr); err != nil {
-        return
+        return fmt.Errorf("error decoding {{= table.Identifier }}.{{= col.ReferenceVariableIdentifier() }} isPtr: %w", err)
     }
     if isPtr {
-        if err = dec.Decode(&o.{{= col.ReferenceVariableIdentifier()
- }}); err != nil {
-            return
+        if err = dec.Decode(&o.{{= col.ReferenceVariableIdentifier() }}); err != nil {
+            return fmt.Errorf("error decoding {{= table.Identifier }}.{{= col.ReferenceVariableIdentifier() }}: %w", err)
         }
     }
 {{if}}

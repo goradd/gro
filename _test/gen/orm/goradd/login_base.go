@@ -988,26 +988,26 @@ func (o *loginBase) MarshalBinary() ([]byte, error) {
 	encoder := gob.NewEncoder(buf)
 
 	if err := encoder.Encode(o.id); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Login.id: %w", err)
 	}
 	if err := encoder.Encode(o.idIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Login.idIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.idIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Login.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.personID); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Login.personID: %w", err)
 	}
 	if err := encoder.Encode(o.personIDIsNull); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Login.personIDIsNull: %w", err)
 	}
 	if err := encoder.Encode(o.personIDIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Login.personIDIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.personIDIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Login.personIDIsDirty: %w", err)
 	}
 
 	if o.objPerson == nil {
@@ -1019,41 +1019,41 @@ func (o *loginBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o.objPerson); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Login.objPerson: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o.username); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Login.username: %w", err)
 	}
 	if err := encoder.Encode(o.usernameIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Login.usernameIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.usernameIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Login.usernameIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.password); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Login.password: %w", err)
 	}
 	if err := encoder.Encode(o.passwordIsNull); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Login.passwordIsNull: %w", err)
 	}
 	if err := encoder.Encode(o.passwordIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Login.passwordIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.passwordIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Login.passwordIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.isEnabled); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Login.isEnabled: %w", err)
 	}
 	if err := encoder.Encode(o.isEnabledIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Login.isEnabledIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.isEnabledIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Login.isEnabledIsDirty: %w", err)
 	}
 
 	if o._aliases == nil {
@@ -1065,15 +1065,15 @@ func (o *loginBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o._aliases); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Login._aliases: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o._restored); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Login._restored: %w", err)
 	}
 	if err := encoder.Encode(o._originalPK); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Login._originalPK: %w", err)
 	}
 
 	return buf.Bytes(), nil
@@ -1090,67 +1090,67 @@ func (o *loginBase) UnmarshalBinary(data []byte) (err error) {
 
 	_ = isPtr
 	if err = dec.Decode(&o.id); err != nil {
-		return
+		return fmt.Errorf("error decoding Login.id: %w", err)
 	}
 	if err = dec.Decode(&o.idIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Login.idIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.idIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Login.idIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.personID); err != nil {
-		return
+		return fmt.Errorf("error decoding Login.personID: %w", err)
 	}
 	if err = dec.Decode(&o.personIDIsNull); err != nil {
-		return
+		return fmt.Errorf("error decoding Login.personIDIsNull: %w", err)
 	}
 	if err = dec.Decode(&o.personIDIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Login.personIDIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.personIDIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Login.personIDIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Login.objPerson isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.objPerson); err != nil {
-			return
+			return fmt.Errorf("error decoding Login.objPerson: %w", err)
 		}
 	}
 	if err = dec.Decode(&o.username); err != nil {
-		return
+		return fmt.Errorf("error decoding Login.username: %w", err)
 	}
 	if err = dec.Decode(&o.usernameIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Login.usernameIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.usernameIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Login.usernameIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.password); err != nil {
-		return
+		return fmt.Errorf("error decoding Login.password: %w", err)
 	}
 	if err = dec.Decode(&o.passwordIsNull); err != nil {
-		return
+		return fmt.Errorf("error decoding Login.passwordIsNull: %w", err)
 	}
 	if err = dec.Decode(&o.passwordIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Login.passwordIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.passwordIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Login.passwordIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.isEnabled); err != nil {
-		return
+		return fmt.Errorf("error decoding Login.isEnabled: %w", err)
 	}
 	if err = dec.Decode(&o.isEnabledIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Login.isEnabledIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.isEnabledIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Login.isEnabledIsDirty: %w", err)
 	}
 
 	return

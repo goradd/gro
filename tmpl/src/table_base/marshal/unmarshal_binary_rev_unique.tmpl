@@ -4,24 +4,24 @@
 }}
 {{
     if err = dec.Decode(&isPtr); err != nil {
-        return
+        return fmt.Errorf("error decoding {{= table.Identifier }}.{{= rev.ReverseVariableIdentifier() }} isPtr: %w", err)
     }
     if isPtr {
         if err = dec.Decode(&o.{{= rev.ReverseVariableIdentifier()}}); err != nil {
-            return
+            return fmt.Errorf("error decoding {{= table.Identifier }}.{{= rev.ReverseVariableIdentifier() }}: %w", err)
         }
     }
 
     if err = dec.Decode(&isPtr); err != nil {
-        return
+        return fmt.Errorf("error decoding {{= table.Identifier }}.{{= rev.ReversePkIdentifier() }} isPtr: %w", err)
     }
     if isPtr {
         if err = dec.Decode(&o.{{= rev.ReversePkIdentifier() }}); err != nil {
-            return
+            return fmt.Errorf("error decoding {{= table.Identifier }}.{{= rev.ReversePkIdentifier() }}: %w", err)
         }
     }
 
     if err = dec.Decode(&o.{{= rev.ReverseVariableIdentifier()}}IsDirty); err != nil {
-        return
+        return fmt.Errorf("error decoding {{= table.Identifier }}.{{= rev.ReverseVariableIdentifier() }}IsDirty: %w", err)
     }
 }}

@@ -58,11 +58,7 @@ func genTableTemplate(g TableGenerator, table *model.Table) {
 	if !g.Overwrite() && fileExists(filename) {
 		return
 	}
-	if g.Overwrite() && len(table.Columns) == 0 {
-		// an error occurred with the schema
-		deleteFile(filename)
-		return
-	}
+
 	f, err := openFile(filename)
 	if err != nil {
 		log.Print(err)

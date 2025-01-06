@@ -708,33 +708,33 @@ func (o *forwardRestrictBase) MarshalBinary() ([]byte, error) {
 	encoder := gob.NewEncoder(buf)
 
 	if err := encoder.Encode(o.id); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardRestrict.id: %w", err)
 	}
 	if err := encoder.Encode(o.idIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardRestrict.idIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.idIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardRestrict.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.name); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardRestrict.name: %w", err)
 	}
 	if err := encoder.Encode(o.nameIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardRestrict.nameIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.nameIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardRestrict.nameIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.reverseID); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardRestrict.reverseID: %w", err)
 	}
 	if err := encoder.Encode(o.reverseIDIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardRestrict.reverseIDIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.reverseIDIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardRestrict.reverseIDIsDirty: %w", err)
 	}
 
 	if o.objReverse == nil {
@@ -746,7 +746,7 @@ func (o *forwardRestrictBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o.objReverse); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding ForwardRestrict.objReverse: %w", err)
 		}
 	}
 
@@ -759,15 +759,15 @@ func (o *forwardRestrictBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o._aliases); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding ForwardRestrict._aliases: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o._restored); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardRestrict._restored: %w", err)
 	}
 	if err := encoder.Encode(o._originalPK); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding ForwardRestrict._originalPK: %w", err)
 	}
 
 	return buf.Bytes(), nil
@@ -784,41 +784,41 @@ func (o *forwardRestrictBase) UnmarshalBinary(data []byte) (err error) {
 
 	_ = isPtr
 	if err = dec.Decode(&o.id); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardRestrict.id: %w", err)
 	}
 	if err = dec.Decode(&o.idIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardRestrict.idIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.idIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardRestrict.idIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.name); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardRestrict.name: %w", err)
 	}
 	if err = dec.Decode(&o.nameIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardRestrict.nameIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.nameIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardRestrict.nameIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.reverseID); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardRestrict.reverseID: %w", err)
 	}
 	if err = dec.Decode(&o.reverseIDIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardRestrict.reverseIDIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.reverseIDIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardRestrict.reverseIDIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding ForwardRestrict.objReverse isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.objReverse); err != nil {
-			return
+			return fmt.Errorf("error decoding ForwardRestrict.objReverse: %w", err)
 		}
 	}
 	return

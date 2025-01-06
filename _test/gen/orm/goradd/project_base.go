@@ -2084,46 +2084,46 @@ func (o *projectBase) MarshalBinary() ([]byte, error) {
 	encoder := gob.NewEncoder(buf)
 
 	if err := encoder.Encode(o.id); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.id: %w", err)
 	}
 	if err := encoder.Encode(o.idIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.idIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.idIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.num); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.num: %w", err)
 	}
 	if err := encoder.Encode(o.numIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.numIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.numIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.numIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.status); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.status: %w", err)
 	}
 	if err := encoder.Encode(o.statusIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.statusIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.statusIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.statusIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.managerID); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.managerID: %w", err)
 	}
 	if err := encoder.Encode(o.managerIDIsNull); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.managerIDIsNull: %w", err)
 	}
 	if err := encoder.Encode(o.managerIDIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.managerIDIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.managerIDIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.managerIDIsDirty: %w", err)
 	}
 
 	if o.objManager == nil {
@@ -2135,86 +2135,86 @@ func (o *projectBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o.objManager); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Project.objManager: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o.name); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.name: %w", err)
 	}
 	if err := encoder.Encode(o.nameIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.nameIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.nameIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.nameIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.description); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.description: %w", err)
 	}
 	if err := encoder.Encode(o.descriptionIsNull); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.descriptionIsNull: %w", err)
 	}
 	if err := encoder.Encode(o.descriptionIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.descriptionIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.descriptionIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.descriptionIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.startDate); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.startDate: %w", err)
 	}
 	if err := encoder.Encode(o.startDateIsNull); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.startDateIsNull: %w", err)
 	}
 	if err := encoder.Encode(o.startDateIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.startDateIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.startDateIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.startDateIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.endDate); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.endDate: %w", err)
 	}
 	if err := encoder.Encode(o.endDateIsNull); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.endDateIsNull: %w", err)
 	}
 	if err := encoder.Encode(o.endDateIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.endDateIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.endDateIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.endDateIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.budget); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.budget: %w", err)
 	}
 	if err := encoder.Encode(o.budgetIsNull); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.budgetIsNull: %w", err)
 	}
 	if err := encoder.Encode(o.budgetIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.budgetIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.budgetIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.budgetIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.spent); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.spent: %w", err)
 	}
 	if err := encoder.Encode(o.spentIsNull); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.spentIsNull: %w", err)
 	}
 	if err := encoder.Encode(o.spentIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.spentIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.spentIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.spentIsDirty: %w", err)
 	}
 
-	if err := encoder.Encode(o.revMilestones); err != nil {
+	if err := encoder.Encode(&o.revMilestones); err != nil {
 		return nil, err
 	}
 	if err := encoder.Encode(len(o.revMilestonesPks) != 0); err != nil {
@@ -2230,48 +2230,48 @@ func (o *projectBase) MarshalBinary() ([]byte, error) {
 		return nil, err
 	}
 
-	if err := encoder.Encode(o.mmChildren); err != nil {
-		return nil, err
+	if err := encoder.Encode(&o.mmChildren); err != nil {
+		return nil, fmt.Errorf("error encoding Project.mmChildren: %w", err)
 	}
 	if err := encoder.Encode(o.mmChildrenIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.mmChildrenIsDirty: %w", err)
 	}
 	if err := encoder.Encode(o.mmChildrenPks != nil); err != nil {
 		return nil, err
 	}
 	if o.mmChildrenPks != nil {
 		if err := encoder.Encode(o.mmChildrenPks); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Project.mmChildrenPks: %w", err)
 		}
 	}
 
-	if err := encoder.Encode(o.mmParents); err != nil {
-		return nil, err
+	if err := encoder.Encode(&o.mmParents); err != nil {
+		return nil, fmt.Errorf("error encoding Project.mmParents: %w", err)
 	}
 	if err := encoder.Encode(o.mmParentsIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.mmParentsIsDirty: %w", err)
 	}
 	if err := encoder.Encode(o.mmParentsPks != nil); err != nil {
 		return nil, err
 	}
 	if o.mmParentsPks != nil {
 		if err := encoder.Encode(o.mmParentsPks); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Project.mmParentsPks: %w", err)
 		}
 	}
 
-	if err := encoder.Encode(o.mmTeamMembers); err != nil {
-		return nil, err
+	if err := encoder.Encode(&o.mmTeamMembers); err != nil {
+		return nil, fmt.Errorf("error encoding Project.mmTeamMembers: %w", err)
 	}
 	if err := encoder.Encode(o.mmTeamMembersIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project.mmTeamMembersIsDirty: %w", err)
 	}
 	if err := encoder.Encode(o.mmTeamMembersPks != nil); err != nil {
 		return nil, err
 	}
 	if o.mmTeamMembersPks != nil {
 		if err := encoder.Encode(o.mmTeamMembersPks); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Project.mmTeamMembersPks: %w", err)
 		}
 	}
 
@@ -2284,15 +2284,15 @@ func (o *projectBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o._aliases); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding Project._aliases: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o._restored); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project._restored: %w", err)
 	}
 	if err := encoder.Encode(o._originalPK); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding Project._originalPK: %w", err)
 	}
 
 	return buf.Bytes(), nil
@@ -2309,190 +2309,190 @@ func (o *projectBase) UnmarshalBinary(data []byte) (err error) {
 
 	_ = isPtr
 	if err = dec.Decode(&o.id); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.id: %w", err)
 	}
 	if err = dec.Decode(&o.idIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.idIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.idIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.idIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.num); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.num: %w", err)
 	}
 	if err = dec.Decode(&o.numIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.numIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.numIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.numIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.status); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.status: %w", err)
 	}
 	if err = dec.Decode(&o.statusIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.statusIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.statusIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.statusIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.managerID); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.managerID: %w", err)
 	}
 	if err = dec.Decode(&o.managerIDIsNull); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.managerIDIsNull: %w", err)
 	}
 	if err = dec.Decode(&o.managerIDIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.managerIDIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.managerIDIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.managerIDIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.objManager isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.objManager); err != nil {
-			return
+			return fmt.Errorf("error decoding Project.objManager: %w", err)
 		}
 	}
 	if err = dec.Decode(&o.name); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.name: %w", err)
 	}
 	if err = dec.Decode(&o.nameIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.nameIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.nameIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.nameIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.description); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.description: %w", err)
 	}
 	if err = dec.Decode(&o.descriptionIsNull); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.descriptionIsNull: %w", err)
 	}
 	if err = dec.Decode(&o.descriptionIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.descriptionIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.descriptionIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.descriptionIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.startDate); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.startDate: %w", err)
 	}
 	if err = dec.Decode(&o.startDateIsNull); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.startDateIsNull: %w", err)
 	}
 	if err = dec.Decode(&o.startDateIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.startDateIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.startDateIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.startDateIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.endDate); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.endDate: %w", err)
 	}
 	if err = dec.Decode(&o.endDateIsNull); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.endDateIsNull: %w", err)
 	}
 	if err = dec.Decode(&o.endDateIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.endDateIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.endDateIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.endDateIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.budget); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.budget: %w", err)
 	}
 	if err = dec.Decode(&o.budgetIsNull); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.budgetIsNull: %w", err)
 	}
 	if err = dec.Decode(&o.budgetIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.budgetIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.budgetIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.budgetIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.spent); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.spent: %w", err)
 	}
 	if err = dec.Decode(&o.spentIsNull); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.spentIsNull: %w", err)
 	}
 	if err = dec.Decode(&o.spentIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.spentIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.spentIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.spentIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.revMilestones); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.revMilestones: %w", err)
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.revMilestonesPks isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.revMilestonesPks); err != nil {
-			return
+			return fmt.Errorf("error decoding Project.revMilestonesPks: %w", err)
 		}
 	}
 
 	if err = dec.Decode(&o.revMilestonesIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.revMilestonesIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.mmChildrenPks); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.mmChildrenPks: %w", err)
 	}
 	if err = dec.Decode(&o.mmChildrenIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.mmChildrenIsDirty: %w", err)
 	}
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.mmChildrenPks isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.mmChildrenPks); err != nil {
-			return
+			return fmt.Errorf("error decoding Project.mmChildrenPks: %w", err)
 		}
 	}
 
 	if err = dec.Decode(&o.mmParentsPks); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.mmParentsPks: %w", err)
 	}
 	if err = dec.Decode(&o.mmParentsIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.mmParentsIsDirty: %w", err)
 	}
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.mmParentsPks isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.mmParentsPks); err != nil {
-			return
+			return fmt.Errorf("error decoding Project.mmParentsPks: %w", err)
 		}
 	}
 
 	if err = dec.Decode(&o.mmTeamMembersPks); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.mmTeamMembersPks: %w", err)
 	}
 	if err = dec.Decode(&o.mmTeamMembersIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.mmTeamMembersIsDirty: %w", err)
 	}
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding Project.mmTeamMembersPks isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.mmTeamMembersPks); err != nil {
-			return
+			return fmt.Errorf("error decoding Project.mmTeamMembersPks: %w", err)
 		}
 	}
 	return

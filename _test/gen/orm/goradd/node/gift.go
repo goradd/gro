@@ -3,6 +3,9 @@
 package node
 
 import (
+	"bytes"
+	"encoding/gob"
+
 	"github.com/goradd/orm/pkg/query"
 )
 
@@ -77,4 +80,43 @@ func (n *GiftNode) Name() *query.ColumnNode {
 	)
 	query.SetParentNode(cn, n)
 	return cn
+}
+
+type giftNodeEncoded struct {
+	RefNode query.ReferenceNodeI
+}
+
+// GobEncode makes the node serializable.
+// doc:hide
+func (n *GiftNode) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	s := giftNodeEncoded{
+		RefNode: n.ReferenceNodeI,
+	}
+
+	if err = e.Encode(s); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+// GobDecode makes the node deserializable.
+// doc: hide
+func (n *GiftNode) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	var s giftNodeEncoded
+	if err = dec.Decode(&s); err != nil {
+		panic(err)
+	}
+	n.ReferenceNodeI = s.RefNode
+	query.SetParentNode(n, query.ParentNode(n)) // Reinforce types
+	return
+}
+func init() {
+	gob.Register(&GiftNode{})
 }

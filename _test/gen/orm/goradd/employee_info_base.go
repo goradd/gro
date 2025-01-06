@@ -724,23 +724,23 @@ func (o *employeeInfoBase) MarshalBinary() ([]byte, error) {
 	encoder := gob.NewEncoder(buf)
 
 	if err := encoder.Encode(o.id); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding EmployeeInfo.id: %w", err)
 	}
 	if err := encoder.Encode(o.idIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding EmployeeInfo.idIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.idIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding EmployeeInfo.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.personID); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding EmployeeInfo.personID: %w", err)
 	}
 	if err := encoder.Encode(o.personIDIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding EmployeeInfo.personIDIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.personIDIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding EmployeeInfo.personIDIsDirty: %w", err)
 	}
 
 	if o.objPerson == nil {
@@ -752,18 +752,18 @@ func (o *employeeInfoBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o.objPerson); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding EmployeeInfo.objPerson: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o.employeeNumber); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding EmployeeInfo.employeeNumber: %w", err)
 	}
 	if err := encoder.Encode(o.employeeNumberIsValid); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding EmployeeInfo.employeeNumberIsValid: %w", err)
 	}
 	if err := encoder.Encode(o.employeeNumberIsDirty); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding EmployeeInfo.employeeNumberIsDirty: %w", err)
 	}
 
 	if o._aliases == nil {
@@ -775,15 +775,15 @@ func (o *employeeInfoBase) MarshalBinary() ([]byte, error) {
 			return nil, err
 		}
 		if err := encoder.Encode(o._aliases); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("error encoding EmployeeInfo._aliases: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o._restored); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding EmployeeInfo._restored: %w", err)
 	}
 	if err := encoder.Encode(o._originalPK); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error encoding EmployeeInfo._originalPK: %w", err)
 	}
 
 	return buf.Bytes(), nil
@@ -800,41 +800,41 @@ func (o *employeeInfoBase) UnmarshalBinary(data []byte) (err error) {
 
 	_ = isPtr
 	if err = dec.Decode(&o.id); err != nil {
-		return
+		return fmt.Errorf("error decoding EmployeeInfo.id: %w", err)
 	}
 	if err = dec.Decode(&o.idIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding EmployeeInfo.idIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.idIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding EmployeeInfo.idIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.personID); err != nil {
-		return
+		return fmt.Errorf("error decoding EmployeeInfo.personID: %w", err)
 	}
 	if err = dec.Decode(&o.personIDIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding EmployeeInfo.personIDIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.personIDIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding EmployeeInfo.personIDIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return
+		return fmt.Errorf("error decoding EmployeeInfo.objPerson isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o.objPerson); err != nil {
-			return
+			return fmt.Errorf("error decoding EmployeeInfo.objPerson: %w", err)
 		}
 	}
 	if err = dec.Decode(&o.employeeNumber); err != nil {
-		return
+		return fmt.Errorf("error decoding EmployeeInfo.employeeNumber: %w", err)
 	}
 	if err = dec.Decode(&o.employeeNumberIsValid); err != nil {
-		return
+		return fmt.Errorf("error decoding EmployeeInfo.employeeNumberIsValid: %w", err)
 	}
 	if err = dec.Decode(&o.employeeNumberIsDirty); err != nil {
-		return
+		return fmt.Errorf("error decoding EmployeeInfo.employeeNumberIsDirty: %w", err)
 	}
 
 	return
