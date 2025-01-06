@@ -364,17 +364,6 @@ func (b *ForwardCascadesBuilder) Get() *ForwardCascade {
 	}
 }
 
-// Expand causes node to produce separate rows in the results instead of a single row with an array of items.
-func (b *ForwardCascadesBuilder) Expand(node query.Expander) *ForwardCascadesBuilder {
-	n := node.(query.NodeI)
-	if query.NodeTableName(query.RootNode(n)) != "forward_cascade" {
-		panic("you can only expand a node that is rooted at node.ForwardCascade()")
-	}
-
-	b.builder.Expand(n)
-	return b
-}
-
 // Join adds node n to the node tree so that its fields will appear in the query.
 // Optionally add conditions to filter what gets included.
 func (b *ForwardCascadesBuilder) Join(n query.NodeI, conditions ...query.NodeI) *ForwardCascadesBuilder {

@@ -65,16 +65,6 @@ func (b *QueryBuilder) Alias(name string, n NodeI) {
 	b.AliasNodes.Set(name, a)
 }
 
-// Expand expands an array type node so that it will produce individual rows instead of an array of items
-func (b *QueryBuilder) Expand(n NodeI) {
-	if typ := NodeGetType(n); !(typ == ReverseReferenceNodeType || typ == ManyManyNodeType) {
-		panic("you can only expand a node that is a ReverseReference or ManyMany node.")
-	} else {
-		n.(Expander).Expand()
-		b.Join(n, nil)
-	}
-}
-
 // Condition adds the condition of the Where clause. If a condition already exists, it will be anded to the previous condition.
 func (b *QueryBuilder) Condition(c NodeI) {
 	if b.ConditionNode == nil {

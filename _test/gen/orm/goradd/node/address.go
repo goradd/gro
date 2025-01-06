@@ -3,46 +3,55 @@
 package node
 
 import (
-	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
 )
 
-// AddressI is the builder interface to the Address nodes.
+// AddressNodeI is the builder interface to the Address nodes.
 type AddressNodeI interface {
 	query.NodeI
 	PrimaryKeyNode() *query.ColumnNode
-
+	// ID represents the id column in the database.
 	ID() *query.ColumnNode
+	// PersonID represents the person_id column in the database.
 	PersonID() *query.ColumnNode
+	// Person represents the Person reference to a Person object.
 	Person() PersonNodeI
+	// Street represents the street column in the database.
 	Street() *query.ColumnNode
+	// City represents the city column in the database.
 	City() *query.ColumnNode
 }
 
-// AddressNode represents the address table in a query. It uses a builder pattern to chain
-// together other tables and columns to form a node in a query.
+// AddressExpander is the builder interface for Addresses that are expandable.
+type AddressExpander interface {
+	AddressNodeI
+	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
+	Expand() AddressNodeI
+}
+
+// addressTable represents the address table in a query. It uses a builder pattern to chain
+// together other tables and columns to form a node chain in a query.
 //
-// To use the AddressNode, call [Address] to start a reference chain when querying the address table.
-type AddressNode struct {
-	// ReferenceNodeI is an internal object that represents the capabilities of the node. Since it is embedded, all
-	// of its functions are exported and are callable along with the addressNode functions here.
-	query.ReferenceNodeI
+// To use the addressTable, call [Address()] to start a reference chain when querying the address table.
+type addressTable struct {
+}
+
+type addressReverse struct {
+	addressTable
+	reverseColumn *query.ColumnNode
 }
 
 // Address returns a table node that starts a node chain that begins with the address table.
 func Address() AddressNodeI {
-	n := AddressNode{
-		query.NewTableNode("goradd", "address", "Address"),
-	}
-	query.SetParentNode(&n, nil)
-	return &n
+	// Table nodes are empty structs, and do not have pointer receivers,
+	var n addressTable
+	return n
 }
 
 // SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-// doc: hide
-func (n *AddressNode) SelectNodes_() (nodes []*query.ColumnNode) {
+func (n addressTable) SelectNodes_() (nodes []*query.ColumnNode) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.PersonID())
 	nodes = append(nodes, n.Street())
@@ -50,26 +59,21 @@ func (n *AddressNode) SelectNodes_() (nodes []*query.ColumnNode) {
 	return nodes
 }
 
-// EmbeddedNode is used internally by the framework to return the embedded Reference node.
-// doc: hide
-func (n *AddressNode) EmbeddedNode_() query.NodeI {
-	return n.ReferenceNodeI
-}
-
 // Copy_ is used internally by the framework to deep copy the node.
-// doc: hide
-func (n *AddressNode) Copy_() query.NodeI {
-	return &AddressNode{query.CopyNode(n.ReferenceNodeI)}
+func (n addressTable) Copy_() query.NodeI {
+	// Table nodes are empty so just offer a copy
+	var t addressTable
+	return t
 }
 
 // PrimaryKeyNode returns a node that points to the primary key column, if
 // a single primary key exists in the table.
-func (n *AddressNode) PrimaryKeyNode() *query.ColumnNode {
+func (n addressTable) PrimaryKeyNode() *query.ColumnNode {
 	return n.ID()
 }
 
 // ID represents the id column in the database.
-func (n *AddressNode) ID() *query.ColumnNode {
+func (n addressTable) ID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"address",
@@ -83,7 +87,7 @@ func (n *AddressNode) ID() *query.ColumnNode {
 }
 
 // PersonID represents the person_id column in the database.
-func (n *AddressNode) PersonID() *query.ColumnNode {
+func (n addressTable) PersonID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"address",
@@ -97,7 +101,7 @@ func (n *AddressNode) PersonID() *query.ColumnNode {
 }
 
 // Person represents the link to a Person object.
-func (n *AddressNode) Person() PersonNodeI {
+func (n addressTable) Person() PersonNodeI {
 	cn := &PersonNode{
 		query.NewReferenceNode(
 			"goradd",
@@ -116,7 +120,7 @@ func (n *AddressNode) Person() PersonNodeI {
 }
 
 // Street represents the street column in the database.
-func (n *AddressNode) Street() *query.ColumnNode {
+func (n addressTable) Street() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"address",
@@ -130,7 +134,7 @@ func (n *AddressNode) Street() *query.ColumnNode {
 }
 
 // City represents the city column in the database.
-func (n *AddressNode) City() *query.ColumnNode {
+func (n addressTable) City() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"address",
@@ -143,41 +147,7 @@ func (n *AddressNode) City() *query.ColumnNode {
 	return cn
 }
 
-type addressNodeEncoded struct {
-	RefNode query.ReferenceNodeI
-}
-
-// GobEncode makes the node serializable.
-// doc:hide
-func (n *AddressNode) GobEncode() (data []byte, err error) {
-	var buf bytes.Buffer
-	e := gob.NewEncoder(&buf)
-
-	s := addressNodeEncoded{
-		RefNode: n.ReferenceNodeI,
-	}
-
-	if err = e.Encode(s); err != nil {
-		panic(err)
-	}
-	data = buf.Bytes()
-	return
-}
-
-// GobDecode makes the node deserializable.
-// doc: hide
-func (n *AddressNode) GobDecode(data []byte) (err error) {
-	buf := bytes.NewBuffer(data)
-	dec := gob.NewDecoder(buf)
-
-	var s addressNodeEncoded
-	if err = dec.Decode(&s); err != nil {
-		panic(err)
-	}
-	n.ReferenceNodeI = s.RefNode
-	query.SetParentNode(n, query.ParentNode(n)) // Reinforce types
-	return
-}
 func init() {
-	gob.Register(&AddressNode{})
+	gob.Register(new(addressTable))
+	gob.Register(new(addressReverse))
 }

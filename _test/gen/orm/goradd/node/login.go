@@ -3,47 +3,57 @@
 package node
 
 import (
-	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
 )
 
-// LoginI is the builder interface to the Login nodes.
+// LoginNodeI is the builder interface to the Login nodes.
 type LoginNodeI interface {
 	query.NodeI
 	PrimaryKeyNode() *query.ColumnNode
-
+	// ID represents the id column in the database.
 	ID() *query.ColumnNode
+	// PersonID represents the person_id column in the database.
 	PersonID() *query.ColumnNode
+	// Person represents the Person reference to a Person object.
 	Person() PersonNodeI
+	// Username represents the username column in the database.
 	Username() *query.ColumnNode
+	// Password represents the password column in the database.
 	Password() *query.ColumnNode
+	// IsEnabled represents the is_enabled column in the database.
 	IsEnabled() *query.ColumnNode
 }
 
-// LoginNode represents the login table in a query. It uses a builder pattern to chain
-// together other tables and columns to form a node in a query.
+// LoginExpander is the builder interface for Logins that are expandable.
+type LoginExpander interface {
+	LoginNodeI
+	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
+	Expand() LoginNodeI
+}
+
+// loginTable represents the login table in a query. It uses a builder pattern to chain
+// together other tables and columns to form a node chain in a query.
 //
-// To use the LoginNode, call [Login] to start a reference chain when querying the login table.
-type LoginNode struct {
-	// ReferenceNodeI is an internal object that represents the capabilities of the node. Since it is embedded, all
-	// of its functions are exported and are callable along with the loginNode functions here.
-	query.ReferenceNodeI
+// To use the loginTable, call [Login()] to start a reference chain when querying the login table.
+type loginTable struct {
+}
+
+type loginReverse struct {
+	loginTable
+	reverseColumn *query.ColumnNode
 }
 
 // Login returns a table node that starts a node chain that begins with the login table.
 func Login() LoginNodeI {
-	n := LoginNode{
-		query.NewTableNode("goradd", "login", "Login"),
-	}
-	query.SetParentNode(&n, nil)
-	return &n
+	// Table nodes are empty structs, and do not have pointer receivers,
+	var n loginTable
+	return n
 }
 
 // SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-// doc: hide
-func (n *LoginNode) SelectNodes_() (nodes []*query.ColumnNode) {
+func (n loginTable) SelectNodes_() (nodes []*query.ColumnNode) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.PersonID())
 	nodes = append(nodes, n.Username())
@@ -52,26 +62,21 @@ func (n *LoginNode) SelectNodes_() (nodes []*query.ColumnNode) {
 	return nodes
 }
 
-// EmbeddedNode is used internally by the framework to return the embedded Reference node.
-// doc: hide
-func (n *LoginNode) EmbeddedNode_() query.NodeI {
-	return n.ReferenceNodeI
-}
-
 // Copy_ is used internally by the framework to deep copy the node.
-// doc: hide
-func (n *LoginNode) Copy_() query.NodeI {
-	return &LoginNode{query.CopyNode(n.ReferenceNodeI)}
+func (n loginTable) Copy_() query.NodeI {
+	// Table nodes are empty so just offer a copy
+	var t loginTable
+	return t
 }
 
 // PrimaryKeyNode returns a node that points to the primary key column, if
 // a single primary key exists in the table.
-func (n *LoginNode) PrimaryKeyNode() *query.ColumnNode {
+func (n loginTable) PrimaryKeyNode() *query.ColumnNode {
 	return n.ID()
 }
 
 // ID represents the id column in the database.
-func (n *LoginNode) ID() *query.ColumnNode {
+func (n loginTable) ID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"login",
@@ -85,7 +90,7 @@ func (n *LoginNode) ID() *query.ColumnNode {
 }
 
 // PersonID represents the person_id column in the database.
-func (n *LoginNode) PersonID() *query.ColumnNode {
+func (n loginTable) PersonID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"login",
@@ -99,7 +104,7 @@ func (n *LoginNode) PersonID() *query.ColumnNode {
 }
 
 // Person represents the link to a Person object.
-func (n *LoginNode) Person() PersonNodeI {
+func (n loginTable) Person() PersonNodeI {
 	cn := &PersonNode{
 		query.NewReferenceNode(
 			"goradd",
@@ -118,7 +123,7 @@ func (n *LoginNode) Person() PersonNodeI {
 }
 
 // Username represents the username column in the database.
-func (n *LoginNode) Username() *query.ColumnNode {
+func (n loginTable) Username() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"login",
@@ -132,7 +137,7 @@ func (n *LoginNode) Username() *query.ColumnNode {
 }
 
 // Password represents the password column in the database.
-func (n *LoginNode) Password() *query.ColumnNode {
+func (n loginTable) Password() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"login",
@@ -146,7 +151,7 @@ func (n *LoginNode) Password() *query.ColumnNode {
 }
 
 // IsEnabled represents the is_enabled column in the database.
-func (n *LoginNode) IsEnabled() *query.ColumnNode {
+func (n loginTable) IsEnabled() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"login",
@@ -159,41 +164,7 @@ func (n *LoginNode) IsEnabled() *query.ColumnNode {
 	return cn
 }
 
-type loginNodeEncoded struct {
-	RefNode query.ReferenceNodeI
-}
-
-// GobEncode makes the node serializable.
-// doc:hide
-func (n *LoginNode) GobEncode() (data []byte, err error) {
-	var buf bytes.Buffer
-	e := gob.NewEncoder(&buf)
-
-	s := loginNodeEncoded{
-		RefNode: n.ReferenceNodeI,
-	}
-
-	if err = e.Encode(s); err != nil {
-		panic(err)
-	}
-	data = buf.Bytes()
-	return
-}
-
-// GobDecode makes the node deserializable.
-// doc: hide
-func (n *LoginNode) GobDecode(data []byte) (err error) {
-	buf := bytes.NewBuffer(data)
-	dec := gob.NewDecoder(buf)
-
-	var s loginNodeEncoded
-	if err = dec.Decode(&s); err != nil {
-		panic(err)
-	}
-	n.ReferenceNodeI = s.RefNode
-	query.SetParentNode(n, query.ParentNode(n)) // Reinforce types
-	return
-}
 func init() {
-	gob.Register(&LoginNode{})
+	gob.Register(new(loginTable))
+	gob.Register(new(loginReverse))
 }

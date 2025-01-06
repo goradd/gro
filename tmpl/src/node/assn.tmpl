@@ -12,7 +12,7 @@ func (n *NodeTemplate)genAssn(table *model.Table, _w io.Writer) (err error) {
 func (n *NodeTemplate)genAssnTable(table *model.Table, mm *model.ManyManyReference, _w io.Writer) (err error) {
 {{
 // {{= mm.IdentifierPlural }} represents the many-to-many relationship formed by the {{= mm.AssnTableName }} table.
-func (n *{{= table.Identifier }}Node) {{= mm.IdentifierPlural }}() *{{= mm.ObjectType() }}Node  {
+func (n {{= table.DecapIdentifier }}Table) {{= mm.IdentifierPlural }}() {{= mm.ObjectType() }}NodeI  {
 	cn := &{{= mm.ObjectType() }}Node {
 		query.NewManyManyNode (
 			"{{= table.DbKey }}",

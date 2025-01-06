@@ -6421,49 +6421,6 @@ func (b *`); err != nil {
 	}
 }
 
-// Expand causes node to produce separate rows in the results instead of a single row with an array of items.
-func (b *`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, builderName); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `) Expand(node query.Expander) *`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, builderName); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, ` {
-	n := node.(query.NodeI)
-	if query.NodeTableName(query.RootNode(n)) != `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, fmt.Sprintf("%#v", table.QueryName)); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, ` {
-		panic("you can only expand a node that is rooted at node.`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `()")
-	}
-
-	b.builder.Expand(n)
-	return b
-}
-
 // Join adds node n to the node tree so that its fields will appear in the query.
 // Optionally add conditions to filter what gets included.
 func (b *`); err != nil {

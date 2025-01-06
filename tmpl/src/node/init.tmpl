@@ -3,7 +3,17 @@
 }}
 
 {{
+
 func init() {
-	gob.Register(&{{= table.Identifier }}Node{})
+	gob.Register(new({{= table.DecapIdentifier }}Table))
+{{if hasReverse}}
+	gob.Register(new({{= table.DecapIdentifier }}Reference))
+{{if}}
+{{if hasReference}}
+	gob.Register(new({{= table.DecapIdentifier }}Reverse))
+{{if}}
+{{if hasAssociation}}
+	gob.Register(new({{= table.DecapIdentifier }}Association))
+{{if}}
 }
 }}

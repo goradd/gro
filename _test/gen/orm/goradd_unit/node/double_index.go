@@ -3,70 +3,72 @@
 package node
 
 import (
-	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
 )
 
-// DoubleIndexI is the builder interface to the DoubleIndex nodes.
+// DoubleIndexNodeI is the builder interface to the DoubleIndex nodes.
 type DoubleIndexNodeI interface {
 	query.NodeI
 	PrimaryKeyNode() *query.ColumnNode
-
+	// ID represents the id column in the database.
 	ID() *query.ColumnNode
+	// FieldInt represents the field_int column in the database.
 	FieldInt() *query.ColumnNode
+	// FieldString represents the field_string column in the database.
 	FieldString() *query.ColumnNode
 }
 
-// DoubleIndexNode represents the double_index table in a query. It uses a builder pattern to chain
-// together other tables and columns to form a node in a query.
+// DoubleIndexExpander is the builder interface for DoubleIndices that are expandable.
+type DoubleIndexExpander interface {
+	DoubleIndexNodeI
+	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
+	Expand() DoubleIndexNodeI
+}
+
+// doubleIndexTable represents the double_index table in a query. It uses a builder pattern to chain
+// together other tables and columns to form a node chain in a query.
 //
-// To use the DoubleIndexNode, call [DoubleIndex] to start a reference chain when querying the double_index table.
-type DoubleIndexNode struct {
-	// ReferenceNodeI is an internal object that represents the capabilities of the node. Since it is embedded, all
-	// of its functions are exported and are callable along with the doubleIndexNode functions here.
-	query.ReferenceNodeI
+// To use the doubleIndexTable, call [DoubleIndex()] to start a reference chain when querying the double_index table.
+type doubleIndexTable struct {
+}
+
+type doubleIndexReverse struct {
+	doubleIndexTable
+	reverseColumn *query.ColumnNode
 }
 
 // DoubleIndex returns a table node that starts a node chain that begins with the double_index table.
 func DoubleIndex() DoubleIndexNodeI {
-	n := DoubleIndexNode{
-		query.NewTableNode("goradd_unit", "double_index", "DoubleIndex"),
-	}
-	query.SetParentNode(&n, nil)
-	return &n
+	// Table nodes are empty structs, and do not have pointer receivers,
+	var n doubleIndexTable
+	return n
 }
 
 // SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-// doc: hide
-func (n *DoubleIndexNode) SelectNodes_() (nodes []*query.ColumnNode) {
+func (n doubleIndexTable) SelectNodes_() (nodes []*query.ColumnNode) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.FieldInt())
 	nodes = append(nodes, n.FieldString())
 	return nodes
 }
 
-// EmbeddedNode is used internally by the framework to return the embedded Reference node.
-// doc: hide
-func (n *DoubleIndexNode) EmbeddedNode_() query.NodeI {
-	return n.ReferenceNodeI
-}
-
 // Copy_ is used internally by the framework to deep copy the node.
-// doc: hide
-func (n *DoubleIndexNode) Copy_() query.NodeI {
-	return &DoubleIndexNode{query.CopyNode(n.ReferenceNodeI)}
+func (n doubleIndexTable) Copy_() query.NodeI {
+	// Table nodes are empty so just offer a copy
+	var t doubleIndexTable
+	return t
 }
 
 // PrimaryKeyNode returns a node that points to the primary key column, if
 // a single primary key exists in the table.
-func (n *DoubleIndexNode) PrimaryKeyNode() *query.ColumnNode {
+func (n doubleIndexTable) PrimaryKeyNode() *query.ColumnNode {
 	return n.ID()
 }
 
 // ID represents the id column in the database.
-func (n *DoubleIndexNode) ID() *query.ColumnNode {
+func (n doubleIndexTable) ID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd_unit",
 		"double_index",
@@ -80,7 +82,7 @@ func (n *DoubleIndexNode) ID() *query.ColumnNode {
 }
 
 // FieldInt represents the field_int column in the database.
-func (n *DoubleIndexNode) FieldInt() *query.ColumnNode {
+func (n doubleIndexTable) FieldInt() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd_unit",
 		"double_index",
@@ -94,7 +96,7 @@ func (n *DoubleIndexNode) FieldInt() *query.ColumnNode {
 }
 
 // FieldString represents the field_string column in the database.
-func (n *DoubleIndexNode) FieldString() *query.ColumnNode {
+func (n doubleIndexTable) FieldString() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd_unit",
 		"double_index",
@@ -107,41 +109,7 @@ func (n *DoubleIndexNode) FieldString() *query.ColumnNode {
 	return cn
 }
 
-type doubleIndexNodeEncoded struct {
-	RefNode query.ReferenceNodeI
-}
-
-// GobEncode makes the node serializable.
-// doc:hide
-func (n *DoubleIndexNode) GobEncode() (data []byte, err error) {
-	var buf bytes.Buffer
-	e := gob.NewEncoder(&buf)
-
-	s := doubleIndexNodeEncoded{
-		RefNode: n.ReferenceNodeI,
-	}
-
-	if err = e.Encode(s); err != nil {
-		panic(err)
-	}
-	data = buf.Bytes()
-	return
-}
-
-// GobDecode makes the node deserializable.
-// doc: hide
-func (n *DoubleIndexNode) GobDecode(data []byte) (err error) {
-	buf := bytes.NewBuffer(data)
-	dec := gob.NewDecoder(buf)
-
-	var s doubleIndexNodeEncoded
-	if err = dec.Decode(&s); err != nil {
-		panic(err)
-	}
-	n.ReferenceNodeI = s.RefNode
-	query.SetParentNode(n, query.ParentNode(n)) // Reinforce types
-	return
-}
 func init() {
-	gob.Register(&DoubleIndexNode{})
+	gob.Register(new(doubleIndexTable))
+	gob.Register(new(doubleIndexReverse))
 }

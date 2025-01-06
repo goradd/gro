@@ -3,76 +3,94 @@
 package node
 
 import (
-	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
 )
 
-// PersonI is the builder interface to the Person nodes.
+// PersonNodeI is the builder interface to the Person nodes.
 type PersonNodeI interface {
 	query.NodeI
 	PrimaryKeyNode() *query.ColumnNode
-
+	// ID represents the id column in the database.
 	ID() *query.ColumnNode
+	// FirstName represents the first_name column in the database.
 	FirstName() *query.ColumnNode
+	// LastName represents the last_name column in the database.
 	LastName() *query.ColumnNode
-	PersonTypes() *PersonTypeNode
-	Projects() *ProjectNode
-	Addresses() *AddressNode
-	EmployeeInfo() *EmployeeInfoNode
-	Login() *LoginNode
-	ManagerProjects() *ProjectNode
+	// PersonTypes represents the PersonTypes reference to PersonType objects.
+	PersonTypes() PersonTypeExpander
+	// Projects represents the Projects reference to Project objects.
+	Projects() ProjectExpander
+	// Addresses represents the Address reference to Address objects.
+	Addresses() AddressExpander
+	// EmployeeInfo represents the EmployeeInfo reference to a EmployeeInfo object.
+	EmployeeInfo() EmployeeInfoNodeI
+	// Login represents the Login reference to a Login object.
+	Login() LoginNodeI
+	// ManagerProjects represents the ManagerProject reference to Project objects.
+	ManagerProjects() ProjectExpander
 }
 
-// PersonNode represents the person table in a query. It uses a builder pattern to chain
-// together other tables and columns to form a node in a query.
+// PersonExpander is the builder interface for People that are expandable.
+type PersonExpander interface {
+	PersonNodeI
+	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
+	Expand() PersonNodeI
+}
+
+// personTable represents the person table in a query. It uses a builder pattern to chain
+// together other tables and columns to form a node chain in a query.
 //
-// To use the PersonNode, call [Person] to start a reference chain when querying the person table.
-type PersonNode struct {
-	// ReferenceNodeI is an internal object that represents the capabilities of the node. Since it is embedded, all
-	// of its functions are exported and are callable along with the personNode functions here.
-	query.ReferenceNodeI
+// To use the personTable, call [Person()] to start a reference chain when querying the person table.
+type personTable struct {
+}
+
+type personReference struct {
+	personTable
+	referenceColumn *query.ColumnNode
+}
+
+type personReverse struct {
+	personTable
+	reverseColumn *query.ColumnNode
+}
+
+type personAssociation struct {
+	personTable
+	query.ManyManyNode
 }
 
 // Person returns a table node that starts a node chain that begins with the person table.
 func Person() PersonNodeI {
-	n := PersonNode{
-		query.NewTableNode("goradd", "person", "Person"),
-	}
-	query.SetParentNode(&n, nil)
-	return &n
+	// Table nodes are empty structs, and do not have pointer receivers,
+	var n personTable
+	return n
 }
 
 // SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-// doc: hide
-func (n *PersonNode) SelectNodes_() (nodes []*query.ColumnNode) {
+func (n personTable) SelectNodes_() (nodes []*query.ColumnNode) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.FirstName())
 	nodes = append(nodes, n.LastName())
 	return nodes
 }
 
-// EmbeddedNode is used internally by the framework to return the embedded Reference node.
-// doc: hide
-func (n *PersonNode) EmbeddedNode_() query.NodeI {
-	return n.ReferenceNodeI
-}
-
 // Copy_ is used internally by the framework to deep copy the node.
-// doc: hide
-func (n *PersonNode) Copy_() query.NodeI {
-	return &PersonNode{query.CopyNode(n.ReferenceNodeI)}
+func (n personTable) Copy_() query.NodeI {
+	// Table nodes are empty so just offer a copy
+	var t personTable
+	return t
 }
 
 // PrimaryKeyNode returns a node that points to the primary key column, if
 // a single primary key exists in the table.
-func (n *PersonNode) PrimaryKeyNode() *query.ColumnNode {
+func (n personTable) PrimaryKeyNode() *query.ColumnNode {
 	return n.ID()
 }
 
 // ID represents the id column in the database.
-func (n *PersonNode) ID() *query.ColumnNode {
+func (n personTable) ID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"person",
@@ -86,7 +104,7 @@ func (n *PersonNode) ID() *query.ColumnNode {
 }
 
 // FirstName represents the first_name column in the database.
-func (n *PersonNode) FirstName() *query.ColumnNode {
+func (n personTable) FirstName() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"person",
@@ -100,7 +118,7 @@ func (n *PersonNode) FirstName() *query.ColumnNode {
 }
 
 // LastName represents the last_name column in the database.
-func (n *PersonNode) LastName() *query.ColumnNode {
+func (n personTable) LastName() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"person",
@@ -114,7 +132,7 @@ func (n *PersonNode) LastName() *query.ColumnNode {
 }
 
 // PersonTypes represents the many-to-many relationship formed by the person_persontype_assn table.
-func (n *PersonNode) PersonTypes() *PersonTypeNode {
+func (n personTable) PersonTypes() PersonTypeNodeI {
 	cn := &PersonTypeNode{
 		query.NewManyManyNode(
 			"goradd",
@@ -132,7 +150,7 @@ func (n *PersonNode) PersonTypes() *PersonTypeNode {
 }
 
 // Projects represents the many-to-many relationship formed by the team_member_project_assn table.
-func (n *PersonNode) Projects() *ProjectNode {
+func (n personTable) Projects() ProjectNodeI {
 	cn := &ProjectNode{
 		query.NewManyManyNode(
 			"goradd",
@@ -151,7 +169,7 @@ func (n *PersonNode) Projects() *ProjectNode {
 
 // Addresses represents the many-to-one relationship formed by the reverse reference from the
 // person_id column in the address table.
-func (n *PersonNode) Addresses() *AddressNode {
+func (n personTable) Addresses() AddressNodeI {
 	cn := &AddressNode{
 		query.NewReverseReferenceNode(
 			"goradd",
@@ -169,7 +187,7 @@ func (n *PersonNode) Addresses() *AddressNode {
 
 // EmployeeInfo represents the one-to-one relationship formed by the reverse reference from the
 // person_id column in the employee_info table.
-func (n *PersonNode) EmployeeInfo() *EmployeeInfoNode {
+func (n personTable) EmployeeInfo() EmployeeInfoNodeI {
 
 	cn := &EmployeeInfoNode{
 		query.NewReverseReferenceNode(
@@ -189,7 +207,7 @@ func (n *PersonNode) EmployeeInfo() *EmployeeInfoNode {
 
 // Login represents the one-to-one relationship formed by the reverse reference from the
 // person_id column in the login table.
-func (n *PersonNode) Login() *LoginNode {
+func (n personTable) Login() LoginNodeI {
 
 	cn := &LoginNode{
 		query.NewReverseReferenceNode(
@@ -209,7 +227,7 @@ func (n *PersonNode) Login() *LoginNode {
 
 // ManagerProjects represents the many-to-one relationship formed by the reverse reference from the
 // manager_id column in the project table.
-func (n *PersonNode) ManagerProjects() *ProjectNode {
+func (n personTable) ManagerProjects() ProjectNodeI {
 	cn := &ProjectNode{
 		query.NewReverseReferenceNode(
 			"goradd",
@@ -225,41 +243,9 @@ func (n *PersonNode) ManagerProjects() *ProjectNode {
 	return cn
 }
 
-type personNodeEncoded struct {
-	RefNode query.ReferenceNodeI
-}
-
-// GobEncode makes the node serializable.
-// doc:hide
-func (n *PersonNode) GobEncode() (data []byte, err error) {
-	var buf bytes.Buffer
-	e := gob.NewEncoder(&buf)
-
-	s := personNodeEncoded{
-		RefNode: n.ReferenceNodeI,
-	}
-
-	if err = e.Encode(s); err != nil {
-		panic(err)
-	}
-	data = buf.Bytes()
-	return
-}
-
-// GobDecode makes the node deserializable.
-// doc: hide
-func (n *PersonNode) GobDecode(data []byte) (err error) {
-	buf := bytes.NewBuffer(data)
-	dec := gob.NewDecoder(buf)
-
-	var s personNodeEncoded
-	if err = dec.Decode(&s); err != nil {
-		panic(err)
-	}
-	n.ReferenceNodeI = s.RefNode
-	query.SetParentNode(n, query.ParentNode(n)) // Reinforce types
-	return
-}
 func init() {
-	gob.Register(&PersonNode{})
+	gob.Register(new(personTable))
+	gob.Register(new(personReference))
+	gob.Register(new(personReverse))
+	gob.Register(new(personAssociation))
 }

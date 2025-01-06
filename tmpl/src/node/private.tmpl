@@ -4,23 +4,17 @@
 
 {{
 // SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-// doc: hide
-func (n *{{= table.Identifier }}Node) SelectNodes_() (nodes []*query.ColumnNode) {
+func (n {{= table.DecapIdentifier }}Table) SelectNodes_() (nodes []*query.ColumnNode) {
 {{for _,col := range table.Columns}}
 	nodes = append(nodes, n.{{col.Identifier}}())
 {{for}}
 	return nodes
 }
 
-// EmbeddedNode is used internally by the framework to return the embedded Reference node.
-// doc: hide
-func (n *{{= table.Identifier }}Node) EmbeddedNode_() query.NodeI {
-	return n.ReferenceNodeI
-}
-
 // Copy_ is used internally by the framework to deep copy the node.
-// doc: hide
-func (n *{{= table.Identifier }}Node) Copy_() query.NodeI {
-	return &{{= table.Identifier }}Node{query.CopyNode(n.ReferenceNodeI)}
+func (n {{= table.DecapIdentifier }}Table) Copy_() query.NodeI {
+    // Table nodes are empty so just offer a copy
+    var t {{= table.DecapIdentifier }}Table
+    return t
 }
 }}

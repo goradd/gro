@@ -15,9 +15,9 @@ import (
 func ClearAll(ctx context.Context) {
 	db := Database()
 
-	db.Delete(ctx, "person_persontype_assn", nil)
-	db.Delete(ctx, "team_member_project_assn", nil)
 	db.Delete(ctx, "related_project_assn", nil)
+	db.Delete(ctx, "team_member_project_assn", nil)
+	db.Delete(ctx, "person_persontype_assn", nil)
 
 	db.Delete(ctx, "project", nil)
 	db.Delete(ctx, "person_with_lock", nil)

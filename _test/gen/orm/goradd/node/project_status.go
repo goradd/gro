@@ -8,6 +8,17 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
+// ProjectStatusI is the builder interface to the ProjectStatus nodes.
+type ProjectStatusNodeI interface {
+	query.NodeI
+	PrimaryKeyNode() *query.ColumnNode
+	ID() *query.ColumnNode
+	Name() *query.ColumnNode
+	Description() *query.ColumnNode
+	Guidelines() *query.ColumnNode
+	IsActive() *query.ColumnNode
+}
+
 type ProjectStatusNode struct {
 	query.ReferenceNodeI
 }

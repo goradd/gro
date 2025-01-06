@@ -843,17 +843,6 @@ func (b *UnsupportedTypesBuilder) Get() *UnsupportedType {
 	}
 }
 
-// Expand causes node to produce separate rows in the results instead of a single row with an array of items.
-func (b *UnsupportedTypesBuilder) Expand(node query.Expander) *UnsupportedTypesBuilder {
-	n := node.(query.NodeI)
-	if query.NodeTableName(query.RootNode(n)) != "unsupported_type" {
-		panic("you can only expand a node that is rooted at node.UnsupportedType()")
-	}
-
-	b.builder.Expand(n)
-	return b
-}
-
 // Join adds node n to the node tree so that its fields will appear in the query.
 // Optionally add conditions to filter what gets included.
 func (b *UnsupportedTypesBuilder) Join(n query.NodeI, conditions ...query.NodeI) *UnsupportedTypesBuilder {

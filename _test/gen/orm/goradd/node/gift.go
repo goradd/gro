@@ -3,68 +3,69 @@
 package node
 
 import (
-	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
 )
 
-// GiftI is the builder interface to the Gift nodes.
+// GiftNodeI is the builder interface to the Gift nodes.
 type GiftNodeI interface {
 	query.NodeI
 	PrimaryKeyNode() *query.ColumnNode
-
+	// Number represents the number column in the database.
 	Number() *query.ColumnNode
+	// Name represents the name column in the database.
 	Name() *query.ColumnNode
 }
 
-// GiftNode represents the gift table in a query. It uses a builder pattern to chain
-// together other tables and columns to form a node in a query.
+// GiftExpander is the builder interface for Gifts that are expandable.
+type GiftExpander interface {
+	GiftNodeI
+	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
+	Expand() GiftNodeI
+}
+
+// giftTable represents the gift table in a query. It uses a builder pattern to chain
+// together other tables and columns to form a node chain in a query.
 //
-// To use the GiftNode, call [Gift] to start a reference chain when querying the gift table.
-type GiftNode struct {
-	// ReferenceNodeI is an internal object that represents the capabilities of the node. Since it is embedded, all
-	// of its functions are exported and are callable along with the giftNode functions here.
-	query.ReferenceNodeI
+// To use the giftTable, call [Gift()] to start a reference chain when querying the gift table.
+type giftTable struct {
+}
+
+type giftReverse struct {
+	giftTable
+	reverseColumn *query.ColumnNode
 }
 
 // Gift returns a table node that starts a node chain that begins with the gift table.
 func Gift() GiftNodeI {
-	n := GiftNode{
-		query.NewTableNode("goradd", "gift", "Gift"),
-	}
-	query.SetParentNode(&n, nil)
-	return &n
+	// Table nodes are empty structs, and do not have pointer receivers,
+	var n giftTable
+	return n
 }
 
 // SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-// doc: hide
-func (n *GiftNode) SelectNodes_() (nodes []*query.ColumnNode) {
+func (n giftTable) SelectNodes_() (nodes []*query.ColumnNode) {
 	nodes = append(nodes, n.Number())
 	nodes = append(nodes, n.Name())
 	return nodes
 }
 
-// EmbeddedNode is used internally by the framework to return the embedded Reference node.
-// doc: hide
-func (n *GiftNode) EmbeddedNode_() query.NodeI {
-	return n.ReferenceNodeI
-}
-
 // Copy_ is used internally by the framework to deep copy the node.
-// doc: hide
-func (n *GiftNode) Copy_() query.NodeI {
-	return &GiftNode{query.CopyNode(n.ReferenceNodeI)}
+func (n giftTable) Copy_() query.NodeI {
+	// Table nodes are empty so just offer a copy
+	var t giftTable
+	return t
 }
 
 // PrimaryKeyNode returns a node that points to the primary key column, if
 // a single primary key exists in the table.
-func (n *GiftNode) PrimaryKeyNode() *query.ColumnNode {
+func (n giftTable) PrimaryKeyNode() *query.ColumnNode {
 	return n.Number()
 }
 
 // Number represents the number column in the database.
-func (n *GiftNode) Number() *query.ColumnNode {
+func (n giftTable) Number() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"gift",
@@ -78,7 +79,7 @@ func (n *GiftNode) Number() *query.ColumnNode {
 }
 
 // Name represents the name column in the database.
-func (n *GiftNode) Name() *query.ColumnNode {
+func (n giftTable) Name() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"gift",
@@ -91,41 +92,7 @@ func (n *GiftNode) Name() *query.ColumnNode {
 	return cn
 }
 
-type giftNodeEncoded struct {
-	RefNode query.ReferenceNodeI
-}
-
-// GobEncode makes the node serializable.
-// doc:hide
-func (n *GiftNode) GobEncode() (data []byte, err error) {
-	var buf bytes.Buffer
-	e := gob.NewEncoder(&buf)
-
-	s := giftNodeEncoded{
-		RefNode: n.ReferenceNodeI,
-	}
-
-	if err = e.Encode(s); err != nil {
-		panic(err)
-	}
-	data = buf.Bytes()
-	return
-}
-
-// GobDecode makes the node deserializable.
-// doc: hide
-func (n *GiftNode) GobDecode(data []byte) (err error) {
-	buf := bytes.NewBuffer(data)
-	dec := gob.NewDecoder(buf)
-
-	var s giftNodeEncoded
-	if err = dec.Decode(&s); err != nil {
-		panic(err)
-	}
-	n.ReferenceNodeI = s.RefNode
-	query.SetParentNode(n, query.ParentNode(n)) // Reinforce types
-	return
-}
 func init() {
-	gob.Register(&GiftNode{})
+	gob.Register(new(giftTable))
+	gob.Register(new(giftReverse))
 }

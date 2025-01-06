@@ -338,17 +338,6 @@ func (b *PersonWithLocksBuilder) Get() *PersonWithLock {
 	}
 }
 
-// Expand causes node to produce separate rows in the results instead of a single row with an array of items.
-func (b *PersonWithLocksBuilder) Expand(node query.Expander) *PersonWithLocksBuilder {
-	n := node.(query.NodeI)
-	if query.NodeTableName(query.RootNode(n)) != "person_with_lock" {
-		panic("you can only expand a node that is rooted at node.PersonWithLock()")
-	}
-
-	b.builder.Expand(n)
-	return b
-}
-
 // Join adds node n to the node tree so that its fields will appear in the query.
 // Optionally add conditions to filter what gets included.
 func (b *PersonWithLocksBuilder) Join(n query.NodeI, conditions ...query.NodeI) *PersonWithLocksBuilder {

@@ -3,71 +3,74 @@
 package node
 
 import (
-	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
 )
 
-// ForwardNullUniqueI is the builder interface to the ForwardNullUnique nodes.
+// ForwardNullUniqueNodeI is the builder interface to the ForwardNullUnique nodes.
 type ForwardNullUniqueNodeI interface {
 	query.NodeI
 	PrimaryKeyNode() *query.ColumnNode
-
+	// ID represents the id column in the database.
 	ID() *query.ColumnNode
+	// Name represents the name column in the database.
 	Name() *query.ColumnNode
+	// ReverseID represents the reverse_id column in the database.
 	ReverseID() *query.ColumnNode
+	// Reverse represents the Reverse reference to a Reverse object.
 	Reverse() ReverseNodeI
 }
 
-// ForwardNullUniqueNode represents the forward_null_unique table in a query. It uses a builder pattern to chain
-// together other tables and columns to form a node in a query.
+// ForwardNullUniqueExpander is the builder interface for ForwardNullUniques that are expandable.
+type ForwardNullUniqueExpander interface {
+	ForwardNullUniqueNodeI
+	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
+	Expand() ForwardNullUniqueNodeI
+}
+
+// forwardNullUniqueTable represents the forward_null_unique table in a query. It uses a builder pattern to chain
+// together other tables and columns to form a node chain in a query.
 //
-// To use the ForwardNullUniqueNode, call [ForwardNullUnique] to start a reference chain when querying the forward_null_unique table.
-type ForwardNullUniqueNode struct {
-	// ReferenceNodeI is an internal object that represents the capabilities of the node. Since it is embedded, all
-	// of its functions are exported and are callable along with the forwardNullUniqueNode functions here.
-	query.ReferenceNodeI
+// To use the forwardNullUniqueTable, call [ForwardNullUnique()] to start a reference chain when querying the forward_null_unique table.
+type forwardNullUniqueTable struct {
+}
+
+type forwardNullUniqueReverse struct {
+	forwardNullUniqueTable
+	reverseColumn *query.ColumnNode
 }
 
 // ForwardNullUnique returns a table node that starts a node chain that begins with the forward_null_unique table.
 func ForwardNullUnique() ForwardNullUniqueNodeI {
-	n := ForwardNullUniqueNode{
-		query.NewTableNode("goradd_unit", "forward_null_unique", "ForwardNullUnique"),
-	}
-	query.SetParentNode(&n, nil)
-	return &n
+	// Table nodes are empty structs, and do not have pointer receivers,
+	var n forwardNullUniqueTable
+	return n
 }
 
 // SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-// doc: hide
-func (n *ForwardNullUniqueNode) SelectNodes_() (nodes []*query.ColumnNode) {
+func (n forwardNullUniqueTable) SelectNodes_() (nodes []*query.ColumnNode) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.Name())
 	nodes = append(nodes, n.ReverseID())
 	return nodes
 }
 
-// EmbeddedNode is used internally by the framework to return the embedded Reference node.
-// doc: hide
-func (n *ForwardNullUniqueNode) EmbeddedNode_() query.NodeI {
-	return n.ReferenceNodeI
-}
-
 // Copy_ is used internally by the framework to deep copy the node.
-// doc: hide
-func (n *ForwardNullUniqueNode) Copy_() query.NodeI {
-	return &ForwardNullUniqueNode{query.CopyNode(n.ReferenceNodeI)}
+func (n forwardNullUniqueTable) Copy_() query.NodeI {
+	// Table nodes are empty so just offer a copy
+	var t forwardNullUniqueTable
+	return t
 }
 
 // PrimaryKeyNode returns a node that points to the primary key column, if
 // a single primary key exists in the table.
-func (n *ForwardNullUniqueNode) PrimaryKeyNode() *query.ColumnNode {
+func (n forwardNullUniqueTable) PrimaryKeyNode() *query.ColumnNode {
 	return n.ID()
 }
 
 // ID represents the id column in the database.
-func (n *ForwardNullUniqueNode) ID() *query.ColumnNode {
+func (n forwardNullUniqueTable) ID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd_unit",
 		"forward_null_unique",
@@ -81,7 +84,7 @@ func (n *ForwardNullUniqueNode) ID() *query.ColumnNode {
 }
 
 // Name represents the name column in the database.
-func (n *ForwardNullUniqueNode) Name() *query.ColumnNode {
+func (n forwardNullUniqueTable) Name() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd_unit",
 		"forward_null_unique",
@@ -95,7 +98,7 @@ func (n *ForwardNullUniqueNode) Name() *query.ColumnNode {
 }
 
 // ReverseID represents the reverse_id column in the database.
-func (n *ForwardNullUniqueNode) ReverseID() *query.ColumnNode {
+func (n forwardNullUniqueTable) ReverseID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd_unit",
 		"forward_null_unique",
@@ -109,7 +112,7 @@ func (n *ForwardNullUniqueNode) ReverseID() *query.ColumnNode {
 }
 
 // Reverse represents the link to a Reverse object.
-func (n *ForwardNullUniqueNode) Reverse() ReverseNodeI {
+func (n forwardNullUniqueTable) Reverse() ReverseNodeI {
 	cn := &ReverseNode{
 		query.NewReferenceNode(
 			"goradd_unit",
@@ -127,41 +130,7 @@ func (n *ForwardNullUniqueNode) Reverse() ReverseNodeI {
 	return cn
 }
 
-type forwardNullUniqueNodeEncoded struct {
-	RefNode query.ReferenceNodeI
-}
-
-// GobEncode makes the node serializable.
-// doc:hide
-func (n *ForwardNullUniqueNode) GobEncode() (data []byte, err error) {
-	var buf bytes.Buffer
-	e := gob.NewEncoder(&buf)
-
-	s := forwardNullUniqueNodeEncoded{
-		RefNode: n.ReferenceNodeI,
-	}
-
-	if err = e.Encode(s); err != nil {
-		panic(err)
-	}
-	data = buf.Bytes()
-	return
-}
-
-// GobDecode makes the node deserializable.
-// doc: hide
-func (n *ForwardNullUniqueNode) GobDecode(data []byte) (err error) {
-	buf := bytes.NewBuffer(data)
-	dec := gob.NewDecoder(buf)
-
-	var s forwardNullUniqueNodeEncoded
-	if err = dec.Decode(&s); err != nil {
-		panic(err)
-	}
-	n.ReferenceNodeI = s.RefNode
-	query.SetParentNode(n, query.ParentNode(n)) // Reinforce types
-	return
-}
 func init() {
-	gob.Register(&ForwardNullUniqueNode{})
+	gob.Register(new(forwardNullUniqueTable))
+	gob.Register(new(forwardNullUniqueReverse))
 }

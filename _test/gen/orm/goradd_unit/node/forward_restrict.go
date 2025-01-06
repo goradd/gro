@@ -3,71 +3,74 @@
 package node
 
 import (
-	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
 )
 
-// ForwardRestrictI is the builder interface to the ForwardRestrict nodes.
+// ForwardRestrictNodeI is the builder interface to the ForwardRestrict nodes.
 type ForwardRestrictNodeI interface {
 	query.NodeI
 	PrimaryKeyNode() *query.ColumnNode
-
+	// ID represents the id column in the database.
 	ID() *query.ColumnNode
+	// Name represents the name column in the database.
 	Name() *query.ColumnNode
+	// ReverseID represents the reverse_id column in the database.
 	ReverseID() *query.ColumnNode
+	// Reverse represents the Reverse reference to a Reverse object.
 	Reverse() ReverseNodeI
 }
 
-// ForwardRestrictNode represents the forward_restrict table in a query. It uses a builder pattern to chain
-// together other tables and columns to form a node in a query.
+// ForwardRestrictExpander is the builder interface for ForwardRestricts that are expandable.
+type ForwardRestrictExpander interface {
+	ForwardRestrictNodeI
+	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
+	Expand() ForwardRestrictNodeI
+}
+
+// forwardRestrictTable represents the forward_restrict table in a query. It uses a builder pattern to chain
+// together other tables and columns to form a node chain in a query.
 //
-// To use the ForwardRestrictNode, call [ForwardRestrict] to start a reference chain when querying the forward_restrict table.
-type ForwardRestrictNode struct {
-	// ReferenceNodeI is an internal object that represents the capabilities of the node. Since it is embedded, all
-	// of its functions are exported and are callable along with the forwardRestrictNode functions here.
-	query.ReferenceNodeI
+// To use the forwardRestrictTable, call [ForwardRestrict()] to start a reference chain when querying the forward_restrict table.
+type forwardRestrictTable struct {
+}
+
+type forwardRestrictReverse struct {
+	forwardRestrictTable
+	reverseColumn *query.ColumnNode
 }
 
 // ForwardRestrict returns a table node that starts a node chain that begins with the forward_restrict table.
 func ForwardRestrict() ForwardRestrictNodeI {
-	n := ForwardRestrictNode{
-		query.NewTableNode("goradd_unit", "forward_restrict", "ForwardRestrict"),
-	}
-	query.SetParentNode(&n, nil)
-	return &n
+	// Table nodes are empty structs, and do not have pointer receivers,
+	var n forwardRestrictTable
+	return n
 }
 
 // SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-// doc: hide
-func (n *ForwardRestrictNode) SelectNodes_() (nodes []*query.ColumnNode) {
+func (n forwardRestrictTable) SelectNodes_() (nodes []*query.ColumnNode) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.Name())
 	nodes = append(nodes, n.ReverseID())
 	return nodes
 }
 
-// EmbeddedNode is used internally by the framework to return the embedded Reference node.
-// doc: hide
-func (n *ForwardRestrictNode) EmbeddedNode_() query.NodeI {
-	return n.ReferenceNodeI
-}
-
 // Copy_ is used internally by the framework to deep copy the node.
-// doc: hide
-func (n *ForwardRestrictNode) Copy_() query.NodeI {
-	return &ForwardRestrictNode{query.CopyNode(n.ReferenceNodeI)}
+func (n forwardRestrictTable) Copy_() query.NodeI {
+	// Table nodes are empty so just offer a copy
+	var t forwardRestrictTable
+	return t
 }
 
 // PrimaryKeyNode returns a node that points to the primary key column, if
 // a single primary key exists in the table.
-func (n *ForwardRestrictNode) PrimaryKeyNode() *query.ColumnNode {
+func (n forwardRestrictTable) PrimaryKeyNode() *query.ColumnNode {
 	return n.ID()
 }
 
 // ID represents the id column in the database.
-func (n *ForwardRestrictNode) ID() *query.ColumnNode {
+func (n forwardRestrictTable) ID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd_unit",
 		"forward_restrict",
@@ -81,7 +84,7 @@ func (n *ForwardRestrictNode) ID() *query.ColumnNode {
 }
 
 // Name represents the name column in the database.
-func (n *ForwardRestrictNode) Name() *query.ColumnNode {
+func (n forwardRestrictTable) Name() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd_unit",
 		"forward_restrict",
@@ -95,7 +98,7 @@ func (n *ForwardRestrictNode) Name() *query.ColumnNode {
 }
 
 // ReverseID represents the reverse_id column in the database.
-func (n *ForwardRestrictNode) ReverseID() *query.ColumnNode {
+func (n forwardRestrictTable) ReverseID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd_unit",
 		"forward_restrict",
@@ -109,7 +112,7 @@ func (n *ForwardRestrictNode) ReverseID() *query.ColumnNode {
 }
 
 // Reverse represents the link to a Reverse object.
-func (n *ForwardRestrictNode) Reverse() ReverseNodeI {
+func (n forwardRestrictTable) Reverse() ReverseNodeI {
 	cn := &ReverseNode{
 		query.NewReferenceNode(
 			"goradd_unit",
@@ -127,41 +130,7 @@ func (n *ForwardRestrictNode) Reverse() ReverseNodeI {
 	return cn
 }
 
-type forwardRestrictNodeEncoded struct {
-	RefNode query.ReferenceNodeI
-}
-
-// GobEncode makes the node serializable.
-// doc:hide
-func (n *ForwardRestrictNode) GobEncode() (data []byte, err error) {
-	var buf bytes.Buffer
-	e := gob.NewEncoder(&buf)
-
-	s := forwardRestrictNodeEncoded{
-		RefNode: n.ReferenceNodeI,
-	}
-
-	if err = e.Encode(s); err != nil {
-		panic(err)
-	}
-	data = buf.Bytes()
-	return
-}
-
-// GobDecode makes the node deserializable.
-// doc: hide
-func (n *ForwardRestrictNode) GobDecode(data []byte) (err error) {
-	buf := bytes.NewBuffer(data)
-	dec := gob.NewDecoder(buf)
-
-	var s forwardRestrictNodeEncoded
-	if err = dec.Decode(&s); err != nil {
-		panic(err)
-	}
-	n.ReferenceNodeI = s.RefNode
-	query.SetParentNode(n, query.ParentNode(n)) // Reinforce types
-	return
-}
 func init() {
-	gob.Register(&ForwardRestrictNode{})
+	gob.Register(new(forwardRestrictTable))
+	gob.Register(new(forwardRestrictReverse))
 }

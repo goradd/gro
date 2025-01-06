@@ -22,6 +22,15 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
+// {{= table.Identifier}}I is the builder interface to the {{= table.Identifier}} nodes.
+type {{= table.Identifier}}NodeI interface {
+    query.NodeI
+    PrimaryKeyNode() *query.ColumnNode
+{{for i := 0; i < len(table.Fields); i++}}
+    {{= table.FieldIdentifier(i) }}() *query.ColumnNode
+{{for}}
+}
+
 type {{= table.Identifier }}Node struct {
 	query.ReferenceNodeI
 }

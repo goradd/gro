@@ -3,56 +3,85 @@
 package node
 
 import (
-	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
 )
 
-// ProjectI is the builder interface to the Project nodes.
+// ProjectNodeI is the builder interface to the Project nodes.
 type ProjectNodeI interface {
 	query.NodeI
 	PrimaryKeyNode() *query.ColumnNode
-
+	// ID represents the id column in the database.
 	ID() *query.ColumnNode
+	// Num represents the num column in the database.
 	Num() *query.ColumnNode
+	// Status represents the status_id column in the database.
 	Status() *query.ColumnNode
+	// ManagerID represents the manager_id column in the database.
 	ManagerID() *query.ColumnNode
+	// Manager represents the Manager reference to a Person object.
 	Manager() PersonNodeI
+	// Name represents the name column in the database.
 	Name() *query.ColumnNode
+	// Description represents the description column in the database.
 	Description() *query.ColumnNode
+	// StartDate represents the start_date column in the database.
 	StartDate() *query.ColumnNode
+	// EndDate represents the end_date column in the database.
 	EndDate() *query.ColumnNode
+	// Budget represents the budget column in the database.
 	Budget() *query.ColumnNode
+	// Spent represents the spent column in the database.
 	Spent() *query.ColumnNode
-	Children() *ProjectNode
-	Parents() *ProjectNode
-	TeamMembers() *PersonNode
-	Milestones() *MilestoneNode
+	// Children represents the Children reference to Project objects.
+	Children() ProjectExpander
+	// Parents represents the Parents reference to Project objects.
+	Parents() ProjectExpander
+	// TeamMembers represents the TeamMembers reference to Person objects.
+	TeamMembers() PersonExpander
+	// Milestones represents the Milestone reference to Milestone objects.
+	Milestones() MilestoneExpander
 }
 
-// ProjectNode represents the project table in a query. It uses a builder pattern to chain
-// together other tables and columns to form a node in a query.
+// ProjectExpander is the builder interface for Projects that are expandable.
+type ProjectExpander interface {
+	ProjectNodeI
+	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
+	Expand() ProjectNodeI
+}
+
+// projectTable represents the project table in a query. It uses a builder pattern to chain
+// together other tables and columns to form a node chain in a query.
 //
-// To use the ProjectNode, call [Project] to start a reference chain when querying the project table.
-type ProjectNode struct {
-	// ReferenceNodeI is an internal object that represents the capabilities of the node. Since it is embedded, all
-	// of its functions are exported and are callable along with the projectNode functions here.
-	query.ReferenceNodeI
+// To use the projectTable, call [Project()] to start a reference chain when querying the project table.
+type projectTable struct {
+}
+
+type projectReference struct {
+	projectTable
+	referenceColumn *query.ColumnNode
+}
+
+type projectReverse struct {
+	projectTable
+	reverseColumn *query.ColumnNode
+}
+
+type projectAssociation struct {
+	projectTable
+	query.ManyManyNode
 }
 
 // Project returns a table node that starts a node chain that begins with the project table.
 func Project() ProjectNodeI {
-	n := ProjectNode{
-		query.NewTableNode("goradd", "project", "Project"),
-	}
-	query.SetParentNode(&n, nil)
-	return &n
+	// Table nodes are empty structs, and do not have pointer receivers,
+	var n projectTable
+	return n
 }
 
 // SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-// doc: hide
-func (n *ProjectNode) SelectNodes_() (nodes []*query.ColumnNode) {
+func (n projectTable) SelectNodes_() (nodes []*query.ColumnNode) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.Num())
 	nodes = append(nodes, n.Status())
@@ -66,26 +95,21 @@ func (n *ProjectNode) SelectNodes_() (nodes []*query.ColumnNode) {
 	return nodes
 }
 
-// EmbeddedNode is used internally by the framework to return the embedded Reference node.
-// doc: hide
-func (n *ProjectNode) EmbeddedNode_() query.NodeI {
-	return n.ReferenceNodeI
-}
-
 // Copy_ is used internally by the framework to deep copy the node.
-// doc: hide
-func (n *ProjectNode) Copy_() query.NodeI {
-	return &ProjectNode{query.CopyNode(n.ReferenceNodeI)}
+func (n projectTable) Copy_() query.NodeI {
+	// Table nodes are empty so just offer a copy
+	var t projectTable
+	return t
 }
 
 // PrimaryKeyNode returns a node that points to the primary key column, if
 // a single primary key exists in the table.
-func (n *ProjectNode) PrimaryKeyNode() *query.ColumnNode {
+func (n projectTable) PrimaryKeyNode() *query.ColumnNode {
 	return n.ID()
 }
 
 // ID represents the id column in the database.
-func (n *ProjectNode) ID() *query.ColumnNode {
+func (n projectTable) ID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"project",
@@ -99,7 +123,7 @@ func (n *ProjectNode) ID() *query.ColumnNode {
 }
 
 // Num represents the num column in the database.
-func (n *ProjectNode) Num() *query.ColumnNode {
+func (n projectTable) Num() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"project",
@@ -113,7 +137,7 @@ func (n *ProjectNode) Num() *query.ColumnNode {
 }
 
 // Status represents the status_id column in the database.
-func (n *ProjectNode) Status() *query.ColumnNode {
+func (n projectTable) Status() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"project",
@@ -127,7 +151,7 @@ func (n *ProjectNode) Status() *query.ColumnNode {
 }
 
 // ManagerID represents the manager_id column in the database.
-func (n *ProjectNode) ManagerID() *query.ColumnNode {
+func (n projectTable) ManagerID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"project",
@@ -141,7 +165,7 @@ func (n *ProjectNode) ManagerID() *query.ColumnNode {
 }
 
 // Manager represents the link to a Person object.
-func (n *ProjectNode) Manager() PersonNodeI {
+func (n projectTable) Manager() PersonNodeI {
 	cn := &PersonNode{
 		query.NewReferenceNode(
 			"goradd",
@@ -160,7 +184,7 @@ func (n *ProjectNode) Manager() PersonNodeI {
 }
 
 // Name represents the name column in the database.
-func (n *ProjectNode) Name() *query.ColumnNode {
+func (n projectTable) Name() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"project",
@@ -174,7 +198,7 @@ func (n *ProjectNode) Name() *query.ColumnNode {
 }
 
 // Description represents the description column in the database.
-func (n *ProjectNode) Description() *query.ColumnNode {
+func (n projectTable) Description() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"project",
@@ -188,7 +212,7 @@ func (n *ProjectNode) Description() *query.ColumnNode {
 }
 
 // StartDate represents the start_date column in the database.
-func (n *ProjectNode) StartDate() *query.ColumnNode {
+func (n projectTable) StartDate() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"project",
@@ -202,7 +226,7 @@ func (n *ProjectNode) StartDate() *query.ColumnNode {
 }
 
 // EndDate represents the end_date column in the database.
-func (n *ProjectNode) EndDate() *query.ColumnNode {
+func (n projectTable) EndDate() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"project",
@@ -216,7 +240,7 @@ func (n *ProjectNode) EndDate() *query.ColumnNode {
 }
 
 // Budget represents the budget column in the database.
-func (n *ProjectNode) Budget() *query.ColumnNode {
+func (n projectTable) Budget() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"project",
@@ -230,7 +254,7 @@ func (n *ProjectNode) Budget() *query.ColumnNode {
 }
 
 // Spent represents the spent column in the database.
-func (n *ProjectNode) Spent() *query.ColumnNode {
+func (n projectTable) Spent() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"project",
@@ -244,7 +268,7 @@ func (n *ProjectNode) Spent() *query.ColumnNode {
 }
 
 // Children represents the many-to-many relationship formed by the related_project_assn table.
-func (n *ProjectNode) Children() *ProjectNode {
+func (n projectTable) Children() ProjectNodeI {
 	cn := &ProjectNode{
 		query.NewManyManyNode(
 			"goradd",
@@ -262,7 +286,7 @@ func (n *ProjectNode) Children() *ProjectNode {
 }
 
 // Parents represents the many-to-many relationship formed by the related_project_assn table.
-func (n *ProjectNode) Parents() *ProjectNode {
+func (n projectTable) Parents() ProjectNodeI {
 	cn := &ProjectNode{
 		query.NewManyManyNode(
 			"goradd",
@@ -280,7 +304,7 @@ func (n *ProjectNode) Parents() *ProjectNode {
 }
 
 // TeamMembers represents the many-to-many relationship formed by the team_member_project_assn table.
-func (n *ProjectNode) TeamMembers() *PersonNode {
+func (n projectTable) TeamMembers() PersonNodeI {
 	cn := &PersonNode{
 		query.NewManyManyNode(
 			"goradd",
@@ -299,7 +323,7 @@ func (n *ProjectNode) TeamMembers() *PersonNode {
 
 // Milestones represents the many-to-one relationship formed by the reverse reference from the
 // project_id column in the milestone table.
-func (n *ProjectNode) Milestones() *MilestoneNode {
+func (n projectTable) Milestones() MilestoneNodeI {
 	cn := &MilestoneNode{
 		query.NewReverseReferenceNode(
 			"goradd",
@@ -315,41 +339,9 @@ func (n *ProjectNode) Milestones() *MilestoneNode {
 	return cn
 }
 
-type projectNodeEncoded struct {
-	RefNode query.ReferenceNodeI
-}
-
-// GobEncode makes the node serializable.
-// doc:hide
-func (n *ProjectNode) GobEncode() (data []byte, err error) {
-	var buf bytes.Buffer
-	e := gob.NewEncoder(&buf)
-
-	s := projectNodeEncoded{
-		RefNode: n.ReferenceNodeI,
-	}
-
-	if err = e.Encode(s); err != nil {
-		panic(err)
-	}
-	data = buf.Bytes()
-	return
-}
-
-// GobDecode makes the node deserializable.
-// doc: hide
-func (n *ProjectNode) GobDecode(data []byte) (err error) {
-	buf := bytes.NewBuffer(data)
-	dec := gob.NewDecoder(buf)
-
-	var s projectNodeEncoded
-	if err = dec.Decode(&s); err != nil {
-		panic(err)
-	}
-	n.ReferenceNodeI = s.RefNode
-	query.SetParentNode(n, query.ParentNode(n)) // Reinforce types
-	return
-}
 func init() {
-	gob.Register(&ProjectNode{})
+	gob.Register(new(projectTable))
+	gob.Register(new(projectReference))
+	gob.Register(new(projectReverse))
+	gob.Register(new(projectAssociation))
 }

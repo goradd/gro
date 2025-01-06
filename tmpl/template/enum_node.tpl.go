@@ -58,6 +58,57 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
+// `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `I is the builder interface to the `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` nodes.
+type `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `NodeI interface {
+    query.NodeI
+    PrimaryKeyNode() *query.ColumnNode
+`); err != nil {
+		return
+	}
+
+	for i := 0; i < len(table.Fields); i++ {
+
+		if _, err = io.WriteString(_w, `    `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.FieldIdentifier(i)); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `() *query.ColumnNode
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `}
+
 type `); err != nil {
 		return
 	}

@@ -187,8 +187,7 @@ func TestConditionalExpand(t *testing.T) {
 	people := goradd.QueryPeople(ctx).
 		Join(node.Person().Addresses(), op.Equal(node.Person().Addresses().City(), "Mountain View")).
 		Join(node.Person().ManagerProjects(), op.Like(node.Person().ManagerProjects().Name(), "%Website%")).
-		Join(node.Person().ManagerProjects().Milestones()).
-		Expand(node.Person().ManagerProjects().Milestones()).
+		Join(node.Person().ManagerProjects().Milestones().Expand()).
 		OrderBy(node.Person().LastName(), node.Person().FirstName(), node.Person().ManagerProjects().Name()).
 		Load()
 

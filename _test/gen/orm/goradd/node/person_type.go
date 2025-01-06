@@ -8,6 +8,14 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
+// PersonTypeI is the builder interface to the PersonType nodes.
+type PersonTypeNodeI interface {
+	query.NodeI
+	PrimaryKeyNode() *query.ColumnNode
+	ID() *query.ColumnNode
+	Name() *query.ColumnNode
+}
+
 type PersonTypeNode struct {
 	query.ReferenceNodeI
 }

@@ -514,17 +514,6 @@ func (b *LoginsBuilder) Get() *Login {
 	}
 }
 
-// Expand causes node to produce separate rows in the results instead of a single row with an array of items.
-func (b *LoginsBuilder) Expand(node query.Expander) *LoginsBuilder {
-	n := node.(query.NodeI)
-	if query.NodeTableName(query.RootNode(n)) != "login" {
-		panic("you can only expand a node that is rooted at node.Login()")
-	}
-
-	b.builder.Expand(n)
-	return b
-}
-
 // Join adds node n to the node tree so that its fields will appear in the query.
 // Optionally add conditions to filter what gets included.
 func (b *LoginsBuilder) Join(n query.NodeI, conditions ...query.NodeI) *LoginsBuilder {

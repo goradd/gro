@@ -3,53 +3,69 @@
 package node
 
 import (
-	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
 )
 
-// TypeTestI is the builder interface to the TypeTest nodes.
+// TypeTestNodeI is the builder interface to the TypeTest nodes.
 type TypeTestNodeI interface {
 	query.NodeI
 	PrimaryKeyNode() *query.ColumnNode
-
+	// ID represents the id column in the database.
 	ID() *query.ColumnNode
+	// Date represents the date column in the database.
 	Date() *query.ColumnNode
+	// Time represents the time column in the database.
 	Time() *query.ColumnNode
+	// DateTime represents the date_time column in the database.
 	DateTime() *query.ColumnNode
+	// Ts represents the ts column in the database.
 	Ts() *query.ColumnNode
+	// TestInt represents the test_int column in the database.
 	TestInt() *query.ColumnNode
+	// TestFloat represents the test_float column in the database.
 	TestFloat() *query.ColumnNode
+	// TestDouble represents the test_double column in the database.
 	TestDouble() *query.ColumnNode
+	// TestText represents the test_text column in the database.
 	TestText() *query.ColumnNode
+	// TestBit represents the test_bit column in the database.
 	TestBit() *query.ColumnNode
+	// TestVarchar represents the test_varchar column in the database.
 	TestVarchar() *query.ColumnNode
+	// TestBlob represents the test_blob column in the database.
 	TestBlob() *query.ColumnNode
 }
 
-// TypeTestNode represents the type_test table in a query. It uses a builder pattern to chain
-// together other tables and columns to form a node in a query.
+// TypeTestExpander is the builder interface for TypeTests that are expandable.
+type TypeTestExpander interface {
+	TypeTestNodeI
+	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
+	Expand() TypeTestNodeI
+}
+
+// typeTestTable represents the type_test table in a query. It uses a builder pattern to chain
+// together other tables and columns to form a node chain in a query.
 //
-// To use the TypeTestNode, call [TypeTest] to start a reference chain when querying the type_test table.
-type TypeTestNode struct {
-	// ReferenceNodeI is an internal object that represents the capabilities of the node. Since it is embedded, all
-	// of its functions are exported and are callable along with the typeTestNode functions here.
-	query.ReferenceNodeI
+// To use the typeTestTable, call [TypeTest()] to start a reference chain when querying the type_test table.
+type typeTestTable struct {
+}
+
+type typeTestReverse struct {
+	typeTestTable
+	reverseColumn *query.ColumnNode
 }
 
 // TypeTest returns a table node that starts a node chain that begins with the type_test table.
 func TypeTest() TypeTestNodeI {
-	n := TypeTestNode{
-		query.NewTableNode("goradd_unit", "type_test", "TypeTest"),
-	}
-	query.SetParentNode(&n, nil)
-	return &n
+	// Table nodes are empty structs, and do not have pointer receivers,
+	var n typeTestTable
+	return n
 }
 
 // SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-// doc: hide
-func (n *TypeTestNode) SelectNodes_() (nodes []*query.ColumnNode) {
+func (n typeTestTable) SelectNodes_() (nodes []*query.ColumnNode) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.Date())
 	nodes = append(nodes, n.Time())
@@ -65,26 +81,21 @@ func (n *TypeTestNode) SelectNodes_() (nodes []*query.ColumnNode) {
 	return nodes
 }
 
-// EmbeddedNode is used internally by the framework to return the embedded Reference node.
-// doc: hide
-func (n *TypeTestNode) EmbeddedNode_() query.NodeI {
-	return n.ReferenceNodeI
-}
-
 // Copy_ is used internally by the framework to deep copy the node.
-// doc: hide
-func (n *TypeTestNode) Copy_() query.NodeI {
-	return &TypeTestNode{query.CopyNode(n.ReferenceNodeI)}
+func (n typeTestTable) Copy_() query.NodeI {
+	// Table nodes are empty so just offer a copy
+	var t typeTestTable
+	return t
 }
 
 // PrimaryKeyNode returns a node that points to the primary key column, if
 // a single primary key exists in the table.
-func (n *TypeTestNode) PrimaryKeyNode() *query.ColumnNode {
+func (n typeTestTable) PrimaryKeyNode() *query.ColumnNode {
 	return n.ID()
 }
 
 // ID represents the id column in the database.
-func (n *TypeTestNode) ID() *query.ColumnNode {
+func (n typeTestTable) ID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd_unit",
 		"type_test",
@@ -98,7 +109,7 @@ func (n *TypeTestNode) ID() *query.ColumnNode {
 }
 
 // Date represents the date column in the database.
-func (n *TypeTestNode) Date() *query.ColumnNode {
+func (n typeTestTable) Date() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd_unit",
 		"type_test",
@@ -112,7 +123,7 @@ func (n *TypeTestNode) Date() *query.ColumnNode {
 }
 
 // Time represents the time column in the database.
-func (n *TypeTestNode) Time() *query.ColumnNode {
+func (n typeTestTable) Time() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd_unit",
 		"type_test",
@@ -126,7 +137,7 @@ func (n *TypeTestNode) Time() *query.ColumnNode {
 }
 
 // DateTime represents the date_time column in the database.
-func (n *TypeTestNode) DateTime() *query.ColumnNode {
+func (n typeTestTable) DateTime() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd_unit",
 		"type_test",
@@ -140,7 +151,7 @@ func (n *TypeTestNode) DateTime() *query.ColumnNode {
 }
 
 // Ts represents the ts column in the database.
-func (n *TypeTestNode) Ts() *query.ColumnNode {
+func (n typeTestTable) Ts() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd_unit",
 		"type_test",
@@ -154,7 +165,7 @@ func (n *TypeTestNode) Ts() *query.ColumnNode {
 }
 
 // TestInt represents the test_int column in the database.
-func (n *TypeTestNode) TestInt() *query.ColumnNode {
+func (n typeTestTable) TestInt() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd_unit",
 		"type_test",
@@ -168,7 +179,7 @@ func (n *TypeTestNode) TestInt() *query.ColumnNode {
 }
 
 // TestFloat represents the test_float column in the database.
-func (n *TypeTestNode) TestFloat() *query.ColumnNode {
+func (n typeTestTable) TestFloat() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd_unit",
 		"type_test",
@@ -182,7 +193,7 @@ func (n *TypeTestNode) TestFloat() *query.ColumnNode {
 }
 
 // TestDouble represents the test_double column in the database.
-func (n *TypeTestNode) TestDouble() *query.ColumnNode {
+func (n typeTestTable) TestDouble() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd_unit",
 		"type_test",
@@ -196,7 +207,7 @@ func (n *TypeTestNode) TestDouble() *query.ColumnNode {
 }
 
 // TestText represents the test_text column in the database.
-func (n *TypeTestNode) TestText() *query.ColumnNode {
+func (n typeTestTable) TestText() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd_unit",
 		"type_test",
@@ -210,7 +221,7 @@ func (n *TypeTestNode) TestText() *query.ColumnNode {
 }
 
 // TestBit represents the test_bit column in the database.
-func (n *TypeTestNode) TestBit() *query.ColumnNode {
+func (n typeTestTable) TestBit() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd_unit",
 		"type_test",
@@ -224,7 +235,7 @@ func (n *TypeTestNode) TestBit() *query.ColumnNode {
 }
 
 // TestVarchar represents the test_varchar column in the database.
-func (n *TypeTestNode) TestVarchar() *query.ColumnNode {
+func (n typeTestTable) TestVarchar() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd_unit",
 		"type_test",
@@ -238,7 +249,7 @@ func (n *TypeTestNode) TestVarchar() *query.ColumnNode {
 }
 
 // TestBlob represents the test_blob column in the database.
-func (n *TypeTestNode) TestBlob() *query.ColumnNode {
+func (n typeTestTable) TestBlob() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd_unit",
 		"type_test",
@@ -251,41 +262,7 @@ func (n *TypeTestNode) TestBlob() *query.ColumnNode {
 	return cn
 }
 
-type typeTestNodeEncoded struct {
-	RefNode query.ReferenceNodeI
-}
-
-// GobEncode makes the node serializable.
-// doc:hide
-func (n *TypeTestNode) GobEncode() (data []byte, err error) {
-	var buf bytes.Buffer
-	e := gob.NewEncoder(&buf)
-
-	s := typeTestNodeEncoded{
-		RefNode: n.ReferenceNodeI,
-	}
-
-	if err = e.Encode(s); err != nil {
-		panic(err)
-	}
-	data = buf.Bytes()
-	return
-}
-
-// GobDecode makes the node deserializable.
-// doc: hide
-func (n *TypeTestNode) GobDecode(data []byte) (err error) {
-	buf := bytes.NewBuffer(data)
-	dec := gob.NewDecoder(buf)
-
-	var s typeTestNodeEncoded
-	if err = dec.Decode(&s); err != nil {
-		panic(err)
-	}
-	n.ReferenceNodeI = s.RefNode
-	query.SetParentNode(n, query.ParentNode(n)) // Reinforce types
-	return
-}
 func init() {
-	gob.Register(&TypeTestNode{})
+	gob.Register(new(typeTestTable))
+	gob.Register(new(typeTestReverse))
 }

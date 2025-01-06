@@ -3,71 +3,74 @@
 package node
 
 import (
-	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
 )
 
-// MilestoneI is the builder interface to the Milestone nodes.
+// MilestoneNodeI is the builder interface to the Milestone nodes.
 type MilestoneNodeI interface {
 	query.NodeI
 	PrimaryKeyNode() *query.ColumnNode
-
+	// ID represents the id column in the database.
 	ID() *query.ColumnNode
+	// ProjectID represents the project_id column in the database.
 	ProjectID() *query.ColumnNode
+	// Project represents the Project reference to a Project object.
 	Project() ProjectNodeI
+	// Name represents the name column in the database.
 	Name() *query.ColumnNode
 }
 
-// MilestoneNode represents the milestone table in a query. It uses a builder pattern to chain
-// together other tables and columns to form a node in a query.
+// MilestoneExpander is the builder interface for Milestones that are expandable.
+type MilestoneExpander interface {
+	MilestoneNodeI
+	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
+	Expand() MilestoneNodeI
+}
+
+// milestoneTable represents the milestone table in a query. It uses a builder pattern to chain
+// together other tables and columns to form a node chain in a query.
 //
-// To use the MilestoneNode, call [Milestone] to start a reference chain when querying the milestone table.
-type MilestoneNode struct {
-	// ReferenceNodeI is an internal object that represents the capabilities of the node. Since it is embedded, all
-	// of its functions are exported and are callable along with the milestoneNode functions here.
-	query.ReferenceNodeI
+// To use the milestoneTable, call [Milestone()] to start a reference chain when querying the milestone table.
+type milestoneTable struct {
+}
+
+type milestoneReverse struct {
+	milestoneTable
+	reverseColumn *query.ColumnNode
 }
 
 // Milestone returns a table node that starts a node chain that begins with the milestone table.
 func Milestone() MilestoneNodeI {
-	n := MilestoneNode{
-		query.NewTableNode("goradd", "milestone", "Milestone"),
-	}
-	query.SetParentNode(&n, nil)
-	return &n
+	// Table nodes are empty structs, and do not have pointer receivers,
+	var n milestoneTable
+	return n
 }
 
 // SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-// doc: hide
-func (n *MilestoneNode) SelectNodes_() (nodes []*query.ColumnNode) {
+func (n milestoneTable) SelectNodes_() (nodes []*query.ColumnNode) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.ProjectID())
 	nodes = append(nodes, n.Name())
 	return nodes
 }
 
-// EmbeddedNode is used internally by the framework to return the embedded Reference node.
-// doc: hide
-func (n *MilestoneNode) EmbeddedNode_() query.NodeI {
-	return n.ReferenceNodeI
-}
-
 // Copy_ is used internally by the framework to deep copy the node.
-// doc: hide
-func (n *MilestoneNode) Copy_() query.NodeI {
-	return &MilestoneNode{query.CopyNode(n.ReferenceNodeI)}
+func (n milestoneTable) Copy_() query.NodeI {
+	// Table nodes are empty so just offer a copy
+	var t milestoneTable
+	return t
 }
 
 // PrimaryKeyNode returns a node that points to the primary key column, if
 // a single primary key exists in the table.
-func (n *MilestoneNode) PrimaryKeyNode() *query.ColumnNode {
+func (n milestoneTable) PrimaryKeyNode() *query.ColumnNode {
 	return n.ID()
 }
 
 // ID represents the id column in the database.
-func (n *MilestoneNode) ID() *query.ColumnNode {
+func (n milestoneTable) ID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"milestone",
@@ -81,7 +84,7 @@ func (n *MilestoneNode) ID() *query.ColumnNode {
 }
 
 // ProjectID represents the project_id column in the database.
-func (n *MilestoneNode) ProjectID() *query.ColumnNode {
+func (n milestoneTable) ProjectID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"milestone",
@@ -95,7 +98,7 @@ func (n *MilestoneNode) ProjectID() *query.ColumnNode {
 }
 
 // Project represents the link to a Project object.
-func (n *MilestoneNode) Project() ProjectNodeI {
+func (n milestoneTable) Project() ProjectNodeI {
 	cn := &ProjectNode{
 		query.NewReferenceNode(
 			"goradd",
@@ -114,7 +117,7 @@ func (n *MilestoneNode) Project() ProjectNodeI {
 }
 
 // Name represents the name column in the database.
-func (n *MilestoneNode) Name() *query.ColumnNode {
+func (n milestoneTable) Name() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"milestone",
@@ -127,41 +130,7 @@ func (n *MilestoneNode) Name() *query.ColumnNode {
 	return cn
 }
 
-type milestoneNodeEncoded struct {
-	RefNode query.ReferenceNodeI
-}
-
-// GobEncode makes the node serializable.
-// doc:hide
-func (n *MilestoneNode) GobEncode() (data []byte, err error) {
-	var buf bytes.Buffer
-	e := gob.NewEncoder(&buf)
-
-	s := milestoneNodeEncoded{
-		RefNode: n.ReferenceNodeI,
-	}
-
-	if err = e.Encode(s); err != nil {
-		panic(err)
-	}
-	data = buf.Bytes()
-	return
-}
-
-// GobDecode makes the node deserializable.
-// doc: hide
-func (n *MilestoneNode) GobDecode(data []byte) (err error) {
-	buf := bytes.NewBuffer(data)
-	dec := gob.NewDecoder(buf)
-
-	var s milestoneNodeEncoded
-	if err = dec.Decode(&s); err != nil {
-		panic(err)
-	}
-	n.ReferenceNodeI = s.RefNode
-	query.SetParentNode(n, query.ParentNode(n)) // Reinforce types
-	return
-}
 func init() {
-	gob.Register(&MilestoneNode{})
+	gob.Register(new(milestoneTable))
+	gob.Register(new(milestoneReverse))
 }

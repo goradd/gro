@@ -3,71 +3,74 @@
 package node
 
 import (
-	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
 )
 
-// EmployeeInfoI is the builder interface to the EmployeeInfo nodes.
+// EmployeeInfoNodeI is the builder interface to the EmployeeInfo nodes.
 type EmployeeInfoNodeI interface {
 	query.NodeI
 	PrimaryKeyNode() *query.ColumnNode
-
+	// ID represents the id column in the database.
 	ID() *query.ColumnNode
+	// PersonID represents the person_id column in the database.
 	PersonID() *query.ColumnNode
+	// Person represents the Person reference to a Person object.
 	Person() PersonNodeI
+	// EmployeeNumber represents the employee_number column in the database.
 	EmployeeNumber() *query.ColumnNode
 }
 
-// EmployeeInfoNode represents the employee_info table in a query. It uses a builder pattern to chain
-// together other tables and columns to form a node in a query.
+// EmployeeInfoExpander is the builder interface for EmployeeInfos that are expandable.
+type EmployeeInfoExpander interface {
+	EmployeeInfoNodeI
+	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
+	Expand() EmployeeInfoNodeI
+}
+
+// employeeInfoTable represents the employee_info table in a query. It uses a builder pattern to chain
+// together other tables and columns to form a node chain in a query.
 //
-// To use the EmployeeInfoNode, call [EmployeeInfo] to start a reference chain when querying the employee_info table.
-type EmployeeInfoNode struct {
-	// ReferenceNodeI is an internal object that represents the capabilities of the node. Since it is embedded, all
-	// of its functions are exported and are callable along with the employeeInfoNode functions here.
-	query.ReferenceNodeI
+// To use the employeeInfoTable, call [EmployeeInfo()] to start a reference chain when querying the employee_info table.
+type employeeInfoTable struct {
+}
+
+type employeeInfoReverse struct {
+	employeeInfoTable
+	reverseColumn *query.ColumnNode
 }
 
 // EmployeeInfo returns a table node that starts a node chain that begins with the employee_info table.
 func EmployeeInfo() EmployeeInfoNodeI {
-	n := EmployeeInfoNode{
-		query.NewTableNode("goradd", "employee_info", "EmployeeInfo"),
-	}
-	query.SetParentNode(&n, nil)
-	return &n
+	// Table nodes are empty structs, and do not have pointer receivers,
+	var n employeeInfoTable
+	return n
 }
 
 // SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-// doc: hide
-func (n *EmployeeInfoNode) SelectNodes_() (nodes []*query.ColumnNode) {
+func (n employeeInfoTable) SelectNodes_() (nodes []*query.ColumnNode) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.PersonID())
 	nodes = append(nodes, n.EmployeeNumber())
 	return nodes
 }
 
-// EmbeddedNode is used internally by the framework to return the embedded Reference node.
-// doc: hide
-func (n *EmployeeInfoNode) EmbeddedNode_() query.NodeI {
-	return n.ReferenceNodeI
-}
-
 // Copy_ is used internally by the framework to deep copy the node.
-// doc: hide
-func (n *EmployeeInfoNode) Copy_() query.NodeI {
-	return &EmployeeInfoNode{query.CopyNode(n.ReferenceNodeI)}
+func (n employeeInfoTable) Copy_() query.NodeI {
+	// Table nodes are empty so just offer a copy
+	var t employeeInfoTable
+	return t
 }
 
 // PrimaryKeyNode returns a node that points to the primary key column, if
 // a single primary key exists in the table.
-func (n *EmployeeInfoNode) PrimaryKeyNode() *query.ColumnNode {
+func (n employeeInfoTable) PrimaryKeyNode() *query.ColumnNode {
 	return n.ID()
 }
 
 // ID represents the id column in the database.
-func (n *EmployeeInfoNode) ID() *query.ColumnNode {
+func (n employeeInfoTable) ID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"employee_info",
@@ -81,7 +84,7 @@ func (n *EmployeeInfoNode) ID() *query.ColumnNode {
 }
 
 // PersonID represents the person_id column in the database.
-func (n *EmployeeInfoNode) PersonID() *query.ColumnNode {
+func (n employeeInfoTable) PersonID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"employee_info",
@@ -95,7 +98,7 @@ func (n *EmployeeInfoNode) PersonID() *query.ColumnNode {
 }
 
 // Person represents the link to a Person object.
-func (n *EmployeeInfoNode) Person() PersonNodeI {
+func (n employeeInfoTable) Person() PersonNodeI {
 	cn := &PersonNode{
 		query.NewReferenceNode(
 			"goradd",
@@ -114,7 +117,7 @@ func (n *EmployeeInfoNode) Person() PersonNodeI {
 }
 
 // EmployeeNumber represents the employee_number column in the database.
-func (n *EmployeeInfoNode) EmployeeNumber() *query.ColumnNode {
+func (n employeeInfoTable) EmployeeNumber() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"goradd",
 		"employee_info",
@@ -127,41 +130,7 @@ func (n *EmployeeInfoNode) EmployeeNumber() *query.ColumnNode {
 	return cn
 }
 
-type employeeInfoNodeEncoded struct {
-	RefNode query.ReferenceNodeI
-}
-
-// GobEncode makes the node serializable.
-// doc:hide
-func (n *EmployeeInfoNode) GobEncode() (data []byte, err error) {
-	var buf bytes.Buffer
-	e := gob.NewEncoder(&buf)
-
-	s := employeeInfoNodeEncoded{
-		RefNode: n.ReferenceNodeI,
-	}
-
-	if err = e.Encode(s); err != nil {
-		panic(err)
-	}
-	data = buf.Bytes()
-	return
-}
-
-// GobDecode makes the node deserializable.
-// doc: hide
-func (n *EmployeeInfoNode) GobDecode(data []byte) (err error) {
-	buf := bytes.NewBuffer(data)
-	dec := gob.NewDecoder(buf)
-
-	var s employeeInfoNodeEncoded
-	if err = dec.Decode(&s); err != nil {
-		panic(err)
-	}
-	n.ReferenceNodeI = s.RefNode
-	query.SetParentNode(n, query.ParentNode(n)) // Reinforce types
-	return
-}
 func init() {
-	gob.Register(&EmployeeInfoNode{})
+	gob.Register(new(employeeInfoTable))
+	gob.Register(new(employeeInfoReverse))
 }

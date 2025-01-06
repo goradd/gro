@@ -5,10 +5,8 @@
 {{
 // {{= table.Identifier }} returns a table node that starts a node chain that begins with the {{= table.QueryName }} table.
 func {{= table.Identifier }}() {{= table.Identifier }}NodeI {
-	n := {{= table.Identifier }}Node {
-		query.NewTableNode("{{= table.DbKey }}", "{{= table.QueryName }}",  "{{= table.Identifier }}"),
-	}
-	query.SetParentNode(&n, nil)
-	return &n
+    // Table nodes are empty structs, and do not have pointer receivers,
+	var n {{= table.DecapIdentifier }}Table
+	return n
 }
 }}

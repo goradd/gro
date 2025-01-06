@@ -18,7 +18,7 @@ func (n *NodeTemplate)genReverseOne(table *model.Table, rev *model.Column, _w io
 {{
 // {{= rev.Reference.ReverseIdentifier }} represents the one-to-one relationship formed by the reverse reference from the
 // {{= rev.QueryName }} column in the {{= rev.Table.QueryName }} table.
-func (n *{{= table.Identifier}}Node) {{= rev.Reference.ReverseIdentifier }}() *{{= rev.Table.Identifier }}Node  {
+func (n {{= table.DecapIdentifier}}Table) {{= rev.Reference.ReverseIdentifier }}() {{= rev.Table.Identifier }}NodeI  {
 
 	cn := &{{= rev.Table.Identifier }}Node {
 		query.NewReverseReferenceNode (
@@ -44,7 +44,7 @@ func (n *NodeTemplate)genReverseMany(table *model.Table, rev *model.Column, _w i
 
 // {{= rev.Reference.ReverseIdentifierPlural }} represents the many-to-one relationship formed by the reverse reference from the
 // {{= rev.QueryName }} column in the {{= rev.Table.QueryName }} table.
-func (n *{{= table.Identifier }}Node) {{= rev.Reference.ReverseIdentifierPlural }}() *{{= rev.Table.Identifier }}Node  {
+func (n {{= table.DecapIdentifier }}Table) {{= rev.Reference.ReverseIdentifierPlural }}() {{= rev.Table.Identifier }}NodeI  {
 	cn := &{{= rev.Table.Identifier }}Node {
 		query.NewReverseReferenceNode (
 			"{{= table.DbKey }}",
