@@ -62,6 +62,15 @@ func (n forwardRestrictTable) DatabaseKey_() string {
 	return "goradd_unit"
 }
 
+// ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
+// This may include reference nodes to enum types.
+func (n forwardRestrictTable) ColumnNodes_() (nodes []query.NodeI) {
+	nodes = append(nodes, n.ID())
+	nodes = append(nodes, n.Name())
+	nodes = append(nodes, n.ReverseID())
+	return nodes
+}
+
 // Columns_ is used internally by the framework to return the list of all the columns in the table.
 func (n forwardRestrictTable) Columns_() []string {
 	return []string{

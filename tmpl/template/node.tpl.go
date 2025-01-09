@@ -745,6 +745,41 @@ func (n `); err != nil {
 	if _, err = io.WriteString(_w, `"
 }
 
+// ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
+// This may include reference nodes to enum types.
+func (n `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Table) ColumnNodes_() (nodes []query.NodeI) {
+`); err != nil {
+		return
+	}
+
+	for _, col := range table.Columns {
+
+		if _, err = io.WriteString(_w, `	nodes = append(nodes, n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, fmt.Sprint(col.Identifier)); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `())
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `	return nodes
+}
+
 // Columns_ is used internally by the framework to return the list of all the columns in the table.
 func (n `); err != nil {
 		return
@@ -779,6 +814,7 @@ func (n `); err != nil {
 
 	if _, err = io.WriteString(_w, `	}
 }
+
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
 func (n `); err != nil {

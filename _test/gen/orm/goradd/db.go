@@ -537,28 +537,28 @@ func jsonDecodeTable(ctx context.Context, decoder *json.Decoder) error {
 		return err
 	} else {
 		switch tableName {
+		case "address":
+			err = jsonDecodeAddresses(ctx, decoder)
+		case "employee_info":
+			err = jsonDecodeEmployeeInfos(ctx, decoder)
 		case "gift":
 			err = jsonDecodeGifts(ctx, decoder)
 		case "person":
 			err = jsonDecodePeople(ctx, decoder)
 		case "person_with_lock":
 			err = jsonDecodePersonWithLocks(ctx, decoder)
-		case "address":
-			err = jsonDecodeAddresses(ctx, decoder)
-		case "employee_info":
-			err = jsonDecodeEmployeeInfos(ctx, decoder)
+		case "project":
+			err = jsonDecodeProjects(ctx, decoder)
 		case "login":
 			err = jsonDecodeLogins(ctx, decoder)
 		case "milestone":
 			err = jsonDecodeMilestones(ctx, decoder)
-		case "project":
-			err = jsonDecodeProjects(ctx, decoder)
-		case "related_project_assn":
-			err = jsonDecodeRelatedProjectAssn(ctx, decoder)
-		case "team_member_project_assn":
-			err = jsonDecodeTeamMemberProjectAssn(ctx, decoder)
 		case "person_persontype_assn":
 			err = jsonDecodePersonPersontypeAssn(ctx, decoder)
+		case "team_member_project_assn":
+			err = jsonDecodeTeamMemberProjectAssn(ctx, decoder)
+		case "related_project_assn":
+			err = jsonDecodeRelatedProjectAssn(ctx, decoder)
 
 		}
 		if err != nil {
@@ -581,6 +581,74 @@ func jsonDecodeTable(ctx context.Context, decoder *json.Decoder) error {
 	return nil
 }
 
+func jsonDecodeAddresses(ctx context.Context, decoder *json.Decoder) error {
+	token, err := decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading opening token:", err)
+		return err
+	}
+	// Ensure the first token is a start of an array
+	if delim, ok := token.(json.Delim); !ok || delim != '[' {
+		fmt.Println("Error: Expected the Address list to start with an array")
+		return err
+	}
+
+	for decoder.More() {
+		obj := NewAddress()
+		if err = decoder.Decode(&obj); err != nil {
+			return err
+		}
+		obj.Save(ctx)
+	}
+
+	// Check if the last token is the end of the array
+	token, err = decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading the last token:", err)
+		return err
+	}
+
+	if delim, ok := token.(json.Delim); !ok || delim != ']' {
+		fmt.Println("Error: Expected the JSON to end with a closing array token")
+		return err
+	}
+
+	return nil
+}
+func jsonDecodeEmployeeInfos(ctx context.Context, decoder *json.Decoder) error {
+	token, err := decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading opening token:", err)
+		return err
+	}
+	// Ensure the first token is a start of an array
+	if delim, ok := token.(json.Delim); !ok || delim != '[' {
+		fmt.Println("Error: Expected the EmployeeInfo list to start with an array")
+		return err
+	}
+
+	for decoder.More() {
+		obj := NewEmployeeInfo()
+		if err = decoder.Decode(&obj); err != nil {
+			return err
+		}
+		obj.Save(ctx)
+	}
+
+	// Check if the last token is the end of the array
+	token, err = decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading the last token:", err)
+		return err
+	}
+
+	if delim, ok := token.(json.Delim); !ok || delim != ']' {
+		fmt.Println("Error: Expected the JSON to end with a closing array token")
+		return err
+	}
+
+	return nil
+}
 func jsonDecodeGifts(ctx context.Context, decoder *json.Decoder) error {
 	token, err := decoder.Token()
 	if err != nil {
@@ -683,7 +751,7 @@ func jsonDecodePersonWithLocks(ctx context.Context, decoder *json.Decoder) error
 
 	return nil
 }
-func jsonDecodeAddresses(ctx context.Context, decoder *json.Decoder) error {
+func jsonDecodeProjects(ctx context.Context, decoder *json.Decoder) error {
 	token, err := decoder.Token()
 	if err != nil {
 		fmt.Println("Error reading opening token:", err)
@@ -691,46 +759,12 @@ func jsonDecodeAddresses(ctx context.Context, decoder *json.Decoder) error {
 	}
 	// Ensure the first token is a start of an array
 	if delim, ok := token.(json.Delim); !ok || delim != '[' {
-		fmt.Println("Error: Expected the Address list to start with an array")
+		fmt.Println("Error: Expected the Project list to start with an array")
 		return err
 	}
 
 	for decoder.More() {
-		obj := NewAddress()
-		if err = decoder.Decode(&obj); err != nil {
-			return err
-		}
-		obj.Save(ctx)
-	}
-
-	// Check if the last token is the end of the array
-	token, err = decoder.Token()
-	if err != nil {
-		fmt.Println("Error reading the last token:", err)
-		return err
-	}
-
-	if delim, ok := token.(json.Delim); !ok || delim != ']' {
-		fmt.Println("Error: Expected the JSON to end with a closing array token")
-		return err
-	}
-
-	return nil
-}
-func jsonDecodeEmployeeInfos(ctx context.Context, decoder *json.Decoder) error {
-	token, err := decoder.Token()
-	if err != nil {
-		fmt.Println("Error reading opening token:", err)
-		return err
-	}
-	// Ensure the first token is a start of an array
-	if delim, ok := token.(json.Delim); !ok || delim != '[' {
-		fmt.Println("Error: Expected the EmployeeInfo list to start with an array")
-		return err
-	}
-
-	for decoder.More() {
-		obj := NewEmployeeInfo()
+		obj := NewProject()
 		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}
@@ -819,7 +853,8 @@ func jsonDecodeMilestones(ctx context.Context, decoder *json.Decoder) error {
 
 	return nil
 }
-func jsonDecodeProjects(ctx context.Context, decoder *json.Decoder) error {
+
+func jsonDecodePersonPersontypeAssn(ctx context.Context, decoder *json.Decoder) error {
 	token, err := decoder.Token()
 	if err != nil {
 		fmt.Println("Error reading opening token:", err)
@@ -827,56 +862,21 @@ func jsonDecodeProjects(ctx context.Context, decoder *json.Decoder) error {
 	}
 	// Ensure the first token is a start of an array
 	if delim, ok := token.(json.Delim); !ok || delim != '[' {
-		fmt.Println("Error: Expected the Project list to start with an array")
-		return err
-	}
-
-	for decoder.More() {
-		obj := NewProject()
-		if err = decoder.Decode(&obj); err != nil {
-			return err
-		}
-		obj.Save(ctx)
-	}
-
-	// Check if the last token is the end of the array
-	token, err = decoder.Token()
-	if err != nil {
-		fmt.Println("Error reading the last token:", err)
-		return err
-	}
-
-	if delim, ok := token.(json.Delim); !ok || delim != ']' {
-		fmt.Println("Error: Expected the JSON to end with a closing array token")
-		return err
-	}
-
-	return nil
-}
-
-func jsonDecodeRelatedProjectAssn(ctx context.Context, decoder *json.Decoder) error {
-	token, err := decoder.Token()
-	if err != nil {
-		fmt.Println("Error reading opening token:", err)
-		return err
-	}
-	// Ensure the first token is a start of an array
-	if delim, ok := token.(json.Delim); !ok || delim != '[' {
-		fmt.Println("Error: Expected the RelatedProjectAssn list to start with an array")
+		fmt.Println("Error: Expected the PersonPersontypeAssn list to start with an array")
 		return err
 	}
 
 	database := Database()
 	for decoder.More() {
 		var imp struct {
-			Src  string `json:"child_id"`
-			Dest string `json:"parent_id"`
+			Src  string `json:"person_id"`
+			Dest int    `json:"person_type_id"`
 		}
 
 		if err = decoder.Decode(&imp); err != nil {
 			return err
 		}
-		db.Associate(ctx, database, "related_project_assn", "child_id", imp.Src, "parent_id", imp.Dest)
+		db.Associate(ctx, database, "person_persontype_assn", "person_id", imp.Src, "person_type_id", imp.Dest)
 	}
 
 	// Check if the last token is the end of the array
@@ -908,14 +908,14 @@ func jsonDecodeTeamMemberProjectAssn(ctx context.Context, decoder *json.Decoder)
 	database := Database()
 	for decoder.More() {
 		var imp struct {
-			Src  string `json:"team_member_id"`
-			Dest string `json:"project_id"`
+			Src  string `json:"project_id"`
+			Dest string `json:"team_member_id"`
 		}
 
 		if err = decoder.Decode(&imp); err != nil {
 			return err
 		}
-		db.Associate(ctx, database, "team_member_project_assn", "team_member_id", imp.Src, "project_id", imp.Dest)
+		db.Associate(ctx, database, "team_member_project_assn", "project_id", imp.Src, "team_member_id", imp.Dest)
 	}
 
 	// Check if the last token is the end of the array
@@ -932,7 +932,7 @@ func jsonDecodeTeamMemberProjectAssn(ctx context.Context, decoder *json.Decoder)
 
 	return nil
 }
-func jsonDecodePersonPersontypeAssn(ctx context.Context, decoder *json.Decoder) error {
+func jsonDecodeRelatedProjectAssn(ctx context.Context, decoder *json.Decoder) error {
 	token, err := decoder.Token()
 	if err != nil {
 		fmt.Println("Error reading opening token:", err)
@@ -940,21 +940,21 @@ func jsonDecodePersonPersontypeAssn(ctx context.Context, decoder *json.Decoder) 
 	}
 	// Ensure the first token is a start of an array
 	if delim, ok := token.(json.Delim); !ok || delim != '[' {
-		fmt.Println("Error: Expected the PersonPersontypeAssn list to start with an array")
+		fmt.Println("Error: Expected the RelatedProjectAssn list to start with an array")
 		return err
 	}
 
 	database := Database()
 	for decoder.More() {
 		var imp struct {
-			Src  string `json:"person_id"`
-			Dest int    `json:"person_type_id"`
+			Src  string `json:"child_id"`
+			Dest string `json:"parent_id"`
 		}
 
 		if err = decoder.Decode(&imp); err != nil {
 			return err
 		}
-		db.Associate(ctx, database, "person_persontype_assn", "person_id", imp.Src, "person_type_id", imp.Dest)
+		db.Associate(ctx, database, "related_project_assn", "child_id", imp.Src, "parent_id", imp.Dest)
 	}
 
 	// Check if the last token is the end of the array

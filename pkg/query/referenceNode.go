@@ -7,10 +7,8 @@ import (
 
 type ReferenceNodeI interface {
 	NodeI
-	Aliaser
 	conditioner
-	nodeLinker
-	Expander
+	NodeLinker
 }
 
 // A ReferenceNode is a forward-pointing foreign key relationship. If the other side of the relationship is
@@ -40,10 +38,10 @@ func (n *ReferenceNode) GobEncode() (data []byte, err error) {
 	if err = e.Encode(n.ReceiverType); err != nil {
 		panic(err)
 	}
-	if err = e.Encode(n.nodeCondition.condition); err != nil {
+	if err = e.Encode(&n.nodeCondition.condition); err != nil {
 		panic(err)
 	}
-	if err = e.Encode(n.nodeLink.parentNode); err != nil {
+	if err = e.Encode(&n.nodeLink.parentNode); err != nil {
 		panic(err)
 	}
 	data = buf.Bytes()

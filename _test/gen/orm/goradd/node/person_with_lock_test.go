@@ -20,4 +20,11 @@ func TestSerializePersonWithLockTable(t *testing.T) {
 	assert.Equal(t, query.TableNodeType, n2.NodeType_())
 	assert.Equal(t, "goradd", n2.DatabaseKey_())
 
+	nodes := personWithLockTable{}.ColumnNodes_()
+	for _, cn := range nodes {
+		cn2 := serNode(t, cn)
+		assert.Equal(t, "person_with_lock", cn2.TableName_())
+		assert.Implements(t, (*query.NodeLinker)(nil), cn2)
+		assert.Equal(t, query.TableNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
+	}
 }

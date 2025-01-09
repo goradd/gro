@@ -6,6 +6,7 @@ func (tmpl *EnumNodeTemplate)gen(table *model.Enum, _w io.Writer) (err error) {
     if err = tmpl.genHeader(table, _w); err != nil { return }
     if err = tmpl.genPrivate(table, _w); err != nil { return }
     if err = tmpl.genLeafNodes(table, _w); err != nil { return }
+    if err = tmpl.genGob(table, _w); err != nil { return }
     return
 }
 
@@ -61,6 +62,8 @@ func (n {{= table.DecapIdentifier }}Association) PrimaryKeyNode() (*query.Column
 
 func init() {
    gob.Register(new({{= table.DecapIdentifier }}Enum))
+   gob.Register(new({{= table.DecapIdentifier }}Association))
+   gob.Register(new({{= table.DecapIdentifier }}Reference))
 }
 
 }}
@@ -93,6 +96,17 @@ func (n {{= table.DecapIdentifier }}Enum) TableName_() string {
     return "{{= table.QueryName }}"
 }
 
+// TableName_ returns the query name of the table the node is associated with.
+func (n {{= table.DecapIdentifier }}Association) TableName_() string {
+    return n.Parent().TableName_()
+}
+
+// TableName_ returns the query name of the table the node is associated with.
+func (n {{= table.DecapIdentifier }}Reference) TableName_() string {
+    return n.Parent().TableName_()
+}
+
+
 // DatabaseKey_ returns the database key of the database the node is associated with.
 func (n {{= table.DecapIdentifier }}Enum) DatabaseKey_() string {
     return "{{= table.DbKey }}"
@@ -110,8 +124,8 @@ func (tmpl *EnumNodeTemplate)genLeafNodes(table *model.Enum, _w io.Writer) (err 
 
 func (n {{= table.DecapIdentifier }}Enum) {{= fn }}() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName: {{L table.FieldQueryName(i) }},
-		Identifier: {{L fn }},
+		QueryName: "{{= table.FieldQueryName(i) }}",
+		Identifier: "{{= fn }}",
 		ReceiverType: query.{{= table.FieldReceiverType(i).String() }},
 		IsPrimaryKey: {{if i == 0 }}true{{else}}false{{if}},
 	}
@@ -133,5 +147,60 @@ func (n *{{= table.DecapIdentifier }}Association) {{= fn }}() *query.ColumnNode 
 
 }}
     }
+    return
+}
+
+func (tmpl *EnumNodeTemplate)genGob(table *model.Enum, _w io.Writer) (err error) {
+{{
+func (n {{= table.DecapIdentifier }}Enum) GobEncode() (data []byte, err error) {
+	return
+}
+
+func (n *{{= table.DecapIdentifier }}Enum) GobDecode(data []byte) (err error) {
+	return
+}
+
+func (n *{{= table.DecapIdentifier}}Reference) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(&n.ReferenceNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *{{= table.DecapIdentifier}}Reference) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ReferenceNode); err != nil {
+		panic(err)
+	}
+	return
+}
+
+func (n *{{= table.DecapIdentifier}}Association) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(&n.ManyManyNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *{{= table.DecapIdentifier}}Association) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ManyManyNode); err != nil {
+		panic(err)
+	}
+	return
+}
+}}
     return
 }

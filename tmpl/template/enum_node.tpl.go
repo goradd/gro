@@ -3,7 +3,6 @@
 package template
 
 import (
-	"fmt"
 	"io"
 	"path/filepath"
 
@@ -43,6 +42,9 @@ func (tmpl *EnumNodeTemplate) gen(table *model.Enum, _w io.Writer) (err error) {
 		return
 	}
 	if err = tmpl.genLeafNodes(table, _w); err != nil {
+		return
+	}
+	if err = tmpl.genGob(table, _w); err != nil {
 		return
 	}
 	return
@@ -240,6 +242,24 @@ func init() {
 	}
 
 	if _, err = io.WriteString(_w, `Enum))
+   gob.Register(new(`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Association))
+   gob.Register(new(`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Reference))
 }
 
 `); err != nil {
@@ -331,6 +351,33 @@ func (n `); err != nil {
 	if _, err = io.WriteString(_w, `"
 }
 
+// TableName_ returns the query name of the table the node is associated with.
+func (n `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Association) TableName_() string {
+    return n.Parent().TableName_()
+}
+
+// TableName_ returns the query name of the table the node is associated with.
+func (n `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Reference) TableName_() string {
+    return n.Parent().TableName_()
+}
+
+
 // DatabaseKey_ returns the database key of the database the node is associated with.
 func (n `); err != nil {
 		return
@@ -383,24 +430,24 @@ func (n `); err != nil {
 
 		if _, err = io.WriteString(_w, `() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName: `); err != nil {
+		QueryName: "`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, fmt.Sprintf("%#v", table.FieldQueryName(i))); err != nil {
+		if _, err = io.WriteString(_w, table.FieldQueryName(i)); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `,
-		Identifier: `); err != nil {
+		if _, err = io.WriteString(_w, `",
+		Identifier: "`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, fmt.Sprintf("%#v", fn)); err != nil {
+		if _, err = io.WriteString(_w, fn); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `,
+		if _, err = io.WriteString(_w, `",
 		ReceiverType: query.`); err != nil {
 			return
 		}
@@ -515,5 +562,111 @@ func (n *`); err != nil {
 		}
 
 	}
+	return
+}
+
+func (tmpl *EnumNodeTemplate) genGob(table *model.Enum, _w io.Writer) (err error) {
+
+	if _, err = io.WriteString(_w, `func (n `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Enum) GobEncode() (data []byte, err error) {
+	return
+}
+
+func (n *`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Enum) GobDecode(data []byte) (err error) {
+	return
+}
+
+func (n *`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Reference) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(&n.ReferenceNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Reference) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ReferenceNode); err != nil {
+		panic(err)
+	}
+	return
+}
+
+func (n *`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Association) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(&n.ManyManyNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Association) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ManyManyNode); err != nil {
+		panic(err)
+	}
+	return
+}
+`); err != nil {
+		return
+	}
+
 	return
 }

@@ -34,10 +34,10 @@ func (n *ReverseNode) GobEncode() (data []byte, err error) {
 	if err = e.Encode(n.ReceiverType); err != nil {
 		panic(err)
 	}
-	if err = e.Encode(n.nodeCondition.condition); err != nil {
+	if err = e.Encode(&n.nodeCondition.condition); err != nil {
 		panic(err)
 	}
-	if err = e.Encode(n.nodeLink.parentNode); err != nil {
+	if err = e.Encode(&n.nodeLink.parentNode); err != nil {
 		panic(err)
 	}
 	if err = e.Encode(n.nodeExpand.isExpanded); err != nil {

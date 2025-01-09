@@ -66,6 +66,17 @@ func (n loginTable) DatabaseKey_() string {
 	return "goradd"
 }
 
+// ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
+// This may include reference nodes to enum types.
+func (n loginTable) ColumnNodes_() (nodes []query.NodeI) {
+	nodes = append(nodes, n.ID())
+	nodes = append(nodes, n.PersonID())
+	nodes = append(nodes, n.Username())
+	nodes = append(nodes, n.Password())
+	nodes = append(nodes, n.IsEnabled())
+	return nodes
+}
+
 // Columns_ is used internally by the framework to return the list of all the columns in the table.
 func (n loginTable) Columns_() []string {
 	return []string{

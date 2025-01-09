@@ -60,6 +60,15 @@ func (n doubleIndexTable) DatabaseKey_() string {
 	return "goradd_unit"
 }
 
+// ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
+// This may include reference nodes to enum types.
+func (n doubleIndexTable) ColumnNodes_() (nodes []query.NodeI) {
+	nodes = append(nodes, n.ID())
+	nodes = append(nodes, n.FieldInt())
+	nodes = append(nodes, n.FieldString())
+	return nodes
+}
+
 // Columns_ is used internally by the framework to return the list of all the columns in the table.
 func (n doubleIndexTable) Columns_() []string {
 	return []string{

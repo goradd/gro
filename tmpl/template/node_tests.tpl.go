@@ -133,6 +133,29 @@ func TestSerialize`); err != nil {
 
 	if _, err = io.WriteString(_w, `", n2.DatabaseKey_())
 
+    nodes := `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Table{}.ColumnNodes_()
+    for _,cn := range nodes {
+        cn2 := serNode(t, cn)
+        assert.Equal(t, "`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.QueryName); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `", cn2.TableName_())
+        assert.Implements(t, (*query.NodeLinker)(nil), cn2)
+        assert.Equal(t, query.TableNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
+    }
 }
 
 `); err != nil {

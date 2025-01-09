@@ -20,4 +20,11 @@ func TestSerializeForwardCascadeTable(t *testing.T) {
 	assert.Equal(t, query.TableNodeType, n2.NodeType_())
 	assert.Equal(t, "goradd_unit", n2.DatabaseKey_())
 
+	nodes := forwardCascadeTable{}.ColumnNodes_()
+	for _, cn := range nodes {
+		cn2 := serNode(t, cn)
+		assert.Equal(t, "forward_cascade", cn2.TableName_())
+		assert.Implements(t, (*query.NodeLinker)(nil), cn2)
+		assert.Equal(t, query.TableNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
+	}
 }

@@ -8,7 +8,7 @@ import (
 type ColumnNodeI interface {
 	NodeI
 	NodeSorter
-	nodeLinker
+	NodeLinker
 }
 
 // ColumnNode represents a table or field in a database structure, and is the leaf of a node tree or chain.
@@ -64,7 +64,7 @@ func (n *ColumnNode) GobEncode() (data []byte, err error) {
 	if err = e.Encode(n.nodeSort.sortDescending); err != nil {
 		panic(err)
 	}
-	if err = e.Encode(n.nodeLink.parentNode); err != nil {
+	if err = e.Encode(&n.nodeLink.parentNode); err != nil {
 		panic(err)
 	}
 	data = buf.Bytes()

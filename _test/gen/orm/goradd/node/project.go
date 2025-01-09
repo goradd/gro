@@ -92,6 +92,22 @@ func (n projectTable) DatabaseKey_() string {
 	return "goradd"
 }
 
+// ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
+// This may include reference nodes to enum types.
+func (n projectTable) ColumnNodes_() (nodes []query.NodeI) {
+	nodes = append(nodes, n.ID())
+	nodes = append(nodes, n.Num())
+	nodes = append(nodes, n.Status())
+	nodes = append(nodes, n.ManagerID())
+	nodes = append(nodes, n.Name())
+	nodes = append(nodes, n.Description())
+	nodes = append(nodes, n.StartDate())
+	nodes = append(nodes, n.EndDate())
+	nodes = append(nodes, n.Budget())
+	nodes = append(nodes, n.Spent())
+	return nodes
+}
+
 // Columns_ is used internally by the framework to return the list of all the columns in the table.
 func (n projectTable) Columns_() []string {
 	return []string{

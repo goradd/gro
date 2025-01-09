@@ -90,6 +90,30 @@ func (n unsupportedTypeTable) DatabaseKey_() string {
 	return "goradd_unit"
 }
 
+// ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
+// This may include reference nodes to enum types.
+func (n unsupportedTypeTable) ColumnNodes_() (nodes []query.NodeI) {
+	nodes = append(nodes, n.TypeSerial())
+	nodes = append(nodes, n.TypeSet())
+	nodes = append(nodes, n.TypeEnum())
+	nodes = append(nodes, n.TypeDecimal())
+	nodes = append(nodes, n.TypeDouble())
+	nodes = append(nodes, n.TypeGeo())
+	nodes = append(nodes, n.TypeTinyBlob())
+	nodes = append(nodes, n.TypeMediumBlob())
+	nodes = append(nodes, n.TypeVarbinary())
+	nodes = append(nodes, n.TypeLongtext())
+	nodes = append(nodes, n.TypeBinary())
+	nodes = append(nodes, n.TypeSmall())
+	nodes = append(nodes, n.TypeMedium())
+	nodes = append(nodes, n.TypeBig())
+	nodes = append(nodes, n.TypePolygon())
+	nodes = append(nodes, n.TypeUnsigned())
+	nodes = append(nodes, n.TypeMultfk1())
+	nodes = append(nodes, n.TypeMultifk2())
+	return nodes
+}
+
 // Columns_ is used internally by the framework to return the list of all the columns in the table.
 func (n unsupportedTypeTable) Columns_() []string {
 	return []string{

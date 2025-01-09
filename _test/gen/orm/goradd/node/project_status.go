@@ -3,6 +3,7 @@
 package node
 
 import (
+	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
@@ -47,6 +48,8 @@ func (n projectStatusAssociation) PrimaryKeyNode() *query.ColumnNode {
 
 func init() {
 	gob.Register(new(projectStatusEnum))
+	gob.Register(new(projectStatusAssociation))
+	gob.Register(new(projectStatusReference))
 }
 
 // SelectNodes_ is used internally by the framework to return the list of column nodes.
@@ -71,6 +74,16 @@ func (n *projectStatusAssociation) NodeType_() query.NodeType {
 // TableName_ returns the query name of the table the node is associated with.
 func (n projectStatusEnum) TableName_() string {
 	return "project_status_enum"
+}
+
+// TableName_ returns the query name of the table the node is associated with.
+func (n projectStatusAssociation) TableName_() string {
+	return n.Parent().TableName_()
+}
+
+// TableName_ returns the query name of the table the node is associated with.
+func (n projectStatusReference) TableName_() string {
+	return n.Parent().TableName_()
 }
 
 // DatabaseKey_ returns the database key of the database the node is associated with.
@@ -191,4 +204,54 @@ func (n *projectStatusAssociation) IsActive() *query.ColumnNode {
 	cn := n.projectStatusEnum.IsActive()
 	cn.SetParent(n)
 	return cn
+}
+
+func (n projectStatusEnum) GobEncode() (data []byte, err error) {
+	return
+}
+
+func (n *projectStatusEnum) GobDecode(data []byte) (err error) {
+	return
+}
+
+func (n *projectStatusReference) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(&n.ReferenceNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *projectStatusReference) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ReferenceNode); err != nil {
+		panic(err)
+	}
+	return
+}
+
+func (n *projectStatusAssociation) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(&n.ManyManyNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *projectStatusAssociation) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ManyManyNode); err != nil {
+		panic(err)
+	}
+	return
 }

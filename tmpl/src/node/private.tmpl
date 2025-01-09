@@ -21,6 +21,15 @@ func (n {{= table.DecapIdentifier }}Table) DatabaseKey_() string {
     return "{{= table.DbKey }}"
 }
 
+// ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
+// This may include reference nodes to enum types.
+func (n {{= table.DecapIdentifier }}Table) ColumnNodes_() (nodes []query.NodeI) {
+{{for _,col := range table.Columns}}
+	nodes = append(nodes, n.{{col.Identifier}}())
+{{for}}
+	return nodes
+}
+
 // Columns_ is used internally by the framework to return the list of all the columns in the table.
 func (n {{= table.DecapIdentifier }}Table) Columns_() []string {
     return []string {
@@ -29,6 +38,7 @@ func (n {{= table.DecapIdentifier }}Table) Columns_() []string {
 {{for}}
 	}
 }
+
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
 func (n {{= table.DecapIdentifier }}Table) IsEnum_() bool {

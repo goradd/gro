@@ -4,8 +4,8 @@ type Parenter interface {
 	Parent() NodeI
 }
 
-// The nodeLinker interface provides an interface to allow nodes to be linked in a parent chain
-type nodeLinker interface {
+// The NodeLinker interface provides an interface to allow nodes to be linked in a parent chain
+type NodeLinker interface {
 	SetParent(NodeI)
 	Parent() NodeI
 }
