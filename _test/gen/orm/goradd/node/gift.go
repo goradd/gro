@@ -31,7 +31,6 @@ type GiftExpander interface {
 //
 // To use the giftTable, call [Gift()] to start a reference chain when querying the gift table.
 type giftTable struct {
-	_self query.NodeI
 }
 
 type giftReverse struct {
@@ -41,9 +40,7 @@ type giftReverse struct {
 
 // Gift returns a table node that starts a node chain that begins with the gift table.
 func Gift() GiftNodeI {
-	var n giftTable
-	n._self = n
-	return n
+	return giftTable{}
 }
 
 // TableName_ returns the query name of the table the node is associated with.
@@ -61,11 +58,12 @@ func (n giftTable) DatabaseKey_() string {
 	return "goradd"
 }
 
-// SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-func (n giftTable) SelectNodes_() (nodes []*query.ColumnNode) {
-	nodes = append(nodes, n.Number())
-	nodes = append(nodes, n.Name())
-	return nodes
+// Columns_ is used internally by the framework to return the list of all the columns in the table.
+func (n giftTable) Columns_() []string {
+	return []string{
+		"number",
+		"name",
+	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
@@ -77,42 +75,54 @@ func (n *giftReverse) NodeType_() query.NodeType {
 	return query.ReverseNodeType
 }
 
-// PrimaryKeyNode returns a node that points to the primary key column, if
-// a single primary key exists in the table.
+// PrimaryKeyNode returns a node that points to the primary key column.
 func (n giftTable) PrimaryKeyNode() *query.ColumnNode {
 	return n.Number()
 }
 
-// Number represents the number column in the database.
+func (n *giftReverse) PrimaryKeyNode() *query.ColumnNode {
+	return n.Number()
+}
+
 func (n giftTable) Number() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "number",
 		Identifier:   "Number",
 		ReceiverType: query.ColTypeInteger,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// Name represents the name column in the database.
+func (n *giftReverse) Number() *query.ColumnNode {
+	cn := n.giftTable.Number()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n giftTable) Name() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "name",
 		Identifier:   "Name",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-func (n *giftTable) GobEncode() (data []byte, err error) {
+func (n *giftReverse) Name() *query.ColumnNode {
+	cn := n.giftTable.Name()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n giftTable) GobEncode() (data []byte, err error) {
 	return
 }
 
 func (n *giftTable) GobDecode(data []byte) (err error) {
-	n._self = n
 	return
 }
 
@@ -134,7 +144,6 @@ func (n *giftReverse) GobDecode(data []byte) (err error) {
 	if err = dec.Decode(&n.ReverseNode); err != nil {
 		panic(err)
 	}
-	n._self = n
 	return
 }
 

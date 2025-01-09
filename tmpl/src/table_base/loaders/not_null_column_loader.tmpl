@@ -5,7 +5,7 @@
 {{
 
 	if v, ok := m["{{= col.QueryName }}"]; ok && v != nil {
-{{if col.IsEnumReference()}}
+{{if col.IsEnum()}}
     	if i, ok2 := v.({{= col.Type.GoType() }}); ok2 {
             o.{{= col.VariableIdentifier() }} = {{= col.GoType() }}(i)
 {{else}}

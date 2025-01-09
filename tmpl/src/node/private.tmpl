@@ -8,7 +8,7 @@
 
 // TableName_ returns the query name of the table the node is associated with.
 func (n {{= table.DecapIdentifier }}Table) TableName_() string {
-    return {{L table.QueryName }}
+    return "{{= table.QueryName }}"
 }
 
 // NodeType_ returns the query.NodeType of the node.
@@ -18,15 +18,16 @@ func (n {{= table.DecapIdentifier }}Table) NodeType_() query.NodeType {
 
 // DatabaseKey_ returns the database key of the database the node is associated with.
 func (n {{= table.DecapIdentifier }}Table) DatabaseKey_() string {
-    return {{L table.DbKey }}
+    return "{{= table.DbKey }}"
 }
 
-// SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-func (n {{= table.DecapIdentifier }}Table) SelectNodes_() (nodes []*query.ColumnNode) {
+// Columns_ is used internally by the framework to return the list of all the columns in the table.
+func (n {{= table.DecapIdentifier }}Table) Columns_() []string {
+    return []string {
 {{for _,col := range table.Columns}}
-	nodes = append(nodes, n.{{col.Identifier}}())
+        "{{= col.QueryName }}",
 {{for}}
-	return nodes
+	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.

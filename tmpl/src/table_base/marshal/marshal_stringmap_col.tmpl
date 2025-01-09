@@ -4,7 +4,7 @@
 }}
 {{
 
-{{if col.IsEnumReference() }}
+{{if col.IsEnum() }}
     if o.{{= col.VariableIdentifier() }}IsValid {
         v["{{= col.ReferenceJsonKey() }}"] = o.{{= col.ReferenceIdentifier() }}().String()
     }

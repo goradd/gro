@@ -33,7 +33,6 @@ type DoubleIndexExpander interface {
 //
 // To use the doubleIndexTable, call [DoubleIndex()] to start a reference chain when querying the double_index table.
 type doubleIndexTable struct {
-	_self query.NodeI
 }
 
 type doubleIndexReverse struct {
@@ -43,9 +42,7 @@ type doubleIndexReverse struct {
 
 // DoubleIndex returns a table node that starts a node chain that begins with the double_index table.
 func DoubleIndex() DoubleIndexNodeI {
-	var n doubleIndexTable
-	n._self = n
-	return n
+	return doubleIndexTable{}
 }
 
 // TableName_ returns the query name of the table the node is associated with.
@@ -63,12 +60,13 @@ func (n doubleIndexTable) DatabaseKey_() string {
 	return "goradd_unit"
 }
 
-// SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-func (n doubleIndexTable) SelectNodes_() (nodes []*query.ColumnNode) {
-	nodes = append(nodes, n.ID())
-	nodes = append(nodes, n.FieldInt())
-	nodes = append(nodes, n.FieldString())
-	return nodes
+// Columns_ is used internally by the framework to return the list of all the columns in the table.
+func (n doubleIndexTable) Columns_() []string {
+	return []string{
+		"id",
+		"field_int",
+		"field_string",
+	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
@@ -80,54 +78,71 @@ func (n *doubleIndexReverse) NodeType_() query.NodeType {
 	return query.ReverseNodeType
 }
 
-// PrimaryKeyNode returns a node that points to the primary key column, if
-// a single primary key exists in the table.
+// PrimaryKeyNode returns a node that points to the primary key column.
 func (n doubleIndexTable) PrimaryKeyNode() *query.ColumnNode {
 	return n.ID()
 }
 
-// ID represents the id column in the database.
+func (n *doubleIndexReverse) PrimaryKeyNode() *query.ColumnNode {
+	return n.ID()
+}
+
 func (n doubleIndexTable) ID() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "id",
 		Identifier:   "ID",
 		ReceiverType: query.ColTypeInteger,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// FieldInt represents the field_int column in the database.
+func (n *doubleIndexReverse) ID() *query.ColumnNode {
+	cn := n.doubleIndexTable.ID()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n doubleIndexTable) FieldInt() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "field_int",
 		Identifier:   "FieldInt",
 		ReceiverType: query.ColTypeInteger,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// FieldString represents the field_string column in the database.
+func (n *doubleIndexReverse) FieldInt() *query.ColumnNode {
+	cn := n.doubleIndexTable.FieldInt()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n doubleIndexTable) FieldString() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "field_string",
 		Identifier:   "FieldString",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-func (n *doubleIndexTable) GobEncode() (data []byte, err error) {
+func (n *doubleIndexReverse) FieldString() *query.ColumnNode {
+	cn := n.doubleIndexTable.FieldString()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n doubleIndexTable) GobEncode() (data []byte, err error) {
 	return
 }
 
 func (n *doubleIndexTable) GobDecode(data []byte) (err error) {
-	n._self = n
 	return
 }
 
@@ -149,7 +164,6 @@ func (n *doubleIndexReverse) GobDecode(data []byte) (err error) {
 	if err = dec.Decode(&n.ReverseNode); err != nil {
 		panic(err)
 	}
-	n._self = n
 	return
 }
 

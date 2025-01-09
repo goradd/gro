@@ -51,7 +51,6 @@ type TypeTestExpander interface {
 //
 // To use the typeTestTable, call [TypeTest()] to start a reference chain when querying the type_test table.
 type typeTestTable struct {
-	_self query.NodeI
 }
 
 type typeTestReverse struct {
@@ -61,9 +60,7 @@ type typeTestReverse struct {
 
 // TypeTest returns a table node that starts a node chain that begins with the type_test table.
 func TypeTest() TypeTestNodeI {
-	var n typeTestTable
-	n._self = n
-	return n
+	return typeTestTable{}
 }
 
 // TableName_ returns the query name of the table the node is associated with.
@@ -81,21 +78,22 @@ func (n typeTestTable) DatabaseKey_() string {
 	return "goradd_unit"
 }
 
-// SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-func (n typeTestTable) SelectNodes_() (nodes []*query.ColumnNode) {
-	nodes = append(nodes, n.ID())
-	nodes = append(nodes, n.Date())
-	nodes = append(nodes, n.Time())
-	nodes = append(nodes, n.DateTime())
-	nodes = append(nodes, n.Ts())
-	nodes = append(nodes, n.TestInt())
-	nodes = append(nodes, n.TestFloat())
-	nodes = append(nodes, n.TestDouble())
-	nodes = append(nodes, n.TestText())
-	nodes = append(nodes, n.TestBit())
-	nodes = append(nodes, n.TestVarchar())
-	nodes = append(nodes, n.TestBlob())
-	return nodes
+// Columns_ is used internally by the framework to return the list of all the columns in the table.
+func (n typeTestTable) Columns_() []string {
+	return []string{
+		"id",
+		"date",
+		"time",
+		"date_time",
+		"ts",
+		"test_int",
+		"test_float",
+		"test_double",
+		"test_text",
+		"test_bit",
+		"test_varchar",
+		"test_blob",
+	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
@@ -107,162 +105,224 @@ func (n *typeTestReverse) NodeType_() query.NodeType {
 	return query.ReverseNodeType
 }
 
-// PrimaryKeyNode returns a node that points to the primary key column, if
-// a single primary key exists in the table.
+// PrimaryKeyNode returns a node that points to the primary key column.
 func (n typeTestTable) PrimaryKeyNode() *query.ColumnNode {
 	return n.ID()
 }
 
-// ID represents the id column in the database.
+func (n *typeTestReverse) PrimaryKeyNode() *query.ColumnNode {
+	return n.ID()
+}
+
 func (n typeTestTable) ID() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "id",
 		Identifier:   "ID",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// Date represents the date column in the database.
+func (n *typeTestReverse) ID() *query.ColumnNode {
+	cn := n.typeTestTable.ID()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n typeTestTable) Date() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "date",
 		Identifier:   "Date",
 		ReceiverType: query.ColTypeTime,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// Time represents the time column in the database.
+func (n *typeTestReverse) Date() *query.ColumnNode {
+	cn := n.typeTestTable.Date()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n typeTestTable) Time() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "time",
 		Identifier:   "Time",
 		ReceiverType: query.ColTypeTime,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// DateTime represents the date_time column in the database.
+func (n *typeTestReverse) Time() *query.ColumnNode {
+	cn := n.typeTestTable.Time()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n typeTestTable) DateTime() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "date_time",
 		Identifier:   "DateTime",
 		ReceiverType: query.ColTypeTime,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// Ts represents the ts column in the database.
+func (n *typeTestReverse) DateTime() *query.ColumnNode {
+	cn := n.typeTestTable.DateTime()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n typeTestTable) Ts() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "ts",
 		Identifier:   "Ts",
 		ReceiverType: query.ColTypeTime,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// TestInt represents the test_int column in the database.
+func (n *typeTestReverse) Ts() *query.ColumnNode {
+	cn := n.typeTestTable.Ts()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n typeTestTable) TestInt() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "test_int",
 		Identifier:   "TestInt",
 		ReceiverType: query.ColTypeInteger,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// TestFloat represents the test_float column in the database.
+func (n *typeTestReverse) TestInt() *query.ColumnNode {
+	cn := n.typeTestTable.TestInt()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n typeTestTable) TestFloat() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "test_float",
 		Identifier:   "TestFloat",
 		ReceiverType: query.ColTypeFloat32,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// TestDouble represents the test_double column in the database.
+func (n *typeTestReverse) TestFloat() *query.ColumnNode {
+	cn := n.typeTestTable.TestFloat()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n typeTestTable) TestDouble() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "test_double",
 		Identifier:   "TestDouble",
 		ReceiverType: query.ColTypeFloat64,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// TestText represents the test_text column in the database.
+func (n *typeTestReverse) TestDouble() *query.ColumnNode {
+	cn := n.typeTestTable.TestDouble()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n typeTestTable) TestText() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "test_text",
 		Identifier:   "TestText",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// TestBit represents the test_bit column in the database.
+func (n *typeTestReverse) TestText() *query.ColumnNode {
+	cn := n.typeTestTable.TestText()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n typeTestTable) TestBit() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "test_bit",
 		Identifier:   "TestBit",
 		ReceiverType: query.ColTypeBool,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// TestVarchar represents the test_varchar column in the database.
+func (n *typeTestReverse) TestBit() *query.ColumnNode {
+	cn := n.typeTestTable.TestBit()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n typeTestTable) TestVarchar() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "test_varchar",
 		Identifier:   "TestVarchar",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// TestBlob represents the test_blob column in the database.
+func (n *typeTestReverse) TestVarchar() *query.ColumnNode {
+	cn := n.typeTestTable.TestVarchar()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n typeTestTable) TestBlob() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "test_blob",
 		Identifier:   "TestBlob",
 		ReceiverType: query.ColTypeBytes,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-func (n *typeTestTable) GobEncode() (data []byte, err error) {
+func (n *typeTestReverse) TestBlob() *query.ColumnNode {
+	cn := n.typeTestTable.TestBlob()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n typeTestTable) GobEncode() (data []byte, err error) {
 	return
 }
 
 func (n *typeTestTable) GobDecode(data []byte) (err error) {
-	n._self = n
 	return
 }
 
@@ -284,7 +344,6 @@ func (n *typeTestReverse) GobDecode(data []byte) (err error) {
 	if err = dec.Decode(&n.ReverseNode); err != nil {
 		panic(err)
 	}
-	n._self = n
 	return
 }
 

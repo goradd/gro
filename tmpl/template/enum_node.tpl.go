@@ -119,7 +119,27 @@ type `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `Enum struct {
-    _self query.NodeI
+}
+
+type `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Reference struct {
+    `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Enum
+    query.ReferenceNode
 }
 
 `); err != nil {
@@ -167,6 +187,48 @@ func (n `); err != nil {
 
 	if _, err = io.WriteString(_w, `()
 }
+
+func (n `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Reference) PrimaryKeyNode() (*query.ColumnNode) {
+	return n.`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.FieldIdentifier(0)); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `()
+}
+
+func (n `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Association) PrimaryKeyNode() (*query.ColumnNode) {
+	return n.`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.FieldIdentifier(0)); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `()
+}
+
+
 
 func init() {
    gob.Register(new(`); err != nil {
@@ -224,7 +286,7 @@ func (n `); err != nil {
 	if _, err = io.WriteString(_w, `	}
 }
 
-func (n *`); err != nil {
+func (n `); err != nil {
 		return
 	}
 
@@ -258,15 +320,15 @@ func (n `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `Enum) TableName_() string {
-    return `); err != nil {
+    return "`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, fmt.Sprintf("%#v", table.QueryName)); err != nil {
+	if _, err = io.WriteString(_w, table.QueryName); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `
+	if _, err = io.WriteString(_w, `"
 }
 
 // DatabaseKey_ returns the database key of the database the node is associated with.
@@ -279,15 +341,15 @@ func (n `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `Enum) DatabaseKey_() string {
-    return `); err != nil {
+    return "`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, fmt.Sprintf("%#v", table.DbKey)); err != nil {
+	if _, err = io.WriteString(_w, table.DbKey); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `
+	if _, err = io.WriteString(_w, `"
 }
 
 `); err != nil {
@@ -320,7 +382,7 @@ func (n `); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName: `); err != nil {
 			return
 		}
@@ -368,9 +430,86 @@ func (n `); err != nil {
 
 		if _, err = io.WriteString(_w, `,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
+
+func (n *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reference) `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, fn); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `() *query.ColumnNode {
+	cn := n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Enum.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, fn); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Association) `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, fn); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `() *query.ColumnNode {
+	cn := n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Enum.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, fn); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+	cn.SetParent(n)
+	return cn
+}
+
 `); err != nil {
 			return
 		}

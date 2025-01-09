@@ -7022,7 +7022,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if col.IsEnumReference() {
+			if col.IsEnum() {
 
 				if _, err = io.WriteString(_w, `		} else if i, ok2 := v.(`); err != nil {
 					return
@@ -7191,7 +7191,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if col.IsEnumReference() {
+			if col.IsEnum() {
 
 				if _, err = io.WriteString(_w, `    	if i, ok2 := v.(`); err != nil {
 					return
@@ -10492,7 +10492,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _j.IsReference() && !_j.IsEnumReference() {
+		if _j.IsReference() && !_j.IsEnum() {
 
 			if _, err = io.WriteString(_w, ` ||
 	    (o.`); err != nil {
@@ -12315,7 +12315,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if col.IsEnumReference() {
+		if col.IsEnum() {
 
 			if _, err = io.WriteString(_w, `    if o.`); err != nil {
 				return
@@ -12821,7 +12821,7 @@ func (o *`); err != nil {
 				return
 			}
 
-		} else if col.IsEnumReference() {
+		} else if col.IsEnum() {
 
 			if _, err = io.WriteString(_w, `           if n,ok := v.(int); ok {
                 o.Set`); err != nil {

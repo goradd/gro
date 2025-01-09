@@ -31,7 +31,11 @@ type {{= table.Identifier}}NodeI interface {
 }
 
 type {{= table.DecapIdentifier }}Enum struct {
-    _self query.NodeI
+}
+
+type {{= table.DecapIdentifier }}Reference struct {
+    {{= table.DecapIdentifier}}Enum
+    query.ReferenceNode
 }
 
 {{# No easy way to determine if this is needed, so just make it in case. }}
@@ -44,6 +48,16 @@ type {{= table.DecapIdentifier}}Association struct {
 func (n {{= table.DecapIdentifier }}Enum) PrimaryKeyNode() (*query.ColumnNode) {
 	return n.{{= table.FieldIdentifier(0) }}()
 }
+
+func (n {{= table.DecapIdentifier }}Reference) PrimaryKeyNode() (*query.ColumnNode) {
+	return n.{{= table.FieldIdentifier(0) }}()
+}
+
+func (n {{= table.DecapIdentifier }}Association) PrimaryKeyNode() (*query.ColumnNode) {
+	return n.{{= table.FieldIdentifier(0) }}()
+}
+
+
 
 func init() {
    gob.Register(new({{= table.DecapIdentifier }}Enum))
@@ -66,7 +80,7 @@ func (n {{= table.DecapIdentifier }}Enum) SelectNodes_() ([]*query.ColumnNode) {
 	}
 }
 
-func (n *{{= table.DecapIdentifier}}Enum) NodeType_() query.NodeType {
+func (n {{= table.DecapIdentifier}}Enum) NodeType_() query.NodeType {
 	return query.EnumNodeType
 }
 
@@ -76,12 +90,12 @@ func (n *{{= table.DecapIdentifier}}Association) NodeType_() query.NodeType {
 
 // TableName_ returns the query name of the table the node is associated with.
 func (n {{= table.DecapIdentifier }}Enum) TableName_() string {
-    return {{L table.QueryName }}
+    return "{{= table.QueryName }}"
 }
 
 // DatabaseKey_ returns the database key of the database the node is associated with.
 func (n {{= table.DecapIdentifier }}Enum) DatabaseKey_() string {
-    return {{L table.DbKey }}
+    return "{{= table.DbKey }}"
 }
 
 }}
@@ -95,15 +109,28 @@ func (tmpl *EnumNodeTemplate)genLeafNodes(table *model.Enum, _w io.Writer) (err 
 {{
 
 func (n {{= table.DecapIdentifier }}Enum) {{= fn }}() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName: {{L table.FieldQueryName(i) }},
 		Identifier: {{L fn }},
 		ReceiverType: query.{{= table.FieldReceiverType(i).String() }},
 		IsPrimaryKey: {{if i == 0 }}true{{else}}false{{if}},
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
+
+func (n *{{= table.DecapIdentifier }}Reference) {{= fn }}() *query.ColumnNode {
+	cn := n.{{= table.DecapIdentifier }}Enum.{{= fn }}()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *{{= table.DecapIdentifier }}Association) {{= fn }}() *query.ColumnNode {
+	cn := n.{{= table.DecapIdentifier }}Enum.{{= fn }}()
+	cn.SetParent(n)
+	return cn
+}
+
 }}
     }
     return

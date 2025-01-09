@@ -35,7 +35,6 @@ type MilestoneExpander interface {
 //
 // To use the milestoneTable, call [Milestone()] to start a reference chain when querying the milestone table.
 type milestoneTable struct {
-	_self query.NodeI
 }
 
 type milestoneReverse struct {
@@ -45,9 +44,7 @@ type milestoneReverse struct {
 
 // Milestone returns a table node that starts a node chain that begins with the milestone table.
 func Milestone() MilestoneNodeI {
-	var n milestoneTable
-	n._self = n
-	return n
+	return milestoneTable{}
 }
 
 // TableName_ returns the query name of the table the node is associated with.
@@ -65,12 +62,13 @@ func (n milestoneTable) DatabaseKey_() string {
 	return "goradd"
 }
 
-// SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-func (n milestoneTable) SelectNodes_() (nodes []*query.ColumnNode) {
-	nodes = append(nodes, n.ID())
-	nodes = append(nodes, n.ProjectID())
-	nodes = append(nodes, n.Name())
-	return nodes
+// Columns_ is used internally by the framework to return the list of all the columns in the table.
+func (n milestoneTable) Columns_() []string {
+	return []string{
+		"id",
+		"project_id",
+		"name",
+	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
@@ -82,34 +80,47 @@ func (n *milestoneReverse) NodeType_() query.NodeType {
 	return query.ReverseNodeType
 }
 
-// PrimaryKeyNode returns a node that points to the primary key column, if
-// a single primary key exists in the table.
+// PrimaryKeyNode returns a node that points to the primary key column.
 func (n milestoneTable) PrimaryKeyNode() *query.ColumnNode {
 	return n.ID()
 }
 
-// ID represents the id column in the database.
+func (n *milestoneReverse) PrimaryKeyNode() *query.ColumnNode {
+	return n.ID()
+}
+
 func (n milestoneTable) ID() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "id",
 		Identifier:   "ID",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// ProjectID represents the project_id column in the database.
+func (n *milestoneReverse) ID() *query.ColumnNode {
+	cn := n.milestoneTable.ID()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n milestoneTable) ProjectID() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "project_id",
 		Identifier:   "ProjectID",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *milestoneReverse) ProjectID() *query.ColumnNode {
+	cn := n.milestoneTable.ProjectID()
+	cn.SetParent(n)
+	return cn
 }
 
 // Project represents the link to a Project object.
@@ -121,29 +132,38 @@ func (n milestoneTable) Project() ProjectNodeI {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn._self = cn
-	cn.SetParent(n._self)
+	cn.SetParent(n)
 	return cn
 }
 
-// Name represents the name column in the database.
+func (n *milestoneReverse) Project() ProjectNodeI {
+	cn := n.milestoneTable.Project().(*projectReference)
+	cn.SetParent(n)
+	return cn
+}
+
 func (n milestoneTable) Name() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "name",
 		Identifier:   "Name",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-func (n *milestoneTable) GobEncode() (data []byte, err error) {
+func (n *milestoneReverse) Name() *query.ColumnNode {
+	cn := n.milestoneTable.Name()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n milestoneTable) GobEncode() (data []byte, err error) {
 	return
 }
 
 func (n *milestoneTable) GobDecode(data []byte) (err error) {
-	n._self = n
 	return
 }
 
@@ -165,7 +185,6 @@ func (n *milestoneReverse) GobDecode(data []byte) (err error) {
 	if err = dec.Decode(&n.ReverseNode); err != nil {
 		panic(err)
 	}
-	n._self = n
 	return
 }
 

@@ -70,7 +70,7 @@ func (cd *Column) DefaultValueAsValue() string {
 	if cd.DefaultValue == nil {
 		if cd.IsAutoId || cd.IsReference() {
 			return `""`
-		} else if cd.IsEnumReference() {
+		} else if cd.IsEnum() {
 			return cd.ReferenceType() + "(0)"
 		}
 		return cd.Type.DefaultValueString()
@@ -130,8 +130,8 @@ func (cd *Column) IsReference() bool {
 	return cd.Reference != nil && cd.Reference.Table != nil
 }
 
-// IsEnumReference returns true if the column contains a type defined by a enum table.
-func (cd *Column) IsEnumReference() bool {
+// IsEnum returns true if the column contains a type defined by a enum table.
+func (cd *Column) IsEnum() bool {
 	return cd.Reference != nil && cd.Reference.EnumTable != nil
 }
 

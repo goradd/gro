@@ -45,7 +45,6 @@ type PersonExpander interface {
 //
 // To use the personTable, call [Person()] to start a reference chain when querying the person table.
 type personTable struct {
-	_self query.NodeI
 }
 
 type personReference struct {
@@ -65,9 +64,7 @@ type personAssociation struct {
 
 // Person returns a table node that starts a node chain that begins with the person table.
 func Person() PersonNodeI {
-	var n personTable
-	n._self = n
-	return n
+	return personTable{}
 }
 
 // TableName_ returns the query name of the table the node is associated with.
@@ -85,12 +82,13 @@ func (n personTable) DatabaseKey_() string {
 	return "goradd"
 }
 
-// SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-func (n personTable) SelectNodes_() (nodes []*query.ColumnNode) {
-	nodes = append(nodes, n.ID())
-	nodes = append(nodes, n.FirstName())
-	nodes = append(nodes, n.LastName())
-	return nodes
+// Columns_ is used internally by the framework to return the list of all the columns in the table.
+func (n personTable) Columns_() []string {
+	return []string{
+		"id",
+		"first_name",
+		"last_name",
+	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
@@ -110,46 +108,108 @@ func (n *personAssociation) NodeType_() query.NodeType {
 	return query.ManyManyNodeType
 }
 
-// PrimaryKeyNode returns a node that points to the primary key column, if
-// a single primary key exists in the table.
+// PrimaryKeyNode returns a node that points to the primary key column.
 func (n personTable) PrimaryKeyNode() *query.ColumnNode {
 	return n.ID()
 }
 
-// ID represents the id column in the database.
+func (n *personReference) PrimaryKeyNode() *query.ColumnNode {
+	return n.ID()
+}
+
+func (n *personReverse) PrimaryKeyNode() *query.ColumnNode {
+	return n.ID()
+}
+
+func (n *personAssociation) PrimaryKeyNode() *query.ColumnNode {
+	return n.ID()
+}
+
 func (n personTable) ID() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "id",
 		Identifier:   "ID",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// FirstName represents the first_name column in the database.
+func (n *personReference) ID() *query.ColumnNode {
+	cn := n.personTable.ID()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personReverse) ID() *query.ColumnNode {
+	cn := n.personTable.ID()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personAssociation) ID() *query.ColumnNode {
+	cn := n.personTable.ID()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n personTable) FirstName() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "first_name",
 		Identifier:   "FirstName",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// LastName represents the last_name column in the database.
+func (n *personReference) FirstName() *query.ColumnNode {
+	cn := n.personTable.FirstName()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personReverse) FirstName() *query.ColumnNode {
+	cn := n.personTable.FirstName()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personAssociation) FirstName() *query.ColumnNode {
+	cn := n.personTable.FirstName()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n personTable) LastName() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "last_name",
 		Identifier:   "LastName",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personReference) LastName() *query.ColumnNode {
+	cn := n.personTable.LastName()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personReverse) LastName() *query.ColumnNode {
+	cn := n.personTable.LastName()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personAssociation) LastName() *query.ColumnNode {
+	cn := n.personTable.LastName()
+	cn.SetParent(n)
+	return cn
 }
 
 // PersonTypes represents the many-to-many relationship formed by the person_persontype_assn table.
@@ -164,7 +224,25 @@ func (n personTable) PersonTypes() PersonTypeNodeI {
 			RefColumnReceiverType:    query.ColTypeInteger,
 		},
 	}
-	cn.SetParent(n._self)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personReference) PersonTypes() PersonTypeNodeI {
+	cn := n.personTable.PersonTypes().(*personTypeAssociation)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personReverse) PersonTypes() PersonTypeNodeI {
+	cn := n.personTable.PersonTypes().(*personTypeAssociation)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personAssociation) PersonTypes() PersonTypeNodeI {
+	cn := n.personTable.PersonTypes().(*personTypeAssociation)
+	cn.SetParent(n)
 	return cn
 }
 
@@ -180,7 +258,25 @@ func (n personTable) Projects() ProjectExpander {
 			RefColumnReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n._self)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personReference) Projects() ProjectExpander {
+	cn := n.personTable.Projects().(*projectAssociation)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personReverse) Projects() ProjectExpander {
+	cn := n.personTable.Projects().(*projectAssociation)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personAssociation) Projects() ProjectExpander {
+	cn := n.personTable.Projects().(*projectAssociation)
+	cn.SetParent(n)
 	return cn
 }
 
@@ -194,7 +290,25 @@ func (n personTable) Addresses() AddressExpander {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n._self)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personReference) Addresses() AddressExpander {
+	cn := n.personTable.Addresses().(*addressReverse)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personReverse) Addresses() AddressExpander {
+	cn := n.personTable.Addresses().(*addressReverse)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personAssociation) Addresses() AddressExpander {
+	cn := n.personTable.Addresses().(*addressReverse)
+	cn.SetParent(n)
 	return cn
 }
 
@@ -208,7 +322,25 @@ func (n personTable) EmployeeInfo() EmployeeInfoNodeI {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n._self)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personReference) EmployeeInfo() EmployeeInfoNodeI {
+	cn := n.personTable.EmployeeInfo().(*employeeInfoReverse)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personReverse) EmployeeInfo() EmployeeInfoNodeI {
+	cn := n.personTable.EmployeeInfo().(*employeeInfoReverse)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personAssociation) EmployeeInfo() EmployeeInfoNodeI {
+	cn := n.personTable.EmployeeInfo().(*employeeInfoReverse)
+	cn.SetParent(n)
 	return cn
 }
 
@@ -222,7 +354,25 @@ func (n personTable) Login() LoginNodeI {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n._self)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personReference) Login() LoginNodeI {
+	cn := n.personTable.Login().(*loginReverse)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personReverse) Login() LoginNodeI {
+	cn := n.personTable.Login().(*loginReverse)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personAssociation) Login() LoginNodeI {
+	cn := n.personTable.Login().(*loginReverse)
+	cn.SetParent(n)
 	return cn
 }
 
@@ -236,16 +386,33 @@ func (n personTable) ManagerProjects() ProjectExpander {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n._self)
+	cn.SetParent(n)
 	return cn
 }
 
-func (n *personTable) GobEncode() (data []byte, err error) {
+func (n *personReference) ManagerProjects() ProjectExpander {
+	cn := n.personTable.ManagerProjects().(*projectReverse)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personReverse) ManagerProjects() ProjectExpander {
+	cn := n.personTable.ManagerProjects().(*projectReverse)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personAssociation) ManagerProjects() ProjectExpander {
+	cn := n.personTable.ManagerProjects().(*projectReverse)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n personTable) GobEncode() (data []byte, err error) {
 	return
 }
 
 func (n *personTable) GobDecode(data []byte) (err error) {
-	n._self = n
 	return
 }
 
@@ -267,7 +434,6 @@ func (n *personReference) GobDecode(data []byte) (err error) {
 	if err = dec.Decode(&n.ReferenceNode); err != nil {
 		panic(err)
 	}
-	n._self = n
 	return
 }
 
@@ -289,7 +455,6 @@ func (n *personReverse) GobDecode(data []byte) (err error) {
 	if err = dec.Decode(&n.ReverseNode); err != nil {
 		panic(err)
 	}
-	n._self = n
 	return
 }
 
@@ -311,7 +476,6 @@ func (n *personAssociation) GobDecode(data []byte) (err error) {
 	if err = dec.Decode(&n.ManyManyNode); err != nil {
 		panic(err)
 	}
-	n._self = n
 	return
 }
 

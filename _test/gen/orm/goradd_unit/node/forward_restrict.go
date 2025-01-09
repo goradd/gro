@@ -35,7 +35,6 @@ type ForwardRestrictExpander interface {
 //
 // To use the forwardRestrictTable, call [ForwardRestrict()] to start a reference chain when querying the forward_restrict table.
 type forwardRestrictTable struct {
-	_self query.NodeI
 }
 
 type forwardRestrictReverse struct {
@@ -45,9 +44,7 @@ type forwardRestrictReverse struct {
 
 // ForwardRestrict returns a table node that starts a node chain that begins with the forward_restrict table.
 func ForwardRestrict() ForwardRestrictNodeI {
-	var n forwardRestrictTable
-	n._self = n
-	return n
+	return forwardRestrictTable{}
 }
 
 // TableName_ returns the query name of the table the node is associated with.
@@ -65,12 +62,13 @@ func (n forwardRestrictTable) DatabaseKey_() string {
 	return "goradd_unit"
 }
 
-// SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-func (n forwardRestrictTable) SelectNodes_() (nodes []*query.ColumnNode) {
-	nodes = append(nodes, n.ID())
-	nodes = append(nodes, n.Name())
-	nodes = append(nodes, n.ReverseID())
-	return nodes
+// Columns_ is used internally by the framework to return the list of all the columns in the table.
+func (n forwardRestrictTable) Columns_() []string {
+	return []string{
+		"id",
+		"name",
+		"reverse_id",
+	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
@@ -82,46 +80,64 @@ func (n *forwardRestrictReverse) NodeType_() query.NodeType {
 	return query.ReverseNodeType
 }
 
-// PrimaryKeyNode returns a node that points to the primary key column, if
-// a single primary key exists in the table.
+// PrimaryKeyNode returns a node that points to the primary key column.
 func (n forwardRestrictTable) PrimaryKeyNode() *query.ColumnNode {
 	return n.ID()
 }
 
-// ID represents the id column in the database.
+func (n *forwardRestrictReverse) PrimaryKeyNode() *query.ColumnNode {
+	return n.ID()
+}
+
 func (n forwardRestrictTable) ID() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "id",
 		Identifier:   "ID",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// Name represents the name column in the database.
+func (n *forwardRestrictReverse) ID() *query.ColumnNode {
+	cn := n.forwardRestrictTable.ID()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n forwardRestrictTable) Name() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "name",
 		Identifier:   "Name",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// ReverseID represents the reverse_id column in the database.
+func (n *forwardRestrictReverse) Name() *query.ColumnNode {
+	cn := n.forwardRestrictTable.Name()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n forwardRestrictTable) ReverseID() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "reverse_id",
 		Identifier:   "ReverseID",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *forwardRestrictReverse) ReverseID() *query.ColumnNode {
+	cn := n.forwardRestrictTable.ReverseID()
+	cn.SetParent(n)
+	return cn
 }
 
 // Reverse represents the link to a Reverse object.
@@ -133,17 +149,21 @@ func (n forwardRestrictTable) Reverse() ReverseNodeI {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn._self = cn
-	cn.SetParent(n._self)
+	cn.SetParent(n)
 	return cn
 }
 
-func (n *forwardRestrictTable) GobEncode() (data []byte, err error) {
+func (n *forwardRestrictReverse) Reverse() ReverseNodeI {
+	cn := n.forwardRestrictTable.Reverse().(*reverseReference)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n forwardRestrictTable) GobEncode() (data []byte, err error) {
 	return
 }
 
 func (n *forwardRestrictTable) GobDecode(data []byte) (err error) {
-	n._self = n
 	return
 }
 
@@ -165,7 +185,6 @@ func (n *forwardRestrictReverse) GobDecode(data []byte) (err error) {
 	if err = dec.Decode(&n.ReverseNode); err != nil {
 		panic(err)
 	}
-	n._self = n
 	return
 }
 

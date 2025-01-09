@@ -35,7 +35,6 @@ type ForwardCascadeExpander interface {
 //
 // To use the forwardCascadeTable, call [ForwardCascade()] to start a reference chain when querying the forward_cascade table.
 type forwardCascadeTable struct {
-	_self query.NodeI
 }
 
 type forwardCascadeReverse struct {
@@ -45,9 +44,7 @@ type forwardCascadeReverse struct {
 
 // ForwardCascade returns a table node that starts a node chain that begins with the forward_cascade table.
 func ForwardCascade() ForwardCascadeNodeI {
-	var n forwardCascadeTable
-	n._self = n
-	return n
+	return forwardCascadeTable{}
 }
 
 // TableName_ returns the query name of the table the node is associated with.
@@ -65,12 +62,13 @@ func (n forwardCascadeTable) DatabaseKey_() string {
 	return "goradd_unit"
 }
 
-// SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-func (n forwardCascadeTable) SelectNodes_() (nodes []*query.ColumnNode) {
-	nodes = append(nodes, n.ID())
-	nodes = append(nodes, n.Name())
-	nodes = append(nodes, n.ReverseID())
-	return nodes
+// Columns_ is used internally by the framework to return the list of all the columns in the table.
+func (n forwardCascadeTable) Columns_() []string {
+	return []string{
+		"id",
+		"name",
+		"reverse_id",
+	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
@@ -82,46 +80,64 @@ func (n *forwardCascadeReverse) NodeType_() query.NodeType {
 	return query.ReverseNodeType
 }
 
-// PrimaryKeyNode returns a node that points to the primary key column, if
-// a single primary key exists in the table.
+// PrimaryKeyNode returns a node that points to the primary key column.
 func (n forwardCascadeTable) PrimaryKeyNode() *query.ColumnNode {
 	return n.ID()
 }
 
-// ID represents the id column in the database.
+func (n *forwardCascadeReverse) PrimaryKeyNode() *query.ColumnNode {
+	return n.ID()
+}
+
 func (n forwardCascadeTable) ID() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "id",
 		Identifier:   "ID",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// Name represents the name column in the database.
+func (n *forwardCascadeReverse) ID() *query.ColumnNode {
+	cn := n.forwardCascadeTable.ID()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n forwardCascadeTable) Name() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "name",
 		Identifier:   "Name",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// ReverseID represents the reverse_id column in the database.
+func (n *forwardCascadeReverse) Name() *query.ColumnNode {
+	cn := n.forwardCascadeTable.Name()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n forwardCascadeTable) ReverseID() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "reverse_id",
 		Identifier:   "ReverseID",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *forwardCascadeReverse) ReverseID() *query.ColumnNode {
+	cn := n.forwardCascadeTable.ReverseID()
+	cn.SetParent(n)
+	return cn
 }
 
 // Reverse represents the link to a Reverse object.
@@ -133,17 +149,21 @@ func (n forwardCascadeTable) Reverse() ReverseNodeI {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn._self = cn
-	cn.SetParent(n._self)
+	cn.SetParent(n)
 	return cn
 }
 
-func (n *forwardCascadeTable) GobEncode() (data []byte, err error) {
+func (n *forwardCascadeReverse) Reverse() ReverseNodeI {
+	cn := n.forwardCascadeTable.Reverse().(*reverseReference)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n forwardCascadeTable) GobEncode() (data []byte, err error) {
 	return
 }
 
 func (n *forwardCascadeTable) GobDecode(data []byte) (err error) {
-	n._self = n
 	return
 }
 
@@ -165,7 +185,6 @@ func (n *forwardCascadeReverse) GobDecode(data []byte) (err error) {
 	if err = dec.Decode(&n.ReverseNode); err != nil {
 		panic(err)
 	}
-	n._self = n
 	return
 }
 

@@ -9,8 +9,10 @@ type {{= table.Identifier}}NodeI interface {
     query.NodeI
     PrimaryKeyNode() *query.ColumnNode
 {{for _,col := range table.Columns}}
+{{if !col.IsEnum() }}
     // {{= col.Identifier }} represents the {{= col.QueryName }} column in the database.
     {{= col.Identifier }}() *query.ColumnNode
+{{if}}
 {{if col.IsReference() }}
     // {{= col.ReferenceIdentifier() }} represents the {{= col.ReferenceIdentifier() }} reference to a {{= col.ReferenceType() }} object.
     {{= col.ReferenceIdentifier() }}() {{= col.ReferenceType() }}NodeI
@@ -49,7 +51,6 @@ type {{= table.Identifier}}Expander interface {
 //
 // To use the {{= table.DecapIdentifier }}Table, call [{{= table.Identifier }}()] to start a reference chain when querying the {{= table.QueryName }} table.
 type {{= table.DecapIdentifier}}Table struct {
-    _self query.NodeI
 }
 
 {{if hasReverse}}

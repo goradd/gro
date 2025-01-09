@@ -63,7 +63,6 @@ type UnsupportedTypeExpander interface {
 //
 // To use the unsupportedTypeTable, call [UnsupportedType()] to start a reference chain when querying the unsupported_type table.
 type unsupportedTypeTable struct {
-	_self query.NodeI
 }
 
 type unsupportedTypeReverse struct {
@@ -73,9 +72,7 @@ type unsupportedTypeReverse struct {
 
 // UnsupportedType returns a table node that starts a node chain that begins with the unsupported_type table.
 func UnsupportedType() UnsupportedTypeNodeI {
-	var n unsupportedTypeTable
-	n._self = n
-	return n
+	return unsupportedTypeTable{}
 }
 
 // TableName_ returns the query name of the table the node is associated with.
@@ -93,27 +90,28 @@ func (n unsupportedTypeTable) DatabaseKey_() string {
 	return "goradd_unit"
 }
 
-// SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-func (n unsupportedTypeTable) SelectNodes_() (nodes []*query.ColumnNode) {
-	nodes = append(nodes, n.TypeSerial())
-	nodes = append(nodes, n.TypeSet())
-	nodes = append(nodes, n.TypeEnum())
-	nodes = append(nodes, n.TypeDecimal())
-	nodes = append(nodes, n.TypeDouble())
-	nodes = append(nodes, n.TypeGeo())
-	nodes = append(nodes, n.TypeTinyBlob())
-	nodes = append(nodes, n.TypeMediumBlob())
-	nodes = append(nodes, n.TypeVarbinary())
-	nodes = append(nodes, n.TypeLongtext())
-	nodes = append(nodes, n.TypeBinary())
-	nodes = append(nodes, n.TypeSmall())
-	nodes = append(nodes, n.TypeMedium())
-	nodes = append(nodes, n.TypeBig())
-	nodes = append(nodes, n.TypePolygon())
-	nodes = append(nodes, n.TypeUnsigned())
-	nodes = append(nodes, n.TypeMultfk1())
-	nodes = append(nodes, n.TypeMultifk2())
-	return nodes
+// Columns_ is used internally by the framework to return the list of all the columns in the table.
+func (n unsupportedTypeTable) Columns_() []string {
+	return []string{
+		"type_serial",
+		"type_set",
+		"type_enum",
+		"type_decimal",
+		"type_double",
+		"type_geo",
+		"type_tiny_blob",
+		"type_medium_blob",
+		"type_varbinary",
+		"type_longtext",
+		"type_binary",
+		"type_small",
+		"type_medium",
+		"type_big",
+		"type_polygon",
+		"type_unsigned",
+		"type_multFk1",
+		"type_multiFk2",
+	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
@@ -125,234 +123,326 @@ func (n *unsupportedTypeReverse) NodeType_() query.NodeType {
 	return query.ReverseNodeType
 }
 
-// PrimaryKeyNode returns a node that points to the primary key column, if
-// a single primary key exists in the table.
+// PrimaryKeyNode returns a node that points to the primary key column.
 func (n unsupportedTypeTable) PrimaryKeyNode() *query.ColumnNode {
 	return n.TypeSerial()
 }
 
-// TypeSerial represents the type_serial column in the database.
+func (n *unsupportedTypeReverse) PrimaryKeyNode() *query.ColumnNode {
+	return n.TypeSerial()
+}
+
 func (n unsupportedTypeTable) TypeSerial() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "type_serial",
 		Identifier:   "TypeSerial",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// TypeSet represents the type_set column in the database.
+func (n *unsupportedTypeReverse) TypeSerial() *query.ColumnNode {
+	cn := n.unsupportedTypeTable.TypeSerial()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n unsupportedTypeTable) TypeSet() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "type_set",
 		Identifier:   "TypeSet",
 		ReceiverType: query.ColTypeUnknown,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// TypeEnum represents the type_enum column in the database.
+func (n *unsupportedTypeReverse) TypeSet() *query.ColumnNode {
+	cn := n.unsupportedTypeTable.TypeSet()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n unsupportedTypeTable) TypeEnum() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "type_enum",
 		Identifier:   "TypeEnum",
 		ReceiverType: query.ColTypeUnknown,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// TypeDecimal represents the type_decimal column in the database.
+func (n *unsupportedTypeReverse) TypeEnum() *query.ColumnNode {
+	cn := n.unsupportedTypeTable.TypeEnum()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n unsupportedTypeTable) TypeDecimal() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "type_decimal",
 		Identifier:   "TypeDecimal",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// TypeDouble represents the type_double column in the database.
+func (n *unsupportedTypeReverse) TypeDecimal() *query.ColumnNode {
+	cn := n.unsupportedTypeTable.TypeDecimal()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n unsupportedTypeTable) TypeDouble() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "type_double",
 		Identifier:   "TypeDouble",
 		ReceiverType: query.ColTypeFloat64,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// TypeGeo represents the type_geo column in the database.
+func (n *unsupportedTypeReverse) TypeDouble() *query.ColumnNode {
+	cn := n.unsupportedTypeTable.TypeDouble()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n unsupportedTypeTable) TypeGeo() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "type_geo",
 		Identifier:   "TypeGeo",
 		ReceiverType: query.ColTypeUnknown,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// TypeTinyBlob represents the type_tiny_blob column in the database.
+func (n *unsupportedTypeReverse) TypeGeo() *query.ColumnNode {
+	cn := n.unsupportedTypeTable.TypeGeo()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n unsupportedTypeTable) TypeTinyBlob() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "type_tiny_blob",
 		Identifier:   "TypeTinyBlob",
 		ReceiverType: query.ColTypeBytes,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// TypeMediumBlob represents the type_medium_blob column in the database.
+func (n *unsupportedTypeReverse) TypeTinyBlob() *query.ColumnNode {
+	cn := n.unsupportedTypeTable.TypeTinyBlob()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n unsupportedTypeTable) TypeMediumBlob() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "type_medium_blob",
 		Identifier:   "TypeMediumBlob",
 		ReceiverType: query.ColTypeBytes,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// TypeVarbinary represents the type_varbinary column in the database.
+func (n *unsupportedTypeReverse) TypeMediumBlob() *query.ColumnNode {
+	cn := n.unsupportedTypeTable.TypeMediumBlob()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n unsupportedTypeTable) TypeVarbinary() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "type_varbinary",
 		Identifier:   "TypeVarbinary",
 		ReceiverType: query.ColTypeUnknown,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// TypeLongtext represents the type_longtext column in the database.
+func (n *unsupportedTypeReverse) TypeVarbinary() *query.ColumnNode {
+	cn := n.unsupportedTypeTable.TypeVarbinary()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n unsupportedTypeTable) TypeLongtext() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "type_longtext",
 		Identifier:   "TypeLongtext",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// TypeBinary represents the type_binary column in the database.
+func (n *unsupportedTypeReverse) TypeLongtext() *query.ColumnNode {
+	cn := n.unsupportedTypeTable.TypeLongtext()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n unsupportedTypeTable) TypeBinary() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "type_binary",
 		Identifier:   "TypeBinary",
 		ReceiverType: query.ColTypeUnknown,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// TypeSmall represents the type_small column in the database.
+func (n *unsupportedTypeReverse) TypeBinary() *query.ColumnNode {
+	cn := n.unsupportedTypeTable.TypeBinary()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n unsupportedTypeTable) TypeSmall() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "type_small",
 		Identifier:   "TypeSmall",
 		ReceiverType: query.ColTypeInteger,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// TypeMedium represents the type_medium column in the database.
+func (n *unsupportedTypeReverse) TypeSmall() *query.ColumnNode {
+	cn := n.unsupportedTypeTable.TypeSmall()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n unsupportedTypeTable) TypeMedium() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "type_medium",
 		Identifier:   "TypeMedium",
 		ReceiverType: query.ColTypeInteger,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// TypeBig represents the type_big column in the database.
+func (n *unsupportedTypeReverse) TypeMedium() *query.ColumnNode {
+	cn := n.unsupportedTypeTable.TypeMedium()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n unsupportedTypeTable) TypeBig() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "type_big",
 		Identifier:   "TypeBig",
 		ReceiverType: query.ColTypeInteger64,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// TypePolygon represents the type_polygon column in the database.
+func (n *unsupportedTypeReverse) TypeBig() *query.ColumnNode {
+	cn := n.unsupportedTypeTable.TypeBig()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n unsupportedTypeTable) TypePolygon() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "type_polygon",
 		Identifier:   "TypePolygon",
 		ReceiverType: query.ColTypeUnknown,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// TypeUnsigned represents the type_unsigned column in the database.
+func (n *unsupportedTypeReverse) TypePolygon() *query.ColumnNode {
+	cn := n.unsupportedTypeTable.TypePolygon()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n unsupportedTypeTable) TypeUnsigned() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "type_unsigned",
 		Identifier:   "TypeUnsigned",
 		ReceiverType: query.ColTypeUnsigned,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// TypeMultfk1 represents the type_multFk1 column in the database.
+func (n *unsupportedTypeReverse) TypeUnsigned() *query.ColumnNode {
+	cn := n.unsupportedTypeTable.TypeUnsigned()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n unsupportedTypeTable) TypeMultfk1() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "type_multFk1",
 		Identifier:   "TypeMultfk1",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// TypeMultifk2 represents the type_multiFk2 column in the database.
+func (n *unsupportedTypeReverse) TypeMultfk1() *query.ColumnNode {
+	cn := n.unsupportedTypeTable.TypeMultfk1()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n unsupportedTypeTable) TypeMultifk2() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "type_multiFk2",
 		Identifier:   "TypeMultifk2",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-func (n *unsupportedTypeTable) GobEncode() (data []byte, err error) {
+func (n *unsupportedTypeReverse) TypeMultifk2() *query.ColumnNode {
+	cn := n.unsupportedTypeTable.TypeMultifk2()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n unsupportedTypeTable) GobEncode() (data []byte, err error) {
 	return
 }
 
 func (n *unsupportedTypeTable) GobDecode(data []byte) (err error) {
-	n._self = n
 	return
 }
 
@@ -374,7 +464,6 @@ func (n *unsupportedTypeReverse) GobDecode(data []byte) (err error) {
 	if err = dec.Decode(&n.ReverseNode); err != nil {
 		panic(err)
 	}
-	n._self = n
 	return
 }
 

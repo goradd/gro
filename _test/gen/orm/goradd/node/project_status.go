@@ -20,7 +20,11 @@ type ProjectStatusNodeI interface {
 }
 
 type projectStatusEnum struct {
-	_self query.NodeI
+}
+
+type projectStatusReference struct {
+	projectStatusEnum
+	query.ReferenceNode
 }
 
 type projectStatusAssociation struct {
@@ -30,6 +34,14 @@ type projectStatusAssociation struct {
 
 // PrimaryKeyNode returns a node representing the primary key column.
 func (n projectStatusEnum) PrimaryKeyNode() *query.ColumnNode {
+	return n.ID()
+}
+
+func (n projectStatusReference) PrimaryKeyNode() *query.ColumnNode {
+	return n.ID()
+}
+
+func (n projectStatusAssociation) PrimaryKeyNode() *query.ColumnNode {
 	return n.ID()
 }
 
@@ -48,7 +60,7 @@ func (n projectStatusEnum) SelectNodes_() []*query.ColumnNode {
 	}
 }
 
-func (n *projectStatusEnum) NodeType_() query.NodeType {
+func (n projectStatusEnum) NodeType_() query.NodeType {
 	return query.EnumNodeType
 }
 
@@ -67,56 +79,116 @@ func (n projectStatusEnum) DatabaseKey_() string {
 }
 
 func (n projectStatusEnum) ID() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "id",
 		Identifier:   "ID",
 		ReceiverType: query.ColTypeInteger,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *projectStatusReference) ID() *query.ColumnNode {
+	cn := n.projectStatusEnum.ID()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *projectStatusAssociation) ID() *query.ColumnNode {
+	cn := n.projectStatusEnum.ID()
+	cn.SetParent(n)
+	return cn
 }
 
 func (n projectStatusEnum) Name() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "name",
 		Identifier:   "Name",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *projectStatusReference) Name() *query.ColumnNode {
+	cn := n.projectStatusEnum.Name()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *projectStatusAssociation) Name() *query.ColumnNode {
+	cn := n.projectStatusEnum.Name()
+	cn.SetParent(n)
+	return cn
 }
 
 func (n projectStatusEnum) Description() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "description",
 		Identifier:   "Description",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *projectStatusReference) Description() *query.ColumnNode {
+	cn := n.projectStatusEnum.Description()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *projectStatusAssociation) Description() *query.ColumnNode {
+	cn := n.projectStatusEnum.Description()
+	cn.SetParent(n)
+	return cn
 }
 
 func (n projectStatusEnum) Guidelines() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "guidelines",
 		Identifier:   "Guidelines",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *projectStatusReference) Guidelines() *query.ColumnNode {
+	cn := n.projectStatusEnum.Guidelines()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *projectStatusAssociation) Guidelines() *query.ColumnNode {
+	cn := n.projectStatusEnum.Guidelines()
+	cn.SetParent(n)
+	return cn
 }
 
 func (n projectStatusEnum) IsActive() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "is_active",
 		Identifier:   "IsActive",
 		ReceiverType: query.ColTypeBool,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *projectStatusReference) IsActive() *query.ColumnNode {
+	cn := n.projectStatusEnum.IsActive()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *projectStatusAssociation) IsActive() *query.ColumnNode {
+	cn := n.projectStatusEnum.IsActive()
+	cn.SetParent(n)
+	return cn
 }

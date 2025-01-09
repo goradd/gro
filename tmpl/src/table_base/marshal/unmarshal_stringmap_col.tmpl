@@ -23,7 +23,7 @@
                 o.Set{{= col.Identifier }}(s)
             }
 
-{{elseif col.IsEnumReference()}}
+{{elseif col.IsEnum()}}
            if n,ok := v.(int); ok {
                 o.Set{{= col.ReferenceIdentifier() }}({{= col.ReferenceType() }}(n))
            } else if n,ok := v.(float64); ok {

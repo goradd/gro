@@ -35,7 +35,6 @@ type PersonWithLockExpander interface {
 //
 // To use the personWithLockTable, call [PersonWithLock()] to start a reference chain when querying the person_with_lock table.
 type personWithLockTable struct {
-	_self query.NodeI
 }
 
 type personWithLockReverse struct {
@@ -45,9 +44,7 @@ type personWithLockReverse struct {
 
 // PersonWithLock returns a table node that starts a node chain that begins with the person_with_lock table.
 func PersonWithLock() PersonWithLockNodeI {
-	var n personWithLockTable
-	n._self = n
-	return n
+	return personWithLockTable{}
 }
 
 // TableName_ returns the query name of the table the node is associated with.
@@ -65,13 +62,14 @@ func (n personWithLockTable) DatabaseKey_() string {
 	return "goradd"
 }
 
-// SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-func (n personWithLockTable) SelectNodes_() (nodes []*query.ColumnNode) {
-	nodes = append(nodes, n.ID())
-	nodes = append(nodes, n.FirstName())
-	nodes = append(nodes, n.LastName())
-	nodes = append(nodes, n.SysTimestamp())
-	return nodes
+// Columns_ is used internally by the framework to return the list of all the columns in the table.
+func (n personWithLockTable) Columns_() []string {
+	return []string{
+		"id",
+		"first_name",
+		"last_name",
+		"sys_timestamp",
+	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
@@ -83,66 +81,88 @@ func (n *personWithLockReverse) NodeType_() query.NodeType {
 	return query.ReverseNodeType
 }
 
-// PrimaryKeyNode returns a node that points to the primary key column, if
-// a single primary key exists in the table.
+// PrimaryKeyNode returns a node that points to the primary key column.
 func (n personWithLockTable) PrimaryKeyNode() *query.ColumnNode {
 	return n.ID()
 }
 
-// ID represents the id column in the database.
+func (n *personWithLockReverse) PrimaryKeyNode() *query.ColumnNode {
+	return n.ID()
+}
+
 func (n personWithLockTable) ID() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "id",
 		Identifier:   "ID",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// FirstName represents the first_name column in the database.
+func (n *personWithLockReverse) ID() *query.ColumnNode {
+	cn := n.personWithLockTable.ID()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n personWithLockTable) FirstName() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "first_name",
 		Identifier:   "FirstName",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// LastName represents the last_name column in the database.
+func (n *personWithLockReverse) FirstName() *query.ColumnNode {
+	cn := n.personWithLockTable.FirstName()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n personWithLockTable) LastName() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "last_name",
 		Identifier:   "LastName",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// SysTimestamp represents the sys_timestamp column in the database.
+func (n *personWithLockReverse) LastName() *query.ColumnNode {
+	cn := n.personWithLockTable.LastName()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n personWithLockTable) SysTimestamp() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "sys_timestamp",
 		Identifier:   "SysTimestamp",
 		ReceiverType: query.ColTypeTime,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-func (n *personWithLockTable) GobEncode() (data []byte, err error) {
+func (n *personWithLockReverse) SysTimestamp() *query.ColumnNode {
+	cn := n.personWithLockTable.SysTimestamp()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n personWithLockTable) GobEncode() (data []byte, err error) {
 	return
 }
 
 func (n *personWithLockTable) GobDecode(data []byte) (err error) {
-	n._self = n
 	return
 }
 
@@ -164,7 +184,6 @@ func (n *personWithLockReverse) GobDecode(data []byte) (err error) {
 	if err = dec.Decode(&n.ReverseNode); err != nil {
 		panic(err)
 	}
-	n._self = n
 	return
 }
 

@@ -35,7 +35,6 @@ type ForwardCascadeUniqueExpander interface {
 //
 // To use the forwardCascadeUniqueTable, call [ForwardCascadeUnique()] to start a reference chain when querying the forward_cascade_unique table.
 type forwardCascadeUniqueTable struct {
-	_self query.NodeI
 }
 
 type forwardCascadeUniqueReverse struct {
@@ -45,9 +44,7 @@ type forwardCascadeUniqueReverse struct {
 
 // ForwardCascadeUnique returns a table node that starts a node chain that begins with the forward_cascade_unique table.
 func ForwardCascadeUnique() ForwardCascadeUniqueNodeI {
-	var n forwardCascadeUniqueTable
-	n._self = n
-	return n
+	return forwardCascadeUniqueTable{}
 }
 
 // TableName_ returns the query name of the table the node is associated with.
@@ -65,12 +62,13 @@ func (n forwardCascadeUniqueTable) DatabaseKey_() string {
 	return "goradd_unit"
 }
 
-// SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-func (n forwardCascadeUniqueTable) SelectNodes_() (nodes []*query.ColumnNode) {
-	nodes = append(nodes, n.ID())
-	nodes = append(nodes, n.Name())
-	nodes = append(nodes, n.ReverseID())
-	return nodes
+// Columns_ is used internally by the framework to return the list of all the columns in the table.
+func (n forwardCascadeUniqueTable) Columns_() []string {
+	return []string{
+		"id",
+		"name",
+		"reverse_id",
+	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
@@ -82,46 +80,64 @@ func (n *forwardCascadeUniqueReverse) NodeType_() query.NodeType {
 	return query.ReverseNodeType
 }
 
-// PrimaryKeyNode returns a node that points to the primary key column, if
-// a single primary key exists in the table.
+// PrimaryKeyNode returns a node that points to the primary key column.
 func (n forwardCascadeUniqueTable) PrimaryKeyNode() *query.ColumnNode {
 	return n.ID()
 }
 
-// ID represents the id column in the database.
+func (n *forwardCascadeUniqueReverse) PrimaryKeyNode() *query.ColumnNode {
+	return n.ID()
+}
+
 func (n forwardCascadeUniqueTable) ID() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "id",
 		Identifier:   "ID",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// Name represents the name column in the database.
+func (n *forwardCascadeUniqueReverse) ID() *query.ColumnNode {
+	cn := n.forwardCascadeUniqueTable.ID()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n forwardCascadeUniqueTable) Name() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "name",
 		Identifier:   "Name",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// ReverseID represents the reverse_id column in the database.
+func (n *forwardCascadeUniqueReverse) Name() *query.ColumnNode {
+	cn := n.forwardCascadeUniqueTable.Name()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n forwardCascadeUniqueTable) ReverseID() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "reverse_id",
 		Identifier:   "ReverseID",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *forwardCascadeUniqueReverse) ReverseID() *query.ColumnNode {
+	cn := n.forwardCascadeUniqueTable.ReverseID()
+	cn.SetParent(n)
+	return cn
 }
 
 // Reverse represents the link to a Reverse object.
@@ -133,17 +149,21 @@ func (n forwardCascadeUniqueTable) Reverse() ReverseNodeI {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn._self = cn
-	cn.SetParent(n._self)
+	cn.SetParent(n)
 	return cn
 }
 
-func (n *forwardCascadeUniqueTable) GobEncode() (data []byte, err error) {
+func (n *forwardCascadeUniqueReverse) Reverse() ReverseNodeI {
+	cn := n.forwardCascadeUniqueTable.Reverse().(*reverseReference)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n forwardCascadeUniqueTable) GobEncode() (data []byte, err error) {
 	return
 }
 
 func (n *forwardCascadeUniqueTable) GobDecode(data []byte) (err error) {
-	n._self = n
 	return
 }
 
@@ -165,7 +185,6 @@ func (n *forwardCascadeUniqueReverse) GobDecode(data []byte) (err error) {
 	if err = dec.Decode(&n.ReverseNode); err != nil {
 		panic(err)
 	}
-	n._self = n
 	return
 }
 

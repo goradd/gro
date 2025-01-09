@@ -145,34 +145,38 @@ type `); err != nil {
 
 	for _, col := range table.Columns {
 
-		if _, err = io.WriteString(_w, `    // `); err != nil {
-			return
-		}
+		if !col.IsEnum() {
 
-		if _, err = io.WriteString(_w, col.Identifier); err != nil {
-			return
-		}
+			if _, err = io.WriteString(_w, `    // `); err != nil {
+				return
+			}
 
-		if _, err = io.WriteString(_w, ` represents the `); err != nil {
-			return
-		}
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
 
-		if _, err = io.WriteString(_w, col.QueryName); err != nil {
-			return
-		}
+			if _, err = io.WriteString(_w, ` represents the `); err != nil {
+				return
+			}
 
-		if _, err = io.WriteString(_w, ` column in the database.
+			if _, err = io.WriteString(_w, col.QueryName); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` column in the database.
     `); err != nil {
-			return
-		}
+				return
+			}
 
-		if _, err = io.WriteString(_w, col.Identifier); err != nil {
-			return
-		}
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
 
-		if _, err = io.WriteString(_w, `() *query.ColumnNode
+			if _, err = io.WriteString(_w, `() *query.ColumnNode
 `); err != nil {
-			return
+				return
+			}
+
 		}
 
 		if col.IsReference() {
@@ -516,7 +520,6 @@ type `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `Table struct {
-    _self query.NodeI
 }
 
 `); err != nil {
@@ -658,7 +661,7 @@ func `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `NodeI {
-	var n `); err != nil {
+	return `); err != nil {
 		return
 	}
 
@@ -666,9 +669,7 @@ func `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Table
-	n._self = n
-	return n
+	if _, err = io.WriteString(_w, `Table{}
 }
 
 
@@ -699,15 +700,15 @@ func (n `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `Table) TableName_() string {
-    return `); err != nil {
+    return "`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, fmt.Sprintf("%#v", table.QueryName)); err != nil {
+	if _, err = io.WriteString(_w, table.QueryName); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `
+	if _, err = io.WriteString(_w, `"
 }
 
 // NodeType_ returns the query.NodeType of the node.
@@ -733,18 +734,18 @@ func (n `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `Table) DatabaseKey_() string {
-    return `); err != nil {
+    return "`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, fmt.Sprintf("%#v", table.DbKey)); err != nil {
+	if _, err = io.WriteString(_w, table.DbKey); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `
+	if _, err = io.WriteString(_w, `"
 }
 
-// SelectNodes_ is used internally by the framework to return the list of all the column nodes.
+// Columns_ is used internally by the framework to return the list of all the columns in the table.
 func (n `); err != nil {
 		return
 	}
@@ -753,29 +754,30 @@ func (n `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Table) SelectNodes_() (nodes []*query.ColumnNode) {
+	if _, err = io.WriteString(_w, `Table) Columns_() []string {
+    return []string {
 `); err != nil {
 		return
 	}
 
 	for _, col := range table.Columns {
 
-		if _, err = io.WriteString(_w, `	nodes = append(nodes, n.`); err != nil {
+		if _, err = io.WriteString(_w, `        "`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, fmt.Sprint(col.Identifier)); err != nil {
+		if _, err = io.WriteString(_w, col.QueryName); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `())
+		if _, err = io.WriteString(_w, `",
 `); err != nil {
 			return
 		}
 
 	}
 
-	if _, err = io.WriteString(_w, `	return nodes
+	if _, err = io.WriteString(_w, `	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
@@ -875,8 +877,7 @@ func (n *NodeTemplate) genPrimaryKey(table *model.Table, _w io.Writer) (err erro
 
 		//*** pk.tmpl
 
-		if _, err = io.WriteString(_w, `// PrimaryKeyNode returns a node that points to the primary key column, if
-// a single primary key exists in the table.
+		if _, err = io.WriteString(_w, `// PrimaryKeyNode returns a node that points to the primary key column.
 func (n `); err != nil {
 			return
 		}
@@ -896,8 +897,93 @@ func (n `); err != nil {
 
 		if _, err = io.WriteString(_w, `()
 }
+
 `); err != nil {
 			return
+		}
+
+		if hasReverse {
+
+			if _, err = io.WriteString(_w, `func (n *`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `Reference) PrimaryKeyNode() *query.ColumnNode {
+    return n.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, fmt.Sprint(col.Identifier)); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()
+}
+
+`); err != nil {
+				return
+			}
+
+		}
+
+		if hasReference {
+
+			if _, err = io.WriteString(_w, `func (n *`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `Reverse) PrimaryKeyNode() *query.ColumnNode {
+    return n.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, fmt.Sprint(col.Identifier)); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()
+}
+
+`); err != nil {
+				return
+			}
+
+		}
+
+		if hasAssociation {
+
+			if _, err = io.WriteString(_w, `func (n *`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `Association) PrimaryKeyNode() *query.ColumnNode {
+    return n.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, fmt.Sprint(col.Identifier)); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()
+}
+
+`); err != nil {
+				return
+			}
+
 		}
 
 	}
@@ -918,7 +1004,7 @@ func (n *NodeTemplate) genGob(table *model.Table, _w io.Writer) (err error) {
 	//*** gob.tmpl
 
 	if _, err = io.WriteString(_w, `
-func (n *`); err != nil {
+func (n `); err != nil {
 		return
 	}
 
@@ -939,7 +1025,6 @@ func (n *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `Table) GobDecode(data []byte) (err error) {
-	n._self = n
 	return
 }
 
@@ -983,7 +1068,6 @@ func (n *`); err != nil {
 	if err = dec.Decode(&n.ReferenceNode); err != nil {
 		panic(err)
 	}
-	n._self = n
 	return
 }
 `); err != nil {
@@ -1033,7 +1117,6 @@ func (n *`); err != nil {
 	if err = dec.Decode(&n.ReverseNode); err != nil {
 		panic(err)
 	}
-	n._self = n
 	return
 }
 `); err != nil {
@@ -1083,7 +1166,6 @@ func (n *`); err != nil {
 	if err = dec.Decode(&n.ManyManyNode); err != nil {
 		panic(err)
 	}
-	n._self = n
 	return
 }
 `); err != nil {
@@ -1181,16 +1263,14 @@ func init() {
 //*** column.tmpl
 
 func (n *NodeTemplate) genColumn(table *model.Table, col *model.Column, _w io.Writer) (err error) {
-	if col.IsReference() {
-		if err = n.genColumnNode(table, col, _w); err != nil {
-			return
-		}
-		if err = n.genTableRefNode(table, col, _w); err != nil {
-			return
-		}
+	if col.IsEnum() {
+		err = n.genEnumTableRefNode(table, col, _w)
 	} else {
 		if err = n.genColumnNode(table, col, _w); err != nil {
 			return
+		}
+		if col.IsReference() {
+			err = n.genTableRefNode(table, col, _w)
 		}
 	}
 	return
@@ -1198,24 +1278,7 @@ func (n *NodeTemplate) genColumn(table *model.Table, col *model.Column, _w io.Wr
 
 func (n *NodeTemplate) genColumnNode(table *model.Table, col *model.Column, _w io.Writer) (err error) {
 
-	if _, err = io.WriteString(_w, `// `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, ` represents the `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.QueryName); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, ` column in the database.
-func (n `); err != nil {
+	if _, err = io.WriteString(_w, `func (n `); err != nil {
 		return
 	}
 
@@ -1232,25 +1295,25 @@ func (n `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `() *query.ColumnNode {
-	cn := query.ColumnNode{
-		QueryName: `); err != nil {
+	cn := &query.ColumnNode{
+		QueryName: "`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, fmt.Sprintf("%#v", col.QueryName)); err != nil {
+	if _, err = io.WriteString(_w, col.QueryName); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `,
-		Identifier: `); err != nil {
+	if _, err = io.WriteString(_w, `",
+		Identifier: "`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, fmt.Sprintf("%#v", col.Identifier)); err != nil {
+	if _, err = io.WriteString(_w, col.Identifier); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `,
+	if _, err = io.WriteString(_w, `",
 		ReceiverType: query.`); err != nil {
 		return
 	}
@@ -1270,9 +1333,152 @@ func (n `); err != nil {
 
 	if _, err = io.WriteString(_w, `,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
+
+`); err != nil {
+		return
+	}
+
+	if hasReverse {
+
+		if _, err = io.WriteString(_w, `func (n *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reference) `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `() *query.ColumnNode {
+    cn := n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Table.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+    cn.SetParent(n)
+    return cn
+}
+
+`); err != nil {
+			return
+		}
+
+	}
+
+	if hasReference {
+
+		if _, err = io.WriteString(_w, `func (n *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reverse) `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `() *query.ColumnNode {
+    cn := n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Table.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+    cn.SetParent(n)
+    return cn
+}
+
+`); err != nil {
+			return
+		}
+
+	}
+
+	if hasAssociation {
+
+		if _, err = io.WriteString(_w, `func (n *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Association) `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `() *query.ColumnNode {
+    cn := n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Table.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+    cn.SetParent(n)
+    return cn
+}
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
 `); err != nil {
 		return
 	}
@@ -1334,24 +1540,24 @@ func (n `); err != nil {
 
 	if _, err = io.WriteString(_w, `Reference{
 		ReferenceNode: query.ReferenceNode {
-            ColumnQueryName: `); err != nil {
+            ColumnQueryName: "`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, fmt.Sprintf("%#v", col.QueryName)); err != nil {
+	if _, err = io.WriteString(_w, col.QueryName); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `,
-            Identifier:      `); err != nil {
+	if _, err = io.WriteString(_w, `",
+            Identifier:      "`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, fmt.Sprintf("%#v", col.Identifier)); err != nil {
+	if _, err = io.WriteString(_w, col.Identifier); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `,
+	if _, err = io.WriteString(_w, `",
             ReceiverType:    query.`); err != nil {
 		return
 	}
@@ -1363,12 +1569,198 @@ func (n `); err != nil {
 	if _, err = io.WriteString(_w, `,
 		},
 	}
-	cn._self = cn
-	cn.SetParent(n._self)
+	cn.SetParent(n)
 	return cn
 }
+
 `); err != nil {
 		return
+	}
+
+	if hasReverse {
+
+		if _, err = io.WriteString(_w, `func (n *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reference) `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `() `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `NodeI {
+    cn := n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Table.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().(*`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Reference.Table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reference)
+    cn.SetParent(n)
+    return cn
+}
+
+`); err != nil {
+			return
+		}
+
+	}
+
+	if hasReference {
+
+		if _, err = io.WriteString(_w, `func (n *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reverse) `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `() `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `NodeI {
+    cn := n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Table.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().(*`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Reference.Table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reference)
+    cn.SetParent(n)
+    return cn
+}
+
+`); err != nil {
+			return
+		}
+
+	}
+
+	if hasAssociation {
+
+		if _, err = io.WriteString(_w, `func (n *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Association) `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `() `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `NodeI {
+    cn := n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Table.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().(*`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Reference.Table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reference)
+    cn.SetParent(n)
+    return cn
+}
+
+`); err != nil {
+			return
+		}
+
 	}
 
 	return
@@ -1418,35 +1810,17 @@ func (n `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `NodeI {
-    cn := &`); err != nil {
+	cn := &`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.Reference.EnumTable.Identifier); err != nil {
+	if _, err = io.WriteString(_w, col.Reference.EnumTable.DecapIdentifier); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Node {
-        query.NewReferenceNode (
-            "`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.DbKey); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `",
-            "`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.QueryName); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `",
-            "`); err != nil {
+	if _, err = io.WriteString(_w, `Reference {
+		ReferenceNode: query.ReferenceNode {
+            ColumnQueryName: "`); err != nil {
 		return
 	}
 
@@ -1455,7 +1829,7 @@ func (n `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `",
-            "`); err != nil {
+            Identifier:      "`); err != nil {
 		return
 	}
 
@@ -1464,35 +1838,7 @@ func (n `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `",
-            "`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.Reference.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `",
-            "`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.Reference.EnumTable.QueryName); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `",
-            "`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.Reference.EnumTable.PkQueryName()); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `",
-            true,
-            query.`); err != nil {
+            ReceiverType:    query.`); err != nil {
 		return
 	}
 
@@ -1501,13 +1847,200 @@ func (n `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `,
-        ),
-    }
-    query.SetParentNode(cn, n)
-    return cn
+		},
+	}
+	cn.SetParent(n)
+	return cn
 }
+
 `); err != nil {
 		return
+	}
+
+	if hasReverse {
+
+		if _, err = io.WriteString(_w, `func (n *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reference) `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `() `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Reference.EnumTable.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `NodeI {
+    cn := n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Table.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().(*`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Reference.EnumTable.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reference)
+    cn.SetParent(n)
+    return cn
+}
+
+`); err != nil {
+			return
+		}
+
+	}
+
+	if hasReference {
+
+		if _, err = io.WriteString(_w, `func (n *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reverse) `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `() `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Reference.EnumTable.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `NodeI {
+    cn := n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Table.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().(*`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Reference.EnumTable.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reference)
+    cn.SetParent(n)
+    return cn
+}
+
+`); err != nil {
+			return
+		}
+
+	}
+
+	if hasAssociation {
+
+		if _, err = io.WriteString(_w, `func (n *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Association) `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `() `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Reference.EnumTable.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `NodeI {
+    cn := n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Table.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().(*`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Reference.EnumTable.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reference)
+    cn.SetParent(n)
+    return cn
+}
+
+`); err != nil {
+			return
+		}
+
 	}
 
 	return
@@ -1642,9 +2175,201 @@ func (n `); err != nil {
 	if _, err = io.WriteString(_w, `,
 		},
 	}
-	cn.SetParent(n._self)
+	cn.SetParent(n)
 	return cn
 }
+
+`); err != nil {
+		return
+	}
+
+	if hasReverse {
+
+		if _, err = io.WriteString(_w, `func (n *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reference) `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `() `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, returnType); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `  {
+    cn := n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Table.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().(*`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, objectType); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `)
+    cn.SetParent(n)
+    return cn
+}
+
+`); err != nil {
+			return
+		}
+
+	}
+
+	if hasReference {
+
+		if _, err = io.WriteString(_w, `func (n *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reverse) `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `() `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, returnType); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `  {
+    cn := n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Table.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().(*`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, objectType); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `)
+    cn.SetParent(n)
+    return cn
+}
+
+`); err != nil {
+			return
+		}
+
+	}
+
+	if hasAssociation {
+
+		if _, err = io.WriteString(_w, `func (n *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Association) `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `() `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, returnType); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `  {
+    cn := n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Table.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().(*`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, objectType); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `)
+    cn.SetParent(n)
+    return cn
+}
+
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
 `); err != nil {
 		return
 	}
@@ -1761,9 +2486,201 @@ func (n `); err != nil {
 	if _, err = io.WriteString(_w, `,
 		},
 	}
-	cn.SetParent(n._self)
+	cn.SetParent(n)
 	return cn
 }
+
+`); err != nil {
+		return
+	}
+
+	if hasReverse {
+
+		if _, err = io.WriteString(_w, `func (n *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reference) `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `() `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `NodeI  {
+    cn := n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Table.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().(*`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.Table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reverse)
+    cn.SetParent(n)
+    return cn
+}
+
+`); err != nil {
+			return
+		}
+
+	}
+
+	if hasReference {
+
+		if _, err = io.WriteString(_w, `func (n *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reverse) `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `() `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `NodeI  {
+    cn := n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Table.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().(*`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.Table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reverse)
+    cn.SetParent(n)
+    return cn
+}
+
+`); err != nil {
+			return
+		}
+
+	}
+
+	if hasAssociation {
+
+		if _, err = io.WriteString(_w, `func (n *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Association) `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `() `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `NodeI  {
+    cn := n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Table.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().(*`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.Table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reverse)
+    cn.SetParent(n)
+    return cn
+}
+
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
 `); err != nil {
 		return
 	}
@@ -1864,11 +2781,198 @@ func (n `); err != nil {
 	if _, err = io.WriteString(_w, `,
 		},
 	}
-	cn.SetParent(n._self)
+	cn.SetParent(n)
 	return cn
 }
+
 `); err != nil {
 		return
+	}
+
+	if hasReverse {
+
+		if _, err = io.WriteString(_w, `func (n *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reference) `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `() `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Expander  {
+    cn := n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Table.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().(*`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.Table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reverse)
+    cn.SetParent(n)
+    return cn
+}
+
+`); err != nil {
+			return
+		}
+
+	}
+
+	if hasReference {
+
+		if _, err = io.WriteString(_w, `func (n *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reverse) `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `() `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Expander  {
+    cn := n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Table.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().(*`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.Table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reverse)
+    cn.SetParent(n)
+    return cn
+}
+
+`); err != nil {
+			return
+		}
+
+	}
+
+	if hasAssociation {
+
+		if _, err = io.WriteString(_w, `func (n *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Association) `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `() `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Expander  {
+    cn := n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Table.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().(*`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.Table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reverse)
+    cn.SetParent(n)
+    return cn
+}
+
+`); err != nil {
+			return
+		}
+
 	}
 
 	return

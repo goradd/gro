@@ -4,12 +4,11 @@
 
 {{
 
-func (n *{{= table.DecapIdentifier }}Table) GobEncode() (data []byte, err error) {
+func (n {{= table.DecapIdentifier }}Table) GobEncode() (data []byte, err error) {
 	return
 }
 
 func (n *{{= table.DecapIdentifier }}Table) GobDecode(data []byte) (err error) {
-	n._self = n
 	return
 }
 
@@ -32,7 +31,6 @@ func (n *{{= table.DecapIdentifier}}Reference) GobDecode(data []byte) (err error
 	if err = dec.Decode(&n.ReferenceNode); err != nil {
 		panic(err)
 	}
-	n._self = n
 	return
 }
 {{if}}
@@ -56,7 +54,6 @@ func (n *{{= table.DecapIdentifier}}Reverse) GobDecode(data []byte) (err error) 
 	if err = dec.Decode(&n.ReverseNode); err != nil {
 		panic(err)
 	}
-	n._self = n
 	return
 }
 {{if}}
@@ -80,7 +77,6 @@ func (n *{{= table.DecapIdentifier}}Association) GobDecode(data []byte) (err err
 	if err = dec.Decode(&n.ManyManyNode); err != nil {
 		panic(err)
 	}
-	n._self = n
 	return
 }
 {{if}}

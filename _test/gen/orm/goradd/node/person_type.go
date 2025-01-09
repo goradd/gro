@@ -17,7 +17,11 @@ type PersonTypeNodeI interface {
 }
 
 type personTypeEnum struct {
-	_self query.NodeI
+}
+
+type personTypeReference struct {
+	personTypeEnum
+	query.ReferenceNode
 }
 
 type personTypeAssociation struct {
@@ -27,6 +31,14 @@ type personTypeAssociation struct {
 
 // PrimaryKeyNode returns a node representing the primary key column.
 func (n personTypeEnum) PrimaryKeyNode() *query.ColumnNode {
+	return n.ID()
+}
+
+func (n personTypeReference) PrimaryKeyNode() *query.ColumnNode {
+	return n.ID()
+}
+
+func (n personTypeAssociation) PrimaryKeyNode() *query.ColumnNode {
 	return n.ID()
 }
 
@@ -42,7 +54,7 @@ func (n personTypeEnum) SelectNodes_() []*query.ColumnNode {
 	}
 }
 
-func (n *personTypeEnum) NodeType_() query.NodeType {
+func (n personTypeEnum) NodeType_() query.NodeType {
 	return query.EnumNodeType
 }
 
@@ -61,23 +73,47 @@ func (n personTypeEnum) DatabaseKey_() string {
 }
 
 func (n personTypeEnum) ID() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "id",
 		Identifier:   "ID",
 		ReceiverType: query.ColTypeInteger,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personTypeReference) ID() *query.ColumnNode {
+	cn := n.personTypeEnum.ID()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personTypeAssociation) ID() *query.ColumnNode {
+	cn := n.personTypeEnum.ID()
+	cn.SetParent(n)
+	return cn
 }
 
 func (n personTypeEnum) Name() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "name",
 		Identifier:   "Name",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personTypeReference) Name() *query.ColumnNode {
+	cn := n.personTypeEnum.Name()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personTypeAssociation) Name() *query.ColumnNode {
+	cn := n.personTypeEnum.Name()
+	cn.SetParent(n)
+	return cn
 }

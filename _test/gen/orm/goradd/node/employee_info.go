@@ -35,7 +35,6 @@ type EmployeeInfoExpander interface {
 //
 // To use the employeeInfoTable, call [EmployeeInfo()] to start a reference chain when querying the employee_info table.
 type employeeInfoTable struct {
-	_self query.NodeI
 }
 
 type employeeInfoReverse struct {
@@ -45,9 +44,7 @@ type employeeInfoReverse struct {
 
 // EmployeeInfo returns a table node that starts a node chain that begins with the employee_info table.
 func EmployeeInfo() EmployeeInfoNodeI {
-	var n employeeInfoTable
-	n._self = n
-	return n
+	return employeeInfoTable{}
 }
 
 // TableName_ returns the query name of the table the node is associated with.
@@ -65,12 +62,13 @@ func (n employeeInfoTable) DatabaseKey_() string {
 	return "goradd"
 }
 
-// SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-func (n employeeInfoTable) SelectNodes_() (nodes []*query.ColumnNode) {
-	nodes = append(nodes, n.ID())
-	nodes = append(nodes, n.PersonID())
-	nodes = append(nodes, n.EmployeeNumber())
-	return nodes
+// Columns_ is used internally by the framework to return the list of all the columns in the table.
+func (n employeeInfoTable) Columns_() []string {
+	return []string{
+		"id",
+		"person_id",
+		"employee_number",
+	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
@@ -82,34 +80,47 @@ func (n *employeeInfoReverse) NodeType_() query.NodeType {
 	return query.ReverseNodeType
 }
 
-// PrimaryKeyNode returns a node that points to the primary key column, if
-// a single primary key exists in the table.
+// PrimaryKeyNode returns a node that points to the primary key column.
 func (n employeeInfoTable) PrimaryKeyNode() *query.ColumnNode {
 	return n.ID()
 }
 
-// ID represents the id column in the database.
+func (n *employeeInfoReverse) PrimaryKeyNode() *query.ColumnNode {
+	return n.ID()
+}
+
 func (n employeeInfoTable) ID() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "id",
 		Identifier:   "ID",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// PersonID represents the person_id column in the database.
+func (n *employeeInfoReverse) ID() *query.ColumnNode {
+	cn := n.employeeInfoTable.ID()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n employeeInfoTable) PersonID() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "person_id",
 		Identifier:   "PersonID",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *employeeInfoReverse) PersonID() *query.ColumnNode {
+	cn := n.employeeInfoTable.PersonID()
+	cn.SetParent(n)
+	return cn
 }
 
 // Person represents the link to a Person object.
@@ -121,29 +132,38 @@ func (n employeeInfoTable) Person() PersonNodeI {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn._self = cn
-	cn.SetParent(n._self)
+	cn.SetParent(n)
 	return cn
 }
 
-// EmployeeNumber represents the employee_number column in the database.
+func (n *employeeInfoReverse) Person() PersonNodeI {
+	cn := n.employeeInfoTable.Person().(*personReference)
+	cn.SetParent(n)
+	return cn
+}
+
 func (n employeeInfoTable) EmployeeNumber() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "employee_number",
 		Identifier:   "EmployeeNumber",
 		ReceiverType: query.ColTypeInteger,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-func (n *employeeInfoTable) GobEncode() (data []byte, err error) {
+func (n *employeeInfoReverse) EmployeeNumber() *query.ColumnNode {
+	cn := n.employeeInfoTable.EmployeeNumber()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n employeeInfoTable) GobEncode() (data []byte, err error) {
 	return
 }
 
 func (n *employeeInfoTable) GobDecode(data []byte) (err error) {
-	n._self = n
 	return
 }
 
@@ -165,7 +185,6 @@ func (n *employeeInfoReverse) GobDecode(data []byte) (err error) {
 	if err = dec.Decode(&n.ReverseNode); err != nil {
 		panic(err)
 	}
-	n._self = n
 	return
 }
 

@@ -26,9 +26,35 @@ func (n {{= table.DecapIdentifier}}Table) {{= rev.Reference.ReverseIdentifier }}
 			ReceiverType:    query.{{= rev.Type.String() }},
 		},
 	}
-	cn.SetParent(n._self)
+	cn.SetParent(n)
 	return cn
 }
+
+{{if hasReverse}}
+func (n *{{= table.DecapIdentifier}}Reference) {{= rev.Reference.ReverseIdentifier }}() {{= rev.Table.Identifier }}NodeI  {
+    cn := n.{{= table.DecapIdentifier}}Table.{{= rev.Reference.ReverseIdentifier }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
+    cn.SetParent(n)
+    return cn
+}
+
+{{if}}
+{{if hasReference}}
+func (n *{{= table.DecapIdentifier}}Reverse) {{= rev.Reference.ReverseIdentifier }}() {{= rev.Table.Identifier }}NodeI  {
+    cn := n.{{= table.DecapIdentifier}}Table.{{= rev.Reference.ReverseIdentifier }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
+    cn.SetParent(n)
+    return cn
+}
+
+{{if}}
+{{if hasAssociation}}
+func (n *{{= table.DecapIdentifier}}Association) {{= rev.Reference.ReverseIdentifier }}() {{= rev.Table.Identifier }}NodeI  {
+    cn := n.{{= table.DecapIdentifier}}Table.{{= rev.Reference.ReverseIdentifier }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
+    cn.SetParent(n)
+    return cn
+}
+
+{{if}}
+
 }}
     return
 }
@@ -46,9 +72,34 @@ func (n {{= table.DecapIdentifier }}Table) {{= rev.Reference.ReverseIdentifierPl
 			ReceiverType:    query.{{= rev.Type.String() }},
 		},
 	}
-	cn.SetParent(n._self)
+	cn.SetParent(n)
 	return cn
 }
+
+{{if hasReverse}}
+func (n *{{= table.DecapIdentifier}}Reference) {{= rev.Reference.ReverseIdentifierPlural }}() {{= rev.Table.Identifier }}Expander  {
+    cn := n.{{= table.DecapIdentifier}}Table.{{= rev.Reference.ReverseIdentifierPlural }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
+    cn.SetParent(n)
+    return cn
+}
+
+{{if}}
+{{if hasReference}}
+func (n *{{= table.DecapIdentifier}}Reverse) {{= rev.Reference.ReverseIdentifierPlural }}() {{= rev.Table.Identifier }}Expander  {
+    cn := n.{{= table.DecapIdentifier}}Table.{{= rev.Reference.ReverseIdentifierPlural }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
+    cn.SetParent(n)
+    return cn
+}
+
+{{if}}
+{{if hasAssociation}}
+func (n *{{= table.DecapIdentifier}}Association) {{= rev.Reference.ReverseIdentifierPlural }}() {{= rev.Table.Identifier }}Expander  {
+    cn := n.{{= table.DecapIdentifier}}Table.{{= rev.Reference.ReverseIdentifierPlural }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
+    cn.SetParent(n)
+    return cn
+}
+
+{{if}}
 }}
 
 	return

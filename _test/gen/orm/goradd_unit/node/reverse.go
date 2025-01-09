@@ -43,7 +43,6 @@ type ReverseExpander interface {
 //
 // To use the reverseTable, call [Reverse()] to start a reference chain when querying the reverse table.
 type reverseTable struct {
-	_self query.NodeI
 }
 
 type reverseReference struct {
@@ -58,9 +57,7 @@ type reverseReverse struct {
 
 // Reverse returns a table node that starts a node chain that begins with the reverse table.
 func Reverse() ReverseNodeI {
-	var n reverseTable
-	n._self = n
-	return n
+	return reverseTable{}
 }
 
 // TableName_ returns the query name of the table the node is associated with.
@@ -78,11 +75,12 @@ func (n reverseTable) DatabaseKey_() string {
 	return "goradd_unit"
 }
 
-// SelectNodes_ is used internally by the framework to return the list of all the column nodes.
-func (n reverseTable) SelectNodes_() (nodes []*query.ColumnNode) {
-	nodes = append(nodes, n.ID())
-	nodes = append(nodes, n.Name())
-	return nodes
+// Columns_ is used internally by the framework to return the list of all the columns in the table.
+func (n reverseTable) Columns_() []string {
+	return []string{
+		"id",
+		"name",
+	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
@@ -98,34 +96,63 @@ func (n *reverseReverse) NodeType_() query.NodeType {
 	return query.ReverseNodeType
 }
 
-// PrimaryKeyNode returns a node that points to the primary key column, if
-// a single primary key exists in the table.
+// PrimaryKeyNode returns a node that points to the primary key column.
 func (n reverseTable) PrimaryKeyNode() *query.ColumnNode {
 	return n.ID()
 }
 
-// ID represents the id column in the database.
+func (n *reverseReference) PrimaryKeyNode() *query.ColumnNode {
+	return n.ID()
+}
+
+func (n *reverseReverse) PrimaryKeyNode() *query.ColumnNode {
+	return n.ID()
+}
+
 func (n reverseTable) ID() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "id",
 		Identifier:   "ID",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
 }
 
-// Name represents the name column in the database.
+func (n *reverseReference) ID() *query.ColumnNode {
+	cn := n.reverseTable.ID()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *reverseReverse) ID() *query.ColumnNode {
+	cn := n.reverseTable.ID()
+	cn.SetParent(n)
+	return cn
+}
+
 func (n reverseTable) Name() *query.ColumnNode {
-	cn := query.ColumnNode{
+	cn := &query.ColumnNode{
 		QueryName:    "name",
 		Identifier:   "Name",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n._self)
-	return &cn
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *reverseReference) Name() *query.ColumnNode {
+	cn := n.reverseTable.Name()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *reverseReverse) Name() *query.ColumnNode {
+	cn := n.reverseTable.Name()
+	cn.SetParent(n)
+	return cn
 }
 
 // ForwardCascades represents the many-to-one relationship formed by the reverse reference from the
@@ -138,7 +165,19 @@ func (n reverseTable) ForwardCascades() ForwardCascadeExpander {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n._self)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *reverseReference) ForwardCascades() ForwardCascadeExpander {
+	cn := n.reverseTable.ForwardCascades().(*forwardCascadeReverse)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *reverseReverse) ForwardCascades() ForwardCascadeExpander {
+	cn := n.reverseTable.ForwardCascades().(*forwardCascadeReverse)
+	cn.SetParent(n)
 	return cn
 }
 
@@ -152,7 +191,19 @@ func (n reverseTable) ForwardCascadeUnique() ForwardCascadeUniqueNodeI {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n._self)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *reverseReference) ForwardCascadeUnique() ForwardCascadeUniqueNodeI {
+	cn := n.reverseTable.ForwardCascadeUnique().(*forwardCascadeUniqueReverse)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *reverseReverse) ForwardCascadeUnique() ForwardCascadeUniqueNodeI {
+	cn := n.reverseTable.ForwardCascadeUnique().(*forwardCascadeUniqueReverse)
+	cn.SetParent(n)
 	return cn
 }
 
@@ -166,7 +217,19 @@ func (n reverseTable) ForwardNulls() ForwardNullExpander {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n._self)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *reverseReference) ForwardNulls() ForwardNullExpander {
+	cn := n.reverseTable.ForwardNulls().(*forwardNullReverse)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *reverseReverse) ForwardNulls() ForwardNullExpander {
+	cn := n.reverseTable.ForwardNulls().(*forwardNullReverse)
+	cn.SetParent(n)
 	return cn
 }
 
@@ -180,7 +243,19 @@ func (n reverseTable) ForwardNullUnique() ForwardNullUniqueNodeI {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n._self)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *reverseReference) ForwardNullUnique() ForwardNullUniqueNodeI {
+	cn := n.reverseTable.ForwardNullUnique().(*forwardNullUniqueReverse)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *reverseReverse) ForwardNullUnique() ForwardNullUniqueNodeI {
+	cn := n.reverseTable.ForwardNullUnique().(*forwardNullUniqueReverse)
+	cn.SetParent(n)
 	return cn
 }
 
@@ -194,7 +269,19 @@ func (n reverseTable) ForwardRestricts() ForwardRestrictExpander {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n._self)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *reverseReference) ForwardRestricts() ForwardRestrictExpander {
+	cn := n.reverseTable.ForwardRestricts().(*forwardRestrictReverse)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *reverseReverse) ForwardRestricts() ForwardRestrictExpander {
+	cn := n.reverseTable.ForwardRestricts().(*forwardRestrictReverse)
+	cn.SetParent(n)
 	return cn
 }
 
@@ -208,16 +295,27 @@ func (n reverseTable) ForwardRestrictUnique() ForwardRestrictUniqueNodeI {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n._self)
+	cn.SetParent(n)
 	return cn
 }
 
-func (n *reverseTable) GobEncode() (data []byte, err error) {
+func (n *reverseReference) ForwardRestrictUnique() ForwardRestrictUniqueNodeI {
+	cn := n.reverseTable.ForwardRestrictUnique().(*forwardRestrictUniqueReverse)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *reverseReverse) ForwardRestrictUnique() ForwardRestrictUniqueNodeI {
+	cn := n.reverseTable.ForwardRestrictUnique().(*forwardRestrictUniqueReverse)
+	cn.SetParent(n)
+	return cn
+}
+
+func (n reverseTable) GobEncode() (data []byte, err error) {
 	return
 }
 
 func (n *reverseTable) GobDecode(data []byte) (err error) {
-	n._self = n
 	return
 }
 
@@ -239,7 +337,6 @@ func (n *reverseReference) GobDecode(data []byte) (err error) {
 	if err = dec.Decode(&n.ReferenceNode); err != nil {
 		panic(err)
 	}
-	n._self = n
 	return
 }
 
@@ -261,7 +358,6 @@ func (n *reverseReverse) GobDecode(data []byte) (err error) {
 	if err = dec.Decode(&n.ReverseNode); err != nil {
 		panic(err)
 	}
-	n._self = n
 	return
 }
 
