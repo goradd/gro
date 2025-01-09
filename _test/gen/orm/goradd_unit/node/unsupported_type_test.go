@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSerializeUnsupportedTypeTable(t *testing.T) {
+func TestSerializeTableUnsupportedTypeTable(t *testing.T) {
 	var n query.NodeI = UnsupportedType()
 
 	assert.Equal(t, "unsupported_type", n.TableName_())
@@ -27,4 +27,7 @@ func TestSerializeUnsupportedTypeTable(t *testing.T) {
 		assert.Implements(t, (*query.NodeLinker)(nil), cn2)
 		assert.Equal(t, query.TableNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
 	}
+}
+
+func TestSerializeReferencesUnsupportedTypeTable(t *testing.T) {
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSerializeGiftTable(t *testing.T) {
+func TestSerializeTableGiftTable(t *testing.T) {
 	var n query.NodeI = Gift()
 
 	assert.Equal(t, "gift", n.TableName_())
@@ -27,4 +27,7 @@ func TestSerializeGiftTable(t *testing.T) {
 		assert.Implements(t, (*query.NodeLinker)(nil), cn2)
 		assert.Equal(t, query.TableNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
 	}
+}
+
+func TestSerializeReferencesGiftTable(t *testing.T) {
 }

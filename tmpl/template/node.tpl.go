@@ -780,6 +780,115 @@ func (n `); err != nil {
 	if _, err = io.WriteString(_w, `	return nodes
 }
 
+`); err != nil {
+		return
+	}
+
+	if hasReverse {
+
+		if _, err = io.WriteString(_w, `func (n *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reference) ColumnNodes_() (nodes []query.NodeI) {
+    nodes = n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Table.ColumnNodes_()
+    for _,cn := range nodes {
+        cn.(query.NodeLinker).SetParent(n)
+    }
+    return
+}
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
+`); err != nil {
+		return
+	}
+
+	if hasReference {
+
+		if _, err = io.WriteString(_w, `func (n *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Reverse) ColumnNodes_() (nodes []query.NodeI) {
+    nodes = n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Table.ColumnNodes_()
+    for _,cn := range nodes {
+        cn.(query.NodeLinker).SetParent(n)
+    }
+    return
+}
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
+`); err != nil {
+		return
+	}
+
+	if hasAssociation {
+
+		if _, err = io.WriteString(_w, `func (n *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Association) ColumnNodes_() (nodes []query.NodeI) {
+    nodes = n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Table.ColumnNodes_()
+    for _,cn := range nodes {
+        cn.(query.NodeLinker).SetParent(n)
+    }
+    return
+}
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
+
 // Columns_ is used internally by the framework to return the list of all the columns in the table.
 func (n `); err != nil {
 		return
@@ -1082,7 +1191,7 @@ func (n *`); err != nil {
 	var buf bytes.Buffer
 	e := gob.NewEncoder(&buf)
 
-	if err = e.Encode(n.ReferenceNode); err != nil {
+	if err = e.Encode(&n.ReferenceNode); err != nil {
 		panic(err)
 	}
 	data = buf.Bytes()
@@ -1131,7 +1240,7 @@ func (n *`); err != nil {
 	var buf bytes.Buffer
 	e := gob.NewEncoder(&buf)
 
-	if err = e.Encode(n.ReverseNode); err != nil {
+	if err = e.Encode(&n.ReverseNode); err != nil {
 		panic(err)
 	}
 	data = buf.Bytes()
@@ -1180,7 +1289,7 @@ func (n *`); err != nil {
 	var buf bytes.Buffer
 	e := gob.NewEncoder(&buf)
 
-	if err = e.Encode(n.ManyManyNode); err != nil {
+	if err = e.Encode(&n.ManyManyNode); err != nil {
 		panic(err)
 	}
 	data = buf.Bytes()

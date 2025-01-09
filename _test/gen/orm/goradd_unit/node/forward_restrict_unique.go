@@ -71,6 +71,14 @@ func (n forwardRestrictUniqueTable) ColumnNodes_() (nodes []query.NodeI) {
 	return nodes
 }
 
+func (n *forwardRestrictUniqueReverse) ColumnNodes_() (nodes []query.NodeI) {
+	nodes = n.forwardRestrictUniqueTable.ColumnNodes_()
+	for _, cn := range nodes {
+		cn.(query.NodeLinker).SetParent(n)
+	}
+	return
+}
+
 // Columns_ is used internally by the framework to return the list of all the columns in the table.
 func (n forwardRestrictUniqueTable) Columns_() []string {
 	return []string{
@@ -180,7 +188,7 @@ func (n *forwardRestrictUniqueReverse) GobEncode() (data []byte, err error) {
 	var buf bytes.Buffer
 	e := gob.NewEncoder(&buf)
 
-	if err = e.Encode(n.ReverseNode); err != nil {
+	if err = e.Encode(&n.ReverseNode); err != nil {
 		panic(err)
 	}
 	data = buf.Bytes()

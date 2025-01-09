@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSerializeForwardRestrictUniqueTable(t *testing.T) {
+func TestSerializeTableForwardRestrictUniqueTable(t *testing.T) {
 	var n query.NodeI = ForwardRestrictUnique()
 
 	assert.Equal(t, "forward_restrict_unique", n.TableName_())
@@ -27,4 +27,24 @@ func TestSerializeForwardRestrictUniqueTable(t *testing.T) {
 		assert.Implements(t, (*query.NodeLinker)(nil), cn2)
 		assert.Equal(t, query.TableNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
 	}
+}
+
+func TestSerializeReferencesForwardRestrictUniqueTable(t *testing.T) {
+
+	{
+		n := ForwardRestrictUnique().Reverse()
+		n2 := serNode(t, n)
+		parentNode := n2.(query.NodeLinker).Parent()
+		assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
+		assert.Equal(t, "forward_restrict_unique", parentNode.TableName_())
+
+		nodes := n.(query.TableNodeI).ColumnNodes_()
+		for _, cn := range nodes {
+			cn2 := serNode(t, cn)
+			assert.Equal(t, n.TableName_(), cn2.TableName_())
+			assert.Implements(t, (*query.NodeLinker)(nil), cn2)
+			assert.Equal(t, query.ReferenceNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
+		}
+	}
+
 }

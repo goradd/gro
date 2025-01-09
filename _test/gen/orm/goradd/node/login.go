@@ -77,6 +77,14 @@ func (n loginTable) ColumnNodes_() (nodes []query.NodeI) {
 	return nodes
 }
 
+func (n *loginReverse) ColumnNodes_() (nodes []query.NodeI) {
+	nodes = n.loginTable.ColumnNodes_()
+	for _, cn := range nodes {
+		cn.(query.NodeLinker).SetParent(n)
+	}
+	return
+}
+
 // Columns_ is used internally by the framework to return the list of all the columns in the table.
 func (n loginTable) Columns_() []string {
 	return []string{
@@ -222,7 +230,7 @@ func (n *loginReverse) GobEncode() (data []byte, err error) {
 	var buf bytes.Buffer
 	e := gob.NewEncoder(&buf)
 
-	if err = e.Encode(n.ReverseNode); err != nil {
+	if err = e.Encode(&n.ReverseNode); err != nil {
 		panic(err)
 	}
 	data = buf.Bytes()

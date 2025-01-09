@@ -30,6 +30,37 @@ func (n {{= table.DecapIdentifier }}Table) ColumnNodes_() (nodes []query.NodeI) 
 	return nodes
 }
 
+{{if hasReverse}}
+func (n *{{= table.DecapIdentifier }}Reference) ColumnNodes_() (nodes []query.NodeI) {
+    nodes = n.{{= table.DecapIdentifier }}Table.ColumnNodes_()
+    for _,cn := range nodes {
+        cn.(query.NodeLinker).SetParent(n)
+    }
+    return
+}
+{{if}}
+
+{{if hasReference}}
+func (n *{{= table.DecapIdentifier }}Reverse) ColumnNodes_() (nodes []query.NodeI) {
+    nodes = n.{{= table.DecapIdentifier }}Table.ColumnNodes_()
+    for _,cn := range nodes {
+        cn.(query.NodeLinker).SetParent(n)
+    }
+    return
+}
+{{if}}
+
+{{if hasAssociation}}
+func (n *{{= table.DecapIdentifier }}Association) ColumnNodes_() (nodes []query.NodeI) {
+    nodes = n.{{= table.DecapIdentifier }}Table.ColumnNodes_()
+    for _,cn := range nodes {
+        cn.(query.NodeLinker).SetParent(n)
+    }
+    return
+}
+{{if}}
+
+
 // Columns_ is used internally by the framework to return the list of all the columns in the table.
 func (n {{= table.DecapIdentifier }}Table) Columns_() []string {
     return []string {

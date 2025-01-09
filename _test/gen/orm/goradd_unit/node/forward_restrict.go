@@ -71,6 +71,14 @@ func (n forwardRestrictTable) ColumnNodes_() (nodes []query.NodeI) {
 	return nodes
 }
 
+func (n *forwardRestrictReverse) ColumnNodes_() (nodes []query.NodeI) {
+	nodes = n.forwardRestrictTable.ColumnNodes_()
+	for _, cn := range nodes {
+		cn.(query.NodeLinker).SetParent(n)
+	}
+	return
+}
+
 // Columns_ is used internally by the framework to return the list of all the columns in the table.
 func (n forwardRestrictTable) Columns_() []string {
 	return []string{
@@ -180,7 +188,7 @@ func (n *forwardRestrictReverse) GobEncode() (data []byte, err error) {
 	var buf bytes.Buffer
 	e := gob.NewEncoder(&buf)
 
-	if err = e.Encode(n.ReverseNode); err != nil {
+	if err = e.Encode(&n.ReverseNode); err != nil {
 		panic(err)
 	}
 	data = buf.Bytes()

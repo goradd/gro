@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSerializeProjectTable(t *testing.T) {
+func TestSerializeTableProjectTable(t *testing.T) {
 	var n query.NodeI = Project()
 
 	assert.Equal(t, "project", n.TableName_())
@@ -27,4 +27,24 @@ func TestSerializeProjectTable(t *testing.T) {
 		assert.Implements(t, (*query.NodeLinker)(nil), cn2)
 		assert.Equal(t, query.TableNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
 	}
+}
+
+func TestSerializeReferencesProjectTable(t *testing.T) {
+
+	{
+		n := Project().Manager()
+		n2 := serNode(t, n)
+		parentNode := n2.(query.NodeLinker).Parent()
+		assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
+		assert.Equal(t, "project", parentNode.TableName_())
+
+		nodes := n.(query.TableNodeI).ColumnNodes_()
+		for _, cn := range nodes {
+			cn2 := serNode(t, cn)
+			assert.Equal(t, n.TableName_(), cn2.TableName_())
+			assert.Implements(t, (*query.NodeLinker)(nil), cn2)
+			assert.Equal(t, query.ReferenceNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
+		}
+	}
+
 }

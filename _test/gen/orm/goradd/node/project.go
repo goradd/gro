@@ -108,6 +108,30 @@ func (n projectTable) ColumnNodes_() (nodes []query.NodeI) {
 	return nodes
 }
 
+func (n *projectReference) ColumnNodes_() (nodes []query.NodeI) {
+	nodes = n.projectTable.ColumnNodes_()
+	for _, cn := range nodes {
+		cn.(query.NodeLinker).SetParent(n)
+	}
+	return
+}
+
+func (n *projectReverse) ColumnNodes_() (nodes []query.NodeI) {
+	nodes = n.projectTable.ColumnNodes_()
+	for _, cn := range nodes {
+		cn.(query.NodeLinker).SetParent(n)
+	}
+	return
+}
+
+func (n *projectAssociation) ColumnNodes_() (nodes []query.NodeI) {
+	nodes = n.projectTable.ColumnNodes_()
+	for _, cn := range nodes {
+		cn.(query.NodeLinker).SetParent(n)
+	}
+	return
+}
+
 // Columns_ is used internally by the framework to return the list of all the columns in the table.
 func (n projectTable) Columns_() []string {
 	return []string{
@@ -627,7 +651,7 @@ func (n *projectReference) GobEncode() (data []byte, err error) {
 	var buf bytes.Buffer
 	e := gob.NewEncoder(&buf)
 
-	if err = e.Encode(n.ReferenceNode); err != nil {
+	if err = e.Encode(&n.ReferenceNode); err != nil {
 		panic(err)
 	}
 	data = buf.Bytes()
@@ -648,7 +672,7 @@ func (n *projectReverse) GobEncode() (data []byte, err error) {
 	var buf bytes.Buffer
 	e := gob.NewEncoder(&buf)
 
-	if err = e.Encode(n.ReverseNode); err != nil {
+	if err = e.Encode(&n.ReverseNode); err != nil {
 		panic(err)
 	}
 	data = buf.Bytes()
@@ -669,7 +693,7 @@ func (n *projectAssociation) GobEncode() (data []byte, err error) {
 	var buf bytes.Buffer
 	e := gob.NewEncoder(&buf)
 
-	if err = e.Encode(n.ManyManyNode); err != nil {
+	if err = e.Encode(&n.ManyManyNode); err != nil {
 		panic(err)
 	}
 	data = buf.Bytes()

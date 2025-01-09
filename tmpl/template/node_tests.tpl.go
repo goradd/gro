@@ -3,6 +3,7 @@
 package template
 
 import (
+	"fmt"
 	"io"
 	"path/filepath"
 
@@ -72,7 +73,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSerialize`); err != nil {
+func TestSerializeTable`); err != nil {
 		return
 	}
 
@@ -157,6 +158,74 @@ func TestSerialize`); err != nil {
         assert.Equal(t, query.TableNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
     }
 }
+
+func TestSerializeReferences`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Table(t *testing.T) {
+`); err != nil {
+		return
+	}
+
+	for _, col := range table.Columns {
+
+		if col.IsReference() {
+
+			if _, err = io.WriteString(_w, `
+{
+    n := `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, fmt.Sprint(col.ReferenceIdentifier())); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()
+    n2 := serNode(t, n)
+    parentNode := n2.(query.NodeLinker).Parent()
+    assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
+    assert.Equal(t, "`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.QueryName); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `", parentNode.TableName_())
+
+    nodes := n.(query.TableNodeI).ColumnNodes_()
+    for _,cn := range nodes {
+        cn2 := serNode(t, cn)
+        assert.Equal(t, n.TableName_(), cn2.TableName_())
+        assert.Implements(t, (*query.NodeLinker)(nil), cn2)
+        assert.Equal(t, query.ReferenceNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
+    }
+}
+
+`); err != nil {
+				return
+			}
+
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `}
 
 `); err != nil {
 		return

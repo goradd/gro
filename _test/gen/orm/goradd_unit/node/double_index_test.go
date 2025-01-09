@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSerializeDoubleIndexTable(t *testing.T) {
+func TestSerializeTableDoubleIndexTable(t *testing.T) {
 	var n query.NodeI = DoubleIndex()
 
 	assert.Equal(t, "double_index", n.TableName_())
@@ -27,4 +27,7 @@ func TestSerializeDoubleIndexTable(t *testing.T) {
 		assert.Implements(t, (*query.NodeLinker)(nil), cn2)
 		assert.Equal(t, query.TableNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
 	}
+}
+
+func TestSerializeReferencesDoubleIndexTable(t *testing.T) {
 }

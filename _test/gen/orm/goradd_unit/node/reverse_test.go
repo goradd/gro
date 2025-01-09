@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSerializeReverseTable(t *testing.T) {
+func TestSerializeTableReverseTable(t *testing.T) {
 	var n query.NodeI = Reverse()
 
 	assert.Equal(t, "reverse", n.TableName_())
@@ -27,4 +27,7 @@ func TestSerializeReverseTable(t *testing.T) {
 		assert.Implements(t, (*query.NodeLinker)(nil), cn2)
 		assert.Equal(t, query.TableNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
 	}
+}
+
+func TestSerializeReferencesReverseTable(t *testing.T) {
 }

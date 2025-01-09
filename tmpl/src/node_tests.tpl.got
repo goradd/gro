@@ -39,12 +39,13 @@ func (n *NodeTestTemplate) FileName(table *model.Table) string {
 }
 
 func (n *NodeTestTemplate) GenerateTable(table *model.Table, _w io.Writer, importPath string) (err error) {
-	{{: "node/test.tmpl" }}
-	return
+{{: "node/test.tmpl" }}
+    return
 }
 
 func (n *NodeTestTemplate) Overwrite() bool {
 	return true
 }
+
 
 

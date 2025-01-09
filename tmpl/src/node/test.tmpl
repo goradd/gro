@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSerialize{{= table.Identifier}}Table(t *testing.T) {
+func TestSerializeTable{{= table.Identifier}}Table(t *testing.T) {
 	var n query.NodeI = {{= table.Identifier }}()
 
     assert.Equal(t, "{{= table.QueryName }}", n.TableName_())
@@ -30,6 +30,30 @@ func TestSerialize{{= table.Identifier}}Table(t *testing.T) {
         assert.Implements(t, (*query.NodeLinker)(nil), cn2)
         assert.Equal(t, query.TableNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
     }
+}
+
+func TestSerializeReferences{{= table.Identifier}}Table(t *testing.T) {
+{{for _, col := range table.Columns}}
+{{if col.IsReference() }}
+
+{
+    n := {{= table.Identifier }}().{{col.ReferenceIdentifier() }}()
+    n2 := serNode(t, n)
+    parentNode := n2.(query.NodeLinker).Parent()
+    assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
+    assert.Equal(t, "{{= table.QueryName }}", parentNode.TableName_())
+
+    nodes := n.(query.TableNodeI).ColumnNodes_()
+    for _,cn := range nodes {
+        cn2 := serNode(t, cn)
+        assert.Equal(t, n.TableName_(), cn2.TableName_())
+        assert.Implements(t, (*query.NodeLinker)(nil), cn2)
+        assert.Equal(t, query.ReferenceNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
+    }
+}
+
+{{if}}
+{{for}}
 }
 
 }}

@@ -17,7 +17,7 @@ func (n *{{= table.DecapIdentifier}}Reference) GobEncode() (data []byte, err err
 	var buf bytes.Buffer
 	e := gob.NewEncoder(&buf)
 
-	if err = e.Encode(n.ReferenceNode); err != nil {
+	if err = e.Encode(&n.ReferenceNode); err != nil {
 		panic(err)
 	}
 	data = buf.Bytes()
@@ -40,7 +40,7 @@ func (n *{{= table.DecapIdentifier}}Reverse) GobEncode() (data []byte, err error
 	var buf bytes.Buffer
 	e := gob.NewEncoder(&buf)
 
-	if err = e.Encode(n.ReverseNode); err != nil {
+	if err = e.Encode(&n.ReverseNode); err != nil {
 		panic(err)
 	}
 	data = buf.Bytes()
@@ -63,7 +63,7 @@ func (n *{{= table.DecapIdentifier}}Association) GobEncode() (data []byte, err e
 	var buf bytes.Buffer
 	e := gob.NewEncoder(&buf)
 
-	if err = e.Encode(n.ManyManyNode); err != nil {
+	if err = e.Encode(&n.ManyManyNode); err != nil {
 		panic(err)
 	}
 	data = buf.Bytes()

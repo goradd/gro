@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSerializePersonWithLockTable(t *testing.T) {
+func TestSerializeTablePersonWithLockTable(t *testing.T) {
 	var n query.NodeI = PersonWithLock()
 
 	assert.Equal(t, "person_with_lock", n.TableName_())
@@ -27,4 +27,7 @@ func TestSerializePersonWithLockTable(t *testing.T) {
 		assert.Implements(t, (*query.NodeLinker)(nil), cn2)
 		assert.Equal(t, query.TableNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
 	}
+}
+
+func TestSerializeReferencesPersonWithLockTable(t *testing.T) {
 }

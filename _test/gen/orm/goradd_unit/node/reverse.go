@@ -83,6 +83,22 @@ func (n reverseTable) ColumnNodes_() (nodes []query.NodeI) {
 	return nodes
 }
 
+func (n *reverseReference) ColumnNodes_() (nodes []query.NodeI) {
+	nodes = n.reverseTable.ColumnNodes_()
+	for _, cn := range nodes {
+		cn.(query.NodeLinker).SetParent(n)
+	}
+	return
+}
+
+func (n *reverseReverse) ColumnNodes_() (nodes []query.NodeI) {
+	nodes = n.reverseTable.ColumnNodes_()
+	for _, cn := range nodes {
+		cn.(query.NodeLinker).SetParent(n)
+	}
+	return
+}
+
 // Columns_ is used internally by the framework to return the list of all the columns in the table.
 func (n reverseTable) Columns_() []string {
 	return []string{
@@ -331,7 +347,7 @@ func (n *reverseReference) GobEncode() (data []byte, err error) {
 	var buf bytes.Buffer
 	e := gob.NewEncoder(&buf)
 
-	if err = e.Encode(n.ReferenceNode); err != nil {
+	if err = e.Encode(&n.ReferenceNode); err != nil {
 		panic(err)
 	}
 	data = buf.Bytes()
@@ -352,7 +368,7 @@ func (n *reverseReverse) GobEncode() (data []byte, err error) {
 	var buf bytes.Buffer
 	e := gob.NewEncoder(&buf)
 
-	if err = e.Encode(n.ReverseNode); err != nil {
+	if err = e.Encode(&n.ReverseNode); err != nil {
 		panic(err)
 	}
 	data = buf.Bytes()

@@ -74,6 +74,14 @@ func (n addressTable) ColumnNodes_() (nodes []query.NodeI) {
 	return nodes
 }
 
+func (n *addressReverse) ColumnNodes_() (nodes []query.NodeI) {
+	nodes = n.addressTable.ColumnNodes_()
+	for _, cn := range nodes {
+		cn.(query.NodeLinker).SetParent(n)
+	}
+	return
+}
+
 // Columns_ is used internally by the framework to return the list of all the columns in the table.
 func (n addressTable) Columns_() []string {
 	return []string{
@@ -201,7 +209,7 @@ func (n *addressReverse) GobEncode() (data []byte, err error) {
 	var buf bytes.Buffer
 	e := gob.NewEncoder(&buf)
 
-	if err = e.Encode(n.ReverseNode); err != nil {
+	if err = e.Encode(&n.ReverseNode); err != nil {
 		panic(err)
 	}
 	data = buf.Bytes()

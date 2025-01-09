@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSerializeTypeTestTable(t *testing.T) {
+func TestSerializeTableTypeTestTable(t *testing.T) {
 	var n query.NodeI = TypeTest()
 
 	assert.Equal(t, "type_test", n.TableName_())
@@ -27,4 +27,7 @@ func TestSerializeTypeTestTable(t *testing.T) {
 		assert.Implements(t, (*query.NodeLinker)(nil), cn2)
 		assert.Equal(t, query.TableNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
 	}
+}
+
+func TestSerializeReferencesTypeTestTable(t *testing.T) {
 }
