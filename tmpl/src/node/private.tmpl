@@ -3,6 +3,24 @@
 }}
 
 {{
+
+{{# The following 3 functions are in support of the NodeI interface and use of the node in the goradd framework. }}
+
+// TableName_ returns the query name of the table the node is associated with.
+func (n {{= table.DecapIdentifier }}Table) TableName_() string {
+    return {{L table.QueryName }}
+}
+
+// NodeType_ returns the query.NodeType of the node.
+func (n {{= table.DecapIdentifier }}Table) NodeType_() query.NodeType {
+    return query.TableNodeType
+}
+
+// DatabaseKey_ returns the database key of the database the node is associated with.
+func (n {{= table.DecapIdentifier }}Table) DatabaseKey_() string {
+    return {{L table.DbKey }}
+}
+
 // SelectNodes_ is used internally by the framework to return the list of all the column nodes.
 func (n {{= table.DecapIdentifier }}Table) SelectNodes_() (nodes []*query.ColumnNode) {
 {{for _,col := range table.Columns}}
@@ -11,10 +29,27 @@ func (n {{= table.DecapIdentifier }}Table) SelectNodes_() (nodes []*query.Column
 	return nodes
 }
 
-// Copy_ is used internally by the framework to deep copy the node.
-func (n {{= table.DecapIdentifier }}Table) Copy_() query.NodeI {
-    // Table nodes are empty so just offer a copy
-    var t {{= table.DecapIdentifier }}Table
-    return t
+// IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
+func (n {{= table.DecapIdentifier }}Table) IsEnum_() bool {
+    return false
 }
+
+{{if hasReverse}}
+func (n *{{= table.DecapIdentifier }}Reference) NodeType_() query.NodeType {
+    return query.ReferenceNodeType
+}
+{{if}}
+
+{{if hasReference}}
+func (n *{{= table.DecapIdentifier }}Reverse) NodeType_() query.NodeType {
+    return query.ReverseNodeType
+}
+{{if}}
+
+{{if hasAssociation}}
+func (n *{{= table.DecapIdentifier }}Association) NodeType_() query.NodeType {
+    return query.ManyManyNodeType
+}
+{{if}}
+
 }}

@@ -17,16 +17,14 @@ func (n *NodeTemplate)genColumnNode(table *model.Table, col *model.Column, _w io
 {{
 // {{= col.Identifier }} represents the {{= col.QueryName }} column in the database.
 func (n {{= table.DecapIdentifier}}Table) {{= col.Identifier }}() *query.ColumnNode {
-	cn := query.NewColumnNode (
-		"{{= table.DbKey }}",
-		"{{= table.QueryName }}",
-		"{{= col.QueryName }}",
-		"{{= col.Identifier }}",
-		query.{{= col.Type.String() }},
-		{{if col.IsPk}}true{{else}}false{{if}},
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName: {{L col.QueryName }},
+		Identifier: {{L col.Identifier }},
+		ReceiverType: query.{{= col.Type.String() }},
+		IsPrimaryKey: {{b col.IsPrimaryKey }},
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 }}
     return
@@ -37,20 +35,15 @@ func (n *NodeTemplate)genTableRefNode(table *model.Table, col *model.Column, _w 
 {{
 // {{= col.ReferenceIdentifier() }} represents the link to a {{= col.ReferenceType() }} object.
 func (n {{= table.DecapIdentifier}}Table) {{= col.ReferenceIdentifier() }}() {{= col.ReferenceType() }}NodeI {
-	cn := &{{= col.ReferenceType() }}Node {
-		query.NewReferenceNode (
-			"{{= table.DbKey }}",
-			"{{= table.QueryName }}",
-			"{{= col.QueryName }}",
-			"{{= col.Identifier }}",
-			"{{= col.ReferenceIdentifier() }}",
-			"{{= col.Reference.Table.QueryName }}",
-			"{{= col.Reference.Table.PrimaryKeyColumn().QueryName }}",
-			false,
-			query.{{= col.Type.String() }},
-		),
+	cn := &{{= col.Reference.Table.DecapIdentifier }}Reference{
+		ReferenceNode: query.ReferenceNode {
+            ColumnQueryName: {{L col.QueryName }},
+            Identifier:      {{L col.Identifier }},
+            ReceiverType:    query.{{= col.Type.String() }},
+		},
 	}
-	query.SetParentNode(cn, n)
+	cn._self = cn
+	cn.SetParent(n._self)
 	return cn
 }
 }}
@@ -61,7 +54,7 @@ func (n {{= table.DecapIdentifier}}Table) {{= col.ReferenceIdentifier() }}() {{=
 func (n *NodeTemplate)genEnumTableRefNode(table *model.Table, col *model.Column, _w io.Writer) (err error) {
 {{
 // {{= col.ReferenceIdentifier() }} represents the link to a {{= col.Reference.EnumTable.Identifier }} object.
-func (n {{= table.DecapIdentifier}}Table) {{= col.ReferenceIdentifier() }}() *{{= col.Reference.EnumTable.Identifier }}Node {
+func (n {{= table.DecapIdentifier}}Table) {{= col.ReferenceIdentifier() }}() {{= col.Reference.EnumTable.Identifier }}NodeI {
     cn := &{{= col.Reference.EnumTable.Identifier }}Node {
         query.NewReferenceNode (
             "{{= table.DbKey }}",

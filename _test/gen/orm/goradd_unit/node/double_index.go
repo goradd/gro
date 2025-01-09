@@ -3,6 +3,7 @@
 package node
 
 import (
+	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
@@ -24,7 +25,7 @@ type DoubleIndexNodeI interface {
 type DoubleIndexExpander interface {
 	DoubleIndexNodeI
 	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand() DoubleIndexNodeI
+	Expand()
 }
 
 // doubleIndexTable represents the double_index table in a query. It uses a builder pattern to chain
@@ -32,18 +33,34 @@ type DoubleIndexExpander interface {
 //
 // To use the doubleIndexTable, call [DoubleIndex()] to start a reference chain when querying the double_index table.
 type doubleIndexTable struct {
+	_self query.NodeI
 }
 
 type doubleIndexReverse struct {
 	doubleIndexTable
-	reverseColumn *query.ColumnNode
+	query.ReverseNode
 }
 
 // DoubleIndex returns a table node that starts a node chain that begins with the double_index table.
 func DoubleIndex() DoubleIndexNodeI {
-	// Table nodes are empty structs, and do not have pointer receivers,
 	var n doubleIndexTable
+	n._self = n
 	return n
+}
+
+// TableName_ returns the query name of the table the node is associated with.
+func (n doubleIndexTable) TableName_() string {
+	return "double_index"
+}
+
+// NodeType_ returns the query.NodeType of the node.
+func (n doubleIndexTable) NodeType_() query.NodeType {
+	return query.TableNodeType
+}
+
+// DatabaseKey_ returns the database key of the database the node is associated with.
+func (n doubleIndexTable) DatabaseKey_() string {
+	return "goradd_unit"
 }
 
 // SelectNodes_ is used internally by the framework to return the list of all the column nodes.
@@ -54,11 +71,13 @@ func (n doubleIndexTable) SelectNodes_() (nodes []*query.ColumnNode) {
 	return nodes
 }
 
-// Copy_ is used internally by the framework to deep copy the node.
-func (n doubleIndexTable) Copy_() query.NodeI {
-	// Table nodes are empty so just offer a copy
-	var t doubleIndexTable
-	return t
+// IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
+func (n doubleIndexTable) IsEnum_() bool {
+	return false
+}
+
+func (n *doubleIndexReverse) NodeType_() query.NodeType {
+	return query.ReverseNodeType
 }
 
 // PrimaryKeyNode returns a node that points to the primary key column, if
@@ -69,44 +88,69 @@ func (n doubleIndexTable) PrimaryKeyNode() *query.ColumnNode {
 
 // ID represents the id column in the database.
 func (n doubleIndexTable) ID() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"double_index",
-		"id",
-		"ID",
-		query.ColTypeInteger,
-		true,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "id",
+		Identifier:   "ID",
+		ReceiverType: query.ColTypeInteger,
+		IsPrimaryKey: true,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // FieldInt represents the field_int column in the database.
 func (n doubleIndexTable) FieldInt() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"double_index",
-		"field_int",
-		"FieldInt",
-		query.ColTypeInteger,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "field_int",
+		Identifier:   "FieldInt",
+		ReceiverType: query.ColTypeInteger,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // FieldString represents the field_string column in the database.
 func (n doubleIndexTable) FieldString() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"double_index",
-		"field_string",
-		"FieldString",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "field_string",
+		Identifier:   "FieldString",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
+}
+
+func (n *doubleIndexTable) GobEncode() (data []byte, err error) {
+	return
+}
+
+func (n *doubleIndexTable) GobDecode(data []byte) (err error) {
+	n._self = n
+	return
+}
+
+func (n *doubleIndexReverse) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(n.ReverseNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *doubleIndexReverse) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ReverseNode); err != nil {
+		panic(err)
+	}
+	n._self = n
+	return
 }
 
 func init() {

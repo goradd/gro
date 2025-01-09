@@ -3,6 +3,7 @@
 package node
 
 import (
+	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
@@ -26,7 +27,7 @@ type PersonWithLockNodeI interface {
 type PersonWithLockExpander interface {
 	PersonWithLockNodeI
 	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand() PersonWithLockNodeI
+	Expand()
 }
 
 // personWithLockTable represents the person_with_lock table in a query. It uses a builder pattern to chain
@@ -34,18 +35,34 @@ type PersonWithLockExpander interface {
 //
 // To use the personWithLockTable, call [PersonWithLock()] to start a reference chain when querying the person_with_lock table.
 type personWithLockTable struct {
+	_self query.NodeI
 }
 
 type personWithLockReverse struct {
 	personWithLockTable
-	reverseColumn *query.ColumnNode
+	query.ReverseNode
 }
 
 // PersonWithLock returns a table node that starts a node chain that begins with the person_with_lock table.
 func PersonWithLock() PersonWithLockNodeI {
-	// Table nodes are empty structs, and do not have pointer receivers,
 	var n personWithLockTable
+	n._self = n
 	return n
+}
+
+// TableName_ returns the query name of the table the node is associated with.
+func (n personWithLockTable) TableName_() string {
+	return "person_with_lock"
+}
+
+// NodeType_ returns the query.NodeType of the node.
+func (n personWithLockTable) NodeType_() query.NodeType {
+	return query.TableNodeType
+}
+
+// DatabaseKey_ returns the database key of the database the node is associated with.
+func (n personWithLockTable) DatabaseKey_() string {
+	return "goradd"
 }
 
 // SelectNodes_ is used internally by the framework to return the list of all the column nodes.
@@ -57,11 +74,13 @@ func (n personWithLockTable) SelectNodes_() (nodes []*query.ColumnNode) {
 	return nodes
 }
 
-// Copy_ is used internally by the framework to deep copy the node.
-func (n personWithLockTable) Copy_() query.NodeI {
-	// Table nodes are empty so just offer a copy
-	var t personWithLockTable
-	return t
+// IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
+func (n personWithLockTable) IsEnum_() bool {
+	return false
+}
+
+func (n *personWithLockReverse) NodeType_() query.NodeType {
+	return query.ReverseNodeType
 }
 
 // PrimaryKeyNode returns a node that points to the primary key column, if
@@ -72,58 +91,81 @@ func (n personWithLockTable) PrimaryKeyNode() *query.ColumnNode {
 
 // ID represents the id column in the database.
 func (n personWithLockTable) ID() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"person_with_lock",
-		"id",
-		"ID",
-		query.ColTypeString,
-		true,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "id",
+		Identifier:   "ID",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: true,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // FirstName represents the first_name column in the database.
 func (n personWithLockTable) FirstName() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"person_with_lock",
-		"first_name",
-		"FirstName",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "first_name",
+		Identifier:   "FirstName",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // LastName represents the last_name column in the database.
 func (n personWithLockTable) LastName() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"person_with_lock",
-		"last_name",
-		"LastName",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "last_name",
+		Identifier:   "LastName",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // SysTimestamp represents the sys_timestamp column in the database.
 func (n personWithLockTable) SysTimestamp() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"person_with_lock",
-		"sys_timestamp",
-		"SysTimestamp",
-		query.ColTypeTime,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "sys_timestamp",
+		Identifier:   "SysTimestamp",
+		ReceiverType: query.ColTypeTime,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
+}
+
+func (n *personWithLockTable) GobEncode() (data []byte, err error) {
+	return
+}
+
+func (n *personWithLockTable) GobDecode(data []byte) (err error) {
+	n._self = n
+	return
+}
+
+func (n *personWithLockReverse) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(n.ReverseNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *personWithLockReverse) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ReverseNode); err != nil {
+		panic(err)
+	}
+	n._self = n
+	return
 }
 
 func init() {

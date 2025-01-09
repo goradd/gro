@@ -9,7 +9,6 @@ func (tmpl *EnumNodeTemplate)gen(table *model.Enum, _w io.Writer) (err error) {
     return
 }
 
-
 func (tmpl *EnumNodeTemplate)genHeader(table *model.Enum, _w io.Writer) (err error) {
 
 {{
@@ -22,7 +21,7 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
-// {{= table.Identifier}}I is the builder interface to the {{= table.Identifier}} nodes.
+// {{= table.Identifier}}NodeI is the builder interface to the {{= table.Identifier}} nodes.
 type {{= table.Identifier}}NodeI interface {
     query.NodeI
     PrimaryKeyNode() *query.ColumnNode
@@ -31,17 +30,23 @@ type {{= table.Identifier}}NodeI interface {
 {{for}}
 }
 
-type {{= table.Identifier }}Node struct {
-	query.ReferenceNodeI
+type {{= table.DecapIdentifier }}Enum struct {
+    _self query.NodeI
+}
+
+{{# No easy way to determine if this is needed, so just make it in case. }}
+type {{= table.DecapIdentifier}}Association struct {
+    {{= table.DecapIdentifier}}Enum
+    query.ManyManyNode
 }
 
 // PrimaryKeyNode returns a node representing the primary key column.
-func (n *{{= table.Identifier }}Node) PrimaryKeyNode() (*query.ColumnNode) {
+func (n {{= table.DecapIdentifier }}Enum) PrimaryKeyNode() (*query.ColumnNode) {
 	return n.{{= table.FieldIdentifier(0) }}()
 }
 
 func init() {
-   gob.Register(new({{= table.Identifier }}Node))
+   gob.Register(new({{= table.DecapIdentifier }}Enum))
 }
 
 }}
@@ -53,8 +58,7 @@ func init() {
 func (tmpl *EnumNodeTemplate)genPrivate(table *model.Enum, _w io.Writer) (err error) {
 {{
 // SelectNodes_ is used internally by the framework to return the list of column nodes.
-// doc: hide
-func (n *{{= table.Identifier }}Node) SelectNodes_() ([]*query.ColumnNode) {
+func (n {{= table.DecapIdentifier }}Enum) SelectNodes_() ([]*query.ColumnNode) {
     return []*query.ColumnNode {
 {{for i := 0; i < len(table.Fields); i++}}
 	    n.{{= table.FieldIdentifier(i) }}(),
@@ -62,22 +66,27 @@ func (n *{{= table.Identifier }}Node) SelectNodes_() ([]*query.ColumnNode) {
 	}
 }
 
-// EmbeddedNode_ is used internally by the framework to return the embedded ReferenceNodeI.
-// doc: hide
-func (n *{{= table.Identifier }}Node) EmbeddedNode_() query.NodeI {
-	return n.ReferenceNodeI
+func (n *{{= table.DecapIdentifier}}Enum) NodeType_() query.NodeType {
+	return query.EnumNodeType
 }
 
-// Copy_ is used internally by the framework to deep copy the node.
-// doc: hide
-func (n *{{= table.Identifier }}Node) Copy_() query.NodeI {
-	return &{{= table.Identifier }}Node{query.CopyNode(n.ReferenceNodeI)}
+func (n *{{= table.DecapIdentifier}}Association) NodeType_() query.NodeType {
+	return query.ManyEnumNodeType
+}
+
+// TableName_ returns the query name of the table the node is associated with.
+func (n {{= table.DecapIdentifier }}Enum) TableName_() string {
+    return {{L table.QueryName }}
+}
+
+// DatabaseKey_ returns the database key of the database the node is associated with.
+func (n {{= table.DecapIdentifier }}Enum) DatabaseKey_() string {
+    return {{L table.DbKey }}
 }
 
 }}
     return
 }
-
 
 func (tmpl *EnumNodeTemplate)genLeafNodes(table *model.Enum, _w io.Writer) (err error) {
 
@@ -85,18 +94,15 @@ func (tmpl *EnumNodeTemplate)genLeafNodes(table *model.Enum, _w io.Writer) (err 
         fn := table.FieldIdentifier(i)
 {{
 
-func (n *{{= table.Identifier }}Node) {{= fn }}() *query.ColumnNode {
-
-	cn := query.NewColumnNode (
-		"{{= table.DbKey }}",
-		"{{= table.QueryName }}",
-		"{{= table.FieldQueryName(i) }}",
-		"{{= fn }}",
-		query.{{= table.FieldReceiverType(i).String() }},
-		{{if i == 0 }}true{{else}}false{{if}},
-	)
-	query.SetParentNode(cn, n)
-	return cn
+func (n {{= table.DecapIdentifier }}Enum) {{= fn }}() *query.ColumnNode {
+	cn := query.ColumnNode{
+		QueryName: {{L table.FieldQueryName(i) }},
+		Identifier: {{L fn }},
+		ReceiverType: query.{{= table.FieldReceiverType(i).String() }},
+		IsPrimaryKey: {{if i == 0 }}true{{else}}false{{if}},
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 }}
     }

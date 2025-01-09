@@ -137,7 +137,7 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 	for _, schemaCol := range tableSchema.Columns {
 		newCol := newColumn(schemaCol)
 		newCol.Table = t
-		if newCol.IsPk {
+		if newCol.IsPrimaryKey {
 			pkCount++
 			if pkCount > 1 {
 				slog.Error("Table " + t.QueryName + " has a multi-column primary key. Instead combine a multi-column unique index with a single column auto-generated primary key.")

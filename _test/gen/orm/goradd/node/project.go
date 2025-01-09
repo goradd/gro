@@ -3,6 +3,7 @@
 package node
 
 import (
+	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
@@ -48,7 +49,7 @@ type ProjectNodeI interface {
 type ProjectExpander interface {
 	ProjectNodeI
 	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand() ProjectNodeI
+	Expand()
 }
 
 // projectTable represents the project table in a query. It uses a builder pattern to chain
@@ -56,16 +57,17 @@ type ProjectExpander interface {
 //
 // To use the projectTable, call [Project()] to start a reference chain when querying the project table.
 type projectTable struct {
+	_self query.NodeI
 }
 
 type projectReference struct {
 	projectTable
-	referenceColumn *query.ColumnNode
+	query.ReferenceNode
 }
 
 type projectReverse struct {
 	projectTable
-	reverseColumn *query.ColumnNode
+	query.ReverseNode
 }
 
 type projectAssociation struct {
@@ -75,9 +77,24 @@ type projectAssociation struct {
 
 // Project returns a table node that starts a node chain that begins with the project table.
 func Project() ProjectNodeI {
-	// Table nodes are empty structs, and do not have pointer receivers,
 	var n projectTable
+	n._self = n
 	return n
+}
+
+// TableName_ returns the query name of the table the node is associated with.
+func (n projectTable) TableName_() string {
+	return "project"
+}
+
+// NodeType_ returns the query.NodeType of the node.
+func (n projectTable) NodeType_() query.NodeType {
+	return query.TableNodeType
+}
+
+// DatabaseKey_ returns the database key of the database the node is associated with.
+func (n projectTable) DatabaseKey_() string {
+	return "goradd"
 }
 
 // SelectNodes_ is used internally by the framework to return the list of all the column nodes.
@@ -95,11 +112,21 @@ func (n projectTable) SelectNodes_() (nodes []*query.ColumnNode) {
 	return nodes
 }
 
-// Copy_ is used internally by the framework to deep copy the node.
-func (n projectTable) Copy_() query.NodeI {
-	// Table nodes are empty so just offer a copy
-	var t projectTable
-	return t
+// IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
+func (n projectTable) IsEnum_() bool {
+	return false
+}
+
+func (n *projectReference) NodeType_() query.NodeType {
+	return query.ReferenceNodeType
+}
+
+func (n *projectReverse) NodeType_() query.NodeType {
+	return query.ReverseNodeType
+}
+
+func (n *projectAssociation) NodeType_() query.NodeType {
+	return query.ManyManyNodeType
 }
 
 // PrimaryKeyNode returns a node that points to the primary key column, if
@@ -110,233 +137,273 @@ func (n projectTable) PrimaryKeyNode() *query.ColumnNode {
 
 // ID represents the id column in the database.
 func (n projectTable) ID() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"project",
-		"id",
-		"ID",
-		query.ColTypeString,
-		true,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "id",
+		Identifier:   "ID",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: true,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // Num represents the num column in the database.
 func (n projectTable) Num() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"project",
-		"num",
-		"Num",
-		query.ColTypeInteger,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "num",
+		Identifier:   "Num",
+		ReceiverType: query.ColTypeInteger,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // Status represents the status_id column in the database.
 func (n projectTable) Status() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"project",
-		"status_id",
-		"Status",
-		query.ColTypeInteger,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "status_id",
+		Identifier:   "Status",
+		ReceiverType: query.ColTypeInteger,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // ManagerID represents the manager_id column in the database.
 func (n projectTable) ManagerID() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"project",
-		"manager_id",
-		"ManagerID",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "manager_id",
+		Identifier:   "ManagerID",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // Manager represents the link to a Person object.
 func (n projectTable) Manager() PersonNodeI {
-	cn := &PersonNode{
-		query.NewReferenceNode(
-			"goradd",
-			"project",
-			"manager_id",
-			"ManagerID",
-			"Manager",
-			"person",
-			"id",
-			false,
-			query.ColTypeString,
-		),
+	cn := &personReference{
+		ReferenceNode: query.ReferenceNode{
+			ColumnQueryName: "manager_id",
+			Identifier:      "ManagerID",
+			ReceiverType:    query.ColTypeString,
+		},
 	}
-	query.SetParentNode(cn, n)
+	cn._self = cn
+	cn.SetParent(n._self)
 	return cn
 }
 
 // Name represents the name column in the database.
 func (n projectTable) Name() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"project",
-		"name",
-		"Name",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "name",
+		Identifier:   "Name",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // Description represents the description column in the database.
 func (n projectTable) Description() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"project",
-		"description",
-		"Description",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "description",
+		Identifier:   "Description",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // StartDate represents the start_date column in the database.
 func (n projectTable) StartDate() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"project",
-		"start_date",
-		"StartDate",
-		query.ColTypeTime,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "start_date",
+		Identifier:   "StartDate",
+		ReceiverType: query.ColTypeTime,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // EndDate represents the end_date column in the database.
 func (n projectTable) EndDate() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"project",
-		"end_date",
-		"EndDate",
-		query.ColTypeTime,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "end_date",
+		Identifier:   "EndDate",
+		ReceiverType: query.ColTypeTime,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // Budget represents the budget column in the database.
 func (n projectTable) Budget() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"project",
-		"budget",
-		"Budget",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "budget",
+		Identifier:   "Budget",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // Spent represents the spent column in the database.
 func (n projectTable) Spent() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"project",
-		"spent",
-		"Spent",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "spent",
+		Identifier:   "Spent",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // Children represents the many-to-many relationship formed by the related_project_assn table.
-func (n projectTable) Children() ProjectNodeI {
-	cn := &ProjectNode{
-		query.NewManyManyNode(
-			"goradd",
-			"related_project_assn",
-			"parent_id",
-			"Children",
-			"project",
-			"child_id",
-			"id",
-			false,
-		),
+func (n projectTable) Children() ProjectExpander {
+	cn := &projectAssociation{
+		ManyManyNode: query.ManyManyNode{
+			AssnTableQueryName:       "related_project_assn",
+			ParentColumnQueryName:    "parent_id",
+			ParentColumnReceiverType: query.ColTypeString,
+			Identifier:               "Children",
+			RefColumnQueryName:       "child_id",
+			RefColumnReceiverType:    query.ColTypeString,
+		},
 	}
-	query.SetParentNode(cn, n)
+	cn.SetParent(n._self)
 	return cn
 }
 
 // Parents represents the many-to-many relationship formed by the related_project_assn table.
-func (n projectTable) Parents() ProjectNodeI {
-	cn := &ProjectNode{
-		query.NewManyManyNode(
-			"goradd",
-			"related_project_assn",
-			"child_id",
-			"Parents",
-			"project",
-			"parent_id",
-			"id",
-			false,
-		),
+func (n projectTable) Parents() ProjectExpander {
+	cn := &projectAssociation{
+		ManyManyNode: query.ManyManyNode{
+			AssnTableQueryName:       "related_project_assn",
+			ParentColumnQueryName:    "child_id",
+			ParentColumnReceiverType: query.ColTypeString,
+			Identifier:               "Parents",
+			RefColumnQueryName:       "parent_id",
+			RefColumnReceiverType:    query.ColTypeString,
+		},
 	}
-	query.SetParentNode(cn, n)
+	cn.SetParent(n._self)
 	return cn
 }
 
 // TeamMembers represents the many-to-many relationship formed by the team_member_project_assn table.
-func (n projectTable) TeamMembers() PersonNodeI {
-	cn := &PersonNode{
-		query.NewManyManyNode(
-			"goradd",
-			"team_member_project_assn",
-			"project_id",
-			"TeamMembers",
-			"person",
-			"team_member_id",
-			"id",
-			false,
-		),
+func (n projectTable) TeamMembers() PersonExpander {
+	cn := &personAssociation{
+		ManyManyNode: query.ManyManyNode{
+			AssnTableQueryName:       "team_member_project_assn",
+			ParentColumnQueryName:    "project_id",
+			ParentColumnReceiverType: query.ColTypeString,
+			Identifier:               "TeamMembers",
+			RefColumnQueryName:       "team_member_id",
+			RefColumnReceiverType:    query.ColTypeString,
+		},
 	}
-	query.SetParentNode(cn, n)
+	cn.SetParent(n._self)
 	return cn
 }
 
 // Milestones represents the many-to-one relationship formed by the reverse reference from the
 // project_id column in the milestone table.
-func (n projectTable) Milestones() MilestoneNodeI {
-	cn := &MilestoneNode{
-		query.NewReverseReferenceNode(
-			"goradd",
-			"project",
-			"id",
-			"Milestones",
-			"milestone",
-			"project_id",
-			true,
-		),
+func (n projectTable) Milestones() MilestoneExpander {
+	cn := &milestoneReverse{
+		ReverseNode: query.ReverseNode{
+			ColumnQueryName: "project_id",
+			Identifier:      "Milestones",
+			ReceiverType:    query.ColTypeString,
+		},
 	}
-	query.SetParentNode(cn, n)
+	cn.SetParent(n._self)
 	return cn
+}
+
+func (n *projectTable) GobEncode() (data []byte, err error) {
+	return
+}
+
+func (n *projectTable) GobDecode(data []byte) (err error) {
+	n._self = n
+	return
+}
+
+func (n *projectReference) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(n.ReferenceNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *projectReference) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ReferenceNode); err != nil {
+		panic(err)
+	}
+	n._self = n
+	return
+}
+
+func (n *projectReverse) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(n.ReverseNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *projectReverse) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ReverseNode); err != nil {
+		panic(err)
+	}
+	n._self = n
+	return
+}
+
+func (n *projectAssociation) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(n.ManyManyNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *projectAssociation) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ManyManyNode); err != nil {
+		panic(err)
+	}
+	n._self = n
+	return
 }
 
 func init() {

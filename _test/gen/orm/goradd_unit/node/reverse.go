@@ -3,6 +3,7 @@
 package node
 
 import (
+	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
@@ -34,7 +35,7 @@ type ReverseNodeI interface {
 type ReverseExpander interface {
 	ReverseNodeI
 	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand() ReverseNodeI
+	Expand()
 }
 
 // reverseTable represents the reverse table in a query. It uses a builder pattern to chain
@@ -42,23 +43,39 @@ type ReverseExpander interface {
 //
 // To use the reverseTable, call [Reverse()] to start a reference chain when querying the reverse table.
 type reverseTable struct {
+	_self query.NodeI
 }
 
 type reverseReference struct {
 	reverseTable
-	referenceColumn *query.ColumnNode
+	query.ReferenceNode
 }
 
 type reverseReverse struct {
 	reverseTable
-	reverseColumn *query.ColumnNode
+	query.ReverseNode
 }
 
 // Reverse returns a table node that starts a node chain that begins with the reverse table.
 func Reverse() ReverseNodeI {
-	// Table nodes are empty structs, and do not have pointer receivers,
 	var n reverseTable
+	n._self = n
 	return n
+}
+
+// TableName_ returns the query name of the table the node is associated with.
+func (n reverseTable) TableName_() string {
+	return "reverse"
+}
+
+// NodeType_ returns the query.NodeType of the node.
+func (n reverseTable) NodeType_() query.NodeType {
+	return query.TableNodeType
+}
+
+// DatabaseKey_ returns the database key of the database the node is associated with.
+func (n reverseTable) DatabaseKey_() string {
+	return "goradd_unit"
 }
 
 // SelectNodes_ is used internally by the framework to return the list of all the column nodes.
@@ -68,11 +85,17 @@ func (n reverseTable) SelectNodes_() (nodes []*query.ColumnNode) {
 	return nodes
 }
 
-// Copy_ is used internally by the framework to deep copy the node.
-func (n reverseTable) Copy_() query.NodeI {
-	// Table nodes are empty so just offer a copy
-	var t reverseTable
-	return t
+// IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
+func (n reverseTable) IsEnum_() bool {
+	return false
+}
+
+func (n *reverseReference) NodeType_() query.NodeType {
+	return query.ReferenceNodeType
+}
+
+func (n *reverseReverse) NodeType_() query.NodeType {
+	return query.ReverseNodeType
 }
 
 // PrimaryKeyNode returns a node that points to the primary key column, if
@@ -83,144 +106,163 @@ func (n reverseTable) PrimaryKeyNode() *query.ColumnNode {
 
 // ID represents the id column in the database.
 func (n reverseTable) ID() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"reverse",
-		"id",
-		"ID",
-		query.ColTypeString,
-		true,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "id",
+		Identifier:   "ID",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: true,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // Name represents the name column in the database.
 func (n reverseTable) Name() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"reverse",
-		"name",
-		"Name",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "name",
+		Identifier:   "Name",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // ForwardCascades represents the many-to-one relationship formed by the reverse reference from the
 // reverse_id column in the forward_cascade table.
-func (n reverseTable) ForwardCascades() ForwardCascadeNodeI {
-	cn := &ForwardCascadeNode{
-		query.NewReverseReferenceNode(
-			"goradd_unit",
-			"reverse",
-			"id",
-			"ForwardCascades",
-			"forward_cascade",
-			"reverse_id",
-			true,
-		),
+func (n reverseTable) ForwardCascades() ForwardCascadeExpander {
+	cn := &forwardCascadeReverse{
+		ReverseNode: query.ReverseNode{
+			ColumnQueryName: "reverse_id",
+			Identifier:      "ForwardCascades",
+			ReceiverType:    query.ColTypeString,
+		},
 	}
-	query.SetParentNode(cn, n)
+	cn.SetParent(n._self)
 	return cn
 }
 
 // ForwardCascadeUnique represents the one-to-one relationship formed by the reverse reference from the
 // reverse_id column in the forward_cascade_unique table.
 func (n reverseTable) ForwardCascadeUnique() ForwardCascadeUniqueNodeI {
-
-	cn := &ForwardCascadeUniqueNode{
-		query.NewReverseReferenceNode(
-			"goradd_unit",
-			"reverse",
-			"id",
-			"ForwardCascadeUnique",
-			"forward_cascade_unique",
-			"reverse_id",
-			false,
-		),
+	cn := &forwardCascadeUniqueReverse{
+		ReverseNode: query.ReverseNode{
+			ColumnQueryName: "reverse_id",
+			Identifier:      "ForwardCascadeUnique",
+			ReceiverType:    query.ColTypeString,
+		},
 	}
-	query.SetParentNode(cn, n)
+	cn.SetParent(n._self)
 	return cn
-
 }
 
 // ForwardNulls represents the many-to-one relationship formed by the reverse reference from the
 // reverse_id column in the forward_null table.
-func (n reverseTable) ForwardNulls() ForwardNullNodeI {
-	cn := &ForwardNullNode{
-		query.NewReverseReferenceNode(
-			"goradd_unit",
-			"reverse",
-			"id",
-			"ForwardNulls",
-			"forward_null",
-			"reverse_id",
-			true,
-		),
+func (n reverseTable) ForwardNulls() ForwardNullExpander {
+	cn := &forwardNullReverse{
+		ReverseNode: query.ReverseNode{
+			ColumnQueryName: "reverse_id",
+			Identifier:      "ForwardNulls",
+			ReceiverType:    query.ColTypeString,
+		},
 	}
-	query.SetParentNode(cn, n)
+	cn.SetParent(n._self)
 	return cn
 }
 
 // ForwardNullUnique represents the one-to-one relationship formed by the reverse reference from the
 // reverse_id column in the forward_null_unique table.
 func (n reverseTable) ForwardNullUnique() ForwardNullUniqueNodeI {
-
-	cn := &ForwardNullUniqueNode{
-		query.NewReverseReferenceNode(
-			"goradd_unit",
-			"reverse",
-			"id",
-			"ForwardNullUnique",
-			"forward_null_unique",
-			"reverse_id",
-			false,
-		),
+	cn := &forwardNullUniqueReverse{
+		ReverseNode: query.ReverseNode{
+			ColumnQueryName: "reverse_id",
+			Identifier:      "ForwardNullUnique",
+			ReceiverType:    query.ColTypeString,
+		},
 	}
-	query.SetParentNode(cn, n)
+	cn.SetParent(n._self)
 	return cn
-
 }
 
 // ForwardRestricts represents the many-to-one relationship formed by the reverse reference from the
 // reverse_id column in the forward_restrict table.
-func (n reverseTable) ForwardRestricts() ForwardRestrictNodeI {
-	cn := &ForwardRestrictNode{
-		query.NewReverseReferenceNode(
-			"goradd_unit",
-			"reverse",
-			"id",
-			"ForwardRestricts",
-			"forward_restrict",
-			"reverse_id",
-			true,
-		),
+func (n reverseTable) ForwardRestricts() ForwardRestrictExpander {
+	cn := &forwardRestrictReverse{
+		ReverseNode: query.ReverseNode{
+			ColumnQueryName: "reverse_id",
+			Identifier:      "ForwardRestricts",
+			ReceiverType:    query.ColTypeString,
+		},
 	}
-	query.SetParentNode(cn, n)
+	cn.SetParent(n._self)
 	return cn
 }
 
 // ForwardRestrictUnique represents the one-to-one relationship formed by the reverse reference from the
 // reverse_id column in the forward_restrict_unique table.
 func (n reverseTable) ForwardRestrictUnique() ForwardRestrictUniqueNodeI {
-
-	cn := &ForwardRestrictUniqueNode{
-		query.NewReverseReferenceNode(
-			"goradd_unit",
-			"reverse",
-			"id",
-			"ForwardRestrictUnique",
-			"forward_restrict_unique",
-			"reverse_id",
-			false,
-		),
+	cn := &forwardRestrictUniqueReverse{
+		ReverseNode: query.ReverseNode{
+			ColumnQueryName: "reverse_id",
+			Identifier:      "ForwardRestrictUnique",
+			ReceiverType:    query.ColTypeString,
+		},
 	}
-	query.SetParentNode(cn, n)
+	cn.SetParent(n._self)
 	return cn
+}
 
+func (n *reverseTable) GobEncode() (data []byte, err error) {
+	return
+}
+
+func (n *reverseTable) GobDecode(data []byte) (err error) {
+	n._self = n
+	return
+}
+
+func (n *reverseReference) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(n.ReferenceNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *reverseReference) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ReferenceNode); err != nil {
+		panic(err)
+	}
+	n._self = n
+	return
+}
+
+func (n *reverseReverse) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(n.ReverseNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *reverseReverse) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ReverseNode); err != nil {
+		panic(err)
+	}
+	n._self = n
+	return
 }
 
 func init() {

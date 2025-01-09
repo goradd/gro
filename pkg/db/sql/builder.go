@@ -754,7 +754,7 @@ func (b *Builder) expandNode(j *JoinTreeItem, nodeObject db.ValueMap) (outArray 
 					}
 				}
 				// else we likely were not included because of a conditional join
-			case ReverseReferenceNodeType:
+			case ReverseNodeType:
 				if childItem.Expanded { // unique reverse or single expansion many
 					newArray = []db.ValueMap{}
 					nodeObject[tableGoName].(*objectMapType).Range(func(key string, value interface{}) bool {

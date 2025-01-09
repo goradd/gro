@@ -3,6 +3,7 @@
 package node
 
 import (
+	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
@@ -54,7 +55,7 @@ type UnsupportedTypeNodeI interface {
 type UnsupportedTypeExpander interface {
 	UnsupportedTypeNodeI
 	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand() UnsupportedTypeNodeI
+	Expand()
 }
 
 // unsupportedTypeTable represents the unsupported_type table in a query. It uses a builder pattern to chain
@@ -62,18 +63,34 @@ type UnsupportedTypeExpander interface {
 //
 // To use the unsupportedTypeTable, call [UnsupportedType()] to start a reference chain when querying the unsupported_type table.
 type unsupportedTypeTable struct {
+	_self query.NodeI
 }
 
 type unsupportedTypeReverse struct {
 	unsupportedTypeTable
-	reverseColumn *query.ColumnNode
+	query.ReverseNode
 }
 
 // UnsupportedType returns a table node that starts a node chain that begins with the unsupported_type table.
 func UnsupportedType() UnsupportedTypeNodeI {
-	// Table nodes are empty structs, and do not have pointer receivers,
 	var n unsupportedTypeTable
+	n._self = n
 	return n
+}
+
+// TableName_ returns the query name of the table the node is associated with.
+func (n unsupportedTypeTable) TableName_() string {
+	return "unsupported_type"
+}
+
+// NodeType_ returns the query.NodeType of the node.
+func (n unsupportedTypeTable) NodeType_() query.NodeType {
+	return query.TableNodeType
+}
+
+// DatabaseKey_ returns the database key of the database the node is associated with.
+func (n unsupportedTypeTable) DatabaseKey_() string {
+	return "goradd_unit"
 }
 
 // SelectNodes_ is used internally by the framework to return the list of all the column nodes.
@@ -99,11 +116,13 @@ func (n unsupportedTypeTable) SelectNodes_() (nodes []*query.ColumnNode) {
 	return nodes
 }
 
-// Copy_ is used internally by the framework to deep copy the node.
-func (n unsupportedTypeTable) Copy_() query.NodeI {
-	// Table nodes are empty so just offer a copy
-	var t unsupportedTypeTable
-	return t
+// IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
+func (n unsupportedTypeTable) IsEnum_() bool {
+	return false
+}
+
+func (n *unsupportedTypeReverse) NodeType_() query.NodeType {
+	return query.ReverseNodeType
 }
 
 // PrimaryKeyNode returns a node that points to the primary key column, if
@@ -114,254 +133,249 @@ func (n unsupportedTypeTable) PrimaryKeyNode() *query.ColumnNode {
 
 // TypeSerial represents the type_serial column in the database.
 func (n unsupportedTypeTable) TypeSerial() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"unsupported_type",
-		"type_serial",
-		"TypeSerial",
-		query.ColTypeString,
-		true,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "type_serial",
+		Identifier:   "TypeSerial",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: true,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // TypeSet represents the type_set column in the database.
 func (n unsupportedTypeTable) TypeSet() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"unsupported_type",
-		"type_set",
-		"TypeSet",
-		query.ColTypeUnknown,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "type_set",
+		Identifier:   "TypeSet",
+		ReceiverType: query.ColTypeUnknown,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // TypeEnum represents the type_enum column in the database.
 func (n unsupportedTypeTable) TypeEnum() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"unsupported_type",
-		"type_enum",
-		"TypeEnum",
-		query.ColTypeUnknown,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "type_enum",
+		Identifier:   "TypeEnum",
+		ReceiverType: query.ColTypeUnknown,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // TypeDecimal represents the type_decimal column in the database.
 func (n unsupportedTypeTable) TypeDecimal() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"unsupported_type",
-		"type_decimal",
-		"TypeDecimal",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "type_decimal",
+		Identifier:   "TypeDecimal",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // TypeDouble represents the type_double column in the database.
 func (n unsupportedTypeTable) TypeDouble() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"unsupported_type",
-		"type_double",
-		"TypeDouble",
-		query.ColTypeFloat64,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "type_double",
+		Identifier:   "TypeDouble",
+		ReceiverType: query.ColTypeFloat64,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // TypeGeo represents the type_geo column in the database.
 func (n unsupportedTypeTable) TypeGeo() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"unsupported_type",
-		"type_geo",
-		"TypeGeo",
-		query.ColTypeUnknown,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "type_geo",
+		Identifier:   "TypeGeo",
+		ReceiverType: query.ColTypeUnknown,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // TypeTinyBlob represents the type_tiny_blob column in the database.
 func (n unsupportedTypeTable) TypeTinyBlob() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"unsupported_type",
-		"type_tiny_blob",
-		"TypeTinyBlob",
-		query.ColTypeBytes,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "type_tiny_blob",
+		Identifier:   "TypeTinyBlob",
+		ReceiverType: query.ColTypeBytes,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // TypeMediumBlob represents the type_medium_blob column in the database.
 func (n unsupportedTypeTable) TypeMediumBlob() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"unsupported_type",
-		"type_medium_blob",
-		"TypeMediumBlob",
-		query.ColTypeBytes,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "type_medium_blob",
+		Identifier:   "TypeMediumBlob",
+		ReceiverType: query.ColTypeBytes,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // TypeVarbinary represents the type_varbinary column in the database.
 func (n unsupportedTypeTable) TypeVarbinary() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"unsupported_type",
-		"type_varbinary",
-		"TypeVarbinary",
-		query.ColTypeUnknown,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "type_varbinary",
+		Identifier:   "TypeVarbinary",
+		ReceiverType: query.ColTypeUnknown,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // TypeLongtext represents the type_longtext column in the database.
 func (n unsupportedTypeTable) TypeLongtext() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"unsupported_type",
-		"type_longtext",
-		"TypeLongtext",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "type_longtext",
+		Identifier:   "TypeLongtext",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // TypeBinary represents the type_binary column in the database.
 func (n unsupportedTypeTable) TypeBinary() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"unsupported_type",
-		"type_binary",
-		"TypeBinary",
-		query.ColTypeUnknown,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "type_binary",
+		Identifier:   "TypeBinary",
+		ReceiverType: query.ColTypeUnknown,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // TypeSmall represents the type_small column in the database.
 func (n unsupportedTypeTable) TypeSmall() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"unsupported_type",
-		"type_small",
-		"TypeSmall",
-		query.ColTypeInteger,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "type_small",
+		Identifier:   "TypeSmall",
+		ReceiverType: query.ColTypeInteger,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // TypeMedium represents the type_medium column in the database.
 func (n unsupportedTypeTable) TypeMedium() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"unsupported_type",
-		"type_medium",
-		"TypeMedium",
-		query.ColTypeInteger,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "type_medium",
+		Identifier:   "TypeMedium",
+		ReceiverType: query.ColTypeInteger,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // TypeBig represents the type_big column in the database.
 func (n unsupportedTypeTable) TypeBig() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"unsupported_type",
-		"type_big",
-		"TypeBig",
-		query.ColTypeInteger64,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "type_big",
+		Identifier:   "TypeBig",
+		ReceiverType: query.ColTypeInteger64,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // TypePolygon represents the type_polygon column in the database.
 func (n unsupportedTypeTable) TypePolygon() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"unsupported_type",
-		"type_polygon",
-		"TypePolygon",
-		query.ColTypeUnknown,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "type_polygon",
+		Identifier:   "TypePolygon",
+		ReceiverType: query.ColTypeUnknown,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // TypeUnsigned represents the type_unsigned column in the database.
 func (n unsupportedTypeTable) TypeUnsigned() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"unsupported_type",
-		"type_unsigned",
-		"TypeUnsigned",
-		query.ColTypeUnsigned,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "type_unsigned",
+		Identifier:   "TypeUnsigned",
+		ReceiverType: query.ColTypeUnsigned,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // TypeMultfk1 represents the type_multFk1 column in the database.
 func (n unsupportedTypeTable) TypeMultfk1() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"unsupported_type",
-		"type_multFk1",
-		"TypeMultfk1",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "type_multFk1",
+		Identifier:   "TypeMultfk1",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // TypeMultifk2 represents the type_multiFk2 column in the database.
 func (n unsupportedTypeTable) TypeMultifk2() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"unsupported_type",
-		"type_multiFk2",
-		"TypeMultifk2",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "type_multiFk2",
+		Identifier:   "TypeMultifk2",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
+}
+
+func (n *unsupportedTypeTable) GobEncode() (data []byte, err error) {
+	return
+}
+
+func (n *unsupportedTypeTable) GobDecode(data []byte) (err error) {
+	n._self = n
+	return
+}
+
+func (n *unsupportedTypeReverse) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(n.ReverseNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *unsupportedTypeReverse) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ReverseNode); err != nil {
+		panic(err)
+	}
+	n._self = n
+	return
 }
 
 func init() {

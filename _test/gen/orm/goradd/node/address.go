@@ -3,6 +3,7 @@
 package node
 
 import (
+	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
@@ -28,7 +29,7 @@ type AddressNodeI interface {
 type AddressExpander interface {
 	AddressNodeI
 	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand() AddressNodeI
+	Expand()
 }
 
 // addressTable represents the address table in a query. It uses a builder pattern to chain
@@ -36,18 +37,34 @@ type AddressExpander interface {
 //
 // To use the addressTable, call [Address()] to start a reference chain when querying the address table.
 type addressTable struct {
+	_self query.NodeI
 }
 
 type addressReverse struct {
 	addressTable
-	reverseColumn *query.ColumnNode
+	query.ReverseNode
 }
 
 // Address returns a table node that starts a node chain that begins with the address table.
 func Address() AddressNodeI {
-	// Table nodes are empty structs, and do not have pointer receivers,
 	var n addressTable
+	n._self = n
 	return n
+}
+
+// TableName_ returns the query name of the table the node is associated with.
+func (n addressTable) TableName_() string {
+	return "address"
+}
+
+// NodeType_ returns the query.NodeType of the node.
+func (n addressTable) NodeType_() query.NodeType {
+	return query.TableNodeType
+}
+
+// DatabaseKey_ returns the database key of the database the node is associated with.
+func (n addressTable) DatabaseKey_() string {
+	return "goradd"
 }
 
 // SelectNodes_ is used internally by the framework to return the list of all the column nodes.
@@ -59,11 +76,13 @@ func (n addressTable) SelectNodes_() (nodes []*query.ColumnNode) {
 	return nodes
 }
 
-// Copy_ is used internally by the framework to deep copy the node.
-func (n addressTable) Copy_() query.NodeI {
-	// Table nodes are empty so just offer a copy
-	var t addressTable
-	return t
+// IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
+func (n addressTable) IsEnum_() bool {
+	return false
+}
+
+func (n *addressReverse) NodeType_() query.NodeType {
+	return query.ReverseNodeType
 }
 
 // PrimaryKeyNode returns a node that points to the primary key column, if
@@ -74,77 +93,95 @@ func (n addressTable) PrimaryKeyNode() *query.ColumnNode {
 
 // ID represents the id column in the database.
 func (n addressTable) ID() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"address",
-		"id",
-		"ID",
-		query.ColTypeString,
-		true,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "id",
+		Identifier:   "ID",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: true,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // PersonID represents the person_id column in the database.
 func (n addressTable) PersonID() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"address",
-		"person_id",
-		"PersonID",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "person_id",
+		Identifier:   "PersonID",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // Person represents the link to a Person object.
 func (n addressTable) Person() PersonNodeI {
-	cn := &PersonNode{
-		query.NewReferenceNode(
-			"goradd",
-			"address",
-			"person_id",
-			"PersonID",
-			"Person",
-			"person",
-			"id",
-			false,
-			query.ColTypeString,
-		),
+	cn := &personReference{
+		ReferenceNode: query.ReferenceNode{
+			ColumnQueryName: "person_id",
+			Identifier:      "PersonID",
+			ReceiverType:    query.ColTypeString,
+		},
 	}
-	query.SetParentNode(cn, n)
+	cn._self = cn
+	cn.SetParent(n._self)
 	return cn
 }
 
 // Street represents the street column in the database.
 func (n addressTable) Street() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"address",
-		"street",
-		"Street",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "street",
+		Identifier:   "Street",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // City represents the city column in the database.
 func (n addressTable) City() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"address",
-		"city",
-		"City",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "city",
+		Identifier:   "City",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
+}
+
+func (n *addressTable) GobEncode() (data []byte, err error) {
+	return
+}
+
+func (n *addressTable) GobDecode(data []byte) (err error) {
+	n._self = n
+	return
+}
+
+func (n *addressReverse) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(n.ReverseNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *addressReverse) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ReverseNode); err != nil {
+		panic(err)
+	}
+	n._self = n
+	return
 }
 
 func init() {

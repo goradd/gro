@@ -3,6 +3,7 @@
 package node
 
 import (
+	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
@@ -19,7 +20,7 @@ type PersonNodeI interface {
 	// LastName represents the last_name column in the database.
 	LastName() *query.ColumnNode
 	// PersonTypes represents the PersonTypes reference to PersonType objects.
-	PersonTypes() PersonTypeExpander
+	PersonTypes() PersonTypeNodeI
 	// Projects represents the Projects reference to Project objects.
 	Projects() ProjectExpander
 	// Addresses represents the Address reference to Address objects.
@@ -36,7 +37,7 @@ type PersonNodeI interface {
 type PersonExpander interface {
 	PersonNodeI
 	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand() PersonNodeI
+	Expand()
 }
 
 // personTable represents the person table in a query. It uses a builder pattern to chain
@@ -44,16 +45,17 @@ type PersonExpander interface {
 //
 // To use the personTable, call [Person()] to start a reference chain when querying the person table.
 type personTable struct {
+	_self query.NodeI
 }
 
 type personReference struct {
 	personTable
-	referenceColumn *query.ColumnNode
+	query.ReferenceNode
 }
 
 type personReverse struct {
 	personTable
-	reverseColumn *query.ColumnNode
+	query.ReverseNode
 }
 
 type personAssociation struct {
@@ -63,9 +65,24 @@ type personAssociation struct {
 
 // Person returns a table node that starts a node chain that begins with the person table.
 func Person() PersonNodeI {
-	// Table nodes are empty structs, and do not have pointer receivers,
 	var n personTable
+	n._self = n
 	return n
+}
+
+// TableName_ returns the query name of the table the node is associated with.
+func (n personTable) TableName_() string {
+	return "person"
+}
+
+// NodeType_ returns the query.NodeType of the node.
+func (n personTable) NodeType_() query.NodeType {
+	return query.TableNodeType
+}
+
+// DatabaseKey_ returns the database key of the database the node is associated with.
+func (n personTable) DatabaseKey_() string {
+	return "goradd"
 }
 
 // SelectNodes_ is used internally by the framework to return the list of all the column nodes.
@@ -76,11 +93,21 @@ func (n personTable) SelectNodes_() (nodes []*query.ColumnNode) {
 	return nodes
 }
 
-// Copy_ is used internally by the framework to deep copy the node.
-func (n personTable) Copy_() query.NodeI {
-	// Table nodes are empty so just offer a copy
-	var t personTable
-	return t
+// IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
+func (n personTable) IsEnum_() bool {
+	return false
+}
+
+func (n *personReference) NodeType_() query.NodeType {
+	return query.ReferenceNodeType
+}
+
+func (n *personReverse) NodeType_() query.NodeType {
+	return query.ReverseNodeType
+}
+
+func (n *personAssociation) NodeType_() query.NodeType {
+	return query.ManyManyNodeType
 }
 
 // PrimaryKeyNode returns a node that points to the primary key column, if
@@ -91,156 +118,201 @@ func (n personTable) PrimaryKeyNode() *query.ColumnNode {
 
 // ID represents the id column in the database.
 func (n personTable) ID() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"person",
-		"id",
-		"ID",
-		query.ColTypeString,
-		true,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "id",
+		Identifier:   "ID",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: true,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // FirstName represents the first_name column in the database.
 func (n personTable) FirstName() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"person",
-		"first_name",
-		"FirstName",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "first_name",
+		Identifier:   "FirstName",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // LastName represents the last_name column in the database.
 func (n personTable) LastName() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"person",
-		"last_name",
-		"LastName",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "last_name",
+		Identifier:   "LastName",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // PersonTypes represents the many-to-many relationship formed by the person_persontype_assn table.
 func (n personTable) PersonTypes() PersonTypeNodeI {
-	cn := &PersonTypeNode{
-		query.NewManyManyNode(
-			"goradd",
-			"person_persontype_assn",
-			"person_id",
-			"PersonTypes",
-			"person_type_enum",
-			"person_type_id",
-			"id",
-			true,
-		),
+	cn := &personTypeAssociation{
+		ManyManyNode: query.ManyManyNode{
+			AssnTableQueryName:       "person_persontype_assn",
+			ParentColumnQueryName:    "person_id",
+			ParentColumnReceiverType: query.ColTypeString,
+			Identifier:               "PersonTypes",
+			RefColumnQueryName:       "person_type_id",
+			RefColumnReceiverType:    query.ColTypeInteger,
+		},
 	}
-	query.SetParentNode(cn, n)
+	cn.SetParent(n._self)
 	return cn
 }
 
 // Projects represents the many-to-many relationship formed by the team_member_project_assn table.
-func (n personTable) Projects() ProjectNodeI {
-	cn := &ProjectNode{
-		query.NewManyManyNode(
-			"goradd",
-			"team_member_project_assn",
-			"team_member_id",
-			"Projects",
-			"project",
-			"project_id",
-			"id",
-			false,
-		),
+func (n personTable) Projects() ProjectExpander {
+	cn := &projectAssociation{
+		ManyManyNode: query.ManyManyNode{
+			AssnTableQueryName:       "team_member_project_assn",
+			ParentColumnQueryName:    "team_member_id",
+			ParentColumnReceiverType: query.ColTypeString,
+			Identifier:               "Projects",
+			RefColumnQueryName:       "project_id",
+			RefColumnReceiverType:    query.ColTypeString,
+		},
 	}
-	query.SetParentNode(cn, n)
+	cn.SetParent(n._self)
 	return cn
 }
 
 // Addresses represents the many-to-one relationship formed by the reverse reference from the
 // person_id column in the address table.
-func (n personTable) Addresses() AddressNodeI {
-	cn := &AddressNode{
-		query.NewReverseReferenceNode(
-			"goradd",
-			"person",
-			"id",
-			"Addresses",
-			"address",
-			"person_id",
-			true,
-		),
+func (n personTable) Addresses() AddressExpander {
+	cn := &addressReverse{
+		ReverseNode: query.ReverseNode{
+			ColumnQueryName: "person_id",
+			Identifier:      "Addresses",
+			ReceiverType:    query.ColTypeString,
+		},
 	}
-	query.SetParentNode(cn, n)
+	cn.SetParent(n._self)
 	return cn
 }
 
 // EmployeeInfo represents the one-to-one relationship formed by the reverse reference from the
 // person_id column in the employee_info table.
 func (n personTable) EmployeeInfo() EmployeeInfoNodeI {
-
-	cn := &EmployeeInfoNode{
-		query.NewReverseReferenceNode(
-			"goradd",
-			"person",
-			"id",
-			"EmployeeInfo",
-			"employee_info",
-			"person_id",
-			false,
-		),
+	cn := &employeeInfoReverse{
+		ReverseNode: query.ReverseNode{
+			ColumnQueryName: "person_id",
+			Identifier:      "EmployeeInfo",
+			ReceiverType:    query.ColTypeString,
+		},
 	}
-	query.SetParentNode(cn, n)
+	cn.SetParent(n._self)
 	return cn
-
 }
 
 // Login represents the one-to-one relationship formed by the reverse reference from the
 // person_id column in the login table.
 func (n personTable) Login() LoginNodeI {
-
-	cn := &LoginNode{
-		query.NewReverseReferenceNode(
-			"goradd",
-			"person",
-			"id",
-			"Login",
-			"login",
-			"person_id",
-			false,
-		),
+	cn := &loginReverse{
+		ReverseNode: query.ReverseNode{
+			ColumnQueryName: "person_id",
+			Identifier:      "Login",
+			ReceiverType:    query.ColTypeString,
+		},
 	}
-	query.SetParentNode(cn, n)
+	cn.SetParent(n._self)
 	return cn
-
 }
 
 // ManagerProjects represents the many-to-one relationship formed by the reverse reference from the
 // manager_id column in the project table.
-func (n personTable) ManagerProjects() ProjectNodeI {
-	cn := &ProjectNode{
-		query.NewReverseReferenceNode(
-			"goradd",
-			"person",
-			"id",
-			"ManagerProjects",
-			"project",
-			"manager_id",
-			true,
-		),
+func (n personTable) ManagerProjects() ProjectExpander {
+	cn := &projectReverse{
+		ReverseNode: query.ReverseNode{
+			ColumnQueryName: "manager_id",
+			Identifier:      "ManagerProjects",
+			ReceiverType:    query.ColTypeString,
+		},
 	}
-	query.SetParentNode(cn, n)
+	cn.SetParent(n._self)
 	return cn
+}
+
+func (n *personTable) GobEncode() (data []byte, err error) {
+	return
+}
+
+func (n *personTable) GobDecode(data []byte) (err error) {
+	n._self = n
+	return
+}
+
+func (n *personReference) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(n.ReferenceNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *personReference) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ReferenceNode); err != nil {
+		panic(err)
+	}
+	n._self = n
+	return
+}
+
+func (n *personReverse) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(n.ReverseNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *personReverse) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ReverseNode); err != nil {
+		panic(err)
+	}
+	n._self = n
+	return
+}
+
+func (n *personAssociation) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(n.ManyManyNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *personAssociation) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ManyManyNode); err != nil {
+		panic(err)
+	}
+	n._self = n
+	return
 }
 
 func init() {

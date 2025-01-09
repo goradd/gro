@@ -8,7 +8,7 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
-// ProjectStatusI is the builder interface to the ProjectStatus nodes.
+// ProjectStatusNodeI is the builder interface to the ProjectStatus nodes.
 type ProjectStatusNodeI interface {
 	query.NodeI
 	PrimaryKeyNode() *query.ColumnNode
@@ -19,22 +19,26 @@ type ProjectStatusNodeI interface {
 	IsActive() *query.ColumnNode
 }
 
-type ProjectStatusNode struct {
-	query.ReferenceNodeI
+type projectStatusEnum struct {
+	_self query.NodeI
+}
+
+type projectStatusAssociation struct {
+	projectStatusEnum
+	query.ManyManyNode
 }
 
 // PrimaryKeyNode returns a node representing the primary key column.
-func (n *ProjectStatusNode) PrimaryKeyNode() *query.ColumnNode {
+func (n projectStatusEnum) PrimaryKeyNode() *query.ColumnNode {
 	return n.ID()
 }
 
 func init() {
-	gob.Register(new(ProjectStatusNode))
+	gob.Register(new(projectStatusEnum))
 }
 
 // SelectNodes_ is used internally by the framework to return the list of column nodes.
-// doc: hide
-func (n *ProjectStatusNode) SelectNodes_() []*query.ColumnNode {
+func (n projectStatusEnum) SelectNodes_() []*query.ColumnNode {
 	return []*query.ColumnNode{
 		n.ID(),
 		n.Name(),
@@ -44,84 +48,75 @@ func (n *ProjectStatusNode) SelectNodes_() []*query.ColumnNode {
 	}
 }
 
-// EmbeddedNode_ is used internally by the framework to return the embedded ReferenceNodeI.
-// doc: hide
-func (n *ProjectStatusNode) EmbeddedNode_() query.NodeI {
-	return n.ReferenceNodeI
+func (n *projectStatusEnum) NodeType_() query.NodeType {
+	return query.EnumNodeType
 }
 
-// Copy_ is used internally by the framework to deep copy the node.
-// doc: hide
-func (n *ProjectStatusNode) Copy_() query.NodeI {
-	return &ProjectStatusNode{query.CopyNode(n.ReferenceNodeI)}
+func (n *projectStatusAssociation) NodeType_() query.NodeType {
+	return query.ManyEnumNodeType
 }
 
-func (n *ProjectStatusNode) ID() *query.ColumnNode {
-
-	cn := query.NewColumnNode(
-		"goradd",
-		"project_status_enum",
-		"id",
-		"ID",
-		query.ColTypeInteger,
-		true,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+// TableName_ returns the query name of the table the node is associated with.
+func (n projectStatusEnum) TableName_() string {
+	return "project_status_enum"
 }
 
-func (n *ProjectStatusNode) Name() *query.ColumnNode {
-
-	cn := query.NewColumnNode(
-		"goradd",
-		"project_status_enum",
-		"name",
-		"Name",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+// DatabaseKey_ returns the database key of the database the node is associated with.
+func (n projectStatusEnum) DatabaseKey_() string {
+	return "goradd"
 }
 
-func (n *ProjectStatusNode) Description() *query.ColumnNode {
-
-	cn := query.NewColumnNode(
-		"goradd",
-		"project_status_enum",
-		"description",
-		"Description",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+func (n projectStatusEnum) ID() *query.ColumnNode {
+	cn := query.ColumnNode{
+		QueryName:    "id",
+		Identifier:   "ID",
+		ReceiverType: query.ColTypeInteger,
+		IsPrimaryKey: true,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
-func (n *ProjectStatusNode) Guidelines() *query.ColumnNode {
-
-	cn := query.NewColumnNode(
-		"goradd",
-		"project_status_enum",
-		"guidelines",
-		"Guidelines",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+func (n projectStatusEnum) Name() *query.ColumnNode {
+	cn := query.ColumnNode{
+		QueryName:    "name",
+		Identifier:   "Name",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
-func (n *ProjectStatusNode) IsActive() *query.ColumnNode {
+func (n projectStatusEnum) Description() *query.ColumnNode {
+	cn := query.ColumnNode{
+		QueryName:    "description",
+		Identifier:   "Description",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
+}
 
-	cn := query.NewColumnNode(
-		"goradd",
-		"project_status_enum",
-		"is_active",
-		"IsActive",
-		query.ColTypeBool,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+func (n projectStatusEnum) Guidelines() *query.ColumnNode {
+	cn := query.ColumnNode{
+		QueryName:    "guidelines",
+		Identifier:   "Guidelines",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
+}
+
+func (n projectStatusEnum) IsActive() *query.ColumnNode {
+	cn := query.ColumnNode{
+		QueryName:    "is_active",
+		Identifier:   "IsActive",
+		ReceiverType: query.ColTypeBool,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }

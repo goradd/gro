@@ -3,6 +3,7 @@
 package node
 
 import (
+	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
@@ -26,7 +27,7 @@ type EmployeeInfoNodeI interface {
 type EmployeeInfoExpander interface {
 	EmployeeInfoNodeI
 	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand() EmployeeInfoNodeI
+	Expand()
 }
 
 // employeeInfoTable represents the employee_info table in a query. It uses a builder pattern to chain
@@ -34,18 +35,34 @@ type EmployeeInfoExpander interface {
 //
 // To use the employeeInfoTable, call [EmployeeInfo()] to start a reference chain when querying the employee_info table.
 type employeeInfoTable struct {
+	_self query.NodeI
 }
 
 type employeeInfoReverse struct {
 	employeeInfoTable
-	reverseColumn *query.ColumnNode
+	query.ReverseNode
 }
 
 // EmployeeInfo returns a table node that starts a node chain that begins with the employee_info table.
 func EmployeeInfo() EmployeeInfoNodeI {
-	// Table nodes are empty structs, and do not have pointer receivers,
 	var n employeeInfoTable
+	n._self = n
 	return n
+}
+
+// TableName_ returns the query name of the table the node is associated with.
+func (n employeeInfoTable) TableName_() string {
+	return "employee_info"
+}
+
+// NodeType_ returns the query.NodeType of the node.
+func (n employeeInfoTable) NodeType_() query.NodeType {
+	return query.TableNodeType
+}
+
+// DatabaseKey_ returns the database key of the database the node is associated with.
+func (n employeeInfoTable) DatabaseKey_() string {
+	return "goradd"
 }
 
 // SelectNodes_ is used internally by the framework to return the list of all the column nodes.
@@ -56,11 +73,13 @@ func (n employeeInfoTable) SelectNodes_() (nodes []*query.ColumnNode) {
 	return nodes
 }
 
-// Copy_ is used internally by the framework to deep copy the node.
-func (n employeeInfoTable) Copy_() query.NodeI {
-	// Table nodes are empty so just offer a copy
-	var t employeeInfoTable
-	return t
+// IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
+func (n employeeInfoTable) IsEnum_() bool {
+	return false
+}
+
+func (n *employeeInfoReverse) NodeType_() query.NodeType {
+	return query.ReverseNodeType
 }
 
 // PrimaryKeyNode returns a node that points to the primary key column, if
@@ -71,63 +90,83 @@ func (n employeeInfoTable) PrimaryKeyNode() *query.ColumnNode {
 
 // ID represents the id column in the database.
 func (n employeeInfoTable) ID() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"employee_info",
-		"id",
-		"ID",
-		query.ColTypeString,
-		true,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "id",
+		Identifier:   "ID",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: true,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // PersonID represents the person_id column in the database.
 func (n employeeInfoTable) PersonID() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"employee_info",
-		"person_id",
-		"PersonID",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "person_id",
+		Identifier:   "PersonID",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // Person represents the link to a Person object.
 func (n employeeInfoTable) Person() PersonNodeI {
-	cn := &PersonNode{
-		query.NewReferenceNode(
-			"goradd",
-			"employee_info",
-			"person_id",
-			"PersonID",
-			"Person",
-			"person",
-			"id",
-			false,
-			query.ColTypeString,
-		),
+	cn := &personReference{
+		ReferenceNode: query.ReferenceNode{
+			ColumnQueryName: "person_id",
+			Identifier:      "PersonID",
+			ReceiverType:    query.ColTypeString,
+		},
 	}
-	query.SetParentNode(cn, n)
+	cn._self = cn
+	cn.SetParent(n._self)
 	return cn
 }
 
 // EmployeeNumber represents the employee_number column in the database.
 func (n employeeInfoTable) EmployeeNumber() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"employee_info",
-		"employee_number",
-		"EmployeeNumber",
-		query.ColTypeInteger,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "employee_number",
+		Identifier:   "EmployeeNumber",
+		ReceiverType: query.ColTypeInteger,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
+}
+
+func (n *employeeInfoTable) GobEncode() (data []byte, err error) {
+	return
+}
+
+func (n *employeeInfoTable) GobDecode(data []byte) (err error) {
+	n._self = n
+	return
+}
+
+func (n *employeeInfoReverse) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(n.ReverseNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *employeeInfoReverse) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ReverseNode); err != nil {
+		panic(err)
+	}
+	n._self = n
+	return
 }
 
 func init() {

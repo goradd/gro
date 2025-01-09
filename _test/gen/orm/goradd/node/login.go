@@ -3,6 +3,7 @@
 package node
 
 import (
+	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
@@ -26,30 +27,39 @@ type LoginNodeI interface {
 	IsEnabled() *query.ColumnNode
 }
 
-// LoginExpander is the builder interface for Logins that are expandable.
-type LoginExpander interface {
-	LoginNodeI
-	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand() LoginNodeI
-}
-
 // loginTable represents the login table in a query. It uses a builder pattern to chain
 // together other tables and columns to form a node chain in a query.
 //
 // To use the loginTable, call [Login()] to start a reference chain when querying the login table.
 type loginTable struct {
+	_self query.NodeI
 }
 
 type loginReverse struct {
 	loginTable
-	reverseColumn *query.ColumnNode
+	query.ReverseNode
 }
 
 // Login returns a table node that starts a node chain that begins with the login table.
 func Login() LoginNodeI {
-	// Table nodes are empty structs, and do not have pointer receivers,
 	var n loginTable
+	n._self = n
 	return n
+}
+
+// TableName_ returns the query name of the table the node is associated with.
+func (n loginTable) TableName_() string {
+	return "login"
+}
+
+// NodeType_ returns the query.NodeType of the node.
+func (n loginTable) NodeType_() query.NodeType {
+	return query.TableNodeType
+}
+
+// DatabaseKey_ returns the database key of the database the node is associated with.
+func (n loginTable) DatabaseKey_() string {
+	return "goradd"
 }
 
 // SelectNodes_ is used internally by the framework to return the list of all the column nodes.
@@ -62,11 +72,13 @@ func (n loginTable) SelectNodes_() (nodes []*query.ColumnNode) {
 	return nodes
 }
 
-// Copy_ is used internally by the framework to deep copy the node.
-func (n loginTable) Copy_() query.NodeI {
-	// Table nodes are empty so just offer a copy
-	var t loginTable
-	return t
+// IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
+func (n loginTable) IsEnum_() bool {
+	return false
+}
+
+func (n *loginReverse) NodeType_() query.NodeType {
+	return query.ReverseNodeType
 }
 
 // PrimaryKeyNode returns a node that points to the primary key column, if
@@ -77,91 +89,107 @@ func (n loginTable) PrimaryKeyNode() *query.ColumnNode {
 
 // ID represents the id column in the database.
 func (n loginTable) ID() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"login",
-		"id",
-		"ID",
-		query.ColTypeString,
-		true,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "id",
+		Identifier:   "ID",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: true,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // PersonID represents the person_id column in the database.
 func (n loginTable) PersonID() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"login",
-		"person_id",
-		"PersonID",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "person_id",
+		Identifier:   "PersonID",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // Person represents the link to a Person object.
 func (n loginTable) Person() PersonNodeI {
-	cn := &PersonNode{
-		query.NewReferenceNode(
-			"goradd",
-			"login",
-			"person_id",
-			"PersonID",
-			"Person",
-			"person",
-			"id",
-			false,
-			query.ColTypeString,
-		),
+	cn := &personReference{
+		ReferenceNode: query.ReferenceNode{
+			ColumnQueryName: "person_id",
+			Identifier:      "PersonID",
+			ReceiverType:    query.ColTypeString,
+		},
 	}
-	query.SetParentNode(cn, n)
+	cn._self = cn
+	cn.SetParent(n._self)
 	return cn
 }
 
 // Username represents the username column in the database.
 func (n loginTable) Username() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"login",
-		"username",
-		"Username",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "username",
+		Identifier:   "Username",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // Password represents the password column in the database.
 func (n loginTable) Password() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"login",
-		"password",
-		"Password",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "password",
+		Identifier:   "Password",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // IsEnabled represents the is_enabled column in the database.
 func (n loginTable) IsEnabled() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd",
-		"login",
-		"is_enabled",
-		"IsEnabled",
-		query.ColTypeBool,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "is_enabled",
+		Identifier:   "IsEnabled",
+		ReceiverType: query.ColTypeBool,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
+}
+
+func (n *loginTable) GobEncode() (data []byte, err error) {
+	return
+}
+
+func (n *loginTable) GobDecode(data []byte) (err error) {
+	n._self = n
+	return
+}
+
+func (n *loginReverse) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(n.ReverseNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *loginReverse) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ReverseNode); err != nil {
+		panic(err)
+	}
+	n._self = n
+	return
 }
 
 func init() {

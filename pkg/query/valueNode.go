@@ -104,7 +104,7 @@ func (n *ValueNode) equals(n2 NodeI) bool {
 				return false
 			} else {
 				for i, n3 := range an1 {
-					if !n3.equals(an2[i]) {
+					if !NodeIsEqual(n3, an2[i]) {
 						return false
 					}
 				}
@@ -116,11 +116,11 @@ func (n *ValueNode) equals(n2 NodeI) bool {
 	return false
 }
 
-func (n *ValueNode) tableName() string {
+func (n *ValueNode) TableName_() string {
 	return ""
 }
 
-func (n *ValueNode) databaseKey() string {
+func (n *ValueNode) DatabaseKey_() string {
 	return ""
 }
 
@@ -134,7 +134,7 @@ func ValueNodeGetValue(n *ValueNode) interface{} {
 	return n.value
 }
 
-func (n *ValueNode) nodeType() NodeType {
+func (n *ValueNode) NodeType_() NodeType {
 	return ValueNodeType
 }
 

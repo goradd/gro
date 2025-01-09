@@ -3,6 +3,7 @@
 package template
 
 import (
+	"fmt"
 	"io"
 	"path/filepath"
 
@@ -66,7 +67,7 @@ import (
 		return
 	}
 
-	if _, err = io.WriteString(_w, `I is the builder interface to the `); err != nil {
+	if _, err = io.WriteString(_w, `NodeI is the builder interface to the `); err != nil {
 		return
 	}
 
@@ -113,24 +114,49 @@ type `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Node struct {
-	query.ReferenceNodeI
+	if _, err = io.WriteString(_w, `Enum struct {
+    _self query.NodeI
+}
+
+`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `type `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Association struct {
+    `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Enum
+    query.ManyManyNode
 }
 
 // PrimaryKeyNode returns a node representing the primary key column.
-func (n *`); err != nil {
+func (n `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Node) PrimaryKeyNode() (*query.ColumnNode) {
+	if _, err = io.WriteString(_w, `Enum) PrimaryKeyNode() (*query.ColumnNode) {
 	return n.`); err != nil {
 		return
 	}
@@ -147,11 +173,11 @@ func init() {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Node))
+	if _, err = io.WriteString(_w, `Enum))
 }
 
 `); err != nil {
@@ -164,16 +190,15 @@ func init() {
 func (tmpl *EnumNodeTemplate) genPrivate(table *model.Enum, _w io.Writer) (err error) {
 
 	if _, err = io.WriteString(_w, `// SelectNodes_ is used internally by the framework to return the list of column nodes.
-// doc: hide
-func (n *`); err != nil {
+func (n `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Node) SelectNodes_() ([]*query.ColumnNode) {
+	if _, err = io.WriteString(_w, `Enum) SelectNodes_() ([]*query.ColumnNode) {
     return []*query.ColumnNode {
 `); err != nil {
 		return
@@ -199,40 +224,70 @@ func (n *`); err != nil {
 	if _, err = io.WriteString(_w, `	}
 }
 
-// EmbeddedNode_ is used internally by the framework to return the embedded ReferenceNodeI.
-// doc: hide
 func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Node) EmbeddedNode_() query.NodeI {
-	return n.ReferenceNodeI
+	if _, err = io.WriteString(_w, `Enum) NodeType_() query.NodeType {
+	return query.EnumNodeType
 }
 
-// Copy_ is used internally by the framework to deep copy the node.
-// doc: hide
 func (n *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Node) Copy_() query.NodeI {
-	return &`); err != nil {
+	if _, err = io.WriteString(_w, `Association) NodeType_() query.NodeType {
+	return query.ManyEnumNodeType
+}
+
+// TableName_ returns the query name of the table the node is associated with.
+func (n `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Node{query.CopyNode(n.ReferenceNodeI)}
+	if _, err = io.WriteString(_w, `Enum) TableName_() string {
+    return `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, fmt.Sprintf("%#v", table.QueryName)); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `
+}
+
+// DatabaseKey_ returns the database key of the database the node is associated with.
+func (n `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Enum) DatabaseKey_() string {
+    return `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, fmt.Sprintf("%#v", table.DbKey)); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `
 }
 
 `); err != nil {
@@ -248,15 +303,15 @@ func (tmpl *EnumNodeTemplate) genLeafNodes(table *model.Enum, _w io.Writer) (err
 		fn := table.FieldIdentifier(i)
 
 		if _, err = io.WriteString(_w, `
-func (n *`); err != nil {
+func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `Node) `); err != nil {
+		if _, err = io.WriteString(_w, `Enum) `); err != nil {
 			return
 		}
 
@@ -265,45 +320,26 @@ func (n *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `() *query.ColumnNode {
-
-	cn := query.NewColumnNode (
-		"`); err != nil {
+	cn := query.ColumnNode{
+		QueryName: `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.DbKey); err != nil {
+		if _, err = io.WriteString(_w, fmt.Sprintf("%#v", table.FieldQueryName(i))); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `",
-		"`); err != nil {
+		if _, err = io.WriteString(_w, `,
+		Identifier: `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.QueryName); err != nil {
+		if _, err = io.WriteString(_w, fmt.Sprintf("%#v", fn)); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `",
-		"`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.FieldQueryName(i)); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `",
-		"`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, fn); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `",
-		query.`); err != nil {
+		if _, err = io.WriteString(_w, `,
+		ReceiverType: query.`); err != nil {
 			return
 		}
 
@@ -312,7 +348,7 @@ func (n *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `,
-		`); err != nil {
+		IsPrimaryKey: `); err != nil {
 			return
 		}
 
@@ -331,9 +367,9 @@ func (n *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 `); err != nil {
 			return

@@ -33,7 +33,7 @@ func (n *NodeTemplate)gen(table *model.Table, _w io.Writer) (err error) {
     if err = n.genColumns(table, _w); err != nil { return }
     if err = n.genAssn(table, _w); err != nil { return }
     if err = n.genReverse(table, _w); err != nil { return }
-    //if err = n.genGob(table, _w); err != nil { return }
+    if err = n.genGob(table, _w); err != nil { return }
     if err = n.genInit(table, _w); err != nil { return }
     return
 }
@@ -80,6 +80,11 @@ func (n *NodeTemplate)genColumns(table *model.Table, _w io.Writer) (err error) {
     for _,col := range table.Columns {
         if err = n.genColumn(table, col, _w); err != nil { return }
     }
+    return
+}
+
+func (n *NodeTemplate)genGob(table *model.Table, _w io.Writer) (err error) {
+{{: "gob.tmpl" }}
     return
 }
 

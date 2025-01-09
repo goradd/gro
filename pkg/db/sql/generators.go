@@ -291,7 +291,7 @@ func (g *selectGenerator) generateJoinSql(j *JoinTreeItem) (sql string) {
 			s := g.generateNodeSql(j.JoinCondition, false)
 			sql += " AND " + s
 		}
-	case *ReverseReferenceNode:
+	case *ReverseNode:
 		if g.b.LimitInfo != nil && ReverseReferenceNodeIsArray(node) {
 			panic("We do not currently support limited queries with an array join.")
 		}
@@ -315,7 +315,7 @@ func (g *selectGenerator) generateJoinSql(j *JoinTreeItem) (sql string) {
 			g.iq(j.Parent.Alias) + "." +
 			g.iq(ColumnNodeDbName(ParentNode(node).(TableNodeI).PrimaryKeyNode())) +
 			" = " + g.iq(j.Alias+"a") + "." + g.iq(ManyManyNodeDbColumn(node)) + "\n"
-		
+
 		sql += "LEFT JOIN " + g.iq(ManyManyNodeRefTable(node)) + " AS " + g.iq(j.Alias) +
 			" ON " + g.iq(j.Alias+"a") + "." + g.iq(ManyManyNodeRefColumn(node)) +
 			" = " + g.iq(j.Alias) + "." + g.iq(ManyManyNodeRefPk(node))

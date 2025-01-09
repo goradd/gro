@@ -1,0 +1,50 @@
+package template
+
+import (
+	"github.com/goradd/orm/pkg/codegen"
+	"github.com/goradd/orm/pkg/model"
+	"io"
+	"fmt"
+	"path/filepath"
+)
+
+func init() {
+	codegen.RegisterTemplate(new(NodeTestTemplate))
+	codegen.RegisterTemplate(new(NodeTestUtilsTemplate))
+}
+
+// NodeTestUtilsTemplate generates test code for the node package.
+type NodeTestUtilsTemplate struct {}
+
+func (n NodeTestUtilsTemplate) FileName(dbKey string) string {
+	return filepath.Join("orm", dbKey, "node","utils_test.go")
+}
+
+func (n NodeTestUtilsTemplate) GenerateDatabase(database *model.Database, _w io.Writer) (err error) {
+	{{: "node/testutils.tmpl" }}
+	return
+}
+
+func (n NodeTestUtilsTemplate) Overwrite() bool {
+	return true
+}
+
+
+// NodeTestTemplate generates test code for table nodes.
+type NodeTestTemplate struct {
+}
+
+func (n *NodeTestTemplate) FileName(table *model.Table) string {
+    return filepath.Join( "orm", table.DbKey, "node",table.FileName()+ "_test.go")
+}
+
+func (n *NodeTestTemplate) GenerateTable(table *model.Table, _w io.Writer, importPath string) (err error) {
+	{{: "node/test.tmpl" }}
+	return
+}
+
+func (n *NodeTestTemplate) Overwrite() bool {
+	return true
+}
+
+

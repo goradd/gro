@@ -25,15 +25,15 @@ func Alias(goName string) *AliasNode {
 	}
 }
 
-func (n *AliasNode) nodeType() NodeType {
+func (n *AliasNode) NodeType_() NodeType {
 	return AliasNodeType
 }
 
-func (n *AliasNode) tableName() string {
+func (n *AliasNode) TableName_() string {
 	return ""
 }
 
-func (n *AliasNode) databaseKey() string {
+func (n *AliasNode) DatabaseKey_() string {
 	return ""
 }
 

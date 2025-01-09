@@ -10,22 +10,28 @@ func (n *NodeTemplate)genAssn(table *model.Table, _w io.Writer) (err error) {
 }
 
 func (n *NodeTemplate)genAssnTable(table *model.Table, mm *model.ManyManyReference, _w io.Writer) (err error) {
+    var returnType, objectType string
+    if mm.IsEnum()  {
+        returnType = mm.ObjectType() + "NodeI"
+        objectType = mm.DestinationEnumTable.DecapIdentifier + "Association"
+    } else {
+        returnType = mm.ObjectType() + "Expander"
+        objectType = mm.DestinationTable.DecapIdentifier + "Association"
+    }
 {{
 // {{= mm.IdentifierPlural }} represents the many-to-many relationship formed by the {{= mm.AssnTableName }} table.
-func (n {{= table.DecapIdentifier }}Table) {{= mm.IdentifierPlural }}() {{= mm.ObjectType() }}NodeI  {
-	cn := &{{= mm.ObjectType() }}Node {
-		query.NewManyManyNode (
-			"{{= table.DbKey }}",
-			"{{= mm.AssnTableName }}",
-			"{{= mm.AssnSourceColumnName }}",
-			"{{= mm.IdentifierPlural }}",
-			"{{= mm.QueryName() }}",
-			"{{= mm.AssnDestColumnName }}",
-			"{{= mm.PrimaryKey() }}",
-			{{b mm.DestinationEnumTable != nil }},
-		),
+func (n {{= table.DecapIdentifier }}Table) {{= mm.IdentifierPlural }}() {{= returnType }}  {
+	cn := &{{= objectType }} {
+		ManyManyNode: query.ManyManyNode{
+			AssnTableQueryName:      "{{= mm.AssnTableName }}",
+			ParentColumnQueryName:    "{{= mm.AssnSourceColumnName }}",
+			ParentColumnReceiverType: query.{{= mm.AssnSourceColumnType.String() }},
+			Identifier:               "{{= mm.IdentifierPlural }}",
+			RefColumnQueryName:       "{{= mm.AssnDestColumnName }}",
+			RefColumnReceiverType:    query.{{= mm.AssnDestColumnType.String() }},
+		},
 	}
-	query.SetParentNode(cn, n)
+	cn.SetParent(n._self)
 	return cn
 }
 }}

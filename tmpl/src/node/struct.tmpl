@@ -18,7 +18,11 @@ type {{= table.Identifier}}NodeI interface {
 {{for}}
 {{for _,mm := range table.ManyManyReferences}}
      // {{= mm.IdentifierPlural }} represents the {{= mm.IdentifierPlural }} reference to {{= mm.ObjectType() }} objects.
+{{if mm.IsEnum() }}
+   {{= mm.IdentifierPlural }}() {{= mm.ObjectType() }}NodeI
+{{else}}
    {{= mm.IdentifierPlural }}() {{= mm.ObjectType() }}Expander
+{{if}}
 {{for}}
 {{for _,rev := range table.ReverseReferences}}
 {{if rev.IsUnique}}
@@ -36,7 +40,7 @@ type {{= table.Identifier}}NodeI interface {
 type {{= table.Identifier}}Expander interface {
     {{= table.Identifier}}NodeI
     // Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-    Expand() {{= table.Identifier}}NodeI
+    Expand()
 }
 {{if}}
 
@@ -45,19 +49,20 @@ type {{= table.Identifier}}Expander interface {
 //
 // To use the {{= table.DecapIdentifier }}Table, call [{{= table.Identifier }}()] to start a reference chain when querying the {{= table.QueryName }} table.
 type {{= table.DecapIdentifier}}Table struct {
+    _self query.NodeI
 }
 
 {{if hasReverse}}
 type {{= table.DecapIdentifier}}Reference struct {
     {{= table.DecapIdentifier}}Table
-    referenceColumn *query.ColumnNode
+    query.ReferenceNode
 }
 {{if}}
 
 {{if hasReference}}
 type {{= table.DecapIdentifier}}Reverse struct {
     {{= table.DecapIdentifier}}Table
-    reverseColumn *query.ColumnNode
+    query.ReverseNode
 }
 {{if}}
 

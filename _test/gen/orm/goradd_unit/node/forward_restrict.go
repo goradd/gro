@@ -3,6 +3,7 @@
 package node
 
 import (
+	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
@@ -26,7 +27,7 @@ type ForwardRestrictNodeI interface {
 type ForwardRestrictExpander interface {
 	ForwardRestrictNodeI
 	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand() ForwardRestrictNodeI
+	Expand()
 }
 
 // forwardRestrictTable represents the forward_restrict table in a query. It uses a builder pattern to chain
@@ -34,18 +35,34 @@ type ForwardRestrictExpander interface {
 //
 // To use the forwardRestrictTable, call [ForwardRestrict()] to start a reference chain when querying the forward_restrict table.
 type forwardRestrictTable struct {
+	_self query.NodeI
 }
 
 type forwardRestrictReverse struct {
 	forwardRestrictTable
-	reverseColumn *query.ColumnNode
+	query.ReverseNode
 }
 
 // ForwardRestrict returns a table node that starts a node chain that begins with the forward_restrict table.
 func ForwardRestrict() ForwardRestrictNodeI {
-	// Table nodes are empty structs, and do not have pointer receivers,
 	var n forwardRestrictTable
+	n._self = n
 	return n
+}
+
+// TableName_ returns the query name of the table the node is associated with.
+func (n forwardRestrictTable) TableName_() string {
+	return "forward_restrict"
+}
+
+// NodeType_ returns the query.NodeType of the node.
+func (n forwardRestrictTable) NodeType_() query.NodeType {
+	return query.TableNodeType
+}
+
+// DatabaseKey_ returns the database key of the database the node is associated with.
+func (n forwardRestrictTable) DatabaseKey_() string {
+	return "goradd_unit"
 }
 
 // SelectNodes_ is used internally by the framework to return the list of all the column nodes.
@@ -56,11 +73,13 @@ func (n forwardRestrictTable) SelectNodes_() (nodes []*query.ColumnNode) {
 	return nodes
 }
 
-// Copy_ is used internally by the framework to deep copy the node.
-func (n forwardRestrictTable) Copy_() query.NodeI {
-	// Table nodes are empty so just offer a copy
-	var t forwardRestrictTable
-	return t
+// IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
+func (n forwardRestrictTable) IsEnum_() bool {
+	return false
+}
+
+func (n *forwardRestrictReverse) NodeType_() query.NodeType {
+	return query.ReverseNodeType
 }
 
 // PrimaryKeyNode returns a node that points to the primary key column, if
@@ -71,63 +90,83 @@ func (n forwardRestrictTable) PrimaryKeyNode() *query.ColumnNode {
 
 // ID represents the id column in the database.
 func (n forwardRestrictTable) ID() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"forward_restrict",
-		"id",
-		"ID",
-		query.ColTypeString,
-		true,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "id",
+		Identifier:   "ID",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: true,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // Name represents the name column in the database.
 func (n forwardRestrictTable) Name() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"forward_restrict",
-		"name",
-		"Name",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "name",
+		Identifier:   "Name",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // ReverseID represents the reverse_id column in the database.
 func (n forwardRestrictTable) ReverseID() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"goradd_unit",
-		"forward_restrict",
-		"reverse_id",
-		"ReverseID",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+	cn := query.ColumnNode{
+		QueryName:    "reverse_id",
+		Identifier:   "ReverseID",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }
 
 // Reverse represents the link to a Reverse object.
 func (n forwardRestrictTable) Reverse() ReverseNodeI {
-	cn := &ReverseNode{
-		query.NewReferenceNode(
-			"goradd_unit",
-			"forward_restrict",
-			"reverse_id",
-			"ReverseID",
-			"Reverse",
-			"reverse",
-			"id",
-			false,
-			query.ColTypeString,
-		),
+	cn := &reverseReference{
+		ReferenceNode: query.ReferenceNode{
+			ColumnQueryName: "reverse_id",
+			Identifier:      "ReverseID",
+			ReceiverType:    query.ColTypeString,
+		},
 	}
-	query.SetParentNode(cn, n)
+	cn._self = cn
+	cn.SetParent(n._self)
 	return cn
+}
+
+func (n *forwardRestrictTable) GobEncode() (data []byte, err error) {
+	return
+}
+
+func (n *forwardRestrictTable) GobDecode(data []byte) (err error) {
+	n._self = n
+	return
+}
+
+func (n *forwardRestrictReverse) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(n.ReverseNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *forwardRestrictReverse) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ReverseNode); err != nil {
+		panic(err)
+	}
+	n._self = n
+	return
 }
 
 func init() {

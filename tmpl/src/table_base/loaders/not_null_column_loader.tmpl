@@ -13,7 +13,7 @@
 {{if}}
 			o.{{= col.VariableIdentifier() }}IsValid = true
 			o.{{= col.VariableIdentifier() }}IsDirty = false
-        {{if col.IsPk}}
+        {{if col.IsPrimaryKey}}
             o._originalPK = o.{{= col.VariableIdentifier() }}
         {{if}}
 		} else {

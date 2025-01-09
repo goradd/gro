@@ -3,181 +3,47 @@ package query
 import (
 	"bytes"
 	"encoding/gob"
-	"log/slog"
-	"strings"
 )
 
 type ReferenceNodeI interface {
 	NodeI
 	Aliaser
 	conditioner
-	nodeLinkI
+	nodeLinker
 	Expander
 }
 
-// A ReferenceNode is a forward-pointing foreign key relationship, and can define a one-to-one or
-// one-to-many relationship, depending on whether it is unique. If the other side of the relationship is
-// not a enum table, then the other table will have a matching ReverseReferenceNode.
+// A ReferenceNode is a forward-pointing foreign key relationship. If the other side of the relationship is
+// not a enum table, then the other table will have a matching ReverseNode.
 type ReferenceNode struct {
-	nodeAlias
+	// The query name of the column that is the foreign key
+	ColumnQueryName string
+	// The identifier that will be used to identify this object in source code.
+	// Equals the key for the Get() function on an object.
+	Identifier string
+	// The type of item acting as a pointer. This should be the same on both sides of the reference.
+	ReceiverType ReceiverType
 	nodeCondition
 	nodeLink
-	// Which database in the global list of databases does the node belong to
-	dbKey string
-	// QueryName of table in the database we point to
-	dbTable string
-	// The name of the unique column in dbTable that is the foreign key
-	dbColumn string
-	// The name of the column related to this reference
-	goColumnName string
-	// The name of the function used to access the property as a node or ORM item
-	goPropName string
-	// The name of the variable in the model structure used to hold the object
-	goVarName string
-	// The name of the table we are joining to
-	refTable string
-	// The name of primary key in refTable
-	refColumn string
-	// Is this pointing to a enum table item?
-	isEnumTable bool
-	// The type of item acting as a pointer. This should be the same on both sides of the reference.
-	goType ReceiverType
-}
-
-// NewReferenceNode creates a forward reference node.
-func NewReferenceNode(
-	dbKey string,
-	dbTableName string,
-	dbColumnName string,
-	goColumnName string,
-	goName string,
-	refTableName string,
-	refColumn string,
-	isEnum bool,
-	goType ReceiverType,
-) *ReferenceNode {
-	n := &ReferenceNode{
-		dbKey:        dbKey,
-		dbTable:      dbTableName,
-		dbColumn:     dbColumnName,
-		goColumnName: goColumnName,
-		goPropName:   goName,
-		refTable:     refTableName,
-		refColumn:    refColumn,
-		isEnumTable:  isEnum,
-		goType:       goType,
-	}
-	return n
-}
-
-func (n *ReferenceNode) copy() NodeI {
-	ret := &ReferenceNode{
-		dbKey:         n.dbKey,
-		dbTable:       n.dbTable,
-		dbColumn:      n.dbColumn,
-		goColumnName:  n.goColumnName,
-		goPropName:    n.goPropName,
-		refTable:      n.refTable,
-		refColumn:     n.refColumn,
-		isEnumTable:   n.isEnumTable,
-		goType:        n.goType,
-		nodeAlias:     nodeAlias{n.alias},
-		nodeCondition: nodeCondition{n.condition},
-	}
-	return ret
-}
-
-// equals is used internally by the framework to determine if two nodes are equal.
-func (n *ReferenceNode) equals(n2 NodeI) bool {
-	if tn, ok := n2.(TableNodeI); !ok {
-		return false
-	} else if cn, ok := tn.EmbeddedNode_().(*ReferenceNode); !ok {
-		return false
-	} else {
-		return cn.dbTable == n.dbTable &&
-			cn.goPropName == n.goPropName &&
-			(cn.alias == "" || n.alias == "" || cn.alias == n.alias)
-	}
-}
-
-func (n *ReferenceNode) nodeType() NodeType {
-	return ReferenceNodeType
-}
-
-func (n *ReferenceNode) tableName() string {
-	return n.refTable
-}
-
-func (n *ReferenceNode) databaseKey() string {
-	return n.dbKey
-}
-
-func (n *ReferenceNode) log(level int) {
-	tabs := strings.Repeat("\t", level)
-	slog.Debug(tabs + "R: " + n.dbTable + "." + n.dbColumn + "." + n.refTable + " AS " + n.GetAlias())
-}
-
-// Return the name as a capitalized object name
-func (n *ReferenceNode) goName() string {
-	return n.goPropName
-}
-
-// Return a column node for the foreign key that represents the reference to the other table
-func (n *ReferenceNode) relatedColumnNode() *ColumnNode {
-	n2 := NewColumnNode(n.dbKey, n.dbTable, n.dbColumn, n.goColumnName, n.goType, false)
-	SetParentNode(n2, n.getParent())
-	return n2
-}
-
-func (n *ReferenceNode) Expand() {
-	panic("you cannot expand on a reference node, only reverse reference and many-many reference")
-}
-
-func (n *ReferenceNode) isExpanded() bool {
-	return false
-}
-
-func (n *ReferenceNode) isExpander() bool {
-	return false
-}
-
-type referenceNodeEncoded struct {
-	Alias        string
-	Condition    NodeI
-	Parent       NodeI
-	DbKey        string
-	DbTable      string
-	DbColumn     string
-	GoColumnName string
-	GoPropName   string
-	GoVarName    string
-	RefTable     string
-	RefColumn    string
-	IsEnumTable  bool
-	GoType       ReceiverType
 }
 
 func (n *ReferenceNode) GobEncode() (data []byte, err error) {
 	var buf bytes.Buffer
 	e := gob.NewEncoder(&buf)
 
-	s := referenceNodeEncoded{
-		Alias:        n.alias,
-		Condition:    n.condition,
-		Parent:       n.parentNode,
-		DbKey:        n.dbKey,
-		DbTable:      n.dbTable,
-		DbColumn:     n.dbColumn,
-		GoColumnName: n.goColumnName,
-		GoPropName:   n.goPropName,
-		GoVarName:    n.goVarName,
-		RefTable:     n.refTable,
-		RefColumn:    n.refColumn,
-		IsEnumTable:  n.isEnumTable,
-		GoType:       n.goType,
+	if err = e.Encode(n.ColumnQueryName); err != nil {
+		panic(err)
 	}
-
-	if err = e.Encode(s); err != nil {
+	if err = e.Encode(n.Identifier); err != nil {
+		panic(err)
+	}
+	if err = e.Encode(n.ReceiverType); err != nil {
+		panic(err)
+	}
+	if err = e.Encode(n.nodeCondition.condition); err != nil {
+		panic(err)
+	}
+	if err = e.Encode(n.nodeLink.parentNode); err != nil {
 		panic(err)
 	}
 	data = buf.Bytes()
@@ -187,53 +53,24 @@ func (n *ReferenceNode) GobEncode() (data []byte, err error) {
 func (n *ReferenceNode) GobDecode(data []byte) (err error) {
 	buf := bytes.NewBuffer(data)
 	dec := gob.NewDecoder(buf)
-
-	var s referenceNodeEncoded
-	if err = dec.Decode(&s); err != nil {
+	if err = dec.Decode(&n.ColumnQueryName); err != nil {
 		panic(err)
 	}
-	n.alias = s.Alias
-	n.condition = s.Condition
-	n.dbKey = s.DbKey
-	n.dbTable = s.DbTable
-	n.dbColumn = s.DbColumn
-	n.goColumnName = s.GoColumnName
-	n.goPropName = s.GoPropName
-	n.goVarName = s.GoVarName
-	n.refTable = s.RefTable
-	n.refColumn = s.RefColumn
-	n.isEnumTable = s.IsEnumTable
-	n.goType = s.GoType
-
-	SetParentNode(n, s.Parent)
+	if err = dec.Decode(&n.Identifier); err != nil {
+		panic(err)
+	}
+	if err = dec.Decode(&n.ReceiverType); err != nil {
+		panic(err)
+	}
+	if err = dec.Decode(&n.nodeCondition.condition); err != nil {
+		panic(err)
+	}
+	if err = dec.Decode(&n.nodeLink.parentNode); err != nil {
+		panic(err)
+	}
 	return
 }
 
 func init() {
 	gob.Register(&ReferenceNode{})
-}
-
-// RelatedColumnNode is used internally by the framework to create a new node for the other side of the relationship.
-func RelatedColumnNode(n NodeI) NodeI {
-	if tn, _ := n.(TableNodeI); tn != nil {
-		if rn, _ := tn.EmbeddedNode_().(*ReferenceNode); rn != nil {
-			return rn.relatedColumnNode()
-		}
-	}
-	return nil
-}
-
-// ReferenceNodeRefTable is used internally by the framework to get the table name for the other side of the relationship.
-func ReferenceNodeRefTable(n *ReferenceNode) string {
-	return n.refTable
-}
-
-// ReferenceNodeRefColumn is used internally by the framework to get the column name for the other side of the relationship.
-func ReferenceNodeRefColumn(n *ReferenceNode) string {
-	return n.refColumn
-}
-
-// ReferenceNodeDbColumnName is used internally by the framework to get the column name for this side of the relationship.
-func ReferenceNodeDbColumnName(n *ReferenceNode) string {
-	return n.dbColumn
 }

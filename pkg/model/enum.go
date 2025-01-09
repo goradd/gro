@@ -21,7 +21,7 @@ type ConstVal struct {
 // not change during the application's use. This will generate types that can be
 // used as values for fields in the database.
 type Enum struct {
-	// DbKey is the key used to find the database in the global database cluster
+	// DbKey is the key used to find the database in the global database cluster.
 	DbKey string
 	// QueryName is the name of the table to use in querying the database.
 	QueryName string

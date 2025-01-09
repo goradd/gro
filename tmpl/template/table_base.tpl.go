@@ -7270,7 +7270,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if col.IsPk {
+			if col.IsPrimaryKey {
 
 				if _, err = io.WriteString(_w, `
             o._originalPK = o.`); err != nil {

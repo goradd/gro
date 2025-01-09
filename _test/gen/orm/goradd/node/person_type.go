@@ -8,7 +8,7 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
-// PersonTypeI is the builder interface to the PersonType nodes.
+// PersonTypeNodeI is the builder interface to the PersonType nodes.
 type PersonTypeNodeI interface {
 	query.NodeI
 	PrimaryKeyNode() *query.ColumnNode
@@ -16,64 +16,68 @@ type PersonTypeNodeI interface {
 	Name() *query.ColumnNode
 }
 
-type PersonTypeNode struct {
-	query.ReferenceNodeI
+type personTypeEnum struct {
+	_self query.NodeI
+}
+
+type personTypeAssociation struct {
+	personTypeEnum
+	query.ManyManyNode
 }
 
 // PrimaryKeyNode returns a node representing the primary key column.
-func (n *PersonTypeNode) PrimaryKeyNode() *query.ColumnNode {
+func (n personTypeEnum) PrimaryKeyNode() *query.ColumnNode {
 	return n.ID()
 }
 
 func init() {
-	gob.Register(new(PersonTypeNode))
+	gob.Register(new(personTypeEnum))
 }
 
 // SelectNodes_ is used internally by the framework to return the list of column nodes.
-// doc: hide
-func (n *PersonTypeNode) SelectNodes_() []*query.ColumnNode {
+func (n personTypeEnum) SelectNodes_() []*query.ColumnNode {
 	return []*query.ColumnNode{
 		n.ID(),
 		n.Name(),
 	}
 }
 
-// EmbeddedNode_ is used internally by the framework to return the embedded ReferenceNodeI.
-// doc: hide
-func (n *PersonTypeNode) EmbeddedNode_() query.NodeI {
-	return n.ReferenceNodeI
+func (n *personTypeEnum) NodeType_() query.NodeType {
+	return query.EnumNodeType
 }
 
-// Copy_ is used internally by the framework to deep copy the node.
-// doc: hide
-func (n *PersonTypeNode) Copy_() query.NodeI {
-	return &PersonTypeNode{query.CopyNode(n.ReferenceNodeI)}
+func (n *personTypeAssociation) NodeType_() query.NodeType {
+	return query.ManyEnumNodeType
 }
 
-func (n *PersonTypeNode) ID() *query.ColumnNode {
-
-	cn := query.NewColumnNode(
-		"goradd",
-		"person_type_enum",
-		"id",
-		"ID",
-		query.ColTypeInteger,
-		true,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+// TableName_ returns the query name of the table the node is associated with.
+func (n personTypeEnum) TableName_() string {
+	return "person_type_enum"
 }
 
-func (n *PersonTypeNode) Name() *query.ColumnNode {
+// DatabaseKey_ returns the database key of the database the node is associated with.
+func (n personTypeEnum) DatabaseKey_() string {
+	return "goradd"
+}
 
-	cn := query.NewColumnNode(
-		"goradd",
-		"person_type_enum",
-		"name",
-		"Name",
-		query.ColTypeString,
-		false,
-	)
-	query.SetParentNode(cn, n)
-	return cn
+func (n personTypeEnum) ID() *query.ColumnNode {
+	cn := query.ColumnNode{
+		QueryName:    "id",
+		Identifier:   "ID",
+		ReceiverType: query.ColTypeInteger,
+		IsPrimaryKey: true,
+	}
+	cn.SetParent(n._self)
+	return &cn
+}
+
+func (n personTypeEnum) Name() *query.ColumnNode {
+	cn := query.ColumnNode{
+		QueryName:    "name",
+		Identifier:   "Name",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n._self)
+	return &cn
 }

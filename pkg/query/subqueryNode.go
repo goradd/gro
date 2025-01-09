@@ -25,7 +25,7 @@ func NewSubqueryNode(b QueryBuilderI) *SubqueryNode {
 	return n
 }
 
-func (n *SubqueryNode) nodeType() NodeType {
+func (n *SubqueryNode) NodeType_() NodeType {
 	return SubqueryNodeType
 }
 
@@ -53,11 +53,11 @@ func (n *SubqueryNode) containedNodes() (nodes []NodeI) {
 }
 */
 
-func (n *SubqueryNode) tableName() string {
+func (n *SubqueryNode) TableName_() string {
 	return ""
 }
 
-func (n *SubqueryNode) databaseKey() string {
+func (n *SubqueryNode) DatabaseKey_() string {
 	return ""
 }
 

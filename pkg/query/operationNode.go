@@ -124,7 +124,7 @@ func NewCountNode(operands ...NodeI) *OperationNode {
 	return n
 }
 
-func (n *OperationNode) nodeType() NodeType {
+func (n *OperationNode) NodeType_() NodeType {
 	return OperationNodeType
 }
 
@@ -193,7 +193,7 @@ func (n *OperationNode) equals(n2 NodeI) bool {
 		}
 
 		for i, o := range n.operands {
-			if !o.equals(cn.operands[i]) {
+			if !NodeIsEqual(o, cn.operands[i]) {
 				return false
 			}
 		}
@@ -213,11 +213,11 @@ func (n *OperationNode) containedNodes() (nodes []NodeI) {
 	return
 }
 
-func (n *OperationNode) tableName() string {
+func (n *OperationNode) TableName_() string {
 	return ""
 }
 
-func (n *OperationNode) databaseKey() string {
+func (n *OperationNode) DatabaseKey_() string {
 	return ""
 }
 

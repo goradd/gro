@@ -3,152 +3,45 @@ package query
 import (
 	"bytes"
 	"encoding/gob"
-	"log/slog"
-	"strings"
 )
 
 type ColumnNodeI interface {
 	NodeI
 	NodeSorter
-	Aliaser
-	nodeLinkI
+	nodeLinker
 }
 
 // ColumnNode represents a table or field in a database structure, and is the leaf of a node tree or chain.
 type ColumnNode struct {
-	nodeAlias
-	nodeLink
-	// Which database in the global list of databases does the node belong to
-	dbKey string
-	// QueryName of table in the database we point to
-	dbTable string
-	// The name of the column in the database
-	dbColumn string
-	// The name of the function used to access the property as a node or ORM item
-	gName string
+	// The query name of the column in the database.
+	QueryName string
+	// The name of the column's data as used in source code.
+	Identifier string
 	// The receiver type for the column
-	receiverType ReceiverType
-	// Used by OrderBy clauses
-	sortDescending bool
-	// True if this is the private key of its parent table
-	isPK bool
+	ReceiverType ReceiverType
+	// True if this is the primary key of its parent table
+	IsPrimaryKey bool
+	nodeSort
+	nodeLink
 }
 
-// NewColumnNode is used by the code generator to create a new column node.
-func NewColumnNode(dbKey string, dbTable string, dbName string, goName string, goType ReceiverType, isPK bool) *ColumnNode {
-	n := &ColumnNode{
-		dbKey:        dbKey,
-		dbTable:      dbTable,
-		dbColumn:     dbName,
-		gName:        goName,
-		receiverType: goType,
-		isPK:         isPK,
-	}
-	return n
-}
-
-// Returns a copy of the node, satisfying the copy interface
-func (n *ColumnNode) copy() NodeI {
-	ret := &ColumnNode{
-		dbKey:        n.dbKey,
-		dbTable:      n.dbTable,
-		dbColumn:     n.dbColumn,
-		gName:        n.gName,
-		receiverType: n.receiverType,
-		isPK:         n.isPK,
-		nodeAlias:    nodeAlias{n.alias},
-		// don't copy links!
-	}
-	return ret
-}
-
-func (n *ColumnNode) nodeType() NodeType {
+func (n *ColumnNode) NodeType_() NodeType {
 	return ColumnNodeType
 }
 
-// Ascending is used in an OrderBy query builder function to sort the column in ascending order.
-func (n *ColumnNode) Ascending() NodeI {
-	n.sortDescending = false
-	return n
+func (n *ColumnNode) TableName_() string {
+	return n.Parent().TableName_()
 }
 
-// Descending is used in an OrderBy query builder function to sort the column in descending order.
-func (n *ColumnNode) Descending() NodeI {
-	n.sortDescending = true
-	return n
-}
-
-func (n *ColumnNode) sortDesc() bool {
-	return n.sortDescending
-}
-
-/*
-func (n *ColumnNode) SetValue(v interface{}) error {
-	// TODO: verify
-	n.value = v
-	return nil
-}
-*/
-
-// equals is used internally by the framework to determine if two nodes are equal.
-func (n *ColumnNode) equals(n2 NodeI) bool {
-	if cn, ok := n2.(*ColumnNode); ok {
-		if cn.dbTable == n.dbTable && cn.dbColumn == n.dbColumn {
-			// Allow new nodes to be evaluated as equal, but manual aliased nodes are not equal.
-			if n.alias == "" || cn.alias == "" {
-				return true
-			}
-			return n.alias == cn.alias
-		}
-	}
-	return false
-}
-
-func (n *ColumnNode) name() string {
-	return n.dbColumn
-}
-
-func (n *ColumnNode) goName() string {
-	return n.gName
-}
-
-func (n *ColumnNode) tableName() string {
-	return n.dbTable
-}
-
-func (n *ColumnNode) databaseKey() string {
-	return n.dbKey
-}
-
-func (n *ColumnNode) log(level int) {
-	tabs := strings.Repeat("\t", level)
-	var alias string
-	if n.alias != "" {
-		alias = " as " + n.alias
-	}
-
-	slog.Debug(tabs + "Col: " + n.dbTable + "." + n.dbColumn + alias)
-}
-
-// ColumnNodeReceiverType is used internally by the framework to return the go type corresponding to the given column.
-func ColumnNodeReceiverType(n *ColumnNode) ReceiverType {
-	return n.receiverType
-}
-
-// ColumnNodeDbName is used internally by the framework to return the name of the column in the database.
-func ColumnNodeDbName(n *ColumnNode) string {
-	return n.dbColumn
-}
-
-func ColumnNodeIsPK(n *ColumnNode) bool {
-	return n.isPK
+func (n *ColumnNode) DatabaseKey_() string {
+	return n.Parent().DatabaseKey_()
 }
 
 func NodeIsPK(n NodeI) bool {
 	if cn, ok := n.(*ColumnNode); !ok {
 		return false
 	} else {
-		return cn.isPK
+		return cn.IsPrimaryKey
 	}
 }
 
@@ -156,33 +49,24 @@ func (n *ColumnNode) GobEncode() (data []byte, err error) {
 	var buf bytes.Buffer
 	e := gob.NewEncoder(&buf)
 
-	if err = e.Encode(n.alias); err != nil {
+	if err = e.Encode(n.QueryName); err != nil {
 		panic(err)
 	}
-	if err = e.Encode(n.dbKey); err != nil {
+	if err = e.Encode(n.Identifier); err != nil {
 		panic(err)
 	}
-	if err = e.Encode(n.dbTable); err != nil {
+	if err = e.Encode(n.ReceiverType); err != nil {
 		panic(err)
 	}
-	if err = e.Encode(n.dbColumn); err != nil {
+	if err = e.Encode(n.IsPrimaryKey); err != nil {
 		panic(err)
 	}
-	if err = e.Encode(n.gName); err != nil {
+	if err = e.Encode(n.nodeSort.sortDescending); err != nil {
 		panic(err)
 	}
-	if err = e.Encode(n.receiverType); err != nil {
+	if err = e.Encode(n.nodeLink.parentNode); err != nil {
 		panic(err)
 	}
-	if err = e.Encode(n.sortDescending); err != nil {
-		panic(err)
-	}
-	if err = e.Encode(n.isPK); err != nil {
-		panic(err)
-	}
-
-	var n2 NodeI = n.nodeLink.parentNode
-	err = e.Encode(&n2)
 	data = buf.Bytes()
 	return
 }
@@ -190,37 +74,24 @@ func (n *ColumnNode) GobEncode() (data []byte, err error) {
 func (n *ColumnNode) GobDecode(data []byte) (err error) {
 	buf := bytes.NewBuffer(data)
 	dec := gob.NewDecoder(buf)
-	if err = dec.Decode(&n.alias); err != nil {
+	if err = dec.Decode(&n.QueryName); err != nil {
 		panic(err)
 	}
-	if err = dec.Decode(&n.dbKey); err != nil {
+	if err = dec.Decode(&n.Identifier); err != nil {
 		panic(err)
 	}
-	if err = dec.Decode(&n.dbTable); err != nil {
+	if err = dec.Decode(&n.ReceiverType); err != nil {
 		panic(err)
 	}
-	if err = dec.Decode(&n.dbColumn); err != nil {
+	if err = dec.Decode(&n.IsPrimaryKey); err != nil {
 		panic(err)
 	}
-	if err = dec.Decode(&n.gName); err != nil {
+	if err = dec.Decode(&n.nodeSort.sortDescending); err != nil {
 		panic(err)
 	}
-	if err = dec.Decode(&n.receiverType); err != nil {
+	if err = dec.Decode(&n.nodeLink.parentNode); err != nil {
 		panic(err)
 	}
-	if err = dec.Decode(&n.sortDescending); err != nil {
-		panic(err)
-	}
-	if err = dec.Decode(&n.isPK); err != nil {
-		panic(err)
-	}
-
-	var n2 NodeI
-
-	if err = dec.Decode(&n2); err != nil {
-		panic(err)
-	}
-	SetParentNode(n, n2)
 	return
 }
 

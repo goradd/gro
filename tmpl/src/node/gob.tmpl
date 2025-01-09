@@ -4,39 +4,85 @@
 
 {{
 
-type {{= table.DecapIdentifier }}NodeEncoded struct {
-	RefNode query.ReferenceNodeI
+func (n *{{= table.DecapIdentifier }}Table) GobEncode() (data []byte, err error) {
+	return
 }
 
-// GobEncode makes the node serializable.
-// doc:hide
-func (n *{{= table.Identifier }}Node) GobEncode() (data []byte, err error) {
+func (n *{{= table.DecapIdentifier }}Table) GobDecode(data []byte) (err error) {
+	n._self = n
+	return
+}
+
+{{if hasReverse}}
+func (n *{{= table.DecapIdentifier}}Reference) GobEncode() (data []byte, err error) {
 	var buf bytes.Buffer
 	e := gob.NewEncoder(&buf)
 
-	s := {{= table.DecapIdentifier }}NodeEncoded {
-		RefNode: n.ReferenceNodeI,
-	}
-
-	if err = e.Encode(s); err != nil {
+	if err = e.Encode(n.ReferenceNode); err != nil {
 		panic(err)
 	}
 	data = buf.Bytes()
 	return
 }
 
-// GobDecode makes the node deserializable.
-// doc: hide
-func (n *{{= table.Identifier }}Node) GobDecode(data []byte) (err error) {
+func (n *{{= table.DecapIdentifier}}Reference) GobDecode(data []byte) (err error) {
 	buf := bytes.NewBuffer(data)
 	dec := gob.NewDecoder(buf)
 
-	var s {{= table.DecapIdentifier }}NodeEncoded
-	if err = dec.Decode(&s); err != nil {
+	if err = dec.Decode(&n.ReferenceNode); err != nil {
 		panic(err)
 	}
-	n.ReferenceNodeI = s.RefNode
-	query.SetParentNode(n, query.ParentNode(n)) // Reinforce types
+	n._self = n
 	return
 }
+{{if}}
+
+{{if hasReference}}
+func (n *{{= table.DecapIdentifier}}Reverse) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(n.ReverseNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *{{= table.DecapIdentifier}}Reverse) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ReverseNode); err != nil {
+		panic(err)
+	}
+	n._self = n
+	return
+}
+{{if}}
+
+{{if hasAssociation}}
+func (n *{{= table.DecapIdentifier}}Association) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(n.ManyManyNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *{{= table.DecapIdentifier}}Association) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ManyManyNode); err != nil {
+		panic(err)
+	}
+	n._self = n
+	return
+}
+{{if}}
+
 }}
