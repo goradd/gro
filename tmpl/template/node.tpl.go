@@ -2545,7 +2545,7 @@ func (n *NodeTemplate) genReverseOne(table *model.Table, rev *model.Column, _w i
 		return
 	}
 
-	if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
+	if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 		return
 	}
 
@@ -2579,7 +2579,7 @@ func (n `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
+	if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 		return
 	}
 
@@ -2615,7 +2615,7 @@ func (n `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
+	if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 		return
 	}
 
@@ -2653,7 +2653,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
+		if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 			return
 		}
 
@@ -2678,7 +2678,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
+		if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 			return
 		}
 
@@ -2715,7 +2715,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
+		if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 			return
 		}
 
@@ -2740,7 +2740,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
+		if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 			return
 		}
 
@@ -2777,7 +2777,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
+		if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 			return
 		}
 
@@ -2802,7 +2802,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
+		if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 			return
 		}
 
@@ -2840,7 +2840,7 @@ func (n *NodeTemplate) genReverseMany(table *model.Table, rev *model.Column, _w 
 		return
 	}
 
-	if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifierPlural); err != nil {
+	if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 		return
 	}
 
@@ -2874,7 +2874,7 @@ func (n `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifierPlural); err != nil {
+	if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 		return
 	}
 
@@ -2910,7 +2910,7 @@ func (n `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifierPlural); err != nil {
+	if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 		return
 	}
 
@@ -2948,7 +2948,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifierPlural); err != nil {
+		if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 			return
 		}
 
@@ -2973,7 +2973,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifierPlural); err != nil {
+		if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 			return
 		}
 
@@ -3010,7 +3010,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifierPlural); err != nil {
+		if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 			return
 		}
 
@@ -3035,7 +3035,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifierPlural); err != nil {
+		if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 			return
 		}
 
@@ -3072,7 +3072,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifierPlural); err != nil {
+		if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 			return
 		}
 
@@ -3097,7 +3097,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifierPlural); err != nil {
+		if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 			return
 		}
 

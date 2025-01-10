@@ -5,6 +5,7 @@ import (
 
 	"github.com/goradd/orm/pkg/query"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSerializeTableReverseTable(t *testing.T) {
@@ -24,10 +25,113 @@ func TestSerializeTableReverseTable(t *testing.T) {
 	for _, cn := range nodes {
 		cn2 := serNode(t, cn)
 		assert.Equal(t, "reverse", cn2.TableName_())
-		assert.Implements(t, (*query.NodeLinker)(nil), cn2)
+		require.Implements(t, (*query.NodeLinker)(nil), cn2)
 		assert.Equal(t, query.TableNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
 	}
 }
 
 func TestSerializeReferencesReverseTable(t *testing.T) {
+}
+
+func TestSerializeReverseReferencesReverseTable(t *testing.T) {
+
+	{
+		n := Reverse().ForwardCascades()
+		n2 := serNode(t, n)
+		parentNode := n2.(query.NodeLinker).Parent()
+		assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
+		assert.Equal(t, "reverse", parentNode.TableName_())
+
+		nodes := n.(query.TableNodeI).ColumnNodes_()
+		for _, cn := range nodes {
+			cn2 := serNode(t, cn)
+			assert.Equal(t, n.TableName_(), cn2.TableName_())
+			require.Implements(t, (*query.NodeLinker)(nil), cn2)
+			assert.Equal(t, query.ReverseNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
+		}
+	}
+
+	{
+		n := Reverse().ForwardCascadeUnique()
+		n2 := serNode(t, n)
+		parentNode := n2.(query.NodeLinker).Parent()
+		assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
+		assert.Equal(t, "reverse", parentNode.TableName_())
+
+		nodes := n.(query.TableNodeI).ColumnNodes_()
+		for _, cn := range nodes {
+			cn2 := serNode(t, cn)
+			assert.Equal(t, n.TableName_(), cn2.TableName_())
+			require.Implements(t, (*query.NodeLinker)(nil), cn2)
+			assert.Equal(t, query.ReverseNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
+		}
+	}
+
+	{
+		n := Reverse().ForwardNulls()
+		n2 := serNode(t, n)
+		parentNode := n2.(query.NodeLinker).Parent()
+		assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
+		assert.Equal(t, "reverse", parentNode.TableName_())
+
+		nodes := n.(query.TableNodeI).ColumnNodes_()
+		for _, cn := range nodes {
+			cn2 := serNode(t, cn)
+			assert.Equal(t, n.TableName_(), cn2.TableName_())
+			require.Implements(t, (*query.NodeLinker)(nil), cn2)
+			assert.Equal(t, query.ReverseNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
+		}
+	}
+
+	{
+		n := Reverse().ForwardNullUnique()
+		n2 := serNode(t, n)
+		parentNode := n2.(query.NodeLinker).Parent()
+		assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
+		assert.Equal(t, "reverse", parentNode.TableName_())
+
+		nodes := n.(query.TableNodeI).ColumnNodes_()
+		for _, cn := range nodes {
+			cn2 := serNode(t, cn)
+			assert.Equal(t, n.TableName_(), cn2.TableName_())
+			require.Implements(t, (*query.NodeLinker)(nil), cn2)
+			assert.Equal(t, query.ReverseNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
+		}
+	}
+
+	{
+		n := Reverse().ForwardRestricts()
+		n2 := serNode(t, n)
+		parentNode := n2.(query.NodeLinker).Parent()
+		assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
+		assert.Equal(t, "reverse", parentNode.TableName_())
+
+		nodes := n.(query.TableNodeI).ColumnNodes_()
+		for _, cn := range nodes {
+			cn2 := serNode(t, cn)
+			assert.Equal(t, n.TableName_(), cn2.TableName_())
+			require.Implements(t, (*query.NodeLinker)(nil), cn2)
+			assert.Equal(t, query.ReverseNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
+		}
+	}
+
+	{
+		n := Reverse().ForwardRestrictUnique()
+		n2 := serNode(t, n)
+		parentNode := n2.(query.NodeLinker).Parent()
+		assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
+		assert.Equal(t, "reverse", parentNode.TableName_())
+
+		nodes := n.(query.TableNodeI).ColumnNodes_()
+		for _, cn := range nodes {
+			cn2 := serNode(t, cn)
+			assert.Equal(t, n.TableName_(), cn2.TableName_())
+			require.Implements(t, (*query.NodeLinker)(nil), cn2)
+			assert.Equal(t, query.ReverseNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
+		}
+	}
+
+}
+
+func TestSerializeAssociationsReverseTable(t *testing.T) {
 }

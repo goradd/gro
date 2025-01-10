@@ -49,11 +49,26 @@ func init() {
 	gob.Register(new(personTypeReference))
 }
 
-// SelectNodes_ is used internally by the framework to return the list of column nodes.
-func (n personTypeEnum) SelectNodes_() []*query.ColumnNode {
-	return []*query.ColumnNode{
+// ColumnNodes_ is used internally by the framework to return the list of column nodes.
+func (n personTypeEnum) ColumnNodes_() []query.NodeI {
+	return []query.NodeI{
 		n.ID(),
 		n.Name(),
+	}
+}
+
+func (n personTypeAssociation) ColumnNodes_() []query.NodeI {
+	return []query.NodeI{
+		n.ID(),
+		n.Name(),
+	}
+}
+
+// Columns_ is used internally by the framework to return the list of column names.
+func (n personTypeEnum) Columns_() []string {
+	return []string{
+		"id",
+		"name",
 	}
 }
 

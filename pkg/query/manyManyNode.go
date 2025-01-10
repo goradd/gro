@@ -18,7 +18,7 @@ type ManyManyNode struct {
 	Identifier string
 	// Column in the association table pointing forwards to the embedding node
 	RefColumnQueryName string
-	// The ref column's type.
+	// The ref column's type
 	RefColumnReceiverType ReceiverType
 
 	nodeCondition

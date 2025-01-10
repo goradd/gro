@@ -71,6 +71,7 @@ func (n *NodeTestTemplate) GenerateTable(table *model.Table, _w io.Writer, impor
 import (
 	"testing"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSerializeTable`); err != nil {
@@ -154,7 +155,7 @@ func TestSerializeTable`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `", cn2.TableName_())
-        assert.Implements(t, (*query.NodeLinker)(nil), cn2)
+        require.Implements(t, (*query.NodeLinker)(nil), cn2)
         assert.Equal(t, query.TableNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
     }
 }
@@ -212,7 +213,7 @@ func TestSerializeReferences`); err != nil {
     for _,cn := range nodes {
         cn2 := serNode(t, cn)
         assert.Equal(t, n.TableName_(), cn2.TableName_())
-        assert.Implements(t, (*query.NodeLinker)(nil), cn2)
+        require.Implements(t, (*query.NodeLinker)(nil), cn2)
         assert.Equal(t, query.ReferenceNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
     }
 }
@@ -226,6 +227,174 @@ func TestSerializeReferences`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `}
+
+func TestSerializeReverseReferences`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Table(t *testing.T) {
+`); err != nil {
+		return
+	}
+
+	for _, rev := range table.ReverseReferences {
+
+		if _, err = io.WriteString(_w, `
+{
+    n := `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, fmt.Sprint(rev.ReverseIdentifier())); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+    n2 := serNode(t, n)
+    parentNode := n2.(query.NodeLinker).Parent()
+    assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
+    assert.Equal(t, "`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.QueryName); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `", parentNode.TableName_())
+
+    nodes := n.(query.TableNodeI).ColumnNodes_()
+    for _,cn := range nodes {
+        cn2 := serNode(t, cn)
+        assert.Equal(t, n.TableName_(), cn2.TableName_())
+        require.Implements(t, (*query.NodeLinker)(nil), cn2)
+        assert.Equal(t, query.ReverseNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
+    }
+}
+
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `}
+
+func TestSerializeAssociations`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Table(t *testing.T) {
+`); err != nil {
+		return
+	}
+
+	for _, mm := range table.ManyManyReferences {
+
+		if _, err = io.WriteString(_w, `
+{
+    n := `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, fmt.Sprint(mm.IdentifierPlural)); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+    n2 := serNode(t, n)
+`); err != nil {
+			return
+		}
+
+		if mm.IsEnum() {
+
+			if _, err = io.WriteString(_w, `    assert.Equal(t, query.ManyEnumNodeType, n2.NodeType_())
+`); err != nil {
+				return
+			}
+
+		} else {
+
+			if _, err = io.WriteString(_w, `    assert.Equal(t, query.ManyManyNodeType, n2.NodeType_())
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `    parentNode := n2.(query.NodeLinker).Parent()
+    assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
+    assert.Equal(t, "`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.QueryName); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `", parentNode.TableName_())
+
+    nodes := n.(query.TableNodeI).ColumnNodes_()
+    for _,cn := range nodes {
+        cn2 := serNode(t, cn)
+//        assert.Equal(t, query.ColumnNodeType, cn2.NodeType_())
+        parentNode = cn2.(query.NodeLinker).Parent()
+`); err != nil {
+			return
+		}
+
+		if mm.IsEnum() {
+
+			if _, err = io.WriteString(_w, `        assert.Equal(t, query.ManyEnumNodeType, parentNode.NodeType_())
+`); err != nil {
+				return
+			}
+
+		} else {
+
+			if _, err = io.WriteString(_w, `        assert.Equal(t, query.ManyManyNodeType, parentNode.NodeType_())
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `    }
+}
+
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `}
+
 
 `); err != nil {
 		return

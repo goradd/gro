@@ -5,6 +5,7 @@ import (
 
 	"github.com/goradd/orm/pkg/query"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSerializeTablePersonWithLockTable(t *testing.T) {
@@ -24,10 +25,16 @@ func TestSerializeTablePersonWithLockTable(t *testing.T) {
 	for _, cn := range nodes {
 		cn2 := serNode(t, cn)
 		assert.Equal(t, "person_with_lock", cn2.TableName_())
-		assert.Implements(t, (*query.NodeLinker)(nil), cn2)
+		require.Implements(t, (*query.NodeLinker)(nil), cn2)
 		assert.Equal(t, query.TableNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
 	}
 }
 
 func TestSerializeReferencesPersonWithLockTable(t *testing.T) {
+}
+
+func TestSerializeReverseReferencesPersonWithLockTable(t *testing.T) {
+}
+
+func TestSerializeAssociationsPersonWithLockTable(t *testing.T) {
 }

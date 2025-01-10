@@ -16,13 +16,13 @@ func (n *NodeTemplate)genReverse(table *model.Table, _w io.Writer) (err error) {
 
 func (n *NodeTemplate)genReverseOne(table *model.Table, rev *model.Column, _w io.Writer) (err error) {
 {{
-// {{= rev.Reference.ReverseIdentifier }} represents the one-to-one relationship formed by the reverse reference from the
+// {{= rev.ReverseIdentifier() }} represents the one-to-one relationship formed by the reverse reference from the
 // {{= rev.QueryName }} column in the {{= rev.Table.QueryName }} table.
-func (n {{= table.DecapIdentifier}}Table) {{= rev.Reference.ReverseIdentifier }}() {{= rev.Table.Identifier }}NodeI  {
+func (n {{= table.DecapIdentifier}}Table) {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}NodeI  {
 	cn := &{{= rev.Table.DecapIdentifier }}Reverse{
 		ReverseNode: query.ReverseNode{
 			ColumnQueryName: "{{= rev.QueryName }}",
-			Identifier:      "{{= rev.Reference.ReverseIdentifier }}",
+			Identifier:      "{{= rev.ReverseIdentifier() }}",
 			ReceiverType:    query.{{= rev.Type.String() }},
 		},
 	}
@@ -31,24 +31,24 @@ func (n {{= table.DecapIdentifier}}Table) {{= rev.Reference.ReverseIdentifier }}
 }
 
 {{if hasReverse}}
-func (n *{{= table.DecapIdentifier}}Reference) {{= rev.Reference.ReverseIdentifier }}() {{= rev.Table.Identifier }}NodeI  {
-    cn := n.{{= table.DecapIdentifier}}Table.{{= rev.Reference.ReverseIdentifier }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
+func (n *{{= table.DecapIdentifier}}Reference) {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}NodeI  {
+    cn := n.{{= table.DecapIdentifier}}Table.{{= rev.ReverseIdentifier() }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
     cn.SetParent(n)
     return cn
 }
 
 {{if}}
 {{if hasReference}}
-func (n *{{= table.DecapIdentifier}}Reverse) {{= rev.Reference.ReverseIdentifier }}() {{= rev.Table.Identifier }}NodeI  {
-    cn := n.{{= table.DecapIdentifier}}Table.{{= rev.Reference.ReverseIdentifier }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
+func (n *{{= table.DecapIdentifier}}Reverse) {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}NodeI  {
+    cn := n.{{= table.DecapIdentifier}}Table.{{= rev.ReverseIdentifier() }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
     cn.SetParent(n)
     return cn
 }
 
 {{if}}
 {{if hasAssociation}}
-func (n *{{= table.DecapIdentifier}}Association) {{= rev.Reference.ReverseIdentifier }}() {{= rev.Table.Identifier }}NodeI  {
-    cn := n.{{= table.DecapIdentifier}}Table.{{= rev.Reference.ReverseIdentifier }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
+func (n *{{= table.DecapIdentifier}}Association) {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}NodeI  {
+    cn := n.{{= table.DecapIdentifier}}Table.{{= rev.ReverseIdentifier() }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
     cn.SetParent(n)
     return cn
 }
@@ -62,13 +62,13 @@ func (n *{{= table.DecapIdentifier}}Association) {{= rev.Reference.ReverseIdenti
 func (n *NodeTemplate)genReverseMany(table *model.Table, rev *model.Column, _w io.Writer) (err error) {
 {{
 
-// {{= rev.Reference.ReverseIdentifierPlural }} represents the many-to-one relationship formed by the reverse reference from the
+// {{= rev.ReverseIdentifier() }} represents the many-to-one relationship formed by the reverse reference from the
 // {{= rev.QueryName }} column in the {{= rev.Table.QueryName }} table.
-func (n {{= table.DecapIdentifier }}Table) {{= rev.Reference.ReverseIdentifierPlural }}() {{= rev.Table.Identifier }}Expander  {
+func (n {{= table.DecapIdentifier }}Table) {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}Expander  {
 	cn := &{{= rev.Table.DecapIdentifier }}Reverse{
 		ReverseNode: query.ReverseNode{
 			ColumnQueryName: "{{= rev.QueryName }}",
-			Identifier:      "{{= rev.Reference.ReverseIdentifierPlural }}",
+			Identifier:      "{{= rev.ReverseIdentifier() }}",
 			ReceiverType:    query.{{= rev.Type.String() }},
 		},
 	}
@@ -77,24 +77,24 @@ func (n {{= table.DecapIdentifier }}Table) {{= rev.Reference.ReverseIdentifierPl
 }
 
 {{if hasReverse}}
-func (n *{{= table.DecapIdentifier}}Reference) {{= rev.Reference.ReverseIdentifierPlural }}() {{= rev.Table.Identifier }}Expander  {
-    cn := n.{{= table.DecapIdentifier}}Table.{{= rev.Reference.ReverseIdentifierPlural }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
+func (n *{{= table.DecapIdentifier}}Reference) {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}Expander  {
+    cn := n.{{= table.DecapIdentifier}}Table.{{= rev.ReverseIdentifier() }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
     cn.SetParent(n)
     return cn
 }
 
 {{if}}
 {{if hasReference}}
-func (n *{{= table.DecapIdentifier}}Reverse) {{= rev.Reference.ReverseIdentifierPlural }}() {{= rev.Table.Identifier }}Expander  {
-    cn := n.{{= table.DecapIdentifier}}Table.{{= rev.Reference.ReverseIdentifierPlural }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
+func (n *{{= table.DecapIdentifier}}Reverse) {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}Expander  {
+    cn := n.{{= table.DecapIdentifier}}Table.{{= rev.ReverseIdentifier() }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
     cn.SetParent(n)
     return cn
 }
 
 {{if}}
 {{if hasAssociation}}
-func (n *{{= table.DecapIdentifier}}Association) {{= rev.Reference.ReverseIdentifierPlural }}() {{= rev.Table.Identifier }}Expander  {
-    cn := n.{{= table.DecapIdentifier}}Table.{{= rev.Reference.ReverseIdentifierPlural }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
+func (n *{{= table.DecapIdentifier}}Association) {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}Expander  {
+    cn := n.{{= table.DecapIdentifier}}Table.{{= rev.ReverseIdentifier() }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
     cn.SetParent(n)
     return cn
 }

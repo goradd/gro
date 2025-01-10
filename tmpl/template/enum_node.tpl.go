@@ -271,7 +271,7 @@ func init() {
 
 func (tmpl *EnumNodeTemplate) genPrivate(table *model.Enum, _w io.Writer) (err error) {
 
-	if _, err = io.WriteString(_w, `// SelectNodes_ is used internally by the framework to return the list of column nodes.
+	if _, err = io.WriteString(_w, `// ColumnNodes_ is used internally by the framework to return the list of column nodes.
 func (n `); err != nil {
 		return
 	}
@@ -280,8 +280,8 @@ func (n `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Enum) SelectNodes_() ([]*query.ColumnNode) {
-    return []*query.ColumnNode {
+	if _, err = io.WriteString(_w, `Enum) ColumnNodes_() []query.NodeI {
+    return []query.NodeI {
 `); err != nil {
 		return
 	}
@@ -305,6 +305,76 @@ func (n `); err != nil {
 
 	if _, err = io.WriteString(_w, `	}
 }
+
+func (n `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Association) ColumnNodes_() []query.NodeI {
+    return []query.NodeI {
+`); err != nil {
+		return
+	}
+
+	for i := 0; i < len(table.Fields); i++ {
+
+		if _, err = io.WriteString(_w, `	    n.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.FieldIdentifier(i)); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(),
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `	}
+}
+
+// Columns_ is used internally by the framework to return the list of column names.
+func (n `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Enum) Columns_() []string {
+    return []string {
+`); err != nil {
+		return
+	}
+
+	for i := 0; i < len(table.Fields); i++ {
+
+		if _, err = io.WriteString(_w, `	    "`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.FieldQueryName(i)); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `",
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `	}
+}
+
 
 func (n `); err != nil {
 		return

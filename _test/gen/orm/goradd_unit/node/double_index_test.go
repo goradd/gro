@@ -5,6 +5,7 @@ import (
 
 	"github.com/goradd/orm/pkg/query"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSerializeTableDoubleIndexTable(t *testing.T) {
@@ -24,10 +25,16 @@ func TestSerializeTableDoubleIndexTable(t *testing.T) {
 	for _, cn := range nodes {
 		cn2 := serNode(t, cn)
 		assert.Equal(t, "double_index", cn2.TableName_())
-		assert.Implements(t, (*query.NodeLinker)(nil), cn2)
+		require.Implements(t, (*query.NodeLinker)(nil), cn2)
 		assert.Equal(t, query.TableNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
 	}
 }
 
 func TestSerializeReferencesDoubleIndexTable(t *testing.T) {
+}
+
+func TestSerializeReverseReferencesDoubleIndexTable(t *testing.T) {
+}
+
+func TestSerializeAssociationsDoubleIndexTable(t *testing.T) {
 }

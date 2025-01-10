@@ -5,6 +5,7 @@ import (
 
 	"github.com/goradd/orm/pkg/query"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSerializeTableMilestoneTable(t *testing.T) {
@@ -24,7 +25,7 @@ func TestSerializeTableMilestoneTable(t *testing.T) {
 	for _, cn := range nodes {
 		cn2 := serNode(t, cn)
 		assert.Equal(t, "milestone", cn2.TableName_())
-		assert.Implements(t, (*query.NodeLinker)(nil), cn2)
+		require.Implements(t, (*query.NodeLinker)(nil), cn2)
 		assert.Equal(t, query.TableNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
 	}
 }
@@ -42,9 +43,15 @@ func TestSerializeReferencesMilestoneTable(t *testing.T) {
 		for _, cn := range nodes {
 			cn2 := serNode(t, cn)
 			assert.Equal(t, n.TableName_(), cn2.TableName_())
-			assert.Implements(t, (*query.NodeLinker)(nil), cn2)
+			require.Implements(t, (*query.NodeLinker)(nil), cn2)
 			assert.Equal(t, query.ReferenceNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
 		}
 	}
 
+}
+
+func TestSerializeReverseReferencesMilestoneTable(t *testing.T) {
+}
+
+func TestSerializeAssociationsMilestoneTable(t *testing.T) {
 }

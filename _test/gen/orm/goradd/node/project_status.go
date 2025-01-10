@@ -52,14 +52,35 @@ func init() {
 	gob.Register(new(projectStatusReference))
 }
 
-// SelectNodes_ is used internally by the framework to return the list of column nodes.
-func (n projectStatusEnum) SelectNodes_() []*query.ColumnNode {
-	return []*query.ColumnNode{
+// ColumnNodes_ is used internally by the framework to return the list of column nodes.
+func (n projectStatusEnum) ColumnNodes_() []query.NodeI {
+	return []query.NodeI{
 		n.ID(),
 		n.Name(),
 		n.Description(),
 		n.Guidelines(),
 		n.IsActive(),
+	}
+}
+
+func (n projectStatusAssociation) ColumnNodes_() []query.NodeI {
+	return []query.NodeI{
+		n.ID(),
+		n.Name(),
+		n.Description(),
+		n.Guidelines(),
+		n.IsActive(),
+	}
+}
+
+// Columns_ is used internally by the framework to return the list of column names.
+func (n projectStatusEnum) Columns_() []string {
+	return []string{
+		"id",
+		"name",
+		"description",
+		"guidelines",
+		"is_active",
 	}
 }
 

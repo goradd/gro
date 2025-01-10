@@ -74,14 +74,32 @@ func init() {
 
 func (tmpl *EnumNodeTemplate)genPrivate(table *model.Enum, _w io.Writer) (err error) {
 {{
-// SelectNodes_ is used internally by the framework to return the list of column nodes.
-func (n {{= table.DecapIdentifier }}Enum) SelectNodes_() ([]*query.ColumnNode) {
-    return []*query.ColumnNode {
+// ColumnNodes_ is used internally by the framework to return the list of column nodes.
+func (n {{= table.DecapIdentifier }}Enum) ColumnNodes_() []query.NodeI {
+    return []query.NodeI {
 {{for i := 0; i < len(table.Fields); i++}}
 	    n.{{= table.FieldIdentifier(i) }}(),
 {{for}}
 	}
 }
+
+func (n {{= table.DecapIdentifier }}Association) ColumnNodes_() []query.NodeI {
+    return []query.NodeI {
+{{for i := 0; i < len(table.Fields); i++}}
+	    n.{{= table.FieldIdentifier(i) }}(),
+{{for}}
+	}
+}
+
+// Columns_ is used internally by the framework to return the list of column names.
+func (n {{= table.DecapIdentifier }}Enum) Columns_() []string {
+    return []string {
+{{for i := 0; i < len(table.Fields); i++}}
+	    "{{= table.FieldQueryName(i) }}",
+{{for}}
+	}
+}
+
 
 func (n {{= table.DecapIdentifier}}Enum) NodeType_() query.NodeType {
 	return query.EnumNodeType
