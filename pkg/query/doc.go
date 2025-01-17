@@ -1,6 +1,5 @@
 /*
-Package query primarily contains code used internally by the framework to build queries. You will primarily
-interact with Nodes through the code generated ORM structures. Other than working with Nodes, you will
-not likely need to use the query package, unless you are creating a database driver.
+Package query contains code used by the code generated ORM.
+Developers will not normally need to refer to code here.
 */
 package query

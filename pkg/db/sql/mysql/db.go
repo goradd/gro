@@ -1,7 +1,6 @@
 package mysql
 
 import (
-	"context"
 	sqldb "database/sql"
 	"fmt"
 	"github.com/go-sql-driver/mysql"
@@ -140,11 +139,6 @@ func OverrideConfigSettings(config *mysql.Config, jsonContent map[string]interfa
 	// The other config options effect how queries work, and so should be set before
 	// calling this function, as they will change how the GO code for these queries will
 	// need to be written.
-}
-
-// NewBuilder returns a new query builder to build a query that will be processed by the database.
-func (m *DB) NewBuilder(ctx context.Context) QueryBuilderI {
-	return sql2.NewSqlBuilder(ctx, m)
 }
 
 // QuoteIdentifier surrounds the given identifier with quote characters

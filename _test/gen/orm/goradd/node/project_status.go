@@ -11,7 +11,7 @@ import (
 
 // ProjectStatusNodeI is the builder interface to the ProjectStatus nodes.
 type ProjectStatusNodeI interface {
-	query.NodeI
+	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	ID() *query.ColumnNode
 	Name() *query.ColumnNode
@@ -53,8 +53,8 @@ func init() {
 }
 
 // ColumnNodes_ is used internally by the framework to return the list of column nodes.
-func (n projectStatusEnum) ColumnNodes_() []query.NodeI {
-	return []query.NodeI{
+func (n projectStatusEnum) ColumnNodes_() []query.Node {
+	return []query.Node{
 		n.ID(),
 		n.Name(),
 		n.Description(),
@@ -63,8 +63,8 @@ func (n projectStatusEnum) ColumnNodes_() []query.NodeI {
 	}
 }
 
-func (n projectStatusAssociation) ColumnNodes_() []query.NodeI {
-	return []query.NodeI{
+func (n projectStatusAssociation) ColumnNodes_() []query.Node {
+	return []query.Node{
 		n.ID(),
 		n.Name(),
 		n.Description(),

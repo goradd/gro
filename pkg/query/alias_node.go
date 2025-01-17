@@ -6,7 +6,7 @@ import (
 )
 
 type AliasNodeI interface {
-	NodeI
+	Node
 	Aliaser
 }
 
@@ -14,15 +14,6 @@ type AliasNodeI interface {
 // to a computed value.
 type AliasNode struct {
 	nodeAlias
-}
-
-// Alias returns an AliasNode type, which allows you to refer to a prior created named alias operation.
-func Alias(goName string) *AliasNode {
-	return &AliasNode{
-		nodeAlias{
-			alias: goName,
-		},
-	}
 }
 
 func (n *AliasNode) NodeType_() NodeType {
@@ -37,25 +28,15 @@ func (n *AliasNode) DatabaseKey_() string {
 	return ""
 }
 
-// equals returns true if the given node points to the same alias value as receiver.
-func (n *AliasNode) equals(n2 NodeI) bool {
-	if a, ok := n2.(*AliasNode); ok {
-		return a.alias == n.alias
+// Alias returns an AliasNode type, which allows you to refer to a prior created named alias operation.
+// TODO: Add this to all node structures instead
+func Alias(name string) *AliasNode {
+	return &AliasNode{
+		nodeAlias{
+			alias: name,
+		},
 	}
-	return false
 }
-
-func (n *AliasNode) log(level int) {
-	//tabs := strings.Repeat("\t", level)
-	//log.FrameworkDebug(tabs + "Alias: " + n.alias)
-}
-
-// Return the name as a capitalized object name
-/* I don't think an alias should have a go name
-func (n *AliasNode) goName() string {
-	return n.alias
-}
-*/
 
 func (n *AliasNode) GobEncode() (data []byte, err error) {
 	var buf bytes.Buffer
@@ -79,4 +60,9 @@ func (n *AliasNode) GobDecode(data []byte) (err error) {
 
 func init() {
 	gob.Register(&AliasNode{})
+}
+
+// id is a unique identifier within the parent namespace and satisfies the ider interface
+func (n *AliasNode) id() string {
+	return n.alias
 }

@@ -58,12 +58,12 @@ func Like(n interface{}, pattern string) *OperationNode {
 }
 
 // In tests to see if the given node is in the "what" list
-func In[T any](n NodeI, what ...T) *OperationNode {
+func In[T any](n Node, what ...T) *OperationNode {
 	return NewOperationNode(OpIn, n, what)
 }
 
 // NotIn tests to see if the given node is NOT in the "what" list
-func NotIn[T any](n NodeI, what ...T) *OperationNode {
+func NotIn[T any](n Node, what ...T) *OperationNode {
 	return NewOperationNode(OpNotIn, n, what)
 }
 

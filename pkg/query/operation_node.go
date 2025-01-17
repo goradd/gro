@@ -8,7 +8,7 @@ import (
 )
 
 type OperationNodeI interface {
-	nodeContainer
+	container
 	Aliaser
 }
 
@@ -86,12 +86,12 @@ func (o Operator) String() string {
 type OperationNode struct {
 	nodeAlias
 	op           Operator
-	operands     []NodeI
+	operands     []Node
 	functionName string // for function operations specific to the db driver
 	distinct     bool   // some aggregate queries, particularly count, allow this inside the function
 }
 
-// NewOperationNode returns a new operation.
+// NewOperationNode returns a new operation node.
 func NewOperationNode(op Operator, operands ...interface{}) *OperationNode {
 	n := &OperationNode{
 		op: op,
@@ -111,13 +111,18 @@ func NewFunctionNode(functionName string, operands ...interface{}) *OperationNod
 }
 
 // NewCountNode creates a Count function node. If no operands are given, it will use * as the parameter to the function
-// which means it will count nulls. To NOT count nulls, at least one table name needs to be specified.
-func NewCountNode(operands ...NodeI) *OperationNode {
+// which means it will count nulls. To NOT count nulls, a node needs to be specified. Only up to one node can be specified.
+func NewCountNode(operands ...Node) *OperationNode {
 	n := &OperationNode{
 		op:           OpFunc,
 		functionName: "COUNT",
 	}
-	for _, op := range operands {
+	// Note: Some SQLs like MySQL and Postgres allow multiple operands combined with DISTINCT.
+	// However, others do not. We support only the universally accepted way.
+	if len(operands) > 1 {
+		panic("can only specify one operand in a count operation")
+	}
+	for _, op := range operands { // 0 or 1
 		n.operands = append(n.operands, op)
 	}
 
@@ -128,13 +133,13 @@ func (n *OperationNode) NodeType_() NodeType {
 	return OperationNodeType
 }
 
-// assignOperands processes the list of operands at run time, making sure all static values are escaped
+// assignOperands processes the list of operands at run time, making sure all static values are escaped.
 func (n *OperationNode) assignOperands(operands ...interface{}) {
 	var op interface{}
 
 	if operands != nil {
 		for _, op = range operands {
-			if ni, ok := op.(NodeI); ok {
+			if ni, ok := op.(Node); ok {
 				n.operands = append(n.operands, ni)
 			} else {
 				n.operands = append(n.operands, NewValueNode(op))
@@ -143,68 +148,15 @@ func (n *OperationNode) assignOperands(operands ...interface{}) {
 	}
 }
 
-/*
-func (n *OperationNode) Ascending() *OperationNode {
-	n.sortDescending = false
-	return n
-}
-
-func (n *OperationNode) Descending() *OperationNode {
-	n.sortDescending = true
-	return n
-}
-*/
-
 // Distinct sets the operation to return distinct results
 func (n *OperationNode) Distinct() *OperationNode {
 	n.distinct = true
 	return n
 }
 
-/*
-func (n *OperationNode) sortDesc() bool {
-	return n.sortDescending
-}
-*/
-
-// equals is used internally by the framework to tell if two nodes are equal
-func (n *OperationNode) equals(n2 NodeI) bool {
-	if cn, ok := n2.(*OperationNode); ok {
-		if cn.op != n.op {
-			return false
-		}
-		if cn.functionName != n.functionName {
-			return false
-		}
-		/*
-			if cn.isAggregate != n.isAggregate {
-				return false
-			}
-		*/
-		/*
-			if cn.sortDescending != n.sortDescending {
-				return false
-			}*/
-		if cn.operands == nil && n.operands == nil {
-			return true // neither side has operands, so no need to check further
-		}
-		if len(cn.operands) != len(n.operands) {
-			return false
-		}
-
-		for i, o := range n.operands {
-			if !NodeIsEqual(o, cn.operands[i]) {
-				return false
-			}
-		}
-		return true
-	}
-	return false
-}
-
-func (n *OperationNode) containedNodes() (nodes []NodeI) {
+func (n *OperationNode) containedNodes() (nodes []Node) {
 	for _, op := range n.operands {
-		if nc, ok := op.(nodeContainer); ok {
+		if nc, ok := op.(container); ok {
 			nodes = append(nodes, nc.containedNodes()...)
 		} else {
 			nodes = append(nodes, op)
@@ -280,7 +232,7 @@ func OperationNodeOperator(n *OperationNode) Operator {
 }
 
 // OperationNodeOperands is used internally by the framework to get the operands.
-func OperationNodeOperands(n *OperationNode) []NodeI {
+func OperationNodeOperands(n *OperationNode) []Node {
 	return n.operands
 }
 
@@ -294,13 +246,6 @@ func OperationNodeDistinct(n *OperationNode) bool {
 	return n.distinct
 }
 
-/*
-func OperationIsAggregate(n *OperationNode) bool {
-	return n.isAggregate
+func (n *OperationNode) id() string {
+	return n.alias
 }
-*/
-/*
-func OperationSortDescending(n *OperationNode) bool {
-	return n.sortDescending
-}
-*/

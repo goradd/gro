@@ -9,7 +9,7 @@ import (
 )
 
 func TestSerializeTableMilestoneTable(t *testing.T) {
-	var n query.NodeI = Milestone()
+	var n query.Node = Milestone()
 
 	assert.Equal(t, "milestone", n.TableName_())
 	assert.Equal(t, query.TableNodeType, n.NodeType_())
@@ -25,8 +25,8 @@ func TestSerializeTableMilestoneTable(t *testing.T) {
 	for _, cn := range nodes {
 		cn2 := serNode(t, cn)
 		assert.Equal(t, "milestone", cn2.TableName_())
-		require.Implements(t, (*query.NodeLinker)(nil), cn2)
-		assert.Equal(t, query.TableNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
+		require.Implements(t, (*query.Linker)(nil), cn2)
+		assert.Equal(t, query.TableNodeType, cn2.(query.Linker).Parent().NodeType_())
 	}
 }
 
@@ -35,7 +35,7 @@ func TestSerializeReferencesMilestoneTable(t *testing.T) {
 	{
 		n := Milestone().Project()
 		n2 := serNode(t, n)
-		parentNode := n2.(query.NodeLinker).Parent()
+		parentNode := n2.(query.Linker).Parent()
 		assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
 		assert.Equal(t, "milestone", parentNode.TableName_())
 
@@ -43,8 +43,8 @@ func TestSerializeReferencesMilestoneTable(t *testing.T) {
 		for _, cn := range nodes {
 			cn2 := serNode(t, cn)
 			assert.Equal(t, n.TableName_(), cn2.TableName_())
-			require.Implements(t, (*query.NodeLinker)(nil), cn2)
-			assert.Equal(t, query.ReferenceNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
+			require.Implements(t, (*query.Linker)(nil), cn2)
+			assert.Equal(t, query.ReferenceNodeType, cn2.(query.Linker).Parent().NodeType_())
 		}
 	}
 

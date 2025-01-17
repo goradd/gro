@@ -7,6 +7,15 @@ import (
 	"strings"
 )
 
+type SubqueryCommand int
+
+const (
+	SubqueryCommandDefault SubqueryCommand = iota
+	SubqueryCommandLoad
+	SubqueryCommandGet
+	SubqueryCommandCount
+)
+
 // A SubqueryNode represents a "select" subquery. Subqueries are not always portable to other databases, and are not
 // easily checked for syntax errors, since a subquery can return a scalar, vector, or even an entire table.
 // You generally do not create a subquery node directly, but rather you use the codegenerated models to start a
@@ -14,14 +23,30 @@ import (
 // that you can embed in other queries.
 type SubqueryNode struct {
 	nodeAlias
-	b QueryBuilderI
+	b   BuilderI
+	cmd SubqueryCommand
 }
 
 // NewSubqueryNode creates a new subquery
-func NewSubqueryNode(b QueryBuilderI) *SubqueryNode {
+func NewSubqueryNode(b BuilderI) *SubqueryNode {
 	n := &SubqueryNode{
 		b: b,
 	}
+	return n
+}
+
+func (n *SubqueryNode) Load() *SubqueryNode {
+	n.cmd = SubqueryCommandLoad
+	return n
+}
+
+func (n *SubqueryNode) Get() *SubqueryNode {
+	n.cmd = SubqueryCommandGet
+	return n
+}
+
+func (n *SubqueryNode) Count() *SubqueryNode {
+	n.cmd = SubqueryCommandCount
 	return n
 }
 
@@ -30,7 +55,7 @@ func (n *SubqueryNode) NodeType_() NodeType {
 }
 
 // equals is used internally by the framework to determine if two nodes are equal
-func (n *SubqueryNode) equals(n2 NodeI) bool {
+func (n *SubqueryNode) equals(n2 Node) bool {
 	if cn, ok := n2.(*SubqueryNode); ok {
 		return cn.b == n.b
 	}
@@ -38,12 +63,12 @@ func (n *SubqueryNode) equals(n2 NodeI) bool {
 }
 
 /*
-func (n *SubqueryNode) containedNodes() (nodes []NodeI) {
+func (n *SubqueryNode) containedNodes() (nodes []QueryNode) {
 	nodes = append(nodes, n) // Return the subquery node itself, because we need to do some work on it
 
 	// must expand the returned nodes one more time
 	for _,n2 := range n.b.nodes() {	// Refers back to db package, so do this differently
-		if cn,_ := n2.(nodeContainer); cn != nil {
+		if cn,_ := n2.(container); cn != nil {
 			nodes = append(nodes, cn.containedNodes()...)
 		} else {
 			nodes = append(nodes, n2)
@@ -97,6 +122,13 @@ func init() {
 }
 
 // SubqueryBuilder is used internally by the framework to return the internal query builder of the subquery
-func SubqueryBuilder(n *SubqueryNode) QueryBuilderI {
+func SubqueryBuilder(n *SubqueryNode) BuilderI {
 	return n.b
+}
+func SubqueryCmd(n *SubqueryNode) SubqueryCommand {
+	return n.cmd
+}
+
+func (n *SubqueryNode) id() string {
+	return n.alias
 }

@@ -255,7 +255,7 @@ func (o *forwardCascadeUniqueBase) IsNew() bool {
 // LoadForwardCascadeUnique returns a ForwardCascadeUnique from the database.
 // joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
 // be considered Join nodes, and column nodes will be Select nodes. See [ForwardCascadeUniquesBuilder.Join] and [ForwardCascadeUniquesBuilder.Select] for more info.
-func LoadForwardCascadeUnique(ctx context.Context, id string, joinOrSelectNodes ...query.NodeI) *ForwardCascadeUnique {
+func LoadForwardCascadeUnique(ctx context.Context, id string, joinOrSelectNodes ...query.Node) *ForwardCascadeUnique {
 	return queryForwardCascadeUniques(ctx).
 		Where(op.Equal(node.ForwardCascadeUnique().ID(), id)).
 		joinOrSelect(joinOrSelectNodes...).
@@ -274,7 +274,7 @@ func HasForwardCascadeUnique(ctx context.Context, id string) bool {
 // joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
 // be considered Join nodes, and column nodes will be Select nodes. See [ForwardCascadeUniquesBuilder.Join] and [ForwardCascadeUniquesBuilder.Select] for more info.
 // If you need a more elaborate query, use QueryForwardCascadeUniques() to start a query builder.
-func LoadForwardCascadeUniqueByReverseID(ctx context.Context, reverseID interface{}, joinOrSelectNodes ...query.NodeI) *ForwardCascadeUnique {
+func LoadForwardCascadeUniqueByReverseID(ctx context.Context, reverseID interface{}, joinOrSelectNodes ...query.Node) *ForwardCascadeUnique {
 	q := queryForwardCascadeUniques(ctx)
 	if reverseID == nil {
 		q = q.Where(op.IsNull(node.ForwardCascadeUnique().ReverseID()))
@@ -393,7 +393,7 @@ func (b *ForwardCascadeUniquesBuilder) Get() *ForwardCascadeUnique {
 
 // Join adds node n to the node tree so that its fields will appear in the query.
 // Optionally add conditions to filter what gets included.
-func (b *ForwardCascadeUniquesBuilder) Join(n query.NodeI, conditions ...query.NodeI) *ForwardCascadeUniquesBuilder {
+func (b *ForwardCascadeUniquesBuilder) Join(n query.Node, conditions ...query.Node) *ForwardCascadeUniquesBuilder {
 	if !query.NodeIsTableNodeI(n) {
 		panic("you can only join Table, Reference, ReverseReference and ManyManyReference nodes")
 	}
@@ -402,7 +402,7 @@ func (b *ForwardCascadeUniquesBuilder) Join(n query.NodeI, conditions ...query.N
 		panic("you can only join a node that is rooted at node.ForwardCascadeUnique()")
 	}
 
-	var condition query.NodeI
+	var condition query.Node
 	if len(conditions) > 1 {
 		condition = op.And(conditions)
 	} else if len(conditions) == 1 {
@@ -413,13 +413,13 @@ func (b *ForwardCascadeUniquesBuilder) Join(n query.NodeI, conditions ...query.N
 }
 
 // Where adds a condition to filter what gets selected.
-func (b *ForwardCascadeUniquesBuilder) Where(c query.NodeI) *ForwardCascadeUniquesBuilder {
+func (b *ForwardCascadeUniquesBuilder) Where(c query.Node) *ForwardCascadeUniquesBuilder {
 	b.builder.Condition(c)
 	return b
 }
 
 // OrderBy specifies how the resulting data should be sorted.
-func (b *ForwardCascadeUniquesBuilder) OrderBy(nodes ...query.NodeI) *ForwardCascadeUniquesBuilder {
+func (b *ForwardCascadeUniquesBuilder) OrderBy(nodes ...query.Node) *ForwardCascadeUniquesBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
@@ -434,14 +434,14 @@ func (b *ForwardCascadeUniquesBuilder) Limit(maxRowCount int, offset int) *Forwa
 // specify all the fields that you will eventually read out. Be careful when selecting fields in joined tables, as joined
 // tables will also contain pointers back to the parent table, and so the parent node should have the same field selected
 // as the child node if you are querying those fields.
-func (b *ForwardCascadeUniquesBuilder) Select(nodes ...query.NodeI) *ForwardCascadeUniquesBuilder {
+func (b *ForwardCascadeUniquesBuilder) Select(nodes ...query.Node) *ForwardCascadeUniquesBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
-// Alias lets you add a node with a custom name. After the query, you can read out the data using GetAlias() on a
+// Alias lets you add a node with a custom name. After the query, you can read out the data using Alias() on a
 // returned object. Alias is useful for adding calculations or subqueries to the query.
-func (b *ForwardCascadeUniquesBuilder) Alias(name string, n query.NodeI) *ForwardCascadeUniquesBuilder {
+func (b *ForwardCascadeUniquesBuilder) Alias(name string, n query.Node) *ForwardCascadeUniquesBuilder {
 	b.builder.Alias(name, n)
 	return b
 }
@@ -455,13 +455,13 @@ func (b *ForwardCascadeUniquesBuilder) Distinct() *ForwardCascadeUniquesBuilder 
 }
 
 // GroupBy controls how results are grouped when using aggregate functions in an Alias() call.
-func (b *ForwardCascadeUniquesBuilder) GroupBy(nodes ...query.NodeI) *ForwardCascadeUniquesBuilder {
+func (b *ForwardCascadeUniquesBuilder) GroupBy(nodes ...query.Node) *ForwardCascadeUniquesBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
 // Having does additional filtering on the results of the query.
-func (b *ForwardCascadeUniquesBuilder) Having(node query.NodeI) *ForwardCascadeUniquesBuilder {
+func (b *ForwardCascadeUniquesBuilder) Having(node query.Node) *ForwardCascadeUniquesBuilder {
 	b.builder.Having(node)
 	return b
 }
@@ -471,7 +471,7 @@ func (b *ForwardCascadeUniquesBuilder) Having(node query.NodeI) *ForwardCascadeU
 // distinct wll count the number of distinct items, ignoring duplicates.
 //
 // nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *ForwardCascadeUniquesBuilder) Count(distinct bool, nodes ...query.NodeI) uint {
+func (b *ForwardCascadeUniquesBuilder) Count(distinct bool, nodes ...query.Node) uint {
 	return b.builder.Count(distinct, nodes...)
 }
 
@@ -489,7 +489,7 @@ func (b *ForwardCascadeUniquesBuilder) Subquery() *query.SubqueryNode {
 }
 
 // joinOrSelect is a private helper function for the Load* functions
-func (b *ForwardCascadeUniquesBuilder) joinOrSelect(nodes ...query.NodeI) *ForwardCascadeUniquesBuilder {
+func (b *ForwardCascadeUniquesBuilder) joinOrSelect(nodes ...query.Node) *ForwardCascadeUniquesBuilder {
 	for _, n := range nodes {
 		switch n.(type) {
 		case query.TableNodeI:

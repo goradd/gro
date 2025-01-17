@@ -9,5 +9,5 @@ func TestAliasNodeInterfaces(t *testing.T) {
 	n := Alias("test")
 
 	assert.Implements(t, (*AliasNodeI)(nil), n)
-	assert.Equal(t, "test", n.GetAlias())
+	assert.Equal(t, "test", n.Alias())
 }

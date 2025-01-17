@@ -13,14 +13,14 @@ import (
 )
 
 // serialize and deserialize the node
-func serNode(t *testing.T, n query.NodeI) query.NodeI {
+func serNode(t *testing.T, n query.Node) query.Node {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 
 	err := enc.Encode(&n)
 	assert.NoError(t, err)
 
-	var n2 query.NodeI
+	var n2 query.Node
 	dec := gob.NewDecoder(&buf)
 	err = dec.Decode(&n2)
 	assert.NoError(t, err)
@@ -30,7 +30,7 @@ func serNode(t *testing.T, n query.NodeI) query.NodeI {
 func TestNodeSerializeReference(t *testing.T) {
 	ctx := db.NewContext(nil)
 
-	var n query.NodeI = node.Project().Manager()
+	var n query.Node = node.Project().Manager()
 	proj := goradd.LoadProject(ctx, "1", n)
 	assert.Equal(t, proj.Manager().LastName(), "Wolfe")
 
@@ -43,7 +43,7 @@ func TestNodeSerializeReference(t *testing.T) {
 
 func TestNodeSerializeReverseReference(t *testing.T) {
 	ctx := db.NewContext(nil)
-	var n query.NodeI = node.Person().ManagerProjects()
+	var n query.Node = node.Person().ManagerProjects()
 
 	n2 := serNode(t, n)
 
@@ -55,7 +55,7 @@ func TestNodeSerializeReverseReference(t *testing.T) {
 
 func TestNodeSerializeManyMany(t *testing.T) {
 	ctx := db.NewContext(nil)
-	var n query.NodeI = node.Person().Projects()
+	var n query.Node = node.Person().Projects()
 
 	n2 := serNode(t, n)
 

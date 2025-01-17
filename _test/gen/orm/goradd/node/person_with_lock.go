@@ -11,7 +11,7 @@ import (
 
 // PersonWithLockNodeI is the builder interface to the PersonWithLock nodes.
 type PersonWithLockNodeI interface {
-	query.NodeI
+	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// ID represents the id column in the database.
 	ID() *query.ColumnNode
@@ -64,7 +64,7 @@ func (n personWithLockTable) DatabaseKey_() string {
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
 // This may include reference nodes to enum types.
-func (n personWithLockTable) ColumnNodes_() (nodes []query.NodeI) {
+func (n personWithLockTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.FirstName())
 	nodes = append(nodes, n.LastName())
@@ -72,10 +72,10 @@ func (n personWithLockTable) ColumnNodes_() (nodes []query.NodeI) {
 	return nodes
 }
 
-func (n *personWithLockReverse) ColumnNodes_() (nodes []query.NodeI) {
+func (n *personWithLockReverse) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.personWithLockTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.NodeLinker).SetParent(n)
+		cn.(query.Linker).SetParent(n)
 	}
 	return
 }

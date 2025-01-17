@@ -83,11 +83,6 @@ func OverrideConfigSettings(config *pgx.ConnConfig, jsonContent map[string]inter
 	}
 }
 
-// NewBuilder returns a new query builder to build a query that will be processed by the database.
-func (m *DB) NewBuilder(ctx context.Context) QueryBuilderI {
-	return sql2.NewSqlBuilder(ctx, m)
-}
-
 // QuoteIdentifier surrounds the given identifier with quote characters
 // appropriate for Postgres
 func (m *DB) QuoteIdentifier(v string) string {

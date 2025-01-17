@@ -8,8 +8,10 @@ package sql
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/goradd/orm/pkg/db"
+	"github.com/goradd/orm/pkg/db/jointree"
 	. "github.com/goradd/orm/pkg/query"
 	"log/slog"
 	"strings"
@@ -320,4 +322,49 @@ func (h *DbHelper) Update(ctx context.Context,
 	if e != nil {
 		panic(e.Error())
 	}
+}
+
+// BuilderQuery performs a complex query using a query builder.
+// The data returned will depend on the command inside the builder.
+func (h *DbHelper) BuilderQuery(ctx context.Context, builder BuilderI) interface{} {
+	joinTree := jointree.NewJoinTree(builder)
+	switch joinTree.Command {
+	case BuilderCommandLoad:
+		return h.builderLoad(ctx, joinTree)
+	}
+	return nil
+}
+
+func (h *DbHelper) builderLoad(ctx context.Context, joinTree *jointree.JoinTree) map[string]interface{} {
+	g := newSelectGenerator(joinTree, h.dbi)
+	s := g.generateSelectSql()
+	args := g.argList
+
+	rows, err := h.dbi.SqlQuery(ctx, s, args...)
+
+	if err != nil {
+		// This is possibly generating an error related to the sql itself, so put the sql in the error message.
+		s := err.Error()
+		s += "\nSql: " + s
+
+		panic(errors.New(s))
+	}
+
+	names, _ := rows.Columns()
+
+	// prepare the selected columns for unpacking
+	columnTypes := make([]ReceiverType, 0, len(names))
+	for sel := range joinTree.SelectsIter() {
+		t := sel.QueryNode.(*ColumnNode).ReceiverType
+		columnTypes = append(columnTypes, t)
+	}
+	// add special aliases
+	for i := len(columnTypes); i < len(names); i++ {
+		columnTypes = append(columnTypes, ColTypeBytes) // These will be unpacked when they are retrieved
+	}
+
+	result = SqlReceiveRows(rows, columnTypes, names, b)
+
+	return result
+
 }

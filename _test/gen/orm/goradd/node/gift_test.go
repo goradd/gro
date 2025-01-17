@@ -9,7 +9,7 @@ import (
 )
 
 func TestSerializeTableGiftTable(t *testing.T) {
-	var n query.NodeI = Gift()
+	var n query.Node = Gift()
 
 	assert.Equal(t, "gift", n.TableName_())
 	assert.Equal(t, query.TableNodeType, n.NodeType_())
@@ -25,8 +25,8 @@ func TestSerializeTableGiftTable(t *testing.T) {
 	for _, cn := range nodes {
 		cn2 := serNode(t, cn)
 		assert.Equal(t, "gift", cn2.TableName_())
-		require.Implements(t, (*query.NodeLinker)(nil), cn2)
-		assert.Equal(t, query.TableNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
+		require.Implements(t, (*query.Linker)(nil), cn2)
+		assert.Equal(t, query.TableNodeType, cn2.(query.Linker).Parent().NodeType_())
 	}
 }
 

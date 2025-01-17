@@ -255,7 +255,7 @@ func (o *forwardRestrictUniqueBase) IsNew() bool {
 // LoadForwardRestrictUnique returns a ForwardRestrictUnique from the database.
 // joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
 // be considered Join nodes, and column nodes will be Select nodes. See [ForwardRestrictUniquesBuilder.Join] and [ForwardRestrictUniquesBuilder.Select] for more info.
-func LoadForwardRestrictUnique(ctx context.Context, id string, joinOrSelectNodes ...query.NodeI) *ForwardRestrictUnique {
+func LoadForwardRestrictUnique(ctx context.Context, id string, joinOrSelectNodes ...query.Node) *ForwardRestrictUnique {
 	return queryForwardRestrictUniques(ctx).
 		Where(op.Equal(node.ForwardRestrictUnique().ID(), id)).
 		joinOrSelect(joinOrSelectNodes...).
@@ -274,7 +274,7 @@ func HasForwardRestrictUnique(ctx context.Context, id string) bool {
 // joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
 // be considered Join nodes, and column nodes will be Select nodes. See [ForwardRestrictUniquesBuilder.Join] and [ForwardRestrictUniquesBuilder.Select] for more info.
 // If you need a more elaborate query, use QueryForwardRestrictUniques() to start a query builder.
-func LoadForwardRestrictUniqueByReverseID(ctx context.Context, reverseID interface{}, joinOrSelectNodes ...query.NodeI) *ForwardRestrictUnique {
+func LoadForwardRestrictUniqueByReverseID(ctx context.Context, reverseID interface{}, joinOrSelectNodes ...query.Node) *ForwardRestrictUnique {
 	q := queryForwardRestrictUniques(ctx)
 	if reverseID == nil {
 		q = q.Where(op.IsNull(node.ForwardRestrictUnique().ReverseID()))
@@ -393,7 +393,7 @@ func (b *ForwardRestrictUniquesBuilder) Get() *ForwardRestrictUnique {
 
 // Join adds node n to the node tree so that its fields will appear in the query.
 // Optionally add conditions to filter what gets included.
-func (b *ForwardRestrictUniquesBuilder) Join(n query.NodeI, conditions ...query.NodeI) *ForwardRestrictUniquesBuilder {
+func (b *ForwardRestrictUniquesBuilder) Join(n query.Node, conditions ...query.Node) *ForwardRestrictUniquesBuilder {
 	if !query.NodeIsTableNodeI(n) {
 		panic("you can only join Table, Reference, ReverseReference and ManyManyReference nodes")
 	}
@@ -402,7 +402,7 @@ func (b *ForwardRestrictUniquesBuilder) Join(n query.NodeI, conditions ...query.
 		panic("you can only join a node that is rooted at node.ForwardRestrictUnique()")
 	}
 
-	var condition query.NodeI
+	var condition query.Node
 	if len(conditions) > 1 {
 		condition = op.And(conditions)
 	} else if len(conditions) == 1 {
@@ -413,13 +413,13 @@ func (b *ForwardRestrictUniquesBuilder) Join(n query.NodeI, conditions ...query.
 }
 
 // Where adds a condition to filter what gets selected.
-func (b *ForwardRestrictUniquesBuilder) Where(c query.NodeI) *ForwardRestrictUniquesBuilder {
+func (b *ForwardRestrictUniquesBuilder) Where(c query.Node) *ForwardRestrictUniquesBuilder {
 	b.builder.Condition(c)
 	return b
 }
 
 // OrderBy specifies how the resulting data should be sorted.
-func (b *ForwardRestrictUniquesBuilder) OrderBy(nodes ...query.NodeI) *ForwardRestrictUniquesBuilder {
+func (b *ForwardRestrictUniquesBuilder) OrderBy(nodes ...query.Node) *ForwardRestrictUniquesBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
@@ -434,14 +434,14 @@ func (b *ForwardRestrictUniquesBuilder) Limit(maxRowCount int, offset int) *Forw
 // specify all the fields that you will eventually read out. Be careful when selecting fields in joined tables, as joined
 // tables will also contain pointers back to the parent table, and so the parent node should have the same field selected
 // as the child node if you are querying those fields.
-func (b *ForwardRestrictUniquesBuilder) Select(nodes ...query.NodeI) *ForwardRestrictUniquesBuilder {
+func (b *ForwardRestrictUniquesBuilder) Select(nodes ...query.Node) *ForwardRestrictUniquesBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
-// Alias lets you add a node with a custom name. After the query, you can read out the data using GetAlias() on a
+// Alias lets you add a node with a custom name. After the query, you can read out the data using Alias() on a
 // returned object. Alias is useful for adding calculations or subqueries to the query.
-func (b *ForwardRestrictUniquesBuilder) Alias(name string, n query.NodeI) *ForwardRestrictUniquesBuilder {
+func (b *ForwardRestrictUniquesBuilder) Alias(name string, n query.Node) *ForwardRestrictUniquesBuilder {
 	b.builder.Alias(name, n)
 	return b
 }
@@ -455,13 +455,13 @@ func (b *ForwardRestrictUniquesBuilder) Distinct() *ForwardRestrictUniquesBuilde
 }
 
 // GroupBy controls how results are grouped when using aggregate functions in an Alias() call.
-func (b *ForwardRestrictUniquesBuilder) GroupBy(nodes ...query.NodeI) *ForwardRestrictUniquesBuilder {
+func (b *ForwardRestrictUniquesBuilder) GroupBy(nodes ...query.Node) *ForwardRestrictUniquesBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
 // Having does additional filtering on the results of the query.
-func (b *ForwardRestrictUniquesBuilder) Having(node query.NodeI) *ForwardRestrictUniquesBuilder {
+func (b *ForwardRestrictUniquesBuilder) Having(node query.Node) *ForwardRestrictUniquesBuilder {
 	b.builder.Having(node)
 	return b
 }
@@ -471,7 +471,7 @@ func (b *ForwardRestrictUniquesBuilder) Having(node query.NodeI) *ForwardRestric
 // distinct wll count the number of distinct items, ignoring duplicates.
 //
 // nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *ForwardRestrictUniquesBuilder) Count(distinct bool, nodes ...query.NodeI) uint {
+func (b *ForwardRestrictUniquesBuilder) Count(distinct bool, nodes ...query.Node) uint {
 	return b.builder.Count(distinct, nodes...)
 }
 
@@ -489,7 +489,7 @@ func (b *ForwardRestrictUniquesBuilder) Subquery() *query.SubqueryNode {
 }
 
 // joinOrSelect is a private helper function for the Load* functions
-func (b *ForwardRestrictUniquesBuilder) joinOrSelect(nodes ...query.NodeI) *ForwardRestrictUniquesBuilder {
+func (b *ForwardRestrictUniquesBuilder) joinOrSelect(nodes ...query.Node) *ForwardRestrictUniquesBuilder {
 	for _, n := range nodes {
 		switch n.(type) {
 		case query.TableNodeI:

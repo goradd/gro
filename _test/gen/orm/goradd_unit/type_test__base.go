@@ -745,7 +745,7 @@ func (o *typeTestBase) IsNew() bool {
 // LoadTypeTest returns a TypeTest from the database.
 // joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
 // be considered Join nodes, and column nodes will be Select nodes. See [TypeTestsBuilder.Join] and [TypeTestsBuilder.Select] for more info.
-func LoadTypeTest(ctx context.Context, id string, joinOrSelectNodes ...query.NodeI) *TypeTest {
+func LoadTypeTest(ctx context.Context, id string, joinOrSelectNodes ...query.Node) *TypeTest {
 	return queryTypeTests(ctx).
 		Where(op.Equal(node.TypeTest().ID(), id)).
 		joinOrSelect(joinOrSelectNodes...).
@@ -856,7 +856,7 @@ func (b *TypeTestsBuilder) Get() *TypeTest {
 
 // Join adds node n to the node tree so that its fields will appear in the query.
 // Optionally add conditions to filter what gets included.
-func (b *TypeTestsBuilder) Join(n query.NodeI, conditions ...query.NodeI) *TypeTestsBuilder {
+func (b *TypeTestsBuilder) Join(n query.Node, conditions ...query.Node) *TypeTestsBuilder {
 	if !query.NodeIsTableNodeI(n) {
 		panic("you can only join Table, Reference, ReverseReference and ManyManyReference nodes")
 	}
@@ -865,7 +865,7 @@ func (b *TypeTestsBuilder) Join(n query.NodeI, conditions ...query.NodeI) *TypeT
 		panic("you can only join a node that is rooted at node.TypeTest()")
 	}
 
-	var condition query.NodeI
+	var condition query.Node
 	if len(conditions) > 1 {
 		condition = op.And(conditions)
 	} else if len(conditions) == 1 {
@@ -876,13 +876,13 @@ func (b *TypeTestsBuilder) Join(n query.NodeI, conditions ...query.NodeI) *TypeT
 }
 
 // Where adds a condition to filter what gets selected.
-func (b *TypeTestsBuilder) Where(c query.NodeI) *TypeTestsBuilder {
+func (b *TypeTestsBuilder) Where(c query.Node) *TypeTestsBuilder {
 	b.builder.Condition(c)
 	return b
 }
 
 // OrderBy specifies how the resulting data should be sorted.
-func (b *TypeTestsBuilder) OrderBy(nodes ...query.NodeI) *TypeTestsBuilder {
+func (b *TypeTestsBuilder) OrderBy(nodes ...query.Node) *TypeTestsBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
@@ -897,14 +897,14 @@ func (b *TypeTestsBuilder) Limit(maxRowCount int, offset int) *TypeTestsBuilder 
 // specify all the fields that you will eventually read out. Be careful when selecting fields in joined tables, as joined
 // tables will also contain pointers back to the parent table, and so the parent node should have the same field selected
 // as the child node if you are querying those fields.
-func (b *TypeTestsBuilder) Select(nodes ...query.NodeI) *TypeTestsBuilder {
+func (b *TypeTestsBuilder) Select(nodes ...query.Node) *TypeTestsBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
-// Alias lets you add a node with a custom name. After the query, you can read out the data using GetAlias() on a
+// Alias lets you add a node with a custom name. After the query, you can read out the data using Alias() on a
 // returned object. Alias is useful for adding calculations or subqueries to the query.
-func (b *TypeTestsBuilder) Alias(name string, n query.NodeI) *TypeTestsBuilder {
+func (b *TypeTestsBuilder) Alias(name string, n query.Node) *TypeTestsBuilder {
 	b.builder.Alias(name, n)
 	return b
 }
@@ -918,13 +918,13 @@ func (b *TypeTestsBuilder) Distinct() *TypeTestsBuilder {
 }
 
 // GroupBy controls how results are grouped when using aggregate functions in an Alias() call.
-func (b *TypeTestsBuilder) GroupBy(nodes ...query.NodeI) *TypeTestsBuilder {
+func (b *TypeTestsBuilder) GroupBy(nodes ...query.Node) *TypeTestsBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
 // Having does additional filtering on the results of the query.
-func (b *TypeTestsBuilder) Having(node query.NodeI) *TypeTestsBuilder {
+func (b *TypeTestsBuilder) Having(node query.Node) *TypeTestsBuilder {
 	b.builder.Having(node)
 	return b
 }
@@ -934,7 +934,7 @@ func (b *TypeTestsBuilder) Having(node query.NodeI) *TypeTestsBuilder {
 // distinct wll count the number of distinct items, ignoring duplicates.
 //
 // nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *TypeTestsBuilder) Count(distinct bool, nodes ...query.NodeI) uint {
+func (b *TypeTestsBuilder) Count(distinct bool, nodes ...query.Node) uint {
 	return b.builder.Count(distinct, nodes...)
 }
 
@@ -952,7 +952,7 @@ func (b *TypeTestsBuilder) Subquery() *query.SubqueryNode {
 }
 
 // joinOrSelect is a private helper function for the Load* functions
-func (b *TypeTestsBuilder) joinOrSelect(nodes ...query.NodeI) *TypeTestsBuilder {
+func (b *TypeTestsBuilder) joinOrSelect(nodes ...query.Node) *TypeTestsBuilder {
 	for _, n := range nodes {
 		switch n.(type) {
 		case query.TableNodeI:

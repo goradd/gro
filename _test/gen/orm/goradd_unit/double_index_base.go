@@ -199,7 +199,7 @@ func (o *doubleIndexBase) IsNew() bool {
 // LoadDoubleIndex returns a DoubleIndex from the database.
 // joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
 // be considered Join nodes, and column nodes will be Select nodes. See [DoubleIndicesBuilder.Join] and [DoubleIndicesBuilder.Select] for more info.
-func LoadDoubleIndex(ctx context.Context, id int, joinOrSelectNodes ...query.NodeI) *DoubleIndex {
+func LoadDoubleIndex(ctx context.Context, id int, joinOrSelectNodes ...query.Node) *DoubleIndex {
 	return queryDoubleIndices(ctx).
 		Where(op.Equal(node.DoubleIndex().ID(), id)).
 		joinOrSelect(joinOrSelectNodes...).
@@ -218,7 +218,7 @@ func HasDoubleIndex(ctx context.Context, id int) bool {
 // joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
 // be considered Join nodes, and column nodes will be Select nodes. See [DoubleIndicesBuilder.Join] and [DoubleIndicesBuilder.Select] for more info.
 // If you need a more elaborate query, use QueryDoubleIndices() to start a query builder.
-func LoadDoubleIndexByID(ctx context.Context, id int, joinOrSelectNodes ...query.NodeI) *DoubleIndex {
+func LoadDoubleIndexByID(ctx context.Context, id int, joinOrSelectNodes ...query.Node) *DoubleIndex {
 	q := queryDoubleIndices(ctx)
 	q = q.Where(op.Equal(node.DoubleIndex().ID(), id))
 	return q.joinOrSelect(joinOrSelectNodes...).Get()
@@ -237,7 +237,7 @@ func HasDoubleIndexByID(ctx context.Context, id int) bool {
 // joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
 // be considered Join nodes, and column nodes will be Select nodes. See [DoubleIndicesBuilder.Join] and [DoubleIndicesBuilder.Select] for more info.
 // If you need a more elaborate query, use QueryDoubleIndices() to start a query builder.
-func LoadDoubleIndexByFieldIntFieldString(ctx context.Context, fieldInt int, fieldString string, joinOrSelectNodes ...query.NodeI) *DoubleIndex {
+func LoadDoubleIndexByFieldIntFieldString(ctx context.Context, fieldInt int, fieldString string, joinOrSelectNodes ...query.Node) *DoubleIndex {
 	q := queryDoubleIndices(ctx)
 	q = q.Where(op.Equal(node.DoubleIndex().FieldInt(), fieldInt))
 	q = q.Where(op.Equal(node.DoubleIndex().FieldString(), fieldString))
@@ -350,7 +350,7 @@ func (b *DoubleIndicesBuilder) Get() *DoubleIndex {
 
 // Join adds node n to the node tree so that its fields will appear in the query.
 // Optionally add conditions to filter what gets included.
-func (b *DoubleIndicesBuilder) Join(n query.NodeI, conditions ...query.NodeI) *DoubleIndicesBuilder {
+func (b *DoubleIndicesBuilder) Join(n query.Node, conditions ...query.Node) *DoubleIndicesBuilder {
 	if !query.NodeIsTableNodeI(n) {
 		panic("you can only join Table, Reference, ReverseReference and ManyManyReference nodes")
 	}
@@ -359,7 +359,7 @@ func (b *DoubleIndicesBuilder) Join(n query.NodeI, conditions ...query.NodeI) *D
 		panic("you can only join a node that is rooted at node.DoubleIndex()")
 	}
 
-	var condition query.NodeI
+	var condition query.Node
 	if len(conditions) > 1 {
 		condition = op.And(conditions)
 	} else if len(conditions) == 1 {
@@ -370,13 +370,13 @@ func (b *DoubleIndicesBuilder) Join(n query.NodeI, conditions ...query.NodeI) *D
 }
 
 // Where adds a condition to filter what gets selected.
-func (b *DoubleIndicesBuilder) Where(c query.NodeI) *DoubleIndicesBuilder {
+func (b *DoubleIndicesBuilder) Where(c query.Node) *DoubleIndicesBuilder {
 	b.builder.Condition(c)
 	return b
 }
 
 // OrderBy specifies how the resulting data should be sorted.
-func (b *DoubleIndicesBuilder) OrderBy(nodes ...query.NodeI) *DoubleIndicesBuilder {
+func (b *DoubleIndicesBuilder) OrderBy(nodes ...query.Node) *DoubleIndicesBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
@@ -391,14 +391,14 @@ func (b *DoubleIndicesBuilder) Limit(maxRowCount int, offset int) *DoubleIndices
 // specify all the fields that you will eventually read out. Be careful when selecting fields in joined tables, as joined
 // tables will also contain pointers back to the parent table, and so the parent node should have the same field selected
 // as the child node if you are querying those fields.
-func (b *DoubleIndicesBuilder) Select(nodes ...query.NodeI) *DoubleIndicesBuilder {
+func (b *DoubleIndicesBuilder) Select(nodes ...query.Node) *DoubleIndicesBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
-// Alias lets you add a node with a custom name. After the query, you can read out the data using GetAlias() on a
+// Alias lets you add a node with a custom name. After the query, you can read out the data using Alias() on a
 // returned object. Alias is useful for adding calculations or subqueries to the query.
-func (b *DoubleIndicesBuilder) Alias(name string, n query.NodeI) *DoubleIndicesBuilder {
+func (b *DoubleIndicesBuilder) Alias(name string, n query.Node) *DoubleIndicesBuilder {
 	b.builder.Alias(name, n)
 	return b
 }
@@ -412,13 +412,13 @@ func (b *DoubleIndicesBuilder) Distinct() *DoubleIndicesBuilder {
 }
 
 // GroupBy controls how results are grouped when using aggregate functions in an Alias() call.
-func (b *DoubleIndicesBuilder) GroupBy(nodes ...query.NodeI) *DoubleIndicesBuilder {
+func (b *DoubleIndicesBuilder) GroupBy(nodes ...query.Node) *DoubleIndicesBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
 // Having does additional filtering on the results of the query.
-func (b *DoubleIndicesBuilder) Having(node query.NodeI) *DoubleIndicesBuilder {
+func (b *DoubleIndicesBuilder) Having(node query.Node) *DoubleIndicesBuilder {
 	b.builder.Having(node)
 	return b
 }
@@ -428,7 +428,7 @@ func (b *DoubleIndicesBuilder) Having(node query.NodeI) *DoubleIndicesBuilder {
 // distinct wll count the number of distinct items, ignoring duplicates.
 //
 // nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *DoubleIndicesBuilder) Count(distinct bool, nodes ...query.NodeI) uint {
+func (b *DoubleIndicesBuilder) Count(distinct bool, nodes ...query.Node) uint {
 	return b.builder.Count(distinct, nodes...)
 }
 
@@ -446,7 +446,7 @@ func (b *DoubleIndicesBuilder) Subquery() *query.SubqueryNode {
 }
 
 // joinOrSelect is a private helper function for the Load* functions
-func (b *DoubleIndicesBuilder) joinOrSelect(nodes ...query.NodeI) *DoubleIndicesBuilder {
+func (b *DoubleIndicesBuilder) joinOrSelect(nodes ...query.Node) *DoubleIndicesBuilder {
 	for _, n := range nodes {
 		switch n.(type) {
 		case query.TableNodeI:

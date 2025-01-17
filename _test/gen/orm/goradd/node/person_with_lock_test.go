@@ -9,7 +9,7 @@ import (
 )
 
 func TestSerializeTablePersonWithLockTable(t *testing.T) {
-	var n query.NodeI = PersonWithLock()
+	var n query.Node = PersonWithLock()
 
 	assert.Equal(t, "person_with_lock", n.TableName_())
 	assert.Equal(t, query.TableNodeType, n.NodeType_())
@@ -25,8 +25,8 @@ func TestSerializeTablePersonWithLockTable(t *testing.T) {
 	for _, cn := range nodes {
 		cn2 := serNode(t, cn)
 		assert.Equal(t, "person_with_lock", cn2.TableName_())
-		require.Implements(t, (*query.NodeLinker)(nil), cn2)
-		assert.Equal(t, query.TableNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
+		require.Implements(t, (*query.Linker)(nil), cn2)
+		assert.Equal(t, query.TableNodeType, cn2.(query.Linker).Parent().NodeType_())
 	}
 }
 

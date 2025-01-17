@@ -11,7 +11,7 @@ import (
 
 // ForwardNullNodeI is the builder interface to the ForwardNull nodes.
 type ForwardNullNodeI interface {
-	query.NodeI
+	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// ID represents the id column in the database.
 	ID() *query.ColumnNode
@@ -64,17 +64,17 @@ func (n forwardNullTable) DatabaseKey_() string {
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
 // This may include reference nodes to enum types.
-func (n forwardNullTable) ColumnNodes_() (nodes []query.NodeI) {
+func (n forwardNullTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.Name())
 	nodes = append(nodes, n.ReverseID())
 	return nodes
 }
 
-func (n *forwardNullReverse) ColumnNodes_() (nodes []query.NodeI) {
+func (n *forwardNullReverse) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.forwardNullTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.NodeLinker).SetParent(n)
+		cn.(query.Linker).SetParent(n)
 	}
 	return
 }

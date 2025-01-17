@@ -11,7 +11,7 @@ import (
 
 // ForwardRestrictUniqueNodeI is the builder interface to the ForwardRestrictUnique nodes.
 type ForwardRestrictUniqueNodeI interface {
-	query.NodeI
+	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// ID represents the id column in the database.
 	ID() *query.ColumnNode
@@ -64,17 +64,17 @@ func (n forwardRestrictUniqueTable) DatabaseKey_() string {
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
 // This may include reference nodes to enum types.
-func (n forwardRestrictUniqueTable) ColumnNodes_() (nodes []query.NodeI) {
+func (n forwardRestrictUniqueTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.Name())
 	nodes = append(nodes, n.ReverseID())
 	return nodes
 }
 
-func (n *forwardRestrictUniqueReverse) ColumnNodes_() (nodes []query.NodeI) {
+func (n *forwardRestrictUniqueReverse) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.forwardRestrictUniqueTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.NodeLinker).SetParent(n)
+		cn.(query.Linker).SetParent(n)
 	}
 	return
 }

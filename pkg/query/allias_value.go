@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-// An AliasValue is returned by the GetAlias function that is generated for each type. You then convert the alias to a
+// An AliasValue is returned by the Alias function that is generated for each type. You then convert the alias to a
 // particular type to use it.
 type AliasValue struct {
 	value string
@@ -39,7 +39,7 @@ func (a AliasValue) IsNull() bool {
 
 // String returns the value as a string. A NULL value will be an empty string.
 func (a AliasValue) String() string {
-	return string(a.value)
+	return a.value
 }
 
 // Int returns the value as an integer.
@@ -73,4 +73,9 @@ func (a AliasValue) Bool() bool {
 		log.Panic(err)
 	}
 	return b
+}
+
+// Bytes returns the value as a byte array.
+func (a AliasValue) Bytes() []byte {
+	return []byte(a.value)
 }

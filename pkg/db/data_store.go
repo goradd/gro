@@ -2,16 +2,15 @@ package db
 
 import (
 	"context"
+	"github.com/goradd/goradd/pkg/orm/query"
 	"github.com/goradd/maps"
 	. "github.com/goradd/orm/pkg/query"
 	"github.com/goradd/orm/pkg/schema"
 	"iter"
 )
 
-type DatabaseMap = maps.SliceMap[string, DatabaseI]
-
 // The dataStore is the central database collection used in code generation and the orm.
-var datastore *DatabaseMap
+var datastore maps.SliceMap[string, DatabaseI]
 
 type TransactionID int
 
@@ -21,8 +20,6 @@ type SchemaExtractor interface {
 
 // DatabaseI is the interface that describes the behaviors required for a database implementation.
 type DatabaseI interface {
-	// NewBuilder returns a newly created query builder
-	NewBuilder(ctx context.Context) QueryBuilderI
 	// Update will put the given values into a record that already exists in the database. The fields value
 	// should include only fields that have changed. All records that match the keys and values in where are changed.
 	Update(ctx context.Context, table string, fields map[string]interface{}, where map[string]interface{})
@@ -32,7 +29,7 @@ type DatabaseI interface {
 	// Delete will delete records from the database that match the key value pairs in where.
 	// If where is nil, all the data will be deleted.
 	Delete(ctx context.Context, table string, where map[string]interface{})
-	// Query executes a simple query on table using fields, where the keys of fields are the names of database fields,
+	// Query executes a simple query on a single table using fields, where the keys of fields are the names of database fields to select,
 	// and the values are the types of data to return for each field.
 	//
 	// If where is not nil, it specifies fields and values that will limit the search.
@@ -41,6 +38,9 @@ type DatabaseI interface {
 	//
 	// If orderBy is not nil, it specifies field names to sort the data on, in ascending order.
 	Query(ctx context.Context, table string, fields map[string]ReceiverType, where map[string]any, orderBy []string) CursorI
+	// BuilderQuery performs a complex query using a query builder.
+	// The data returned will depend on the command inside the builder.
+	BuilderQuery(ctx context.Context, builder query.QueryBuilderI) interface{}
 	// Begin will begin a transaction in the database and return the transaction id
 	// Instead of calling Begin directly, use the ExecuteTransaction wrapper.
 	Begin(ctx context.Context) TransactionID
@@ -56,10 +56,6 @@ type DatabaseI interface {
 
 // AddDatabase adds a database to the global database store. Only call this during app startup.
 func AddDatabase(d DatabaseI, key string) {
-	if datastore == nil {
-		datastore = new(DatabaseMap)
-	}
-
 	datastore.Set(key, d)
 }
 

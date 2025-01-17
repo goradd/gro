@@ -18,49 +18,67 @@ const (
 	ManyEnumNodeType
 )
 
-type nodeContainer interface {
-	containedNodes() (nodes []NodeI)
+// String satisfies the fmt.Stringer interface for NodeType.
+func (nt NodeType) String() string {
+	switch nt {
+	case UnknownNodeType:
+		return "UnknownNodeType"
+	case TableNodeType:
+		return "TableNodeType"
+	case ColumnNodeType:
+		return "ColumnNodeType"
+	case ReferenceNodeType:
+		return "ReferenceNodeType"
+	case ManyManyNodeType:
+		return "ManyManyNodeType"
+	case ReverseNodeType:
+		return "ReverseNodeType"
+	case ValueNodeType:
+		return "ValueNodeType"
+	case OperationNodeType:
+		return "OperationNodeType"
+	case AliasNodeType:
+		return "AliasNodeType"
+	case SubqueryNodeType:
+		return "SubqueryNodeType"
+	case EnumNodeType:
+		return "EnumNodeType"
+	case ManyEnumNodeType:
+		return "ManyEnumNodeType"
+	default:
+		return "Unknown"
+	}
 }
 
-type Aliaser interface {
-	// SetAlias sets a unique name for the node as used in a database query.
-	SetAlias(string)
-	// GetAlias returns the alias that was used in a database query.
-	GetAlias() string
+type container interface {
+	containedNodes() (nodes []Node)
 }
 
-// Nodes that can have an alias can mix this in
-type nodeAlias struct {
-	alias string
+// ider returns a unique value within the parent node's namespace
+type ider interface {
+	id() string
 }
 
-// SetAlias sets an alias which is an alternate name to use for the node in the result of a query.
-// Aliases will generally be assigned during the query build process. You only need to assign a manual
-// alias if
-func (n *nodeAlias) SetAlias(a string) {
-	n.alias = a
-
+// NodeId returns a unique value within the parent namespace, if the node supports it.
+// Top level table nodes do not support this, but that should be fine since there is only one in a node chain.
+func NodeId(n Node) string {
+	if i, ok := n.(ider); ok {
+		return i.id()
+	}
+	return ""
 }
 
-// GetAlias returns the alias name for the node.
-func (n *nodeAlias) GetAlias() string {
-	return n.alias
-}
-
-// NodeI is the interface that all nodes must satisfy. A node is a representation of an object or a relationship
+// Node is the interface that all nodes must satisfy. A node is a representation of an object or a relationship
 // between objects in a database that we use to create a query. It lets us abstract the structure of a database
 // to be able to query any kind of database. Obviously, this doesn't work for all possible database structures, but
 // it generally works well enough to solve most of the situations that you will come across.
-type NodeI interface {
+type Node interface {
 	// NodeType_ returns the type of the node
 	NodeType_() NodeType
 	// TableName_ returns the query name of the table the node is associated with. Not all nodes support this.
 	TableName_() string
 	// DatabaseKey_ is the database key of the database the node is associated with.
 	DatabaseKey_() string
-	//Equals(NodeI) bool
-	//equals(NodeI) bool
-	//log(level int)
 }
 
 /**
@@ -74,32 +92,11 @@ functions for the db package without broadcasting them to the world.
 
 */
 
-// NodeTableName is used internally by the framework to return the table associated with a node.
-func NodeTableName(n NodeI) string {
-	return n.TableName_()
-}
-
-func NodeDbKey(n NodeI) string {
-	return n.DatabaseKey_()
-}
-
 // ContainedNodes is used internally by the framework to return the contained nodes.
-func ContainedNodes(n NodeI) (nodes []NodeI) {
-	if nc, ok := n.(nodeContainer); ok {
+func ContainedNodes(n Node) (nodes []Node) {
+	if nc, ok := n.(container); ok {
 		return nc.containedNodes()
 	} else {
 		return nil
 	}
-}
-
-// NodePrimaryKey returns the primary key of a node, if it has a primary key. Otherwise, returns nil.
-func NodePrimaryKey(n NodeI) NodeI {
-	if tn, ok := n.(PrimaryKeyer); ok {
-		return tn.PrimaryKeyNode()
-	}
-	return nil
-}
-
-func NodeIsEqual(n NodeI, n2 NodeI) bool {
-	return n == n2
 }

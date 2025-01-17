@@ -11,7 +11,7 @@ import (
 
 // EmployeeInfoNodeI is the builder interface to the EmployeeInfo nodes.
 type EmployeeInfoNodeI interface {
-	query.NodeI
+	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// ID represents the id column in the database.
 	ID() *query.ColumnNode
@@ -64,17 +64,17 @@ func (n employeeInfoTable) DatabaseKey_() string {
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
 // This may include reference nodes to enum types.
-func (n employeeInfoTable) ColumnNodes_() (nodes []query.NodeI) {
+func (n employeeInfoTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.PersonID())
 	nodes = append(nodes, n.EmployeeNumber())
 	return nodes
 }
 
-func (n *employeeInfoReverse) ColumnNodes_() (nodes []query.NodeI) {
+func (n *employeeInfoReverse) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.employeeInfoTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.NodeLinker).SetParent(n)
+		cn.(query.Linker).SetParent(n)
 	}
 	return
 }

@@ -11,7 +11,7 @@ import (
 
 // PersonTypeNodeI is the builder interface to the PersonType nodes.
 type PersonTypeNodeI interface {
-	query.NodeI
+	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	ID() *query.ColumnNode
 	Name() *query.ColumnNode
@@ -50,15 +50,15 @@ func init() {
 }
 
 // ColumnNodes_ is used internally by the framework to return the list of column nodes.
-func (n personTypeEnum) ColumnNodes_() []query.NodeI {
-	return []query.NodeI{
+func (n personTypeEnum) ColumnNodes_() []query.Node {
+	return []query.Node{
 		n.ID(),
 		n.Name(),
 	}
 }
 
-func (n personTypeAssociation) ColumnNodes_() []query.NodeI {
-	return []query.NodeI{
+func (n personTypeAssociation) ColumnNodes_() []query.Node {
+	return []query.Node{
 		n.ID(),
 		n.Name(),
 	}

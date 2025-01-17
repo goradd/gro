@@ -11,7 +11,7 @@ import (
 
 // UnsupportedTypeNodeI is the builder interface to the UnsupportedType nodes.
 type UnsupportedTypeNodeI interface {
-	query.NodeI
+	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// TypeSerial represents the type_serial column in the database.
 	TypeSerial() *query.ColumnNode
@@ -92,7 +92,7 @@ func (n unsupportedTypeTable) DatabaseKey_() string {
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
 // This may include reference nodes to enum types.
-func (n unsupportedTypeTable) ColumnNodes_() (nodes []query.NodeI) {
+func (n unsupportedTypeTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.TypeSerial())
 	nodes = append(nodes, n.TypeSet())
 	nodes = append(nodes, n.TypeEnum())
@@ -114,10 +114,10 @@ func (n unsupportedTypeTable) ColumnNodes_() (nodes []query.NodeI) {
 	return nodes
 }
 
-func (n *unsupportedTypeReverse) ColumnNodes_() (nodes []query.NodeI) {
+func (n *unsupportedTypeReverse) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.unsupportedTypeTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.NodeLinker).SetParent(n)
+		cn.(query.Linker).SetParent(n)
 	}
 	return
 }

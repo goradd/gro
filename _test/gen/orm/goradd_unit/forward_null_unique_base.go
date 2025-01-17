@@ -255,7 +255,7 @@ func (o *forwardNullUniqueBase) IsNew() bool {
 // LoadForwardNullUnique returns a ForwardNullUnique from the database.
 // joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
 // be considered Join nodes, and column nodes will be Select nodes. See [ForwardNullUniquesBuilder.Join] and [ForwardNullUniquesBuilder.Select] for more info.
-func LoadForwardNullUnique(ctx context.Context, id string, joinOrSelectNodes ...query.NodeI) *ForwardNullUnique {
+func LoadForwardNullUnique(ctx context.Context, id string, joinOrSelectNodes ...query.Node) *ForwardNullUnique {
 	return queryForwardNullUniques(ctx).
 		Where(op.Equal(node.ForwardNullUnique().ID(), id)).
 		joinOrSelect(joinOrSelectNodes...).
@@ -274,7 +274,7 @@ func HasForwardNullUnique(ctx context.Context, id string) bool {
 // joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
 // be considered Join nodes, and column nodes will be Select nodes. See [ForwardNullUniquesBuilder.Join] and [ForwardNullUniquesBuilder.Select] for more info.
 // If you need a more elaborate query, use QueryForwardNullUniques() to start a query builder.
-func LoadForwardNullUniqueByReverseID(ctx context.Context, reverseID interface{}, joinOrSelectNodes ...query.NodeI) *ForwardNullUnique {
+func LoadForwardNullUniqueByReverseID(ctx context.Context, reverseID interface{}, joinOrSelectNodes ...query.Node) *ForwardNullUnique {
 	q := queryForwardNullUniques(ctx)
 	if reverseID == nil {
 		q = q.Where(op.IsNull(node.ForwardNullUnique().ReverseID()))
@@ -393,7 +393,7 @@ func (b *ForwardNullUniquesBuilder) Get() *ForwardNullUnique {
 
 // Join adds node n to the node tree so that its fields will appear in the query.
 // Optionally add conditions to filter what gets included.
-func (b *ForwardNullUniquesBuilder) Join(n query.NodeI, conditions ...query.NodeI) *ForwardNullUniquesBuilder {
+func (b *ForwardNullUniquesBuilder) Join(n query.Node, conditions ...query.Node) *ForwardNullUniquesBuilder {
 	if !query.NodeIsTableNodeI(n) {
 		panic("you can only join Table, Reference, ReverseReference and ManyManyReference nodes")
 	}
@@ -402,7 +402,7 @@ func (b *ForwardNullUniquesBuilder) Join(n query.NodeI, conditions ...query.Node
 		panic("you can only join a node that is rooted at node.ForwardNullUnique()")
 	}
 
-	var condition query.NodeI
+	var condition query.Node
 	if len(conditions) > 1 {
 		condition = op.And(conditions)
 	} else if len(conditions) == 1 {
@@ -413,13 +413,13 @@ func (b *ForwardNullUniquesBuilder) Join(n query.NodeI, conditions ...query.Node
 }
 
 // Where adds a condition to filter what gets selected.
-func (b *ForwardNullUniquesBuilder) Where(c query.NodeI) *ForwardNullUniquesBuilder {
+func (b *ForwardNullUniquesBuilder) Where(c query.Node) *ForwardNullUniquesBuilder {
 	b.builder.Condition(c)
 	return b
 }
 
 // OrderBy specifies how the resulting data should be sorted.
-func (b *ForwardNullUniquesBuilder) OrderBy(nodes ...query.NodeI) *ForwardNullUniquesBuilder {
+func (b *ForwardNullUniquesBuilder) OrderBy(nodes ...query.Node) *ForwardNullUniquesBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
@@ -434,14 +434,14 @@ func (b *ForwardNullUniquesBuilder) Limit(maxRowCount int, offset int) *ForwardN
 // specify all the fields that you will eventually read out. Be careful when selecting fields in joined tables, as joined
 // tables will also contain pointers back to the parent table, and so the parent node should have the same field selected
 // as the child node if you are querying those fields.
-func (b *ForwardNullUniquesBuilder) Select(nodes ...query.NodeI) *ForwardNullUniquesBuilder {
+func (b *ForwardNullUniquesBuilder) Select(nodes ...query.Node) *ForwardNullUniquesBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
-// Alias lets you add a node with a custom name. After the query, you can read out the data using GetAlias() on a
+// Alias lets you add a node with a custom name. After the query, you can read out the data using Alias() on a
 // returned object. Alias is useful for adding calculations or subqueries to the query.
-func (b *ForwardNullUniquesBuilder) Alias(name string, n query.NodeI) *ForwardNullUniquesBuilder {
+func (b *ForwardNullUniquesBuilder) Alias(name string, n query.Node) *ForwardNullUniquesBuilder {
 	b.builder.Alias(name, n)
 	return b
 }
@@ -455,13 +455,13 @@ func (b *ForwardNullUniquesBuilder) Distinct() *ForwardNullUniquesBuilder {
 }
 
 // GroupBy controls how results are grouped when using aggregate functions in an Alias() call.
-func (b *ForwardNullUniquesBuilder) GroupBy(nodes ...query.NodeI) *ForwardNullUniquesBuilder {
+func (b *ForwardNullUniquesBuilder) GroupBy(nodes ...query.Node) *ForwardNullUniquesBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
 // Having does additional filtering on the results of the query.
-func (b *ForwardNullUniquesBuilder) Having(node query.NodeI) *ForwardNullUniquesBuilder {
+func (b *ForwardNullUniquesBuilder) Having(node query.Node) *ForwardNullUniquesBuilder {
 	b.builder.Having(node)
 	return b
 }
@@ -471,7 +471,7 @@ func (b *ForwardNullUniquesBuilder) Having(node query.NodeI) *ForwardNullUniques
 // distinct wll count the number of distinct items, ignoring duplicates.
 //
 // nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *ForwardNullUniquesBuilder) Count(distinct bool, nodes ...query.NodeI) uint {
+func (b *ForwardNullUniquesBuilder) Count(distinct bool, nodes ...query.Node) uint {
 	return b.builder.Count(distinct, nodes...)
 }
 
@@ -489,7 +489,7 @@ func (b *ForwardNullUniquesBuilder) Subquery() *query.SubqueryNode {
 }
 
 // joinOrSelect is a private helper function for the Load* functions
-func (b *ForwardNullUniquesBuilder) joinOrSelect(nodes ...query.NodeI) *ForwardNullUniquesBuilder {
+func (b *ForwardNullUniquesBuilder) joinOrSelect(nodes ...query.Node) *ForwardNullUniquesBuilder {
 	for _, n := range nodes {
 		switch n.(type) {
 		case query.TableNodeI:

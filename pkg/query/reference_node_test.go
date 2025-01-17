@@ -6,9 +6,12 @@ import (
 )
 
 func TestReferenceNodeInterfaces(t *testing.T) {
-	n := NewReferenceNode("db", "table", "dbCol", "goCol", "goName", "table2", "col2", false, ColTypeInteger)
-	n.SetAlias("alias")
+	n := &ReferenceNode{
+		ColumnQueryName: "dbCol",
+		Identifier:      "Obj",
+		ReceiverType:    ColTypeString,
+	}
 
-	assert.Implements(t, (*ReferenceNodeI)(nil), n)
-	assert.Equal(t, "alias", n.GetAlias())
+	assert.Implements(t, (*Conditioner)(nil), n)
+	assert.Implements(t, (*Linker)(nil), n)
 }

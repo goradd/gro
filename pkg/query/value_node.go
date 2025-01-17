@@ -3,25 +3,23 @@ package query
 import (
 	"bytes"
 	"encoding/gob"
-	"fmt"
-	"log/slog"
 	"reflect"
-	"strings"
 	"time"
 )
 
 // ValueNode represents a value for a built-in type that is to be used in a query.
+// For example,
 type ValueNode struct {
 	value interface{}
 }
 
 // Value is a shortcut for converting a constant value to a node
-func Value(i interface{}) NodeI {
+func Value(i interface{}) Node {
 	return NewValueNode(i)
 }
 
 // NewValueNode returns a new ValueNode that wraps the given value.
-func NewValueNode(i interface{}) NodeI {
+func NewValueNode(i interface{}) Node {
 	n := &ValueNode{
 		value: i,
 	}
@@ -72,16 +70,16 @@ func NewValueNode(i interface{}) NodeI {
 		case reflect.Bool:
 			n.value = val.Bool()
 		case reflect.Float32:
-			// converting float32 to float64 might cause problems in the final sql statement, so we leave the type as float32
+			// converting float32 to float64 might cause problems in a sql statement, so we leave the type as float32
 			n.value = float32(val.Float())
 		case reflect.Float64:
 			n.value = val.Float()
 		case reflect.Slice:
 			fallthrough
 		case reflect.Array:
-			var ary []NodeI
+			var ary []Node
 			for i2 := 0; i2 < val.Len(); i2++ {
-				// TODO: Handle NodeI's here too? Prevent more than one level deep?
+				// TODO: Handle QueryNode's here too? Prevent more than one level deep?
 				ary = append(ary, NewValueNode(val.Index(i2).Interface()))
 			}
 			n.value = ary
@@ -94,11 +92,12 @@ func NewValueNode(i interface{}) NodeI {
 	return n
 }
 
+/*
 // equals returns whether the given node is equal to this node.
-func (n *ValueNode) equals(n2 NodeI) bool {
+func (n *ValueNode) equals(n2 Node) bool {
 	if cn, ok := n2.(*ValueNode); ok {
-		if an2, ok2 := cn.value.([]NodeI); ok2 {
-			if an1, ok3 := n.value.([]NodeI); !ok3 {
+		if an2, ok2 := cn.value.([]Node); ok2 {
+			if an1, ok3 := n.value.([]Node); !ok3 {
 				return false
 			} else if len(an2) != len(an1) {
 				return false
@@ -115,6 +114,7 @@ func (n *ValueNode) equals(n2 NodeI) bool {
 	}
 	return false
 }
+*/
 
 func (n *ValueNode) TableName_() string {
 	return ""
@@ -124,10 +124,12 @@ func (n *ValueNode) DatabaseKey_() string {
 	return ""
 }
 
+/*
 func (n *ValueNode) log(level int) {
 	tabs := strings.Repeat("\t", level)
 	slog.Debug(tabs + "Val: " + fmt.Sprint(n.value))
 }
+*/
 
 // ValueNodeGetValue is used internally by the framework to get the node's internal value.
 func ValueNodeGetValue(n *ValueNode) interface{} {

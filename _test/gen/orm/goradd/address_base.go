@@ -287,7 +287,7 @@ func (o *addressBase) IsNew() bool {
 // LoadAddress returns a Address from the database.
 // joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
 // be considered Join nodes, and column nodes will be Select nodes. See [AddressesBuilder.Join] and [AddressesBuilder.Select] for more info.
-func LoadAddress(ctx context.Context, id string, joinOrSelectNodes ...query.NodeI) *Address {
+func LoadAddress(ctx context.Context, id string, joinOrSelectNodes ...query.Node) *Address {
 	return queryAddresses(ctx).
 		Where(op.Equal(node.Address().ID(), id)).
 		joinOrSelect(joinOrSelectNodes...).
@@ -320,7 +320,7 @@ func newAddressBuilder(ctx context.Context) *AddressesBuilder {
 // any errors, they are returned in the context object. If no results come back from the query, it will return
 // an empty slice
 func (b *AddressesBuilder) Load() (addresses []*Address) {
-	results := b.builder.Load()
+	results := db.GetDatabase("goradd").Load(b)
 	if results == nil {
 		return
 	}
@@ -398,7 +398,7 @@ func (b *AddressesBuilder) Get() *Address {
 
 // Join adds node n to the node tree so that its fields will appear in the query.
 // Optionally add conditions to filter what gets included.
-func (b *AddressesBuilder) Join(n query.NodeI, conditions ...query.NodeI) *AddressesBuilder {
+func (b *AddressesBuilder) Join(n query.Node, conditions ...query.Node) *AddressesBuilder {
 	if !query.NodeIsTableNodeI(n) {
 		panic("you can only join Table, Reference, ReverseReference and ManyManyReference nodes")
 	}
@@ -407,7 +407,7 @@ func (b *AddressesBuilder) Join(n query.NodeI, conditions ...query.NodeI) *Addre
 		panic("you can only join a node that is rooted at node.Address()")
 	}
 
-	var condition query.NodeI
+	var condition query.Node
 	if len(conditions) > 1 {
 		condition = op.And(conditions)
 	} else if len(conditions) == 1 {
@@ -418,13 +418,13 @@ func (b *AddressesBuilder) Join(n query.NodeI, conditions ...query.NodeI) *Addre
 }
 
 // Where adds a condition to filter what gets selected.
-func (b *AddressesBuilder) Where(c query.NodeI) *AddressesBuilder {
+func (b *AddressesBuilder) Where(c query.Node) *AddressesBuilder {
 	b.builder.Condition(c)
 	return b
 }
 
 // OrderBy specifies how the resulting data should be sorted.
-func (b *AddressesBuilder) OrderBy(nodes ...query.NodeI) *AddressesBuilder {
+func (b *AddressesBuilder) OrderBy(nodes ...query.Node) *AddressesBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
@@ -439,14 +439,14 @@ func (b *AddressesBuilder) Limit(maxRowCount int, offset int) *AddressesBuilder 
 // specify all the fields that you will eventually read out. Be careful when selecting fields in joined tables, as joined
 // tables will also contain pointers back to the parent table, and so the parent node should have the same field selected
 // as the child node if you are querying those fields.
-func (b *AddressesBuilder) Select(nodes ...query.NodeI) *AddressesBuilder {
+func (b *AddressesBuilder) Select(nodes ...query.Node) *AddressesBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
-// Alias lets you add a node with a custom name. After the query, you can read out the data using GetAlias() on a
+// Alias lets you add a node with a custom name. After the query, you can read out the data using Alias() on a
 // returned object. Alias is useful for adding calculations or subqueries to the query.
-func (b *AddressesBuilder) Alias(name string, n query.NodeI) *AddressesBuilder {
+func (b *AddressesBuilder) Alias(name string, n query.Node) *AddressesBuilder {
 	b.builder.Alias(name, n)
 	return b
 }
@@ -460,13 +460,13 @@ func (b *AddressesBuilder) Distinct() *AddressesBuilder {
 }
 
 // GroupBy controls how results are grouped when using aggregate functions in an Alias() call.
-func (b *AddressesBuilder) GroupBy(nodes ...query.NodeI) *AddressesBuilder {
+func (b *AddressesBuilder) GroupBy(nodes ...query.Node) *AddressesBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
 // Having does additional filtering on the results of the query.
-func (b *AddressesBuilder) Having(node query.NodeI) *AddressesBuilder {
+func (b *AddressesBuilder) Having(node query.Node) *AddressesBuilder {
 	b.builder.Having(node)
 	return b
 }
@@ -476,7 +476,7 @@ func (b *AddressesBuilder) Having(node query.NodeI) *AddressesBuilder {
 // distinct wll count the number of distinct items, ignoring duplicates.
 //
 // nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *AddressesBuilder) Count(distinct bool, nodes ...query.NodeI) uint {
+func (b *AddressesBuilder) Count(distinct bool, nodes ...query.Node) uint {
 	return b.builder.Count(distinct, nodes...)
 }
 
@@ -494,7 +494,7 @@ func (b *AddressesBuilder) Subquery() *query.SubqueryNode {
 }
 
 // joinOrSelect is a private helper function for the Load* functions
-func (b *AddressesBuilder) joinOrSelect(nodes ...query.NodeI) *AddressesBuilder {
+func (b *AddressesBuilder) joinOrSelect(nodes ...query.Node) *AddressesBuilder {
 	for _, n := range nodes {
 		switch n.(type) {
 		case query.TableNodeI:

@@ -1003,7 +1003,7 @@ func (o *projectBase) SetMilestonesByID(ids []string) {
 // LoadProject returns a Project from the database.
 // joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
 // be considered Join nodes, and column nodes will be Select nodes. See [ProjectsBuilder.Join] and [ProjectsBuilder.Select] for more info.
-func LoadProject(ctx context.Context, id string, joinOrSelectNodes ...query.NodeI) *Project {
+func LoadProject(ctx context.Context, id string, joinOrSelectNodes ...query.Node) *Project {
 	return queryProjects(ctx).
 		Where(op.Equal(node.Project().ID(), id)).
 		joinOrSelect(joinOrSelectNodes...).
@@ -1022,7 +1022,7 @@ func HasProject(ctx context.Context, id string) bool {
 // joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
 // be considered Join nodes, and column nodes will be Select nodes. See [ProjectsBuilder.Join] and [ProjectsBuilder.Select] for more info.
 // If you need a more elaborate query, use QueryProjects() to start a query builder.
-func LoadProjectByNum(ctx context.Context, num int, joinOrSelectNodes ...query.NodeI) *Project {
+func LoadProjectByNum(ctx context.Context, num int, joinOrSelectNodes ...query.Node) *Project {
 	q := queryProjects(ctx)
 	q = q.Where(op.Equal(node.Project().Num(), num))
 	return q.joinOrSelect(joinOrSelectNodes...).Get()
@@ -1133,7 +1133,7 @@ func (b *ProjectsBuilder) Get() *Project {
 
 // Join adds node n to the node tree so that its fields will appear in the query.
 // Optionally add conditions to filter what gets included.
-func (b *ProjectsBuilder) Join(n query.NodeI, conditions ...query.NodeI) *ProjectsBuilder {
+func (b *ProjectsBuilder) Join(n query.Node, conditions ...query.Node) *ProjectsBuilder {
 	if !query.NodeIsTableNodeI(n) {
 		panic("you can only join Table, Reference, ReverseReference and ManyManyReference nodes")
 	}
@@ -1142,7 +1142,7 @@ func (b *ProjectsBuilder) Join(n query.NodeI, conditions ...query.NodeI) *Projec
 		panic("you can only join a node that is rooted at node.Project()")
 	}
 
-	var condition query.NodeI
+	var condition query.Node
 	if len(conditions) > 1 {
 		condition = op.And(conditions)
 	} else if len(conditions) == 1 {
@@ -1153,13 +1153,13 @@ func (b *ProjectsBuilder) Join(n query.NodeI, conditions ...query.NodeI) *Projec
 }
 
 // Where adds a condition to filter what gets selected.
-func (b *ProjectsBuilder) Where(c query.NodeI) *ProjectsBuilder {
+func (b *ProjectsBuilder) Where(c query.Node) *ProjectsBuilder {
 	b.builder.Condition(c)
 	return b
 }
 
 // OrderBy specifies how the resulting data should be sorted.
-func (b *ProjectsBuilder) OrderBy(nodes ...query.NodeI) *ProjectsBuilder {
+func (b *ProjectsBuilder) OrderBy(nodes ...query.Node) *ProjectsBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
@@ -1174,14 +1174,14 @@ func (b *ProjectsBuilder) Limit(maxRowCount int, offset int) *ProjectsBuilder {
 // specify all the fields that you will eventually read out. Be careful when selecting fields in joined tables, as joined
 // tables will also contain pointers back to the parent table, and so the parent node should have the same field selected
 // as the child node if you are querying those fields.
-func (b *ProjectsBuilder) Select(nodes ...query.NodeI) *ProjectsBuilder {
+func (b *ProjectsBuilder) Select(nodes ...query.Node) *ProjectsBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
-// Alias lets you add a node with a custom name. After the query, you can read out the data using GetAlias() on a
+// Alias lets you add a node with a custom name. After the query, you can read out the data using Alias() on a
 // returned object. Alias is useful for adding calculations or subqueries to the query.
-func (b *ProjectsBuilder) Alias(name string, n query.NodeI) *ProjectsBuilder {
+func (b *ProjectsBuilder) Alias(name string, n query.Node) *ProjectsBuilder {
 	b.builder.Alias(name, n)
 	return b
 }
@@ -1195,13 +1195,13 @@ func (b *ProjectsBuilder) Distinct() *ProjectsBuilder {
 }
 
 // GroupBy controls how results are grouped when using aggregate functions in an Alias() call.
-func (b *ProjectsBuilder) GroupBy(nodes ...query.NodeI) *ProjectsBuilder {
+func (b *ProjectsBuilder) GroupBy(nodes ...query.Node) *ProjectsBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
 // Having does additional filtering on the results of the query.
-func (b *ProjectsBuilder) Having(node query.NodeI) *ProjectsBuilder {
+func (b *ProjectsBuilder) Having(node query.Node) *ProjectsBuilder {
 	b.builder.Having(node)
 	return b
 }
@@ -1211,7 +1211,7 @@ func (b *ProjectsBuilder) Having(node query.NodeI) *ProjectsBuilder {
 // distinct wll count the number of distinct items, ignoring duplicates.
 //
 // nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *ProjectsBuilder) Count(distinct bool, nodes ...query.NodeI) uint {
+func (b *ProjectsBuilder) Count(distinct bool, nodes ...query.Node) uint {
 	return b.builder.Count(distinct, nodes...)
 }
 
@@ -1229,7 +1229,7 @@ func (b *ProjectsBuilder) Subquery() *query.SubqueryNode {
 }
 
 // joinOrSelect is a private helper function for the Load* functions
-func (b *ProjectsBuilder) joinOrSelect(nodes ...query.NodeI) *ProjectsBuilder {
+func (b *ProjectsBuilder) joinOrSelect(nodes ...query.Node) *ProjectsBuilder {
 	for _, n := range nodes {
 		switch n.(type) {
 		case query.TableNodeI:

@@ -9,7 +9,7 @@ import (
 )
 
 func TestSerializeTableForwardRestrictTable(t *testing.T) {
-	var n query.NodeI = ForwardRestrict()
+	var n query.Node = ForwardRestrict()
 
 	assert.Equal(t, "forward_restrict", n.TableName_())
 	assert.Equal(t, query.TableNodeType, n.NodeType_())
@@ -25,8 +25,8 @@ func TestSerializeTableForwardRestrictTable(t *testing.T) {
 	for _, cn := range nodes {
 		cn2 := serNode(t, cn)
 		assert.Equal(t, "forward_restrict", cn2.TableName_())
-		require.Implements(t, (*query.NodeLinker)(nil), cn2)
-		assert.Equal(t, query.TableNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
+		require.Implements(t, (*query.Linker)(nil), cn2)
+		assert.Equal(t, query.TableNodeType, cn2.(query.Linker).Parent().NodeType_())
 	}
 }
 
@@ -35,7 +35,7 @@ func TestSerializeReferencesForwardRestrictTable(t *testing.T) {
 	{
 		n := ForwardRestrict().Reverse()
 		n2 := serNode(t, n)
-		parentNode := n2.(query.NodeLinker).Parent()
+		parentNode := n2.(query.Linker).Parent()
 		assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
 		assert.Equal(t, "forward_restrict", parentNode.TableName_())
 
@@ -43,8 +43,8 @@ func TestSerializeReferencesForwardRestrictTable(t *testing.T) {
 		for _, cn := range nodes {
 			cn2 := serNode(t, cn)
 			assert.Equal(t, n.TableName_(), cn2.TableName_())
-			require.Implements(t, (*query.NodeLinker)(nil), cn2)
-			assert.Equal(t, query.ReferenceNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
+			require.Implements(t, (*query.Linker)(nil), cn2)
+			assert.Equal(t, query.ReferenceNodeType, cn2.(query.Linker).Parent().NodeType_())
 		}
 	}
 

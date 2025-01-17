@@ -7,7 +7,7 @@ type Copier interface {
 	Copy() interface{}
 }
 
-type ValueMap map[string]interface{}
+type ValueMap map[string]any
 
 func NewValueMap() ValueMap {
 	return make(ValueMap)

@@ -11,7 +11,7 @@ import (
 
 // GiftNodeI is the builder interface to the Gift nodes.
 type GiftNodeI interface {
-	query.NodeI
+	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// Number represents the number column in the database.
 	Number() *query.ColumnNode
@@ -60,16 +60,16 @@ func (n giftTable) DatabaseKey_() string {
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
 // This may include reference nodes to enum types.
-func (n giftTable) ColumnNodes_() (nodes []query.NodeI) {
+func (n giftTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.Number())
 	nodes = append(nodes, n.Name())
 	return nodes
 }
 
-func (n *giftReverse) ColumnNodes_() (nodes []query.NodeI) {
+func (n *giftReverse) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.giftTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.NodeLinker).SetParent(n)
+		cn.(query.Linker).SetParent(n)
 	}
 	return
 }

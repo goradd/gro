@@ -6,8 +6,16 @@ import (
 )
 
 func TestManyManyNodeInterfaces(t *testing.T) {
-	n := NewManyManyNode("db", "table", "dbCol", "goName", "table2", "col2", "tablePk", false)
-	n.SetAlias("alias")
+	n := &ManyManyNode{
+		AssnTableQueryName:       "table",
+		ParentColumnQueryName:    "col1",
+		ParentColumnReceiverType: ColTypeString,
+		Identifier:               "Field1",
+		RefColumnQueryName:       "col2",
+		RefColumnReceiverType:    ColTypeInteger,
+	}
 
-	assert.Equal(t, "alias", n.GetAlias())
+	assert.Implements(t, (*Conditioner)(nil), n)
+	assert.Implements(t, (*Linker)(nil), n)
+	assert.Implements(t, (*Expander)(nil), n)
 }

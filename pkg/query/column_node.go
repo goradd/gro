@@ -6,9 +6,9 @@ import (
 )
 
 type ColumnNodeI interface {
-	NodeI
-	NodeSorter
-	NodeLinker
+	Node
+	Sorter
+	Linker
 }
 
 // ColumnNode represents a table or field in a database structure, and is the leaf of a node tree or chain.
@@ -20,8 +20,8 @@ type ColumnNode struct {
 	// The receiver type for the column
 	ReceiverType ReceiverType
 	// True if this is the primary key of its parent table
-	IsPrimaryKey bool
-	nodeSort
+	IsPrimaryKey   bool
+	sortDescending bool
 	nodeLink
 }
 
@@ -37,7 +37,24 @@ func (n *ColumnNode) DatabaseKey_() string {
 	return n.Parent().DatabaseKey_()
 }
 
-func NodeIsPK(n NodeI) bool {
+// Ascending sets the column to sort ascending when used in an OrderBy statement.
+func (n *ColumnNode) Ascending() Node {
+	n.sortDescending = false
+	return n
+}
+
+// Descending sets the column to sort descending when used in an OrderBy statement.
+func (n *ColumnNode) Descending() Node {
+	n.sortDescending = true
+	return n
+}
+
+// IsDescending returns true if the node is sorted in descending order.
+func (n *ColumnNode) IsDescending() bool {
+	return n.sortDescending
+}
+
+func NodeIsPK(n Node) bool {
 	if cn, ok := n.(*ColumnNode); !ok {
 		return false
 	} else {
@@ -61,7 +78,7 @@ func (n *ColumnNode) GobEncode() (data []byte, err error) {
 	if err = e.Encode(n.IsPrimaryKey); err != nil {
 		panic(err)
 	}
-	if err = e.Encode(n.nodeSort.sortDescending); err != nil {
+	if err = e.Encode(n.sortDescending); err != nil {
 		panic(err)
 	}
 	if err = e.Encode(&n.nodeLink.parentNode); err != nil {
@@ -86,7 +103,7 @@ func (n *ColumnNode) GobDecode(data []byte) (err error) {
 	if err = dec.Decode(&n.IsPrimaryKey); err != nil {
 		panic(err)
 	}
-	if err = dec.Decode(&n.nodeSort.sortDescending); err != nil {
+	if err = dec.Decode(&n.sortDescending); err != nil {
 		panic(err)
 	}
 	if err = dec.Decode(&n.nodeLink.parentNode); err != nil {
@@ -97,4 +114,8 @@ func (n *ColumnNode) GobDecode(data []byte) (err error) {
 
 func init() {
 	gob.Register(&ColumnNode{})
+}
+
+func (n *ColumnNode) id() string {
+	return n.Identifier
 }

@@ -1,38 +1,33 @@
 package query
 
-type conditioner interface {
-	setCondition(condition NodeI)
-	getCondition() NodeI
+// Conditioner is an interface for nodes that can be given a join condition.
+type Conditioner interface {
+	Node
+	// SetCondition sets the condition that will be used to join the node.
+	SetCondition(condition Node)
+	// Condition returns the condition that will be used to join the node.
+	Condition() Node
 }
 
-// Nodes that can have a condition can mix this in
+// nodeCondition is a mixin for nodes that can be joined with a condition.
 type nodeCondition struct {
-	condition NodeI
+	condition Node
 }
 
-func (c *nodeCondition) setCondition(cond NodeI) {
+// SetCondition sets the condition that will be used to join the node.
+func (c *nodeCondition) SetCondition(cond Node) {
 	c.condition = cond
 }
 
-func (c *nodeCondition) getCondition() NodeI {
+// Condition returns the condition that will be used to join the node.
+func (c *nodeCondition) Condition() Node {
 	return c.condition
 }
 
-// NodeSetCondition is used internally by the framework to set a condition on a node.
-func NodeSetCondition(n NodeI, condition NodeI) {
-	if condition != nil {
-		if c, ok := n.(conditioner); !ok {
-			panic("cannot set condition on this type of node")
-		} else {
-			c.setCondition(condition)
-		}
-	}
-}
-
-// NodeCondition is used internally by the framework to get a condition node.
-func NodeCondition(n NodeI) NodeI {
-	if cn, ok := n.(conditioner); ok {
-		return cn.getCondition()
+// NodeCondition is used by the ORM to get a condition node.
+func NodeCondition(n Node) Node {
+	if cn, ok := n.(Conditioner); ok {
+		return cn.Condition()
 	}
 	return nil
 }

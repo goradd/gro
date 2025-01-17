@@ -6,9 +6,13 @@ import (
 )
 
 func TestReverseReferenceNodeInterfaces(t *testing.T) {
-	n := NewReverseReferenceNode("db", "table", "dbKey", "dbCol", "goName", "table2", "col2", false)
+	n := &ReverseNode{
+		ColumnQueryName: "col",
+		Identifier:      "Obj",
+		ReceiverType:    ColTypeString,
+	}
 
-	n.SetAlias("alias")
-
-	assert.Equal(t, "alias", n.GetAlias())
+	assert.Implements(t, (*Conditioner)(nil), n)
+	assert.Implements(t, (*Linker)(nil), n)
+	assert.Implements(t, (*Expander)(nil), n)
 }

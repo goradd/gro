@@ -6,13 +6,14 @@ import (
 )
 
 type ReferenceNodeI interface {
-	NodeI
-	conditioner
-	NodeLinker
+	ColumnName() string
+	TableNodeI
+	Conditioner
+	Linker
 }
 
-// A ReferenceNode is a forward-pointing foreign key relationship. If the other side of the relationship is
-// not a enum table, then the other table will have a matching ReverseNode.
+// A ReferenceNode is a mixin for a forward-pointing foreign key relationship.
+// If the other side of the relationship is not an enum table, then the other table will have a matching ReverseNode.
 type ReferenceNode struct {
 	// The query name of the column that is the foreign key
 	ColumnQueryName string
@@ -23,6 +24,10 @@ type ReferenceNode struct {
 	ReceiverType ReceiverType
 	nodeCondition
 	nodeLink
+}
+
+func (n *ReferenceNode) ColumnName() string {
+	return n.ColumnQueryName
 }
 
 func (n *ReferenceNode) GobEncode() (data []byte, err error) {
@@ -71,4 +76,8 @@ func (n *ReferenceNode) GobDecode(data []byte) (err error) {
 
 func init() {
 	gob.Register(&ReferenceNode{})
+}
+
+func (n *ReferenceNode) id() string {
+	return n.Identifier
 }

@@ -11,7 +11,7 @@ import (
 
 // ProjectNodeI is the builder interface to the Project nodes.
 type ProjectNodeI interface {
-	query.NodeI
+	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// ID represents the id column in the database.
 	ID() *query.ColumnNode
@@ -94,7 +94,7 @@ func (n projectTable) DatabaseKey_() string {
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
 // This may include reference nodes to enum types.
-func (n projectTable) ColumnNodes_() (nodes []query.NodeI) {
+func (n projectTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.Num())
 	nodes = append(nodes, n.Status())
@@ -108,26 +108,26 @@ func (n projectTable) ColumnNodes_() (nodes []query.NodeI) {
 	return nodes
 }
 
-func (n *projectReference) ColumnNodes_() (nodes []query.NodeI) {
+func (n *projectReference) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.projectTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.NodeLinker).SetParent(n)
+		cn.(query.Linker).SetParent(n)
 	}
 	return
 }
 
-func (n *projectReverse) ColumnNodes_() (nodes []query.NodeI) {
+func (n *projectReverse) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.projectTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.NodeLinker).SetParent(n)
+		cn.(query.Linker).SetParent(n)
 	}
 	return
 }
 
-func (n *projectAssociation) ColumnNodes_() (nodes []query.NodeI) {
+func (n *projectAssociation) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.projectTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.NodeLinker).SetParent(n)
+		cn.(query.Linker).SetParent(n)
 	}
 	return
 }

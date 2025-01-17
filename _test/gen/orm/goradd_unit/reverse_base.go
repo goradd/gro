@@ -670,7 +670,7 @@ func (o *reverseBase) SetForwardRestrictUniqueByID(id string) {
 // LoadReverse returns a Reverse from the database.
 // joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
 // be considered Join nodes, and column nodes will be Select nodes. See [ReversesBuilder.Join] and [ReversesBuilder.Select] for more info.
-func LoadReverse(ctx context.Context, id string, joinOrSelectNodes ...query.NodeI) *Reverse {
+func LoadReverse(ctx context.Context, id string, joinOrSelectNodes ...query.Node) *Reverse {
 	return queryReverses(ctx).
 		Where(op.Equal(node.Reverse().ID(), id)).
 		joinOrSelect(joinOrSelectNodes...).
@@ -781,7 +781,7 @@ func (b *ReversesBuilder) Get() *Reverse {
 
 // Join adds node n to the node tree so that its fields will appear in the query.
 // Optionally add conditions to filter what gets included.
-func (b *ReversesBuilder) Join(n query.NodeI, conditions ...query.NodeI) *ReversesBuilder {
+func (b *ReversesBuilder) Join(n query.Node, conditions ...query.Node) *ReversesBuilder {
 	if !query.NodeIsTableNodeI(n) {
 		panic("you can only join Table, Reference, ReverseReference and ManyManyReference nodes")
 	}
@@ -790,7 +790,7 @@ func (b *ReversesBuilder) Join(n query.NodeI, conditions ...query.NodeI) *Revers
 		panic("you can only join a node that is rooted at node.Reverse()")
 	}
 
-	var condition query.NodeI
+	var condition query.Node
 	if len(conditions) > 1 {
 		condition = op.And(conditions)
 	} else if len(conditions) == 1 {
@@ -801,13 +801,13 @@ func (b *ReversesBuilder) Join(n query.NodeI, conditions ...query.NodeI) *Revers
 }
 
 // Where adds a condition to filter what gets selected.
-func (b *ReversesBuilder) Where(c query.NodeI) *ReversesBuilder {
+func (b *ReversesBuilder) Where(c query.Node) *ReversesBuilder {
 	b.builder.Condition(c)
 	return b
 }
 
 // OrderBy specifies how the resulting data should be sorted.
-func (b *ReversesBuilder) OrderBy(nodes ...query.NodeI) *ReversesBuilder {
+func (b *ReversesBuilder) OrderBy(nodes ...query.Node) *ReversesBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
@@ -822,14 +822,14 @@ func (b *ReversesBuilder) Limit(maxRowCount int, offset int) *ReversesBuilder {
 // specify all the fields that you will eventually read out. Be careful when selecting fields in joined tables, as joined
 // tables will also contain pointers back to the parent table, and so the parent node should have the same field selected
 // as the child node if you are querying those fields.
-func (b *ReversesBuilder) Select(nodes ...query.NodeI) *ReversesBuilder {
+func (b *ReversesBuilder) Select(nodes ...query.Node) *ReversesBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
-// Alias lets you add a node with a custom name. After the query, you can read out the data using GetAlias() on a
+// Alias lets you add a node with a custom name. After the query, you can read out the data using Alias() on a
 // returned object. Alias is useful for adding calculations or subqueries to the query.
-func (b *ReversesBuilder) Alias(name string, n query.NodeI) *ReversesBuilder {
+func (b *ReversesBuilder) Alias(name string, n query.Node) *ReversesBuilder {
 	b.builder.Alias(name, n)
 	return b
 }
@@ -843,13 +843,13 @@ func (b *ReversesBuilder) Distinct() *ReversesBuilder {
 }
 
 // GroupBy controls how results are grouped when using aggregate functions in an Alias() call.
-func (b *ReversesBuilder) GroupBy(nodes ...query.NodeI) *ReversesBuilder {
+func (b *ReversesBuilder) GroupBy(nodes ...query.Node) *ReversesBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
 // Having does additional filtering on the results of the query.
-func (b *ReversesBuilder) Having(node query.NodeI) *ReversesBuilder {
+func (b *ReversesBuilder) Having(node query.Node) *ReversesBuilder {
 	b.builder.Having(node)
 	return b
 }
@@ -859,7 +859,7 @@ func (b *ReversesBuilder) Having(node query.NodeI) *ReversesBuilder {
 // distinct wll count the number of distinct items, ignoring duplicates.
 //
 // nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *ReversesBuilder) Count(distinct bool, nodes ...query.NodeI) uint {
+func (b *ReversesBuilder) Count(distinct bool, nodes ...query.Node) uint {
 	return b.builder.Count(distinct, nodes...)
 }
 
@@ -877,7 +877,7 @@ func (b *ReversesBuilder) Subquery() *query.SubqueryNode {
 }
 
 // joinOrSelect is a private helper function for the Load* functions
-func (b *ReversesBuilder) joinOrSelect(nodes ...query.NodeI) *ReversesBuilder {
+func (b *ReversesBuilder) joinOrSelect(nodes ...query.Node) *ReversesBuilder {
 	for _, n := range nodes {
 		switch n.(type) {
 		case query.TableNodeI:

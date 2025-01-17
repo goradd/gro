@@ -255,7 +255,7 @@ func (o *forwardCascadeBase) IsNew() bool {
 // LoadForwardCascade returns a ForwardCascade from the database.
 // joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
 // be considered Join nodes, and column nodes will be Select nodes. See [ForwardCascadesBuilder.Join] and [ForwardCascadesBuilder.Select] for more info.
-func LoadForwardCascade(ctx context.Context, id string, joinOrSelectNodes ...query.NodeI) *ForwardCascade {
+func LoadForwardCascade(ctx context.Context, id string, joinOrSelectNodes ...query.Node) *ForwardCascade {
 	return queryForwardCascades(ctx).
 		Where(op.Equal(node.ForwardCascade().ID(), id)).
 		joinOrSelect(joinOrSelectNodes...).
@@ -366,7 +366,7 @@ func (b *ForwardCascadesBuilder) Get() *ForwardCascade {
 
 // Join adds node n to the node tree so that its fields will appear in the query.
 // Optionally add conditions to filter what gets included.
-func (b *ForwardCascadesBuilder) Join(n query.NodeI, conditions ...query.NodeI) *ForwardCascadesBuilder {
+func (b *ForwardCascadesBuilder) Join(n query.Node, conditions ...query.Node) *ForwardCascadesBuilder {
 	if !query.NodeIsTableNodeI(n) {
 		panic("you can only join Table, Reference, ReverseReference and ManyManyReference nodes")
 	}
@@ -375,7 +375,7 @@ func (b *ForwardCascadesBuilder) Join(n query.NodeI, conditions ...query.NodeI) 
 		panic("you can only join a node that is rooted at node.ForwardCascade()")
 	}
 
-	var condition query.NodeI
+	var condition query.Node
 	if len(conditions) > 1 {
 		condition = op.And(conditions)
 	} else if len(conditions) == 1 {
@@ -386,13 +386,13 @@ func (b *ForwardCascadesBuilder) Join(n query.NodeI, conditions ...query.NodeI) 
 }
 
 // Where adds a condition to filter what gets selected.
-func (b *ForwardCascadesBuilder) Where(c query.NodeI) *ForwardCascadesBuilder {
+func (b *ForwardCascadesBuilder) Where(c query.Node) *ForwardCascadesBuilder {
 	b.builder.Condition(c)
 	return b
 }
 
 // OrderBy specifies how the resulting data should be sorted.
-func (b *ForwardCascadesBuilder) OrderBy(nodes ...query.NodeI) *ForwardCascadesBuilder {
+func (b *ForwardCascadesBuilder) OrderBy(nodes ...query.Node) *ForwardCascadesBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
@@ -407,14 +407,14 @@ func (b *ForwardCascadesBuilder) Limit(maxRowCount int, offset int) *ForwardCasc
 // specify all the fields that you will eventually read out. Be careful when selecting fields in joined tables, as joined
 // tables will also contain pointers back to the parent table, and so the parent node should have the same field selected
 // as the child node if you are querying those fields.
-func (b *ForwardCascadesBuilder) Select(nodes ...query.NodeI) *ForwardCascadesBuilder {
+func (b *ForwardCascadesBuilder) Select(nodes ...query.Node) *ForwardCascadesBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
-// Alias lets you add a node with a custom name. After the query, you can read out the data using GetAlias() on a
+// Alias lets you add a node with a custom name. After the query, you can read out the data using Alias() on a
 // returned object. Alias is useful for adding calculations or subqueries to the query.
-func (b *ForwardCascadesBuilder) Alias(name string, n query.NodeI) *ForwardCascadesBuilder {
+func (b *ForwardCascadesBuilder) Alias(name string, n query.Node) *ForwardCascadesBuilder {
 	b.builder.Alias(name, n)
 	return b
 }
@@ -428,13 +428,13 @@ func (b *ForwardCascadesBuilder) Distinct() *ForwardCascadesBuilder {
 }
 
 // GroupBy controls how results are grouped when using aggregate functions in an Alias() call.
-func (b *ForwardCascadesBuilder) GroupBy(nodes ...query.NodeI) *ForwardCascadesBuilder {
+func (b *ForwardCascadesBuilder) GroupBy(nodes ...query.Node) *ForwardCascadesBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
 // Having does additional filtering on the results of the query.
-func (b *ForwardCascadesBuilder) Having(node query.NodeI) *ForwardCascadesBuilder {
+func (b *ForwardCascadesBuilder) Having(node query.Node) *ForwardCascadesBuilder {
 	b.builder.Having(node)
 	return b
 }
@@ -444,7 +444,7 @@ func (b *ForwardCascadesBuilder) Having(node query.NodeI) *ForwardCascadesBuilde
 // distinct wll count the number of distinct items, ignoring duplicates.
 //
 // nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *ForwardCascadesBuilder) Count(distinct bool, nodes ...query.NodeI) uint {
+func (b *ForwardCascadesBuilder) Count(distinct bool, nodes ...query.Node) uint {
 	return b.builder.Count(distinct, nodes...)
 }
 
@@ -462,7 +462,7 @@ func (b *ForwardCascadesBuilder) Subquery() *query.SubqueryNode {
 }
 
 // joinOrSelect is a private helper function for the Load* functions
-func (b *ForwardCascadesBuilder) joinOrSelect(nodes ...query.NodeI) *ForwardCascadesBuilder {
+func (b *ForwardCascadesBuilder) joinOrSelect(nodes ...query.Node) *ForwardCascadesBuilder {
 	for _, n := range nodes {
 		switch n.(type) {
 		case query.TableNodeI:

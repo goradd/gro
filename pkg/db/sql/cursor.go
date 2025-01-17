@@ -2,6 +2,7 @@ package sql
 
 import (
 	"database/sql"
+	"github.com/goradd/orm/pkg/db/jointree"
 	"github.com/goradd/orm/pkg/query"
 	"log"
 )
@@ -10,7 +11,7 @@ type sqlCursor struct {
 	rows                 *sql.Rows
 	columnTypes          []query.ReceiverType
 	columnNames          []string
-	builder              *Builder
+	builder              *jointree.Builder
 	columnReceivers      []SqlReceiver
 	columnValueReceivers []interface{}
 }
@@ -22,7 +23,7 @@ type sqlCursor struct {
 func NewSqlCursor(rows *sql.Rows,
 	columnTypes []query.ReceiverType,
 	columnNames []string,
-	builder *Builder,
+	builder *jointree.Builder,
 ) *sqlCursor {
 	var err error
 

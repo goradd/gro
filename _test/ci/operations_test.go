@@ -34,7 +34,7 @@ func TestMultiWhere(t *testing.T) {
 
 func TestLogical(t *testing.T) {
 	type testCase struct {
-		testNode   query.NodeI
+		testNode   query.Node
 		objectNum  int
 		expectedId interface{}
 		count      int
@@ -89,7 +89,7 @@ func TestCount2(t *testing.T) {
 
 func TestCalculations(t *testing.T) {
 	type testCase struct {
-		testNode      query.NodeI
+		testNode      query.Node
 		objectNum     int
 		expectedValue interface{}
 		desc          string

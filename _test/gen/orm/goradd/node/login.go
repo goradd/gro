@@ -11,7 +11,7 @@ import (
 
 // LoginNodeI is the builder interface to the Login nodes.
 type LoginNodeI interface {
-	query.NodeI
+	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// ID represents the id column in the database.
 	ID() *query.ColumnNode
@@ -68,7 +68,7 @@ func (n loginTable) DatabaseKey_() string {
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
 // This may include reference nodes to enum types.
-func (n loginTable) ColumnNodes_() (nodes []query.NodeI) {
+func (n loginTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.PersonID())
 	nodes = append(nodes, n.Username())
@@ -77,10 +77,10 @@ func (n loginTable) ColumnNodes_() (nodes []query.NodeI) {
 	return nodes
 }
 
-func (n *loginReverse) ColumnNodes_() (nodes []query.NodeI) {
+func (n *loginReverse) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.loginTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.NodeLinker).SetParent(n)
+		cn.(query.Linker).SetParent(n)
 	}
 	return
 }

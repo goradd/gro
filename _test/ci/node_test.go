@@ -62,7 +62,7 @@ func BenchmarkNodeType2(b *testing.B) {
 }*/
 
 func TestNodeSerialize(t *testing.T) {
-	var n query.NodeI = node.Person().FirstName()
+	var n query.Node = node.Person().FirstName()
 
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
@@ -70,7 +70,7 @@ func TestNodeSerialize(t *testing.T) {
 	err := enc.Encode(&n)
 	assert.NoError(t, err)
 
-	var n2 query.NodeI
+	var n2 query.Node
 	dec := gob.NewDecoder(&buf)
 	err = dec.Decode(&n2)
 	assert.NoError(t, err)

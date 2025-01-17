@@ -359,7 +359,7 @@ func (o *loginBase) IsNew() bool {
 // LoadLogin returns a Login from the database.
 // joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
 // be considered Join nodes, and column nodes will be Select nodes. See [LoginsBuilder.Join] and [LoginsBuilder.Select] for more info.
-func LoadLogin(ctx context.Context, id string, joinOrSelectNodes ...query.NodeI) *Login {
+func LoadLogin(ctx context.Context, id string, joinOrSelectNodes ...query.Node) *Login {
 	return queryLogins(ctx).
 		Where(op.Equal(node.Login().ID(), id)).
 		joinOrSelect(joinOrSelectNodes...).
@@ -378,7 +378,7 @@ func HasLogin(ctx context.Context, id string) bool {
 // joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
 // be considered Join nodes, and column nodes will be Select nodes. See [LoginsBuilder.Join] and [LoginsBuilder.Select] for more info.
 // If you need a more elaborate query, use QueryLogins() to start a query builder.
-func LoadLoginByPersonID(ctx context.Context, personID interface{}, joinOrSelectNodes ...query.NodeI) *Login {
+func LoadLoginByPersonID(ctx context.Context, personID interface{}, joinOrSelectNodes ...query.Node) *Login {
 	q := queryLogins(ctx)
 	if personID == nil {
 		q = q.Where(op.IsNull(node.Login().PersonID()))
@@ -405,7 +405,7 @@ func HasLoginByPersonID(ctx context.Context, personID interface{}) bool {
 // joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
 // be considered Join nodes, and column nodes will be Select nodes. See [LoginsBuilder.Join] and [LoginsBuilder.Select] for more info.
 // If you need a more elaborate query, use QueryLogins() to start a query builder.
-func LoadLoginByUsername(ctx context.Context, username string, joinOrSelectNodes ...query.NodeI) *Login {
+func LoadLoginByUsername(ctx context.Context, username string, joinOrSelectNodes ...query.Node) *Login {
 	q := queryLogins(ctx)
 	q = q.Where(op.Equal(node.Login().Username(), username))
 	return q.joinOrSelect(joinOrSelectNodes...).Get()
@@ -516,7 +516,7 @@ func (b *LoginsBuilder) Get() *Login {
 
 // Join adds node n to the node tree so that its fields will appear in the query.
 // Optionally add conditions to filter what gets included.
-func (b *LoginsBuilder) Join(n query.NodeI, conditions ...query.NodeI) *LoginsBuilder {
+func (b *LoginsBuilder) Join(n query.Node, conditions ...query.Node) *LoginsBuilder {
 	if !query.NodeIsTableNodeI(n) {
 		panic("you can only join Table, Reference, ReverseReference and ManyManyReference nodes")
 	}
@@ -525,7 +525,7 @@ func (b *LoginsBuilder) Join(n query.NodeI, conditions ...query.NodeI) *LoginsBu
 		panic("you can only join a node that is rooted at node.Login()")
 	}
 
-	var condition query.NodeI
+	var condition query.Node
 	if len(conditions) > 1 {
 		condition = op.And(conditions)
 	} else if len(conditions) == 1 {
@@ -536,13 +536,13 @@ func (b *LoginsBuilder) Join(n query.NodeI, conditions ...query.NodeI) *LoginsBu
 }
 
 // Where adds a condition to filter what gets selected.
-func (b *LoginsBuilder) Where(c query.NodeI) *LoginsBuilder {
+func (b *LoginsBuilder) Where(c query.Node) *LoginsBuilder {
 	b.builder.Condition(c)
 	return b
 }
 
 // OrderBy specifies how the resulting data should be sorted.
-func (b *LoginsBuilder) OrderBy(nodes ...query.NodeI) *LoginsBuilder {
+func (b *LoginsBuilder) OrderBy(nodes ...query.Node) *LoginsBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
@@ -557,14 +557,14 @@ func (b *LoginsBuilder) Limit(maxRowCount int, offset int) *LoginsBuilder {
 // specify all the fields that you will eventually read out. Be careful when selecting fields in joined tables, as joined
 // tables will also contain pointers back to the parent table, and so the parent node should have the same field selected
 // as the child node if you are querying those fields.
-func (b *LoginsBuilder) Select(nodes ...query.NodeI) *LoginsBuilder {
+func (b *LoginsBuilder) Select(nodes ...query.Node) *LoginsBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
-// Alias lets you add a node with a custom name. After the query, you can read out the data using GetAlias() on a
+// Alias lets you add a node with a custom name. After the query, you can read out the data using Alias() on a
 // returned object. Alias is useful for adding calculations or subqueries to the query.
-func (b *LoginsBuilder) Alias(name string, n query.NodeI) *LoginsBuilder {
+func (b *LoginsBuilder) Alias(name string, n query.Node) *LoginsBuilder {
 	b.builder.Alias(name, n)
 	return b
 }
@@ -578,13 +578,13 @@ func (b *LoginsBuilder) Distinct() *LoginsBuilder {
 }
 
 // GroupBy controls how results are grouped when using aggregate functions in an Alias() call.
-func (b *LoginsBuilder) GroupBy(nodes ...query.NodeI) *LoginsBuilder {
+func (b *LoginsBuilder) GroupBy(nodes ...query.Node) *LoginsBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
 // Having does additional filtering on the results of the query.
-func (b *LoginsBuilder) Having(node query.NodeI) *LoginsBuilder {
+func (b *LoginsBuilder) Having(node query.Node) *LoginsBuilder {
 	b.builder.Having(node)
 	return b
 }
@@ -594,7 +594,7 @@ func (b *LoginsBuilder) Having(node query.NodeI) *LoginsBuilder {
 // distinct wll count the number of distinct items, ignoring duplicates.
 //
 // nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *LoginsBuilder) Count(distinct bool, nodes ...query.NodeI) uint {
+func (b *LoginsBuilder) Count(distinct bool, nodes ...query.Node) uint {
 	return b.builder.Count(distinct, nodes...)
 }
 
@@ -612,7 +612,7 @@ func (b *LoginsBuilder) Subquery() *query.SubqueryNode {
 }
 
 // joinOrSelect is a private helper function for the Load* functions
-func (b *LoginsBuilder) joinOrSelect(nodes ...query.NodeI) *LoginsBuilder {
+func (b *LoginsBuilder) joinOrSelect(nodes ...query.Node) *LoginsBuilder {
 	for _, n := range nodes {
 		switch n.(type) {
 		case query.TableNodeI:

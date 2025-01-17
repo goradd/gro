@@ -5,6 +5,15 @@ import (
 	"encoding/gob"
 )
 
+type ManyManyNodeI interface {
+	AssnTableName() string
+	ColumnName() string
+	TableNodeI
+	Conditioner
+	Linker
+	Expander
+}
+
 // A ManyManyNode is a mixin for an association node that links one table to another table with a many-to-many relationship.
 type ManyManyNode struct {
 	// The association table
@@ -24,6 +33,14 @@ type ManyManyNode struct {
 	nodeCondition
 	nodeLink
 	nodeExpand
+}
+
+func (n *ManyManyNode) AssnTableName() string {
+	return n.AssnTableQueryName
+}
+
+func (n *ManyManyNode) RefColumnName() string {
+	return n.RefColumnName()
 }
 
 func (n *ManyManyNode) GobEncode() (data []byte, err error) {
@@ -96,4 +113,8 @@ func (n *ManyManyNode) GobDecode(data []byte) (err error) {
 
 func init() {
 	gob.Register(&ManyManyNode{})
+}
+
+func (n *ManyManyNode) id() string {
+	return n.Identifier
 }

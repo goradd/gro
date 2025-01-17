@@ -5,7 +5,15 @@ import (
 	"encoding/gob"
 )
 
-// ReverseNode creates a reverse reference  representing a one to many relationship or one-to-one
+type ReverseNodeI interface {
+	ColumnName() string
+	TableNodeI
+	Conditioner
+	Linker
+	Expander
+}
+
+// ReverseNode is a mixin for a reverse reference representing a one-to-many relationship or one-to-one
 // relationship, depending on whether the foreign key is unique. The other side of the relationship will have
 // a matching forward ReferenceNode.
 type ReverseNode struct {
@@ -19,6 +27,10 @@ type ReverseNode struct {
 	nodeCondition
 	nodeLink
 	nodeExpand
+}
+
+func (n *ReverseNode) ColumnName() string {
+	return n.ColumnQueryName
 }
 
 func (n *ReverseNode) GobEncode() (data []byte, err error) {
@@ -73,4 +85,8 @@ func (n *ReverseNode) GobDecode(data []byte) (err error) {
 
 func init() {
 	gob.Register(&ReverseNode{})
+}
+
+func (n *ReverseNode) id() string {
+	return n.Identifier
 }

@@ -1,39 +1,245 @@
 package query
 
-import "context"
+import (
+	"context"
+	"fmt"
+	"slices"
+)
+
+type BuilderCommand int
+
+const (
+	BuilderCommandLoad = iota
+	BuilderCommandGet
+	BuilderCommandDelete
+	BuilderCommandCount
+	BuilderCommandLoadCursor
+)
 
 // AliasResults is the special item to use for named aliases in the result set
 const AliasResults = "aliases_"
 
-// QueryBuilderI is the primary aid in creating cross-platform, portable queries to the database(s)
-// The code-generated ORM classes call these functions to build a query. The query will eventually get
-// sent to the database for processing, and then unpacked into one of the ORM generated objects. You generally
-// will not call these functions directly, but rather will call the matching functions in each of the codegenerated
-// ORM classes located in your project directory.
-//
-// If you are creating a database driver, you will implement these functions in the query builder that you
-// provide.
-type QueryBuilderI interface {
-	Join(n NodeI, condition NodeI)
-	Expand(n NodeI)
-	Condition(c NodeI)
-	Having(c NodeI)
-	OrderBy(nodes ...NodeI)
-	GroupBy(nodes ...NodeI)
-	Limit(maxRowCount int, offset int)
-	Select(nodes ...NodeI)
-	Distinct()
-	Alias(name string, n NodeI)
-	// Load terminates the builder, queries the database, and returns the results as an array of interfaces similar in structure to a json structure
-	Load() []map[string]interface{}
-	Delete()
-	Count(distinct bool, nodes ...NodeI) uint
-	Subquery() *SubqueryNode
-	Context() context.Context
-	LoadCursor() CursorI
-}
-
 type CursorI interface {
 	Next() map[string]interface{}
 	Close() error
+}
+
+// LimitParams is the information needed to limit the rows being requested.
+type LimitParams struct {
+	MaxRowCount int
+	Offset      int
+}
+
+func (l LimitParams) AreSet() bool {
+	return l.MaxRowCount > 0 || l.Offset >= l.MaxRowCount
+}
+
+// BuilderI is the interface to the builder structure. Since the builder is directly interacted with by the developer,
+// passing this interface instead of the Builder object makes it more clear what the developer should use to build queries.
+type BuilderI interface {
+	Join(n Node, condition Node)
+	Expand(n Expander)
+	Where(c Node)
+	Having(c Node)
+	OrderBy(nodes ...Sorter)
+	GroupBy(nodes ...Node)
+	Limit(maxRowCount int, offset int)
+	Select(nodes ...Node)
+	Distinct()
+	Calculation(alias string, n Aliaser)
+	Subquery() *SubqueryNode
+	//Context() context.Context
+}
+
+// Builder is a mix-in to implement the BuilderI interface in various builder classes.
+// It gathers the builder instructions as the query is built, then the final build process
+// processes the query into a join tree that can be used by database drivers to generate
+// the database specific query.
+type Builder struct {
+	Ctx        context.Context // The context that will be used in all the queries
+	Command    BuilderCommand
+	Joins      []Node
+	OrderBys   []Sorter
+	Conditions []Node
+	IsDistinct bool
+	AliasNodes []Aliaser
+	// Adds a COUNT(*) to the select list
+	GroupBys   []Node
+	Selects    []Node
+	Limits     LimitParams
+	HavingNode Node
+	IsSubquery bool
+}
+
+func NewBuilder(ctx context.Context, cmd BuilderCommand) BuilderI {
+	return &Builder{Ctx: ctx, Command: cmd}
+}
+
+// Context returns the context.
+func (b *Builder) Context() context.Context {
+	return b.Ctx
+}
+
+// Join will attach the given reference node to the builder.
+func (b *Builder) Join(n Node, condition Node) {
+	// Possible TBD: If we ever want to support joining the same tables multiple
+	// times with different conditions, we could use an alias to name each join. We would
+	// then need to create an Alias node to specify which join is meant in different clauses.
+
+	if condition != nil {
+		if c, ok := n.(Conditioner); !ok {
+			panic("node cannot have conditions")
+		} else {
+			c.SetCondition(condition)
+		}
+	}
+
+	b.Joins = append(b.Joins, n)
+}
+
+// Expand expands an array type node so that it will produce individual rows instead of an array of items
+func (b *Builder) Expand(n Expander) {
+	n.(Expander).Expand()
+	b.Join(n.(Node), nil)
+}
+
+// Calculation adds an aliased calculation node.
+func (b *Builder) Calculation(name string, n Aliaser) {
+	if slices.ContainsFunc(b.AliasNodes, func(aliaser Aliaser) bool {
+		return aliaser.Alias() == name
+	}) {
+		panic("alias already exists")
+	}
+	n.SetAlias(name)
+	b.AliasNodes = append(b.AliasNodes, n)
+}
+
+// Where adds condition to the Where clause. Multiple calls to Condition will result in conditions joined with an And.
+func (b *Builder) Where(condition Node) {
+	b.Conditions = append(b.Conditions, condition)
+}
+
+// OrderBy adds the order by nodes. If these are table type nodes, the primary key of the table will be used.
+// These nodes can be modified using Ascending and Descending calls.
+func (b *Builder) OrderBy(nodes ...Sorter) {
+	b.OrderBys = append(b.OrderBys, nodes...)
+}
+
+// Limit limits the query to returning maxRowCount rows at most, starting at row offset.
+// In SQL queries, this limits the rows BEFORE assembling many type relationships,
+// which usually is not what is wanted. Therefore, you cannot put limits on queries that have reverse or many-many
+// relationships which are not expanded into single rows.
+// Also note that SQL at least will perform the entire query before finding the offset, which could have performance
+// issues. If paging through a large dataset, consider getting a list of just primary keys of the records you want, saving
+// that list, and then lazy-loading the rest of the information with a separate query.
+//
+// Warning: Setting maxRowCount to zero will turn off the limit. Setting it to less than zero will panic.
+// If you really want to return no information, do not call the query.
+func (b *Builder) Limit(maxRowCount int, offset int) {
+	if b.Limits.AreSet() {
+		panic("query already has a limit")
+	}
+	if maxRowCount < 0 {
+		panic(fmt.Sprintf("setting maxRowCount to %d", maxRowCount))
+	}
+	b.Limits.MaxRowCount = maxRowCount
+	b.Limits.Offset = offset
+}
+
+// Select specifies what specific nodes are selected. This is an optimization in order to limit the amount
+// of data returned by the query. Without this, the query will expand all the join items to return every
+// column of each table joined.
+func (b *Builder) Select(nodes ...Node) {
+	if b.GroupBys != nil {
+		panic("You cannot have Select and GroupBy statements in the same query. The GroupBy columns will automatically be selected.")
+	}
+	for _, n := range nodes {
+		if n.NodeType_() != ColumnNodeType {
+			panic("you can only select column nodes")
+		}
+	}
+	b.Selects = append(b.Selects, nodes...)
+}
+
+// Distinct sets the distinct bit, causing the query to not return duplicates.
+func (b *Builder) Distinct() {
+	b.IsDistinct = true
+}
+
+// GroupBy sets the nodes that are grouped. According to SQL rules, these then are the only nodes that can be
+// selected, and they MUST be selected.
+func (b *Builder) GroupBy(nodes ...Node) {
+	if b.Selects != nil {
+		panic("do not have Select and GroupBy statements in the same query. The GroupBy columns will automatically be selected.")
+	}
+	b.GroupBys = append(b.GroupBys, nodes...)
+}
+
+// Having adds a HAVING condition, which is a filter that acts on the results of a query.
+// In particular, it is useful for filtering after aggregate functions have done their work.
+func (b *Builder) Having(node Node) {
+	b.HavingNode = node // should be a condition node?
+}
+
+// Subquery adds a subquery node, which is like a mini query builder that should result in a single value.
+func (b *Builder) Subquery() *SubqueryNode {
+	n := NewSubqueryNode(b)
+	b.IsSubquery = true
+	return n
+}
+
+// Nodes returns all the nodes referred to in the query.
+func (b *Builder) Nodes() (nodes []Node) {
+	// first pass
+	topNodes := b.topNodes()
+
+	// unpack container nodes
+	for _, n := range topNodes {
+		if sn, ok := n.(*SubqueryNode); ok {
+			nodes = append(nodes, n) // Return the subquery node itself, because we need to do some work on it
+			b2 := sn.b.(*Builder)
+			// recurse
+			nodes = append(nodes, b2.Nodes()...)
+		} else if cn := ContainedNodes(n); cn != nil {
+			nodes = append(nodes, cn...)
+		} else {
+			nodes = append(nodes, n)
+		}
+	}
+	return
+}
+
+// topNodes returns all the top level nodes referred to in the query.
+// Some of the nodes returned may be container nodes.
+func (b *Builder) topNodes() []Node {
+	var nodes []Node
+	for _, n := range b.Joins {
+		nodes = append(nodes, n)
+		if c := NodeCondition(n); c != nil {
+			nodes = append(nodes, c)
+		}
+	}
+	for _, n := range b.OrderBys {
+		nodes = append(nodes, n)
+	}
+
+	nodes = append(nodes, b.Conditions...)
+
+	for _, n := range b.GroupBys {
+		if p, ok := n.(PrimaryKeyer); ok {
+			n = p.PrimaryKeyNode() // Allow table nodes, but then actually have them be the pk in this context
+		}
+		nodes = append(nodes, n)
+	}
+
+	if b.HavingNode != nil {
+		nodes = append(nodes, b.HavingNode)
+	}
+	nodes = append(nodes, b.Selects...)
+
+	for _, n := range b.AliasNodes {
+		nodes = append(nodes, n)
+	}
+
+	return nodes
 }

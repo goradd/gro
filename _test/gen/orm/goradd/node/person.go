@@ -11,7 +11,7 @@ import (
 
 // PersonNodeI is the builder interface to the Person nodes.
 type PersonNodeI interface {
-	query.NodeI
+	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// ID represents the id column in the database.
 	ID() *query.ColumnNode
@@ -84,33 +84,33 @@ func (n personTable) DatabaseKey_() string {
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
 // This may include reference nodes to enum types.
-func (n personTable) ColumnNodes_() (nodes []query.NodeI) {
+func (n personTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.FirstName())
 	nodes = append(nodes, n.LastName())
 	return nodes
 }
 
-func (n *personReference) ColumnNodes_() (nodes []query.NodeI) {
+func (n *personReference) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.personTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.NodeLinker).SetParent(n)
+		cn.(query.Linker).SetParent(n)
 	}
 	return
 }
 
-func (n *personReverse) ColumnNodes_() (nodes []query.NodeI) {
+func (n *personReverse) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.personTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.NodeLinker).SetParent(n)
+		cn.(query.Linker).SetParent(n)
 	}
 	return
 }
 
-func (n *personAssociation) ColumnNodes_() (nodes []query.NodeI) {
+func (n *personAssociation) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.personTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.NodeLinker).SetParent(n)
+		cn.(query.Linker).SetParent(n)
 	}
 	return
 }
