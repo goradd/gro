@@ -11,7 +11,7 @@ type sqlCursor struct {
 	rows                 *sql.Rows
 	columnTypes          []query.ReceiverType
 	columnNames          []string
-	builder              *jointree.Builder
+	joinTree             *jointree.JoinTree
 	columnReceivers      []SqlReceiver
 	columnValueReceivers []interface{}
 }
@@ -23,7 +23,7 @@ type sqlCursor struct {
 func NewSqlCursor(rows *sql.Rows,
 	columnTypes []query.ReceiverType,
 	columnNames []string,
-	builder *jointree.Builder,
+	joinTree *jointree.JoinTree,
 ) *sqlCursor {
 	var err error
 
@@ -38,7 +38,7 @@ func NewSqlCursor(rows *sql.Rows,
 		rows:                 rows,
 		columnTypes:          columnTypes,
 		columnNames:          columnNames,
-		builder:              builder,
+		joinTree:             joinTree,
 		columnReceivers:      make([]SqlReceiver, len(columnTypes)),
 		columnValueReceivers: make([]interface{}, len(columnTypes)),
 	}
@@ -68,8 +68,8 @@ func (r sqlCursor) Next() map[string]interface{} {
 		for j, vr := range r.columnReceivers {
 			values[r.columnNames[j]] = vr.Unpack(r.columnTypes[j])
 		}
-		if r.builder != nil {
-			v2 := r.builder.unpackResult([]map[string]interface{}{values})
+		if r.joinTree != nil {
+			v2 := unpack(r.joinTree, []map[string]interface{}{values})
 			return v2[0]
 		} else {
 			return values

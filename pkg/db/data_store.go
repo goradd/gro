@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"github.com/goradd/goradd/pkg/orm/query"
 	"github.com/goradd/maps"
 	. "github.com/goradd/orm/pkg/query"
 	"github.com/goradd/orm/pkg/schema"
@@ -40,7 +39,7 @@ type DatabaseI interface {
 	Query(ctx context.Context, table string, fields map[string]ReceiverType, where map[string]any, orderBy []string) CursorI
 	// BuilderQuery performs a complex query using a query builder.
 	// The data returned will depend on the command inside the builder.
-	BuilderQuery(ctx context.Context, builder query.QueryBuilderI) interface{}
+	BuilderQuery(ctx context.Context, builder BuilderI) interface{}
 	// Begin will begin a transaction in the database and return the transaction id
 	// Instead of calling Begin directly, use the ExecuteTransaction wrapper.
 	Begin(ctx context.Context) TransactionID

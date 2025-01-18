@@ -335,7 +335,7 @@ func (h *DbHelper) BuilderQuery(ctx context.Context, builder BuilderI) interface
 	return nil
 }
 
-func (h *DbHelper) builderLoad(ctx context.Context, joinTree *jointree.JoinTree) map[string]interface{} {
+func (h *DbHelper) builderLoad(ctx context.Context, joinTree *jointree.JoinTree) []map[string]interface{} {
 	g := newSelectGenerator(joinTree, h.dbi)
 	s := g.generateSelectSql()
 	args := g.argList
@@ -363,8 +363,7 @@ func (h *DbHelper) builderLoad(ctx context.Context, joinTree *jointree.JoinTree)
 		columnTypes = append(columnTypes, ColTypeBytes) // These will be unpacked when they are retrieved
 	}
 
-	result = SqlReceiveRows(rows, columnTypes, names, b)
+	result := SqlReceiveRows(rows, columnTypes, names, joinTree)
 
 	return result
-
 }

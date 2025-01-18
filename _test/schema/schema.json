@@ -159,6 +159,12 @@
             "size": 50,
             "index_level": "Indexed",
             "case_insensitive": true
+          },
+          {
+            "name": "person_types",
+            "type": "String",
+            "size": 9,
+            "case_insensitive": true
           }
         ],
         "key": "person"
@@ -697,13 +703,13 @@
           },
           {
             "name": "type_set",
-            "type": "Unknown",
+            "type": "String",
             "size": 5,
             "case_insensitive": true
           },
           {
             "name": "type_enum",
-            "type": "Unknown",
+            "type": "String",
             "size": 1,
             "case_insensitive": true
           },
