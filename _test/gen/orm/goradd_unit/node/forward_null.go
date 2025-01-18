@@ -9,8 +9,8 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
-// ForwardNullNodeI is the builder interface to the ForwardNull nodes.
-type ForwardNullNodeI interface {
+// ForwardNullNode is the builder interface to the ForwardNull nodes.
+type ForwardNullNode interface {
 	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// ID represents the id column in the database.
@@ -20,12 +20,12 @@ type ForwardNullNodeI interface {
 	// ReverseID represents the reverse_id column in the database.
 	ReverseID() *query.ColumnNode
 	// Reverse represents the Reverse reference to a Reverse object.
-	Reverse() ReverseNodeI
+	Reverse() ReverseNode
 }
 
 // ForwardNullExpander is the builder interface for ForwardNulls that are expandable.
 type ForwardNullExpander interface {
-	ForwardNullNodeI
+	ForwardNullNode
 	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
 	Expand()
 }
@@ -43,7 +43,7 @@ type forwardNullReverse struct {
 }
 
 // ForwardNull returns a table node that starts a node chain that begins with the forward_null table.
-func ForwardNull() ForwardNullNodeI {
+func ForwardNull() ForwardNullNode {
 	return forwardNullTable{}
 }
 
@@ -77,15 +77,6 @@ func (n *forwardNullReverse) ColumnNodes_() (nodes []query.Node) {
 		cn.(query.Linker).SetParent(n)
 	}
 	return
-}
-
-// Columns_ is used internally by the framework to return the list of all the columns in the table.
-func (n forwardNullTable) Columns_() []string {
-	return []string{
-		"id",
-		"name",
-		"reverse_id",
-	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
@@ -158,7 +149,7 @@ func (n *forwardNullReverse) ReverseID() *query.ColumnNode {
 }
 
 // Reverse represents the link to a Reverse object.
-func (n forwardNullTable) Reverse() ReverseNodeI {
+func (n forwardNullTable) Reverse() ReverseNode {
 	cn := &reverseReference{
 		ReferenceNode: query.ReferenceNode{
 			ColumnQueryName: "reverse_id",
@@ -170,7 +161,7 @@ func (n forwardNullTable) Reverse() ReverseNodeI {
 	return cn
 }
 
-func (n *forwardNullReverse) Reverse() ReverseNodeI {
+func (n *forwardNullReverse) Reverse() ReverseNode {
 	cn := n.forwardNullTable.Reverse().(*reverseReference)
 	cn.SetParent(n)
 	return cn

@@ -34,7 +34,7 @@ func TestNodeEquality(t *testing.T) {
 
 	n4 := query.NewValueNode(goradd.PersonTypeContractor)
 	if !query.NodeIsEqual(n4, n4) {
-		t.Error("Type node not equal to self")
+		t.Error("ReceiverType node not equal to self")
 	}
 
 }

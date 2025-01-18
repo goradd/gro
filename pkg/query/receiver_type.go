@@ -107,6 +107,7 @@ func (g ReceiverType) DefaultValueString() string {
 
 // ReceiverTypeFromSchema converts a schema column type to a Go language type.
 // If maxLength is zero, the default will be chosen.
+// If the column is a ReferenceType, columnType should instead be the type of the primary key in the referenced table.
 func ReceiverTypeFromSchema(columnType schema.ColumnType, maxLength uint64) ReceiverType {
 	switch columnType {
 	case schema.ColTypeUnknown:
@@ -138,11 +139,12 @@ func ReceiverTypeFromSchema(columnType schema.ColumnType, maxLength uint64) Rece
 		return ColTypeString
 	case schema.ColTypeJSON:
 		return ColTypeString
+	case schema.ColTypeReference:
+		panic("pass the ColType of the primary key in the destination table")
+		return ColTypeString
 	case schema.ColTypeEnum:
 		return ColTypeInteger
-	case schema.ColTypeReference:
-		// Note that in the case of references to manually entered foreign keys, they
-		// will always get queried as strings.
+	case schema.ColTypeMultiEnum:
 		return ColTypeString
 	}
 	return ColTypeUnknown

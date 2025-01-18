@@ -9,8 +9,8 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
-// ForwardRestrictUniqueNodeI is the builder interface to the ForwardRestrictUnique nodes.
-type ForwardRestrictUniqueNodeI interface {
+// ForwardRestrictUniqueNode is the builder interface to the ForwardRestrictUnique nodes.
+type ForwardRestrictUniqueNode interface {
 	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// ID represents the id column in the database.
@@ -20,12 +20,12 @@ type ForwardRestrictUniqueNodeI interface {
 	// ReverseID represents the reverse_id column in the database.
 	ReverseID() *query.ColumnNode
 	// Reverse represents the Reverse reference to a Reverse object.
-	Reverse() ReverseNodeI
+	Reverse() ReverseNode
 }
 
 // ForwardRestrictUniqueExpander is the builder interface for ForwardRestrictUniques that are expandable.
 type ForwardRestrictUniqueExpander interface {
-	ForwardRestrictUniqueNodeI
+	ForwardRestrictUniqueNode
 	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
 	Expand()
 }
@@ -43,7 +43,7 @@ type forwardRestrictUniqueReverse struct {
 }
 
 // ForwardRestrictUnique returns a table node that starts a node chain that begins with the forward_restrict_unique table.
-func ForwardRestrictUnique() ForwardRestrictUniqueNodeI {
+func ForwardRestrictUnique() ForwardRestrictUniqueNode {
 	return forwardRestrictUniqueTable{}
 }
 
@@ -77,15 +77,6 @@ func (n *forwardRestrictUniqueReverse) ColumnNodes_() (nodes []query.Node) {
 		cn.(query.Linker).SetParent(n)
 	}
 	return
-}
-
-// Columns_ is used internally by the framework to return the list of all the columns in the table.
-func (n forwardRestrictUniqueTable) Columns_() []string {
-	return []string{
-		"id",
-		"name",
-		"reverse_id",
-	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
@@ -158,7 +149,7 @@ func (n *forwardRestrictUniqueReverse) ReverseID() *query.ColumnNode {
 }
 
 // Reverse represents the link to a Reverse object.
-func (n forwardRestrictUniqueTable) Reverse() ReverseNodeI {
+func (n forwardRestrictUniqueTable) Reverse() ReverseNode {
 	cn := &reverseReference{
 		ReferenceNode: query.ReferenceNode{
 			ColumnQueryName: "reverse_id",
@@ -170,7 +161,7 @@ func (n forwardRestrictUniqueTable) Reverse() ReverseNodeI {
 	return cn
 }
 
-func (n *forwardRestrictUniqueReverse) Reverse() ReverseNodeI {
+func (n *forwardRestrictUniqueReverse) Reverse() ReverseNode {
 	cn := n.forwardRestrictUniqueTable.Reverse().(*reverseReference)
 	cn.SetParent(n)
 	return cn

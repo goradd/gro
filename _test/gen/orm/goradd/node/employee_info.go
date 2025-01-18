@@ -9,8 +9,8 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
-// EmployeeInfoNodeI is the builder interface to the EmployeeInfo nodes.
-type EmployeeInfoNodeI interface {
+// EmployeeInfoNode is the builder interface to the EmployeeInfo nodes.
+type EmployeeInfoNode interface {
 	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// ID represents the id column in the database.
@@ -18,16 +18,9 @@ type EmployeeInfoNodeI interface {
 	// PersonID represents the person_id column in the database.
 	PersonID() *query.ColumnNode
 	// Person represents the Person reference to a Person object.
-	Person() PersonNodeI
+	Person() PersonNode
 	// EmployeeNumber represents the employee_number column in the database.
 	EmployeeNumber() *query.ColumnNode
-}
-
-// EmployeeInfoExpander is the builder interface for EmployeeInfos that are expandable.
-type EmployeeInfoExpander interface {
-	EmployeeInfoNodeI
-	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand()
 }
 
 // employeeInfoTable represents the employee_info table in a query. It uses a builder pattern to chain
@@ -43,7 +36,7 @@ type employeeInfoReverse struct {
 }
 
 // EmployeeInfo returns a table node that starts a node chain that begins with the employee_info table.
-func EmployeeInfo() EmployeeInfoNodeI {
+func EmployeeInfo() EmployeeInfoNode {
 	return employeeInfoTable{}
 }
 
@@ -77,15 +70,6 @@ func (n *employeeInfoReverse) ColumnNodes_() (nodes []query.Node) {
 		cn.(query.Linker).SetParent(n)
 	}
 	return
-}
-
-// Columns_ is used internally by the framework to return the list of all the columns in the table.
-func (n employeeInfoTable) Columns_() []string {
-	return []string{
-		"id",
-		"person_id",
-		"employee_number",
-	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
@@ -141,7 +125,7 @@ func (n *employeeInfoReverse) PersonID() *query.ColumnNode {
 }
 
 // Person represents the link to a Person object.
-func (n employeeInfoTable) Person() PersonNodeI {
+func (n employeeInfoTable) Person() PersonNode {
 	cn := &personReference{
 		ReferenceNode: query.ReferenceNode{
 			ColumnQueryName: "person_id",
@@ -153,7 +137,7 @@ func (n employeeInfoTable) Person() PersonNodeI {
 	return cn
 }
 
-func (n *employeeInfoReverse) Person() PersonNodeI {
+func (n *employeeInfoReverse) Person() PersonNode {
 	cn := n.employeeInfoTable.Person().(*personReference)
 	cn.SetParent(n)
 	return cn

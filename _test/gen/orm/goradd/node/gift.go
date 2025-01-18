@@ -9,21 +9,14 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
-// GiftNodeI is the builder interface to the Gift nodes.
-type GiftNodeI interface {
+// GiftNode is the builder interface to the Gift nodes.
+type GiftNode interface {
 	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// Number represents the number column in the database.
 	Number() *query.ColumnNode
 	// Name represents the name column in the database.
 	Name() *query.ColumnNode
-}
-
-// GiftExpander is the builder interface for Gifts that are expandable.
-type GiftExpander interface {
-	GiftNodeI
-	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand()
 }
 
 // giftTable represents the gift table in a query. It uses a builder pattern to chain
@@ -39,7 +32,7 @@ type giftReverse struct {
 }
 
 // Gift returns a table node that starts a node chain that begins with the gift table.
-func Gift() GiftNodeI {
+func Gift() GiftNode {
 	return giftTable{}
 }
 
@@ -72,14 +65,6 @@ func (n *giftReverse) ColumnNodes_() (nodes []query.Node) {
 		cn.(query.Linker).SetParent(n)
 	}
 	return
-}
-
-// Columns_ is used internally by the framework to return the list of all the columns in the table.
-func (n giftTable) Columns_() []string {
-	return []string{
-		"number",
-		"name",
-	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.

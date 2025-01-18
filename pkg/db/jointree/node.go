@@ -46,14 +46,10 @@ func nodeMatch(node1, node2 query.Node) bool {
 		return c1.QueryName == c2.QueryName
 	case query.TableNodeType:
 		return true // already know table names are equal
-	case query.EnumNodeType:
-		fallthrough
 	case query.ReferenceNodeType:
 		return node1.(query.ReferenceNodeI).ColumnName() == node2.(query.ReferenceNodeI).ColumnName()
 	case query.ReverseNodeType:
 		return node1.(query.ReverseNodeI).ColumnName() == node2.(query.ReverseNodeI).ColumnName()
-	case query.ManyEnumNodeType:
-		fallthrough
 	case query.ManyManyNodeType:
 		return node1.(query.ManyManyNodeI).AssnTableName() == node2.(query.ManyManyNodeI).AssnTableName() &&
 			node1.(query.ManyManyNodeI).ColumnName() == node2.(query.ManyManyNodeI).ColumnName()

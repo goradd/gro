@@ -9,8 +9,8 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
-// MilestoneNodeI is the builder interface to the Milestone nodes.
-type MilestoneNodeI interface {
+// MilestoneNode is the builder interface to the Milestone nodes.
+type MilestoneNode interface {
 	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// ID represents the id column in the database.
@@ -18,14 +18,14 @@ type MilestoneNodeI interface {
 	// ProjectID represents the project_id column in the database.
 	ProjectID() *query.ColumnNode
 	// Project represents the Project reference to a Project object.
-	Project() ProjectNodeI
+	Project() ProjectNode
 	// Name represents the name column in the database.
 	Name() *query.ColumnNode
 }
 
 // MilestoneExpander is the builder interface for Milestones that are expandable.
 type MilestoneExpander interface {
-	MilestoneNodeI
+	MilestoneNode
 	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
 	Expand()
 }
@@ -43,7 +43,7 @@ type milestoneReverse struct {
 }
 
 // Milestone returns a table node that starts a node chain that begins with the milestone table.
-func Milestone() MilestoneNodeI {
+func Milestone() MilestoneNode {
 	return milestoneTable{}
 }
 
@@ -77,15 +77,6 @@ func (n *milestoneReverse) ColumnNodes_() (nodes []query.Node) {
 		cn.(query.Linker).SetParent(n)
 	}
 	return
-}
-
-// Columns_ is used internally by the framework to return the list of all the columns in the table.
-func (n milestoneTable) Columns_() []string {
-	return []string{
-		"id",
-		"project_id",
-		"name",
-	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
@@ -141,7 +132,7 @@ func (n *milestoneReverse) ProjectID() *query.ColumnNode {
 }
 
 // Project represents the link to a Project object.
-func (n milestoneTable) Project() ProjectNodeI {
+func (n milestoneTable) Project() ProjectNode {
 	cn := &projectReference{
 		ReferenceNode: query.ReferenceNode{
 			ColumnQueryName: "project_id",
@@ -153,7 +144,7 @@ func (n milestoneTable) Project() ProjectNodeI {
 	return cn
 }
 
-func (n *milestoneReverse) Project() ProjectNodeI {
+func (n *milestoneReverse) Project() ProjectNode {
 	cn := n.milestoneTable.Project().(*projectReference)
 	cn.SetParent(n)
 	return cn

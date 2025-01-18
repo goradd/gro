@@ -412,7 +412,7 @@ func (b *ForwardNullsBuilder) Select(nodes ...query.Node) *ForwardNullsBuilder {
 	return b
 }
 
-// Alias lets you add a node with a custom name. After the query, you can read out the data using Alias() on a
+// Alias lets you add a node with a custom name. After the query, you can read out the data using GetAlias() on a
 // returned object. Alias is useful for adding calculations or subqueries to the query.
 func (b *ForwardNullsBuilder) Alias(name string, n query.Node) *ForwardNullsBuilder {
 	b.builder.Alias(name, n)

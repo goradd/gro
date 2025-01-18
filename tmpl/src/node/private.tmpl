@@ -4,7 +4,7 @@
 
 {{
 
-{{# The following 3 functions are in support of the NodeI interface and use of the node in the goradd framework. }}
+{{# The following 3 functions are in support of the Node interface and use of the node in the goradd framework. }}
 
 // TableName_ returns the query name of the table the node is associated with.
 func (n {{= table.DecapIdentifier }}Table) TableName_() string {
@@ -23,7 +23,7 @@ func (n {{= table.DecapIdentifier }}Table) DatabaseKey_() string {
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
 // This may include reference nodes to enum types.
-func (n {{= table.DecapIdentifier }}Table) ColumnNodes_() (nodes []query.NodeI) {
+func (n {{= table.DecapIdentifier }}Table) ColumnNodes_() (nodes []query.Node) {
 {{for _,col := range table.Columns}}
 	nodes = append(nodes, n.{{col.Identifier}}())
 {{for}}
@@ -31,44 +31,34 @@ func (n {{= table.DecapIdentifier }}Table) ColumnNodes_() (nodes []query.NodeI) 
 }
 
 {{if hasReverse}}
-func (n *{{= table.DecapIdentifier }}Reference) ColumnNodes_() (nodes []query.NodeI) {
+func (n *{{= table.DecapIdentifier }}Reference) ColumnNodes_() (nodes []query.Node) {
     nodes = n.{{= table.DecapIdentifier }}Table.ColumnNodes_()
     for _,cn := range nodes {
-        cn.(query.NodeLinker).SetParent(n)
+        cn.(query.Linker).SetParent(n)
     }
     return
 }
 {{if}}
 
 {{if hasReference}}
-func (n *{{= table.DecapIdentifier }}Reverse) ColumnNodes_() (nodes []query.NodeI) {
+func (n *{{= table.DecapIdentifier }}Reverse) ColumnNodes_() (nodes []query.Node) {
     nodes = n.{{= table.DecapIdentifier }}Table.ColumnNodes_()
     for _,cn := range nodes {
-        cn.(query.NodeLinker).SetParent(n)
+        cn.(query.Linker).SetParent(n)
     }
     return
 }
 {{if}}
 
 {{if hasAssociation}}
-func (n *{{= table.DecapIdentifier }}Association) ColumnNodes_() (nodes []query.NodeI) {
+func (n *{{= table.DecapIdentifier }}Association) ColumnNodes_() (nodes []query.Node) {
     nodes = n.{{= table.DecapIdentifier }}Table.ColumnNodes_()
     for _,cn := range nodes {
-        cn.(query.NodeLinker).SetParent(n)
+        cn.(query.Linker).SetParent(n)
     }
     return
 }
 {{if}}
-
-
-// Columns_ is used internally by the framework to return the list of all the columns in the table.
-func (n {{= table.DecapIdentifier }}Table) Columns_() []string {
-    return []string {
-{{for _,col := range table.Columns}}
-        "{{= col.QueryName }}",
-{{for}}
-	}
-}
 
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.

@@ -9,8 +9,8 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
-// PersonWithLockNodeI is the builder interface to the PersonWithLock nodes.
-type PersonWithLockNodeI interface {
+// PersonWithLockNode is the builder interface to the PersonWithLock nodes.
+type PersonWithLockNode interface {
 	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// ID represents the id column in the database.
@@ -25,7 +25,7 @@ type PersonWithLockNodeI interface {
 
 // PersonWithLockExpander is the builder interface for PersonWithLocks that are expandable.
 type PersonWithLockExpander interface {
-	PersonWithLockNodeI
+	PersonWithLockNode
 	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
 	Expand()
 }
@@ -43,7 +43,7 @@ type personWithLockReverse struct {
 }
 
 // PersonWithLock returns a table node that starts a node chain that begins with the person_with_lock table.
-func PersonWithLock() PersonWithLockNodeI {
+func PersonWithLock() PersonWithLockNode {
 	return personWithLockTable{}
 }
 
@@ -78,16 +78,6 @@ func (n *personWithLockReverse) ColumnNodes_() (nodes []query.Node) {
 		cn.(query.Linker).SetParent(n)
 	}
 	return
-}
-
-// Columns_ is used internally by the framework to return the list of all the columns in the table.
-func (n personWithLockTable) Columns_() []string {
-	return []string{
-		"id",
-		"first_name",
-		"last_name",
-		"sys_timestamp",
-	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.

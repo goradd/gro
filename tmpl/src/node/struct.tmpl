@@ -4,9 +4,9 @@
 
 {{
 
-// {{= table.Identifier}}NodeI is the builder interface to the {{= table.Identifier}} nodes.
-type {{= table.Identifier}}NodeI interface {
-    query.NodeI
+// {{= table.Identifier}}Node is the builder interface to the {{= table.Identifier}} nodes.
+type {{= table.Identifier}}Node interface {
+    query.Node
     PrimaryKeyNode() *query.ColumnNode
 {{for _,col := range table.Columns}}
 {{if !col.IsEnum() }}
@@ -15,13 +15,13 @@ type {{= table.Identifier}}NodeI interface {
 {{if}}
 {{if col.IsReference() }}
     // {{= col.ReferenceIdentifier() }} represents the {{= col.ReferenceIdentifier() }} reference to a {{= col.ReferenceType() }} object.
-    {{= col.ReferenceIdentifier() }}() {{= col.ReferenceType() }}NodeI
+    {{= col.ReferenceIdentifier() }}() {{= col.ReferenceType() }}Node
 {{if}}
 {{for}}
 {{for _,mm := range table.ManyManyReferences}}
      // {{= mm.IdentifierPlural }} represents the {{= mm.IdentifierPlural }} reference to {{= mm.ObjectType() }} objects.
 {{if mm.IsEnum() }}
-   {{= mm.IdentifierPlural }}() {{= mm.ObjectType() }}NodeI
+   {{= mm.IdentifierPlural }}() {{= mm.ObjectType() }}Node
 {{else}}
    {{= mm.IdentifierPlural }}() {{= mm.ObjectType() }}Expander
 {{if}}
@@ -29,7 +29,7 @@ type {{= table.Identifier}}NodeI interface {
 {{for _,rev := range table.ReverseReferences}}
 {{if rev.IsUnique}}
       // {{= rev.Reference.ReverseIdentifier }} represents the {{= rev.Reference.ReverseIdentifier }} reference to a {{= rev.Table.Identifier }} object.
-   {{= rev.Reference.ReverseIdentifier }}() {{= rev.Table.Identifier }}NodeI
+   {{= rev.Reference.ReverseIdentifier }}() {{= rev.Table.Identifier }}Node
 {{else}}
     // {{= rev.Reference.ReverseIdentifierPlural }} represents the {{= rev.Reference.ReverseIdentifier }} reference to {{= rev.Table.Identifier }} objects.
     {{= rev.Reference.ReverseIdentifierPlural }}() {{= rev.Table.Identifier }}Expander
@@ -40,7 +40,7 @@ type {{= table.Identifier}}NodeI interface {
 {{if isExpander}}
 // {{= table.Identifier}}Expander is the builder interface for {{= table.IdentifierPlural}} that are expandable.
 type {{= table.Identifier}}Expander interface {
-    {{= table.Identifier}}NodeI
+    {{= table.Identifier}}Node
     // Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
     Expand()
 }

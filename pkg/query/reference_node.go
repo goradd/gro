@@ -13,7 +13,6 @@ type ReferenceNodeI interface {
 }
 
 // A ReferenceNode is a mixin for a forward-pointing foreign key relationship.
-// If the other side of the relationship is not an enum table, then the other table will have a matching ReverseNode.
 type ReferenceNode struct {
 	// The query name of the column that is the foreign key
 	ColumnQueryName string

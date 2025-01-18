@@ -64,7 +64,7 @@ func (db *Database) FillDefaults() {
 	}
 
 	for _, t := range db.Tables {
-		t.FillDefaults(db.ReferenceSuffix, db.EnumTableSuffix)
+		t.FillDefaults(db)
 	}
 
 	for _, t := range db.EnumTables {

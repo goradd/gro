@@ -106,6 +106,11 @@ import "encoding/json"
 //
 // This is a column that contains the value of a primary key of a table, creating a reference to the
 // object in that table. This is known as a foreign key in SQL databases or an edge in graph databases.
+//
+// # ColTypeEnum and ColTypeMultiEnum
+//
+// Enum columns contain values of enumerated types that are described by Enum tables in the schema.
+// ColTypeEnum is an integer value in the database, and ColTypeMultiEnum is stored as a JSON array of integers.
 type ColumnType int
 
 const (
@@ -121,6 +126,7 @@ const (
 	ColTypeJSON
 	ColTypeReference
 	ColTypeEnum
+	ColTypeMultiEnum
 )
 
 // String returns the string representation of a ColumnType.
@@ -148,6 +154,8 @@ func (ct ColumnType) String() string {
 		return "Reference"
 	case ColTypeEnum:
 		return "Enum"
+	case ColTypeMultiEnum:
+		return "MultiEnum"
 	default:
 		return "Unknown"
 	}
@@ -155,7 +163,7 @@ func (ct ColumnType) String() string {
 
 // MarshalJSON customizes how ColumnType is serialized to JSON.
 func (ct ColumnType) MarshalJSON() ([]byte, error) {
-	// Return the string representation of the Type
+	// Return the string representation of the ReceiverType
 	return json.Marshal(ct.String())
 }
 
@@ -166,7 +174,7 @@ func (ct *ColumnType) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	// Match the string representation and assign the corresponding Type value
+	// Match the string representation and assign the corresponding ReceiverType value
 	switch ctStr {
 	case "Bytes":
 		*ct = ColTypeBytes
@@ -190,6 +198,8 @@ func (ct *ColumnType) UnmarshalJSON(data []byte) error {
 		*ct = ColTypeReference
 	case "Enum":
 		*ct = ColTypeEnum
+	case "MultiEnum":
+		*ct = ColTypeMultiEnum
 	default:
 		*ct = ColTypeUnknown
 	}

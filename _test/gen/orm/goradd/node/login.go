@@ -9,8 +9,8 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
-// LoginNodeI is the builder interface to the Login nodes.
-type LoginNodeI interface {
+// LoginNode is the builder interface to the Login nodes.
+type LoginNode interface {
 	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// ID represents the id column in the database.
@@ -18,20 +18,13 @@ type LoginNodeI interface {
 	// PersonID represents the person_id column in the database.
 	PersonID() *query.ColumnNode
 	// Person represents the Person reference to a Person object.
-	Person() PersonNodeI
+	Person() PersonNode
 	// Username represents the username column in the database.
 	Username() *query.ColumnNode
 	// Password represents the password column in the database.
 	Password() *query.ColumnNode
 	// IsEnabled represents the is_enabled column in the database.
 	IsEnabled() *query.ColumnNode
-}
-
-// LoginExpander is the builder interface for Logins that are expandable.
-type LoginExpander interface {
-	LoginNodeI
-	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand()
 }
 
 // loginTable represents the login table in a query. It uses a builder pattern to chain
@@ -47,7 +40,7 @@ type loginReverse struct {
 }
 
 // Login returns a table node that starts a node chain that begins with the login table.
-func Login() LoginNodeI {
+func Login() LoginNode {
 	return loginTable{}
 }
 
@@ -83,17 +76,6 @@ func (n *loginReverse) ColumnNodes_() (nodes []query.Node) {
 		cn.(query.Linker).SetParent(n)
 	}
 	return
-}
-
-// Columns_ is used internally by the framework to return the list of all the columns in the table.
-func (n loginTable) Columns_() []string {
-	return []string{
-		"id",
-		"person_id",
-		"username",
-		"password",
-		"is_enabled",
-	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
@@ -149,7 +131,7 @@ func (n *loginReverse) PersonID() *query.ColumnNode {
 }
 
 // Person represents the link to a Person object.
-func (n loginTable) Person() PersonNodeI {
+func (n loginTable) Person() PersonNode {
 	cn := &personReference{
 		ReferenceNode: query.ReferenceNode{
 			ColumnQueryName: "person_id",
@@ -161,7 +143,7 @@ func (n loginTable) Person() PersonNodeI {
 	return cn
 }
 
-func (n *loginReverse) Person() PersonNodeI {
+func (n *loginReverse) Person() PersonNode {
 	cn := n.loginTable.Person().(*personReference)
 	cn.SetParent(n)
 	return cn

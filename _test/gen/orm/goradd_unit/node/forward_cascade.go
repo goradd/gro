@@ -9,8 +9,8 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
-// ForwardCascadeNodeI is the builder interface to the ForwardCascade nodes.
-type ForwardCascadeNodeI interface {
+// ForwardCascadeNode is the builder interface to the ForwardCascade nodes.
+type ForwardCascadeNode interface {
 	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// ID represents the id column in the database.
@@ -20,12 +20,12 @@ type ForwardCascadeNodeI interface {
 	// ReverseID represents the reverse_id column in the database.
 	ReverseID() *query.ColumnNode
 	// Reverse represents the Reverse reference to a Reverse object.
-	Reverse() ReverseNodeI
+	Reverse() ReverseNode
 }
 
 // ForwardCascadeExpander is the builder interface for ForwardCascades that are expandable.
 type ForwardCascadeExpander interface {
-	ForwardCascadeNodeI
+	ForwardCascadeNode
 	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
 	Expand()
 }
@@ -43,7 +43,7 @@ type forwardCascadeReverse struct {
 }
 
 // ForwardCascade returns a table node that starts a node chain that begins with the forward_cascade table.
-func ForwardCascade() ForwardCascadeNodeI {
+func ForwardCascade() ForwardCascadeNode {
 	return forwardCascadeTable{}
 }
 
@@ -77,15 +77,6 @@ func (n *forwardCascadeReverse) ColumnNodes_() (nodes []query.Node) {
 		cn.(query.Linker).SetParent(n)
 	}
 	return
-}
-
-// Columns_ is used internally by the framework to return the list of all the columns in the table.
-func (n forwardCascadeTable) Columns_() []string {
-	return []string{
-		"id",
-		"name",
-		"reverse_id",
-	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
@@ -158,7 +149,7 @@ func (n *forwardCascadeReverse) ReverseID() *query.ColumnNode {
 }
 
 // Reverse represents the link to a Reverse object.
-func (n forwardCascadeTable) Reverse() ReverseNodeI {
+func (n forwardCascadeTable) Reverse() ReverseNode {
 	cn := &reverseReference{
 		ReferenceNode: query.ReferenceNode{
 			ColumnQueryName: "reverse_id",
@@ -170,7 +161,7 @@ func (n forwardCascadeTable) Reverse() ReverseNodeI {
 	return cn
 }
 
-func (n *forwardCascadeReverse) Reverse() ReverseNodeI {
+func (n *forwardCascadeReverse) Reverse() ReverseNode {
 	cn := n.forwardCascadeTable.Reverse().(*reverseReference)
 	cn.SetParent(n)
 	return cn

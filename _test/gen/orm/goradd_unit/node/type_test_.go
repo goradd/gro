@@ -9,8 +9,8 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
-// TypeTestNodeI is the builder interface to the TypeTest nodes.
-type TypeTestNodeI interface {
+// TypeTestNode is the builder interface to the TypeTest nodes.
+type TypeTestNode interface {
 	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// ID represents the id column in the database.
@@ -41,7 +41,7 @@ type TypeTestNodeI interface {
 
 // TypeTestExpander is the builder interface for TypeTests that are expandable.
 type TypeTestExpander interface {
-	TypeTestNodeI
+	TypeTestNode
 	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
 	Expand()
 }
@@ -59,7 +59,7 @@ type typeTestReverse struct {
 }
 
 // TypeTest returns a table node that starts a node chain that begins with the type_test table.
-func TypeTest() TypeTestNodeI {
+func TypeTest() TypeTestNode {
 	return typeTestTable{}
 }
 
@@ -102,24 +102,6 @@ func (n *typeTestReverse) ColumnNodes_() (nodes []query.Node) {
 		cn.(query.Linker).SetParent(n)
 	}
 	return
-}
-
-// Columns_ is used internally by the framework to return the list of all the columns in the table.
-func (n typeTestTable) Columns_() []string {
-	return []string{
-		"id",
-		"date",
-		"time",
-		"date_time",
-		"ts",
-		"test_int",
-		"test_float",
-		"test_double",
-		"test_text",
-		"test_bit",
-		"test_varchar",
-		"test_blob",
-	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.

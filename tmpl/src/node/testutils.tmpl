@@ -5,14 +5,14 @@
 {{
 package node
 
-func serNode(t *testing.T, n query.NodeI) query.NodeI {
+func serNode(t *testing.T, n query.Node) query.Node {
 	var buf bytes.Buffer
 	enc := gob.NewEncoder(&buf)
 
 	err := enc.Encode(&n)
 	assert.NoError(t, err)
 
-	var n2 query.NodeI
+	var n2 query.Node
 	dec := gob.NewDecoder(&buf)
 	err = dec.Decode(&n2)
 	assert.NoError(t, err)

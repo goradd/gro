@@ -320,7 +320,7 @@ func newAddressBuilder(ctx context.Context) *AddressesBuilder {
 // any errors, they are returned in the context object. If no results come back from the query, it will return
 // an empty slice
 func (b *AddressesBuilder) Load() (addresses []*Address) {
-	results := db.GetDatabase("goradd").Load(b)
+	results := b.builder.Load()
 	if results == nil {
 		return
 	}
@@ -444,7 +444,7 @@ func (b *AddressesBuilder) Select(nodes ...query.Node) *AddressesBuilder {
 	return b
 }
 
-// Alias lets you add a node with a custom name. After the query, you can read out the data using Alias() on a
+// Alias lets you add a node with a custom name. After the query, you can read out the data using GetAlias() on a
 // returned object. Alias is useful for adding calculations or subqueries to the query.
 func (b *AddressesBuilder) Alias(name string, n query.Node) *AddressesBuilder {
 	b.builder.Alias(name, n)

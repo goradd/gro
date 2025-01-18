@@ -439,7 +439,7 @@ func (b *ForwardRestrictUniquesBuilder) Select(nodes ...query.Node) *ForwardRest
 	return b
 }
 
-// Alias lets you add a node with a custom name. After the query, you can read out the data using Alias() on a
+// Alias lets you add a node with a custom name. After the query, you can read out the data using GetAlias() on a
 // returned object. Alias is useful for adding calculations or subqueries to the query.
 func (b *ForwardRestrictUniquesBuilder) Alias(name string, n query.Node) *ForwardRestrictUniquesBuilder {
 	b.builder.Alias(name, n)

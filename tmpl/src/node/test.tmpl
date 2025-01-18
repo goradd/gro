@@ -12,7 +12,7 @@ import (
 )
 
 func TestSerializeTable{{= table.Identifier}}Table(t *testing.T) {
-	var n query.NodeI = {{= table.Identifier }}()
+	var n query.Node = {{= table.Identifier }}()
 
     assert.Equal(t, "{{= table.QueryName }}", n.TableName_())
     assert.Equal(t, query.TableNodeType, n.NodeType_())
@@ -28,8 +28,8 @@ func TestSerializeTable{{= table.Identifier}}Table(t *testing.T) {
     for _,cn := range nodes {
         cn2 := serNode(t, cn)
         assert.Equal(t, "{{= table.QueryName }}", cn2.TableName_())
-        require.Implements(t, (*query.NodeLinker)(nil), cn2)
-        assert.Equal(t, query.TableNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
+        require.Implements(t, (*query.Linker)(nil), cn2)
+        assert.Equal(t, query.TableNodeType, cn2.(query.Linker).Parent().NodeType_())
     }
 }
 
@@ -40,7 +40,7 @@ func TestSerializeReferences{{= table.Identifier}}Table(t *testing.T) {
 {
     n := {{= table.Identifier }}().{{col.ReferenceIdentifier() }}()
     n2 := serNode(t, n)
-    parentNode := n2.(query.NodeLinker).Parent()
+    parentNode := n2.(query.Linker).Parent()
     assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
     assert.Equal(t, "{{= table.QueryName }}", parentNode.TableName_())
 
@@ -48,8 +48,8 @@ func TestSerializeReferences{{= table.Identifier}}Table(t *testing.T) {
     for _,cn := range nodes {
         cn2 := serNode(t, cn)
         assert.Equal(t, n.TableName_(), cn2.TableName_())
-        require.Implements(t, (*query.NodeLinker)(nil), cn2)
-        assert.Equal(t, query.ReferenceNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
+        require.Implements(t, (*query.Linker)(nil), cn2)
+        assert.Equal(t, query.ReferenceNodeType, cn2.(query.Linker).Parent().NodeType_())
     }
 }
 
@@ -63,7 +63,7 @@ func TestSerializeReverseReferences{{= table.Identifier}}Table(t *testing.T) {
 {
     n := {{= table.Identifier }}().{{rev.ReverseIdentifier() }}()
     n2 := serNode(t, n)
-    parentNode := n2.(query.NodeLinker).Parent()
+    parentNode := n2.(query.Linker).Parent()
     assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
     assert.Equal(t, "{{= table.QueryName }}", parentNode.TableName_())
 
@@ -71,8 +71,8 @@ func TestSerializeReverseReferences{{= table.Identifier}}Table(t *testing.T) {
     for _,cn := range nodes {
         cn2 := serNode(t, cn)
         assert.Equal(t, n.TableName_(), cn2.TableName_())
-        require.Implements(t, (*query.NodeLinker)(nil), cn2)
-        assert.Equal(t, query.ReverseNodeType, cn2.(query.NodeLinker).Parent().NodeType_())
+        require.Implements(t, (*query.Linker)(nil), cn2)
+        assert.Equal(t, query.ReverseNodeType, cn2.(query.Linker).Parent().NodeType_())
     }
 }
 
@@ -85,12 +85,8 @@ func TestSerializeAssociations{{= table.Identifier}}Table(t *testing.T) {
 {
     n := {{= table.Identifier }}().{{mm.IdentifierPlural }}()
     n2 := serNode(t, n)
-{{if mm.IsEnum() }}
-    assert.Equal(t, query.ManyEnumNodeType, n2.NodeType_())
-{{else}}
     assert.Equal(t, query.ManyManyNodeType, n2.NodeType_())
-{{if}}
-    parentNode := n2.(query.NodeLinker).Parent()
+    parentNode := n2.(query.Linker).Parent()
     assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
     assert.Equal(t, "{{= table.QueryName }}", parentNode.TableName_())
 
@@ -98,12 +94,8 @@ func TestSerializeAssociations{{= table.Identifier}}Table(t *testing.T) {
     for _,cn := range nodes {
         cn2 := serNode(t, cn)
 //        assert.Equal(t, query.ColumnNodeType, cn2.NodeType_())
-        parentNode = cn2.(query.NodeLinker).Parent()
-{{if mm.IsEnum() }}
-        assert.Equal(t, query.ManyEnumNodeType, parentNode.NodeType_())
-{{else}}
+        parentNode = cn2.(query.Linker).Parent()
         assert.Equal(t, query.ManyManyNodeType, parentNode.NodeType_())
-{{if}}
     }
 }
 

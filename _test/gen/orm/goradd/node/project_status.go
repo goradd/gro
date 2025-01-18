@@ -9,8 +9,8 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
-// ProjectStatusNodeI is the builder interface to the ProjectStatus nodes.
-type ProjectStatusNodeI interface {
+// ProjectStatusNode is the builder interface to the ProjectStatus nodes.
+type ProjectStatusNode interface {
 	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	ID() *query.ColumnNode
@@ -70,17 +70,6 @@ func (n projectStatusAssociation) ColumnNodes_() []query.Node {
 		n.Description(),
 		n.Guidelines(),
 		n.IsActive(),
-	}
-}
-
-// Columns_ is used internally by the framework to return the list of column names.
-func (n projectStatusEnum) Columns_() []string {
-	return []string{
-		"id",
-		"name",
-		"description",
-		"guidelines",
-		"is_active",
 	}
 }
 

@@ -44,7 +44,7 @@ type mysqlColumn struct {
 	key             string
 	extra           string
 	comment         string
-	options         map[string]interface{}
+	options         map[string]any
 }
 
 type mysqlIndex struct {
@@ -460,12 +460,12 @@ func processTypeInfo(column mysqlColumn) (
 		typ = schema.ColTypeInt
 
 	case "set":
-		err = fmt.Errorf("using association tables is preferred to using DB SET columns")
+		err = fmt.Errorf("set is not supported. Use a json or string column type instead")
 		typ = schema.ColTypeString
 		maxLength = uint64(column.characterMaxLen.Int64)
 
 	case "enum":
-		err = fmt.Errorf("using enum tables is preferred to using DB ENUM columns")
+		err = fmt.Errorf("enum is not supported directly. Use an enum table")
 		typ = schema.ColTypeString
 		maxLength = uint64(column.characterMaxLen.Int64)
 
@@ -713,19 +713,42 @@ func (m *DB) getColumnSchema(table mysqlTable,
 
 	cd.IsNullable = column.isNullable == "YES"
 
-	if fk, ok2 := table.fkMap[column.name]; ok2 {
+	if enumTableSuffix != "" && strings.HasSuffix(column.name, enumTableSuffix) { // handle enum type
+		var refTable string
+		if v, ok := column.options["enum_table"]; ok {
+			if s, ok2 := v.(string); ok2 {
+				refTable = s
+			}
+		} // otherwise we will infer the reftable from the name of the column later
+
+		if cd.Type == schema.ColTypeInt || cd.Type == schema.ColTypeUint {
+			cd.Type = schema.ColTypeEnum
+			if fk, ok := table.fkMap[column.name]; ok { // if it is a foreign key to the enum table, use that
+				cd.Reference = &schema.Reference{
+					Table: fk.referencedTableName.String,
+				}
+			} else if refTable != "" {
+				cd.Reference = &schema.Reference{
+					Table: refTable,
+				}
+			}
+		} else if cd.Type == schema.ColTypeString {
+			cd.Type = schema.ColTypeMultiEnum
+			if refTable != "" {
+				cd.Reference = &schema.Reference{
+					Table: refTable,
+				}
+			}
+		}
+	} else if fk, ok2 := table.fkMap[column.name]; ok2 { // handle forward reference
 		if fk.referencedColumnIndexName.String != "PRIMARY" {
 			log2.Warn(fmt.Sprintf("Foregin key for %s:%s appears to not be pointing to a primary key. Only primary key foreign keys are supported.", table.name, column.name))
 		}
 		cd.Reference = &schema.Reference{
 			Table: fk.referencedTableName.String,
 		}
-		if strings.HasSuffix(fk.referencedTableName.String, enumTableSuffix) {
-			cd.Type = schema.ColTypeEnum
-		} else {
-			cd.Type = schema.ColTypeReference
-			cd.Size = 0
-		}
+		cd.Type = schema.ColTypeReference
+		cd.Size = 0
 	}
 
 	if strings.HasSuffix(column.collation.String, "_ci") {

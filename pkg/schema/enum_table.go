@@ -29,8 +29,8 @@ type EnumField struct {
 
 // EnumTable describes a table that contains enumerated values. The resulting Go code will be a type
 // with constants for each value in the database. An EnumTable is processed with its data at compile time
-// and cannot be modified by the application. The values are stored in the database to enable queries that
-// depend on the values.
+// and cannot be modified by the application. The values are stored in the database, but are not accessed
+// by database queries.
 type EnumTable struct {
 	// Name is the name of the table in the database.
 	// The name should have the Database.EnumTableSuffix value as a suffix.

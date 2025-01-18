@@ -14,8 +14,6 @@ const (
 	OperationNodeType
 	AliasNodeType
 	SubqueryNodeType
-	EnumNodeType
-	ManyEnumNodeType
 )
 
 // String satisfies the fmt.Stringer interface for NodeType.
@@ -41,10 +39,6 @@ func (nt NodeType) String() string {
 		return "AliasNodeType"
 	case SubqueryNodeType:
 		return "SubqueryNodeType"
-	case EnumNodeType:
-		return "EnumNodeType"
-	case ManyEnumNodeType:
-		return "ManyEnumNodeType"
 	default:
 		return "Unknown"
 	}

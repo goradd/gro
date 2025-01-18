@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/goradd/all"
 	"github.com/goradd/maps"
-	"github.com/goradd/orm/pkg/query"
 	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
@@ -92,8 +91,6 @@ func (m *Database) importSchema(schema *schema.Database) {
 // Association tables are used by SQL databases to create many-many relationships. NoSQL databases can define their
 // association columns directly and store an array of records on either end of the association.
 func (m *Database) importAssociation(schemaAssn *schema.AssociationTable) {
-	e1 := m.Enum(schemaAssn.Table1)
-	e2 := m.Enum(schemaAssn.Table2)
 	t1 := m.Table(schemaAssn.Table1)
 	t2 := m.Table(schemaAssn.Table2)
 
@@ -102,11 +99,6 @@ func (m *Database) importAssociation(schemaAssn *schema.AssociationTable) {
 		ref2 := makeManyManyRef(schemaAssn.Name, schemaAssn.Column2, schemaAssn.Column1, t2, t1, schemaAssn.Table1, schemaAssn.Title1Plural, schemaAssn.Identifier1, schemaAssn.Identifier1Plural)
 		ref1.MM = ref2
 		ref2.MM = ref1
-	} else if e1 != nil {
-		slog.Warn(fmt.Sprintf("Skipped association table %s: Table1 cannot be an enum table.", schemaAssn.Name))
-		return
-	} else if e2 != nil && t1 != nil {
-		makeManyManyEnumRef(schemaAssn.Name, schemaAssn.Column1, schemaAssn.Column2, t1, e2, schemaAssn.Title2, schemaAssn.Title2Plural, schemaAssn.Identifier2, schemaAssn.Identifier2Plural)
 	} else {
 		slog.Warn(fmt.Sprintf("Skipped association table %s: missing associated table.", schemaAssn.Name))
 		return
@@ -148,10 +140,10 @@ func (m *Database) importReference(table *Table, schemaCol *schema.Column) {
 		}
 		thisCol.Reference = f
 		if refTable != nil {
+			// Fix up receiver type to match the primary key type of the refTable.
+			// In autoId tables, this is always a string, but for manually entered primary keys, it could be anything.
+			thisCol.ReceiverType = refTable.PrimaryKeyColumn().ReceiverType
 			refTable.ReverseReferences = append(refTable.ReverseReferences, thisCol)
-		} else {
-			// enum table
-			thisCol.Type = query.ColTypeInteger // In case this came through unsigned, fix it
 		}
 	}
 }

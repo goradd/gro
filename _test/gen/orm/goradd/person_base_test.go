@@ -48,6 +48,24 @@ func TestPerson_SetLastName(t *testing.T) {
 		obj.SetLastName(lastName)
 	})
 }
+func TestPerson_SetPersonTypes(t *testing.T) {
+
+	obj := NewPerson()
+
+	personTypes := test.RandomValue[string](9)
+	obj.SetPersonTypes(personTypes)
+	assert.Equal(t, personTypes, obj.PersonTypes())
+
+	// test zero
+	obj.SetPersonTypes("")
+	assert.Equal(t, "", obj.PersonTypes(), "set empty")
+
+	// test panic on setting value larger than maximum size allowed
+	personTypes = test.RandomValue[string](10)
+	assert.Panics(t, func() {
+		obj.SetPersonTypes(personTypes)
+	})
+}
 
 // createMinimalSamplePerson creates and saves a minimal version of a Person object
 // for testing.
@@ -59,6 +77,9 @@ func createMinimalSamplePerson(ctx context.Context) *Person {
 
 	lastName := test.RandomValue[string](50)
 	obj.SetLastName(lastName)
+
+	personTypes := test.RandomValue[string](9)
+	obj.SetPersonTypes(personTypes)
 
 	obj.Save(ctx)
 	return obj
@@ -73,6 +94,9 @@ func TestPerson_CRUD(t *testing.T) {
 	lastName := test.RandomValue[string](50)
 	obj.SetLastName(lastName)
 
+	personTypes := test.RandomValue[string](9)
+	obj.SetPersonTypes(personTypes)
+
 	// Test retrieval
 	obj = LoadPerson(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj)
@@ -85,5 +109,8 @@ func TestPerson_CRUD(t *testing.T) {
 
 	assert.True(t, obj.LastNameIsValid())
 	assert.Equal(t, lastName, obj.LastName())
+
+	assert.True(t, obj.PersonTypesIsValid())
+	assert.Equal(t, personTypes, obj.PersonTypes())
 
 }

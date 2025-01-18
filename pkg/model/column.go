@@ -26,8 +26,10 @@ type Column struct {
 	Identifier string
 	// DecapIdentifier is a cache for the lower case identifier for the column.
 	DecapIdentifier string
-	//  Type indicates the Go type that matches the column.
-	Type ReceiverType
+	// SchemaType is the type info specified in the schema description
+	SchemaType schema.ColumnType
+	//  ReceiverType indicates the Go type that matches the column.
+	ReceiverType ReceiverType
 	// Size is the maximum length of runes to allow in the column if a string type column.
 	// If a byte array, it is the number of bytes permitted.
 	// If an attempt at entering more than this amount occurs, it is considered a programming bug
@@ -45,7 +47,7 @@ type Column struct {
 	IsNullable bool
 	// IsUnique is true if the column's table has a single unique index on the column.
 	IsUnique bool
-	// Reference is additional information describing a foreign key relationship
+	// Reference is additional information describing a foreign key relationship or enum table
 	Reference *Reference
 	// Options are the options extracted from the comments string
 	Options map[string]interface{}
@@ -73,10 +75,10 @@ func (cd *Column) DefaultValueAsValue() string {
 		} else if cd.IsEnum() {
 			return cd.ReferenceType() + "(0)"
 		}
-		return cd.Type.DefaultValueString()
+		return cd.ReceiverType.DefaultValueString()
 	}
 
-	if cd.Type == ColTypeTime {
+	if cd.ReceiverType == ColTypeTime {
 		if cd.DefaultValue == CreatedTime || cd.DefaultValue == ModifiedTime {
 			return "time.Time{}" // These times will be updated when the object is saved.
 		} else {
@@ -94,7 +96,7 @@ func (cd *Column) DefaultValueAsValue() string {
 /*
 // DefaultValueAsConstant returns the default value of the column as a Go constant
 func (cd *Column) DefaultValueAsConstant() string {
-	if cd.Type == ColTypeTime {
+	if cd.ReceiverType == ColTypeTime {
 		if cd.DefaultValue == CreatedTime || cd.DefaultValue == ModifiedTime {
 			return `time2.Current`
 		} else if cd.DefaultValue == nil {
@@ -109,11 +111,11 @@ func (cd *Column) DefaultValueAsConstant() string {
 			}
 		}
 	} else if cd.DefaultValue == nil || cd.IsAutoId {
-		v := cd.Type.DefaultValueString()
+		v := cd.ReceiverType.DefaultValueString()
 		if v == "nil" {
 			return ""
 		}
-		return cd.Type.DefaultValueString()
+		return cd.ReceiverType.DefaultValueString()
 	} else {
 		return fmt.Sprintf("%#v", cd.DefaultValue)
 	}
@@ -237,12 +239,18 @@ func (cd *Column) GoType() string {
 			}
 		} else if enumTable := cd.Reference.EnumTable; enumTable != nil {
 			// enum tables are an enumerated type
-			return enumTable.Identifier
+			if cd.SchemaType == schema.ColTypeEnum {
+				return enumTable.Identifier
+			} else if cd.SchemaType == schema.ColTypeMultiEnum {
+				return `[]` + enumTable.Identifier
+			} else {
+				panic("unknown column type for enum table")
+			}
 		} else {
 			panic("reference is missing either a Table or Enum entry")
 		}
 	}
-	return cd.Type.GoType()
+	return cd.ReceiverType.GoType()
 }
 
 // HasSetter returns true if the column should be allowed to be set by the programmer. Some columns should not be alterable,
@@ -251,7 +259,7 @@ func (cd *Column) HasSetter() bool {
 	if cd.IsAutoId {
 		return false
 	}
-	if cd.Type == ColTypeTime {
+	if cd.ReceiverType == ColTypeTime {
 		if cd.DefaultValue == CreatedTime || cd.DefaultValue == ModifiedTime {
 			return false
 		}
@@ -262,7 +270,7 @@ func (cd *Column) HasSetter() bool {
 // MaxInt returns the maximum integer that the column can hold if it is an integer type.
 // Returns 0 if not.
 func (cd *Column) MaxInt() int64 {
-	if cd.Type == ColTypeInteger {
+	if cd.ReceiverType == ColTypeInteger {
 		switch cd.Size {
 		case 8:
 			return 127
@@ -273,7 +281,7 @@ func (cd *Column) MaxInt() int64 {
 		case 32:
 			return 2147483647
 		}
-	} else if cd.Type == ColTypeUnsigned {
+	} else if cd.ReceiverType == ColTypeUnsigned {
 		switch cd.Size {
 		case 8:
 			return 255
@@ -291,7 +299,7 @@ func (cd *Column) MaxInt() int64 {
 // MinInt returns the minimum integer that the column can hold if it is an integer type.
 // Returns 0 if not.
 func (cd *Column) MinInt() int64 {
-	if cd.Type == ColTypeInteger {
+	if cd.ReceiverType == ColTypeInteger {
 		switch cd.Size {
 		case 8:
 			return -128
@@ -307,11 +315,18 @@ func (cd *Column) MinInt() int64 {
 }
 
 func newColumn(schemaCol *schema.Column) *Column {
+	var recType ReceiverType
+	if schemaCol.Type == schema.ColTypeReference {
+		recType = ReceiverTypeFromSchema(schema.ColTypeString, schemaCol.Size) // default. Will be fixed up later.
+	} else {
+		recType = ReceiverTypeFromSchema(schemaCol.Type, schemaCol.Size)
+	}
 	col := &Column{
 		QueryName:       schemaCol.Name,
 		Identifier:      schemaCol.Identifier,
 		DecapIdentifier: strings2.Decap(schemaCol.Identifier),
-		Type:            ReceiverTypeFromSchema(schemaCol.Type, schemaCol.Size),
+		SchemaType:      schemaCol.Type,
+		ReceiverType:    recType,
 		Size:            schemaCol.Size,
 		DefaultValue:    schemaCol.DefaultValue,
 		IsAutoId:        schemaCol.Type == schema.ColTypeAutoPrimaryKey,
@@ -323,7 +338,7 @@ func newColumn(schemaCol *schema.Column) *Column {
 	}
 
 	if col.IsAutoId {
-		col.Type = ColTypeString // We treat auto-generated ids as strings for cross database compatibility.
+		col.ReceiverType = ColTypeString // We treat auto-generated ids as strings for cross database compatibility.
 	}
 
 	return col

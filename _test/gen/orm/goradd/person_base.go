@@ -35,6 +35,10 @@ type personBase struct {
 	lastNameIsValid bool
 	lastNameIsDirty bool
 
+	personTypes        string
+	personTypesIsValid bool
+	personTypesIsDirty bool
+
 	// Reverse reference objects.
 
 	revAddresses        maps.SliceMap[string, *Address] // Objects in the order they were queried
@@ -73,9 +77,10 @@ type personBase struct {
 // IDs used to access the Person object fields by name using the Get function.
 // doc: type=Person
 const (
-	Person_ID        = `ID`
-	Person_FirstName = `FirstName`
-	Person_LastName  = `LastName`
+	Person_ID          = `ID`
+	Person_FirstName   = `FirstName`
+	Person_LastName    = `LastName`
+	Person_PersonTypes = `PersonTypes`
 
 	PersonAddresses       = `Addresses`
 	PersonEmployeeInfo    = `EmployeeInfo`
@@ -88,8 +93,9 @@ const (
 	PersonProjects    = `Projects`
 )
 
-const PersonFirstNameMaxLength = 50 // The number of runes the column can hold
-const PersonLastNameMaxLength = 50  // The number of runes the column can hold
+const PersonFirstNameMaxLength = 50  // The number of runes the column can hold
+const PersonLastNameMaxLength = 50   // The number of runes the column can hold
+const PersonPersonTypesMaxLength = 9 // The number of runes the column can hold
 
 // Initialize or re-initialize a Person database object to default values.
 // The primary key will get a temporary negative number which will be replaced when the object is saved.
@@ -111,6 +117,11 @@ func (o *personBase) Initialize() {
 
 	o.lastNameIsValid = false
 	o.lastNameIsDirty = false
+
+	o.personTypes = ""
+
+	o.personTypesIsValid = false
+	o.personTypesIsDirty = false
 
 	o._restored = false
 }
@@ -139,6 +150,9 @@ func (o *personBase) Copy() (newObject *Person) {
 	}
 	if o.lastNameIsValid {
 		newObject.SetLastName(o.lastName)
+	}
+	if o.personTypesIsValid {
+		newObject.SetPersonTypes(o.personTypes)
 	}
 	return
 }
@@ -204,6 +218,32 @@ func (o *personBase) SetLastName(lastName string) {
 	if o.lastName != lastName || !o._restored {
 		o.lastName = lastName
 		o.lastNameIsDirty = true
+	}
+}
+
+// PersonTypes returns the loaded value of PersonTypes.
+func (o *personBase) PersonTypes() string {
+	if o._restored && !o.personTypesIsValid {
+		panic("PersonTypes was not selected in the last query and has not been set, and so is not valid")
+	}
+	return o.personTypes
+}
+
+// PersonTypesIsValid returns true if the value was loaded from the database or has been set.
+func (o *personBase) PersonTypesIsValid() bool {
+	return o.personTypesIsValid
+}
+
+// SetPersonTypes sets the value of PersonTypes in the object, to be saved later using the Save() function.
+func (o *personBase) SetPersonTypes(personTypes string) {
+	o.personTypesIsValid = true
+
+	if utf8.RuneCountInString(personTypes) > PersonPersonTypesMaxLength {
+		panic("attempted to set Person.PersonTypes to a value larger than its maximum length in runes")
+	}
+	if o.personTypes != personTypes || !o._restored {
+		o.personTypes = personTypes
+		o.personTypesIsDirty = true
 	}
 }
 
@@ -791,7 +831,7 @@ func (b *PeopleBuilder) Select(nodes ...query.Node) *PeopleBuilder {
 	return b
 }
 
-// Alias lets you add a node with a custom name. After the query, you can read out the data using Alias() on a
+// Alias lets you add a node with a custom name. After the query, you can read out the data using GetAlias() on a
 // returned object. Alias is useful for adding calculations or subqueries to the query.
 func (b *PeopleBuilder) Alias(name string, n query.Node) *PeopleBuilder {
 	b.builder.Alias(name, n)
@@ -874,6 +914,13 @@ func CountPersonByLastName(ctx context.Context, lastName string) int {
 	return int(queryPeople(ctx).Where(op.Equal(node.Person().LastName(), lastName)).Count(false))
 }
 
+// CountPersonByPersonTypes queries the database and returns the number of Person objects that
+// have personTypes.
+// doc: type=Person
+func CountPersonByPersonTypes(ctx context.Context, personTypes string) int {
+	return int(queryPeople(ctx).Where(op.Equal(node.Person().PersonTypes(), personTypes)).Count(false))
+}
+
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
 // Care must be taken in the query, as Select clauses might not be honored if the child object has fields selected which the parent object does not have.
@@ -918,6 +965,19 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person, objParent i
 	} else {
 		o.lastNameIsValid = false
 		o.lastName = ""
+	}
+
+	if v, ok := m["person_types"]; ok && v != nil {
+		if o.personTypes, ok = v.(string); ok {
+			o.personTypesIsValid = true
+			o.personTypesIsDirty = false
+
+		} else {
+			panic("Wrong type found for person_types.")
+		}
+	} else {
+		o.personTypesIsValid = false
+		o.personTypes = ""
 	}
 
 	// Many-Many references
@@ -1223,6 +1283,10 @@ func (o *personBase) insert(ctx context.Context) {
 			panic("a value for LastName is required, and there is no default value. Call SetLastName() before inserting the record.")
 		}
 
+		if !o.personTypesIsValid {
+			panic("a value for PersonTypes is required, and there is no default value. Call SetPersonTypes() before inserting the record.")
+		}
+
 		m := o.getValidFields()
 
 		id := d.Insert(ctx, "person", m)
@@ -1291,6 +1355,9 @@ func (o *personBase) getModifiedFields() (fields map[string]interface{}) {
 	if o.lastNameIsDirty {
 		fields["last_name"] = o.lastName
 	}
+	if o.personTypesIsDirty {
+		fields["person_types"] = o.personTypes
+	}
 	return
 }
 
@@ -1304,6 +1371,10 @@ func (o *personBase) getValidFields() (fields map[string]interface{}) {
 
 	if o.lastNameIsValid {
 		fields["last_name"] = o.lastName
+	}
+
+	if o.personTypesIsValid {
+		fields["person_types"] = o.personTypes
 	}
 	return
 }
@@ -1396,6 +1467,7 @@ func (o *personBase) resetDirtyStatus() {
 	o.idIsDirty = false
 	o.firstNameIsDirty = false
 	o.lastNameIsDirty = false
+	o.personTypesIsDirty = false
 	o.revAddressesIsDirty = false
 	o.revEmployeeInfoIsDirty = false
 	o.revLoginIsDirty = false
@@ -1409,7 +1481,8 @@ func (o *personBase) resetDirtyStatus() {
 func (o *personBase) IsDirty() (dirty bool) {
 	dirty = o.idIsDirty ||
 		o.firstNameIsDirty ||
-		o.lastNameIsDirty
+		o.lastNameIsDirty ||
+		o.personTypesIsDirty
 
 	dirty = dirty ||
 		o.revAddressesIsDirty ||
@@ -1461,6 +1534,12 @@ func (o *personBase) Get(key string) interface{} {
 			return nil
 		}
 		return o.lastName
+
+	case "PersonTypes":
+		if !o.personTypesIsValid {
+			return nil
+		}
+		return o.personTypes
 
 	case "Addresses":
 		return o.revAddresses.Values()
@@ -1516,6 +1595,16 @@ func (o *personBase) MarshalBinary() ([]byte, error) {
 	}
 	if err := encoder.Encode(o.lastNameIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding Person.lastNameIsDirty: %w", err)
+	}
+
+	if err := encoder.Encode(o.personTypes); err != nil {
+		return nil, fmt.Errorf("error encoding Person.personTypes: %w", err)
+	}
+	if err := encoder.Encode(o.personTypesIsValid); err != nil {
+		return nil, fmt.Errorf("error encoding Person.personTypesIsValid: %w", err)
+	}
+	if err := encoder.Encode(o.personTypesIsDirty); err != nil {
+		return nil, fmt.Errorf("error encoding Person.personTypesIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(&o.revAddresses); err != nil {
@@ -1702,6 +1791,16 @@ func (o *personBase) UnmarshalBinary(data []byte) (err error) {
 		return fmt.Errorf("error decoding Person.lastNameIsDirty: %w", err)
 	}
 
+	if err = dec.Decode(&o.personTypes); err != nil {
+		return fmt.Errorf("error decoding Person.personTypes: %w", err)
+	}
+	if err = dec.Decode(&o.personTypesIsValid); err != nil {
+		return fmt.Errorf("error decoding Person.personTypesIsValid: %w", err)
+	}
+	if err = dec.Decode(&o.personTypesIsDirty); err != nil {
+		return fmt.Errorf("error decoding Person.personTypesIsDirty: %w", err)
+	}
+
 	if err = dec.Decode(&o.revAddresses); err != nil {
 		return fmt.Errorf("error decoding Person.revAddresses: %w", err)
 	}
@@ -1834,6 +1933,10 @@ func (o *personBase) MarshalStringMap() map[string]interface{} {
 		v["lastName"] = o.lastName
 	}
 
+	if o.personTypesIsValid {
+		v["personTypes"] = o.personTypes
+	}
+
 	if o.revAddresses.Len() != 0 {
 		var vals []map[string]interface{}
 		for obj := range o.revAddresses.ValuesIter() {
@@ -1887,6 +1990,7 @@ func (o *personBase) MarshalStringMap() map[string]interface{} {
 //	"id" - string
 //	"firstName" - string
 //	"lastName" - string
+//	"personTypes" - string
 func (o *personBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
 	if err = json.Unmarshal(data, &v); err != nil {
@@ -1925,6 +2029,19 @@ func (o *personBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					return fmt.Errorf("json field %s must be a string", k)
 				} else {
 					o.SetLastName(s)
+				}
+			}
+
+		case "personTypes":
+			{
+				if v == nil {
+					return fmt.Errorf("json field %s cannot be null", k)
+				}
+
+				if s, ok := v.(string); !ok {
+					return fmt.Errorf("json field %s must be a string", k)
+				} else {
+					o.SetPersonTypes(s)
 				}
 			}
 

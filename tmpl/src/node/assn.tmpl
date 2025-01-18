@@ -12,7 +12,7 @@ func (n *NodeTemplate)genAssn(table *model.Table, _w io.Writer) (err error) {
 func (n *NodeTemplate)genAssnTable(table *model.Table, mm *model.ManyManyReference, _w io.Writer) (err error) {
     var returnType, objectType string
     if mm.IsEnum()  {
-        returnType = mm.ObjectType() + "NodeI"
+        returnType = mm.ObjectType() + "Node"
         objectType = mm.DestinationEnumTable.DecapIdentifier + "Association"
     } else {
         returnType = mm.ObjectType() + "Expander"

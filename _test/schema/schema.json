@@ -161,9 +161,9 @@
             "case_insensitive": true
           },
           {
-            "name": "person_types",
-            "type": "String",
-            "size": 9,
+            "name": "type_enum",
+            "type": "MultiEnum",
+            "size": 40,
             "case_insensitive": true
           }
         ],
@@ -211,7 +211,7 @@
             "index_level": "Unique"
           },
           {
-            "name": "status_id",
+            "name": "status_enum",
             "type": "Enum",
             "size": 32,
             "index_level": "Indexed",
@@ -360,13 +360,6 @@
       }
     ],
     "association_tables": [
-      {
-        "name": "person_persontype_assn",
-        "table1": "person",
-        "column1": "person_id",
-        "table2": "person_type_enum",
-        "column2": "person_type_id"
-      },
       {
         "name": "related_project_assn",
         "table1": "project",
@@ -709,7 +702,7 @@
           },
           {
             "name": "type_enum",
-            "type": "String",
+            "type": "MultiEnum",
             "size": 1,
             "case_insensitive": true
           },

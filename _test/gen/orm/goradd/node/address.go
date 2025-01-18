@@ -9,8 +9,8 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
-// AddressNodeI is the builder interface to the Address nodes.
-type AddressNodeI interface {
+// AddressNode is the builder interface to the Address nodes.
+type AddressNode interface {
 	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// ID represents the id column in the database.
@@ -18,7 +18,7 @@ type AddressNodeI interface {
 	// PersonID represents the person_id column in the database.
 	PersonID() *query.ColumnNode
 	// Person represents the Person reference to a Person object.
-	Person() PersonNodeI
+	Person() PersonNode
 	// Street represents the street column in the database.
 	Street() *query.ColumnNode
 	// City represents the city column in the database.
@@ -27,7 +27,7 @@ type AddressNodeI interface {
 
 // AddressExpander is the builder interface for Addresses that are expandable.
 type AddressExpander interface {
-	AddressNodeI
+	AddressNode
 	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
 	Expand()
 }
@@ -45,7 +45,7 @@ type addressReverse struct {
 }
 
 // Address returns a table node that starts a node chain that begins with the address table.
-func Address() AddressNodeI {
+func Address() AddressNode {
 	return addressTable{}
 }
 
@@ -80,16 +80,6 @@ func (n *addressReverse) ColumnNodes_() (nodes []query.Node) {
 		cn.(query.Linker).SetParent(n)
 	}
 	return
-}
-
-// Columns_ is used internally by the framework to return the list of all the columns in the table.
-func (n addressTable) Columns_() []string {
-	return []string{
-		"id",
-		"person_id",
-		"street",
-		"city",
-	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
@@ -145,7 +135,7 @@ func (n *addressReverse) PersonID() *query.ColumnNode {
 }
 
 // Person represents the link to a Person object.
-func (n addressTable) Person() PersonNodeI {
+func (n addressTable) Person() PersonNode {
 	cn := &personReference{
 		ReferenceNode: query.ReferenceNode{
 			ColumnQueryName: "person_id",
@@ -157,7 +147,7 @@ func (n addressTable) Person() PersonNodeI {
 	return cn
 }
 
-func (n *addressReverse) Person() PersonNodeI {
+func (n *addressReverse) Person() PersonNode {
 	cn := n.addressTable.Person().(*personReference)
 	cn.SetParent(n)
 	return cn

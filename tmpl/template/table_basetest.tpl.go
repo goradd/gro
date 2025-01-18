@@ -280,7 +280,7 @@ import (
 			return
 		}
 
-		if col.Size > 0 && (col.Type == query.ColTypeBytes || col.Type == query.ColTypeString || col.Type == query.ColTypeUnknown) {
+		if col.Size > 0 && (col.ReceiverType == query.ColTypeBytes || col.ReceiverType == query.ColTypeString || col.ReceiverType == query.ColTypeUnknown) {
 
 			if _, err = io.WriteString(_w, `    // test panic on setting value larger than maximum size allowed
     `); err != nil {
@@ -393,7 +393,7 @@ func createMinimalSample`); err != nil {
 
 	for _, col := range table.Columns {
 
-		if col.Type == query.ColTypeUnknown {
+		if col.ReceiverType == query.ColTypeUnknown {
 			continue
 		} // cannot know what the set of valid input characters are.
 
@@ -559,7 +559,7 @@ func createMinimalSample`); err != nil {
 
 	for _, col := range table.Columns {
 
-		if col.Type == query.ColTypeUnknown {
+		if col.ReceiverType == query.ColTypeUnknown {
 			continue
 		} // cannot know what the set of valid input characters are.
 
@@ -694,7 +694,7 @@ func createMinimalSample`); err != nil {
 
 	for _, col := range table.Columns {
 
-		if col.Type == query.ColTypeUnknown {
+		if col.ReceiverType == query.ColTypeUnknown {
 			continue
 		} // cannot know what the set of valid input characters are.
 

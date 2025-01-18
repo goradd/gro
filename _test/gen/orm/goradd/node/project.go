@@ -9,8 +9,8 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
-// ProjectNodeI is the builder interface to the Project nodes.
-type ProjectNodeI interface {
+// ProjectNode is the builder interface to the Project nodes.
+type ProjectNode interface {
 	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// ID represents the id column in the database.
@@ -20,7 +20,7 @@ type ProjectNodeI interface {
 	// ManagerID represents the manager_id column in the database.
 	ManagerID() *query.ColumnNode
 	// Manager represents the Manager reference to a Person object.
-	Manager() PersonNodeI
+	Manager() PersonNode
 	// Name represents the name column in the database.
 	Name() *query.ColumnNode
 	// Description represents the description column in the database.
@@ -45,7 +45,7 @@ type ProjectNodeI interface {
 
 // ProjectExpander is the builder interface for Projects that are expandable.
 type ProjectExpander interface {
-	ProjectNodeI
+	ProjectNode
 	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
 	Expand()
 }
@@ -73,7 +73,7 @@ type projectAssociation struct {
 }
 
 // Project returns a table node that starts a node chain that begins with the project table.
-func Project() ProjectNodeI {
+func Project() ProjectNode {
 	return projectTable{}
 }
 
@@ -130,22 +130,6 @@ func (n *projectAssociation) ColumnNodes_() (nodes []query.Node) {
 		cn.(query.Linker).SetParent(n)
 	}
 	return
-}
-
-// Columns_ is used internally by the framework to return the list of all the columns in the table.
-func (n projectTable) Columns_() []string {
-	return []string{
-		"id",
-		"num",
-		"status_id",
-		"manager_id",
-		"name",
-		"description",
-		"start_date",
-		"end_date",
-		"budget",
-		"spent",
-	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
@@ -241,7 +225,7 @@ func (n *projectAssociation) Num() *query.ColumnNode {
 }
 
 // Status represents the link to a ProjectStatus object.
-func (n projectTable) Status() ProjectStatusNodeI {
+func (n projectTable) Status() ProjectStatusNode {
 	cn := &projectStatusReference{
 		ReferenceNode: query.ReferenceNode{
 			ColumnQueryName: "status_id",
@@ -253,19 +237,19 @@ func (n projectTable) Status() ProjectStatusNodeI {
 	return cn
 }
 
-func (n *projectReference) Status() ProjectStatusNodeI {
+func (n *projectReference) Status() ProjectStatusNode {
 	cn := n.projectTable.Status().(*projectStatusReference)
 	cn.SetParent(n)
 	return cn
 }
 
-func (n *projectReverse) Status() ProjectStatusNodeI {
+func (n *projectReverse) Status() ProjectStatusNode {
 	cn := n.projectTable.Status().(*projectStatusReference)
 	cn.SetParent(n)
 	return cn
 }
 
-func (n *projectAssociation) Status() ProjectStatusNodeI {
+func (n *projectAssociation) Status() ProjectStatusNode {
 	cn := n.projectTable.Status().(*projectStatusReference)
 	cn.SetParent(n)
 	return cn
@@ -301,7 +285,7 @@ func (n *projectAssociation) ManagerID() *query.ColumnNode {
 }
 
 // Manager represents the link to a Person object.
-func (n projectTable) Manager() PersonNodeI {
+func (n projectTable) Manager() PersonNode {
 	cn := &personReference{
 		ReferenceNode: query.ReferenceNode{
 			ColumnQueryName: "manager_id",
@@ -313,19 +297,19 @@ func (n projectTable) Manager() PersonNodeI {
 	return cn
 }
 
-func (n *projectReference) Manager() PersonNodeI {
+func (n *projectReference) Manager() PersonNode {
 	cn := n.projectTable.Manager().(*personReference)
 	cn.SetParent(n)
 	return cn
 }
 
-func (n *projectReverse) Manager() PersonNodeI {
+func (n *projectReverse) Manager() PersonNode {
 	cn := n.projectTable.Manager().(*personReference)
 	cn.SetParent(n)
 	return cn
 }
 
-func (n *projectAssociation) Manager() PersonNodeI {
+func (n *projectAssociation) Manager() PersonNode {
 	cn := n.projectTable.Manager().(*personReference)
 	cn.SetParent(n)
 	return cn

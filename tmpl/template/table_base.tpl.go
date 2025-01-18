@@ -804,7 +804,7 @@ const  (
 
 		if col.Size > 0 {
 
-			if col.Type == query.ColTypeString {
+			if col.ReceiverType == query.ColTypeString {
 
 				if _, err = io.WriteString(_w, `    const `); err != nil {
 					return
@@ -831,7 +831,7 @@ const  (
 					return
 				}
 
-			} else if col.Type == query.ColTypeBytes || col.Type == query.ColTypeUnknown {
+			} else if col.ReceiverType == query.ColTypeBytes || col.ReceiverType == query.ColTypeUnknown {
 
 				if _, err = io.WriteString(_w, `    const `); err != nil {
 					return
@@ -858,7 +858,7 @@ const  (
 					return
 				}
 
-			} else if col.Type == query.ColTypeInteger || col.Type == query.ColTypeUnsigned {
+			} else if col.ReceiverType == query.ColTypeInteger || col.ReceiverType == query.ColTypeUnsigned {
 
 				if _, err = io.WriteString(_w, `    const `); err != nil {
 					return
@@ -1682,7 +1682,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if col.Type == query.ColTypeBytes || col.Type == query.ColTypeUnknown {
+	if col.ReceiverType == query.ColTypeBytes || col.ReceiverType == query.ColTypeUnknown {
 
 		if col.Size > 0 {
 
@@ -1772,7 +1772,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if col.Type == query.ColTypeString && col.Size > 0 {
+		if col.ReceiverType == query.ColTypeString && col.Size > 0 {
 
 			if _, err = io.WriteString(_w, `    if utf8.RuneCountInString(`); err != nil {
 				return
@@ -2315,7 +2315,7 @@ func (o *`); err != nil {
 
 	if col.Size > 0 {
 
-		if col.Type == query.ColTypeBytes || col.Type == query.ColTypeUnknown {
+		if col.ReceiverType == query.ColTypeBytes || col.ReceiverType == query.ColTypeUnknown {
 
 			if _, err = io.WriteString(_w, `        if len(v) > `); err != nil {
 				return
@@ -2352,7 +2352,7 @@ func (o *`); err != nil {
 				return
 			}
 
-		} else if col.Type == query.ColTypeString {
+		} else if col.ReceiverType == query.ColTypeString {
 
 			if _, err = io.WriteString(_w, `        if utf8.RuneCountInString(v) > `); err != nil {
 				return
@@ -2407,7 +2407,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if col.Type == query.ColTypeBytes || col.Type == query.ColTypeUnknown {
+	if col.ReceiverType == query.ColTypeBytes || col.ReceiverType == query.ColTypeUnknown {
 
 		if _, err = io.WriteString(_w, `!bytes.Equal(o.`); err != nil {
 			return
@@ -2451,7 +2451,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if col.Type == query.ColTypeBytes || col.Type == query.ColTypeUnknown {
+	if col.ReceiverType == query.ColTypeBytes || col.ReceiverType == query.ColTypeUnknown {
 
 		if _, err = io.WriteString(_w, `                o.`); err != nil {
 			return
@@ -2816,7 +2816,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if col.Type == query.ColTypeBytes || col.Type == query.ColTypeUnknown {
+	if col.ReceiverType == query.ColTypeBytes || col.ReceiverType == query.ColTypeUnknown {
 
 		if col.Size > 0 {
 
@@ -2906,7 +2906,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if col.Type == query.ColTypeString && col.Size > 0 {
+		if col.ReceiverType == query.ColTypeString && col.Size > 0 {
 
 			if _, err = io.WriteString(_w, `    if utf8.RuneCountInString(`); err != nil {
 				return
@@ -3191,7 +3191,7 @@ func (tmpl *TableBaseTemplate) genAliasGetter(table *model.Table, _w io.Writer) 
 	//*** alias_getter.tmpl
 
 	if _, err = io.WriteString(_w, `
-// Alias returns the alias for the given key.
+// GetAlias returns the alias for the given key.
 func (o *`); err != nil {
 		return
 	}
@@ -3200,7 +3200,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Base) Alias(key string) query.AliasValue {
+	if _, err = io.WriteString(_w, `Base) GetAlias(key string) query.AliasValue {
 	if a,ok := o._aliases[key]; ok {
 		return query.NewAliasValue(a)
 	} else {
@@ -5490,7 +5490,7 @@ func Load`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `, joinOrSelectNodes ...query.QueryNode) *`); err != nil {
+	if _, err = io.WriteString(_w, `, joinOrSelectNodes ...query.Node) *`); err != nil {
 		return
 	}
 
@@ -5747,7 +5747,7 @@ func Load`); err != nil {
 
 			}
 
-			if _, err = io.WriteString(_w, `, joinOrSelectNodes ...query.QueryNode) *`); err != nil {
+			if _, err = io.WriteString(_w, `, joinOrSelectNodes ...query.Node) *`); err != nil {
 				return
 			}
 
@@ -6431,7 +6431,7 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `) Join(n query.QueryNode, conditions... query.QueryNode) *`); err != nil {
+	if _, err = io.WriteString(_w, `) Join(n query.Node, conditions... query.Node) *`); err != nil {
 		return
 	}
 
@@ -6464,7 +6464,7 @@ func (b *`); err != nil {
 	if _, err = io.WriteString(_w, `()")
     }
 
-	var condition query.QueryNode
+	var condition query.Node
 	if len(conditions) > 1 {
 		condition = op.And(conditions)
 	} else if len(conditions) == 1 {
@@ -6483,7 +6483,7 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `)  Where(c query.QueryNode) *`); err != nil {
+	if _, err = io.WriteString(_w, `)  Where(c query.Node) *`); err != nil {
 		return
 	}
 
@@ -6492,7 +6492,7 @@ func (b *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, ` {
-	b.builder.Where(c)
+	b.builder.Condition(c)
 	return b
 }
 
@@ -6505,7 +6505,7 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `)  OrderBy(nodes... query.QueryNode) *`); err != nil {
+	if _, err = io.WriteString(_w, `)  OrderBy(nodes... query.Node) *`); err != nil {
 		return
 	}
 
@@ -6552,7 +6552,7 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `)  Select(nodes... query.QueryNode) *`); err != nil {
+	if _, err = io.WriteString(_w, `)  Select(nodes... query.Node) *`); err != nil {
 		return
 	}
 
@@ -6565,7 +6565,7 @@ func (b *`); err != nil {
 	return b
 }
 
-// Alias lets you add a node with a custom name. After the query, you can read out the data using Alias() on a
+// Alias lets you add a node with a custom name. After the query, you can read out the data using GetAlias() on a
 // returned object. Alias is useful for adding calculations or subqueries to the query.
 func (b *`); err != nil {
 		return
@@ -6575,7 +6575,7 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `)  Alias(name string, n query.QueryNode) *`); err != nil {
+	if _, err = io.WriteString(_w, `)  Alias(name string, n query.Node) *`); err != nil {
 		return
 	}
 
@@ -6621,7 +6621,7 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `)  GroupBy(nodes... query.QueryNode) *`); err != nil {
+	if _, err = io.WriteString(_w, `)  GroupBy(nodes... query.Node) *`); err != nil {
 		return
 	}
 
@@ -6643,7 +6643,7 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `)  Having(node query.QueryNode)  *`); err != nil {
+	if _, err = io.WriteString(_w, `)  Having(node query.Node)  *`); err != nil {
 		return
 	}
 
@@ -6669,7 +6669,7 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `)  Count(distinct bool, nodes... query.QueryNode) uint {
+	if _, err = io.WriteString(_w, `)  Count(distinct bool, nodes... query.Node) uint {
 	return b.builder.Count(distinct, nodes...)
 }
 
@@ -6728,7 +6728,7 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `) joinOrSelect(nodes ...query.QueryNode) *`); err != nil {
+	if _, err = io.WriteString(_w, `) joinOrSelect(nodes ...query.Node) *`); err != nil {
 		return
 	}
 
@@ -7028,7 +7028,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.Type.GoType()); err != nil {
+				if _, err = io.WriteString(_w, col.ReceiverType.GoType()); err != nil {
 					return
 				}
 
@@ -7197,7 +7197,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.Type.GoType()); err != nil {
+				if _, err = io.WriteString(_w, col.ReceiverType.GoType()); err != nil {
 					return
 				}
 
@@ -12900,7 +12900,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			switch col.Type {
+			switch col.ReceiverType {
 
 			case query.ColTypeInteger:
 

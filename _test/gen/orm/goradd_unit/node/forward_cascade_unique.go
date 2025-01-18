@@ -9,8 +9,8 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
-// ForwardCascadeUniqueNodeI is the builder interface to the ForwardCascadeUnique nodes.
-type ForwardCascadeUniqueNodeI interface {
+// ForwardCascadeUniqueNode is the builder interface to the ForwardCascadeUnique nodes.
+type ForwardCascadeUniqueNode interface {
 	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// ID represents the id column in the database.
@@ -20,12 +20,12 @@ type ForwardCascadeUniqueNodeI interface {
 	// ReverseID represents the reverse_id column in the database.
 	ReverseID() *query.ColumnNode
 	// Reverse represents the Reverse reference to a Reverse object.
-	Reverse() ReverseNodeI
+	Reverse() ReverseNode
 }
 
 // ForwardCascadeUniqueExpander is the builder interface for ForwardCascadeUniques that are expandable.
 type ForwardCascadeUniqueExpander interface {
-	ForwardCascadeUniqueNodeI
+	ForwardCascadeUniqueNode
 	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
 	Expand()
 }
@@ -43,7 +43,7 @@ type forwardCascadeUniqueReverse struct {
 }
 
 // ForwardCascadeUnique returns a table node that starts a node chain that begins with the forward_cascade_unique table.
-func ForwardCascadeUnique() ForwardCascadeUniqueNodeI {
+func ForwardCascadeUnique() ForwardCascadeUniqueNode {
 	return forwardCascadeUniqueTable{}
 }
 
@@ -77,15 +77,6 @@ func (n *forwardCascadeUniqueReverse) ColumnNodes_() (nodes []query.Node) {
 		cn.(query.Linker).SetParent(n)
 	}
 	return
-}
-
-// Columns_ is used internally by the framework to return the list of all the columns in the table.
-func (n forwardCascadeUniqueTable) Columns_() []string {
-	return []string{
-		"id",
-		"name",
-		"reverse_id",
-	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
@@ -158,7 +149,7 @@ func (n *forwardCascadeUniqueReverse) ReverseID() *query.ColumnNode {
 }
 
 // Reverse represents the link to a Reverse object.
-func (n forwardCascadeUniqueTable) Reverse() ReverseNodeI {
+func (n forwardCascadeUniqueTable) Reverse() ReverseNode {
 	cn := &reverseReference{
 		ReferenceNode: query.ReferenceNode{
 			ColumnQueryName: "reverse_id",
@@ -170,7 +161,7 @@ func (n forwardCascadeUniqueTable) Reverse() ReverseNodeI {
 	return cn
 }
 
-func (n *forwardCascadeUniqueReverse) Reverse() ReverseNodeI {
+func (n *forwardCascadeUniqueReverse) Reverse() ReverseNode {
 	cn := n.forwardCascadeUniqueTable.Reverse().(*reverseReference)
 	cn.SetParent(n)
 	return cn

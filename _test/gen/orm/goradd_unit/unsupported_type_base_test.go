@@ -16,16 +16,16 @@ func TestUnsupportedType_SetTypeSet(t *testing.T) {
 
 	obj := NewUnsupportedType()
 
-	typeSet := test.RandomValue[[]uint8](5)
+	typeSet := test.RandomValue[string](5)
 	obj.SetTypeSet(typeSet)
 	assert.Equal(t, typeSet, obj.TypeSet())
 
 	// test zero
-	obj.SetTypeSet([]byte(nil))
-	assert.Equal(t, []byte(nil), obj.TypeSet(), "set empty")
+	obj.SetTypeSet("")
+	assert.Equal(t, "", obj.TypeSet(), "set empty")
 
 	// test panic on setting value larger than maximum size allowed
-	typeSet = test.RandomValue[[]uint8](6)
+	typeSet = test.RandomValue[string](6)
 	assert.Panics(t, func() {
 		obj.SetTypeSet(typeSet)
 	})
@@ -34,16 +34,16 @@ func TestUnsupportedType_SetTypeEnum(t *testing.T) {
 
 	obj := NewUnsupportedType()
 
-	typeEnum := test.RandomValue[[]uint8](1)
+	typeEnum := test.RandomValue[string](1)
 	obj.SetTypeEnum(typeEnum)
 	assert.Equal(t, typeEnum, obj.TypeEnum())
 
 	// test zero
-	obj.SetTypeEnum([]byte(nil))
-	assert.Equal(t, []byte(nil), obj.TypeEnum(), "set empty")
+	obj.SetTypeEnum("")
+	assert.Equal(t, "", obj.TypeEnum(), "set empty")
 
 	// test panic on setting value larger than maximum size allowed
-	typeEnum = test.RandomValue[[]uint8](2)
+	typeEnum = test.RandomValue[string](2)
 	assert.Panics(t, func() {
 		obj.SetTypeEnum(typeEnum)
 	})
@@ -279,6 +279,12 @@ func TestUnsupportedType_SetTypeMultifk2(t *testing.T) {
 func createMinimalSampleUnsupportedType(ctx context.Context) *UnsupportedType {
 	obj := NewUnsupportedType()
 
+	typeSet := test.RandomValue[string](5)
+	obj.SetTypeSet(typeSet)
+
+	typeEnum := test.RandomValue[string](1)
+	obj.SetTypeEnum(typeEnum)
+
 	typeDecimal := test.RandomValue[string](13)
 	obj.SetTypeDecimal(typeDecimal)
 
@@ -319,6 +325,12 @@ func TestUnsupportedType_CRUD(t *testing.T) {
 	obj := NewUnsupportedType()
 	ctx := db.NewContext(nil)
 
+	typeSet := test.RandomValue[string](5)
+	obj.SetTypeSet(typeSet)
+
+	typeEnum := test.RandomValue[string](1)
+	obj.SetTypeEnum(typeEnum)
+
 	typeDecimal := test.RandomValue[string](13)
 	obj.SetTypeDecimal(typeDecimal)
 
@@ -358,6 +370,12 @@ func TestUnsupportedType_CRUD(t *testing.T) {
 
 	assert.True(t, obj.TypeSerialIsValid())
 	assert.NotEmpty(t, obj.TypeSerial())
+
+	assert.True(t, obj.TypeSetIsValid())
+	assert.Equal(t, typeSet, obj.TypeSet())
+
+	assert.True(t, obj.TypeEnumIsValid())
+	assert.Equal(t, typeEnum, obj.TypeEnum())
 
 	assert.True(t, obj.TypeDecimalIsValid())
 	assert.Equal(t, typeDecimal, obj.TypeDecimal())

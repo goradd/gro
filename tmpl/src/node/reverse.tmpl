@@ -18,7 +18,7 @@ func (n *NodeTemplate)genReverseOne(table *model.Table, rev *model.Column, _w io
 {{
 // {{= rev.ReverseIdentifier() }} represents the one-to-one relationship formed by the reverse reference from the
 // {{= rev.QueryName }} column in the {{= rev.Table.QueryName }} table.
-func (n {{= table.DecapIdentifier}}Table) {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}NodeI  {
+func (n {{= table.DecapIdentifier}}Table) {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}Node  {
 	cn := &{{= rev.Table.DecapIdentifier }}Reverse{
 		ReverseNode: query.ReverseNode{
 			ColumnQueryName: "{{= rev.QueryName }}",
@@ -31,7 +31,7 @@ func (n {{= table.DecapIdentifier}}Table) {{= rev.ReverseIdentifier() }}() {{= r
 }
 
 {{if hasReverse}}
-func (n *{{= table.DecapIdentifier}}Reference) {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}NodeI  {
+func (n *{{= table.DecapIdentifier}}Reference) {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}Node  {
     cn := n.{{= table.DecapIdentifier}}Table.{{= rev.ReverseIdentifier() }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
     cn.SetParent(n)
     return cn
@@ -39,7 +39,7 @@ func (n *{{= table.DecapIdentifier}}Reference) {{= rev.ReverseIdentifier() }}() 
 
 {{if}}
 {{if hasReference}}
-func (n *{{= table.DecapIdentifier}}Reverse) {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}NodeI  {
+func (n *{{= table.DecapIdentifier}}Reverse) {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}Node  {
     cn := n.{{= table.DecapIdentifier}}Table.{{= rev.ReverseIdentifier() }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
     cn.SetParent(n)
     return cn
@@ -47,7 +47,7 @@ func (n *{{= table.DecapIdentifier}}Reverse) {{= rev.ReverseIdentifier() }}() {{
 
 {{if}}
 {{if hasAssociation}}
-func (n *{{= table.DecapIdentifier}}Association) {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}NodeI  {
+func (n *{{= table.DecapIdentifier}}Association) {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}Node  {
     cn := n.{{= table.DecapIdentifier}}Table.{{= rev.ReverseIdentifier() }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
     cn.SetParent(n)
     return cn

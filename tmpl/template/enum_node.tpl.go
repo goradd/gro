@@ -69,7 +69,7 @@ import (
 		return
 	}
 
-	if _, err = io.WriteString(_w, `NodeI is the builder interface to the `); err != nil {
+	if _, err = io.WriteString(_w, `Node is the builder interface to the `); err != nil {
 		return
 	}
 
@@ -86,8 +86,8 @@ type `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `NodeI interface {
-    query.NodeI
+	if _, err = io.WriteString(_w, `Node interface {
+    query.Node
     PrimaryKeyNode() *query.ColumnNode
 `); err != nil {
 		return
@@ -280,8 +280,8 @@ func (n `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Enum) ColumnNodes_() []query.NodeI {
-    return []query.NodeI {
+	if _, err = io.WriteString(_w, `Enum) ColumnNodes_() []query.Node {
+    return []query.Node {
 `); err != nil {
 		return
 	}
@@ -314,8 +314,8 @@ func (n `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Association) ColumnNodes_() []query.NodeI {
-    return []query.NodeI {
+	if _, err = io.WriteString(_w, `Association) ColumnNodes_() []query.Node {
+    return []query.Node {
 `); err != nil {
 		return
 	}
@@ -339,42 +339,6 @@ func (n `); err != nil {
 
 	if _, err = io.WriteString(_w, `	}
 }
-
-// Columns_ is used internally by the framework to return the list of column names.
-func (n `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `Enum) Columns_() []string {
-    return []string {
-`); err != nil {
-		return
-	}
-
-	for i := 0; i < len(table.Fields); i++ {
-
-		if _, err = io.WriteString(_w, `	    "`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.FieldQueryName(i)); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `",
-`); err != nil {
-			return
-		}
-
-	}
-
-	if _, err = io.WriteString(_w, `	}
-}
-
 
 func (n `); err != nil {
 		return

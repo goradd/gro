@@ -9,8 +9,8 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
-// ReverseNodeI is the builder interface to the Reverse nodes.
-type ReverseNodeI interface {
+// ReverseNode is the builder interface to the Reverse nodes.
+type ReverseNode interface {
 	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// ID represents the id column in the database.
@@ -20,20 +20,20 @@ type ReverseNodeI interface {
 	// ForwardCascades represents the ForwardCascade reference to ForwardCascade objects.
 	ForwardCascades() ForwardCascadeExpander
 	// ForwardCascadeUnique represents the ForwardCascadeUnique reference to a ForwardCascadeUnique object.
-	ForwardCascadeUnique() ForwardCascadeUniqueNodeI
+	ForwardCascadeUnique() ForwardCascadeUniqueNode
 	// ForwardNulls represents the ForwardNull reference to ForwardNull objects.
 	ForwardNulls() ForwardNullExpander
 	// ForwardNullUnique represents the ForwardNullUnique reference to a ForwardNullUnique object.
-	ForwardNullUnique() ForwardNullUniqueNodeI
+	ForwardNullUnique() ForwardNullUniqueNode
 	// ForwardRestricts represents the ForwardRestrict reference to ForwardRestrict objects.
 	ForwardRestricts() ForwardRestrictExpander
 	// ForwardRestrictUnique represents the ForwardRestrictUnique reference to a ForwardRestrictUnique object.
-	ForwardRestrictUnique() ForwardRestrictUniqueNodeI
+	ForwardRestrictUnique() ForwardRestrictUniqueNode
 }
 
 // ReverseExpander is the builder interface for Reverses that are expandable.
 type ReverseExpander interface {
-	ReverseNodeI
+	ReverseNode
 	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
 	Expand()
 }
@@ -56,7 +56,7 @@ type reverseReverse struct {
 }
 
 // Reverse returns a table node that starts a node chain that begins with the reverse table.
-func Reverse() ReverseNodeI {
+func Reverse() ReverseNode {
 	return reverseTable{}
 }
 
@@ -97,14 +97,6 @@ func (n *reverseReverse) ColumnNodes_() (nodes []query.Node) {
 		cn.(query.Linker).SetParent(n)
 	}
 	return
-}
-
-// Columns_ is used internally by the framework to return the list of all the columns in the table.
-func (n reverseTable) Columns_() []string {
-	return []string{
-		"id",
-		"name",
-	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
@@ -207,7 +199,7 @@ func (n *reverseReverse) ForwardCascades() ForwardCascadeExpander {
 
 // ForwardCascadeUnique represents the one-to-one relationship formed by the reverse reference from the
 // reverse_id column in the forward_cascade_unique table.
-func (n reverseTable) ForwardCascadeUnique() ForwardCascadeUniqueNodeI {
+func (n reverseTable) ForwardCascadeUnique() ForwardCascadeUniqueNode {
 	cn := &forwardCascadeUniqueReverse{
 		ReverseNode: query.ReverseNode{
 			ColumnQueryName: "reverse_id",
@@ -219,13 +211,13 @@ func (n reverseTable) ForwardCascadeUnique() ForwardCascadeUniqueNodeI {
 	return cn
 }
 
-func (n *reverseReference) ForwardCascadeUnique() ForwardCascadeUniqueNodeI {
+func (n *reverseReference) ForwardCascadeUnique() ForwardCascadeUniqueNode {
 	cn := n.reverseTable.ForwardCascadeUnique().(*forwardCascadeUniqueReverse)
 	cn.SetParent(n)
 	return cn
 }
 
-func (n *reverseReverse) ForwardCascadeUnique() ForwardCascadeUniqueNodeI {
+func (n *reverseReverse) ForwardCascadeUnique() ForwardCascadeUniqueNode {
 	cn := n.reverseTable.ForwardCascadeUnique().(*forwardCascadeUniqueReverse)
 	cn.SetParent(n)
 	return cn
@@ -259,7 +251,7 @@ func (n *reverseReverse) ForwardNulls() ForwardNullExpander {
 
 // ForwardNullUnique represents the one-to-one relationship formed by the reverse reference from the
 // reverse_id column in the forward_null_unique table.
-func (n reverseTable) ForwardNullUnique() ForwardNullUniqueNodeI {
+func (n reverseTable) ForwardNullUnique() ForwardNullUniqueNode {
 	cn := &forwardNullUniqueReverse{
 		ReverseNode: query.ReverseNode{
 			ColumnQueryName: "reverse_id",
@@ -271,13 +263,13 @@ func (n reverseTable) ForwardNullUnique() ForwardNullUniqueNodeI {
 	return cn
 }
 
-func (n *reverseReference) ForwardNullUnique() ForwardNullUniqueNodeI {
+func (n *reverseReference) ForwardNullUnique() ForwardNullUniqueNode {
 	cn := n.reverseTable.ForwardNullUnique().(*forwardNullUniqueReverse)
 	cn.SetParent(n)
 	return cn
 }
 
-func (n *reverseReverse) ForwardNullUnique() ForwardNullUniqueNodeI {
+func (n *reverseReverse) ForwardNullUnique() ForwardNullUniqueNode {
 	cn := n.reverseTable.ForwardNullUnique().(*forwardNullUniqueReverse)
 	cn.SetParent(n)
 	return cn
@@ -311,7 +303,7 @@ func (n *reverseReverse) ForwardRestricts() ForwardRestrictExpander {
 
 // ForwardRestrictUnique represents the one-to-one relationship formed by the reverse reference from the
 // reverse_id column in the forward_restrict_unique table.
-func (n reverseTable) ForwardRestrictUnique() ForwardRestrictUniqueNodeI {
+func (n reverseTable) ForwardRestrictUnique() ForwardRestrictUniqueNode {
 	cn := &forwardRestrictUniqueReverse{
 		ReverseNode: query.ReverseNode{
 			ColumnQueryName: "reverse_id",
@@ -323,13 +315,13 @@ func (n reverseTable) ForwardRestrictUnique() ForwardRestrictUniqueNodeI {
 	return cn
 }
 
-func (n *reverseReference) ForwardRestrictUnique() ForwardRestrictUniqueNodeI {
+func (n *reverseReference) ForwardRestrictUnique() ForwardRestrictUniqueNode {
 	cn := n.reverseTable.ForwardRestrictUnique().(*forwardRestrictUniqueReverse)
 	cn.SetParent(n)
 	return cn
 }
 
-func (n *reverseReverse) ForwardRestrictUnique() ForwardRestrictUniqueNodeI {
+func (n *reverseReverse) ForwardRestrictUnique() ForwardRestrictUniqueNode {
 	cn := n.reverseTable.ForwardRestrictUnique().(*forwardRestrictUniqueReverse)
 	cn.SetParent(n)
 	return cn

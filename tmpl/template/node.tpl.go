@@ -119,7 +119,7 @@ func (n *NodeTemplate) genStruct(table *model.Table, _w io.Writer) (err error) {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `NodeI is the builder interface to the `); err != nil {
+	if _, err = io.WriteString(_w, `Node is the builder interface to the `); err != nil {
 		return
 	}
 
@@ -136,8 +136,8 @@ type `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `NodeI interface {
-    query.NodeI
+	if _, err = io.WriteString(_w, `Node interface {
+    query.Node
     PrimaryKeyNode() *query.ColumnNode
 `); err != nil {
 		return
@@ -222,7 +222,7 @@ type `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `NodeI
+			if _, err = io.WriteString(_w, `Node
 `); err != nil {
 				return
 			}
@@ -280,7 +280,7 @@ type `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `NodeI
+			if _, err = io.WriteString(_w, `Node
 `); err != nil {
 				return
 			}
@@ -357,7 +357,7 @@ type `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `NodeI
+			if _, err = io.WriteString(_w, `Node
 `); err != nil {
 				return
 			}
@@ -456,7 +456,7 @@ type `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `NodeI
+		if _, err = io.WriteString(_w, `Node
     // Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
     Expand()
 }
@@ -660,7 +660,7 @@ func `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `NodeI {
+	if _, err = io.WriteString(_w, `Node {
 	return `); err != nil {
 		return
 	}
@@ -755,7 +755,7 @@ func (n `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Table) ColumnNodes_() (nodes []query.NodeI) {
+	if _, err = io.WriteString(_w, `Table) ColumnNodes_() (nodes []query.Node) {
 `); err != nil {
 		return
 	}
@@ -794,7 +794,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `Reference) ColumnNodes_() (nodes []query.NodeI) {
+		if _, err = io.WriteString(_w, `Reference) ColumnNodes_() (nodes []query.Node) {
     nodes = n.`); err != nil {
 			return
 		}
@@ -805,7 +805,7 @@ func (n `); err != nil {
 
 		if _, err = io.WriteString(_w, `Table.ColumnNodes_()
     for _,cn := range nodes {
-        cn.(query.NodeLinker).SetParent(n)
+        cn.(query.Linker).SetParent(n)
     }
     return
 }
@@ -830,7 +830,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `Reverse) ColumnNodes_() (nodes []query.NodeI) {
+		if _, err = io.WriteString(_w, `Reverse) ColumnNodes_() (nodes []query.Node) {
     nodes = n.`); err != nil {
 			return
 		}
@@ -841,7 +841,7 @@ func (n `); err != nil {
 
 		if _, err = io.WriteString(_w, `Table.ColumnNodes_()
     for _,cn := range nodes {
-        cn.(query.NodeLinker).SetParent(n)
+        cn.(query.Linker).SetParent(n)
     }
     return
 }
@@ -866,7 +866,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `Association) ColumnNodes_() (nodes []query.NodeI) {
+		if _, err = io.WriteString(_w, `Association) ColumnNodes_() (nodes []query.Node) {
     nodes = n.`); err != nil {
 			return
 		}
@@ -877,7 +877,7 @@ func (n `); err != nil {
 
 		if _, err = io.WriteString(_w, `Table.ColumnNodes_()
     for _,cn := range nodes {
-        cn.(query.NodeLinker).SetParent(n)
+        cn.(query.Linker).SetParent(n)
     }
     return
 }
@@ -888,42 +888,6 @@ func (n `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `
-
-// Columns_ is used internally by the framework to return the list of all the columns in the table.
-func (n `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `Table) Columns_() []string {
-    return []string {
-`); err != nil {
-		return
-	}
-
-	for _, col := range table.Columns {
-
-		if _, err = io.WriteString(_w, `        "`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.QueryName); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `",
-`); err != nil {
-			return
-		}
-
-	}
-
-	if _, err = io.WriteString(_w, `	}
-}
-
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
 func (n `); err != nil {
@@ -1463,7 +1427,7 @@ func (n *NodeTemplate) genColumnNode(table *model.Table, col *model.Column, _w i
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.Type.String()); err != nil {
+	if _, err = io.WriteString(_w, col.ReceiverType.String()); err != nil {
 		return
 	}
 
@@ -1674,7 +1638,7 @@ func (n `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `NodeI {
+	if _, err = io.WriteString(_w, `Node {
 	cn := &`); err != nil {
 		return
 	}
@@ -1707,7 +1671,7 @@ func (n `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.Type.String()); err != nil {
+	if _, err = io.WriteString(_w, col.ReceiverType.String()); err != nil {
 		return
 	}
 
@@ -1748,7 +1712,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `NodeI {
+		if _, err = io.WriteString(_w, `Node {
     cn := n.`); err != nil {
 			return
 		}
@@ -1810,7 +1774,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `NodeI {
+		if _, err = io.WriteString(_w, `Node {
     cn := n.`); err != nil {
 			return
 		}
@@ -1872,7 +1836,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `NodeI {
+		if _, err = io.WriteString(_w, `Node {
     cn := n.`); err != nil {
 			return
 		}
@@ -1954,7 +1918,7 @@ func (n `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `NodeI {
+	if _, err = io.WriteString(_w, `Node {
 	cn := &`); err != nil {
 		return
 	}
@@ -1987,7 +1951,7 @@ func (n `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.Type.String()); err != nil {
+	if _, err = io.WriteString(_w, col.ReceiverType.String()); err != nil {
 		return
 	}
 
@@ -2028,7 +1992,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `NodeI {
+		if _, err = io.WriteString(_w, `Node {
     cn := n.`); err != nil {
 			return
 		}
@@ -2090,7 +2054,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `NodeI {
+		if _, err = io.WriteString(_w, `Node {
     cn := n.`); err != nil {
 			return
 		}
@@ -2152,7 +2116,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `NodeI {
+		if _, err = io.WriteString(_w, `Node {
     cn := n.`); err != nil {
 			return
 		}
@@ -2205,7 +2169,7 @@ func (n *NodeTemplate) genAssn(table *model.Table, _w io.Writer) (err error) {
 func (n *NodeTemplate) genAssnTable(table *model.Table, mm *model.ManyManyReference, _w io.Writer) (err error) {
 	var returnType, objectType string
 	if mm.IsEnum() {
-		returnType = mm.ObjectType() + "NodeI"
+		returnType = mm.ObjectType() + "Node"
 		objectType = mm.DestinationEnumTable.DecapIdentifier + "Association"
 	} else {
 		returnType = mm.ObjectType() + "Expander"
@@ -2591,7 +2555,7 @@ func (n `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `NodeI  {
+	if _, err = io.WriteString(_w, `Node  {
 	cn := &`); err != nil {
 		return
 	}
@@ -2624,7 +2588,7 @@ func (n `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, rev.Type.String()); err != nil {
+	if _, err = io.WriteString(_w, rev.ReceiverType.String()); err != nil {
 		return
 	}
 
@@ -2665,7 +2629,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `NodeI  {
+		if _, err = io.WriteString(_w, `Node  {
     cn := n.`); err != nil {
 			return
 		}
@@ -2727,7 +2691,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `NodeI  {
+		if _, err = io.WriteString(_w, `Node  {
     cn := n.`); err != nil {
 			return
 		}
@@ -2789,7 +2753,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `NodeI  {
+		if _, err = io.WriteString(_w, `Node  {
     cn := n.`); err != nil {
 			return
 		}
@@ -2919,7 +2883,7 @@ func (n `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, rev.Type.String()); err != nil {
+	if _, err = io.WriteString(_w, rev.ReceiverType.String()); err != nil {
 		return
 	}
 

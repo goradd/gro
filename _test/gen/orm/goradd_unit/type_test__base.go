@@ -902,7 +902,7 @@ func (b *TypeTestsBuilder) Select(nodes ...query.Node) *TypeTestsBuilder {
 	return b
 }
 
-// Alias lets you add a node with a custom name. After the query, you can read out the data using Alias() on a
+// Alias lets you add a node with a custom name. After the query, you can read out the data using GetAlias() on a
 // returned object. Alias is useful for adding calculations or subqueries to the query.
 func (b *TypeTestsBuilder) Alias(name string, n query.Node) *TypeTestsBuilder {
 	b.builder.Alias(name, n)

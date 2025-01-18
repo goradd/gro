@@ -20,8 +20,6 @@ type ManyManyReference struct {
 	AssnDestColumnType query.ReceiverType
 	// DestinationTable is the table being linked (the table that we are joining to)
 	DestinationTable *Table
-	// DestinationEnumTable is the enum table being linked if this is an enum association
-	DestinationEnumTable *Enum
 
 	// Title is the human-readable title of the objects pointed to.
 	Title string
@@ -53,47 +51,27 @@ func (m *ManyManyReference) JsonKey() string {
 
 // ObjectType returns the name of the object type the association links to.
 func (m *ManyManyReference) ObjectType() string {
-	if m.DestinationTable != nil {
-		return m.DestinationTable.Identifier
-	} else {
-		return m.DestinationEnumTable.Identifier
-	}
+	return m.DestinationTable.Identifier
 }
 
 // ObjectTypePlural returns the plural name of the object type the association links to.
 func (m *ManyManyReference) ObjectTypePlural() string {
-	if m.DestinationTable != nil {
-		return m.DestinationTable.IdentifierPlural
-	} else {
-		return m.DestinationEnumTable.IdentifierPlural
-	}
+	return m.DestinationTable.IdentifierPlural
 }
 
 // PrimaryKeyType returns the Go type of the primary key of the object the association links to.
 func (m *ManyManyReference) PrimaryKeyType() string {
-	if m.DestinationTable != nil {
-		return m.DestinationTable.PrimaryKeyGoType()
-	} else {
-		return m.DestinationEnumTable.Fields[0].Type.GoType()
-	}
+	return m.DestinationTable.PrimaryKeyGoType()
 }
 
 // PrimaryKey returns the database field name of the primary key of the object the association links to.
 func (m *ManyManyReference) PrimaryKey() string {
-	if m.DestinationTable != nil {
-		return m.DestinationTable.PrimaryKeyColumn().QueryName
-	} else {
-		return m.DestinationEnumTable.Fields[0].QueryName
-	}
+	return m.DestinationTable.PrimaryKeyColumn().QueryName
 }
 
 // QueryName returns the database table name of the destination table.
 func (m *ManyManyReference) QueryName() string {
-	if m.DestinationTable != nil {
-		return m.DestinationTable.QueryName
-	} else {
-		return m.DestinationEnumTable.QueryName
-	}
+	return m.DestinationTable.QueryName
 }
 
 // VariableIdentifier is the local variable name used to identify queried objects attached to the local object
@@ -106,17 +84,13 @@ func (m *ManyManyReference) PkIdentifier() string {
 	return "mm" + m.IdentifierPlural + "Pks"
 }
 
-func (m *ManyManyReference) IsEnum() bool {
-	return m.DestinationEnumTable != nil
-}
-
 func makeManyManyRef(
 	assnTable, column1, column2 string,
 	t1, t2 *Table,
 	title, titles, id, ids string,
 ) *ManyManyReference {
-	type1 := t1.PrimaryKeyColumn().Type
-	type2 := t2.PrimaryKeyColumn().Type
+	type1 := t1.PrimaryKeyColumn().ReceiverType
+	type2 := t2.PrimaryKeyColumn().ReceiverType
 	ref := ManyManyReference{
 		AssnTableName:        assnTable,
 		AssnSourceColumnName: column1,
@@ -124,28 +98,6 @@ func makeManyManyRef(
 		AssnDestColumnName:   column2,
 		AssnDestColumnType:   type2,
 		DestinationTable:     t2,
-		Title:                title,
-		TitlePlural:          titles,
-		Identifier:           id,
-		IdentifierPlural:     ids,
-	}
-	t1.ManyManyReferences = append(t1.ManyManyReferences, &ref)
-	return &ref
-}
-
-func makeManyManyEnumRef(
-	assnTable, column1, column2 string,
-	t1 *Table, t2 *Enum,
-	title, titles, id, ids string,
-) *ManyManyReference {
-	type1 := t1.PrimaryKeyColumn().Type
-	ref := ManyManyReference{
-		AssnTableName:        assnTable,
-		AssnSourceColumnName: column1,
-		AssnSourceColumnType: type1,
-		AssnDestColumnName:   column2,
-		AssnDestColumnType:   query.ColTypeInteger,
-		DestinationEnumTable: t2,
 		Title:                title,
 		TitlePlural:          titles,
 		Identifier:           id,

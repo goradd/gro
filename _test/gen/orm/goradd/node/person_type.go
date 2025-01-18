@@ -9,8 +9,8 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
-// PersonTypeNodeI is the builder interface to the PersonType nodes.
-type PersonTypeNodeI interface {
+// PersonTypeNode is the builder interface to the PersonType nodes.
+type PersonTypeNode interface {
 	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	ID() *query.ColumnNode
@@ -61,14 +61,6 @@ func (n personTypeAssociation) ColumnNodes_() []query.Node {
 	return []query.Node{
 		n.ID(),
 		n.Name(),
-	}
-}
-
-// Columns_ is used internally by the framework to return the list of column names.
-func (n personTypeEnum) Columns_() []string {
-	return []string{
-		"id",
-		"name",
 	}
 }
 

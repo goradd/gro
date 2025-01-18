@@ -9,8 +9,8 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
-// UnsupportedTypeNodeI is the builder interface to the UnsupportedType nodes.
-type UnsupportedTypeNodeI interface {
+// UnsupportedTypeNode is the builder interface to the UnsupportedType nodes.
+type UnsupportedTypeNode interface {
 	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// TypeSerial represents the type_serial column in the database.
@@ -53,7 +53,7 @@ type UnsupportedTypeNodeI interface {
 
 // UnsupportedTypeExpander is the builder interface for UnsupportedTypes that are expandable.
 type UnsupportedTypeExpander interface {
-	UnsupportedTypeNodeI
+	UnsupportedTypeNode
 	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
 	Expand()
 }
@@ -71,7 +71,7 @@ type unsupportedTypeReverse struct {
 }
 
 // UnsupportedType returns a table node that starts a node chain that begins with the unsupported_type table.
-func UnsupportedType() UnsupportedTypeNodeI {
+func UnsupportedType() UnsupportedTypeNode {
 	return unsupportedTypeTable{}
 }
 
@@ -122,30 +122,6 @@ func (n *unsupportedTypeReverse) ColumnNodes_() (nodes []query.Node) {
 	return
 }
 
-// Columns_ is used internally by the framework to return the list of all the columns in the table.
-func (n unsupportedTypeTable) Columns_() []string {
-	return []string{
-		"type_serial",
-		"type_set",
-		"type_enum",
-		"type_decimal",
-		"type_double",
-		"type_geo",
-		"type_tiny_blob",
-		"type_medium_blob",
-		"type_varbinary",
-		"type_longtext",
-		"type_binary",
-		"type_small",
-		"type_medium",
-		"type_big",
-		"type_polygon",
-		"type_unsigned",
-		"type_multFk1",
-		"type_multiFk2",
-	}
-}
-
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
 func (n unsupportedTypeTable) IsEnum_() bool {
 	return false
@@ -185,7 +161,7 @@ func (n unsupportedTypeTable) TypeSet() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:    "type_set",
 		Identifier:   "TypeSet",
-		ReceiverType: query.ColTypeUnknown,
+		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
 	cn.SetParent(n)
@@ -202,7 +178,7 @@ func (n unsupportedTypeTable) TypeEnum() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:    "type_enum",
 		Identifier:   "TypeEnum",
-		ReceiverType: query.ColTypeUnknown,
+		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
 	cn.SetParent(n)

@@ -4,6 +4,7 @@ import (
 	. "github.com/goradd/all"
 	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
+	"slices"
 	"strings"
 )
 
@@ -57,12 +58,13 @@ type Column struct {
 	// case-insensitive.
 	CaseInsensitive bool `json:"case_insensitive,omitempty"`
 
-	// Reference is required to be set if this is a reference type column.
+	// Reference is set when the column is a pointer to another table.
+	// This is required for ColTypeReference, ColTypeEnum and ColTypeMultiEnum tables.
 	Reference *Reference `json:"reference,omitempty"`
 }
 
-// Reference is the additional information needed for reference type columns.
-// If the IndexLevel of the containing column is Unique, it creates a one-to-one relationship.
+// Reference is the additional information needed for reference type  and enum columns.
+// For reference columns, if the IndexLevel of the containing column is Unique, it creates a one-to-one relationship.
 // Otherwise, it is a one-to-many relationship.
 type Reference struct {
 	// If this column is a reference to an object in another table, this is the name of that other table.
@@ -95,12 +97,32 @@ type Reference struct {
 	ReverseIdentifierPlural string `json:"reverse_identifier_plural,omitempty"`
 }
 
-func (c *Column) FillDefaults(table *Table, referenceSuffix string, enumSuffix string) {
+func (c *Column) FillDefaults(db *Database, table *Table) {
 	if c.Title == "" {
 		c.Title = strings2.Title(c.Name)
 	}
+	if strings.HasSuffix(c.Name, db.EnumTableSuffix) {
+		if c.Reference == nil {
+			// Infer the table from the name of the column
+			if slices.ContainsFunc(db.EnumTables, func(e *EnumTable) bool {
+				return e.Name == c.Name
+			}) {
+				c.Reference = &Reference{
+					Table: c.Name,
+				}
+			} else if slices.ContainsFunc(db.EnumTables, func(e *EnumTable) bool {
+				return e.Name == table.Name+"_"+c.Name
+			}) {
+				c.Reference = &Reference{
+					Table: table.Name + "_" + c.Name,
+				}
+			}
+		}
+	}
+
 	if c.Reference != nil {
-		objName := strings.TrimSuffix(c.Name, referenceSuffix)
+		objName := strings.TrimSuffix(c.Name, db.ReferenceSuffix)
+		objName = strings.TrimSuffix(c.Name, db.EnumTableSuffix)
 
 		if c.Reference.Identifier == "" {
 			c.Reference.Identifier = snaker.ForceCamelIdentifier(objName)
@@ -125,7 +147,7 @@ func (c *Column) FillDefaults(table *Table, referenceSuffix string, enumSuffix s
 		}
 
 		// Enum references do not have a public difference between the name of the id field and the object itself.
-		if c.Identifier == "" && strings.HasSuffix(c.Reference.Table, enumSuffix) {
+		if c.Identifier == "" && strings.HasSuffix(c.Reference.Table, db.EnumTableSuffix) {
 			c.Identifier = c.Reference.Identifier
 		}
 	}

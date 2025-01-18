@@ -9,8 +9,8 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
-// PersonNodeI is the builder interface to the Person nodes.
-type PersonNodeI interface {
+// PersonNode is the builder interface to the Person nodes.
+type PersonNode interface {
 	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// ID represents the id column in the database.
@@ -19,23 +19,25 @@ type PersonNodeI interface {
 	FirstName() *query.ColumnNode
 	// LastName represents the last_name column in the database.
 	LastName() *query.ColumnNode
+	// PersonTypes represents the person_types column in the database.
+	PersonTypes() *query.ColumnNode
 	// PersonTypes represents the PersonTypes reference to PersonType objects.
-	PersonTypes() PersonTypeNodeI
+	PersonTypes() PersonTypeNode
 	// Projects represents the Projects reference to Project objects.
 	Projects() ProjectExpander
 	// Addresses represents the Address reference to Address objects.
 	Addresses() AddressExpander
 	// EmployeeInfo represents the EmployeeInfo reference to a EmployeeInfo object.
-	EmployeeInfo() EmployeeInfoNodeI
+	EmployeeInfo() EmployeeInfoNode
 	// Login represents the Login reference to a Login object.
-	Login() LoginNodeI
+	Login() LoginNode
 	// ManagerProjects represents the ManagerProject reference to Project objects.
 	ManagerProjects() ProjectExpander
 }
 
 // PersonExpander is the builder interface for People that are expandable.
 type PersonExpander interface {
-	PersonNodeI
+	PersonNode
 	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
 	Expand()
 }
@@ -63,7 +65,7 @@ type personAssociation struct {
 }
 
 // Person returns a table node that starts a node chain that begins with the person table.
-func Person() PersonNodeI {
+func Person() PersonNode {
 	return personTable{}
 }
 
@@ -88,6 +90,7 @@ func (n personTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.FirstName())
 	nodes = append(nodes, n.LastName())
+	nodes = append(nodes, n.PersonTypes())
 	return nodes
 }
 
@@ -113,15 +116,6 @@ func (n *personAssociation) ColumnNodes_() (nodes []query.Node) {
 		cn.(query.Linker).SetParent(n)
 	}
 	return
-}
-
-// Columns_ is used internally by the framework to return the list of all the columns in the table.
-func (n personTable) Columns_() []string {
-	return []string{
-		"id",
-		"first_name",
-		"last_name",
-	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
@@ -245,8 +239,37 @@ func (n *personAssociation) LastName() *query.ColumnNode {
 	return cn
 }
 
+func (n personTable) PersonTypes() *query.ColumnNode {
+	cn := &query.ColumnNode{
+		QueryName:    "person_types",
+		Identifier:   "PersonTypes",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personReference) PersonTypes() *query.ColumnNode {
+	cn := n.personTable.PersonTypes()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personReverse) PersonTypes() *query.ColumnNode {
+	cn := n.personTable.PersonTypes()
+	cn.SetParent(n)
+	return cn
+}
+
+func (n *personAssociation) PersonTypes() *query.ColumnNode {
+	cn := n.personTable.PersonTypes()
+	cn.SetParent(n)
+	return cn
+}
+
 // PersonTypes represents the many-to-many relationship formed by the person_persontype_assn table.
-func (n personTable) PersonTypes() PersonTypeNodeI {
+func (n personTable) PersonTypes() PersonTypeNode {
 	cn := &personTypeAssociation{
 		ManyManyNode: query.ManyManyNode{
 			AssnTableQueryName:       "person_persontype_assn",
@@ -261,19 +284,19 @@ func (n personTable) PersonTypes() PersonTypeNodeI {
 	return cn
 }
 
-func (n *personReference) PersonTypes() PersonTypeNodeI {
+func (n *personReference) PersonTypes() PersonTypeNode {
 	cn := n.personTable.PersonTypes().(*personTypeAssociation)
 	cn.SetParent(n)
 	return cn
 }
 
-func (n *personReverse) PersonTypes() PersonTypeNodeI {
+func (n *personReverse) PersonTypes() PersonTypeNode {
 	cn := n.personTable.PersonTypes().(*personTypeAssociation)
 	cn.SetParent(n)
 	return cn
 }
 
-func (n *personAssociation) PersonTypes() PersonTypeNodeI {
+func (n *personAssociation) PersonTypes() PersonTypeNode {
 	cn := n.personTable.PersonTypes().(*personTypeAssociation)
 	cn.SetParent(n)
 	return cn
@@ -347,7 +370,7 @@ func (n *personAssociation) Addresses() AddressExpander {
 
 // EmployeeInfo represents the one-to-one relationship formed by the reverse reference from the
 // person_id column in the employee_info table.
-func (n personTable) EmployeeInfo() EmployeeInfoNodeI {
+func (n personTable) EmployeeInfo() EmployeeInfoNode {
 	cn := &employeeInfoReverse{
 		ReverseNode: query.ReverseNode{
 			ColumnQueryName: "person_id",
@@ -359,19 +382,19 @@ func (n personTable) EmployeeInfo() EmployeeInfoNodeI {
 	return cn
 }
 
-func (n *personReference) EmployeeInfo() EmployeeInfoNodeI {
+func (n *personReference) EmployeeInfo() EmployeeInfoNode {
 	cn := n.personTable.EmployeeInfo().(*employeeInfoReverse)
 	cn.SetParent(n)
 	return cn
 }
 
-func (n *personReverse) EmployeeInfo() EmployeeInfoNodeI {
+func (n *personReverse) EmployeeInfo() EmployeeInfoNode {
 	cn := n.personTable.EmployeeInfo().(*employeeInfoReverse)
 	cn.SetParent(n)
 	return cn
 }
 
-func (n *personAssociation) EmployeeInfo() EmployeeInfoNodeI {
+func (n *personAssociation) EmployeeInfo() EmployeeInfoNode {
 	cn := n.personTable.EmployeeInfo().(*employeeInfoReverse)
 	cn.SetParent(n)
 	return cn
@@ -379,7 +402,7 @@ func (n *personAssociation) EmployeeInfo() EmployeeInfoNodeI {
 
 // Login represents the one-to-one relationship formed by the reverse reference from the
 // person_id column in the login table.
-func (n personTable) Login() LoginNodeI {
+func (n personTable) Login() LoginNode {
 	cn := &loginReverse{
 		ReverseNode: query.ReverseNode{
 			ColumnQueryName: "person_id",
@@ -391,19 +414,19 @@ func (n personTable) Login() LoginNodeI {
 	return cn
 }
 
-func (n *personReference) Login() LoginNodeI {
+func (n *personReference) Login() LoginNode {
 	cn := n.personTable.Login().(*loginReverse)
 	cn.SetParent(n)
 	return cn
 }
 
-func (n *personReverse) Login() LoginNodeI {
+func (n *personReverse) Login() LoginNode {
 	cn := n.personTable.Login().(*loginReverse)
 	cn.SetParent(n)
 	return cn
 }
 
-func (n *personAssociation) Login() LoginNodeI {
+func (n *personAssociation) Login() LoginNode {
 	cn := n.personTable.Login().(*loginReverse)
 	cn.SetParent(n)
 	return cn

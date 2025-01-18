@@ -9,8 +9,8 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
-// DoubleIndexNodeI is the builder interface to the DoubleIndex nodes.
-type DoubleIndexNodeI interface {
+// DoubleIndexNode is the builder interface to the DoubleIndex nodes.
+type DoubleIndexNode interface {
 	query.Node
 	PrimaryKeyNode() *query.ColumnNode
 	// ID represents the id column in the database.
@@ -23,7 +23,7 @@ type DoubleIndexNodeI interface {
 
 // DoubleIndexExpander is the builder interface for DoubleIndices that are expandable.
 type DoubleIndexExpander interface {
-	DoubleIndexNodeI
+	DoubleIndexNode
 	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
 	Expand()
 }
@@ -41,7 +41,7 @@ type doubleIndexReverse struct {
 }
 
 // DoubleIndex returns a table node that starts a node chain that begins with the double_index table.
-func DoubleIndex() DoubleIndexNodeI {
+func DoubleIndex() DoubleIndexNode {
 	return doubleIndexTable{}
 }
 
@@ -75,15 +75,6 @@ func (n *doubleIndexReverse) ColumnNodes_() (nodes []query.Node) {
 		cn.(query.Linker).SetParent(n)
 	}
 	return
-}
-
-// Columns_ is used internally by the framework to return the list of all the columns in the table.
-func (n doubleIndexTable) Columns_() []string {
-	return []string{
-		"id",
-		"field_int",
-		"field_string",
-	}
 }
 
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.

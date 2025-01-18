@@ -318,7 +318,7 @@ func (t *JoinTree) addGroupBySelects(b *query.Builder) {
 	// We also check to make sure non-group by columns are not being selected, since that will cause an error if so.
 
 	for _, n := range b.GroupBys {
-		if n.NodeType_() == query.ColumnNodeType || n.NodeType_() == query.EnumNodeType {
+		if n.NodeType_() == query.ColumnNodeType {
 			e, _, found := t.findNode(n)
 			if !found {
 				panic("group by node not found in the tree")
@@ -337,8 +337,7 @@ func (t *JoinTree) addGroupBySelects(b *query.Builder) {
 		} else if n.NodeType_() == query.ReferenceNodeType {
 			panic("group by a foreign key column rather than a reference")
 		} else if n.NodeType_() == query.ReverseNodeType ||
-			n.NodeType_() == query.ManyManyNodeType ||
-			n.NodeType_() == query.ManyEnumNodeType {
+			n.NodeType_() == query.ManyManyNodeType {
 			panic("cannot group by on this node type")
 		}
 	}
