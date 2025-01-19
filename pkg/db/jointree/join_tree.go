@@ -54,7 +54,7 @@ func NewJoinTree(b query.BuilderI) *JoinTree {
 	if len(builder.Conditions) == 1 {
 		t.Condition = builder.Conditions[0]
 	} else if len(builder.Conditions) > 1 {
-		t.Condition = op.And(all.ConvertSlice[any](builder.Conditions)...)
+		t.Condition = op.And(all.MapSlice[any](builder.Conditions)...)
 	}
 	t.build(builder)
 	t.buildCommand(builder)

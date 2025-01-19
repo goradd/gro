@@ -4,11 +4,6 @@
 }}
 {{
 
-{{if col.IsEnum() }}
-    if o.{{= col.VariableIdentifier() }}IsValid {
-        v["{{= col.ReferenceJsonKey() }}"] = o.{{= col.ReferenceIdentifier() }}().String()
-    }
-{{else}}
     if o.{{= col.VariableIdentifier() }}IsValid {
 {{if col.IsNullable}}
         if o.{{= col.VariableIdentifier() }}IsNull {
@@ -20,7 +15,6 @@
         v["{{= col.JsonKey() }}"] = o.{{= col.VariableIdentifier() }}
 {{if}}
     }
-{{if}}
 
 {{if col.IsReference() }}
     if val := o.{{= col.ReferenceIdentifier() }}(); val != nil {

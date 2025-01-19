@@ -3,22 +3,5 @@
 //*** {{includeName}}
 }}
 {{
-{{if mm.IsEnum() }}
-        case "{{= mm.JsonKey() }}":
-            if vals,ok := v.([]interface{}); !ok {
-                return fmt.Errorf("json field %s must be an array", k)
-            } else {
-                var vals2 []{{= mm.ObjectType() }}
-                for _,i := range vals {
-                    if s,ok := i.(int); ok {
-                        vals2 = append(vals2, {{= mm.ObjectType() }}(s))
-                    } else if s,ok := i.(float64); ok {
-                        vals2 = append(vals2, {{= mm.ObjectType() }}(s))
-                    } else {
-                        return fmt.Errorf("json field %s must be an integer array", k)
-                    }
-                }
-                o.Set{{= mm.IdentifierPlural }}(vals2)
-            }
-{{if}}
+    // TODO: unmarshall groups of objects
 }}

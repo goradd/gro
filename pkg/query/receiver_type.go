@@ -144,7 +144,7 @@ func ReceiverTypeFromSchema(columnType schema.ColumnType, maxLength uint64) Rece
 		return ColTypeString
 	case schema.ColTypeEnum:
 		return ColTypeInteger
-	case schema.ColTypeMultiEnum:
+	case schema.ColTypeManyEnum:
 		return ColTypeString
 	}
 	return ColTypeUnknown

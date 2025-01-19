@@ -4,13 +4,9 @@
 }}
 
 func (n *NodeTemplate)genColumn(table *model.Table, col *model.Column, _w io.Writer) (err error) {
-    if col.IsEnum() {
-        err = n.genEnumTableRefNode(table, col, _w)
-    } else {
-        if err = n.genColumnNode(table, col, _w); err != nil { return }
-        if col.IsReference() {
-           err = n.genTableRefNode(table, col, _w)
-        }
+    if err = n.genColumnNode(table, col, _w); err != nil { return }
+    if col.IsReference() {
+       err = n.genTableRefNode(table, col, _w)
     }
     return
 }
@@ -21,7 +17,7 @@ func (n {{= table.DecapIdentifier}}Table) {{= col.Identifier }}() *query.ColumnN
 	cn := &query.ColumnNode{
 		QueryName: "{{= col.QueryName }}",
 		Identifier: "{{= col.Identifier }}",
-		ReceiverType: query.{{= col.Type.String() }},
+		ReceiverType: query.{{= col.ReceiverType.String() }},
 		IsPrimaryKey: {{b col.IsPrimaryKey }},
 	}
 	cn.SetParent(n)
@@ -29,16 +25,16 @@ func (n {{= table.DecapIdentifier}}Table) {{= col.Identifier }}() *query.ColumnN
 }
 
 {{if hasReverse}}
-func (n *{{= table.DecapIdentifier}}Reference) {{= col.Identifier }}() *query.ColumnNode {
-    cn := n.{{= table.DecapIdentifier}}Table.{{= col.Identifier }}()
+func (n *{{= table.DecapIdentifier}}Reference) {{= col.ReferenceIdentifier() }}() *query.ColumnNode {
+    cn := n.{{= table.DecapIdentifier}}Table.{{= col.ReferenceIdentifier() }}()
     cn.SetParent(n)
     return cn
 }
 
 {{if}}
 {{if hasReference}}
-func (n *{{= table.DecapIdentifier}}Reverse) {{= col.Identifier }}() *query.ColumnNode {
-    cn := n.{{= table.DecapIdentifier}}Table.{{= col.Identifier }}()
+func (n *{{= table.DecapIdentifier}}Reverse) {{= col.ReverseIdentifier() }}() *query.ColumnNode {
+    cn := n.{{= table.DecapIdentifier}}Table.{{= col.ReverseIdentifier() }}()
     cn.SetParent(n)
     return cn
 }
@@ -65,7 +61,7 @@ func (n {{= table.DecapIdentifier}}Table) {{= col.ReferenceIdentifier() }}() {{=
 		ReferenceNode: query.ReferenceNode {
             ColumnQueryName: "{{= col.QueryName }}",
             Identifier:      "{{= col.Identifier }}",
-            ReceiverType:    query.{{= col.Type.String() }},
+            ReceiverType:    query.{{= col.ReceiverType.String() }},
 		},
 	}
 	cn.SetParent(n)
@@ -100,45 +96,4 @@ func (n *{{= table.DecapIdentifier}}Association) {{= col.ReferenceIdentifier() }
     return
 }
 
-func (n *NodeTemplate)genEnumTableRefNode(table *model.Table, col *model.Column, _w io.Writer) (err error) {
-{{
-// {{= col.ReferenceIdentifier() }} represents the link to a {{= col.Reference.EnumTable.Identifier }} object.
-func (n {{= table.DecapIdentifier}}Table) {{= col.ReferenceIdentifier() }}() {{= col.Reference.EnumTable.Identifier }}Node {
-	cn := &{{= col.Reference.EnumTable.DecapIdentifier }}Reference {
-		ReferenceNode: query.ReferenceNode {
-            ColumnQueryName: "{{= col.QueryName }}",
-            Identifier:      "{{= col.Identifier }}",
-            ReceiverType:    query.{{= col.Type.String() }},
-		},
-	}
-	cn.SetParent(n)
-	return cn
-}
 
-{{if hasReverse}}
-func (n *{{= table.DecapIdentifier}}Reference) {{= col.ReferenceIdentifier() }}() {{= col.Reference.EnumTable.Identifier }}Node {
-    cn := n.{{= table.DecapIdentifier}}Table.{{= col.ReferenceIdentifier() }}().(*{{= col.Reference.EnumTable.DecapIdentifier }}Reference)
-    cn.SetParent(n)
-    return cn
-}
-
-{{if}}
-{{if hasReference}}
-func (n *{{= table.DecapIdentifier}}Reverse) {{= col.ReferenceIdentifier() }}() {{= col.Reference.EnumTable.Identifier }}Node {
-    cn := n.{{= table.DecapIdentifier}}Table.{{= col.ReferenceIdentifier() }}().(*{{= col.Reference.EnumTable.DecapIdentifier }}Reference)
-    cn.SetParent(n)
-    return cn
-}
-
-{{if}}
-{{if hasAssociation}}
-func (n *{{= table.DecapIdentifier}}Association) {{= col.ReferenceIdentifier() }}() {{= col.Reference.EnumTable.Identifier }}Node {
-    cn := n.{{= table.DecapIdentifier}}Table.{{= col.ReferenceIdentifier() }}().(*{{= col.Reference.EnumTable.DecapIdentifier }}Reference)
-    cn.SetParent(n)
-    return cn
-}
-
-{{if}}
-}}
-	return
-}

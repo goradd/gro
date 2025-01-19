@@ -35,11 +35,7 @@ func (o *{{= table.DecapIdentifier}}Base) Get(key string) interface{} {
 
 {{for _,mm := range table.ManyManyReferences}}
     case "{{= mm.IdentifierPlural }}":
-{{if mm.IsEnum() }}
-        return o.{{= mm.VariableIdentifier() }}
-{{else}}
         return o.{{= mm.VariableIdentifier() }}.Values()
-{{if}}
 {{for}}
 
     }

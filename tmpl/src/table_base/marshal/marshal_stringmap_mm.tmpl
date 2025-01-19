@@ -3,15 +3,6 @@
 //*** {{includeName}}
 }}
 {{
-{{if mm.IsEnum() }}
-    if len(o.{{= mm.VariableIdentifier() }}) != 0 {
-        var vals []int
-        for _,v := range o.{{= mm.VariableIdentifier() }} {
-            vals = append(vals, int(v))
-        }
-        v["{{= mm.JsonKey() }}"] = vals
-    }
-{{else}}
     if o.{{= mm.VariableIdentifier() }}.Len() != 0 {
         var vals []map[string]interface{}
         for obj := range o.{{= mm.VariableIdentifier() }}.ValuesIter() {
@@ -19,5 +10,4 @@
         }
         v["{{= mm.JsonKey() }}"] = vals
     }
-{{if}}
 }}

@@ -733,7 +733,7 @@ func (m *DB) getColumnSchema(table mysqlTable,
 				}
 			}
 		} else if cd.Type == schema.ColTypeString {
-			cd.Type = schema.ColTypeMultiEnum
+			cd.Type = schema.ColTypeManyEnum
 			if refTable != "" {
 				cd.Reference = &schema.Reference{
 					Table: refTable,

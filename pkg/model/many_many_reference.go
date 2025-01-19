@@ -35,7 +35,6 @@ type ManyManyReference struct {
 	IdentifierPlural string
 
 	// MM is the many-many reference on the other end of the relationship that points back to this one.
-	// This will be nil if the other side is an enum table.
 	MM *ManyManyReference
 }
 

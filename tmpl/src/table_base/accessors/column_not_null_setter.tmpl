@@ -7,7 +7,7 @@
 // Set{{= col.Identifier }} sets the value of {{= col.Identifier }} in the object, to be saved later using the Save() function.
 func (o *{{= table.DecapIdentifier }}Base) Set{{= col.Identifier }}({{= col.VariableIdentifier() }} {{= col.GoType() }}) {
 	o.{{= col.VariableIdentifier() }}IsValid = true
-{{if col.Type == query.ColTypeBytes || col.Type == query.ColTypeUnknown }}
+{{if col.ReceiverType == query.ColTypeBytes || col.ReceiverType == query.ColTypeUnknown }}
 {{if col.Size > 0}}
     if len({{= col.VariableIdentifier() }}) > {{= table.Identifier}}{{= col.Identifier}}MaxLength {
         panic("attempted to set {{= table.Identifier}}.{{= col.Identifier }} to a value larger than its maximum length")
@@ -15,8 +15,17 @@ func (o *{{= table.DecapIdentifier }}Base) Set{{= col.Identifier }}({{= col.Vari
 {{if}}
 	o.{{= col.VariableIdentifier() }} = {{= col.VariableIdentifier() }}		// TODO: Copy bytes??
 	o.{{= col.VariableIdentifier() }}IsDirty = true
-{{else}} {{# coltype bytes }}
-{{if col.Type == query.ColTypeString && col.Size > 0 }}
+
+{{elseif col.IsManyEnum() }}
+    v := slices.Sort(slices.Clone({{= col.VariableIdentifier() }}))
+	if !slices.Equal(o.{{= col.VariableIdentifier() }}, v) ||
+	        !o._restored {
+		o.{{= col.VariableIdentifier() }} = v
+		o.{{= col.VariableIdentifier() }}IsDirty = true
+    }
+
+{{else}}
+{{if col.ReceiverType == query.ColTypeString && col.Size > 0 }}
     if utf8.RuneCountInString({{= col.VariableIdentifier() }}) > {{= table.Identifier}}{{= col.Identifier}}MaxLength {
         panic("attempted to set {{= table.Identifier}}.{{= col.Identifier }} to a value larger than its maximum length in runes")
     }
@@ -28,6 +37,7 @@ func (o *{{= table.DecapIdentifier }}Base) Set{{= col.Identifier }}({{= col.Vari
 		o.{{= col.ReferenceVariableIdentifier() }} = nil
 {{if}}
 	}
+
 {{if}}
 }
 

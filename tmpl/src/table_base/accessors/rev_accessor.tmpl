@@ -9,13 +9,13 @@ func (o *{{= table.DecapIdentifier }}Base) {{= rev.Reference.ReverseIdentifier }
 	return v
 }
 
-// {{= rev.Reference.ReverseIdentifierPlural }} returns a slice of {{= rev.Table.Identifier }} objects if loaded.
-func (o *{{= table.DecapIdentifier}}Base) {{= rev.Reference.ReverseIdentifierPlural }}() []*{{= rev.Table.Identifier }} {
+// {{= rev.ReverseIdentifier() }} returns a slice of {{= rev.Table.Identifier }} objects if loaded.
+func (o *{{= table.DecapIdentifier}}Base) {{= rev.ReverseIdentifier() }}() []*{{= rev.Table.Identifier }} {
 	return o.{{= rev.ReverseVariableIdentifier() }}.Values()
 }
 
-// Load{{= rev.Reference.ReverseIdentifierPlural }} loads a new slice of {{= rev.Table.Identifier }} objects and returns it.
-func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.Reference.ReverseIdentifierPlural }}(ctx context.Context, conditions ...interface{}) []*{{= rev.Table.Identifier }} {
+// Load{{= rev.ReverseIdentifier() }} loads a new slice of {{= rev.Table.Identifier }} objects and returns it.
+func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.ReverseIdentifier() }}(ctx context.Context, conditions ...interface{}) []*{{= rev.Table.Identifier }} {
 	if o.IsNew() {
 		return nil
 	}
@@ -52,8 +52,8 @@ func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.Reference.ReverseIdentifie
 	return o.{{= rev.ReverseVariableIdentifier() }}.Values()
 }
 
-// Count{{= rev.Reference.ReverseIdentifierPlural }} returns the number of {{= rev.Table.Identifier }} objects in the database connected to this object.
-func (o *{{= table.DecapIdentifier}}Base) Count{{= rev.Reference.ReverseIdentifierPlural }}(ctx context.Context) int {
+// Count{{= rev.ReverseIdentifier() }} returns the number of {{= rev.Table.Identifier }} objects in the database connected to this object.
+func (o *{{= table.DecapIdentifier}}Base) Count{{= rev.ReverseIdentifier() }}(ctx context.Context) int {
     return Count{{= rev.Table.Identifier }}By{{= rev.Identifier }}(ctx, o.PrimaryKey())
 }
 

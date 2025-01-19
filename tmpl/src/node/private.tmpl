@@ -22,7 +22,6 @@ func (n {{= table.DecapIdentifier }}Table) DatabaseKey_() string {
 }
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
-// This may include reference nodes to enum types.
 func (n {{= table.DecapIdentifier }}Table) ColumnNodes_() (nodes []query.Node) {
 {{for _,col := range table.Columns}}
 	nodes = append(nodes, n.{{col.Identifier}}())

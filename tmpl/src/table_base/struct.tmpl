@@ -44,11 +44,7 @@ type {{= table.DecapIdentifier}}Base struct {
 {{if len(table.ManyManyReferences) > 0}}
 // Many-Many reference objects.
 {{for _,mm := range table.ManyManyReferences }}
-{{if mm.IsEnum() }}
-	{{= mm.VariableIdentifier() }} []{{= mm.ObjectType() }}
-{{else}}
     {{= mm.VariableIdentifier() }} maps.SliceMap[{{= mm.PrimaryKeyType() }}, *{{= mm.ObjectType() }}]
-{{if}}
     {{= mm.PkIdentifier() }} []{{= mm.PrimaryKeyType() }}                // Primary keys to associate at Save time
     {{= mm.VariableIdentifier() }}IsDirty bool
 {{for}}

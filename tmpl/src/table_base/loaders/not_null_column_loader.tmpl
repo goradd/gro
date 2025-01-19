@@ -6,7 +6,7 @@
 
 	if v, ok := m["{{= col.QueryName }}"]; ok && v != nil {
 {{if col.IsEnum()}}
-    	if i, ok2 := v.({{= col.Type.GoType() }}); ok2 {
+    	if i, ok2 := v.({{= col.ReceiverType.GoType() }}); ok2 {
             o.{{= col.VariableIdentifier() }} = {{= col.GoType() }}(i)
 {{else}}
     	if o.{{= col.VariableIdentifier() }}, ok = v.({{= col.GoType() }}); ok {

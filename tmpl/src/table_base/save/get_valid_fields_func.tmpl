@@ -14,10 +14,28 @@ func (o *{{= table.DecapIdentifier}}Base) getValidFields() (fields map[string]in
         if 	o.{{= col.VariableIdentifier() }}IsNull {
             fields["{{= col.QueryName }}"] = nil
         } else {
+
+{{if col.IsManyEnum() }}
+            b,err := json.Marshal(o.{{= col.VariableIdentifier() }})
+            if err == nil && b != nil {
+                fields["{{= col.QueryName }}"] = string(b)
+            }
+{{else}}
   		    fields["{{= col.QueryName }}"] = o.{{= col.VariableIdentifier() }}
+{{if}}
+
         }
 {{else}}
-		fields["{{= col.QueryName }}"] = o.{{= col.VariableIdentifier() }}
+
+{{if col.IsManyEnum() }}
+        b,err := json.Marshal(o.{{= col.VariableIdentifier() }})
+        if err == nil && b != nil {
+            fields["{{= col.QueryName }}"] = string(b)
+        }
+{{else}}
+        fields["{{= col.QueryName }}"] = o.{{= col.VariableIdentifier() }}
+{{if}}
+
 {{if}}
 	}
 {{for}}

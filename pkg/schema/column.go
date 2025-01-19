@@ -59,7 +59,7 @@ type Column struct {
 	CaseInsensitive bool `json:"case_insensitive,omitempty"`
 
 	// Reference is set when the column is a pointer to another table.
-	// This is required for ColTypeReference, ColTypeEnum and ColTypeMultiEnum tables.
+	// This is required for ColTypeReference, ColTypeEnum and ColTypeManyEnum tables.
 	Reference *Reference `json:"reference,omitempty"`
 }
 
@@ -98,9 +98,6 @@ type Reference struct {
 }
 
 func (c *Column) FillDefaults(db *Database, table *Table) {
-	if c.Title == "" {
-		c.Title = strings2.Title(c.Name)
-	}
 	if strings.HasSuffix(c.Name, db.EnumTableSuffix) {
 		if c.Reference == nil {
 			// Infer the table from the name of the column
@@ -118,11 +115,23 @@ func (c *Column) FillDefaults(db *Database, table *Table) {
 				}
 			}
 		}
+		objName := strings.TrimSuffix(c.Name, db.EnumTableSuffix)
+		if c.Title == "" {
+			c.Title = strings2.Title(objName)
+			if c.Type == ColTypeManyEnum {
+				c.Title = strings2.Plural(c.Title)
+			}
+			if c.Identifier == "" {
+				c.Identifier = snaker.ForceCamelIdentifier(c.Title)
+			}
+		}
+	}
+	if c.Title == "" {
+		c.Title = strings2.Title(c.Name)
 	}
 
 	if c.Reference != nil {
 		objName := strings.TrimSuffix(c.Name, db.ReferenceSuffix)
-		objName = strings.TrimSuffix(c.Name, db.EnumTableSuffix)
 
 		if c.Reference.Identifier == "" {
 			c.Reference.Identifier = snaker.ForceCamelIdentifier(objName)

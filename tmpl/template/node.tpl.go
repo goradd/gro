@@ -145,38 +145,34 @@ type `); err != nil {
 
 	for _, col := range table.Columns {
 
-		if !col.IsEnum() {
+		if _, err = io.WriteString(_w, `    // `); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `    // `); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, ` represents the `); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, ` represents the `); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, col.QueryName); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, col.QueryName); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` column in the database.
+		if _, err = io.WriteString(_w, ` column in the database.
     `); err != nil {
-				return
-			}
+			return
+		}
 
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `() *query.ColumnNode
+		if _, err = io.WriteString(_w, `() *query.ColumnNode
 `); err != nil {
-				return
-			}
-
+			return
 		}
 
 		if col.IsReference() {
@@ -258,56 +254,25 @@ type `); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, ` objects.
-`); err != nil {
+   `); err != nil {
 			return
 		}
 
-		if mm.IsEnum() {
+		if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `   `); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, `() `); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `() `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `Node
+		if _, err = io.WriteString(_w, `Expander
 `); err != nil {
-				return
-			}
-
-		} else {
-
-			if _, err = io.WriteString(_w, `   `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `() `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `Expander
-`); err != nil {
-				return
-			}
-
+			return
 		}
 
 	}
@@ -320,7 +285,7 @@ type `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 				return
 			}
 
@@ -328,7 +293,7 @@ type `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 				return
 			}
 
@@ -345,7 +310,7 @@ type `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 				return
 			}
 
@@ -368,7 +333,7 @@ type `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifierPlural); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 				return
 			}
 
@@ -376,7 +341,7 @@ type `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 				return
 			}
 
@@ -393,7 +358,7 @@ type `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifierPlural); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 				return
 			}
 
@@ -746,7 +711,6 @@ func (n `); err != nil {
 }
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
-// This may include reference nodes to enum types.
 func (n `); err != nil {
 		return
 	}
@@ -1372,15 +1336,11 @@ func init() {
 //*** column.tmpl
 
 func (n *NodeTemplate) genColumn(table *model.Table, col *model.Column, _w io.Writer) (err error) {
-	if col.IsEnum() {
-		err = n.genEnumTableRefNode(table, col, _w)
-	} else {
-		if err = n.genColumnNode(table, col, _w); err != nil {
-			return
-		}
-		if col.IsReference() {
-			err = n.genTableRefNode(table, col, _w)
-		}
+	if err = n.genColumnNode(table, col, _w); err != nil {
+		return
+	}
+	if col.IsReference() {
+		err = n.genTableRefNode(table, col, _w)
 	}
 	return
 }
@@ -1464,7 +1424,7 @@ func (n *NodeTemplate) genColumnNode(table *model.Table, col *model.Column, _w i
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+		if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
 			return
 		}
 
@@ -1481,7 +1441,7 @@ func (n *NodeTemplate) genColumnNode(table *model.Table, col *model.Column, _w i
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+		if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
 			return
 		}
 
@@ -1510,7 +1470,7 @@ func (n *NodeTemplate) genColumnNode(table *model.Table, col *model.Column, _w i
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+		if _, err = io.WriteString(_w, col.ReverseIdentifier()); err != nil {
 			return
 		}
 
@@ -1527,7 +1487,7 @@ func (n *NodeTemplate) genColumnNode(table *model.Table, col *model.Column, _w i
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+		if _, err = io.WriteString(_w, col.ReverseIdentifier()); err != nil {
 			return
 		}
 
@@ -1875,286 +1835,6 @@ func (n `); err != nil {
 	return
 }
 
-func (n *NodeTemplate) genEnumTableRefNode(table *model.Table, col *model.Column, _w io.Writer) (err error) {
-
-	if _, err = io.WriteString(_w, `// `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, ` represents the link to a `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.Reference.EnumTable.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, ` object.
-func (n `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `Table) `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `() `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.Reference.EnumTable.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `Node {
-	cn := &`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.Reference.EnumTable.DecapIdentifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `Reference {
-		ReferenceNode: query.ReferenceNode {
-            ColumnQueryName: "`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.QueryName); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `",
-            Identifier:      "`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `",
-            ReceiverType:    query.`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.ReceiverType.String()); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `,
-		},
-	}
-	cn.SetParent(n)
-	return cn
-}
-
-`); err != nil {
-		return
-	}
-
-	if hasReverse {
-
-		if _, err = io.WriteString(_w, `func (n *`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `Reference) `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `() `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.Reference.EnumTable.Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `Node {
-    cn := n.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `Table.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `().(*`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.Reference.EnumTable.DecapIdentifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `Reference)
-    cn.SetParent(n)
-    return cn
-}
-
-`); err != nil {
-			return
-		}
-
-	}
-
-	if hasReference {
-
-		if _, err = io.WriteString(_w, `func (n *`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `Reverse) `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `() `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.Reference.EnumTable.Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `Node {
-    cn := n.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `Table.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `().(*`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.Reference.EnumTable.DecapIdentifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `Reference)
-    cn.SetParent(n)
-    return cn
-}
-
-`); err != nil {
-			return
-		}
-
-	}
-
-	if hasAssociation {
-
-		if _, err = io.WriteString(_w, `func (n *`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `Association) `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `() `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.Reference.EnumTable.Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `Node {
-    cn := n.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `Table.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `().(*`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.Reference.EnumTable.DecapIdentifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `Reference)
-    cn.SetParent(n)
-    return cn
-}
-
-`); err != nil {
-			return
-		}
-
-	}
-
-	return
-}
-
 //*** assn.tmpl
 
 func (n *NodeTemplate) genAssn(table *model.Table, _w io.Writer) (err error) {
@@ -2168,13 +1848,8 @@ func (n *NodeTemplate) genAssn(table *model.Table, _w io.Writer) (err error) {
 
 func (n *NodeTemplate) genAssnTable(table *model.Table, mm *model.ManyManyReference, _w io.Writer) (err error) {
 	var returnType, objectType string
-	if mm.IsEnum() {
-		returnType = mm.ObjectType() + "Node"
-		objectType = mm.DestinationEnumTable.DecapIdentifier + "Association"
-	} else {
-		returnType = mm.ObjectType() + "Expander"
-		objectType = mm.DestinationTable.DecapIdentifier + "Association"
-	}
+	returnType = mm.ObjectType() + "Expander"
+	objectType = mm.DestinationTable.DecapIdentifier + "Association"
 
 	if _, err = io.WriteString(_w, `// `); err != nil {
 		return

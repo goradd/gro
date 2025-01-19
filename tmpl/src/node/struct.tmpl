@@ -9,10 +9,8 @@ type {{= table.Identifier}}Node interface {
     query.Node
     PrimaryKeyNode() *query.ColumnNode
 {{for _,col := range table.Columns}}
-{{if !col.IsEnum() }}
     // {{= col.Identifier }} represents the {{= col.QueryName }} column in the database.
     {{= col.Identifier }}() *query.ColumnNode
-{{if}}
 {{if col.IsReference() }}
     // {{= col.ReferenceIdentifier() }} represents the {{= col.ReferenceIdentifier() }} reference to a {{= col.ReferenceType() }} object.
     {{= col.ReferenceIdentifier() }}() {{= col.ReferenceType() }}Node
@@ -20,19 +18,15 @@ type {{= table.Identifier}}Node interface {
 {{for}}
 {{for _,mm := range table.ManyManyReferences}}
      // {{= mm.IdentifierPlural }} represents the {{= mm.IdentifierPlural }} reference to {{= mm.ObjectType() }} objects.
-{{if mm.IsEnum() }}
-   {{= mm.IdentifierPlural }}() {{= mm.ObjectType() }}Node
-{{else}}
    {{= mm.IdentifierPlural }}() {{= mm.ObjectType() }}Expander
-{{if}}
 {{for}}
 {{for _,rev := range table.ReverseReferences}}
 {{if rev.IsUnique}}
-      // {{= rev.Reference.ReverseIdentifier }} represents the {{= rev.Reference.ReverseIdentifier }} reference to a {{= rev.Table.Identifier }} object.
-   {{= rev.Reference.ReverseIdentifier }}() {{= rev.Table.Identifier }}Node
+      // {{= rev.ReverseIdentifier() }} represents the {{= rev.ReverseIdentifier() }} reference to a {{= rev.Table.Identifier }} object.
+   {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}Node
 {{else}}
-    // {{= rev.Reference.ReverseIdentifierPlural }} represents the {{= rev.Reference.ReverseIdentifier }} reference to {{= rev.Table.Identifier }} objects.
-    {{= rev.Reference.ReverseIdentifierPlural }}() {{= rev.Table.Identifier }}Expander
+    // {{= rev.ReverseIdentifier() }} represents the {{= rev.ReverseIdentifier() }} reference to {{= rev.Table.Identifier }} objects.
+    {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}Expander
 {{if}}
 {{for}}
 }

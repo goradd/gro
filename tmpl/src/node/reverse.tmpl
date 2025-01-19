@@ -23,7 +23,7 @@ func (n {{= table.DecapIdentifier}}Table) {{= rev.ReverseIdentifier() }}() {{= r
 		ReverseNode: query.ReverseNode{
 			ColumnQueryName: "{{= rev.QueryName }}",
 			Identifier:      "{{= rev.ReverseIdentifier() }}",
-			ReceiverType:    query.{{= rev.Type.String() }},
+			ReceiverType:    query.{{= rev.ReceiverType.String() }},
 		},
 	}
 	cn.SetParent(n)
@@ -69,7 +69,7 @@ func (n {{= table.DecapIdentifier }}Table) {{= rev.ReverseIdentifier() }}() {{= 
 		ReverseNode: query.ReverseNode{
 			ColumnQueryName: "{{= rev.QueryName }}",
 			Identifier:      "{{= rev.ReverseIdentifier() }}",
-			ReceiverType:    query.{{= rev.Type.String() }},
+			ReceiverType:    query.{{= rev.ReceiverType.String() }},
 		},
 	}
 	cn.SetParent(n)

@@ -11,8 +11,13 @@
 			o.{{= col.VariableIdentifier() }}IsValid = true
 			o.{{= col.VariableIdentifier() }}IsDirty = false
 {{if col.IsEnum() }}
-		} else if i, ok2 := v.({{= col.Type.GoType() }}); ok2 {
+		} else if i, ok2 := v.({{= col.ReceiverType.GoType() }}); ok2 {
+{{if col.IsManyEnum() }}
+            err := json.Unmarshal([]byte(i), &o.{{= col.VariableIdentifier() }})
+            _ = err
+{{else}}
 		    o.{{= col.VariableIdentifier() }} = {{= col.GoType() }}(i)
+{{if}}
 {{else}}
 		} else if o.{{= col.VariableIdentifier() }}, ok = v.({{= col.GoType() }}); ok {
 {{if}}

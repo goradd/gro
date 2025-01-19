@@ -218,6 +218,46 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 			return err
 		}
 	}
+	{ // Write Milestones
+		if _, err := io.WriteString(writer, "["); err != nil {
+			return err
+		}
+
+		if _, err := io.WriteString(writer, `"milestone"`); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(writer, ",\n["); err != nil {
+			return err
+		}
+
+		cursor := QueryMilestones(ctx).LoadCursor()
+		defer cursor.Close()
+		if obj := cursor.Next(); obj != nil {
+			if err := encoder.Encode(obj); err != nil {
+				return err
+			}
+		}
+
+		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+			if _, err := io.WriteString(writer, ",\n"); err != nil {
+				return err
+			}
+			if err := encoder.Encode(obj); err != nil {
+				return err
+			}
+		}
+
+		if _, err := io.WriteString(writer, "]\n]"); err != nil {
+			return err
+		}
+
+		if _, err := io.WriteString(writer, ","); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(writer, "\n"); err != nil {
+			return err
+		}
+	}
 	{ // Write People
 		if _, err := io.WriteString(writer, "["); err != nil {
 			return err
@@ -331,84 +371,12 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 			return err
 		}
 
-		if _, err := io.WriteString(writer, ","); err != nil {
-			return err
-		}
-		if _, err := io.WriteString(writer, "\n"); err != nil {
-			return err
-		}
-	}
-	{ // Write Milestones
-		if _, err := io.WriteString(writer, "["); err != nil {
-			return err
-		}
-
-		if _, err := io.WriteString(writer, `"milestone"`); err != nil {
-			return err
-		}
-		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
-		}
-
-		cursor := QueryMilestones(ctx).LoadCursor()
-		defer cursor.Close()
-		if obj := cursor.Next(); obj != nil {
-			if err := encoder.Encode(obj); err != nil {
-				return err
-			}
-		}
-
-		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
-			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
-			}
-			if err := encoder.Encode(obj); err != nil {
-				return err
-			}
-		}
-
-		if _, err := io.WriteString(writer, "]\n]"); err != nil {
-			return err
-		}
-
 		if _, err := io.WriteString(writer, "\n"); err != nil {
 			return err
 		}
 	}
 
 	db := Database()
-	{
-		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
-		}
-		if _, err := io.WriteString(writer, `"person_persontype_assn",[`); err != nil {
-			return err
-		}
-
-		cursor := db.Query(ctx, "person_persontype_assn",
-			map[string]query.ReceiverType{
-				"person_id":      query.ColTypeString,
-				"person_type_id": query.ColTypeInteger,
-			},
-			nil,
-			nil)
-		if rec := cursor.Next(); rec != nil {
-			if err := encoder.Encode(rec); err != nil {
-				return err
-			}
-		}
-		for rec := cursor.Next(); rec != nil; rec = cursor.Next() {
-			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
-			}
-			if err := encoder.Encode(rec); err != nil {
-				return err
-			}
-		}
-		if _, err := io.WriteString(writer, `]]`); err != nil {
-			return err
-		}
-	}
 	{
 		if _, err := io.WriteString(writer, ",\n["); err != nil {
 			return err
@@ -539,6 +507,8 @@ func jsonDecodeTable(ctx context.Context, decoder *json.Decoder) error {
 		switch tableName {
 		case "address":
 			err = jsonDecodeAddresses(ctx, decoder)
+		case "employee_info":
+			err = jsonDecodeEmployeeInfos(ctx, decoder)
 		case "gift":
 			err = jsonDecodeGifts(ctx, decoder)
 		case "person":
@@ -547,14 +517,10 @@ func jsonDecodeTable(ctx context.Context, decoder *json.Decoder) error {
 			err = jsonDecodePersonWithLocks(ctx, decoder)
 		case "project":
 			err = jsonDecodeProjects(ctx, decoder)
-		case "employee_info":
-			err = jsonDecodeEmployeeInfos(ctx, decoder)
 		case "login":
 			err = jsonDecodeLogins(ctx, decoder)
 		case "milestone":
 			err = jsonDecodeMilestones(ctx, decoder)
-		case "person_persontype_assn":
-			err = jsonDecodePersonPersontypeAssn(ctx, decoder)
 		case "team_member_project_assn":
 			err = jsonDecodeTeamMemberProjectAssn(ctx, decoder)
 		case "related_project_assn":
@@ -595,6 +561,40 @@ func jsonDecodeAddresses(ctx context.Context, decoder *json.Decoder) error {
 
 	for decoder.More() {
 		obj := NewAddress()
+		if err = decoder.Decode(&obj); err != nil {
+			return err
+		}
+		obj.Save(ctx)
+	}
+
+	// Check if the last token is the end of the array
+	token, err = decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading the last token:", err)
+		return err
+	}
+
+	if delim, ok := token.(json.Delim); !ok || delim != ']' {
+		fmt.Println("Error: Expected the JSON to end with a closing array token")
+		return err
+	}
+
+	return nil
+}
+func jsonDecodeEmployeeInfos(ctx context.Context, decoder *json.Decoder) error {
+	token, err := decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading opening token:", err)
+		return err
+	}
+	// Ensure the first token is a start of an array
+	if delim, ok := token.(json.Delim); !ok || delim != '[' {
+		fmt.Println("Error: Expected the EmployeeInfo list to start with an array")
+		return err
+	}
+
+	for decoder.More() {
+		obj := NewEmployeeInfo()
 		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}
@@ -751,40 +751,6 @@ func jsonDecodeProjects(ctx context.Context, decoder *json.Decoder) error {
 
 	return nil
 }
-func jsonDecodeEmployeeInfos(ctx context.Context, decoder *json.Decoder) error {
-	token, err := decoder.Token()
-	if err != nil {
-		fmt.Println("Error reading opening token:", err)
-		return err
-	}
-	// Ensure the first token is a start of an array
-	if delim, ok := token.(json.Delim); !ok || delim != '[' {
-		fmt.Println("Error: Expected the EmployeeInfo list to start with an array")
-		return err
-	}
-
-	for decoder.More() {
-		obj := NewEmployeeInfo()
-		if err = decoder.Decode(&obj); err != nil {
-			return err
-		}
-		obj.Save(ctx)
-	}
-
-	// Check if the last token is the end of the array
-	token, err = decoder.Token()
-	if err != nil {
-		fmt.Println("Error reading the last token:", err)
-		return err
-	}
-
-	if delim, ok := token.(json.Delim); !ok || delim != ']' {
-		fmt.Println("Error: Expected the JSON to end with a closing array token")
-		return err
-	}
-
-	return nil
-}
 func jsonDecodeLogins(ctx context.Context, decoder *json.Decoder) error {
 	token, err := decoder.Token()
 	if err != nil {
@@ -854,45 +820,6 @@ func jsonDecodeMilestones(ctx context.Context, decoder *json.Decoder) error {
 	return nil
 }
 
-func jsonDecodePersonPersontypeAssn(ctx context.Context, decoder *json.Decoder) error {
-	token, err := decoder.Token()
-	if err != nil {
-		fmt.Println("Error reading opening token:", err)
-		return err
-	}
-	// Ensure the first token is a start of an array
-	if delim, ok := token.(json.Delim); !ok || delim != '[' {
-		fmt.Println("Error: Expected the PersonPersontypeAssn list to start with an array")
-		return err
-	}
-
-	database := Database()
-	for decoder.More() {
-		var imp struct {
-			Src  string `json:"person_id"`
-			Dest int    `json:"person_type_id"`
-		}
-
-		if err = decoder.Decode(&imp); err != nil {
-			return err
-		}
-		db.Associate(ctx, database, "person_persontype_assn", "person_id", imp.Src, "person_type_id", imp.Dest)
-	}
-
-	// Check if the last token is the end of the array
-	token, err = decoder.Token()
-	if err != nil {
-		fmt.Println("Error reading the last token:", err)
-		return err
-	}
-
-	if delim, ok := token.(json.Delim); !ok || delim != ']' {
-		fmt.Println("Error: Expected the JSON to end with a closing array token")
-		return err
-	}
-
-	return nil
-}
 func jsonDecodeTeamMemberProjectAssn(ctx context.Context, decoder *json.Decoder) error {
 	token, err := decoder.Token()
 	if err != nil {

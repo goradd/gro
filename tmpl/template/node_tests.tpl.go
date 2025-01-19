@@ -327,27 +327,8 @@ func TestSerializeAssociations`); err != nil {
 
 		if _, err = io.WriteString(_w, `()
     n2 := serNode(t, n)
-`); err != nil {
-			return
-		}
-
-		if mm.IsEnum() {
-
-			if _, err = io.WriteString(_w, `    assert.Equal(t, query.ManyEnumNodeType, n2.NodeType_())
-`); err != nil {
-				return
-			}
-
-		} else {
-
-			if _, err = io.WriteString(_w, `    assert.Equal(t, query.ManyManyNodeType, n2.NodeType_())
-`); err != nil {
-				return
-			}
-
-		}
-
-		if _, err = io.WriteString(_w, `    parentNode := n2.(query.Linker).Parent()
+    assert.Equal(t, query.ManyManyNodeType, n2.NodeType_())
+    parentNode := n2.(query.Linker).Parent()
     assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
     assert.Equal(t, "`); err != nil {
 			return
@@ -364,27 +345,8 @@ func TestSerializeAssociations`); err != nil {
         cn2 := serNode(t, cn)
 //        assert.Equal(t, query.ColumnNodeType, cn2.NodeType_())
         parentNode = cn2.(query.Linker).Parent()
-`); err != nil {
-			return
-		}
-
-		if mm.IsEnum() {
-
-			if _, err = io.WriteString(_w, `        assert.Equal(t, query.ManyEnumNodeType, parentNode.NodeType_())
-`); err != nil {
-				return
-			}
-
-		} else {
-
-			if _, err = io.WriteString(_w, `        assert.Equal(t, query.ManyManyNodeType, parentNode.NodeType_())
-`); err != nil {
-				return
-			}
-
-		}
-
-		if _, err = io.WriteString(_w, `    }
+        assert.Equal(t, query.ManyManyNodeType, parentNode.NodeType_())
+    }
 }
 
 `); err != nil {

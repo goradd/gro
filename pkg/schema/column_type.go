@@ -107,10 +107,10 @@ import "encoding/json"
 // This is a column that contains the value of a primary key of a table, creating a reference to the
 // object in that table. This is known as a foreign key in SQL databases or an edge in graph databases.
 //
-// # ColTypeEnum and ColTypeMultiEnum
+// # ColTypeEnum and ColTypeManyEnum
 //
 // Enum columns contain values of enumerated types that are described by Enum tables in the schema.
-// ColTypeEnum is an integer value in the database, and ColTypeMultiEnum is stored as a JSON array of integers.
+// ColTypeEnum is an integer value in the database, and ColTypeManyEnum is stored as a JSON array of integers.
 type ColumnType int
 
 const (
@@ -126,7 +126,7 @@ const (
 	ColTypeJSON
 	ColTypeReference
 	ColTypeEnum
-	ColTypeMultiEnum
+	ColTypeManyEnum
 )
 
 // String returns the string representation of a ColumnType.
@@ -154,7 +154,7 @@ func (ct ColumnType) String() string {
 		return "Reference"
 	case ColTypeEnum:
 		return "Enum"
-	case ColTypeMultiEnum:
+	case ColTypeManyEnum:
 		return "MultiEnum"
 	default:
 		return "Unknown"
@@ -199,7 +199,7 @@ func (ct *ColumnType) UnmarshalJSON(data []byte) error {
 	case "Enum":
 		*ct = ColTypeEnum
 	case "MultiEnum":
-		*ct = ColTypeMultiEnum
+		*ct = ColTypeManyEnum
 	default:
 		*ct = ColTypeUnknown
 	}

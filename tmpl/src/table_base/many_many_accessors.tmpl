@@ -4,11 +4,7 @@
 }}
 {{
 {{for _,mm := range table.ManyManyReferences }}
-	{{if mm.IsEnum() }}
-        {{: "accessors/mm_enum_accessor.tmpl" }}
-    {{else}} {{# not enum }}
-        {{: "accessors/mm_accessor.tmpl" }}
-    {{if}}
+    {{: "accessors/mm_accessor.tmpl" }}
 {{for}}
 
 }}

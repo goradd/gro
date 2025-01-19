@@ -16,13 +16,18 @@ func (o *{{= table.DecapIdentifier}}Base) Set{{= col.Identifier }}(i interface{}
 {{if}}
 		}
 	} else {
+{{if col.IsManyEnum() }}
+        v := slices.Sort(slices.Clone(i.({{= col.GoType() }}))
+{{else}}
 		v := i.({{= col.GoType() }})
+{{if}}
 {{if col.Size > 0}}
-{{if col.Type == query.ColTypeBytes || col.Type == query.ColTypeUnknown }}
+
+{{if col.ReceiverType == query.ColTypeBytes || col.ReceiverType == query.ColTypeUnknown }}
         if len(v) > {{= table.Identifier}}{{= col.Identifier}}MaxLength {
             panic("attempted to set {{= table.Identifier}}.{{= col.Identifier }} to a value larger than its maximum length")
         }
-{{elseif col.Type == query.ColTypeString}}
+{{elseif col.ReceiverType == query.ColTypeString && !col.IsManyEnum() }}
         if utf8.RuneCountInString(v) > {{= table.Identifier}}{{= col.Identifier}}MaxLength {
             panic("attempted to set {{= table.Identifier}}.{{= col.Identifier }} to a value larger than its maximum length in runes")
         }
@@ -30,10 +35,17 @@ func (o *{{= table.DecapIdentifier}}Base) Set{{= col.Identifier }}(i interface{}
 {{if}}
 		if o.{{= col.VariableIdentifier() }}IsNull ||
 		    !o._restored ||
-		    {{if col.Type == query.ColTypeBytes || col.Type == query.ColTypeUnknown }}!bytes.Equal(o.{{= col.VariableIdentifier() }}, v) {{else}} o.{{= col.VariableIdentifier() }} != v {{if}} {
+{{if col.ReceiverType == query.ColTypeBytes || col.ReceiverType == query.ColTypeUnknown }}
+		    !bytes.Equal(o.{{= col.VariableIdentifier() }}, v)
+{{elseif col.IsManyEnum() }}
+            !slices.Equal(v, o.{{= col.VariableIdentifier() }})
+{{else}}
+            o.{{= col.VariableIdentifier() }} != v
+{{if}}
+        {
 			    o.{{= col.VariableIdentifier() }}IsNull = false
-{{if col.Type == query.ColTypeBytes || col.Type == query.ColTypeUnknown }}
-                o.{{= col.VariableIdentifier() }} = append([]byte(nil), v...)
+{{if col.ReceiverType == query.ColTypeBytes || col.ReceiverType == query.ColTypeUnknown }}
+                o.{{= col.VariableIdentifier() }} = slices.Clone(v)
 {{else}}
 			    o.{{= col.VariableIdentifier() }} = v
 {{if}}

@@ -133,8 +133,14 @@ func (cd *Column) IsReference() bool {
 }
 
 // IsEnum returns true if the column contains a type defined by a enum table.
+// This could be a ColTypeEnum or ColTypeManyEnum
 func (cd *Column) IsEnum() bool {
 	return cd.Reference != nil && cd.Reference.EnumTable != nil
+}
+
+// IsManyEnum returns true if the column contains a Many reference to an enum
+func (cd *Column) IsManyEnum() bool {
+	return cd.SchemaType == schema.ColTypeManyEnum
 }
 
 // ReferenceIdentifier returns the capitalized name that should be used to refer to the object
@@ -241,7 +247,7 @@ func (cd *Column) GoType() string {
 			// enum tables are an enumerated type
 			if cd.SchemaType == schema.ColTypeEnum {
 				return enumTable.Identifier
-			} else if cd.SchemaType == schema.ColTypeMultiEnum {
+			} else if cd.SchemaType == schema.ColTypeManyEnum {
 				return `[]` + enumTable.Identifier
 			} else {
 				panic("unknown column type for enum table")

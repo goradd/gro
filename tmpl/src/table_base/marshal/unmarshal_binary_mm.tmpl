@@ -4,19 +4,6 @@
 }}
 {{
 
-{{if mm.IsEnum()}}
-    if err = dec.Decode(&isPtr); err != nil {
-        return fmt.Errorf("error decoding {{= table.Identifier }}.{{= mm.VariableIdentifier() }} isPtr: %w", err)
-    }
-    if isPtr {
-        if err = dec.Decode(&o.{{= mm.VariableIdentifier() }} ); err != nil {
-            return fmt.Errorf("error decoding {{= table.Identifier }}.{{= mm.VariableIdentifier() }}: %w", err)
-        }
-    }
-    if err = dec.Decode(&o.{{= mm.VariableIdentifier() }}IsDirty); err != nil {
-        return fmt.Errorf("error decoding {{= table.Identifier }}.{{= mm.VariableIdentifier() }}IsDirty: %w", err)
-    }
-{{else}}
     if err = dec.Decode(&o.{{= mm.VariableIdentifier() }}); err != nil {
         return fmt.Errorf("error decoding {{= table.Identifier }}.{{= mm.PkIdentifier() }}: %w", err)
     }
@@ -31,5 +18,4 @@
             return fmt.Errorf("error decoding {{= table.Identifier }}.{{= mm.PkIdentifier() }}: %w", err)
         }
     }
-{{if}}
 }}

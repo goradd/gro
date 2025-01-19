@@ -15,12 +15,8 @@ const  (
 {{if}}
 {{for}}
 
-{{for _,col := range table.ReverseReferences}}
-{{if col.IsUnique }}
-    {{= table.Identifier }}{{= col.Reference.ReverseIdentifier }} = `{{= col.Reference.ReverseIdentifier }}`
-{{else}}
-    {{= table.Identifier }}{{= col.Reference.ReverseIdentifierPlural }} = `{{= col.Reference.ReverseIdentifierPlural }}`
-{{if}}
+{{for _,rev := range table.ReverseReferences}}
+    {{= table.Identifier }}{{= rev.ReverseIdentifier() }} = `{{= rev.ReverseIdentifier() }}`
 {{for}}
 
 {{for _,mm := range table.ManyManyReferences}}
@@ -32,11 +28,11 @@ const  (
 
 {{for _,col := range table.Columns}}
 {{if col.Size > 0}}
-{{if col.Type == query.ColTypeString}}
+{{if col.ReceiverType == query.ColTypeString}}
     const {{= table.Identifier }}{{= col.Identifier }}MaxLength = {{u col.Size }} // The number of runes the column can hold
-{{elseif col.Type == query.ColTypeBytes || col.Type == query.ColTypeUnknown }}
+{{elseif col.ReceiverType == query.ColTypeBytes || col.ReceiverType == query.ColTypeUnknown }}
     const {{= table.Identifier }}{{= col.Identifier }}MaxLength = {{u col.Size }} // The number of bytes the column can hold
-{{elseif col.Type == query.ColTypeInteger || col.Type == query.ColTypeUnsigned }}
+{{elseif col.ReceiverType == query.ColTypeInteger || col.ReceiverType == query.ColTypeUnsigned }}
     const {{= table.Identifier }}{{= col.Identifier }}Max = {{L col.MaxInt() }}
     const {{= table.Identifier }}{{= col.Identifier }}Min = {{L col.MinInt() }}
 {{if}}

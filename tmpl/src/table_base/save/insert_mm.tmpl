@@ -3,9 +3,5 @@
 //*** {{includeName}}
 }}
 for _,mm := range table.ManyManyReferences {
-    if mm.IsEnum() {
-{{: "insert_mm_enum.tmpl" }}
-    } else {
 {{: "insert_mm_col.tmpl" }}
-    }
 }

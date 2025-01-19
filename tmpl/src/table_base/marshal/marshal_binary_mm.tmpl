@@ -3,24 +3,6 @@
 //*** {{includeName}}
 }}
 {{
-{{if mm.IsEnum() }}
-    if o.{{= mm.VariableIdentifier() }} == nil {
-        if err := encoder.Encode(false); err != nil {
-            return nil, err
-        }
-    } else {
-        if err := encoder.Encode(true); err != nil {
-            return nil, err
-        }
-        if err := encoder.Encode(&o.{{= mm.VariableIdentifier() }}); err != nil {
-            return nil, fmt.Errorf("error encoding {{= table.Identifier }}.{{= mm.VariableIdentifier() }}: %w", err)
-        }
-    }
-    if err := encoder.Encode(o.{{= mm.VariableIdentifier() }}IsDirty); err != nil {
-        return nil, fmt.Errorf("error encoding {{= table.Identifier }}.{{= mm.VariableIdentifier() }}IsDirty: %w", err)
-    }
-
-{{else}}
     if err := encoder.Encode(&o.{{= mm.VariableIdentifier() }}); err != nil {
         return nil, fmt.Errorf("error encoding {{= table.Identifier }}.{{= mm.VariableIdentifier() }}: %w", err)
     }
@@ -35,7 +17,6 @@
             return nil, fmt.Errorf("error encoding {{= table.Identifier }}.{{= mm.PkIdentifier() }}: %w", err)
         }
     }
-{{if}}
 
 {{# We will need to rebuild the map (when not a enum table association) based on the object decoded, since they are pointers to the same objects}}
 }}

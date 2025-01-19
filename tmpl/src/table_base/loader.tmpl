@@ -24,11 +24,7 @@ func (o *{{= table.DecapIdentifier}}Base) load (m map[string]interface{}, objThi
 // Many-Many references
 {{if}}
 {{for _,mm := range table.ManyManyReferences }}
-	{{if mm.IsEnum() }}
-	    {{: "loaders/mm_enum.tmpl" }}
-	{{else}}
-	    {{: "loaders/mm.tmpl" }}
-    {{if}}
+	{{: "loaders/mm.tmpl" }}
 {{for}}
 
 {{if len(table.ReverseReferences) > 0 }}
