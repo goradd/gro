@@ -63,7 +63,6 @@ func (n forwardRestrictTable) DatabaseKey_() string {
 }
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
-// This may include reference nodes to enum types.
 func (n forwardRestrictTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.Name())
@@ -74,7 +73,7 @@ func (n forwardRestrictTable) ColumnNodes_() (nodes []query.Node) {
 func (n *forwardRestrictReverse) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.forwardRestrictTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.Linker).SetParent(n)
+		query.NodeSetParent(cn, n)
 	}
 	return
 }
@@ -104,13 +103,13 @@ func (n forwardRestrictTable) ID() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *forwardRestrictReverse) ID() *query.ColumnNode {
 	cn := n.forwardRestrictTable.ID()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -121,13 +120,13 @@ func (n forwardRestrictTable) Name() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *forwardRestrictReverse) Name() *query.ColumnNode {
 	cn := n.forwardRestrictTable.Name()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -138,13 +137,13 @@ func (n forwardRestrictTable) ReverseID() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *forwardRestrictReverse) ReverseID() *query.ColumnNode {
 	cn := n.forwardRestrictTable.ReverseID()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -157,13 +156,13 @@ func (n forwardRestrictTable) Reverse() ReverseNode {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *forwardRestrictReverse) Reverse() ReverseNode {
 	cn := n.forwardRestrictTable.Reverse().(*reverseReference)
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 

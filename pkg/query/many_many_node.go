@@ -10,7 +10,7 @@ type ManyManyNodeI interface {
 	ColumnName() string
 	TableNodeI
 	Conditioner
-	Linker
+	linker
 	Expander
 }
 

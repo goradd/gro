@@ -151,12 +151,12 @@ func (o *addressBase) PersonIDIsValid() bool {
 // SetPersonID sets the value of PersonID in the object, to be saved later using the Save() function.
 func (o *addressBase) SetPersonID(personID string) {
 	o.personIDIsValid = true
-
 	if o.personID != personID || !o._restored {
 		o.personID = personID
 		o.personIDIsDirty = true
 		o.objPerson = nil
 	}
+
 }
 
 // Person returns the current value of the loaded Person, and nil if its not loaded.
@@ -208,7 +208,6 @@ func (o *addressBase) StreetIsValid() bool {
 // SetStreet sets the value of Street in the object, to be saved later using the Save() function.
 func (o *addressBase) SetStreet(street string) {
 	o.streetIsValid = true
-
 	if utf8.RuneCountInString(street) > AddressStreetMaxLength {
 		panic("attempted to set Address.Street to a value larger than its maximum length in runes")
 	}
@@ -216,6 +215,7 @@ func (o *addressBase) SetStreet(street string) {
 		o.street = street
 		o.streetIsDirty = true
 	}
+
 }
 
 // City returns the loaded value of City.
@@ -257,12 +257,13 @@ func (o *addressBase) SetCity(i interface{}) {
 		}
 	} else {
 		v := i.(string)
+
 		if utf8.RuneCountInString(v) > AddressCityMaxLength {
 			panic("attempted to set Address.City to a value larger than its maximum length in runes")
 		}
 		if o.cityIsNull ||
 			!o._restored ||
-			o.city != v {
+			o.city != v; -1 {
 			o.cityIsNull = false
 			o.city = v
 			o.cityIsDirty = true
@@ -726,18 +727,24 @@ func (o *addressBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 
 	if o.personIDIsValid {
+
 		fields["person_id"] = o.personID
+
 	}
 
 	if o.streetIsValid {
+
 		fields["street"] = o.street
+
 	}
 
 	if o.cityIsValid {
 		if o.cityIsNull {
 			fields["city"] = nil
 		} else {
+
 			fields["city"] = o.city
+
 		}
 	}
 	return

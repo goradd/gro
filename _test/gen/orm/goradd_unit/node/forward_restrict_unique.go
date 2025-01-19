@@ -63,7 +63,6 @@ func (n forwardRestrictUniqueTable) DatabaseKey_() string {
 }
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
-// This may include reference nodes to enum types.
 func (n forwardRestrictUniqueTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.Name())
@@ -74,7 +73,7 @@ func (n forwardRestrictUniqueTable) ColumnNodes_() (nodes []query.Node) {
 func (n *forwardRestrictUniqueReverse) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.forwardRestrictUniqueTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.Linker).SetParent(n)
+		query.NodeSetParent(cn, n)
 	}
 	return
 }
@@ -104,13 +103,13 @@ func (n forwardRestrictUniqueTable) ID() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *forwardRestrictUniqueReverse) ID() *query.ColumnNode {
 	cn := n.forwardRestrictUniqueTable.ID()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -121,13 +120,13 @@ func (n forwardRestrictUniqueTable) Name() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *forwardRestrictUniqueReverse) Name() *query.ColumnNode {
 	cn := n.forwardRestrictUniqueTable.Name()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -138,13 +137,13 @@ func (n forwardRestrictUniqueTable) ReverseID() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *forwardRestrictUniqueReverse) ReverseID() *query.ColumnNode {
 	cn := n.forwardRestrictUniqueTable.ReverseID()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -157,13 +156,13 @@ func (n forwardRestrictUniqueTable) Reverse() ReverseNode {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *forwardRestrictUniqueReverse) Reverse() ReverseNode {
 	cn := n.forwardRestrictUniqueTable.Reverse().(*reverseReference)
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 

@@ -17,8 +17,8 @@ type UnsupportedTypeNode interface {
 	TypeSerial() *query.ColumnNode
 	// TypeSet represents the type_set column in the database.
 	TypeSet() *query.ColumnNode
-	// TypeEnum represents the type_enum column in the database.
-	TypeEnum() *query.ColumnNode
+	// Types represents the type_enum column in the database.
+	Types() *query.ColumnNode
 	// TypeDecimal represents the type_decimal column in the database.
 	TypeDecimal() *query.ColumnNode
 	// TypeDouble represents the type_double column in the database.
@@ -91,11 +91,10 @@ func (n unsupportedTypeTable) DatabaseKey_() string {
 }
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
-// This may include reference nodes to enum types.
 func (n unsupportedTypeTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.TypeSerial())
 	nodes = append(nodes, n.TypeSet())
-	nodes = append(nodes, n.TypeEnum())
+	nodes = append(nodes, n.Types())
 	nodes = append(nodes, n.TypeDecimal())
 	nodes = append(nodes, n.TypeDouble())
 	nodes = append(nodes, n.TypeGeo())
@@ -117,7 +116,7 @@ func (n unsupportedTypeTable) ColumnNodes_() (nodes []query.Node) {
 func (n *unsupportedTypeReverse) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.unsupportedTypeTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.Linker).SetParent(n)
+		query.NodeSetParent(cn, n)
 	}
 	return
 }
@@ -147,13 +146,13 @@ func (n unsupportedTypeTable) TypeSerial() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *unsupportedTypeReverse) TypeSerial() *query.ColumnNode {
 	cn := n.unsupportedTypeTable.TypeSerial()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -164,30 +163,30 @@ func (n unsupportedTypeTable) TypeSet() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *unsupportedTypeReverse) TypeSet() *query.ColumnNode {
 	cn := n.unsupportedTypeTable.TypeSet()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n unsupportedTypeTable) TypeEnum() *query.ColumnNode {
+func (n unsupportedTypeTable) Types() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:    "type_enum",
-		Identifier:   "TypeEnum",
+		Identifier:   "Types",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *unsupportedTypeReverse) TypeEnum() *query.ColumnNode {
-	cn := n.unsupportedTypeTable.TypeEnum()
-	cn.SetParent(n)
+func (n *unsupportedTypeReverse) Types() *query.ColumnNode {
+	cn := n.unsupportedTypeTable.Types()
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -198,13 +197,13 @@ func (n unsupportedTypeTable) TypeDecimal() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *unsupportedTypeReverse) TypeDecimal() *query.ColumnNode {
 	cn := n.unsupportedTypeTable.TypeDecimal()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -215,13 +214,13 @@ func (n unsupportedTypeTable) TypeDouble() *query.ColumnNode {
 		ReceiverType: query.ColTypeFloat64,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *unsupportedTypeReverse) TypeDouble() *query.ColumnNode {
 	cn := n.unsupportedTypeTable.TypeDouble()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -232,13 +231,13 @@ func (n unsupportedTypeTable) TypeGeo() *query.ColumnNode {
 		ReceiverType: query.ColTypeUnknown,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *unsupportedTypeReverse) TypeGeo() *query.ColumnNode {
 	cn := n.unsupportedTypeTable.TypeGeo()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -249,13 +248,13 @@ func (n unsupportedTypeTable) TypeTinyBlob() *query.ColumnNode {
 		ReceiverType: query.ColTypeBytes,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *unsupportedTypeReverse) TypeTinyBlob() *query.ColumnNode {
 	cn := n.unsupportedTypeTable.TypeTinyBlob()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -266,13 +265,13 @@ func (n unsupportedTypeTable) TypeMediumBlob() *query.ColumnNode {
 		ReceiverType: query.ColTypeBytes,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *unsupportedTypeReverse) TypeMediumBlob() *query.ColumnNode {
 	cn := n.unsupportedTypeTable.TypeMediumBlob()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -283,13 +282,13 @@ func (n unsupportedTypeTable) TypeVarbinary() *query.ColumnNode {
 		ReceiverType: query.ColTypeUnknown,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *unsupportedTypeReverse) TypeVarbinary() *query.ColumnNode {
 	cn := n.unsupportedTypeTable.TypeVarbinary()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -300,13 +299,13 @@ func (n unsupportedTypeTable) TypeLongtext() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *unsupportedTypeReverse) TypeLongtext() *query.ColumnNode {
 	cn := n.unsupportedTypeTable.TypeLongtext()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -317,13 +316,13 @@ func (n unsupportedTypeTable) TypeBinary() *query.ColumnNode {
 		ReceiverType: query.ColTypeUnknown,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *unsupportedTypeReverse) TypeBinary() *query.ColumnNode {
 	cn := n.unsupportedTypeTable.TypeBinary()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -334,13 +333,13 @@ func (n unsupportedTypeTable) TypeSmall() *query.ColumnNode {
 		ReceiverType: query.ColTypeInteger,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *unsupportedTypeReverse) TypeSmall() *query.ColumnNode {
 	cn := n.unsupportedTypeTable.TypeSmall()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -351,13 +350,13 @@ func (n unsupportedTypeTable) TypeMedium() *query.ColumnNode {
 		ReceiverType: query.ColTypeInteger,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *unsupportedTypeReverse) TypeMedium() *query.ColumnNode {
 	cn := n.unsupportedTypeTable.TypeMedium()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -368,13 +367,13 @@ func (n unsupportedTypeTable) TypeBig() *query.ColumnNode {
 		ReceiverType: query.ColTypeInteger64,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *unsupportedTypeReverse) TypeBig() *query.ColumnNode {
 	cn := n.unsupportedTypeTable.TypeBig()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -385,13 +384,13 @@ func (n unsupportedTypeTable) TypePolygon() *query.ColumnNode {
 		ReceiverType: query.ColTypeUnknown,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *unsupportedTypeReverse) TypePolygon() *query.ColumnNode {
 	cn := n.unsupportedTypeTable.TypePolygon()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -402,13 +401,13 @@ func (n unsupportedTypeTable) TypeUnsigned() *query.ColumnNode {
 		ReceiverType: query.ColTypeUnsigned,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *unsupportedTypeReverse) TypeUnsigned() *query.ColumnNode {
 	cn := n.unsupportedTypeTable.TypeUnsigned()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -419,13 +418,13 @@ func (n unsupportedTypeTable) TypeMultfk1() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *unsupportedTypeReverse) TypeMultfk1() *query.ColumnNode {
 	cn := n.unsupportedTypeTable.TypeMultfk1()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -436,13 +435,13 @@ func (n unsupportedTypeTable) TypeMultifk2() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *unsupportedTypeReverse) TypeMultifk2() *query.ColumnNode {
 	cn := n.unsupportedTypeTable.TypeMultifk2()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 

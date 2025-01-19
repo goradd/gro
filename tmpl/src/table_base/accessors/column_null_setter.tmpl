@@ -41,8 +41,7 @@ func (o *{{= table.DecapIdentifier}}Base) Set{{= col.Identifier }}(i interface{}
             !slices.Equal(v, o.{{= col.VariableIdentifier() }})
 {{else}}
             o.{{= col.VariableIdentifier() }} != v
-{{if}}
-        {
+{{if}}{{- 1}}{
 			    o.{{= col.VariableIdentifier() }}IsNull = false
 {{if col.ReceiverType == query.ColTypeBytes || col.ReceiverType == query.ColTypeUnknown }}
                 o.{{= col.VariableIdentifier() }} = slices.Clone(v)

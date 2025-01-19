@@ -296,7 +296,7 @@ func (o *typeTestBase) SetDate(i interface{}) {
 		v := i.(time.Time)
 		if o.dateIsNull ||
 			!o._restored ||
-			o.date != v {
+			o.date != v; -1 {
 			o.dateIsNull = false
 			o.date = v
 			o.dateIsDirty = true
@@ -345,7 +345,7 @@ func (o *typeTestBase) SetTime(i interface{}) {
 		v := i.(time.Time)
 		if o.timeIsNull ||
 			!o._restored ||
-			o.time != v {
+			o.time != v; -1 {
 			o.timeIsNull = false
 			o.time = v
 			o.timeIsDirty = true
@@ -394,7 +394,7 @@ func (o *typeTestBase) SetDateTime(i interface{}) {
 		v := i.(time.Time)
 		if o.dateTimeIsNull ||
 			!o._restored ||
-			o.dateTime != v {
+			o.dateTime != v; -1 {
 			o.dateTimeIsNull = false
 			o.dateTime = v
 			o.dateTimeIsDirty = true
@@ -470,9 +470,10 @@ func (o *typeTestBase) SetTestInt(i interface{}) {
 		}
 	} else {
 		v := i.(int)
+
 		if o.testIntIsNull ||
 			!o._restored ||
-			o.testInt != v {
+			o.testInt != v; -1 {
 			o.testIntIsNull = false
 			o.testInt = v
 			o.testIntIsDirty = true
@@ -519,9 +520,10 @@ func (o *typeTestBase) SetTestFloat(i interface{}) {
 		}
 	} else {
 		v := i.(float32)
+
 		if o.testFloatIsNull ||
 			!o._restored ||
-			o.testFloat != v {
+			o.testFloat != v; -1 {
 			o.testFloatIsNull = false
 			o.testFloat = v
 			o.testFloatIsDirty = true
@@ -545,11 +547,11 @@ func (o *typeTestBase) TestDoubleIsValid() bool {
 // SetTestDouble sets the value of TestDouble in the object, to be saved later using the Save() function.
 func (o *typeTestBase) SetTestDouble(testDouble float64) {
 	o.testDoubleIsValid = true
-
 	if o.testDouble != testDouble || !o._restored {
 		o.testDouble = testDouble
 		o.testDoubleIsDirty = true
 	}
+
 }
 
 // TestText returns the loaded value of TestText.
@@ -591,12 +593,13 @@ func (o *typeTestBase) SetTestText(i interface{}) {
 		}
 	} else {
 		v := i.(string)
+
 		if utf8.RuneCountInString(v) > TypeTestTestTextMaxLength {
 			panic("attempted to set TypeTest.TestText to a value larger than its maximum length in runes")
 		}
 		if o.testTextIsNull ||
 			!o._restored ||
-			o.testText != v {
+			o.testText != v; -1 {
 			o.testTextIsNull = false
 			o.testText = v
 			o.testTextIsDirty = true
@@ -645,7 +648,7 @@ func (o *typeTestBase) SetTestBit(i interface{}) {
 		v := i.(bool)
 		if o.testBitIsNull ||
 			!o._restored ||
-			o.testBit != v {
+			o.testBit != v; -1 {
 			o.testBitIsNull = false
 			o.testBit = v
 			o.testBitIsDirty = true
@@ -692,12 +695,13 @@ func (o *typeTestBase) SetTestVarchar(i interface{}) {
 		}
 	} else {
 		v := i.(string)
+
 		if utf8.RuneCountInString(v) > TypeTestTestVarcharMaxLength {
 			panic("attempted to set TypeTest.TestVarchar to a value larger than its maximum length in runes")
 		}
 		if o.testVarcharIsNull ||
 			!o._restored ||
-			o.testVarchar != v {
+			o.testVarchar != v; -1 {
 			o.testVarcharIsNull = false
 			o.testVarchar = v
 			o.testVarcharIsDirty = true
@@ -726,6 +730,7 @@ func (o *typeTestBase) SetTestBlob(testBlob []uint8) {
 	}
 	o.testBlob = testBlob // TODO: Copy bytes??
 	o.testBlobIsDirty = true
+
 }
 
 // GetAlias returns the alias for the given key.
@@ -1422,7 +1427,9 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 		if o.dateIsNull {
 			fields["date"] = nil
 		} else {
+
 			fields["date"] = o.date
+
 		}
 	}
 
@@ -1430,7 +1437,9 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 		if o.timeIsNull {
 			fields["time"] = nil
 		} else {
+
 			fields["time"] = o.time
+
 		}
 	}
 
@@ -1438,7 +1447,9 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 		if o.dateTimeIsNull {
 			fields["date_time"] = nil
 		} else {
+
 			fields["date_time"] = o.dateTime
+
 		}
 	}
 
@@ -1446,7 +1457,9 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 		if o.tsIsNull {
 			fields["ts"] = nil
 		} else {
+
 			fields["ts"] = o.ts
+
 		}
 	}
 
@@ -1454,7 +1467,9 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 		if o.testIntIsNull {
 			fields["test_int"] = nil
 		} else {
+
 			fields["test_int"] = o.testInt
+
 		}
 	}
 
@@ -1462,19 +1477,25 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 		if o.testFloatIsNull {
 			fields["test_float"] = nil
 		} else {
+
 			fields["test_float"] = o.testFloat
+
 		}
 	}
 
 	if o.testDoubleIsValid {
+
 		fields["test_double"] = o.testDouble
+
 	}
 
 	if o.testTextIsValid {
 		if o.testTextIsNull {
 			fields["test_text"] = nil
 		} else {
+
 			fields["test_text"] = o.testText
+
 		}
 	}
 
@@ -1482,7 +1503,9 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 		if o.testBitIsNull {
 			fields["test_bit"] = nil
 		} else {
+
 			fields["test_bit"] = o.testBit
+
 		}
 	}
 
@@ -1490,12 +1513,16 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 		if o.testVarcharIsNull {
 			fields["test_varchar"] = nil
 		} else {
+
 			fields["test_varchar"] = o.testVarchar
+
 		}
 	}
 
 	if o.testBlobIsValid {
+
 		fields["test_blob"] = o.testBlob
+
 	}
 	return
 }

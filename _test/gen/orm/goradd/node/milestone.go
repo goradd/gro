@@ -63,7 +63,6 @@ func (n milestoneTable) DatabaseKey_() string {
 }
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
-// This may include reference nodes to enum types.
 func (n milestoneTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.ProjectID())
@@ -74,7 +73,7 @@ func (n milestoneTable) ColumnNodes_() (nodes []query.Node) {
 func (n *milestoneReverse) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.milestoneTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.Linker).SetParent(n)
+		query.NodeSetParent(cn, n)
 	}
 	return
 }
@@ -104,13 +103,13 @@ func (n milestoneTable) ID() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *milestoneReverse) ID() *query.ColumnNode {
 	cn := n.milestoneTable.ID()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -121,13 +120,13 @@ func (n milestoneTable) ProjectID() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *milestoneReverse) ProjectID() *query.ColumnNode {
 	cn := n.milestoneTable.ProjectID()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -140,13 +139,13 @@ func (n milestoneTable) Project() ProjectNode {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *milestoneReverse) Project() ProjectNode {
 	cn := n.milestoneTable.Project().(*projectReference)
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -157,13 +156,13 @@ func (n milestoneTable) Name() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *milestoneReverse) Name() *query.ColumnNode {
 	cn := n.milestoneTable.Name()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 

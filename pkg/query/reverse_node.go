@@ -9,7 +9,7 @@ type ReverseNodeI interface {
 	ColumnName() string
 	TableNodeI
 	Conditioner
-	Linker
+	linker
 	Expander
 }
 

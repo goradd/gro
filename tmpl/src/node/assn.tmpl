@@ -26,14 +26,14 @@ func (n {{= table.DecapIdentifier }}Table) {{= mm.IdentifierPlural }}() {{= retu
 			RefColumnReceiverType:    query.{{= mm.AssnDestColumnType.String() }},
 		},
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 {{if hasReverse}}
 func (n *{{= table.DecapIdentifier}}Reference) {{= mm.IdentifierPlural }}() {{= returnType }}  {
     cn := n.{{= table.DecapIdentifier}}Table.{{= mm.IdentifierPlural }}().(*{{= objectType }})
-    cn.SetParent(n)
+    query.NodeSetParent(cn, n)
     return cn
 }
 
@@ -41,7 +41,7 @@ func (n *{{= table.DecapIdentifier}}Reference) {{= mm.IdentifierPlural }}() {{= 
 {{if hasReference}}
 func (n *{{= table.DecapIdentifier}}Reverse) {{= mm.IdentifierPlural }}() {{= returnType }}  {
     cn := n.{{= table.DecapIdentifier}}Table.{{= mm.IdentifierPlural }}().(*{{= objectType }})
-    cn.SetParent(n)
+    query.NodeSetParent(cn, n)
     return cn
 }
 
@@ -49,7 +49,7 @@ func (n *{{= table.DecapIdentifier}}Reverse) {{= mm.IdentifierPlural }}() {{= re
 {{if hasAssociation}}
 func (n *{{= table.DecapIdentifier}}Association) {{= mm.IdentifierPlural }}() {{= returnType }}  {
     cn := n.{{= table.DecapIdentifier}}Table.{{= mm.IdentifierPlural }}().(*{{= objectType }})
-    cn.SetParent(n)
+    query.NodeSetParent(cn, n)
     return cn
 }
 

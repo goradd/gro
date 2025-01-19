@@ -63,7 +63,6 @@ func (n forwardNullTable) DatabaseKey_() string {
 }
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
-// This may include reference nodes to enum types.
 func (n forwardNullTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.Name())
@@ -74,7 +73,7 @@ func (n forwardNullTable) ColumnNodes_() (nodes []query.Node) {
 func (n *forwardNullReverse) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.forwardNullTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.Linker).SetParent(n)
+		query.NodeSetParent(cn, n)
 	}
 	return
 }
@@ -104,13 +103,13 @@ func (n forwardNullTable) ID() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *forwardNullReverse) ID() *query.ColumnNode {
 	cn := n.forwardNullTable.ID()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -121,13 +120,13 @@ func (n forwardNullTable) Name() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *forwardNullReverse) Name() *query.ColumnNode {
 	cn := n.forwardNullTable.Name()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -138,13 +137,13 @@ func (n forwardNullTable) ReverseID() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *forwardNullReverse) ReverseID() *query.ColumnNode {
 	cn := n.forwardNullTable.ReverseID()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -157,13 +156,13 @@ func (n forwardNullTable) Reverse() ReverseNode {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *forwardNullReverse) Reverse() ReverseNode {
 	cn := n.forwardNullTable.Reverse().(*reverseReference)
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 

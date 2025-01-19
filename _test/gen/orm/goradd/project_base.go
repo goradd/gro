@@ -273,11 +273,11 @@ func (o *projectBase) NumIsValid() bool {
 // SetNum sets the value of Num in the object, to be saved later using the Save() function.
 func (o *projectBase) SetNum(num int) {
 	o.numIsValid = true
-
 	if o.num != num || !o._restored {
 		o.num = num
 		o.numIsDirty = true
 	}
+
 }
 
 // Status returns the loaded value of Status.
@@ -296,11 +296,11 @@ func (o *projectBase) StatusIsValid() bool {
 // SetStatus sets the value of Status in the object, to be saved later using the Save() function.
 func (o *projectBase) SetStatus(status ProjectStatus) {
 	o.statusIsValid = true
-
 	if o.status != status || !o._restored {
 		o.status = status
 		o.statusIsDirty = true
 	}
+
 }
 
 // ManagerID returns the loaded value of ManagerID.
@@ -345,7 +345,7 @@ func (o *projectBase) SetManagerID(i interface{}) {
 		v := i.(string)
 		if o.managerIDIsNull ||
 			!o._restored ||
-			o.managerID != v {
+			o.managerID != v; -1 {
 			o.managerIDIsNull = false
 			o.managerID = v
 			o.managerIDIsDirty = true
@@ -410,7 +410,6 @@ func (o *projectBase) NameIsValid() bool {
 // SetName sets the value of Name in the object, to be saved later using the Save() function.
 func (o *projectBase) SetName(name string) {
 	o.nameIsValid = true
-
 	if utf8.RuneCountInString(name) > ProjectNameMaxLength {
 		panic("attempted to set Project.Name to a value larger than its maximum length in runes")
 	}
@@ -418,6 +417,7 @@ func (o *projectBase) SetName(name string) {
 		o.name = name
 		o.nameIsDirty = true
 	}
+
 }
 
 // Description returns the loaded value of Description.
@@ -459,12 +459,13 @@ func (o *projectBase) SetDescription(i interface{}) {
 		}
 	} else {
 		v := i.(string)
+
 		if utf8.RuneCountInString(v) > ProjectDescriptionMaxLength {
 			panic("attempted to set Project.Description to a value larger than its maximum length in runes")
 		}
 		if o.descriptionIsNull ||
 			!o._restored ||
-			o.description != v {
+			o.description != v; -1 {
 			o.descriptionIsNull = false
 			o.description = v
 			o.descriptionIsDirty = true
@@ -513,7 +514,7 @@ func (o *projectBase) SetStartDate(i interface{}) {
 		v := i.(time.Time)
 		if o.startDateIsNull ||
 			!o._restored ||
-			o.startDate != v {
+			o.startDate != v; -1 {
 			o.startDateIsNull = false
 			o.startDate = v
 			o.startDateIsDirty = true
@@ -562,7 +563,7 @@ func (o *projectBase) SetEndDate(i interface{}) {
 		v := i.(time.Time)
 		if o.endDateIsNull ||
 			!o._restored ||
-			o.endDate != v {
+			o.endDate != v; -1 {
 			o.endDateIsNull = false
 			o.endDate = v
 			o.endDateIsDirty = true
@@ -609,12 +610,13 @@ func (o *projectBase) SetBudget(i interface{}) {
 		}
 	} else {
 		v := i.(string)
+
 		if utf8.RuneCountInString(v) > ProjectBudgetMaxLength {
 			panic("attempted to set Project.Budget to a value larger than its maximum length in runes")
 		}
 		if o.budgetIsNull ||
 			!o._restored ||
-			o.budget != v {
+			o.budget != v; -1 {
 			o.budgetIsNull = false
 			o.budget = v
 			o.budgetIsDirty = true
@@ -661,12 +663,13 @@ func (o *projectBase) SetSpent(i interface{}) {
 		}
 	} else {
 		v := i.(string)
+
 		if utf8.RuneCountInString(v) > ProjectSpentMaxLength {
 			panic("attempted to set Project.Spent to a value larger than its maximum length in runes")
 		}
 		if o.spentIsNull ||
 			!o._restored ||
-			o.spent != v {
+			o.spent != v; -1 {
 			o.spentIsNull = false
 			o.spent = v
 			o.spentIsDirty = true
@@ -1347,14 +1350,14 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project, objParent
 		o.num = 0
 	}
 
-	if v, ok := m["status_id"]; ok && v != nil {
+	if v, ok := m["status_enum"]; ok && v != nil {
 		if i, ok2 := v.(int); ok2 {
 			o.status = ProjectStatus(i)
 			o.statusIsValid = true
 			o.statusIsDirty = false
 
 		} else {
-			panic("Wrong type found for status_id.")
+			panic("Wrong type found for status_enum.")
 		}
 	} else {
 		o.statusIsValid = false
@@ -1763,7 +1766,7 @@ func (o *projectBase) getModifiedFields() (fields map[string]interface{}) {
 		fields["num"] = o.num
 	}
 	if o.statusIsDirty {
-		fields["status_id"] = o.status
+		fields["status_enum"] = o.status
 	}
 	if o.managerIDIsDirty {
 		if o.managerIDIsNull {
@@ -1818,30 +1821,40 @@ func (o *projectBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 
 	if o.numIsValid {
+
 		fields["num"] = o.num
+
 	}
 
 	if o.statusIsValid {
-		fields["status_id"] = o.status
+
+		fields["status_enum"] = o.status
+
 	}
 
 	if o.managerIDIsValid {
 		if o.managerIDIsNull {
 			fields["manager_id"] = nil
 		} else {
+
 			fields["manager_id"] = o.managerID
+
 		}
 	}
 
 	if o.nameIsValid {
+
 		fields["name"] = o.name
+
 	}
 
 	if o.descriptionIsValid {
 		if o.descriptionIsNull {
 			fields["description"] = nil
 		} else {
+
 			fields["description"] = o.description
+
 		}
 	}
 
@@ -1849,7 +1862,9 @@ func (o *projectBase) getValidFields() (fields map[string]interface{}) {
 		if o.startDateIsNull {
 			fields["start_date"] = nil
 		} else {
+
 			fields["start_date"] = o.startDate
+
 		}
 	}
 
@@ -1857,7 +1872,9 @@ func (o *projectBase) getValidFields() (fields map[string]interface{}) {
 		if o.endDateIsNull {
 			fields["end_date"] = nil
 		} else {
+
 			fields["end_date"] = o.endDate
+
 		}
 	}
 
@@ -1865,7 +1882,9 @@ func (o *projectBase) getValidFields() (fields map[string]interface{}) {
 		if o.budgetIsNull {
 			fields["budget"] = nil
 		} else {
+
 			fields["budget"] = o.budget
+
 		}
 	}
 
@@ -1873,7 +1892,9 @@ func (o *projectBase) getValidFields() (fields map[string]interface{}) {
 		if o.spentIsNull {
 			fields["spent"] = nil
 		} else {
+
 			fields["spent"] = o.spent
+
 		}
 	}
 	return
@@ -2524,7 +2545,7 @@ func (o *projectBase) MarshalStringMap() map[string]interface{} {
 	}
 
 	if o.statusIsValid {
-		v["status"] = o.Status().String()
+		v["status"] = o.status
 	}
 
 	if o.managerIDIsValid {
@@ -2674,11 +2695,11 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 				}
 
 				if n, ok := v.(int); ok {
-					o.SetStatus(ProjectStatus(n))
+					o.SetStatusEnum(ProjectStatus(n))
 				} else if n, ok := v.(float64); ok {
-					o.SetStatus(ProjectStatus(int(n)))
+					o.SetStatusEnum(ProjectStatus(int(n)))
 				} else if n, ok := v.(string); ok {
-					o.SetStatus(ProjectStatusFromName(n))
+					o.SetStatusEnum(ProjectStatusFromName(n))
 				} else {
 					return fmt.Errorf("json field %s must be a number", k)
 				}

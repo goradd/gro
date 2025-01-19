@@ -126,11 +126,11 @@ func (o *doubleIndexBase) IDIsValid() bool {
 // SetID sets the value of ID in the object, to be saved later using the Save() function.
 func (o *doubleIndexBase) SetID(id int) {
 	o.idIsValid = true
-
 	if o.id != id || !o._restored {
 		o.id = id
 		o.idIsDirty = true
 	}
+
 }
 
 // FieldInt returns the loaded value of FieldInt.
@@ -149,11 +149,11 @@ func (o *doubleIndexBase) FieldIntIsValid() bool {
 // SetFieldInt sets the value of FieldInt in the object, to be saved later using the Save() function.
 func (o *doubleIndexBase) SetFieldInt(fieldInt int) {
 	o.fieldIntIsValid = true
-
 	if o.fieldInt != fieldInt || !o._restored {
 		o.fieldInt = fieldInt
 		o.fieldIntIsDirty = true
 	}
+
 }
 
 // FieldString returns the loaded value of FieldString.
@@ -172,7 +172,6 @@ func (o *doubleIndexBase) FieldStringIsValid() bool {
 // SetFieldString sets the value of FieldString in the object, to be saved later using the Save() function.
 func (o *doubleIndexBase) SetFieldString(fieldString string) {
 	o.fieldStringIsValid = true
-
 	if utf8.RuneCountInString(fieldString) > DoubleIndexFieldStringMaxLength {
 		panic("attempted to set DoubleIndex.FieldString to a value larger than its maximum length in runes")
 	}
@@ -180,6 +179,7 @@ func (o *doubleIndexBase) SetFieldString(fieldString string) {
 		o.fieldString = fieldString
 		o.fieldStringIsDirty = true
 	}
+
 }
 
 // GetAlias returns the alias for the given key.
@@ -620,15 +620,21 @@ func (o *doubleIndexBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 
 	if o.idIsValid {
+
 		fields["id"] = o.id
+
 	}
 
 	if o.fieldIntIsValid {
+
 		fields["field_int"] = o.fieldInt
+
 	}
 
 	if o.fieldStringIsValid {
+
 		fields["field_string"] = o.fieldString
+
 	}
 	return
 }

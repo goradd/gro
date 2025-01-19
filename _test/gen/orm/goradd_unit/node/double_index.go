@@ -61,7 +61,6 @@ func (n doubleIndexTable) DatabaseKey_() string {
 }
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
-// This may include reference nodes to enum types.
 func (n doubleIndexTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.FieldInt())
@@ -72,7 +71,7 @@ func (n doubleIndexTable) ColumnNodes_() (nodes []query.Node) {
 func (n *doubleIndexReverse) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.doubleIndexTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.Linker).SetParent(n)
+		query.NodeSetParent(cn, n)
 	}
 	return
 }
@@ -102,13 +101,13 @@ func (n doubleIndexTable) ID() *query.ColumnNode {
 		ReceiverType: query.ColTypeInteger,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *doubleIndexReverse) ID() *query.ColumnNode {
 	cn := n.doubleIndexTable.ID()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -119,13 +118,13 @@ func (n doubleIndexTable) FieldInt() *query.ColumnNode {
 		ReceiverType: query.ColTypeInteger,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *doubleIndexReverse) FieldInt() *query.ColumnNode {
 	cn := n.doubleIndexTable.FieldInt()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -136,13 +135,13 @@ func (n doubleIndexTable) FieldString() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *doubleIndexReverse) FieldString() *query.ColumnNode {
 	cn := n.doubleIndexTable.FieldString()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 

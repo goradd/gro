@@ -79,7 +79,6 @@ func (n typeTestTable) DatabaseKey_() string {
 }
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
-// This may include reference nodes to enum types.
 func (n typeTestTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.Date())
@@ -99,7 +98,7 @@ func (n typeTestTable) ColumnNodes_() (nodes []query.Node) {
 func (n *typeTestReverse) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.typeTestTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.Linker).SetParent(n)
+		query.NodeSetParent(cn, n)
 	}
 	return
 }
@@ -129,13 +128,13 @@ func (n typeTestTable) ID() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *typeTestReverse) ID() *query.ColumnNode {
 	cn := n.typeTestTable.ID()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -146,13 +145,13 @@ func (n typeTestTable) Date() *query.ColumnNode {
 		ReceiverType: query.ColTypeTime,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *typeTestReverse) Date() *query.ColumnNode {
 	cn := n.typeTestTable.Date()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -163,13 +162,13 @@ func (n typeTestTable) Time() *query.ColumnNode {
 		ReceiverType: query.ColTypeTime,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *typeTestReverse) Time() *query.ColumnNode {
 	cn := n.typeTestTable.Time()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -180,13 +179,13 @@ func (n typeTestTable) DateTime() *query.ColumnNode {
 		ReceiverType: query.ColTypeTime,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *typeTestReverse) DateTime() *query.ColumnNode {
 	cn := n.typeTestTable.DateTime()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -197,13 +196,13 @@ func (n typeTestTable) Ts() *query.ColumnNode {
 		ReceiverType: query.ColTypeTime,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *typeTestReverse) Ts() *query.ColumnNode {
 	cn := n.typeTestTable.Ts()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -214,13 +213,13 @@ func (n typeTestTable) TestInt() *query.ColumnNode {
 		ReceiverType: query.ColTypeInteger,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *typeTestReverse) TestInt() *query.ColumnNode {
 	cn := n.typeTestTable.TestInt()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -231,13 +230,13 @@ func (n typeTestTable) TestFloat() *query.ColumnNode {
 		ReceiverType: query.ColTypeFloat32,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *typeTestReverse) TestFloat() *query.ColumnNode {
 	cn := n.typeTestTable.TestFloat()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -248,13 +247,13 @@ func (n typeTestTable) TestDouble() *query.ColumnNode {
 		ReceiverType: query.ColTypeFloat64,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *typeTestReverse) TestDouble() *query.ColumnNode {
 	cn := n.typeTestTable.TestDouble()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -265,13 +264,13 @@ func (n typeTestTable) TestText() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *typeTestReverse) TestText() *query.ColumnNode {
 	cn := n.typeTestTable.TestText()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -282,13 +281,13 @@ func (n typeTestTable) TestBit() *query.ColumnNode {
 		ReceiverType: query.ColTypeBool,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *typeTestReverse) TestBit() *query.ColumnNode {
 	cn := n.typeTestTable.TestBit()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -299,13 +298,13 @@ func (n typeTestTable) TestVarchar() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *typeTestReverse) TestVarchar() *query.ColumnNode {
 	cn := n.typeTestTable.TestVarchar()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -316,13 +315,13 @@ func (n typeTestTable) TestBlob() *query.ColumnNode {
 		ReceiverType: query.ColTypeBytes,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *typeTestReverse) TestBlob() *query.ColumnNode {
 	cn := n.typeTestTable.TestBlob()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 

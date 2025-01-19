@@ -33,7 +33,7 @@ func (n {{= table.DecapIdentifier }}Table) ColumnNodes_() (nodes []query.Node) {
 func (n *{{= table.DecapIdentifier }}Reference) ColumnNodes_() (nodes []query.Node) {
     nodes = n.{{= table.DecapIdentifier }}Table.ColumnNodes_()
     for _,cn := range nodes {
-        cn.(query.Linker).SetParent(n)
+        query.NodeSetParent(cn, n)
     }
     return
 }
@@ -43,7 +43,7 @@ func (n *{{= table.DecapIdentifier }}Reference) ColumnNodes_() (nodes []query.No
 func (n *{{= table.DecapIdentifier }}Reverse) ColumnNodes_() (nodes []query.Node) {
     nodes = n.{{= table.DecapIdentifier }}Table.ColumnNodes_()
     for _,cn := range nodes {
-        cn.(query.Linker).SetParent(n)
+        query.NodeSetParent(cn, n)
     }
     return
 }
@@ -53,7 +53,7 @@ func (n *{{= table.DecapIdentifier }}Reverse) ColumnNodes_() (nodes []query.Node
 func (n *{{= table.DecapIdentifier }}Association) ColumnNodes_() (nodes []query.Node) {
     nodes = n.{{= table.DecapIdentifier }}Table.ColumnNodes_()
     for _,cn := range nodes {
-        cn.(query.Linker).SetParent(n)
+        query.NodeSetParent(cn, n)
     }
     return
 }

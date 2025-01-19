@@ -135,12 +135,12 @@ func (o *milestoneBase) ProjectIDIsValid() bool {
 // SetProjectID sets the value of ProjectID in the object, to be saved later using the Save() function.
 func (o *milestoneBase) SetProjectID(projectID string) {
 	o.projectIDIsValid = true
-
 	if o.projectID != projectID || !o._restored {
 		o.projectID = projectID
 		o.projectIDIsDirty = true
 		o.objProject = nil
 	}
+
 }
 
 // Project returns the current value of the loaded Project, and nil if its not loaded.
@@ -192,7 +192,6 @@ func (o *milestoneBase) NameIsValid() bool {
 // SetName sets the value of Name in the object, to be saved later using the Save() function.
 func (o *milestoneBase) SetName(name string) {
 	o.nameIsValid = true
-
 	if utf8.RuneCountInString(name) > MilestoneNameMaxLength {
 		panic("attempted to set Milestone.Name to a value larger than its maximum length in runes")
 	}
@@ -200,6 +199,7 @@ func (o *milestoneBase) SetName(name string) {
 		o.name = name
 		o.nameIsDirty = true
 	}
+
 }
 
 // GetAlias returns the alias for the given key.
@@ -625,11 +625,15 @@ func (o *milestoneBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 
 	if o.projectIDIsValid {
+
 		fields["project_id"] = o.projectID
+
 	}
 
 	if o.nameIsValid {
+
 		fields["name"] = o.name
+
 	}
 	return
 }

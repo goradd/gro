@@ -8,7 +8,7 @@ import (
 type ColumnNodeI interface {
 	Node
 	Sorter
-	Linker
+	linker
 }
 
 // ColumnNode represents a table or field in a database structure, and is the leaf of a node tree or chain.
@@ -30,11 +30,11 @@ func (n *ColumnNode) NodeType_() NodeType {
 }
 
 func (n *ColumnNode) TableName_() string {
-	return n.Parent().TableName_()
+	return n.parent_().TableName_()
 }
 
 func (n *ColumnNode) DatabaseKey_() string {
-	return n.Parent().DatabaseKey_()
+	return n.parent_().DatabaseKey_()
 }
 
 // Ascending sets the column to sort ascending when used in an OrderBy statement.

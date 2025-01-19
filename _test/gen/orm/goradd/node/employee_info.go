@@ -23,6 +23,13 @@ type EmployeeInfoNode interface {
 	EmployeeNumber() *query.ColumnNode
 }
 
+// EmployeeInfoExpander is the builder interface for EmployeeInfos that are expandable.
+type EmployeeInfoExpander interface {
+	EmployeeInfoNode
+	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
+	Expand()
+}
+
 // employeeInfoTable represents the employee_info table in a query. It uses a builder pattern to chain
 // together other tables and columns to form a node chain in a query.
 //
@@ -56,7 +63,6 @@ func (n employeeInfoTable) DatabaseKey_() string {
 }
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
-// This may include reference nodes to enum types.
 func (n employeeInfoTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.PersonID())
@@ -67,7 +73,7 @@ func (n employeeInfoTable) ColumnNodes_() (nodes []query.Node) {
 func (n *employeeInfoReverse) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.employeeInfoTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.Linker).SetParent(n)
+		query.NodeSetParent(cn, n)
 	}
 	return
 }
@@ -97,13 +103,13 @@ func (n employeeInfoTable) ID() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *employeeInfoReverse) ID() *query.ColumnNode {
 	cn := n.employeeInfoTable.ID()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -114,13 +120,13 @@ func (n employeeInfoTable) PersonID() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *employeeInfoReverse) PersonID() *query.ColumnNode {
 	cn := n.employeeInfoTable.PersonID()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -133,13 +139,13 @@ func (n employeeInfoTable) Person() PersonNode {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *employeeInfoReverse) Person() PersonNode {
 	cn := n.employeeInfoTable.Person().(*personReference)
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -150,13 +156,13 @@ func (n employeeInfoTable) EmployeeNumber() *query.ColumnNode {
 		ReceiverType: query.ColTypeInteger,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *employeeInfoReverse) EmployeeNumber() *query.ColumnNode {
 	cn := n.employeeInfoTable.EmployeeNumber()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 

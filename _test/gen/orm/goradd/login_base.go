@@ -192,7 +192,7 @@ func (o *loginBase) SetPersonID(i interface{}) {
 		v := i.(string)
 		if o.personIDIsNull ||
 			!o._restored ||
-			o.personID != v {
+			o.personID != v; -1 {
 			o.personIDIsNull = false
 			o.personID = v
 			o.personIDIsDirty = true
@@ -257,7 +257,6 @@ func (o *loginBase) UsernameIsValid() bool {
 // SetUsername sets the value of Username in the object, to be saved later using the Save() function.
 func (o *loginBase) SetUsername(username string) {
 	o.usernameIsValid = true
-
 	if utf8.RuneCountInString(username) > LoginUsernameMaxLength {
 		panic("attempted to set Login.Username to a value larger than its maximum length in runes")
 	}
@@ -265,6 +264,7 @@ func (o *loginBase) SetUsername(username string) {
 		o.username = username
 		o.usernameIsDirty = true
 	}
+
 }
 
 // Password returns the loaded value of Password.
@@ -306,12 +306,13 @@ func (o *loginBase) SetPassword(i interface{}) {
 		}
 	} else {
 		v := i.(string)
+
 		if utf8.RuneCountInString(v) > LoginPasswordMaxLength {
 			panic("attempted to set Login.Password to a value larger than its maximum length in runes")
 		}
 		if o.passwordIsNull ||
 			!o._restored ||
-			o.password != v {
+			o.password != v; -1 {
 			o.passwordIsNull = false
 			o.password = v
 			o.passwordIsDirty = true
@@ -335,11 +336,11 @@ func (o *loginBase) IsEnabledIsValid() bool {
 // SetIsEnabled sets the value of IsEnabled in the object, to be saved later using the Save() function.
 func (o *loginBase) SetIsEnabled(isEnabled bool) {
 	o.isEnabledIsValid = true
-
 	if o.isEnabled != isEnabled || !o._restored {
 		o.isEnabled = isEnabled
 		o.isEnabledIsDirty = true
 	}
+
 }
 
 // GetAlias returns the alias for the given key.
@@ -876,24 +877,32 @@ func (o *loginBase) getValidFields() (fields map[string]interface{}) {
 		if o.personIDIsNull {
 			fields["person_id"] = nil
 		} else {
+
 			fields["person_id"] = o.personID
+
 		}
 	}
 
 	if o.usernameIsValid {
+
 		fields["username"] = o.username
+
 	}
 
 	if o.passwordIsValid {
 		if o.passwordIsNull {
 			fields["password"] = nil
 		} else {
+
 			fields["password"] = o.password
+
 		}
 	}
 
 	if o.isEnabledIsValid {
+
 		fields["is_enabled"] = o.isEnabled
+
 	}
 	return
 }

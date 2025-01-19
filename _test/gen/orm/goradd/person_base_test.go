@@ -48,22 +48,22 @@ func TestPerson_SetLastName(t *testing.T) {
 		obj.SetLastName(lastName)
 	})
 }
-func TestPerson_SetPersonTypes(t *testing.T) {
+func TestPerson_SetTypes(t *testing.T) {
 
 	obj := NewPerson()
 
-	personTypes := test.RandomValue[string](9)
-	obj.SetPersonTypes(personTypes)
-	assert.Equal(t, personTypes, obj.PersonTypes())
+	types := test.RandomValue[[]PersonType](40)
+	obj.SetTypes(types)
+	assert.Equal(t, types, obj.Types())
 
 	// test zero
-	obj.SetPersonTypes("")
-	assert.Equal(t, "", obj.PersonTypes(), "set empty")
+	obj.SetTypes(PersonType(0))
+	assert.Equal(t, PersonType(0), obj.Types(), "set empty")
 
 	// test panic on setting value larger than maximum size allowed
-	personTypes = test.RandomValue[string](10)
+	types = test.RandomValue[[]PersonType](41)
 	assert.Panics(t, func() {
-		obj.SetPersonTypes(personTypes)
+		obj.SetTypes(types)
 	})
 }
 
@@ -78,8 +78,8 @@ func createMinimalSamplePerson(ctx context.Context) *Person {
 	lastName := test.RandomValue[string](50)
 	obj.SetLastName(lastName)
 
-	personTypes := test.RandomValue[string](9)
-	obj.SetPersonTypes(personTypes)
+	types := test.RandomValue[[]PersonType](40)
+	obj.SetTypes(types)
 
 	obj.Save(ctx)
 	return obj
@@ -94,8 +94,8 @@ func TestPerson_CRUD(t *testing.T) {
 	lastName := test.RandomValue[string](50)
 	obj.SetLastName(lastName)
 
-	personTypes := test.RandomValue[string](9)
-	obj.SetPersonTypes(personTypes)
+	types := test.RandomValue[[]PersonType](40)
+	obj.SetTypes(types)
 
 	// Test retrieval
 	obj = LoadPerson(ctx, obj.PrimaryKey())
@@ -110,7 +110,7 @@ func TestPerson_CRUD(t *testing.T) {
 	assert.True(t, obj.LastNameIsValid())
 	assert.Equal(t, lastName, obj.LastName())
 
-	assert.True(t, obj.PersonTypesIsValid())
-	assert.Equal(t, personTypes, obj.PersonTypes())
+	assert.True(t, obj.TypesIsValid())
+	assert.Equal(t, types, obj.Types())
 
 }

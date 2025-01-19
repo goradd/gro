@@ -9,6 +9,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"unicode/utf8"
 
 	"github.com/goradd/all"
@@ -31,9 +32,9 @@ type unsupportedTypeBase struct {
 	typeSetIsValid bool
 	typeSetIsDirty bool
 
-	typeEnum        string
-	typeEnumIsValid bool
-	typeEnumIsDirty bool
+	types        string
+	typesIsValid bool
+	typesIsDirty bool
 
 	typeDecimal        string
 	typeDecimalIsValid bool
@@ -109,7 +110,7 @@ type unsupportedTypeBase struct {
 const (
 	UnsupportedType_TypeSerial     = `TypeSerial`
 	UnsupportedType_TypeSet        = `TypeSet`
-	UnsupportedType_TypeEnum       = `TypeEnum`
+	UnsupportedType_Types          = `Types`
 	UnsupportedType_TypeDecimal    = `TypeDecimal`
 	UnsupportedType_TypeDouble     = `TypeDouble`
 	UnsupportedType_TypeGeo        = `TypeGeo`
@@ -128,7 +129,7 @@ const (
 )
 
 const UnsupportedTypeTypeSetMaxLength = 5               // The number of runes the column can hold
-const UnsupportedTypeTypeEnumMaxLength = 1              // The number of runes the column can hold
+const UnsupportedTypeTypesMaxLength = 1                 // The number of runes the column can hold
 const UnsupportedTypeTypeDecimalMaxLength = 13          // The number of runes the column can hold
 const UnsupportedTypeTypeTinyBlobMaxLength = 255        // The number of bytes the column can hold
 const UnsupportedTypeTypeMediumBlobMaxLength = 16777215 // The number of bytes the column can hold
@@ -158,10 +159,10 @@ func (o *unsupportedTypeBase) Initialize() {
 	o.typeSetIsValid = false
 	o.typeSetIsDirty = false
 
-	o.typeEnum = ""
+	o.types = ""
 
-	o.typeEnumIsValid = false
-	o.typeEnumIsDirty = false
+	o.typesIsValid = false
+	o.typesIsDirty = false
 
 	o.typeDecimal = ""
 
@@ -263,8 +264,8 @@ func (o *unsupportedTypeBase) Copy() (newObject *UnsupportedType) {
 	if o.typeSetIsValid {
 		newObject.SetTypeSet(o.typeSet)
 	}
-	if o.typeEnumIsValid {
-		newObject.SetTypeEnum(o.typeEnum)
+	if o.typesIsValid {
+		newObject.SetTypes(o.types)
 	}
 	if o.typeDecimalIsValid {
 		newObject.SetTypeDecimal(o.typeDecimal)
@@ -342,7 +343,6 @@ func (o *unsupportedTypeBase) TypeSetIsValid() bool {
 // SetTypeSet sets the value of TypeSet in the object, to be saved later using the Save() function.
 func (o *unsupportedTypeBase) SetTypeSet(typeSet string) {
 	o.typeSetIsValid = true
-
 	if utf8.RuneCountInString(typeSet) > UnsupportedTypeTypeSetMaxLength {
 		panic("attempted to set UnsupportedType.TypeSet to a value larger than its maximum length in runes")
 	}
@@ -350,32 +350,32 @@ func (o *unsupportedTypeBase) SetTypeSet(typeSet string) {
 		o.typeSet = typeSet
 		o.typeSetIsDirty = true
 	}
+
 }
 
-// TypeEnum returns the loaded value of TypeEnum.
-func (o *unsupportedTypeBase) TypeEnum() string {
-	if o._restored && !o.typeEnumIsValid {
-		panic("TypeEnum was not selected in the last query and has not been set, and so is not valid")
+// Types returns the loaded value of Types.
+func (o *unsupportedTypeBase) Types() string {
+	if o._restored && !o.typesIsValid {
+		panic("Types was not selected in the last query and has not been set, and so is not valid")
 	}
-	return o.typeEnum
+	return o.types
 }
 
-// TypeEnumIsValid returns true if the value was loaded from the database or has been set.
-func (o *unsupportedTypeBase) TypeEnumIsValid() bool {
-	return o.typeEnumIsValid
+// TypesIsValid returns true if the value was loaded from the database or has been set.
+func (o *unsupportedTypeBase) TypesIsValid() bool {
+	return o.typesIsValid
 }
 
-// SetTypeEnum sets the value of TypeEnum in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeEnum(typeEnum string) {
-	o.typeEnumIsValid = true
+// SetTypes sets the value of Types in the object, to be saved later using the Save() function.
+func (o *unsupportedTypeBase) SetTypes(types string) {
+	o.typesIsValid = true
+	v := slices.Sort(slices.Clone(types))
+	if !slices.Equal(o.types, v) ||
+		!o._restored {
+		o.types = v
+		o.typesIsDirty = true
+	}
 
-	if utf8.RuneCountInString(typeEnum) > UnsupportedTypeTypeEnumMaxLength {
-		panic("attempted to set UnsupportedType.TypeEnum to a value larger than its maximum length in runes")
-	}
-	if o.typeEnum != typeEnum || !o._restored {
-		o.typeEnum = typeEnum
-		o.typeEnumIsDirty = true
-	}
 }
 
 // TypeDecimal returns the loaded value of TypeDecimal.
@@ -394,7 +394,6 @@ func (o *unsupportedTypeBase) TypeDecimalIsValid() bool {
 // SetTypeDecimal sets the value of TypeDecimal in the object, to be saved later using the Save() function.
 func (o *unsupportedTypeBase) SetTypeDecimal(typeDecimal string) {
 	o.typeDecimalIsValid = true
-
 	if utf8.RuneCountInString(typeDecimal) > UnsupportedTypeTypeDecimalMaxLength {
 		panic("attempted to set UnsupportedType.TypeDecimal to a value larger than its maximum length in runes")
 	}
@@ -402,6 +401,7 @@ func (o *unsupportedTypeBase) SetTypeDecimal(typeDecimal string) {
 		o.typeDecimal = typeDecimal
 		o.typeDecimalIsDirty = true
 	}
+
 }
 
 // TypeDouble returns the loaded value of TypeDouble.
@@ -420,11 +420,11 @@ func (o *unsupportedTypeBase) TypeDoubleIsValid() bool {
 // SetTypeDouble sets the value of TypeDouble in the object, to be saved later using the Save() function.
 func (o *unsupportedTypeBase) SetTypeDouble(typeDouble float64) {
 	o.typeDoubleIsValid = true
-
 	if o.typeDouble != typeDouble || !o._restored {
 		o.typeDouble = typeDouble
 		o.typeDoubleIsDirty = true
 	}
+
 }
 
 // TypeGeo returns the loaded value of TypeGeo.
@@ -445,6 +445,7 @@ func (o *unsupportedTypeBase) SetTypeGeo(typeGeo []uint8) {
 	o.typeGeoIsValid = true
 	o.typeGeo = typeGeo // TODO: Copy bytes??
 	o.typeGeoIsDirty = true
+
 }
 
 // TypeTinyBlob returns the loaded value of TypeTinyBlob.
@@ -468,6 +469,7 @@ func (o *unsupportedTypeBase) SetTypeTinyBlob(typeTinyBlob []uint8) {
 	}
 	o.typeTinyBlob = typeTinyBlob // TODO: Copy bytes??
 	o.typeTinyBlobIsDirty = true
+
 }
 
 // TypeMediumBlob returns the loaded value of TypeMediumBlob.
@@ -491,6 +493,7 @@ func (o *unsupportedTypeBase) SetTypeMediumBlob(typeMediumBlob []uint8) {
 	}
 	o.typeMediumBlob = typeMediumBlob // TODO: Copy bytes??
 	o.typeMediumBlobIsDirty = true
+
 }
 
 // TypeVarbinary returns the loaded value of TypeVarbinary.
@@ -511,6 +514,7 @@ func (o *unsupportedTypeBase) SetTypeVarbinary(typeVarbinary []uint8) {
 	o.typeVarbinaryIsValid = true
 	o.typeVarbinary = typeVarbinary // TODO: Copy bytes??
 	o.typeVarbinaryIsDirty = true
+
 }
 
 // TypeLongtext returns the loaded value of TypeLongtext.
@@ -529,7 +533,6 @@ func (o *unsupportedTypeBase) TypeLongtextIsValid() bool {
 // SetTypeLongtext sets the value of TypeLongtext in the object, to be saved later using the Save() function.
 func (o *unsupportedTypeBase) SetTypeLongtext(typeLongtext string) {
 	o.typeLongtextIsValid = true
-
 	if utf8.RuneCountInString(typeLongtext) > UnsupportedTypeTypeLongtextMaxLength {
 		panic("attempted to set UnsupportedType.TypeLongtext to a value larger than its maximum length in runes")
 	}
@@ -537,6 +540,7 @@ func (o *unsupportedTypeBase) SetTypeLongtext(typeLongtext string) {
 		o.typeLongtext = typeLongtext
 		o.typeLongtextIsDirty = true
 	}
+
 }
 
 // TypeBinary returns the loaded value of TypeBinary.
@@ -557,6 +561,7 @@ func (o *unsupportedTypeBase) SetTypeBinary(typeBinary []uint8) {
 	o.typeBinaryIsValid = true
 	o.typeBinary = typeBinary // TODO: Copy bytes??
 	o.typeBinaryIsDirty = true
+
 }
 
 // TypeSmall returns the loaded value of TypeSmall.
@@ -575,11 +580,11 @@ func (o *unsupportedTypeBase) TypeSmallIsValid() bool {
 // SetTypeSmall sets the value of TypeSmall in the object, to be saved later using the Save() function.
 func (o *unsupportedTypeBase) SetTypeSmall(typeSmall int) {
 	o.typeSmallIsValid = true
-
 	if o.typeSmall != typeSmall || !o._restored {
 		o.typeSmall = typeSmall
 		o.typeSmallIsDirty = true
 	}
+
 }
 
 // TypeMedium returns the loaded value of TypeMedium.
@@ -598,11 +603,11 @@ func (o *unsupportedTypeBase) TypeMediumIsValid() bool {
 // SetTypeMedium sets the value of TypeMedium in the object, to be saved later using the Save() function.
 func (o *unsupportedTypeBase) SetTypeMedium(typeMedium int) {
 	o.typeMediumIsValid = true
-
 	if o.typeMedium != typeMedium || !o._restored {
 		o.typeMedium = typeMedium
 		o.typeMediumIsDirty = true
 	}
+
 }
 
 // TypeBig returns the loaded value of TypeBig.
@@ -621,11 +626,11 @@ func (o *unsupportedTypeBase) TypeBigIsValid() bool {
 // SetTypeBig sets the value of TypeBig in the object, to be saved later using the Save() function.
 func (o *unsupportedTypeBase) SetTypeBig(typeBig int64) {
 	o.typeBigIsValid = true
-
 	if o.typeBig != typeBig || !o._restored {
 		o.typeBig = typeBig
 		o.typeBigIsDirty = true
 	}
+
 }
 
 // TypePolygon returns the loaded value of TypePolygon.
@@ -646,6 +651,7 @@ func (o *unsupportedTypeBase) SetTypePolygon(typePolygon []uint8) {
 	o.typePolygonIsValid = true
 	o.typePolygon = typePolygon // TODO: Copy bytes??
 	o.typePolygonIsDirty = true
+
 }
 
 // TypeUnsigned returns the loaded value of TypeUnsigned.
@@ -664,11 +670,11 @@ func (o *unsupportedTypeBase) TypeUnsignedIsValid() bool {
 // SetTypeUnsigned sets the value of TypeUnsigned in the object, to be saved later using the Save() function.
 func (o *unsupportedTypeBase) SetTypeUnsigned(typeUnsigned uint) {
 	o.typeUnsignedIsValid = true
-
 	if o.typeUnsigned != typeUnsigned || !o._restored {
 		o.typeUnsigned = typeUnsigned
 		o.typeUnsignedIsDirty = true
 	}
+
 }
 
 // TypeMultfk1 returns the loaded value of TypeMultfk1.
@@ -687,7 +693,6 @@ func (o *unsupportedTypeBase) TypeMultfk1IsValid() bool {
 // SetTypeMultfk1 sets the value of TypeMultfk1 in the object, to be saved later using the Save() function.
 func (o *unsupportedTypeBase) SetTypeMultfk1(typeMultfk1 string) {
 	o.typeMultfk1IsValid = true
-
 	if utf8.RuneCountInString(typeMultfk1) > UnsupportedTypeTypeMultfk1MaxLength {
 		panic("attempted to set UnsupportedType.TypeMultfk1 to a value larger than its maximum length in runes")
 	}
@@ -695,6 +700,7 @@ func (o *unsupportedTypeBase) SetTypeMultfk1(typeMultfk1 string) {
 		o.typeMultfk1 = typeMultfk1
 		o.typeMultfk1IsDirty = true
 	}
+
 }
 
 // TypeMultifk2 returns the loaded value of TypeMultifk2.
@@ -713,7 +719,6 @@ func (o *unsupportedTypeBase) TypeMultifk2IsValid() bool {
 // SetTypeMultifk2 sets the value of TypeMultifk2 in the object, to be saved later using the Save() function.
 func (o *unsupportedTypeBase) SetTypeMultifk2(typeMultifk2 string) {
 	o.typeMultifk2IsValid = true
-
 	if utf8.RuneCountInString(typeMultifk2) > UnsupportedTypeTypeMultifk2MaxLength {
 		panic("attempted to set UnsupportedType.TypeMultifk2 to a value larger than its maximum length in runes")
 	}
@@ -721,6 +726,7 @@ func (o *unsupportedTypeBase) SetTypeMultifk2(typeMultifk2 string) {
 		o.typeMultifk2 = typeMultifk2
 		o.typeMultifk2IsDirty = true
 	}
+
 }
 
 // GetAlias returns the alias for the given key.
@@ -973,11 +979,11 @@ func CountUnsupportedTypeByTypeSet(ctx context.Context, typeSet string) int {
 	return int(queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeSet(), typeSet)).Count(false))
 }
 
-// CountUnsupportedTypeByTypeEnum queries the database and returns the number of UnsupportedType objects that
-// have typeEnum.
+// CountUnsupportedTypeByTypes queries the database and returns the number of UnsupportedType objects that
+// have types.
 // doc: type=UnsupportedType
-func CountUnsupportedTypeByTypeEnum(ctx context.Context, typeEnum string) int {
-	return int(queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeEnum(), typeEnum)).Count(false))
+func CountUnsupportedTypeByTypes(ctx context.Context, types string) int {
+	return int(queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().Types(), types)).Count(false))
 }
 
 // CountUnsupportedTypeByTypeDecimal queries the database and returns the number of UnsupportedType objects that
@@ -1119,16 +1125,16 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	}
 
 	if v, ok := m["type_enum"]; ok && v != nil {
-		if o.typeEnum, ok = v.(string); ok {
-			o.typeEnumIsValid = true
-			o.typeEnumIsDirty = false
+		if o.types, ok = v.(string); ok {
+			o.typesIsValid = true
+			o.typesIsDirty = false
 
 		} else {
 			panic("Wrong type found for type_enum.")
 		}
 	} else {
-		o.typeEnumIsValid = false
-		o.typeEnum = ""
+		o.typesIsValid = false
+		o.types = ""
 	}
 
 	if v, ok := m["type_decimal"]; ok && v != nil {
@@ -1379,8 +1385,8 @@ func (o *unsupportedTypeBase) insert(ctx context.Context) {
 			panic("a value for TypeSet is required, and there is no default value. Call SetTypeSet() before inserting the record.")
 		}
 
-		if !o.typeEnumIsValid {
-			panic("a value for TypeEnum is required, and there is no default value. Call SetTypeEnum() before inserting the record.")
+		if !o.typesIsValid {
+			panic("a value for Types is required, and there is no default value. Call SetTypes() before inserting the record.")
 		}
 
 		if !o.typeDecimalIsValid {
@@ -1466,8 +1472,8 @@ func (o *unsupportedTypeBase) getModifiedFields() (fields map[string]interface{}
 	if o.typeSetIsDirty {
 		fields["type_set"] = o.typeSet
 	}
-	if o.typeEnumIsDirty {
-		fields["type_enum"] = o.typeEnum
+	if o.typesIsDirty {
+		fields["type_enum"] = o.types
 	}
 	if o.typeDecimalIsDirty {
 		fields["type_decimal"] = o.typeDecimal
@@ -1522,71 +1528,108 @@ func (o *unsupportedTypeBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 
 	if o.typeSetIsValid {
+
 		fields["type_set"] = o.typeSet
+
 	}
 
-	if o.typeEnumIsValid {
-		fields["type_enum"] = o.typeEnum
+	if o.typesIsValid {
+
+		b, err := json.Marshal(o.types)
+		if err == nil && b != nil {
+			fields["type_enum"] = string(b)
+		}
+
 	}
 
 	if o.typeDecimalIsValid {
+
 		fields["type_decimal"] = o.typeDecimal
+
 	}
 
 	if o.typeDoubleIsValid {
+
 		fields["type_double"] = o.typeDouble
+
 	}
 
 	if o.typeGeoIsValid {
+
 		fields["type_geo"] = o.typeGeo
+
 	}
 
 	if o.typeTinyBlobIsValid {
+
 		fields["type_tiny_blob"] = o.typeTinyBlob
+
 	}
 
 	if o.typeMediumBlobIsValid {
+
 		fields["type_medium_blob"] = o.typeMediumBlob
+
 	}
 
 	if o.typeVarbinaryIsValid {
+
 		fields["type_varbinary"] = o.typeVarbinary
+
 	}
 
 	if o.typeLongtextIsValid {
+
 		fields["type_longtext"] = o.typeLongtext
+
 	}
 
 	if o.typeBinaryIsValid {
+
 		fields["type_binary"] = o.typeBinary
+
 	}
 
 	if o.typeSmallIsValid {
+
 		fields["type_small"] = o.typeSmall
+
 	}
 
 	if o.typeMediumIsValid {
+
 		fields["type_medium"] = o.typeMedium
+
 	}
 
 	if o.typeBigIsValid {
+
 		fields["type_big"] = o.typeBig
+
 	}
 
 	if o.typePolygonIsValid {
+
 		fields["type_polygon"] = o.typePolygon
+
 	}
 
 	if o.typeUnsignedIsValid {
+
 		fields["type_unsigned"] = o.typeUnsigned
+
 	}
 
 	if o.typeMultfk1IsValid {
+
 		fields["type_multFk1"] = o.typeMultfk1
+
 	}
 
 	if o.typeMultifk2IsValid {
+
 		fields["type_multiFk2"] = o.typeMultifk2
+
 	}
 	return
 }
@@ -1612,7 +1655,7 @@ func deleteUnsupportedType(ctx context.Context, pk string) {
 func (o *unsupportedTypeBase) resetDirtyStatus() {
 	o.typeSerialIsDirty = false
 	o.typeSetIsDirty = false
-	o.typeEnumIsDirty = false
+	o.typesIsDirty = false
 	o.typeDecimalIsDirty = false
 	o.typeDoubleIsDirty = false
 	o.typeGeoIsDirty = false
@@ -1635,7 +1678,7 @@ func (o *unsupportedTypeBase) resetDirtyStatus() {
 func (o *unsupportedTypeBase) IsDirty() (dirty bool) {
 	dirty = o.typeSerialIsDirty ||
 		o.typeSetIsDirty ||
-		o.typeEnumIsDirty ||
+		o.typesIsDirty ||
 		o.typeDecimalIsDirty ||
 		o.typeDoubleIsDirty ||
 		o.typeGeoIsDirty ||
@@ -1674,11 +1717,11 @@ func (o *unsupportedTypeBase) Get(key string) interface{} {
 		}
 		return o.typeSet
 
-	case "TypeEnum":
-		if !o.typeEnumIsValid {
+	case "Types":
+		if !o.typesIsValid {
 			return nil
 		}
-		return o.typeEnum
+		return o.types
 
 	case "TypeDecimal":
 		if !o.typeDecimalIsValid {
@@ -1802,14 +1845,14 @@ func (o *unsupportedTypeBase) MarshalBinary() ([]byte, error) {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeSetIsDirty: %w", err)
 	}
 
-	if err := encoder.Encode(o.typeEnum); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeEnum: %w", err)
+	if err := encoder.Encode(o.types); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.types: %w", err)
 	}
-	if err := encoder.Encode(o.typeEnumIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeEnumIsValid: %w", err)
+	if err := encoder.Encode(o.typesIsValid); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.typesIsValid: %w", err)
 	}
-	if err := encoder.Encode(o.typeEnumIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeEnumIsDirty: %w", err)
+	if err := encoder.Encode(o.typesIsDirty); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.typesIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.typeDecimal); err != nil {
@@ -2015,14 +2058,14 @@ func (o *unsupportedTypeBase) UnmarshalBinary(data []byte) (err error) {
 		return fmt.Errorf("error decoding UnsupportedType.typeSetIsDirty: %w", err)
 	}
 
-	if err = dec.Decode(&o.typeEnum); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeEnum: %w", err)
+	if err = dec.Decode(&o.types); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.types: %w", err)
 	}
-	if err = dec.Decode(&o.typeEnumIsValid); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeEnumIsValid: %w", err)
+	if err = dec.Decode(&o.typesIsValid); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typesIsValid: %w", err)
 	}
-	if err = dec.Decode(&o.typeEnumIsDirty); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeEnumIsDirty: %w", err)
+	if err = dec.Decode(&o.typesIsDirty); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typesIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.typeDecimal); err != nil {
@@ -2201,8 +2244,8 @@ func (o *unsupportedTypeBase) MarshalStringMap() map[string]interface{} {
 		v["typeSet"] = o.typeSet
 	}
 
-	if o.typeEnumIsValid {
-		v["typeEnum"] = o.typeEnum
+	if o.typesIsValid {
+		v["types"] = o.types
 	}
 
 	if o.typeDecimalIsValid {
@@ -2283,7 +2326,7 @@ func (o *unsupportedTypeBase) MarshalStringMap() map[string]interface{} {
 //
 //	"typeSerial" - string
 //	"typeSet" - string
-//	"typeEnum" - string
+//	"types" - string
 //	"typeDecimal" - string
 //	"typeDouble" - float64
 //	"typeGeo" - []uint8
@@ -2327,7 +2370,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 				}
 			}
 
-		case "typeEnum":
+		case "types":
 			{
 				if v == nil {
 					return fmt.Errorf("json field %s cannot be null", k)
@@ -2336,7 +2379,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 				if s, ok := v.(string); !ok {
 					return fmt.Errorf("json field %s must be a string", k)
 				} else {
-					o.SetTypeEnum(s)
+					o.SetTypes(s)
 				}
 			}
 

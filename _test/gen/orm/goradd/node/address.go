@@ -65,7 +65,6 @@ func (n addressTable) DatabaseKey_() string {
 }
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
-// This may include reference nodes to enum types.
 func (n addressTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.PersonID())
@@ -77,7 +76,7 @@ func (n addressTable) ColumnNodes_() (nodes []query.Node) {
 func (n *addressReverse) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.addressTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.Linker).SetParent(n)
+		query.NodeSetParent(cn, n)
 	}
 	return
 }
@@ -107,13 +106,13 @@ func (n addressTable) ID() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *addressReverse) ID() *query.ColumnNode {
 	cn := n.addressTable.ID()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -124,13 +123,13 @@ func (n addressTable) PersonID() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *addressReverse) PersonID() *query.ColumnNode {
 	cn := n.addressTable.PersonID()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -143,13 +142,13 @@ func (n addressTable) Person() PersonNode {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *addressReverse) Person() PersonNode {
 	cn := n.addressTable.Person().(*personReference)
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -160,13 +159,13 @@ func (n addressTable) Street() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *addressReverse) Street() *query.ColumnNode {
 	cn := n.addressTable.Street()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -177,13 +176,13 @@ func (n addressTable) City() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *addressReverse) City() *query.ColumnNode {
 	cn := n.addressTable.City()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 

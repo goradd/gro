@@ -111,11 +111,11 @@ func (o *giftBase) NumberIsValid() bool {
 // SetNumber sets the value of Number in the object, to be saved later using the Save() function.
 func (o *giftBase) SetNumber(number int) {
 	o.numberIsValid = true
-
 	if o.number != number || !o._restored {
 		o.number = number
 		o.numberIsDirty = true
 	}
+
 }
 
 // Name returns the loaded value of Name.
@@ -134,7 +134,6 @@ func (o *giftBase) NameIsValid() bool {
 // SetName sets the value of Name in the object, to be saved later using the Save() function.
 func (o *giftBase) SetName(name string) {
 	o.nameIsValid = true
-
 	if utf8.RuneCountInString(name) > GiftNameMaxLength {
 		panic("attempted to set Gift.Name to a value larger than its maximum length in runes")
 	}
@@ -142,6 +141,7 @@ func (o *giftBase) SetName(name string) {
 		o.name = name
 		o.nameIsDirty = true
 	}
+
 }
 
 // GetAlias returns the alias for the given key.
@@ -534,11 +534,15 @@ func (o *giftBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 
 	if o.numberIsValid {
+
 		fields["number"] = o.number
+
 	}
 
 	if o.nameIsValid {
+
 		fields["name"] = o.name
+
 	}
 	return
 }

@@ -26,14 +26,14 @@ func (n {{= table.DecapIdentifier}}Table) {{= rev.ReverseIdentifier() }}() {{= r
 			ReceiverType:    query.{{= rev.ReceiverType.String() }},
 		},
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 {{if hasReverse}}
 func (n *{{= table.DecapIdentifier}}Reference) {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}Node  {
     cn := n.{{= table.DecapIdentifier}}Table.{{= rev.ReverseIdentifier() }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
-    cn.SetParent(n)
+    query.NodeSetParent(cn, n)
     return cn
 }
 
@@ -41,7 +41,7 @@ func (n *{{= table.DecapIdentifier}}Reference) {{= rev.ReverseIdentifier() }}() 
 {{if hasReference}}
 func (n *{{= table.DecapIdentifier}}Reverse) {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}Node  {
     cn := n.{{= table.DecapIdentifier}}Table.{{= rev.ReverseIdentifier() }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
-    cn.SetParent(n)
+    query.NodeSetParent(cn, n)
     return cn
 }
 
@@ -49,7 +49,7 @@ func (n *{{= table.DecapIdentifier}}Reverse) {{= rev.ReverseIdentifier() }}() {{
 {{if hasAssociation}}
 func (n *{{= table.DecapIdentifier}}Association) {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}Node  {
     cn := n.{{= table.DecapIdentifier}}Table.{{= rev.ReverseIdentifier() }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
-    cn.SetParent(n)
+    query.NodeSetParent(cn, n)
     return cn
 }
 
@@ -72,14 +72,14 @@ func (n {{= table.DecapIdentifier }}Table) {{= rev.ReverseIdentifier() }}() {{= 
 			ReceiverType:    query.{{= rev.ReceiverType.String() }},
 		},
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 {{if hasReverse}}
 func (n *{{= table.DecapIdentifier}}Reference) {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}Expander  {
     cn := n.{{= table.DecapIdentifier}}Table.{{= rev.ReverseIdentifier() }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
-    cn.SetParent(n)
+    query.NodeSetParent(cn, n)
     return cn
 }
 
@@ -87,7 +87,7 @@ func (n *{{= table.DecapIdentifier}}Reference) {{= rev.ReverseIdentifier() }}() 
 {{if hasReference}}
 func (n *{{= table.DecapIdentifier}}Reverse) {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}Expander  {
     cn := n.{{= table.DecapIdentifier}}Table.{{= rev.ReverseIdentifier() }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
-    cn.SetParent(n)
+    query.NodeSetParent(cn, n)
     return cn
 }
 
@@ -95,7 +95,7 @@ func (n *{{= table.DecapIdentifier}}Reverse) {{= rev.ReverseIdentifier() }}() {{
 {{if hasAssociation}}
 func (n *{{= table.DecapIdentifier}}Association) {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}Expander  {
     cn := n.{{= table.DecapIdentifier}}Table.{{= rev.ReverseIdentifier() }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
-    cn.SetParent(n)
+    query.NodeSetParent(cn, n)
     return cn
 }
 

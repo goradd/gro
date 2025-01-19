@@ -17,15 +17,15 @@ type ReverseNode interface {
 	ID() *query.ColumnNode
 	// Name represents the name column in the database.
 	Name() *query.ColumnNode
-	// ForwardCascades represents the ForwardCascade reference to ForwardCascade objects.
+	// ForwardCascades represents the ForwardCascades reference to ForwardCascade objects.
 	ForwardCascades() ForwardCascadeExpander
 	// ForwardCascadeUnique represents the ForwardCascadeUnique reference to a ForwardCascadeUnique object.
 	ForwardCascadeUnique() ForwardCascadeUniqueNode
-	// ForwardNulls represents the ForwardNull reference to ForwardNull objects.
+	// ForwardNulls represents the ForwardNulls reference to ForwardNull objects.
 	ForwardNulls() ForwardNullExpander
 	// ForwardNullUnique represents the ForwardNullUnique reference to a ForwardNullUnique object.
 	ForwardNullUnique() ForwardNullUniqueNode
-	// ForwardRestricts represents the ForwardRestrict reference to ForwardRestrict objects.
+	// ForwardRestricts represents the ForwardRestricts reference to ForwardRestrict objects.
 	ForwardRestricts() ForwardRestrictExpander
 	// ForwardRestrictUnique represents the ForwardRestrictUnique reference to a ForwardRestrictUnique object.
 	ForwardRestrictUnique() ForwardRestrictUniqueNode
@@ -76,7 +76,6 @@ func (n reverseTable) DatabaseKey_() string {
 }
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
-// This may include reference nodes to enum types.
 func (n reverseTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.Name())
@@ -86,7 +85,7 @@ func (n reverseTable) ColumnNodes_() (nodes []query.Node) {
 func (n *reverseReference) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.reverseTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.Linker).SetParent(n)
+		query.NodeSetParent(cn, n)
 	}
 	return
 }
@@ -94,7 +93,7 @@ func (n *reverseReference) ColumnNodes_() (nodes []query.Node) {
 func (n *reverseReverse) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.reverseTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.Linker).SetParent(n)
+		query.NodeSetParent(cn, n)
 	}
 	return
 }
@@ -132,19 +131,19 @@ func (n reverseTable) ID() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *reverseReference) ID() *query.ColumnNode {
 	cn := n.reverseTable.ID()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *reverseReverse) ID() *query.ColumnNode {
 	cn := n.reverseTable.ID()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -155,19 +154,19 @@ func (n reverseTable) Name() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *reverseReference) Name() *query.ColumnNode {
 	cn := n.reverseTable.Name()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *reverseReverse) Name() *query.ColumnNode {
 	cn := n.reverseTable.Name()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -181,19 +180,19 @@ func (n reverseTable) ForwardCascades() ForwardCascadeExpander {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *reverseReference) ForwardCascades() ForwardCascadeExpander {
 	cn := n.reverseTable.ForwardCascades().(*forwardCascadeReverse)
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *reverseReverse) ForwardCascades() ForwardCascadeExpander {
 	cn := n.reverseTable.ForwardCascades().(*forwardCascadeReverse)
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -207,19 +206,19 @@ func (n reverseTable) ForwardCascadeUnique() ForwardCascadeUniqueNode {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *reverseReference) ForwardCascadeUnique() ForwardCascadeUniqueNode {
 	cn := n.reverseTable.ForwardCascadeUnique().(*forwardCascadeUniqueReverse)
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *reverseReverse) ForwardCascadeUnique() ForwardCascadeUniqueNode {
 	cn := n.reverseTable.ForwardCascadeUnique().(*forwardCascadeUniqueReverse)
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -233,19 +232,19 @@ func (n reverseTable) ForwardNulls() ForwardNullExpander {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *reverseReference) ForwardNulls() ForwardNullExpander {
 	cn := n.reverseTable.ForwardNulls().(*forwardNullReverse)
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *reverseReverse) ForwardNulls() ForwardNullExpander {
 	cn := n.reverseTable.ForwardNulls().(*forwardNullReverse)
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -259,19 +258,19 @@ func (n reverseTable) ForwardNullUnique() ForwardNullUniqueNode {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *reverseReference) ForwardNullUnique() ForwardNullUniqueNode {
 	cn := n.reverseTable.ForwardNullUnique().(*forwardNullUniqueReverse)
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *reverseReverse) ForwardNullUnique() ForwardNullUniqueNode {
 	cn := n.reverseTable.ForwardNullUnique().(*forwardNullUniqueReverse)
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -285,19 +284,19 @@ func (n reverseTable) ForwardRestricts() ForwardRestrictExpander {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *reverseReference) ForwardRestricts() ForwardRestrictExpander {
 	cn := n.reverseTable.ForwardRestricts().(*forwardRestrictReverse)
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *reverseReverse) ForwardRestricts() ForwardRestrictExpander {
 	cn := n.reverseTable.ForwardRestricts().(*forwardRestrictReverse)
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -311,19 +310,19 @@ func (n reverseTable) ForwardRestrictUnique() ForwardRestrictUniqueNode {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *reverseReference) ForwardRestrictUnique() ForwardRestrictUniqueNode {
 	cn := n.reverseTable.ForwardRestrictUnique().(*forwardRestrictUniqueReverse)
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *reverseReverse) ForwardRestrictUnique() ForwardRestrictUniqueNode {
 	cn := n.reverseTable.ForwardRestrictUnique().(*forwardRestrictUniqueReverse)
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 

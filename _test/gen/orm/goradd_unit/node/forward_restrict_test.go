@@ -5,7 +5,6 @@ import (
 
 	"github.com/goradd/orm/pkg/query"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestSerializeTableForwardRestrictTable(t *testing.T) {
@@ -25,8 +24,7 @@ func TestSerializeTableForwardRestrictTable(t *testing.T) {
 	for _, cn := range nodes {
 		cn2 := serNode(t, cn)
 		assert.Equal(t, "forward_restrict", cn2.TableName_())
-		require.Implements(t, (*query.Linker)(nil), cn2)
-		assert.Equal(t, query.TableNodeType, cn2.(query.Linker).Parent().NodeType_())
+		assert.Equal(t, query.TableNodeType, query.NodeParent(cn2).NodeType_())
 	}
 }
 
@@ -35,7 +33,7 @@ func TestSerializeReferencesForwardRestrictTable(t *testing.T) {
 	{
 		n := ForwardRestrict().Reverse()
 		n2 := serNode(t, n)
-		parentNode := n2.(query.Linker).Parent()
+		parentNode := query.NodeParent(n2)
 		assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
 		assert.Equal(t, "forward_restrict", parentNode.TableName_())
 
@@ -43,8 +41,7 @@ func TestSerializeReferencesForwardRestrictTable(t *testing.T) {
 		for _, cn := range nodes {
 			cn2 := serNode(t, cn)
 			assert.Equal(t, n.TableName_(), cn2.TableName_())
-			require.Implements(t, (*query.Linker)(nil), cn2)
-			assert.Equal(t, query.ReferenceNodeType, cn2.(query.Linker).Parent().NodeType_())
+			assert.Equal(t, query.ReferenceNodeType, query.NodeParent(cn2).NodeType_())
 		}
 	}
 

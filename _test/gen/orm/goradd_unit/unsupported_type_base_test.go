@@ -30,22 +30,22 @@ func TestUnsupportedType_SetTypeSet(t *testing.T) {
 		obj.SetTypeSet(typeSet)
 	})
 }
-func TestUnsupportedType_SetTypeEnum(t *testing.T) {
+func TestUnsupportedType_SetTypes(t *testing.T) {
 
 	obj := NewUnsupportedType()
 
-	typeEnum := test.RandomValue[string](1)
-	obj.SetTypeEnum(typeEnum)
-	assert.Equal(t, typeEnum, obj.TypeEnum())
+	types := test.RandomValue[string](1)
+	obj.SetTypes(types)
+	assert.Equal(t, types, obj.Types())
 
 	// test zero
-	obj.SetTypeEnum("")
-	assert.Equal(t, "", obj.TypeEnum(), "set empty")
+	obj.SetTypes("")
+	assert.Equal(t, "", obj.Types(), "set empty")
 
 	// test panic on setting value larger than maximum size allowed
-	typeEnum = test.RandomValue[string](2)
+	types = test.RandomValue[string](2)
 	assert.Panics(t, func() {
-		obj.SetTypeEnum(typeEnum)
+		obj.SetTypes(types)
 	})
 }
 func TestUnsupportedType_SetTypeDecimal(t *testing.T) {
@@ -282,8 +282,8 @@ func createMinimalSampleUnsupportedType(ctx context.Context) *UnsupportedType {
 	typeSet := test.RandomValue[string](5)
 	obj.SetTypeSet(typeSet)
 
-	typeEnum := test.RandomValue[string](1)
-	obj.SetTypeEnum(typeEnum)
+	types := test.RandomValue[string](1)
+	obj.SetTypes(types)
 
 	typeDecimal := test.RandomValue[string](13)
 	obj.SetTypeDecimal(typeDecimal)
@@ -328,8 +328,8 @@ func TestUnsupportedType_CRUD(t *testing.T) {
 	typeSet := test.RandomValue[string](5)
 	obj.SetTypeSet(typeSet)
 
-	typeEnum := test.RandomValue[string](1)
-	obj.SetTypeEnum(typeEnum)
+	types := test.RandomValue[string](1)
+	obj.SetTypes(types)
 
 	typeDecimal := test.RandomValue[string](13)
 	obj.SetTypeDecimal(typeDecimal)
@@ -374,8 +374,8 @@ func TestUnsupportedType_CRUD(t *testing.T) {
 	assert.True(t, obj.TypeSetIsValid())
 	assert.Equal(t, typeSet, obj.TypeSet())
 
-	assert.True(t, obj.TypeEnumIsValid())
-	assert.Equal(t, typeEnum, obj.TypeEnum())
+	assert.True(t, obj.TypesIsValid())
+	assert.Equal(t, types, obj.Types())
 
 	assert.True(t, obj.TypeDecimalIsValid())
 	assert.Equal(t, typeDecimal, obj.TypeDecimal())

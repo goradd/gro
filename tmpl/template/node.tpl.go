@@ -769,7 +769,7 @@ func (n `); err != nil {
 
 		if _, err = io.WriteString(_w, `Table.ColumnNodes_()
     for _,cn := range nodes {
-        cn.(query.Linker).SetParent(n)
+        query.NodeSetParent(cn, n)
     }
     return
 }
@@ -805,7 +805,7 @@ func (n `); err != nil {
 
 		if _, err = io.WriteString(_w, `Table.ColumnNodes_()
     for _,cn := range nodes {
-        cn.(query.Linker).SetParent(n)
+        query.NodeSetParent(cn, n)
     }
     return
 }
@@ -841,7 +841,7 @@ func (n `); err != nil {
 
 		if _, err = io.WriteString(_w, `Table.ColumnNodes_()
     for _,cn := range nodes {
-        cn.(query.Linker).SetParent(n)
+        query.NodeSetParent(cn, n)
     }
     return
 }
@@ -1402,7 +1402,7 @@ func (n *NodeTemplate) genColumnNode(table *model.Table, col *model.Column, _w i
 
 	if _, err = io.WriteString(_w, `,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -1424,7 +1424,7 @@ func (n *NodeTemplate) genColumnNode(table *model.Table, col *model.Column, _w i
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
 			return
 		}
 
@@ -1441,12 +1441,12 @@ func (n *NodeTemplate) genColumnNode(table *model.Table, col *model.Column, _w i
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
 			return
 		}
 
 		if _, err = io.WriteString(_w, `()
-    cn.SetParent(n)
+    query.NodeSetParent(cn, n)
     return cn
 }
 
@@ -1470,7 +1470,7 @@ func (n *NodeTemplate) genColumnNode(table *model.Table, col *model.Column, _w i
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.ReverseIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
 			return
 		}
 
@@ -1487,12 +1487,12 @@ func (n *NodeTemplate) genColumnNode(table *model.Table, col *model.Column, _w i
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.ReverseIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
 			return
 		}
 
 		if _, err = io.WriteString(_w, `()
-    cn.SetParent(n)
+    query.NodeSetParent(cn, n)
     return cn
 }
 
@@ -1538,7 +1538,7 @@ func (n *NodeTemplate) genColumnNode(table *model.Table, col *model.Column, _w i
 		}
 
 		if _, err = io.WriteString(_w, `()
-    cn.SetParent(n)
+    query.NodeSetParent(cn, n)
     return cn
 }
 `); err != nil {
@@ -1638,7 +1638,7 @@ func (n `); err != nil {
 	if _, err = io.WriteString(_w, `,
 		},
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -1698,7 +1698,7 @@ func (n `); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `Reference)
-    cn.SetParent(n)
+    query.NodeSetParent(cn, n)
     return cn
 }
 
@@ -1760,7 +1760,7 @@ func (n `); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `Reference)
-    cn.SetParent(n)
+    query.NodeSetParent(cn, n)
     return cn
 }
 
@@ -1822,7 +1822,7 @@ func (n `); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `Reference)
-    cn.SetParent(n)
+    query.NodeSetParent(cn, n)
     return cn
 }
 
@@ -1959,7 +1959,7 @@ func (n `); err != nil {
 	if _, err = io.WriteString(_w, `,
 		},
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -2019,7 +2019,7 @@ func (n `); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `)
-    cn.SetParent(n)
+    query.NodeSetParent(cn, n)
     return cn
 }
 
@@ -2081,7 +2081,7 @@ func (n `); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `)
-    cn.SetParent(n)
+    query.NodeSetParent(cn, n)
     return cn
 }
 
@@ -2143,7 +2143,7 @@ func (n `); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `)
-    cn.SetParent(n)
+    query.NodeSetParent(cn, n)
     return cn
 }
 
@@ -2270,7 +2270,7 @@ func (n `); err != nil {
 	if _, err = io.WriteString(_w, `,
 		},
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -2330,7 +2330,7 @@ func (n `); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `Reverse)
-    cn.SetParent(n)
+    query.NodeSetParent(cn, n)
     return cn
 }
 
@@ -2392,7 +2392,7 @@ func (n `); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `Reverse)
-    cn.SetParent(n)
+    query.NodeSetParent(cn, n)
     return cn
 }
 
@@ -2454,7 +2454,7 @@ func (n `); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `Reverse)
-    cn.SetParent(n)
+    query.NodeSetParent(cn, n)
     return cn
 }
 
@@ -2565,7 +2565,7 @@ func (n `); err != nil {
 	if _, err = io.WriteString(_w, `,
 		},
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -2625,7 +2625,7 @@ func (n `); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `Reverse)
-    cn.SetParent(n)
+    query.NodeSetParent(cn, n)
     return cn
 }
 
@@ -2687,7 +2687,7 @@ func (n `); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `Reverse)
-    cn.SetParent(n)
+    query.NodeSetParent(cn, n)
     return cn
 }
 
@@ -2749,7 +2749,7 @@ func (n `); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `Reverse)
-    cn.SetParent(n)
+    query.NodeSetParent(cn, n)
     return cn
 }
 

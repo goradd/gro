@@ -8,6 +8,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"unicode/utf8"
 
 	"github.com/goradd/all"
@@ -35,9 +36,9 @@ type personBase struct {
 	lastNameIsValid bool
 	lastNameIsDirty bool
 
-	personTypes        string
-	personTypesIsValid bool
-	personTypesIsDirty bool
+	types        []PersonType
+	typesIsValid bool
+	typesIsDirty bool
 
 	// Reverse reference objects.
 
@@ -58,12 +59,9 @@ type personBase struct {
 	revManagerProjectsIsDirty bool
 
 	// Many-Many reference objects.
-	mmPersonTypes        []PersonType
-	mmPersonTypesPks     []int // Primary keys to associate at Save time
-	mmPersonTypesIsDirty bool
-	mmProjects           maps.SliceMap[string, *Project]
-	mmProjectsPks        []string // Primary keys to associate at Save time
-	mmProjectsIsDirty    bool
+	mmProjects        maps.SliceMap[string, *Project]
+	mmProjectsPks     []string // Primary keys to associate at Save time
+	mmProjectsIsDirty bool
 
 	// Custom aliases, if specified
 	_aliases map[string]any
@@ -77,25 +75,23 @@ type personBase struct {
 // IDs used to access the Person object fields by name using the Get function.
 // doc: type=Person
 const (
-	Person_ID          = `ID`
-	Person_FirstName   = `FirstName`
-	Person_LastName    = `LastName`
-	Person_PersonTypes = `PersonTypes`
+	Person_ID        = `ID`
+	Person_FirstName = `FirstName`
+	Person_LastName  = `LastName`
+	Person_Types     = `Types`
 
 	PersonAddresses       = `Addresses`
 	PersonEmployeeInfo    = `EmployeeInfo`
 	PersonLogin           = `Login`
 	PersonManagerProjects = `ManagerProjects`
 
-	PersonPersonType  = `PersonType`
-	PersonPersonTypes = `PersonTypes`
-	PersonProject     = `Project`
-	PersonProjects    = `Projects`
+	PersonProject  = `Project`
+	PersonProjects = `Projects`
 )
 
-const PersonFirstNameMaxLength = 50  // The number of runes the column can hold
-const PersonLastNameMaxLength = 50   // The number of runes the column can hold
-const PersonPersonTypesMaxLength = 9 // The number of runes the column can hold
+const PersonFirstNameMaxLength = 50 // The number of runes the column can hold
+const PersonLastNameMaxLength = 50  // The number of runes the column can hold
+const PersonTypesMaxLength = 40     // The number of runes the column can hold
 
 // Initialize or re-initialize a Person database object to default values.
 // The primary key will get a temporary negative number which will be replaced when the object is saved.
@@ -118,10 +114,10 @@ func (o *personBase) Initialize() {
 	o.lastNameIsValid = false
 	o.lastNameIsDirty = false
 
-	o.personTypes = ""
+	o.types = PersonType(0)
 
-	o.personTypesIsValid = false
-	o.personTypesIsDirty = false
+	o.typesIsValid = false
+	o.typesIsDirty = false
 
 	o._restored = false
 }
@@ -151,8 +147,8 @@ func (o *personBase) Copy() (newObject *Person) {
 	if o.lastNameIsValid {
 		newObject.SetLastName(o.lastName)
 	}
-	if o.personTypesIsValid {
-		newObject.SetPersonTypes(o.personTypes)
+	if o.typesIsValid {
+		newObject.SetTypes(o.types)
 	}
 	return
 }
@@ -185,7 +181,6 @@ func (o *personBase) FirstNameIsValid() bool {
 // SetFirstName sets the value of FirstName in the object, to be saved later using the Save() function.
 func (o *personBase) SetFirstName(firstName string) {
 	o.firstNameIsValid = true
-
 	if utf8.RuneCountInString(firstName) > PersonFirstNameMaxLength {
 		panic("attempted to set Person.FirstName to a value larger than its maximum length in runes")
 	}
@@ -193,6 +188,7 @@ func (o *personBase) SetFirstName(firstName string) {
 		o.firstName = firstName
 		o.firstNameIsDirty = true
 	}
+
 }
 
 // LastName returns the loaded value of LastName.
@@ -211,7 +207,6 @@ func (o *personBase) LastNameIsValid() bool {
 // SetLastName sets the value of LastName in the object, to be saved later using the Save() function.
 func (o *personBase) SetLastName(lastName string) {
 	o.lastNameIsValid = true
-
 	if utf8.RuneCountInString(lastName) > PersonLastNameMaxLength {
 		panic("attempted to set Person.LastName to a value larger than its maximum length in runes")
 	}
@@ -219,32 +214,32 @@ func (o *personBase) SetLastName(lastName string) {
 		o.lastName = lastName
 		o.lastNameIsDirty = true
 	}
+
 }
 
-// PersonTypes returns the loaded value of PersonTypes.
-func (o *personBase) PersonTypes() string {
-	if o._restored && !o.personTypesIsValid {
-		panic("PersonTypes was not selected in the last query and has not been set, and so is not valid")
+// Types returns the loaded value of Types.
+func (o *personBase) Types() []PersonType {
+	if o._restored && !o.typesIsValid {
+		panic("Types was not selected in the last query and has not been set, and so is not valid")
 	}
-	return o.personTypes
+	return o.types
 }
 
-// PersonTypesIsValid returns true if the value was loaded from the database or has been set.
-func (o *personBase) PersonTypesIsValid() bool {
-	return o.personTypesIsValid
+// TypesIsValid returns true if the value was loaded from the database or has been set.
+func (o *personBase) TypesIsValid() bool {
+	return o.typesIsValid
 }
 
-// SetPersonTypes sets the value of PersonTypes in the object, to be saved later using the Save() function.
-func (o *personBase) SetPersonTypes(personTypes string) {
-	o.personTypesIsValid = true
+// SetTypes sets the value of Types in the object, to be saved later using the Save() function.
+func (o *personBase) SetTypes(types []PersonType) {
+	o.typesIsValid = true
+	v := slices.Sort(slices.Clone(types))
+	if !slices.Equal(o.types, v) ||
+		!o._restored {
+		o.types = v
+		o.typesIsDirty = true
+	}
 
-	if utf8.RuneCountInString(personTypes) > PersonPersonTypesMaxLength {
-		panic("attempted to set Person.PersonTypes to a value larger than its maximum length in runes")
-	}
-	if o.personTypes != personTypes || !o._restored {
-		o.personTypes = personTypes
-		o.personTypesIsDirty = true
-	}
 }
 
 // GetAlias returns the alias for the given key.
@@ -259,23 +254,6 @@ func (o *personBase) GetAlias(key string) query.AliasValue {
 // IsNew returns true if the object will create a new record when saved.
 func (o *personBase) IsNew() bool {
 	return !o._restored
-}
-
-// PersonTypes returns a slice of PersonType values if loaded.
-func (o *personBase) PersonTypes() []PersonType {
-	if o.mmPersonTypes == nil {
-		return nil
-	}
-	return o.mmPersonTypes
-}
-
-// SetPersonTypes sets the associated values to objs.
-// It will also disassociate from all previously associated values.
-// Note that it saves a reference to objs, and so if you change objs before saving, the changes will be written
-// when you call Save. To avoid this, pass a copy of objs.
-func (o *personBase) SetPersonTypes(objs []PersonType) {
-	o.mmPersonTypes = objs
-	o.mmPersonTypesIsDirty = true
 }
 
 // Project returns a single Project object by primary key pk, if one was loaded.
@@ -914,11 +892,11 @@ func CountPersonByLastName(ctx context.Context, lastName string) int {
 	return int(queryPeople(ctx).Where(op.Equal(node.Person().LastName(), lastName)).Count(false))
 }
 
-// CountPersonByPersonTypes queries the database and returns the number of Person objects that
-// have personTypes.
+// CountPersonByTypes queries the database and returns the number of Person objects that
+// have types.
 // doc: type=Person
-func CountPersonByPersonTypes(ctx context.Context, personTypes string) int {
-	return int(queryPeople(ctx).Where(op.Equal(node.Person().PersonTypes(), personTypes)).Count(false))
+func CountPersonByTypes(ctx context.Context, types []PersonType) int {
+	return int(queryPeople(ctx).Where(op.Equal(node.Person().Types(), types)).Count(false))
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
@@ -967,33 +945,21 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person, objParent i
 		o.lastName = ""
 	}
 
-	if v, ok := m["person_types"]; ok && v != nil {
-		if o.personTypes, ok = v.(string); ok {
-			o.personTypesIsValid = true
-			o.personTypesIsDirty = false
+	if v, ok := m["type_enum"]; ok && v != nil {
+		if i, ok2 := v.(string); ok2 {
+			o.types = []PersonType(i)
+			o.typesIsValid = true
+			o.typesIsDirty = false
 
 		} else {
-			panic("Wrong type found for person_types.")
+			panic("Wrong type found for type_enum.")
 		}
 	} else {
-		o.personTypesIsValid = false
-		o.personTypes = ""
+		o.typesIsValid = false
+		o.types = PersonType(0)
 	}
 
 	// Many-Many references
-
-	if v, ok := m["PersonTypes"]; ok {
-		if v2, ok2 := v.([]int); ok2 {
-			o.mmPersonTypes = make([]PersonType, 0, len(v2))
-			for _, m := range v2 {
-				o.mmPersonTypes = append(o.mmPersonTypes, PersonType(m))
-			}
-		} else {
-			panic("Wrong type found for PersonTypes object.")
-		}
-	} else {
-		o.mmPersonTypes = nil
-	}
 
 	if v, ok := m["Projects"]; ok {
 		if v2, ok2 := v.([]db.ValueMap); ok2 {
@@ -1245,16 +1211,6 @@ func (o *personBase) update(ctx context.Context) {
 
 		}
 
-		if o.mmPersonTypesIsDirty {
-			db.AssociateOnly(ctx,
-				d,
-				"person_persontype_assn",
-				"person_id",
-				o.PrimaryKey(),
-				"person_type_id",
-				o.mmPersonTypes)
-		}
-
 		if o.mmProjectsIsDirty {
 			for obj := range o.mmProjects.ValuesIter() {
 				obj.Save(ctx)
@@ -1283,8 +1239,8 @@ func (o *personBase) insert(ctx context.Context) {
 			panic("a value for LastName is required, and there is no default value. Call SetLastName() before inserting the record.")
 		}
 
-		if !o.personTypesIsValid {
-			panic("a value for PersonTypes is required, and there is no default value. Call SetPersonTypes() before inserting the record.")
+		if !o.typesIsValid {
+			panic("a value for Types is required, and there is no default value. Call SetTypes() before inserting the record.")
 		}
 
 		m := o.getValidFields()
@@ -1317,16 +1273,6 @@ func (o *personBase) insert(ctx context.Context) {
 			o.revManagerProjects.Set(obj.PrimaryKey(), obj)
 		}
 
-		if len(o.mmPersonTypes) != 0 {
-			db.AssociateOnly(ctx,
-				d,
-				"person_persontype_assn",
-				"person_id",
-				o.PrimaryKey(),
-				"person_type_id",
-				o.mmPersonTypes)
-		}
-
 		o.mmProjects.Clear()
 		for _, obj := range o.mmProjects.All() {
 			obj.Save(ctx)
@@ -1355,8 +1301,8 @@ func (o *personBase) getModifiedFields() (fields map[string]interface{}) {
 	if o.lastNameIsDirty {
 		fields["last_name"] = o.lastName
 	}
-	if o.personTypesIsDirty {
-		fields["person_types"] = o.personTypes
+	if o.typesIsDirty {
+		fields["type_enum"] = o.types
 	}
 	return
 }
@@ -1366,15 +1312,24 @@ func (o *personBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 
 	if o.firstNameIsValid {
+
 		fields["first_name"] = o.firstName
+
 	}
 
 	if o.lastNameIsValid {
+
 		fields["last_name"] = o.lastName
+
 	}
 
-	if o.personTypesIsValid {
-		fields["person_types"] = o.personTypes
+	if o.typesIsValid {
+
+		b, err := json.Marshal(o.types)
+		if err == nil && b != nil {
+			fields["type_enum"] = string(b)
+		}
+
 	}
 	return
 }
@@ -1436,14 +1391,6 @@ func (o *personBase) Delete(ctx context.Context) {
 
 		db.AssociateOnly(ctx,
 			d,
-			"person_persontype_assn",
-			"person_id",
-			o.PrimaryKey(),
-			"id",
-			[]PersonType(nil))
-
-		db.AssociateOnly(ctx,
-			d,
 			"team_member_project_assn",
 			"team_member_id",
 			o.PrimaryKey(),
@@ -1467,12 +1414,11 @@ func (o *personBase) resetDirtyStatus() {
 	o.idIsDirty = false
 	o.firstNameIsDirty = false
 	o.lastNameIsDirty = false
-	o.personTypesIsDirty = false
+	o.typesIsDirty = false
 	o.revAddressesIsDirty = false
 	o.revEmployeeInfoIsDirty = false
 	o.revLoginIsDirty = false
 	o.revManagerProjectsIsDirty = false
-	o.mmPersonTypesIsDirty = false
 	o.mmProjectsIsDirty = false
 
 }
@@ -1482,7 +1428,7 @@ func (o *personBase) IsDirty() (dirty bool) {
 	dirty = o.idIsDirty ||
 		o.firstNameIsDirty ||
 		o.lastNameIsDirty ||
-		o.personTypesIsDirty
+		o.typesIsDirty
 
 	dirty = dirty ||
 		o.revAddressesIsDirty ||
@@ -1500,7 +1446,6 @@ func (o *personBase) IsDirty() (dirty bool) {
 	}
 
 	dirty = dirty ||
-		o.mmPersonTypesIsDirty ||
 		o.mmProjectsIsDirty
 
 	for obj := range o.mmProjects.ValuesIter() {
@@ -1535,11 +1480,11 @@ func (o *personBase) Get(key string) interface{} {
 		}
 		return o.lastName
 
-	case "PersonTypes":
-		if !o.personTypesIsValid {
+	case "Types":
+		if !o.typesIsValid {
 			return nil
 		}
-		return o.personTypes
+		return o.types
 
 	case "Addresses":
 		return o.revAddresses.Values()
@@ -1550,8 +1495,6 @@ func (o *personBase) Get(key string) interface{} {
 	case "ManagerProjects":
 		return o.revManagerProjects.Values()
 
-	case "PersonTypes":
-		return o.mmPersonTypes
 	case "Projects":
 		return o.mmProjects.Values()
 
@@ -1597,14 +1540,14 @@ func (o *personBase) MarshalBinary() ([]byte, error) {
 		return nil, fmt.Errorf("error encoding Person.lastNameIsDirty: %w", err)
 	}
 
-	if err := encoder.Encode(o.personTypes); err != nil {
-		return nil, fmt.Errorf("error encoding Person.personTypes: %w", err)
+	if err := encoder.Encode(o.types); err != nil {
+		return nil, fmt.Errorf("error encoding Person.types: %w", err)
 	}
-	if err := encoder.Encode(o.personTypesIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Person.personTypesIsValid: %w", err)
+	if err := encoder.Encode(o.typesIsValid); err != nil {
+		return nil, fmt.Errorf("error encoding Person.typesIsValid: %w", err)
 	}
-	if err := encoder.Encode(o.personTypesIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding Person.personTypesIsDirty: %w", err)
+	if err := encoder.Encode(o.typesIsDirty); err != nil {
+		return nil, fmt.Errorf("error encoding Person.typesIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(&o.revAddresses); err != nil {
@@ -1697,22 +1640,6 @@ func (o *personBase) MarshalBinary() ([]byte, error) {
 		return nil, err
 	}
 
-	if o.mmPersonTypes == nil {
-		if err := encoder.Encode(false); err != nil {
-			return nil, err
-		}
-	} else {
-		if err := encoder.Encode(true); err != nil {
-			return nil, err
-		}
-		if err := encoder.Encode(&o.mmPersonTypes); err != nil {
-			return nil, fmt.Errorf("error encoding Person.mmPersonTypes: %w", err)
-		}
-	}
-	if err := encoder.Encode(o.mmPersonTypesIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding Person.mmPersonTypesIsDirty: %w", err)
-	}
-
 	if err := encoder.Encode(&o.mmProjects); err != nil {
 		return nil, fmt.Errorf("error encoding Person.mmProjects: %w", err)
 	}
@@ -1791,14 +1718,14 @@ func (o *personBase) UnmarshalBinary(data []byte) (err error) {
 		return fmt.Errorf("error decoding Person.lastNameIsDirty: %w", err)
 	}
 
-	if err = dec.Decode(&o.personTypes); err != nil {
-		return fmt.Errorf("error decoding Person.personTypes: %w", err)
+	if err = dec.Decode(&o.types); err != nil {
+		return fmt.Errorf("error decoding Person.types: %w", err)
 	}
-	if err = dec.Decode(&o.personTypesIsValid); err != nil {
-		return fmt.Errorf("error decoding Person.personTypesIsValid: %w", err)
+	if err = dec.Decode(&o.typesIsValid); err != nil {
+		return fmt.Errorf("error decoding Person.typesIsValid: %w", err)
 	}
-	if err = dec.Decode(&o.personTypesIsDirty); err != nil {
-		return fmt.Errorf("error decoding Person.personTypesIsDirty: %w", err)
+	if err = dec.Decode(&o.typesIsDirty); err != nil {
+		return fmt.Errorf("error decoding Person.typesIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.revAddresses); err != nil {
@@ -1877,18 +1804,6 @@ func (o *personBase) UnmarshalBinary(data []byte) (err error) {
 		return fmt.Errorf("error decoding Person.revManagerProjectsIsDirty: %w", err)
 	}
 
-	if err = dec.Decode(&isPtr); err != nil {
-		return fmt.Errorf("error decoding Person.mmPersonTypes isPtr: %w", err)
-	}
-	if isPtr {
-		if err = dec.Decode(&o.mmPersonTypes); err != nil {
-			return fmt.Errorf("error decoding Person.mmPersonTypes: %w", err)
-		}
-	}
-	if err = dec.Decode(&o.mmPersonTypesIsDirty); err != nil {
-		return fmt.Errorf("error decoding Person.mmPersonTypesIsDirty: %w", err)
-	}
-
 	if err = dec.Decode(&o.mmProjects); err != nil {
 		return fmt.Errorf("error decoding Person.mmProjectsPks: %w", err)
 	}
@@ -1933,8 +1848,8 @@ func (o *personBase) MarshalStringMap() map[string]interface{} {
 		v["lastName"] = o.lastName
 	}
 
-	if o.personTypesIsValid {
-		v["personTypes"] = o.personTypes
+	if o.typesIsValid {
+		v["types"] = o.types
 	}
 
 	if o.revAddresses.Len() != 0 {
@@ -1956,13 +1871,6 @@ func (o *personBase) MarshalStringMap() map[string]interface{} {
 			vals = append(vals, obj.MarshalStringMap())
 		}
 		v["managerProjects"] = vals
-	}
-	if len(o.mmPersonTypes) != 0 {
-		var vals []int
-		for _, v := range o.mmPersonTypes {
-			vals = append(vals, int(v))
-		}
-		v["personTypes"] = vals
 	}
 	if o.mmProjects.Len() != 0 {
 		var vals []map[string]interface{}
@@ -1990,7 +1898,7 @@ func (o *personBase) MarshalStringMap() map[string]interface{} {
 //	"id" - string
 //	"firstName" - string
 //	"lastName" - string
-//	"personTypes" - string
+//	"types" - []PersonType
 func (o *personBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
 	if err = json.Unmarshal(data, &v); err != nil {
@@ -2032,35 +1940,36 @@ func (o *personBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 				}
 			}
 
-		case "personTypes":
+		case "types":
 			{
 				if v == nil {
 					return fmt.Errorf("json field %s cannot be null", k)
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
+				if n, ok := v.([]int); ok {
+					var a []PersonType
+					for _, i := range n {
+						a = append(a, PersonType(i))
+					}
+					o.SetTypes(a)
+				} else if n, ok := v.([]float64); ok {
+					var a []PersonType
+					for _, f := range n {
+						a = append(a, PersonType(int(f)))
+					}
+					o.SetTypes(a)
+				} else if n, ok := v.([]string); ok {
+					var a []PersonType
+					for _, s := range n {
+						a = append(a, PersonTypeFromName(s))
+					}
+					o.SetTypes(a)
 				} else {
-					o.SetPersonTypes(s)
+					return fmt.Errorf("json field %s must be a number", k)
 				}
+
 			}
 
-		case "personTypes":
-			if vals, ok := v.([]interface{}); !ok {
-				return fmt.Errorf("json field %s must be an array", k)
-			} else {
-				var vals2 []PersonType
-				for _, i := range vals {
-					if s, ok := i.(int); ok {
-						vals2 = append(vals2, PersonType(s))
-					} else if s, ok := i.(float64); ok {
-						vals2 = append(vals2, PersonType(s))
-					} else {
-						return fmt.Errorf("json field %s must be an integer array", k)
-					}
-				}
-				o.SetPersonTypes(vals2)
-			}
 		}
 	}
 	return

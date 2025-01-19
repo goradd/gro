@@ -5,7 +5,6 @@ import (
 
 	"github.com/goradd/orm/pkg/query"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestSerializeTableTypeTestTable(t *testing.T) {
@@ -25,8 +24,7 @@ func TestSerializeTableTypeTestTable(t *testing.T) {
 	for _, cn := range nodes {
 		cn2 := serNode(t, cn)
 		assert.Equal(t, "type_test", cn2.TableName_())
-		require.Implements(t, (*query.Linker)(nil), cn2)
-		assert.Equal(t, query.TableNodeType, cn2.(query.Linker).Parent().NodeType_())
+		assert.Equal(t, query.TableNodeType, query.NodeParent(cn2).NodeType_())
 	}
 }
 

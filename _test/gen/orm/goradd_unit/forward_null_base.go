@@ -137,7 +137,6 @@ func (o *forwardNullBase) NameIsValid() bool {
 // SetName sets the value of Name in the object, to be saved later using the Save() function.
 func (o *forwardNullBase) SetName(name string) {
 	o.nameIsValid = true
-
 	if utf8.RuneCountInString(name) > ForwardNullNameMaxLength {
 		panic("attempted to set ForwardNull.Name to a value larger than its maximum length in runes")
 	}
@@ -145,6 +144,7 @@ func (o *forwardNullBase) SetName(name string) {
 		o.name = name
 		o.nameIsDirty = true
 	}
+
 }
 
 // ReverseID returns the loaded value of ReverseID.
@@ -189,7 +189,7 @@ func (o *forwardNullBase) SetReverseID(i interface{}) {
 		v := i.(string)
 		if o.reverseIDIsNull ||
 			!o._restored ||
-			o.reverseID != v {
+			o.reverseID != v; -1 {
 			o.reverseIDIsNull = false
 			o.reverseID = v
 			o.reverseIDIsDirty = true
@@ -667,14 +667,18 @@ func (o *forwardNullBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 
 	if o.nameIsValid {
+
 		fields["name"] = o.name
+
 	}
 
 	if o.reverseIDIsValid {
 		if o.reverseIDIsNull {
 			fields["reverse_id"] = nil
 		} else {
+
 			fields["reverse_id"] = o.reverseID
+
 		}
 	}
 	return

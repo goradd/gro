@@ -9,7 +9,7 @@ type ReferenceNodeI interface {
 	ColumnName() string
 	TableNodeI
 	Conditioner
-	Linker
+	linker
 }
 
 // A ReferenceNode is a mixin for a forward-pointing foreign key relationship.

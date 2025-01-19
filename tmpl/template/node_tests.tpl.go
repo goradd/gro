@@ -155,8 +155,7 @@ func TestSerializeTable`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `", cn2.TableName_())
-        require.Implements(t, (*query.Linker)(nil), cn2)
-        assert.Equal(t, query.TableNodeType, cn2.(query.Linker).Parent().NodeType_())
+        assert.Equal(t, query.TableNodeType, query.NodeParent(cn2).NodeType_())
     }
 }
 
@@ -197,7 +196,7 @@ func TestSerializeReferences`); err != nil {
 
 			if _, err = io.WriteString(_w, `()
     n2 := serNode(t, n)
-    parentNode := n2.(query.Linker).Parent()
+    parentNode := query.NodeParent(n2)
     assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
     assert.Equal(t, "`); err != nil {
 				return
@@ -213,8 +212,7 @@ func TestSerializeReferences`); err != nil {
     for _,cn := range nodes {
         cn2 := serNode(t, cn)
         assert.Equal(t, n.TableName_(), cn2.TableName_())
-        require.Implements(t, (*query.Linker)(nil), cn2)
-        assert.Equal(t, query.ReferenceNodeType, cn2.(query.Linker).Parent().NodeType_())
+        assert.Equal(t, query.ReferenceNodeType, query.NodeParent(cn2).NodeType_())
     }
 }
 
@@ -263,7 +261,7 @@ func TestSerializeReverseReferences`); err != nil {
 
 		if _, err = io.WriteString(_w, `()
     n2 := serNode(t, n)
-    parentNode := n2.(query.Linker).Parent()
+    parentNode := query.NodeParent(n2)
     assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
     assert.Equal(t, "`); err != nil {
 			return
@@ -279,8 +277,7 @@ func TestSerializeReverseReferences`); err != nil {
     for _,cn := range nodes {
         cn2 := serNode(t, cn)
         assert.Equal(t, n.TableName_(), cn2.TableName_())
-        require.Implements(t, (*query.Linker)(nil), cn2)
-        assert.Equal(t, query.ReverseNodeType, cn2.(query.Linker).Parent().NodeType_())
+        assert.Equal(t, query.ReverseNodeType, query.NodeParent(cn2).NodeType_())
     }
 }
 
@@ -328,7 +325,7 @@ func TestSerializeAssociations`); err != nil {
 		if _, err = io.WriteString(_w, `()
     n2 := serNode(t, n)
     assert.Equal(t, query.ManyManyNodeType, n2.NodeType_())
-    parentNode := n2.(query.Linker).Parent()
+    parentNode := query.NodeParent(n2)
     assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
     assert.Equal(t, "`); err != nil {
 			return
@@ -344,7 +341,7 @@ func TestSerializeAssociations`); err != nil {
     for _,cn := range nodes {
         cn2 := serNode(t, cn)
 //        assert.Equal(t, query.ColumnNodeType, cn2.NodeType_())
-        parentNode = cn2.(query.Linker).Parent()
+        parentNode = query.NodeParent(cn2)
         assert.Equal(t, query.ManyManyNodeType, parentNode.NodeType_())
     }
 }

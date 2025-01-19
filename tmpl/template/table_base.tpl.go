@@ -2458,7 +2458,11 @@ func (o *`); err != nil {
 
 	}
 
-	if _, err = io.WriteString(_w, `        {
+	if _, err = io.WriteString(_w, fmt.Sprint(-1)); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `{
 			    o.`); err != nil {
 		return
 	}

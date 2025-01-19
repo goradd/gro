@@ -63,7 +63,6 @@ func (n forwardNullUniqueTable) DatabaseKey_() string {
 }
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
-// This may include reference nodes to enum types.
 func (n forwardNullUniqueTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.Name())
@@ -74,7 +73,7 @@ func (n forwardNullUniqueTable) ColumnNodes_() (nodes []query.Node) {
 func (n *forwardNullUniqueReverse) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.forwardNullUniqueTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.Linker).SetParent(n)
+		query.NodeSetParent(cn, n)
 	}
 	return
 }
@@ -104,13 +103,13 @@ func (n forwardNullUniqueTable) ID() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *forwardNullUniqueReverse) ID() *query.ColumnNode {
 	cn := n.forwardNullUniqueTable.ID()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -121,13 +120,13 @@ func (n forwardNullUniqueTable) Name() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *forwardNullUniqueReverse) Name() *query.ColumnNode {
 	cn := n.forwardNullUniqueTable.Name()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -138,13 +137,13 @@ func (n forwardNullUniqueTable) ReverseID() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *forwardNullUniqueReverse) ReverseID() *query.ColumnNode {
 	cn := n.forwardNullUniqueTable.ReverseID()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -157,13 +156,13 @@ func (n forwardNullUniqueTable) Reverse() ReverseNode {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *forwardNullUniqueReverse) Reverse() ReverseNode {
 	cn := n.forwardNullUniqueTable.Reverse().(*reverseReference)
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 

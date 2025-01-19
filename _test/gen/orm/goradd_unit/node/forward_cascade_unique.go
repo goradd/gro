@@ -63,7 +63,6 @@ func (n forwardCascadeUniqueTable) DatabaseKey_() string {
 }
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
-// This may include reference nodes to enum types.
 func (n forwardCascadeUniqueTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.Name())
@@ -74,7 +73,7 @@ func (n forwardCascadeUniqueTable) ColumnNodes_() (nodes []query.Node) {
 func (n *forwardCascadeUniqueReverse) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.forwardCascadeUniqueTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.Linker).SetParent(n)
+		query.NodeSetParent(cn, n)
 	}
 	return
 }
@@ -104,13 +103,13 @@ func (n forwardCascadeUniqueTable) ID() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *forwardCascadeUniqueReverse) ID() *query.ColumnNode {
 	cn := n.forwardCascadeUniqueTable.ID()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -121,13 +120,13 @@ func (n forwardCascadeUniqueTable) Name() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *forwardCascadeUniqueReverse) Name() *query.ColumnNode {
 	cn := n.forwardCascadeUniqueTable.Name()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -138,13 +137,13 @@ func (n forwardCascadeUniqueTable) ReverseID() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *forwardCascadeUniqueReverse) ReverseID() *query.ColumnNode {
 	cn := n.forwardCascadeUniqueTable.ReverseID()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -157,13 +156,13 @@ func (n forwardCascadeUniqueTable) Reverse() ReverseNode {
 			ReceiverType:    query.ColTypeString,
 		},
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *forwardCascadeUniqueReverse) Reverse() ReverseNode {
 	cn := n.forwardCascadeUniqueTable.Reverse().(*reverseReference)
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 

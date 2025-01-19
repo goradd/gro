@@ -63,7 +63,6 @@ func (n personWithLockTable) DatabaseKey_() string {
 }
 
 // ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
-// This may include reference nodes to enum types.
 func (n personWithLockTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.FirstName())
@@ -75,7 +74,7 @@ func (n personWithLockTable) ColumnNodes_() (nodes []query.Node) {
 func (n *personWithLockReverse) ColumnNodes_() (nodes []query.Node) {
 	nodes = n.personWithLockTable.ColumnNodes_()
 	for _, cn := range nodes {
-		cn.(query.Linker).SetParent(n)
+		query.NodeSetParent(cn, n)
 	}
 	return
 }
@@ -105,13 +104,13 @@ func (n personWithLockTable) ID() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *personWithLockReverse) ID() *query.ColumnNode {
 	cn := n.personWithLockTable.ID()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -122,13 +121,13 @@ func (n personWithLockTable) FirstName() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *personWithLockReverse) FirstName() *query.ColumnNode {
 	cn := n.personWithLockTable.FirstName()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -139,13 +138,13 @@ func (n personWithLockTable) LastName() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *personWithLockReverse) LastName() *query.ColumnNode {
 	cn := n.personWithLockTable.LastName()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
@@ -156,13 +155,13 @@ func (n personWithLockTable) SysTimestamp() *query.ColumnNode {
 		ReceiverType: query.ColTypeTime,
 		IsPrimaryKey: false,
 	}
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *personWithLockReverse) SysTimestamp() *query.ColumnNode {
 	cn := n.personWithLockTable.SysTimestamp()
-	cn.SetParent(n)
+	query.NodeSetParent(cn, n)
 	return cn
 }
 
