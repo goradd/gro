@@ -6,6 +6,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/goradd/maps"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -52,16 +53,16 @@ func TestPerson_SetTypes(t *testing.T) {
 
 	obj := NewPerson()
 
-	types := test.RandomValue[[]PersonType](40)
+	types := test.RandomValue[PersonTypeSet](40)
 	obj.SetTypes(types)
 	assert.Equal(t, types, obj.Types())
 
 	// test zero
-	obj.SetTypes(PersonType(0))
-	assert.Equal(t, PersonType(0), obj.Types(), "set empty")
+	obj.SetTypes(maps.Set[PersonType]{})
+	assert.Equal(t, maps.Set[PersonType]{}, obj.Types(), "set empty")
 
 	// test panic on setting value larger than maximum size allowed
-	types = test.RandomValue[[]PersonType](41)
+	types = test.RandomValue[PersonTypeSet](41)
 	assert.Panics(t, func() {
 		obj.SetTypes(types)
 	})
@@ -78,7 +79,7 @@ func createMinimalSamplePerson(ctx context.Context) *Person {
 	lastName := test.RandomValue[string](50)
 	obj.SetLastName(lastName)
 
-	types := test.RandomValue[[]PersonType](40)
+	types := test.RandomValue[PersonTypeSet](40)
 	obj.SetTypes(types)
 
 	obj.Save(ctx)
@@ -94,7 +95,7 @@ func TestPerson_CRUD(t *testing.T) {
 	lastName := test.RandomValue[string](50)
 	obj.SetLastName(lastName)
 
-	types := test.RandomValue[[]PersonType](40)
+	types := test.RandomValue[PersonTypeSet](40)
 	obj.SetTypes(types)
 
 	// Test retrieval

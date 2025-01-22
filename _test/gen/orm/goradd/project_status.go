@@ -3,7 +3,10 @@
 package goradd
 
 import (
+	"sort"
 	"strconv"
+
+	"github.com/goradd/maps"
 )
 
 type ProjectStatus int
@@ -104,7 +107,7 @@ func ProjectStatusesI() (values []any) {
 	}
 }
 
-// Label returns the string that will be displayed to a user for this item.
+// Label returns the string that will be displayed to a user for this item and satsifies goradd's Labeler interface.
 func (e ProjectStatus) Label() string {
 	return e.String()
 }
@@ -205,4 +208,26 @@ func ProjectStatusIsActives() []bool {
 		true,
 		false,
 	}
+}
+
+// ProjectStatusSet is a group of ProjectStatus values.
+type ProjectStatusSet = maps.Set[ProjectStatus]
+
+// ProjectStatusSetFromNumbers converts an array of numeric values into a ProjectStatusSet.
+func ProjectStatusSetFromNumbers[T ~int | ~int8 | ~int16 | ~int32 | ~int64 |
+	~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64](nums []T) (values ProjectStatusSet) {
+	var s ProjectStatusSet
+	for _, n := range nums {
+		s.Add(ProjectStatus(n))
+	}
+	return s
+}
+
+// ProjectStatusSetToInts
+func ProjectStatusSetToInts(values ProjectStatusSet) (ints []int) {
+	for _, v := range values.Values() {
+		ints = append(ints, int(v))
+	}
+	sort.Ints(ints)
+	return
 }

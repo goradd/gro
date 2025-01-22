@@ -38,14 +38,14 @@ func (o *UnsupportedType) String() string {
 }
 
 // QueryUnsupportedTypes returns a new query builder.
-func QueryUnsupportedTypes(ctx context.Context) *UnsupportedTypesBuilder {
+func QueryUnsupportedTypes(ctx context.Context) UnsupportedTypeBuilder {
 	return queryUnsupportedTypes(ctx)
 }
 
 // queryUnsupportedTypes creates a new builder and is the central spot where all queries are directed.
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
-func queryUnsupportedTypes(ctx context.Context) *UnsupportedTypesBuilder {
+func queryUnsupportedTypes(ctx context.Context) UnsupportedTypeBuilder {
 	return newUnsupportedTypeBuilder(ctx)
 }
 

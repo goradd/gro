@@ -38,14 +38,14 @@ func (o *EmployeeInfo) String() string {
 }
 
 // QueryEmployeeInfos returns a new query builder.
-func QueryEmployeeInfos(ctx context.Context) *EmployeeInfosBuilder {
+func QueryEmployeeInfos(ctx context.Context) EmployeeInfoBuilder {
 	return queryEmployeeInfos(ctx)
 }
 
 // queryEmployeeInfos creates a new builder and is the central spot where all queries are directed.
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
-func queryEmployeeInfos(ctx context.Context) *EmployeeInfosBuilder {
+func queryEmployeeInfos(ctx context.Context) EmployeeInfoBuilder {
 	return newEmployeeInfoBuilder(ctx)
 }
 

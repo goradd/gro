@@ -38,14 +38,14 @@ func (o *Login) String() string {
 }
 
 // QueryLogins returns a new query builder.
-func QueryLogins(ctx context.Context) *LoginsBuilder {
+func QueryLogins(ctx context.Context) LoginBuilder {
 	return queryLogins(ctx)
 }
 
 // queryLogins creates a new builder and is the central spot where all queries are directed.
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
-func queryLogins(ctx context.Context) *LoginsBuilder {
+func queryLogins(ctx context.Context) LoginBuilder {
 	return newLoginBuilder(ctx)
 }
 

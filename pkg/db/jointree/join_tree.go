@@ -76,8 +76,6 @@ func (t *JoinTree) buildCommand(b *query.Builder) {
 	switch t.Command {
 	case query.BuilderCommandLoad:
 		fallthrough
-	case query.BuilderCommandGet:
-		fallthrough
 	case query.BuilderCommandLoadCursor:
 		t.addSelectedColumns(b)
 		t.addAliases(b.AliasNodes)
@@ -117,7 +115,7 @@ func (t *JoinTree) addNode(node query.Node) (top *Element) {
 	}
 
 	// walk the current node tree and find an insertion point
-	rn := reverse(node.(query.Linker))
+	rn := reverse(node)
 	if t.Root == nil {
 		top = t.insertNode(rn, nil) // seed the root tree
 		return
@@ -136,12 +134,8 @@ func (t *JoinTree) addNode(node query.Node) (top *Element) {
 // If it is not found, e will be the Element where node should be inserted, and rn will be the spot in node that
 // should be inserted. In other words, the parent of rn will match the Node in e.
 func (t *JoinTree) findNode(node query.Node) (e *Element, rn *reverseNode, found bool) {
-	ql, ok := node.(query.Linker)
-	if !ok {
-		return nil, nil, false
-	}
 	e = t.Root
-	rn = reverse(ql)
+	rn = reverse(node)
 	if !nodeMatch(e.QueryNode, rn.node) {
 		return nil, nil, false // root nodes do not match
 	}

@@ -37,14 +37,14 @@ func (o *ForwardNullUnique) String() string {
 }
 
 // QueryForwardNullUniques returns a new query builder.
-func QueryForwardNullUniques(ctx context.Context) *ForwardNullUniquesBuilder {
+func QueryForwardNullUniques(ctx context.Context) ForwardNullUniqueBuilder {
 	return queryForwardNullUniques(ctx)
 }
 
 // queryForwardNullUniques creates a new builder and is the central spot where all queries are directed.
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
-func queryForwardNullUniques(ctx context.Context) *ForwardNullUniquesBuilder {
+func queryForwardNullUniques(ctx context.Context) ForwardNullUniqueBuilder {
 	return newForwardNullUniqueBuilder(ctx)
 }
 

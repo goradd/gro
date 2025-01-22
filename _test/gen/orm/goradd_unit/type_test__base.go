@@ -77,7 +77,7 @@ type typeTestBase struct {
 	testVarcharIsValid bool
 	testVarcharIsDirty bool
 
-	testBlob        []uint8
+	testBlob        []byte
 	testBlobIsValid bool
 	testBlobIsDirty bool
 
@@ -296,7 +296,7 @@ func (o *typeTestBase) SetDate(i interface{}) {
 		v := i.(time.Time)
 		if o.dateIsNull ||
 			!o._restored ||
-			o.date != v; -1 {
+			o.date != v {
 			o.dateIsNull = false
 			o.date = v
 			o.dateIsDirty = true
@@ -345,7 +345,7 @@ func (o *typeTestBase) SetTime(i interface{}) {
 		v := i.(time.Time)
 		if o.timeIsNull ||
 			!o._restored ||
-			o.time != v; -1 {
+			o.time != v {
 			o.timeIsNull = false
 			o.time = v
 			o.timeIsDirty = true
@@ -394,7 +394,7 @@ func (o *typeTestBase) SetDateTime(i interface{}) {
 		v := i.(time.Time)
 		if o.dateTimeIsNull ||
 			!o._restored ||
-			o.dateTime != v; -1 {
+			o.dateTime != v {
 			o.dateTimeIsNull = false
 			o.dateTime = v
 			o.dateTimeIsDirty = true
@@ -473,7 +473,7 @@ func (o *typeTestBase) SetTestInt(i interface{}) {
 
 		if o.testIntIsNull ||
 			!o._restored ||
-			o.testInt != v; -1 {
+			o.testInt != v {
 			o.testIntIsNull = false
 			o.testInt = v
 			o.testIntIsDirty = true
@@ -523,7 +523,7 @@ func (o *typeTestBase) SetTestFloat(i interface{}) {
 
 		if o.testFloatIsNull ||
 			!o._restored ||
-			o.testFloat != v; -1 {
+			o.testFloat != v {
 			o.testFloatIsNull = false
 			o.testFloat = v
 			o.testFloatIsDirty = true
@@ -599,7 +599,7 @@ func (o *typeTestBase) SetTestText(i interface{}) {
 		}
 		if o.testTextIsNull ||
 			!o._restored ||
-			o.testText != v; -1 {
+			o.testText != v {
 			o.testTextIsNull = false
 			o.testText = v
 			o.testTextIsDirty = true
@@ -648,7 +648,7 @@ func (o *typeTestBase) SetTestBit(i interface{}) {
 		v := i.(bool)
 		if o.testBitIsNull ||
 			!o._restored ||
-			o.testBit != v; -1 {
+			o.testBit != v {
 			o.testBitIsNull = false
 			o.testBit = v
 			o.testBitIsDirty = true
@@ -701,7 +701,7 @@ func (o *typeTestBase) SetTestVarchar(i interface{}) {
 		}
 		if o.testVarcharIsNull ||
 			!o._restored ||
-			o.testVarchar != v; -1 {
+			o.testVarchar != v {
 			o.testVarcharIsNull = false
 			o.testVarchar = v
 			o.testVarcharIsDirty = true
@@ -710,7 +710,7 @@ func (o *typeTestBase) SetTestVarchar(i interface{}) {
 }
 
 // TestBlob returns the loaded value of TestBlob.
-func (o *typeTestBase) TestBlob() []uint8 {
+func (o *typeTestBase) TestBlob() []byte {
 	if o._restored && !o.testBlobIsValid {
 		panic("TestBlob was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -723,7 +723,7 @@ func (o *typeTestBase) TestBlobIsValid() bool {
 }
 
 // SetTestBlob sets the value of TestBlob in the object, to be saved later using the Save() function.
-func (o *typeTestBase) SetTestBlob(testBlob []uint8) {
+func (o *typeTestBase) SetTestBlob(testBlob []byte) {
 	o.testBlobIsValid = true
 	if len(testBlob) > TypeTestTestBlobMaxLength {
 		panic("attempted to set TypeTest.TestBlob to a value larger than its maximum length")
@@ -748,8 +748,9 @@ func (o *typeTestBase) IsNew() bool {
 }
 
 // LoadTypeTest returns a TypeTest from the database.
-// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
-// be considered Join nodes, and column nodes will be Select nodes. See [TypeTestsBuilder.Join] and [TypeTestsBuilder.Select] for more info.
+// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields.
+// Table nodes will be considered Join nodes, and column nodes will be Select nodes.
+// See [TypeTestBuilder.Join] and [TypeTestsBuilder.Select] for more info.
 func LoadTypeTest(ctx context.Context, id string, joinOrSelectNodes ...query.Node) *TypeTest {
 	return queryTypeTests(ctx).
 		Where(op.Equal(node.TypeTest().ID(), id)).
@@ -765,29 +766,118 @@ func HasTypeTest(ctx context.Context, id string) bool {
 		Count(false) == 1
 }
 
-// The TypeTestsBuilder uses the QueryBuilderI interface from the database to build a query.
+// The TypeTestBuilder uses the query.BuilderI interface to build a query.
 // All query operations go through this query builder.
-// End a query by calling either Load, Count, or Delete
-type TypeTestsBuilder struct {
-	builder query.QueryBuilderI
+// End a query by calling either Load, LoadCursor, Get, Count, or Delete
+type TypeTestBuilder interface {
+	// Join adds node n to the node tree so that its fields will appear in the query.
+	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
+	Join(n query.Node, conditions ...query.Node) TypeTestBuilder
+
+	// Where adds a condition to filter what gets selected.
+	// Calling Where multiple times will AND the conditions together.
+	Where(c query.Node) TypeTestBuilder
+
+	// OrderBy specifies how the resulting data should be sorted.
+	// By default, the given nodes are sorted in ascending order.
+	// Add Descending() to the node to specify that it should be sorted in descending order.
+	OrderBy(nodes ...query.Sorter) TypeTestBuilder
+
+	// Limit will return a subset of the data, limited to the offset and number of rows specified.
+	// For large data sets and specific types of queries, this can be slow, because it will perform
+	// the entire query before computing the limit.
+	// You cannot limit a query that has embedded arrays.
+	Limit(maxRowCount int, offset int) TypeTestBuilder
+
+	// Select optimizes the query to only return the specified fields.
+	// Once you put a Select in your query, you must specify all the fields that you will eventually read out.
+	// Some fields, like primary keys, are always selected.
+	// If you are using a GroupBy, most database drivers will only allow selecting on fields in the GroupBy, and
+	// doing otherwise will result in an error.
+	Select(nodes ...query.Node) TypeTestBuilder
+
+	// Calculation adds a calculation node with an aliased name.
+	// After the query, you can read the data using GetAlias() on a returned object.
+	Calculation(name string, n query.Aliaser) TypeTestBuilder
+
+	// Distinct removes duplicates from the results of the query.
+	// Adding a Select() is usually required.
+	Distinct() TypeTestBuilder
+
+	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
+	GroupBy(nodes ...query.Node) TypeTestBuilder
+
+	// Having does additional filtering on the results of the query after the query is performed.
+	Having(node query.Node) TypeTestBuilder
+
+	// Load terminates the query builder, performs the query, and returns a slice of TypeTest objects.
+	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If no results come back from the query, it will return a non-nil empty slice.
+	Load() []*TypeTest
+	// Load terminates the query builder, performs the query, and returns a slice of interfaces.
+	// This can then satisfy a general interface that loads arrays of objects.
+	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If no results come back from the query, it will return a non-nil empty slice.
+	LoadI() []any
+
+	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
+	//
+	// A query cursor is useful for dealing with large amounts of query results. However, there are some
+	// limitations to its use. When working with SQL databases, you cannot use a cursor while querying
+	// many-to-many or reverse relationships that will create an array of values.
+	//
+	// Call Next() on the returned cursor object to step through the results. Make sure you call Close
+	// on the cursor object when you are done. You should use
+	//   defer cursor.Close()
+	// to make sure the cursor gets closed.
+	LoadCursor() typeTestsCursor
+
+	// Get is a convenience method to return only the first item found in a query.
+	// The entire query is performed, so you should generally use this only if you know
+	// you are selecting on one or very few items.
+	//
+	// If an error occurs, or no results are found, a nil is returned.
+	// In the case of an error, the error is returned in the context.
+	Get() *TypeTest
+
+	// Count terminates a query and returns just the number of items selected.
+	// distinct wll count the number of distinct items, ignoring duplicates.
+	// nodes will select individual fields, and should be accompanied by a GroupBy.
+	Count(distinct bool, nodes ...query.Node) int
+
+	// Delete uses the query builder to delete a group of records that match the criteria
+	Delete()
+
+	// Subquery terminates the query builder and tags it as a subquery within a larger query.
+	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
+	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
+	Subquery() *query.SubqueryNode
+
+	joinOrSelect(nodes ...query.Node) TypeTestBuilder
 }
 
-func newTypeTestBuilder(ctx context.Context) *TypeTestsBuilder {
-	b := &TypeTestsBuilder{
-		builder: db.GetDatabase("goradd_unit").NewBuilder(ctx),
+type typeTestQueryBuilder struct {
+	builder *query.Builder
+}
+
+func newTypeTestBuilder(ctx context.Context) TypeTestBuilder {
+	b := typeTestQueryBuilder{
+		builder: query.NewBuilder(ctx),
 	}
-	return b.Join(node.TypeTest())
+	return b.Join(node.TypeTest()) // seed builder with the top table
 }
 
-// Load terminates the query builder, performs the query, and returns a slice of TypeTest objects. If there are
-// any errors, they are returned in the context object. If no results come back from the query, it will return
-// an empty slice
-func (b *TypeTestsBuilder) Load() (typeTests []*TypeTest) {
-	results := b.builder.Load()
+// Load terminates the query builder, performs the query, and returns a slice of TypeTest objects.
+// If there are any errors, nil is returned and the specific error is stored in the context.
+// If no results come back from the query, it will return a non-nil empty slice.
+func (b *typeTestQueryBuilder) Load() (typeTests []*TypeTest) {
+	b.builder.Command = query.BuilderCommandLoad
+	database := db.GetDatabase("goradd_unit")
+	results := database.BuilderQuery(b.builder.Ctx, b.builder)
 	if results == nil {
 		return
 	}
-	for _, item := range results {
+	for _, item := range results.([]map[string]any) {
 		o := new(TypeTest)
 		o.load(item, o, nil, "")
 		typeTests = append(typeTests, o)
@@ -795,15 +885,18 @@ func (b *TypeTestsBuilder) Load() (typeTests []*TypeTest) {
 	return
 }
 
-// LoadI terminates the query builder, performs the query, and returns a slice of interfaces. If there are
-// any errors, they are returned in the context object. If no results come back from the query, it will return
-// an empty slice.
-func (b *TypeTestsBuilder) LoadI() (typeTests []interface{}) {
-	results := b.builder.Load()
+// Load terminates the query builder, performs the query, and returns a slice of interfaces.
+// This can then satisfy a general interface that loads arrays of objects.
+// If there are any errors, nil is returned and the specific error is stored in the context.
+// If no results come back from the query, it will return a non-nil empty slice.
+func (b *typeTestQueryBuilder) LoadI() (typeTests []any) {
+	b.builder.Command = query.BuilderCommandLoad
+	database := db.GetDatabase("goradd_unit")
+	results := database.BuilderQuery(b.builder.Ctx, b.builder)
 	if results == nil {
 		return
 	}
-	for _, item := range results {
+	for _, item := range results.([]map[string]any) {
 		o := new(TypeTest)
 		o.load(item, o, nil, "")
 		typeTests = append(typeTests, o)
@@ -823,8 +916,14 @@ func (b *TypeTestsBuilder) LoadI() (typeTests []interface{}) {
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *TypeTestsBuilder) LoadCursor() typeTestsCursor {
-	cursor := b.builder.LoadCursor()
+func (b *typeTestQueryBuilder) LoadCursor() typeTestsCursor {
+	b.builder.Command = query.BuilderCommandLoadCursor
+	database := db.GetDatabase("goradd_unit")
+	result := database.BuilderQuery(b.builder.Ctx, b.builder)
+	if result == nil {
+		return typeTestsCursor{}
+	}
+	cursor := result.(query.CursorI)
 
 	return typeTestsCursor{cursor}
 }
@@ -837,6 +936,10 @@ type typeTestsCursor struct {
 //
 // If there are no more records, it returns nil.
 func (c typeTestsCursor) Next() *TypeTest {
+	if c.CursorI == nil {
+		return nil
+	}
+
 	row := c.CursorI.Next()
 	if row == nil {
 		return nil
@@ -849,7 +952,10 @@ func (c typeTestsCursor) Next() *TypeTest {
 // Get is a convenience method to return only the first item found in a query.
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
-func (b *TypeTestsBuilder) Get() *TypeTest {
+//
+// If an error occurs, or no results are found, a nil is returned.
+// In the case of an error, the error is returned in the context.
+func (b *typeTestQueryBuilder) Get() *TypeTest {
 	results := b.Load()
 	if results != nil && len(results) > 0 {
 		obj := results[0]
@@ -860,13 +966,9 @@ func (b *TypeTestsBuilder) Get() *TypeTest {
 }
 
 // Join adds node n to the node tree so that its fields will appear in the query.
-// Optionally add conditions to filter what gets included.
-func (b *TypeTestsBuilder) Join(n query.Node, conditions ...query.Node) *TypeTestsBuilder {
-	if !query.NodeIsTableNodeI(n) {
-		panic("you can only join Table, Reference, ReverseReference and ManyManyReference nodes")
-	}
-
-	if query.NodeTableName(query.RootNode(n)) != "type_test" {
+// Optionally add conditions to filter what gets included. Multiple conditions are anded.
+func (b *typeTestQueryBuilder) Join(n query.Node, conditions ...query.Node) TypeTestBuilder {
+	if query.RootNode(n).TableName_() != "type_test" {
 		panic("you can only join a node that is rooted at node.TypeTest()")
 	}
 
@@ -881,83 +983,95 @@ func (b *TypeTestsBuilder) Join(n query.Node, conditions ...query.Node) *TypeTes
 }
 
 // Where adds a condition to filter what gets selected.
-func (b *TypeTestsBuilder) Where(c query.Node) *TypeTestsBuilder {
-	b.builder.Condition(c)
+// Calling Where multiple times will AND the conditions together.
+func (b *typeTestQueryBuilder) Where(c query.Node) TypeTestBuilder {
+	b.builder.Where(c)
 	return b
 }
 
 // OrderBy specifies how the resulting data should be sorted.
-func (b *TypeTestsBuilder) OrderBy(nodes ...query.Node) *TypeTestsBuilder {
+// By default, the given nodes are sorted in ascending order.
+// Add Descending() to the node to specify that it should be sorted in descending order.
+func (b *typeTestQueryBuilder) OrderBy(nodes ...query.Sorter) TypeTestBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
 
-// Limit will return a subset of the data, limited to the offset and number of rows specified
-func (b *TypeTestsBuilder) Limit(maxRowCount int, offset int) *TypeTestsBuilder {
+// Limit will return a subset of the data, limited to the offset and number of rows specified.
+// For large data sets and specific types of queries, this can be slow, because it will perform
+// the entire query before computing the limit.
+// You cannot limit a query that has embedded arrays.
+func (b *typeTestQueryBuilder) Limit(maxRowCount int, offset int) TypeTestBuilder {
 	b.builder.Limit(maxRowCount, offset)
 	return b
 }
 
-// Select optimizes the query to only return the specified fields. Once you put a Select in your query, you must
-// specify all the fields that you will eventually read out. Be careful when selecting fields in joined tables, as joined
-// tables will also contain pointers back to the parent table, and so the parent node should have the same field selected
-// as the child node if you are querying those fields.
-func (b *TypeTestsBuilder) Select(nodes ...query.Node) *TypeTestsBuilder {
+// Select optimizes the query to only return the specified fields.
+// Once you put a Select in your query, you must specify all the fields that you will eventually read out.
+func (b *typeTestQueryBuilder) Select(nodes ...query.Node) TypeTestBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
-// Alias lets you add a node with a custom name. After the query, you can read out the data using GetAlias() on a
-// returned object. Alias is useful for adding calculations or subqueries to the query.
-func (b *TypeTestsBuilder) Alias(name string, n query.Node) *TypeTestsBuilder {
-	b.builder.Alias(name, n)
+// Calculation adds a calculation node with an aliased name.
+// After the query, you can read the data using GetAlias() on a returned object.
+func (b *typeTestQueryBuilder) Calculation(name string, n query.Aliaser) TypeTestBuilder {
+	b.builder.Calculation(name, n)
 	return b
 }
 
-// Distinct removes duplicates from the results of the query. Adding a Select() may help you get to the data you want, although
-// using Distinct with joined tables is often not effective, since we force joined tables to include primary keys in the query, and this
-// often ruins the effect of Distinct.
-func (b *TypeTestsBuilder) Distinct() *TypeTestsBuilder {
+// Distinct removes duplicates from the results of the query.
+// Adding a Select() is usually required.
+func (b *typeTestQueryBuilder) Distinct() TypeTestBuilder {
 	b.builder.Distinct()
 	return b
 }
 
-// GroupBy controls how results are grouped when using aggregate functions in an Alias() call.
-func (b *TypeTestsBuilder) GroupBy(nodes ...query.Node) *TypeTestsBuilder {
+// GroupBy controls how results are grouped when using aggregate functions with Calculation.
+func (b *typeTestQueryBuilder) GroupBy(nodes ...query.Node) TypeTestBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
-// Having does additional filtering on the results of the query.
-func (b *TypeTestsBuilder) Having(node query.Node) *TypeTestsBuilder {
+// Having does additional filtering on the results of the query after the query is performed.
+func (b *typeTestQueryBuilder) Having(node query.Node) TypeTestBuilder {
 	b.builder.Having(node)
 	return b
 }
 
 // Count terminates a query and returns just the number of items selected.
-//
 // distinct wll count the number of distinct items, ignoring duplicates.
-//
 // nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *TypeTestsBuilder) Count(distinct bool, nodes ...query.Node) uint {
-	return b.builder.Count(distinct, nodes...)
+func (b *typeTestQueryBuilder) Count(distinct bool, nodes ...query.Node) int {
+	b.builder.Command = query.BuilderCommandCount
+	if distinct {
+		b.builder.Distinct()
+	}
+	database := db.GetDatabase("goradd_unit")
+	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	if results == nil {
+		return 0
+	}
+	return results.(int)
 }
 
 // Delete uses the query builder to delete a group of records that match the criteria
-func (b *TypeTestsBuilder) Delete() {
-	b.builder.Delete()
+func (b *typeTestQueryBuilder) Delete() {
+	b.builder.Command = query.BuilderCommandDelete
+	database := db.GetDatabase("goradd_unit")
+	database.BuilderQuery(b.builder.Ctx, b.builder)
 	broadcast.BulkChange(b.builder.Context(), "goradd_unit", "type_test")
 }
 
-// Subquery uses the query builder to define a subquery within a larger query. You MUST include what
-// you are selecting by adding Alias or Select functions on the subquery builder. Generally you would use
-// this as a node to an Alias function on the surrounding query builder.
-func (b *TypeTestsBuilder) Subquery() *query.SubqueryNode {
+// Subquery terminates the query builder and tags it as a subquery within a larger query.
+// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
+// Generally you would use this as a node to a Calculation function on the surrounding query builder.
+func (b *typeTestQueryBuilder) Subquery() *query.SubqueryNode {
 	return b.builder.Subquery()
 }
 
 // joinOrSelect is a private helper function for the Load* functions
-func (b *TypeTestsBuilder) joinOrSelect(nodes ...query.Node) *TypeTestsBuilder {
+func (b *typeTestQueryBuilder) joinOrSelect(nodes ...query.Node) TypeTestBuilder {
 	for _, n := range nodes {
 		switch n.(type) {
 		case query.TableNodeI:
@@ -1049,7 +1163,7 @@ func CountTypeTestByTestVarchar(ctx context.Context, testVarchar string) int {
 // CountTypeTestByTestBlob queries the database and returns the number of TypeTest objects that
 // have testBlob.
 // doc: type=TypeTest
-func CountTypeTestByTestBlob(ctx context.Context, testBlob []uint8) int {
+func CountTypeTestByTestBlob(ctx context.Context, testBlob []byte) int {
 	return int(queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestBlob(), testBlob)).Count(false))
 }
 
@@ -1258,7 +1372,7 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest, objPare
 	}
 
 	if v, ok := m["test_blob"]; ok && v != nil {
-		if o.testBlob, ok = v.([]uint8); ok {
+		if o.testBlob, ok = v.([]byte); ok {
 			o.testBlobIsValid = true
 			o.testBlobIsDirty = false
 
@@ -1419,7 +1533,7 @@ func (o *typeTestBase) getModifiedFields() (fields map[string]interface{}) {
 	return
 }
 
-// getValidFields returns the fields that have valid data in them.
+// getValidFields returns the fields that have valid data in them in a form ready to send to the database.
 func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 
@@ -1427,9 +1541,7 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 		if o.dateIsNull {
 			fields["date"] = nil
 		} else {
-
 			fields["date"] = o.date
-
 		}
 	}
 
@@ -1437,9 +1549,7 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 		if o.timeIsNull {
 			fields["time"] = nil
 		} else {
-
 			fields["time"] = o.time
-
 		}
 	}
 
@@ -1447,9 +1557,7 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 		if o.dateTimeIsNull {
 			fields["date_time"] = nil
 		} else {
-
 			fields["date_time"] = o.dateTime
-
 		}
 	}
 
@@ -1457,9 +1565,7 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 		if o.tsIsNull {
 			fields["ts"] = nil
 		} else {
-
 			fields["ts"] = o.ts
-
 		}
 	}
 
@@ -1467,9 +1573,7 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 		if o.testIntIsNull {
 			fields["test_int"] = nil
 		} else {
-
 			fields["test_int"] = o.testInt
-
 		}
 	}
 
@@ -1477,9 +1581,7 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 		if o.testFloatIsNull {
 			fields["test_float"] = nil
 		} else {
-
 			fields["test_float"] = o.testFloat
-
 		}
 	}
 
@@ -1493,9 +1595,7 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 		if o.testTextIsNull {
 			fields["test_text"] = nil
 		} else {
-
 			fields["test_text"] = o.testText
-
 		}
 	}
 
@@ -1503,9 +1603,7 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 		if o.testBitIsNull {
 			fields["test_bit"] = nil
 		} else {
-
 			fields["test_bit"] = o.testBit
-
 		}
 	}
 
@@ -1513,9 +1611,7 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 		if o.testVarcharIsNull {
 			fields["test_varchar"] = nil
 		} else {
-
 			fields["test_varchar"] = o.testVarchar
-
 		}
 	}
 
@@ -2126,7 +2222,7 @@ func (o *typeTestBase) MarshalStringMap() map[string]interface{} {
 //	"testText" - string, nullable
 //	"testBit" - bool, nullable
 //	"testVarchar" - string, nullable
-//	"testBlob" - []uint8
+//	"testBlob" - []byte
 func (o *typeTestBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
 	if err = json.Unmarshal(data, &v); err != nil {

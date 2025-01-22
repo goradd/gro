@@ -17,8 +17,8 @@ type UnsupportedTypeNode interface {
 	TypeSerial() *query.ColumnNode
 	// TypeSet represents the type_set column in the database.
 	TypeSet() *query.ColumnNode
-	// Types represents the type_enum column in the database.
-	Types() *query.ColumnNode
+	// TypeEnumerated represents the type_enumerated column in the database.
+	TypeEnumerated() *query.ColumnNode
 	// TypeDecimal represents the type_decimal column in the database.
 	TypeDecimal() *query.ColumnNode
 	// TypeDouble represents the type_double column in the database.
@@ -94,7 +94,7 @@ func (n unsupportedTypeTable) DatabaseKey_() string {
 func (n unsupportedTypeTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.TypeSerial())
 	nodes = append(nodes, n.TypeSet())
-	nodes = append(nodes, n.Types())
+	nodes = append(nodes, n.TypeEnumerated())
 	nodes = append(nodes, n.TypeDecimal())
 	nodes = append(nodes, n.TypeDouble())
 	nodes = append(nodes, n.TypeGeo())
@@ -160,7 +160,7 @@ func (n unsupportedTypeTable) TypeSet() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:    "type_set",
 		Identifier:   "TypeSet",
-		ReceiverType: query.ColTypeString,
+		ReceiverType: query.ColTypeUnknown,
 		IsPrimaryKey: false,
 	}
 	query.NodeSetParent(cn, n)
@@ -173,19 +173,19 @@ func (n *unsupportedTypeReverse) TypeSet() *query.ColumnNode {
 	return cn
 }
 
-func (n unsupportedTypeTable) Types() *query.ColumnNode {
+func (n unsupportedTypeTable) TypeEnumerated() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "type_enum",
-		Identifier:   "Types",
-		ReceiverType: query.ColTypeString,
+		QueryName:    "type_enumerated",
+		Identifier:   "TypeEnumerated",
+		ReceiverType: query.ColTypeUnknown,
 		IsPrimaryKey: false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *unsupportedTypeReverse) Types() *query.ColumnNode {
-	cn := n.unsupportedTypeTable.Types()
+func (n *unsupportedTypeReverse) TypeEnumerated() *query.ColumnNode {
+	cn := n.unsupportedTypeTable.TypeEnumerated()
 	query.NodeSetParent(cn, n)
 	return cn
 }

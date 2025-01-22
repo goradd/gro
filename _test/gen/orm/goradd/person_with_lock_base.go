@@ -227,8 +227,9 @@ func (o *personWithLockBase) IsNew() bool {
 }
 
 // LoadPersonWithLock returns a PersonWithLock from the database.
-// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
-// be considered Join nodes, and column nodes will be Select nodes. See [PersonWithLocksBuilder.Join] and [PersonWithLocksBuilder.Select] for more info.
+// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields.
+// Table nodes will be considered Join nodes, and column nodes will be Select nodes.
+// See [PersonWithLockBuilder.Join] and [PersonWithLocksBuilder.Select] for more info.
 func LoadPersonWithLock(ctx context.Context, id string, joinOrSelectNodes ...query.Node) *PersonWithLock {
 	return queryPersonWithLocks(ctx).
 		Where(op.Equal(node.PersonWithLock().ID(), id)).
@@ -244,29 +245,118 @@ func HasPersonWithLock(ctx context.Context, id string) bool {
 		Count(false) == 1
 }
 
-// The PersonWithLocksBuilder uses the QueryBuilderI interface from the database to build a query.
+// The PersonWithLockBuilder uses the query.BuilderI interface to build a query.
 // All query operations go through this query builder.
-// End a query by calling either Load, Count, or Delete
-type PersonWithLocksBuilder struct {
-	builder query.QueryBuilderI
+// End a query by calling either Load, LoadCursor, Get, Count, or Delete
+type PersonWithLockBuilder interface {
+	// Join adds node n to the node tree so that its fields will appear in the query.
+	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
+	Join(n query.Node, conditions ...query.Node) PersonWithLockBuilder
+
+	// Where adds a condition to filter what gets selected.
+	// Calling Where multiple times will AND the conditions together.
+	Where(c query.Node) PersonWithLockBuilder
+
+	// OrderBy specifies how the resulting data should be sorted.
+	// By default, the given nodes are sorted in ascending order.
+	// Add Descending() to the node to specify that it should be sorted in descending order.
+	OrderBy(nodes ...query.Sorter) PersonWithLockBuilder
+
+	// Limit will return a subset of the data, limited to the offset and number of rows specified.
+	// For large data sets and specific types of queries, this can be slow, because it will perform
+	// the entire query before computing the limit.
+	// You cannot limit a query that has embedded arrays.
+	Limit(maxRowCount int, offset int) PersonWithLockBuilder
+
+	// Select optimizes the query to only return the specified fields.
+	// Once you put a Select in your query, you must specify all the fields that you will eventually read out.
+	// Some fields, like primary keys, are always selected.
+	// If you are using a GroupBy, most database drivers will only allow selecting on fields in the GroupBy, and
+	// doing otherwise will result in an error.
+	Select(nodes ...query.Node) PersonWithLockBuilder
+
+	// Calculation adds a calculation node with an aliased name.
+	// After the query, you can read the data using GetAlias() on a returned object.
+	Calculation(name string, n query.Aliaser) PersonWithLockBuilder
+
+	// Distinct removes duplicates from the results of the query.
+	// Adding a Select() is usually required.
+	Distinct() PersonWithLockBuilder
+
+	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
+	GroupBy(nodes ...query.Node) PersonWithLockBuilder
+
+	// Having does additional filtering on the results of the query after the query is performed.
+	Having(node query.Node) PersonWithLockBuilder
+
+	// Load terminates the query builder, performs the query, and returns a slice of PersonWithLock objects.
+	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If no results come back from the query, it will return a non-nil empty slice.
+	Load() []*PersonWithLock
+	// Load terminates the query builder, performs the query, and returns a slice of interfaces.
+	// This can then satisfy a general interface that loads arrays of objects.
+	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If no results come back from the query, it will return a non-nil empty slice.
+	LoadI() []any
+
+	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
+	//
+	// A query cursor is useful for dealing with large amounts of query results. However, there are some
+	// limitations to its use. When working with SQL databases, you cannot use a cursor while querying
+	// many-to-many or reverse relationships that will create an array of values.
+	//
+	// Call Next() on the returned cursor object to step through the results. Make sure you call Close
+	// on the cursor object when you are done. You should use
+	//   defer cursor.Close()
+	// to make sure the cursor gets closed.
+	LoadCursor() personWithLocksCursor
+
+	// Get is a convenience method to return only the first item found in a query.
+	// The entire query is performed, so you should generally use this only if you know
+	// you are selecting on one or very few items.
+	//
+	// If an error occurs, or no results are found, a nil is returned.
+	// In the case of an error, the error is returned in the context.
+	Get() *PersonWithLock
+
+	// Count terminates a query and returns just the number of items selected.
+	// distinct wll count the number of distinct items, ignoring duplicates.
+	// nodes will select individual fields, and should be accompanied by a GroupBy.
+	Count(distinct bool, nodes ...query.Node) int
+
+	// Delete uses the query builder to delete a group of records that match the criteria
+	Delete()
+
+	// Subquery terminates the query builder and tags it as a subquery within a larger query.
+	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
+	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
+	Subquery() *query.SubqueryNode
+
+	joinOrSelect(nodes ...query.Node) PersonWithLockBuilder
 }
 
-func newPersonWithLockBuilder(ctx context.Context) *PersonWithLocksBuilder {
-	b := &PersonWithLocksBuilder{
-		builder: db.GetDatabase("goradd").NewBuilder(ctx),
+type personWithLockQueryBuilder struct {
+	builder *query.Builder
+}
+
+func newPersonWithLockBuilder(ctx context.Context) PersonWithLockBuilder {
+	b := personWithLockQueryBuilder{
+		builder: query.NewBuilder(ctx),
 	}
-	return b.Join(node.PersonWithLock())
+	return b.Join(node.PersonWithLock()) // seed builder with the top table
 }
 
-// Load terminates the query builder, performs the query, and returns a slice of PersonWithLock objects. If there are
-// any errors, they are returned in the context object. If no results come back from the query, it will return
-// an empty slice
-func (b *PersonWithLocksBuilder) Load() (personWithLocks []*PersonWithLock) {
-	results := b.builder.Load()
+// Load terminates the query builder, performs the query, and returns a slice of PersonWithLock objects.
+// If there are any errors, nil is returned and the specific error is stored in the context.
+// If no results come back from the query, it will return a non-nil empty slice.
+func (b *personWithLockQueryBuilder) Load() (personWithLocks []*PersonWithLock) {
+	b.builder.Command = query.BuilderCommandLoad
+	database := db.GetDatabase("goradd")
+	results := database.BuilderQuery(b.builder.Ctx, b.builder)
 	if results == nil {
 		return
 	}
-	for _, item := range results {
+	for _, item := range results.([]map[string]any) {
 		o := new(PersonWithLock)
 		o.load(item, o, nil, "")
 		personWithLocks = append(personWithLocks, o)
@@ -274,15 +364,18 @@ func (b *PersonWithLocksBuilder) Load() (personWithLocks []*PersonWithLock) {
 	return
 }
 
-// LoadI terminates the query builder, performs the query, and returns a slice of interfaces. If there are
-// any errors, they are returned in the context object. If no results come back from the query, it will return
-// an empty slice.
-func (b *PersonWithLocksBuilder) LoadI() (personWithLocks []interface{}) {
-	results := b.builder.Load()
+// Load terminates the query builder, performs the query, and returns a slice of interfaces.
+// This can then satisfy a general interface that loads arrays of objects.
+// If there are any errors, nil is returned and the specific error is stored in the context.
+// If no results come back from the query, it will return a non-nil empty slice.
+func (b *personWithLockQueryBuilder) LoadI() (personWithLocks []any) {
+	b.builder.Command = query.BuilderCommandLoad
+	database := db.GetDatabase("goradd")
+	results := database.BuilderQuery(b.builder.Ctx, b.builder)
 	if results == nil {
 		return
 	}
-	for _, item := range results {
+	for _, item := range results.([]map[string]any) {
 		o := new(PersonWithLock)
 		o.load(item, o, nil, "")
 		personWithLocks = append(personWithLocks, o)
@@ -302,8 +395,14 @@ func (b *PersonWithLocksBuilder) LoadI() (personWithLocks []interface{}) {
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *PersonWithLocksBuilder) LoadCursor() personWithLocksCursor {
-	cursor := b.builder.LoadCursor()
+func (b *personWithLockQueryBuilder) LoadCursor() personWithLocksCursor {
+	b.builder.Command = query.BuilderCommandLoadCursor
+	database := db.GetDatabase("goradd")
+	result := database.BuilderQuery(b.builder.Ctx, b.builder)
+	if result == nil {
+		return personWithLocksCursor{}
+	}
+	cursor := result.(query.CursorI)
 
 	return personWithLocksCursor{cursor}
 }
@@ -316,6 +415,10 @@ type personWithLocksCursor struct {
 //
 // If there are no more records, it returns nil.
 func (c personWithLocksCursor) Next() *PersonWithLock {
+	if c.CursorI == nil {
+		return nil
+	}
+
 	row := c.CursorI.Next()
 	if row == nil {
 		return nil
@@ -328,7 +431,10 @@ func (c personWithLocksCursor) Next() *PersonWithLock {
 // Get is a convenience method to return only the first item found in a query.
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
-func (b *PersonWithLocksBuilder) Get() *PersonWithLock {
+//
+// If an error occurs, or no results are found, a nil is returned.
+// In the case of an error, the error is returned in the context.
+func (b *personWithLockQueryBuilder) Get() *PersonWithLock {
 	results := b.Load()
 	if results != nil && len(results) > 0 {
 		obj := results[0]
@@ -339,13 +445,9 @@ func (b *PersonWithLocksBuilder) Get() *PersonWithLock {
 }
 
 // Join adds node n to the node tree so that its fields will appear in the query.
-// Optionally add conditions to filter what gets included.
-func (b *PersonWithLocksBuilder) Join(n query.Node, conditions ...query.Node) *PersonWithLocksBuilder {
-	if !query.NodeIsTableNodeI(n) {
-		panic("you can only join Table, Reference, ReverseReference and ManyManyReference nodes")
-	}
-
-	if query.NodeTableName(query.RootNode(n)) != "person_with_lock" {
+// Optionally add conditions to filter what gets included. Multiple conditions are anded.
+func (b *personWithLockQueryBuilder) Join(n query.Node, conditions ...query.Node) PersonWithLockBuilder {
+	if query.RootNode(n).TableName_() != "person_with_lock" {
 		panic("you can only join a node that is rooted at node.PersonWithLock()")
 	}
 
@@ -360,83 +462,95 @@ func (b *PersonWithLocksBuilder) Join(n query.Node, conditions ...query.Node) *P
 }
 
 // Where adds a condition to filter what gets selected.
-func (b *PersonWithLocksBuilder) Where(c query.Node) *PersonWithLocksBuilder {
-	b.builder.Condition(c)
+// Calling Where multiple times will AND the conditions together.
+func (b *personWithLockQueryBuilder) Where(c query.Node) PersonWithLockBuilder {
+	b.builder.Where(c)
 	return b
 }
 
 // OrderBy specifies how the resulting data should be sorted.
-func (b *PersonWithLocksBuilder) OrderBy(nodes ...query.Node) *PersonWithLocksBuilder {
+// By default, the given nodes are sorted in ascending order.
+// Add Descending() to the node to specify that it should be sorted in descending order.
+func (b *personWithLockQueryBuilder) OrderBy(nodes ...query.Sorter) PersonWithLockBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
 
-// Limit will return a subset of the data, limited to the offset and number of rows specified
-func (b *PersonWithLocksBuilder) Limit(maxRowCount int, offset int) *PersonWithLocksBuilder {
+// Limit will return a subset of the data, limited to the offset and number of rows specified.
+// For large data sets and specific types of queries, this can be slow, because it will perform
+// the entire query before computing the limit.
+// You cannot limit a query that has embedded arrays.
+func (b *personWithLockQueryBuilder) Limit(maxRowCount int, offset int) PersonWithLockBuilder {
 	b.builder.Limit(maxRowCount, offset)
 	return b
 }
 
-// Select optimizes the query to only return the specified fields. Once you put a Select in your query, you must
-// specify all the fields that you will eventually read out. Be careful when selecting fields in joined tables, as joined
-// tables will also contain pointers back to the parent table, and so the parent node should have the same field selected
-// as the child node if you are querying those fields.
-func (b *PersonWithLocksBuilder) Select(nodes ...query.Node) *PersonWithLocksBuilder {
+// Select optimizes the query to only return the specified fields.
+// Once you put a Select in your query, you must specify all the fields that you will eventually read out.
+func (b *personWithLockQueryBuilder) Select(nodes ...query.Node) PersonWithLockBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
-// Alias lets you add a node with a custom name. After the query, you can read out the data using GetAlias() on a
-// returned object. Alias is useful for adding calculations or subqueries to the query.
-func (b *PersonWithLocksBuilder) Alias(name string, n query.Node) *PersonWithLocksBuilder {
-	b.builder.Alias(name, n)
+// Calculation adds a calculation node with an aliased name.
+// After the query, you can read the data using GetAlias() on a returned object.
+func (b *personWithLockQueryBuilder) Calculation(name string, n query.Aliaser) PersonWithLockBuilder {
+	b.builder.Calculation(name, n)
 	return b
 }
 
-// Distinct removes duplicates from the results of the query. Adding a Select() may help you get to the data you want, although
-// using Distinct with joined tables is often not effective, since we force joined tables to include primary keys in the query, and this
-// often ruins the effect of Distinct.
-func (b *PersonWithLocksBuilder) Distinct() *PersonWithLocksBuilder {
+// Distinct removes duplicates from the results of the query.
+// Adding a Select() is usually required.
+func (b *personWithLockQueryBuilder) Distinct() PersonWithLockBuilder {
 	b.builder.Distinct()
 	return b
 }
 
-// GroupBy controls how results are grouped when using aggregate functions in an Alias() call.
-func (b *PersonWithLocksBuilder) GroupBy(nodes ...query.Node) *PersonWithLocksBuilder {
+// GroupBy controls how results are grouped when using aggregate functions with Calculation.
+func (b *personWithLockQueryBuilder) GroupBy(nodes ...query.Node) PersonWithLockBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
-// Having does additional filtering on the results of the query.
-func (b *PersonWithLocksBuilder) Having(node query.Node) *PersonWithLocksBuilder {
+// Having does additional filtering on the results of the query after the query is performed.
+func (b *personWithLockQueryBuilder) Having(node query.Node) PersonWithLockBuilder {
 	b.builder.Having(node)
 	return b
 }
 
 // Count terminates a query and returns just the number of items selected.
-//
 // distinct wll count the number of distinct items, ignoring duplicates.
-//
 // nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *PersonWithLocksBuilder) Count(distinct bool, nodes ...query.Node) uint {
-	return b.builder.Count(distinct, nodes...)
+func (b *personWithLockQueryBuilder) Count(distinct bool, nodes ...query.Node) int {
+	b.builder.Command = query.BuilderCommandCount
+	if distinct {
+		b.builder.Distinct()
+	}
+	database := db.GetDatabase("goradd")
+	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	if results == nil {
+		return 0
+	}
+	return results.(int)
 }
 
 // Delete uses the query builder to delete a group of records that match the criteria
-func (b *PersonWithLocksBuilder) Delete() {
-	b.builder.Delete()
+func (b *personWithLockQueryBuilder) Delete() {
+	b.builder.Command = query.BuilderCommandDelete
+	database := db.GetDatabase("goradd")
+	database.BuilderQuery(b.builder.Ctx, b.builder)
 	broadcast.BulkChange(b.builder.Context(), "goradd", "person_with_lock")
 }
 
-// Subquery uses the query builder to define a subquery within a larger query. You MUST include what
-// you are selecting by adding Alias or Select functions on the subquery builder. Generally you would use
-// this as a node to an Alias function on the surrounding query builder.
-func (b *PersonWithLocksBuilder) Subquery() *query.SubqueryNode {
+// Subquery terminates the query builder and tags it as a subquery within a larger query.
+// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
+// Generally you would use this as a node to a Calculation function on the surrounding query builder.
+func (b *personWithLockQueryBuilder) Subquery() *query.SubqueryNode {
 	return b.builder.Subquery()
 }
 
 // joinOrSelect is a private helper function for the Load* functions
-func (b *PersonWithLocksBuilder) joinOrSelect(nodes ...query.Node) *PersonWithLocksBuilder {
+func (b *personWithLockQueryBuilder) joinOrSelect(nodes ...query.Node) PersonWithLockBuilder {
 	for _, n := range nodes {
 		switch n.(type) {
 		case query.TableNodeI:
@@ -634,7 +748,7 @@ func (o *personWithLockBase) getModifiedFields() (fields map[string]interface{})
 	return
 }
 
-// getValidFields returns the fields that have valid data in them.
+// getValidFields returns the fields that have valid data in them in a form ready to send to the database.
 func (o *personWithLockBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 
@@ -654,9 +768,7 @@ func (o *personWithLockBase) getValidFields() (fields map[string]interface{}) {
 		if o.sysTimestampIsNull {
 			fields["sys_timestamp"] = nil
 		} else {
-
 			fields["sys_timestamp"] = o.sysTimestamp
-
 		}
 	}
 	return

@@ -1,6 +1,8 @@
 
 {{g
 //*** {{includeName}}
+
+
 }}
 {{
 // {{= col.Identifier }} returns the loaded value of {{= col.Identifier }}.
@@ -9,11 +11,6 @@ func (o *{{= table.DecapIdentifier}}Base) {{= col.Identifier }}() {{= col.GoType
 		panic ("{{= col.Identifier }} was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.{{= col.VariableIdentifier() }}
-}
-
-// {{= col.Identifier }}IsValid returns true if the value was loaded from the database or has been set.
-func (o *{{= table.DecapIdentifier}}Base) {{= col.Identifier }}IsValid() bool {
-	return o.{{= col.VariableIdentifier() }}IsValid
 }
 
 }}

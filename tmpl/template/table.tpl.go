@@ -241,11 +241,11 @@ func Query`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `(ctx context.Context) *`); err != nil {
+	if _, err = io.WriteString(_w, `(ctx context.Context) `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
 		return
 	}
 
@@ -280,11 +280,11 @@ func query`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `(ctx context.Context) *`); err != nil {
+	if _, err = io.WriteString(_w, `(ctx context.Context) `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
 		return
 	}
 

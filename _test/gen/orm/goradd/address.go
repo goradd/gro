@@ -38,14 +38,14 @@ func (o *Address) String() string {
 }
 
 // QueryAddresses returns a new query builder.
-func QueryAddresses(ctx context.Context) *AddressesBuilder {
+func QueryAddresses(ctx context.Context) AddressBuilder {
 	return queryAddresses(ctx)
 }
 
 // queryAddresses creates a new builder and is the central spot where all queries are directed.
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
-func queryAddresses(ctx context.Context) *AddressesBuilder {
+func queryAddresses(ctx context.Context) AddressBuilder {
 	return newAddressBuilder(ctx)
 }
 

@@ -10,6 +10,7 @@ func (tmpl *EnumTemplate)gen(table *model.Enum, _w io.Writer) (err error) {
     if err = tmpl.genPlurals(table, _w); err != nil { return }
     if err = tmpl.genInterfaces(table, _w); err != nil { return }
     if err = tmpl.genFields(table, _w); err != nil { return }
+    if err = tmpl.genSet(table, _w); err != nil { return }
     return
 }
 
@@ -21,6 +22,8 @@ package {{= tmpl.Package }}
 
 import (
 	"strconv"
+	"github.com/goradd/maps"
+    "sort"
 )
 }}
     return
@@ -144,7 +147,7 @@ func {{= table.IdentifierPlural }}I() (values []any) {
 
 func (tmpl *EnumTemplate)genInterfaces(table *model.Enum, _w io.Writer) (err error) {
 {{
-// Label returns the string that will be displayed to a user for this item.
+// Label returns the string that will be displayed to a user for this item and satsifies goradd's Labeler interface.
 func (e {{= table.Identifier }}) Label() string {
 	return e.String()
 }
@@ -163,9 +166,7 @@ func (tmpl *EnumTemplate)genFields(table *model.Enum, _w io.Writer) (err error) 
     for i,field := range table.Fields[2:] {
         fieldNum := i + 2
 {{
-func (e {{= table.Identifier }}) {{= field.Identifier }}() {{= field.GoType()
-
- }} {
+func (e {{= table.Identifier }}) {{= field.Identifier }}() {{= field.GoType()}} {
 	switch e {
 	case 0: return {{= field.Type.DefaultValueString() }}
 {{for _,con := range table.Constants }}
@@ -178,9 +179,7 @@ func (e {{= table.Identifier }}) {{= field.Identifier }}() {{= field.GoType()
 
 // {{= table.Identifier }}{{= field.IdentifierPlural }} returns a slice of all the {{= field.TitlePlural }} associated with {{= table.Identifier }} values.
 // doc: type={{= table.Identifier }}
-func {{= table.Identifier }}{{= field.IdentifierPlural }}() []{{= field.GoType()
-
- }} {
+func {{= table.Identifier }}{{= field.IdentifierPlural }}() []{{= field.GoType()}} {
 	return []{{= field.GoType()
 
  }} {
@@ -196,5 +195,35 @@ func {{= table.Identifier }}{{= field.IdentifierPlural }}() []{{= field.GoType()
     }
     return
 }
+
+func (tmpl *EnumTemplate)genSet(table *model.Enum, _w io.Writer) (err error) {
+{{
+
+// {{= table.Identifier }}Set is a group of {{= table.Identifier }} values.
+type {{= table.Identifier }}Set = maps.Set[{{= table.Identifier }}]
+
+// {{= table.Identifier }}SetFromNumbers converts an array of numeric values into a {{= table.Identifier }}Set.
+func {{= table.Identifier }}SetFromNumbers[T ~int | ~int8 | ~int16 | ~int32 | ~int64 |
+        ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64] (nums []T) (values {{= table.Identifier }}Set) {
+	var s {{= table.Identifier }}Set
+	for _, n := range nums {
+		s.Add({{= table.Identifier }}(n))
+	}
+	return s
+}
+
+// {{= table.Identifier }}SetToInts
+func {{= table.Identifier }}SetToInts(values {{= table.Identifier }}Set) (ints []int) {
+	for _,v := range values.Values() {
+		ints = append(ints, int(v))
+	}
+	sort.Ints(ints)
+	return
+}
+
+}}
+    return
+}
+
 
 

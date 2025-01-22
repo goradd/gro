@@ -4,6 +4,12 @@
 }}
 {{for _,col := range table.Columns }}
 
+{{g
+    if col.IsEnumArray() {
+        continue
+    }
+}}
+
 // Count{{table.Identifier}}By{{col.Identifier}} queries the database and returns the number of {{table.Identifier}} objects that
 // have {{= col.DecapIdentifier }}.
 // doc: type={{table.Identifier}}

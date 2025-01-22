@@ -37,14 +37,14 @@ func (o *Reverse) String() string {
 }
 
 // QueryReverses returns a new query builder.
-func QueryReverses(ctx context.Context) *ReversesBuilder {
+func QueryReverses(ctx context.Context) ReverseBuilder {
 	return queryReverses(ctx)
 }
 
 // queryReverses creates a new builder and is the central spot where all queries are directed.
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
-func queryReverses(ctx context.Context) *ReversesBuilder {
+func queryReverses(ctx context.Context) ReverseBuilder {
 	return newReverseBuilder(ctx)
 }
 

@@ -162,7 +162,7 @@
           },
           {
             "name": "type_enum",
-            "type": "MultiEnum",
+            "type": "EnumArray",
             "size": 40,
             "case_insensitive": true
           }
@@ -696,13 +696,13 @@
           },
           {
             "name": "type_set",
-            "type": "String",
+            "type": "Unknown",
             "size": 5,
             "case_insensitive": true
           },
           {
-            "name": "type_enum",
-            "type": "MultiEnum",
+            "name": "type_enumerated",
+            "type": "Unknown",
             "size": 1,
             "case_insensitive": true
           },

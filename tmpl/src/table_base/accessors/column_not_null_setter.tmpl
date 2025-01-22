@@ -16,11 +16,10 @@ func (o *{{= table.DecapIdentifier }}Base) Set{{= col.Identifier }}({{= col.Vari
 	o.{{= col.VariableIdentifier() }} = {{= col.VariableIdentifier() }}		// TODO: Copy bytes??
 	o.{{= col.VariableIdentifier() }}IsDirty = true
 
-{{elseif col.IsManyEnum() }}
-    v := slices.Sort(slices.Clone({{= col.VariableIdentifier() }}))
-	if !slices.Equal(o.{{= col.VariableIdentifier() }}, v) ||
+{{elseif col.IsEnumArray() }}
+	if !o.{{= col.VariableIdentifier() }}.Equal(&{{= col.VariableIdentifier() }}) ||
 	        !o._restored {
-		o.{{= col.VariableIdentifier() }} = v
+		o.{{= col.VariableIdentifier() }} = {{= col.VariableIdentifier() }}
 		o.{{= col.VariableIdentifier() }}IsDirty = true
     }
 

@@ -461,12 +461,12 @@ func processTypeInfo(column mysqlColumn) (
 
 	case "set":
 		err = fmt.Errorf("set is not supported. Use a json or string column type instead")
-		typ = schema.ColTypeString
+		typ = schema.ColTypeUnknown
 		maxLength = uint64(column.characterMaxLen.Int64)
 
 	case "enum":
 		err = fmt.Errorf("enum is not supported directly. Use an enum table")
-		typ = schema.ColTypeString
+		typ = schema.ColTypeUnknown
 		maxLength = uint64(column.characterMaxLen.Int64)
 
 	default:
@@ -733,7 +733,7 @@ func (m *DB) getColumnSchema(table mysqlTable,
 				}
 			}
 		} else if cd.Type == schema.ColTypeString {
-			cd.Type = schema.ColTypeManyEnum
+			cd.Type = schema.ColTypeEnumArray
 			if refTable != "" {
 				cd.Reference = &schema.Reference{
 					Table: refTable,

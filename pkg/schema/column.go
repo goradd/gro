@@ -4,6 +4,7 @@ import (
 	. "github.com/goradd/all"
 	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
+	log2 "log/slog"
 	"slices"
 	"strings"
 )
@@ -59,7 +60,7 @@ type Column struct {
 	CaseInsensitive bool `json:"case_insensitive,omitempty"`
 
 	// Reference is set when the column is a pointer to another table.
-	// This is required for ColTypeReference, ColTypeEnum and ColTypeManyEnum tables.
+	// This is required for ColTypeReference, ColTypeEnum and ColTypeEnumArray tables.
 	Reference *Reference `json:"reference,omitempty"`
 }
 
@@ -113,12 +114,15 @@ func (c *Column) FillDefaults(db *Database, table *Table) {
 				c.Reference = &Reference{
 					Table: table.Name + "_" + c.Name,
 				}
+			} else {
+				log2.Error("Enum value's table was not specified and could not be inferred: " + c.Name)
+				c.Reference = &Reference{}
 			}
 		}
 		objName := strings.TrimSuffix(c.Name, db.EnumTableSuffix)
 		if c.Title == "" {
 			c.Title = strings2.Title(objName)
-			if c.Type == ColTypeManyEnum {
+			if c.Type == ColTypeEnumArray {
 				c.Title = strings2.Plural(c.Title)
 			}
 			if c.Identifier == "" {

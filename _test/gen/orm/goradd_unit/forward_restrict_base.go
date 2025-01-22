@@ -217,8 +217,9 @@ func (o *forwardRestrictBase) IsNew() bool {
 }
 
 // LoadForwardRestrict returns a ForwardRestrict from the database.
-// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
-// be considered Join nodes, and column nodes will be Select nodes. See [ForwardRestrictsBuilder.Join] and [ForwardRestrictsBuilder.Select] for more info.
+// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields.
+// Table nodes will be considered Join nodes, and column nodes will be Select nodes.
+// See [ForwardRestrictBuilder.Join] and [ForwardRestrictsBuilder.Select] for more info.
 func LoadForwardRestrict(ctx context.Context, id string, joinOrSelectNodes ...query.Node) *ForwardRestrict {
 	return queryForwardRestricts(ctx).
 		Where(op.Equal(node.ForwardRestrict().ID(), id)).
@@ -234,29 +235,118 @@ func HasForwardRestrict(ctx context.Context, id string) bool {
 		Count(false) == 1
 }
 
-// The ForwardRestrictsBuilder uses the QueryBuilderI interface from the database to build a query.
+// The ForwardRestrictBuilder uses the query.BuilderI interface to build a query.
 // All query operations go through this query builder.
-// End a query by calling either Load, Count, or Delete
-type ForwardRestrictsBuilder struct {
-	builder query.QueryBuilderI
+// End a query by calling either Load, LoadCursor, Get, Count, or Delete
+type ForwardRestrictBuilder interface {
+	// Join adds node n to the node tree so that its fields will appear in the query.
+	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
+	Join(n query.Node, conditions ...query.Node) ForwardRestrictBuilder
+
+	// Where adds a condition to filter what gets selected.
+	// Calling Where multiple times will AND the conditions together.
+	Where(c query.Node) ForwardRestrictBuilder
+
+	// OrderBy specifies how the resulting data should be sorted.
+	// By default, the given nodes are sorted in ascending order.
+	// Add Descending() to the node to specify that it should be sorted in descending order.
+	OrderBy(nodes ...query.Sorter) ForwardRestrictBuilder
+
+	// Limit will return a subset of the data, limited to the offset and number of rows specified.
+	// For large data sets and specific types of queries, this can be slow, because it will perform
+	// the entire query before computing the limit.
+	// You cannot limit a query that has embedded arrays.
+	Limit(maxRowCount int, offset int) ForwardRestrictBuilder
+
+	// Select optimizes the query to only return the specified fields.
+	// Once you put a Select in your query, you must specify all the fields that you will eventually read out.
+	// Some fields, like primary keys, are always selected.
+	// If you are using a GroupBy, most database drivers will only allow selecting on fields in the GroupBy, and
+	// doing otherwise will result in an error.
+	Select(nodes ...query.Node) ForwardRestrictBuilder
+
+	// Calculation adds a calculation node with an aliased name.
+	// After the query, you can read the data using GetAlias() on a returned object.
+	Calculation(name string, n query.Aliaser) ForwardRestrictBuilder
+
+	// Distinct removes duplicates from the results of the query.
+	// Adding a Select() is usually required.
+	Distinct() ForwardRestrictBuilder
+
+	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
+	GroupBy(nodes ...query.Node) ForwardRestrictBuilder
+
+	// Having does additional filtering on the results of the query after the query is performed.
+	Having(node query.Node) ForwardRestrictBuilder
+
+	// Load terminates the query builder, performs the query, and returns a slice of ForwardRestrict objects.
+	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If no results come back from the query, it will return a non-nil empty slice.
+	Load() []*ForwardRestrict
+	// Load terminates the query builder, performs the query, and returns a slice of interfaces.
+	// This can then satisfy a general interface that loads arrays of objects.
+	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If no results come back from the query, it will return a non-nil empty slice.
+	LoadI() []any
+
+	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
+	//
+	// A query cursor is useful for dealing with large amounts of query results. However, there are some
+	// limitations to its use. When working with SQL databases, you cannot use a cursor while querying
+	// many-to-many or reverse relationships that will create an array of values.
+	//
+	// Call Next() on the returned cursor object to step through the results. Make sure you call Close
+	// on the cursor object when you are done. You should use
+	//   defer cursor.Close()
+	// to make sure the cursor gets closed.
+	LoadCursor() forwardRestrictsCursor
+
+	// Get is a convenience method to return only the first item found in a query.
+	// The entire query is performed, so you should generally use this only if you know
+	// you are selecting on one or very few items.
+	//
+	// If an error occurs, or no results are found, a nil is returned.
+	// In the case of an error, the error is returned in the context.
+	Get() *ForwardRestrict
+
+	// Count terminates a query and returns just the number of items selected.
+	// distinct wll count the number of distinct items, ignoring duplicates.
+	// nodes will select individual fields, and should be accompanied by a GroupBy.
+	Count(distinct bool, nodes ...query.Node) int
+
+	// Delete uses the query builder to delete a group of records that match the criteria
+	Delete()
+
+	// Subquery terminates the query builder and tags it as a subquery within a larger query.
+	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
+	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
+	Subquery() *query.SubqueryNode
+
+	joinOrSelect(nodes ...query.Node) ForwardRestrictBuilder
 }
 
-func newForwardRestrictBuilder(ctx context.Context) *ForwardRestrictsBuilder {
-	b := &ForwardRestrictsBuilder{
-		builder: db.GetDatabase("goradd_unit").NewBuilder(ctx),
+type forwardRestrictQueryBuilder struct {
+	builder *query.Builder
+}
+
+func newForwardRestrictBuilder(ctx context.Context) ForwardRestrictBuilder {
+	b := forwardRestrictQueryBuilder{
+		builder: query.NewBuilder(ctx),
 	}
-	return b.Join(node.ForwardRestrict())
+	return b.Join(node.ForwardRestrict()) // seed builder with the top table
 }
 
-// Load terminates the query builder, performs the query, and returns a slice of ForwardRestrict objects. If there are
-// any errors, they are returned in the context object. If no results come back from the query, it will return
-// an empty slice
-func (b *ForwardRestrictsBuilder) Load() (forwardRestricts []*ForwardRestrict) {
-	results := b.builder.Load()
+// Load terminates the query builder, performs the query, and returns a slice of ForwardRestrict objects.
+// If there are any errors, nil is returned and the specific error is stored in the context.
+// If no results come back from the query, it will return a non-nil empty slice.
+func (b *forwardRestrictQueryBuilder) Load() (forwardRestricts []*ForwardRestrict) {
+	b.builder.Command = query.BuilderCommandLoad
+	database := db.GetDatabase("goradd_unit")
+	results := database.BuilderQuery(b.builder.Ctx, b.builder)
 	if results == nil {
 		return
 	}
-	for _, item := range results {
+	for _, item := range results.([]map[string]any) {
 		o := new(ForwardRestrict)
 		o.load(item, o, nil, "")
 		forwardRestricts = append(forwardRestricts, o)
@@ -264,15 +354,18 @@ func (b *ForwardRestrictsBuilder) Load() (forwardRestricts []*ForwardRestrict) {
 	return
 }
 
-// LoadI terminates the query builder, performs the query, and returns a slice of interfaces. If there are
-// any errors, they are returned in the context object. If no results come back from the query, it will return
-// an empty slice.
-func (b *ForwardRestrictsBuilder) LoadI() (forwardRestricts []interface{}) {
-	results := b.builder.Load()
+// Load terminates the query builder, performs the query, and returns a slice of interfaces.
+// This can then satisfy a general interface that loads arrays of objects.
+// If there are any errors, nil is returned and the specific error is stored in the context.
+// If no results come back from the query, it will return a non-nil empty slice.
+func (b *forwardRestrictQueryBuilder) LoadI() (forwardRestricts []any) {
+	b.builder.Command = query.BuilderCommandLoad
+	database := db.GetDatabase("goradd_unit")
+	results := database.BuilderQuery(b.builder.Ctx, b.builder)
 	if results == nil {
 		return
 	}
-	for _, item := range results {
+	for _, item := range results.([]map[string]any) {
 		o := new(ForwardRestrict)
 		o.load(item, o, nil, "")
 		forwardRestricts = append(forwardRestricts, o)
@@ -292,8 +385,14 @@ func (b *ForwardRestrictsBuilder) LoadI() (forwardRestricts []interface{}) {
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *ForwardRestrictsBuilder) LoadCursor() forwardRestrictsCursor {
-	cursor := b.builder.LoadCursor()
+func (b *forwardRestrictQueryBuilder) LoadCursor() forwardRestrictsCursor {
+	b.builder.Command = query.BuilderCommandLoadCursor
+	database := db.GetDatabase("goradd_unit")
+	result := database.BuilderQuery(b.builder.Ctx, b.builder)
+	if result == nil {
+		return forwardRestrictsCursor{}
+	}
+	cursor := result.(query.CursorI)
 
 	return forwardRestrictsCursor{cursor}
 }
@@ -306,6 +405,10 @@ type forwardRestrictsCursor struct {
 //
 // If there are no more records, it returns nil.
 func (c forwardRestrictsCursor) Next() *ForwardRestrict {
+	if c.CursorI == nil {
+		return nil
+	}
+
 	row := c.CursorI.Next()
 	if row == nil {
 		return nil
@@ -318,7 +421,10 @@ func (c forwardRestrictsCursor) Next() *ForwardRestrict {
 // Get is a convenience method to return only the first item found in a query.
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
-func (b *ForwardRestrictsBuilder) Get() *ForwardRestrict {
+//
+// If an error occurs, or no results are found, a nil is returned.
+// In the case of an error, the error is returned in the context.
+func (b *forwardRestrictQueryBuilder) Get() *ForwardRestrict {
 	results := b.Load()
 	if results != nil && len(results) > 0 {
 		obj := results[0]
@@ -329,13 +435,9 @@ func (b *ForwardRestrictsBuilder) Get() *ForwardRestrict {
 }
 
 // Join adds node n to the node tree so that its fields will appear in the query.
-// Optionally add conditions to filter what gets included.
-func (b *ForwardRestrictsBuilder) Join(n query.Node, conditions ...query.Node) *ForwardRestrictsBuilder {
-	if !query.NodeIsTableNodeI(n) {
-		panic("you can only join Table, Reference, ReverseReference and ManyManyReference nodes")
-	}
-
-	if query.NodeTableName(query.RootNode(n)) != "forward_restrict" {
+// Optionally add conditions to filter what gets included. Multiple conditions are anded.
+func (b *forwardRestrictQueryBuilder) Join(n query.Node, conditions ...query.Node) ForwardRestrictBuilder {
+	if query.RootNode(n).TableName_() != "forward_restrict" {
 		panic("you can only join a node that is rooted at node.ForwardRestrict()")
 	}
 
@@ -350,83 +452,95 @@ func (b *ForwardRestrictsBuilder) Join(n query.Node, conditions ...query.Node) *
 }
 
 // Where adds a condition to filter what gets selected.
-func (b *ForwardRestrictsBuilder) Where(c query.Node) *ForwardRestrictsBuilder {
-	b.builder.Condition(c)
+// Calling Where multiple times will AND the conditions together.
+func (b *forwardRestrictQueryBuilder) Where(c query.Node) ForwardRestrictBuilder {
+	b.builder.Where(c)
 	return b
 }
 
 // OrderBy specifies how the resulting data should be sorted.
-func (b *ForwardRestrictsBuilder) OrderBy(nodes ...query.Node) *ForwardRestrictsBuilder {
+// By default, the given nodes are sorted in ascending order.
+// Add Descending() to the node to specify that it should be sorted in descending order.
+func (b *forwardRestrictQueryBuilder) OrderBy(nodes ...query.Sorter) ForwardRestrictBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
 
-// Limit will return a subset of the data, limited to the offset and number of rows specified
-func (b *ForwardRestrictsBuilder) Limit(maxRowCount int, offset int) *ForwardRestrictsBuilder {
+// Limit will return a subset of the data, limited to the offset and number of rows specified.
+// For large data sets and specific types of queries, this can be slow, because it will perform
+// the entire query before computing the limit.
+// You cannot limit a query that has embedded arrays.
+func (b *forwardRestrictQueryBuilder) Limit(maxRowCount int, offset int) ForwardRestrictBuilder {
 	b.builder.Limit(maxRowCount, offset)
 	return b
 }
 
-// Select optimizes the query to only return the specified fields. Once you put a Select in your query, you must
-// specify all the fields that you will eventually read out. Be careful when selecting fields in joined tables, as joined
-// tables will also contain pointers back to the parent table, and so the parent node should have the same field selected
-// as the child node if you are querying those fields.
-func (b *ForwardRestrictsBuilder) Select(nodes ...query.Node) *ForwardRestrictsBuilder {
+// Select optimizes the query to only return the specified fields.
+// Once you put a Select in your query, you must specify all the fields that you will eventually read out.
+func (b *forwardRestrictQueryBuilder) Select(nodes ...query.Node) ForwardRestrictBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
-// Alias lets you add a node with a custom name. After the query, you can read out the data using GetAlias() on a
-// returned object. Alias is useful for adding calculations or subqueries to the query.
-func (b *ForwardRestrictsBuilder) Alias(name string, n query.Node) *ForwardRestrictsBuilder {
-	b.builder.Alias(name, n)
+// Calculation adds a calculation node with an aliased name.
+// After the query, you can read the data using GetAlias() on a returned object.
+func (b *forwardRestrictQueryBuilder) Calculation(name string, n query.Aliaser) ForwardRestrictBuilder {
+	b.builder.Calculation(name, n)
 	return b
 }
 
-// Distinct removes duplicates from the results of the query. Adding a Select() may help you get to the data you want, although
-// using Distinct with joined tables is often not effective, since we force joined tables to include primary keys in the query, and this
-// often ruins the effect of Distinct.
-func (b *ForwardRestrictsBuilder) Distinct() *ForwardRestrictsBuilder {
+// Distinct removes duplicates from the results of the query.
+// Adding a Select() is usually required.
+func (b *forwardRestrictQueryBuilder) Distinct() ForwardRestrictBuilder {
 	b.builder.Distinct()
 	return b
 }
 
-// GroupBy controls how results are grouped when using aggregate functions in an Alias() call.
-func (b *ForwardRestrictsBuilder) GroupBy(nodes ...query.Node) *ForwardRestrictsBuilder {
+// GroupBy controls how results are grouped when using aggregate functions with Calculation.
+func (b *forwardRestrictQueryBuilder) GroupBy(nodes ...query.Node) ForwardRestrictBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
-// Having does additional filtering on the results of the query.
-func (b *ForwardRestrictsBuilder) Having(node query.Node) *ForwardRestrictsBuilder {
+// Having does additional filtering on the results of the query after the query is performed.
+func (b *forwardRestrictQueryBuilder) Having(node query.Node) ForwardRestrictBuilder {
 	b.builder.Having(node)
 	return b
 }
 
 // Count terminates a query and returns just the number of items selected.
-//
 // distinct wll count the number of distinct items, ignoring duplicates.
-//
 // nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *ForwardRestrictsBuilder) Count(distinct bool, nodes ...query.Node) uint {
-	return b.builder.Count(distinct, nodes...)
+func (b *forwardRestrictQueryBuilder) Count(distinct bool, nodes ...query.Node) int {
+	b.builder.Command = query.BuilderCommandCount
+	if distinct {
+		b.builder.Distinct()
+	}
+	database := db.GetDatabase("goradd_unit")
+	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	if results == nil {
+		return 0
+	}
+	return results.(int)
 }
 
 // Delete uses the query builder to delete a group of records that match the criteria
-func (b *ForwardRestrictsBuilder) Delete() {
-	b.builder.Delete()
+func (b *forwardRestrictQueryBuilder) Delete() {
+	b.builder.Command = query.BuilderCommandDelete
+	database := db.GetDatabase("goradd_unit")
+	database.BuilderQuery(b.builder.Ctx, b.builder)
 	broadcast.BulkChange(b.builder.Context(), "goradd_unit", "forward_restrict")
 }
 
-// Subquery uses the query builder to define a subquery within a larger query. You MUST include what
-// you are selecting by adding Alias or Select functions on the subquery builder. Generally you would use
-// this as a node to an Alias function on the surrounding query builder.
-func (b *ForwardRestrictsBuilder) Subquery() *query.SubqueryNode {
+// Subquery terminates the query builder and tags it as a subquery within a larger query.
+// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
+// Generally you would use this as a node to a Calculation function on the surrounding query builder.
+func (b *forwardRestrictQueryBuilder) Subquery() *query.SubqueryNode {
 	return b.builder.Subquery()
 }
 
 // joinOrSelect is a private helper function for the Load* functions
-func (b *ForwardRestrictsBuilder) joinOrSelect(nodes ...query.Node) *ForwardRestrictsBuilder {
+func (b *forwardRestrictQueryBuilder) joinOrSelect(nodes ...query.Node) ForwardRestrictBuilder {
 	for _, n := range nodes {
 		switch n.(type) {
 		case query.TableNodeI:
@@ -620,7 +734,7 @@ func (o *forwardRestrictBase) getModifiedFields() (fields map[string]interface{}
 	return
 }
 
-// getValidFields returns the fields that have valid data in them.
+// getValidFields returns the fields that have valid data in them in a form ready to send to the database.
 func (o *forwardRestrictBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 

@@ -189,7 +189,7 @@ func (o *forwardRestrictUniqueBase) SetReverseID(i interface{}) {
 		v := i.(string)
 		if o.reverseIDIsNull ||
 			!o._restored ||
-			o.reverseID != v; -1 {
+			o.reverseID != v {
 			o.reverseIDIsNull = false
 			o.reverseID = v
 			o.reverseIDIsDirty = true
@@ -253,8 +253,9 @@ func (o *forwardRestrictUniqueBase) IsNew() bool {
 }
 
 // LoadForwardRestrictUnique returns a ForwardRestrictUnique from the database.
-// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
-// be considered Join nodes, and column nodes will be Select nodes. See [ForwardRestrictUniquesBuilder.Join] and [ForwardRestrictUniquesBuilder.Select] for more info.
+// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields.
+// Table nodes will be considered Join nodes, and column nodes will be Select nodes.
+// See [ForwardRestrictUniqueBuilder.Join] and [ForwardRestrictUniquesBuilder.Select] for more info.
 func LoadForwardRestrictUnique(ctx context.Context, id string, joinOrSelectNodes ...query.Node) *ForwardRestrictUnique {
 	return queryForwardRestrictUniques(ctx).
 		Where(op.Equal(node.ForwardRestrictUnique().ID(), id)).
@@ -297,29 +298,118 @@ func HasForwardRestrictUniqueByReverseID(ctx context.Context, reverseID interfac
 	return q.Count(false) == 1
 }
 
-// The ForwardRestrictUniquesBuilder uses the QueryBuilderI interface from the database to build a query.
+// The ForwardRestrictUniqueBuilder uses the query.BuilderI interface to build a query.
 // All query operations go through this query builder.
-// End a query by calling either Load, Count, or Delete
-type ForwardRestrictUniquesBuilder struct {
-	builder query.QueryBuilderI
+// End a query by calling either Load, LoadCursor, Get, Count, or Delete
+type ForwardRestrictUniqueBuilder interface {
+	// Join adds node n to the node tree so that its fields will appear in the query.
+	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
+	Join(n query.Node, conditions ...query.Node) ForwardRestrictUniqueBuilder
+
+	// Where adds a condition to filter what gets selected.
+	// Calling Where multiple times will AND the conditions together.
+	Where(c query.Node) ForwardRestrictUniqueBuilder
+
+	// OrderBy specifies how the resulting data should be sorted.
+	// By default, the given nodes are sorted in ascending order.
+	// Add Descending() to the node to specify that it should be sorted in descending order.
+	OrderBy(nodes ...query.Sorter) ForwardRestrictUniqueBuilder
+
+	// Limit will return a subset of the data, limited to the offset and number of rows specified.
+	// For large data sets and specific types of queries, this can be slow, because it will perform
+	// the entire query before computing the limit.
+	// You cannot limit a query that has embedded arrays.
+	Limit(maxRowCount int, offset int) ForwardRestrictUniqueBuilder
+
+	// Select optimizes the query to only return the specified fields.
+	// Once you put a Select in your query, you must specify all the fields that you will eventually read out.
+	// Some fields, like primary keys, are always selected.
+	// If you are using a GroupBy, most database drivers will only allow selecting on fields in the GroupBy, and
+	// doing otherwise will result in an error.
+	Select(nodes ...query.Node) ForwardRestrictUniqueBuilder
+
+	// Calculation adds a calculation node with an aliased name.
+	// After the query, you can read the data using GetAlias() on a returned object.
+	Calculation(name string, n query.Aliaser) ForwardRestrictUniqueBuilder
+
+	// Distinct removes duplicates from the results of the query.
+	// Adding a Select() is usually required.
+	Distinct() ForwardRestrictUniqueBuilder
+
+	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
+	GroupBy(nodes ...query.Node) ForwardRestrictUniqueBuilder
+
+	// Having does additional filtering on the results of the query after the query is performed.
+	Having(node query.Node) ForwardRestrictUniqueBuilder
+
+	// Load terminates the query builder, performs the query, and returns a slice of ForwardRestrictUnique objects.
+	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If no results come back from the query, it will return a non-nil empty slice.
+	Load() []*ForwardRestrictUnique
+	// Load terminates the query builder, performs the query, and returns a slice of interfaces.
+	// This can then satisfy a general interface that loads arrays of objects.
+	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If no results come back from the query, it will return a non-nil empty slice.
+	LoadI() []any
+
+	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
+	//
+	// A query cursor is useful for dealing with large amounts of query results. However, there are some
+	// limitations to its use. When working with SQL databases, you cannot use a cursor while querying
+	// many-to-many or reverse relationships that will create an array of values.
+	//
+	// Call Next() on the returned cursor object to step through the results. Make sure you call Close
+	// on the cursor object when you are done. You should use
+	//   defer cursor.Close()
+	// to make sure the cursor gets closed.
+	LoadCursor() forwardRestrictUniquesCursor
+
+	// Get is a convenience method to return only the first item found in a query.
+	// The entire query is performed, so you should generally use this only if you know
+	// you are selecting on one or very few items.
+	//
+	// If an error occurs, or no results are found, a nil is returned.
+	// In the case of an error, the error is returned in the context.
+	Get() *ForwardRestrictUnique
+
+	// Count terminates a query and returns just the number of items selected.
+	// distinct wll count the number of distinct items, ignoring duplicates.
+	// nodes will select individual fields, and should be accompanied by a GroupBy.
+	Count(distinct bool, nodes ...query.Node) int
+
+	// Delete uses the query builder to delete a group of records that match the criteria
+	Delete()
+
+	// Subquery terminates the query builder and tags it as a subquery within a larger query.
+	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
+	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
+	Subquery() *query.SubqueryNode
+
+	joinOrSelect(nodes ...query.Node) ForwardRestrictUniqueBuilder
 }
 
-func newForwardRestrictUniqueBuilder(ctx context.Context) *ForwardRestrictUniquesBuilder {
-	b := &ForwardRestrictUniquesBuilder{
-		builder: db.GetDatabase("goradd_unit").NewBuilder(ctx),
+type forwardRestrictUniqueQueryBuilder struct {
+	builder *query.Builder
+}
+
+func newForwardRestrictUniqueBuilder(ctx context.Context) ForwardRestrictUniqueBuilder {
+	b := forwardRestrictUniqueQueryBuilder{
+		builder: query.NewBuilder(ctx),
 	}
-	return b.Join(node.ForwardRestrictUnique())
+	return b.Join(node.ForwardRestrictUnique()) // seed builder with the top table
 }
 
-// Load terminates the query builder, performs the query, and returns a slice of ForwardRestrictUnique objects. If there are
-// any errors, they are returned in the context object. If no results come back from the query, it will return
-// an empty slice
-func (b *ForwardRestrictUniquesBuilder) Load() (forwardRestrictUniques []*ForwardRestrictUnique) {
-	results := b.builder.Load()
+// Load terminates the query builder, performs the query, and returns a slice of ForwardRestrictUnique objects.
+// If there are any errors, nil is returned and the specific error is stored in the context.
+// If no results come back from the query, it will return a non-nil empty slice.
+func (b *forwardRestrictUniqueQueryBuilder) Load() (forwardRestrictUniques []*ForwardRestrictUnique) {
+	b.builder.Command = query.BuilderCommandLoad
+	database := db.GetDatabase("goradd_unit")
+	results := database.BuilderQuery(b.builder.Ctx, b.builder)
 	if results == nil {
 		return
 	}
-	for _, item := range results {
+	for _, item := range results.([]map[string]any) {
 		o := new(ForwardRestrictUnique)
 		o.load(item, o, nil, "")
 		forwardRestrictUniques = append(forwardRestrictUniques, o)
@@ -327,15 +417,18 @@ func (b *ForwardRestrictUniquesBuilder) Load() (forwardRestrictUniques []*Forwar
 	return
 }
 
-// LoadI terminates the query builder, performs the query, and returns a slice of interfaces. If there are
-// any errors, they are returned in the context object. If no results come back from the query, it will return
-// an empty slice.
-func (b *ForwardRestrictUniquesBuilder) LoadI() (forwardRestrictUniques []interface{}) {
-	results := b.builder.Load()
+// Load terminates the query builder, performs the query, and returns a slice of interfaces.
+// This can then satisfy a general interface that loads arrays of objects.
+// If there are any errors, nil is returned and the specific error is stored in the context.
+// If no results come back from the query, it will return a non-nil empty slice.
+func (b *forwardRestrictUniqueQueryBuilder) LoadI() (forwardRestrictUniques []any) {
+	b.builder.Command = query.BuilderCommandLoad
+	database := db.GetDatabase("goradd_unit")
+	results := database.BuilderQuery(b.builder.Ctx, b.builder)
 	if results == nil {
 		return
 	}
-	for _, item := range results {
+	for _, item := range results.([]map[string]any) {
 		o := new(ForwardRestrictUnique)
 		o.load(item, o, nil, "")
 		forwardRestrictUniques = append(forwardRestrictUniques, o)
@@ -355,8 +448,14 @@ func (b *ForwardRestrictUniquesBuilder) LoadI() (forwardRestrictUniques []interf
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *ForwardRestrictUniquesBuilder) LoadCursor() forwardRestrictUniquesCursor {
-	cursor := b.builder.LoadCursor()
+func (b *forwardRestrictUniqueQueryBuilder) LoadCursor() forwardRestrictUniquesCursor {
+	b.builder.Command = query.BuilderCommandLoadCursor
+	database := db.GetDatabase("goradd_unit")
+	result := database.BuilderQuery(b.builder.Ctx, b.builder)
+	if result == nil {
+		return forwardRestrictUniquesCursor{}
+	}
+	cursor := result.(query.CursorI)
 
 	return forwardRestrictUniquesCursor{cursor}
 }
@@ -369,6 +468,10 @@ type forwardRestrictUniquesCursor struct {
 //
 // If there are no more records, it returns nil.
 func (c forwardRestrictUniquesCursor) Next() *ForwardRestrictUnique {
+	if c.CursorI == nil {
+		return nil
+	}
+
 	row := c.CursorI.Next()
 	if row == nil {
 		return nil
@@ -381,7 +484,10 @@ func (c forwardRestrictUniquesCursor) Next() *ForwardRestrictUnique {
 // Get is a convenience method to return only the first item found in a query.
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
-func (b *ForwardRestrictUniquesBuilder) Get() *ForwardRestrictUnique {
+//
+// If an error occurs, or no results are found, a nil is returned.
+// In the case of an error, the error is returned in the context.
+func (b *forwardRestrictUniqueQueryBuilder) Get() *ForwardRestrictUnique {
 	results := b.Load()
 	if results != nil && len(results) > 0 {
 		obj := results[0]
@@ -392,13 +498,9 @@ func (b *ForwardRestrictUniquesBuilder) Get() *ForwardRestrictUnique {
 }
 
 // Join adds node n to the node tree so that its fields will appear in the query.
-// Optionally add conditions to filter what gets included.
-func (b *ForwardRestrictUniquesBuilder) Join(n query.Node, conditions ...query.Node) *ForwardRestrictUniquesBuilder {
-	if !query.NodeIsTableNodeI(n) {
-		panic("you can only join Table, Reference, ReverseReference and ManyManyReference nodes")
-	}
-
-	if query.NodeTableName(query.RootNode(n)) != "forward_restrict_unique" {
+// Optionally add conditions to filter what gets included. Multiple conditions are anded.
+func (b *forwardRestrictUniqueQueryBuilder) Join(n query.Node, conditions ...query.Node) ForwardRestrictUniqueBuilder {
+	if query.RootNode(n).TableName_() != "forward_restrict_unique" {
 		panic("you can only join a node that is rooted at node.ForwardRestrictUnique()")
 	}
 
@@ -413,83 +515,95 @@ func (b *ForwardRestrictUniquesBuilder) Join(n query.Node, conditions ...query.N
 }
 
 // Where adds a condition to filter what gets selected.
-func (b *ForwardRestrictUniquesBuilder) Where(c query.Node) *ForwardRestrictUniquesBuilder {
-	b.builder.Condition(c)
+// Calling Where multiple times will AND the conditions together.
+func (b *forwardRestrictUniqueQueryBuilder) Where(c query.Node) ForwardRestrictUniqueBuilder {
+	b.builder.Where(c)
 	return b
 }
 
 // OrderBy specifies how the resulting data should be sorted.
-func (b *ForwardRestrictUniquesBuilder) OrderBy(nodes ...query.Node) *ForwardRestrictUniquesBuilder {
+// By default, the given nodes are sorted in ascending order.
+// Add Descending() to the node to specify that it should be sorted in descending order.
+func (b *forwardRestrictUniqueQueryBuilder) OrderBy(nodes ...query.Sorter) ForwardRestrictUniqueBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
 
-// Limit will return a subset of the data, limited to the offset and number of rows specified
-func (b *ForwardRestrictUniquesBuilder) Limit(maxRowCount int, offset int) *ForwardRestrictUniquesBuilder {
+// Limit will return a subset of the data, limited to the offset and number of rows specified.
+// For large data sets and specific types of queries, this can be slow, because it will perform
+// the entire query before computing the limit.
+// You cannot limit a query that has embedded arrays.
+func (b *forwardRestrictUniqueQueryBuilder) Limit(maxRowCount int, offset int) ForwardRestrictUniqueBuilder {
 	b.builder.Limit(maxRowCount, offset)
 	return b
 }
 
-// Select optimizes the query to only return the specified fields. Once you put a Select in your query, you must
-// specify all the fields that you will eventually read out. Be careful when selecting fields in joined tables, as joined
-// tables will also contain pointers back to the parent table, and so the parent node should have the same field selected
-// as the child node if you are querying those fields.
-func (b *ForwardRestrictUniquesBuilder) Select(nodes ...query.Node) *ForwardRestrictUniquesBuilder {
+// Select optimizes the query to only return the specified fields.
+// Once you put a Select in your query, you must specify all the fields that you will eventually read out.
+func (b *forwardRestrictUniqueQueryBuilder) Select(nodes ...query.Node) ForwardRestrictUniqueBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
-// Alias lets you add a node with a custom name. After the query, you can read out the data using GetAlias() on a
-// returned object. Alias is useful for adding calculations or subqueries to the query.
-func (b *ForwardRestrictUniquesBuilder) Alias(name string, n query.Node) *ForwardRestrictUniquesBuilder {
-	b.builder.Alias(name, n)
+// Calculation adds a calculation node with an aliased name.
+// After the query, you can read the data using GetAlias() on a returned object.
+func (b *forwardRestrictUniqueQueryBuilder) Calculation(name string, n query.Aliaser) ForwardRestrictUniqueBuilder {
+	b.builder.Calculation(name, n)
 	return b
 }
 
-// Distinct removes duplicates from the results of the query. Adding a Select() may help you get to the data you want, although
-// using Distinct with joined tables is often not effective, since we force joined tables to include primary keys in the query, and this
-// often ruins the effect of Distinct.
-func (b *ForwardRestrictUniquesBuilder) Distinct() *ForwardRestrictUniquesBuilder {
+// Distinct removes duplicates from the results of the query.
+// Adding a Select() is usually required.
+func (b *forwardRestrictUniqueQueryBuilder) Distinct() ForwardRestrictUniqueBuilder {
 	b.builder.Distinct()
 	return b
 }
 
-// GroupBy controls how results are grouped when using aggregate functions in an Alias() call.
-func (b *ForwardRestrictUniquesBuilder) GroupBy(nodes ...query.Node) *ForwardRestrictUniquesBuilder {
+// GroupBy controls how results are grouped when using aggregate functions with Calculation.
+func (b *forwardRestrictUniqueQueryBuilder) GroupBy(nodes ...query.Node) ForwardRestrictUniqueBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
-// Having does additional filtering on the results of the query.
-func (b *ForwardRestrictUniquesBuilder) Having(node query.Node) *ForwardRestrictUniquesBuilder {
+// Having does additional filtering on the results of the query after the query is performed.
+func (b *forwardRestrictUniqueQueryBuilder) Having(node query.Node) ForwardRestrictUniqueBuilder {
 	b.builder.Having(node)
 	return b
 }
 
 // Count terminates a query and returns just the number of items selected.
-//
 // distinct wll count the number of distinct items, ignoring duplicates.
-//
 // nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *ForwardRestrictUniquesBuilder) Count(distinct bool, nodes ...query.Node) uint {
-	return b.builder.Count(distinct, nodes...)
+func (b *forwardRestrictUniqueQueryBuilder) Count(distinct bool, nodes ...query.Node) int {
+	b.builder.Command = query.BuilderCommandCount
+	if distinct {
+		b.builder.Distinct()
+	}
+	database := db.GetDatabase("goradd_unit")
+	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	if results == nil {
+		return 0
+	}
+	return results.(int)
 }
 
 // Delete uses the query builder to delete a group of records that match the criteria
-func (b *ForwardRestrictUniquesBuilder) Delete() {
-	b.builder.Delete()
+func (b *forwardRestrictUniqueQueryBuilder) Delete() {
+	b.builder.Command = query.BuilderCommandDelete
+	database := db.GetDatabase("goradd_unit")
+	database.BuilderQuery(b.builder.Ctx, b.builder)
 	broadcast.BulkChange(b.builder.Context(), "goradd_unit", "forward_restrict_unique")
 }
 
-// Subquery uses the query builder to define a subquery within a larger query. You MUST include what
-// you are selecting by adding Alias or Select functions on the subquery builder. Generally you would use
-// this as a node to an Alias function on the surrounding query builder.
-func (b *ForwardRestrictUniquesBuilder) Subquery() *query.SubqueryNode {
+// Subquery terminates the query builder and tags it as a subquery within a larger query.
+// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
+// Generally you would use this as a node to a Calculation function on the surrounding query builder.
+func (b *forwardRestrictUniqueQueryBuilder) Subquery() *query.SubqueryNode {
 	return b.builder.Subquery()
 }
 
 // joinOrSelect is a private helper function for the Load* functions
-func (b *ForwardRestrictUniquesBuilder) joinOrSelect(nodes ...query.Node) *ForwardRestrictUniquesBuilder {
+func (b *forwardRestrictUniqueQueryBuilder) joinOrSelect(nodes ...query.Node) ForwardRestrictUniqueBuilder {
 	for _, n := range nodes {
 		switch n.(type) {
 		case query.TableNodeI:
@@ -689,7 +803,7 @@ func (o *forwardRestrictUniqueBase) getModifiedFields() (fields map[string]inter
 	return
 }
 
-// getValidFields returns the fields that have valid data in them.
+// getValidFields returns the fields that have valid data in them in a form ready to send to the database.
 func (o *forwardRestrictUniqueBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 
@@ -703,9 +817,7 @@ func (o *forwardRestrictUniqueBase) getValidFields() (fields map[string]interfac
 		if o.reverseIDIsNull {
 			fields["reverse_id"] = nil
 		} else {
-
 			fields["reverse_id"] = o.reverseID
-
 		}
 	}
 	return

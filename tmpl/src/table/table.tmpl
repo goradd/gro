@@ -46,14 +46,14 @@ func (o *{{= table.Identifier }}) String() string  {
 }
 
 // Query{{= table.IdentifierPlural }} returns a new query builder.
-func Query{{= table.IdentifierPlural }}(ctx context.Context) *{{= table.IdentifierPlural }}Builder {
+func Query{{= table.IdentifierPlural }}(ctx context.Context) {{= table.Identifier }}Builder {
 	return query{{= table.IdentifierPlural }}(ctx)
 }
 
 // query{{= table.IdentifierPlural }} creates a new builder and is the central spot where all queries are directed.
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
-func query{{= table.IdentifierPlural }}(ctx context.Context) *{{= table.IdentifierPlural }}Builder {
+func query{{= table.IdentifierPlural }}(ctx context.Context) {{= table.Identifier }}Builder {
 	return new{{= table.Identifier }}Builder(ctx)
 }
 

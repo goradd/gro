@@ -38,14 +38,14 @@ func (o *TypeTest) String() string {
 }
 
 // QueryTypeTests returns a new query builder.
-func QueryTypeTests(ctx context.Context) *TypeTestsBuilder {
+func QueryTypeTests(ctx context.Context) TypeTestBuilder {
 	return queryTypeTests(ctx)
 }
 
 // queryTypeTests creates a new builder and is the central spot where all queries are directed.
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
-func queryTypeTests(ctx context.Context) *TypeTestsBuilder {
+func queryTypeTests(ctx context.Context) TypeTestBuilder {
 	return newTypeTestBuilder(ctx)
 }
 

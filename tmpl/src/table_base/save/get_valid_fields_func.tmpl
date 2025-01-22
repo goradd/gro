@@ -3,7 +3,7 @@
 //*** {{includeName}}
 }}
 {{
-// getValidFields returns the fields that have valid data in them.
+// getValidFields returns the fields that have valid data in them in a form ready to send to the database.
 func (o *{{= table.DecapIdentifier}}Base) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 {{for _,col := range table.Columns}}
@@ -14,24 +14,16 @@ func (o *{{= table.DecapIdentifier}}Base) getValidFields() (fields map[string]in
         if 	o.{{= col.VariableIdentifier() }}IsNull {
             fields["{{= col.QueryName }}"] = nil
         } else {
-
-{{if col.IsManyEnum() }}
-            b,err := json.Marshal(o.{{= col.VariableIdentifier() }})
-            if err == nil && b != nil {
-                fields["{{= col.QueryName }}"] = string(b)
-            }
+{{if col.IsEnumArray() }}
+            fields["{{= col.QueryName }}"] = {{= col.GoType() }}ToInts(o.{{= col.VariableIdentifier() }})
 {{else}}
   		    fields["{{= col.QueryName }}"] = o.{{= col.VariableIdentifier() }}
 {{if}}
-
         }
 {{else}}
 
-{{if col.IsManyEnum() }}
-        b,err := json.Marshal(o.{{= col.VariableIdentifier() }})
-        if err == nil && b != nil {
-            fields["{{= col.QueryName }}"] = string(b)
-        }
+{{if col.IsEnumArray() }}
+        fields["{{= col.QueryName }}"] = {{= col.GoType() }}ToInts(o.{{= col.VariableIdentifier() }})
 {{else}}
         fields["{{= col.QueryName }}"] = o.{{= col.VariableIdentifier() }}
 {{if}}

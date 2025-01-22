@@ -10,8 +10,8 @@ type reverseNode struct {
 // reverse returns a reverseNode chain pointing to the root of the given node.
 func reverse(node query.Node) *reverseNode {
 	r := reverseNode{node: node}
-	for node.(query.Linker).Parent() != nil {
-		np := node.(query.Linker).Parent()
+	for query.NodeParent(node) != nil {
+		np := query.NodeParent(node)
 		r2 := reverseNode{np, &r}
 		node = np
 		r = r2

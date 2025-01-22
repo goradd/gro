@@ -24,23 +24,15 @@
             }
 
 {{elseif col.IsEnum()}}
-{{if col.IsManyEnum()}}
+{{if col.IsEnumArray()}}
            if n,ok := v.([]int); ok {
-               var a {{= col.GoType() }}
-               for _,i := range n {
-                   a = append(a,{{= col.ReferenceType() }}(i))
-               }
-               o.Set{{= col.Identifier }}(a)
+               o.Set{{= col.Identifier }}({{= col.GoType() }}FromNumbers(n))
            } else if n,ok := v.([]float64); ok {
-               var a {{= col.GoType() }}
-               for _,f := range n {
-                   a = append(a,{{= col.ReferenceType() }}(int(f)))
-               }
-               o.Set{{= col.Identifier }}(a)
+               o.Set{{= col.Identifier }}({{= col.GoType() }}FromNumbers(n))
            } else if n,ok := v.([]string); ok {
                var a {{= col.GoType() }}
                for _,s := range n {
-                   a = append(a, {{= col.ReferenceType() }}From{{= col.Reference.EnumTable.FieldIdentifier(1) }}(s))
+                   a.Add({{= col.ReferenceType() }}From{{= col.Reference.EnumTable.FieldIdentifier(1) }}(s))
                }
                o.Set{{= col.Identifier }}(a)
            } else {
@@ -49,11 +41,11 @@
 
 {{else}}
            if n,ok := v.(int); ok {
-               o.Set{{= col.ReferenceIdentifier() }}({{= col.ReferenceType() }}(n))
+               o.Set{{= col.Identifier }}({{= col.ReferenceType() }}(n))
            } else if n,ok := v.(float64); ok {
-               o.Set{{= col.ReferenceIdentifier() }}({{= col.ReferenceType() }}(int(n)))
+               o.Set{{= col.Identifier }}({{= col.ReferenceType() }}(int(n)))
            } else if n,ok := v.(string); ok {
-               o.Set{{= col.ReferenceIdentifier() }}({{= col.ReferenceType() }}From{{= col.Reference.EnumTable.FieldIdentifier(1) }}(n))
+               o.Set{{= col.Identifier }}({{= col.ReferenceType() }}From{{= col.Reference.EnumTable.FieldIdentifier(1) }}(n))
            } else {
                return fmt.Errorf("json field %s must be a number", k)
            }

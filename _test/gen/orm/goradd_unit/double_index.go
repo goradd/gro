@@ -38,14 +38,14 @@ func (o *DoubleIndex) String() string {
 }
 
 // QueryDoubleIndices returns a new query builder.
-func QueryDoubleIndices(ctx context.Context) *DoubleIndicesBuilder {
+func QueryDoubleIndices(ctx context.Context) DoubleIndexBuilder {
 	return queryDoubleIndices(ctx)
 }
 
 // queryDoubleIndices creates a new builder and is the central spot where all queries are directed.
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
-func queryDoubleIndices(ctx context.Context) *DoubleIndicesBuilder {
+func queryDoubleIndices(ctx context.Context) DoubleIndexBuilder {
 	return newDoubleIndexBuilder(ctx)
 }
 

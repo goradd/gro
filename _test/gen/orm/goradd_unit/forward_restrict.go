@@ -37,14 +37,14 @@ func (o *ForwardRestrict) String() string {
 }
 
 // QueryForwardRestricts returns a new query builder.
-func QueryForwardRestricts(ctx context.Context) *ForwardRestrictsBuilder {
+func QueryForwardRestricts(ctx context.Context) ForwardRestrictBuilder {
 	return queryForwardRestricts(ctx)
 }
 
 // queryForwardRestricts creates a new builder and is the central spot where all queries are directed.
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
-func queryForwardRestricts(ctx context.Context) *ForwardRestrictsBuilder {
+func queryForwardRestricts(ctx context.Context) ForwardRestrictBuilder {
 	return newForwardRestrictBuilder(ctx)
 }
 

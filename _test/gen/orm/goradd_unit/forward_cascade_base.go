@@ -189,7 +189,7 @@ func (o *forwardCascadeBase) SetReverseID(i interface{}) {
 		v := i.(string)
 		if o.reverseIDIsNull ||
 			!o._restored ||
-			o.reverseID != v; -1 {
+			o.reverseID != v {
 			o.reverseIDIsNull = false
 			o.reverseID = v
 			o.reverseIDIsDirty = true
@@ -253,8 +253,9 @@ func (o *forwardCascadeBase) IsNew() bool {
 }
 
 // LoadForwardCascade returns a ForwardCascade from the database.
-// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
-// be considered Join nodes, and column nodes will be Select nodes. See [ForwardCascadesBuilder.Join] and [ForwardCascadesBuilder.Select] for more info.
+// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields.
+// Table nodes will be considered Join nodes, and column nodes will be Select nodes.
+// See [ForwardCascadeBuilder.Join] and [ForwardCascadesBuilder.Select] for more info.
 func LoadForwardCascade(ctx context.Context, id string, joinOrSelectNodes ...query.Node) *ForwardCascade {
 	return queryForwardCascades(ctx).
 		Where(op.Equal(node.ForwardCascade().ID(), id)).
@@ -270,29 +271,118 @@ func HasForwardCascade(ctx context.Context, id string) bool {
 		Count(false) == 1
 }
 
-// The ForwardCascadesBuilder uses the QueryBuilderI interface from the database to build a query.
+// The ForwardCascadeBuilder uses the query.BuilderI interface to build a query.
 // All query operations go through this query builder.
-// End a query by calling either Load, Count, or Delete
-type ForwardCascadesBuilder struct {
-	builder query.QueryBuilderI
+// End a query by calling either Load, LoadCursor, Get, Count, or Delete
+type ForwardCascadeBuilder interface {
+	// Join adds node n to the node tree so that its fields will appear in the query.
+	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
+	Join(n query.Node, conditions ...query.Node) ForwardCascadeBuilder
+
+	// Where adds a condition to filter what gets selected.
+	// Calling Where multiple times will AND the conditions together.
+	Where(c query.Node) ForwardCascadeBuilder
+
+	// OrderBy specifies how the resulting data should be sorted.
+	// By default, the given nodes are sorted in ascending order.
+	// Add Descending() to the node to specify that it should be sorted in descending order.
+	OrderBy(nodes ...query.Sorter) ForwardCascadeBuilder
+
+	// Limit will return a subset of the data, limited to the offset and number of rows specified.
+	// For large data sets and specific types of queries, this can be slow, because it will perform
+	// the entire query before computing the limit.
+	// You cannot limit a query that has embedded arrays.
+	Limit(maxRowCount int, offset int) ForwardCascadeBuilder
+
+	// Select optimizes the query to only return the specified fields.
+	// Once you put a Select in your query, you must specify all the fields that you will eventually read out.
+	// Some fields, like primary keys, are always selected.
+	// If you are using a GroupBy, most database drivers will only allow selecting on fields in the GroupBy, and
+	// doing otherwise will result in an error.
+	Select(nodes ...query.Node) ForwardCascadeBuilder
+
+	// Calculation adds a calculation node with an aliased name.
+	// After the query, you can read the data using GetAlias() on a returned object.
+	Calculation(name string, n query.Aliaser) ForwardCascadeBuilder
+
+	// Distinct removes duplicates from the results of the query.
+	// Adding a Select() is usually required.
+	Distinct() ForwardCascadeBuilder
+
+	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
+	GroupBy(nodes ...query.Node) ForwardCascadeBuilder
+
+	// Having does additional filtering on the results of the query after the query is performed.
+	Having(node query.Node) ForwardCascadeBuilder
+
+	// Load terminates the query builder, performs the query, and returns a slice of ForwardCascade objects.
+	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If no results come back from the query, it will return a non-nil empty slice.
+	Load() []*ForwardCascade
+	// Load terminates the query builder, performs the query, and returns a slice of interfaces.
+	// This can then satisfy a general interface that loads arrays of objects.
+	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If no results come back from the query, it will return a non-nil empty slice.
+	LoadI() []any
+
+	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
+	//
+	// A query cursor is useful for dealing with large amounts of query results. However, there are some
+	// limitations to its use. When working with SQL databases, you cannot use a cursor while querying
+	// many-to-many or reverse relationships that will create an array of values.
+	//
+	// Call Next() on the returned cursor object to step through the results. Make sure you call Close
+	// on the cursor object when you are done. You should use
+	//   defer cursor.Close()
+	// to make sure the cursor gets closed.
+	LoadCursor() forwardCascadesCursor
+
+	// Get is a convenience method to return only the first item found in a query.
+	// The entire query is performed, so you should generally use this only if you know
+	// you are selecting on one or very few items.
+	//
+	// If an error occurs, or no results are found, a nil is returned.
+	// In the case of an error, the error is returned in the context.
+	Get() *ForwardCascade
+
+	// Count terminates a query and returns just the number of items selected.
+	// distinct wll count the number of distinct items, ignoring duplicates.
+	// nodes will select individual fields, and should be accompanied by a GroupBy.
+	Count(distinct bool, nodes ...query.Node) int
+
+	// Delete uses the query builder to delete a group of records that match the criteria
+	Delete()
+
+	// Subquery terminates the query builder and tags it as a subquery within a larger query.
+	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
+	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
+	Subquery() *query.SubqueryNode
+
+	joinOrSelect(nodes ...query.Node) ForwardCascadeBuilder
 }
 
-func newForwardCascadeBuilder(ctx context.Context) *ForwardCascadesBuilder {
-	b := &ForwardCascadesBuilder{
-		builder: db.GetDatabase("goradd_unit").NewBuilder(ctx),
+type forwardCascadeQueryBuilder struct {
+	builder *query.Builder
+}
+
+func newForwardCascadeBuilder(ctx context.Context) ForwardCascadeBuilder {
+	b := forwardCascadeQueryBuilder{
+		builder: query.NewBuilder(ctx),
 	}
-	return b.Join(node.ForwardCascade())
+	return b.Join(node.ForwardCascade()) // seed builder with the top table
 }
 
-// Load terminates the query builder, performs the query, and returns a slice of ForwardCascade objects. If there are
-// any errors, they are returned in the context object. If no results come back from the query, it will return
-// an empty slice
-func (b *ForwardCascadesBuilder) Load() (forwardCascades []*ForwardCascade) {
-	results := b.builder.Load()
+// Load terminates the query builder, performs the query, and returns a slice of ForwardCascade objects.
+// If there are any errors, nil is returned and the specific error is stored in the context.
+// If no results come back from the query, it will return a non-nil empty slice.
+func (b *forwardCascadeQueryBuilder) Load() (forwardCascades []*ForwardCascade) {
+	b.builder.Command = query.BuilderCommandLoad
+	database := db.GetDatabase("goradd_unit")
+	results := database.BuilderQuery(b.builder.Ctx, b.builder)
 	if results == nil {
 		return
 	}
-	for _, item := range results {
+	for _, item := range results.([]map[string]any) {
 		o := new(ForwardCascade)
 		o.load(item, o, nil, "")
 		forwardCascades = append(forwardCascades, o)
@@ -300,15 +390,18 @@ func (b *ForwardCascadesBuilder) Load() (forwardCascades []*ForwardCascade) {
 	return
 }
 
-// LoadI terminates the query builder, performs the query, and returns a slice of interfaces. If there are
-// any errors, they are returned in the context object. If no results come back from the query, it will return
-// an empty slice.
-func (b *ForwardCascadesBuilder) LoadI() (forwardCascades []interface{}) {
-	results := b.builder.Load()
+// Load terminates the query builder, performs the query, and returns a slice of interfaces.
+// This can then satisfy a general interface that loads arrays of objects.
+// If there are any errors, nil is returned and the specific error is stored in the context.
+// If no results come back from the query, it will return a non-nil empty slice.
+func (b *forwardCascadeQueryBuilder) LoadI() (forwardCascades []any) {
+	b.builder.Command = query.BuilderCommandLoad
+	database := db.GetDatabase("goradd_unit")
+	results := database.BuilderQuery(b.builder.Ctx, b.builder)
 	if results == nil {
 		return
 	}
-	for _, item := range results {
+	for _, item := range results.([]map[string]any) {
 		o := new(ForwardCascade)
 		o.load(item, o, nil, "")
 		forwardCascades = append(forwardCascades, o)
@@ -328,8 +421,14 @@ func (b *ForwardCascadesBuilder) LoadI() (forwardCascades []interface{}) {
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *ForwardCascadesBuilder) LoadCursor() forwardCascadesCursor {
-	cursor := b.builder.LoadCursor()
+func (b *forwardCascadeQueryBuilder) LoadCursor() forwardCascadesCursor {
+	b.builder.Command = query.BuilderCommandLoadCursor
+	database := db.GetDatabase("goradd_unit")
+	result := database.BuilderQuery(b.builder.Ctx, b.builder)
+	if result == nil {
+		return forwardCascadesCursor{}
+	}
+	cursor := result.(query.CursorI)
 
 	return forwardCascadesCursor{cursor}
 }
@@ -342,6 +441,10 @@ type forwardCascadesCursor struct {
 //
 // If there are no more records, it returns nil.
 func (c forwardCascadesCursor) Next() *ForwardCascade {
+	if c.CursorI == nil {
+		return nil
+	}
+
 	row := c.CursorI.Next()
 	if row == nil {
 		return nil
@@ -354,7 +457,10 @@ func (c forwardCascadesCursor) Next() *ForwardCascade {
 // Get is a convenience method to return only the first item found in a query.
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
-func (b *ForwardCascadesBuilder) Get() *ForwardCascade {
+//
+// If an error occurs, or no results are found, a nil is returned.
+// In the case of an error, the error is returned in the context.
+func (b *forwardCascadeQueryBuilder) Get() *ForwardCascade {
 	results := b.Load()
 	if results != nil && len(results) > 0 {
 		obj := results[0]
@@ -365,13 +471,9 @@ func (b *ForwardCascadesBuilder) Get() *ForwardCascade {
 }
 
 // Join adds node n to the node tree so that its fields will appear in the query.
-// Optionally add conditions to filter what gets included.
-func (b *ForwardCascadesBuilder) Join(n query.Node, conditions ...query.Node) *ForwardCascadesBuilder {
-	if !query.NodeIsTableNodeI(n) {
-		panic("you can only join Table, Reference, ReverseReference and ManyManyReference nodes")
-	}
-
-	if query.NodeTableName(query.RootNode(n)) != "forward_cascade" {
+// Optionally add conditions to filter what gets included. Multiple conditions are anded.
+func (b *forwardCascadeQueryBuilder) Join(n query.Node, conditions ...query.Node) ForwardCascadeBuilder {
+	if query.RootNode(n).TableName_() != "forward_cascade" {
 		panic("you can only join a node that is rooted at node.ForwardCascade()")
 	}
 
@@ -386,83 +488,95 @@ func (b *ForwardCascadesBuilder) Join(n query.Node, conditions ...query.Node) *F
 }
 
 // Where adds a condition to filter what gets selected.
-func (b *ForwardCascadesBuilder) Where(c query.Node) *ForwardCascadesBuilder {
-	b.builder.Condition(c)
+// Calling Where multiple times will AND the conditions together.
+func (b *forwardCascadeQueryBuilder) Where(c query.Node) ForwardCascadeBuilder {
+	b.builder.Where(c)
 	return b
 }
 
 // OrderBy specifies how the resulting data should be sorted.
-func (b *ForwardCascadesBuilder) OrderBy(nodes ...query.Node) *ForwardCascadesBuilder {
+// By default, the given nodes are sorted in ascending order.
+// Add Descending() to the node to specify that it should be sorted in descending order.
+func (b *forwardCascadeQueryBuilder) OrderBy(nodes ...query.Sorter) ForwardCascadeBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
 
-// Limit will return a subset of the data, limited to the offset and number of rows specified
-func (b *ForwardCascadesBuilder) Limit(maxRowCount int, offset int) *ForwardCascadesBuilder {
+// Limit will return a subset of the data, limited to the offset and number of rows specified.
+// For large data sets and specific types of queries, this can be slow, because it will perform
+// the entire query before computing the limit.
+// You cannot limit a query that has embedded arrays.
+func (b *forwardCascadeQueryBuilder) Limit(maxRowCount int, offset int) ForwardCascadeBuilder {
 	b.builder.Limit(maxRowCount, offset)
 	return b
 }
 
-// Select optimizes the query to only return the specified fields. Once you put a Select in your query, you must
-// specify all the fields that you will eventually read out. Be careful when selecting fields in joined tables, as joined
-// tables will also contain pointers back to the parent table, and so the parent node should have the same field selected
-// as the child node if you are querying those fields.
-func (b *ForwardCascadesBuilder) Select(nodes ...query.Node) *ForwardCascadesBuilder {
+// Select optimizes the query to only return the specified fields.
+// Once you put a Select in your query, you must specify all the fields that you will eventually read out.
+func (b *forwardCascadeQueryBuilder) Select(nodes ...query.Node) ForwardCascadeBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
-// Alias lets you add a node with a custom name. After the query, you can read out the data using GetAlias() on a
-// returned object. Alias is useful for adding calculations or subqueries to the query.
-func (b *ForwardCascadesBuilder) Alias(name string, n query.Node) *ForwardCascadesBuilder {
-	b.builder.Alias(name, n)
+// Calculation adds a calculation node with an aliased name.
+// After the query, you can read the data using GetAlias() on a returned object.
+func (b *forwardCascadeQueryBuilder) Calculation(name string, n query.Aliaser) ForwardCascadeBuilder {
+	b.builder.Calculation(name, n)
 	return b
 }
 
-// Distinct removes duplicates from the results of the query. Adding a Select() may help you get to the data you want, although
-// using Distinct with joined tables is often not effective, since we force joined tables to include primary keys in the query, and this
-// often ruins the effect of Distinct.
-func (b *ForwardCascadesBuilder) Distinct() *ForwardCascadesBuilder {
+// Distinct removes duplicates from the results of the query.
+// Adding a Select() is usually required.
+func (b *forwardCascadeQueryBuilder) Distinct() ForwardCascadeBuilder {
 	b.builder.Distinct()
 	return b
 }
 
-// GroupBy controls how results are grouped when using aggregate functions in an Alias() call.
-func (b *ForwardCascadesBuilder) GroupBy(nodes ...query.Node) *ForwardCascadesBuilder {
+// GroupBy controls how results are grouped when using aggregate functions with Calculation.
+func (b *forwardCascadeQueryBuilder) GroupBy(nodes ...query.Node) ForwardCascadeBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
-// Having does additional filtering on the results of the query.
-func (b *ForwardCascadesBuilder) Having(node query.Node) *ForwardCascadesBuilder {
+// Having does additional filtering on the results of the query after the query is performed.
+func (b *forwardCascadeQueryBuilder) Having(node query.Node) ForwardCascadeBuilder {
 	b.builder.Having(node)
 	return b
 }
 
 // Count terminates a query and returns just the number of items selected.
-//
 // distinct wll count the number of distinct items, ignoring duplicates.
-//
 // nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *ForwardCascadesBuilder) Count(distinct bool, nodes ...query.Node) uint {
-	return b.builder.Count(distinct, nodes...)
+func (b *forwardCascadeQueryBuilder) Count(distinct bool, nodes ...query.Node) int {
+	b.builder.Command = query.BuilderCommandCount
+	if distinct {
+		b.builder.Distinct()
+	}
+	database := db.GetDatabase("goradd_unit")
+	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	if results == nil {
+		return 0
+	}
+	return results.(int)
 }
 
 // Delete uses the query builder to delete a group of records that match the criteria
-func (b *ForwardCascadesBuilder) Delete() {
-	b.builder.Delete()
+func (b *forwardCascadeQueryBuilder) Delete() {
+	b.builder.Command = query.BuilderCommandDelete
+	database := db.GetDatabase("goradd_unit")
+	database.BuilderQuery(b.builder.Ctx, b.builder)
 	broadcast.BulkChange(b.builder.Context(), "goradd_unit", "forward_cascade")
 }
 
-// Subquery uses the query builder to define a subquery within a larger query. You MUST include what
-// you are selecting by adding Alias or Select functions on the subquery builder. Generally you would use
-// this as a node to an Alias function on the surrounding query builder.
-func (b *ForwardCascadesBuilder) Subquery() *query.SubqueryNode {
+// Subquery terminates the query builder and tags it as a subquery within a larger query.
+// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
+// Generally you would use this as a node to a Calculation function on the surrounding query builder.
+func (b *forwardCascadeQueryBuilder) Subquery() *query.SubqueryNode {
 	return b.builder.Subquery()
 }
 
 // joinOrSelect is a private helper function for the Load* functions
-func (b *ForwardCascadesBuilder) joinOrSelect(nodes ...query.Node) *ForwardCascadesBuilder {
+func (b *forwardCascadeQueryBuilder) joinOrSelect(nodes ...query.Node) ForwardCascadeBuilder {
 	for _, n := range nodes {
 		switch n.(type) {
 		case query.TableNodeI:
@@ -662,7 +776,7 @@ func (o *forwardCascadeBase) getModifiedFields() (fields map[string]interface{})
 	return
 }
 
-// getValidFields returns the fields that have valid data in them.
+// getValidFields returns the fields that have valid data in them in a form ready to send to the database.
 func (o *forwardCascadeBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 
@@ -676,9 +790,7 @@ func (o *forwardCascadeBase) getValidFields() (fields map[string]interface{}) {
 		if o.reverseIDIsNull {
 			fields["reverse_id"] = nil
 		} else {
-
 			fields["reverse_id"] = o.reverseID
-
 		}
 	}
 	return

@@ -37,14 +37,14 @@ func (o *ForwardRestrictUnique) String() string {
 }
 
 // QueryForwardRestrictUniques returns a new query builder.
-func QueryForwardRestrictUniques(ctx context.Context) *ForwardRestrictUniquesBuilder {
+func QueryForwardRestrictUniques(ctx context.Context) ForwardRestrictUniqueBuilder {
 	return queryForwardRestrictUniques(ctx)
 }
 
 // queryForwardRestrictUniques creates a new builder and is the central spot where all queries are directed.
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
-func queryForwardRestrictUniques(ctx context.Context) *ForwardRestrictUniquesBuilder {
+func queryForwardRestrictUniques(ctx context.Context) ForwardRestrictUniqueBuilder {
 	return newForwardRestrictUniqueBuilder(ctx)
 }
 

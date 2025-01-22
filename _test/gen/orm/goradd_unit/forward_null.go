@@ -37,14 +37,14 @@ func (o *ForwardNull) String() string {
 }
 
 // QueryForwardNulls returns a new query builder.
-func QueryForwardNulls(ctx context.Context) *ForwardNullsBuilder {
+func QueryForwardNulls(ctx context.Context) ForwardNullBuilder {
 	return queryForwardNulls(ctx)
 }
 
 // queryForwardNulls creates a new builder and is the central spot where all queries are directed.
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
-func queryForwardNulls(ctx context.Context) *ForwardNullsBuilder {
+func queryForwardNulls(ctx context.Context) ForwardNullBuilder {
 	return newForwardNullBuilder(ctx)
 }
 

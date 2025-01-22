@@ -326,7 +326,7 @@ func (h *DbHelper) Update(ctx context.Context,
 
 // BuilderQuery performs a complex query using a query builder.
 // The data returned will depend on the command inside the builder.
-func (h *DbHelper) BuilderQuery(ctx context.Context, builder BuilderI) interface{} {
+func (h *DbHelper) BuilderQuery(ctx context.Context, builder *Builder) interface{} {
 	joinTree := jointree.NewJoinTree(builder)
 	switch joinTree.Command {
 	case BuilderCommandLoad:

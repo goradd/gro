@@ -37,14 +37,14 @@ func (o *ForwardCascade) String() string {
 }
 
 // QueryForwardCascades returns a new query builder.
-func QueryForwardCascades(ctx context.Context) *ForwardCascadesBuilder {
+func QueryForwardCascades(ctx context.Context) ForwardCascadeBuilder {
 	return queryForwardCascades(ctx)
 }
 
 // queryForwardCascades creates a new builder and is the central spot where all queries are directed.
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
-func queryForwardCascades(ctx context.Context) *ForwardCascadesBuilder {
+func queryForwardCascades(ctx context.Context) ForwardCascadeBuilder {
 	return newForwardCascadeBuilder(ctx)
 }
 

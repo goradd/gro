@@ -147,7 +147,7 @@ func (o *projectBase) Initialize() {
 	o.numIsValid = false
 	o.numIsDirty = false
 
-	o.status = ProjectStatus(0)
+	o.status = 0
 
 	o.statusIsValid = false
 	o.statusIsDirty = false
@@ -345,7 +345,7 @@ func (o *projectBase) SetManagerID(i interface{}) {
 		v := i.(string)
 		if o.managerIDIsNull ||
 			!o._restored ||
-			o.managerID != v; -1 {
+			o.managerID != v {
 			o.managerIDIsNull = false
 			o.managerID = v
 			o.managerIDIsDirty = true
@@ -465,7 +465,7 @@ func (o *projectBase) SetDescription(i interface{}) {
 		}
 		if o.descriptionIsNull ||
 			!o._restored ||
-			o.description != v; -1 {
+			o.description != v {
 			o.descriptionIsNull = false
 			o.description = v
 			o.descriptionIsDirty = true
@@ -514,7 +514,7 @@ func (o *projectBase) SetStartDate(i interface{}) {
 		v := i.(time.Time)
 		if o.startDateIsNull ||
 			!o._restored ||
-			o.startDate != v; -1 {
+			o.startDate != v {
 			o.startDateIsNull = false
 			o.startDate = v
 			o.startDateIsDirty = true
@@ -563,7 +563,7 @@ func (o *projectBase) SetEndDate(i interface{}) {
 		v := i.(time.Time)
 		if o.endDateIsNull ||
 			!o._restored ||
-			o.endDate != v; -1 {
+			o.endDate != v {
 			o.endDateIsNull = false
 			o.endDate = v
 			o.endDateIsDirty = true
@@ -616,7 +616,7 @@ func (o *projectBase) SetBudget(i interface{}) {
 		}
 		if o.budgetIsNull ||
 			!o._restored ||
-			o.budget != v; -1 {
+			o.budget != v {
 			o.budgetIsNull = false
 			o.budget = v
 			o.budgetIsDirty = true
@@ -669,7 +669,7 @@ func (o *projectBase) SetSpent(i interface{}) {
 		}
 		if o.spentIsNull ||
 			!o._restored ||
-			o.spent != v; -1 {
+			o.spent != v {
 			o.spentIsNull = false
 			o.spent = v
 			o.spentIsDirty = true
@@ -1004,8 +1004,9 @@ func (o *projectBase) SetMilestonesByID(ids []string) {
 }
 
 // LoadProject returns a Project from the database.
-// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
-// be considered Join nodes, and column nodes will be Select nodes. See [ProjectsBuilder.Join] and [ProjectsBuilder.Select] for more info.
+// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields.
+// Table nodes will be considered Join nodes, and column nodes will be Select nodes.
+// See [ProjectBuilder.Join] and [ProjectsBuilder.Select] for more info.
 func LoadProject(ctx context.Context, id string, joinOrSelectNodes ...query.Node) *Project {
 	return queryProjects(ctx).
 		Where(op.Equal(node.Project().ID(), id)).
@@ -1040,29 +1041,118 @@ func HasProjectByNum(ctx context.Context, num int) bool {
 	return q.Count(false) == 1
 }
 
-// The ProjectsBuilder uses the QueryBuilderI interface from the database to build a query.
+// The ProjectBuilder uses the query.BuilderI interface to build a query.
 // All query operations go through this query builder.
-// End a query by calling either Load, Count, or Delete
-type ProjectsBuilder struct {
-	builder query.QueryBuilderI
+// End a query by calling either Load, LoadCursor, Get, Count, or Delete
+type ProjectBuilder interface {
+	// Join adds node n to the node tree so that its fields will appear in the query.
+	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
+	Join(n query.Node, conditions ...query.Node) ProjectBuilder
+
+	// Where adds a condition to filter what gets selected.
+	// Calling Where multiple times will AND the conditions together.
+	Where(c query.Node) ProjectBuilder
+
+	// OrderBy specifies how the resulting data should be sorted.
+	// By default, the given nodes are sorted in ascending order.
+	// Add Descending() to the node to specify that it should be sorted in descending order.
+	OrderBy(nodes ...query.Sorter) ProjectBuilder
+
+	// Limit will return a subset of the data, limited to the offset and number of rows specified.
+	// For large data sets and specific types of queries, this can be slow, because it will perform
+	// the entire query before computing the limit.
+	// You cannot limit a query that has embedded arrays.
+	Limit(maxRowCount int, offset int) ProjectBuilder
+
+	// Select optimizes the query to only return the specified fields.
+	// Once you put a Select in your query, you must specify all the fields that you will eventually read out.
+	// Some fields, like primary keys, are always selected.
+	// If you are using a GroupBy, most database drivers will only allow selecting on fields in the GroupBy, and
+	// doing otherwise will result in an error.
+	Select(nodes ...query.Node) ProjectBuilder
+
+	// Calculation adds a calculation node with an aliased name.
+	// After the query, you can read the data using GetAlias() on a returned object.
+	Calculation(name string, n query.Aliaser) ProjectBuilder
+
+	// Distinct removes duplicates from the results of the query.
+	// Adding a Select() is usually required.
+	Distinct() ProjectBuilder
+
+	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
+	GroupBy(nodes ...query.Node) ProjectBuilder
+
+	// Having does additional filtering on the results of the query after the query is performed.
+	Having(node query.Node) ProjectBuilder
+
+	// Load terminates the query builder, performs the query, and returns a slice of Project objects.
+	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If no results come back from the query, it will return a non-nil empty slice.
+	Load() []*Project
+	// Load terminates the query builder, performs the query, and returns a slice of interfaces.
+	// This can then satisfy a general interface that loads arrays of objects.
+	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If no results come back from the query, it will return a non-nil empty slice.
+	LoadI() []any
+
+	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
+	//
+	// A query cursor is useful for dealing with large amounts of query results. However, there are some
+	// limitations to its use. When working with SQL databases, you cannot use a cursor while querying
+	// many-to-many or reverse relationships that will create an array of values.
+	//
+	// Call Next() on the returned cursor object to step through the results. Make sure you call Close
+	// on the cursor object when you are done. You should use
+	//   defer cursor.Close()
+	// to make sure the cursor gets closed.
+	LoadCursor() projectsCursor
+
+	// Get is a convenience method to return only the first item found in a query.
+	// The entire query is performed, so you should generally use this only if you know
+	// you are selecting on one or very few items.
+	//
+	// If an error occurs, or no results are found, a nil is returned.
+	// In the case of an error, the error is returned in the context.
+	Get() *Project
+
+	// Count terminates a query and returns just the number of items selected.
+	// distinct wll count the number of distinct items, ignoring duplicates.
+	// nodes will select individual fields, and should be accompanied by a GroupBy.
+	Count(distinct bool, nodes ...query.Node) int
+
+	// Delete uses the query builder to delete a group of records that match the criteria
+	Delete()
+
+	// Subquery terminates the query builder and tags it as a subquery within a larger query.
+	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
+	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
+	Subquery() *query.SubqueryNode
+
+	joinOrSelect(nodes ...query.Node) ProjectBuilder
 }
 
-func newProjectBuilder(ctx context.Context) *ProjectsBuilder {
-	b := &ProjectsBuilder{
-		builder: db.GetDatabase("goradd").NewBuilder(ctx),
+type projectQueryBuilder struct {
+	builder *query.Builder
+}
+
+func newProjectBuilder(ctx context.Context) ProjectBuilder {
+	b := projectQueryBuilder{
+		builder: query.NewBuilder(ctx),
 	}
-	return b.Join(node.Project())
+	return b.Join(node.Project()) // seed builder with the top table
 }
 
-// Load terminates the query builder, performs the query, and returns a slice of Project objects. If there are
-// any errors, they are returned in the context object. If no results come back from the query, it will return
-// an empty slice
-func (b *ProjectsBuilder) Load() (projects []*Project) {
-	results := b.builder.Load()
+// Load terminates the query builder, performs the query, and returns a slice of Project objects.
+// If there are any errors, nil is returned and the specific error is stored in the context.
+// If no results come back from the query, it will return a non-nil empty slice.
+func (b *projectQueryBuilder) Load() (projects []*Project) {
+	b.builder.Command = query.BuilderCommandLoad
+	database := db.GetDatabase("goradd")
+	results := database.BuilderQuery(b.builder.Ctx, b.builder)
 	if results == nil {
 		return
 	}
-	for _, item := range results {
+	for _, item := range results.([]map[string]any) {
 		o := new(Project)
 		o.load(item, o, nil, "")
 		projects = append(projects, o)
@@ -1070,15 +1160,18 @@ func (b *ProjectsBuilder) Load() (projects []*Project) {
 	return
 }
 
-// LoadI terminates the query builder, performs the query, and returns a slice of interfaces. If there are
-// any errors, they are returned in the context object. If no results come back from the query, it will return
-// an empty slice.
-func (b *ProjectsBuilder) LoadI() (projects []interface{}) {
-	results := b.builder.Load()
+// Load terminates the query builder, performs the query, and returns a slice of interfaces.
+// This can then satisfy a general interface that loads arrays of objects.
+// If there are any errors, nil is returned and the specific error is stored in the context.
+// If no results come back from the query, it will return a non-nil empty slice.
+func (b *projectQueryBuilder) LoadI() (projects []any) {
+	b.builder.Command = query.BuilderCommandLoad
+	database := db.GetDatabase("goradd")
+	results := database.BuilderQuery(b.builder.Ctx, b.builder)
 	if results == nil {
 		return
 	}
-	for _, item := range results {
+	for _, item := range results.([]map[string]any) {
 		o := new(Project)
 		o.load(item, o, nil, "")
 		projects = append(projects, o)
@@ -1098,8 +1191,14 @@ func (b *ProjectsBuilder) LoadI() (projects []interface{}) {
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *ProjectsBuilder) LoadCursor() projectsCursor {
-	cursor := b.builder.LoadCursor()
+func (b *projectQueryBuilder) LoadCursor() projectsCursor {
+	b.builder.Command = query.BuilderCommandLoadCursor
+	database := db.GetDatabase("goradd")
+	result := database.BuilderQuery(b.builder.Ctx, b.builder)
+	if result == nil {
+		return projectsCursor{}
+	}
+	cursor := result.(query.CursorI)
 
 	return projectsCursor{cursor}
 }
@@ -1112,6 +1211,10 @@ type projectsCursor struct {
 //
 // If there are no more records, it returns nil.
 func (c projectsCursor) Next() *Project {
+	if c.CursorI == nil {
+		return nil
+	}
+
 	row := c.CursorI.Next()
 	if row == nil {
 		return nil
@@ -1124,7 +1227,10 @@ func (c projectsCursor) Next() *Project {
 // Get is a convenience method to return only the first item found in a query.
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
-func (b *ProjectsBuilder) Get() *Project {
+//
+// If an error occurs, or no results are found, a nil is returned.
+// In the case of an error, the error is returned in the context.
+func (b *projectQueryBuilder) Get() *Project {
 	results := b.Load()
 	if results != nil && len(results) > 0 {
 		obj := results[0]
@@ -1135,13 +1241,9 @@ func (b *ProjectsBuilder) Get() *Project {
 }
 
 // Join adds node n to the node tree so that its fields will appear in the query.
-// Optionally add conditions to filter what gets included.
-func (b *ProjectsBuilder) Join(n query.Node, conditions ...query.Node) *ProjectsBuilder {
-	if !query.NodeIsTableNodeI(n) {
-		panic("you can only join Table, Reference, ReverseReference and ManyManyReference nodes")
-	}
-
-	if query.NodeTableName(query.RootNode(n)) != "project" {
+// Optionally add conditions to filter what gets included. Multiple conditions are anded.
+func (b *projectQueryBuilder) Join(n query.Node, conditions ...query.Node) ProjectBuilder {
+	if query.RootNode(n).TableName_() != "project" {
 		panic("you can only join a node that is rooted at node.Project()")
 	}
 
@@ -1156,83 +1258,95 @@ func (b *ProjectsBuilder) Join(n query.Node, conditions ...query.Node) *Projects
 }
 
 // Where adds a condition to filter what gets selected.
-func (b *ProjectsBuilder) Where(c query.Node) *ProjectsBuilder {
-	b.builder.Condition(c)
+// Calling Where multiple times will AND the conditions together.
+func (b *projectQueryBuilder) Where(c query.Node) ProjectBuilder {
+	b.builder.Where(c)
 	return b
 }
 
 // OrderBy specifies how the resulting data should be sorted.
-func (b *ProjectsBuilder) OrderBy(nodes ...query.Node) *ProjectsBuilder {
+// By default, the given nodes are sorted in ascending order.
+// Add Descending() to the node to specify that it should be sorted in descending order.
+func (b *projectQueryBuilder) OrderBy(nodes ...query.Sorter) ProjectBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
 
-// Limit will return a subset of the data, limited to the offset and number of rows specified
-func (b *ProjectsBuilder) Limit(maxRowCount int, offset int) *ProjectsBuilder {
+// Limit will return a subset of the data, limited to the offset and number of rows specified.
+// For large data sets and specific types of queries, this can be slow, because it will perform
+// the entire query before computing the limit.
+// You cannot limit a query that has embedded arrays.
+func (b *projectQueryBuilder) Limit(maxRowCount int, offset int) ProjectBuilder {
 	b.builder.Limit(maxRowCount, offset)
 	return b
 }
 
-// Select optimizes the query to only return the specified fields. Once you put a Select in your query, you must
-// specify all the fields that you will eventually read out. Be careful when selecting fields in joined tables, as joined
-// tables will also contain pointers back to the parent table, and so the parent node should have the same field selected
-// as the child node if you are querying those fields.
-func (b *ProjectsBuilder) Select(nodes ...query.Node) *ProjectsBuilder {
+// Select optimizes the query to only return the specified fields.
+// Once you put a Select in your query, you must specify all the fields that you will eventually read out.
+func (b *projectQueryBuilder) Select(nodes ...query.Node) ProjectBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
-// Alias lets you add a node with a custom name. After the query, you can read out the data using GetAlias() on a
-// returned object. Alias is useful for adding calculations or subqueries to the query.
-func (b *ProjectsBuilder) Alias(name string, n query.Node) *ProjectsBuilder {
-	b.builder.Alias(name, n)
+// Calculation adds a calculation node with an aliased name.
+// After the query, you can read the data using GetAlias() on a returned object.
+func (b *projectQueryBuilder) Calculation(name string, n query.Aliaser) ProjectBuilder {
+	b.builder.Calculation(name, n)
 	return b
 }
 
-// Distinct removes duplicates from the results of the query. Adding a Select() may help you get to the data you want, although
-// using Distinct with joined tables is often not effective, since we force joined tables to include primary keys in the query, and this
-// often ruins the effect of Distinct.
-func (b *ProjectsBuilder) Distinct() *ProjectsBuilder {
+// Distinct removes duplicates from the results of the query.
+// Adding a Select() is usually required.
+func (b *projectQueryBuilder) Distinct() ProjectBuilder {
 	b.builder.Distinct()
 	return b
 }
 
-// GroupBy controls how results are grouped when using aggregate functions in an Alias() call.
-func (b *ProjectsBuilder) GroupBy(nodes ...query.Node) *ProjectsBuilder {
+// GroupBy controls how results are grouped when using aggregate functions with Calculation.
+func (b *projectQueryBuilder) GroupBy(nodes ...query.Node) ProjectBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
-// Having does additional filtering on the results of the query.
-func (b *ProjectsBuilder) Having(node query.Node) *ProjectsBuilder {
+// Having does additional filtering on the results of the query after the query is performed.
+func (b *projectQueryBuilder) Having(node query.Node) ProjectBuilder {
 	b.builder.Having(node)
 	return b
 }
 
 // Count terminates a query and returns just the number of items selected.
-//
 // distinct wll count the number of distinct items, ignoring duplicates.
-//
 // nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *ProjectsBuilder) Count(distinct bool, nodes ...query.Node) uint {
-	return b.builder.Count(distinct, nodes...)
+func (b *projectQueryBuilder) Count(distinct bool, nodes ...query.Node) int {
+	b.builder.Command = query.BuilderCommandCount
+	if distinct {
+		b.builder.Distinct()
+	}
+	database := db.GetDatabase("goradd")
+	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	if results == nil {
+		return 0
+	}
+	return results.(int)
 }
 
 // Delete uses the query builder to delete a group of records that match the criteria
-func (b *ProjectsBuilder) Delete() {
-	b.builder.Delete()
+func (b *projectQueryBuilder) Delete() {
+	b.builder.Command = query.BuilderCommandDelete
+	database := db.GetDatabase("goradd")
+	database.BuilderQuery(b.builder.Ctx, b.builder)
 	broadcast.BulkChange(b.builder.Context(), "goradd", "project")
 }
 
-// Subquery uses the query builder to define a subquery within a larger query. You MUST include what
-// you are selecting by adding Alias or Select functions on the subquery builder. Generally you would use
-// this as a node to an Alias function on the surrounding query builder.
-func (b *ProjectsBuilder) Subquery() *query.SubqueryNode {
+// Subquery terminates the query builder and tags it as a subquery within a larger query.
+// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
+// Generally you would use this as a node to a Calculation function on the surrounding query builder.
+func (b *projectQueryBuilder) Subquery() *query.SubqueryNode {
 	return b.builder.Subquery()
 }
 
 // joinOrSelect is a private helper function for the Load* functions
-func (b *ProjectsBuilder) joinOrSelect(nodes ...query.Node) *ProjectsBuilder {
+func (b *projectQueryBuilder) joinOrSelect(nodes ...query.Node) ProjectBuilder {
 	for _, n := range nodes {
 		switch n.(type) {
 		case query.TableNodeI:
@@ -1361,7 +1475,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project, objParent
 		}
 	} else {
 		o.statusIsValid = false
-		o.status = ProjectStatus(0)
+		o.status = 0
 	}
 
 	if v, ok := m["manager_id"]; ok {
@@ -1816,7 +1930,7 @@ func (o *projectBase) getModifiedFields() (fields map[string]interface{}) {
 	return
 }
 
-// getValidFields returns the fields that have valid data in them.
+// getValidFields returns the fields that have valid data in them in a form ready to send to the database.
 func (o *projectBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 
@@ -1836,9 +1950,7 @@ func (o *projectBase) getValidFields() (fields map[string]interface{}) {
 		if o.managerIDIsNull {
 			fields["manager_id"] = nil
 		} else {
-
 			fields["manager_id"] = o.managerID
-
 		}
 	}
 
@@ -1852,9 +1964,7 @@ func (o *projectBase) getValidFields() (fields map[string]interface{}) {
 		if o.descriptionIsNull {
 			fields["description"] = nil
 		} else {
-
 			fields["description"] = o.description
-
 		}
 	}
 
@@ -1862,9 +1972,7 @@ func (o *projectBase) getValidFields() (fields map[string]interface{}) {
 		if o.startDateIsNull {
 			fields["start_date"] = nil
 		} else {
-
 			fields["start_date"] = o.startDate
-
 		}
 	}
 
@@ -1872,9 +1980,7 @@ func (o *projectBase) getValidFields() (fields map[string]interface{}) {
 		if o.endDateIsNull {
 			fields["end_date"] = nil
 		} else {
-
 			fields["end_date"] = o.endDate
-
 		}
 	}
 
@@ -1882,9 +1988,7 @@ func (o *projectBase) getValidFields() (fields map[string]interface{}) {
 		if o.budgetIsNull {
 			fields["budget"] = nil
 		} else {
-
 			fields["budget"] = o.budget
-
 		}
 	}
 
@@ -1892,9 +1996,7 @@ func (o *projectBase) getValidFields() (fields map[string]interface{}) {
 		if o.spentIsNull {
 			fields["spent"] = nil
 		} else {
-
 			fields["spent"] = o.spent
-
 		}
 	}
 	return
@@ -2695,11 +2797,11 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 				}
 
 				if n, ok := v.(int); ok {
-					o.SetStatusEnum(ProjectStatus(n))
+					o.SetStatus(ProjectStatus(n))
 				} else if n, ok := v.(float64); ok {
-					o.SetStatusEnum(ProjectStatus(int(n)))
+					o.SetStatus(ProjectStatus(int(n)))
 				} else if n, ok := v.(string); ok {
-					o.SetStatusEnum(ProjectStatusFromName(n))
+					o.SetStatus(ProjectStatusFromName(n))
 				} else {
 					return fmt.Errorf("json field %s must be a number", k)
 				}

@@ -83,6 +83,9 @@ func (g ReceiverType) DefaultValue() any {
 
 // GoType returns the actual GO type as go code
 func (g ReceiverType) GoType() string {
+	if g == ColTypeUnknown || g == ColTypeBytes {
+		return "[]byte" // otherwise we get a []unit8
+	}
 	t := g.DefaultValue()
 	if t != nil {
 		return fmt.Sprintf("%T", g.DefaultValue())
@@ -144,7 +147,7 @@ func ReceiverTypeFromSchema(columnType schema.ColumnType, maxLength uint64) Rece
 		return ColTypeString
 	case schema.ColTypeEnum:
 		return ColTypeInteger
-	case schema.ColTypeManyEnum:
+	case schema.ColTypeEnumArray:
 		return ColTypeString
 	}
 	return ColTypeUnknown

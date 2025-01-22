@@ -37,14 +37,14 @@ func (o *Project) String() string {
 }
 
 // QueryProjects returns a new query builder.
-func QueryProjects(ctx context.Context) *ProjectsBuilder {
+func QueryProjects(ctx context.Context) ProjectBuilder {
 	return queryProjects(ctx)
 }
 
 // queryProjects creates a new builder and is the central spot where all queries are directed.
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
-func queryProjects(ctx context.Context) *ProjectsBuilder {
+func queryProjects(ctx context.Context) ProjectBuilder {
 	return newProjectBuilder(ctx)
 }
 

@@ -37,14 +37,14 @@ func (o *ForwardCascadeUnique) String() string {
 }
 
 // QueryForwardCascadeUniques returns a new query builder.
-func QueryForwardCascadeUniques(ctx context.Context) *ForwardCascadeUniquesBuilder {
+func QueryForwardCascadeUniques(ctx context.Context) ForwardCascadeUniqueBuilder {
 	return queryForwardCascadeUniques(ctx)
 }
 
 // queryForwardCascadeUniques creates a new builder and is the central spot where all queries are directed.
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
-func queryForwardCascadeUniques(ctx context.Context) *ForwardCascadeUniquesBuilder {
+func queryForwardCascadeUniques(ctx context.Context) ForwardCascadeUniqueBuilder {
 	return newForwardCascadeUniqueBuilder(ctx)
 }
 

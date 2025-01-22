@@ -38,14 +38,14 @@ func (o *Person) String() string {
 }
 
 // QueryPeople returns a new query builder.
-func QueryPeople(ctx context.Context) *PeopleBuilder {
+func QueryPeople(ctx context.Context) PersonBuilder {
 	return queryPeople(ctx)
 }
 
 // queryPeople creates a new builder and is the central spot where all queries are directed.
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
-func queryPeople(ctx context.Context) *PeopleBuilder {
+func queryPeople(ctx context.Context) PersonBuilder {
 	return newPersonBuilder(ctx)
 }
 

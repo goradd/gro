@@ -56,9 +56,12 @@ func NewSqlCursor(rows *sql.Rows,
 // when the cursor was created, or taken from the database itself.
 //
 // If an error occurs, will panic with the error.
-func (r sqlCursor) Next() map[string]interface{} {
+func (r *sqlCursor) Next() map[string]interface{} {
 	var err error
 
+	if r == nil || r.rows == nil {
+		return nil
+	}
 	if r.rows.Next() {
 		if err = r.rows.Scan(r.columnValueReceivers...); err != nil {
 			log.Panic(err)
@@ -86,6 +89,10 @@ func (r sqlCursor) Next() map[string]interface{} {
 //
 // Once you are done with the cursor, you MUST call Close, so its
 // probably best to put a defer Close statement ahead of using Next.
-func (r sqlCursor) Close() error {
+func (r *sqlCursor) Close() error {
+	if r == nil || r.rows == nil {
+		return nil
+	}
+
 	return r.rows.Close()
 }

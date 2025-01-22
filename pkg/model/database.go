@@ -150,6 +150,9 @@ func (m *Database) importReference(table *Table, schemaCol *schema.Column) {
 
 // Table returns a Table from the database given the table name.
 func (m *Database) Table(name string) *Table {
+	if name == "" {
+		return nil
+	}
 	if v, ok := m.Tables[name]; ok {
 		return v
 	} else {
@@ -159,6 +162,9 @@ func (m *Database) Table(name string) *Table {
 
 // Enum returns an Enum from the database given the table name.
 func (m *Database) Enum(name string) *Enum {
+	if name == "" {
+		return nil
+	}
 	return m.Enums[name]
 }
 

@@ -59,6 +59,9 @@ func (tmpl *EnumTemplate) gen(table *model.Enum, _w io.Writer) (err error) {
 	if err = tmpl.genFields(table, _w); err != nil {
 		return
 	}
+	if err = tmpl.genSet(table, _w); err != nil {
+		return
+	}
 	return
 }
 
@@ -78,6 +81,8 @@ package `); err != nil {
 
 import (
 	"strconv"
+	"github.com/goradd/maps"
+    "sort"
 )
 `); err != nil {
 		return
@@ -641,7 +646,7 @@ func `); err != nil {
 
 func (tmpl *EnumTemplate) genInterfaces(table *model.Enum, _w io.Writer) (err error) {
 
-	if _, err = io.WriteString(_w, `// Label returns the string that will be displayed to a user for this item.
+	if _, err = io.WriteString(_w, `// Label returns the string that will be displayed to a user for this item and satsifies goradd's Labeler interface.
 func (e `); err != nil {
 		return
 	}
@@ -863,5 +868,141 @@ func `); err != nil {
 		}
 
 	}
+	return
+}
+
+func (tmpl *EnumTemplate) genSet(table *model.Enum, _w io.Writer) (err error) {
+
+	if _, err = io.WriteString(_w, `
+// `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Set is a group of `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` values.
+type `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Set = maps.Set[`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `]
+
+// `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `SetFromNumbers converts an array of numeric values into a `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Set.
+func `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `SetFromNumbers[T ~int | ~int8 | ~int16 | ~int32 | ~int64 |
+        ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64] (nums []T) (values `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Set) {
+	var s `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Set
+	for _, n := range nums {
+		s.Add(`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `(n))
+	}
+	return s
+}
+
+// `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `SetToInts
+func `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `SetToInts(values `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Set) (ints []int) {
+	for _,v := range values.Values() {
+		ints = append(ints, int(v))
+	}
+	sort.Ints(ints)
+	return
+}
+
+`); err != nil {
+		return
+	}
+
 	return
 }

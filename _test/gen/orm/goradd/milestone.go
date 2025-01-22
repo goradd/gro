@@ -37,14 +37,14 @@ func (o *Milestone) String() string {
 }
 
 // QueryMilestones returns a new query builder.
-func QueryMilestones(ctx context.Context) *MilestonesBuilder {
+func QueryMilestones(ctx context.Context) MilestoneBuilder {
 	return queryMilestones(ctx)
 }
 
 // queryMilestones creates a new builder and is the central spot where all queries are directed.
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
-func queryMilestones(ctx context.Context) *MilestonesBuilder {
+func queryMilestones(ctx context.Context) MilestoneBuilder {
 	return newMilestoneBuilder(ctx)
 }
 

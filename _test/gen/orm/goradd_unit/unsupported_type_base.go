@@ -9,7 +9,6 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
-	"slices"
 	"unicode/utf8"
 
 	"github.com/goradd/all"
@@ -28,13 +27,13 @@ type unsupportedTypeBase struct {
 	typeSerialIsValid bool
 	typeSerialIsDirty bool
 
-	typeSet        string
+	typeSet        []byte
 	typeSetIsValid bool
 	typeSetIsDirty bool
 
-	types        string
-	typesIsValid bool
-	typesIsDirty bool
+	typeEnumerated        []byte
+	typeEnumeratedIsValid bool
+	typeEnumeratedIsDirty bool
 
 	typeDecimal        string
 	typeDecimalIsValid bool
@@ -44,19 +43,19 @@ type unsupportedTypeBase struct {
 	typeDoubleIsValid bool
 	typeDoubleIsDirty bool
 
-	typeGeo        []uint8
+	typeGeo        []byte
 	typeGeoIsValid bool
 	typeGeoIsDirty bool
 
-	typeTinyBlob        []uint8
+	typeTinyBlob        []byte
 	typeTinyBlobIsValid bool
 	typeTinyBlobIsDirty bool
 
-	typeMediumBlob        []uint8
+	typeMediumBlob        []byte
 	typeMediumBlobIsValid bool
 	typeMediumBlobIsDirty bool
 
-	typeVarbinary        []uint8
+	typeVarbinary        []byte
 	typeVarbinaryIsValid bool
 	typeVarbinaryIsDirty bool
 
@@ -64,7 +63,7 @@ type unsupportedTypeBase struct {
 	typeLongtextIsValid bool
 	typeLongtextIsDirty bool
 
-	typeBinary        []uint8
+	typeBinary        []byte
 	typeBinaryIsValid bool
 	typeBinaryIsDirty bool
 
@@ -80,7 +79,7 @@ type unsupportedTypeBase struct {
 	typeBigIsValid bool
 	typeBigIsDirty bool
 
-	typePolygon        []uint8
+	typePolygon        []byte
 	typePolygonIsValid bool
 	typePolygonIsDirty bool
 
@@ -110,7 +109,7 @@ type unsupportedTypeBase struct {
 const (
 	UnsupportedType_TypeSerial     = `TypeSerial`
 	UnsupportedType_TypeSet        = `TypeSet`
-	UnsupportedType_Types          = `Types`
+	UnsupportedType_TypeEnumerated = `TypeEnumerated`
 	UnsupportedType_TypeDecimal    = `TypeDecimal`
 	UnsupportedType_TypeDouble     = `TypeDouble`
 	UnsupportedType_TypeGeo        = `TypeGeo`
@@ -128,8 +127,8 @@ const (
 	UnsupportedType_TypeMultifk2   = `TypeMultifk2`
 )
 
-const UnsupportedTypeTypeSetMaxLength = 5               // The number of runes the column can hold
-const UnsupportedTypeTypesMaxLength = 1                 // The number of runes the column can hold
+const UnsupportedTypeTypeSetMaxLength = 5               // The number of bytes the column can hold
+const UnsupportedTypeTypeEnumeratedMaxLength = 1        // The number of bytes the column can hold
 const UnsupportedTypeTypeDecimalMaxLength = 13          // The number of runes the column can hold
 const UnsupportedTypeTypeTinyBlobMaxLength = 255        // The number of bytes the column can hold
 const UnsupportedTypeTypeMediumBlobMaxLength = 16777215 // The number of bytes the column can hold
@@ -154,15 +153,15 @@ func (o *unsupportedTypeBase) Initialize() {
 	o.typeSerialIsValid = false
 	o.typeSerialIsDirty = false
 
-	o.typeSet = ""
+	o.typeSet = []byte(nil)
 
 	o.typeSetIsValid = false
 	o.typeSetIsDirty = false
 
-	o.types = ""
+	o.typeEnumerated = []byte(nil)
 
-	o.typesIsValid = false
-	o.typesIsDirty = false
+	o.typeEnumeratedIsValid = false
+	o.typeEnumeratedIsDirty = false
 
 	o.typeDecimal = ""
 
@@ -264,8 +263,8 @@ func (o *unsupportedTypeBase) Copy() (newObject *UnsupportedType) {
 	if o.typeSetIsValid {
 		newObject.SetTypeSet(o.typeSet)
 	}
-	if o.typesIsValid {
-		newObject.SetTypes(o.types)
+	if o.typeEnumeratedIsValid {
+		newObject.SetTypeEnumerated(o.typeEnumerated)
 	}
 	if o.typeDecimalIsValid {
 		newObject.SetTypeDecimal(o.typeDecimal)
@@ -328,7 +327,7 @@ func (o *unsupportedTypeBase) TypeSerialIsValid() bool {
 }
 
 // TypeSet returns the loaded value of TypeSet.
-func (o *unsupportedTypeBase) TypeSet() string {
+func (o *unsupportedTypeBase) TypeSet() []byte {
 	if o._restored && !o.typeSetIsValid {
 		panic("TypeSet was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -341,40 +340,37 @@ func (o *unsupportedTypeBase) TypeSetIsValid() bool {
 }
 
 // SetTypeSet sets the value of TypeSet in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeSet(typeSet string) {
+func (o *unsupportedTypeBase) SetTypeSet(typeSet []byte) {
 	o.typeSetIsValid = true
-	if utf8.RuneCountInString(typeSet) > UnsupportedTypeTypeSetMaxLength {
-		panic("attempted to set UnsupportedType.TypeSet to a value larger than its maximum length in runes")
+	if len(typeSet) > UnsupportedTypeTypeSetMaxLength {
+		panic("attempted to set UnsupportedType.TypeSet to a value larger than its maximum length")
 	}
-	if o.typeSet != typeSet || !o._restored {
-		o.typeSet = typeSet
-		o.typeSetIsDirty = true
-	}
+	o.typeSet = typeSet // TODO: Copy bytes??
+	o.typeSetIsDirty = true
 
 }
 
-// Types returns the loaded value of Types.
-func (o *unsupportedTypeBase) Types() string {
-	if o._restored && !o.typesIsValid {
-		panic("Types was not selected in the last query and has not been set, and so is not valid")
+// TypeEnumerated returns the loaded value of TypeEnumerated.
+func (o *unsupportedTypeBase) TypeEnumerated() []byte {
+	if o._restored && !o.typeEnumeratedIsValid {
+		panic("TypeEnumerated was not selected in the last query and has not been set, and so is not valid")
 	}
-	return o.types
+	return o.typeEnumerated
 }
 
-// TypesIsValid returns true if the value was loaded from the database or has been set.
-func (o *unsupportedTypeBase) TypesIsValid() bool {
-	return o.typesIsValid
+// TypeEnumeratedIsValid returns true if the value was loaded from the database or has been set.
+func (o *unsupportedTypeBase) TypeEnumeratedIsValid() bool {
+	return o.typeEnumeratedIsValid
 }
 
-// SetTypes sets the value of Types in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypes(types string) {
-	o.typesIsValid = true
-	v := slices.Sort(slices.Clone(types))
-	if !slices.Equal(o.types, v) ||
-		!o._restored {
-		o.types = v
-		o.typesIsDirty = true
+// SetTypeEnumerated sets the value of TypeEnumerated in the object, to be saved later using the Save() function.
+func (o *unsupportedTypeBase) SetTypeEnumerated(typeEnumerated []byte) {
+	o.typeEnumeratedIsValid = true
+	if len(typeEnumerated) > UnsupportedTypeTypeEnumeratedMaxLength {
+		panic("attempted to set UnsupportedType.TypeEnumerated to a value larger than its maximum length")
 	}
+	o.typeEnumerated = typeEnumerated // TODO: Copy bytes??
+	o.typeEnumeratedIsDirty = true
 
 }
 
@@ -428,7 +424,7 @@ func (o *unsupportedTypeBase) SetTypeDouble(typeDouble float64) {
 }
 
 // TypeGeo returns the loaded value of TypeGeo.
-func (o *unsupportedTypeBase) TypeGeo() []uint8 {
+func (o *unsupportedTypeBase) TypeGeo() []byte {
 	if o._restored && !o.typeGeoIsValid {
 		panic("TypeGeo was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -441,7 +437,7 @@ func (o *unsupportedTypeBase) TypeGeoIsValid() bool {
 }
 
 // SetTypeGeo sets the value of TypeGeo in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeGeo(typeGeo []uint8) {
+func (o *unsupportedTypeBase) SetTypeGeo(typeGeo []byte) {
 	o.typeGeoIsValid = true
 	o.typeGeo = typeGeo // TODO: Copy bytes??
 	o.typeGeoIsDirty = true
@@ -449,7 +445,7 @@ func (o *unsupportedTypeBase) SetTypeGeo(typeGeo []uint8) {
 }
 
 // TypeTinyBlob returns the loaded value of TypeTinyBlob.
-func (o *unsupportedTypeBase) TypeTinyBlob() []uint8 {
+func (o *unsupportedTypeBase) TypeTinyBlob() []byte {
 	if o._restored && !o.typeTinyBlobIsValid {
 		panic("TypeTinyBlob was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -462,7 +458,7 @@ func (o *unsupportedTypeBase) TypeTinyBlobIsValid() bool {
 }
 
 // SetTypeTinyBlob sets the value of TypeTinyBlob in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeTinyBlob(typeTinyBlob []uint8) {
+func (o *unsupportedTypeBase) SetTypeTinyBlob(typeTinyBlob []byte) {
 	o.typeTinyBlobIsValid = true
 	if len(typeTinyBlob) > UnsupportedTypeTypeTinyBlobMaxLength {
 		panic("attempted to set UnsupportedType.TypeTinyBlob to a value larger than its maximum length")
@@ -473,7 +469,7 @@ func (o *unsupportedTypeBase) SetTypeTinyBlob(typeTinyBlob []uint8) {
 }
 
 // TypeMediumBlob returns the loaded value of TypeMediumBlob.
-func (o *unsupportedTypeBase) TypeMediumBlob() []uint8 {
+func (o *unsupportedTypeBase) TypeMediumBlob() []byte {
 	if o._restored && !o.typeMediumBlobIsValid {
 		panic("TypeMediumBlob was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -486,7 +482,7 @@ func (o *unsupportedTypeBase) TypeMediumBlobIsValid() bool {
 }
 
 // SetTypeMediumBlob sets the value of TypeMediumBlob in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeMediumBlob(typeMediumBlob []uint8) {
+func (o *unsupportedTypeBase) SetTypeMediumBlob(typeMediumBlob []byte) {
 	o.typeMediumBlobIsValid = true
 	if len(typeMediumBlob) > UnsupportedTypeTypeMediumBlobMaxLength {
 		panic("attempted to set UnsupportedType.TypeMediumBlob to a value larger than its maximum length")
@@ -497,7 +493,7 @@ func (o *unsupportedTypeBase) SetTypeMediumBlob(typeMediumBlob []uint8) {
 }
 
 // TypeVarbinary returns the loaded value of TypeVarbinary.
-func (o *unsupportedTypeBase) TypeVarbinary() []uint8 {
+func (o *unsupportedTypeBase) TypeVarbinary() []byte {
 	if o._restored && !o.typeVarbinaryIsValid {
 		panic("TypeVarbinary was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -510,7 +506,7 @@ func (o *unsupportedTypeBase) TypeVarbinaryIsValid() bool {
 }
 
 // SetTypeVarbinary sets the value of TypeVarbinary in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeVarbinary(typeVarbinary []uint8) {
+func (o *unsupportedTypeBase) SetTypeVarbinary(typeVarbinary []byte) {
 	o.typeVarbinaryIsValid = true
 	o.typeVarbinary = typeVarbinary // TODO: Copy bytes??
 	o.typeVarbinaryIsDirty = true
@@ -544,7 +540,7 @@ func (o *unsupportedTypeBase) SetTypeLongtext(typeLongtext string) {
 }
 
 // TypeBinary returns the loaded value of TypeBinary.
-func (o *unsupportedTypeBase) TypeBinary() []uint8 {
+func (o *unsupportedTypeBase) TypeBinary() []byte {
 	if o._restored && !o.typeBinaryIsValid {
 		panic("TypeBinary was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -557,7 +553,7 @@ func (o *unsupportedTypeBase) TypeBinaryIsValid() bool {
 }
 
 // SetTypeBinary sets the value of TypeBinary in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeBinary(typeBinary []uint8) {
+func (o *unsupportedTypeBase) SetTypeBinary(typeBinary []byte) {
 	o.typeBinaryIsValid = true
 	o.typeBinary = typeBinary // TODO: Copy bytes??
 	o.typeBinaryIsDirty = true
@@ -634,7 +630,7 @@ func (o *unsupportedTypeBase) SetTypeBig(typeBig int64) {
 }
 
 // TypePolygon returns the loaded value of TypePolygon.
-func (o *unsupportedTypeBase) TypePolygon() []uint8 {
+func (o *unsupportedTypeBase) TypePolygon() []byte {
 	if o._restored && !o.typePolygonIsValid {
 		panic("TypePolygon was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -647,7 +643,7 @@ func (o *unsupportedTypeBase) TypePolygonIsValid() bool {
 }
 
 // SetTypePolygon sets the value of TypePolygon in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypePolygon(typePolygon []uint8) {
+func (o *unsupportedTypeBase) SetTypePolygon(typePolygon []byte) {
 	o.typePolygonIsValid = true
 	o.typePolygon = typePolygon // TODO: Copy bytes??
 	o.typePolygonIsDirty = true
@@ -744,8 +740,9 @@ func (o *unsupportedTypeBase) IsNew() bool {
 }
 
 // LoadUnsupportedType returns a UnsupportedType from the database.
-// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
-// be considered Join nodes, and column nodes will be Select nodes. See [UnsupportedTypesBuilder.Join] and [UnsupportedTypesBuilder.Select] for more info.
+// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields.
+// Table nodes will be considered Join nodes, and column nodes will be Select nodes.
+// See [UnsupportedTypeBuilder.Join] and [UnsupportedTypesBuilder.Select] for more info.
 func LoadUnsupportedType(ctx context.Context, typeSerial string, joinOrSelectNodes ...query.Node) *UnsupportedType {
 	return queryUnsupportedTypes(ctx).
 		Where(op.Equal(node.UnsupportedType().TypeSerial(), typeSerial)).
@@ -761,29 +758,118 @@ func HasUnsupportedType(ctx context.Context, typeSerial string) bool {
 		Count(false) == 1
 }
 
-// The UnsupportedTypesBuilder uses the QueryBuilderI interface from the database to build a query.
+// The UnsupportedTypeBuilder uses the query.BuilderI interface to build a query.
 // All query operations go through this query builder.
-// End a query by calling either Load, Count, or Delete
-type UnsupportedTypesBuilder struct {
-	builder query.QueryBuilderI
+// End a query by calling either Load, LoadCursor, Get, Count, or Delete
+type UnsupportedTypeBuilder interface {
+	// Join adds node n to the node tree so that its fields will appear in the query.
+	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
+	Join(n query.Node, conditions ...query.Node) UnsupportedTypeBuilder
+
+	// Where adds a condition to filter what gets selected.
+	// Calling Where multiple times will AND the conditions together.
+	Where(c query.Node) UnsupportedTypeBuilder
+
+	// OrderBy specifies how the resulting data should be sorted.
+	// By default, the given nodes are sorted in ascending order.
+	// Add Descending() to the node to specify that it should be sorted in descending order.
+	OrderBy(nodes ...query.Sorter) UnsupportedTypeBuilder
+
+	// Limit will return a subset of the data, limited to the offset and number of rows specified.
+	// For large data sets and specific types of queries, this can be slow, because it will perform
+	// the entire query before computing the limit.
+	// You cannot limit a query that has embedded arrays.
+	Limit(maxRowCount int, offset int) UnsupportedTypeBuilder
+
+	// Select optimizes the query to only return the specified fields.
+	// Once you put a Select in your query, you must specify all the fields that you will eventually read out.
+	// Some fields, like primary keys, are always selected.
+	// If you are using a GroupBy, most database drivers will only allow selecting on fields in the GroupBy, and
+	// doing otherwise will result in an error.
+	Select(nodes ...query.Node) UnsupportedTypeBuilder
+
+	// Calculation adds a calculation node with an aliased name.
+	// After the query, you can read the data using GetAlias() on a returned object.
+	Calculation(name string, n query.Aliaser) UnsupportedTypeBuilder
+
+	// Distinct removes duplicates from the results of the query.
+	// Adding a Select() is usually required.
+	Distinct() UnsupportedTypeBuilder
+
+	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
+	GroupBy(nodes ...query.Node) UnsupportedTypeBuilder
+
+	// Having does additional filtering on the results of the query after the query is performed.
+	Having(node query.Node) UnsupportedTypeBuilder
+
+	// Load terminates the query builder, performs the query, and returns a slice of UnsupportedType objects.
+	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If no results come back from the query, it will return a non-nil empty slice.
+	Load() []*UnsupportedType
+	// Load terminates the query builder, performs the query, and returns a slice of interfaces.
+	// This can then satisfy a general interface that loads arrays of objects.
+	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If no results come back from the query, it will return a non-nil empty slice.
+	LoadI() []any
+
+	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
+	//
+	// A query cursor is useful for dealing with large amounts of query results. However, there are some
+	// limitations to its use. When working with SQL databases, you cannot use a cursor while querying
+	// many-to-many or reverse relationships that will create an array of values.
+	//
+	// Call Next() on the returned cursor object to step through the results. Make sure you call Close
+	// on the cursor object when you are done. You should use
+	//   defer cursor.Close()
+	// to make sure the cursor gets closed.
+	LoadCursor() unsupportedTypesCursor
+
+	// Get is a convenience method to return only the first item found in a query.
+	// The entire query is performed, so you should generally use this only if you know
+	// you are selecting on one or very few items.
+	//
+	// If an error occurs, or no results are found, a nil is returned.
+	// In the case of an error, the error is returned in the context.
+	Get() *UnsupportedType
+
+	// Count terminates a query and returns just the number of items selected.
+	// distinct wll count the number of distinct items, ignoring duplicates.
+	// nodes will select individual fields, and should be accompanied by a GroupBy.
+	Count(distinct bool, nodes ...query.Node) int
+
+	// Delete uses the query builder to delete a group of records that match the criteria
+	Delete()
+
+	// Subquery terminates the query builder and tags it as a subquery within a larger query.
+	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
+	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
+	Subquery() *query.SubqueryNode
+
+	joinOrSelect(nodes ...query.Node) UnsupportedTypeBuilder
 }
 
-func newUnsupportedTypeBuilder(ctx context.Context) *UnsupportedTypesBuilder {
-	b := &UnsupportedTypesBuilder{
-		builder: db.GetDatabase("goradd_unit").NewBuilder(ctx),
+type unsupportedTypeQueryBuilder struct {
+	builder *query.Builder
+}
+
+func newUnsupportedTypeBuilder(ctx context.Context) UnsupportedTypeBuilder {
+	b := unsupportedTypeQueryBuilder{
+		builder: query.NewBuilder(ctx),
 	}
-	return b.Join(node.UnsupportedType())
+	return b.Join(node.UnsupportedType()) // seed builder with the top table
 }
 
-// Load terminates the query builder, performs the query, and returns a slice of UnsupportedType objects. If there are
-// any errors, they are returned in the context object. If no results come back from the query, it will return
-// an empty slice
-func (b *UnsupportedTypesBuilder) Load() (unsupportedTypes []*UnsupportedType) {
-	results := b.builder.Load()
+// Load terminates the query builder, performs the query, and returns a slice of UnsupportedType objects.
+// If there are any errors, nil is returned and the specific error is stored in the context.
+// If no results come back from the query, it will return a non-nil empty slice.
+func (b *unsupportedTypeQueryBuilder) Load() (unsupportedTypes []*UnsupportedType) {
+	b.builder.Command = query.BuilderCommandLoad
+	database := db.GetDatabase("goradd_unit")
+	results := database.BuilderQuery(b.builder.Ctx, b.builder)
 	if results == nil {
 		return
 	}
-	for _, item := range results {
+	for _, item := range results.([]map[string]any) {
 		o := new(UnsupportedType)
 		o.load(item, o, nil, "")
 		unsupportedTypes = append(unsupportedTypes, o)
@@ -791,15 +877,18 @@ func (b *UnsupportedTypesBuilder) Load() (unsupportedTypes []*UnsupportedType) {
 	return
 }
 
-// LoadI terminates the query builder, performs the query, and returns a slice of interfaces. If there are
-// any errors, they are returned in the context object. If no results come back from the query, it will return
-// an empty slice.
-func (b *UnsupportedTypesBuilder) LoadI() (unsupportedTypes []interface{}) {
-	results := b.builder.Load()
+// Load terminates the query builder, performs the query, and returns a slice of interfaces.
+// This can then satisfy a general interface that loads arrays of objects.
+// If there are any errors, nil is returned and the specific error is stored in the context.
+// If no results come back from the query, it will return a non-nil empty slice.
+func (b *unsupportedTypeQueryBuilder) LoadI() (unsupportedTypes []any) {
+	b.builder.Command = query.BuilderCommandLoad
+	database := db.GetDatabase("goradd_unit")
+	results := database.BuilderQuery(b.builder.Ctx, b.builder)
 	if results == nil {
 		return
 	}
-	for _, item := range results {
+	for _, item := range results.([]map[string]any) {
 		o := new(UnsupportedType)
 		o.load(item, o, nil, "")
 		unsupportedTypes = append(unsupportedTypes, o)
@@ -819,8 +908,14 @@ func (b *UnsupportedTypesBuilder) LoadI() (unsupportedTypes []interface{}) {
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *UnsupportedTypesBuilder) LoadCursor() unsupportedTypesCursor {
-	cursor := b.builder.LoadCursor()
+func (b *unsupportedTypeQueryBuilder) LoadCursor() unsupportedTypesCursor {
+	b.builder.Command = query.BuilderCommandLoadCursor
+	database := db.GetDatabase("goradd_unit")
+	result := database.BuilderQuery(b.builder.Ctx, b.builder)
+	if result == nil {
+		return unsupportedTypesCursor{}
+	}
+	cursor := result.(query.CursorI)
 
 	return unsupportedTypesCursor{cursor}
 }
@@ -833,6 +928,10 @@ type unsupportedTypesCursor struct {
 //
 // If there are no more records, it returns nil.
 func (c unsupportedTypesCursor) Next() *UnsupportedType {
+	if c.CursorI == nil {
+		return nil
+	}
+
 	row := c.CursorI.Next()
 	if row == nil {
 		return nil
@@ -845,7 +944,10 @@ func (c unsupportedTypesCursor) Next() *UnsupportedType {
 // Get is a convenience method to return only the first item found in a query.
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
-func (b *UnsupportedTypesBuilder) Get() *UnsupportedType {
+//
+// If an error occurs, or no results are found, a nil is returned.
+// In the case of an error, the error is returned in the context.
+func (b *unsupportedTypeQueryBuilder) Get() *UnsupportedType {
 	results := b.Load()
 	if results != nil && len(results) > 0 {
 		obj := results[0]
@@ -856,13 +958,9 @@ func (b *UnsupportedTypesBuilder) Get() *UnsupportedType {
 }
 
 // Join adds node n to the node tree so that its fields will appear in the query.
-// Optionally add conditions to filter what gets included.
-func (b *UnsupportedTypesBuilder) Join(n query.Node, conditions ...query.Node) *UnsupportedTypesBuilder {
-	if !query.NodeIsTableNodeI(n) {
-		panic("you can only join Table, Reference, ReverseReference and ManyManyReference nodes")
-	}
-
-	if query.NodeTableName(query.RootNode(n)) != "unsupported_type" {
+// Optionally add conditions to filter what gets included. Multiple conditions are anded.
+func (b *unsupportedTypeQueryBuilder) Join(n query.Node, conditions ...query.Node) UnsupportedTypeBuilder {
+	if query.RootNode(n).TableName_() != "unsupported_type" {
 		panic("you can only join a node that is rooted at node.UnsupportedType()")
 	}
 
@@ -877,83 +975,95 @@ func (b *UnsupportedTypesBuilder) Join(n query.Node, conditions ...query.Node) *
 }
 
 // Where adds a condition to filter what gets selected.
-func (b *UnsupportedTypesBuilder) Where(c query.Node) *UnsupportedTypesBuilder {
-	b.builder.Condition(c)
+// Calling Where multiple times will AND the conditions together.
+func (b *unsupportedTypeQueryBuilder) Where(c query.Node) UnsupportedTypeBuilder {
+	b.builder.Where(c)
 	return b
 }
 
 // OrderBy specifies how the resulting data should be sorted.
-func (b *UnsupportedTypesBuilder) OrderBy(nodes ...query.Node) *UnsupportedTypesBuilder {
+// By default, the given nodes are sorted in ascending order.
+// Add Descending() to the node to specify that it should be sorted in descending order.
+func (b *unsupportedTypeQueryBuilder) OrderBy(nodes ...query.Sorter) UnsupportedTypeBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
 
-// Limit will return a subset of the data, limited to the offset and number of rows specified
-func (b *UnsupportedTypesBuilder) Limit(maxRowCount int, offset int) *UnsupportedTypesBuilder {
+// Limit will return a subset of the data, limited to the offset and number of rows specified.
+// For large data sets and specific types of queries, this can be slow, because it will perform
+// the entire query before computing the limit.
+// You cannot limit a query that has embedded arrays.
+func (b *unsupportedTypeQueryBuilder) Limit(maxRowCount int, offset int) UnsupportedTypeBuilder {
 	b.builder.Limit(maxRowCount, offset)
 	return b
 }
 
-// Select optimizes the query to only return the specified fields. Once you put a Select in your query, you must
-// specify all the fields that you will eventually read out. Be careful when selecting fields in joined tables, as joined
-// tables will also contain pointers back to the parent table, and so the parent node should have the same field selected
-// as the child node if you are querying those fields.
-func (b *UnsupportedTypesBuilder) Select(nodes ...query.Node) *UnsupportedTypesBuilder {
+// Select optimizes the query to only return the specified fields.
+// Once you put a Select in your query, you must specify all the fields that you will eventually read out.
+func (b *unsupportedTypeQueryBuilder) Select(nodes ...query.Node) UnsupportedTypeBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
-// Alias lets you add a node with a custom name. After the query, you can read out the data using GetAlias() on a
-// returned object. Alias is useful for adding calculations or subqueries to the query.
-func (b *UnsupportedTypesBuilder) Alias(name string, n query.Node) *UnsupportedTypesBuilder {
-	b.builder.Alias(name, n)
+// Calculation adds a calculation node with an aliased name.
+// After the query, you can read the data using GetAlias() on a returned object.
+func (b *unsupportedTypeQueryBuilder) Calculation(name string, n query.Aliaser) UnsupportedTypeBuilder {
+	b.builder.Calculation(name, n)
 	return b
 }
 
-// Distinct removes duplicates from the results of the query. Adding a Select() may help you get to the data you want, although
-// using Distinct with joined tables is often not effective, since we force joined tables to include primary keys in the query, and this
-// often ruins the effect of Distinct.
-func (b *UnsupportedTypesBuilder) Distinct() *UnsupportedTypesBuilder {
+// Distinct removes duplicates from the results of the query.
+// Adding a Select() is usually required.
+func (b *unsupportedTypeQueryBuilder) Distinct() UnsupportedTypeBuilder {
 	b.builder.Distinct()
 	return b
 }
 
-// GroupBy controls how results are grouped when using aggregate functions in an Alias() call.
-func (b *UnsupportedTypesBuilder) GroupBy(nodes ...query.Node) *UnsupportedTypesBuilder {
+// GroupBy controls how results are grouped when using aggregate functions with Calculation.
+func (b *unsupportedTypeQueryBuilder) GroupBy(nodes ...query.Node) UnsupportedTypeBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
-// Having does additional filtering on the results of the query.
-func (b *UnsupportedTypesBuilder) Having(node query.Node) *UnsupportedTypesBuilder {
+// Having does additional filtering on the results of the query after the query is performed.
+func (b *unsupportedTypeQueryBuilder) Having(node query.Node) UnsupportedTypeBuilder {
 	b.builder.Having(node)
 	return b
 }
 
 // Count terminates a query and returns just the number of items selected.
-//
 // distinct wll count the number of distinct items, ignoring duplicates.
-//
 // nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *UnsupportedTypesBuilder) Count(distinct bool, nodes ...query.Node) uint {
-	return b.builder.Count(distinct, nodes...)
+func (b *unsupportedTypeQueryBuilder) Count(distinct bool, nodes ...query.Node) int {
+	b.builder.Command = query.BuilderCommandCount
+	if distinct {
+		b.builder.Distinct()
+	}
+	database := db.GetDatabase("goradd_unit")
+	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	if results == nil {
+		return 0
+	}
+	return results.(int)
 }
 
 // Delete uses the query builder to delete a group of records that match the criteria
-func (b *UnsupportedTypesBuilder) Delete() {
-	b.builder.Delete()
+func (b *unsupportedTypeQueryBuilder) Delete() {
+	b.builder.Command = query.BuilderCommandDelete
+	database := db.GetDatabase("goradd_unit")
+	database.BuilderQuery(b.builder.Ctx, b.builder)
 	broadcast.BulkChange(b.builder.Context(), "goradd_unit", "unsupported_type")
 }
 
-// Subquery uses the query builder to define a subquery within a larger query. You MUST include what
-// you are selecting by adding Alias or Select functions on the subquery builder. Generally you would use
-// this as a node to an Alias function on the surrounding query builder.
-func (b *UnsupportedTypesBuilder) Subquery() *query.SubqueryNode {
+// Subquery terminates the query builder and tags it as a subquery within a larger query.
+// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
+// Generally you would use this as a node to a Calculation function on the surrounding query builder.
+func (b *unsupportedTypeQueryBuilder) Subquery() *query.SubqueryNode {
 	return b.builder.Subquery()
 }
 
 // joinOrSelect is a private helper function for the Load* functions
-func (b *UnsupportedTypesBuilder) joinOrSelect(nodes ...query.Node) *UnsupportedTypesBuilder {
+func (b *unsupportedTypeQueryBuilder) joinOrSelect(nodes ...query.Node) UnsupportedTypeBuilder {
 	for _, n := range nodes {
 		switch n.(type) {
 		case query.TableNodeI:
@@ -975,15 +1085,15 @@ func CountUnsupportedTypeByTypeSerial(ctx context.Context, typeSerial string) in
 // CountUnsupportedTypeByTypeSet queries the database and returns the number of UnsupportedType objects that
 // have typeSet.
 // doc: type=UnsupportedType
-func CountUnsupportedTypeByTypeSet(ctx context.Context, typeSet string) int {
+func CountUnsupportedTypeByTypeSet(ctx context.Context, typeSet []byte) int {
 	return int(queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeSet(), typeSet)).Count(false))
 }
 
-// CountUnsupportedTypeByTypes queries the database and returns the number of UnsupportedType objects that
-// have types.
+// CountUnsupportedTypeByTypeEnumerated queries the database and returns the number of UnsupportedType objects that
+// have typeEnumerated.
 // doc: type=UnsupportedType
-func CountUnsupportedTypeByTypes(ctx context.Context, types string) int {
-	return int(queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().Types(), types)).Count(false))
+func CountUnsupportedTypeByTypeEnumerated(ctx context.Context, typeEnumerated []byte) int {
+	return int(queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeEnumerated(), typeEnumerated)).Count(false))
 }
 
 // CountUnsupportedTypeByTypeDecimal queries the database and returns the number of UnsupportedType objects that
@@ -1003,28 +1113,28 @@ func CountUnsupportedTypeByTypeDouble(ctx context.Context, typeDouble float64) i
 // CountUnsupportedTypeByTypeGeo queries the database and returns the number of UnsupportedType objects that
 // have typeGeo.
 // doc: type=UnsupportedType
-func CountUnsupportedTypeByTypeGeo(ctx context.Context, typeGeo []uint8) int {
+func CountUnsupportedTypeByTypeGeo(ctx context.Context, typeGeo []byte) int {
 	return int(queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeGeo(), typeGeo)).Count(false))
 }
 
 // CountUnsupportedTypeByTypeTinyBlob queries the database and returns the number of UnsupportedType objects that
 // have typeTinyBlob.
 // doc: type=UnsupportedType
-func CountUnsupportedTypeByTypeTinyBlob(ctx context.Context, typeTinyBlob []uint8) int {
+func CountUnsupportedTypeByTypeTinyBlob(ctx context.Context, typeTinyBlob []byte) int {
 	return int(queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeTinyBlob(), typeTinyBlob)).Count(false))
 }
 
 // CountUnsupportedTypeByTypeMediumBlob queries the database and returns the number of UnsupportedType objects that
 // have typeMediumBlob.
 // doc: type=UnsupportedType
-func CountUnsupportedTypeByTypeMediumBlob(ctx context.Context, typeMediumBlob []uint8) int {
+func CountUnsupportedTypeByTypeMediumBlob(ctx context.Context, typeMediumBlob []byte) int {
 	return int(queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeMediumBlob(), typeMediumBlob)).Count(false))
 }
 
 // CountUnsupportedTypeByTypeVarbinary queries the database and returns the number of UnsupportedType objects that
 // have typeVarbinary.
 // doc: type=UnsupportedType
-func CountUnsupportedTypeByTypeVarbinary(ctx context.Context, typeVarbinary []uint8) int {
+func CountUnsupportedTypeByTypeVarbinary(ctx context.Context, typeVarbinary []byte) int {
 	return int(queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeVarbinary(), typeVarbinary)).Count(false))
 }
 
@@ -1038,7 +1148,7 @@ func CountUnsupportedTypeByTypeLongtext(ctx context.Context, typeLongtext string
 // CountUnsupportedTypeByTypeBinary queries the database and returns the number of UnsupportedType objects that
 // have typeBinary.
 // doc: type=UnsupportedType
-func CountUnsupportedTypeByTypeBinary(ctx context.Context, typeBinary []uint8) int {
+func CountUnsupportedTypeByTypeBinary(ctx context.Context, typeBinary []byte) int {
 	return int(queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeBinary(), typeBinary)).Count(false))
 }
 
@@ -1066,7 +1176,7 @@ func CountUnsupportedTypeByTypeBig(ctx context.Context, typeBig int64) int {
 // CountUnsupportedTypeByTypePolygon queries the database and returns the number of UnsupportedType objects that
 // have typePolygon.
 // doc: type=UnsupportedType
-func CountUnsupportedTypeByTypePolygon(ctx context.Context, typePolygon []uint8) int {
+func CountUnsupportedTypeByTypePolygon(ctx context.Context, typePolygon []byte) int {
 	return int(queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypePolygon(), typePolygon)).Count(false))
 }
 
@@ -1112,7 +1222,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	}
 
 	if v, ok := m["type_set"]; ok && v != nil {
-		if o.typeSet, ok = v.(string); ok {
+		if o.typeSet, ok = v.([]byte); ok {
 			o.typeSetIsValid = true
 			o.typeSetIsDirty = false
 
@@ -1121,20 +1231,20 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 		}
 	} else {
 		o.typeSetIsValid = false
-		o.typeSet = ""
+		o.typeSet = []byte(nil)
 	}
 
-	if v, ok := m["type_enum"]; ok && v != nil {
-		if o.types, ok = v.(string); ok {
-			o.typesIsValid = true
-			o.typesIsDirty = false
+	if v, ok := m["type_enumerated"]; ok && v != nil {
+		if o.typeEnumerated, ok = v.([]byte); ok {
+			o.typeEnumeratedIsValid = true
+			o.typeEnumeratedIsDirty = false
 
 		} else {
-			panic("Wrong type found for type_enum.")
+			panic("Wrong type found for type_enumerated.")
 		}
 	} else {
-		o.typesIsValid = false
-		o.types = ""
+		o.typeEnumeratedIsValid = false
+		o.typeEnumerated = []byte(nil)
 	}
 
 	if v, ok := m["type_decimal"]; ok && v != nil {
@@ -1164,7 +1274,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	}
 
 	if v, ok := m["type_geo"]; ok && v != nil {
-		if o.typeGeo, ok = v.([]uint8); ok {
+		if o.typeGeo, ok = v.([]byte); ok {
 			o.typeGeoIsValid = true
 			o.typeGeoIsDirty = false
 
@@ -1177,7 +1287,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	}
 
 	if v, ok := m["type_tiny_blob"]; ok && v != nil {
-		if o.typeTinyBlob, ok = v.([]uint8); ok {
+		if o.typeTinyBlob, ok = v.([]byte); ok {
 			o.typeTinyBlobIsValid = true
 			o.typeTinyBlobIsDirty = false
 
@@ -1190,7 +1300,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	}
 
 	if v, ok := m["type_medium_blob"]; ok && v != nil {
-		if o.typeMediumBlob, ok = v.([]uint8); ok {
+		if o.typeMediumBlob, ok = v.([]byte); ok {
 			o.typeMediumBlobIsValid = true
 			o.typeMediumBlobIsDirty = false
 
@@ -1203,7 +1313,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	}
 
 	if v, ok := m["type_varbinary"]; ok && v != nil {
-		if o.typeVarbinary, ok = v.([]uint8); ok {
+		if o.typeVarbinary, ok = v.([]byte); ok {
 			o.typeVarbinaryIsValid = true
 			o.typeVarbinaryIsDirty = false
 
@@ -1229,7 +1339,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	}
 
 	if v, ok := m["type_binary"]; ok && v != nil {
-		if o.typeBinary, ok = v.([]uint8); ok {
+		if o.typeBinary, ok = v.([]byte); ok {
 			o.typeBinaryIsValid = true
 			o.typeBinaryIsDirty = false
 
@@ -1281,7 +1391,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	}
 
 	if v, ok := m["type_polygon"]; ok && v != nil {
-		if o.typePolygon, ok = v.([]uint8); ok {
+		if o.typePolygon, ok = v.([]byte); ok {
 			o.typePolygonIsValid = true
 			o.typePolygonIsDirty = false
 
@@ -1385,8 +1495,8 @@ func (o *unsupportedTypeBase) insert(ctx context.Context) {
 			panic("a value for TypeSet is required, and there is no default value. Call SetTypeSet() before inserting the record.")
 		}
 
-		if !o.typesIsValid {
-			panic("a value for Types is required, and there is no default value. Call SetTypes() before inserting the record.")
+		if !o.typeEnumeratedIsValid {
+			panic("a value for TypeEnumerated is required, and there is no default value. Call SetTypeEnumerated() before inserting the record.")
 		}
 
 		if !o.typeDecimalIsValid {
@@ -1472,8 +1582,8 @@ func (o *unsupportedTypeBase) getModifiedFields() (fields map[string]interface{}
 	if o.typeSetIsDirty {
 		fields["type_set"] = o.typeSet
 	}
-	if o.typesIsDirty {
-		fields["type_enum"] = o.types
+	if o.typeEnumeratedIsDirty {
+		fields["type_enumerated"] = o.typeEnumerated
 	}
 	if o.typeDecimalIsDirty {
 		fields["type_decimal"] = o.typeDecimal
@@ -1523,7 +1633,7 @@ func (o *unsupportedTypeBase) getModifiedFields() (fields map[string]interface{}
 	return
 }
 
-// getValidFields returns the fields that have valid data in them.
+// getValidFields returns the fields that have valid data in them in a form ready to send to the database.
 func (o *unsupportedTypeBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 
@@ -1533,12 +1643,9 @@ func (o *unsupportedTypeBase) getValidFields() (fields map[string]interface{}) {
 
 	}
 
-	if o.typesIsValid {
+	if o.typeEnumeratedIsValid {
 
-		b, err := json.Marshal(o.types)
-		if err == nil && b != nil {
-			fields["type_enum"] = string(b)
-		}
+		fields["type_enumerated"] = o.typeEnumerated
 
 	}
 
@@ -1655,7 +1762,7 @@ func deleteUnsupportedType(ctx context.Context, pk string) {
 func (o *unsupportedTypeBase) resetDirtyStatus() {
 	o.typeSerialIsDirty = false
 	o.typeSetIsDirty = false
-	o.typesIsDirty = false
+	o.typeEnumeratedIsDirty = false
 	o.typeDecimalIsDirty = false
 	o.typeDoubleIsDirty = false
 	o.typeGeoIsDirty = false
@@ -1678,7 +1785,7 @@ func (o *unsupportedTypeBase) resetDirtyStatus() {
 func (o *unsupportedTypeBase) IsDirty() (dirty bool) {
 	dirty = o.typeSerialIsDirty ||
 		o.typeSetIsDirty ||
-		o.typesIsDirty ||
+		o.typeEnumeratedIsDirty ||
 		o.typeDecimalIsDirty ||
 		o.typeDoubleIsDirty ||
 		o.typeGeoIsDirty ||
@@ -1717,11 +1824,11 @@ func (o *unsupportedTypeBase) Get(key string) interface{} {
 		}
 		return o.typeSet
 
-	case "Types":
-		if !o.typesIsValid {
+	case "TypeEnumerated":
+		if !o.typeEnumeratedIsValid {
 			return nil
 		}
-		return o.types
+		return o.typeEnumerated
 
 	case "TypeDecimal":
 		if !o.typeDecimalIsValid {
@@ -1845,14 +1952,14 @@ func (o *unsupportedTypeBase) MarshalBinary() ([]byte, error) {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeSetIsDirty: %w", err)
 	}
 
-	if err := encoder.Encode(o.types); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.types: %w", err)
+	if err := encoder.Encode(o.typeEnumerated); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.typeEnumerated: %w", err)
 	}
-	if err := encoder.Encode(o.typesIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typesIsValid: %w", err)
+	if err := encoder.Encode(o.typeEnumeratedIsValid); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.typeEnumeratedIsValid: %w", err)
 	}
-	if err := encoder.Encode(o.typesIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typesIsDirty: %w", err)
+	if err := encoder.Encode(o.typeEnumeratedIsDirty); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.typeEnumeratedIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.typeDecimal); err != nil {
@@ -2058,14 +2165,14 @@ func (o *unsupportedTypeBase) UnmarshalBinary(data []byte) (err error) {
 		return fmt.Errorf("error decoding UnsupportedType.typeSetIsDirty: %w", err)
 	}
 
-	if err = dec.Decode(&o.types); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.types: %w", err)
+	if err = dec.Decode(&o.typeEnumerated); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeEnumerated: %w", err)
 	}
-	if err = dec.Decode(&o.typesIsValid); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typesIsValid: %w", err)
+	if err = dec.Decode(&o.typeEnumeratedIsValid); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeEnumeratedIsValid: %w", err)
 	}
-	if err = dec.Decode(&o.typesIsDirty); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typesIsDirty: %w", err)
+	if err = dec.Decode(&o.typeEnumeratedIsDirty); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeEnumeratedIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.typeDecimal); err != nil {
@@ -2244,8 +2351,8 @@ func (o *unsupportedTypeBase) MarshalStringMap() map[string]interface{} {
 		v["typeSet"] = o.typeSet
 	}
 
-	if o.typesIsValid {
-		v["types"] = o.types
+	if o.typeEnumeratedIsValid {
+		v["typeEnumerated"] = o.typeEnumerated
 	}
 
 	if o.typeDecimalIsValid {
@@ -2325,20 +2432,20 @@ func (o *unsupportedTypeBase) MarshalStringMap() map[string]interface{} {
 // The fields it expects are:
 //
 //	"typeSerial" - string
-//	"typeSet" - string
-//	"types" - string
+//	"typeSet" - []byte
+//	"typeEnumerated" - []byte
 //	"typeDecimal" - string
 //	"typeDouble" - float64
-//	"typeGeo" - []uint8
-//	"typeTinyBlob" - []uint8
-//	"typeMediumBlob" - []uint8
-//	"typeVarbinary" - []uint8
+//	"typeGeo" - []byte
+//	"typeTinyBlob" - []byte
+//	"typeMediumBlob" - []byte
+//	"typeVarbinary" - []byte
 //	"typeLongtext" - string
-//	"typeBinary" - []uint8
+//	"typeBinary" - []byte
 //	"typeSmall" - int
 //	"typeMedium" - int
 //	"typeBig" - int64
-//	"typePolygon" - []uint8
+//	"typePolygon" - []byte
 //	"typeUnsigned" - uint
 //	"typeMultfk1" - string
 //	"typeMultifk2" - string
@@ -2363,24 +2470,68 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 					return fmt.Errorf("json field %s cannot be null", k)
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetTypeSet(s)
+				switch d := v.(type) {
+				case string:
+					{
+						// A base 64 encoded string
+						if b, err2 := base64.StdEncoding.DecodeString(d); err2 == nil {
+							o.SetTypeSet(b)
+						} else {
+							return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+						}
+					}
+				case []interface{}:
+					{
+						// An array of byte values. Unfortunately, these come through as float64s, and so need to be converted
+						b := make([]byte, len(d), len(d))
+						for i, b1 := range d {
+							if f, ok := b1.(float64); !ok {
+								return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+							} else {
+								b[i] = uint8(f)
+							}
+						}
+						o.SetTypeSet(b)
+					}
+				default:
+					return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
 				}
+
 			}
 
-		case "types":
+		case "typeEnumerated":
 			{
 				if v == nil {
 					return fmt.Errorf("json field %s cannot be null", k)
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetTypes(s)
+				switch d := v.(type) {
+				case string:
+					{
+						// A base 64 encoded string
+						if b, err2 := base64.StdEncoding.DecodeString(d); err2 == nil {
+							o.SetTypeEnumerated(b)
+						} else {
+							return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+						}
+					}
+				case []interface{}:
+					{
+						// An array of byte values. Unfortunately, these come through as float64s, and so need to be converted
+						b := make([]byte, len(d), len(d))
+						for i, b1 := range d {
+							if f, ok := b1.(float64); !ok {
+								return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+							} else {
+								b[i] = uint8(f)
+							}
+						}
+						o.SetTypeEnumerated(b)
+					}
+				default:
+					return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
 				}
+
 			}
 
 		case "typeDecimal":

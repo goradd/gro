@@ -37,14 +37,14 @@ func (o *Gift) String() string {
 }
 
 // QueryGifts returns a new query builder.
-func QueryGifts(ctx context.Context) *GiftsBuilder {
+func QueryGifts(ctx context.Context) GiftBuilder {
 	return queryGifts(ctx)
 }
 
 // queryGifts creates a new builder and is the central spot where all queries are directed.
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
-func queryGifts(ctx context.Context) *GiftsBuilder {
+func queryGifts(ctx context.Context) GiftBuilder {
 	return newGiftBuilder(ctx)
 }
 

@@ -3,7 +3,10 @@
 package goradd
 
 import (
+	"sort"
 	"strconv"
+
+	"github.com/goradd/maps"
 )
 
 type PersonType int
@@ -113,7 +116,7 @@ func PersonTypesI() (values []any) {
 	}
 }
 
-// Label returns the string that will be displayed to a user for this item.
+// Label returns the string that will be displayed to a user for this item and satsifies goradd's Labeler interface.
 func (e PersonType) Label() string {
 	return e.String()
 }
@@ -121,4 +124,26 @@ func (e PersonType) Label() string {
 // Value returns the value as an interface. It satisfies goradd's Valuer interface.
 func (e PersonType) Value() any {
 	return e.ID()
+}
+
+// PersonTypeSet is a group of PersonType values.
+type PersonTypeSet = maps.Set[PersonType]
+
+// PersonTypeSetFromNumbers converts an array of numeric values into a PersonTypeSet.
+func PersonTypeSetFromNumbers[T ~int | ~int8 | ~int16 | ~int32 | ~int64 |
+	~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64](nums []T) (values PersonTypeSet) {
+	var s PersonTypeSet
+	for _, n := range nums {
+		s.Add(PersonType(n))
+	}
+	return s
+}
+
+// PersonTypeSetToInts
+func PersonTypeSetToInts(values PersonTypeSet) (ints []int) {
+	for _, v := range values.Values() {
+		ints = append(ints, int(v))
+	}
+	sort.Ints(ints)
+	return
 }

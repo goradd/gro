@@ -10,7 +10,6 @@ type BuilderCommand int
 
 const (
 	BuilderCommandLoad = iota
-	BuilderCommandGet
 	BuilderCommandDelete
 	BuilderCommandCount
 	BuilderCommandLoadCursor
@@ -71,8 +70,8 @@ type Builder struct {
 	IsSubquery bool
 }
 
-func NewBuilder(ctx context.Context, cmd BuilderCommand) BuilderI {
-	return &Builder{Ctx: ctx, Command: cmd}
+func NewBuilder(ctx context.Context) *Builder {
+	return &Builder{Ctx: ctx}
 }
 
 // Context returns the context.
@@ -83,8 +82,11 @@ func (b *Builder) Context() context.Context {
 // Join will attach the given reference node to the builder.
 func (b *Builder) Join(n Node, condition Node) {
 	// Possible TBD: If we ever want to support joining the same tables multiple
-	// times with different conditions, we could use an alias to name each join. We would
+	// times with different conditions, we could use an alias to name on each join. We would
 	// then need to create an Alias node to specify which join is meant in different clauses.
+	if !NodeIsJoinable(n) {
+		panic(fmt.Errorf("node %s is not joinable", n))
+	}
 
 	if condition != nil {
 		if c, ok := n.(Conditioner); !ok {

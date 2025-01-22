@@ -200,7 +200,7 @@ func TestTypeTest_SetTestBlob(t *testing.T) {
 
 	obj := NewTypeTest()
 
-	testBlob := test.RandomValue[[]uint8](65535)
+	testBlob := test.RandomValue[[]byte](65535)
 	obj.SetTestBlob(testBlob)
 	assert.Equal(t, testBlob, obj.TestBlob())
 
@@ -209,7 +209,7 @@ func TestTypeTest_SetTestBlob(t *testing.T) {
 	assert.Equal(t, []byte(nil), obj.TestBlob(), "set empty")
 
 	// test panic on setting value larger than maximum size allowed
-	testBlob = test.RandomValue[[]uint8](65536)
+	testBlob = test.RandomValue[[]byte](65536)
 	assert.Panics(t, func() {
 		obj.SetTestBlob(testBlob)
 	})
@@ -247,7 +247,7 @@ func createMinimalSampleTypeTest(ctx context.Context) *TypeTest {
 	testVarchar := test.RandomValue[string](10)
 	obj.SetTestVarchar(testVarchar)
 
-	testBlob := test.RandomValue[[]uint8](65535)
+	testBlob := test.RandomValue[[]byte](65535)
 	obj.SetTestBlob(testBlob)
 
 	obj.Save(ctx)
@@ -284,7 +284,7 @@ func TestTypeTest_CRUD(t *testing.T) {
 	testVarchar := test.RandomValue[string](10)
 	obj.SetTestVarchar(testVarchar)
 
-	testBlob := test.RandomValue[[]uint8](65535)
+	testBlob := test.RandomValue[[]byte](65535)
 	obj.SetTestBlob(testBlob)
 
 	// Test retrieval

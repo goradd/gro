@@ -38,14 +38,14 @@ func (o *PersonWithLock) String() string {
 }
 
 // QueryPersonWithLocks returns a new query builder.
-func QueryPersonWithLocks(ctx context.Context) *PersonWithLocksBuilder {
+func QueryPersonWithLocks(ctx context.Context) PersonWithLockBuilder {
 	return queryPersonWithLocks(ctx)
 }
 
 // queryPersonWithLocks creates a new builder and is the central spot where all queries are directed.
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
-func queryPersonWithLocks(ctx context.Context) *PersonWithLocksBuilder {
+func queryPersonWithLocks(ctx context.Context) PersonWithLockBuilder {
 	return newPersonWithLockBuilder(ctx)
 }
 

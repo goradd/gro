@@ -35,8 +35,8 @@ func TestProject_SetStatus(t *testing.T) {
 	assert.Equal(t, status, obj.Status())
 
 	// test zero
-	obj.SetStatus(ProjectStatus(0))
-	assert.Equal(t, ProjectStatus(0), obj.Status(), "set empty")
+	obj.SetStatus(0)
+	assert.Equal(t, 0, obj.Status(), "set empty")
 
 }
 func TestProject_SetManagerID(t *testing.T) {
