@@ -10,6 +10,7 @@ import (
 
 	"github.com/goradd/orm/pkg/codegen"
 	"github.com/goradd/orm/pkg/model"
+	strings2 "github.com/goradd/strings"
 )
 
 func init() {
@@ -45,6 +46,9 @@ func (tmpl *EnumTemplate) gen(table *model.Enum, _w io.Writer) (err error) {
 		return
 	}
 	if err = tmpl.genString(table, _w); err != nil {
+		return
+	}
+	if err = tmpl.genTitle(table, _w); err != nil {
 		return
 	}
 	if err = tmpl.genId(table, _w); err != nil {
@@ -211,40 +215,15 @@ func (e `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `) String() string {
-	switch e {
-	case 0: return ""
-`); err != nil {
+    return e.`); err != nil {
 		return
 	}
 
-	for _, con := range table.Constants {
-
-		if _, err = io.WriteString(_w, `	case `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, con.Const); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `: return `+"`"+``); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, fmt.Sprint(table.FieldValue(con.Value, 1))); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, ``+"`"+`
-`); err != nil {
-			return
-		}
-
+	if _, err = io.WriteString(_w, table.Fields[1].Identifier); err != nil {
+		return
 	}
 
-	if _, err = io.WriteString(_w, `	default: panic("index out of range")
-	}
-	return "" // prevent warning
+	if _, err = io.WriteString(_w, `()
 }
 `); err != nil {
 		return
@@ -657,7 +636,7 @@ func (e `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `) Label() string {
-	return e.String()
+	return e.Title()
 }
 
 // Value returns the value as an interface. It satisfies goradd's Valuer interface.
@@ -680,10 +659,69 @@ func (e `); err != nil {
 	return
 }
 
+func (tmpl *EnumTemplate) genTitle(table *model.Enum, _w io.Writer) (err error) {
+	for _, field := range table.Fields[1:] {
+		if field.QueryName == "title" {
+			return
+		}
+	}
+
+	if _, err = io.WriteString(_w, `// Title returns the publicly visible description of the value.
+func (e `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `) Title() string {
+	switch e {
+	case 0: return ""
+`); err != nil {
+		return
+	}
+
+	for _, con := range table.Constants {
+
+		if _, err = io.WriteString(_w, `	case `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, con.Const); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `: return `+"`"+``); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, fmt.Sprint(strings2.Title(table.FieldValue(con.Value, 1).(string)))); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ``+"`"+`
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `	default: panic("index out of range")
+	}
+	return "" // prevent warning
+}
+`); err != nil {
+		return
+	}
+
+	return
+}
+
 func (tmpl *EnumTemplate) genFields(table *model.Enum, _w io.Writer) (err error) {
 
-	for i, field := range table.Fields[2:] {
-		fieldNum := i + 2
+	for i, field := range table.Fields[1:] {
+		fieldNum := i + 1
 
 		if _, err = io.WriteString(_w, `func (e `); err != nil {
 			return

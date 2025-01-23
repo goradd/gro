@@ -9,8 +9,9 @@ import (
 type EnumField struct {
 	// Name is the name of the field in the database.
 	// The name of the first field is typically "id" by convention.
-	// The name of the second field must be "name".
+	// The name of the second field must be "name", and should be a string field with lower_snake_case content.
 	// The name of the following fields is up to you, but should be lower_snake_case.
+	// A field with the name "title" will supersede the automatically created Title function generated.
 	Name string `json:"name"`
 	// Title is the title of the data stored in the field.
 	Title string `json:"title,omitempty"`

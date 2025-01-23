@@ -27,6 +27,11 @@ const PersonTypeMaxValue = 5
 
 // String returns the name value of the type and satisfies the fmt.Stringer interface
 func (e PersonType) String() string {
+	return e.Name()
+}
+
+// Title returns the publicly visible description of the value.
+func (e PersonType) Title() string {
 	switch e {
 	case 0:
 		return ""
@@ -120,12 +125,46 @@ func PersonTypesI() (values []any) {
 
 // Label returns the string that will be displayed to a user for this item and satsifies goradd's Labeler interface.
 func (e PersonType) Label() string {
-	return e.String()
+	return e.Title()
 }
 
 // Value returns the value as an interface. It satisfies goradd's Valuer interface.
 func (e PersonType) Value() any {
 	return e.ID()
+}
+
+func (e PersonType) Name() string {
+	switch e {
+	case 0:
+		return ""
+	case PersonTypeContractor:
+		return "Contractor"
+	case PersonTypeManager:
+		return "Manager"
+	case PersonTypeInactive:
+		return "Inactive"
+	case PersonTypeCompanyCar:
+		return "Company Car"
+	case PersonTypeWorksFromHome:
+		return "Works From Home"
+	default:
+		panic("Index out of range")
+	}
+	return "" // prevent warning
+}
+
+// PersonTypeNames returns a slice of all the Names associated with PersonType values.
+// doc: type=PersonType
+func PersonTypeNames() []string {
+	return []string{
+		// 0 item will be a zero value
+		"",
+		"Contractor",
+		"Manager",
+		"Inactive",
+		"Company Car",
+		"Works From Home",
+	}
 }
 
 // PersonTypeSet is a group of PersonType values.

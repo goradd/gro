@@ -4,6 +4,7 @@ import (
 	"io"
 	"strings"
 	"strconv"
+    strings2 "github.com/goradd/strings"
 )
 
 func init() {

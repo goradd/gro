@@ -6,6 +6,7 @@ func (tmpl *EnumTemplate)gen(table *model.Enum, _w io.Writer) (err error) {
     if err = tmpl.genHeader(table, _w); err != nil { return }
     if err = tmpl.genConstants(table, _w); err != nil { return }
     if err = tmpl.genString(table, _w); err != nil { return }
+    if err = tmpl.genTitle(table, _w); err != nil { return }
     if err = tmpl.genId(table, _w); err != nil { return }
     if err = tmpl.genPlurals(table, _w); err != nil { return }
     if err = tmpl.genInterfaces(table, _w); err != nil { return }
@@ -64,14 +65,7 @@ func (tmpl *EnumTemplate)genString(table *model.Enum, _w io.Writer) (err error) 
 {{
 // String returns the name value of the type and satisfies the fmt.Stringer interface
 func (e {{= table.Identifier }}) String() string {
-	switch e {
-	case 0: return ""
-{{for _,con := range table.Constants }}
-	case {{= con.Const }}: return `{{v table.FieldValue(con.Value, 1) }}`
-{{for}}
-	default: panic("index out of range")
-	}
-	return "" // prevent warning
+    return e.{{= table.Fields[1].Identifier }}()
 }
 }}
     return
@@ -150,7 +144,7 @@ func (tmpl *EnumTemplate)genInterfaces(table *model.Enum, _w io.Writer) (err err
 {{
 // Label returns the string that will be displayed to a user for this item and satsifies goradd's Labeler interface.
 func (e {{= table.Identifier }}) Label() string {
-	return e.String()
+	return e.Title()
 }
 
 // Value returns the value as an interface. It satisfies goradd's Valuer interface.
@@ -162,10 +156,32 @@ func (e {{= table.Identifier }}) Value() any {
     return
 }
 
+func (tmpl *EnumTemplate)genTitle(table *model.Enum, _w io.Writer) (err error) {
+    for _,field := range table.Fields[1:] {
+        if field.QueryName == "title" {
+            return
+        }
+    }
+{{
+// Title returns the publicly visible description of the value.
+func (e {{= table.Identifier }}) Title() string {
+	switch e {
+	case 0: return ""
+{{for _,con := range table.Constants }}
+	case {{= con.Const }}: return `{{v strings2.Title(table.FieldValue(con.Value, 1).(string)) }}`
+{{for}}
+	default: panic("index out of range")
+	}
+	return "" // prevent warning
+}
+}}
+    return
+}
+
 func (tmpl *EnumTemplate)genFields(table *model.Enum, _w io.Writer) (err error) {
 
-    for i,field := range table.Fields[2:] {
-        fieldNum := i + 2
+    for i,field := range table.Fields[1:] {
+        fieldNum := i + 1
 {{
 func (e {{= table.Identifier }}) {{= field.Identifier }}() {{= field.GoType()}} {
 	switch e {

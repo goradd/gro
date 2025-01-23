@@ -26,6 +26,11 @@ const ProjectStatusMaxValue = 4
 
 // String returns the name value of the type and satisfies the fmt.Stringer interface
 func (e ProjectStatus) String() string {
+	return e.Name()
+}
+
+// Title returns the publicly visible description of the value.
+func (e ProjectStatus) Title() string {
 	switch e {
 	case 0:
 		return ""
@@ -111,12 +116,43 @@ func ProjectStatusesI() (values []any) {
 
 // Label returns the string that will be displayed to a user for this item and satsifies goradd's Labeler interface.
 func (e ProjectStatus) Label() string {
-	return e.String()
+	return e.Title()
 }
 
 // Value returns the value as an interface. It satisfies goradd's Valuer interface.
 func (e ProjectStatus) Value() any {
 	return e.ID()
+}
+
+func (e ProjectStatus) Name() string {
+	switch e {
+	case 0:
+		return ""
+	case ProjectStatusOpen:
+		return "Open"
+	case ProjectStatusCancelled:
+		return "Cancelled"
+	case ProjectStatusCompleted:
+		return "Completed"
+	case ProjectStatusPlanned:
+		return "Planned"
+	default:
+		panic("Index out of range")
+	}
+	return "" // prevent warning
+}
+
+// ProjectStatusNames returns a slice of all the Names associated with ProjectStatus values.
+// doc: type=ProjectStatus
+func ProjectStatusNames() []string {
+	return []string{
+		// 0 item will be a zero value
+		"",
+		"Open",
+		"Cancelled",
+		"Completed",
+		"Planned",
+	}
 }
 
 func (e ProjectStatus) Description() string {
