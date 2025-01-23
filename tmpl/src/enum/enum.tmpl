@@ -24,6 +24,7 @@ import (
 	"strconv"
 	"github.com/goradd/maps"
     "sort"
+	"encoding/gob"
 )
 }}
     return
@@ -200,11 +201,10 @@ func (tmpl *EnumTemplate)genSet(table *model.Enum, _w io.Writer) (err error) {
 {{
 
 // {{= table.Identifier }}Set is a group of {{= table.Identifier }} values.
-type {{= table.Identifier }}Set = maps.Set[{{= table.Identifier }}]
+type {{= table.Identifier }}Set = maps.OrderedSet[{{= table.Identifier }}]
 
 // {{= table.Identifier }}SetFromNumbers converts an array of numeric values into a {{= table.Identifier }}Set.
-func {{= table.Identifier }}SetFromNumbers[T ~int | ~int8 | ~int16 | ~int32 | ~int64 |
-        ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64] (nums []T) (values {{= table.Identifier }}Set) {
+func {{= table.Identifier }}SetFromNumbers[T constraints.Integer | constraints.Float] (nums []T) (values {{= table.Identifier }}Set) {
 	var s {{= table.Identifier }}Set
 	for _, n := range nums {
 		s.Add({{= table.Identifier }}(n))
@@ -220,6 +220,11 @@ func {{= table.Identifier }}SetToInts(values {{= table.Identifier }}Set) (ints [
 	sort.Ints(ints)
 	return
 }
+
+func init() {
+    gob.Register(new({{= table.Identifier }}Set))
+}
+
 
 }}
     return

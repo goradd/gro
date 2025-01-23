@@ -83,6 +83,7 @@ import (
 	"strconv"
 	"github.com/goradd/maps"
     "sort"
+	"encoding/gob"
 )
 `); err != nil {
 		return
@@ -899,7 +900,7 @@ type `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Set = maps.Set[`); err != nil {
+	if _, err = io.WriteString(_w, `Set = maps.OrderedSet[`); err != nil {
 		return
 	}
 
@@ -934,8 +935,7 @@ func `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `SetFromNumbers[T ~int | ~int8 | ~int16 | ~int32 | ~int64 |
-        ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64] (nums []T) (values `); err != nil {
+	if _, err = io.WriteString(_w, `SetFromNumbers[T constraints.Integer | constraints.Float] (nums []T) (values `); err != nil {
 		return
 	}
 
@@ -999,6 +999,19 @@ func `); err != nil {
 	sort.Ints(ints)
 	return
 }
+
+func init() {
+    gob.Register(new(`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Set))
+}
+
 
 `); err != nil {
 		return

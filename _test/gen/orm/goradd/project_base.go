@@ -1933,19 +1933,12 @@ func (o *projectBase) getModifiedFields() (fields map[string]interface{}) {
 // getValidFields returns the fields that have valid data in them in a form ready to send to the database.
 func (o *projectBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-
 	if o.numIsValid {
-
 		fields["num"] = o.num
-
 	}
-
 	if o.statusIsValid {
-
 		fields["status_enum"] = o.status
-
 	}
-
 	if o.managerIDIsValid {
 		if o.managerIDIsNull {
 			fields["manager_id"] = nil
@@ -1953,13 +1946,9 @@ func (o *projectBase) getValidFields() (fields map[string]interface{}) {
 			fields["manager_id"] = o.managerID
 		}
 	}
-
 	if o.nameIsValid {
-
 		fields["name"] = o.name
-
 	}
-
 	if o.descriptionIsValid {
 		if o.descriptionIsNull {
 			fields["description"] = nil
@@ -1967,7 +1956,6 @@ func (o *projectBase) getValidFields() (fields map[string]interface{}) {
 			fields["description"] = o.description
 		}
 	}
-
 	if o.startDateIsValid {
 		if o.startDateIsNull {
 			fields["start_date"] = nil
@@ -1975,7 +1963,6 @@ func (o *projectBase) getValidFields() (fields map[string]interface{}) {
 			fields["start_date"] = o.startDate
 		}
 	}
-
 	if o.endDateIsValid {
 		if o.endDateIsNull {
 			fields["end_date"] = nil
@@ -1983,7 +1970,6 @@ func (o *projectBase) getValidFields() (fields map[string]interface{}) {
 			fields["end_date"] = o.endDate
 		}
 	}
-
 	if o.budgetIsValid {
 		if o.budgetIsNull {
 			fields["budget"] = nil
@@ -1991,7 +1977,6 @@ func (o *projectBase) getValidFields() (fields map[string]interface{}) {
 			fields["budget"] = o.budget
 		}
 	}
-
 	if o.spentIsValid {
 		if o.spentIsNull {
 			fields["spent"] = nil

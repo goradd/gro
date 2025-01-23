@@ -646,17 +646,11 @@ func (o *giftBase) getModifiedFields() (fields map[string]interface{}) {
 // getValidFields returns the fields that have valid data in them in a form ready to send to the database.
 func (o *giftBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-
 	if o.numberIsValid {
-
 		fields["number"] = o.number
-
 	}
-
 	if o.nameIsValid {
-
 		fields["name"] = o.name
-
 	}
 	return
 }

@@ -1,7 +1,6 @@
 package sql
 
 import (
-	"encoding/json"
 	"fmt"
 	. "github.com/goradd/orm/pkg/query"
 	"github.com/goradd/orm/pkg/schema"
@@ -382,6 +381,8 @@ func (r SqlReceiver) UnpackDefaultValue(typ schema.ColumnType, size int) interfa
 			return nil
 		}
 		return b
+	case schema.ColTypeEnumArray:
+		fallthrough
 	case schema.ColTypeString:
 		s := r.StringI()
 		if s == nil {
@@ -394,17 +395,6 @@ func (r SqlReceiver) UnpackDefaultValue(typ schema.ColumnType, size int) interfa
 		// Unwrap single quotes coming from mariadb and postgres
 		s = strings2.Between(s2, `'`, `'`)
 		return s
-	case schema.ColTypeEnumArray:
-		// stored as a json array of integers
-		s := r.StringI()
-		if s == nil {
-			return s
-		}
-		s2 := s.(string)
-		s = strings2.Between(s2, `'`, `'`)
-		var ints []int
-		_ = json.Unmarshal([]byte(s2), &ints)
-		return ints
 	case schema.ColTypeEnum:
 		fallthrough
 	case schema.ColTypeInt:

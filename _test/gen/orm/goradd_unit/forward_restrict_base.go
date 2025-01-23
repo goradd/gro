@@ -737,17 +737,11 @@ func (o *forwardRestrictBase) getModifiedFields() (fields map[string]interface{}
 // getValidFields returns the fields that have valid data in them in a form ready to send to the database.
 func (o *forwardRestrictBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-
 	if o.nameIsValid {
-
 		fields["name"] = o.name
-
 	}
-
 	if o.reverseIDIsValid {
-
 		fields["reverse_id"] = o.reverseID
-
 	}
 	return
 }

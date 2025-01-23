@@ -3,10 +3,12 @@
 package goradd
 
 import (
+	"encoding/gob"
 	"sort"
 	"strconv"
 
 	"github.com/goradd/maps"
+	"golang.org/x/exp/constraints"
 )
 
 type ProjectStatus int
@@ -211,11 +213,10 @@ func ProjectStatusIsActives() []bool {
 }
 
 // ProjectStatusSet is a group of ProjectStatus values.
-type ProjectStatusSet = maps.Set[ProjectStatus]
+type ProjectStatusSet = maps.OrderedSet[ProjectStatus]
 
 // ProjectStatusSetFromNumbers converts an array of numeric values into a ProjectStatusSet.
-func ProjectStatusSetFromNumbers[T ~int | ~int8 | ~int16 | ~int32 | ~int64 |
-	~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64](nums []T) (values ProjectStatusSet) {
+func ProjectStatusSetFromNumbers[T constraints.Integer | constraints.Float](nums []T) (values ProjectStatusSet) {
 	var s ProjectStatusSet
 	for _, n := range nums {
 		s.Add(ProjectStatus(n))
@@ -230,4 +231,8 @@ func ProjectStatusSetToInts(values ProjectStatusSet) (ints []int) {
 	}
 	sort.Ints(ints)
 	return
+}
+
+func init() {
+	gob.Register(new(ProjectStatusSet))
 }

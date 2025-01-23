@@ -986,7 +986,6 @@ func (o *loginBase) getModifiedFields() (fields map[string]interface{}) {
 // getValidFields returns the fields that have valid data in them in a form ready to send to the database.
 func (o *loginBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-
 	if o.personIDIsValid {
 		if o.personIDIsNull {
 			fields["person_id"] = nil
@@ -994,13 +993,9 @@ func (o *loginBase) getValidFields() (fields map[string]interface{}) {
 			fields["person_id"] = o.personID
 		}
 	}
-
 	if o.usernameIsValid {
-
 		fields["username"] = o.username
-
 	}
-
 	if o.passwordIsValid {
 		if o.passwordIsNull {
 			fields["password"] = nil
@@ -1008,11 +1003,8 @@ func (o *loginBase) getValidFields() (fields map[string]interface{}) {
 			fields["password"] = o.password
 		}
 	}
-
 	if o.isEnabledIsValid {
-
 		fields["is_enabled"] = o.isEnabled
-
 	}
 	return
 }

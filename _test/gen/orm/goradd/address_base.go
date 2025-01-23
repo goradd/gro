@@ -839,19 +839,12 @@ func (o *addressBase) getModifiedFields() (fields map[string]interface{}) {
 // getValidFields returns the fields that have valid data in them in a form ready to send to the database.
 func (o *addressBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-
 	if o.personIDIsValid {
-
 		fields["person_id"] = o.personID
-
 	}
-
 	if o.streetIsValid {
-
 		fields["street"] = o.street
-
 	}
-
 	if o.cityIsValid {
 		if o.cityIsNull {
 			fields["city"] = nil

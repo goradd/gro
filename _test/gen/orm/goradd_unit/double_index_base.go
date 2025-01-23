@@ -732,23 +732,14 @@ func (o *doubleIndexBase) getModifiedFields() (fields map[string]interface{}) {
 // getValidFields returns the fields that have valid data in them in a form ready to send to the database.
 func (o *doubleIndexBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-
 	if o.idIsValid {
-
 		fields["id"] = o.id
-
 	}
-
 	if o.fieldIntIsValid {
-
 		fields["field_int"] = o.fieldInt
-
 	}
-
 	if o.fieldStringIsValid {
-
 		fields["field_string"] = o.fieldString
-
 	}
 	return
 }

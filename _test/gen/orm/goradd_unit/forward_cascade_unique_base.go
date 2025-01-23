@@ -806,13 +806,9 @@ func (o *forwardCascadeUniqueBase) getModifiedFields() (fields map[string]interf
 // getValidFields returns the fields that have valid data in them in a form ready to send to the database.
 func (o *forwardCascadeUniqueBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-
 	if o.nameIsValid {
-
 		fields["name"] = o.name
-
 	}
-
 	if o.reverseIDIsValid {
 		if o.reverseIDIsNull {
 			fields["reverse_id"] = nil

@@ -751,19 +751,12 @@ func (o *personWithLockBase) getModifiedFields() (fields map[string]interface{})
 // getValidFields returns the fields that have valid data in them in a form ready to send to the database.
 func (o *personWithLockBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-
 	if o.firstNameIsValid {
-
 		fields["first_name"] = o.firstName
-
 	}
-
 	if o.lastNameIsValid {
-
 		fields["last_name"] = o.lastName
-
 	}
-
 	if o.sysTimestampIsValid {
 		if o.sysTimestampIsNull {
 			fields["sys_timestamp"] = nil

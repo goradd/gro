@@ -753,17 +753,11 @@ func (o *employeeInfoBase) getModifiedFields() (fields map[string]interface{}) {
 // getValidFields returns the fields that have valid data in them in a form ready to send to the database.
 func (o *employeeInfoBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-
 	if o.personIDIsValid {
-
 		fields["person_id"] = o.personID
-
 	}
-
 	if o.employeeNumberIsValid {
-
 		fields["employee_number"] = o.employeeNumber
-
 	}
 	return
 }

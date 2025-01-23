@@ -1636,107 +1636,56 @@ func (o *unsupportedTypeBase) getModifiedFields() (fields map[string]interface{}
 // getValidFields returns the fields that have valid data in them in a form ready to send to the database.
 func (o *unsupportedTypeBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-
 	if o.typeSetIsValid {
-
 		fields["type_set"] = o.typeSet
-
 	}
-
 	if o.typeEnumeratedIsValid {
-
 		fields["type_enumerated"] = o.typeEnumerated
-
 	}
-
 	if o.typeDecimalIsValid {
-
 		fields["type_decimal"] = o.typeDecimal
-
 	}
-
 	if o.typeDoubleIsValid {
-
 		fields["type_double"] = o.typeDouble
-
 	}
-
 	if o.typeGeoIsValid {
-
 		fields["type_geo"] = o.typeGeo
-
 	}
-
 	if o.typeTinyBlobIsValid {
-
 		fields["type_tiny_blob"] = o.typeTinyBlob
-
 	}
-
 	if o.typeMediumBlobIsValid {
-
 		fields["type_medium_blob"] = o.typeMediumBlob
-
 	}
-
 	if o.typeVarbinaryIsValid {
-
 		fields["type_varbinary"] = o.typeVarbinary
-
 	}
-
 	if o.typeLongtextIsValid {
-
 		fields["type_longtext"] = o.typeLongtext
-
 	}
-
 	if o.typeBinaryIsValid {
-
 		fields["type_binary"] = o.typeBinary
-
 	}
-
 	if o.typeSmallIsValid {
-
 		fields["type_small"] = o.typeSmall
-
 	}
-
 	if o.typeMediumIsValid {
-
 		fields["type_medium"] = o.typeMedium
-
 	}
-
 	if o.typeBigIsValid {
-
 		fields["type_big"] = o.typeBig
-
 	}
-
 	if o.typePolygonIsValid {
-
 		fields["type_polygon"] = o.typePolygon
-
 	}
-
 	if o.typeUnsignedIsValid {
-
 		fields["type_unsigned"] = o.typeUnsigned
-
 	}
-
 	if o.typeMultfk1IsValid {
-
 		fields["type_multFk1"] = o.typeMultfk1
-
 	}
-
 	if o.typeMultifk2IsValid {
-
 		fields["type_multiFk2"] = o.typeMultifk2
-
 	}
 	return
 }

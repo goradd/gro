@@ -18,12 +18,16 @@ type SchemaExtractor interface {
 }
 
 // DatabaseI is the interface that describes the behaviors required for a database implementation.
+//
+// Where values are sent to the database, the value's type should match the named field type.
+// Time values are converted to whatever time format the database prefers.
+// JSON values must already be encoded as strings or []byte values.
 type DatabaseI interface {
 	// Update will put the given values into a record that already exists in the database. The fields value
 	// should include only fields that have changed. All records that match the keys and values in where are changed.
 	Update(ctx context.Context, table string, fields map[string]interface{}, where map[string]interface{})
 	// Insert will insert a new record into the database with the given values, and return the new record's primary key value.
-	// The fields value should include all the required values in the database.
+	// The field's value should include all the required values in the database.
 	Insert(ctx context.Context, table string, fields map[string]interface{}) string
 	// Delete will delete records from the database that match the key value pairs in where.
 	// If where is nil, all the data will be deleted.

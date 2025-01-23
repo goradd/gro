@@ -12,8 +12,12 @@
 			o.{{= col.VariableIdentifier() }}IsDirty = false
 {{if col.IsEnum() }}
 {{if col.IsEnumArray() }}
- 		} else if i, ok2 := v.([]int); ok2 {
-           o.{{= col.VariableIdentifier() }} = {{= col.GoType() }}FromNumbers(i)
+ 		} else if s, ok2 := v.(string); ok2 {
+ 		    var v {{= col.GoType() }}
+ 		    if err := json.Unmarshal([]byte(s), &v); err != nil {
+ 		        panic("Value for {{= col.QueryName }} is not valid json")
+ 		    }
+ 		    o.{{= col.VariableIdentifier() }} = v
 {{else}}
 		} else if i, ok2 := v.(int); ok2 {
 		    o.{{= col.VariableIdentifier() }} = {{= col.GoType() }}(i)

@@ -7,8 +7,12 @@
 	if v, ok := m["{{= col.QueryName }}"]; ok && v != nil {
 {{if col.IsEnum()}}
 {{if col.IsEnumArray()}}
-     	if i, ok2 := v.([]int); ok2 {
-            o.{{= col.VariableIdentifier() }} = {{= col.GoType() }}FromNumbers(i)
+     	if s, ok2 := v.(string); ok2 {
+ 		    var v {{= col.GoType() }}
+ 		    if err := json.Unmarshal([]byte(s), &v); err != nil {
+ 		        panic("Value for {{= col.QueryName }} is not valid json")
+ 		    }
+ 		    o.{{= col.VariableIdentifier() }} = v
 {{else}}
      	if i, ok2 := v.(int); ok2 {
            o.{{= col.VariableIdentifier() }} = {{= col.GoType() }}(i)

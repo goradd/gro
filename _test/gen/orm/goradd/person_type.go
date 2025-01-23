@@ -3,10 +3,12 @@
 package goradd
 
 import (
+	"encoding/gob"
 	"sort"
 	"strconv"
 
 	"github.com/goradd/maps"
+	"golang.org/x/exp/constraints"
 )
 
 type PersonType int
@@ -127,11 +129,10 @@ func (e PersonType) Value() any {
 }
 
 // PersonTypeSet is a group of PersonType values.
-type PersonTypeSet = maps.Set[PersonType]
+type PersonTypeSet = maps.OrderedSet[PersonType]
 
 // PersonTypeSetFromNumbers converts an array of numeric values into a PersonTypeSet.
-func PersonTypeSetFromNumbers[T ~int | ~int8 | ~int16 | ~int32 | ~int64 |
-	~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~float32 | ~float64](nums []T) (values PersonTypeSet) {
+func PersonTypeSetFromNumbers[T constraints.Integer | constraints.Float](nums []T) (values PersonTypeSet) {
 	var s PersonTypeSet
 	for _, n := range nums {
 		s.Add(PersonType(n))
@@ -146,4 +147,8 @@ func PersonTypeSetToInts(values PersonTypeSet) (ints []int) {
 	}
 	sort.Ints(ints)
 	return
+}
+
+func init() {
+	gob.Register(new(PersonTypeSet))
 }

@@ -6,7 +6,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/goradd/maps"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -58,8 +57,8 @@ func TestPerson_SetTypes(t *testing.T) {
 	assert.Equal(t, types, obj.Types())
 
 	// test zero
-	obj.SetTypes(maps.Set[PersonType]{})
-	assert.Equal(t, maps.Set[PersonType]{}, obj.Types(), "set empty")
+	obj.SetTypes(PersonTypeSet{})
+	assert.Equal(t, PersonTypeSet{}, obj.Types(), "set empty")
 
 	// test panic on setting value larger than maximum size allowed
 	types = test.RandomValue[PersonTypeSet](41)

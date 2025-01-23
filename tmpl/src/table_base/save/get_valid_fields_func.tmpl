@@ -8,26 +8,25 @@ func (o *{{= table.DecapIdentifier}}Base) getValidFields() (fields map[string]in
 	fields = map[string]interface{}{}
 {{for _,col := range table.Columns}}
 {{g if col.IsAutoId {continue} }}
-
 	if o.{{= col.VariableIdentifier() }}IsValid {
 {{if col.IsNullable}}
         if 	o.{{= col.VariableIdentifier() }}IsNull {
             fields["{{= col.QueryName }}"] = nil
         } else {
 {{if col.IsEnumArray() }}
-            fields["{{= col.QueryName }}"] = {{= col.GoType() }}ToInts(o.{{= col.VariableIdentifier() }})
+            b,_ := json.Marshal(o.{{= col.VariableIdentifier() }})
+            fields["{{= col.QueryName }}"] = string(b)
 {{else}}
   		    fields["{{= col.QueryName }}"] = o.{{= col.VariableIdentifier() }}
 {{if}}
         }
 {{else}}
-
 {{if col.IsEnumArray() }}
-        fields["{{= col.QueryName }}"] = {{= col.GoType() }}ToInts(o.{{= col.VariableIdentifier() }})
+        b,_ := json.Marshal(o.{{= col.VariableIdentifier() }})
+        fields["{{= col.QueryName }}"] = string(b)
 {{else}}
         fields["{{= col.QueryName }}"] = o.{{= col.VariableIdentifier() }}
 {{if}}
-
 {{if}}
 	}
 {{for}}

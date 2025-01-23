@@ -13,10 +13,20 @@ func (o *{{= table.DecapIdentifier }}Base) getModifiedFields() (fields map[strin
         if 	o.{{= col.VariableIdentifier() }}IsNull {
             fields["{{= col.QueryName }}"] = nil
         } else {
+{{if col.IsEnumArray() }}
+            b,_ := json.Marshal(o.{{= col.VariableIdentifier() }})
+            fields["{{= col.QueryName }}"] = string(b)
+{{else}}
   		    fields["{{= col.QueryName }}"] = o.{{= col.VariableIdentifier() }}
+{{if}}
         }
 {{else}}
-		fields["{{= col.QueryName }}"] = o.{{= col.VariableIdentifier() }}
+{{if col.IsEnumArray() }}
+        b,_ := json.Marshal(o.{{= col.VariableIdentifier() }})
+        fields["{{= col.QueryName }}"] = string(b)
+{{else}}
+        fields["{{= col.QueryName }}"] = o.{{= col.VariableIdentifier() }}
+{{if}}
 {{if}}
 	}
 {{for}}

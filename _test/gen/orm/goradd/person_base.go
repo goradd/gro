@@ -113,7 +113,7 @@ func (o *personBase) Initialize() {
 	o.lastNameIsValid = false
 	o.lastNameIsDirty = false
 
-	o.types = maps.Set[PersonType]{}
+	o.types = PersonTypeSet{}
 
 	o.typesIsValid = false
 	o.typesIsDirty = false
@@ -1051,8 +1051,12 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person, objParent i
 	}
 
 	if v, ok := m["type_enum"]; ok && v != nil {
-		if i, ok2 := v.([]int); ok2 {
-			o.types = PersonTypeSetFromNumbers(i)
+		if s, ok2 := v.(string); ok2 {
+			var v PersonTypeSet
+			if err := json.Unmarshal([]byte(s), &v); err != nil {
+				panic("Value for type_enum is not valid json")
+			}
+			o.types = v
 			o.typesIsValid = true
 			o.typesIsDirty = false
 
@@ -1061,7 +1065,7 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person, objParent i
 		}
 	} else {
 		o.typesIsValid = false
-		o.types = maps.Set[PersonType]{}
+		o.types = PersonTypeSet{}
 	}
 
 	// Many-Many references
@@ -1407,7 +1411,8 @@ func (o *personBase) getModifiedFields() (fields map[string]interface{}) {
 		fields["last_name"] = o.lastName
 	}
 	if o.typesIsDirty {
-		fields["type_enum"] = o.types
+		b, _ := json.Marshal(o.types)
+		fields["type_enum"] = string(b)
 	}
 	return
 }
@@ -1415,23 +1420,15 @@ func (o *personBase) getModifiedFields() (fields map[string]interface{}) {
 // getValidFields returns the fields that have valid data in them in a form ready to send to the database.
 func (o *personBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-
 	if o.firstNameIsValid {
-
 		fields["first_name"] = o.firstName
-
 	}
-
 	if o.lastNameIsValid {
-
 		fields["last_name"] = o.lastName
-
 	}
-
 	if o.typesIsValid {
-
-		fields["type_enum"] = PersonTypeSetToInts(o.types)
-
+		b, _ := json.Marshal(o.types)
+		fields["type_enum"] = string(b)
 	}
 	return
 }

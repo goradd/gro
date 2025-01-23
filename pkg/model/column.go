@@ -74,7 +74,7 @@ func (cd *Column) DefaultValueAsValue() string {
 			return `""`
 		} else if cd.IsEnum() {
 			if cd.IsEnumArray() {
-				return `maps.Set[` + cd.Reference.EnumTable.Identifier + `]{}`
+				return cd.GoType() + `{}`
 			}
 			return "0"
 		}

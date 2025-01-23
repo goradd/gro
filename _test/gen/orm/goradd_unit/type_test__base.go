@@ -1536,7 +1536,6 @@ func (o *typeTestBase) getModifiedFields() (fields map[string]interface{}) {
 // getValidFields returns the fields that have valid data in them in a form ready to send to the database.
 func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-
 	if o.dateIsValid {
 		if o.dateIsNull {
 			fields["date"] = nil
@@ -1544,7 +1543,6 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 			fields["date"] = o.date
 		}
 	}
-
 	if o.timeIsValid {
 		if o.timeIsNull {
 			fields["time"] = nil
@@ -1552,7 +1550,6 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 			fields["time"] = o.time
 		}
 	}
-
 	if o.dateTimeIsValid {
 		if o.dateTimeIsNull {
 			fields["date_time"] = nil
@@ -1560,7 +1557,6 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 			fields["date_time"] = o.dateTime
 		}
 	}
-
 	if o.tsIsValid {
 		if o.tsIsNull {
 			fields["ts"] = nil
@@ -1568,7 +1564,6 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 			fields["ts"] = o.ts
 		}
 	}
-
 	if o.testIntIsValid {
 		if o.testIntIsNull {
 			fields["test_int"] = nil
@@ -1576,7 +1571,6 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 			fields["test_int"] = o.testInt
 		}
 	}
-
 	if o.testFloatIsValid {
 		if o.testFloatIsNull {
 			fields["test_float"] = nil
@@ -1584,13 +1578,9 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 			fields["test_float"] = o.testFloat
 		}
 	}
-
 	if o.testDoubleIsValid {
-
 		fields["test_double"] = o.testDouble
-
 	}
-
 	if o.testTextIsValid {
 		if o.testTextIsNull {
 			fields["test_text"] = nil
@@ -1598,7 +1588,6 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 			fields["test_text"] = o.testText
 		}
 	}
-
 	if o.testBitIsValid {
 		if o.testBitIsNull {
 			fields["test_bit"] = nil
@@ -1606,7 +1595,6 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 			fields["test_bit"] = o.testBit
 		}
 	}
-
 	if o.testVarcharIsValid {
 		if o.testVarcharIsNull {
 			fields["test_varchar"] = nil
@@ -1614,11 +1602,8 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 			fields["test_varchar"] = o.testVarchar
 		}
 	}
-
 	if o.testBlobIsValid {
-
 		fields["test_blob"] = o.testBlob
-
 	}
 	return
 }

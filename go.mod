@@ -4,7 +4,7 @@ require (
 	github.com/gedex/inflector v0.0.0-20170307190818-16278e9db813
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/goradd/goradd v0.31.10
-	github.com/goradd/maps v1.0.0
+	github.com/goradd/maps v1.1.0
 	github.com/goradd/strings v0.2.0
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/kenshaw/snaker v0.3.0

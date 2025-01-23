@@ -1476,11 +1476,8 @@ func (o *reverseBase) getModifiedFields() (fields map[string]interface{}) {
 // getValidFields returns the fields that have valid data in them in a form ready to send to the database.
 func (o *reverseBase) getValidFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-
 	if o.nameIsValid {
-
 		fields["name"] = o.name
-
 	}
 	return
 }
