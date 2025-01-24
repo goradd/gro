@@ -97,6 +97,8 @@ func TestPerson_CRUD(t *testing.T) {
 	types := test.RandomValue[PersonTypeSet](40)
 	obj.SetTypes(types)
 
+	obj.Save(ctx)
+
 	// Test retrieval
 	obj = LoadPerson(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj)

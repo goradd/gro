@@ -69,6 +69,8 @@ func TestMilestone_CRUD(t *testing.T) {
 	name := test.RandomValue[string](50)
 	obj.SetName(name)
 
+	obj.Save(ctx)
+
 	// Test retrieval
 	obj = LoadMilestone(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj)

@@ -100,6 +100,8 @@ func TestAddress_CRUD(t *testing.T) {
 	city := test.RandomValue[string](100)
 	obj.SetCity(city)
 
+	obj.Save(ctx)
+
 	// Test retrieval
 	obj = LoadAddress(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj)

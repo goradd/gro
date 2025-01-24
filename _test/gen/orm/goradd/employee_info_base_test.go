@@ -64,6 +64,8 @@ func TestEmployeeInfo_CRUD(t *testing.T) {
 	employeeNumber := test.RandomValue[int](32)
 	obj.SetEmployeeNumber(employeeNumber)
 
+	obj.Save(ctx)
+
 	// Test retrieval
 	obj = LoadEmployeeInfo(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj)

@@ -73,6 +73,8 @@ func TestPersonWithLock_CRUD(t *testing.T) {
 	lastName := test.RandomValue[string](50)
 	obj.SetLastName(lastName)
 
+	obj.Save(ctx)
+
 	// Test retrieval
 	obj = LoadPersonWithLock(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj)

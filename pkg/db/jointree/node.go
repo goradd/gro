@@ -9,14 +9,14 @@ type reverseNode struct {
 
 // reverse returns a reverseNode chain pointing to the root of the given node.
 func reverse(node query.Node) *reverseNode {
-	r := reverseNode{node: node}
+	r := &reverseNode{node: node}
 	for query.NodeParent(node) != nil {
 		np := query.NodeParent(node)
-		r2 := reverseNode{np, &r}
+
+		r = &reverseNode{np, r}
 		node = np
-		r = r2
 	}
-	return &r
+	return r
 }
 
 func nodeMatch(node1, node2 query.Node) bool {

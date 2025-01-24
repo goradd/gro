@@ -87,6 +87,8 @@ func TestDoubleIndex_CRUD(t *testing.T) {
 	fieldString := test.RandomValue[string](50)
 	obj.SetFieldString(fieldString)
 
+	obj.Save(ctx)
+
 	// Test retrieval
 	obj = LoadDoubleIndex(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj)

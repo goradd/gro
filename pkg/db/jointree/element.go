@@ -54,7 +54,7 @@ func (j *Element) PrimaryKey() *Element {
 	}
 }
 
-// SelectsIter iterates on all the selects in this elment and its sub elements.
+// SelectsIter iterates on all the selects in this element and its sub elements.
 func (j *Element) SelectsIter() iter.Seq[*Element] {
 	return func(yield func(*Element) bool) {
 		var cols func(*Element) bool

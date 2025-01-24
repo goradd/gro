@@ -675,7 +675,8 @@ func createMinimalSample`); err != nil {
 
 	}
 
-	if _, err = io.WriteString(_w, `
+	if _, err = io.WriteString(_w, `    obj.Save(ctx)
+
     // Test retrieval
     obj = Load`); err != nil {
 		return

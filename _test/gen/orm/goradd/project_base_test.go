@@ -256,6 +256,8 @@ func TestProject_CRUD(t *testing.T) {
 	spent := test.RandomValue[string](15)
 	obj.SetSpent(spent)
 
+	obj.Save(ctx)
+
 	// Test retrieval
 	obj = LoadProject(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj)

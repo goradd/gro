@@ -72,6 +72,8 @@ func TestForwardNullUnique_CRUD(t *testing.T) {
 	objReverse := createMinimalSampleReverse(ctx)
 	obj.SetReverse(objReverse)
 
+	obj.Save(ctx)
+
 	// Test retrieval
 	obj = LoadForwardNullUnique(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj)

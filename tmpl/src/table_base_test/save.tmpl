@@ -20,6 +20,7 @@ func Test{{= table.Identifier }}_CRUD(t *testing.T) {
     {{if}}
 {{if}}
 {{for}}
+    obj.Save(ctx)
 
     // Test retrieval
     obj = Load{{= table.Identifier }}(ctx, obj.PrimaryKey())

@@ -47,7 +47,7 @@ func TestManyEnums(t *testing.T) {
 	// All people who are inactive
 	people := goradd.QueryPeople(ctx).
 		OrderBy(node.Person().LastName(), node.Person().FirstName()).
-		Where(op.Equal(node.Person().PersonTypes().ID(), goradd.PersonTypeInactive)).
+		Where(op.Contains(node.Person().Types(), goradd.PersonTypeInactive)).
 		Distinct().
 		Select(node.Person().LastName(), node.Person().FirstName()).
 		Load()
@@ -187,7 +187,7 @@ func TestConditionalExpand(t *testing.T) {
 	people := goradd.QueryPeople(ctx).
 		Join(node.Person().Addresses(), op.Equal(node.Person().Addresses().City(), "Mountain View")).
 		Join(node.Person().ManagerProjects(), op.Like(node.Person().ManagerProjects().Name(), "%Website%")).
-		Join(node.Person().ManagerProjects().Milestones().Expand()).
+		Expand(node.Person().ManagerProjects().Milestones()).
 		OrderBy(node.Person().LastName(), node.Person().FirstName(), node.Person().ManagerProjects().Name()).
 		Load()
 

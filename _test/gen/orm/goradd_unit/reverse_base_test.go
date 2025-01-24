@@ -49,6 +49,8 @@ func TestReverse_CRUD(t *testing.T) {
 	name := test.RandomValue[string](100)
 	obj.SetName(name)
 
+	obj.Save(ctx)
+
 	// Test retrieval
 	obj = LoadReverse(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj)

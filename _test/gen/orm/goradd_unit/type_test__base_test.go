@@ -287,6 +287,8 @@ func TestTypeTest_CRUD(t *testing.T) {
 	testBlob := test.RandomValue[[]byte](65535)
 	obj.SetTestBlob(testBlob)
 
+	obj.Save(ctx)
+
 	// Test retrieval
 	obj = LoadTypeTest(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj)

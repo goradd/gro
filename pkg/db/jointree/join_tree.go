@@ -283,7 +283,7 @@ func (t *JoinTree) selectRelatedTableColumns(e *Element) {
 		cols := e.QueryNode.(query.TableNodeI).ColumnNodes_()
 		for _, n := range cols {
 			e2 := t.addNode(n)
-			e2.Parent.Selects.Add(e)
+			e2.Parent.Selects.Add(e2)
 		}
 	} else {
 		// make sure primary key nodes are included if required

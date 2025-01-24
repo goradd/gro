@@ -2,15 +2,15 @@ package op
 
 import . "github.com/goradd/orm/pkg/query"
 
-func StartsWith(arg1 interface{}, arg2 string) *OperationNode {
+func StartsWith(arg1 any, arg2 string) *OperationNode {
 	return NewOperationNode(OpStartsWith, arg1, arg2)
 }
 
-func EndsWith(arg1 interface{}, arg2 string) *OperationNode {
+func EndsWith(arg1 any, arg2 string) *OperationNode {
 	return NewOperationNode(OpEndsWith, arg1, arg2)
 }
 
-func Contains(arg1 interface{}, arg2 string) *OperationNode {
+func Contains(arg1, arg2 any) *OperationNode {
 	return NewOperationNode(OpContains, arg1, arg2)
 }
 

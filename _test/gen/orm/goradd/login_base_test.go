@@ -122,6 +122,8 @@ func TestLogin_CRUD(t *testing.T) {
 	isEnabled := test.RandomValue[bool](0)
 	obj.SetIsEnabled(isEnabled)
 
+	obj.Save(ctx)
+
 	// Test retrieval
 	obj = LoadLogin(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj)

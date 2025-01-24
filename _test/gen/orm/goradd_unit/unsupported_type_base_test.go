@@ -352,6 +352,8 @@ func TestUnsupportedType_CRUD(t *testing.T) {
 	typeMultifk2 := test.RandomValue[string](50)
 	obj.SetTypeMultifk2(typeMultifk2)
 
+	obj.Save(ctx)
+
 	// Test retrieval
 	obj = LoadUnsupportedType(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj)
