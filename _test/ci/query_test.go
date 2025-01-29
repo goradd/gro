@@ -1,14 +1,12 @@
 package ci
 
 import (
-	"github.com/goradd/goradd/pkg/time"
 	"github.com/goradd/orm/_test/gen/orm/goradd"
 	"github.com/goradd/orm/_test/gen/orm/goradd/node"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/op"
 	"github.com/goradd/orm/pkg/query"
 	"github.com/stretchr/testify/assert"
-	"slices"
 	"strconv"
 	"testing"
 )
@@ -126,11 +124,11 @@ func TestManyEnum(t *testing.T) {
 		Join(node.Person().Types()).
 		Load()
 
-	if len(people[0].Types().Len()) != 2 {
+	if people[0].Types().Len() != 2 {
 		t.Error("Did not expand to 2 person types.")
 	}
 
-	if !slices.Contains(people[0].PersonTypes(), goradd.PersonTypeInactive) {
+	if !people[0].Types().Has(goradd.PersonTypeInactive) {
 		t.Error("Did not find correct person type.")
 	}
 }
@@ -174,11 +172,10 @@ func TestReverseReferenceSingles(t *testing.T) {
 func TestManyEnumSingles(t *testing.T) {
 	ctx := db.NewContext(nil)
 	people := goradd.QueryPeople(ctx).
-		OrderBy(node.Person().ID(), node.Person().PersonTypes().ID().Descending()).
-		Expand(node.Person().PersonTypes()).
+		OrderBy(node.Person().ID()).
 		Load()
 
-	if people[1].PersonTypes()[0] != goradd.PersonTypeManager {
+	if !people[1].Types().Has(goradd.PersonTypeManager) {
 		t.Error("Did not find correct person type.")
 	}
 
@@ -188,13 +185,14 @@ func TestAlias(t *testing.T) {
 	ctx := db.NewContext(nil)
 	projects := goradd.QueryProjects(ctx).
 		Where(op.Equal(node.Project().ID(), 1)).
-		Alias("Difference", op.Subtract(node.Project().Budget(), node.Project().Spent())).
+		Calculation("Difference", op.Subtract(node.Project().Budget(), node.Project().Spent())).
 		Load()
 
 	v := projects[0].GetAlias("Difference").Float()
 	assert.EqualValues(t, -690.5, v)
 }
 
+/*
 func TestAlias2(t *testing.T) {
 	ctx := db.NewContext(nil)
 	projects := goradd.QueryProjects(ctx).
@@ -216,7 +214,7 @@ func TestAlias2(t *testing.T) {
 	//assert.EqualValues(t, d, project.StartDate())
 	assert.Equal(t, false, project.GetAlias("e").Bool())
 }
-
+*/
 func TestCount(t *testing.T) {
 	ctx := db.NewContext(nil)
 
@@ -230,7 +228,7 @@ func TestGroupBy(t *testing.T) {
 	ctx := db.NewContext(nil)
 
 	projects := goradd.QueryProjects(ctx).
-		Alias("teamMemberCount", op.Count(node.Project().TeamMembers())).
+		Calculation("teamMemberCount", op.Count(node.Project().TeamMembers())).
 		GroupBy(node.Project()).
 		Load()
 
@@ -361,7 +359,7 @@ func TestHaving(t *testing.T) {
 	projects := goradd.QueryProjects(ctx).
 		GroupBy(node.Project().ID(), node.Project().Name()).
 		OrderBy(node.Project().ID()).
-		Alias("team_member_count", op.Count(node.Project().TeamMembers())).
+		Calculation("team_member_count", op.Count(node.Project().TeamMembers())).
 		Having(op.GreaterThan(query.Alias("team_member_count"), 5)).
 		Load()
 

@@ -83,7 +83,7 @@ func TestRecordSerializeComplex1(t *testing.T) {
 	person := goradd.LoadPerson(ctx, "7",
 		node.Person().Projects(),        // many many
 		node.Person().ManagerProjects(), // reverse
-		node.Person().PersonTypes(),     // many many type
+		node.Person().Types(),           // many many type
 		node.Person().Login(),           // reverse unique
 	)
 
@@ -91,7 +91,7 @@ func TestRecordSerializeComplex1(t *testing.T) {
 	person2 := serObject(t, person).(*goradd.Person)
 	assert.Len(t, person2.Projects(), 2)
 	assert.Len(t, person2.ManagerProjects(), 2)
-	assert.Len(t, person2.PersonTypes(), 2)
+	assert.Len(t, person2.Types(), 2)
 	assert.Equal(t, "kwolfe", person2.Login().Username())
 }
 
@@ -100,7 +100,7 @@ func TestRecordSerializeComplex2(t *testing.T) {
 	login := goradd.LoadLogin(ctx, "4",
 		node.Login().Person().Projects(),        // many many
 		node.Login().Person().ManagerProjects(), // reverse
-		node.Login().Person().PersonTypes(),     // many many type
+		node.Login().Person().Types(),           // many many type
 		node.Login().Person().Login(),           // reverse unique
 	)
 
@@ -108,6 +108,6 @@ func TestRecordSerializeComplex2(t *testing.T) {
 	login2 := serObject(t, login).(*goradd.Login)
 	assert.Len(t, login2.Person().Projects(), 2)
 	assert.Len(t, login2.Person().ManagerProjects(), 2)
-	assert.Len(t, login2.Person().PersonTypes(), 2)
+	assert.Len(t, login2.Person().Types(), 2)
 	assert.Equal(t, "kwolfe", login2.Person().Login().Username())
 }

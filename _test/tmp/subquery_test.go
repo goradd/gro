@@ -1,4 +1,4 @@
-package ci
+package tmp
 
 import (
 	"github.com/goradd/orm/_test/gen/orm/goradd"
