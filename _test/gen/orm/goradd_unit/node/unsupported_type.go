@@ -54,8 +54,7 @@ type UnsupportedTypeNode interface {
 // UnsupportedTypeExpander is the builder interface for UnsupportedTypes that are expandable.
 type UnsupportedTypeExpander interface {
 	UnsupportedTypeNode
-	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand()
+	query.Expander
 }
 
 // unsupportedTypeTable represents the unsupported_type table in a query. It uses a builder pattern to chain
@@ -194,7 +193,7 @@ func (n unsupportedTypeTable) TypeDecimal() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:    "type_decimal",
 		Identifier:   "TypeDecimal",
-		ReceiverType: query.ColTypeString,
+		ReceiverType: query.ColTypeUnknown,
 		IsPrimaryKey: false,
 	}
 	query.NodeSetParent(cn, n)

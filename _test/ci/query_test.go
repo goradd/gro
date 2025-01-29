@@ -123,10 +123,10 @@ func TestManyEnum(t *testing.T) {
 	ctx := db.NewContext(nil)
 	people := goradd.QueryPeople(ctx).
 		OrderBy(node.Person().ID()).
-		Join(node.Person().PersonTypes()).
+		Join(node.Person().Types()).
 		Load()
 
-	if len(people[0].PersonTypes()) != 2 {
+	if len(people[0].Types().Len()) != 2 {
 		t.Error("Did not expand to 2 person types.")
 	}
 

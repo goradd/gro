@@ -179,6 +179,9 @@ func (o *loginBase) PersonID_I() interface{} {
 	return o.personID
 }
 
+// SetPersonID prepares for setting the person_id value in the database.
+//
+// Pass nil to set it to a NULL value in the database.
 func (o *loginBase) SetPersonID(i interface{}) {
 	o.personIDIsValid = true
 	if i == nil {
@@ -296,6 +299,9 @@ func (o *loginBase) Password_I() interface{} {
 	return o.password
 }
 
+// SetPassword prepares for setting the password value in the database.
+//
+// Pass nil to set it to a NULL value in the database.
 func (o *loginBase) SetPassword(i interface{}) {
 	o.passwordIsValid = true
 	if i == nil {
@@ -429,6 +435,9 @@ type LoginBuilder interface {
 	// Join adds node n to the node tree so that its fields will appear in the query.
 	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
 	Join(n query.Node, conditions ...query.Node) LoginBuilder
+
+	// Expand turns a Reverse or ManyMany node into individual rows.
+	Expand(n query.Expander) LoginBuilder
 
 	// Where adds a condition to filter what gets selected.
 	// Calling Where multiple times will AND the conditions together.
@@ -619,6 +628,12 @@ func (b *loginQueryBuilder) Get() *Login {
 	} else {
 		return nil
 	}
+}
+
+// Expand expands an array type node so that it will produce individual rows instead of an array of items
+func (b *loginQueryBuilder) Expand(n query.Expander) LoginBuilder {
+	b.builder.Expand(n)
+	return b
 }
 
 // Join adds node n to the node tree so that its fields will appear in the query.

@@ -253,6 +253,9 @@ type PersonWithLockBuilder interface {
 	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
 	Join(n query.Node, conditions ...query.Node) PersonWithLockBuilder
 
+	// Expand turns a Reverse or ManyMany node into individual rows.
+	Expand(n query.Expander) PersonWithLockBuilder
+
 	// Where adds a condition to filter what gets selected.
 	// Calling Where multiple times will AND the conditions together.
 	Where(c query.Node) PersonWithLockBuilder
@@ -442,6 +445,12 @@ func (b *personWithLockQueryBuilder) Get() *PersonWithLock {
 	} else {
 		return nil
 	}
+}
+
+// Expand expands an array type node so that it will produce individual rows instead of an array of items
+func (b *personWithLockQueryBuilder) Expand(n query.Expander) PersonWithLockBuilder {
+	b.builder.Expand(n)
+	return b
 }
 
 // Join adds node n to the node tree so that its fields will appear in the query.

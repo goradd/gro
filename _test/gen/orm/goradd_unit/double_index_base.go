@@ -263,6 +263,9 @@ type DoubleIndexBuilder interface {
 	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
 	Join(n query.Node, conditions ...query.Node) DoubleIndexBuilder
 
+	// Expand turns a Reverse or ManyMany node into individual rows.
+	Expand(n query.Expander) DoubleIndexBuilder
+
 	// Where adds a condition to filter what gets selected.
 	// Calling Where multiple times will AND the conditions together.
 	Where(c query.Node) DoubleIndexBuilder
@@ -452,6 +455,12 @@ func (b *doubleIndexQueryBuilder) Get() *DoubleIndex {
 	} else {
 		return nil
 	}
+}
+
+// Expand expands an array type node so that it will produce individual rows instead of an array of items
+func (b *doubleIndexQueryBuilder) Expand(n query.Expander) DoubleIndexBuilder {
+	b.builder.Expand(n)
+	return b
 }
 
 // Join adds node n to the node tree so that its fields will appear in the query.

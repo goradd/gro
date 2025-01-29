@@ -22,6 +22,12 @@ type PersonWithLockNode interface {
 	SysTimestamp() *query.ColumnNode
 }
 
+// PersonWithLockExpander is the builder interface for PersonWithLocks that are expandable.
+type PersonWithLockExpander interface {
+	PersonWithLockNode
+	query.Expander
+}
+
 // personWithLockTable represents the person_with_lock table in a query. It uses a builder pattern to chain
 // together other tables and columns to form a node chain in a query.
 //

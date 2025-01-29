@@ -247,6 +247,9 @@ func (o *addressBase) City_I() interface{} {
 	return o.city
 }
 
+// SetCity prepares for setting the city value in the database.
+//
+// Pass nil to set it to a NULL value in the database.
 func (o *addressBase) SetCity(i interface{}) {
 	o.cityIsValid = true
 	if i == nil {
@@ -311,6 +314,9 @@ type AddressBuilder interface {
 	// Join adds node n to the node tree so that its fields will appear in the query.
 	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
 	Join(n query.Node, conditions ...query.Node) AddressBuilder
+
+	// Expand turns a Reverse or ManyMany node into individual rows.
+	Expand(n query.Expander) AddressBuilder
 
 	// Where adds a condition to filter what gets selected.
 	// Calling Where multiple times will AND the conditions together.
@@ -501,6 +507,12 @@ func (b *addressQueryBuilder) Get() *Address {
 	} else {
 		return nil
 	}
+}
+
+// Expand expands an array type node so that it will produce individual rows instead of an array of items
+func (b *addressQueryBuilder) Expand(n query.Expander) AddressBuilder {
+	b.builder.Expand(n)
+	return b
 }
 
 // Join adds node n to the node tree so that its fields will appear in the query.

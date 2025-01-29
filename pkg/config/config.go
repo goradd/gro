@@ -28,9 +28,9 @@ func NewDatabase(config map[string]any) (database db.DatabaseI, err error) {
 	}
 
 	switch typ {
-	case "mysql":
+	case db.DriverTypeMysql:
 		database = initMysql(config)
-	case "pgsql":
+	case db.DriverTypePostgres:
 		database = initPgsql(config)
 	}
 	return

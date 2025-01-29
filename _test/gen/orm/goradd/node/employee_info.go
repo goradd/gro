@@ -26,8 +26,7 @@ type EmployeeInfoNode interface {
 // EmployeeInfoExpander is the builder interface for EmployeeInfos that are expandable.
 type EmployeeInfoExpander interface {
 	EmployeeInfoNode
-	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand()
+	query.Expander
 }
 
 // employeeInfoTable represents the employee_info table in a query. It uses a builder pattern to chain

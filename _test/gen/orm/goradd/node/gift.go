@@ -22,8 +22,7 @@ type GiftNode interface {
 // GiftExpander is the builder interface for Gifts that are expandable.
 type GiftExpander interface {
 	GiftNode
-	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand()
+	query.Expander
 }
 
 // giftTable represents the gift table in a query. It uses a builder pattern to chain

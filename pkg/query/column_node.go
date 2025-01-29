@@ -38,13 +38,13 @@ func (n *ColumnNode) DatabaseKey_() string {
 }
 
 // Ascending sets the column to sort ascending when used in an OrderBy statement.
-func (n *ColumnNode) Ascending() Node {
+func (n *ColumnNode) Ascending() Sorter {
 	n.sortDescending = false
 	return n
 }
 
 // Descending sets the column to sort descending when used in an OrderBy statement.
-func (n *ColumnNode) Descending() Node {
+func (n *ColumnNode) Descending() Sorter {
 	n.sortDescending = true
 	return n
 }

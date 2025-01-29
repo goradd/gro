@@ -10,11 +10,11 @@
         "columns": [
           {
             "name": "id",
-            "type": "AutoPrimaryKey"
+            "type": "auto_primary_key"
           },
           {
             "name": "person_id",
-            "type": "Reference",
+            "type": "ref",
             "index_level": "Indexed",
             "reference": {
               "table": "person"
@@ -22,13 +22,13 @@
           },
           {
             "name": "street",
-            "type": "String",
+            "type": "string",
             "size": 100,
             "case_insensitive": true
           },
           {
             "name": "city",
-            "type": "String",
+            "type": "string",
             "size": 100,
             "default_value": "BOB",
             "is_nullable": true,
@@ -42,11 +42,11 @@
         "columns": [
           {
             "name": "id",
-            "type": "AutoPrimaryKey"
+            "type": "auto_primary_key"
           },
           {
             "name": "person_id",
-            "type": "Reference",
+            "type": "ref",
             "index_level": "Unique",
             "reference": {
               "table": "person"
@@ -54,7 +54,7 @@
           },
           {
             "name": "employee_number",
-            "type": "Int",
+            "type": "int",
             "size": 32
           }
         ],
@@ -65,13 +65,13 @@
         "columns": [
           {
             "name": "number",
-            "type": "Int",
+            "type": "int",
             "size": 32,
             "index_level": "Primary"
           },
           {
             "name": "name",
-            "type": "String",
+            "type": "string",
             "size": 50,
             "case_insensitive": true
           }
@@ -83,11 +83,11 @@
         "columns": [
           {
             "name": "id",
-            "type": "AutoPrimaryKey"
+            "type": "auto_primary_key"
           },
           {
             "name": "person_id",
-            "type": "Reference",
+            "type": "ref",
             "is_nullable": true,
             "index_level": "Unique",
             "reference": {
@@ -96,21 +96,21 @@
           },
           {
             "name": "username",
-            "type": "String",
+            "type": "string",
             "size": 20,
             "index_level": "Unique",
             "case_insensitive": true
           },
           {
             "name": "password",
-            "type": "String",
+            "type": "string",
             "size": 20,
             "is_nullable": true,
             "case_insensitive": true
           },
           {
             "name": "is_enabled",
-            "type": "Bool",
+            "type": "bool",
             "default_value": true
           }
         ],
@@ -121,11 +121,11 @@
         "columns": [
           {
             "name": "id",
-            "type": "AutoPrimaryKey"
+            "type": "auto_primary_key"
           },
           {
             "name": "project_id",
-            "type": "Reference",
+            "type": "ref",
             "index_level": "Indexed",
             "reference": {
               "table": "project"
@@ -133,7 +133,7 @@
           },
           {
             "name": "name",
-            "type": "String",
+            "type": "string",
             "size": 50,
             "case_insensitive": true
           }
@@ -145,24 +145,24 @@
         "columns": [
           {
             "name": "id",
-            "type": "AutoPrimaryKey"
+            "type": "auto_primary_key"
           },
           {
             "name": "first_name",
-            "type": "String",
+            "type": "string",
             "size": 50,
             "case_insensitive": true
           },
           {
             "name": "last_name",
-            "type": "String",
+            "type": "string",
             "size": 50,
             "index_level": "Indexed",
             "case_insensitive": true
           },
           {
             "name": "type_enum",
-            "type": "EnumArray",
+            "type": "enum_array",
             "size": 40,
             "case_insensitive": true
           }
@@ -174,23 +174,23 @@
         "columns": [
           {
             "name": "id",
-            "type": "AutoPrimaryKey"
+            "type": "auto_primary_key"
           },
           {
             "name": "first_name",
-            "type": "String",
+            "type": "string",
             "size": 50,
             "case_insensitive": true
           },
           {
             "name": "last_name",
-            "type": "String",
+            "type": "string",
             "size": 50,
             "case_insensitive": true
           },
           {
             "name": "sys_timestamp",
-            "type": "Time",
+            "type": "time",
             "default_value": "update",
             "is_nullable": true
           }
@@ -202,17 +202,17 @@
         "columns": [
           {
             "name": "id",
-            "type": "AutoPrimaryKey"
+            "type": "auto_primary_key"
           },
           {
             "name": "num",
-            "type": "Int",
+            "type": "int",
             "size": 32,
             "index_level": "Unique"
           },
           {
             "name": "status_enum",
-            "type": "Enum",
+            "type": "enum",
             "size": 32,
             "index_level": "Indexed",
             "reference": {
@@ -221,7 +221,7 @@
           },
           {
             "name": "manager_id",
-            "type": "Reference",
+            "type": "ref",
             "is_nullable": true,
             "index_level": "Indexed",
             "reference": {
@@ -230,38 +230,50 @@
           },
           {
             "name": "name",
-            "type": "String",
+            "type": "string",
             "size": 100,
             "case_insensitive": true
           },
           {
             "name": "description",
-            "type": "String",
+            "type": "string",
             "size": 65535,
             "is_nullable": true,
             "case_insensitive": true
           },
           {
             "name": "start_date",
-            "type": "Time",
+            "type": "time",
+            "sub_type": "date_only",
             "is_nullable": true
           },
           {
             "name": "end_date",
-            "type": "Time",
+            "type": "time",
+            "sub_type": "date_only",
             "is_nullable": true
           },
           {
             "name": "budget",
-            "type": "String",
+            "type": "unknown",
             "size": 15,
-            "is_nullable": true
+            "is_nullable": true,
+            "database_column_info": {
+              "mysql": {
+                "type": "decimal(12,2)"
+              }
+            }
           },
           {
             "name": "spent",
-            "type": "String",
+            "type": "unknown",
             "size": 15,
-            "is_nullable": true
+            "is_nullable": true,
+            "database_column_info": {
+              "mysql": {
+                "type": "decimal(12,2)"
+              }
+            }
           }
         ],
         "key": "project"
@@ -273,33 +285,33 @@
         "fields": [
           {
             "name": "id",
-            "type": "Int"
+            "type": "int"
           },
           {
             "name": "name",
-            "type": "String"
+            "type": "string"
           }
         ],
         "values": [
           [
             1,
-            "Contractor"
+            "contractor"
           ],
           [
             2,
-            "Manager"
+            "manager"
           ],
           [
             3,
-            "Inactive"
+            "inactive"
           ],
           [
             4,
-            "Company Car"
+            "company_car"
           ],
           [
             5,
-            "Works From Home"
+            "works_from_home"
           ]
         ]
       },
@@ -308,50 +320,50 @@
         "fields": [
           {
             "name": "id",
-            "type": "Int"
+            "type": "int"
           },
           {
             "name": "name",
-            "type": "String"
+            "type": "string"
           },
           {
             "name": "description",
-            "type": "String"
+            "type": "string"
           },
           {
             "name": "guidelines",
-            "type": "String"
+            "type": "string"
           },
           {
             "name": "is_active",
-            "type": "Bool"
+            "type": "bool"
           }
         ],
         "values": [
           [
             1,
-            "Open",
+            "open",
             "The project is currently active",
             "All projects that we are working on should be in this state",
             true
           ],
           [
             2,
-            "Cancelled",
+            "cancelled",
             "The project has been canned",
             null,
             true
           ],
           [
             3,
-            "Completed",
+            "completed",
             "The project has been completed successfully",
             "Celebrate successes!",
             true
           ],
           [
             4,
-            "Planned",
+            "planned",
             "Project is in the planning stages and has not been assigned a manager",
             "Get ready",
             false
@@ -387,18 +399,18 @@
         "columns": [
           {
             "name": "id",
-            "type": "Int",
+            "type": "int",
             "size": 32,
             "index_level": "Primary"
           },
           {
             "name": "field_int",
-            "type": "Int",
+            "type": "int",
             "size": 32
           },
           {
             "name": "field_string",
-            "type": "String",
+            "type": "string",
             "size": 50,
             "case_insensitive": true
           }
@@ -419,17 +431,17 @@
         "columns": [
           {
             "name": "id",
-            "type": "AutoPrimaryKey"
+            "type": "auto_primary_key"
           },
           {
             "name": "name",
-            "type": "String",
+            "type": "string",
             "size": 100,
             "case_insensitive": true
           },
           {
             "name": "reverse_id",
-            "type": "Reference",
+            "type": "ref",
             "is_nullable": true,
             "index_level": "Indexed",
             "reference": {
@@ -444,17 +456,17 @@
         "columns": [
           {
             "name": "id",
-            "type": "AutoPrimaryKey"
+            "type": "auto_primary_key"
           },
           {
             "name": "name",
-            "type": "String",
+            "type": "string",
             "size": 100,
             "case_insensitive": true
           },
           {
             "name": "reverse_id",
-            "type": "Reference",
+            "type": "ref",
             "is_nullable": true,
             "index_level": "Unique",
             "reference": {
@@ -469,17 +481,17 @@
         "columns": [
           {
             "name": "id",
-            "type": "AutoPrimaryKey"
+            "type": "auto_primary_key"
           },
           {
             "name": "name",
-            "type": "String",
+            "type": "string",
             "size": 100,
             "case_insensitive": true
           },
           {
             "name": "reverse_id",
-            "type": "Reference",
+            "type": "ref",
             "is_nullable": true,
             "index_level": "Indexed",
             "reference": {
@@ -494,17 +506,17 @@
         "columns": [
           {
             "name": "id",
-            "type": "AutoPrimaryKey"
+            "type": "auto_primary_key"
           },
           {
             "name": "name",
-            "type": "String",
+            "type": "string",
             "size": 100,
             "case_insensitive": true
           },
           {
             "name": "reverse_id",
-            "type": "Reference",
+            "type": "ref",
             "is_nullable": true,
             "index_level": "Unique",
             "reference": {
@@ -519,17 +531,17 @@
         "columns": [
           {
             "name": "id",
-            "type": "AutoPrimaryKey"
+            "type": "auto_primary_key"
           },
           {
             "name": "name",
-            "type": "String",
+            "type": "string",
             "size": 100,
             "case_insensitive": true
           },
           {
             "name": "reverse_id",
-            "type": "Reference",
+            "type": "ref",
             "index_level": "Indexed",
             "reference": {
               "table": "reverse"
@@ -543,17 +555,17 @@
         "columns": [
           {
             "name": "id",
-            "type": "AutoPrimaryKey"
+            "type": "auto_primary_key"
           },
           {
             "name": "name",
-            "type": "String",
+            "type": "string",
             "size": 100,
             "case_insensitive": true
           },
           {
             "name": "reverse_id",
-            "type": "Reference",
+            "type": "ref",
             "is_nullable": true,
             "index_level": "Unique",
             "reference": {
@@ -568,11 +580,11 @@
         "columns": [
           {
             "name": "id",
-            "type": "AutoPrimaryKey"
+            "type": "auto_primary_key"
           },
           {
             "name": "name",
-            "type": "String",
+            "type": "string",
             "size": 100,
             "case_insensitive": true
           }
@@ -584,21 +596,21 @@
         "columns": [
           {
             "name": "server",
-            "type": "String",
+            "type": "string",
             "size": 50,
             "index_level": "Primary",
             "case_insensitive": true
           },
           {
             "name": "directory",
-            "type": "String",
+            "type": "string",
             "size": 50,
             "index_level": "Primary",
             "case_insensitive": true
           },
           {
             "name": "file_name",
-            "type": "String",
+            "type": "string",
             "size": 50,
             "case_insensitive": true
           }
@@ -619,69 +631,71 @@
         "columns": [
           {
             "name": "id",
-            "type": "AutoPrimaryKey"
+            "type": "auto_primary_key"
           },
           {
             "name": "date",
-            "type": "Time",
+            "type": "time",
+            "sub_type": "date_only",
             "is_nullable": true
           },
           {
             "name": "time",
-            "type": "Time",
+            "type": "time",
+            "sub_type": "time_only",
             "is_nullable": true
           },
           {
             "name": "date_time",
-            "type": "Time",
+            "type": "time",
             "is_nullable": true
           },
           {
             "name": "ts",
-            "type": "Time",
+            "type": "time",
             "default_value": "now",
             "is_nullable": true
           },
           {
             "name": "test_int",
-            "type": "Int",
+            "type": "int",
             "size": 32,
             "default_value": 5,
             "is_nullable": true
           },
           {
             "name": "test_float",
-            "type": "Float",
+            "type": "float",
             "size": 32,
             "is_nullable": true
           },
           {
             "name": "test_double",
-            "type": "Float",
+            "type": "float",
             "size": 64
           },
           {
             "name": "test_text",
-            "type": "String",
+            "type": "string",
             "size": 65535,
             "is_nullable": true,
             "case_insensitive": true
           },
           {
             "name": "test_bit",
-            "type": "Bool",
+            "type": "bool",
             "is_nullable": true
           },
           {
             "name": "test_varchar",
-            "type": "String",
+            "type": "string",
             "size": 10,
             "is_nullable": true,
             "case_insensitive": true
           },
           {
             "name": "test_blob",
-            "type": "Bytes",
+            "type": "bytes",
             "size": 65535
           }
         ],
@@ -692,91 +706,126 @@
         "columns": [
           {
             "name": "type_serial",
-            "type": "AutoPrimaryKey"
+            "type": "auto_primary_key"
           },
           {
             "name": "type_set",
-            "type": "Unknown",
+            "type": "unknown",
             "size": 5,
-            "case_insensitive": true
+            "case_insensitive": true,
+            "database_column_info": {
+              "mysql": {
+                "type": "set('a','b','c')"
+              }
+            }
           },
           {
             "name": "type_enumerated",
-            "type": "Unknown",
+            "type": "unknown",
             "size": 1,
-            "case_insensitive": true
+            "case_insensitive": true,
+            "database_column_info": {
+              "mysql": {
+                "type": "enum('a','b','c')"
+              }
+            }
           },
           {
             "name": "type_decimal",
-            "type": "String",
-            "size": 13
+            "type": "unknown",
+            "size": 13,
+            "database_column_info": {
+              "mysql": {
+                "type": "decimal(10,4)"
+              }
+            }
           },
           {
             "name": "type_double",
-            "type": "Float",
+            "type": "float",
             "size": 64
           },
           {
             "name": "type_geo",
-            "type": "Unknown"
+            "type": "unknown",
+            "database_column_info": {
+              "mysql": {
+                "type": "geometry"
+              }
+            }
           },
           {
             "name": "type_tiny_blob",
-            "type": "Bytes",
+            "type": "bytes",
             "size": 255
           },
           {
             "name": "type_medium_blob",
-            "type": "Bytes",
+            "type": "bytes",
             "size": 16777215
           },
           {
             "name": "type_varbinary",
-            "type": "Unknown"
+            "type": "unknown",
+            "database_column_info": {
+              "mysql": {
+                "type": "varbinary(10)"
+              }
+            }
           },
           {
             "name": "type_longtext",
-            "type": "String",
+            "type": "string",
             "size": 4294967295,
             "case_insensitive": true
           },
           {
             "name": "type_binary",
-            "type": "Unknown"
+            "type": "unknown",
+            "database_column_info": {
+              "mysql": {
+                "type": "binary(10)"
+              }
+            }
           },
           {
             "name": "type_small",
-            "type": "Int",
+            "type": "int",
             "size": 16
           },
           {
             "name": "type_medium",
-            "type": "Int",
+            "type": "int",
             "size": 24
           },
           {
             "name": "type_big",
-            "type": "Int",
+            "type": "int",
             "size": 64
           },
           {
             "name": "type_polygon",
-            "type": "Unknown"
+            "type": "unknown",
+            "database_column_info": {
+              "mysql": {
+                "type": "polygon"
+              }
+            }
           },
           {
             "name": "type_unsigned",
-            "type": "Uint",
+            "type": "uint",
             "size": 32
           },
           {
             "name": "type_multFk1",
-            "type": "String",
+            "type": "string",
             "size": 50,
             "case_insensitive": true
           },
           {
             "name": "type_multiFk2",
-            "type": "String",
+            "type": "string",
             "size": 50,
             "case_insensitive": true
           }

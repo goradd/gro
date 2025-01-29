@@ -4,7 +4,6 @@ package goradd
 
 import (
 	"encoding/gob"
-	"sort"
 	"strconv"
 
 	"github.com/goradd/maps"
@@ -85,15 +84,15 @@ func PersonTypesFromIDs(ids []string) (values []PersonType) {
 // PersonTypeFromName converts a PersonType name to a PersonType
 func PersonTypeFromName(name string) PersonType {
 	switch name {
-	case `Contractor`:
+	case `contractor`:
 		return PersonTypeContractor
-	case `Manager`:
+	case `manager`:
 		return PersonTypeManager
-	case `Inactive`:
+	case `inactive`:
 		return PersonTypeInactive
-	case `Company Car`:
+	case `company_car`:
 		return PersonTypeCompanyCar
-	case `Works From Home`:
+	case `works_from_home`:
 		return PersonTypeWorksFromHome
 	}
 	return PersonType(0)
@@ -138,15 +137,15 @@ func (e PersonType) Name() string {
 	case 0:
 		return ""
 	case PersonTypeContractor:
-		return "Contractor"
+		return "contractor"
 	case PersonTypeManager:
-		return "Manager"
+		return "manager"
 	case PersonTypeInactive:
-		return "Inactive"
+		return "inactive"
 	case PersonTypeCompanyCar:
-		return "Company Car"
+		return "company_car"
 	case PersonTypeWorksFromHome:
-		return "Works From Home"
+		return "works_from_home"
 	default:
 		panic("Index out of range")
 	}
@@ -159,19 +158,32 @@ func PersonTypeNames() []string {
 	return []string{
 		// 0 item will be a zero value
 		"",
-		"Contractor",
-		"Manager",
-		"Inactive",
-		"Company Car",
-		"Works From Home",
+		"contractor",
+		"manager",
+		"inactive",
+		"company_car",
+		"works_from_home",
 	}
 }
 
-// PersonTypeSet is a group of PersonType values.
-type PersonTypeSet = maps.OrderedSet[PersonType]
+// PersonTypeSet is a pointer to a group of PersonType values.
+type PersonTypeSet = *maps.OrderedSet[PersonType]
 
+func NewPersonTypeSet(values ...PersonType) PersonTypeSet {
+	return maps.NewOrderedSet[PersonType](values...)
+}
+
+func NewPersonTypeSetFrom[K constraints.Integer | constraints.Float](values ...K) PersonTypeSet {
+	m := maps.NewOrderedSet[PersonType]()
+	for _, v := range values {
+		m.Add(PersonType(v))
+	}
+	return m
+}
+
+/*
 // PersonTypeSetFromNumbers converts an array of numeric values into a PersonTypeSet.
-func PersonTypeSetFromNumbers[T constraints.Integer | constraints.Float](nums []T) (values PersonTypeSet) {
+func PersonTypeSetFromNumbers[T constraints.Integer | constraints.Float] (nums []T) (values PersonTypeSet) {
 	var s PersonTypeSet
 	for _, n := range nums {
 		s.Add(PersonType(n))
@@ -181,12 +193,13 @@ func PersonTypeSetFromNumbers[T constraints.Integer | constraints.Float](nums []
 
 // PersonTypeSetToInts
 func PersonTypeSetToInts(values PersonTypeSet) (ints []int) {
-	for _, v := range values.Values() {
+	for _,v := range values.Values() {
 		ints = append(ints, int(v))
 	}
 	sort.Ints(ints)
 	return
 }
+*/
 
 func init() {
 	gob.Register(new(PersonTypeSet))

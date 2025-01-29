@@ -48,8 +48,7 @@ type ProjectNode interface {
 // ProjectExpander is the builder interface for Projects that are expandable.
 type ProjectExpander interface {
 	ProjectNode
-	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand()
+	query.Expander
 }
 
 // projectTable represents the project table in a query. It uses a builder pattern to chain
@@ -434,7 +433,7 @@ func (n projectTable) Budget() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:    "budget",
 		Identifier:   "Budget",
-		ReceiverType: query.ColTypeString,
+		ReceiverType: query.ColTypeUnknown,
 		IsPrimaryKey: false,
 	}
 	query.NodeSetParent(cn, n)
@@ -463,7 +462,7 @@ func (n projectTable) Spent() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:    "spent",
 		Identifier:   "Spent",
-		ReceiverType: query.ColTypeString,
+		ReceiverType: query.ColTypeUnknown,
 		IsPrimaryKey: false,
 	}
 	query.NodeSetParent(cn, n)

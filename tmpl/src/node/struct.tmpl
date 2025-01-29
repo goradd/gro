@@ -35,8 +35,7 @@ type {{= table.Identifier}}Node interface {
 // {{= table.Identifier}}Expander is the builder interface for {{= table.IdentifierPlural}} that are expandable.
 type {{= table.Identifier}}Expander interface {
     {{= table.Identifier}}Node
-    // Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-    Expand()
+    query.Expander
 }
 {{if}}
 

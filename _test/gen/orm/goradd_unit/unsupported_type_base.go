@@ -35,7 +35,7 @@ type unsupportedTypeBase struct {
 	typeEnumeratedIsValid bool
 	typeEnumeratedIsDirty bool
 
-	typeDecimal        string
+	typeDecimal        []byte
 	typeDecimalIsValid bool
 	typeDecimalIsDirty bool
 
@@ -129,7 +129,7 @@ const (
 
 const UnsupportedTypeTypeSetMaxLength = 5               // The number of bytes the column can hold
 const UnsupportedTypeTypeEnumeratedMaxLength = 1        // The number of bytes the column can hold
-const UnsupportedTypeTypeDecimalMaxLength = 13          // The number of runes the column can hold
+const UnsupportedTypeTypeDecimalMaxLength = 13          // The number of bytes the column can hold
 const UnsupportedTypeTypeTinyBlobMaxLength = 255        // The number of bytes the column can hold
 const UnsupportedTypeTypeMediumBlobMaxLength = 16777215 // The number of bytes the column can hold
 const UnsupportedTypeTypeLongtextMaxLength = 4294967295 // The number of runes the column can hold
@@ -163,7 +163,7 @@ func (o *unsupportedTypeBase) Initialize() {
 	o.typeEnumeratedIsValid = false
 	o.typeEnumeratedIsDirty = false
 
-	o.typeDecimal = ""
+	o.typeDecimal = []byte(nil)
 
 	o.typeDecimalIsValid = false
 	o.typeDecimalIsDirty = false
@@ -375,7 +375,7 @@ func (o *unsupportedTypeBase) SetTypeEnumerated(typeEnumerated []byte) {
 }
 
 // TypeDecimal returns the loaded value of TypeDecimal.
-func (o *unsupportedTypeBase) TypeDecimal() string {
+func (o *unsupportedTypeBase) TypeDecimal() []byte {
 	if o._restored && !o.typeDecimalIsValid {
 		panic("TypeDecimal was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -388,15 +388,13 @@ func (o *unsupportedTypeBase) TypeDecimalIsValid() bool {
 }
 
 // SetTypeDecimal sets the value of TypeDecimal in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeDecimal(typeDecimal string) {
+func (o *unsupportedTypeBase) SetTypeDecimal(typeDecimal []byte) {
 	o.typeDecimalIsValid = true
-	if utf8.RuneCountInString(typeDecimal) > UnsupportedTypeTypeDecimalMaxLength {
-		panic("attempted to set UnsupportedType.TypeDecimal to a value larger than its maximum length in runes")
+	if len(typeDecimal) > UnsupportedTypeTypeDecimalMaxLength {
+		panic("attempted to set UnsupportedType.TypeDecimal to a value larger than its maximum length")
 	}
-	if o.typeDecimal != typeDecimal || !o._restored {
-		o.typeDecimal = typeDecimal
-		o.typeDecimalIsDirty = true
-	}
+	o.typeDecimal = typeDecimal // TODO: Copy bytes??
+	o.typeDecimalIsDirty = true
 
 }
 
@@ -766,6 +764,9 @@ type UnsupportedTypeBuilder interface {
 	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
 	Join(n query.Node, conditions ...query.Node) UnsupportedTypeBuilder
 
+	// Expand turns a Reverse or ManyMany node into individual rows.
+	Expand(n query.Expander) UnsupportedTypeBuilder
+
 	// Where adds a condition to filter what gets selected.
 	// Calling Where multiple times will AND the conditions together.
 	Where(c query.Node) UnsupportedTypeBuilder
@@ -957,6 +958,12 @@ func (b *unsupportedTypeQueryBuilder) Get() *UnsupportedType {
 	}
 }
 
+// Expand expands an array type node so that it will produce individual rows instead of an array of items
+func (b *unsupportedTypeQueryBuilder) Expand(n query.Expander) UnsupportedTypeBuilder {
+	b.builder.Expand(n)
+	return b
+}
+
 // Join adds node n to the node tree so that its fields will appear in the query.
 // Optionally add conditions to filter what gets included. Multiple conditions are anded.
 func (b *unsupportedTypeQueryBuilder) Join(n query.Node, conditions ...query.Node) UnsupportedTypeBuilder {
@@ -1099,7 +1106,7 @@ func CountUnsupportedTypeByTypeEnumerated(ctx context.Context, typeEnumerated []
 // CountUnsupportedTypeByTypeDecimal queries the database and returns the number of UnsupportedType objects that
 // have typeDecimal.
 // doc: type=UnsupportedType
-func CountUnsupportedTypeByTypeDecimal(ctx context.Context, typeDecimal string) int {
+func CountUnsupportedTypeByTypeDecimal(ctx context.Context, typeDecimal []byte) int {
 	return int(queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeDecimal(), typeDecimal)).Count(false))
 }
 
@@ -1248,7 +1255,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	}
 
 	if v, ok := m["type_decimal"]; ok && v != nil {
-		if o.typeDecimal, ok = v.(string); ok {
+		if o.typeDecimal, ok = v.([]byte); ok {
 			o.typeDecimalIsValid = true
 			o.typeDecimalIsDirty = false
 
@@ -1257,7 +1264,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 		}
 	} else {
 		o.typeDecimalIsValid = false
-		o.typeDecimal = ""
+		o.typeDecimal = []byte(nil)
 	}
 
 	if v, ok := m["type_double"]; ok && v != nil {
@@ -2383,7 +2390,7 @@ func (o *unsupportedTypeBase) MarshalStringMap() map[string]interface{} {
 //	"typeSerial" - string
 //	"typeSet" - []byte
 //	"typeEnumerated" - []byte
-//	"typeDecimal" - string
+//	"typeDecimal" - []byte
 //	"typeDouble" - float64
 //	"typeGeo" - []byte
 //	"typeTinyBlob" - []byte
@@ -2489,11 +2496,33 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 					return fmt.Errorf("json field %s cannot be null", k)
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetTypeDecimal(s)
+				switch d := v.(type) {
+				case string:
+					{
+						// A base 64 encoded string
+						if b, err2 := base64.StdEncoding.DecodeString(d); err2 == nil {
+							o.SetTypeDecimal(b)
+						} else {
+							return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+						}
+					}
+				case []interface{}:
+					{
+						// An array of byte values. Unfortunately, these come through as float64s, and so need to be converted
+						b := make([]byte, len(d), len(d))
+						for i, b1 := range d {
+							if f, ok := b1.(float64); !ok {
+								return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+							} else {
+								b[i] = uint8(f)
+							}
+						}
+						o.SetTypeDecimal(b)
+					}
+				default:
+					return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
 				}
+
 			}
 
 		case "typeDouble":

@@ -28,8 +28,7 @@ type AddressNode interface {
 // AddressExpander is the builder interface for Addresses that are expandable.
 type AddressExpander interface {
 	AddressNode
-	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand()
+	query.Expander
 }
 
 // addressTable represents the address table in a query. It uses a builder pattern to chain

@@ -1,7 +1,9 @@
 package test
 
 import (
+	"github.com/goradd/maps"
 	"github.com/goradd/strings"
+	"golang.org/x/exp/constraints"
 	"strconv"
 	"time"
 )
@@ -81,7 +83,29 @@ func RandomValue[T any](size int) T {
 	case float32:
 		i = rng.Float32()
 	case time.Time:
-		i = time.Unix(int64(rng.Uint32()), 0)
+		i = time.Unix(int64(rng.Uint32()), 0).UTC()
 	}
 	return i.(T)
+}
+
+// RandomNum provides a random number in the given range.
+func RandomNum[T constraints.Integer | constraints.Float](low int, high int) T {
+	v := rng.Intn(high - low)
+	return T(v + low)
+}
+
+func RandomEnum[T ~int](valueList []T) T {
+	v := rng.Intn(len(valueList))
+	return valueList[v]
+}
+
+func RandomEnumArray[T ~int](valueList []T) *maps.OrderedSet[T] {
+	values := maps.NewOrderedSet[T]()
+	values.Add(valueList[0]) // at least 1 item
+	for v := range valueList[1:] {
+		if rng.Intn(2) == 0 {
+			values.Add(T(v))
+		}
+	}
+	return values
 }

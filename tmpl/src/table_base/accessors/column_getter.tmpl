@@ -10,7 +10,11 @@ func (o *{{= table.DecapIdentifier}}Base) {{= col.Identifier }}() {{= col.GoType
 	if o._restored && !o.{{= col.VariableIdentifier() }}IsValid {
 		panic ("{{= col.Identifier }} was not selected in the last query and has not been set, and so is not valid")
 	}
+{{if col.IsEnumArray() }}
+    return o.{{= col.VariableIdentifier() }}.Clone()
+{{else}}
 	return o.{{= col.VariableIdentifier() }}
+{{if}}
 }
 
 }}

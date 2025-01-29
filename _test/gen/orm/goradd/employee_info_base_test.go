@@ -15,27 +15,25 @@ import (
 func TestEmployeeInfo_SetPersonID(t *testing.T) {
 
 	obj := NewEmployeeInfo()
-
 	personID := test.RandomValue[string](0)
 	obj.SetPersonID(personID)
 	assert.Equal(t, personID, obj.PersonID())
 
-	// test zero
+	// test default
 	obj.SetPersonID("")
-	assert.Equal(t, "", obj.PersonID(), "set empty")
+	assert.EqualValues(t, "", obj.PersonID(), "set default")
 
 }
 func TestEmployeeInfo_SetEmployeeNumber(t *testing.T) {
 
 	obj := NewEmployeeInfo()
-
 	employeeNumber := test.RandomValue[int](32)
 	obj.SetEmployeeNumber(employeeNumber)
 	assert.Equal(t, employeeNumber, obj.EmployeeNumber())
 
-	// test zero
+	// test default
 	obj.SetEmployeeNumber(0)
-	assert.Equal(t, 0, obj.EmployeeNumber(), "set empty")
+	assert.EqualValues(t, 0, obj.EmployeeNumber(), "set default")
 
 }
 
@@ -71,7 +69,6 @@ func TestEmployeeInfo_CRUD(t *testing.T) {
 	require.NotNil(t, obj)
 
 	assert.True(t, obj.IDIsValid())
-	assert.NotEmpty(t, obj.ID())
 
 	assert.True(t, obj.PersonIDIsValid())
 	assert.NotEmpty(t, obj.PersonID())

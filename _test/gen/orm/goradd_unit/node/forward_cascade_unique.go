@@ -26,8 +26,7 @@ type ForwardCascadeUniqueNode interface {
 // ForwardCascadeUniqueExpander is the builder interface for ForwardCascadeUniques that are expandable.
 type ForwardCascadeUniqueExpander interface {
 	ForwardCascadeUniqueNode
-	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand()
+	query.Expander
 }
 
 // forwardCascadeUniqueTable represents the forward_cascade_unique table in a query. It uses a builder pattern to chain

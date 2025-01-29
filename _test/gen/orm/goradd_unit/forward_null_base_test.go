@@ -15,14 +15,13 @@ import (
 func TestForwardNull_SetName(t *testing.T) {
 
 	obj := NewForwardNull()
-
 	name := test.RandomValue[string](100)
 	obj.SetName(name)
 	assert.Equal(t, name, obj.Name())
 
-	// test zero
+	// test default
 	obj.SetName("")
-	assert.Equal(t, "", obj.Name(), "set empty")
+	assert.EqualValues(t, "", obj.Name(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	name = test.RandomValue[string](101)
@@ -33,7 +32,6 @@ func TestForwardNull_SetName(t *testing.T) {
 func TestForwardNull_SetReverseID(t *testing.T) {
 
 	obj := NewForwardNull()
-
 	reverseID := test.RandomValue[string](0)
 	obj.SetReverseID(reverseID)
 	assert.Equal(t, reverseID, obj.ReverseID())
@@ -44,9 +42,10 @@ func TestForwardNull_SetReverseID(t *testing.T) {
 	assert.Equal(t, "", obj.ReverseID(), "set nil")
 	assert.True(t, obj.ReverseIDIsNull())
 
-	// test zero
+	// test default
 	obj.SetReverseID("")
-	assert.Equal(t, "", obj.ReverseID(), "set empty")
+	assert.EqualValues(t, "", obj.ReverseID(), "set default")
+
 	assert.False(t, obj.ReverseIDIsNull())
 
 }
@@ -79,7 +78,6 @@ func TestForwardNull_CRUD(t *testing.T) {
 	require.NotNil(t, obj)
 
 	assert.True(t, obj.IDIsValid())
-	assert.NotEmpty(t, obj.ID())
 
 	assert.True(t, obj.NameIsValid())
 	assert.Equal(t, name, obj.Name())

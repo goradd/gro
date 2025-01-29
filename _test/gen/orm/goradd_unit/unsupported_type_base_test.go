@@ -15,14 +15,13 @@ import (
 func TestUnsupportedType_SetTypeSet(t *testing.T) {
 
 	obj := NewUnsupportedType()
-
 	typeSet := test.RandomValue[[]byte](5)
 	obj.SetTypeSet(typeSet)
 	assert.Equal(t, typeSet, obj.TypeSet())
 
-	// test zero
+	// test default
 	obj.SetTypeSet([]byte(nil))
-	assert.Equal(t, []byte(nil), obj.TypeSet(), "set empty")
+	assert.EqualValues(t, []byte(nil), obj.TypeSet(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	typeSet = test.RandomValue[[]byte](6)
@@ -33,14 +32,13 @@ func TestUnsupportedType_SetTypeSet(t *testing.T) {
 func TestUnsupportedType_SetTypeEnumerated(t *testing.T) {
 
 	obj := NewUnsupportedType()
-
 	typeEnumerated := test.RandomValue[[]byte](1)
 	obj.SetTypeEnumerated(typeEnumerated)
 	assert.Equal(t, typeEnumerated, obj.TypeEnumerated())
 
-	// test zero
+	// test default
 	obj.SetTypeEnumerated([]byte(nil))
-	assert.Equal(t, []byte(nil), obj.TypeEnumerated(), "set empty")
+	assert.EqualValues(t, []byte(nil), obj.TypeEnumerated(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	typeEnumerated = test.RandomValue[[]byte](2)
@@ -51,17 +49,16 @@ func TestUnsupportedType_SetTypeEnumerated(t *testing.T) {
 func TestUnsupportedType_SetTypeDecimal(t *testing.T) {
 
 	obj := NewUnsupportedType()
-
-	typeDecimal := test.RandomValue[string](13)
+	typeDecimal := test.RandomValue[[]byte](13)
 	obj.SetTypeDecimal(typeDecimal)
 	assert.Equal(t, typeDecimal, obj.TypeDecimal())
 
-	// test zero
-	obj.SetTypeDecimal("")
-	assert.Equal(t, "", obj.TypeDecimal(), "set empty")
+	// test default
+	obj.SetTypeDecimal([]byte(nil))
+	assert.EqualValues(t, []byte(nil), obj.TypeDecimal(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
-	typeDecimal = test.RandomValue[string](14)
+	typeDecimal = test.RandomValue[[]byte](14)
 	assert.Panics(t, func() {
 		obj.SetTypeDecimal(typeDecimal)
 	})
@@ -69,40 +66,37 @@ func TestUnsupportedType_SetTypeDecimal(t *testing.T) {
 func TestUnsupportedType_SetTypeDouble(t *testing.T) {
 
 	obj := NewUnsupportedType()
-
 	typeDouble := test.RandomValue[float64](64)
 	obj.SetTypeDouble(typeDouble)
 	assert.Equal(t, typeDouble, obj.TypeDouble())
 
-	// test zero
+	// test default
 	obj.SetTypeDouble(0)
-	assert.Equal(t, 0, obj.TypeDouble(), "set empty")
+	assert.EqualValues(t, 0, obj.TypeDouble(), "set default")
 
 }
 func TestUnsupportedType_SetTypeGeo(t *testing.T) {
 
 	obj := NewUnsupportedType()
-
 	typeGeo := test.RandomValue[[]byte](0)
 	obj.SetTypeGeo(typeGeo)
 	assert.Equal(t, typeGeo, obj.TypeGeo())
 
-	// test zero
+	// test default
 	obj.SetTypeGeo([]byte(nil))
-	assert.Equal(t, []byte(nil), obj.TypeGeo(), "set empty")
+	assert.EqualValues(t, []byte(nil), obj.TypeGeo(), "set default")
 
 }
 func TestUnsupportedType_SetTypeTinyBlob(t *testing.T) {
 
 	obj := NewUnsupportedType()
-
 	typeTinyBlob := test.RandomValue[[]byte](255)
 	obj.SetTypeTinyBlob(typeTinyBlob)
 	assert.Equal(t, typeTinyBlob, obj.TypeTinyBlob())
 
-	// test zero
+	// test default
 	obj.SetTypeTinyBlob([]byte(nil))
-	assert.Equal(t, []byte(nil), obj.TypeTinyBlob(), "set empty")
+	assert.EqualValues(t, []byte(nil), obj.TypeTinyBlob(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	typeTinyBlob = test.RandomValue[[]byte](256)
@@ -113,14 +107,13 @@ func TestUnsupportedType_SetTypeTinyBlob(t *testing.T) {
 func TestUnsupportedType_SetTypeMediumBlob(t *testing.T) {
 
 	obj := NewUnsupportedType()
-
 	typeMediumBlob := test.RandomValue[[]byte](16777215)
 	obj.SetTypeMediumBlob(typeMediumBlob)
 	assert.Equal(t, typeMediumBlob, obj.TypeMediumBlob())
 
-	// test zero
+	// test default
 	obj.SetTypeMediumBlob([]byte(nil))
-	assert.Equal(t, []byte(nil), obj.TypeMediumBlob(), "set empty")
+	assert.EqualValues(t, []byte(nil), obj.TypeMediumBlob(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	typeMediumBlob = test.RandomValue[[]byte](16777216)
@@ -131,27 +124,25 @@ func TestUnsupportedType_SetTypeMediumBlob(t *testing.T) {
 func TestUnsupportedType_SetTypeVarbinary(t *testing.T) {
 
 	obj := NewUnsupportedType()
-
 	typeVarbinary := test.RandomValue[[]byte](0)
 	obj.SetTypeVarbinary(typeVarbinary)
 	assert.Equal(t, typeVarbinary, obj.TypeVarbinary())
 
-	// test zero
+	// test default
 	obj.SetTypeVarbinary([]byte(nil))
-	assert.Equal(t, []byte(nil), obj.TypeVarbinary(), "set empty")
+	assert.EqualValues(t, []byte(nil), obj.TypeVarbinary(), "set default")
 
 }
 func TestUnsupportedType_SetTypeLongtext(t *testing.T) {
 
 	obj := NewUnsupportedType()
-
 	typeLongtext := test.RandomValue[string](4294967295)
 	obj.SetTypeLongtext(typeLongtext)
 	assert.Equal(t, typeLongtext, obj.TypeLongtext())
 
-	// test zero
+	// test default
 	obj.SetTypeLongtext("")
-	assert.Equal(t, "", obj.TypeLongtext(), "set empty")
+	assert.EqualValues(t, "", obj.TypeLongtext(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	typeLongtext = test.RandomValue[string](4294967296)
@@ -162,92 +153,85 @@ func TestUnsupportedType_SetTypeLongtext(t *testing.T) {
 func TestUnsupportedType_SetTypeBinary(t *testing.T) {
 
 	obj := NewUnsupportedType()
-
 	typeBinary := test.RandomValue[[]byte](0)
 	obj.SetTypeBinary(typeBinary)
 	assert.Equal(t, typeBinary, obj.TypeBinary())
 
-	// test zero
+	// test default
 	obj.SetTypeBinary([]byte(nil))
-	assert.Equal(t, []byte(nil), obj.TypeBinary(), "set empty")
+	assert.EqualValues(t, []byte(nil), obj.TypeBinary(), "set default")
 
 }
 func TestUnsupportedType_SetTypeSmall(t *testing.T) {
 
 	obj := NewUnsupportedType()
-
 	typeSmall := test.RandomValue[int](16)
 	obj.SetTypeSmall(typeSmall)
 	assert.Equal(t, typeSmall, obj.TypeSmall())
 
-	// test zero
+	// test default
 	obj.SetTypeSmall(0)
-	assert.Equal(t, 0, obj.TypeSmall(), "set empty")
+	assert.EqualValues(t, 0, obj.TypeSmall(), "set default")
 
 }
 func TestUnsupportedType_SetTypeMedium(t *testing.T) {
 
 	obj := NewUnsupportedType()
-
 	typeMedium := test.RandomValue[int](24)
 	obj.SetTypeMedium(typeMedium)
 	assert.Equal(t, typeMedium, obj.TypeMedium())
 
-	// test zero
+	// test default
 	obj.SetTypeMedium(0)
-	assert.Equal(t, 0, obj.TypeMedium(), "set empty")
+	assert.EqualValues(t, 0, obj.TypeMedium(), "set default")
 
 }
 func TestUnsupportedType_SetTypeBig(t *testing.T) {
 
 	obj := NewUnsupportedType()
-
 	typeBig := test.RandomValue[int64](64)
 	obj.SetTypeBig(typeBig)
 	assert.Equal(t, typeBig, obj.TypeBig())
 
-	// test zero
+	// test default
 	obj.SetTypeBig(0)
-	assert.Equal(t, 0, obj.TypeBig(), "set empty")
+	assert.EqualValues(t, 0, obj.TypeBig(), "set default")
 
 }
 func TestUnsupportedType_SetTypePolygon(t *testing.T) {
 
 	obj := NewUnsupportedType()
-
 	typePolygon := test.RandomValue[[]byte](0)
 	obj.SetTypePolygon(typePolygon)
 	assert.Equal(t, typePolygon, obj.TypePolygon())
 
-	// test zero
+	// test default
 	obj.SetTypePolygon([]byte(nil))
-	assert.Equal(t, []byte(nil), obj.TypePolygon(), "set empty")
+	assert.EqualValues(t, []byte(nil), obj.TypePolygon(), "set default")
 
 }
 func TestUnsupportedType_SetTypeUnsigned(t *testing.T) {
 
 	obj := NewUnsupportedType()
-
 	typeUnsigned := test.RandomValue[uint](32)
 	obj.SetTypeUnsigned(typeUnsigned)
 	assert.Equal(t, typeUnsigned, obj.TypeUnsigned())
 
-	// test zero
+	// test default
 	obj.SetTypeUnsigned(0x0)
-	assert.Equal(t, 0x0, obj.TypeUnsigned(), "set empty")
+	assert.EqualValues(t, 0x0, obj.TypeUnsigned(), "set default")
 
 }
 func TestUnsupportedType_SetTypeMultfk1(t *testing.T) {
 
 	obj := NewUnsupportedType()
-
 	typeMultfk1 := test.RandomValue[string](50)
 	obj.SetTypeMultfk1(typeMultfk1)
 	assert.Equal(t, typeMultfk1, obj.TypeMultfk1())
 
-	// test zero
+	// test default
 	obj.SetTypeMultfk1("")
-	assert.Equal(t, "", obj.TypeMultfk1(), "set empty")
+	assert.EqualValues(t, "", obj.TypeMultfk1(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	typeMultfk1 = test.RandomValue[string](51)
@@ -258,14 +242,13 @@ func TestUnsupportedType_SetTypeMultfk1(t *testing.T) {
 func TestUnsupportedType_SetTypeMultifk2(t *testing.T) {
 
 	obj := NewUnsupportedType()
-
 	typeMultifk2 := test.RandomValue[string](50)
 	obj.SetTypeMultifk2(typeMultifk2)
 	assert.Equal(t, typeMultifk2, obj.TypeMultifk2())
 
-	// test zero
+	// test default
 	obj.SetTypeMultifk2("")
-	assert.Equal(t, "", obj.TypeMultifk2(), "set empty")
+	assert.EqualValues(t, "", obj.TypeMultifk2(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	typeMultifk2 = test.RandomValue[string](51)
@@ -278,9 +261,6 @@ func TestUnsupportedType_SetTypeMultifk2(t *testing.T) {
 // for testing.
 func createMinimalSampleUnsupportedType(ctx context.Context) *UnsupportedType {
 	obj := NewUnsupportedType()
-
-	typeDecimal := test.RandomValue[string](13)
-	obj.SetTypeDecimal(typeDecimal)
 
 	typeDouble := test.RandomValue[float64](64)
 	obj.SetTypeDouble(typeDouble)
@@ -319,9 +299,6 @@ func TestUnsupportedType_CRUD(t *testing.T) {
 	obj := NewUnsupportedType()
 	ctx := db.NewContext(nil)
 
-	typeDecimal := test.RandomValue[string](13)
-	obj.SetTypeDecimal(typeDecimal)
-
 	typeDouble := test.RandomValue[float64](64)
 	obj.SetTypeDouble(typeDouble)
 
@@ -359,10 +336,6 @@ func TestUnsupportedType_CRUD(t *testing.T) {
 	require.NotNil(t, obj)
 
 	assert.True(t, obj.TypeSerialIsValid())
-	assert.NotEmpty(t, obj.TypeSerial())
-
-	assert.True(t, obj.TypeDecimalIsValid())
-	assert.Equal(t, typeDecimal, obj.TypeDecimal())
 
 	assert.True(t, obj.TypeDoubleIsValid())
 	assert.Equal(t, typeDouble, obj.TypeDouble())

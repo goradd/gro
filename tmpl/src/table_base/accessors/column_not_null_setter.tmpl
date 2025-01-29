@@ -17,7 +17,7 @@ func (o *{{= table.DecapIdentifier }}Base) Set{{= col.Identifier }}({{= col.Vari
 	o.{{= col.VariableIdentifier() }}IsDirty = true
 
 {{elseif col.IsEnumArray() }}
-	if !o.{{= col.VariableIdentifier() }}.Equal(&{{= col.VariableIdentifier() }}) ||
+	if !o.{{= col.VariableIdentifier() }}.Equal({{= col.VariableIdentifier() }}) ||
 	        !o._restored {
 		o.{{= col.VariableIdentifier() }} = {{= col.VariableIdentifier() }}
 		o.{{= col.VariableIdentifier() }}IsDirty = true

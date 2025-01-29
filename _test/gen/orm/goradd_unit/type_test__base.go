@@ -284,6 +284,12 @@ func (o *typeTestBase) Date_I() interface{} {
 	return o.date
 }
 
+// SetDate prepares for setting the date value in the database.
+//
+// Pass nil to set it to a NULL value in the database.
+//
+// The input will immediately be converted to UTC time.
+// The time will also be zeroed. This may cause the date value to change. To prevent this, be sure that the date given is already in UTC time.
 func (o *typeTestBase) SetDate(i interface{}) {
 	o.dateIsValid = true
 	if i == nil {
@@ -294,6 +300,10 @@ func (o *typeTestBase) SetDate(i interface{}) {
 		}
 	} else {
 		v := i.(time.Time)
+		v = v.UTC()
+
+		v = time.Date(v.Year(), v.Month(), v.Day(), 0, 0, 0, 0, v.Location())
+
 		if o.dateIsNull ||
 			!o._restored ||
 			o.date != v {
@@ -333,6 +343,12 @@ func (o *typeTestBase) Time_I() interface{} {
 	return o.time
 }
 
+// SetTime prepares for setting the time value in the database.
+//
+// Pass nil to set it to a NULL value in the database.
+//
+// The input will immediately be converted to UTC time.
+// The date will also be zeroed. This process may cause the time value to change. To prevent this, be sure that the time given is already in UTC time.
 func (o *typeTestBase) SetTime(i interface{}) {
 	o.timeIsValid = true
 	if i == nil {
@@ -343,6 +359,10 @@ func (o *typeTestBase) SetTime(i interface{}) {
 		}
 	} else {
 		v := i.(time.Time)
+		v = v.UTC()
+
+		v = time.Date(0, 1, 1, v.Hour(), v.Minute(), v.Second(), v.Nanosecond(), time.UTC)
+
 		if o.timeIsNull ||
 			!o._restored ||
 			o.time != v {
@@ -382,6 +402,11 @@ func (o *typeTestBase) DateTime_I() interface{} {
 	return o.dateTime
 }
 
+// SetDateTime prepares for setting the date_time value in the database.
+//
+// Pass nil to set it to a NULL value in the database.
+//
+// The input will immediately be converted to UTC time.
 func (o *typeTestBase) SetDateTime(i interface{}) {
 	o.dateTimeIsValid = true
 	if i == nil {
@@ -392,6 +417,8 @@ func (o *typeTestBase) SetDateTime(i interface{}) {
 		}
 	} else {
 		v := i.(time.Time)
+		v = v.UTC()
+
 		if o.dateTimeIsNull ||
 			!o._restored ||
 			o.dateTime != v {
@@ -460,6 +487,9 @@ func (o *typeTestBase) TestInt_I() interface{} {
 	return o.testInt
 }
 
+// SetTestInt prepares for setting the test_int value in the database.
+//
+// Pass nil to set it to a NULL value in the database.
 func (o *typeTestBase) SetTestInt(i interface{}) {
 	o.testIntIsValid = true
 	if i == nil {
@@ -510,6 +540,9 @@ func (o *typeTestBase) TestFloat_I() interface{} {
 	return o.testFloat
 }
 
+// SetTestFloat prepares for setting the test_float value in the database.
+//
+// Pass nil to set it to a NULL value in the database.
 func (o *typeTestBase) SetTestFloat(i interface{}) {
 	o.testFloatIsValid = true
 	if i == nil {
@@ -583,6 +616,9 @@ func (o *typeTestBase) TestText_I() interface{} {
 	return o.testText
 }
 
+// SetTestText prepares for setting the test_text value in the database.
+//
+// Pass nil to set it to a NULL value in the database.
 func (o *typeTestBase) SetTestText(i interface{}) {
 	o.testTextIsValid = true
 	if i == nil {
@@ -636,6 +672,9 @@ func (o *typeTestBase) TestBit_I() interface{} {
 	return o.testBit
 }
 
+// SetTestBit prepares for setting the test_bit value in the database.
+//
+// Pass nil to set it to a NULL value in the database.
 func (o *typeTestBase) SetTestBit(i interface{}) {
 	o.testBitIsValid = true
 	if i == nil {
@@ -685,6 +724,9 @@ func (o *typeTestBase) TestVarchar_I() interface{} {
 	return o.testVarchar
 }
 
+// SetTestVarchar prepares for setting the test_varchar value in the database.
+//
+// Pass nil to set it to a NULL value in the database.
 func (o *typeTestBase) SetTestVarchar(i interface{}) {
 	o.testVarcharIsValid = true
 	if i == nil {
@@ -773,6 +815,9 @@ type TypeTestBuilder interface {
 	// Join adds node n to the node tree so that its fields will appear in the query.
 	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
 	Join(n query.Node, conditions ...query.Node) TypeTestBuilder
+
+	// Expand turns a Reverse or ManyMany node into individual rows.
+	Expand(n query.Expander) TypeTestBuilder
 
 	// Where adds a condition to filter what gets selected.
 	// Calling Where multiple times will AND the conditions together.
@@ -963,6 +1008,12 @@ func (b *typeTestQueryBuilder) Get() *TypeTest {
 	} else {
 		return nil
 	}
+}
+
+// Expand expands an array type node so that it will produce individual rows instead of an array of items
+func (b *typeTestQueryBuilder) Expand(n query.Expander) TypeTestBuilder {
+	b.builder.Expand(n)
+	return b
 }
 
 // Join adds node n to the node tree so that its fields will appear in the query.

@@ -259,6 +259,9 @@ type EmployeeInfoBuilder interface {
 	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
 	Join(n query.Node, conditions ...query.Node) EmployeeInfoBuilder
 
+	// Expand turns a Reverse or ManyMany node into individual rows.
+	Expand(n query.Expander) EmployeeInfoBuilder
+
 	// Where adds a condition to filter what gets selected.
 	// Calling Where multiple times will AND the conditions together.
 	Where(c query.Node) EmployeeInfoBuilder
@@ -448,6 +451,12 @@ func (b *employeeInfoQueryBuilder) Get() *EmployeeInfo {
 	} else {
 		return nil
 	}
+}
+
+// Expand expands an array type node so that it will produce individual rows instead of an array of items
+func (b *employeeInfoQueryBuilder) Expand(n query.Expander) EmployeeInfoBuilder {
+	b.builder.Expand(n)
+	return b
 }
 
 // Join adds node n to the node tree so that its fields will appear in the query.

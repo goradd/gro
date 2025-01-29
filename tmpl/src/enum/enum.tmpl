@@ -216,9 +216,22 @@ func {{= table.Identifier }}{{= field.IdentifierPlural }}() []{{= field.GoType()
 func (tmpl *EnumTemplate)genSet(table *model.Enum, _w io.Writer) (err error) {
 {{
 
-// {{= table.Identifier }}Set is a group of {{= table.Identifier }} values.
-type {{= table.Identifier }}Set = maps.OrderedSet[{{= table.Identifier }}]
+// {{= table.Identifier }}Set is a pointer to a group of {{= table.Identifier }} values.
+type {{= table.Identifier }}Set = *maps.OrderedSet[{{= table.Identifier }}]
 
+func New{{= table.Identifier }}Set(values ...{{= table.Identifier }}) {{= table.Identifier }}Set {
+	return maps.NewOrderedSet[{{= table.Identifier }}](values...)
+}
+
+func New{{= table.Identifier }}SetFrom[K constraints.Integer | constraints.Float](values ...K) {{= table.Identifier }}Set {
+	m := maps.NewOrderedSet[{{= table.Identifier }}]()
+	for _, v := range values {
+		m.Add({{= table.Identifier }}(v))
+	}
+	return m
+}
+
+/*
 // {{= table.Identifier }}SetFromNumbers converts an array of numeric values into a {{= table.Identifier }}Set.
 func {{= table.Identifier }}SetFromNumbers[T constraints.Integer | constraints.Float] (nums []T) (values {{= table.Identifier }}Set) {
 	var s {{= table.Identifier }}Set
@@ -236,6 +249,7 @@ func {{= table.Identifier }}SetToInts(values {{= table.Identifier }}Set) (ints [
 	sort.Ints(ints)
 	return
 }
+*/
 
 func init() {
     gob.Register(new({{= table.Identifier }}Set))

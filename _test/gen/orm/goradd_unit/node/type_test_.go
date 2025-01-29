@@ -42,8 +42,7 @@ type TypeTestNode interface {
 // TypeTestExpander is the builder interface for TypeTests that are expandable.
 type TypeTestExpander interface {
 	TypeTestNode
-	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand()
+	query.Expander
 }
 
 // typeTestTable represents the type_test table in a query. It uses a builder pattern to chain

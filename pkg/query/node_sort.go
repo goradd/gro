@@ -4,9 +4,9 @@ package query
 type Sorter interface {
 	Node
 	// Ascending specifies that the node should be sorted in ascending order.
-	Ascending() Node
+	Ascending() Sorter
 	// Descending specifies that the node should be sorted in descending order.
-	Descending() Node
+	Descending() Sorter
 	// IsDescending returns true if the node is sorted in descending order.
 	IsDescending() bool
 }

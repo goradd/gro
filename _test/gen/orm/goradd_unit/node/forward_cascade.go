@@ -26,8 +26,7 @@ type ForwardCascadeNode interface {
 // ForwardCascadeExpander is the builder interface for ForwardCascades that are expandable.
 type ForwardCascadeExpander interface {
 	ForwardCascadeNode
-	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand()
+	query.Expander
 }
 
 // forwardCascadeTable represents the forward_cascade table in a query. It uses a builder pattern to chain

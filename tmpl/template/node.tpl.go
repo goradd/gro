@@ -422,8 +422,7 @@ type `); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `Node
-    // Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-    Expand()
+    query.Expander
 }
 `); err != nil {
 			return

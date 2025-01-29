@@ -22,6 +22,9 @@ type Column struct {
 	// even if the underlying type in the database is a different type.
 	Type ColumnType `json:"type"`
 
+	// SubType further describes how the database treats the type.
+	SubType ColumnSubType `json:"sub_type,omitempty"`
+
 	// Identifier is the name of the column in Go code. Leave blank to base it on the Name.
 	// References should keep the "ID" at the name to differentiate between the value of the
 	// foreign key and the loaded object.
@@ -62,6 +65,14 @@ type Column struct {
 	// Reference is set when the column is a pointer to another table.
 	// This is required for ColTypeReference, ColTypeEnum and ColTypeEnumArray tables.
 	Reference *Reference `json:"reference,omitempty"`
+
+	// DatabaseColumnInfo contains database specific extra information on the column that helps the database driver
+	// recreate the column in the database if needed. The top key is a db.DriverType constant, and the secondary key is the
+	// type of information. For example, a DECIMAL field might look like this:
+	//  {"mysql":{"type":"decimal(5,2)"},"sqllite":{"type":"string"}}
+	// This would indicate that in Mysql, the column is defined as DECIMAL(5,2), but in Sqllite, as a string.
+	// The information recognized is specific to the database driver.
+	DatabaseColumnInfo map[string]map[string]interface{} `json:"database_column_info,omitempty"`
 }
 
 // Reference is the additional information needed for reference type  and enum columns.

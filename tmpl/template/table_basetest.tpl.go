@@ -10,6 +10,7 @@ import (
 	"github.com/goradd/orm/pkg/codegen"
 	"github.com/goradd/orm/pkg/model"
 	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
 )
 
 func init() {
@@ -88,68 +89,278 @@ import (
 		}
 
 		if _, err = io.WriteString(_w, `()
-
-    `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, ` := 	test.RandomValue[`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.GoType()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `](`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, strconv.FormatUint(uint64(col.Size), 10)); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `)
-    obj.Set`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `(`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `)
-    assert.Equal(t, `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `, obj.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `())
 `); err != nil {
 			return
+		}
+
+		if col.IsEnum() {
+
+			if _, err = io.WriteString(_w, `    `); err != nil {
+				return
+			}
+
+			if col.IsEnumArray() {
+
+				if _, err = io.WriteString(_w, `
+    `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ` := 	test.RandomEnumArray(`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Reference.EnumTable.IdentifierPlural); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `())
+    obj.Set`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `)
+    `); err != nil {
+					return
+				}
+
+			} else {
+
+				if _, err = io.WriteString(_w, `
+    `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ` := test.RandomEnum(`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Reference.EnumTable.IdentifierPlural); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `())
+     obj.Set`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `)
+   `); err != nil {
+					return
+				}
+
+			}
+
+			if _, err = io.WriteString(_w, `
+`); err != nil {
+				return
+			}
+
+		} else {
+
+			if _, err = io.WriteString(_w, `    `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` := 	test.RandomValue[`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.GoType()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `](`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, strconv.FormatUint(uint64(col.Size), 10)); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `)
+    obj.Set`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `)
+`); err != nil {
+				return
+			}
+
+		}
+
+		if col.SchemaSubType == schema.ColSubTypeDateOnly {
+
+			if _, err = io.WriteString(_w, `    `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` = obj.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()
+    assert.Zero(t, `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.Minute()) // make sure time part is zero'd
+    assert.Zero(t, `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.Hour()) // make sure time part is zero'd
+    assert.Zero(t, `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.Second()) // make sure time part is zero'd
+`); err != nil {
+				return
+			}
+
+		} else if col.SchemaSubType == schema.ColSubTypeTimeOnly {
+
+			if _, err = io.WriteString(_w, `    `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` = obj.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()
+    assert.Zero(t, `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.Year()) // make sure minute part is zero'd
+    assert.Equal(t, 1, `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.Month()) // make sure minute part is zero'd
+    assert.Equal(t, 1, `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.Day()) // make sure minute part is zero'd
+`); err != nil {
+				return
+			}
+
+		} else {
+
+			if _, err = io.WriteString(_w, `    assert.Equal(t, `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `, obj.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `())
+`); err != nil {
+				return
+			}
+
 		}
 
 		if col.IsNullable {
@@ -219,48 +430,14 @@ import (
 		}
 
 		if _, err = io.WriteString(_w, `
-    // test zero
-    obj.Set`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `(`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.DefaultValueAsValue()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `)
-    assert.Equal(t, `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.DefaultValueAsValue()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `, obj.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `(), "set empty")
+    // test default
 `); err != nil {
 			return
 		}
 
-		if col.IsNullable {
+		if col.IsEnumArray() {
 
-			if _, err = io.WriteString(_w, `    assert.False(t, obj.`); err != nil {
+			if _, err = io.WriteString(_w, `    obj.Set`); err != nil {
 				return
 			}
 
@@ -268,7 +445,103 @@ import (
 				return
 			}
 
-			if _, err = io.WriteString(_w, `IsNull())
+			if _, err = io.WriteString(_w, `(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.DefaultValueAsValue()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `)
+    assert.True(t, obj.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().Equal(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.GoType()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.DefaultValueAsValue()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `)), "set default")
+`); err != nil {
+				return
+			}
+
+		} else {
+
+			if _, err = io.WriteString(_w, `    obj.Set`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.DefaultValueAsValue()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `)
+    assert.EqualValues(t, `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.DefaultValueAsValue()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `, obj.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(), "set default")
+    `); err != nil {
+				return
+			}
+
+			if col.IsNullable {
+
+				if _, err = io.WriteString(_w, `
+    assert.False(t, obj.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `IsNull())
+    `); err != nil {
+					return
+				}
+
+			}
+
+			if _, err = io.WriteString(_w, `
 `); err != nil {
 				return
 			}
@@ -280,7 +553,9 @@ import (
 			return
 		}
 
-		if col.Size > 0 && (col.ReceiverType == query.ColTypeBytes || col.ReceiverType == query.ColTypeString || col.ReceiverType == query.ColTypeUnknown) {
+		if col.Size > 0 &&
+			!col.IsEnum() &&
+			(col.ReceiverType == query.ColTypeBytes || col.ReceiverType == query.ColTypeString || col.ReceiverType == query.ColTypeUnknown) {
 
 			if _, err = io.WriteString(_w, `    // test panic on setting value larger than maximum size allowed
     `); err != nil {
@@ -464,6 +739,102 @@ func createMinimalSample`); err != nil {
 					return
 				}
 
+			} else if col.IsEnum() {
+
+				if _, err = io.WriteString(_w, `
+        `); err != nil {
+					return
+				}
+
+				if col.IsEnumArray() {
+
+					if _, err = io.WriteString(_w, `
+    `); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, ` := test.RandomEnumArray(`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Reference.EnumTable.IdentifierPlural); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `())
+     obj.Set`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `(`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `)
+       `); err != nil {
+						return
+					}
+
+				} else {
+
+					if _, err = io.WriteString(_w, `
+    `); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, ` := test.RandomEnum(`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Reference.EnumTable.IdentifierPlural); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `())
+     obj.Set`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `(`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `)
+        `); err != nil {
+						return
+					}
+
+				}
+
+				if _, err = io.WriteString(_w, `
+    `); err != nil {
+					return
+				}
+
 			} else {
 
 				if _, err = io.WriteString(_w, `
@@ -492,7 +863,7 @@ func createMinimalSample`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `)
-    obj.Set`); err != nil {
+     obj.Set`); err != nil {
 					return
 				}
 
@@ -509,13 +880,14 @@ func createMinimalSample`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `)
-    `); err != nil {
+   `); err != nil {
 					return
 				}
 
 			}
 
 			if _, err = io.WriteString(_w, `
+
 `); err != nil {
 				return
 			}
@@ -615,6 +987,102 @@ func createMinimalSample`); err != nil {
 					return
 				}
 
+			} else if col.IsEnum() {
+
+				if _, err = io.WriteString(_w, `
+        `); err != nil {
+					return
+				}
+
+				if col.IsEnumArray() {
+
+					if _, err = io.WriteString(_w, `
+    `); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, ` := test.RandomEnumArray(`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Reference.EnumTable.IdentifierPlural); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `())
+    obj.Set`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `(`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `)
+        `); err != nil {
+						return
+					}
+
+				} else {
+
+					if _, err = io.WriteString(_w, `
+    `); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, ` := test.RandomEnum(`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Reference.EnumTable.IdentifierPlural); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `())
+    obj.Set`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `(`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `)
+        `); err != nil {
+						return
+					}
+
+				}
+
+				if _, err = io.WriteString(_w, `
+    `); err != nil {
+					return
+				}
+
 			} else {
 
 				if _, err = io.WriteString(_w, `
@@ -660,6 +1128,37 @@ func createMinimalSample`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `)
+        `); err != nil {
+					return
+				}
+
+				if col.SchemaType == schema.ColTypeTime {
+
+					if _, err = io.WriteString(_w, `
+    `); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, ` = obj.`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `()
+        `); err != nil {
+						return
+					}
+
+				}
+
+				if _, err = io.WriteString(_w, `
     `); err != nil {
 					return
 				}
@@ -730,42 +1229,69 @@ func createMinimalSample`); err != nil {
 
 		}
 
-		if col.HasSetter() && !col.IsReference() {
+		if col.HasSetter() {
 
-			if _, err = io.WriteString(_w, `    assert.Equal(t, `); err != nil {
-				return
-			}
+			if col.IsReference() {
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
+				if _, err = io.WriteString(_w, `    assert.NotEmpty(t, obj.`); err != nil {
+					return
+				}
 
-			if _, err = io.WriteString(_w, `, obj.`); err != nil {
-				return
-			}
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
 
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `())
+				if _, err = io.WriteString(_w, `())
 `); err != nil {
-				return
-			}
+					return
+				}
 
-		} else {
+			} else if col.IsEnumArray() {
 
-			if _, err = io.WriteString(_w, `    assert.NotEmpty(t, obj.`); err != nil {
-				return
-			}
+				if _, err = io.WriteString(_w, `    assert.True(t, `); err != nil {
+					return
+				}
 
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
-			}
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
 
-			if _, err = io.WriteString(_w, `())
+				if _, err = io.WriteString(_w, `.Equal(obj.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `()))
 `); err != nil {
-				return
+					return
+				}
+
+			} else {
+
+				if _, err = io.WriteString(_w, `    assert.Equal(t, `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `, obj.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `())
+`); err != nil {
+					return
+				}
+
 			}
 
 		}

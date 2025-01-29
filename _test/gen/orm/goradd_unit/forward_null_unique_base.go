@@ -176,6 +176,9 @@ func (o *forwardNullUniqueBase) ReverseID_I() interface{} {
 	return o.reverseID
 }
 
+// SetReverseID prepares for setting the reverse_id value in the database.
+//
+// Pass nil to set it to a NULL value in the database.
 func (o *forwardNullUniqueBase) SetReverseID(i interface{}) {
 	o.reverseIDIsValid = true
 	if i == nil {
@@ -305,6 +308,9 @@ type ForwardNullUniqueBuilder interface {
 	// Join adds node n to the node tree so that its fields will appear in the query.
 	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
 	Join(n query.Node, conditions ...query.Node) ForwardNullUniqueBuilder
+
+	// Expand turns a Reverse or ManyMany node into individual rows.
+	Expand(n query.Expander) ForwardNullUniqueBuilder
 
 	// Where adds a condition to filter what gets selected.
 	// Calling Where multiple times will AND the conditions together.
@@ -495,6 +501,12 @@ func (b *forwardNullUniqueQueryBuilder) Get() *ForwardNullUnique {
 	} else {
 		return nil
 	}
+}
+
+// Expand expands an array type node so that it will produce individual rows instead of an array of items
+func (b *forwardNullUniqueQueryBuilder) Expand(n query.Expander) ForwardNullUniqueBuilder {
+	b.builder.Expand(n)
+	return b
 }
 
 // Join adds node n to the node tree so that its fields will appear in the query.

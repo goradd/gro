@@ -15,7 +15,6 @@ import (
 func TestLogin_SetPersonID(t *testing.T) {
 
 	obj := NewLogin()
-
 	personID := test.RandomValue[string](0)
 	obj.SetPersonID(personID)
 	assert.Equal(t, personID, obj.PersonID())
@@ -26,23 +25,23 @@ func TestLogin_SetPersonID(t *testing.T) {
 	assert.Equal(t, "", obj.PersonID(), "set nil")
 	assert.True(t, obj.PersonIDIsNull())
 
-	// test zero
+	// test default
 	obj.SetPersonID("")
-	assert.Equal(t, "", obj.PersonID(), "set empty")
+	assert.EqualValues(t, "", obj.PersonID(), "set default")
+
 	assert.False(t, obj.PersonIDIsNull())
 
 }
 func TestLogin_SetUsername(t *testing.T) {
 
 	obj := NewLogin()
-
 	username := test.RandomValue[string](20)
 	obj.SetUsername(username)
 	assert.Equal(t, username, obj.Username())
 
-	// test zero
+	// test default
 	obj.SetUsername("")
-	assert.Equal(t, "", obj.Username(), "set empty")
+	assert.EqualValues(t, "", obj.Username(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	username = test.RandomValue[string](21)
@@ -53,7 +52,6 @@ func TestLogin_SetUsername(t *testing.T) {
 func TestLogin_SetPassword(t *testing.T) {
 
 	obj := NewLogin()
-
 	password := test.RandomValue[string](20)
 	obj.SetPassword(password)
 	assert.Equal(t, password, obj.Password())
@@ -64,9 +62,10 @@ func TestLogin_SetPassword(t *testing.T) {
 	assert.Equal(t, "", obj.Password(), "set nil")
 	assert.True(t, obj.PasswordIsNull())
 
-	// test zero
+	// test default
 	obj.SetPassword("")
-	assert.Equal(t, "", obj.Password(), "set empty")
+	assert.EqualValues(t, "", obj.Password(), "set default")
+
 	assert.False(t, obj.PasswordIsNull())
 
 	// test panic on setting value larger than maximum size allowed
@@ -78,14 +77,13 @@ func TestLogin_SetPassword(t *testing.T) {
 func TestLogin_SetIsEnabled(t *testing.T) {
 
 	obj := NewLogin()
-
 	isEnabled := test.RandomValue[bool](0)
 	obj.SetIsEnabled(isEnabled)
 	assert.Equal(t, isEnabled, obj.IsEnabled())
 
-	// test zero
+	// test default
 	obj.SetIsEnabled(true)
-	assert.Equal(t, true, obj.IsEnabled(), "set empty")
+	assert.EqualValues(t, true, obj.IsEnabled(), "set default")
 
 }
 
@@ -129,7 +127,6 @@ func TestLogin_CRUD(t *testing.T) {
 	require.NotNil(t, obj)
 
 	assert.True(t, obj.IDIsValid())
-	assert.NotEmpty(t, obj.ID())
 
 	assert.True(t, obj.PersonIDIsValid())
 	assert.False(t, obj.PersonIDIsNull())

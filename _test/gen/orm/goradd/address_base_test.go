@@ -15,27 +15,25 @@ import (
 func TestAddress_SetPersonID(t *testing.T) {
 
 	obj := NewAddress()
-
 	personID := test.RandomValue[string](0)
 	obj.SetPersonID(personID)
 	assert.Equal(t, personID, obj.PersonID())
 
-	// test zero
+	// test default
 	obj.SetPersonID("")
-	assert.Equal(t, "", obj.PersonID(), "set empty")
+	assert.EqualValues(t, "", obj.PersonID(), "set default")
 
 }
 func TestAddress_SetStreet(t *testing.T) {
 
 	obj := NewAddress()
-
 	street := test.RandomValue[string](100)
 	obj.SetStreet(street)
 	assert.Equal(t, street, obj.Street())
 
-	// test zero
+	// test default
 	obj.SetStreet("")
-	assert.Equal(t, "", obj.Street(), "set empty")
+	assert.EqualValues(t, "", obj.Street(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	street = test.RandomValue[string](101)
@@ -46,7 +44,6 @@ func TestAddress_SetStreet(t *testing.T) {
 func TestAddress_SetCity(t *testing.T) {
 
 	obj := NewAddress()
-
 	city := test.RandomValue[string](100)
 	obj.SetCity(city)
 	assert.Equal(t, city, obj.City())
@@ -57,9 +54,10 @@ func TestAddress_SetCity(t *testing.T) {
 	assert.Equal(t, "BOB", obj.City(), "set nil")
 	assert.True(t, obj.CityIsNull())
 
-	// test zero
+	// test default
 	obj.SetCity("BOB")
-	assert.Equal(t, "BOB", obj.City(), "set empty")
+	assert.EqualValues(t, "BOB", obj.City(), "set default")
+
 	assert.False(t, obj.CityIsNull())
 
 	// test panic on setting value larger than maximum size allowed
@@ -107,7 +105,6 @@ func TestAddress_CRUD(t *testing.T) {
 	require.NotNil(t, obj)
 
 	assert.True(t, obj.IDIsValid())
-	assert.NotEmpty(t, obj.ID())
 
 	assert.True(t, obj.PersonIDIsValid())
 	assert.NotEmpty(t, obj.PersonID())

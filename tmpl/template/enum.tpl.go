@@ -921,7 +921,7 @@ func (tmpl *EnumTemplate) genSet(table *model.Enum, _w io.Writer) (err error) {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Set is a group of `); err != nil {
+	if _, err = io.WriteString(_w, `Set is a pointer to a group of `); err != nil {
 		return
 	}
 
@@ -938,7 +938,7 @@ type `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Set = maps.OrderedSet[`); err != nil {
+	if _, err = io.WriteString(_w, `Set = *maps.OrderedSet[`); err != nil {
 		return
 	}
 
@@ -948,6 +948,83 @@ type `); err != nil {
 
 	if _, err = io.WriteString(_w, `]
 
+func New`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Set(values ...`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `) `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Set {
+	return maps.NewOrderedSet[`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `](values...)
+}
+
+func New`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `SetFrom[K constraints.Integer | constraints.Float](values ...K) `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Set {
+	m := maps.NewOrderedSet[`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `]()
+	for _, v := range values {
+		m.Add(`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `(v))
+	}
+	return m
+}
+
+/*
 // `); err != nil {
 		return
 	}
@@ -1037,6 +1114,7 @@ func `); err != nil {
 	sort.Ints(ints)
 	return
 }
+*/
 
 func init() {
     gob.Register(new(`); err != nil {

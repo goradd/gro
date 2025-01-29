@@ -15,27 +15,25 @@ import (
 func TestGift_SetNumber(t *testing.T) {
 
 	obj := NewGift()
-
 	number := test.RandomValue[int](32)
 	obj.SetNumber(number)
 	assert.Equal(t, number, obj.Number())
 
-	// test zero
+	// test default
 	obj.SetNumber(0)
-	assert.Equal(t, 0, obj.Number(), "set empty")
+	assert.EqualValues(t, 0, obj.Number(), "set default")
 
 }
 func TestGift_SetName(t *testing.T) {
 
 	obj := NewGift()
-
 	name := test.RandomValue[string](50)
 	obj.SetName(name)
 	assert.Equal(t, name, obj.Name())
 
-	// test zero
+	// test default
 	obj.SetName("")
-	assert.Equal(t, "", obj.Name(), "set empty")
+	assert.EqualValues(t, "", obj.Name(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	name = test.RandomValue[string](51)

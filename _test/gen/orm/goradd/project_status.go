@@ -4,7 +4,6 @@ package goradd
 
 import (
 	"encoding/gob"
-	"sort"
 	"strconv"
 
 	"github.com/goradd/maps"
@@ -80,13 +79,13 @@ func ProjectStatusesFromIDs(ids []string) (values []ProjectStatus) {
 // ProjectStatusFromName converts a ProjectStatus name to a ProjectStatus
 func ProjectStatusFromName(name string) ProjectStatus {
 	switch name {
-	case `Open`:
+	case `open`:
 		return ProjectStatusOpen
-	case `Cancelled`:
+	case `cancelled`:
 		return ProjectStatusCancelled
-	case `Completed`:
+	case `completed`:
 		return ProjectStatusCompleted
-	case `Planned`:
+	case `planned`:
 		return ProjectStatusPlanned
 	}
 	return ProjectStatus(0)
@@ -129,13 +128,13 @@ func (e ProjectStatus) Name() string {
 	case 0:
 		return ""
 	case ProjectStatusOpen:
-		return "Open"
+		return "open"
 	case ProjectStatusCancelled:
-		return "Cancelled"
+		return "cancelled"
 	case ProjectStatusCompleted:
-		return "Completed"
+		return "completed"
 	case ProjectStatusPlanned:
-		return "Planned"
+		return "planned"
 	default:
 		panic("Index out of range")
 	}
@@ -148,10 +147,10 @@ func ProjectStatusNames() []string {
 	return []string{
 		// 0 item will be a zero value
 		"",
-		"Open",
-		"Cancelled",
-		"Completed",
-		"Planned",
+		"open",
+		"cancelled",
+		"completed",
+		"planned",
 	}
 }
 
@@ -248,11 +247,24 @@ func ProjectStatusIsActives() []bool {
 	}
 }
 
-// ProjectStatusSet is a group of ProjectStatus values.
-type ProjectStatusSet = maps.OrderedSet[ProjectStatus]
+// ProjectStatusSet is a pointer to a group of ProjectStatus values.
+type ProjectStatusSet = *maps.OrderedSet[ProjectStatus]
 
+func NewProjectStatusSet(values ...ProjectStatus) ProjectStatusSet {
+	return maps.NewOrderedSet[ProjectStatus](values...)
+}
+
+func NewProjectStatusSetFrom[K constraints.Integer | constraints.Float](values ...K) ProjectStatusSet {
+	m := maps.NewOrderedSet[ProjectStatus]()
+	for _, v := range values {
+		m.Add(ProjectStatus(v))
+	}
+	return m
+}
+
+/*
 // ProjectStatusSetFromNumbers converts an array of numeric values into a ProjectStatusSet.
-func ProjectStatusSetFromNumbers[T constraints.Integer | constraints.Float](nums []T) (values ProjectStatusSet) {
+func ProjectStatusSetFromNumbers[T constraints.Integer | constraints.Float] (nums []T) (values ProjectStatusSet) {
 	var s ProjectStatusSet
 	for _, n := range nums {
 		s.Add(ProjectStatus(n))
@@ -262,12 +274,13 @@ func ProjectStatusSetFromNumbers[T constraints.Integer | constraints.Float](nums
 
 // ProjectStatusSetToInts
 func ProjectStatusSetToInts(values ProjectStatusSet) (ints []int) {
-	for _, v := range values.Values() {
+	for _,v := range values.Values() {
 		ints = append(ints, int(v))
 	}
 	sort.Ints(ints)
 	return
 }
+*/
 
 func init() {
 	gob.Register(new(ProjectStatusSet))

@@ -15,14 +15,13 @@ import (
 func TestPersonWithLock_SetFirstName(t *testing.T) {
 
 	obj := NewPersonWithLock()
-
 	firstName := test.RandomValue[string](50)
 	obj.SetFirstName(firstName)
 	assert.Equal(t, firstName, obj.FirstName())
 
-	// test zero
+	// test default
 	obj.SetFirstName("")
-	assert.Equal(t, "", obj.FirstName(), "set empty")
+	assert.EqualValues(t, "", obj.FirstName(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	firstName = test.RandomValue[string](51)
@@ -33,14 +32,13 @@ func TestPersonWithLock_SetFirstName(t *testing.T) {
 func TestPersonWithLock_SetLastName(t *testing.T) {
 
 	obj := NewPersonWithLock()
-
 	lastName := test.RandomValue[string](50)
 	obj.SetLastName(lastName)
 	assert.Equal(t, lastName, obj.LastName())
 
-	// test zero
+	// test default
 	obj.SetLastName("")
-	assert.Equal(t, "", obj.LastName(), "set empty")
+	assert.EqualValues(t, "", obj.LastName(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	lastName = test.RandomValue[string](51)
@@ -80,7 +78,6 @@ func TestPersonWithLock_CRUD(t *testing.T) {
 	require.NotNil(t, obj)
 
 	assert.True(t, obj.IDIsValid())
-	assert.NotEmpty(t, obj.ID())
 
 	assert.True(t, obj.FirstNameIsValid())
 	assert.Equal(t, firstName, obj.FirstName())
@@ -90,6 +87,5 @@ func TestPersonWithLock_CRUD(t *testing.T) {
 
 	assert.True(t, obj.SysTimestampIsValid())
 	assert.False(t, obj.SysTimestampIsNull())
-	assert.NotEmpty(t, obj.SysTimestamp())
 
 }

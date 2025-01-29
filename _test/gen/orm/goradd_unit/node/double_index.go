@@ -24,8 +24,7 @@ type DoubleIndexNode interface {
 // DoubleIndexExpander is the builder interface for DoubleIndices that are expandable.
 type DoubleIndexExpander interface {
 	DoubleIndexNode
-	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand()
+	query.Expander
 }
 
 // doubleIndexTable represents the double_index table in a query. It uses a builder pattern to chain

@@ -113,7 +113,7 @@ func (o *personBase) Initialize() {
 	o.lastNameIsValid = false
 	o.lastNameIsDirty = false
 
-	o.types = PersonTypeSet{}
+	o.types = nil
 
 	o.typesIsValid = false
 	o.typesIsDirty = false
@@ -221,7 +221,7 @@ func (o *personBase) Types() PersonTypeSet {
 	if o._restored && !o.typesIsValid {
 		panic("Types was not selected in the last query and has not been set, and so is not valid")
 	}
-	return o.types
+	return o.types.Clone()
 }
 
 // TypesIsValid returns true if the value was loaded from the database or has been set.
@@ -232,7 +232,7 @@ func (o *personBase) TypesIsValid() bool {
 // SetTypes sets the value of Types in the object, to be saved later using the Save() function.
 func (o *personBase) SetTypes(types PersonTypeSet) {
 	o.typesIsValid = true
-	if !o.types.Equal(&types) ||
+	if !o.types.Equal(types) ||
 		!o._restored {
 		o.types = types
 		o.typesIsDirty = true
@@ -674,6 +674,9 @@ type PersonBuilder interface {
 	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
 	Join(n query.Node, conditions ...query.Node) PersonBuilder
 
+	// Expand turns a Reverse or ManyMany node into individual rows.
+	Expand(n query.Expander) PersonBuilder
+
 	// Where adds a condition to filter what gets selected.
 	// Calling Where multiple times will AND the conditions together.
 	Where(c query.Node) PersonBuilder
@@ -863,6 +866,12 @@ func (b *personQueryBuilder) Get() *Person {
 	} else {
 		return nil
 	}
+}
+
+// Expand expands an array type node so that it will produce individual rows instead of an array of items
+func (b *personQueryBuilder) Expand(n query.Expander) PersonBuilder {
+	b.builder.Expand(n)
+	return b
 }
 
 // Join adds node n to the node tree so that its fields will appear in the query.
@@ -1065,7 +1074,7 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person, objParent i
 		}
 	} else {
 		o.typesIsValid = false
-		o.types = PersonTypeSet{}
+		o.types = nil
 	}
 
 	// Many-Many references
@@ -2046,11 +2055,11 @@ func (o *personBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 				}
 
 				if n, ok := v.([]int); ok {
-					o.SetTypes(PersonTypeSetFromNumbers(n))
+					o.SetTypes(NewPersonTypeSetFrom(n...))
 				} else if n, ok := v.([]float64); ok {
-					o.SetTypes(PersonTypeSetFromNumbers(n))
+					o.SetTypes(NewPersonTypeSetFrom(n...))
 				} else if n, ok := v.([]string); ok {
-					var a PersonTypeSet
+					a := NewPersonTypeSet()
 					for _, s := range n {
 						a.Add(PersonTypeFromName(s))
 					}

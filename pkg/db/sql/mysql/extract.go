@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/goradd/iter"
 	"github.com/goradd/maps"
+	"github.com/goradd/orm/pkg/db"
 	sql2 "github.com/goradd/orm/pkg/db/sql"
 	. "github.com/goradd/orm/pkg/query"
 	"github.com/goradd/orm/pkg/schema"
@@ -351,20 +352,24 @@ ORDER BY
 // Convert the database native type to a more generic sql type, and a go table type.
 func processTypeInfo(column mysqlColumn) (
 	typ schema.ColumnType,
+	subType schema.ColumnSubType,
 	maxLength uint64,
 	defaultValue interface{},
+	extra map[string]interface{},
 	err error) {
 	dataLen := sql2.GetDataDefLength(column.columnType)
 	isUnsigned := strings.Contains(column.columnType, "unsigned")
 
 	switch column.dataType {
 	case "time":
-		fallthrough
-	case "timestamp":
-		fallthrough
-	case "datetime":
-		fallthrough
+		typ = schema.ColTypeTime
+		subType = schema.ColSubTypeTimeOnly
 	case "date":
+		typ = schema.ColTypeTime
+		subType = schema.ColSubTypeDateOnly
+	case "timestamp":
+		typ = schema.ColTypeTime
+	case "datetime":
 		typ = schema.ColTypeTime
 	case "tinyint":
 		if dataLen == 1 {
@@ -452,25 +457,30 @@ func processTypeInfo(column mysqlColumn) (
 	case "decimal":
 		// No native equivalent in Go.
 		// See the shopspring/decimal package for possible support.
-		// You will need to shepherd numbers into and out of string format to move data to the database.
-		typ = schema.ColTypeString
+		// You will need to shepherd numbers into and out of []byte format to move data to the database.
+		typ = schema.ColTypeUnknown
 		maxLength = uint64(dataLen) + 3
+		extra = map[string]interface{}{"type": column.columnType}
 
 	case "year":
 		typ = schema.ColTypeInt
+		extra = map[string]interface{}{"type": column.columnType}
 
 	case "set":
 		err = fmt.Errorf("set is not supported. Use a json or string column type instead")
 		typ = schema.ColTypeUnknown
 		maxLength = uint64(column.characterMaxLen.Int64)
+		extra = map[string]interface{}{"type": column.columnType}
 
 	case "enum":
 		err = fmt.Errorf("enum is not supported directly. Use an enum table")
 		typ = schema.ColTypeUnknown
 		maxLength = uint64(column.characterMaxLen.Int64)
+		extra = map[string]interface{}{"type": column.columnType}
 
 	default:
 		typ = schema.ColTypeUnknown
+		extra = map[string]interface{}{"type": column.columnType}
 	}
 
 	defaultValue = column.defaultValue.UnpackDefaultValue(typ, int(maxLength))
@@ -694,9 +704,16 @@ func (m *DB) getColumnSchema(table mysqlTable,
 		Name: column.name,
 	}
 	var err error
-	cd.Type, cd.Size, cd.DefaultValue, err = processTypeInfo(column)
+	var extra map[string]any
+	cd.Type, cd.SubType, cd.Size, cd.DefaultValue, extra, err = processTypeInfo(column)
 	if err != nil {
 		log2.Warn(err.Error() + ". Table = " + table.name + "; Column = " + column.name)
+	}
+	if extra != nil {
+		if cd.DatabaseColumnInfo == nil {
+			cd.DatabaseColumnInfo = make(map[string]map[string]interface{})
+		}
+		cd.DatabaseColumnInfo[db.DriverTypeMysql] = extra
 	}
 
 	isAuto := strings.Contains(column.extra, "auto_increment")

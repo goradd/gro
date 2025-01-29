@@ -26,8 +26,7 @@ type ForwardRestrictNode interface {
 // ForwardRestrictExpander is the builder interface for ForwardRestricts that are expandable.
 type ForwardRestrictExpander interface {
 	ForwardRestrictNode
-	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand()
+	query.Expander
 }
 
 // forwardRestrictTable represents the forward_restrict table in a query. It uses a builder pattern to chain

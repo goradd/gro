@@ -26,8 +26,7 @@ type ForwardRestrictUniqueNode interface {
 // ForwardRestrictUniqueExpander is the builder interface for ForwardRestrictUniques that are expandable.
 type ForwardRestrictUniqueExpander interface {
 	ForwardRestrictUniqueNode
-	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand()
+	query.Expander
 }
 
 // forwardRestrictUniqueTable represents the forward_restrict_unique table in a query. It uses a builder pattern to chain

@@ -15,14 +15,13 @@ import (
 func TestReverse_SetName(t *testing.T) {
 
 	obj := NewReverse()
-
 	name := test.RandomValue[string](100)
 	obj.SetName(name)
 	assert.Equal(t, name, obj.Name())
 
-	// test zero
+	// test default
 	obj.SetName("")
-	assert.Equal(t, "", obj.Name(), "set empty")
+	assert.EqualValues(t, "", obj.Name(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	name = test.RandomValue[string](101)
@@ -56,7 +55,6 @@ func TestReverse_CRUD(t *testing.T) {
 	require.NotNil(t, obj)
 
 	assert.True(t, obj.IDIsValid())
-	assert.NotEmpty(t, obj.ID())
 
 	assert.True(t, obj.NameIsValid())
 	assert.Equal(t, name, obj.Name())

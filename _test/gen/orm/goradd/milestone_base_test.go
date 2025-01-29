@@ -15,27 +15,25 @@ import (
 func TestMilestone_SetProjectID(t *testing.T) {
 
 	obj := NewMilestone()
-
 	projectID := test.RandomValue[string](0)
 	obj.SetProjectID(projectID)
 	assert.Equal(t, projectID, obj.ProjectID())
 
-	// test zero
+	// test default
 	obj.SetProjectID("")
-	assert.Equal(t, "", obj.ProjectID(), "set empty")
+	assert.EqualValues(t, "", obj.ProjectID(), "set default")
 
 }
 func TestMilestone_SetName(t *testing.T) {
 
 	obj := NewMilestone()
-
 	name := test.RandomValue[string](50)
 	obj.SetName(name)
 	assert.Equal(t, name, obj.Name())
 
-	// test zero
+	// test default
 	obj.SetName("")
-	assert.Equal(t, "", obj.Name(), "set empty")
+	assert.EqualValues(t, "", obj.Name(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	name = test.RandomValue[string](51)
@@ -76,7 +74,6 @@ func TestMilestone_CRUD(t *testing.T) {
 	require.NotNil(t, obj)
 
 	assert.True(t, obj.IDIsValid())
-	assert.NotEmpty(t, obj.ID())
 
 	assert.True(t, obj.ProjectIDIsValid())
 	assert.NotEmpty(t, obj.ProjectID())

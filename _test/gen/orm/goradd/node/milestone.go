@@ -26,8 +26,7 @@ type MilestoneNode interface {
 // MilestoneExpander is the builder interface for Milestones that are expandable.
 type MilestoneExpander interface {
 	MilestoneNode
-	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand()
+	query.Expander
 }
 
 // milestoneTable represents the milestone table in a query. It uses a builder pattern to chain

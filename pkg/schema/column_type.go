@@ -12,14 +12,15 @@ import "encoding/json"
 //
 // # ColTypeUnknown
 //
-// This is a column type that is unknown to Go and that will be provided to Go as a []byte array
-// or a string depending on the database driver.
+// This is a column type that is unknown to the orm and that will be provided to Go as a []byte slice.
 // Many databases have non-standard or custom data types or types that simply don't fit well in Go.
 // For example, the NUMERIC or DECIMAL type in many databases is an exact precision decimal
 // number for which there is no equivalent in Go, since Go uses floating point numbers to represent
 // decimal numbers. To provide data of this type to your application, you can create a custom
 // type in Go, and then create accessor functions that translate between the database representation
 // and your custom type.
+//
+// See Column.DatabaseColumnInfo for a way to specify the database specific type info for this column.
 //
 // # ColTypeBytes
 //
@@ -111,6 +112,7 @@ import "encoding/json"
 //
 // Enum columns contain values of enumerated types that are described by Enum tables in the schema.
 // ColTypeEnum is an integer value in the database, and ColTypeEnumArray is stored as a JSON array of integers.
+// Note that filtering queries on ColTypeEnumArray columns may be limited based on your database type.
 type ColumnType int
 
 const (
@@ -133,31 +135,31 @@ const (
 func (ct ColumnType) String() string {
 	switch ct {
 	case ColTypeBytes:
-		return "Bytes"
+		return "bytes"
 	case ColTypeString:
-		return "String"
+		return "string"
 	case ColTypeInt:
-		return "Int"
+		return "int"
 	case ColTypeUint:
-		return "Uint"
+		return "uint"
 	case ColTypeTime:
-		return "Time"
+		return "time"
 	case ColTypeFloat:
-		return "Float"
+		return "float"
 	case ColTypeBool:
-		return "Bool"
+		return "bool"
 	case ColTypeAutoPrimaryKey:
-		return "AutoPrimaryKey"
+		return "auto_primary_key"
 	case ColTypeJSON:
-		return "JSON"
+		return "json"
 	case ColTypeReference:
-		return "Reference"
+		return "ref"
 	case ColTypeEnum:
-		return "Enum"
+		return "enum"
 	case ColTypeEnumArray:
-		return "EnumArray"
+		return "enum_array"
 	default:
-		return "Unknown"
+		return "unknown"
 	}
 }
 
@@ -176,32 +178,80 @@ func (ct *ColumnType) UnmarshalJSON(data []byte) error {
 
 	// Match the string representation and assign the corresponding ReceiverType value
 	switch ctStr {
-	case "Bytes":
+	case "bytes":
 		*ct = ColTypeBytes
-	case "String":
+	case "string":
 		*ct = ColTypeString
-	case "Int":
+	case "int":
 		*ct = ColTypeInt
-	case "Uint":
+	case "uint":
 		*ct = ColTypeUint
-	case "Time":
+	case "time":
 		*ct = ColTypeTime
-	case "Float":
+	case "float":
 		*ct = ColTypeFloat
-	case "Bool":
+	case "bool":
 		*ct = ColTypeBool
-	case "AutoPrimaryKey":
+	case "auto_primary_key":
 		*ct = ColTypeAutoPrimaryKey
-	case "JSON":
+	case "json":
 		*ct = ColTypeJSON
-	case "Reference":
+	case "ref":
 		*ct = ColTypeReference
-	case "Enum":
+	case "enum":
 		*ct = ColTypeEnum
-	case "EnumArray":
+	case "enum_array":
 		*ct = ColTypeEnumArray
 	default:
 		*ct = ColTypeUnknown
+	}
+	return nil
+}
+
+// ColumnSubType provides more description to a particular type
+type ColumnSubType int
+
+const (
+	ColSubTypeNone ColumnSubType = iota
+	ColSubTypeDateOnly
+	ColSubTypeTimeOnly
+)
+
+// String returns the string representation of a ColumnType.
+func (ct ColumnSubType) String() string {
+	switch ct {
+	case ColSubTypeNone:
+		return "none"
+	case ColSubTypeDateOnly:
+		return "date_only"
+	case ColSubTypeTimeOnly:
+		return "time_only"
+	default:
+		return "none"
+	}
+}
+
+// MarshalJSON customizes how ColumnType is serialized to JSON.
+func (cst ColumnSubType) MarshalJSON() ([]byte, error) {
+	// Return the string representation of the ReceiverType
+	return json.Marshal(cst.String())
+}
+
+// UnmarshalJSON customizes how ColumnType is deserialized from JSON.
+func (cst *ColumnSubType) UnmarshalJSON(data []byte) error {
+	var cstStr string
+	if err := json.Unmarshal(data, &cstStr); err != nil {
+		return err
+	}
+
+	// Match the string representation and assign the corresponding ReceiverType value
+	switch cstStr {
+	case "date_only":
+		*cst = ColSubTypeDateOnly
+	case "time_only":
+		*cst = ColSubTypeTimeOnly
+	default:
+		*cst = ColSubTypeNone
 	}
 	return nil
 }

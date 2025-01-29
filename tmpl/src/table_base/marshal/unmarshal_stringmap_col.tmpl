@@ -26,11 +26,11 @@
 {{elseif col.IsEnum()}}
 {{if col.IsEnumArray()}}
            if n,ok := v.([]int); ok {
-               o.Set{{= col.Identifier }}({{= col.GoType() }}FromNumbers(n))
+               o.Set{{= col.Identifier }}(New{{= col.GoType() }}From(n...))
            } else if n,ok := v.([]float64); ok {
-               o.Set{{= col.Identifier }}({{= col.GoType() }}FromNumbers(n))
+               o.Set{{= col.Identifier }}(New{{= col.GoType() }}From(n...))
            } else if n,ok := v.([]string); ok {
-               var a {{= col.GoType() }}
+               a := New{{= col.GoType() }}()
                for _,s := range n {
                    a.Add({{= col.ReferenceType() }}From{{= col.Reference.EnumTable.FieldIdentifier(1) }}(s))
                }

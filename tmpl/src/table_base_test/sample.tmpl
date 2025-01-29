@@ -18,10 +18,19 @@ func createMinimalSample{{= table.Identifier }}(ctx context.Context) *{{= table.
     obj.Set{{= col.ReferenceIdentifier() }}({{= col.ReferenceVariableIdentifier() }})
         {{if}}
         {{# otherwise do not set the reference to avoid possible endless loop}}
+    {{elseif col.IsEnum() }}
+        {{if col.IsEnumArray() }}
+    {{= col.VariableIdentifier() }} := test.RandomEnumArray({{= col.Reference.EnumTable.IdentifierPlural}}())
+     obj.Set{{= col.Identifier }}({{= col.VariableIdentifier() }})
+       {{else}}
+    {{= col.VariableIdentifier() }} := test.RandomEnum({{= col.Reference.EnumTable.IdentifierPlural}}())
+     obj.Set{{= col.Identifier }}({{= col.VariableIdentifier() }})
+        {{if}}
     {{else}}
     {{= col.VariableIdentifier() }} := 	test.RandomValue[{{= col.GoType() }}]({{u col.Size }})
-    obj.Set{{= col.Identifier }}({{= col.VariableIdentifier() }})
-    {{if}}
+     obj.Set{{= col.Identifier }}({{= col.VariableIdentifier() }})
+   {{if}}
+
 {{if}}
 {{for}}
     obj.Save(ctx)

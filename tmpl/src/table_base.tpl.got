@@ -3,6 +3,8 @@ package template
 import (
 	"github.com/goradd/orm/pkg/codegen"
 	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
+	"github.com/goradd/orm/pkg/model"
 )
 
 func init() {

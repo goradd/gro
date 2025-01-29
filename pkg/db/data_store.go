@@ -8,6 +8,14 @@ import (
 	"iter"
 )
 
+var DriverType string
+
+// List of supported database drivers
+const (
+	DriverTypeMysql    = "mysql"
+	DriverTypePostgres = "postgres"
+)
+
 // The dataStore is the central database collection used in code generation and the orm.
 var datastore maps.SliceMap[string, DatabaseI]
 

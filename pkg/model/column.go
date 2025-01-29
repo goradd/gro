@@ -28,6 +28,8 @@ type Column struct {
 	DecapIdentifier string
 	// SchemaType is the type info specified in the schema description
 	SchemaType schema.ColumnType
+	// SchemaSubType further describes the schema type.
+	SchemaSubType schema.ColumnSubType
 	//  ReceiverType indicates the Go type that matches the column.
 	ReceiverType ReceiverType
 	// Size is the maximum length of runes to allow in the column if a string type column.
@@ -74,7 +76,7 @@ func (cd *Column) DefaultValueAsValue() string {
 			return `""`
 		} else if cd.IsEnum() {
 			if cd.IsEnumArray() {
-				return cd.GoType() + `{}`
+				return "nil"
 			}
 			return "0"
 		}
@@ -93,11 +95,15 @@ func (cd *Column) DefaultValueAsValue() string {
 		}
 	}
 
-	if cd.IsEnumArray() {
-		return fmt.Sprintf(`*maps.NewSet[%s](any.MapSlice[%s](%#v))`, cd.ReferenceType(), cd.ReferenceType(), cd.DefaultValue)
+	if cd.IsEnum() {
+		if cd.IsEnumArray() {
+			// not supported yet
+		} else {
+			return fmt.Sprintf("%s(%d)", cd.ReferenceType(), cd.DefaultValue) // should be casting an int to an enum type
+		}
 	}
-	return fmt.Sprintf("%#v", cd.DefaultValue)
 
+	return fmt.Sprintf("%#v", cd.DefaultValue)
 }
 
 /*
@@ -339,6 +345,7 @@ func newColumn(schemaCol *schema.Column) *Column {
 		Identifier:      schemaCol.Identifier,
 		DecapIdentifier: strings2.Decap(schemaCol.Identifier),
 		SchemaType:      schemaCol.Type,
+		SchemaSubType:   schemaCol.SubType,
 		ReceiverType:    recType,
 		Size:            schemaCol.Size,
 		DefaultValue:    schemaCol.DefaultValue,

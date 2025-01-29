@@ -30,8 +30,7 @@ type LoginNode interface {
 // LoginExpander is the builder interface for Logins that are expandable.
 type LoginExpander interface {
 	LoginNode
-	// Expand causes the node to produce separate rows with individual items, rather than a single row with an array of items.
-	Expand()
+	query.Expander
 }
 
 // loginTable represents the login table in a query. It uses a builder pattern to chain

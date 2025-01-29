@@ -11,6 +11,7 @@ import (
 	"github.com/goradd/orm/pkg/codegen"
 	"github.com/goradd/orm/pkg/model"
 	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
 )
 
 func init() {
@@ -1498,16 +1499,43 @@ func (o *`); err != nil {
 
 	if _, err = io.WriteString(_w, ` was not selected in the last query and has not been set, and so is not valid")
 	}
-	return o.`); err != nil {
+`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-		return
+	if col.IsEnumArray() {
+
+		if _, err = io.WriteString(_w, `    return o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `.Clone()
+`); err != nil {
+			return
+		}
+
+	} else {
+
+		if _, err = io.WriteString(_w, `	return o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `
+`); err != nil {
+			return
+		}
+
 	}
 
-	if _, err = io.WriteString(_w, `
-}
+	if _, err = io.WriteString(_w, `}
 
 `); err != nil {
 		return
@@ -1724,7 +1752,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `.Equal(&`); err != nil {
+		if _, err = io.WriteString(_w, `.Equal(`); err != nil {
 			return
 		}
 
@@ -1931,7 +1959,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 		return
 	}
 
@@ -1977,7 +2005,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 		return
 	}
 
@@ -1986,7 +2014,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 		return
 	}
 
@@ -1995,23 +2023,50 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 		return
 	}
 
 	if _, err = io.WriteString(_w, `IsNull {
 	    return nil
 	}
-	return o.`); err != nil {
+`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
-		return
+	if col.IsEnumArray() {
+
+		if _, err = io.WriteString(_w, `    return o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `.Clone()
+`); err != nil {
+			return
+		}
+
+	} else {
+
+		if _, err = io.WriteString(_w, `	return o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `
+`); err != nil {
+			return
+		}
+
 	}
 
-	if _, err = io.WriteString(_w, `
-}
+	if _, err = io.WriteString(_w, `}
 
 `); err != nil {
 		return
@@ -2203,7 +2258,56 @@ func (tmpl *TableBaseTemplate) genColNullSetter(table *model.Table, col *model.C
 	//*** column_null_setter.tmpl
 
 	if _, err = io.WriteString(_w, `
-func (o *`); err != nil {
+// Set`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, col.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` prepares for setting the `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, col.QueryName); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` value in the database.
+//
+// Pass nil to set it to a NULL value in the database.
+//
+`); err != nil {
+		return
+	}
+
+	if col.SchemaType == schema.ColTypeTime {
+
+		if _, err = io.WriteString(_w, `// The input will immediately be converted to UTC time.
+`); err != nil {
+			return
+		}
+
+		if col.SchemaSubType == schema.ColSubTypeDateOnly {
+
+			if _, err = io.WriteString(_w, `// The time will also be zeroed. This may cause the date value to change. To prevent this, be sure that the date given is already in UTC time.
+`); err != nil {
+				return
+			}
+
+		} else if col.SchemaSubType == schema.ColSubTypeTimeOnly {
+
+			if _, err = io.WriteString(_w, `// The date will also be zeroed. This process may cause the time value to change. To prevent this, be sure that the time given is already in UTC time.
+`); err != nil {
+				return
+			}
+
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `func (o *`); err != nil {
 		return
 	}
 
@@ -2308,6 +2412,38 @@ func (o *`); err != nil {
 	if _, err = io.WriteString(_w, `)
 `); err != nil {
 		return
+	}
+
+	if col.SchemaType == schema.ColTypeTime {
+
+		if _, err = io.WriteString(_w, `        v = v.UTC()
+    `); err != nil {
+			return
+		}
+
+		if col.SchemaSubType == schema.ColSubTypeDateOnly {
+
+			if _, err = io.WriteString(_w, `
+        v = time.Date(v.Year(), v.Month(), v.Day(), 0, 0, 0, 0, v.Location())
+    `); err != nil {
+				return
+			}
+
+		} else if col.SchemaSubType == schema.ColSubTypeTimeOnly {
+
+			if _, err = io.WriteString(_w, `
+		v = time.Date(0, 1, 1, v.Hour(), v.Minute(), v.Second(), v.Nanosecond(), time.UTC)
+    `); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `
+`); err != nil {
+			return
+		}
+
 	}
 
 	if col.Size > 0 {
@@ -2433,7 +2569,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `.Equal(&v)`); err != nil {
+		if _, err = io.WriteString(_w, `.Equal(v)`); err != nil {
 			return
 		}
 
@@ -2922,7 +3058,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `.Equal(&`); err != nil {
+		if _, err = io.WriteString(_w, `.Equal(`); err != nil {
 			return
 		}
 
@@ -6025,6 +6161,17 @@ type `); err != nil {
 
 	if _, err = io.WriteString(_w, `
 
+    // Expand turns a Reverse or ManyMany node into individual rows.
+	Expand(n query.Expander) `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, builderInterface); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `
+
 	// Where adds a condition to filter what gets selected.
     // Calling Where multiple times will AND the conditions together.
 	Where(c query.Node) `); err != nil {
@@ -6566,6 +6713,28 @@ func (b *`); err != nil {
 	} else {
 		return nil
 	}
+}
+
+// Expand expands an array type node so that it will produce individual rows instead of an array of items
+func (b *`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, builderStruct); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `) Expand(n query.Expander) `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, builderInterface); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` {
+	b.builder.Expand(n)
+	return b
 }
 
 // Join adds node n to the node tree so that its fields will appear in the query.
@@ -12639,7 +12808,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `(`); err != nil {
+				if _, err = io.WriteString(_w, `(New`); err != nil {
 					return
 				}
 
@@ -12647,7 +12816,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `FromNumbers(n))
+				if _, err = io.WriteString(_w, `From(n...))
            } else if n,ok := v.([]float64); ok {
                o.Set`); err != nil {
 					return
@@ -12657,7 +12826,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `(`); err != nil {
+				if _, err = io.WriteString(_w, `(New`); err != nil {
 					return
 				}
 
@@ -12665,9 +12834,9 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `FromNumbers(n))
+				if _, err = io.WriteString(_w, `From(n...))
            } else if n,ok := v.([]string); ok {
-               var a `); err != nil {
+               a := New`); err != nil {
 					return
 				}
 
@@ -12675,7 +12844,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `
+				if _, err = io.WriteString(_w, `()
                for _,s := range n {
                    a.Add(`); err != nil {
 					return
