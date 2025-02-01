@@ -386,7 +386,7 @@ func (b *forwardCascadeQueryBuilder) Load() (forwardCascades []*ForwardCascade) 
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(ForwardCascade)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		forwardCascades = append(forwardCascades, o)
 	}
 	return
@@ -405,7 +405,7 @@ func (b *forwardCascadeQueryBuilder) LoadI() (forwardCascades []any) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(ForwardCascade)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		forwardCascades = append(forwardCascades, o)
 	}
 	return
@@ -452,7 +452,7 @@ func (c forwardCascadesCursor) Next() *ForwardCascade {
 		return nil
 	}
 	o := new(ForwardCascade)
-	o.load(row, o, nil, "")
+	o.load(row, o)
 	return o
 }
 
@@ -614,7 +614,7 @@ func CountForwardCascadeByReverseID(ctx context.Context, reverseID string) int {
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
-func (o *forwardCascadeBase) load(m map[string]interface{}, objThis *ForwardCascade, objParent interface{}, parentKey string) {
+func (o *forwardCascadeBase) load(m map[string]interface{}, objThis *ForwardCascade) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
@@ -666,7 +666,7 @@ func (o *forwardCascadeBase) load(m map[string]interface{}, objThis *ForwardCasc
 	if v, ok := m["Reverse"]; ok {
 		if objReverse, ok2 := v.(map[string]interface{}); ok2 {
 			o.objReverse = new(Reverse)
-			o.objReverse.load(objReverse, o.objReverse, objThis, "ForwardCascades")
+			o.objReverse.load(objReverse, o.objReverse)
 			o.reverseIDIsValid = true
 			o.reverseIDIsDirty = false
 		} else {

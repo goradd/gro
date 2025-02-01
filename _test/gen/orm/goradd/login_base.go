@@ -540,7 +540,7 @@ func (b *loginQueryBuilder) Load() (logins []*Login) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(Login)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		logins = append(logins, o)
 	}
 	return
@@ -559,7 +559,7 @@ func (b *loginQueryBuilder) LoadI() (logins []any) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(Login)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		logins = append(logins, o)
 	}
 	return
@@ -606,7 +606,7 @@ func (c loginsCursor) Next() *Login {
 		return nil
 	}
 	o := new(Login)
-	o.load(row, o, nil, "")
+	o.load(row, o)
 	return o
 }
 
@@ -782,7 +782,7 @@ func CountLoginByIsEnabled(ctx context.Context, isEnabled bool) int {
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
-func (o *loginBase) load(m map[string]interface{}, objThis *Login, objParent interface{}, parentKey string) {
+func (o *loginBase) load(m map[string]interface{}, objThis *Login) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
@@ -821,7 +821,7 @@ func (o *loginBase) load(m map[string]interface{}, objThis *Login, objParent int
 	if v, ok := m["Person"]; ok {
 		if objPerson, ok2 := v.(map[string]interface{}); ok2 {
 			o.objPerson = new(Person)
-			o.objPerson.load(objPerson, o.objPerson, objThis, "Login")
+			o.objPerson.load(objPerson, o.objPerson)
 			o.personIDIsValid = true
 			o.personIDIsDirty = false
 		} else {

@@ -6442,7 +6442,7 @@ func (b *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		`); err != nil {
 		return
 	}
@@ -6509,7 +6509,7 @@ func (b *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		`); err != nil {
 		return
 	}
@@ -6651,7 +6651,7 @@ func (c `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `)
-	o.load(row, o, nil, "")
+	o.load(row, o)
 	return o
 }
 
@@ -7247,7 +7247,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `, objParent interface{}, parentKey string) {
+	if _, err = io.WriteString(_w, `) {
 
 `); err != nil {
 		return
@@ -7793,15 +7793,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `, objThis, "`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.ReverseIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `")
+			if _, err = io.WriteString(_w, `)
 			o.`); err != nil {
 				return
 			}
@@ -7918,15 +7910,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `)
-				obj.load(v3, obj, objThis, "`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, mm.MM.IdentifierPlural); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `")
+				obj.load(v3, obj)
 				o.`); err != nil {
 			return
 		}
@@ -8062,15 +8046,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `, objThis, "`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `")
+			if _, err = io.WriteString(_w, `)
 			o.`); err != nil {
 				return
 			}
@@ -8183,15 +8159,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `)
-				obj.load(v3, obj, objThis, "`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `")
+				obj.load(v3, obj)
 				o.`); err != nil {
 				return
 			}
@@ -8212,15 +8180,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `)
-			obj.load(v2, obj, objThis, "`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `")
+			obj.load(v2, obj)
 		    o.`); err != nil {
 				return
 			}

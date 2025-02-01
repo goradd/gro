@@ -413,7 +413,7 @@ func (b *forwardRestrictUniqueQueryBuilder) Load() (forwardRestrictUniques []*Fo
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(ForwardRestrictUnique)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		forwardRestrictUniques = append(forwardRestrictUniques, o)
 	}
 	return
@@ -432,7 +432,7 @@ func (b *forwardRestrictUniqueQueryBuilder) LoadI() (forwardRestrictUniques []an
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(ForwardRestrictUnique)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		forwardRestrictUniques = append(forwardRestrictUniques, o)
 	}
 	return
@@ -479,7 +479,7 @@ func (c forwardRestrictUniquesCursor) Next() *ForwardRestrictUnique {
 		return nil
 	}
 	o := new(ForwardRestrictUnique)
-	o.load(row, o, nil, "")
+	o.load(row, o)
 	return o
 }
 
@@ -641,7 +641,7 @@ func CountForwardRestrictUniqueByReverseID(ctx context.Context, reverseID string
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
-func (o *forwardRestrictUniqueBase) load(m map[string]interface{}, objThis *ForwardRestrictUnique, objParent interface{}, parentKey string) {
+func (o *forwardRestrictUniqueBase) load(m map[string]interface{}, objThis *ForwardRestrictUnique) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
@@ -693,7 +693,7 @@ func (o *forwardRestrictUniqueBase) load(m map[string]interface{}, objThis *Forw
 	if v, ok := m["Reverse"]; ok {
 		if objReverse, ok2 := v.(map[string]interface{}); ok2 {
 			o.objReverse = new(Reverse)
-			o.objReverse.load(objReverse, o.objReverse, objThis, "ForwardRestrictUnique")
+			o.objReverse.load(objReverse, o.objReverse)
 			o.reverseIDIsValid = true
 			o.reverseIDIsDirty = false
 		} else {

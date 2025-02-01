@@ -120,7 +120,7 @@ func (b *{{= builderStruct }}) Load() ({{= table.VariableNamePlural() }} []*{{= 
 	}
 	for _,item := range results.([]map[string]any) {
 		o := new({{= table.Identifier }})
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		{{= table.VariableNamePlural() }} = append({{= table.VariableNamePlural() }}, o)
 	}
 	return
@@ -139,7 +139,7 @@ func (b *{{= builderStruct }}) LoadI() ({{= table.VariableNamePlural() }} []any)
 	}
 	for _,item := range results.([]map[string]any) {
 		o := new({{= table.Identifier }})
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		{{= table.VariableNamePlural() }} = append({{= table.VariableNamePlural() }}, o)
 	}
 	return
@@ -185,7 +185,7 @@ func (c {{= table.VariableNamePlural() }}Cursor) Next() *{{= table.Identifier }}
 		return nil
 	}
 	o := new({{= table.Identifier }})
-	o.load(row, o, nil, "")
+	o.load(row, o)
 	return o
 }
 

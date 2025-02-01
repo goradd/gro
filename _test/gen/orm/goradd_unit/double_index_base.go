@@ -367,7 +367,7 @@ func (b *doubleIndexQueryBuilder) Load() (doubleIndices []*DoubleIndex) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(DoubleIndex)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		doubleIndices = append(doubleIndices, o)
 	}
 	return
@@ -386,7 +386,7 @@ func (b *doubleIndexQueryBuilder) LoadI() (doubleIndices []any) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(DoubleIndex)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		doubleIndices = append(doubleIndices, o)
 	}
 	return
@@ -433,7 +433,7 @@ func (c doubleIndicesCursor) Next() *DoubleIndex {
 		return nil
 	}
 	o := new(DoubleIndex)
-	o.load(row, o, nil, "")
+	o.load(row, o)
 	return o
 }
 
@@ -592,7 +592,7 @@ func CountDoubleIndexByFieldString(ctx context.Context, fieldString string) int 
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
-func (o *doubleIndexBase) load(m map[string]interface{}, objThis *DoubleIndex, objParent interface{}, parentKey string) {
+func (o *doubleIndexBase) load(m map[string]interface{}, objThis *DoubleIndex) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(int); ok {

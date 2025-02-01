@@ -347,7 +347,7 @@ func (b *milestoneQueryBuilder) Load() (milestones []*Milestone) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(Milestone)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		milestones = append(milestones, o)
 	}
 	return
@@ -366,7 +366,7 @@ func (b *milestoneQueryBuilder) LoadI() (milestones []any) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(Milestone)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		milestones = append(milestones, o)
 	}
 	return
@@ -413,7 +413,7 @@ func (c milestonesCursor) Next() *Milestone {
 		return nil
 	}
 	o := new(Milestone)
-	o.load(row, o, nil, "")
+	o.load(row, o)
 	return o
 }
 
@@ -575,7 +575,7 @@ func CountMilestoneByName(ctx context.Context, name string) int {
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
-func (o *milestoneBase) load(m map[string]interface{}, objThis *Milestone, objParent interface{}, parentKey string) {
+func (o *milestoneBase) load(m map[string]interface{}, objThis *Milestone) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
@@ -608,7 +608,7 @@ func (o *milestoneBase) load(m map[string]interface{}, objThis *Milestone, objPa
 	if v, ok := m["Project"]; ok {
 		if objProject, ok2 := v.(map[string]interface{}); ok2 {
 			o.objProject = new(Project)
-			o.objProject.load(objProject, o.objProject, objThis, "Milestones")
+			o.objProject.load(objProject, o.objProject)
 			o.projectIDIsValid = true
 			o.projectIDIsDirty = false
 		} else {

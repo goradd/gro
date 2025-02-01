@@ -19,12 +19,6 @@ type GiftNode interface {
 	Name() *query.ColumnNode
 }
 
-// GiftExpander is the builder interface for Gifts that are expandable.
-type GiftExpander interface {
-	GiftNode
-	query.Expander
-}
-
 // giftTable represents the gift table in a query. It uses a builder pattern to chain
 // together other tables and columns to form a node chain in a query.
 //

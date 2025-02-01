@@ -7,7 +7,7 @@
 	if v, ok := m["{{= col.ReverseIdentifier() }}"]; ok {
 		if v2, ok2 := v.(db.ValueMap); ok2 {
 			o.{{= col.ReverseVariableIdentifier() }} = new({{= col.Table.Identifier }})
-			o.{{= col.ReverseVariableIdentifier() }}.load(v2, o.{{= col.ReverseVariableIdentifier() }}, objThis, "{{= col.ReferenceIdentifier() }}")
+			o.{{= col.ReverseVariableIdentifier() }}.load(v2, o.{{= col.ReverseVariableIdentifier() }})
 			o.{{= col.ReverseVariableIdentifier() }}IsDirty = false
 		} else {
 			panic("Wrong type found for {{= col.VariableIdentifier() }} object.")

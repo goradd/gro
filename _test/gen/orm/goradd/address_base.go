@@ -419,7 +419,7 @@ func (b *addressQueryBuilder) Load() (addresses []*Address) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(Address)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		addresses = append(addresses, o)
 	}
 	return
@@ -438,7 +438,7 @@ func (b *addressQueryBuilder) LoadI() (addresses []any) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(Address)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		addresses = append(addresses, o)
 	}
 	return
@@ -485,7 +485,7 @@ func (c addressesCursor) Next() *Address {
 		return nil
 	}
 	o := new(Address)
-	o.load(row, o, nil, "")
+	o.load(row, o)
 	return o
 }
 
@@ -654,7 +654,7 @@ func CountAddressByCity(ctx context.Context, city string) int {
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
-func (o *addressBase) load(m map[string]interface{}, objThis *Address, objParent interface{}, parentKey string) {
+func (o *addressBase) load(m map[string]interface{}, objThis *Address) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
@@ -687,7 +687,7 @@ func (o *addressBase) load(m map[string]interface{}, objThis *Address, objParent
 	if v, ok := m["Person"]; ok {
 		if objPerson, ok2 := v.(map[string]interface{}); ok2 {
 			o.objPerson = new(Person)
-			o.objPerson.load(objPerson, o.objPerson, objThis, "Addresses")
+			o.objPerson.load(objPerson, o.objPerson)
 			o.personIDIsValid = true
 			o.personIDIsDirty = false
 		} else {

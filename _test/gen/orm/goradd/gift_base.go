@@ -308,7 +308,7 @@ func (b *giftQueryBuilder) Load() (gifts []*Gift) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(Gift)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		gifts = append(gifts, o)
 	}
 	return
@@ -327,7 +327,7 @@ func (b *giftQueryBuilder) LoadI() (gifts []any) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(Gift)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		gifts = append(gifts, o)
 	}
 	return
@@ -374,7 +374,7 @@ func (c giftsCursor) Next() *Gift {
 		return nil
 	}
 	o := new(Gift)
-	o.load(row, o, nil, "")
+	o.load(row, o)
 	return o
 }
 
@@ -526,7 +526,7 @@ func CountGiftByName(ctx context.Context, name string) int {
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
-func (o *giftBase) load(m map[string]interface{}, objThis *Gift, objParent interface{}, parentKey string) {
+func (o *giftBase) load(m map[string]interface{}, objThis *Gift) {
 
 	if v, ok := m["number"]; ok && v != nil {
 		if o.number, ok = v.(int); ok {

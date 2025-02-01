@@ -386,7 +386,7 @@ func (b *forwardNullQueryBuilder) Load() (forwardNulls []*ForwardNull) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(ForwardNull)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		forwardNulls = append(forwardNulls, o)
 	}
 	return
@@ -405,7 +405,7 @@ func (b *forwardNullQueryBuilder) LoadI() (forwardNulls []any) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(ForwardNull)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		forwardNulls = append(forwardNulls, o)
 	}
 	return
@@ -452,7 +452,7 @@ func (c forwardNullsCursor) Next() *ForwardNull {
 		return nil
 	}
 	o := new(ForwardNull)
-	o.load(row, o, nil, "")
+	o.load(row, o)
 	return o
 }
 
@@ -614,7 +614,7 @@ func CountForwardNullByReverseID(ctx context.Context, reverseID string) int {
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
-func (o *forwardNullBase) load(m map[string]interface{}, objThis *ForwardNull, objParent interface{}, parentKey string) {
+func (o *forwardNullBase) load(m map[string]interface{}, objThis *ForwardNull) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
@@ -666,7 +666,7 @@ func (o *forwardNullBase) load(m map[string]interface{}, objThis *ForwardNull, o
 	if v, ok := m["Reverse"]; ok {
 		if objReverse, ok2 := v.(map[string]interface{}); ok2 {
 			o.objReverse = new(Reverse)
-			o.objReverse.load(objReverse, o.objReverse, objThis, "ForwardNulls")
+			o.objReverse.load(objReverse, o.objReverse)
 			o.reverseIDIsValid = true
 			o.reverseIDIsDirty = false
 		} else {

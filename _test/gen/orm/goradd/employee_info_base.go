@@ -363,7 +363,7 @@ func (b *employeeInfoQueryBuilder) Load() (employeeInfos []*EmployeeInfo) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(EmployeeInfo)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		employeeInfos = append(employeeInfos, o)
 	}
 	return
@@ -382,7 +382,7 @@ func (b *employeeInfoQueryBuilder) LoadI() (employeeInfos []any) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(EmployeeInfo)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		employeeInfos = append(employeeInfos, o)
 	}
 	return
@@ -429,7 +429,7 @@ func (c employeeInfosCursor) Next() *EmployeeInfo {
 		return nil
 	}
 	o := new(EmployeeInfo)
-	o.load(row, o, nil, "")
+	o.load(row, o)
 	return o
 }
 
@@ -591,7 +591,7 @@ func CountEmployeeInfoByEmployeeNumber(ctx context.Context, employeeNumber int) 
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
-func (o *employeeInfoBase) load(m map[string]interface{}, objThis *EmployeeInfo, objParent interface{}, parentKey string) {
+func (o *employeeInfoBase) load(m map[string]interface{}, objThis *EmployeeInfo) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
@@ -624,7 +624,7 @@ func (o *employeeInfoBase) load(m map[string]interface{}, objThis *EmployeeInfo,
 	if v, ok := m["Person"]; ok {
 		if objPerson, ok2 := v.(map[string]interface{}); ok2 {
 			o.objPerson = new(Person)
-			o.objPerson.load(objPerson, o.objPerson, objThis, "EmployeeInfo")
+			o.objPerson.load(objPerson, o.objPerson)
 			o.personIDIsValid = true
 			o.personIDIsDirty = false
 		} else {

@@ -778,7 +778,7 @@ func (b *personQueryBuilder) Load() (people []*Person) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(Person)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		people = append(people, o)
 	}
 	return
@@ -797,7 +797,7 @@ func (b *personQueryBuilder) LoadI() (people []any) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(Person)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		people = append(people, o)
 	}
 	return
@@ -844,7 +844,7 @@ func (c peopleCursor) Next() *Person {
 		return nil
 	}
 	o := new(Person)
-	o.load(row, o, nil, "")
+	o.load(row, o)
 	return o
 }
 
@@ -1003,7 +1003,7 @@ func CountPersonByLastName(ctx context.Context, lastName string) int {
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
-func (o *personBase) load(m map[string]interface{}, objThis *Person, objParent interface{}, parentKey string) {
+func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
@@ -1072,7 +1072,7 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person, objParent i
 
 			for _, v3 := range v2 {
 				obj := new(Project)
-				obj.load(v3, obj, objThis, "TeamMembers")
+				obj.load(v3, obj)
 				o.mmProjects.Set(obj.PrimaryKey(), obj)
 			}
 			o.mmProjectsPks = nil
@@ -1093,12 +1093,12 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person, objParent i
 			o.revAddressesIsDirty = false
 			for _, v3 := range v2 {
 				obj := new(Address)
-				obj.load(v3, obj, objThis, "Person")
+				obj.load(v3, obj)
 				o.revAddresses.Set(obj.PrimaryKey(), obj)
 			}
 		case db.ValueMap: // single expansion
 			obj := new(Address)
-			obj.load(v2, obj, objThis, "Person")
+			obj.load(v2, obj)
 			o.revAddresses.Clear()
 			o.revAddresses.Set(obj.PrimaryKey(), obj)
 			o.revAddressesIsDirty = false
@@ -1113,7 +1113,7 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person, objParent i
 	if v, ok := m["EmployeeInfo"]; ok {
 		if v2, ok2 := v.(db.ValueMap); ok2 {
 			o.revEmployeeInfo = new(EmployeeInfo)
-			o.revEmployeeInfo.load(v2, o.revEmployeeInfo, objThis, "Person")
+			o.revEmployeeInfo.load(v2, o.revEmployeeInfo)
 			o.revEmployeeInfoIsDirty = false
 		} else {
 			panic("Wrong type found for personID object.")
@@ -1126,7 +1126,7 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person, objParent i
 	if v, ok := m["Login"]; ok {
 		if v2, ok2 := v.(db.ValueMap); ok2 {
 			o.revLogin = new(Login)
-			o.revLogin.load(v2, o.revLogin, objThis, "Person")
+			o.revLogin.load(v2, o.revLogin)
 			o.revLoginIsDirty = false
 		} else {
 			panic("Wrong type found for personID object.")
@@ -1143,12 +1143,12 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person, objParent i
 			o.revManagerProjectsIsDirty = false
 			for _, v3 := range v2 {
 				obj := new(Project)
-				obj.load(v3, obj, objThis, "Manager")
+				obj.load(v3, obj)
 				o.revManagerProjects.Set(obj.PrimaryKey(), obj)
 			}
 		case db.ValueMap: // single expansion
 			obj := new(Project)
-			obj.load(v2, obj, objThis, "Manager")
+			obj.load(v2, obj)
 			o.revManagerProjects.Clear()
 			o.revManagerProjects.Set(obj.PrimaryKey(), obj)
 			o.revManagerProjectsIsDirty = false

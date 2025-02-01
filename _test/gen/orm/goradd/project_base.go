@@ -1187,7 +1187,7 @@ func (b *projectQueryBuilder) Load() (projects []*Project) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(Project)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		projects = append(projects, o)
 	}
 	return
@@ -1206,7 +1206,7 @@ func (b *projectQueryBuilder) LoadI() (projects []any) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(Project)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		projects = append(projects, o)
 	}
 	return
@@ -1253,7 +1253,7 @@ func (c projectsCursor) Next() *Project {
 		return nil
 	}
 	o := new(Project)
-	o.load(row, o, nil, "")
+	o.load(row, o)
 	return o
 }
 
@@ -1464,7 +1464,7 @@ func CountProjectBySpent(ctx context.Context, spent []byte) int {
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
-func (o *projectBase) load(m map[string]interface{}, objThis *Project, objParent interface{}, parentKey string) {
+func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
@@ -1530,7 +1530,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project, objParent
 	if v, ok := m["Manager"]; ok {
 		if objManager, ok2 := v.(map[string]interface{}); ok2 {
 			o.objManager = new(Person)
-			o.objManager.load(objManager, o.objManager, objThis, "ManagerProjects")
+			o.objManager.load(objManager, o.objManager)
 			o.managerIDIsValid = true
 			o.managerIDIsDirty = false
 		} else {
@@ -1656,7 +1656,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project, objParent
 
 			for _, v3 := range v2 {
 				obj := new(Project)
-				obj.load(v3, obj, objThis, "Parents")
+				obj.load(v3, obj)
 				o.mmChildren.Set(obj.PrimaryKey(), obj)
 			}
 			o.mmChildrenPks = nil
@@ -1674,7 +1674,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project, objParent
 
 			for _, v3 := range v2 {
 				obj := new(Project)
-				obj.load(v3, obj, objThis, "Children")
+				obj.load(v3, obj)
 				o.mmParents.Set(obj.PrimaryKey(), obj)
 			}
 			o.mmParentsPks = nil
@@ -1692,7 +1692,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project, objParent
 
 			for _, v3 := range v2 {
 				obj := new(Person)
-				obj.load(v3, obj, objThis, "Projects")
+				obj.load(v3, obj)
 				o.mmTeamMembers.Set(obj.PrimaryKey(), obj)
 			}
 			o.mmTeamMembersPks = nil
@@ -1713,12 +1713,12 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project, objParent
 			o.revMilestonesIsDirty = false
 			for _, v3 := range v2 {
 				obj := new(Milestone)
-				obj.load(v3, obj, objThis, "Project")
+				obj.load(v3, obj)
 				o.revMilestones.Set(obj.PrimaryKey(), obj)
 			}
 		case db.ValueMap: // single expansion
 			obj := new(Milestone)
-			obj.load(v2, obj, objThis, "Project")
+			obj.load(v2, obj)
 			o.revMilestones.Clear()
 			o.revMilestones.Set(obj.PrimaryKey(), obj)
 			o.revMilestonesIsDirty = false

@@ -27,12 +27,6 @@ type LoginNode interface {
 	IsEnabled() *query.ColumnNode
 }
 
-// LoginExpander is the builder interface for Logins that are expandable.
-type LoginExpander interface {
-	LoginNode
-	query.Expander
-}
-
 // loginTable represents the login table in a query. It uses a builder pattern to chain
 // together other tables and columns to form a node chain in a query.
 //

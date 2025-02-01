@@ -357,7 +357,7 @@ func (b *personWithLockQueryBuilder) Load() (personWithLocks []*PersonWithLock) 
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(PersonWithLock)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		personWithLocks = append(personWithLocks, o)
 	}
 	return
@@ -376,7 +376,7 @@ func (b *personWithLockQueryBuilder) LoadI() (personWithLocks []any) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(PersonWithLock)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		personWithLocks = append(personWithLocks, o)
 	}
 	return
@@ -423,7 +423,7 @@ func (c personWithLocksCursor) Next() *PersonWithLock {
 		return nil
 	}
 	o := new(PersonWithLock)
-	o.load(row, o, nil, "")
+	o.load(row, o)
 	return o
 }
 
@@ -589,7 +589,7 @@ func CountPersonWithLockBySysTimestamp(ctx context.Context, sysTimestamp time.Ti
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
-func (o *personWithLockBase) load(m map[string]interface{}, objThis *PersonWithLock, objParent interface{}, parentKey string) {
+func (o *personWithLockBase) load(m map[string]interface{}, objThis *PersonWithLock) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {

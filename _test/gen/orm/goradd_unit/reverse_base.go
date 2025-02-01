@@ -798,7 +798,7 @@ func (b *reverseQueryBuilder) Load() (reverses []*Reverse) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(Reverse)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		reverses = append(reverses, o)
 	}
 	return
@@ -817,7 +817,7 @@ func (b *reverseQueryBuilder) LoadI() (reverses []any) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(Reverse)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		reverses = append(reverses, o)
 	}
 	return
@@ -864,7 +864,7 @@ func (c reversesCursor) Next() *Reverse {
 		return nil
 	}
 	o := new(Reverse)
-	o.load(row, o, nil, "")
+	o.load(row, o)
 	return o
 }
 
@@ -1016,7 +1016,7 @@ func CountReverseByName(ctx context.Context, name string) int {
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
-func (o *reverseBase) load(m map[string]interface{}, objThis *Reverse, objParent interface{}, parentKey string) {
+func (o *reverseBase) load(m map[string]interface{}, objThis *Reverse) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
@@ -1055,12 +1055,12 @@ func (o *reverseBase) load(m map[string]interface{}, objThis *Reverse, objParent
 			o.revForwardCascadesIsDirty = false
 			for _, v3 := range v2 {
 				obj := new(ForwardCascade)
-				obj.load(v3, obj, objThis, "Reverse")
+				obj.load(v3, obj)
 				o.revForwardCascades.Set(obj.PrimaryKey(), obj)
 			}
 		case db.ValueMap: // single expansion
 			obj := new(ForwardCascade)
-			obj.load(v2, obj, objThis, "Reverse")
+			obj.load(v2, obj)
 			o.revForwardCascades.Clear()
 			o.revForwardCascades.Set(obj.PrimaryKey(), obj)
 			o.revForwardCascadesIsDirty = false
@@ -1075,7 +1075,7 @@ func (o *reverseBase) load(m map[string]interface{}, objThis *Reverse, objParent
 	if v, ok := m["ForwardCascadeUnique"]; ok {
 		if v2, ok2 := v.(db.ValueMap); ok2 {
 			o.revForwardCascadeUnique = new(ForwardCascadeUnique)
-			o.revForwardCascadeUnique.load(v2, o.revForwardCascadeUnique, objThis, "Reverse")
+			o.revForwardCascadeUnique.load(v2, o.revForwardCascadeUnique)
 			o.revForwardCascadeUniqueIsDirty = false
 		} else {
 			panic("Wrong type found for reverseID object.")
@@ -1092,12 +1092,12 @@ func (o *reverseBase) load(m map[string]interface{}, objThis *Reverse, objParent
 			o.revForwardNullsIsDirty = false
 			for _, v3 := range v2 {
 				obj := new(ForwardNull)
-				obj.load(v3, obj, objThis, "Reverse")
+				obj.load(v3, obj)
 				o.revForwardNulls.Set(obj.PrimaryKey(), obj)
 			}
 		case db.ValueMap: // single expansion
 			obj := new(ForwardNull)
-			obj.load(v2, obj, objThis, "Reverse")
+			obj.load(v2, obj)
 			o.revForwardNulls.Clear()
 			o.revForwardNulls.Set(obj.PrimaryKey(), obj)
 			o.revForwardNullsIsDirty = false
@@ -1112,7 +1112,7 @@ func (o *reverseBase) load(m map[string]interface{}, objThis *Reverse, objParent
 	if v, ok := m["ForwardNullUnique"]; ok {
 		if v2, ok2 := v.(db.ValueMap); ok2 {
 			o.revForwardNullUnique = new(ForwardNullUnique)
-			o.revForwardNullUnique.load(v2, o.revForwardNullUnique, objThis, "Reverse")
+			o.revForwardNullUnique.load(v2, o.revForwardNullUnique)
 			o.revForwardNullUniqueIsDirty = false
 		} else {
 			panic("Wrong type found for reverseID object.")
@@ -1129,12 +1129,12 @@ func (o *reverseBase) load(m map[string]interface{}, objThis *Reverse, objParent
 			o.revForwardRestrictsIsDirty = false
 			for _, v3 := range v2 {
 				obj := new(ForwardRestrict)
-				obj.load(v3, obj, objThis, "Reverse")
+				obj.load(v3, obj)
 				o.revForwardRestricts.Set(obj.PrimaryKey(), obj)
 			}
 		case db.ValueMap: // single expansion
 			obj := new(ForwardRestrict)
-			obj.load(v2, obj, objThis, "Reverse")
+			obj.load(v2, obj)
 			o.revForwardRestricts.Clear()
 			o.revForwardRestricts.Set(obj.PrimaryKey(), obj)
 			o.revForwardRestrictsIsDirty = false
@@ -1149,7 +1149,7 @@ func (o *reverseBase) load(m map[string]interface{}, objThis *Reverse, objParent
 	if v, ok := m["ForwardRestrictUnique"]; ok {
 		if v2, ok2 := v.(db.ValueMap); ok2 {
 			o.revForwardRestrictUnique = new(ForwardRestrictUnique)
-			o.revForwardRestrictUnique.load(v2, o.revForwardRestrictUnique, objThis, "Reverse")
+			o.revForwardRestrictUnique.load(v2, o.revForwardRestrictUnique)
 			o.revForwardRestrictUniqueIsDirty = false
 		} else {
 			panic("Wrong type found for reverseID object.")

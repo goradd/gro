@@ -920,7 +920,7 @@ func (b *typeTestQueryBuilder) Load() (typeTests []*TypeTest) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(TypeTest)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		typeTests = append(typeTests, o)
 	}
 	return
@@ -939,7 +939,7 @@ func (b *typeTestQueryBuilder) LoadI() (typeTests []any) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(TypeTest)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		typeTests = append(typeTests, o)
 	}
 	return
@@ -986,7 +986,7 @@ func (c typeTestsCursor) Next() *TypeTest {
 		return nil
 	}
 	o := new(TypeTest)
-	o.load(row, o, nil, "")
+	o.load(row, o)
 	return o
 }
 
@@ -1208,7 +1208,7 @@ func CountTypeTestByTestBlob(ctx context.Context, testBlob []byte) int {
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
-func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest, objParent interface{}, parentKey string) {
+func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {

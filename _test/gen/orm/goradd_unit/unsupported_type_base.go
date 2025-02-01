@@ -868,7 +868,7 @@ func (b *unsupportedTypeQueryBuilder) Load() (unsupportedTypes []*UnsupportedTyp
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(UnsupportedType)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		unsupportedTypes = append(unsupportedTypes, o)
 	}
 	return
@@ -887,7 +887,7 @@ func (b *unsupportedTypeQueryBuilder) LoadI() (unsupportedTypes []any) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(UnsupportedType)
-		o.load(item, o, nil, "")
+		o.load(item, o)
 		unsupportedTypes = append(unsupportedTypes, o)
 	}
 	return
@@ -934,7 +934,7 @@ func (c unsupportedTypesCursor) Next() *UnsupportedType {
 		return nil
 	}
 	o := new(UnsupportedType)
-	o.load(row, o, nil, "")
+	o.load(row, o)
 	return o
 }
 
@@ -1198,7 +1198,7 @@ func CountUnsupportedTypeByTypeMultifk2(ctx context.Context, typeMultifk2 string
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
-func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *UnsupportedType, objParent interface{}, parentKey string) {
+func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *UnsupportedType) {
 
 	if v, ok := m["type_serial"]; ok && v != nil {
 		if o.typeSerial, ok = v.(string); ok {
