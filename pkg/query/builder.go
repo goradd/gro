@@ -156,19 +156,31 @@ func (b *Builder) Limit(maxRowCount int, offset int) {
 	b.Limits.Offset = offset
 }
 
-// Select specifies what specific nodes are selected. This is an optimization in order to limit the amount
-// of data returned by the query. Without this, the query will expand all the join items to return every
-// column of each table joined.
+// Select specifies what specific columns will be loaded with data.
+// By default, all the columns of the root table will be queried and loaded.
+// If columns from the root table are selected, that will limit the columns queried and loaded to only those columns.
+// If related tables are specified, then all the columns from those tables are queried, selected and joined to the root.
+// If columns in related tables are specified, then only those columns will be queried and loaded.
+// Depending on the query, additional columns may automatically be added to the query. In particular, primary key columns
+// will be added in most situations. The exception to this would be in distinct queries, group by queries, or subqueries.
 func (b *Builder) Select(nodes ...Node) {
 	if b.GroupBys != nil {
-		panic("You cannot have Select and GroupBy statements in the same query. The GroupBy columns will automatically be selected.")
+		panic("you cannot have Select and GroupBy statements in the same query. The GroupBy columns will automatically be selected")
 	}
 	for _, n := range nodes {
-		if n.NodeType_() != ColumnNodeType {
-			panic("you can only select column nodes")
+		switch n.NodeType_() {
+		case ColumnNodeType:
+			fallthrough
+		case ReferenceNodeType:
+			fallthrough
+		case ManyManyNodeType:
+			fallthrough
+		case ReverseNodeType:
+			b.Selects = append(b.Selects, n)
+		default:
+			panic("you cannot Select on this type of node: " + n.NodeType_().String())
 		}
 	}
-	b.Selects = append(b.Selects, nodes...)
 }
 
 // Distinct sets the distinct bit, causing the query to not return duplicates.
@@ -176,8 +188,8 @@ func (b *Builder) Distinct() {
 	b.IsDistinct = true
 }
 
-// GroupBy sets the nodes that are grouped. According to SQL rules, these then are the only nodes that can be
-// selected, and they MUST be selected.
+// GroupBy sets the nodes that are grouped.
+// GroupBy only makes sense if only those same columns are selected. Most SQL databases enforce this.
 func (b *Builder) GroupBy(nodes ...Node) {
 	if b.Selects != nil {
 		panic("do not have Select and GroupBy statements in the same query. The GroupBy columns will automatically be selected.")

@@ -4,13 +4,12 @@
 }}
 {{
 // Load{{= table.Identifier }} returns a {{= table.Identifier}} from the database.
-// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields.
-// Table nodes will be considered Join nodes, and column nodes will be Select nodes.
-// See [{{= table.Identifier }}Builder.Join] and [{{= table.IdentifierPlural }}Builder.Select] for more info.
-func Load{{= table.Identifier }}(ctx context.Context, {{= table.PrimaryKeyColumn().VariableIdentifier() }} {{= table.PrimaryKeyGoType() }}, joinOrSelectNodes ...query.Node) *{{= table.Identifier}} {
+// selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
+// See [{{= table.IdentifierPlural }}Builder.Select] for more info.
+func Load{{= table.Identifier }}(ctx context.Context, {{= table.PrimaryKeyColumn().VariableIdentifier() }} {{= table.PrimaryKeyGoType() }}, selectNodes ...query.Node) *{{= table.Identifier}} {
 	return query{{= table.IdentifierPlural }}(ctx).
 	    Where(op.Equal(node.{{= table.Identifier }}().{{= table.PrimaryKeyColumn().Identifier }}(), {{= table.PrimaryKeyColumn().VariableIdentifier() }})).
-	    joinOrSelect(joinOrSelectNodes...).
+	    Select(selectNodes...).
 	    Get()
 }
 
@@ -25,10 +24,10 @@ func Has{{= table.Identifier }}(ctx context.Context, {{= table.PrimaryKeyColumn(
 {{for _,idx := range table.Indexes}}
 {{if idx.IsUnique}}
 // Load{{= table.Identifier }}By{{for _,col := range idx.Columns}}{{= col.Identifier }}{{for}} queries for a single {{= table.Identifier }} object by the given unique index values.
-// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
-// be considered Join nodes, and column nodes will be Select nodes. See [{{= table.IdentifierPlural }}Builder.Join] and [{{= table.IdentifierPlural }}Builder.Select] for more info.
+// selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
+// See [{{= table.IdentifierPlural }}Builder.Select].
 // If you need a more elaborate query, use Query{{= table.IdentifierPlural }}() to start a query builder.
-func Load{{= table.Identifier }}By{{for _,col := range idx.Columns}}{{= col.Identifier }}{{for}} (ctx context.Context{{for _,col := range idx.Columns}}, {{= col.DecapIdentifier }} {{if col.IsNullable}}interface{}{{else}}{{= col.GoType() }}{{if}} {{for}}, joinOrSelectNodes ...query.Node) *{{= table.Identifier}} {
+func Load{{= table.Identifier }}By{{for _,col := range idx.Columns}}{{= col.Identifier }}{{for}} (ctx context.Context{{for _,col := range idx.Columns}}, {{= col.DecapIdentifier }} {{if col.IsNullable}}interface{}{{else}}{{= col.GoType() }}{{if}} {{for}}, selectNodes ...query.Node) *{{= table.Identifier}} {
     q := query{{= table.IdentifierPlural }}(ctx)
 {{for _,col := range idx.Columns}}
 {{if col.IsNullable}}
@@ -41,7 +40,7 @@ func Load{{= table.Identifier }}By{{for _,col := range idx.Columns}}{{= col.Iden
     q = q.Where(op.Equal(node.{{= table.Identifier}}().{{= col.Identifier }}(), {{= col.DecapIdentifier }}))
 {{if}}
 {{for}}
-    return q.joinOrSelect(joinOrSelectNodes...).Get()
+    return q.Select(selectNodes...).Get()
 }
 
 // Has{{= table.Identifier}}By{{for _,col := range idx.Columns}}{{= col.Identifier }}{{for}} returns true if the

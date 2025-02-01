@@ -256,13 +256,12 @@ func (o *forwardNullUniqueBase) IsNew() bool {
 }
 
 // LoadForwardNullUnique returns a ForwardNullUnique from the database.
-// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields.
-// Table nodes will be considered Join nodes, and column nodes will be Select nodes.
-// See [ForwardNullUniqueBuilder.Join] and [ForwardNullUniquesBuilder.Select] for more info.
-func LoadForwardNullUnique(ctx context.Context, id string, joinOrSelectNodes ...query.Node) *ForwardNullUnique {
+// selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
+// See [ForwardNullUniquesBuilder.Select] for more info.
+func LoadForwardNullUnique(ctx context.Context, id string, selectNodes ...query.Node) *ForwardNullUnique {
 	return queryForwardNullUniques(ctx).
 		Where(op.Equal(node.ForwardNullUnique().ID(), id)).
-		joinOrSelect(joinOrSelectNodes...).
+		Select(selectNodes...).
 		Get()
 }
 
@@ -275,17 +274,17 @@ func HasForwardNullUnique(ctx context.Context, id string) bool {
 }
 
 // LoadForwardNullUniqueByReverseID queries for a single ForwardNullUnique object by the given unique index values.
-// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
-// be considered Join nodes, and column nodes will be Select nodes. See [ForwardNullUniquesBuilder.Join] and [ForwardNullUniquesBuilder.Select] for more info.
+// selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
+// See [ForwardNullUniquesBuilder.Select].
 // If you need a more elaborate query, use QueryForwardNullUniques() to start a query builder.
-func LoadForwardNullUniqueByReverseID(ctx context.Context, reverseID interface{}, joinOrSelectNodes ...query.Node) *ForwardNullUnique {
+func LoadForwardNullUniqueByReverseID(ctx context.Context, reverseID interface{}, selectNodes ...query.Node) *ForwardNullUnique {
 	q := queryForwardNullUniques(ctx)
 	if reverseID == nil {
 		q = q.Where(op.IsNull(node.ForwardNullUnique().ReverseID()))
 	} else {
 		q = q.Where(op.Equal(node.ForwardNullUnique().ReverseID(), reverseID))
 	}
-	return q.joinOrSelect(joinOrSelectNodes...).Get()
+	return q.Select(selectNodes...).Get()
 }
 
 // HasForwardNullUniqueByReverseID returns true if the
@@ -305,11 +304,7 @@ func HasForwardNullUniqueByReverseID(ctx context.Context, reverseID interface{})
 // All query operations go through this query builder.
 // End a query by calling either Load, LoadCursor, Get, Count, or Delete
 type ForwardNullUniqueBuilder interface {
-	// Join adds node n to the node tree so that its fields will appear in the query.
-	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
-	// By default, all the columns of the joined table are selected.
-	// To optimize the query and only return specific columns, call Select.
-	Join(n query.Node, conditions ...query.Node) ForwardNullUniqueBuilder
+	// Join(alias string, joinedTable query.Node, condition query.Node) ForwardNullUniqueBuilder
 
 	// Expand turns a Reverse or ManyMany node into individual rows.
 	Expand(n query.Expander) ForwardNullUniqueBuilder
@@ -391,9 +386,8 @@ type ForwardNullUniqueBuilder interface {
 	// Subquery terminates the query builder and tags it as a subquery within a larger query.
 	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
 	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-	Subquery() *query.SubqueryNode
+	// Subquery() *query.SubqueryNode
 
-	joinOrSelect(nodes ...query.Node) ForwardNullUniqueBuilder
 }
 
 type forwardNullUniqueQueryBuilder struct {
@@ -511,22 +505,20 @@ func (b *forwardNullUniqueQueryBuilder) Expand(n query.Expander) ForwardNullUniq
 	return b
 }
 
-// Join adds node n to the node tree so that its fields will appear in the query.
-// Optionally add conditions to filter what gets included. Multiple conditions are anded.
-func (b *forwardNullUniqueQueryBuilder) Join(n query.Node, conditions ...query.Node) ForwardNullUniqueBuilder {
-	if query.RootNode(n).TableName_() != "forward_null_unique" {
-		panic("you can only join a node that is rooted at node.ForwardNullUnique()")
-	}
-
-	var condition query.Node
-	if len(conditions) > 1 {
-		condition = op.And(conditions)
-	} else if len(conditions) == 1 {
-		condition = conditions[0]
-	}
-	b.builder.Join(n, condition)
+/*
+// Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
+// by condition.
+// The joinedTable node will be modified by this process so that you can use it in subsequent builder operations.
+// Call GetAlias to return the resulting object from the query result.
+func (b *forwardNullUniqueQueryBuilder) Join(alias string, joinedTable query.Node, condition query.Node) ForwardNullUniqueBuilder {
+    if query.RootNode(n).TableName_() != "forward_null_unique" {
+        panic("you can only join a node that is rooted at node.ForwardNullUnique()")
+    }
+    // TODO: make sure joinedTable is a table node
+	b.builder.Join(alias, joinedTable, condition)
 	return b
 }
+*/
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
@@ -552,15 +544,20 @@ func (b *forwardNullUniqueQueryBuilder) Limit(maxRowCount int, offset int) Forwa
 	return b
 }
 
-// Select optimizes the query to only return the specified fields.
-// Once you put a Select in your query, you must specify all the fields that you will eventually read out.
+// Select specifies what specific columns will be loaded with data.
+// By default, all the columns of the forward_null_unique table will be queried and loaded.
+// If nodes contains columns from the forward_null_unique table, that will limit the columns queried and loaded to only those columns.
+// If related tables are specified, then all the columns from those tables are queried, selected and joined to the result.
+// If columns in related tables are specified, then only those columns will be queried and loaded.
+// Depending on the query, additional columns may automatically be added to the query. In particular, primary key columns
+// will be added in most situations. The exception to this would be in distinct queries, group by queries, or subqueries.
 func (b *forwardNullUniqueQueryBuilder) Select(nodes ...query.Node) ForwardNullUniqueBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
 // Calculation adds a calculation node with an aliased name.
-// After the query, you can read the data using GetAlias() on a returned object.
+// After the query, you can read the data using GetAlias() on the returned object.
 func (b *forwardNullUniqueQueryBuilder) Calculation(name string, n query.Aliaser) ForwardNullUniqueBuilder {
 	b.builder.Calculation(name, n)
 	return b
@@ -601,7 +598,7 @@ func (b *forwardNullUniqueQueryBuilder) Count(distinct bool, nodes ...query.Node
 	return results.(int)
 }
 
-// Delete uses the query builder to delete a group of records that match the criteria
+// Delete uses the query builder to delete a group of records that match the criteria.
 func (b *forwardNullUniqueQueryBuilder) Delete() {
 	b.builder.Command = query.BuilderCommandDelete
 	database := db.GetDatabase("goradd_unit")
@@ -609,25 +606,14 @@ func (b *forwardNullUniqueQueryBuilder) Delete() {
 	broadcast.BulkChange(b.builder.Context(), "goradd_unit", "forward_null_unique")
 }
 
+/*
 // Subquery terminates the query builder and tags it as a subquery within a larger query.
 // You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
 // Generally you would use this as a node to a Calculation function on the surrounding query builder.
-func (b *forwardNullUniqueQueryBuilder) Subquery() *query.SubqueryNode {
-	return b.builder.Subquery()
+func (b *forwardNullUniqueQueryBuilder)  Subquery() *query.SubqueryNode {
+	 return b.builder.Subquery()
 }
-
-// joinOrSelect is a private helper function for the Load* functions
-func (b *forwardNullUniqueQueryBuilder) joinOrSelect(nodes ...query.Node) ForwardNullUniqueBuilder {
-	for _, n := range nodes {
-		switch n.(type) {
-		case query.TableNodeI:
-			b.builder.Join(n, nil)
-		case *query.ColumnNode:
-			b.Select(n)
-		}
-	}
-	return b
-}
+*/
 
 // CountForwardNullUniqueByID queries the database and returns the number of ForwardNullUnique objects that
 // have id.
@@ -655,7 +641,6 @@ func CountForwardNullUniqueByReverseID(ctx context.Context, reverseID string) in
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
-// Care must be taken in the query, as Select clauses might not be honored if the child object has fields selected which the parent object does not have.
 func (o *forwardNullUniqueBase) load(m map[string]interface{}, objThis *ForwardNullUnique, objParent interface{}, parentKey string) {
 
 	if v, ok := m["id"]; ok && v != nil {

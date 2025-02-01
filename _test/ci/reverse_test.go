@@ -9,10 +9,10 @@ import (
 	"testing"
 )
 
-func TestReverseConditionalJoin(t *testing.T) {
+func TestReverseConditionalSelect(t *testing.T) {
 	ctx := db.NewContext(nil)
 	people := goradd.QueryPeople(ctx).
-		Join(node.Person().ManagerProjects()).
+		Select(node.Person().ManagerProjects()).
 		OrderBy(node.Person().ID(), node.Person().ManagerProjects().Name()).
 		Where(op.IsNotNull(node.Person().ManagerProjects().ID())). // Filter out people who are not managers
 		Select(node.Person().ManagerProjects().Name()).
@@ -67,7 +67,7 @@ func TestReverseManyExpansion(t *testing.T) {
 	ctx := db.NewContext(nil)
 	// Test an intermediate expansion
 	people := goradd.QueryPeople(ctx).
-		Join(node.Person().ManagerProjects().TeamMembers()).
+		Select(node.Person().ManagerProjects().TeamMembers()).
 		OrderBy(node.Person().ID(), node.Person().ManagerProjects().TeamMembers().LastName(), node.Person().ManagerProjects().TeamMembers().FirstName()).
 		Expand(node.Person().ManagerProjects()).
 		Load()
@@ -115,7 +115,7 @@ func TestUniqueReverse(t *testing.T) {
 
 	person = goradd.QueryPeople(ctx).
 		Where(op.Equal(node.Person().LastName(), "Doe")).
-		Join(node.Person().Login()).
+		Select(node.Person().Login()).
 		Load()[0]
 	assert.Equal(t, "jdoe", person.Login().Username())
 }
@@ -240,7 +240,7 @@ func TestReverseSet(t *testing.T) {
 
 	person := goradd.QueryPeople(ctx).
 		Where(op.Equal(node.Person().ID(), "7")).
-		Join(node.Person().ManagerProjects()).
+		Select(node.Person().ManagerProjects()).
 		OrderBy(node.Person().ManagerProjects().ID()).
 		Get()
 	projects := person.ManagerProjects()
@@ -256,7 +256,7 @@ func TestReverseSet(t *testing.T) {
 
 	personTest := goradd.QueryPeople(ctx).
 		Where(op.Equal(node.Person().ID(), "7")).
-		Join(node.Person().ManagerProjects()).
+		Select(node.Person().ManagerProjects()).
 		OrderBy(node.Person().ManagerProjects().ID()).
 		Get()
 	projectsTest := personTest.ManagerProjects()
@@ -269,7 +269,7 @@ func TestReverseSet(t *testing.T) {
 
 	person = goradd.QueryPeople(ctx).
 		Where(op.Equal(node.Person().ID(), "7")).
-		Join(node.Person().ManagerProjects()).
+		Select(node.Person().ManagerProjects()).
 		OrderBy(node.Person().ManagerProjects().ID()).
 		Get()
 	projects = person.ManagerProjects()

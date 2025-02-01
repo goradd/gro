@@ -1038,13 +1038,12 @@ func (o *projectBase) SetMilestonesByID(ids []string) {
 }
 
 // LoadProject returns a Project from the database.
-// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields.
-// Table nodes will be considered Join nodes, and column nodes will be Select nodes.
-// See [ProjectBuilder.Join] and [ProjectsBuilder.Select] for more info.
-func LoadProject(ctx context.Context, id string, joinOrSelectNodes ...query.Node) *Project {
+// selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
+// See [ProjectsBuilder.Select] for more info.
+func LoadProject(ctx context.Context, id string, selectNodes ...query.Node) *Project {
 	return queryProjects(ctx).
 		Where(op.Equal(node.Project().ID(), id)).
-		joinOrSelect(joinOrSelectNodes...).
+		Select(selectNodes...).
 		Get()
 }
 
@@ -1057,13 +1056,13 @@ func HasProject(ctx context.Context, id string) bool {
 }
 
 // LoadProjectByNum queries for a single Project object by the given unique index values.
-// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
-// be considered Join nodes, and column nodes will be Select nodes. See [ProjectsBuilder.Join] and [ProjectsBuilder.Select] for more info.
+// selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
+// See [ProjectsBuilder.Select].
 // If you need a more elaborate query, use QueryProjects() to start a query builder.
-func LoadProjectByNum(ctx context.Context, num int, joinOrSelectNodes ...query.Node) *Project {
+func LoadProjectByNum(ctx context.Context, num int, selectNodes ...query.Node) *Project {
 	q := queryProjects(ctx)
 	q = q.Where(op.Equal(node.Project().Num(), num))
-	return q.joinOrSelect(joinOrSelectNodes...).Get()
+	return q.Select(selectNodes...).Get()
 }
 
 // HasProjectByNum returns true if the
@@ -1079,11 +1078,7 @@ func HasProjectByNum(ctx context.Context, num int) bool {
 // All query operations go through this query builder.
 // End a query by calling either Load, LoadCursor, Get, Count, or Delete
 type ProjectBuilder interface {
-	// Join adds node n to the node tree so that its fields will appear in the query.
-	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
-	// By default, all the columns of the joined table are selected.
-	// To optimize the query and only return specific columns, call Select.
-	Join(n query.Node, conditions ...query.Node) ProjectBuilder
+	// Join(alias string, joinedTable query.Node, condition query.Node) ProjectBuilder
 
 	// Expand turns a Reverse or ManyMany node into individual rows.
 	Expand(n query.Expander) ProjectBuilder
@@ -1165,9 +1160,8 @@ type ProjectBuilder interface {
 	// Subquery terminates the query builder and tags it as a subquery within a larger query.
 	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
 	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-	Subquery() *query.SubqueryNode
+	// Subquery() *query.SubqueryNode
 
-	joinOrSelect(nodes ...query.Node) ProjectBuilder
 }
 
 type projectQueryBuilder struct {
@@ -1285,22 +1279,20 @@ func (b *projectQueryBuilder) Expand(n query.Expander) ProjectBuilder {
 	return b
 }
 
-// Join adds node n to the node tree so that its fields will appear in the query.
-// Optionally add conditions to filter what gets included. Multiple conditions are anded.
-func (b *projectQueryBuilder) Join(n query.Node, conditions ...query.Node) ProjectBuilder {
-	if query.RootNode(n).TableName_() != "project" {
-		panic("you can only join a node that is rooted at node.Project()")
-	}
-
-	var condition query.Node
-	if len(conditions) > 1 {
-		condition = op.And(conditions)
-	} else if len(conditions) == 1 {
-		condition = conditions[0]
-	}
-	b.builder.Join(n, condition)
+/*
+// Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
+// by condition.
+// The joinedTable node will be modified by this process so that you can use it in subsequent builder operations.
+// Call GetAlias to return the resulting object from the query result.
+func (b *projectQueryBuilder) Join(alias string, joinedTable query.Node, condition query.Node) ProjectBuilder {
+    if query.RootNode(n).TableName_() != "project" {
+        panic("you can only join a node that is rooted at node.Project()")
+    }
+    // TODO: make sure joinedTable is a table node
+	b.builder.Join(alias, joinedTable, condition)
 	return b
 }
+*/
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
@@ -1326,15 +1318,20 @@ func (b *projectQueryBuilder) Limit(maxRowCount int, offset int) ProjectBuilder 
 	return b
 }
 
-// Select optimizes the query to only return the specified fields.
-// Once you put a Select in your query, you must specify all the fields that you will eventually read out.
+// Select specifies what specific columns will be loaded with data.
+// By default, all the columns of the project table will be queried and loaded.
+// If nodes contains columns from the project table, that will limit the columns queried and loaded to only those columns.
+// If related tables are specified, then all the columns from those tables are queried, selected and joined to the result.
+// If columns in related tables are specified, then only those columns will be queried and loaded.
+// Depending on the query, additional columns may automatically be added to the query. In particular, primary key columns
+// will be added in most situations. The exception to this would be in distinct queries, group by queries, or subqueries.
 func (b *projectQueryBuilder) Select(nodes ...query.Node) ProjectBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
 // Calculation adds a calculation node with an aliased name.
-// After the query, you can read the data using GetAlias() on a returned object.
+// After the query, you can read the data using GetAlias() on the returned object.
 func (b *projectQueryBuilder) Calculation(name string, n query.Aliaser) ProjectBuilder {
 	b.builder.Calculation(name, n)
 	return b
@@ -1375,7 +1372,7 @@ func (b *projectQueryBuilder) Count(distinct bool, nodes ...query.Node) int {
 	return results.(int)
 }
 
-// Delete uses the query builder to delete a group of records that match the criteria
+// Delete uses the query builder to delete a group of records that match the criteria.
 func (b *projectQueryBuilder) Delete() {
 	b.builder.Command = query.BuilderCommandDelete
 	database := db.GetDatabase("goradd")
@@ -1383,25 +1380,14 @@ func (b *projectQueryBuilder) Delete() {
 	broadcast.BulkChange(b.builder.Context(), "goradd", "project")
 }
 
+/*
 // Subquery terminates the query builder and tags it as a subquery within a larger query.
 // You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
 // Generally you would use this as a node to a Calculation function on the surrounding query builder.
-func (b *projectQueryBuilder) Subquery() *query.SubqueryNode {
-	return b.builder.Subquery()
+func (b *projectQueryBuilder)  Subquery() *query.SubqueryNode {
+	 return b.builder.Subquery()
 }
-
-// joinOrSelect is a private helper function for the Load* functions
-func (b *projectQueryBuilder) joinOrSelect(nodes ...query.Node) ProjectBuilder {
-	for _, n := range nodes {
-		switch n.(type) {
-		case query.TableNodeI:
-			b.builder.Join(n, nil)
-		case *query.ColumnNode:
-			b.Select(n)
-		}
-	}
-	return b
-}
+*/
 
 // CountProjectByID queries the database and returns the number of Project objects that
 // have id.
@@ -1478,7 +1464,6 @@ func CountProjectBySpent(ctx context.Context, spent []byte) int {
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
-// Care must be taken in the query, as Select clauses might not be honored if the child object has fields selected which the parent object does not have.
 func (o *projectBase) load(m map[string]interface{}, objThis *Project, objParent interface{}, parentKey string) {
 
 	if v, ok := m["id"]; ok && v != nil {

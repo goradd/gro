@@ -184,7 +184,7 @@ func (o *`); err != nil {
 
 	if _, err = io.WriteString(_w, `) String() string  {
     if o == nil {
-        return ""   // Possibly - Select One -?
+        return ""
     }
 `); err != nil {
 		return

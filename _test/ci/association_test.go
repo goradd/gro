@@ -83,7 +83,7 @@ func TestManySelect(t *testing.T) {
 func Test2Nodes(t *testing.T) {
 	ctx := db.NewContext(nil)
 	milestones := goradd.QueryMilestones(ctx).
-		Join(node.Milestone().Project().Manager()).
+		Select(node.Milestone().Project().Manager()).
 		Where(op.Equal(node.Milestone().ID(), 1)). // Filter out people who are not managers
 		Load()
 
@@ -97,7 +97,7 @@ func Test2Nodes(t *testing.T) {
 func TestForwardMany(t *testing.T) {
 	ctx := db.NewContext(nil)
 	milestones := goradd.QueryMilestones(ctx).
-		Join(node.Milestone().Project().TeamMembers()).
+		Select(node.Milestone().Project().TeamMembers()).
 		OrderBy(node.Milestone().Project().TeamMembers().LastName(), node.Milestone().Project().TeamMembers().FirstName()).
 		Where(op.Equal(node.Milestone().ID(), 1)). // Filter out people who are not managers
 		Load()
@@ -137,21 +137,21 @@ func TestManyForward(t *testing.T) {
 
 }
 
-func TestConditionalJoin(t *testing.T) {
+func TestConditionalSelect(t *testing.T) {
 	ctx := db.NewContext(nil)
 
 	projects := goradd.QueryProjects(ctx).
 		OrderBy(node.Project().Name()).
-		Join(node.Project().Manager(), op.Equal(node.Project().Manager().LastName(), "Wolfe")).
-		Join(node.Project().TeamMembers(), op.Equal(node.Project().TeamMembers().LastName(), "Smith")).
+		Select(node.Project().Manager(), op.Equal(node.Project().Manager().LastName(), "Wolfe")).
+		Select(node.Project().TeamMembers(), op.Equal(node.Project().TeamMembers().LastName(), "Smith")).
 		Load()
 
 	// Reverse references
 	people := goradd.QueryPeople(ctx).
-		Join(node.Person().Addresses(), op.Equal(node.Person().Addresses().City(), "New York")).
-		Join(node.Person().ManagerProjects(), op.Equal(node.Person().ManagerProjects().Status(), goradd.ProjectStatusOpen)).
-		Join(node.Person().ManagerProjects().Milestones()).
-		Join(node.Person().Login(), op.Like(node.Person().Login().Username(), "b%")).
+		Select(node.Person().Addresses(), op.Equal(node.Person().Addresses().City(), "New York")).
+		Select(node.Person().ManagerProjects(), op.Equal(node.Person().ManagerProjects().Status(), goradd.ProjectStatusOpen)).
+		Select(node.Person().ManagerProjects().Milestones()).
+		Select(node.Person().Login(), op.Like(node.Person().Login().Username(), "b%")).
 		OrderBy(node.Person().LastName(), node.Person().FirstName(), node.Person().ManagerProjects().Name()).
 		Load()
 
@@ -185,8 +185,8 @@ func TestConditionalExpand(t *testing.T) {
 
 	// Reverse references
 	people := goradd.QueryPeople(ctx).
-		Join(node.Person().Addresses(), op.Equal(node.Person().Addresses().City(), "Mountain View")).
-		Join(node.Person().ManagerProjects(), op.Like(node.Person().ManagerProjects().Name(), "%Website%")).
+		Select(node.Person().Addresses(), op.Equal(node.Person().Addresses().City(), "Mountain View")).
+		Select(node.Person().ManagerProjects(), op.Like(node.Person().ManagerProjects().Name(), "%Website%")).
 		Expand(node.Person().ManagerProjects().Milestones()).
 		OrderBy(node.Person().LastName(), node.Person().FirstName(), node.Person().ManagerProjects().Name()).
 		Load()
@@ -212,7 +212,7 @@ func TestSelectByID(t *testing.T) {
 
 	// Reverse references
 	people := goradd.QueryPeople(ctx).
-		Join(node.Person().ManagerProjects()).
+		Select(node.Person().ManagerProjects()).
 		Where(op.Equal(node.Person().LastName(), "Wolfe")).
 		Load()
 

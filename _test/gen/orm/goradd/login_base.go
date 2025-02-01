@@ -364,13 +364,12 @@ func (o *loginBase) IsNew() bool {
 }
 
 // LoadLogin returns a Login from the database.
-// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields.
-// Table nodes will be considered Join nodes, and column nodes will be Select nodes.
-// See [LoginBuilder.Join] and [LoginsBuilder.Select] for more info.
-func LoadLogin(ctx context.Context, id string, joinOrSelectNodes ...query.Node) *Login {
+// selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
+// See [LoginsBuilder.Select] for more info.
+func LoadLogin(ctx context.Context, id string, selectNodes ...query.Node) *Login {
 	return queryLogins(ctx).
 		Where(op.Equal(node.Login().ID(), id)).
-		joinOrSelect(joinOrSelectNodes...).
+		Select(selectNodes...).
 		Get()
 }
 
@@ -383,17 +382,17 @@ func HasLogin(ctx context.Context, id string) bool {
 }
 
 // LoadLoginByPersonID queries for a single Login object by the given unique index values.
-// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
-// be considered Join nodes, and column nodes will be Select nodes. See [LoginsBuilder.Join] and [LoginsBuilder.Select] for more info.
+// selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
+// See [LoginsBuilder.Select].
 // If you need a more elaborate query, use QueryLogins() to start a query builder.
-func LoadLoginByPersonID(ctx context.Context, personID interface{}, joinOrSelectNodes ...query.Node) *Login {
+func LoadLoginByPersonID(ctx context.Context, personID interface{}, selectNodes ...query.Node) *Login {
 	q := queryLogins(ctx)
 	if personID == nil {
 		q = q.Where(op.IsNull(node.Login().PersonID()))
 	} else {
 		q = q.Where(op.Equal(node.Login().PersonID(), personID))
 	}
-	return q.joinOrSelect(joinOrSelectNodes...).Get()
+	return q.Select(selectNodes...).Get()
 }
 
 // HasLoginByPersonID returns true if the
@@ -410,13 +409,13 @@ func HasLoginByPersonID(ctx context.Context, personID interface{}) bool {
 }
 
 // LoadLoginByUsername queries for a single Login object by the given unique index values.
-// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
-// be considered Join nodes, and column nodes will be Select nodes. See [LoginsBuilder.Join] and [LoginsBuilder.Select] for more info.
+// selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
+// See [LoginsBuilder.Select].
 // If you need a more elaborate query, use QueryLogins() to start a query builder.
-func LoadLoginByUsername(ctx context.Context, username string, joinOrSelectNodes ...query.Node) *Login {
+func LoadLoginByUsername(ctx context.Context, username string, selectNodes ...query.Node) *Login {
 	q := queryLogins(ctx)
 	q = q.Where(op.Equal(node.Login().Username(), username))
-	return q.joinOrSelect(joinOrSelectNodes...).Get()
+	return q.Select(selectNodes...).Get()
 }
 
 // HasLoginByUsername returns true if the
@@ -432,11 +431,7 @@ func HasLoginByUsername(ctx context.Context, username string) bool {
 // All query operations go through this query builder.
 // End a query by calling either Load, LoadCursor, Get, Count, or Delete
 type LoginBuilder interface {
-	// Join adds node n to the node tree so that its fields will appear in the query.
-	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
-	// By default, all the columns of the joined table are selected.
-	// To optimize the query and only return specific columns, call Select.
-	Join(n query.Node, conditions ...query.Node) LoginBuilder
+	// Join(alias string, joinedTable query.Node, condition query.Node) LoginBuilder
 
 	// Expand turns a Reverse or ManyMany node into individual rows.
 	Expand(n query.Expander) LoginBuilder
@@ -518,9 +513,8 @@ type LoginBuilder interface {
 	// Subquery terminates the query builder and tags it as a subquery within a larger query.
 	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
 	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-	Subquery() *query.SubqueryNode
+	// Subquery() *query.SubqueryNode
 
-	joinOrSelect(nodes ...query.Node) LoginBuilder
 }
 
 type loginQueryBuilder struct {
@@ -638,22 +632,20 @@ func (b *loginQueryBuilder) Expand(n query.Expander) LoginBuilder {
 	return b
 }
 
-// Join adds node n to the node tree so that its fields will appear in the query.
-// Optionally add conditions to filter what gets included. Multiple conditions are anded.
-func (b *loginQueryBuilder) Join(n query.Node, conditions ...query.Node) LoginBuilder {
-	if query.RootNode(n).TableName_() != "login" {
-		panic("you can only join a node that is rooted at node.Login()")
-	}
-
-	var condition query.Node
-	if len(conditions) > 1 {
-		condition = op.And(conditions)
-	} else if len(conditions) == 1 {
-		condition = conditions[0]
-	}
-	b.builder.Join(n, condition)
+/*
+// Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
+// by condition.
+// The joinedTable node will be modified by this process so that you can use it in subsequent builder operations.
+// Call GetAlias to return the resulting object from the query result.
+func (b *loginQueryBuilder) Join(alias string, joinedTable query.Node, condition query.Node) LoginBuilder {
+    if query.RootNode(n).TableName_() != "login" {
+        panic("you can only join a node that is rooted at node.Login()")
+    }
+    // TODO: make sure joinedTable is a table node
+	b.builder.Join(alias, joinedTable, condition)
 	return b
 }
+*/
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
@@ -679,15 +671,20 @@ func (b *loginQueryBuilder) Limit(maxRowCount int, offset int) LoginBuilder {
 	return b
 }
 
-// Select optimizes the query to only return the specified fields.
-// Once you put a Select in your query, you must specify all the fields that you will eventually read out.
+// Select specifies what specific columns will be loaded with data.
+// By default, all the columns of the login table will be queried and loaded.
+// If nodes contains columns from the login table, that will limit the columns queried and loaded to only those columns.
+// If related tables are specified, then all the columns from those tables are queried, selected and joined to the result.
+// If columns in related tables are specified, then only those columns will be queried and loaded.
+// Depending on the query, additional columns may automatically be added to the query. In particular, primary key columns
+// will be added in most situations. The exception to this would be in distinct queries, group by queries, or subqueries.
 func (b *loginQueryBuilder) Select(nodes ...query.Node) LoginBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
 // Calculation adds a calculation node with an aliased name.
-// After the query, you can read the data using GetAlias() on a returned object.
+// After the query, you can read the data using GetAlias() on the returned object.
 func (b *loginQueryBuilder) Calculation(name string, n query.Aliaser) LoginBuilder {
 	b.builder.Calculation(name, n)
 	return b
@@ -728,7 +725,7 @@ func (b *loginQueryBuilder) Count(distinct bool, nodes ...query.Node) int {
 	return results.(int)
 }
 
-// Delete uses the query builder to delete a group of records that match the criteria
+// Delete uses the query builder to delete a group of records that match the criteria.
 func (b *loginQueryBuilder) Delete() {
 	b.builder.Command = query.BuilderCommandDelete
 	database := db.GetDatabase("goradd")
@@ -736,25 +733,14 @@ func (b *loginQueryBuilder) Delete() {
 	broadcast.BulkChange(b.builder.Context(), "goradd", "login")
 }
 
+/*
 // Subquery terminates the query builder and tags it as a subquery within a larger query.
 // You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
 // Generally you would use this as a node to a Calculation function on the surrounding query builder.
-func (b *loginQueryBuilder) Subquery() *query.SubqueryNode {
-	return b.builder.Subquery()
+func (b *loginQueryBuilder)  Subquery() *query.SubqueryNode {
+	 return b.builder.Subquery()
 }
-
-// joinOrSelect is a private helper function for the Load* functions
-func (b *loginQueryBuilder) joinOrSelect(nodes ...query.Node) LoginBuilder {
-	for _, n := range nodes {
-		switch n.(type) {
-		case query.TableNodeI:
-			b.builder.Join(n, nil)
-		case *query.ColumnNode:
-			b.Select(n)
-		}
-	}
-	return b
-}
+*/
 
 // CountLoginByID queries the database and returns the number of Login objects that
 // have id.
@@ -796,7 +782,6 @@ func CountLoginByIsEnabled(ctx context.Context, isEnabled bool) int {
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
-// Care must be taken in the query, as Select clauses might not be honored if the child object has fields selected which the parent object does not have.
 func (o *loginBase) load(m map[string]interface{}, objThis *Login, objParent interface{}, parentKey string) {
 
 	if v, ok := m["id"]; ok && v != nil {

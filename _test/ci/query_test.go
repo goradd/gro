@@ -66,7 +66,7 @@ func TestWhere(t *testing.T) {
 func TestReference(t *testing.T) {
 	ctx := db.NewContext(nil)
 	projects := goradd.QueryProjects(ctx).
-		Join(node.Project().Manager()).
+		Select(node.Project().Manager()).
 		OrderBy(node.Project().ID()).
 		Load()
 
@@ -79,7 +79,7 @@ func TestReference(t *testing.T) {
 func TestManyMany(t *testing.T) {
 	ctx := db.NewContext(nil)
 	projects := goradd.QueryProjects(ctx).
-		Join(node.Project().TeamMembers()).
+		Select(node.Project().TeamMembers()).
 		OrderBy(node.Project().ID()).
 		Load()
 
@@ -92,7 +92,7 @@ func TestManyMany(t *testing.T) {
 func TestReverseReference(t *testing.T) {
 	ctx := db.NewContext(nil)
 	people := goradd.QueryPeople(ctx).
-		Join(node.Person().ManagerProjects()).
+		Select(node.Person().ManagerProjects()).
 		OrderBy(node.Person().ID()).
 		Load()
 
@@ -121,7 +121,7 @@ func TestManyEnum(t *testing.T) {
 	ctx := db.NewContext(nil)
 	people := goradd.QueryPeople(ctx).
 		OrderBy(node.Person().ID()).
-		Join(node.Person().Types()).
+		Select(node.Person().Types()).
 		Load()
 
 	if people[0].Types().Len() != 2 {
@@ -371,8 +371,8 @@ func TestHaving(t *testing.T) {
 func TestFailedJoins(t *testing.T) {
 	ctx := db.NewContext(nil)
 
-	assert.Panics(t, func() { goradd.QueryProjects(ctx).Join(node.Person()) })
-	assert.Panics(t, func() { goradd.QueryProjects(ctx).Join(node.Project().ManagerID()) })
+	assert.Panics(t, func() { goradd.QueryProjects(ctx).Select(node.Person()) })
+	assert.Panics(t, func() { goradd.QueryProjects(ctx).Select(node.Project().ManagerID()) })
 }
 
 func TestFailedExpand(t *testing.T) {

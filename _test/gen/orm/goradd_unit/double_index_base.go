@@ -197,13 +197,12 @@ func (o *doubleIndexBase) IsNew() bool {
 }
 
 // LoadDoubleIndex returns a DoubleIndex from the database.
-// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields.
-// Table nodes will be considered Join nodes, and column nodes will be Select nodes.
-// See [DoubleIndexBuilder.Join] and [DoubleIndicesBuilder.Select] for more info.
-func LoadDoubleIndex(ctx context.Context, id int, joinOrSelectNodes ...query.Node) *DoubleIndex {
+// selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
+// See [DoubleIndicesBuilder.Select] for more info.
+func LoadDoubleIndex(ctx context.Context, id int, selectNodes ...query.Node) *DoubleIndex {
 	return queryDoubleIndices(ctx).
 		Where(op.Equal(node.DoubleIndex().ID(), id)).
-		joinOrSelect(joinOrSelectNodes...).
+		Select(selectNodes...).
 		Get()
 }
 
@@ -216,13 +215,13 @@ func HasDoubleIndex(ctx context.Context, id int) bool {
 }
 
 // LoadDoubleIndexByID queries for a single DoubleIndex object by the given unique index values.
-// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
-// be considered Join nodes, and column nodes will be Select nodes. See [DoubleIndicesBuilder.Join] and [DoubleIndicesBuilder.Select] for more info.
+// selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
+// See [DoubleIndicesBuilder.Select].
 // If you need a more elaborate query, use QueryDoubleIndices() to start a query builder.
-func LoadDoubleIndexByID(ctx context.Context, id int, joinOrSelectNodes ...query.Node) *DoubleIndex {
+func LoadDoubleIndexByID(ctx context.Context, id int, selectNodes ...query.Node) *DoubleIndex {
 	q := queryDoubleIndices(ctx)
 	q = q.Where(op.Equal(node.DoubleIndex().ID(), id))
-	return q.joinOrSelect(joinOrSelectNodes...).Get()
+	return q.Select(selectNodes...).Get()
 }
 
 // HasDoubleIndexByID returns true if the
@@ -235,14 +234,14 @@ func HasDoubleIndexByID(ctx context.Context, id int) bool {
 }
 
 // LoadDoubleIndexByFieldIntFieldString queries for a single DoubleIndex object by the given unique index values.
-// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields. Table nodes will
-// be considered Join nodes, and column nodes will be Select nodes. See [DoubleIndicesBuilder.Join] and [DoubleIndicesBuilder.Select] for more info.
+// selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
+// See [DoubleIndicesBuilder.Select].
 // If you need a more elaborate query, use QueryDoubleIndices() to start a query builder.
-func LoadDoubleIndexByFieldIntFieldString(ctx context.Context, fieldInt int, fieldString string, joinOrSelectNodes ...query.Node) *DoubleIndex {
+func LoadDoubleIndexByFieldIntFieldString(ctx context.Context, fieldInt int, fieldString string, selectNodes ...query.Node) *DoubleIndex {
 	q := queryDoubleIndices(ctx)
 	q = q.Where(op.Equal(node.DoubleIndex().FieldInt(), fieldInt))
 	q = q.Where(op.Equal(node.DoubleIndex().FieldString(), fieldString))
-	return q.joinOrSelect(joinOrSelectNodes...).Get()
+	return q.Select(selectNodes...).Get()
 }
 
 // HasDoubleIndexByFieldIntFieldString returns true if the
@@ -259,11 +258,7 @@ func HasDoubleIndexByFieldIntFieldString(ctx context.Context, fieldInt int, fiel
 // All query operations go through this query builder.
 // End a query by calling either Load, LoadCursor, Get, Count, or Delete
 type DoubleIndexBuilder interface {
-	// Join adds node n to the node tree so that its fields will appear in the query.
-	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
-	// By default, all the columns of the joined table are selected.
-	// To optimize the query and only return specific columns, call Select.
-	Join(n query.Node, conditions ...query.Node) DoubleIndexBuilder
+	// Join(alias string, joinedTable query.Node, condition query.Node) DoubleIndexBuilder
 
 	// Expand turns a Reverse or ManyMany node into individual rows.
 	Expand(n query.Expander) DoubleIndexBuilder
@@ -345,9 +340,8 @@ type DoubleIndexBuilder interface {
 	// Subquery terminates the query builder and tags it as a subquery within a larger query.
 	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
 	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-	Subquery() *query.SubqueryNode
+	// Subquery() *query.SubqueryNode
 
-	joinOrSelect(nodes ...query.Node) DoubleIndexBuilder
 }
 
 type doubleIndexQueryBuilder struct {
@@ -465,22 +459,20 @@ func (b *doubleIndexQueryBuilder) Expand(n query.Expander) DoubleIndexBuilder {
 	return b
 }
 
-// Join adds node n to the node tree so that its fields will appear in the query.
-// Optionally add conditions to filter what gets included. Multiple conditions are anded.
-func (b *doubleIndexQueryBuilder) Join(n query.Node, conditions ...query.Node) DoubleIndexBuilder {
-	if query.RootNode(n).TableName_() != "double_index" {
-		panic("you can only join a node that is rooted at node.DoubleIndex()")
-	}
-
-	var condition query.Node
-	if len(conditions) > 1 {
-		condition = op.And(conditions)
-	} else if len(conditions) == 1 {
-		condition = conditions[0]
-	}
-	b.builder.Join(n, condition)
+/*
+// Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
+// by condition.
+// The joinedTable node will be modified by this process so that you can use it in subsequent builder operations.
+// Call GetAlias to return the resulting object from the query result.
+func (b *doubleIndexQueryBuilder) Join(alias string, joinedTable query.Node, condition query.Node) DoubleIndexBuilder {
+    if query.RootNode(n).TableName_() != "double_index" {
+        panic("you can only join a node that is rooted at node.DoubleIndex()")
+    }
+    // TODO: make sure joinedTable is a table node
+	b.builder.Join(alias, joinedTable, condition)
 	return b
 }
+*/
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
@@ -506,15 +498,20 @@ func (b *doubleIndexQueryBuilder) Limit(maxRowCount int, offset int) DoubleIndex
 	return b
 }
 
-// Select optimizes the query to only return the specified fields.
-// Once you put a Select in your query, you must specify all the fields that you will eventually read out.
+// Select specifies what specific columns will be loaded with data.
+// By default, all the columns of the double_index table will be queried and loaded.
+// If nodes contains columns from the double_index table, that will limit the columns queried and loaded to only those columns.
+// If related tables are specified, then all the columns from those tables are queried, selected and joined to the result.
+// If columns in related tables are specified, then only those columns will be queried and loaded.
+// Depending on the query, additional columns may automatically be added to the query. In particular, primary key columns
+// will be added in most situations. The exception to this would be in distinct queries, group by queries, or subqueries.
 func (b *doubleIndexQueryBuilder) Select(nodes ...query.Node) DoubleIndexBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
 // Calculation adds a calculation node with an aliased name.
-// After the query, you can read the data using GetAlias() on a returned object.
+// After the query, you can read the data using GetAlias() on the returned object.
 func (b *doubleIndexQueryBuilder) Calculation(name string, n query.Aliaser) DoubleIndexBuilder {
 	b.builder.Calculation(name, n)
 	return b
@@ -555,7 +552,7 @@ func (b *doubleIndexQueryBuilder) Count(distinct bool, nodes ...query.Node) int 
 	return results.(int)
 }
 
-// Delete uses the query builder to delete a group of records that match the criteria
+// Delete uses the query builder to delete a group of records that match the criteria.
 func (b *doubleIndexQueryBuilder) Delete() {
 	b.builder.Command = query.BuilderCommandDelete
 	database := db.GetDatabase("goradd_unit")
@@ -563,25 +560,14 @@ func (b *doubleIndexQueryBuilder) Delete() {
 	broadcast.BulkChange(b.builder.Context(), "goradd_unit", "double_index")
 }
 
+/*
 // Subquery terminates the query builder and tags it as a subquery within a larger query.
 // You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
 // Generally you would use this as a node to a Calculation function on the surrounding query builder.
-func (b *doubleIndexQueryBuilder) Subquery() *query.SubqueryNode {
-	return b.builder.Subquery()
+func (b *doubleIndexQueryBuilder)  Subquery() *query.SubqueryNode {
+	 return b.builder.Subquery()
 }
-
-// joinOrSelect is a private helper function for the Load* functions
-func (b *doubleIndexQueryBuilder) joinOrSelect(nodes ...query.Node) DoubleIndexBuilder {
-	for _, n := range nodes {
-		switch n.(type) {
-		case query.TableNodeI:
-			b.builder.Join(n, nil)
-		case *query.ColumnNode:
-			b.Select(n)
-		}
-	}
-	return b
-}
+*/
 
 // CountDoubleIndexByID queries the database and returns the number of DoubleIndex objects that
 // have id.
@@ -606,7 +592,6 @@ func CountDoubleIndexByFieldString(ctx context.Context, fieldString string) int 
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
-// Care must be taken in the query, as Select clauses might not be honored if the child object has fields selected which the parent object does not have.
 func (o *doubleIndexBase) load(m map[string]interface{}, objThis *DoubleIndex, objParent interface{}, parentKey string) {
 
 	if v, ok := m["id"]; ok && v != nil {

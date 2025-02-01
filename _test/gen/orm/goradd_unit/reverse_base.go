@@ -668,13 +668,12 @@ func (o *reverseBase) SetForwardRestrictUniqueByID(id string) {
 }
 
 // LoadReverse returns a Reverse from the database.
-// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields.
-// Table nodes will be considered Join nodes, and column nodes will be Select nodes.
-// See [ReverseBuilder.Join] and [ReversesBuilder.Select] for more info.
-func LoadReverse(ctx context.Context, id string, joinOrSelectNodes ...query.Node) *Reverse {
+// selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
+// See [ReversesBuilder.Select] for more info.
+func LoadReverse(ctx context.Context, id string, selectNodes ...query.Node) *Reverse {
 	return queryReverses(ctx).
 		Where(op.Equal(node.Reverse().ID(), id)).
-		joinOrSelect(joinOrSelectNodes...).
+		Select(selectNodes...).
 		Get()
 }
 
@@ -690,11 +689,7 @@ func HasReverse(ctx context.Context, id string) bool {
 // All query operations go through this query builder.
 // End a query by calling either Load, LoadCursor, Get, Count, or Delete
 type ReverseBuilder interface {
-	// Join adds node n to the node tree so that its fields will appear in the query.
-	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
-	// By default, all the columns of the joined table are selected.
-	// To optimize the query and only return specific columns, call Select.
-	Join(n query.Node, conditions ...query.Node) ReverseBuilder
+	// Join(alias string, joinedTable query.Node, condition query.Node) ReverseBuilder
 
 	// Expand turns a Reverse or ManyMany node into individual rows.
 	Expand(n query.Expander) ReverseBuilder
@@ -776,9 +771,8 @@ type ReverseBuilder interface {
 	// Subquery terminates the query builder and tags it as a subquery within a larger query.
 	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
 	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-	Subquery() *query.SubqueryNode
+	// Subquery() *query.SubqueryNode
 
-	joinOrSelect(nodes ...query.Node) ReverseBuilder
 }
 
 type reverseQueryBuilder struct {
@@ -896,22 +890,20 @@ func (b *reverseQueryBuilder) Expand(n query.Expander) ReverseBuilder {
 	return b
 }
 
-// Join adds node n to the node tree so that its fields will appear in the query.
-// Optionally add conditions to filter what gets included. Multiple conditions are anded.
-func (b *reverseQueryBuilder) Join(n query.Node, conditions ...query.Node) ReverseBuilder {
-	if query.RootNode(n).TableName_() != "reverse" {
-		panic("you can only join a node that is rooted at node.Reverse()")
-	}
-
-	var condition query.Node
-	if len(conditions) > 1 {
-		condition = op.And(conditions)
-	} else if len(conditions) == 1 {
-		condition = conditions[0]
-	}
-	b.builder.Join(n, condition)
+/*
+// Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
+// by condition.
+// The joinedTable node will be modified by this process so that you can use it in subsequent builder operations.
+// Call GetAlias to return the resulting object from the query result.
+func (b *reverseQueryBuilder) Join(alias string, joinedTable query.Node, condition query.Node) ReverseBuilder {
+    if query.RootNode(n).TableName_() != "reverse" {
+        panic("you can only join a node that is rooted at node.Reverse()")
+    }
+    // TODO: make sure joinedTable is a table node
+	b.builder.Join(alias, joinedTable, condition)
 	return b
 }
+*/
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
@@ -937,15 +929,20 @@ func (b *reverseQueryBuilder) Limit(maxRowCount int, offset int) ReverseBuilder 
 	return b
 }
 
-// Select optimizes the query to only return the specified fields.
-// Once you put a Select in your query, you must specify all the fields that you will eventually read out.
+// Select specifies what specific columns will be loaded with data.
+// By default, all the columns of the reverse table will be queried and loaded.
+// If nodes contains columns from the reverse table, that will limit the columns queried and loaded to only those columns.
+// If related tables are specified, then all the columns from those tables are queried, selected and joined to the result.
+// If columns in related tables are specified, then only those columns will be queried and loaded.
+// Depending on the query, additional columns may automatically be added to the query. In particular, primary key columns
+// will be added in most situations. The exception to this would be in distinct queries, group by queries, or subqueries.
 func (b *reverseQueryBuilder) Select(nodes ...query.Node) ReverseBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
 // Calculation adds a calculation node with an aliased name.
-// After the query, you can read the data using GetAlias() on a returned object.
+// After the query, you can read the data using GetAlias() on the returned object.
 func (b *reverseQueryBuilder) Calculation(name string, n query.Aliaser) ReverseBuilder {
 	b.builder.Calculation(name, n)
 	return b
@@ -986,7 +983,7 @@ func (b *reverseQueryBuilder) Count(distinct bool, nodes ...query.Node) int {
 	return results.(int)
 }
 
-// Delete uses the query builder to delete a group of records that match the criteria
+// Delete uses the query builder to delete a group of records that match the criteria.
 func (b *reverseQueryBuilder) Delete() {
 	b.builder.Command = query.BuilderCommandDelete
 	database := db.GetDatabase("goradd_unit")
@@ -994,25 +991,14 @@ func (b *reverseQueryBuilder) Delete() {
 	broadcast.BulkChange(b.builder.Context(), "goradd_unit", "reverse")
 }
 
+/*
 // Subquery terminates the query builder and tags it as a subquery within a larger query.
 // You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
 // Generally you would use this as a node to a Calculation function on the surrounding query builder.
-func (b *reverseQueryBuilder) Subquery() *query.SubqueryNode {
-	return b.builder.Subquery()
+func (b *reverseQueryBuilder)  Subquery() *query.SubqueryNode {
+	 return b.builder.Subquery()
 }
-
-// joinOrSelect is a private helper function for the Load* functions
-func (b *reverseQueryBuilder) joinOrSelect(nodes ...query.Node) ReverseBuilder {
-	for _, n := range nodes {
-		switch n.(type) {
-		case query.TableNodeI:
-			b.builder.Join(n, nil)
-		case *query.ColumnNode:
-			b.Select(n)
-		}
-	}
-	return b
-}
+*/
 
 // CountReverseByID queries the database and returns the number of Reverse objects that
 // have id.
@@ -1030,7 +1016,6 @@ func CountReverseByName(ctx context.Context, name string) int {
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
-// Care must be taken in the query, as Select clauses might not be honored if the child object has fields selected which the parent object does not have.
 func (o *reverseBase) load(m map[string]interface{}, objThis *Reverse, objParent interface{}, parentKey string) {
 
 	if v, ok := m["id"]; ok && v != nil {

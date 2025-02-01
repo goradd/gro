@@ -289,13 +289,12 @@ func (o *addressBase) IsNew() bool {
 }
 
 // LoadAddress returns a Address from the database.
-// joinOrSelectNodes lets you provide nodes for joining to other tables or selecting specific fields.
-// Table nodes will be considered Join nodes, and column nodes will be Select nodes.
-// See [AddressBuilder.Join] and [AddressesBuilder.Select] for more info.
-func LoadAddress(ctx context.Context, id string, joinOrSelectNodes ...query.Node) *Address {
+// selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
+// See [AddressesBuilder.Select] for more info.
+func LoadAddress(ctx context.Context, id string, selectNodes ...query.Node) *Address {
 	return queryAddresses(ctx).
 		Where(op.Equal(node.Address().ID(), id)).
-		joinOrSelect(joinOrSelectNodes...).
+		Select(selectNodes...).
 		Get()
 }
 
@@ -311,11 +310,7 @@ func HasAddress(ctx context.Context, id string) bool {
 // All query operations go through this query builder.
 // End a query by calling either Load, LoadCursor, Get, Count, or Delete
 type AddressBuilder interface {
-	// Join adds node n to the node tree so that its fields will appear in the query.
-	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
-	// By default, all the columns of the joined table are selected.
-	// To optimize the query and only return specific columns, call Select.
-	Join(n query.Node, conditions ...query.Node) AddressBuilder
+	// Join(alias string, joinedTable query.Node, condition query.Node) AddressBuilder
 
 	// Expand turns a Reverse or ManyMany node into individual rows.
 	Expand(n query.Expander) AddressBuilder
@@ -397,9 +392,8 @@ type AddressBuilder interface {
 	// Subquery terminates the query builder and tags it as a subquery within a larger query.
 	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
 	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-	Subquery() *query.SubqueryNode
+	// Subquery() *query.SubqueryNode
 
-	joinOrSelect(nodes ...query.Node) AddressBuilder
 }
 
 type addressQueryBuilder struct {
@@ -517,22 +511,20 @@ func (b *addressQueryBuilder) Expand(n query.Expander) AddressBuilder {
 	return b
 }
 
-// Join adds node n to the node tree so that its fields will appear in the query.
-// Optionally add conditions to filter what gets included. Multiple conditions are anded.
-func (b *addressQueryBuilder) Join(n query.Node, conditions ...query.Node) AddressBuilder {
-	if query.RootNode(n).TableName_() != "address" {
-		panic("you can only join a node that is rooted at node.Address()")
-	}
-
-	var condition query.Node
-	if len(conditions) > 1 {
-		condition = op.And(conditions)
-	} else if len(conditions) == 1 {
-		condition = conditions[0]
-	}
-	b.builder.Join(n, condition)
+/*
+// Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
+// by condition.
+// The joinedTable node will be modified by this process so that you can use it in subsequent builder operations.
+// Call GetAlias to return the resulting object from the query result.
+func (b *addressQueryBuilder) Join(alias string, joinedTable query.Node, condition query.Node) AddressBuilder {
+    if query.RootNode(n).TableName_() != "address" {
+        panic("you can only join a node that is rooted at node.Address()")
+    }
+    // TODO: make sure joinedTable is a table node
+	b.builder.Join(alias, joinedTable, condition)
 	return b
 }
+*/
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
@@ -558,15 +550,20 @@ func (b *addressQueryBuilder) Limit(maxRowCount int, offset int) AddressBuilder 
 	return b
 }
 
-// Select optimizes the query to only return the specified fields.
-// Once you put a Select in your query, you must specify all the fields that you will eventually read out.
+// Select specifies what specific columns will be loaded with data.
+// By default, all the columns of the address table will be queried and loaded.
+// If nodes contains columns from the address table, that will limit the columns queried and loaded to only those columns.
+// If related tables are specified, then all the columns from those tables are queried, selected and joined to the result.
+// If columns in related tables are specified, then only those columns will be queried and loaded.
+// Depending on the query, additional columns may automatically be added to the query. In particular, primary key columns
+// will be added in most situations. The exception to this would be in distinct queries, group by queries, or subqueries.
 func (b *addressQueryBuilder) Select(nodes ...query.Node) AddressBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
 // Calculation adds a calculation node with an aliased name.
-// After the query, you can read the data using GetAlias() on a returned object.
+// After the query, you can read the data using GetAlias() on the returned object.
 func (b *addressQueryBuilder) Calculation(name string, n query.Aliaser) AddressBuilder {
 	b.builder.Calculation(name, n)
 	return b
@@ -607,7 +604,7 @@ func (b *addressQueryBuilder) Count(distinct bool, nodes ...query.Node) int {
 	return results.(int)
 }
 
-// Delete uses the query builder to delete a group of records that match the criteria
+// Delete uses the query builder to delete a group of records that match the criteria.
 func (b *addressQueryBuilder) Delete() {
 	b.builder.Command = query.BuilderCommandDelete
 	database := db.GetDatabase("goradd")
@@ -615,25 +612,14 @@ func (b *addressQueryBuilder) Delete() {
 	broadcast.BulkChange(b.builder.Context(), "goradd", "address")
 }
 
+/*
 // Subquery terminates the query builder and tags it as a subquery within a larger query.
 // You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
 // Generally you would use this as a node to a Calculation function on the surrounding query builder.
-func (b *addressQueryBuilder) Subquery() *query.SubqueryNode {
-	return b.builder.Subquery()
+func (b *addressQueryBuilder)  Subquery() *query.SubqueryNode {
+	 return b.builder.Subquery()
 }
-
-// joinOrSelect is a private helper function for the Load* functions
-func (b *addressQueryBuilder) joinOrSelect(nodes ...query.Node) AddressBuilder {
-	for _, n := range nodes {
-		switch n.(type) {
-		case query.TableNodeI:
-			b.builder.Join(n, nil)
-		case *query.ColumnNode:
-			b.Select(n)
-		}
-	}
-	return b
-}
+*/
 
 // CountAddressByID queries the database and returns the number of Address objects that
 // have id.
@@ -668,7 +654,6 @@ func CountAddressByCity(ctx context.Context, city string) int {
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
-// Care must be taken in the query, as Select clauses might not be honored if the child object has fields selected which the parent object does not have.
 func (o *addressBase) load(m map[string]interface{}, objThis *Address, objParent interface{}, parentKey string) {
 
 	if v, ok := m["id"]; ok && v != nil {
