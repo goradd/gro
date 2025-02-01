@@ -92,7 +92,7 @@ func delete{{= table.Identifier }}(ctx context.Context, pk {{= table.PrimaryKeyG
 	d.Delete(ctx, "{{= table.QueryName }}", map[string]any{"{{= table.PrimaryKeyColumn().Identifier }}": pk} )
 	broadcast.Delete(ctx, "{{= table.DbKey }}", "{{= table.QueryName }}", fmt.Sprint(pk))
 {{else}}
-    if obj := Load{{= table.Identifier }}(ctx, pk, node.{{= table.Identifier}}().PrimaryKeyNode()); obj != nil {
+    if obj := Load{{= table.Identifier }}(ctx, pk, node.{{= table.Identifier}}().PrimaryKey()); obj != nil {
         obj.Delete(ctx)
     }
 {{if}}

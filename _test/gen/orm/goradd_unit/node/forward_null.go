@@ -12,7 +12,7 @@ import (
 // ForwardNullNode is the builder interface to the ForwardNull nodes.
 type ForwardNullNode interface {
 	query.Node
-	PrimaryKeyNode() *query.ColumnNode
+	PrimaryKey() *query.ColumnNode
 	// ID represents the id column in the database.
 	ID() *query.ColumnNode
 	// Name represents the name column in the database.
@@ -86,12 +86,13 @@ func (n *forwardNullReverse) NodeType_() query.NodeType {
 	return query.ReverseNodeType
 }
 
-// PrimaryKeyNode returns a node that points to the primary key column.
-func (n forwardNullTable) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n forwardNullTable) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
 
-func (n *forwardNullReverse) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n *forwardNullReverse) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
 

@@ -3,25 +3,28 @@
 }}
 
 {{
-// PrimaryKeyNode returns a node that points to the primary key column.
-func (n {{= table.DecapIdentifier }}Table) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n {{= table.DecapIdentifier }}Table) PrimaryKey() *query.ColumnNode {
     return n.{{col.Identifier}}()
 }
 
 {{if hasReverse}}
-func (n *{{= table.DecapIdentifier}}Reference) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n *{{= table.DecapIdentifier}}Reference) PrimaryKey() *query.ColumnNode {
     return n.{{col.Identifier}}()
 }
 
 {{if}}
 {{if hasReference}}
-func (n *{{= table.DecapIdentifier}}Reverse) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n *{{= table.DecapIdentifier}}Reverse) PrimaryKey() *query.ColumnNode {
     return n.{{col.Identifier}}()
 }
 
 {{if}}
 {{if hasAssociation}}
-func (n *{{= table.DecapIdentifier}}Association) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n *{{= table.DecapIdentifier}}Association) PrimaryKey() *query.ColumnNode {
     return n.{{col.Identifier}}()
 }
 

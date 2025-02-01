@@ -6,7 +6,7 @@
                 if o.{{= col.ReversePkIdentifier() }} != nil {
                     // Get objects we are going to associate if not already loaded
                     objs := Query{{= col.Table.IdentifierPlural }}(ctx).
-                          Where(op.In(node.{{= col.Table.Identifier }}().PrimaryKeyNode(), o.{{= col.ReversePkIdentifier() }}...)).
+                          Where(op.In(node.{{= col.Table.Identifier }}().PrimaryKey(), o.{{= col.ReversePkIdentifier() }}...)).
                           Select(node.{{= col.Table.Identifier }}().{{= col.Identifier }}()).
                           Load()
                     _ = objs

@@ -29,8 +29,9 @@ type LimitParams struct {
 	Offset      int
 }
 
+// AreSet returns true if the limit paramter values are not zero.
 func (l LimitParams) AreSet() bool {
-	return l.MaxRowCount > 0 || l.Offset >= l.MaxRowCount
+	return l.MaxRowCount > 0
 }
 
 // BuilderI is the interface to the builder structure. Since the builder is directly interacted with by the developer,
@@ -57,6 +58,7 @@ type BuilderI interface {
 type Builder struct {
 	Ctx        context.Context // The context that will be used in all the queries
 	Command    BuilderCommand
+	Root       Node
 	Joins      []Node
 	OrderBys   []Sorter
 	Conditions []Node
@@ -70,8 +72,16 @@ type Builder struct {
 	IsSubquery bool
 }
 
-func NewBuilder(ctx context.Context) *Builder {
-	return &Builder{Ctx: ctx}
+func NewBuilder(ctx context.Context, rootNode Node) *Builder {
+	if NodeParent(rootNode) != nil {
+		panic("root node must be a top level node")
+	}
+
+	if !NodeIsTable(rootNode) {
+		panic("root node must be a table node")
+	}
+
+	return &Builder{Ctx: ctx, Root: rootNode}
 }
 
 // Context returns the context.
@@ -81,10 +91,8 @@ func (b *Builder) Context() context.Context {
 
 // Join will attach the given reference node to the builder.
 func (b *Builder) Join(n Node, condition Node) {
-	// Possible TBD: If we ever want to support joining the same tables multiple
-	// times with different conditions, we could use an alias to name on each join. We would
-	// then need to create an Alias node to specify which join is meant in different clauses.
-	if !NodeIsJoinable(n) {
+	// TBD: This must include a condition and an alias!
+	if !NodeIsTable(n) {
 		panic(fmt.Errorf("node %s is not joinable", n))
 	}
 
@@ -229,7 +237,7 @@ func (b *Builder) topNodes() []Node {
 
 	for _, n := range b.GroupBys {
 		if p, ok := n.(PrimaryKeyer); ok {
-			n = p.PrimaryKeyNode() // Allow table nodes, but then actually have them be the pk in this context
+			n = p.PrimaryKey() // Allow table nodes, but then actually have them be the pk in this context
 		}
 		nodes = append(nodes, n)
 	}

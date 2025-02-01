@@ -7,7 +7,7 @@ import (
 
 type ManyManyNodeI interface {
 	AssnTableName() string
-	ColumnName() string
+	RefColumnName() string
 	TableNodeI
 	Conditioner
 	linker
@@ -40,7 +40,7 @@ func (n *ManyManyNode) AssnTableName() string {
 }
 
 func (n *ManyManyNode) RefColumnName() string {
-	return n.RefColumnName()
+	return n.RefColumnQueryName
 }
 
 func (n *ManyManyNode) GobEncode() (data []byte, err error) {

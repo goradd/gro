@@ -193,27 +193,27 @@ func TestAlias(t *testing.T) {
 }
 
 /*
-func TestAlias2(t *testing.T) {
-	ctx := db.NewContext(nil)
-	projects := goradd.QueryProjects(ctx).
-		Alias("a", node.Project().Num()).
-		Alias("b", node.Project().Name()).
-		Alias("c", node.Project().Spent()).
-		Alias("d", node.Project().StartDate()).
-		Alias("e", op.IsNull(node.Project().EndDate())).
-		OrderBy(node.Project().ID()).
-		Load()
+	func TestAlias2(t *testing.T) {
+		ctx := db.NewContext(nil)
+		projects := goradd.QueryProjects(ctx).
+			Alias("a", node.Project().Num()).
+			Alias("b", node.Project().Name()).
+			Alias("c", node.Project().Spent()).
+			Alias("d", node.Project().StartDate()).
+			Alias("e", op.IsNull(node.Project().EndDate())).
+			OrderBy(node.Project().ID()).
+			Load()
 
-	project := projects[0]
-	assert.Equal(t, 1, project.GetAlias("a").Int())
-	assert.Equal(t, 1, project.Num())
-	assert.Equal(t, "ACME Website Redesign", project.GetAlias("b").String())
-	assert.Equal(t, 10250.75, project.GetAlias("c").Float())
-	d := time.FromSqlDateTime("2004-03-01")
-	assert.EqualValues(t, d, project.GetAlias("d").Time())
-	//assert.EqualValues(t, d, project.StartDate())
-	assert.Equal(t, false, project.GetAlias("e").Bool())
-}
+		project := projects[0]
+		assert.Equal(t, 1, project.GetAlias("a").Int())
+		assert.Equal(t, 1, project.Num())
+		assert.Equal(t, "ACME Website Redesign", project.GetAlias("b").String())
+		assert.Equal(t, 10250.75, project.GetAlias("c").Float())
+		d := time.FromSqlDateTime("2004-03-01")
+		assert.EqualValues(t, d, project.GetAlias("d").Time())
+		//assert.EqualValues(t, d, project.StartDate())
+		assert.Equal(t, false, project.GetAlias("e").Bool())
+	}
 */
 func TestCount(t *testing.T) {
 	ctx := db.NewContext(nil)

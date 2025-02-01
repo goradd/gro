@@ -3887,7 +3887,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `().PrimaryKeyNode(), o.`); err != nil {
+		if _, err = io.WriteString(_w, `().PrimaryKey(), o.`); err != nil {
 			return
 		}
 
@@ -4942,7 +4942,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `().PrimaryKeyNode(), o.`); err != nil {
+			if _, err = io.WriteString(_w, `().PrimaryKey(), o.`); err != nil {
 				return
 			}
 
@@ -6151,6 +6151,8 @@ type `); err != nil {
 	if _, err = io.WriteString(_w, ` interface {
     // Join adds node n to the node tree so that its fields will appear in the query.
     // Optionally add conditions to filter what gets included. Multiple conditions are anded.
+    // By default, all the columns of the joined table are selected.
+    // To optimize the query and only return specific columns, call Select.
 	Join(n query.Node, conditions... query.Node) `); err != nil {
 		return
 	}
@@ -6397,9 +6399,7 @@ func new`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `{
-		builder: query.NewBuilder(ctx),
-	}
-	return b.Join(node.`); err != nil {
+		builder: query.NewBuilder(ctx, node.`); err != nil {
 		return
 	}
 
@@ -6407,7 +6407,9 @@ func new`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `()) // seed builder with the top table
+	if _, err = io.WriteString(_w, `()),
+	}
+	return &b
 }
 
 // Load terminates the query builder, performs the query, and returns a slice of `); err != nil {
@@ -8682,7 +8684,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `().PrimaryKeyNode())
+				if _, err = io.WriteString(_w, `().PrimaryKey())
                 }
                 o.`); err != nil {
 					return
@@ -8777,7 +8779,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `().PrimaryKeyNode(), o.`); err != nil {
+				if _, err = io.WriteString(_w, `().PrimaryKey(), o.`); err != nil {
 					return
 				}
 
@@ -10646,7 +10648,7 @@ func delete`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `().PrimaryKeyNode()); obj != nil {
+		if _, err = io.WriteString(_w, `().PrimaryKey()); obj != nil {
         obj.Delete(ctx)
     }
 `); err != nil {

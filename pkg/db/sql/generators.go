@@ -158,7 +158,7 @@ func (g *selectGenerator) generateNodeSql(n Node, useAlias bool) (sql string) {
 		sql = g.generateSubquerySql(node)
 	case TableNodeI:
 		tj := g.jt.FindElement(node)
-		sql = g.generateColumnNodeSql(tj.Alias, node.PrimaryKeyNode())
+		sql = g.generateColumnNodeSql(tj.Alias, node.PrimaryKey())
 	default:
 		panic("Can't generate sql from node type.")
 	}
@@ -331,7 +331,7 @@ func (g *selectGenerator) generateJoinSql(j *jointree.Element) (sql string) {
 		sb.WriteString(" = ")
 		sb.WriteString(g.iq(j.Alias))
 		sb.WriteString(".")
-		sb.WriteString(g.iq(ref.PrimaryKeyNode().QueryName))
+		sb.WriteString(g.iq(ref.PrimaryKey().QueryName))
 		if j.JoinCondition != nil {
 			s := g.generateNodeSql(j.JoinCondition, false)
 			sb.WriteString(" AND ")
@@ -350,7 +350,7 @@ func (g *selectGenerator) generateJoinSql(j *jointree.Element) (sql string) {
 		sb.WriteString(" ON ")
 		sb.WriteString(g.iq(j.Parent.Alias))
 		sb.WriteString(".")
-		sb.WriteString(g.iq(j.Parent.QueryNode.(PrimaryKeyer).PrimaryKeyNode().QueryName))
+		sb.WriteString(g.iq(j.Parent.QueryNode.(PrimaryKeyer).PrimaryKey().QueryName))
 		sb.WriteString(" = ")
 		sb.WriteString(g.iq(j.Alias))
 		sb.WriteString(".")
@@ -374,11 +374,11 @@ func (g *selectGenerator) generateJoinSql(j *jointree.Element) (sql string) {
 		sb.WriteString(" ON ")
 		sb.WriteString(g.iq(j.Parent.Alias))
 		sb.WriteString(".")
-		sb.WriteString(g.iq(NodeParent(mm).(TableNodeI).PrimaryKeyNode().QueryName))
+		sb.WriteString(g.iq(NodeParent(mm).(TableNodeI).PrimaryKey().QueryName))
 		sb.WriteString(" = ")
 		sb.WriteString(g.iq(j.Alias + "a"))
 		sb.WriteString(".")
-		sb.WriteString(g.iq(mm.ColumnName()))
+		sb.WriteString(g.iq(mm.RefColumnName()))
 		sb.WriteString("\n")
 
 		sb.WriteString("LEFT JOIN ")
@@ -388,11 +388,11 @@ func (g *selectGenerator) generateJoinSql(j *jointree.Element) (sql string) {
 		sb.WriteString(" ON ")
 		sb.WriteString(g.iq(j.Alias + "a"))
 		sb.WriteString(".")
-		sb.WriteString(g.iq(mm.ColumnName()))
+		sb.WriteString(g.iq(mm.RefColumnName()))
 		sb.WriteString(" = ")
 		sb.WriteString(g.iq(j.Alias))
 		sb.WriteString(".")
-		sb.WriteString(g.iq(mm.PrimaryKeyNode().QueryName))
+		sb.WriteString(g.iq(mm.PrimaryKey().QueryName))
 		if j.JoinCondition != nil {
 			s := g.generateNodeSql(j.JoinCondition, false)
 			sb.WriteString(" AND ")

@@ -12,7 +12,7 @@ import (
 // DoubleIndexNode is the builder interface to the DoubleIndex nodes.
 type DoubleIndexNode interface {
 	query.Node
-	PrimaryKeyNode() *query.ColumnNode
+	PrimaryKey() *query.ColumnNode
 	// ID represents the id column in the database.
 	ID() *query.ColumnNode
 	// FieldInt represents the field_int column in the database.
@@ -84,12 +84,13 @@ func (n *doubleIndexReverse) NodeType_() query.NodeType {
 	return query.ReverseNodeType
 }
 
-// PrimaryKeyNode returns a node that points to the primary key column.
-func (n doubleIndexTable) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n doubleIndexTable) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
 
-func (n *doubleIndexReverse) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n *doubleIndexReverse) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
 

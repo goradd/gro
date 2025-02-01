@@ -9,7 +9,7 @@ import (
 )
 
 // Element is used to build the join tree. The join tree creates a hierarchy of joined nodes that let us
-// generate aliases, serialize the query, and afterwards unpack the results.
+// generate aliases, serialize the query, and afterward, unpack the results.
 type Element struct {
 	QueryNode     query.Node
 	Parent        *Element

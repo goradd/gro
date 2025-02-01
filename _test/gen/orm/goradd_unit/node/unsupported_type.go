@@ -12,7 +12,7 @@ import (
 // UnsupportedTypeNode is the builder interface to the UnsupportedType nodes.
 type UnsupportedTypeNode interface {
 	query.Node
-	PrimaryKeyNode() *query.ColumnNode
+	PrimaryKey() *query.ColumnNode
 	// TypeSerial represents the type_serial column in the database.
 	TypeSerial() *query.ColumnNode
 	// TypeSet represents the type_set column in the database.
@@ -129,12 +129,13 @@ func (n *unsupportedTypeReverse) NodeType_() query.NodeType {
 	return query.ReverseNodeType
 }
 
-// PrimaryKeyNode returns a node that points to the primary key column.
-func (n unsupportedTypeTable) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n unsupportedTypeTable) PrimaryKey() *query.ColumnNode {
 	return n.TypeSerial()
 }
 
-func (n *unsupportedTypeReverse) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n *unsupportedTypeReverse) PrimaryKey() *query.ColumnNode {
 	return n.TypeSerial()
 }
 

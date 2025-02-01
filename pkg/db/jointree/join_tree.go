@@ -1,4 +1,4 @@
-// Package jointree supports the query build process.
+// Package jointree supports the query buildNodeTree process.
 package jointree
 
 import (
@@ -27,7 +27,6 @@ type JoinTree struct {
 	tableCounter       int
 	selectAliasCounter int
 	IsDistinct         bool
-	hasGroupBys        bool
 	isSubquery         bool
 	Command            query.BuilderCommand
 	Aliases            map[string]query.Node
@@ -35,35 +34,39 @@ type JoinTree struct {
 	Condition          query.Node
 	GroupBys           []query.Node
 	OrderBys           []query.Sorter
+	Joins              []query.Node
 	Having             query.Node
 }
 
 // NewJoinTree analyzes b and turns it into a JoinTree.
 func NewJoinTree(b query.BuilderI) *JoinTree {
 	builder := b.(*query.Builder)
+
 	t := JoinTree{
-		IsDistinct:  builder.IsDistinct,
-		Command:     builder.Command,
-		hasGroupBys: len(builder.GroupBys) > 0,
-		Aliases:     make(map[string]query.Node),
-		Limits:      builder.Limits,
-		GroupBys:    builder.GroupBys,
-		OrderBys:    builder.OrderBys,
-		Having:      builder.HavingNode,
+		IsDistinct: builder.IsDistinct,
+		Command:    builder.Command,
+		Aliases:    make(map[string]query.Node),
+		Limits:     builder.Limits,
+		GroupBys:   builder.GroupBys,
+		OrderBys:   builder.OrderBys,
+		Having:     builder.HavingNode,
+		Joins:      builder.Joins,
+		Root:       newElement(builder.Root),
 	}
+
 	if len(builder.Conditions) == 1 {
 		t.Condition = builder.Conditions[0]
 	} else if len(builder.Conditions) > 1 {
 		t.Condition = op.And(all.MapSlice[any](builder.Conditions)...)
 	}
-	t.build(builder)
+	t.buildNodeTree(builder)
 	t.buildCommand(builder)
 	return &t
 }
 
-// build performs initial analysis and processing of the builder.
+// buildNodeTree performs initial analysis and processing of the builder.
 // In particular, it gathers and inserts all the nodes found in the builder, and then assigns aliases to the table nodes.
-func (t *JoinTree) build(b *query.Builder) {
+func (t *JoinTree) buildNodeTree(b *query.Builder) {
 	nodes := b.Nodes()
 	for _, n := range nodes {
 		t.addNode(n)
@@ -107,19 +110,13 @@ func (t *JoinTree) addNode(node query.Node) (top *Element) {
 	}
 	tableName = rootNode.TableName_()
 
-	if t.Root != nil {
-		if t.Root.QueryNode.TableName_() != tableName {
-			// TODO: If this has a parent builder from a sub query, check up the parent builder chain for a matching root table
-			panic("Attempting to add a node that is not starting at the table being queried.")
-		}
+	if t.Root.QueryNode.TableName_() != tableName {
+		// TODO: If this has a parent builder from a sub query, check up the parent builder chain for a matching root table
+		panic("Attempting to add a node that is not starting at the table being queried.")
 	}
 
 	// walk the current node tree and find an insertion point
 	rn := reverse(node)
-	if t.Root == nil {
-		top = t.insertNode(rn, nil) // seed the root tree
-		return
-	}
 	e, rn, found := t.findNode(node)
 	if !found {
 		top = t.insertNode(rn, e)
@@ -191,16 +188,9 @@ func (t *JoinTree) addSubqueryNode(node query.Node) *Element {
 	return nil
 }
 
-// insertNode inserts that node in the join tree.
-// Does not check to see if the node is present already.
+// insertNode inserts rn into the join tree.
+// It does not check to see if the node is present already.
 func (t *JoinTree) insertNode(rn *reverseNode, parent *Element) (top *Element) {
-	if t.Root == nil {
-		t.Root = newElement(rn.node)
-		parent = t.Root
-		rn = rn.child
-		top = t.Root
-	}
-
 	for rn != nil {
 		e := newElement(rn.node)
 		if top == nil {
@@ -235,20 +225,39 @@ func (t *JoinTree) assignTableAliases(item *Element) {
 
 // addSelectedColumns determines which columns should be selected and adds them to the join tree.
 func (t *JoinTree) addSelectedColumns(builder *query.Builder) {
-	// First process explicit selects
+	var hasRootSelect bool
+
+	// Column nodes are added to the join tree element
+	// Table nodes found will add all the column nodes in that table
 	for _, n := range builder.Selects {
 		e, _, found := t.findNode(n)
 		if !found {
-			panic("prior node was not found in the tree")
+			panic("prior node was not found in the tree") // this would be a bug in the ORM
 		}
-		e.Parent.Selects.Add(e)
+		if tn, ok := n.(query.TableNodeI); ok {
+			t.selectAllColumnNodes(tn)
+		} else {
+			if nodeMatch(t.Root.QueryNode, e.Parent.QueryNode) {
+				hasRootSelect = true
+			}
+			e.Parent.Selects.Add(e)
+		}
+		// Primary key nodes of all parent nodes must be added in order to assemble the final data structure
+		// provided doing so will not mess up the query.
+		if len(builder.GroupBys) > 0 || t.IsDistinct || t.isSubquery {
+			// Do not auto-add primary key nodes in these cases
+		} else {
+			t.selectParentPrimaryKeys(e)
+		}
 	}
-	t.selectForeignKeys(t.Root) // do this here to make sure GroupBy will fail if they don't match
+
+	if !hasRootSelect && !(len(builder.GroupBys) > 0 || t.IsDistinct || t.isSubquery) {
+		t.selectAllColumnNodes(t.Root.QueryNode.(query.TableNodeI))
+	}
 
 	if len(builder.GroupBys) > 0 {
 		t.addGroupBySelects(builder)
 	}
-	t.selectRelatedTableColumns(t.Root)
 
 	// Having clauses MUST be selected so they can be post filtered
 	for _, n := range query.ContainedNodes(builder.HavingNode) {
@@ -258,45 +267,23 @@ func (t *JoinTree) addSelectedColumns(builder *query.Builder) {
 		}
 		e.Parent.Selects.Add(e)
 	}
-
-	// Check for extra group by columns here
 }
 
-// selectForeignKeys walks the tree looking for forward references and makes sure
-// the foreign key column for that reference is selected.
-func (t *JoinTree) selectForeignKeys(e *Element) {
-	for _, er := range e.References {
-		if er.QueryNode.NodeType_() == query.ReferenceNodeType {
-			fkn := er.QueryNode.(query.PrimaryKeyer).PrimaryKeyNode()
-			en := t.addNode(fkn)
-			en.Parent.Selects.Add(en)
-		}
-		t.selectForeignKeys(er)
+// selectAllColumnNodes adds all the column nodes of the table node to the list of selected elements.
+func (t *JoinTree) selectAllColumnNodes(tableNode query.TableNodeI) {
+	cols := tableNode.ColumnNodes_()
+	for _, n := range cols {
+		e2 := t.addNode(n)
+		e2.Parent.Selects.Add(e2)
 	}
 }
 
-// selectRelatedTableColumns will select columns that are not currently selected that are implied by
-// the query or required to assemble the results.
-func (t *JoinTree) selectRelatedTableColumns(e *Element) {
-	if e.Selects.Len() == 0 {
-		// nothing selected, so select everything
-		cols := e.QueryNode.(query.TableNodeI).ColumnNodes_()
-		for _, n := range cols {
-			e2 := t.addNode(n)
-			e2.Parent.Selects.Add(e2)
-		}
-	} else {
-		// make sure primary key nodes are included if required
-		if t.hasGroupBys || t.IsDistinct || t.isSubquery {
-			// adding primary key node in these situations will mess up the query
-		} else {
-			n := e.QueryNode.(query.PrimaryKeyer).PrimaryKeyNode()
-			e2 := t.addNode(n)
-			e2.Parent.Selects.Add(e2)
-		}
-	}
-	for _, e := range e.References {
-		t.selectRelatedTableColumns(e)
+// selectParentPrimaryKeys walks the tree selecting all the parent primary keys of n.
+func (t *JoinTree) selectParentPrimaryKeys(e *Element) {
+	for parentElement := e.Parent; parentElement != nil; parentElement = parentElement.Parent {
+		fkn := parentElement.QueryNode.(query.PrimaryKeyer).PrimaryKey()
+		en := t.addNode(fkn)
+		en.Parent.Selects.Add(en)
 	}
 }
 

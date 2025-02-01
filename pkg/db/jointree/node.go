@@ -52,7 +52,7 @@ func nodeMatch(node1, node2 query.Node) bool {
 		return node1.(query.ReverseNodeI).ColumnName() == node2.(query.ReverseNodeI).ColumnName()
 	case query.ManyManyNodeType:
 		return node1.(query.ManyManyNodeI).AssnTableName() == node2.(query.ManyManyNodeI).AssnTableName() &&
-			node1.(query.ManyManyNodeI).ColumnName() == node2.(query.ManyManyNodeI).ColumnName()
+			node1.(query.ManyManyNodeI).RefColumnName() == node2.(query.ManyManyNodeI).RefColumnName()
 	default:
 		return false
 	}

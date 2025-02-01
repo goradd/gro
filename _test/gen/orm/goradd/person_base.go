@@ -302,7 +302,7 @@ func (o *personBase) LoadProjects(ctx context.Context) []*Project {
 	if o.mmProjectsPks != nil {
 		// Load the objects that will be associated after a Save
 		objs = QueryProjects(ctx).
-			Where(op.In(node.Project().PrimaryKeyNode(), o.mmProjectsPks...)).
+			Where(op.In(node.Project().PrimaryKey(), o.mmProjectsPks...)).
 			Load()
 	} else {
 		objs = QueryProjects(ctx).
@@ -353,7 +353,7 @@ func (o *personBase) LoadAddresses(ctx context.Context, conditions ...interface{
 	qb := queryAddresses(ctx)
 	var cond *query.OperationNode
 	if o.revAddressesPks != nil {
-		cond = op.In(node.Address().PrimaryKeyNode(), o.revAddressesPks...)
+		cond = op.In(node.Address().PrimaryKey(), o.revAddressesPks...)
 	} else {
 		cond = op.Equal(node.Address().PersonID(), o.PrimaryKey())
 	}
@@ -574,7 +574,7 @@ func (o *personBase) LoadManagerProjects(ctx context.Context, conditions ...inte
 	qb := queryProjects(ctx)
 	var cond *query.OperationNode
 	if o.revManagerProjectsPks != nil {
-		cond = op.In(node.Project().PrimaryKeyNode(), o.revManagerProjectsPks...)
+		cond = op.In(node.Project().PrimaryKey(), o.revManagerProjectsPks...)
 	} else {
 		cond = op.Equal(node.Project().ManagerID(), o.PrimaryKey())
 	}
@@ -672,6 +672,8 @@ func HasPerson(ctx context.Context, id string) bool {
 type PersonBuilder interface {
 	// Join adds node n to the node tree so that its fields will appear in the query.
 	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
+	// By default, all the columns of the joined table are selected.
+	// To optimize the query and only return specific columns, call Select.
 	Join(n query.Node, conditions ...query.Node) PersonBuilder
 
 	// Expand turns a Reverse or ManyMany node into individual rows.
@@ -765,9 +767,9 @@ type personQueryBuilder struct {
 
 func newPersonBuilder(ctx context.Context) PersonBuilder {
 	b := personQueryBuilder{
-		builder: query.NewBuilder(ctx),
+		builder: query.NewBuilder(ctx, node.Person()),
 	}
-	return b.Join(node.Person()) // seed builder with the top table
+	return &b
 }
 
 // Load terminates the query builder, performs the query, and returns a slice of Person objects.
@@ -1276,7 +1278,7 @@ func (o *personBase) update(ctx context.Context) {
 					// Save detached record
 					o.revLogin.Save(ctx)
 				}
-				o.revLogin = LoadLogin(ctx, *o.revLoginPk, node.Login().PrimaryKeyNode())
+				o.revLogin = LoadLogin(ctx, *o.revLoginPk, node.Login().PrimaryKey())
 			}
 			o.revLogin.personIDIsDirty = true // force a change in case data is stale
 			o.revLogin.SetPersonID(o.PrimaryKey())
@@ -1296,7 +1298,7 @@ func (o *personBase) update(ctx context.Context) {
 			if o.revManagerProjectsPks != nil {
 				// Get objects we are going to associate if not already loaded
 				objs := QueryProjects(ctx).
-					Where(op.In(node.Project().PrimaryKeyNode(), o.revManagerProjectsPks...)).
+					Where(op.In(node.Project().PrimaryKey(), o.revManagerProjectsPks...)).
 					Select(node.Project().ManagerID()).
 					Load()
 				_ = objs
@@ -1512,7 +1514,7 @@ func (o *personBase) Delete(ctx context.Context) {
 
 // deletePerson deletes the associated record from the database.
 func deletePerson(ctx context.Context, pk string) {
-	if obj := LoadPerson(ctx, pk, node.Person().PrimaryKeyNode()); obj != nil {
+	if obj := LoadPerson(ctx, pk, node.Person().PrimaryKey()); obj != nil {
 		obj.Delete(ctx)
 	}
 }

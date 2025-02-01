@@ -280,6 +280,8 @@ func HasForwardNull(ctx context.Context, id string) bool {
 type ForwardNullBuilder interface {
 	// Join adds node n to the node tree so that its fields will appear in the query.
 	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
+	// By default, all the columns of the joined table are selected.
+	// To optimize the query and only return specific columns, call Select.
 	Join(n query.Node, conditions ...query.Node) ForwardNullBuilder
 
 	// Expand turns a Reverse or ManyMany node into individual rows.
@@ -373,9 +375,9 @@ type forwardNullQueryBuilder struct {
 
 func newForwardNullBuilder(ctx context.Context) ForwardNullBuilder {
 	b := forwardNullQueryBuilder{
-		builder: query.NewBuilder(ctx),
+		builder: query.NewBuilder(ctx, node.ForwardNull()),
 	}
-	return b.Join(node.ForwardNull()) // seed builder with the top table
+	return &b
 }
 
 // Load terminates the query builder, performs the query, and returns a slice of ForwardNull objects.

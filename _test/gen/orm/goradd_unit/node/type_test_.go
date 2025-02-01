@@ -12,7 +12,7 @@ import (
 // TypeTestNode is the builder interface to the TypeTest nodes.
 type TypeTestNode interface {
 	query.Node
-	PrimaryKeyNode() *query.ColumnNode
+	PrimaryKey() *query.ColumnNode
 	// ID represents the id column in the database.
 	ID() *query.ColumnNode
 	// Date represents the date column in the database.
@@ -111,12 +111,13 @@ func (n *typeTestReverse) NodeType_() query.NodeType {
 	return query.ReverseNodeType
 }
 
-// PrimaryKeyNode returns a node that points to the primary key column.
-func (n typeTestTable) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n typeTestTable) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
 
-func (n *typeTestReverse) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n *typeTestReverse) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
 

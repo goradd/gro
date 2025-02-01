@@ -12,7 +12,7 @@ import (
 // ForwardCascadeUniqueNode is the builder interface to the ForwardCascadeUnique nodes.
 type ForwardCascadeUniqueNode interface {
 	query.Node
-	PrimaryKeyNode() *query.ColumnNode
+	PrimaryKey() *query.ColumnNode
 	// ID represents the id column in the database.
 	ID() *query.ColumnNode
 	// Name represents the name column in the database.
@@ -86,12 +86,13 @@ func (n *forwardCascadeUniqueReverse) NodeType_() query.NodeType {
 	return query.ReverseNodeType
 }
 
-// PrimaryKeyNode returns a node that points to the primary key column.
-func (n forwardCascadeUniqueTable) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n forwardCascadeUniqueTable) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
 
-func (n *forwardCascadeUniqueReverse) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n *forwardCascadeUniqueReverse) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
 

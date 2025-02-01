@@ -225,8 +225,8 @@ func (u *unpacker) unpackSpecialAliases(rowId string, row db.ValueMap, aliasMap 
 	}
 }
 
-// expand converts the omap into an array of maps.
-// If j contains is expanded, then more than one item will be returned.
+// expand converts the nodeObject into an array of ValueMaps.
+// If j has Expand set, then more than one item will be returned.
 func (u *unpacker) expand(j *jointree.Element, nodeObject *oMapType) (outArray []db.ValueMap) {
 	var item db.ValueMap
 	var innerNodeObject *oMapType
@@ -253,7 +253,11 @@ func (u *unpacker) expand(j *jointree.Element, nodeObject *oMapType) (outArray [
 			switch el.QueryNode.NodeType_() {
 			case query.ReferenceNodeType:
 				// Should be a one or zero item array here
-				om := nodeObject.Get(tableName).(*oMapType)
+				i := nodeObject.Get(tableName)
+				if i == nil {
+					continue
+				}
+				om := i.(*oMapType)
 				if om.Len() > 1 {
 					panic("Cannot have an array with more than one item here.")
 				} else if om.Len() == 1 {
@@ -271,15 +275,23 @@ func (u *unpacker) expand(j *jointree.Element, nodeObject *oMapType) (outArray [
 				}
 				// else we likely were not included because of a conditional join
 			case query.ReverseNodeType:
-				if el.Expanded { // unique reverse or single expansion many
-					newArray = []db.ValueMap{}
-					for _, value := range nodeObject.Get(tableName).(*oMapType).All() {
-						innerNodeObject = value.(*oMapType)
-						innerCopies = u.expand(el, innerNodeObject)
-						for _, ic := range innerCopies {
-							newArray = append(newArray, ic)
-						}
+				fallthrough
+			case query.ManyManyNodeType:
+				i := nodeObject.Get(tableName)
+				if i == nil {
+					continue
+				}
+				om := i.(*oMapType)
+				newArray = []db.ValueMap{}
+				for _, value := range om.All() {
+					innerNodeObject = value.(*oMapType)
+					innerCopies = u.expand(el, innerNodeObject)
+					for _, ic := range innerCopies {
+						newArray = append(newArray, ic)
 					}
+				}
+
+				if el.Expanded { // unique reverse or single expansion many
 					for _, cp2 := range newArray {
 						nodeCopy := item.Copy().(db.ValueMap)
 						nodeCopy[tableName] = cp2
@@ -288,37 +300,9 @@ func (u *unpacker) expand(j *jointree.Element, nodeObject *oMapType) (outArray [
 				} else {
 					// From this point up, we should not be creating additional copies, since from this point down, we
 					// are gathering an array
-					newArray = []db.ValueMap{}
-					for _, value := range nodeObject.Get(tableName).(*oMapType).All() {
-						innerNodeObject = value.(*oMapType)
-						innerCopies = u.expand(el, innerNodeObject)
-						for _, ic := range innerCopies {
-							newArray = append(newArray, ic)
-						}
-					}
 					item[tableName] = newArray
-				}
-
-			case query.ManyManyNodeType:
-				newArray = []db.ValueMap{}
-				for _, value := range nodeObject.Get(tableName).(*oMapType).All() {
-					innerNodeObject = value.(*oMapType)
-					innerCopies = u.expand(el, innerNodeObject)
-					for _, ic := range innerCopies {
-						newArray = append(newArray, ic)
-					}
-				}
-				if !el.Expanded {
-					item[tableName] = newArray
-				} else {
-					for _, cp2 := range newArray {
-						nodeCopy := item.Copy().(db.ValueMap)
-						nodeCopy[tableName] = []db.ValueMap{cp2}
-						copies = append(copies, nodeCopy)
-					}
 				}
 			}
-
 		}
 		if len(copies) > 0 {
 			outArray = copies

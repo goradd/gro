@@ -773,7 +773,7 @@ func (o *projectBase) LoadChildren(ctx context.Context) []*Project {
 	if o.mmChildrenPks != nil {
 		// Load the objects that will be associated after a Save
 		objs = QueryProjects(ctx).
-			Where(op.In(node.Project().PrimaryKeyNode(), o.mmChildrenPks...)).
+			Where(op.In(node.Project().PrimaryKey(), o.mmChildrenPks...)).
 			Load()
 	} else {
 		objs = QueryProjects(ctx).
@@ -846,7 +846,7 @@ func (o *projectBase) LoadParents(ctx context.Context) []*Project {
 	if o.mmParentsPks != nil {
 		// Load the objects that will be associated after a Save
 		objs = QueryProjects(ctx).
-			Where(op.In(node.Project().PrimaryKeyNode(), o.mmParentsPks...)).
+			Where(op.In(node.Project().PrimaryKey(), o.mmParentsPks...)).
 			Load()
 	} else {
 		objs = QueryProjects(ctx).
@@ -919,7 +919,7 @@ func (o *projectBase) LoadTeamMembers(ctx context.Context) []*Person {
 	if o.mmTeamMembersPks != nil {
 		// Load the objects that will be associated after a Save
 		objs = QueryPeople(ctx).
-			Where(op.In(node.Person().PrimaryKeyNode(), o.mmTeamMembersPks...)).
+			Where(op.In(node.Person().PrimaryKey(), o.mmTeamMembersPks...)).
 			Load()
 	} else {
 		objs = QueryPeople(ctx).
@@ -970,7 +970,7 @@ func (o *projectBase) LoadMilestones(ctx context.Context, conditions ...interfac
 	qb := queryMilestones(ctx)
 	var cond *query.OperationNode
 	if o.revMilestonesPks != nil {
-		cond = op.In(node.Milestone().PrimaryKeyNode(), o.revMilestonesPks...)
+		cond = op.In(node.Milestone().PrimaryKey(), o.revMilestonesPks...)
 	} else {
 		cond = op.Equal(node.Milestone().ProjectID(), o.PrimaryKey())
 	}
@@ -1081,6 +1081,8 @@ func HasProjectByNum(ctx context.Context, num int) bool {
 type ProjectBuilder interface {
 	// Join adds node n to the node tree so that its fields will appear in the query.
 	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
+	// By default, all the columns of the joined table are selected.
+	// To optimize the query and only return specific columns, call Select.
 	Join(n query.Node, conditions ...query.Node) ProjectBuilder
 
 	// Expand turns a Reverse or ManyMany node into individual rows.
@@ -1174,9 +1176,9 @@ type projectQueryBuilder struct {
 
 func newProjectBuilder(ctx context.Context) ProjectBuilder {
 	b := projectQueryBuilder{
-		builder: query.NewBuilder(ctx),
+		builder: query.NewBuilder(ctx, node.Project()),
 	}
-	return b.Join(node.Project()) // seed builder with the top table
+	return &b
 }
 
 // Load terminates the query builder, performs the query, and returns a slice of Project objects.
@@ -2079,7 +2081,7 @@ func (o *projectBase) Delete(ctx context.Context) {
 
 // deleteProject deletes the associated record from the database.
 func deleteProject(ctx context.Context, pk string) {
-	if obj := LoadProject(ctx, pk, node.Project().PrimaryKeyNode()); obj != nil {
+	if obj := LoadProject(ctx, pk, node.Project().PrimaryKey()); obj != nil {
 		obj.Delete(ctx)
 	}
 }

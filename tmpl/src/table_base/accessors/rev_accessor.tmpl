@@ -28,7 +28,7 @@ func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.ReverseIdentifier() }}(ctx
 	qb := query{{= rev.Table.IdentifierPlural }}(ctx)
 	var cond *query.OperationNode
 	if o.{{= rev.ReversePkIdentifier() }} != nil {
-	    cond = op.In(node.{{= rev.Table.Identifier }}().PrimaryKeyNode(), o.{{= rev.ReversePkIdentifier() }}...)
+	    cond = op.In(node.{{= rev.Table.Identifier }}().PrimaryKey(), o.{{= rev.ReversePkIdentifier() }}...)
 	} else {
         cond = op.Equal(node.{{= rev.Table.Identifier }}().{{= rev.Identifier }}(), o.PrimaryKey())
     }

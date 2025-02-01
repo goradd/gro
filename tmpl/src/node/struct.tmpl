@@ -7,7 +7,7 @@
 // {{= table.Identifier}}Node is the builder interface to the {{= table.Identifier}} nodes.
 type {{= table.Identifier}}Node interface {
     query.Node
-    PrimaryKeyNode() *query.ColumnNode
+    PrimaryKey() *query.ColumnNode
 {{for _,col := range table.Columns}}
     // {{= col.Identifier }} represents the {{= col.QueryName }} column in the database.
     {{= col.Identifier }}() *query.ColumnNode

@@ -12,7 +12,7 @@ import (
 // AddressNode is the builder interface to the Address nodes.
 type AddressNode interface {
 	query.Node
-	PrimaryKeyNode() *query.ColumnNode
+	PrimaryKey() *query.ColumnNode
 	// ID represents the id column in the database.
 	ID() *query.ColumnNode
 	// PersonID represents the person_id column in the database.
@@ -89,12 +89,13 @@ func (n *addressReverse) NodeType_() query.NodeType {
 	return query.ReverseNodeType
 }
 
-// PrimaryKeyNode returns a node that points to the primary key column.
-func (n addressTable) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n addressTable) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
 
-func (n *addressReverse) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n *addressReverse) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
 

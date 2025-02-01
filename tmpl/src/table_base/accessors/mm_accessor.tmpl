@@ -52,7 +52,7 @@ func (o *{{= table.DecapIdentifier}}Base) Load{{= mm.IdentifierPlural }}(ctx con
     if o.{{= mm.PkIdentifier() }} != nil {
         // Load the objects that will be associated after a Save
         objs = Query{{= mm.ObjectTypePlural() }}(ctx).
-            Where(op.In(node.{{= mm.ObjectType() }}().PrimaryKeyNode(), o.{{= mm.PkIdentifier() }}...)).
+            Where(op.In(node.{{= mm.ObjectType() }}().PrimaryKey(), o.{{= mm.PkIdentifier() }}...)).
             Load()
     } else {
         objs = Query{{= mm.ObjectTypePlural() }}(ctx).

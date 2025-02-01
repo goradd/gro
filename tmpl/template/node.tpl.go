@@ -138,7 +138,7 @@ type `); err != nil {
 
 	if _, err = io.WriteString(_w, `Node interface {
     query.Node
-    PrimaryKeyNode() *query.ColumnNode
+    PrimaryKey() *query.ColumnNode
 `); err != nil {
 		return
 	}
@@ -949,7 +949,7 @@ func (n *NodeTemplate) genPrimaryKey(table *model.Table, _w io.Writer) (err erro
 
 		//*** pk.tmpl
 
-		if _, err = io.WriteString(_w, `// PrimaryKeyNode returns a node that points to the primary key column.
+		if _, err = io.WriteString(_w, `// PrimaryKey returns a node that points to the primary key column.
 func (n `); err != nil {
 			return
 		}
@@ -958,7 +958,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `Table) PrimaryKeyNode() *query.ColumnNode {
+		if _, err = io.WriteString(_w, `Table) PrimaryKey() *query.ColumnNode {
     return n.`); err != nil {
 			return
 		}
@@ -976,7 +976,8 @@ func (n `); err != nil {
 
 		if hasReverse {
 
-			if _, err = io.WriteString(_w, `func (n *`); err != nil {
+			if _, err = io.WriteString(_w, `// PrimaryKey returns a node that points to the primary key column.
+func (n *`); err != nil {
 				return
 			}
 
@@ -984,7 +985,7 @@ func (n `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `Reference) PrimaryKeyNode() *query.ColumnNode {
+			if _, err = io.WriteString(_w, `Reference) PrimaryKey() *query.ColumnNode {
     return n.`); err != nil {
 				return
 			}
@@ -1004,7 +1005,8 @@ func (n `); err != nil {
 
 		if hasReference {
 
-			if _, err = io.WriteString(_w, `func (n *`); err != nil {
+			if _, err = io.WriteString(_w, `// PrimaryKey returns a node that points to the primary key column.
+func (n *`); err != nil {
 				return
 			}
 
@@ -1012,7 +1014,7 @@ func (n `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `Reverse) PrimaryKeyNode() *query.ColumnNode {
+			if _, err = io.WriteString(_w, `Reverse) PrimaryKey() *query.ColumnNode {
     return n.`); err != nil {
 				return
 			}
@@ -1032,7 +1034,8 @@ func (n `); err != nil {
 
 		if hasAssociation {
 
-			if _, err = io.WriteString(_w, `func (n *`); err != nil {
+			if _, err = io.WriteString(_w, `// PrimaryKey returns a node that points to the primary key column.
+func (n *`); err != nil {
 				return
 			}
 
@@ -1040,7 +1043,7 @@ func (n `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `Association) PrimaryKeyNode() *query.ColumnNode {
+			if _, err = io.WriteString(_w, `Association) PrimaryKey() *query.ColumnNode {
     return n.`); err != nil {
 				return
 			}

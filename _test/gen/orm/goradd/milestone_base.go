@@ -241,6 +241,8 @@ func HasMilestone(ctx context.Context, id string) bool {
 type MilestoneBuilder interface {
 	// Join adds node n to the node tree so that its fields will appear in the query.
 	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
+	// By default, all the columns of the joined table are selected.
+	// To optimize the query and only return specific columns, call Select.
 	Join(n query.Node, conditions ...query.Node) MilestoneBuilder
 
 	// Expand turns a Reverse or ManyMany node into individual rows.
@@ -334,9 +336,9 @@ type milestoneQueryBuilder struct {
 
 func newMilestoneBuilder(ctx context.Context) MilestoneBuilder {
 	b := milestoneQueryBuilder{
-		builder: query.NewBuilder(ctx),
+		builder: query.NewBuilder(ctx, node.Milestone()),
 	}
-	return b.Join(node.Milestone()) // seed builder with the top table
+	return &b
 }
 
 // Load terminates the query builder, performs the query, and returns a slice of Milestone objects.

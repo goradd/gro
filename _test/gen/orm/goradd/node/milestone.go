@@ -12,7 +12,7 @@ import (
 // MilestoneNode is the builder interface to the Milestone nodes.
 type MilestoneNode interface {
 	query.Node
-	PrimaryKeyNode() *query.ColumnNode
+	PrimaryKey() *query.ColumnNode
 	// ID represents the id column in the database.
 	ID() *query.ColumnNode
 	// ProjectID represents the project_id column in the database.
@@ -86,12 +86,13 @@ func (n *milestoneReverse) NodeType_() query.NodeType {
 	return query.ReverseNodeType
 }
 
-// PrimaryKeyNode returns a node that points to the primary key column.
-func (n milestoneTable) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n milestoneTable) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
 
-func (n *milestoneReverse) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n *milestoneReverse) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
 

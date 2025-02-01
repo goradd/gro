@@ -204,7 +204,7 @@ func (o *reverseBase) LoadForwardCascades(ctx context.Context, conditions ...int
 	qb := queryForwardCascades(ctx)
 	var cond *query.OperationNode
 	if o.revForwardCascadesPks != nil {
-		cond = op.In(node.ForwardCascade().PrimaryKeyNode(), o.revForwardCascadesPks...)
+		cond = op.In(node.ForwardCascade().PrimaryKey(), o.revForwardCascadesPks...)
 	} else {
 		cond = op.Equal(node.ForwardCascade().ReverseID(), o.PrimaryKey())
 	}
@@ -369,7 +369,7 @@ func (o *reverseBase) LoadForwardNulls(ctx context.Context, conditions ...interf
 	qb := queryForwardNulls(ctx)
 	var cond *query.OperationNode
 	if o.revForwardNullsPks != nil {
-		cond = op.In(node.ForwardNull().PrimaryKeyNode(), o.revForwardNullsPks...)
+		cond = op.In(node.ForwardNull().PrimaryKey(), o.revForwardNullsPks...)
 	} else {
 		cond = op.Equal(node.ForwardNull().ReverseID(), o.PrimaryKey())
 	}
@@ -534,7 +534,7 @@ func (o *reverseBase) LoadForwardRestricts(ctx context.Context, conditions ...in
 	qb := queryForwardRestricts(ctx)
 	var cond *query.OperationNode
 	if o.revForwardRestrictsPks != nil {
-		cond = op.In(node.ForwardRestrict().PrimaryKeyNode(), o.revForwardRestrictsPks...)
+		cond = op.In(node.ForwardRestrict().PrimaryKey(), o.revForwardRestrictsPks...)
 	} else {
 		cond = op.Equal(node.ForwardRestrict().ReverseID(), o.PrimaryKey())
 	}
@@ -692,6 +692,8 @@ func HasReverse(ctx context.Context, id string) bool {
 type ReverseBuilder interface {
 	// Join adds node n to the node tree so that its fields will appear in the query.
 	// Optionally add conditions to filter what gets included. Multiple conditions are anded.
+	// By default, all the columns of the joined table are selected.
+	// To optimize the query and only return specific columns, call Select.
 	Join(n query.Node, conditions ...query.Node) ReverseBuilder
 
 	// Expand turns a Reverse or ManyMany node into individual rows.
@@ -785,9 +787,9 @@ type reverseQueryBuilder struct {
 
 func newReverseBuilder(ctx context.Context) ReverseBuilder {
 	b := reverseQueryBuilder{
-		builder: query.NewBuilder(ctx),
+		builder: query.NewBuilder(ctx, node.Reverse()),
 	}
-	return b.Join(node.Reverse()) // seed builder with the top table
+	return &b
 }
 
 // Load terminates the query builder, performs the query, and returns a slice of Reverse objects.
@@ -1214,7 +1216,7 @@ func (o *reverseBase) update(ctx context.Context) {
 			if o.revForwardCascadesPks != nil {
 				// Get objects we are going to associate if not already loaded
 				objs := QueryForwardCascades(ctx).
-					Where(op.In(node.ForwardCascade().PrimaryKeyNode(), o.revForwardCascadesPks...)).
+					Where(op.In(node.ForwardCascade().PrimaryKey(), o.revForwardCascadesPks...)).
 					Select(node.ForwardCascade().ReverseID()).
 					Load()
 				_ = objs
@@ -1261,7 +1263,7 @@ func (o *reverseBase) update(ctx context.Context) {
 					// Save detached record
 					o.revForwardCascadeUnique.Save(ctx)
 				}
-				o.revForwardCascadeUnique = LoadForwardCascadeUnique(ctx, *o.revForwardCascadeUniquePk, node.ForwardCascadeUnique().PrimaryKeyNode())
+				o.revForwardCascadeUnique = LoadForwardCascadeUnique(ctx, *o.revForwardCascadeUniquePk, node.ForwardCascadeUnique().PrimaryKey())
 			}
 			o.revForwardCascadeUnique.reverseIDIsDirty = true // force a change in case data is stale
 			o.revForwardCascadeUnique.SetReverseID(o.PrimaryKey())
@@ -1281,7 +1283,7 @@ func (o *reverseBase) update(ctx context.Context) {
 			if o.revForwardNullsPks != nil {
 				// Get objects we are going to associate if not already loaded
 				objs := QueryForwardNulls(ctx).
-					Where(op.In(node.ForwardNull().PrimaryKeyNode(), o.revForwardNullsPks...)).
+					Where(op.In(node.ForwardNull().PrimaryKey(), o.revForwardNullsPks...)).
 					Select(node.ForwardNull().ReverseID()).
 					Load()
 				_ = objs
@@ -1328,7 +1330,7 @@ func (o *reverseBase) update(ctx context.Context) {
 					// Save detached record
 					o.revForwardNullUnique.Save(ctx)
 				}
-				o.revForwardNullUnique = LoadForwardNullUnique(ctx, *o.revForwardNullUniquePk, node.ForwardNullUnique().PrimaryKeyNode())
+				o.revForwardNullUnique = LoadForwardNullUnique(ctx, *o.revForwardNullUniquePk, node.ForwardNullUnique().PrimaryKey())
 			}
 			o.revForwardNullUnique.reverseIDIsDirty = true // force a change in case data is stale
 			o.revForwardNullUnique.SetReverseID(o.PrimaryKey())
@@ -1388,7 +1390,7 @@ func (o *reverseBase) update(ctx context.Context) {
 					// Save detached record
 					o.revForwardRestrictUnique.Save(ctx)
 				}
-				o.revForwardRestrictUnique = LoadForwardRestrictUnique(ctx, *o.revForwardRestrictUniquePk, node.ForwardRestrictUnique().PrimaryKeyNode())
+				o.revForwardRestrictUnique = LoadForwardRestrictUnique(ctx, *o.revForwardRestrictUniquePk, node.ForwardRestrictUnique().PrimaryKey())
 			}
 			o.revForwardRestrictUnique.reverseIDIsDirty = true // force a change in case data is stale
 			o.revForwardRestrictUnique.SetReverseID(o.PrimaryKey())
@@ -1582,7 +1584,7 @@ func (o *reverseBase) Delete(ctx context.Context) {
 
 // deleteReverse deletes the associated record from the database.
 func deleteReverse(ctx context.Context, pk string) {
-	if obj := LoadReverse(ctx, pk, node.Reverse().PrimaryKeyNode()); obj != nil {
+	if obj := LoadReverse(ctx, pk, node.Reverse().PrimaryKey()); obj != nil {
 		obj.Delete(ctx)
 	}
 }

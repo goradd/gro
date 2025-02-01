@@ -12,7 +12,7 @@ import (
 // ProjectNode is the builder interface to the Project nodes.
 type ProjectNode interface {
 	query.Node
-	PrimaryKeyNode() *query.ColumnNode
+	PrimaryKey() *query.ColumnNode
 	// ID represents the id column in the database.
 	ID() *query.ColumnNode
 	// Num represents the num column in the database.
@@ -149,20 +149,23 @@ func (n *projectAssociation) NodeType_() query.NodeType {
 	return query.ManyManyNodeType
 }
 
-// PrimaryKeyNode returns a node that points to the primary key column.
-func (n projectTable) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n projectTable) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
 
-func (n *projectReference) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n *projectReference) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
 
-func (n *projectReverse) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n *projectReverse) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
 
-func (n *projectAssociation) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n *projectAssociation) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
 

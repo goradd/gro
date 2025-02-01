@@ -12,7 +12,7 @@ import (
 // GiftNode is the builder interface to the Gift nodes.
 type GiftNode interface {
 	query.Node
-	PrimaryKeyNode() *query.ColumnNode
+	PrimaryKey() *query.ColumnNode
 	// Number represents the number column in the database.
 	Number() *query.ColumnNode
 	// Name represents the name column in the database.
@@ -81,12 +81,13 @@ func (n *giftReverse) NodeType_() query.NodeType {
 	return query.ReverseNodeType
 }
 
-// PrimaryKeyNode returns a node that points to the primary key column.
-func (n giftTable) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n giftTable) PrimaryKey() *query.ColumnNode {
 	return n.Number()
 }
 
-func (n *giftReverse) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n *giftReverse) PrimaryKey() *query.ColumnNode {
 	return n.Number()
 }
 

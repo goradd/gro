@@ -12,7 +12,7 @@ import (
 // EmployeeInfoNode is the builder interface to the EmployeeInfo nodes.
 type EmployeeInfoNode interface {
 	query.Node
-	PrimaryKeyNode() *query.ColumnNode
+	PrimaryKey() *query.ColumnNode
 	// ID represents the id column in the database.
 	ID() *query.ColumnNode
 	// PersonID represents the person_id column in the database.
@@ -86,12 +86,13 @@ func (n *employeeInfoReverse) NodeType_() query.NodeType {
 	return query.ReverseNodeType
 }
 
-// PrimaryKeyNode returns a node that points to the primary key column.
-func (n employeeInfoTable) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n employeeInfoTable) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
 
-func (n *employeeInfoReverse) PrimaryKeyNode() *query.ColumnNode {
+// PrimaryKey returns a node that points to the primary key column.
+func (n *employeeInfoReverse) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
 
