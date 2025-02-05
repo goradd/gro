@@ -8,7 +8,6 @@ import (
 type ReferenceNodeI interface {
 	ColumnName() string
 	TableNodeI
-	Conditioner
 	linker
 }
 
@@ -21,7 +20,6 @@ type ReferenceNode struct {
 	Identifier string
 	// The type of item acting as a pointer. This should be the same on both sides of the reference.
 	ReceiverType ReceiverType
-	nodeCondition
 	nodeLink
 }
 
@@ -42,9 +40,6 @@ func (n *ReferenceNode) GobEncode() (data []byte, err error) {
 	if err = e.Encode(n.ReceiverType); err != nil {
 		panic(err)
 	}
-	if err = e.Encode(&n.nodeCondition.condition); err != nil {
-		panic(err)
-	}
 	if err = e.Encode(&n.nodeLink.parentNode); err != nil {
 		panic(err)
 	}
@@ -62,9 +57,6 @@ func (n *ReferenceNode) GobDecode(data []byte) (err error) {
 		panic(err)
 	}
 	if err = dec.Decode(&n.ReceiverType); err != nil {
-		panic(err)
-	}
-	if err = dec.Decode(&n.nodeCondition.condition); err != nil {
 		panic(err)
 	}
 	if err = dec.Decode(&n.nodeLink.parentNode); err != nil {

@@ -240,9 +240,6 @@ func HasMilestone(ctx context.Context, id string) bool {
 type MilestoneBuilder interface {
 	// Join(alias string, joinedTable query.Node, condition query.Node) MilestoneBuilder
 
-	// Expand turns a Reverse or ManyMany node into individual rows.
-	Expand(n query.Expander) MilestoneBuilder
-
 	// Where adds a condition to filter what gets selected.
 	// Calling Where multiple times will AND the conditions together.
 	Where(c query.Node) MilestoneBuilder
@@ -267,7 +264,7 @@ type MilestoneBuilder interface {
 
 	// Calculation adds a calculation node with an aliased name.
 	// After the query, you can read the data using GetAlias() on a returned object.
-	Calculation(name string, n query.Aliaser) MilestoneBuilder
+	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) MilestoneBuilder
 
 	// Distinct removes duplicates from the results of the query.
 	// Adding a Select() is usually required.
@@ -433,12 +430,6 @@ func (b *milestoneQueryBuilder) Get() *Milestone {
 	}
 }
 
-// Expand expands an array type node so that it will produce individual rows instead of an array of items
-func (b *milestoneQueryBuilder) Expand(n query.Expander) MilestoneBuilder {
-	b.builder.Expand(n)
-	return b
-}
-
 /*
 // Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
 // by condition.
@@ -490,10 +481,10 @@ func (b *milestoneQueryBuilder) Select(nodes ...query.Node) MilestoneBuilder {
 	return b
 }
 
-// Calculation adds a calculation node with an aliased name.
-// After the query, you can read the data using GetAlias() on the returned object.
-func (b *milestoneQueryBuilder) Calculation(name string, n query.Aliaser) MilestoneBuilder {
-	b.builder.Calculation(name, n)
+// Calculation adds operation as an aliased value onto base.
+// After the query, you can read the data by passing alias to GetAlias on the returned object.
+func (b *milestoneQueryBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) MilestoneBuilder {
+	b.builder.Calculation(base, alias, operation)
 	return b
 }
 
@@ -606,7 +597,7 @@ func (o *milestoneBase) load(m map[string]interface{}, objThis *Milestone) {
 	}
 
 	if v, ok := m["Project"]; ok {
-		if objProject, ok2 := v.(map[string]interface{}); ok2 {
+		if objProject, ok2 := v.(map[string]any); ok2 {
 			o.objProject = new(Project)
 			o.objProject.load(objProject, o.objProject)
 			o.projectIDIsValid = true
@@ -632,7 +623,7 @@ func (o *milestoneBase) load(m map[string]interface{}, objThis *Milestone) {
 	}
 
 	if v, ok := m["aliases_"]; ok {
-		o._aliases = map[string]interface{}(v.(db.ValueMap))
+		o._aliases = v.(map[string]any)
 	}
 
 	o._restored = true

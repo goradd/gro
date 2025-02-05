@@ -8,8 +8,8 @@ import (
 )
 
 type OperationNodeI interface {
+	Node
 	container
-	Aliaser
 }
 
 // Operator is used internally by the framework to specify an operation to be performed by the database.
@@ -84,7 +84,6 @@ func (o Operator) String() string {
 // An OperationNode is a general purpose structure that specifies an operation on a node or group of nodes.
 // The operation could be arithmetic, boolean, or a function.
 type OperationNode struct {
-	nodeAlias
 	op           Operator
 	operands     []Node
 	functionName string // for function operations specific to the db driver
@@ -182,9 +181,6 @@ func (n *OperationNode) GobEncode() (data []byte, err error) {
 	var buf bytes.Buffer
 	e := gob.NewEncoder(&buf)
 
-	if err = e.Encode(n.alias); err != nil {
-		panic(err)
-	}
 	if err = e.Encode(n.op); err != nil {
 		panic(err)
 	}
@@ -204,9 +200,6 @@ func (n *OperationNode) GobEncode() (data []byte, err error) {
 func (n *OperationNode) GobDecode(data []byte) (err error) {
 	buf := bytes.NewBuffer(data)
 	dec := gob.NewDecoder(buf)
-	if err = dec.Decode(&n.alias); err != nil {
-		panic(err)
-	}
 	if err = dec.Decode(&n.op); err != nil {
 		panic(err)
 	}
@@ -244,8 +237,4 @@ func OperationNodeFunction(n *OperationNode) string {
 // OperationNodeDistinct is used internally by the framework to get the distinct value.
 func OperationNodeDistinct(n *OperationNode) bool {
 	return n.distinct
-}
-
-func (n *OperationNode) id() string {
-	return n.alias
 }

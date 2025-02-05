@@ -11,7 +11,7 @@ import (
 
 // AddressNode is the builder interface to the Address nodes.
 type AddressNode interface {
-	query.Node
+	query.TableNodeI
 	PrimaryKey() *query.ColumnNode
 	// ID represents the id column in the database.
 	ID() *query.ColumnNode
@@ -23,12 +23,6 @@ type AddressNode interface {
 	Street() *query.ColumnNode
 	// City represents the city column in the database.
 	City() *query.ColumnNode
-}
-
-// AddressExpander is the builder interface for Addresses that are expandable.
-type AddressExpander interface {
-	AddressNode
-	query.Expander
 }
 
 // addressTable represents the address table in a query. It uses a builder pattern to chain
@@ -63,7 +57,7 @@ func (n addressTable) DatabaseKey_() string {
 	return "goradd"
 }
 
-// ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
+// ColumnNodes_ returns a list of all the column nodes in this node.
 func (n addressTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.PersonID())
@@ -138,7 +132,7 @@ func (n addressTable) Person() PersonNode {
 	cn := &personReference{
 		ReferenceNode: query.ReferenceNode{
 			ColumnQueryName: "person_id",
-			Identifier:      "PersonID",
+			Identifier:      "Person",
 			ReceiverType:    query.ColTypeString,
 		},
 	}

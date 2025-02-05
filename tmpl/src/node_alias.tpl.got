@@ -16,11 +16,11 @@ func init() {
 type NodeDocTemplate struct {}
 
 func (n NodeDocTemplate) FileName(dbKey string) string {
-	return filepath.Join("orm", dbKey, "node","doc.go")
+	return filepath.Join("orm", dbKey, "node","alias_.go")
 }
 
 func (n NodeDocTemplate) GenerateDatabase(database *model.Database, _w io.Writer) (err error) {
-	{{: "node/doc.tmpl" }}
+	{{: "node/alias.tmpl" }}
 	return
 }
 

@@ -312,9 +312,6 @@ func HasAddress(ctx context.Context, id string) bool {
 type AddressBuilder interface {
 	// Join(alias string, joinedTable query.Node, condition query.Node) AddressBuilder
 
-	// Expand turns a Reverse or ManyMany node into individual rows.
-	Expand(n query.Expander) AddressBuilder
-
 	// Where adds a condition to filter what gets selected.
 	// Calling Where multiple times will AND the conditions together.
 	Where(c query.Node) AddressBuilder
@@ -339,7 +336,7 @@ type AddressBuilder interface {
 
 	// Calculation adds a calculation node with an aliased name.
 	// After the query, you can read the data using GetAlias() on a returned object.
-	Calculation(name string, n query.Aliaser) AddressBuilder
+	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) AddressBuilder
 
 	// Distinct removes duplicates from the results of the query.
 	// Adding a Select() is usually required.
@@ -505,12 +502,6 @@ func (b *addressQueryBuilder) Get() *Address {
 	}
 }
 
-// Expand expands an array type node so that it will produce individual rows instead of an array of items
-func (b *addressQueryBuilder) Expand(n query.Expander) AddressBuilder {
-	b.builder.Expand(n)
-	return b
-}
-
 /*
 // Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
 // by condition.
@@ -562,10 +553,10 @@ func (b *addressQueryBuilder) Select(nodes ...query.Node) AddressBuilder {
 	return b
 }
 
-// Calculation adds a calculation node with an aliased name.
-// After the query, you can read the data using GetAlias() on the returned object.
-func (b *addressQueryBuilder) Calculation(name string, n query.Aliaser) AddressBuilder {
-	b.builder.Calculation(name, n)
+// Calculation adds operation as an aliased value onto base.
+// After the query, you can read the data by passing alias to GetAlias on the returned object.
+func (b *addressQueryBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) AddressBuilder {
+	b.builder.Calculation(base, alias, operation)
 	return b
 }
 
@@ -685,7 +676,7 @@ func (o *addressBase) load(m map[string]interface{}, objThis *Address) {
 	}
 
 	if v, ok := m["Person"]; ok {
-		if objPerson, ok2 := v.(map[string]interface{}); ok2 {
+		if objPerson, ok2 := v.(map[string]any); ok2 {
 			o.objPerson = new(Person)
 			o.objPerson.load(objPerson, o.objPerson)
 			o.personIDIsValid = true
@@ -730,7 +721,7 @@ func (o *addressBase) load(m map[string]interface{}, objThis *Address) {
 	}
 
 	if v, ok := m["aliases_"]; ok {
-		o._aliases = map[string]interface{}(v.(db.ValueMap))
+		o._aliases = v.(map[string]any)
 	}
 
 	o._restored = true

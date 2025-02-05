@@ -10,17 +10,16 @@ import (
 	"strconv"
 )
 
-// SqlReceiveRows gets data from a sql result set and returns it as a slice of maps.
+// ReceiveRows gets data from a sql result set and returns it as a slice of maps.
 //
 // Each column is mapped to its column name.
 // If you provide columnNames, those will be used in the map. Otherwise, it will get the column names out of the
 // result set provided.
-func SqlReceiveRows(rows *sql.Rows,
+func ReceiveRows(rows *sql.Rows,
 	columnTypes []query.ReceiverType,
 	columnNames []string,
 	joinTree *jointree.JoinTree,
 ) []map[string]any {
-
 	var values []map[string]any
 
 	cursor := NewSqlCursor(rows, columnTypes, columnNames, nil)
@@ -100,7 +99,7 @@ Note that the order matters, so we put the whole thing in an OrderedMap so we ca
 that each object arrives, but then look for items in order.
 */
 
-type oMapType = maps.SliceMap[string, any] // We need a map that preserves insertion order
+type objListType = maps.SliceMap[string, db.ValueMap] // We need a map that preserves insertion order
 
 type unpacker struct {
 	rowId int
@@ -117,87 +116,96 @@ func unpack(jt *jointree.JoinTree, rows []map[string]interface{}) (out []map[str
 // unpackResult takes a flattened result set from the database that is a series of values keyed by alias, and turns them
 // into a hierarchical result set that is keyed by join table alias and key.
 func (u *unpacker) unpackResult(rows []map[string]interface{}) (out []map[string]any) {
-	var o2 db.ValueMap
+	objectList := new(objListType)
 
-	oMap := new(oMapType)
-	aliasMap := new(oMapType)
-
-	// First we create a tree structure of the data that will mirror the node structure
 	for _, row := range rows {
-		rowId := u.unpackObject(u.jt.Root, row, oMap)
-		u.unpackSpecialAliases(rowId, row, aliasMap)
+		u.unpackObjectArray(u.jt.Root, row, objectList)
 	}
 
-	// We then walk the tree and create the final data structure as arrays
-	for key, value := range oMap.All() {
-		out2 := u.expand(u.jt.Root, value.(*oMapType))
-		// Add the Alias calculations specifically requested by the caller
-		for _, o2 = range out2 {
-			if m := aliasMap.Get(key); m != nil {
-				o2[query.AliasResults] = m
-			}
-			out = append(out, o2)
-		}
-	}
-	return out
+	out = u.unpackObjectList(objectList)
+	return
 }
 
-// unpackObject finds the object that corresponds to parent in the row, and either adds it to the oMap, or if its
-// already in the oMap, reuses the old one and adds more data to it. oMap should only contain objects of parent type.
-// Returns the row id to use to refer to the row later.
-func (u *unpacker) unpackObject(parent *jointree.Element, row db.ValueMap, result *oMapType) (rowId string) {
-	var obj *oMapType
-	var key string
+func (u *unpacker) unpackObjectArray(el *jointree.Element, row db.ValueMap, result *objListType) {
+	key := u.makeObjectKey(el, row)
+	var obj db.ValueMap
 
-	rowId = u.makeObjectKey(parent, row)
-
-	if curObj := result.Get(rowId); curObj != nil {
-		obj = curObj.(*oMapType)
+	i := result.Get(key)
+	if i != nil {
+		obj = i
 	} else {
-		obj = new(oMapType)
-		result.Set(rowId, obj)
+		obj = db.NewValueMap()
+		result.Set(key, obj)
+	}
+	u.unpackObject(el, row, obj)
+
+}
+
+// unpackObject adds data from row corresponding to element to the data in object.
+// object may already have data in it, in which case the row will have repeated data, and we are here to
+// find a sub-object that is not repeated.
+func (u *unpacker) unpackObject(el *jointree.Element, row db.ValueMap, object db.ValueMap) {
+	var isNew bool
+
+	if len(object) == 0 {
+		isNew = true
 	}
 
-	// recurse for all embedded objects
-	for _, childItem := range parent.References {
-		key = u.makeObjectKey(childItem, row)
-		if !obj.Has(key) {
-			// If this is the first time, create the group
-			newValues := new(oMapType)
-			obj.Set(key, newValues)
-			u.unpackObject(childItem, row, newValues)
+	for _, childElement := range el.References {
+		key := query.NodeIdentifier(childElement.QueryNode)
+
+		i := object[key]
+		if childElement.IsArray() {
+			var childList *objListType
+
+			if i != nil {
+				childList = i.(*objListType)
+			} else {
+				childList = new(objListType)
+				object[key] = childList
+			}
+			u.unpackObjectArray(childElement, row, childList)
 		} else {
-			// Already have a group, so add to the group
-			currentValues := obj.Get(key).(*oMapType)
-			u.unpackObject(childItem, row, currentValues)
+			var childItem db.ValueMap
+			if i != nil {
+				childItem = i.(db.ValueMap)
+			} else {
+				childItem = db.NewValueMap()
+				object[key] = childItem
+			}
+			u.unpackObject(childElement, row, childItem)
 		}
 	}
-	for leafItem := range parent.Selects.All() {
-		u.unpackLeaf(leafItem, row, obj)
+	if isNew {
+		for leafItem := range el.SelectedColumns.All() {
+			u.unpackLeaf(leafItem, row, object)
+		}
+		u.unpackCalculationAliases(el.Calculations, row, object)
 	}
 	return
 }
 
-func (u *unpacker) unpackLeaf(j *jointree.Element, row db.ValueMap, obj *oMapType) {
+func (u *unpacker) unpackLeaf(j *jointree.Element, row db.ValueMap, obj db.ValueMap) {
 	if node, ok := j.QueryNode.(*query.ColumnNode); ok {
 		key := j.Alias
 		fieldName := node.QueryName
-		obj.Set(fieldName, row[key])
+		obj[fieldName] = row[key]
 	} else {
 		panic("Unexpected node type.")
 	}
 }
 
-// makeObjectKey makes the key for the object of the row.
+// makeObjectKey makes a key for the element, such that when multiple rows for the same top object are
+// in the result set, they can be grouped together within the parent object.
 // The key is used in subsequent calls to determine what row joined data belongs to.
-func (u *unpacker) makeObjectKey(j *jointree.Element, row db.ValueMap) string {
-	pk := j.PrimaryKey()
+func (u *unpacker) makeObjectKey(tableElement *jointree.Element, row db.ValueMap) string {
+	pk := tableElement.PrimaryKey()
 
 	if pk == nil || pk.Alias == "" {
 		// We are not identifying the row by a PK because of one of the following:
 		// 1) This is a distinct select, and we are not selecting pks to avoid affecting the results of the query
 		// 2) This is a groupby clause, which forces us to select only the groupby items and we cannot add a PK to the row
-		// We will therefore make up a unique key to identify the row
+		// We will therefore make up a unique key to identify the row such that none of the rows are grouped.
 		u.rowId++
 		return strconv.Itoa(u.rowId)
 	}
@@ -207,105 +215,45 @@ func (u *unpacker) makeObjectKey(j *jointree.Element, row db.ValueMap) string {
 		panic(fmt.Sprintf("expected value for %s was not returned in the query", pk))
 	}
 
-	return pk.Alias + "." + fmt.Sprint(v)
+	return fmt.Sprint(v)
 }
 
-func (u *unpacker) unpackSpecialAliases(rowId string, row db.ValueMap, aliasMap *oMapType) {
-	if curObj := aliasMap.Get(rowId); curObj != nil {
-		return // already added these to the row
-	}
+func (u *unpacker) unpackCalculationAliases(calcNodes map[string]query.Node, row db.ValueMap, result db.ValueMap) {
+	var aliasMap map[string]any // using map[string]any instead of db.ValueMap serves two purposes:
+	// 1) allows us just to pass it through and
+	// 2) signals to later unpacking operations that its not an object
 
-	obj := new(oMapType)
-	for key, _ := range u.jt.Aliases {
-		obj.Set(key, row[key])
+	if i := result[query.AliasResults]; i == nil {
+		aliasMap = make(map[string]any)
+		result[query.AliasResults] = aliasMap
+	} else {
+		aliasMap = i.(map[string]any)
 	}
-
-	if obj.Len() > 0 {
-		aliasMap.Set(rowId, obj)
+	for alias := range calcNodes {
+		if _, ok := aliasMap[alias]; ok {
+			continue // already added the item to the object, this is a repeat
+		}
+		aliasMap[alias] = row[alias]
 	}
 }
 
-// expand converts the nodeObject into an array of ValueMaps.
-// If j has Expand set, then more than one item will be returned.
-func (u *unpacker) expand(j *jointree.Element, nodeObject *oMapType) (outArray []db.ValueMap) {
-	var item db.ValueMap
-	var innerNodeObject *oMapType
-	var copies []db.ValueMap
-	var innerCopies []db.ValueMap
-	var newArray []db.ValueMap
-
-	outArray = append(outArray, db.NewValueMap())
-
-	// order of reference or leaf processing is not important
-	for el := range j.Selects.All() {
-		for _, item = range outArray {
-			if cn, ok := el.QueryNode.(*query.ColumnNode); ok {
-				item[cn.QueryName] = nodeObject.Get(cn.QueryName)
-			}
-		}
+// unpackObjectLists converts the unpacking structure into a basic map[string]any structure that is delivered as the query result.
+func (u *unpacker) unpackObjectList(objList *objListType) (outMap []map[string]any) {
+	for _, dbMap := range objList.All() {
+		outMap = append(outMap, u.unpackObjectMap(dbMap))
 	}
+	return
+}
 
-	for _, el := range j.References {
-		copies = []db.ValueMap{}
-		tableName := el.QueryNode.TableName_()
-
-		for _, item = range outArray {
-			switch el.QueryNode.NodeType_() {
-			case query.ReferenceNodeType:
-				// Should be a one or zero item array here
-				i := nodeObject.Get(tableName)
-				if i == nil {
-					continue
-				}
-				om := i.(*oMapType)
-				if om.Len() > 1 {
-					panic("Cannot have an array with more than one item here.")
-				} else if om.Len() == 1 {
-					innerNodeObject = nodeObject.Get(tableName).(*oMapType).GetAt(0).(*oMapType)
-					innerCopies = u.expand(el, innerNodeObject)
-					if len(innerCopies) > 1 {
-						for _, cp2 := range innerCopies {
-							nodeCopy := item.Copy().(db.ValueMap)
-							nodeCopy[tableName] = cp2
-							copies = append(copies, nodeCopy)
-						}
-					} else {
-						item[tableName] = map[string]interface{}(innerCopies[0])
-					}
-				}
-				// else we likely were not included because of a conditional join
-			case query.ReverseNodeType:
-				fallthrough
-			case query.ManyManyNodeType:
-				i := nodeObject.Get(tableName)
-				if i == nil {
-					continue
-				}
-				om := i.(*oMapType)
-				newArray = []db.ValueMap{}
-				for _, value := range om.All() {
-					innerNodeObject = value.(*oMapType)
-					innerCopies = u.expand(el, innerNodeObject)
-					for _, ic := range innerCopies {
-						newArray = append(newArray, ic)
-					}
-				}
-
-				if el.Expanded { // unique reverse or single expansion many
-					for _, cp2 := range newArray {
-						nodeCopy := item.Copy().(db.ValueMap)
-						nodeCopy[tableName] = cp2
-						copies = append(copies, nodeCopy)
-					}
-				} else {
-					// From this point up, we should not be creating additional copies, since from this point down, we
-					// are gathering an array
-					item[tableName] = newArray
-				}
-			}
-		}
-		if len(copies) > 0 {
-			outArray = copies
+func (u *unpacker) unpackObjectMap(dbMap db.ValueMap) (outMap map[string]any) {
+	outMap = make(map[string]any)
+	for k, val := range dbMap {
+		if v, ok := val.(db.ValueMap); ok {
+			outMap[k] = u.unpackObjectMap(v)
+		} else if v, ok := val.(*objListType); ok {
+			outMap[k] = u.unpackObjectList(v)
+		} else {
+			outMap[k] = val
 		}
 	}
 	return

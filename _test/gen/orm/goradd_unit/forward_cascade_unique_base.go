@@ -306,9 +306,6 @@ func HasForwardCascadeUniqueByReverseID(ctx context.Context, reverseID interface
 type ForwardCascadeUniqueBuilder interface {
 	// Join(alias string, joinedTable query.Node, condition query.Node) ForwardCascadeUniqueBuilder
 
-	// Expand turns a Reverse or ManyMany node into individual rows.
-	Expand(n query.Expander) ForwardCascadeUniqueBuilder
-
 	// Where adds a condition to filter what gets selected.
 	// Calling Where multiple times will AND the conditions together.
 	Where(c query.Node) ForwardCascadeUniqueBuilder
@@ -333,7 +330,7 @@ type ForwardCascadeUniqueBuilder interface {
 
 	// Calculation adds a calculation node with an aliased name.
 	// After the query, you can read the data using GetAlias() on a returned object.
-	Calculation(name string, n query.Aliaser) ForwardCascadeUniqueBuilder
+	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) ForwardCascadeUniqueBuilder
 
 	// Distinct removes duplicates from the results of the query.
 	// Adding a Select() is usually required.
@@ -499,12 +496,6 @@ func (b *forwardCascadeUniqueQueryBuilder) Get() *ForwardCascadeUnique {
 	}
 }
 
-// Expand expands an array type node so that it will produce individual rows instead of an array of items
-func (b *forwardCascadeUniqueQueryBuilder) Expand(n query.Expander) ForwardCascadeUniqueBuilder {
-	b.builder.Expand(n)
-	return b
-}
-
 /*
 // Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
 // by condition.
@@ -556,10 +547,10 @@ func (b *forwardCascadeUniqueQueryBuilder) Select(nodes ...query.Node) ForwardCa
 	return b
 }
 
-// Calculation adds a calculation node with an aliased name.
-// After the query, you can read the data using GetAlias() on the returned object.
-func (b *forwardCascadeUniqueQueryBuilder) Calculation(name string, n query.Aliaser) ForwardCascadeUniqueBuilder {
-	b.builder.Calculation(name, n)
+// Calculation adds operation as an aliased value onto base.
+// After the query, you can read the data by passing alias to GetAlias on the returned object.
+func (b *forwardCascadeUniqueQueryBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) ForwardCascadeUniqueBuilder {
+	b.builder.Calculation(base, alias, operation)
 	return b
 }
 
@@ -691,7 +682,7 @@ func (o *forwardCascadeUniqueBase) load(m map[string]interface{}, objThis *Forwa
 	}
 
 	if v, ok := m["Reverse"]; ok {
-		if objReverse, ok2 := v.(map[string]interface{}); ok2 {
+		if objReverse, ok2 := v.(map[string]any); ok2 {
 			o.objReverse = new(Reverse)
 			o.objReverse.load(objReverse, o.objReverse)
 			o.reverseIDIsValid = true
@@ -704,7 +695,7 @@ func (o *forwardCascadeUniqueBase) load(m map[string]interface{}, objThis *Forwa
 	}
 
 	if v, ok := m["aliases_"]; ok {
-		o._aliases = map[string]interface{}(v.(db.ValueMap))
+		o._aliases = v.(map[string]any)
 	}
 
 	o._restored = true

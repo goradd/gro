@@ -2,7 +2,6 @@ package query
 
 // The linker interface provides an interface to allow nodes to be linked in a parent chain
 type linker interface {
-	Node
 	// SetParent sets the parent node of this node.
 	setParent_(Node)
 	// Parent returns the parent node of this node.

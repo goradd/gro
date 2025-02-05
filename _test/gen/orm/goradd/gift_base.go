@@ -201,9 +201,6 @@ func HasGiftByNumber(ctx context.Context, number int) bool {
 type GiftBuilder interface {
 	// Join(alias string, joinedTable query.Node, condition query.Node) GiftBuilder
 
-	// Expand turns a Reverse or ManyMany node into individual rows.
-	Expand(n query.Expander) GiftBuilder
-
 	// Where adds a condition to filter what gets selected.
 	// Calling Where multiple times will AND the conditions together.
 	Where(c query.Node) GiftBuilder
@@ -228,7 +225,7 @@ type GiftBuilder interface {
 
 	// Calculation adds a calculation node with an aliased name.
 	// After the query, you can read the data using GetAlias() on a returned object.
-	Calculation(name string, n query.Aliaser) GiftBuilder
+	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) GiftBuilder
 
 	// Distinct removes duplicates from the results of the query.
 	// Adding a Select() is usually required.
@@ -394,12 +391,6 @@ func (b *giftQueryBuilder) Get() *Gift {
 	}
 }
 
-// Expand expands an array type node so that it will produce individual rows instead of an array of items
-func (b *giftQueryBuilder) Expand(n query.Expander) GiftBuilder {
-	b.builder.Expand(n)
-	return b
-}
-
 /*
 // Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
 // by condition.
@@ -451,10 +442,10 @@ func (b *giftQueryBuilder) Select(nodes ...query.Node) GiftBuilder {
 	return b
 }
 
-// Calculation adds a calculation node with an aliased name.
-// After the query, you can read the data using GetAlias() on the returned object.
-func (b *giftQueryBuilder) Calculation(name string, n query.Aliaser) GiftBuilder {
-	b.builder.Calculation(name, n)
+// Calculation adds operation as an aliased value onto base.
+// After the query, you can read the data by passing alias to GetAlias on the returned object.
+func (b *giftQueryBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) GiftBuilder {
+	b.builder.Calculation(base, alias, operation)
 	return b
 }
 
@@ -557,7 +548,7 @@ func (o *giftBase) load(m map[string]interface{}, objThis *Gift) {
 	}
 
 	if v, ok := m["aliases_"]; ok {
-		o._aliases = map[string]interface{}(v.(db.ValueMap))
+		o._aliases = v.(map[string]any)
 	}
 
 	o._restored = true

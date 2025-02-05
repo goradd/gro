@@ -32,7 +32,7 @@ func (o *DoubleIndex) Initialize() {
 // Typically you would change this to whatever was pertinent to your application.
 func (o *DoubleIndex) String() string {
 	if o == nil {
-		return "" // Possibly - Select One -?
+		return ""
 	}
 	return fmt.Sprintf("DoubleIndex %v", o.PrimaryKey())
 }

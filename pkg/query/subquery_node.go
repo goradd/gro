@@ -22,7 +22,6 @@ const (
 // query on a table, and then end the query with "Subquery()" which will turn the query into a usable subquery node
 // that you can embed in other queries.
 type SubqueryNode struct {
-	nodeAlias
 	b   BuilderI
 	cmd SubqueryCommand
 }
@@ -95,9 +94,6 @@ func (n *SubqueryNode) GobEncode() (data []byte, err error) {
 	var buf bytes.Buffer
 	e := gob.NewEncoder(&buf)
 
-	if err = e.Encode(n.alias); err != nil {
-		panic(err)
-	}
 	if err = e.Encode(n.b); err != nil {
 		panic(err)
 	}
@@ -108,9 +104,6 @@ func (n *SubqueryNode) GobEncode() (data []byte, err error) {
 func (n *SubqueryNode) GobDecode(data []byte) (err error) {
 	buf := bytes.NewBuffer(data)
 	dec := gob.NewDecoder(buf)
-	if err = dec.Decode(&n.alias); err != nil {
-		panic(err)
-	}
 	if err = dec.Decode(&n.b); err != nil {
 		panic(err)
 	}
@@ -127,8 +120,4 @@ func SubqueryBuilder(n *SubqueryNode) BuilderI {
 }
 func SubqueryCmd(n *SubqueryNode) SubqueryCommand {
 	return n.cmd
-}
-
-func (n *SubqueryNode) id() string {
-	return n.alias
 }

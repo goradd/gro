@@ -6,7 +6,7 @@
 
 // {{= table.Identifier}}Node is the builder interface to the {{= table.Identifier}} nodes.
 type {{= table.Identifier}}Node interface {
-    query.Node
+    query.TableNodeI
     PrimaryKey() *query.ColumnNode
 {{for _,col := range table.Columns}}
     // {{= col.Identifier }} represents the {{= col.QueryName }} column in the database.
@@ -18,26 +18,14 @@ type {{= table.Identifier}}Node interface {
 {{for}}
 {{for _,mm := range table.ManyManyReferences}}
      // {{= mm.IdentifierPlural }} represents the {{= mm.IdentifierPlural }} reference to {{= mm.ObjectType() }} objects.
-   {{= mm.IdentifierPlural }}() {{= mm.ObjectType() }}Expander
+   {{= mm.IdentifierPlural }}() {{= mm.ObjectType() }}Node
 {{for}}
 {{for _,rev := range table.ReverseReferences}}
-{{if rev.IsUnique}}
-      // {{= rev.ReverseIdentifier() }} represents the {{= rev.ReverseIdentifier() }} reference to a {{= rev.Table.Identifier }} object.
-   {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}Node
-{{else}}
-    // {{= rev.ReverseIdentifier() }} represents the {{= rev.ReverseIdentifier() }} reference to {{= rev.Table.Identifier }} objects.
-    {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}Expander
-{{if}}
+    // {{= rev.ReverseIdentifier() }} represents the {{= rev.ReverseIdentifier() }} reference to {{if rev.IsUnique
+}}a {{= rev.Table.Identifier }} object.{{else}}{{= rev.Table.Identifier }} objects.{{if}}
+    {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}Node
 {{for}}
 }
-
-{{if isExpander}}
-// {{= table.Identifier}}Expander is the builder interface for {{= table.IdentifierPlural}} that are expandable.
-type {{= table.Identifier}}Expander interface {
-    {{= table.Identifier}}Node
-    query.Expander
-}
-{{if}}
 
 // {{= table.DecapIdentifier }}Table represents the {{= table.QueryName}} table in a query. It uses a builder pattern to chain
 // together other tables and columns to form a node chain in a query.

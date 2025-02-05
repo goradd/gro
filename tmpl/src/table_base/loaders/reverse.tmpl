@@ -7,7 +7,7 @@
 
 	if v, ok := m["{{= col.ReverseIdentifier() }}"]; ok {
 		switch v2 := v.(type) {
-		case []db.ValueMap: // array expansion
+		case []map[string]any: // array expansion
 		    o.{{= col.ReverseVariableIdentifier() }}.Clear()
 			o.{{= col.ReverseVariableIdentifier() }}IsDirty = false
 			for _,v3 := range v2 {
@@ -15,7 +15,7 @@
 				obj.load(v3, obj)
 				o.{{= col.ReverseVariableIdentifier() }}.Set(obj.PrimaryKey(), obj)
 			}
-		case db.ValueMap:	// single expansion
+		case map[string]any:	// single expansion
 			obj := new({{= col.Table.Identifier }})
 			obj.load(v2, obj)
 		    o.{{= col.ReverseVariableIdentifier() }}.Clear()

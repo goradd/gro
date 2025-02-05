@@ -137,7 +137,9 @@ func TestManyForward(t *testing.T) {
 
 }
 
-func TestConditionalSelect(t *testing.T) {
+// TODO:
+/*
+func TestConditionalJoin(t *testing.T) {
 	ctx := db.NewContext(nil)
 
 	projects := goradd.QueryProjects(ctx).
@@ -179,26 +181,7 @@ func TestConditionalSelect(t *testing.T) {
 	assert.Len(t, projects[3].TeamMembers(), 2, "Project 4 has 2 team members with last name Smith")
 	assert.Equal(t, "Smith", projects[3].TeamMembers()[0].LastName(), "The first team member from project 4 has a last name of smith")
 }
-
-func TestConditionalExpand(t *testing.T) {
-	ctx := db.NewContext(nil)
-
-	// Reverse references
-	people := goradd.QueryPeople(ctx).
-		Select(node.Person().Addresses(), op.Equal(node.Person().Addresses().City(), "Mountain View")).
-		Select(node.Person().ManagerProjects(), op.Like(node.Person().ManagerProjects().Name(), "%Website%")).
-		Expand(node.Person().ManagerProjects().Milestones()).
-		OrderBy(node.Person().LastName(), node.Person().FirstName(), node.Person().ManagerProjects().Name()).
-		Load()
-
-	assert.Equal(t, "Karen", people[11].FirstName(), "Karen is the 12th Person.")
-	assert.Len(t, people[11].ManagerProjects(), 1, "Karen Wolfe selected 1 project.")
-	assert.Len(t, people[11].Addresses(), 1, "Karen Wolfe has 1 Address.")
-
-	assert.Len(t, people[2].ManagerProjects(), 0, "John Doe selected no projects.")
-	assert.Len(t, people[2].Addresses(), 0, "John Doe has no Addresses")
-
-}
+*/
 
 func TestSelectByID(t *testing.T) {
 	ctx := db.NewContext(nil)
@@ -232,6 +215,17 @@ func Test2ndLoad(t *testing.T) {
 	mgr := projects[0].LoadManager(ctx)
 	assert.Equal(t, "Doe", mgr.LastName())
 
+}
+
+func TestCalculationOnAssociation(t *testing.T) {
+	ctx := db.NewContext(nil)
+	projects := goradd.QueryProjects(ctx).
+		Select(node.Project().TeamMembers()).
+		Calculation(node.Project().TeamMembers(), "count", op.Count(node.Project().TeamMembers())).
+		OrderBy(node.Project().Manager().FirstName()).
+		Load()
+	// TODO:
+	_ = projects
 }
 
 /*

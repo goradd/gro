@@ -29,12 +29,10 @@ type JoinTree struct {
 	IsDistinct         bool
 	isSubquery         bool
 	Command            query.BuilderCommand
-	Aliases            map[string]query.Node
 	Limits             query.LimitParams
 	Condition          query.Node
 	GroupBys           []query.Node
 	OrderBys           []query.Sorter
-	Joins              []query.Node
 	Having             query.Node
 }
 
@@ -45,12 +43,10 @@ func NewJoinTree(b query.BuilderI) *JoinTree {
 	t := JoinTree{
 		IsDistinct: builder.IsDistinct,
 		Command:    builder.Command,
-		Aliases:    make(map[string]query.Node),
 		Limits:     builder.Limits,
 		GroupBys:   builder.GroupBys,
 		OrderBys:   builder.OrderBys,
 		Having:     builder.HavingNode,
-		Joins:      builder.Joins,
 		Root:       newElement(builder.Root),
 	}
 
@@ -80,13 +76,13 @@ func (t *JoinTree) buildCommand(b *query.Builder) {
 	case query.BuilderCommandLoad:
 		fallthrough
 	case query.BuilderCommandLoadCursor:
+		t.addCalculations(b)
 		t.addSelectedColumns(b)
-		t.addAliases(b.AliasNodes)
 		t.assignSelectAliases()
 	case query.BuilderCommandCount:
 		n := query.NewCountNode(b.Selects...)
-		b.Calculation(countAlias, n)
-		t.addAliases(b.AliasNodes)
+		b.Calculation(b.Root, countAlias, n)
+		t.addCalculations(b)
 
 	default:
 		// do nothing more
@@ -240,7 +236,7 @@ func (t *JoinTree) addSelectedColumns(builder *query.Builder) {
 			if nodeMatch(t.Root.QueryNode, e.Parent.QueryNode) {
 				hasRootSelect = true
 			}
-			e.Parent.Selects.Add(e)
+			e.Parent.SelectedColumns.Add(e)
 		}
 		// Primary key nodes of all parent nodes must be added in order to assemble the final data structure
 		// provided doing so will not mess up the query.
@@ -265,7 +261,7 @@ func (t *JoinTree) addSelectedColumns(builder *query.Builder) {
 		if !found {
 			panic("prior node was not found in the tree")
 		}
-		e.Parent.Selects.Add(e)
+		e.Parent.SelectedColumns.Add(e)
 	}
 }
 
@@ -274,7 +270,7 @@ func (t *JoinTree) selectAllColumnNodes(tableNode query.TableNodeI) {
 	cols := tableNode.ColumnNodes_()
 	for _, n := range cols {
 		e2 := t.addNode(n)
-		e2.Parent.Selects.Add(e2)
+		e2.Parent.SelectedColumns.Add(e2)
 	}
 }
 
@@ -283,7 +279,7 @@ func (t *JoinTree) selectParentPrimaryKeys(e *Element) {
 	for parentElement := e.Parent; parentElement != nil; parentElement = parentElement.Parent {
 		fkn := parentElement.QueryNode.(query.PrimaryKeyer).PrimaryKey()
 		en := t.addNode(fkn)
-		en.Parent.Selects.Add(en)
+		en.Parent.SelectedColumns.Add(en)
 	}
 }
 
@@ -304,17 +300,15 @@ func (t *JoinTree) addGroupBySelects(b *query.Builder) {
 			if !found {
 				panic("group by node not found in the tree")
 			}
-			e.Parent.Selects.Add(e)
-		} else if a, ok := n.(query.Aliaser); ok {
-			if offset := slices.IndexFunc(b.AliasNodes, func(a2 query.Aliaser) bool {
-				return a2.Alias() == a.Alias()
-			}); offset == -1 {
-				panic(fmt.Sprintf("alias in group by not found: %s", a.Alias()))
+			e.Parent.SelectedColumns.Add(e)
+		} else if a, ok := n.(query.AliasNodeI); ok {
+			if _, ok2 := b.Calculations[a.Alias()]; !ok2 {
+				panic(fmt.Sprintf("alias in group by not found in Calculations: %s", a.Alias()))
 			}
 		} else if n.NodeType_() == query.OperationNodeType {
-			panic("operation nodes in group bys must be aliased with a Computation node")
+			panic("operation nodes in group bys must be aliased with a Calculation")
 		} else if n.NodeType_() == query.SubqueryNodeType {
-			panic("subquery nodes in group bys must be aliased with a Computation node")
+			panic("subquery nodes in group bys must be aliased with a Calculation")
 		} else if n.NodeType_() == query.ReferenceNodeType {
 			panic("group by a foreign key column rather than a reference")
 		} else if n.NodeType_() == query.ReverseNodeType ||
@@ -336,7 +330,7 @@ func (t *JoinTree) checkGroupBySelects(b *query.Builder) {
 	}
 	// make sure no other selects are currently included in the related order by tables
 	for _, e := range elements {
-		p := e.Parent.Selects.Clone()
+		p := e.Parent.SelectedColumns.Clone()
 		for _, e2 := range elements {
 			p.Delete(e2)
 		}
@@ -346,11 +340,13 @@ func (t *JoinTree) checkGroupBySelects(b *query.Builder) {
 	}
 }
 
-func (t *JoinTree) addAliases(aliases []query.Aliaser) {
-	var n query.Node
-	for _, a := range aliases {
-		n = a
-		t.Aliases[a.Alias()] = n
+func (t *JoinTree) addCalculations(b *query.Builder) {
+	for alias, values := range b.Calculations {
+		e, _, found := t.findNode(values.BaseNode)
+		if !found {
+			panic("calculation not found in the tree")
+		}
+		e.Calculations[alias] = values.Operation
 	}
 }
 
@@ -363,4 +359,13 @@ func (t *JoinTree) assignSelectAliases() {
 
 func (t *JoinTree) SelectsIter() iter.Seq[*Element] {
 	return t.Root.SelectsIter()
+}
+
+func (t *JoinTree) CalculationsIter() iter.Seq2[string, query.Node] {
+	return t.Root.CalculationsIter()
+}
+
+// FindAlias searches the join tree for the given manually assigned alias and returns the node corresponding to the alias.
+func (t *JoinTree) FindAlias(alias string) query.Node {
+	return t.Root.FindCalculation(alias)
 }

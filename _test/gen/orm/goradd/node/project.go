@@ -11,7 +11,7 @@ import (
 
 // ProjectNode is the builder interface to the Project nodes.
 type ProjectNode interface {
-	query.Node
+	query.TableNodeI
 	PrimaryKey() *query.ColumnNode
 	// ID represents the id column in the database.
 	ID() *query.ColumnNode
@@ -36,19 +36,13 @@ type ProjectNode interface {
 	// Spent represents the spent column in the database.
 	Spent() *query.ColumnNode
 	// Children represents the Children reference to Project objects.
-	Children() ProjectExpander
+	Children() ProjectNode
 	// Parents represents the Parents reference to Project objects.
-	Parents() ProjectExpander
+	Parents() ProjectNode
 	// TeamMembers represents the TeamMembers reference to Person objects.
-	TeamMembers() PersonExpander
+	TeamMembers() PersonNode
 	// Milestones represents the Milestones reference to Milestone objects.
-	Milestones() MilestoneExpander
-}
-
-// ProjectExpander is the builder interface for Projects that are expandable.
-type ProjectExpander interface {
-	ProjectNode
-	query.Expander
+	Milestones() MilestoneNode
 }
 
 // projectTable represents the project table in a query. It uses a builder pattern to chain
@@ -93,7 +87,7 @@ func (n projectTable) DatabaseKey_() string {
 	return "goradd"
 }
 
-// ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
+// ColumnNodes_ returns a list of all the column nodes in this node.
 func (n projectTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.Num())
@@ -290,7 +284,7 @@ func (n projectTable) Manager() PersonNode {
 	cn := &personReference{
 		ReferenceNode: query.ReferenceNode{
 			ColumnQueryName: "manager_id",
-			Identifier:      "ManagerID",
+			Identifier:      "Manager",
 			ReceiverType:    query.ColTypeString,
 		},
 	}
@@ -491,7 +485,7 @@ func (n *projectAssociation) Spent() *query.ColumnNode {
 }
 
 // Children represents the many-to-many relationship formed by the related_project_assn table.
-func (n projectTable) Children() ProjectExpander {
+func (n projectTable) Children() ProjectNode {
 	cn := &projectAssociation{
 		ManyManyNode: query.ManyManyNode{
 			AssnTableQueryName:       "related_project_assn",
@@ -506,26 +500,26 @@ func (n projectTable) Children() ProjectExpander {
 	return cn
 }
 
-func (n *projectReference) Children() ProjectExpander {
+func (n *projectReference) Children() ProjectNode {
 	cn := n.projectTable.Children().(*projectAssociation)
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *projectReverse) Children() ProjectExpander {
+func (n *projectReverse) Children() ProjectNode {
 	cn := n.projectTable.Children().(*projectAssociation)
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *projectAssociation) Children() ProjectExpander {
+func (n *projectAssociation) Children() ProjectNode {
 	cn := n.projectTable.Children().(*projectAssociation)
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
 // Parents represents the many-to-many relationship formed by the related_project_assn table.
-func (n projectTable) Parents() ProjectExpander {
+func (n projectTable) Parents() ProjectNode {
 	cn := &projectAssociation{
 		ManyManyNode: query.ManyManyNode{
 			AssnTableQueryName:       "related_project_assn",
@@ -540,26 +534,26 @@ func (n projectTable) Parents() ProjectExpander {
 	return cn
 }
 
-func (n *projectReference) Parents() ProjectExpander {
+func (n *projectReference) Parents() ProjectNode {
 	cn := n.projectTable.Parents().(*projectAssociation)
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *projectReverse) Parents() ProjectExpander {
+func (n *projectReverse) Parents() ProjectNode {
 	cn := n.projectTable.Parents().(*projectAssociation)
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *projectAssociation) Parents() ProjectExpander {
+func (n *projectAssociation) Parents() ProjectNode {
 	cn := n.projectTable.Parents().(*projectAssociation)
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
 // TeamMembers represents the many-to-many relationship formed by the team_member_project_assn table.
-func (n projectTable) TeamMembers() PersonExpander {
+func (n projectTable) TeamMembers() PersonNode {
 	cn := &personAssociation{
 		ManyManyNode: query.ManyManyNode{
 			AssnTableQueryName:       "team_member_project_assn",
@@ -574,19 +568,19 @@ func (n projectTable) TeamMembers() PersonExpander {
 	return cn
 }
 
-func (n *projectReference) TeamMembers() PersonExpander {
+func (n *projectReference) TeamMembers() PersonNode {
 	cn := n.projectTable.TeamMembers().(*personAssociation)
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *projectReverse) TeamMembers() PersonExpander {
+func (n *projectReverse) TeamMembers() PersonNode {
 	cn := n.projectTable.TeamMembers().(*personAssociation)
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *projectAssociation) TeamMembers() PersonExpander {
+func (n *projectAssociation) TeamMembers() PersonNode {
 	cn := n.projectTable.TeamMembers().(*personAssociation)
 	query.NodeSetParent(cn, n)
 	return cn
@@ -594,31 +588,32 @@ func (n *projectAssociation) TeamMembers() PersonExpander {
 
 // Milestones represents the many-to-one relationship formed by the reverse reference from the
 // project_id column in the milestone table.
-func (n projectTable) Milestones() MilestoneExpander {
+func (n projectTable) Milestones() MilestoneNode {
 	cn := &milestoneReverse{
 		ReverseNode: query.ReverseNode{
 			ColumnQueryName: "project_id",
 			Identifier:      "Milestones",
 			ReceiverType:    query.ColTypeString,
+			IsUnique:        false,
 		},
 	}
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *projectReference) Milestones() MilestoneExpander {
+func (n *projectReference) Milestones() MilestoneNode {
 	cn := n.projectTable.Milestones().(*milestoneReverse)
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *projectReverse) Milestones() MilestoneExpander {
+func (n *projectReverse) Milestones() MilestoneNode {
 	cn := n.projectTable.Milestones().(*milestoneReverse)
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *projectAssociation) Milestones() MilestoneExpander {
+func (n *projectAssociation) Milestones() MilestoneNode {
 	cn := n.projectTable.Milestones().(*milestoneReverse)
 	query.NodeSetParent(cn, n)
 	return cn

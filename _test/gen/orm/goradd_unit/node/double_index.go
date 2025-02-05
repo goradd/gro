@@ -11,7 +11,7 @@ import (
 
 // DoubleIndexNode is the builder interface to the DoubleIndex nodes.
 type DoubleIndexNode interface {
-	query.Node
+	query.TableNodeI
 	PrimaryKey() *query.ColumnNode
 	// ID represents the id column in the database.
 	ID() *query.ColumnNode
@@ -19,12 +19,6 @@ type DoubleIndexNode interface {
 	FieldInt() *query.ColumnNode
 	// FieldString represents the field_string column in the database.
 	FieldString() *query.ColumnNode
-}
-
-// DoubleIndexExpander is the builder interface for DoubleIndices that are expandable.
-type DoubleIndexExpander interface {
-	DoubleIndexNode
-	query.Expander
 }
 
 // doubleIndexTable represents the double_index table in a query. It uses a builder pattern to chain
@@ -59,7 +53,7 @@ func (n doubleIndexTable) DatabaseKey_() string {
 	return "goradd_unit"
 }
 
-// ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
+// ColumnNodes_ returns a list of all the column nodes in this node.
 func (n doubleIndexTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.FieldInt())

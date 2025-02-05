@@ -84,7 +84,7 @@ func (g *selectGenerator) generateColumnListWithAliases() (sql string) {
 	var sb strings.Builder
 
 	// Iterate over root selects and append to the string builder
-	for e := range g.jt.Root.SelectsIter() {
+	for e := range g.jt.SelectsIter() {
 		sb.WriteString(g.generateColumnNodeSql(e.Parent.Alias, e.QueryNode))
 		sb.WriteString(" AS ")
 		sb.WriteString(g.iq(e.Alias))
@@ -92,13 +92,9 @@ func (g *selectGenerator) generateColumnListWithAliases() (sql string) {
 	}
 
 	// Sort to keep the resulting query predictable
-	for _, v := range iter.KeySort(g.jt.Aliases) {
-		node := v.(Node)
-		aliaser := v.(Aliaser)
+	for alias, node := range g.jt.CalculationsIter() {
 		sb.WriteString(g.generateNodeSql(node, false))
-		alias := aliaser.Alias()
 		if alias != "" {
-			// This happens in a subquery
 			sb.WriteString(" AS ")
 			sb.WriteString(g.iq(alias))
 		}
@@ -148,7 +144,7 @@ func (g *selectGenerator) generateNodeSql(n Node, useAlias bool) (sql string) {
 		if useAlias {
 			sql = g.iq(node.Alias())
 		} else {
-			n := g.jt.Aliases[node.Alias()]
+			n := g.jt.FindAlias(node.Alias())
 			if n != nil {
 				sql = g.generateNodeSql(n, false)
 			}
@@ -165,11 +161,9 @@ func (g *selectGenerator) generateNodeSql(n Node, useAlias bool) (sql string) {
 	return
 }
 
+// generateOperationSql generates SQL for an operation node.
+// useAlias specifies whether the operands can be aliased or not.
 func (g *selectGenerator) generateOperationSql(n *OperationNode, useAlias bool) (sql string) {
-	if useAlias && n.Alias() != "" {
-		return g.iq(n.Alias())
-	}
-
 	var sb strings.Builder
 	var operands []string
 	operator := OperationNodeOperator(n)
@@ -332,14 +326,15 @@ func (g *selectGenerator) generateJoinSql(j *jointree.Element) (sql string) {
 		sb.WriteString(g.iq(j.Alias))
 		sb.WriteString(".")
 		sb.WriteString(g.iq(ref.PrimaryKey().QueryName))
-		if j.JoinCondition != nil {
-			s := g.generateNodeSql(j.JoinCondition, false)
-			sb.WriteString(" AND ")
-			sb.WriteString(s)
-		}
+		/*
+			if j.JoinCondition != nil {
+				s := g.generateNodeSql(j.JoinCondition, false)
+				sb.WriteString(" AND ")
+				sb.WriteString(s)
+			}*/
 	case ReverseNodeType:
 		rev := tn.(ReverseNodeI)
-		if g.jt.Limits.AreSet() && !rev.IsExpanded() {
+		if g.jt.Limits.AreSet() {
 			panic("We do not currently support limited queries with an array join.")
 		}
 
@@ -355,15 +350,16 @@ func (g *selectGenerator) generateJoinSql(j *jointree.Element) (sql string) {
 		sb.WriteString(g.iq(j.Alias))
 		sb.WriteString(".")
 		sb.WriteString(g.iq(rev.ColumnName()))
-		if j.JoinCondition != nil {
-			s := g.generateNodeSql(j.JoinCondition, false)
-			sb.WriteString(" AND ")
-			sb.WriteString(s)
-		}
+		/*
+			if j.JoinCondition != nil {
+				s := g.generateNodeSql(j.JoinCondition, false)
+				sb.WriteString(" AND ")
+				sb.WriteString(s)
+			}*/
 	case ManyManyNodeType:
 		mm := tn.(ManyManyNodeI)
 
-		if g.jt.Limits.AreSet() && !mm.IsExpanded() {
+		if g.jt.Limits.AreSet() {
 			panic("We do not currently support limited queries with an array join.")
 		}
 
@@ -393,11 +389,12 @@ func (g *selectGenerator) generateJoinSql(j *jointree.Element) (sql string) {
 		sb.WriteString(g.iq(j.Alias))
 		sb.WriteString(".")
 		sb.WriteString(g.iq(mm.PrimaryKey().QueryName))
-		if j.JoinCondition != nil {
-			s := g.generateNodeSql(j.JoinCondition, false)
-			sb.WriteString(" AND ")
-			sb.WriteString(s)
-		}
+		/*
+			if j.JoinCondition != nil {
+				s := g.generateNodeSql(j.JoinCondition, false)
+				sb.WriteString(" AND ")
+				sb.WriteString(s)
+			}*/
 	default:
 		return
 	}

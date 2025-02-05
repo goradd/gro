@@ -11,7 +11,7 @@ import (
 
 // LoginNode is the builder interface to the Login nodes.
 type LoginNode interface {
-	query.Node
+	query.TableNodeI
 	PrimaryKey() *query.ColumnNode
 	// ID represents the id column in the database.
 	ID() *query.ColumnNode
@@ -59,7 +59,7 @@ func (n loginTable) DatabaseKey_() string {
 	return "goradd"
 }
 
-// ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
+// ColumnNodes_ returns a list of all the column nodes in this node.
 func (n loginTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.PersonID())
@@ -135,7 +135,7 @@ func (n loginTable) Person() PersonNode {
 	cn := &personReference{
 		ReferenceNode: query.ReferenceNode{
 			ColumnQueryName: "person_id",
-			Identifier:      "PersonID",
+			Identifier:      "Person",
 			ReceiverType:    query.ColTypeString,
 		},
 	}

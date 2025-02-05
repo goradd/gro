@@ -110,7 +110,7 @@ func TestCalculations(t *testing.T) {
 	var projects []*goradd.Project
 	for _, c := range intTests {
 		projects = goradd.QueryProjects(ctx).
-			Calculation("Value", c.testNode).
+			Calculation(node.Project(), "Value", c.testNode).
 			OrderBy(node.Project().Num()).
 			Load()
 
@@ -119,7 +119,7 @@ func TestCalculations(t *testing.T) {
 
 	for _, c := range floatTests {
 		projects = goradd.QueryProjects(ctx).
-			Calculation("Value", c.testNode).
+			Calculation(node.Project(), "Value", c.testNode).
 			OrderBy(node.Project().Num()).
 			Load()
 
@@ -131,7 +131,7 @@ func TestCalculations(t *testing.T) {
 func TestAggregates(t *testing.T) {
 	ctx := db.NewContext(nil)
 	projects := goradd.QueryProjects(ctx).
-		Calculation("sum", op.Sum(node.Project().Spent())).
+		Calculation(node.Project(), "sum", op.Sum(node.Project().Spent())).
 		OrderBy(node.Project().Status()).
 		GroupBy(node.Project().Status()).
 		Load()
@@ -139,7 +139,7 @@ func TestAggregates(t *testing.T) {
 	assert.EqualValues(t, 77400.5, projects[0].GetAlias("sum").Float())
 
 	projects2 := goradd.QueryProjects(ctx).
-		Calculation("min", op.Min(node.Project().Spent())).
+		Calculation(node.Project(), "min", op.Min(node.Project().Spent())).
 		OrderBy(node.Project().Status()).
 		GroupBy(node.Project().Status()).
 		Load()

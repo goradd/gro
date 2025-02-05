@@ -11,7 +11,7 @@ import (
 
 // ForwardNullNode is the builder interface to the ForwardNull nodes.
 type ForwardNullNode interface {
-	query.Node
+	query.TableNodeI
 	PrimaryKey() *query.ColumnNode
 	// ID represents the id column in the database.
 	ID() *query.ColumnNode
@@ -21,12 +21,6 @@ type ForwardNullNode interface {
 	ReverseID() *query.ColumnNode
 	// Reverse represents the Reverse reference to a Reverse object.
 	Reverse() ReverseNode
-}
-
-// ForwardNullExpander is the builder interface for ForwardNulls that are expandable.
-type ForwardNullExpander interface {
-	ForwardNullNode
-	query.Expander
 }
 
 // forwardNullTable represents the forward_null table in a query. It uses a builder pattern to chain
@@ -61,7 +55,7 @@ func (n forwardNullTable) DatabaseKey_() string {
 	return "goradd_unit"
 }
 
-// ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
+// ColumnNodes_ returns a list of all the column nodes in this node.
 func (n forwardNullTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.Name())
@@ -152,7 +146,7 @@ func (n forwardNullTable) Reverse() ReverseNode {
 	cn := &reverseReference{
 		ReferenceNode: query.ReferenceNode{
 			ColumnQueryName: "reverse_id",
-			Identifier:      "ReverseID",
+			Identifier:      "Reverse",
 			ReceiverType:    query.ColTypeString,
 		},
 	}

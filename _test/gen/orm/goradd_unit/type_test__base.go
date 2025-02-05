@@ -813,9 +813,6 @@ func HasTypeTest(ctx context.Context, id string) bool {
 type TypeTestBuilder interface {
 	// Join(alias string, joinedTable query.Node, condition query.Node) TypeTestBuilder
 
-	// Expand turns a Reverse or ManyMany node into individual rows.
-	Expand(n query.Expander) TypeTestBuilder
-
 	// Where adds a condition to filter what gets selected.
 	// Calling Where multiple times will AND the conditions together.
 	Where(c query.Node) TypeTestBuilder
@@ -840,7 +837,7 @@ type TypeTestBuilder interface {
 
 	// Calculation adds a calculation node with an aliased name.
 	// After the query, you can read the data using GetAlias() on a returned object.
-	Calculation(name string, n query.Aliaser) TypeTestBuilder
+	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) TypeTestBuilder
 
 	// Distinct removes duplicates from the results of the query.
 	// Adding a Select() is usually required.
@@ -1006,12 +1003,6 @@ func (b *typeTestQueryBuilder) Get() *TypeTest {
 	}
 }
 
-// Expand expands an array type node so that it will produce individual rows instead of an array of items
-func (b *typeTestQueryBuilder) Expand(n query.Expander) TypeTestBuilder {
-	b.builder.Expand(n)
-	return b
-}
-
 /*
 // Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
 // by condition.
@@ -1063,10 +1054,10 @@ func (b *typeTestQueryBuilder) Select(nodes ...query.Node) TypeTestBuilder {
 	return b
 }
 
-// Calculation adds a calculation node with an aliased name.
-// After the query, you can read the data using GetAlias() on the returned object.
-func (b *typeTestQueryBuilder) Calculation(name string, n query.Aliaser) TypeTestBuilder {
-	b.builder.Calculation(name, n)
+// Calculation adds operation as an aliased value onto base.
+// After the query, you can read the data by passing alias to GetAlias on the returned object.
+func (b *typeTestQueryBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) TypeTestBuilder {
+	b.builder.Calculation(base, alias, operation)
 	return b
 }
 
@@ -1423,7 +1414,7 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 	}
 
 	if v, ok := m["aliases_"]; ok {
-		o._aliases = map[string]interface{}(v.(db.ValueMap))
+		o._aliases = v.(map[string]any)
 	}
 
 	o._restored = true

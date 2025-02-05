@@ -6142,17 +6142,6 @@ type `); err != nil {
 
 	if _, err = io.WriteString(_w, `
 
-    // Expand turns a Reverse or ManyMany node into individual rows.
-	Expand(n query.Expander) `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, builderInterface); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `
-
 	// Where adds a condition to filter what gets selected.
     // Calling Where multiple times will AND the conditions together.
 	Where(c query.Node) `); err != nil {
@@ -6209,7 +6198,7 @@ type `); err != nil {
 
 	// Calculation adds a calculation node with an aliased name.
     // After the query, you can read the data using GetAlias() on a returned object.
-	Calculation(name string, n query.Aliaser) `); err != nil {
+	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) `); err != nil {
 		return
 	}
 
@@ -6687,28 +6676,6 @@ func (b *`); err != nil {
 	}
 }
 
-// Expand expands an array type node so that it will produce individual rows instead of an array of items
-func (b *`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, builderStruct); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `) Expand(n query.Expander) `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, builderInterface); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, ` {
-	b.builder.Expand(n)
-	return b
-}
-
 /*
 // Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
 // by condition.
@@ -6872,8 +6839,8 @@ func (b *`); err != nil {
 	return b
 }
 
-// Calculation adds a calculation node with an aliased name.
-// After the query, you can read the data using GetAlias() on the returned object.
+// Calculation adds operation as an aliased value onto base.
+// After the query, you can read the data by passing alias to GetAlias on the returned object.
 func (b *`); err != nil {
 		return
 	}
@@ -6882,7 +6849,7 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `)  Calculation(name string, n query.Aliaser) `); err != nil {
+	if _, err = io.WriteString(_w, `) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) `); err != nil {
 		return
 	}
 
@@ -6891,7 +6858,7 @@ func (b *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, ` {
-	b.builder.Calculation(name, n)
+	b.builder.Calculation(base, alias, operation)
 	return b
 }
 
@@ -7346,7 +7313,17 @@ func (o *`); err != nil {
 					}
 
 					if _, err = io.WriteString(_w, `
- 		    if err := json.Unmarshal([]byte(s), &v); err != nil {
+ 		    if s == "" {
+ 		        o.`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, ` = nil
+ 		    } else if err := json.Unmarshal([]byte(s), &v); err != nil {
  		        panic("Value for `); err != nil {
 						return
 					}
@@ -7356,8 +7333,8 @@ func (o *`); err != nil {
 					}
 
 					if _, err = io.WriteString(_w, ` is not valid json")
- 		    }
- 		    o.`); err != nil {
+ 		    } else {
+ 		        o.`); err != nil {
 						return
 					}
 
@@ -7366,6 +7343,7 @@ func (o *`); err != nil {
 					}
 
 					if _, err = io.WriteString(_w, ` = v
+ 		    }
 `); err != nil {
 						return
 					}
@@ -7547,7 +7525,18 @@ func (o *`); err != nil {
 					}
 
 					if _, err = io.WriteString(_w, `
- 		    if err := json.Unmarshal([]byte(s), &v); err != nil {
+
+ 		    if s == "" {
+ 		        o.`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, ` = nil
+ 		    } else if err := json.Unmarshal([]byte(s), &v); err != nil {
  		        panic("Value for `); err != nil {
 						return
 					}
@@ -7557,8 +7546,8 @@ func (o *`); err != nil {
 					}
 
 					if _, err = io.WriteString(_w, ` is not valid json")
- 		    }
- 		    o.`); err != nil {
+ 		    } else {
+ 		        o.`); err != nil {
 						return
 					}
 
@@ -7567,6 +7556,7 @@ func (o *`); err != nil {
 					}
 
 					if _, err = io.WriteString(_w, ` = v
+ 		    }
 `); err != nil {
 						return
 					}
@@ -7751,7 +7741,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `, ok2 := v.(map[string]interface{}); ok2 {
+			if _, err = io.WriteString(_w, `, ok2 := v.(map[string]any); ok2 {
 			o.`); err != nil {
 				return
 			}
@@ -7889,7 +7879,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `"]; ok {
-		if v2, ok2 := v.([]db.ValueMap); ok2 {
+		if v2, ok2 := v.([]map[string]any); ok2 {
 			o.`); err != nil {
 			return
 		}
@@ -8012,7 +8002,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `"]; ok {
-		if v2, ok2 := v.(db.ValueMap); ok2 {
+		if v2, ok2 := v.(map[string]any); ok2 {
 			o.`); err != nil {
 				return
 			}
@@ -8130,7 +8120,7 @@ func (o *`); err != nil {
 
 			if _, err = io.WriteString(_w, `"]; ok {
 		switch v2 := v.(type) {
-		case []db.ValueMap: // array expansion
+		case []map[string]any: // array expansion
 		    o.`); err != nil {
 				return
 			}
@@ -8170,7 +8160,7 @@ func (o *`); err != nil {
 
 			if _, err = io.WriteString(_w, `.Set(obj.PrimaryKey(), obj)
 			}
-		case db.ValueMap:	// single expansion
+		case map[string]any:	// single expansion
 			obj := new(`); err != nil {
 				return
 			}
@@ -8273,7 +8263,7 @@ func (o *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `"]; ok {
-		o._aliases = map[string]interface{}(v.(db.ValueMap))
+		o._aliases = v.(map[string]any)
 	}
 
 	o._restored = true

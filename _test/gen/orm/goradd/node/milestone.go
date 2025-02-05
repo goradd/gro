@@ -11,7 +11,7 @@ import (
 
 // MilestoneNode is the builder interface to the Milestone nodes.
 type MilestoneNode interface {
-	query.Node
+	query.TableNodeI
 	PrimaryKey() *query.ColumnNode
 	// ID represents the id column in the database.
 	ID() *query.ColumnNode
@@ -21,12 +21,6 @@ type MilestoneNode interface {
 	Project() ProjectNode
 	// Name represents the name column in the database.
 	Name() *query.ColumnNode
-}
-
-// MilestoneExpander is the builder interface for Milestones that are expandable.
-type MilestoneExpander interface {
-	MilestoneNode
-	query.Expander
 }
 
 // milestoneTable represents the milestone table in a query. It uses a builder pattern to chain
@@ -61,7 +55,7 @@ func (n milestoneTable) DatabaseKey_() string {
 	return "goradd"
 }
 
-// ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
+// ColumnNodes_ returns a list of all the column nodes in this node.
 func (n milestoneTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.ProjectID())
@@ -135,7 +129,7 @@ func (n milestoneTable) Project() ProjectNode {
 	cn := &projectReference{
 		ReferenceNode: query.ReferenceNode{
 			ColumnQueryName: "project_id",
-			Identifier:      "ProjectID",
+			Identifier:      "Project",
 			ReceiverType:    query.ColTypeString,
 		},
 	}

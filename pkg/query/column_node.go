@@ -119,3 +119,15 @@ func init() {
 func (n *ColumnNode) id() string {
 	return n.Identifier
 }
+
+type ider interface {
+	id() string
+}
+
+// NodeIdentifier returns the Go identifier related to the node.
+func NodeIdentifier(n Node) string {
+	if id, ok := n.(ider); ok {
+		return id.id()
+	}
+	return ""
+}

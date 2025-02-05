@@ -32,7 +32,7 @@ func (o *Address) Initialize() {
 // Typically you would change this to whatever was pertinent to your application.
 func (o *Address) String() string {
 	if o == nil {
-		return "" // Possibly - Select One -?
+		return ""
 	}
 	return fmt.Sprintf("Address %v", o.PrimaryKey())
 }

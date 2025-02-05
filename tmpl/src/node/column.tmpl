@@ -60,7 +60,7 @@ func (n {{= table.DecapIdentifier}}Table) {{= col.ReferenceIdentifier() }}() {{=
 	cn := &{{= col.Reference.Table.DecapIdentifier }}Reference{
 		ReferenceNode: query.ReferenceNode {
             ColumnQueryName: "{{= col.QueryName }}",
-            Identifier:      "{{= col.Identifier }}",
+            Identifier:      "{{= col.ReferenceIdentifier() }}",
             ReceiverType:    query.{{= col.ReceiverType.String() }},
 		},
 	}

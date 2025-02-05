@@ -279,9 +279,6 @@ func HasForwardCascade(ctx context.Context, id string) bool {
 type ForwardCascadeBuilder interface {
 	// Join(alias string, joinedTable query.Node, condition query.Node) ForwardCascadeBuilder
 
-	// Expand turns a Reverse or ManyMany node into individual rows.
-	Expand(n query.Expander) ForwardCascadeBuilder
-
 	// Where adds a condition to filter what gets selected.
 	// Calling Where multiple times will AND the conditions together.
 	Where(c query.Node) ForwardCascadeBuilder
@@ -306,7 +303,7 @@ type ForwardCascadeBuilder interface {
 
 	// Calculation adds a calculation node with an aliased name.
 	// After the query, you can read the data using GetAlias() on a returned object.
-	Calculation(name string, n query.Aliaser) ForwardCascadeBuilder
+	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) ForwardCascadeBuilder
 
 	// Distinct removes duplicates from the results of the query.
 	// Adding a Select() is usually required.
@@ -472,12 +469,6 @@ func (b *forwardCascadeQueryBuilder) Get() *ForwardCascade {
 	}
 }
 
-// Expand expands an array type node so that it will produce individual rows instead of an array of items
-func (b *forwardCascadeQueryBuilder) Expand(n query.Expander) ForwardCascadeBuilder {
-	b.builder.Expand(n)
-	return b
-}
-
 /*
 // Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
 // by condition.
@@ -529,10 +520,10 @@ func (b *forwardCascadeQueryBuilder) Select(nodes ...query.Node) ForwardCascadeB
 	return b
 }
 
-// Calculation adds a calculation node with an aliased name.
-// After the query, you can read the data using GetAlias() on the returned object.
-func (b *forwardCascadeQueryBuilder) Calculation(name string, n query.Aliaser) ForwardCascadeBuilder {
-	b.builder.Calculation(name, n)
+// Calculation adds operation as an aliased value onto base.
+// After the query, you can read the data by passing alias to GetAlias on the returned object.
+func (b *forwardCascadeQueryBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) ForwardCascadeBuilder {
+	b.builder.Calculation(base, alias, operation)
 	return b
 }
 
@@ -664,7 +655,7 @@ func (o *forwardCascadeBase) load(m map[string]interface{}, objThis *ForwardCasc
 	}
 
 	if v, ok := m["Reverse"]; ok {
-		if objReverse, ok2 := v.(map[string]interface{}); ok2 {
+		if objReverse, ok2 := v.(map[string]any); ok2 {
 			o.objReverse = new(Reverse)
 			o.objReverse.load(objReverse, o.objReverse)
 			o.reverseIDIsValid = true
@@ -677,7 +668,7 @@ func (o *forwardCascadeBase) load(m map[string]interface{}, objThis *ForwardCasc
 	}
 
 	if v, ok := m["aliases_"]; ok {
-		o._aliases = map[string]interface{}(v.(db.ValueMap))
+		o._aliases = v.(map[string]any)
 	}
 
 	o._restored = true

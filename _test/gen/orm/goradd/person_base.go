@@ -671,9 +671,6 @@ func HasPerson(ctx context.Context, id string) bool {
 type PersonBuilder interface {
 	// Join(alias string, joinedTable query.Node, condition query.Node) PersonBuilder
 
-	// Expand turns a Reverse or ManyMany node into individual rows.
-	Expand(n query.Expander) PersonBuilder
-
 	// Where adds a condition to filter what gets selected.
 	// Calling Where multiple times will AND the conditions together.
 	Where(c query.Node) PersonBuilder
@@ -698,7 +695,7 @@ type PersonBuilder interface {
 
 	// Calculation adds a calculation node with an aliased name.
 	// After the query, you can read the data using GetAlias() on a returned object.
-	Calculation(name string, n query.Aliaser) PersonBuilder
+	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) PersonBuilder
 
 	// Distinct removes duplicates from the results of the query.
 	// Adding a Select() is usually required.
@@ -864,12 +861,6 @@ func (b *personQueryBuilder) Get() *Person {
 	}
 }
 
-// Expand expands an array type node so that it will produce individual rows instead of an array of items
-func (b *personQueryBuilder) Expand(n query.Expander) PersonBuilder {
-	b.builder.Expand(n)
-	return b
-}
-
 /*
 // Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
 // by condition.
@@ -921,10 +912,10 @@ func (b *personQueryBuilder) Select(nodes ...query.Node) PersonBuilder {
 	return b
 }
 
-// Calculation adds a calculation node with an aliased name.
-// After the query, you can read the data using GetAlias() on the returned object.
-func (b *personQueryBuilder) Calculation(name string, n query.Aliaser) PersonBuilder {
-	b.builder.Calculation(name, n)
+// Calculation adds operation as an aliased value onto base.
+// After the query, you can read the data by passing alias to GetAlias on the returned object.
+func (b *personQueryBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) PersonBuilder {
+	b.builder.Calculation(base, alias, operation)
 	return b
 }
 
@@ -1049,10 +1040,14 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 	if v, ok := m["type_enum"]; ok && v != nil {
 		if s, ok2 := v.(string); ok2 {
 			var v PersonTypeSet
-			if err := json.Unmarshal([]byte(s), &v); err != nil {
+
+			if s == "" {
+				o.types = nil
+			} else if err := json.Unmarshal([]byte(s), &v); err != nil {
 				panic("Value for type_enum is not valid json")
+			} else {
+				o.types = v
 			}
-			o.types = v
 			o.typesIsValid = true
 			o.typesIsDirty = false
 
@@ -1067,7 +1062,7 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 	// Many-Many references
 
 	if v, ok := m["Projects"]; ok {
-		if v2, ok2 := v.([]db.ValueMap); ok2 {
+		if v2, ok2 := v.([]map[string]any); ok2 {
 			o.mmProjects.Clear()
 
 			for _, v3 := range v2 {
@@ -1088,7 +1083,7 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 
 	if v, ok := m["Addresses"]; ok {
 		switch v2 := v.(type) {
-		case []db.ValueMap: // array expansion
+		case []map[string]any: // array expansion
 			o.revAddresses.Clear()
 			o.revAddressesIsDirty = false
 			for _, v3 := range v2 {
@@ -1096,7 +1091,7 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 				obj.load(v3, obj)
 				o.revAddresses.Set(obj.PrimaryKey(), obj)
 			}
-		case db.ValueMap: // single expansion
+		case map[string]any: // single expansion
 			obj := new(Address)
 			obj.load(v2, obj)
 			o.revAddresses.Clear()
@@ -1111,7 +1106,7 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 	}
 
 	if v, ok := m["EmployeeInfo"]; ok {
-		if v2, ok2 := v.(db.ValueMap); ok2 {
+		if v2, ok2 := v.(map[string]any); ok2 {
 			o.revEmployeeInfo = new(EmployeeInfo)
 			o.revEmployeeInfo.load(v2, o.revEmployeeInfo)
 			o.revEmployeeInfoIsDirty = false
@@ -1124,7 +1119,7 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 	}
 
 	if v, ok := m["Login"]; ok {
-		if v2, ok2 := v.(db.ValueMap); ok2 {
+		if v2, ok2 := v.(map[string]any); ok2 {
 			o.revLogin = new(Login)
 			o.revLogin.load(v2, o.revLogin)
 			o.revLoginIsDirty = false
@@ -1138,7 +1133,7 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 
 	if v, ok := m["ManagerProjects"]; ok {
 		switch v2 := v.(type) {
-		case []db.ValueMap: // array expansion
+		case []map[string]any: // array expansion
 			o.revManagerProjects.Clear()
 			o.revManagerProjectsIsDirty = false
 			for _, v3 := range v2 {
@@ -1146,7 +1141,7 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 				obj.load(v3, obj)
 				o.revManagerProjects.Set(obj.PrimaryKey(), obj)
 			}
-		case db.ValueMap: // single expansion
+		case map[string]any: // single expansion
 			obj := new(Project)
 			obj.load(v2, obj)
 			o.revManagerProjects.Clear()
@@ -1161,7 +1156,7 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 	}
 
 	if v, ok := m["aliases_"]; ok {
-		o._aliases = map[string]interface{}(v.(db.ValueMap))
+		o._aliases = v.(map[string]any)
 	}
 
 	o._restored = true

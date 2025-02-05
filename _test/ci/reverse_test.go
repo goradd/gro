@@ -63,49 +63,6 @@ func TestReverseMany(t *testing.T) {
 	assert.True(t, people[6].IsDirty())
 }
 
-func TestReverseManyExpansion(t *testing.T) {
-	ctx := db.NewContext(nil)
-	// Test an intermediate expansion
-	people := goradd.QueryPeople(ctx).
-		Select(node.Person().ManagerProjects().TeamMembers()).
-		OrderBy(node.Person().ID(), node.Person().ManagerProjects().TeamMembers().LastName(), node.Person().ManagerProjects().TeamMembers().FirstName()).
-		Expand(node.Person().ManagerProjects()).
-		Load()
-
-	names2 := []string{
-		"John Doe",
-		"Mike Ho",
-		"Samantha Jones",
-		"Jennifer Smith",
-		"Wendy Smith",
-	}
-	var names []string
-	for _, p := range people[0].ManagerProjects()[0].TeamMembers() {
-		names = append(names, p.FirstName()+" "+p.LastName())
-	}
-	assert.Equal(t, names2, names)
-
-	names = []string{}
-	for _, pr := range people[6].ManagerProjects() {
-		for _, p := range pr.TeamMembers() {
-			names = append(names, p.FirstName()+" "+p.LastName())
-		}
-	}
-
-	// Should only select first group
-	names4 := []string{
-		"Brett Carlisle",
-		"John Doe",
-		"Samantha Jones",
-		"Jacob Pratt",
-		"Kendall Public",
-		"Ben Robinson",
-		"Alex Smith",
-	}
-	assert.Equal(t, names4, names)
-
-}
-
 func TestUniqueReverse(t *testing.T) {
 	ctx := db.NewContext(nil)
 	person := goradd.QueryPeople(ctx).

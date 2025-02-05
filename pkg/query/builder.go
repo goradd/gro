@@ -3,7 +3,6 @@ package query
 import (
 	"context"
 	"fmt"
-	"slices"
 )
 
 type BuilderCommand int
@@ -37,8 +36,7 @@ func (l LimitParams) AreSet() bool {
 // BuilderI is the interface to the builder structure. Since the builder is directly interacted with by the developer,
 // passing this interface instead of the Builder object makes it more clear what the developer should use to build queries.
 type BuilderI interface {
-	Join(n Node, condition Node)
-	Expand(n Expander)
+	//Join(n Node, condition Node)
 	Where(c Node)
 	Having(c Node)
 	OrderBy(nodes ...Sorter)
@@ -46,9 +44,14 @@ type BuilderI interface {
 	Limit(maxRowCount int, offset int)
 	Select(nodes ...Node)
 	Distinct()
-	Calculation(alias string, n Aliaser)
-	Subquery() *SubqueryNode
+	Calculation(base TableNodeI, alias string, n OperationNodeI)
+	//Subquery() *SubqueryNode
 	//Context() context.Context
+}
+
+type calcType struct {
+	BaseNode  TableNodeI
+	Operation OperationNodeI
 }
 
 // Builder is a mix-in to implement the BuilderI interface in various builder classes.
@@ -56,14 +59,14 @@ type BuilderI interface {
 // processes the query into a join tree that can be used by database drivers to generate
 // the database specific query.
 type Builder struct {
-	Ctx        context.Context // The context that will be used in all the queries
-	Command    BuilderCommand
-	Root       Node
-	Joins      []Node
-	OrderBys   []Sorter
-	Conditions []Node
-	IsDistinct bool
-	AliasNodes []Aliaser
+	Ctx     context.Context // The context that will be used in all the queries
+	Command BuilderCommand
+	Root    TableNodeI
+	//Joins      []Node
+	OrderBys     []Sorter
+	Conditions   []Node
+	IsDistinct   bool
+	Calculations map[string]calcType
 	// Adds a COUNT(*) to the select list
 	GroupBys   []Node
 	Selects    []Node
@@ -72,13 +75,9 @@ type Builder struct {
 	IsSubquery bool
 }
 
-func NewBuilder(ctx context.Context, rootNode Node) *Builder {
+func NewBuilder(ctx context.Context, rootNode TableNodeI) *Builder {
 	if NodeParent(rootNode) != nil {
 		panic("root node must be a top level node")
-	}
-
-	if !NodeIsTable(rootNode) {
-		panic("root node must be a table node")
 	}
 
 	return &Builder{Ctx: ctx, Root: rootNode}
@@ -89,8 +88,9 @@ func (b *Builder) Context() context.Context {
 	return b.Ctx
 }
 
+/*
 // Join will attach the given reference node to the builder.
-func (b *Builder) Join(n Node, condition Node) {
+func (b *Builder) Join(alias string, n Node, condition Node) {
 	// TBD: This must include a condition and an alias!
 	if !NodeIsTable(n) {
 		panic(fmt.Errorf("node %s is not joinable", n))
@@ -107,21 +107,14 @@ func (b *Builder) Join(n Node, condition Node) {
 	b.Joins = append(b.Joins, n)
 }
 
-// Expand expands an array type node so that it will produce individual rows instead of an array of items
-func (b *Builder) Expand(n Expander) {
-	n.(Expander).Expand()
-	b.Join(n.(Node), nil)
-}
+*/
 
-// Calculation adds an aliased calculation node.
-func (b *Builder) Calculation(name string, n Aliaser) {
-	if slices.ContainsFunc(b.AliasNodes, func(aliaser Aliaser) bool {
-		return aliaser.Alias() == name
-	}) {
-		panic("alias already exists")
+// Calculation adds the aliased calculation node operation onto base.
+func (b *Builder) Calculation(base TableNodeI, alias string, operation OperationNodeI) {
+	if _, ok := b.Calculations[alias]; ok {
+		panic("alias already exists") // aliases must be unique across the entire operation
 	}
-	n.SetAlias(name)
-	b.AliasNodes = append(b.AliasNodes, n)
+	b.Calculations[alias] = calcType{base, operation}
 }
 
 // Where adds condition to the Where clause. Multiple calls to Condition will result in conditions joined with an And.
@@ -137,8 +130,9 @@ func (b *Builder) OrderBy(nodes ...Sorter) {
 
 // Limit limits the query to returning maxRowCount rows at most, starting at row offset.
 // In SQL queries, this limits the rows BEFORE assembling many type relationships,
-// which usually is not what is wanted. Therefore, you cannot put limits on queries that have reverse or many-many
-// relationships which are not expanded into single rows.
+// which usually is not what is wanted.
+// Therefore, you cannot put limits on queries that have reverse or many-many
+// relationships.
 // Also note that SQL at least will perform the entire query before finding the offset, which could have performance
 // issues. If paging through a large dataset, consider getting a list of just primary keys of the records you want, saving
 // that list, and then lazy-loading the rest of the information with a separate query.
@@ -235,12 +229,16 @@ func (b *Builder) Nodes() (nodes []Node) {
 // Some of the nodes returned may be container nodes.
 func (b *Builder) topNodes() []Node {
 	var nodes []Node
-	for _, n := range b.Joins {
-		nodes = append(nodes, n)
-		if c := NodeCondition(n); c != nil {
-			nodes = append(nodes, c)
+
+	/*
+		for _, n := range b.Joins {
+			nodes = append(nodes, n)
+			if c := NodeCondition(n); c != nil {
+				nodes = append(nodes, c)
+			}
 		}
-	}
+	*/
+
 	for _, n := range b.OrderBys {
 		nodes = append(nodes, n)
 	}
@@ -259,8 +257,9 @@ func (b *Builder) topNodes() []Node {
 	}
 	nodes = append(nodes, b.Selects...)
 
-	for _, n := range b.AliasNodes {
-		nodes = append(nodes, n)
+	for _, n := range b.Calculations {
+		nodes = append(nodes, n.BaseNode)
+		nodes = append(nodes, n.Operation.(Node))
 	}
 
 	return nodes

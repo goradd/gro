@@ -5,12 +5,12 @@ import (
 	"encoding/gob"
 )
 
+// ReverseNodeI is the interface to objects that have embedded ReverseNode objects.
 type ReverseNodeI interface {
 	ColumnName() string
+	IsArray() bool
 	TableNodeI
-	Conditioner
 	linker
-	Expander
 }
 
 // ReverseNode is a mixin for a reverse reference representing a one-to-many relationship or one-to-one
@@ -24,13 +24,20 @@ type ReverseNode struct {
 	Identifier string
 	// The type of item acting as a pointer. This should be the same on both sides of the reference.
 	ReceiverType ReceiverType
-	nodeCondition
+	// IsUnique is true if there is a unique relationship between this node and its parent,
+	// which would create a one-to-one relationship rather than a one-to-many relationship.
+	IsUnique bool
 	nodeLink
-	nodeExpand
 }
 
 func (n *ReverseNode) ColumnName() string {
 	return n.ColumnQueryName
+}
+
+// IsArray returns true if this node creates a one-to-many relationship with its parent.
+// Otherwise, it is a one-to-one relationship.
+func (n *ReverseNode) IsArray() bool {
+	return !n.IsUnique
 }
 
 func (n *ReverseNode) GobEncode() (data []byte, err error) {
@@ -46,13 +53,10 @@ func (n *ReverseNode) GobEncode() (data []byte, err error) {
 	if err = e.Encode(n.ReceiverType); err != nil {
 		panic(err)
 	}
-	if err = e.Encode(&n.nodeCondition.condition); err != nil {
+	if err = e.Encode(n.IsUnique); err != nil {
 		panic(err)
 	}
 	if err = e.Encode(&n.nodeLink.parentNode); err != nil {
-		panic(err)
-	}
-	if err = e.Encode(n.nodeExpand.isExpanded); err != nil {
 		panic(err)
 	}
 	data = buf.Bytes()
@@ -71,13 +75,10 @@ func (n *ReverseNode) GobDecode(data []byte) (err error) {
 	if err = dec.Decode(&n.ReceiverType); err != nil {
 		panic(err)
 	}
-	if err = dec.Decode(&n.nodeCondition.condition); err != nil {
+	if err = dec.Decode(&n.IsUnique); err != nil {
 		panic(err)
 	}
 	if err = dec.Decode(&n.nodeLink.parentNode); err != nil {
-		panic(err)
-	}
-	if err = dec.Decode(&n.nodeExpand.isExpanded); err != nil {
 		panic(err)
 	}
 	return

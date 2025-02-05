@@ -677,7 +677,7 @@ ORDER BY
 		log.Fatal(err)
 	}
 
-	receiver := sql2.SqlReceiveRows(result, receiverTypes, columnNames, nil)
+	receiver := sql2.ReceiveRows(result, receiverTypes, columnNames, nil)
 	for _, row := range receiver {
 		var values []interface{}
 		for _, field := range ed.Fields {

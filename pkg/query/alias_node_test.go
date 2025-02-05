@@ -6,8 +6,7 @@ import (
 )
 
 func TestAliasNodeInterfaces(t *testing.T) {
-	n := Alias("test")
+	n := AliasNode{"test"}
 
-	assert.Implements(t, (*AliasNodeI)(nil), n)
 	assert.Equal(t, "test", n.Alias())
 }

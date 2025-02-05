@@ -7,13 +7,17 @@ import (
 
 type AliasNodeI interface {
 	Node
-	Aliaser
+	Alias() string
 }
 
 // An AliasNode is a reference to a prior aliased operation later in a query. An alias is a name given
-// to a computed value.
+// to a calculated value.
 type AliasNode struct {
-	nodeAlias
+	alias string
+}
+
+func NewAliasNode(alias string) AliasNodeI {
+	return &AliasNode{alias: alias}
 }
 
 func (n *AliasNode) NodeType_() NodeType {
@@ -28,14 +32,8 @@ func (n *AliasNode) DatabaseKey_() string {
 	return ""
 }
 
-// Alias returns an AliasNode type, which allows you to refer to a prior created named alias operation.
-// TODO: Add this to all node structures instead
-func Alias(name string) *AliasNode {
-	return &AliasNode{
-		nodeAlias{
-			alias: name,
-		},
-	}
+func (n *AliasNode) Alias() string {
+	return n.alias
 }
 
 func (n *AliasNode) GobEncode() (data []byte, err error) {

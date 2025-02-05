@@ -32,7 +32,7 @@ func (o *EmployeeInfo) Initialize() {
 // Typically you would change this to whatever was pertinent to your application.
 func (o *EmployeeInfo) String() string {
 	if o == nil {
-		return "" // Possibly - Select One -?
+		return ""
 	}
 	return fmt.Sprintf("EmployeeInfo %v", o.PrimaryKey())
 }

@@ -15,7 +15,5 @@ func TestManyManyNodeInterfaces(t *testing.T) {
 		RefColumnReceiverType:    ColTypeInteger,
 	}
 
-	assert.Implements(t, (*Conditioner)(nil), n)
-	assert.Implements(t, (*Linker)(nil), n)
-	assert.Implements(t, (*Expander)(nil), n)
+	assert.Implements(t, (*linker)(nil), n)
 }

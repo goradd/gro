@@ -32,7 +32,7 @@ func (o *TypeTest) Initialize() {
 // Typically you would change this to whatever was pertinent to your application.
 func (o *TypeTest) String() string {
 	if o == nil {
-		return "" // Possibly - Select One -?
+		return ""
 	}
 	return fmt.Sprintf("TypeTest %v", o.PrimaryKey())
 }

@@ -11,7 +11,7 @@ import (
 
 // GiftNode is the builder interface to the Gift nodes.
 type GiftNode interface {
-	query.Node
+	query.TableNodeI
 	PrimaryKey() *query.ColumnNode
 	// Number represents the number column in the database.
 	Number() *query.ColumnNode
@@ -51,7 +51,7 @@ func (n giftTable) DatabaseKey_() string {
 	return "goradd"
 }
 
-// ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
+// ColumnNodes_ returns a list of all the column nodes in this node.
 func (n giftTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.Number())
 	nodes = append(nodes, n.Name())

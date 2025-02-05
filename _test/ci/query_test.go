@@ -5,7 +5,6 @@ import (
 	"github.com/goradd/orm/_test/gen/orm/goradd/node"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/op"
-	"github.com/goradd/orm/pkg/query"
 	"github.com/stretchr/testify/assert"
 	"strconv"
 	"testing"
@@ -133,42 +132,6 @@ func TestManyEnum(t *testing.T) {
 	}
 }
 
-func TestManyManySingles(t *testing.T) {
-	ctx := db.NewContext(nil)
-	projects := goradd.QueryProjects(ctx).
-		Expand(node.Project().TeamMembers()).
-		OrderBy(node.Project().ID(), node.Project().TeamMembers().FirstName()).
-		Load()
-
-	if projects[4].Name() != "ACME Website Redesign" { // should have 5 lines here that are all project 1
-		t.Error("Did not find expanded project ACME Website Redesign.")
-	}
-
-	if projects[5].Name() != "State College HR System" { // should have 5 lines here that are all project 1
-		t.Error("Did not find expanded project State College HR System.")
-	}
-
-	if projects[3].TeamMembers()[0].FirstName() != "Samantha" {
-		t.Error("Did not find Samantha. Found: " + projects[3].TeamMembers()[0].FirstName())
-	}
-}
-
-func TestReverseReferenceSingles(t *testing.T) {
-	ctx := db.NewContext(nil)
-	people := goradd.QueryPeople(ctx).
-		Expand(node.Person().ManagerProjects()).
-		OrderBy(node.Person().ID()).
-		Load()
-
-	if people[7].FirstName() != "Karen" {
-		t.Error("Did not find expanded person Karen Wolfe.")
-	}
-
-	if people[7].ManagerProjects()[0].ManagerID() != people[7].ID() {
-		t.Error("Did not find Project 2.")
-	}
-}
-
 func TestManyEnumSingles(t *testing.T) {
 	ctx := db.NewContext(nil)
 	people := goradd.QueryPeople(ctx).
@@ -185,7 +148,7 @@ func TestAlias(t *testing.T) {
 	ctx := db.NewContext(nil)
 	projects := goradd.QueryProjects(ctx).
 		Where(op.Equal(node.Project().ID(), 1)).
-		Calculation("Difference", op.Subtract(node.Project().Budget(), node.Project().Spent())).
+		Calculation(node.Project(), "Difference", op.Subtract(node.Project().Budget(), node.Project().Spent())).
 		Load()
 
 	v := projects[0].GetAlias("Difference").Float()
@@ -228,7 +191,7 @@ func TestGroupBy(t *testing.T) {
 	ctx := db.NewContext(nil)
 
 	projects := goradd.QueryProjects(ctx).
-		Calculation("teamMemberCount", op.Count(node.Project().TeamMembers())).
+		Calculation(node.Project(), "teamMemberCount", op.Count(node.Project().TeamMembers())).
 		GroupBy(node.Project()).
 		Load()
 
@@ -359,8 +322,8 @@ func TestHaving(t *testing.T) {
 	projects := goradd.QueryProjects(ctx).
 		GroupBy(node.Project().ID(), node.Project().Name()).
 		OrderBy(node.Project().ID()).
-		Calculation("team_member_count", op.Count(node.Project().TeamMembers())).
-		Having(op.GreaterThan(query.Alias("team_member_count"), 5)).
+		Calculation(node.Project(), "team_member_count", op.Count(node.Project().TeamMembers())).
+		Having(op.GreaterThan(node.Alias("team_member_count"), 5)).
 		Load()
 
 	assert.Len(t, projects, 2)
@@ -373,13 +336,6 @@ func TestFailedJoins(t *testing.T) {
 
 	assert.Panics(t, func() { goradd.QueryProjects(ctx).Select(node.Person()) })
 	assert.Panics(t, func() { goradd.QueryProjects(ctx).Select(node.Project().ManagerID()) })
-}
-
-func TestFailedExpand(t *testing.T) {
-	ctx := db.NewContext(nil)
-
-	assert.Panics(t, func() { goradd.QueryProjects(ctx).Expand(node.Person().ManagerProjects()) })
-	//assert.Panics(t, func() { goradd.QueryProjects(ctx).Expand(node.Project().Manager()) })
 }
 
 func TestFailedGroupBy(t *testing.T) {

@@ -691,9 +691,6 @@ func HasReverse(ctx context.Context, id string) bool {
 type ReverseBuilder interface {
 	// Join(alias string, joinedTable query.Node, condition query.Node) ReverseBuilder
 
-	// Expand turns a Reverse or ManyMany node into individual rows.
-	Expand(n query.Expander) ReverseBuilder
-
 	// Where adds a condition to filter what gets selected.
 	// Calling Where multiple times will AND the conditions together.
 	Where(c query.Node) ReverseBuilder
@@ -718,7 +715,7 @@ type ReverseBuilder interface {
 
 	// Calculation adds a calculation node with an aliased name.
 	// After the query, you can read the data using GetAlias() on a returned object.
-	Calculation(name string, n query.Aliaser) ReverseBuilder
+	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) ReverseBuilder
 
 	// Distinct removes duplicates from the results of the query.
 	// Adding a Select() is usually required.
@@ -884,12 +881,6 @@ func (b *reverseQueryBuilder) Get() *Reverse {
 	}
 }
 
-// Expand expands an array type node so that it will produce individual rows instead of an array of items
-func (b *reverseQueryBuilder) Expand(n query.Expander) ReverseBuilder {
-	b.builder.Expand(n)
-	return b
-}
-
 /*
 // Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
 // by condition.
@@ -941,10 +932,10 @@ func (b *reverseQueryBuilder) Select(nodes ...query.Node) ReverseBuilder {
 	return b
 }
 
-// Calculation adds a calculation node with an aliased name.
-// After the query, you can read the data using GetAlias() on the returned object.
-func (b *reverseQueryBuilder) Calculation(name string, n query.Aliaser) ReverseBuilder {
-	b.builder.Calculation(name, n)
+// Calculation adds operation as an aliased value onto base.
+// After the query, you can read the data by passing alias to GetAlias on the returned object.
+func (b *reverseQueryBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) ReverseBuilder {
+	b.builder.Calculation(base, alias, operation)
 	return b
 }
 
@@ -1050,7 +1041,7 @@ func (o *reverseBase) load(m map[string]interface{}, objThis *Reverse) {
 
 	if v, ok := m["ForwardCascades"]; ok {
 		switch v2 := v.(type) {
-		case []db.ValueMap: // array expansion
+		case []map[string]any: // array expansion
 			o.revForwardCascades.Clear()
 			o.revForwardCascadesIsDirty = false
 			for _, v3 := range v2 {
@@ -1058,7 +1049,7 @@ func (o *reverseBase) load(m map[string]interface{}, objThis *Reverse) {
 				obj.load(v3, obj)
 				o.revForwardCascades.Set(obj.PrimaryKey(), obj)
 			}
-		case db.ValueMap: // single expansion
+		case map[string]any: // single expansion
 			obj := new(ForwardCascade)
 			obj.load(v2, obj)
 			o.revForwardCascades.Clear()
@@ -1073,7 +1064,7 @@ func (o *reverseBase) load(m map[string]interface{}, objThis *Reverse) {
 	}
 
 	if v, ok := m["ForwardCascadeUnique"]; ok {
-		if v2, ok2 := v.(db.ValueMap); ok2 {
+		if v2, ok2 := v.(map[string]any); ok2 {
 			o.revForwardCascadeUnique = new(ForwardCascadeUnique)
 			o.revForwardCascadeUnique.load(v2, o.revForwardCascadeUnique)
 			o.revForwardCascadeUniqueIsDirty = false
@@ -1087,7 +1078,7 @@ func (o *reverseBase) load(m map[string]interface{}, objThis *Reverse) {
 
 	if v, ok := m["ForwardNulls"]; ok {
 		switch v2 := v.(type) {
-		case []db.ValueMap: // array expansion
+		case []map[string]any: // array expansion
 			o.revForwardNulls.Clear()
 			o.revForwardNullsIsDirty = false
 			for _, v3 := range v2 {
@@ -1095,7 +1086,7 @@ func (o *reverseBase) load(m map[string]interface{}, objThis *Reverse) {
 				obj.load(v3, obj)
 				o.revForwardNulls.Set(obj.PrimaryKey(), obj)
 			}
-		case db.ValueMap: // single expansion
+		case map[string]any: // single expansion
 			obj := new(ForwardNull)
 			obj.load(v2, obj)
 			o.revForwardNulls.Clear()
@@ -1110,7 +1101,7 @@ func (o *reverseBase) load(m map[string]interface{}, objThis *Reverse) {
 	}
 
 	if v, ok := m["ForwardNullUnique"]; ok {
-		if v2, ok2 := v.(db.ValueMap); ok2 {
+		if v2, ok2 := v.(map[string]any); ok2 {
 			o.revForwardNullUnique = new(ForwardNullUnique)
 			o.revForwardNullUnique.load(v2, o.revForwardNullUnique)
 			o.revForwardNullUniqueIsDirty = false
@@ -1124,7 +1115,7 @@ func (o *reverseBase) load(m map[string]interface{}, objThis *Reverse) {
 
 	if v, ok := m["ForwardRestricts"]; ok {
 		switch v2 := v.(type) {
-		case []db.ValueMap: // array expansion
+		case []map[string]any: // array expansion
 			o.revForwardRestricts.Clear()
 			o.revForwardRestrictsIsDirty = false
 			for _, v3 := range v2 {
@@ -1132,7 +1123,7 @@ func (o *reverseBase) load(m map[string]interface{}, objThis *Reverse) {
 				obj.load(v3, obj)
 				o.revForwardRestricts.Set(obj.PrimaryKey(), obj)
 			}
-		case db.ValueMap: // single expansion
+		case map[string]any: // single expansion
 			obj := new(ForwardRestrict)
 			obj.load(v2, obj)
 			o.revForwardRestricts.Clear()
@@ -1147,7 +1138,7 @@ func (o *reverseBase) load(m map[string]interface{}, objThis *Reverse) {
 	}
 
 	if v, ok := m["ForwardRestrictUnique"]; ok {
-		if v2, ok2 := v.(db.ValueMap); ok2 {
+		if v2, ok2 := v.(map[string]any); ok2 {
 			o.revForwardRestrictUnique = new(ForwardRestrictUnique)
 			o.revForwardRestrictUnique.load(v2, o.revForwardRestrictUnique)
 			o.revForwardRestrictUniqueIsDirty = false
@@ -1160,7 +1151,7 @@ func (o *reverseBase) load(m map[string]interface{}, objThis *Reverse) {
 	}
 
 	if v, ok := m["aliases_"]; ok {
-		o._aliases = map[string]interface{}(v.(db.ValueMap))
+		o._aliases = v.(map[string]any)
 	}
 
 	o._restored = true

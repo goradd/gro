@@ -11,7 +11,7 @@ import (
 
 // TypeTestNode is the builder interface to the TypeTest nodes.
 type TypeTestNode interface {
-	query.Node
+	query.TableNodeI
 	PrimaryKey() *query.ColumnNode
 	// ID represents the id column in the database.
 	ID() *query.ColumnNode
@@ -37,12 +37,6 @@ type TypeTestNode interface {
 	TestVarchar() *query.ColumnNode
 	// TestBlob represents the test_blob column in the database.
 	TestBlob() *query.ColumnNode
-}
-
-// TypeTestExpander is the builder interface for TypeTests that are expandable.
-type TypeTestExpander interface {
-	TypeTestNode
-	query.Expander
 }
 
 // typeTestTable represents the type_test table in a query. It uses a builder pattern to chain
@@ -77,7 +71,7 @@ func (n typeTestTable) DatabaseKey_() string {
 	return "goradd_unit"
 }
 
-// ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
+// ColumnNodes_ returns a list of all the column nodes in this node.
 func (n typeTestTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.Date())

@@ -31,7 +31,7 @@ func (o *Project) Initialize() {
 // Typically you would change this to whatever was pertinent to your application.
 func (o *Project) String() string {
 	if o == nil {
-		return "" // Possibly - Select One -?
+		return ""
 	}
 	return o.name
 }

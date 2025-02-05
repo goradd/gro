@@ -11,7 +11,7 @@ import (
 
 // PersonWithLockNode is the builder interface to the PersonWithLock nodes.
 type PersonWithLockNode interface {
-	query.Node
+	query.TableNodeI
 	PrimaryKey() *query.ColumnNode
 	// ID represents the id column in the database.
 	ID() *query.ColumnNode
@@ -21,12 +21,6 @@ type PersonWithLockNode interface {
 	LastName() *query.ColumnNode
 	// SysTimestamp represents the sys_timestamp column in the database.
 	SysTimestamp() *query.ColumnNode
-}
-
-// PersonWithLockExpander is the builder interface for PersonWithLocks that are expandable.
-type PersonWithLockExpander interface {
-	PersonWithLockNode
-	query.Expander
 }
 
 // personWithLockTable represents the person_with_lock table in a query. It uses a builder pattern to chain
@@ -61,7 +55,7 @@ func (n personWithLockTable) DatabaseKey_() string {
 	return "goradd"
 }
 
-// ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
+// ColumnNodes_ returns a list of all the column nodes in this node.
 func (n personWithLockTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.FirstName())

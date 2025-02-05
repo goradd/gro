@@ -9,9 +9,7 @@ type ManyManyNodeI interface {
 	AssnTableName() string
 	RefColumnName() string
 	TableNodeI
-	Conditioner
 	linker
-	Expander
 }
 
 // A ManyManyNode is a mixin for an association node that links one table to another table with a many-to-many relationship.
@@ -30,9 +28,7 @@ type ManyManyNode struct {
 	// The ref column's type
 	RefColumnReceiverType ReceiverType
 
-	nodeCondition
 	nodeLink
-	nodeExpand
 }
 
 func (n *ManyManyNode) AssnTableName() string {
@@ -65,13 +61,7 @@ func (n *ManyManyNode) GobEncode() (data []byte, err error) {
 	if err = e.Encode(n.RefColumnReceiverType); err != nil {
 		panic(err)
 	}
-	if err = e.Encode(&n.nodeCondition.condition); err != nil {
-		panic(err)
-	}
 	if err = e.Encode(&n.nodeLink.parentNode); err != nil {
-		panic(err)
-	}
-	if err = e.Encode(n.nodeExpand.isExpanded); err != nil {
 		panic(err)
 	}
 	data = buf.Bytes()
@@ -99,13 +89,7 @@ func (n *ManyManyNode) GobDecode(data []byte) (err error) {
 	if err = dec.Decode(&n.RefColumnReceiverType); err != nil {
 		panic(err)
 	}
-	if err = dec.Decode(&n.nodeCondition.condition); err != nil {
-		panic(err)
-	}
 	if err = dec.Decode(&n.nodeLink.parentNode); err != nil {
-		panic(err)
-	}
-	if err = dec.Decode(&n.nodeExpand.isExpanded); err != nil {
 		panic(err)
 	}
 	return

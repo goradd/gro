@@ -32,7 +32,7 @@ func (o *PersonWithLock) Initialize() {
 // Typically you would change this to whatever was pertinent to your application.
 func (o *PersonWithLock) String() string {
 	if o == nil {
-		return "" // Possibly - Select One -?
+		return ""
 	}
 	return fmt.Sprintf("PersonWithLock %v", o.PrimaryKey())
 }

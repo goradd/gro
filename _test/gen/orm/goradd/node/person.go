@@ -11,7 +11,7 @@ import (
 
 // PersonNode is the builder interface to the Person nodes.
 type PersonNode interface {
-	query.Node
+	query.TableNodeI
 	PrimaryKey() *query.ColumnNode
 	// ID represents the id column in the database.
 	ID() *query.ColumnNode
@@ -22,21 +22,15 @@ type PersonNode interface {
 	// Types represents the type_enum column in the database.
 	Types() *query.ColumnNode
 	// Projects represents the Projects reference to Project objects.
-	Projects() ProjectExpander
+	Projects() ProjectNode
 	// Addresses represents the Addresses reference to Address objects.
-	Addresses() AddressExpander
+	Addresses() AddressNode
 	// EmployeeInfo represents the EmployeeInfo reference to a EmployeeInfo object.
 	EmployeeInfo() EmployeeInfoNode
 	// Login represents the Login reference to a Login object.
 	Login() LoginNode
 	// ManagerProjects represents the ManagerProjects reference to Project objects.
-	ManagerProjects() ProjectExpander
-}
-
-// PersonExpander is the builder interface for People that are expandable.
-type PersonExpander interface {
-	PersonNode
-	query.Expander
+	ManagerProjects() ProjectNode
 }
 
 // personTable represents the person table in a query. It uses a builder pattern to chain
@@ -81,7 +75,7 @@ func (n personTable) DatabaseKey_() string {
 	return "goradd"
 }
 
-// ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
+// ColumnNodes_ returns a list of all the column nodes in this node.
 func (n personTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.FirstName())
@@ -268,7 +262,7 @@ func (n *personAssociation) Types() *query.ColumnNode {
 }
 
 // Projects represents the many-to-many relationship formed by the team_member_project_assn table.
-func (n personTable) Projects() ProjectExpander {
+func (n personTable) Projects() ProjectNode {
 	cn := &projectAssociation{
 		ManyManyNode: query.ManyManyNode{
 			AssnTableQueryName:       "team_member_project_assn",
@@ -283,19 +277,19 @@ func (n personTable) Projects() ProjectExpander {
 	return cn
 }
 
-func (n *personReference) Projects() ProjectExpander {
+func (n *personReference) Projects() ProjectNode {
 	cn := n.personTable.Projects().(*projectAssociation)
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *personReverse) Projects() ProjectExpander {
+func (n *personReverse) Projects() ProjectNode {
 	cn := n.personTable.Projects().(*projectAssociation)
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *personAssociation) Projects() ProjectExpander {
+func (n *personAssociation) Projects() ProjectNode {
 	cn := n.personTable.Projects().(*projectAssociation)
 	query.NodeSetParent(cn, n)
 	return cn
@@ -303,31 +297,32 @@ func (n *personAssociation) Projects() ProjectExpander {
 
 // Addresses represents the many-to-one relationship formed by the reverse reference from the
 // person_id column in the address table.
-func (n personTable) Addresses() AddressExpander {
+func (n personTable) Addresses() AddressNode {
 	cn := &addressReverse{
 		ReverseNode: query.ReverseNode{
 			ColumnQueryName: "person_id",
 			Identifier:      "Addresses",
 			ReceiverType:    query.ColTypeString,
+			IsUnique:        false,
 		},
 	}
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *personReference) Addresses() AddressExpander {
+func (n *personReference) Addresses() AddressNode {
 	cn := n.personTable.Addresses().(*addressReverse)
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *personReverse) Addresses() AddressExpander {
+func (n *personReverse) Addresses() AddressNode {
 	cn := n.personTable.Addresses().(*addressReverse)
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *personAssociation) Addresses() AddressExpander {
+func (n *personAssociation) Addresses() AddressNode {
 	cn := n.personTable.Addresses().(*addressReverse)
 	query.NodeSetParent(cn, n)
 	return cn
@@ -341,6 +336,7 @@ func (n personTable) EmployeeInfo() EmployeeInfoNode {
 			ColumnQueryName: "person_id",
 			Identifier:      "EmployeeInfo",
 			ReceiverType:    query.ColTypeString,
+			IsUnique:        true,
 		},
 	}
 	query.NodeSetParent(cn, n)
@@ -373,6 +369,7 @@ func (n personTable) Login() LoginNode {
 			ColumnQueryName: "person_id",
 			Identifier:      "Login",
 			ReceiverType:    query.ColTypeString,
+			IsUnique:        true,
 		},
 	}
 	query.NodeSetParent(cn, n)
@@ -399,31 +396,32 @@ func (n *personAssociation) Login() LoginNode {
 
 // ManagerProjects represents the many-to-one relationship formed by the reverse reference from the
 // manager_id column in the project table.
-func (n personTable) ManagerProjects() ProjectExpander {
+func (n personTable) ManagerProjects() ProjectNode {
 	cn := &projectReverse{
 		ReverseNode: query.ReverseNode{
 			ColumnQueryName: "manager_id",
 			Identifier:      "ManagerProjects",
 			ReceiverType:    query.ColTypeString,
+			IsUnique:        false,
 		},
 	}
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *personReference) ManagerProjects() ProjectExpander {
+func (n *personReference) ManagerProjects() ProjectNode {
 	cn := n.personTable.ManagerProjects().(*projectReverse)
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *personReverse) ManagerProjects() ProjectExpander {
+func (n *personReverse) ManagerProjects() ProjectNode {
 	cn := n.personTable.ManagerProjects().(*projectReverse)
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *personAssociation) ManagerProjects() ProjectExpander {
+func (n *personAssociation) ManagerProjects() ProjectNode {
 	cn := n.personTable.ManagerProjects().(*projectReverse)
 	query.NodeSetParent(cn, n)
 	return cn

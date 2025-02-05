@@ -11,7 +11,7 @@ import (
 
 // UnsupportedTypeNode is the builder interface to the UnsupportedType nodes.
 type UnsupportedTypeNode interface {
-	query.Node
+	query.TableNodeI
 	PrimaryKey() *query.ColumnNode
 	// TypeSerial represents the type_serial column in the database.
 	TypeSerial() *query.ColumnNode
@@ -51,12 +51,6 @@ type UnsupportedTypeNode interface {
 	TypeMultifk2() *query.ColumnNode
 }
 
-// UnsupportedTypeExpander is the builder interface for UnsupportedTypes that are expandable.
-type UnsupportedTypeExpander interface {
-	UnsupportedTypeNode
-	query.Expander
-}
-
 // unsupportedTypeTable represents the unsupported_type table in a query. It uses a builder pattern to chain
 // together other tables and columns to form a node chain in a query.
 //
@@ -89,7 +83,7 @@ func (n unsupportedTypeTable) DatabaseKey_() string {
 	return "goradd_unit"
 }
 
-// ColumnNodes_ is used internally by the framework to return the list of all the column nodes.
+// ColumnNodes_ returns a list of all the column nodes in this node.
 func (n unsupportedTypeTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.TypeSerial())
 	nodes = append(nodes, n.TypeSet())

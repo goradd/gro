@@ -10,12 +10,11 @@ func (n *NodeTemplate)genAssn(table *model.Table, _w io.Writer) (err error) {
 }
 
 func (n *NodeTemplate)genAssnTable(table *model.Table, mm *model.ManyManyReference, _w io.Writer) (err error) {
-    var returnType, objectType string
-    returnType = mm.ObjectType() + "Expander"
+    var objectType string
     objectType = mm.DestinationTable.DecapIdentifier + "Association"
 {{
 // {{= mm.IdentifierPlural }} represents the many-to-many relationship formed by the {{= mm.AssnTableName }} table.
-func (n {{= table.DecapIdentifier }}Table) {{= mm.IdentifierPlural }}() {{= returnType }}  {
+func (n {{= table.DecapIdentifier }}Table) {{= mm.IdentifierPlural }}() {{= mm.ObjectType() }}Node  {
 	cn := &{{= objectType }} {
 		ManyManyNode: query.ManyManyNode{
 			AssnTableQueryName:      "{{= mm.AssnTableName }}",
@@ -31,7 +30,7 @@ func (n {{= table.DecapIdentifier }}Table) {{= mm.IdentifierPlural }}() {{= retu
 }
 
 {{if hasReverse}}
-func (n *{{= table.DecapIdentifier}}Reference) {{= mm.IdentifierPlural }}() {{= returnType }}  {
+func (n *{{= table.DecapIdentifier}}Reference) {{= mm.IdentifierPlural }}() {{= mm.ObjectType() }}Node  {
     cn := n.{{= table.DecapIdentifier}}Table.{{= mm.IdentifierPlural }}().(*{{= objectType }})
     query.NodeSetParent(cn, n)
     return cn
@@ -39,7 +38,7 @@ func (n *{{= table.DecapIdentifier}}Reference) {{= mm.IdentifierPlural }}() {{= 
 
 {{if}}
 {{if hasReference}}
-func (n *{{= table.DecapIdentifier}}Reverse) {{= mm.IdentifierPlural }}() {{= returnType }}  {
+func (n *{{= table.DecapIdentifier}}Reverse) {{= mm.IdentifierPlural }}() {{= mm.ObjectType() }}Node  {
     cn := n.{{= table.DecapIdentifier}}Table.{{= mm.IdentifierPlural }}().(*{{= objectType }})
     query.NodeSetParent(cn, n)
     return cn
@@ -47,7 +46,7 @@ func (n *{{= table.DecapIdentifier}}Reverse) {{= mm.IdentifierPlural }}() {{= re
 
 {{if}}
 {{if hasAssociation}}
-func (n *{{= table.DecapIdentifier}}Association) {{= mm.IdentifierPlural }}() {{= returnType }}  {
+func (n *{{= table.DecapIdentifier}}Association) {{= mm.IdentifierPlural }}() {{= mm.ObjectType() }}Node  {
     cn := n.{{= table.DecapIdentifier}}Table.{{= mm.IdentifierPlural }}().(*{{= objectType }})
     query.NodeSetParent(cn, n)
     return cn

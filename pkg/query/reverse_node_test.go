@@ -11,8 +11,6 @@ func TestReverseReferenceNodeInterfaces(t *testing.T) {
 		Identifier:      "Obj",
 		ReceiverType:    ColTypeString,
 	}
-
-	assert.Implements(t, (*Conditioner)(nil), n)
-	assert.Implements(t, (*Linker)(nil), n)
-	assert.Implements(t, (*Expander)(nil), n)
+	
+	assert.Implements(t, (*linker)(nil), n)
 }

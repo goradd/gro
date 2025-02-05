@@ -12,6 +12,5 @@ func TestReferenceNodeInterfaces(t *testing.T) {
 		ReceiverType:    ColTypeString,
 	}
 
-	assert.Implements(t, (*Conditioner)(nil), n)
-	assert.Implements(t, (*Linker)(nil), n)
+	assert.Implements(t, (*linker)(nil), n)
 }

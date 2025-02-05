@@ -240,9 +240,6 @@ func HasForwardRestrict(ctx context.Context, id string) bool {
 type ForwardRestrictBuilder interface {
 	// Join(alias string, joinedTable query.Node, condition query.Node) ForwardRestrictBuilder
 
-	// Expand turns a Reverse or ManyMany node into individual rows.
-	Expand(n query.Expander) ForwardRestrictBuilder
-
 	// Where adds a condition to filter what gets selected.
 	// Calling Where multiple times will AND the conditions together.
 	Where(c query.Node) ForwardRestrictBuilder
@@ -267,7 +264,7 @@ type ForwardRestrictBuilder interface {
 
 	// Calculation adds a calculation node with an aliased name.
 	// After the query, you can read the data using GetAlias() on a returned object.
-	Calculation(name string, n query.Aliaser) ForwardRestrictBuilder
+	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) ForwardRestrictBuilder
 
 	// Distinct removes duplicates from the results of the query.
 	// Adding a Select() is usually required.
@@ -433,12 +430,6 @@ func (b *forwardRestrictQueryBuilder) Get() *ForwardRestrict {
 	}
 }
 
-// Expand expands an array type node so that it will produce individual rows instead of an array of items
-func (b *forwardRestrictQueryBuilder) Expand(n query.Expander) ForwardRestrictBuilder {
-	b.builder.Expand(n)
-	return b
-}
-
 /*
 // Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
 // by condition.
@@ -490,10 +481,10 @@ func (b *forwardRestrictQueryBuilder) Select(nodes ...query.Node) ForwardRestric
 	return b
 }
 
-// Calculation adds a calculation node with an aliased name.
-// After the query, you can read the data using GetAlias() on the returned object.
-func (b *forwardRestrictQueryBuilder) Calculation(name string, n query.Aliaser) ForwardRestrictBuilder {
-	b.builder.Calculation(name, n)
+// Calculation adds operation as an aliased value onto base.
+// After the query, you can read the data by passing alias to GetAlias on the returned object.
+func (b *forwardRestrictQueryBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) ForwardRestrictBuilder {
+	b.builder.Calculation(base, alias, operation)
 	return b
 }
 
@@ -619,7 +610,7 @@ func (o *forwardRestrictBase) load(m map[string]interface{}, objThis *ForwardRes
 	}
 
 	if v, ok := m["Reverse"]; ok {
-		if objReverse, ok2 := v.(map[string]interface{}); ok2 {
+		if objReverse, ok2 := v.(map[string]any); ok2 {
 			o.objReverse = new(Reverse)
 			o.objReverse.load(objReverse, o.objReverse)
 			o.reverseIDIsValid = true
@@ -632,7 +623,7 @@ func (o *forwardRestrictBase) load(m map[string]interface{}, objThis *ForwardRes
 	}
 
 	if v, ok := m["aliases_"]; ok {
-		o._aliases = map[string]interface{}(v.(db.ValueMap))
+		o._aliases = v.(map[string]any)
 	}
 
 	o._restored = true

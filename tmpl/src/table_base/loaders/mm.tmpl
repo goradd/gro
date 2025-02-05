@@ -5,7 +5,7 @@
 {{
 
 	if v, ok := m["{{= mm.IdentifierPlural }}"]; ok {
-		if v2, ok2 := v.([]db.ValueMap); ok2 {
+		if v2, ok2 := v.([]map[string]any); ok2 {
 			o.{{= mm.VariableIdentifier() }}.Clear()
 
 			for _,v3 := range v2 {

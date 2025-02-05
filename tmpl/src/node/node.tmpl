@@ -1,7 +1,6 @@
 {{g
 //*** {{includeName}}
 
-var isExpander bool
 var hasReverse bool
 var hasReference bool
 var hasAssociation bool
@@ -14,15 +13,10 @@ func (n *NodeTemplate)gen(table *model.Table, _w io.Writer) (err error) {
     for _,col := range table.Columns {
         if col.IsReference() {
             hasReference = true
-            if !col.IsUnique{
-                isExpander = true
-                break
-            }
         }
     }
 
     hasAssociation = len(table.ManyManyReferences) > 0
-    isExpander = isExpander || hasAssociation
     hasReverse = len(table.ReverseReferences) > 0
 
     if err = n.genHeader(table, _w); err != nil { return }

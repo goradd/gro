@@ -256,9 +256,6 @@ func HasEmployeeInfoByPersonID(ctx context.Context, personID string) bool {
 type EmployeeInfoBuilder interface {
 	// Join(alias string, joinedTable query.Node, condition query.Node) EmployeeInfoBuilder
 
-	// Expand turns a Reverse or ManyMany node into individual rows.
-	Expand(n query.Expander) EmployeeInfoBuilder
-
 	// Where adds a condition to filter what gets selected.
 	// Calling Where multiple times will AND the conditions together.
 	Where(c query.Node) EmployeeInfoBuilder
@@ -283,7 +280,7 @@ type EmployeeInfoBuilder interface {
 
 	// Calculation adds a calculation node with an aliased name.
 	// After the query, you can read the data using GetAlias() on a returned object.
-	Calculation(name string, n query.Aliaser) EmployeeInfoBuilder
+	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) EmployeeInfoBuilder
 
 	// Distinct removes duplicates from the results of the query.
 	// Adding a Select() is usually required.
@@ -449,12 +446,6 @@ func (b *employeeInfoQueryBuilder) Get() *EmployeeInfo {
 	}
 }
 
-// Expand expands an array type node so that it will produce individual rows instead of an array of items
-func (b *employeeInfoQueryBuilder) Expand(n query.Expander) EmployeeInfoBuilder {
-	b.builder.Expand(n)
-	return b
-}
-
 /*
 // Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
 // by condition.
@@ -506,10 +497,10 @@ func (b *employeeInfoQueryBuilder) Select(nodes ...query.Node) EmployeeInfoBuild
 	return b
 }
 
-// Calculation adds a calculation node with an aliased name.
-// After the query, you can read the data using GetAlias() on the returned object.
-func (b *employeeInfoQueryBuilder) Calculation(name string, n query.Aliaser) EmployeeInfoBuilder {
-	b.builder.Calculation(name, n)
+// Calculation adds operation as an aliased value onto base.
+// After the query, you can read the data by passing alias to GetAlias on the returned object.
+func (b *employeeInfoQueryBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) EmployeeInfoBuilder {
+	b.builder.Calculation(base, alias, operation)
 	return b
 }
 
@@ -622,7 +613,7 @@ func (o *employeeInfoBase) load(m map[string]interface{}, objThis *EmployeeInfo)
 	}
 
 	if v, ok := m["Person"]; ok {
-		if objPerson, ok2 := v.(map[string]interface{}); ok2 {
+		if objPerson, ok2 := v.(map[string]any); ok2 {
 			o.objPerson = new(Person)
 			o.objPerson.load(objPerson, o.objPerson)
 			o.personIDIsValid = true
@@ -648,7 +639,7 @@ func (o *employeeInfoBase) load(m map[string]interface{}, objThis *EmployeeInfo)
 	}
 
 	if v, ok := m["aliases_"]; ok {
-		o._aliases = map[string]interface{}(v.(db.ValueMap))
+		o._aliases = v.(map[string]any)
 	}
 
 	o._restored = true

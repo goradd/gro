@@ -5,7 +5,7 @@
 {{
 
 	if v, ok := m["{{= col.ReferenceIdentifier() }}"]; ok {
-		if {{= col.ReferenceVariableIdentifier() }}, ok2 := v.(map[string]interface{}); ok2 {
+		if {{= col.ReferenceVariableIdentifier() }}, ok2 := v.(map[string]any); ok2 {
 			o.{{= col.ReferenceVariableIdentifier() }} = new({{= col.ReferenceType() }})
 			o.{{= col.ReferenceVariableIdentifier() }}.load({{= col.ReferenceVariableIdentifier() }}, o.{{= col.ReferenceVariableIdentifier() }})
 			o.{{= col.VariableIdentifier() }}IsValid = true

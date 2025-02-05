@@ -1080,9 +1080,6 @@ func HasProjectByNum(ctx context.Context, num int) bool {
 type ProjectBuilder interface {
 	// Join(alias string, joinedTable query.Node, condition query.Node) ProjectBuilder
 
-	// Expand turns a Reverse or ManyMany node into individual rows.
-	Expand(n query.Expander) ProjectBuilder
-
 	// Where adds a condition to filter what gets selected.
 	// Calling Where multiple times will AND the conditions together.
 	Where(c query.Node) ProjectBuilder
@@ -1107,7 +1104,7 @@ type ProjectBuilder interface {
 
 	// Calculation adds a calculation node with an aliased name.
 	// After the query, you can read the data using GetAlias() on a returned object.
-	Calculation(name string, n query.Aliaser) ProjectBuilder
+	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) ProjectBuilder
 
 	// Distinct removes duplicates from the results of the query.
 	// Adding a Select() is usually required.
@@ -1273,12 +1270,6 @@ func (b *projectQueryBuilder) Get() *Project {
 	}
 }
 
-// Expand expands an array type node so that it will produce individual rows instead of an array of items
-func (b *projectQueryBuilder) Expand(n query.Expander) ProjectBuilder {
-	b.builder.Expand(n)
-	return b
-}
-
 /*
 // Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
 // by condition.
@@ -1330,10 +1321,10 @@ func (b *projectQueryBuilder) Select(nodes ...query.Node) ProjectBuilder {
 	return b
 }
 
-// Calculation adds a calculation node with an aliased name.
-// After the query, you can read the data using GetAlias() on the returned object.
-func (b *projectQueryBuilder) Calculation(name string, n query.Aliaser) ProjectBuilder {
-	b.builder.Calculation(name, n)
+// Calculation adds operation as an aliased value onto base.
+// After the query, you can read the data by passing alias to GetAlias on the returned object.
+func (b *projectQueryBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) ProjectBuilder {
+	b.builder.Calculation(base, alias, operation)
 	return b
 }
 
@@ -1528,7 +1519,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 	}
 
 	if v, ok := m["Manager"]; ok {
-		if objManager, ok2 := v.(map[string]interface{}); ok2 {
+		if objManager, ok2 := v.(map[string]any); ok2 {
 			o.objManager = new(Person)
 			o.objManager.load(objManager, o.objManager)
 			o.managerIDIsValid = true
@@ -1651,7 +1642,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 	// Many-Many references
 
 	if v, ok := m["Children"]; ok {
-		if v2, ok2 := v.([]db.ValueMap); ok2 {
+		if v2, ok2 := v.([]map[string]any); ok2 {
 			o.mmChildren.Clear()
 
 			for _, v3 := range v2 {
@@ -1669,7 +1660,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 	}
 
 	if v, ok := m["Parents"]; ok {
-		if v2, ok2 := v.([]db.ValueMap); ok2 {
+		if v2, ok2 := v.([]map[string]any); ok2 {
 			o.mmParents.Clear()
 
 			for _, v3 := range v2 {
@@ -1687,7 +1678,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 	}
 
 	if v, ok := m["TeamMembers"]; ok {
-		if v2, ok2 := v.([]db.ValueMap); ok2 {
+		if v2, ok2 := v.([]map[string]any); ok2 {
 			o.mmTeamMembers.Clear()
 
 			for _, v3 := range v2 {
@@ -1708,7 +1699,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 
 	if v, ok := m["Milestones"]; ok {
 		switch v2 := v.(type) {
-		case []db.ValueMap: // array expansion
+		case []map[string]any: // array expansion
 			o.revMilestones.Clear()
 			o.revMilestonesIsDirty = false
 			for _, v3 := range v2 {
@@ -1716,7 +1707,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 				obj.load(v3, obj)
 				o.revMilestones.Set(obj.PrimaryKey(), obj)
 			}
-		case db.ValueMap: // single expansion
+		case map[string]any: // single expansion
 			obj := new(Milestone)
 			obj.load(v2, obj)
 			o.revMilestones.Clear()
@@ -1731,7 +1722,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 	}
 
 	if v, ok := m["aliases_"]; ok {
-		o._aliases = map[string]interface{}(v.(db.ValueMap))
+		o._aliases = v.(map[string]any)
 	}
 
 	o._restored = true

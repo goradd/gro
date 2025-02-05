@@ -5,7 +5,7 @@
 {{
 
 	if v, ok := m["{{= col.ReverseIdentifier() }}"]; ok {
-		if v2, ok2 := v.(db.ValueMap); ok2 {
+		if v2, ok2 := v.(map[string]any); ok2 {
 			o.{{= col.ReverseVariableIdentifier() }} = new({{= col.Table.Identifier }})
 			o.{{= col.ReverseVariableIdentifier() }}.load(v2, o.{{= col.ReverseVariableIdentifier() }})
 			o.{{= col.ReverseVariableIdentifier() }}IsDirty = false

@@ -48,20 +48,6 @@ type container interface {
 	containedNodes() (nodes []Node)
 }
 
-// ider returns a unique value within the parent node's namespace
-type ider interface {
-	id() string
-}
-
-// NodeId returns a unique value within the parent namespace, if the node supports it.
-// Top level table nodes do not support this, but that should be fine since there is only one in a node chain.
-func NodeId(n Node) string {
-	if i, ok := n.(ider); ok {
-		return i.id()
-	}
-	return ""
-}
-
 // Node is the interface that all nodes must satisfy. A node is a representation of an object or a relationship
 // between objects in a database that we use to create a query. It lets us abstract the structure of a database
 // to be able to query any kind of database. Obviously, this doesn't work for all possible database structures, but
@@ -92,5 +78,41 @@ func ContainedNodes(n Node) (nodes []Node) {
 		return nc.containedNodes()
 	} else {
 		return nil
+	}
+}
+
+func NodesMatch(node1, node2 Node) bool {
+	if node1.NodeType_() != node2.NodeType_() {
+		return false
+	}
+
+	if node1.TableName_() != node2.TableName_() {
+		return false
+	}
+	if node1.DatabaseKey_() != node2.DatabaseKey_() {
+		return false
+	}
+
+	switch node1.NodeType_() {
+	case AliasNodeType:
+		return node1.(AliasNodeI).Alias() == node2.(AliasNodeI).Alias()
+	case ColumnNodeType:
+		c1 := node1.(*ColumnNode)
+		c2 := node2.(*ColumnNode)
+		return c1.QueryName == c2.QueryName
+	case TableNodeType:
+		return true // already know table names are equal
+	case ReferenceNodeType:
+		return node1.(ReferenceNodeI).ColumnName() == node2.(ReferenceNodeI).ColumnName() &&
+			NodesMatch(NodeParent(node1), NodeParent(node2))
+	case ReverseNodeType:
+		return node1.(ReverseNodeI).ColumnName() == node2.(ReverseNodeI).ColumnName() &&
+			NodesMatch(NodeParent(node1), NodeParent(node2))
+	case ManyManyNodeType:
+		return node1.(ManyManyNodeI).AssnTableName() == node2.(ManyManyNodeI).AssnTableName() &&
+			node1.(ManyManyNodeI).RefColumnName() == node2.(ManyManyNodeI).RefColumnName() &&
+			NodesMatch(NodeParent(node1), NodeParent(node2))
+	default:
+		return false
 	}
 }

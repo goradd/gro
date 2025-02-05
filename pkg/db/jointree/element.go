@@ -2,6 +2,7 @@ package jointree
 
 import (
 	"cmp"
+	iter2 "github.com/goradd/iter"
 	"github.com/goradd/maps"
 	"github.com/goradd/orm/pkg/query"
 	"iter"
@@ -11,15 +12,15 @@ import (
 // Element is used to build the join tree. The join tree creates a hierarchy of joined nodes that let us
 // generate aliases, serialize the query, and afterward, unpack the results.
 type Element struct {
-	QueryNode     query.Node
-	Parent        *Element
-	References    []*Element // TableNodeI objects
-	Columns       []*Element
-	Selects       maps.Set[*Element] // pointers to elements in Columns that will be selected to be returned in the query
-	JoinCondition query.Node
-	Alias         string
-	Expanded      bool
-	IsPK          bool
+	QueryNode       query.Node
+	Parent          *Element
+	References      []*Element         // TableNodeI objects
+	Columns         []*Element         // All columns that will be used to build the query, including those in Where, OrderBy and other clauses
+	SelectedColumns maps.Set[*Element] // Pointers to elements in Columns that will be returned in the query
+	//JoinCondition   query.Node
+	Alias        string                // computed or assigned alias
+	Calculations map[string]query.Node // calculations attached to this node by alias
+	IsPK         bool
 }
 
 func newElement(node query.Node) *Element {
@@ -29,13 +30,6 @@ func newElement(node query.Node) *Element {
 	// cache some things from the node
 	if c, ok := node.(*query.ColumnNode); ok {
 		e.IsPK = c.IsPrimaryKey
-	} else {
-		if c := query.NodeCondition(node); c != nil {
-			e.JoinCondition = c
-		}
-		if query.NodeIsExpanded(node) {
-			e.Expanded = true
-		}
 	}
 	return e
 }
@@ -59,7 +53,7 @@ func (j *Element) SelectsIter() iter.Seq[*Element] {
 	return func(yield func(*Element) bool) {
 		var cols func(*Element) bool
 		cols = func(e *Element) bool {
-			for _, c := range slices.SortedFunc(e.Selects.All(), func(e1, e2 *Element) int {
+			for _, c := range slices.SortedFunc(e.SelectedColumns.All(), func(e1, e2 *Element) int {
 				return cmp.Compare(e1.Alias, e2.Alias)
 			}) {
 				if !yield(c) {
@@ -77,7 +71,25 @@ func (j *Element) SelectsIter() iter.Seq[*Element] {
 	}
 }
 
-// ColumnIter iterates on all the columns in this elment and its sub elements.
+// CalculationsIter iterates on all the calculations in this element and its sub elements.
+func (j *Element) CalculationsIter() iter.Seq2[string, query.Node] {
+	return func(yield func(string, query.Node) bool) {
+		for k, v := range iter2.KeySort(j.Calculations) {
+			if !yield(k, v) {
+				return
+			}
+		}
+		for _, r := range j.References {
+			for k, v := range r.CalculationsIter() {
+				if !yield(k, v) {
+					return
+				}
+			}
+		}
+	}
+}
+
+// ColumnIter iterates on all the columns in this element and its sub elements.
 func (j *Element) ColumnIter() iter.Seq[*Element] {
 	return func(yield func(*Element) bool) {
 		var cols func(*Element) bool
@@ -111,7 +123,30 @@ func (j *Element) String() string {
 		s += ":" + j.Alias
 	}
 	if j.QueryNode.NodeType_() == query.AliasNodeType {
-		s += ":" + j.QueryNode.(query.Aliaser).Alias()
+		s += ":" + j.QueryNode.(query.AliasNodeI).Alias()
 	}
 	return s
+}
+
+// IsArray returns true if the enclosed query node is an array type node.
+func (j *Element) IsArray() bool {
+	if j.QueryNode.NodeType_() == query.ManyManyNodeType {
+		return true
+	} else if j.QueryNode.NodeType_() == query.ReverseNodeType {
+		return j.QueryNode.(query.ReverseNodeI).IsArray()
+	}
+	return false
+}
+
+func (j *Element) FindCalculation(alias string) query.Node {
+	if calc, ok := j.Calculations[alias]; ok {
+		return calc
+	}
+	for _, e := range j.References {
+		n := e.FindCalculation(alias)
+		if n != nil {
+			return n
+		}
+	}
+	return nil
 }
