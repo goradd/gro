@@ -127,8 +127,12 @@ func (u *unpacker) unpackResult(rows []map[string]interface{}) (out []map[string
 }
 
 func (u *unpacker) unpackObjectArray(el *jointree.Element, row db.ValueMap, result *objListType) {
-	key := u.makeObjectKey(el, row)
 	var obj db.ValueMap
+
+	key := u.makeObjectKey(el, row)
+	if key == "" {
+		return // there are no objects in the array
+	}
 
 	i := result.Get(key)
 	if i != nil {
@@ -212,7 +216,7 @@ func (u *unpacker) makeObjectKey(tableElement *jointree.Element, row db.ValueMap
 
 	v := row[pk.Alias]
 	if v == nil {
-		panic(fmt.Sprintf("expected value for %s was not returned in the query", pk))
+		return "" // the object we are looking for does not exist in the database
 	}
 
 	return fmt.Sprint(v)

@@ -100,7 +100,7 @@ func TestReverseReference(t *testing.T) {
 	}
 
 	if len(people[6].ManagerProjects()) != 2 {
-		t.Error("Did not find 2 ProjectsAsManagers.")
+		t.Error("Did not find 2 ManagerProjects.")
 	}
 
 }
