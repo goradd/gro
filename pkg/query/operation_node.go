@@ -21,58 +21,57 @@ const (
 
 	OpEqual        Operator = "="
 	OpNotEqual     Operator = "<>"
-	OpAnd                   = "AND"
-	OpOr                    = "OR"
-	OpXor                   = "XOR"
-	OpGreater               = ">"
-	OpGreaterEqual          = ">="
-	OpLess                  = "<"
-	OpLessEqual             = "<="
+	OpAnd          Operator = "AND"
+	OpOr           Operator = "OR"
+	OpXor          Operator = "XOR"
+	OpGreater      Operator = ">"
+	OpGreaterEqual Operator = ">="
+	OpLess         Operator = "<"
+	OpLessEqual    Operator = "<="
 
 	// Unary logical
-	OpNot = "NOT"
-
-	OpAll  = "1=1"
-	OpNone = "1=0"
+	OpNot  Operator = "NOT"
+	OpAll  Operator = "1=1"
+	OpNone Operator = "1=0"
 
 	// Math operators
-	OpAdd      = "+"
-	OpSubtract = "-"
-	OpMultiply = "*"
-	OpDivide   = "/"
-	OpModulo   = "%"
+	OpAdd      Operator = "+"
+	OpSubtract Operator = "-"
+	OpMultiply Operator = "*"
+	OpDivide   Operator = "/"
+	OpModulo   Operator = "%"
 
 	// Unary math
-	OpNegate = " -"
+	OpNegate Operator = " -"
 
 	// Bit operators
-	OpBitAnd     = "&"
-	OpBitOr      = "|"
-	OpBitXor     = "^"
-	OpShiftLeft  = "<<"
-	OpShiftRight = ">>"
+	OpBitAnd     Operator = "&"
+	OpBitOr      Operator = "|"
+	OpBitXor     Operator = "^"
+	OpShiftLeft  Operator = "<<"
+	OpShiftRight Operator = ">>"
 
 	// Unary bit
-	OpBitInvert = "~"
+	OpBitInvert Operator = "~"
 
 	// Function operator
 	// The function name is followed by the operators in parenthesis
-	OpFunc = "func"
+	OpFunc Operator = "func"
 
 	// SQL functions that act like operators in that the operator is put in between the operands
-	OpLike  = "LIKE" // This is very SQL specific and may not be supported in NoSql
-	OpIn    = "IN"
-	OpNotIn = "NOT IN"
+	OpLike  Operator = "LIKE" // This is very SQL specific and may not be supported in NoSql
+	OpIn    Operator = "IN"
+	OpNotIn Operator = "NOT IN"
 
 	// Special NULL tests
-	OpNull    = "NULL"
-	OpNotNull = "NOT NULL"
+	OpNull    Operator = "NULL"
+	OpNotNull Operator = "NOT NULL"
 
 	// Our own custom operators for universal support
-	OpStartsWith     = "StartsWith"
-	OpEndsWith       = "EndsWith"
-	OpContains       = "Contains"
-	OpDateAddSeconds = "AddSeconds" // Adds the given number of seconds to a datetime
+	OpStartsWith     Operator = "StartsWith"
+	OpEndsWith       Operator = "EndsWith"
+	OpContains       Operator = "Contains"
+	OpDateAddSeconds Operator = "AddSeconds" // Adds the given number of seconds to a datetime
 )
 
 // String returns a string representation of the Operator type. For convenience, this also corresponds to the SQL

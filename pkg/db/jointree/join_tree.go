@@ -12,7 +12,6 @@ import (
 )
 
 // CountAlias is the alias that will be used for auto generated count operation nodes.
-const CountAlias = "_count"
 const columnAliasPrefix = "c_"
 const tableAliasPrefix = "t_"
 
@@ -313,24 +312,43 @@ func (t *JoinTree) addGroupBySelects(b *query.Builder) {
 	// We also check to make sure non-group by columns are not being selected, since that will cause an error if so.
 
 	for _, n := range b.GroupBys {
-		if n.NodeType_() == query.ColumnNodeType {
+		switch n.NodeType_() {
+		case query.ColumnNodeType:
 			e, _, found := t.findNode(n)
 			if !found {
 				panic("group by node not found in the tree")
 			}
 			e.Parent.SelectedColumns.Add(e)
-		} else if a, ok := n.(query.AliasNodeI); ok {
-			if _, ok2 := b.Calculations[a.Alias()]; !ok2 {
-				panic(fmt.Sprintf("alias in group by not found in Calculations: %s", a.Alias()))
+		case query.TableNodeType:
+			// assert that this is the root node
+			if !nodeMatch(t.Root.QueryNode, n) {
+				panic("group by node should be the root node")
 			}
-		} else if n.NodeType_() == query.OperationNodeType {
+			pk := n.(query.TableNodeI).PrimaryKey()
+			e, _, found := t.findNode(pk)
+			if !found {
+				panic("group by pk node not found in the tree")
+			}
+			e.Parent.SelectedColumns.Add(e)
+
+		case query.AliasNodeType:
+			alias := n.(query.AliasNodeI).Alias()
+			if _, ok2 := b.Calculations[alias]; !ok2 {
+				panic(fmt.Sprintf("alias in group by not found in Calculations: %s", alias))
+			}
+		case query.OperationNodeType:
 			panic("operation nodes in group bys must be aliased with a Calculation")
-		} else if n.NodeType_() == query.SubqueryNodeType {
+		case query.SubqueryNodeType:
 			panic("subquery nodes in group bys must be aliased with a Calculation")
-		} else if n.NodeType_() == query.ReferenceNodeType {
+		case query.ReferenceNodeType:
 			panic("group by a foreign key column rather than a reference")
-		} else if n.NodeType_() == query.ReverseNodeType ||
-			n.NodeType_() == query.ManyManyNodeType {
+		case query.ReverseNodeType:
+			panic("cannot group by on this node type")
+		case query.ManyManyNodeType:
+			panic("cannot group by on this node type")
+		case query.UnknownNodeType:
+			panic("cannot group by on this node type")
+		case query.ValueNodeType:
 			panic("cannot group by on this node type")
 		}
 	}

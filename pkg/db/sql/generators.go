@@ -181,21 +181,17 @@ func (g *sqlGenerator) generateOperationSql(n *OperationNode, useAlias bool) (sq
 
 	switch operator {
 	case OpFunc:
+		sb.WriteString(OperationNodeFunction(n))
+		sb.WriteString("(")
+		if OperationNodeDistinct(n) {
+			sb.WriteString("DISTINCT ")
+		}
+
 		if len(operands) > 0 {
 			sb.WriteString(strings.Join(operands, ","))
 		} else if OperationNodeFunction(n) == "COUNT" {
 			sb.WriteString("*")
 		}
-
-		if OperationNodeDistinct(n) {
-			content := sb.String()
-			sb.Reset()
-			sb.WriteString("DISTINCT ")
-			sb.WriteString(content)
-		}
-		sb.WriteString(OperationNodeFunction(n))
-		sb.WriteString("(")
-		sb.WriteString(sb.String())
 		sb.WriteString(") ")
 
 	case OpNull, OpNotNull:
@@ -394,7 +390,7 @@ func (g *sqlGenerator) generateJoinSql(j *jointree.Element) (sql string) {
 		sb.WriteString(" = ")
 		sb.WriteString(g.iq(j.Alias + "a"))
 		sb.WriteString(".")
-		sb.WriteString(g.iq(mm.RefColumnName()))
+		sb.WriteString(g.iq(mm.ParentColumnName()))
 		sb.WriteString("\n")
 
 		sb.WriteString("LEFT JOIN ")

@@ -8,6 +8,7 @@ import (
 type ManyManyNodeI interface {
 	AssnTableName() string
 	RefColumnName() string
+	ParentColumnName() string
 	TableNodeI
 	linker
 }
@@ -37,6 +38,10 @@ func (n *ManyManyNode) AssnTableName() string {
 
 func (n *ManyManyNode) RefColumnName() string {
 	return n.RefColumnQueryName
+}
+
+func (n *ManyManyNode) ParentColumnName() string {
+	return n.ParentColumnQueryName
 }
 
 func (n *ManyManyNode) GobEncode() (data []byte, err error) {

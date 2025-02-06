@@ -204,10 +204,10 @@ func TestGroupBy(t *testing.T) {
 	projects := goradd.QueryProjects(ctx).
 		Calculation(node.Project(), "teamMemberCount", op.Count(node.Project().TeamMembers())).
 		GroupBy(node.Project()).
+		OrderBy(node.Project().ID()).
 		Load()
 
 	assert.EqualValues(t, 5, projects[0].GetAlias("teamMemberCount").Int())
-
 }
 
 func TestSelect(t *testing.T) {
