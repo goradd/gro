@@ -81,7 +81,9 @@ func TestLogical(t *testing.T) {
 func TestCount2(t *testing.T) {
 	ctx := db.NewContext(nil)
 	count := goradd.QueryPeople(ctx).
-		Count(true, node.Person().LastName())
+		Select(node.Person().LastName()).
+		Distinct().
+		Count()
 
 	assert.EqualValues(t, 10, count)
 

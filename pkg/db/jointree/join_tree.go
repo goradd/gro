@@ -11,7 +11,8 @@ import (
 	"strconv"
 )
 
-const countAlias = "_count"
+// CountAlias is the alias that will be used for auto generated count operation nodes.
+const CountAlias = "_count"
 const columnAliasPrefix = "c_"
 const tableAliasPrefix = "t_"
 
@@ -34,6 +35,9 @@ type JoinTree struct {
 	GroupBys           []query.Node
 	OrderBys           []query.Sorter
 	Having             query.Node
+	hasSelects         bool
+	hasCalcs           bool
+	hasAggregates      bool
 }
 
 // NewJoinTree analyzes b and turns it into a JoinTree.
@@ -67,6 +71,13 @@ func (t *JoinTree) buildNodeTree(b *query.Builder) {
 	for _, n := range nodes {
 		t.addNode(n)
 	}
+	if len(b.Calculations) > 0 {
+		t.hasCalcs = true
+	}
+	if len(b.Selects) > 0 {
+		t.hasSelects = true
+	}
+
 	t.assignTableAliases(t.Root)
 }
 
@@ -74,15 +85,18 @@ func (t *JoinTree) buildNodeTree(b *query.Builder) {
 func (t *JoinTree) buildCommand(b *query.Builder) {
 	switch t.Command {
 	case query.BuilderCommandLoad:
-		fallthrough
+		t.addCalculations(b)
+		t.addSelectedColumns(b)
+		t.assignSelectAliases()
 	case query.BuilderCommandLoadCursor:
+		t.checkCursor(b)
 		t.addCalculations(b)
 		t.addSelectedColumns(b)
 		t.assignSelectAliases()
 	case query.BuilderCommandCount:
-		n := query.NewCountNode(b.Selects...)
-		b.Calculation(b.Root, countAlias, n)
 		t.addCalculations(b)
+		t.addSelectedColumns(b)
+		t.assignSelectAliases()
 
 	default:
 		// do nothing more
@@ -95,6 +109,10 @@ func (t *JoinTree) buildCommand(b *query.Builder) {
 func (t *JoinTree) addNode(node query.Node) (top *Element) {
 	var tableName string
 	//var hasSubquery bool // Turns off the check to make sure all nodes come from the same table, since subqueries might have different tables
+
+	if query.NodeIsAggregate(node) {
+		t.hasAggregates = true
+	}
 
 	if sq, ok := node.(*query.SubqueryNode); ok {
 		top = t.addSubqueryNode(sq)
@@ -247,7 +265,7 @@ func (t *JoinTree) addSelectedColumns(builder *query.Builder) {
 		}
 	}
 
-	if !hasRootSelect && !(len(builder.GroupBys) > 0 || t.IsDistinct || t.isSubquery) {
+	if !hasRootSelect && !(len(builder.GroupBys) > 0 || t.hasAggregates || t.IsDistinct || t.isSubquery || t.Command == query.BuilderCommandCount) {
 		t.selectAllColumnNodes(t.Root.QueryNode.(query.TableNodeI))
 	}
 
@@ -344,9 +362,13 @@ func (t *JoinTree) addCalculations(b *query.Builder) {
 	for alias, values := range b.Calculations {
 		e, _, found := t.findNode(values.BaseNode)
 		if !found {
-			panic("calculation not found in the tree")
+			panic("calculation base node was not found in the tree")
+		}
+		if e.Calculations == nil {
+			e.Calculations = make(map[string]query.Node)
 		}
 		e.Calculations[alias] = values.Operation
+		t.hasCalcs = true
 	}
 }
 
@@ -368,4 +390,24 @@ func (t *JoinTree) CalculationsIter() iter.Seq2[string, query.Node] {
 // FindAlias searches the join tree for the given manually assigned alias and returns the node corresponding to the alias.
 func (t *JoinTree) FindAlias(alias string) query.Node {
 	return t.Root.FindCalculation(alias)
+}
+
+func (t *JoinTree) checkCursor(builder *query.Builder) {
+	for _, n := range builder.Nodes() {
+		if query.NodeIsArray(n) {
+			panic("you cannot query a cursor and also have an array type node in the query")
+		}
+	}
+}
+
+func (t *JoinTree) HasAggregates() bool {
+	return t.hasAggregates
+}
+
+func (t *JoinTree) HasCalcs() bool {
+	return t.hasCalcs
+}
+
+func (t *JoinTree) HasSelects() bool {
+	return t.hasSelects
 }

@@ -3994,7 +3994,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `(ctx context.Context) int {
-	return int(Query`); err != nil {
+	return Query`); err != nil {
 			return
 		}
 
@@ -4020,7 +4020,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `(), o.PrimaryKey())).
-		Count(false))
+		Count()
 
 }
 
@@ -5645,7 +5645,7 @@ func Has`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `)).
-         Count(false) == 1
+         Count() == 1
 }
 
 `); err != nil {
@@ -6082,7 +6082,7 @@ func Has`); err != nil {
 
 			}
 
-			if _, err = io.WriteString(_w, `    return q.Count(false) == 1
+			if _, err = io.WriteString(_w, `    return q.Count() == 1
 }
 `); err != nil {
 				return
@@ -6209,7 +6209,7 @@ type `); err != nil {
 	if _, err = io.WriteString(_w, `
 
 	// Distinct removes duplicates from the results of the query.
-    // Adding a Select() is usually required.
+    // Adding a Select() is required.
 	Distinct() `); err != nil {
 		return
 	}
@@ -6304,10 +6304,11 @@ type `); err != nil {
 
 	if _, err = io.WriteString(_w, `
 
-	// Count terminates a query and returns just the number of items selected.
-    // distinct wll count the number of distinct items, ignoring duplicates.
-    // nodes will select individual fields, and should be accompanied by a GroupBy.
-	Count(distinct bool, nodes... query.Node) int
+    // Count terminates a query and returns just the number of items in the result.
+    // If you have Select or Calculation columns in the query, it will count NULL results as well.
+    // To not count NULL values, use Where in the builder with a NotNull operation.
+    // To count distinct combinations of items, call Distinct() on the builder.
+	Count() int
 
 	// Delete uses the query builder to delete a group of records that match the criteria
 	Delete()
@@ -6417,7 +6418,7 @@ func (b *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return
 	}
@@ -6484,7 +6485,7 @@ func (b *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return
 	}
@@ -6558,7 +6559,7 @@ func (b *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `")
-	result := database.BuilderQuery(b.builder.Ctx, b.builder)
+	result := database.BuilderQuery(b.builder)
 	if (result == nil) {
 	    return `); err != nil {
 		return
@@ -6929,9 +6930,10 @@ func (b *`); err != nil {
 	 return b
 }
 
-// Count terminates a query and returns just the number of items selected.
-// distinct wll count the number of distinct items, ignoring duplicates.
-// nodes will select individual fields, and should be accompanied by a GroupBy.
+// Count terminates a query and returns just the number of items in the result.
+// If you have Select or Calculation columns in the query, it will count NULL results as well.
+// To not count NULL values, use Where in the builder with a NotNull operation.
+// To count distinct combinations of items, call Distinct() on the builder.
 func (b *`); err != nil {
 		return
 	}
@@ -6940,11 +6942,8 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `)  Count(distinct bool, nodes... query.Node) int {
+	if _, err = io.WriteString(_w, `)  Count() int {
 	b.builder.Command = query.BuilderCommandCount
-	if distinct {
-	    b.builder.Distinct()
-	}
 	database := db.GetDatabase("`); err != nil {
 		return
 	}
@@ -6954,7 +6953,7 @@ func (b *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
     if results == nil {
         return 0
     }
@@ -6981,7 +6980,7 @@ func (b *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `")
-	database.BuilderQuery(b.builder.Ctx, b.builder)
+	database.BuilderQuery(b.builder)
 	broadcast.BulkChange(b.builder.Context(), "`); err != nil {
 		return
 	}
@@ -7148,7 +7147,7 @@ func Count`); err != nil {
 
 		}
 
-		if _, err = io.WriteString(_w, `	return int(query`); err != nil {
+		if _, err = io.WriteString(_w, `	return query`); err != nil {
 			return
 		}
 
@@ -7180,7 +7179,7 @@ func Count`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `)).Count(false))
+		if _, err = io.WriteString(_w, `)).Count()
 }
 
 `); err != nil {

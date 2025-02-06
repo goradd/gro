@@ -88,6 +88,7 @@ type OperationNode struct {
 	operands     []Node
 	functionName string // for function operations specific to the db driver
 	distinct     bool   // some aggregate queries, particularly count, allow this inside the function
+	isAggregate  bool
 }
 
 // NewOperationNode returns a new operation node.
@@ -109,15 +110,28 @@ func NewFunctionNode(functionName string, operands ...interface{}) *OperationNod
 	return n
 }
 
+// NewAggregateFunctionNode returns an operation node that executes an aggregate function.
+func NewAggregateFunctionNode(functionName string, operands ...interface{}) *OperationNode {
+	n := &OperationNode{
+		op:           OpFunc,
+		functionName: functionName,
+		isAggregate:  true,
+	}
+	n.assignOperands(operands...)
+	return n
+}
+
 // NewCountNode creates a Count function node. If no operands are given, it will use * as the parameter to the function
 // which means it will count nulls. To NOT count nulls, a node needs to be specified. Only up to one node can be specified.
 func NewCountNode(operands ...Node) *OperationNode {
 	n := &OperationNode{
 		op:           OpFunc,
 		functionName: "COUNT",
+		isAggregate:  true,
 	}
 	// Note: Some SQLs like MySQL and Postgres allow multiple operands combined with DISTINCT.
 	// However, others do not. We support only the universally accepted way.
+	// There are workarounds.
 	if len(operands) > 1 {
 		panic("can only specify one operand in a count operation")
 	}
@@ -237,4 +251,32 @@ func OperationNodeFunction(n *OperationNode) string {
 // OperationNodeDistinct is used internally by the framework to get the distinct value.
 func OperationNodeDistinct(n *OperationNode) bool {
 	return n.distinct
+}
+
+// OperationNodeIsAggregate is used internally by the framework to get the isAggregate value.
+func OperationNodeIsAggregate(n *OperationNode) bool {
+	return n.isAggregate
+}
+
+// NodeHasAggregate is used internally by the framework to get the isAggregate value.
+func NodeHasAggregate(n Node) bool {
+	if on, ok := n.(*OperationNode); ok {
+		if on.isAggregate {
+			return true
+		}
+		for _, op := range on.operands {
+			return NodeHasAggregate(op)
+		}
+	}
+	return false
+}
+
+// NodeIsAggregate is used internally by the framework to get the isAggregate value.
+func NodeIsAggregate(n Node) bool {
+	if on, ok := n.(*OperationNode); ok {
+		if on.isAggregate {
+			return true
+		}
+	}
+	return false
 }

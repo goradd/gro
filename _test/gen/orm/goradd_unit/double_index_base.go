@@ -211,7 +211,7 @@ func LoadDoubleIndex(ctx context.Context, id int, selectNodes ...query.Node) *Do
 func HasDoubleIndex(ctx context.Context, id int) bool {
 	return queryDoubleIndices(ctx).
 		Where(op.Equal(node.DoubleIndex().ID(), id)).
-		Count(false) == 1
+		Count() == 1
 }
 
 // LoadDoubleIndexByID queries for a single DoubleIndex object by the given unique index values.
@@ -230,7 +230,7 @@ func LoadDoubleIndexByID(ctx context.Context, id int, selectNodes ...query.Node)
 func HasDoubleIndexByID(ctx context.Context, id int) bool {
 	q := queryDoubleIndices(ctx)
 	q = q.Where(op.Equal(node.DoubleIndex().ID(), id))
-	return q.Count(false) == 1
+	return q.Count() == 1
 }
 
 // LoadDoubleIndexByFieldIntFieldString queries for a single DoubleIndex object by the given unique index values.
@@ -251,7 +251,7 @@ func HasDoubleIndexByFieldIntFieldString(ctx context.Context, fieldInt int, fiel
 	q := queryDoubleIndices(ctx)
 	q = q.Where(op.Equal(node.DoubleIndex().FieldInt(), fieldInt))
 	q = q.Where(op.Equal(node.DoubleIndex().FieldString(), fieldString))
-	return q.Count(false) == 1
+	return q.Count() == 1
 }
 
 // The DoubleIndexBuilder uses the query.BuilderI interface to build a query.
@@ -287,7 +287,7 @@ type DoubleIndexBuilder interface {
 	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) DoubleIndexBuilder
 
 	// Distinct removes duplicates from the results of the query.
-	// Adding a Select() is usually required.
+	// Adding a Select() is required.
 	Distinct() DoubleIndexBuilder
 
 	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
@@ -326,10 +326,11 @@ type DoubleIndexBuilder interface {
 	// In the case of an error, the error is returned in the context.
 	Get() *DoubleIndex
 
-	// Count terminates a query and returns just the number of items selected.
-	// distinct wll count the number of distinct items, ignoring duplicates.
-	// nodes will select individual fields, and should be accompanied by a GroupBy.
-	Count(distinct bool, nodes ...query.Node) int
+	// Count terminates a query and returns just the number of items in the result.
+	// If you have Select or Calculation columns in the query, it will count NULL results as well.
+	// To not count NULL values, use Where in the builder with a NotNull operation.
+	// To count distinct combinations of items, call Distinct() on the builder.
+	Count() int
 
 	// Delete uses the query builder to delete a group of records that match the criteria
 	Delete()
@@ -358,7 +359,7 @@ func newDoubleIndexBuilder(ctx context.Context) DoubleIndexBuilder {
 func (b *doubleIndexQueryBuilder) Load() (doubleIndices []*DoubleIndex) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return
 	}
@@ -377,7 +378,7 @@ func (b *doubleIndexQueryBuilder) Load() (doubleIndices []*DoubleIndex) {
 func (b *doubleIndexQueryBuilder) LoadI() (doubleIndices []any) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return
 	}
@@ -404,7 +405,7 @@ func (b *doubleIndexQueryBuilder) LoadI() (doubleIndices []any) {
 func (b *doubleIndexQueryBuilder) LoadCursor() doubleIndicesCursor {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
-	result := database.BuilderQuery(b.builder.Ctx, b.builder)
+	result := database.BuilderQuery(b.builder)
 	if result == nil {
 		return doubleIndicesCursor{}
 	}
@@ -527,16 +528,14 @@ func (b *doubleIndexQueryBuilder) Having(node query.Node) DoubleIndexBuilder {
 	return b
 }
 
-// Count terminates a query and returns just the number of items selected.
-// distinct wll count the number of distinct items, ignoring duplicates.
-// nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *doubleIndexQueryBuilder) Count(distinct bool, nodes ...query.Node) int {
+// Count terminates a query and returns just the number of items in the result.
+// If you have Select or Calculation columns in the query, it will count NULL results as well.
+// To not count NULL values, use Where in the builder with a NotNull operation.
+// To count distinct combinations of items, call Distinct() on the builder.
+func (b *doubleIndexQueryBuilder) Count() int {
 	b.builder.Command = query.BuilderCommandCount
-	if distinct {
-		b.builder.Distinct()
-	}
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return 0
 	}
@@ -547,7 +546,7 @@ func (b *doubleIndexQueryBuilder) Count(distinct bool, nodes ...query.Node) int 
 func (b *doubleIndexQueryBuilder) Delete() {
 	b.builder.Command = query.BuilderCommandDelete
 	database := db.GetDatabase("goradd_unit")
-	database.BuilderQuery(b.builder.Ctx, b.builder)
+	database.BuilderQuery(b.builder)
 	broadcast.BulkChange(b.builder.Context(), "goradd_unit", "double_index")
 }
 
@@ -564,21 +563,21 @@ func (b *doubleIndexQueryBuilder)  Subquery() *query.SubqueryNode {
 // have id.
 // doc: type=DoubleIndex
 func CountDoubleIndexByID(ctx context.Context, id int) int {
-	return int(queryDoubleIndices(ctx).Where(op.Equal(node.DoubleIndex().ID(), id)).Count(false))
+	return queryDoubleIndices(ctx).Where(op.Equal(node.DoubleIndex().ID(), id)).Count()
 }
 
 // CountDoubleIndexByFieldInt queries the database and returns the number of DoubleIndex objects that
 // have fieldInt.
 // doc: type=DoubleIndex
 func CountDoubleIndexByFieldInt(ctx context.Context, fieldInt int) int {
-	return int(queryDoubleIndices(ctx).Where(op.Equal(node.DoubleIndex().FieldInt(), fieldInt)).Count(false))
+	return queryDoubleIndices(ctx).Where(op.Equal(node.DoubleIndex().FieldInt(), fieldInt)).Count()
 }
 
 // CountDoubleIndexByFieldString queries the database and returns the number of DoubleIndex objects that
 // have fieldString.
 // doc: type=DoubleIndex
 func CountDoubleIndexByFieldString(ctx context.Context, fieldString string) int {
-	return int(queryDoubleIndices(ctx).Where(op.Equal(node.DoubleIndex().FieldString(), fieldString)).Count(false))
+	return queryDoubleIndices(ctx).Where(op.Equal(node.DoubleIndex().FieldString(), fieldString)).Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships

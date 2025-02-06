@@ -303,7 +303,7 @@ func LoadAddress(ctx context.Context, id string, selectNodes ...query.Node) *Add
 func HasAddress(ctx context.Context, id string) bool {
 	return queryAddresses(ctx).
 		Where(op.Equal(node.Address().ID(), id)).
-		Count(false) == 1
+		Count() == 1
 }
 
 // The AddressBuilder uses the query.BuilderI interface to build a query.
@@ -339,7 +339,7 @@ type AddressBuilder interface {
 	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) AddressBuilder
 
 	// Distinct removes duplicates from the results of the query.
-	// Adding a Select() is usually required.
+	// Adding a Select() is required.
 	Distinct() AddressBuilder
 
 	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
@@ -378,10 +378,11 @@ type AddressBuilder interface {
 	// In the case of an error, the error is returned in the context.
 	Get() *Address
 
-	// Count terminates a query and returns just the number of items selected.
-	// distinct wll count the number of distinct items, ignoring duplicates.
-	// nodes will select individual fields, and should be accompanied by a GroupBy.
-	Count(distinct bool, nodes ...query.Node) int
+	// Count terminates a query and returns just the number of items in the result.
+	// If you have Select or Calculation columns in the query, it will count NULL results as well.
+	// To not count NULL values, use Where in the builder with a NotNull operation.
+	// To count distinct combinations of items, call Distinct() on the builder.
+	Count() int
 
 	// Delete uses the query builder to delete a group of records that match the criteria
 	Delete()
@@ -410,7 +411,7 @@ func newAddressBuilder(ctx context.Context) AddressBuilder {
 func (b *addressQueryBuilder) Load() (addresses []*Address) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return
 	}
@@ -429,7 +430,7 @@ func (b *addressQueryBuilder) Load() (addresses []*Address) {
 func (b *addressQueryBuilder) LoadI() (addresses []any) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return
 	}
@@ -456,7 +457,7 @@ func (b *addressQueryBuilder) LoadI() (addresses []any) {
 func (b *addressQueryBuilder) LoadCursor() addressesCursor {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
-	result := database.BuilderQuery(b.builder.Ctx, b.builder)
+	result := database.BuilderQuery(b.builder)
 	if result == nil {
 		return addressesCursor{}
 	}
@@ -579,16 +580,14 @@ func (b *addressQueryBuilder) Having(node query.Node) AddressBuilder {
 	return b
 }
 
-// Count terminates a query and returns just the number of items selected.
-// distinct wll count the number of distinct items, ignoring duplicates.
-// nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *addressQueryBuilder) Count(distinct bool, nodes ...query.Node) int {
+// Count terminates a query and returns just the number of items in the result.
+// If you have Select or Calculation columns in the query, it will count NULL results as well.
+// To not count NULL values, use Where in the builder with a NotNull operation.
+// To count distinct combinations of items, call Distinct() on the builder.
+func (b *addressQueryBuilder) Count() int {
 	b.builder.Command = query.BuilderCommandCount
-	if distinct {
-		b.builder.Distinct()
-	}
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return 0
 	}
@@ -599,7 +598,7 @@ func (b *addressQueryBuilder) Count(distinct bool, nodes ...query.Node) int {
 func (b *addressQueryBuilder) Delete() {
 	b.builder.Command = query.BuilderCommandDelete
 	database := db.GetDatabase("goradd")
-	database.BuilderQuery(b.builder.Ctx, b.builder)
+	database.BuilderQuery(b.builder)
 	broadcast.BulkChange(b.builder.Context(), "goradd", "address")
 }
 
@@ -616,7 +615,7 @@ func (b *addressQueryBuilder)  Subquery() *query.SubqueryNode {
 // have id.
 // doc: type=Address
 func CountAddressByID(ctx context.Context, id string) int {
-	return int(queryAddresses(ctx).Where(op.Equal(node.Address().ID(), id)).Count(false))
+	return queryAddresses(ctx).Where(op.Equal(node.Address().ID(), id)).Count()
 }
 
 // CountAddressByPersonID queries the database and returns the number of Address objects that
@@ -626,21 +625,21 @@ func CountAddressByPersonID(ctx context.Context, personID string) int {
 	if personID == "" {
 		return 0
 	}
-	return int(queryAddresses(ctx).Where(op.Equal(node.Address().PersonID(), personID)).Count(false))
+	return queryAddresses(ctx).Where(op.Equal(node.Address().PersonID(), personID)).Count()
 }
 
 // CountAddressByStreet queries the database and returns the number of Address objects that
 // have street.
 // doc: type=Address
 func CountAddressByStreet(ctx context.Context, street string) int {
-	return int(queryAddresses(ctx).Where(op.Equal(node.Address().Street(), street)).Count(false))
+	return queryAddresses(ctx).Where(op.Equal(node.Address().Street(), street)).Count()
 }
 
 // CountAddressByCity queries the database and returns the number of Address objects that
 // have city.
 // doc: type=Address
 func CountAddressByCity(ctx context.Context, city string) int {
-	return int(queryAddresses(ctx).Where(op.Equal(node.Address().City(), city)).Count(false))
+	return queryAddresses(ctx).Where(op.Equal(node.Address().City(), city)).Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships

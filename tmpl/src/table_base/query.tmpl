@@ -18,7 +18,7 @@ func Load{{= table.Identifier }}(ctx context.Context, {{= table.PrimaryKeyColumn
 func Has{{= table.Identifier }}(ctx context.Context, {{= table.PrimaryKeyColumn().VariableIdentifier() }} {{= table.PrimaryKeyGoType() }}) bool {
     return query{{= table.IdentifierPlural }}(ctx).
 	     Where(op.Equal(node.{{= table.Identifier }}().{{= table.PrimaryKeyColumn().Identifier }}(), {{= table.PrimaryKeyColumn().VariableIdentifier() }})).
-         Count(false) == 1
+         Count() == 1
 }
 
 {{for _,idx := range table.Indexes}}
@@ -59,7 +59,7 @@ func Has{{= table.Identifier }}By{{for _,col := range idx.Columns}}{{= col.Ident
     q = q.Where(op.Equal(node.{{= table.Identifier}}().{{= col.Identifier }}(), {{= col.DecapIdentifier }}))
 {{if}}
 {{for}}
-    return q.Count(false) == 1
+    return q.Count() == 1
 }
 {{if}} {{# unique}}
 {{for}}

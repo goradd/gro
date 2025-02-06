@@ -71,9 +71,9 @@ func (o *{{= table.DecapIdentifier}}Base) Load{{= mm.IdentifierPlural }}(ctx con
 // Note that this returns what is reflected by the database at that instant, and not what
 // is the count of the loaded objects.
 func (o *{{= table.DecapIdentifier }}Base) Count{{= mm.IdentifierPlural }}(ctx context.Context) int {
-	return int(Query{{= mm.ObjectTypePlural() }}(ctx).
+	return Query{{= mm.ObjectTypePlural() }}(ctx).
 		Where(op.Equal(node.{{= mm.ObjectType() }}().{{= mm.MM.IdentifierPlural }}(), o.PrimaryKey())).
-		Count(false))
+		Count()
 
 }
 

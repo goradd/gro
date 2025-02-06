@@ -2,22 +2,22 @@ package op
 
 import . "github.com/goradd/orm/pkg/query"
 
-// On some databases, these aggregate operations will only work if there is a GroupBy clause as well.
+// Aggregates require a group by clause if aggregating over particular columns.
 
 func Min(n Node) *OperationNode {
-	return NewFunctionNode("MIN", n)
+	return NewAggregateFunctionNode("MIN", n)
 }
 
 func Max(n Node) *OperationNode {
-	return NewFunctionNode("MAX", n)
+	return NewAggregateFunctionNode("MAX", n)
 }
 
 func Avg(n Node) *OperationNode {
-	return NewFunctionNode("AVG", n)
+	return NewAggregateFunctionNode("AVG", n)
 }
 
 func Sum(n Node) *OperationNode {
-	return NewFunctionNode("SUM", n)
+	return NewAggregateFunctionNode("SUM", n)
 }
 
 func Count(nodes ...Node) *OperationNode {

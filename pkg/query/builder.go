@@ -14,7 +14,7 @@ const (
 	BuilderCommandLoadCursor
 )
 
-// AliasResults is the special item to use for named aliases in the result set
+// AliasResults is the index name that will be used for all calculations and other aliased results in the result set.
 const AliasResults = "aliases_"
 
 type CursorI interface {
@@ -111,6 +111,9 @@ func (b *Builder) Join(alias string, n Node, condition Node) {
 
 // Calculation adds the aliased calculation node operation onto base.
 func (b *Builder) Calculation(base TableNodeI, alias string, operation OperationNodeI) {
+	if b.Calculations == nil {
+		b.Calculations = make(map[string]calcType)
+	}
 	if _, ok := b.Calculations[alias]; ok {
 		panic("alias already exists") // aliases must be unique across the entire operation
 	}

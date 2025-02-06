@@ -228,7 +228,7 @@ func LoadEmployeeInfo(ctx context.Context, id string, selectNodes ...query.Node)
 func HasEmployeeInfo(ctx context.Context, id string) bool {
 	return queryEmployeeInfos(ctx).
 		Where(op.Equal(node.EmployeeInfo().ID(), id)).
-		Count(false) == 1
+		Count() == 1
 }
 
 // LoadEmployeeInfoByPersonID queries for a single EmployeeInfo object by the given unique index values.
@@ -247,7 +247,7 @@ func LoadEmployeeInfoByPersonID(ctx context.Context, personID string, selectNode
 func HasEmployeeInfoByPersonID(ctx context.Context, personID string) bool {
 	q := queryEmployeeInfos(ctx)
 	q = q.Where(op.Equal(node.EmployeeInfo().PersonID(), personID))
-	return q.Count(false) == 1
+	return q.Count() == 1
 }
 
 // The EmployeeInfoBuilder uses the query.BuilderI interface to build a query.
@@ -283,7 +283,7 @@ type EmployeeInfoBuilder interface {
 	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) EmployeeInfoBuilder
 
 	// Distinct removes duplicates from the results of the query.
-	// Adding a Select() is usually required.
+	// Adding a Select() is required.
 	Distinct() EmployeeInfoBuilder
 
 	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
@@ -322,10 +322,11 @@ type EmployeeInfoBuilder interface {
 	// In the case of an error, the error is returned in the context.
 	Get() *EmployeeInfo
 
-	// Count terminates a query and returns just the number of items selected.
-	// distinct wll count the number of distinct items, ignoring duplicates.
-	// nodes will select individual fields, and should be accompanied by a GroupBy.
-	Count(distinct bool, nodes ...query.Node) int
+	// Count terminates a query and returns just the number of items in the result.
+	// If you have Select or Calculation columns in the query, it will count NULL results as well.
+	// To not count NULL values, use Where in the builder with a NotNull operation.
+	// To count distinct combinations of items, call Distinct() on the builder.
+	Count() int
 
 	// Delete uses the query builder to delete a group of records that match the criteria
 	Delete()
@@ -354,7 +355,7 @@ func newEmployeeInfoBuilder(ctx context.Context) EmployeeInfoBuilder {
 func (b *employeeInfoQueryBuilder) Load() (employeeInfos []*EmployeeInfo) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return
 	}
@@ -373,7 +374,7 @@ func (b *employeeInfoQueryBuilder) Load() (employeeInfos []*EmployeeInfo) {
 func (b *employeeInfoQueryBuilder) LoadI() (employeeInfos []any) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return
 	}
@@ -400,7 +401,7 @@ func (b *employeeInfoQueryBuilder) LoadI() (employeeInfos []any) {
 func (b *employeeInfoQueryBuilder) LoadCursor() employeeInfosCursor {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
-	result := database.BuilderQuery(b.builder.Ctx, b.builder)
+	result := database.BuilderQuery(b.builder)
 	if result == nil {
 		return employeeInfosCursor{}
 	}
@@ -523,16 +524,14 @@ func (b *employeeInfoQueryBuilder) Having(node query.Node) EmployeeInfoBuilder {
 	return b
 }
 
-// Count terminates a query and returns just the number of items selected.
-// distinct wll count the number of distinct items, ignoring duplicates.
-// nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *employeeInfoQueryBuilder) Count(distinct bool, nodes ...query.Node) int {
+// Count terminates a query and returns just the number of items in the result.
+// If you have Select or Calculation columns in the query, it will count NULL results as well.
+// To not count NULL values, use Where in the builder with a NotNull operation.
+// To count distinct combinations of items, call Distinct() on the builder.
+func (b *employeeInfoQueryBuilder) Count() int {
 	b.builder.Command = query.BuilderCommandCount
-	if distinct {
-		b.builder.Distinct()
-	}
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return 0
 	}
@@ -543,7 +542,7 @@ func (b *employeeInfoQueryBuilder) Count(distinct bool, nodes ...query.Node) int
 func (b *employeeInfoQueryBuilder) Delete() {
 	b.builder.Command = query.BuilderCommandDelete
 	database := db.GetDatabase("goradd")
-	database.BuilderQuery(b.builder.Ctx, b.builder)
+	database.BuilderQuery(b.builder)
 	broadcast.BulkChange(b.builder.Context(), "goradd", "employee_info")
 }
 
@@ -560,7 +559,7 @@ func (b *employeeInfoQueryBuilder)  Subquery() *query.SubqueryNode {
 // have id.
 // doc: type=EmployeeInfo
 func CountEmployeeInfoByID(ctx context.Context, id string) int {
-	return int(queryEmployeeInfos(ctx).Where(op.Equal(node.EmployeeInfo().ID(), id)).Count(false))
+	return queryEmployeeInfos(ctx).Where(op.Equal(node.EmployeeInfo().ID(), id)).Count()
 }
 
 // CountEmployeeInfoByPersonID queries the database and returns the number of EmployeeInfo objects that
@@ -570,14 +569,14 @@ func CountEmployeeInfoByPersonID(ctx context.Context, personID string) int {
 	if personID == "" {
 		return 0
 	}
-	return int(queryEmployeeInfos(ctx).Where(op.Equal(node.EmployeeInfo().PersonID(), personID)).Count(false))
+	return queryEmployeeInfos(ctx).Where(op.Equal(node.EmployeeInfo().PersonID(), personID)).Count()
 }
 
 // CountEmployeeInfoByEmployeeNumber queries the database and returns the number of EmployeeInfo objects that
 // have employeeNumber.
 // doc: type=EmployeeInfo
 func CountEmployeeInfoByEmployeeNumber(ctx context.Context, employeeNumber int) int {
-	return int(queryEmployeeInfos(ctx).Where(op.Equal(node.EmployeeInfo().EmployeeNumber(), employeeNumber)).Count(false))
+	return queryEmployeeInfos(ctx).Where(op.Equal(node.EmployeeInfo().EmployeeNumber(), employeeNumber)).Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships

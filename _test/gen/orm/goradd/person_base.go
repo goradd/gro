@@ -321,9 +321,9 @@ func (o *personBase) LoadProjects(ctx context.Context) []*Project {
 // Note that this returns what is reflected by the database at that instant, and not what
 // is the count of the loaded objects.
 func (o *personBase) CountProjects(ctx context.Context) int {
-	return int(QueryProjects(ctx).
+	return QueryProjects(ctx).
 		Where(op.Equal(node.Project().TeamMembers(), o.PrimaryKey())).
-		Count(false))
+		Count()
 
 }
 
@@ -662,7 +662,7 @@ func LoadPerson(ctx context.Context, id string, selectNodes ...query.Node) *Pers
 func HasPerson(ctx context.Context, id string) bool {
 	return queryPeople(ctx).
 		Where(op.Equal(node.Person().ID(), id)).
-		Count(false) == 1
+		Count() == 1
 }
 
 // The PersonBuilder uses the query.BuilderI interface to build a query.
@@ -698,7 +698,7 @@ type PersonBuilder interface {
 	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) PersonBuilder
 
 	// Distinct removes duplicates from the results of the query.
-	// Adding a Select() is usually required.
+	// Adding a Select() is required.
 	Distinct() PersonBuilder
 
 	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
@@ -737,10 +737,11 @@ type PersonBuilder interface {
 	// In the case of an error, the error is returned in the context.
 	Get() *Person
 
-	// Count terminates a query and returns just the number of items selected.
-	// distinct wll count the number of distinct items, ignoring duplicates.
-	// nodes will select individual fields, and should be accompanied by a GroupBy.
-	Count(distinct bool, nodes ...query.Node) int
+	// Count terminates a query and returns just the number of items in the result.
+	// If you have Select or Calculation columns in the query, it will count NULL results as well.
+	// To not count NULL values, use Where in the builder with a NotNull operation.
+	// To count distinct combinations of items, call Distinct() on the builder.
+	Count() int
 
 	// Delete uses the query builder to delete a group of records that match the criteria
 	Delete()
@@ -769,7 +770,7 @@ func newPersonBuilder(ctx context.Context) PersonBuilder {
 func (b *personQueryBuilder) Load() (people []*Person) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return
 	}
@@ -788,7 +789,7 @@ func (b *personQueryBuilder) Load() (people []*Person) {
 func (b *personQueryBuilder) LoadI() (people []any) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return
 	}
@@ -815,7 +816,7 @@ func (b *personQueryBuilder) LoadI() (people []any) {
 func (b *personQueryBuilder) LoadCursor() peopleCursor {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
-	result := database.BuilderQuery(b.builder.Ctx, b.builder)
+	result := database.BuilderQuery(b.builder)
 	if result == nil {
 		return peopleCursor{}
 	}
@@ -938,16 +939,14 @@ func (b *personQueryBuilder) Having(node query.Node) PersonBuilder {
 	return b
 }
 
-// Count terminates a query and returns just the number of items selected.
-// distinct wll count the number of distinct items, ignoring duplicates.
-// nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *personQueryBuilder) Count(distinct bool, nodes ...query.Node) int {
+// Count terminates a query and returns just the number of items in the result.
+// If you have Select or Calculation columns in the query, it will count NULL results as well.
+// To not count NULL values, use Where in the builder with a NotNull operation.
+// To count distinct combinations of items, call Distinct() on the builder.
+func (b *personQueryBuilder) Count() int {
 	b.builder.Command = query.BuilderCommandCount
-	if distinct {
-		b.builder.Distinct()
-	}
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return 0
 	}
@@ -958,7 +957,7 @@ func (b *personQueryBuilder) Count(distinct bool, nodes ...query.Node) int {
 func (b *personQueryBuilder) Delete() {
 	b.builder.Command = query.BuilderCommandDelete
 	database := db.GetDatabase("goradd")
-	database.BuilderQuery(b.builder.Ctx, b.builder)
+	database.BuilderQuery(b.builder)
 	broadcast.BulkChange(b.builder.Context(), "goradd", "person")
 }
 
@@ -975,21 +974,21 @@ func (b *personQueryBuilder)  Subquery() *query.SubqueryNode {
 // have id.
 // doc: type=Person
 func CountPersonByID(ctx context.Context, id string) int {
-	return int(queryPeople(ctx).Where(op.Equal(node.Person().ID(), id)).Count(false))
+	return queryPeople(ctx).Where(op.Equal(node.Person().ID(), id)).Count()
 }
 
 // CountPersonByFirstName queries the database and returns the number of Person objects that
 // have firstName.
 // doc: type=Person
 func CountPersonByFirstName(ctx context.Context, firstName string) int {
-	return int(queryPeople(ctx).Where(op.Equal(node.Person().FirstName(), firstName)).Count(false))
+	return queryPeople(ctx).Where(op.Equal(node.Person().FirstName(), firstName)).Count()
 }
 
 // CountPersonByLastName queries the database and returns the number of Person objects that
 // have lastName.
 // doc: type=Person
 func CountPersonByLastName(ctx context.Context, lastName string) int {
-	return int(queryPeople(ctx).Where(op.Equal(node.Person().LastName(), lastName)).Count(false))
+	return queryPeople(ctx).Where(op.Equal(node.Person().LastName(), lastName)).Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships

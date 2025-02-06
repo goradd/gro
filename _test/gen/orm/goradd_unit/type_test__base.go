@@ -804,7 +804,7 @@ func LoadTypeTest(ctx context.Context, id string, selectNodes ...query.Node) *Ty
 func HasTypeTest(ctx context.Context, id string) bool {
 	return queryTypeTests(ctx).
 		Where(op.Equal(node.TypeTest().ID(), id)).
-		Count(false) == 1
+		Count() == 1
 }
 
 // The TypeTestBuilder uses the query.BuilderI interface to build a query.
@@ -840,7 +840,7 @@ type TypeTestBuilder interface {
 	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) TypeTestBuilder
 
 	// Distinct removes duplicates from the results of the query.
-	// Adding a Select() is usually required.
+	// Adding a Select() is required.
 	Distinct() TypeTestBuilder
 
 	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
@@ -879,10 +879,11 @@ type TypeTestBuilder interface {
 	// In the case of an error, the error is returned in the context.
 	Get() *TypeTest
 
-	// Count terminates a query and returns just the number of items selected.
-	// distinct wll count the number of distinct items, ignoring duplicates.
-	// nodes will select individual fields, and should be accompanied by a GroupBy.
-	Count(distinct bool, nodes ...query.Node) int
+	// Count terminates a query and returns just the number of items in the result.
+	// If you have Select or Calculation columns in the query, it will count NULL results as well.
+	// To not count NULL values, use Where in the builder with a NotNull operation.
+	// To count distinct combinations of items, call Distinct() on the builder.
+	Count() int
 
 	// Delete uses the query builder to delete a group of records that match the criteria
 	Delete()
@@ -911,7 +912,7 @@ func newTypeTestBuilder(ctx context.Context) TypeTestBuilder {
 func (b *typeTestQueryBuilder) Load() (typeTests []*TypeTest) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return
 	}
@@ -930,7 +931,7 @@ func (b *typeTestQueryBuilder) Load() (typeTests []*TypeTest) {
 func (b *typeTestQueryBuilder) LoadI() (typeTests []any) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return
 	}
@@ -957,7 +958,7 @@ func (b *typeTestQueryBuilder) LoadI() (typeTests []any) {
 func (b *typeTestQueryBuilder) LoadCursor() typeTestsCursor {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
-	result := database.BuilderQuery(b.builder.Ctx, b.builder)
+	result := database.BuilderQuery(b.builder)
 	if result == nil {
 		return typeTestsCursor{}
 	}
@@ -1080,16 +1081,14 @@ func (b *typeTestQueryBuilder) Having(node query.Node) TypeTestBuilder {
 	return b
 }
 
-// Count terminates a query and returns just the number of items selected.
-// distinct wll count the number of distinct items, ignoring duplicates.
-// nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *typeTestQueryBuilder) Count(distinct bool, nodes ...query.Node) int {
+// Count terminates a query and returns just the number of items in the result.
+// If you have Select or Calculation columns in the query, it will count NULL results as well.
+// To not count NULL values, use Where in the builder with a NotNull operation.
+// To count distinct combinations of items, call Distinct() on the builder.
+func (b *typeTestQueryBuilder) Count() int {
 	b.builder.Command = query.BuilderCommandCount
-	if distinct {
-		b.builder.Distinct()
-	}
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return 0
 	}
@@ -1100,7 +1099,7 @@ func (b *typeTestQueryBuilder) Count(distinct bool, nodes ...query.Node) int {
 func (b *typeTestQueryBuilder) Delete() {
 	b.builder.Command = query.BuilderCommandDelete
 	database := db.GetDatabase("goradd_unit")
-	database.BuilderQuery(b.builder.Ctx, b.builder)
+	database.BuilderQuery(b.builder)
 	broadcast.BulkChange(b.builder.Context(), "goradd_unit", "type_test")
 }
 
@@ -1117,84 +1116,84 @@ func (b *typeTestQueryBuilder)  Subquery() *query.SubqueryNode {
 // have id.
 // doc: type=TypeTest
 func CountTypeTestByID(ctx context.Context, id string) int {
-	return int(queryTypeTests(ctx).Where(op.Equal(node.TypeTest().ID(), id)).Count(false))
+	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().ID(), id)).Count()
 }
 
 // CountTypeTestByDate queries the database and returns the number of TypeTest objects that
 // have date.
 // doc: type=TypeTest
 func CountTypeTestByDate(ctx context.Context, date time.Time) int {
-	return int(queryTypeTests(ctx).Where(op.Equal(node.TypeTest().Date(), date)).Count(false))
+	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().Date(), date)).Count()
 }
 
 // CountTypeTestByTime queries the database and returns the number of TypeTest objects that
 // have time.
 // doc: type=TypeTest
 func CountTypeTestByTime(ctx context.Context, time time.Time) int {
-	return int(queryTypeTests(ctx).Where(op.Equal(node.TypeTest().Time(), time)).Count(false))
+	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().Time(), time)).Count()
 }
 
 // CountTypeTestByDateTime queries the database and returns the number of TypeTest objects that
 // have dateTime.
 // doc: type=TypeTest
 func CountTypeTestByDateTime(ctx context.Context, dateTime time.Time) int {
-	return int(queryTypeTests(ctx).Where(op.Equal(node.TypeTest().DateTime(), dateTime)).Count(false))
+	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().DateTime(), dateTime)).Count()
 }
 
 // CountTypeTestByTs queries the database and returns the number of TypeTest objects that
 // have ts.
 // doc: type=TypeTest
 func CountTypeTestByTs(ctx context.Context, ts time.Time) int {
-	return int(queryTypeTests(ctx).Where(op.Equal(node.TypeTest().Ts(), ts)).Count(false))
+	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().Ts(), ts)).Count()
 }
 
 // CountTypeTestByTestInt queries the database and returns the number of TypeTest objects that
 // have testInt.
 // doc: type=TypeTest
 func CountTypeTestByTestInt(ctx context.Context, testInt int) int {
-	return int(queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestInt(), testInt)).Count(false))
+	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestInt(), testInt)).Count()
 }
 
 // CountTypeTestByTestFloat queries the database and returns the number of TypeTest objects that
 // have testFloat.
 // doc: type=TypeTest
 func CountTypeTestByTestFloat(ctx context.Context, testFloat float32) int {
-	return int(queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestFloat(), testFloat)).Count(false))
+	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestFloat(), testFloat)).Count()
 }
 
 // CountTypeTestByTestDouble queries the database and returns the number of TypeTest objects that
 // have testDouble.
 // doc: type=TypeTest
 func CountTypeTestByTestDouble(ctx context.Context, testDouble float64) int {
-	return int(queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestDouble(), testDouble)).Count(false))
+	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestDouble(), testDouble)).Count()
 }
 
 // CountTypeTestByTestText queries the database and returns the number of TypeTest objects that
 // have testText.
 // doc: type=TypeTest
 func CountTypeTestByTestText(ctx context.Context, testText string) int {
-	return int(queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestText(), testText)).Count(false))
+	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestText(), testText)).Count()
 }
 
 // CountTypeTestByTestBit queries the database and returns the number of TypeTest objects that
 // have testBit.
 // doc: type=TypeTest
 func CountTypeTestByTestBit(ctx context.Context, testBit bool) int {
-	return int(queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestBit(), testBit)).Count(false))
+	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestBit(), testBit)).Count()
 }
 
 // CountTypeTestByTestVarchar queries the database and returns the number of TypeTest objects that
 // have testVarchar.
 // doc: type=TypeTest
 func CountTypeTestByTestVarchar(ctx context.Context, testVarchar string) int {
-	return int(queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestVarchar(), testVarchar)).Count(false))
+	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestVarchar(), testVarchar)).Count()
 }
 
 // CountTypeTestByTestBlob queries the database and returns the number of TypeTest objects that
 // have testBlob.
 // doc: type=TypeTest
 func CountTypeTestByTestBlob(ctx context.Context, testBlob []byte) int {
-	return int(queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestBlob(), testBlob)).Count(false))
+	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestBlob(), testBlob)).Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships

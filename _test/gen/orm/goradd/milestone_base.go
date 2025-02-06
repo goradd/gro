@@ -231,7 +231,7 @@ func LoadMilestone(ctx context.Context, id string, selectNodes ...query.Node) *M
 func HasMilestone(ctx context.Context, id string) bool {
 	return queryMilestones(ctx).
 		Where(op.Equal(node.Milestone().ID(), id)).
-		Count(false) == 1
+		Count() == 1
 }
 
 // The MilestoneBuilder uses the query.BuilderI interface to build a query.
@@ -267,7 +267,7 @@ type MilestoneBuilder interface {
 	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) MilestoneBuilder
 
 	// Distinct removes duplicates from the results of the query.
-	// Adding a Select() is usually required.
+	// Adding a Select() is required.
 	Distinct() MilestoneBuilder
 
 	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
@@ -306,10 +306,11 @@ type MilestoneBuilder interface {
 	// In the case of an error, the error is returned in the context.
 	Get() *Milestone
 
-	// Count terminates a query and returns just the number of items selected.
-	// distinct wll count the number of distinct items, ignoring duplicates.
-	// nodes will select individual fields, and should be accompanied by a GroupBy.
-	Count(distinct bool, nodes ...query.Node) int
+	// Count terminates a query and returns just the number of items in the result.
+	// If you have Select or Calculation columns in the query, it will count NULL results as well.
+	// To not count NULL values, use Where in the builder with a NotNull operation.
+	// To count distinct combinations of items, call Distinct() on the builder.
+	Count() int
 
 	// Delete uses the query builder to delete a group of records that match the criteria
 	Delete()
@@ -338,7 +339,7 @@ func newMilestoneBuilder(ctx context.Context) MilestoneBuilder {
 func (b *milestoneQueryBuilder) Load() (milestones []*Milestone) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return
 	}
@@ -357,7 +358,7 @@ func (b *milestoneQueryBuilder) Load() (milestones []*Milestone) {
 func (b *milestoneQueryBuilder) LoadI() (milestones []any) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return
 	}
@@ -384,7 +385,7 @@ func (b *milestoneQueryBuilder) LoadI() (milestones []any) {
 func (b *milestoneQueryBuilder) LoadCursor() milestonesCursor {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
-	result := database.BuilderQuery(b.builder.Ctx, b.builder)
+	result := database.BuilderQuery(b.builder)
 	if result == nil {
 		return milestonesCursor{}
 	}
@@ -507,16 +508,14 @@ func (b *milestoneQueryBuilder) Having(node query.Node) MilestoneBuilder {
 	return b
 }
 
-// Count terminates a query and returns just the number of items selected.
-// distinct wll count the number of distinct items, ignoring duplicates.
-// nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *milestoneQueryBuilder) Count(distinct bool, nodes ...query.Node) int {
+// Count terminates a query and returns just the number of items in the result.
+// If you have Select or Calculation columns in the query, it will count NULL results as well.
+// To not count NULL values, use Where in the builder with a NotNull operation.
+// To count distinct combinations of items, call Distinct() on the builder.
+func (b *milestoneQueryBuilder) Count() int {
 	b.builder.Command = query.BuilderCommandCount
-	if distinct {
-		b.builder.Distinct()
-	}
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return 0
 	}
@@ -527,7 +526,7 @@ func (b *milestoneQueryBuilder) Count(distinct bool, nodes ...query.Node) int {
 func (b *milestoneQueryBuilder) Delete() {
 	b.builder.Command = query.BuilderCommandDelete
 	database := db.GetDatabase("goradd")
-	database.BuilderQuery(b.builder.Ctx, b.builder)
+	database.BuilderQuery(b.builder)
 	broadcast.BulkChange(b.builder.Context(), "goradd", "milestone")
 }
 
@@ -544,7 +543,7 @@ func (b *milestoneQueryBuilder)  Subquery() *query.SubqueryNode {
 // have id.
 // doc: type=Milestone
 func CountMilestoneByID(ctx context.Context, id string) int {
-	return int(queryMilestones(ctx).Where(op.Equal(node.Milestone().ID(), id)).Count(false))
+	return queryMilestones(ctx).Where(op.Equal(node.Milestone().ID(), id)).Count()
 }
 
 // CountMilestoneByProjectID queries the database and returns the number of Milestone objects that
@@ -554,14 +553,14 @@ func CountMilestoneByProjectID(ctx context.Context, projectID string) int {
 	if projectID == "" {
 		return 0
 	}
-	return int(queryMilestones(ctx).Where(op.Equal(node.Milestone().ProjectID(), projectID)).Count(false))
+	return queryMilestones(ctx).Where(op.Equal(node.Milestone().ProjectID(), projectID)).Count()
 }
 
 // CountMilestoneByName queries the database and returns the number of Milestone objects that
 // have name.
 // doc: type=Milestone
 func CountMilestoneByName(ctx context.Context, name string) int {
-	return int(queryMilestones(ctx).Where(op.Equal(node.Milestone().Name(), name)).Count(false))
+	return queryMilestones(ctx).Where(op.Equal(node.Milestone().Name(), name)).Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships

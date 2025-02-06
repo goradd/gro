@@ -270,7 +270,7 @@ func LoadForwardNullUnique(ctx context.Context, id string, selectNodes ...query.
 func HasForwardNullUnique(ctx context.Context, id string) bool {
 	return queryForwardNullUniques(ctx).
 		Where(op.Equal(node.ForwardNullUnique().ID(), id)).
-		Count(false) == 1
+		Count() == 1
 }
 
 // LoadForwardNullUniqueByReverseID queries for a single ForwardNullUnique object by the given unique index values.
@@ -297,7 +297,7 @@ func HasForwardNullUniqueByReverseID(ctx context.Context, reverseID interface{})
 	} else {
 		q = q.Where(op.Equal(node.ForwardNullUnique().ReverseID(), reverseID))
 	}
-	return q.Count(false) == 1
+	return q.Count() == 1
 }
 
 // The ForwardNullUniqueBuilder uses the query.BuilderI interface to build a query.
@@ -333,7 +333,7 @@ type ForwardNullUniqueBuilder interface {
 	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) ForwardNullUniqueBuilder
 
 	// Distinct removes duplicates from the results of the query.
-	// Adding a Select() is usually required.
+	// Adding a Select() is required.
 	Distinct() ForwardNullUniqueBuilder
 
 	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
@@ -372,10 +372,11 @@ type ForwardNullUniqueBuilder interface {
 	// In the case of an error, the error is returned in the context.
 	Get() *ForwardNullUnique
 
-	// Count terminates a query and returns just the number of items selected.
-	// distinct wll count the number of distinct items, ignoring duplicates.
-	// nodes will select individual fields, and should be accompanied by a GroupBy.
-	Count(distinct bool, nodes ...query.Node) int
+	// Count terminates a query and returns just the number of items in the result.
+	// If you have Select or Calculation columns in the query, it will count NULL results as well.
+	// To not count NULL values, use Where in the builder with a NotNull operation.
+	// To count distinct combinations of items, call Distinct() on the builder.
+	Count() int
 
 	// Delete uses the query builder to delete a group of records that match the criteria
 	Delete()
@@ -404,7 +405,7 @@ func newForwardNullUniqueBuilder(ctx context.Context) ForwardNullUniqueBuilder {
 func (b *forwardNullUniqueQueryBuilder) Load() (forwardNullUniques []*ForwardNullUnique) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return
 	}
@@ -423,7 +424,7 @@ func (b *forwardNullUniqueQueryBuilder) Load() (forwardNullUniques []*ForwardNul
 func (b *forwardNullUniqueQueryBuilder) LoadI() (forwardNullUniques []any) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return
 	}
@@ -450,7 +451,7 @@ func (b *forwardNullUniqueQueryBuilder) LoadI() (forwardNullUniques []any) {
 func (b *forwardNullUniqueQueryBuilder) LoadCursor() forwardNullUniquesCursor {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
-	result := database.BuilderQuery(b.builder.Ctx, b.builder)
+	result := database.BuilderQuery(b.builder)
 	if result == nil {
 		return forwardNullUniquesCursor{}
 	}
@@ -573,16 +574,14 @@ func (b *forwardNullUniqueQueryBuilder) Having(node query.Node) ForwardNullUniqu
 	return b
 }
 
-// Count terminates a query and returns just the number of items selected.
-// distinct wll count the number of distinct items, ignoring duplicates.
-// nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *forwardNullUniqueQueryBuilder) Count(distinct bool, nodes ...query.Node) int {
+// Count terminates a query and returns just the number of items in the result.
+// If you have Select or Calculation columns in the query, it will count NULL results as well.
+// To not count NULL values, use Where in the builder with a NotNull operation.
+// To count distinct combinations of items, call Distinct() on the builder.
+func (b *forwardNullUniqueQueryBuilder) Count() int {
 	b.builder.Command = query.BuilderCommandCount
-	if distinct {
-		b.builder.Distinct()
-	}
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return 0
 	}
@@ -593,7 +592,7 @@ func (b *forwardNullUniqueQueryBuilder) Count(distinct bool, nodes ...query.Node
 func (b *forwardNullUniqueQueryBuilder) Delete() {
 	b.builder.Command = query.BuilderCommandDelete
 	database := db.GetDatabase("goradd_unit")
-	database.BuilderQuery(b.builder.Ctx, b.builder)
+	database.BuilderQuery(b.builder)
 	broadcast.BulkChange(b.builder.Context(), "goradd_unit", "forward_null_unique")
 }
 
@@ -610,14 +609,14 @@ func (b *forwardNullUniqueQueryBuilder)  Subquery() *query.SubqueryNode {
 // have id.
 // doc: type=ForwardNullUnique
 func CountForwardNullUniqueByID(ctx context.Context, id string) int {
-	return int(queryForwardNullUniques(ctx).Where(op.Equal(node.ForwardNullUnique().ID(), id)).Count(false))
+	return queryForwardNullUniques(ctx).Where(op.Equal(node.ForwardNullUnique().ID(), id)).Count()
 }
 
 // CountForwardNullUniqueByName queries the database and returns the number of ForwardNullUnique objects that
 // have name.
 // doc: type=ForwardNullUnique
 func CountForwardNullUniqueByName(ctx context.Context, name string) int {
-	return int(queryForwardNullUniques(ctx).Where(op.Equal(node.ForwardNullUnique().Name(), name)).Count(false))
+	return queryForwardNullUniques(ctx).Where(op.Equal(node.ForwardNullUnique().Name(), name)).Count()
 }
 
 // CountForwardNullUniqueByReverseID queries the database and returns the number of ForwardNullUnique objects that
@@ -627,7 +626,7 @@ func CountForwardNullUniqueByReverseID(ctx context.Context, reverseID string) in
 	if reverseID == "" {
 		return 0
 	}
-	return int(queryForwardNullUniques(ctx).Where(op.Equal(node.ForwardNullUnique().ReverseID(), reverseID)).Count(false))
+	return queryForwardNullUniques(ctx).Where(op.Equal(node.ForwardNullUnique().ReverseID(), reverseID)).Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships

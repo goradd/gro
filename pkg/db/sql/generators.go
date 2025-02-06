@@ -16,30 +16,30 @@ type deleteUsesAliaser interface {
 	DeleteUsesAlias() bool
 }
 
-// selectGenerator is an aid to generating various sql statements.
+// sqlGenerator is an aid to generating various sql statements.
 // SQL dialects are similar, but have small variations. This object
 // attempts to handle the major issues, while allowing individual
 // implementations of SQL to do their own tweaks.
-type selectGenerator struct {
+type sqlGenerator struct {
 	jt      *jointree.JoinTree
 	dbi     DbI
 	argList []any
 }
 
-func newSelectGenerator(jt *jointree.JoinTree, dbi DbI) *selectGenerator {
-	return &selectGenerator{jt: jt, dbi: dbi}
+func newSqlGenerator(jt *jointree.JoinTree, dbi DbI) *sqlGenerator {
+	return &sqlGenerator{jt: jt, dbi: dbi}
 }
 
-func (g *selectGenerator) iq(v string) string {
+func (g *sqlGenerator) iq(v string) string {
 	return g.dbi.QuoteIdentifier(v)
 }
 
-func (g *selectGenerator) addArg(v any) string {
+func (g *sqlGenerator) addArg(v any) string {
 	g.argList = append(g.argList, v)
 	return g.dbi.FormatArgument(len(g.argList))
 }
 
-func (g *selectGenerator) generateSelectSql() (sql string) {
+func (g *sqlGenerator) generateSelectSql() (sql string, args []any) {
 	var sb strings.Builder
 
 	if g.jt.IsDistinct {
@@ -56,10 +56,10 @@ func (g *selectGenerator) generateSelectSql() (sql string) {
 	sb.WriteString(g.generateOrderBySql())
 	sb.WriteString(g.generateLimitSql())
 
-	return sb.String()
+	return sb.String(), g.argList
 }
 
-func (g *selectGenerator) generateDeleteSql() (sql string) {
+func (g *sqlGenerator) generateDeleteSql() (sql string, args []any) {
 	var sb strings.Builder
 
 	if t, ok := g.dbi.(deleteUsesAliaser); ok && t.DeleteUsesAlias() {
@@ -77,10 +77,10 @@ func (g *selectGenerator) generateDeleteSql() (sql string) {
 	sb.WriteString(g.generateOrderBySql())
 	sb.WriteString(g.generateLimitSql())
 
-	return sb.String()
+	return sb.String(), g.argList
 }
 
-func (g *selectGenerator) generateColumnListWithAliases() (sql string) {
+func (g *sqlGenerator) generateColumnListWithAliases() (sql string) {
 	var sb strings.Builder
 
 	// Iterate over root selects and append to the string builder
@@ -107,7 +107,7 @@ func (g *selectGenerator) generateColumnListWithAliases() (sql string) {
 	return
 }
 
-func (g *selectGenerator) generateColumnNodeSql(parentAlias string, node Node) (sql string) {
+func (g *sqlGenerator) generateColumnNodeSql(parentAlias string, node Node) (sql string) {
 	var sb strings.Builder
 
 	sb.WriteString(g.iq(parentAlias))
@@ -117,7 +117,7 @@ func (g *selectGenerator) generateColumnNodeSql(parentAlias string, node Node) (
 	return sb.String()
 }
 
-func (g *selectGenerator) generateNodeSql(n Node, useAlias bool) (sql string) {
+func (g *sqlGenerator) generateNodeSql(n Node, useAlias bool) (sql string) {
 	switch node := n.(type) {
 	case *ValueNode:
 		v := ValueNodeGetValue(node)
@@ -151,7 +151,7 @@ func (g *selectGenerator) generateNodeSql(n Node, useAlias bool) (sql string) {
 		}
 
 	case *SubqueryNode:
-		sql = g.generateSubquerySql(node)
+		//sql = g.generateSubquerySql(node)
 	case TableNodeI:
 		tj := g.jt.FindElement(node)
 		sql = g.generateColumnNodeSql(tj.Alias, node.PrimaryKey())
@@ -163,7 +163,7 @@ func (g *selectGenerator) generateNodeSql(n Node, useAlias bool) (sql string) {
 
 // generateOperationSql generates SQL for an operation node.
 // useAlias specifies whether the operands can be aliased or not.
-func (g *selectGenerator) generateOperationSql(n *OperationNode, useAlias bool) (sql string) {
+func (g *sqlGenerator) generateOperationSql(n *OperationNode, useAlias bool) (sql string) {
 	var sb strings.Builder
 	var operands []string
 	operator := OperationNodeOperator(n)
@@ -270,20 +270,40 @@ func (g *selectGenerator) generateOperationSql(n *OperationNode, useAlias bool) 
 	return sb.String()
 }
 
-func (g *selectGenerator) generateAlias(alias string) (sql string) {
+func (g *sqlGenerator) generateAlias(alias string) (sql string) {
 	return g.iq(alias)
 }
 
-func (g *selectGenerator) generateSubquerySql(node *SubqueryNode) (sql string) {
+func (g *sqlGenerator) generateSubquerySql(node *SubqueryNode) (sql string) {
 	// The copy below intentionally reuses the argList and db items
 	g2 := *g
 	//g2.b = SubqueryBuilder(node).(*jointree.Builder)
-	sql = g2.generateSelectSql()
+	sql, _ = g2.generateSelectSql()
 	sql = "(" + sql + ")"
 	return
 }
 
-func (g *selectGenerator) generateFromSql() (sql string) {
+func (g *sqlGenerator) generateCountSql() (sql string, args []any) {
+	if g.jt.HasSelects() || g.jt.HasCalcs() {
+		// Use a subquery to get the rows, then just count the rows
+		sql, args = g.generateSelectSql()
+
+		sql = "SELECT COUNT(*) FROM (" + sql + ")"
+		return
+	}
+	// No need to subquery. Just count on the query.
+	var sb strings.Builder
+
+	sb.WriteString("SELECT COUNT(*)\n")
+	sb.WriteString(g.generateFromSql())
+	sb.WriteString(g.generateWhereSql())
+	sb.WriteString(g.generateGroupBySql())
+	sb.WriteString(g.generateHaving())
+
+	return sb.String(), g.argList
+}
+
+func (g *sqlGenerator) generateFromSql() (sql string) {
 	var sb strings.Builder
 
 	sb.WriteString("FROM\n")
@@ -301,7 +321,7 @@ func (g *selectGenerator) generateFromSql() (sql string) {
 	return sb.String()
 }
 
-func (g *selectGenerator) generateJoinSql(j *jointree.Element) (sql string) {
+func (g *sqlGenerator) generateJoinSql(j *jointree.Element) (sql string) {
 	var sb strings.Builder
 
 	var tn TableNodeI
@@ -407,7 +427,7 @@ func (g *selectGenerator) generateJoinSql(j *jointree.Element) (sql string) {
 	return sb.String()
 }
 
-func (g *selectGenerator) generateWhereSql() (sql string) {
+func (g *sqlGenerator) generateWhereSql() (sql string) {
 	if g.jt.Condition != nil {
 		var sb strings.Builder
 		sb.WriteString("WHERE ")
@@ -418,7 +438,7 @@ func (g *selectGenerator) generateWhereSql() (sql string) {
 	return
 }
 
-func (g *selectGenerator) generateGroupBySql() (sql string) {
+func (g *sqlGenerator) generateGroupBySql() (sql string) {
 	if len(g.jt.GroupBys) > 0 {
 		var sb strings.Builder
 		sb.WriteString("GROUP BY ")
@@ -434,7 +454,7 @@ func (g *selectGenerator) generateGroupBySql() (sql string) {
 	return
 }
 
-func (g *selectGenerator) generateHaving() (sql string) {
+func (g *sqlGenerator) generateHaving() (sql string) {
 	if g.jt.Having != nil {
 		var sb strings.Builder
 		sb.WriteString("HAVING ")
@@ -445,7 +465,7 @@ func (g *selectGenerator) generateHaving() (sql string) {
 	return
 }
 
-func (g *selectGenerator) generateLimitSql() (sql string) {
+func (g *sqlGenerator) generateLimitSql() (sql string) {
 	if !g.jt.Limits.AreSet() {
 		return ""
 	}
@@ -463,7 +483,7 @@ func (g *selectGenerator) generateLimitSql() (sql string) {
 	return sb.String()
 }
 
-func (g *selectGenerator) generateOrderBySql() (sql string) {
+func (g *sqlGenerator) generateOrderBySql() (sql string) {
 	if len(g.jt.OrderBys) > 0 {
 		var sb strings.Builder
 		sb.WriteString("ORDER BY ")

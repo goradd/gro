@@ -19,7 +19,7 @@ func Count{{table.Identifier}}By{{col.Identifier}}(ctx context.Context, {{= col.
         return 0
     }
 {{if}}
-	return int(query{{= table.IdentifierPlural }}(ctx).Where(op.Equal(node.{{= table.Identifier }}().{{= col.Identifier }}(), {{= col.DecapIdentifier }})).Count(false))
+	return query{{= table.IdentifierPlural }}(ctx).Where(op.Equal(node.{{= table.Identifier }}().{{= col.Identifier }}(), {{= col.DecapIdentifier }})).Count()
 }
 
 {{for}}

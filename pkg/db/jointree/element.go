@@ -130,12 +130,7 @@ func (j *Element) String() string {
 
 // IsArray returns true if the enclosed query node is an array type node.
 func (j *Element) IsArray() bool {
-	if j.QueryNode.NodeType_() == query.ManyManyNodeType {
-		return true
-	} else if j.QueryNode.NodeType_() == query.ReverseNodeType {
-		return j.QueryNode.(query.ReverseNodeI).IsArray()
-	}
-	return false
+	return query.NodeIsArray(j.QueryNode)
 }
 
 func (j *Element) FindCalculation(alias string) query.Node {

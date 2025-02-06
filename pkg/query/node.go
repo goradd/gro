@@ -116,3 +116,13 @@ func NodesMatch(node1, node2 Node) bool {
 		return false
 	}
 }
+
+// NodeIsArray returns true if the node is an array connection, like a ManyMany relationship or one-to-many Reverse node.
+func NodeIsArray(n Node) bool {
+	if n.NodeType_() == ManyManyNodeType {
+		return true
+	} else if n.NodeType_() == ReverseNodeType {
+		return n.(ReverseNodeI).IsArray()
+	}
+	return false
+}

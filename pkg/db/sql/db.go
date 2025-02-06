@@ -326,19 +326,24 @@ func (h *DbHelper) Update(ctx context.Context,
 
 // BuilderQuery performs a complex query using a query builder.
 // The data returned will depend on the command inside the builder.
-func (h *DbHelper) BuilderQuery(ctx context.Context, builder *Builder) interface{} {
+func (h *DbHelper) BuilderQuery(builder *Builder) any {
 	joinTree := jointree.NewJoinTree(builder)
 	switch joinTree.Command {
 	case BuilderCommandLoad:
-		return h.builderLoad(ctx, joinTree)
+		return h.joinTreeLoad(builder.Ctx, joinTree)
+	case BuilderCommandLoadCursor:
+		return h.joinTreeLoadCursor(builder.Ctx, joinTree)
+	case BuilderCommandDelete:
+		h.joinTreeDelete(builder.Ctx, joinTree)
+	case BuilderCommandCount:
+		return h.joinTreeCount(builder.Ctx, joinTree)
 	}
 	return nil
 }
 
-func (h *DbHelper) builderLoad(ctx context.Context, joinTree *jointree.JoinTree) []map[string]interface{} {
-	g := newSelectGenerator(joinTree, h.dbi)
-	s := g.generateSelectSql()
-	args := g.argList
+func (h *DbHelper) joinTreeLoad(ctx context.Context, joinTree *jointree.JoinTree) []map[string]any {
+	g := newSqlGenerator(joinTree, h.dbi)
+	s, args := g.generateSelectSql()
 
 	rows, err := h.dbi.SqlQuery(ctx, s, args...)
 
@@ -366,4 +371,60 @@ func (h *DbHelper) builderLoad(ctx context.Context, joinTree *jointree.JoinTree)
 	result := ReceiveRows(rows, columnTypes, names, joinTree)
 
 	return result
+}
+
+func (h *DbHelper) joinTreeLoadCursor(ctx context.Context, joinTree *jointree.JoinTree) any {
+	g := newSqlGenerator(joinTree, h.dbi)
+	s, args := g.generateSelectSql()
+	rows, err := h.dbi.SqlQuery(ctx, s, args...)
+
+	if err != nil {
+		// This is possibly generating an error related to the sql itself, so put the sql in the error message.
+		s := err.Error()
+		s += "\nSql: " + s
+
+		panic(errors.New(s))
+	}
+
+	names, _ := rows.Columns()
+	columnTypes := make([]ReceiverType, 0, len(names))
+	for sel := range joinTree.SelectsIter() {
+		t := sel.QueryNode.(*ColumnNode).ReceiverType
+		columnTypes = append(columnTypes, t)
+	}
+	// add special aliases
+	for i := len(columnTypes); i < len(names); i++ {
+		columnTypes = append(columnTypes, ColTypeBytes) // These will be unpacked when they are retrieved
+	}
+	return NewSqlCursor(rows, columnTypes, nil, joinTree)
+}
+
+func (h *DbHelper) joinTreeDelete(ctx context.Context, joinTree *jointree.JoinTree) {
+	g := newSqlGenerator(joinTree, h.dbi)
+	s, args := g.generateDeleteSql()
+	_, err := h.dbi.SqlExec(ctx, s, args...)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (h *DbHelper) joinTreeCount(ctx context.Context, joinTree *jointree.JoinTree) int {
+	g := newSqlGenerator(joinTree, h.dbi)
+	s, args := g.generateCountSql()
+	rows, err := h.dbi.SqlQuery(ctx, s, args...)
+
+	if err != nil {
+		// This is possibly generating an error related to the sql itself, so put the sql in the error message.
+		s := err.Error()
+		s += "\nSql: " + s
+
+		panic(errors.New(s))
+	}
+
+	names, _ := rows.Columns()
+	columnTypes := []ReceiverType{ColTypeInteger}
+	result := ReceiveRows(rows, columnTypes, names, nil)
+	ret := result[0][names[0]].(int)
+	return ret
+
 }

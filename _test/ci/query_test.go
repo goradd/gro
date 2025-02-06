@@ -120,7 +120,6 @@ func TestManyEnum(t *testing.T) {
 	ctx := db.NewContext(nil)
 	people := goradd.QueryPeople(ctx).
 		OrderBy(node.Person().ID()).
-		Select(node.Person().Types()).
 		Load()
 
 	if people[0].Types().Len() != 2 {
@@ -138,10 +137,9 @@ func TestManyEnumSingles(t *testing.T) {
 		OrderBy(node.Person().ID()).
 		Load()
 
-	if !people[1].Types().Has(goradd.PersonTypeManager) {
+	if !people[4].Types().Has(goradd.PersonTypeWorksFromHome) {
 		t.Error("Did not find correct person type.")
 	}
-
 }
 
 func TestAlias(t *testing.T) {
@@ -153,6 +151,19 @@ func TestAlias(t *testing.T) {
 
 	v := projects[0].GetAlias("Difference").Float()
 	assert.EqualValues(t, -690.5, v)
+}
+
+func TestCursor(t *testing.T) {
+	ctx := db.NewContext(nil)
+	projectCursor := goradd.QueryProjects(ctx).
+		LoadCursor()
+
+	var projects []*goradd.Project
+	for project := projectCursor.Next(); project != nil; project = projectCursor.Next() {
+		projects = append(projects, project)
+	}
+
+	assert.Len(t, projects, 4)
 }
 
 /*
@@ -182,7 +193,7 @@ func TestCount(t *testing.T) {
 	ctx := db.NewContext(nil)
 
 	count := goradd.QueryProjects(ctx).
-		Count(false)
+		Count()
 
 	assert.EqualValues(t, 4, count)
 }

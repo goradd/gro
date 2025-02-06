@@ -270,7 +270,7 @@ func LoadForwardRestrictUnique(ctx context.Context, id string, selectNodes ...qu
 func HasForwardRestrictUnique(ctx context.Context, id string) bool {
 	return queryForwardRestrictUniques(ctx).
 		Where(op.Equal(node.ForwardRestrictUnique().ID(), id)).
-		Count(false) == 1
+		Count() == 1
 }
 
 // LoadForwardRestrictUniqueByReverseID queries for a single ForwardRestrictUnique object by the given unique index values.
@@ -297,7 +297,7 @@ func HasForwardRestrictUniqueByReverseID(ctx context.Context, reverseID interfac
 	} else {
 		q = q.Where(op.Equal(node.ForwardRestrictUnique().ReverseID(), reverseID))
 	}
-	return q.Count(false) == 1
+	return q.Count() == 1
 }
 
 // The ForwardRestrictUniqueBuilder uses the query.BuilderI interface to build a query.
@@ -333,7 +333,7 @@ type ForwardRestrictUniqueBuilder interface {
 	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) ForwardRestrictUniqueBuilder
 
 	// Distinct removes duplicates from the results of the query.
-	// Adding a Select() is usually required.
+	// Adding a Select() is required.
 	Distinct() ForwardRestrictUniqueBuilder
 
 	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
@@ -372,10 +372,11 @@ type ForwardRestrictUniqueBuilder interface {
 	// In the case of an error, the error is returned in the context.
 	Get() *ForwardRestrictUnique
 
-	// Count terminates a query and returns just the number of items selected.
-	// distinct wll count the number of distinct items, ignoring duplicates.
-	// nodes will select individual fields, and should be accompanied by a GroupBy.
-	Count(distinct bool, nodes ...query.Node) int
+	// Count terminates a query and returns just the number of items in the result.
+	// If you have Select or Calculation columns in the query, it will count NULL results as well.
+	// To not count NULL values, use Where in the builder with a NotNull operation.
+	// To count distinct combinations of items, call Distinct() on the builder.
+	Count() int
 
 	// Delete uses the query builder to delete a group of records that match the criteria
 	Delete()
@@ -404,7 +405,7 @@ func newForwardRestrictUniqueBuilder(ctx context.Context) ForwardRestrictUniqueB
 func (b *forwardRestrictUniqueQueryBuilder) Load() (forwardRestrictUniques []*ForwardRestrictUnique) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return
 	}
@@ -423,7 +424,7 @@ func (b *forwardRestrictUniqueQueryBuilder) Load() (forwardRestrictUniques []*Fo
 func (b *forwardRestrictUniqueQueryBuilder) LoadI() (forwardRestrictUniques []any) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return
 	}
@@ -450,7 +451,7 @@ func (b *forwardRestrictUniqueQueryBuilder) LoadI() (forwardRestrictUniques []an
 func (b *forwardRestrictUniqueQueryBuilder) LoadCursor() forwardRestrictUniquesCursor {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
-	result := database.BuilderQuery(b.builder.Ctx, b.builder)
+	result := database.BuilderQuery(b.builder)
 	if result == nil {
 		return forwardRestrictUniquesCursor{}
 	}
@@ -573,16 +574,14 @@ func (b *forwardRestrictUniqueQueryBuilder) Having(node query.Node) ForwardRestr
 	return b
 }
 
-// Count terminates a query and returns just the number of items selected.
-// distinct wll count the number of distinct items, ignoring duplicates.
-// nodes will select individual fields, and should be accompanied by a GroupBy.
-func (b *forwardRestrictUniqueQueryBuilder) Count(distinct bool, nodes ...query.Node) int {
+// Count terminates a query and returns just the number of items in the result.
+// If you have Select or Calculation columns in the query, it will count NULL results as well.
+// To not count NULL values, use Where in the builder with a NotNull operation.
+// To count distinct combinations of items, call Distinct() on the builder.
+func (b *forwardRestrictUniqueQueryBuilder) Count() int {
 	b.builder.Command = query.BuilderCommandCount
-	if distinct {
-		b.builder.Distinct()
-	}
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder.Ctx, b.builder)
+	results := database.BuilderQuery(b.builder)
 	if results == nil {
 		return 0
 	}
@@ -593,7 +592,7 @@ func (b *forwardRestrictUniqueQueryBuilder) Count(distinct bool, nodes ...query.
 func (b *forwardRestrictUniqueQueryBuilder) Delete() {
 	b.builder.Command = query.BuilderCommandDelete
 	database := db.GetDatabase("goradd_unit")
-	database.BuilderQuery(b.builder.Ctx, b.builder)
+	database.BuilderQuery(b.builder)
 	broadcast.BulkChange(b.builder.Context(), "goradd_unit", "forward_restrict_unique")
 }
 
@@ -610,14 +609,14 @@ func (b *forwardRestrictUniqueQueryBuilder)  Subquery() *query.SubqueryNode {
 // have id.
 // doc: type=ForwardRestrictUnique
 func CountForwardRestrictUniqueByID(ctx context.Context, id string) int {
-	return int(queryForwardRestrictUniques(ctx).Where(op.Equal(node.ForwardRestrictUnique().ID(), id)).Count(false))
+	return queryForwardRestrictUniques(ctx).Where(op.Equal(node.ForwardRestrictUnique().ID(), id)).Count()
 }
 
 // CountForwardRestrictUniqueByName queries the database and returns the number of ForwardRestrictUnique objects that
 // have name.
 // doc: type=ForwardRestrictUnique
 func CountForwardRestrictUniqueByName(ctx context.Context, name string) int {
-	return int(queryForwardRestrictUniques(ctx).Where(op.Equal(node.ForwardRestrictUnique().Name(), name)).Count(false))
+	return queryForwardRestrictUniques(ctx).Where(op.Equal(node.ForwardRestrictUnique().Name(), name)).Count()
 }
 
 // CountForwardRestrictUniqueByReverseID queries the database and returns the number of ForwardRestrictUnique objects that
@@ -627,7 +626,7 @@ func CountForwardRestrictUniqueByReverseID(ctx context.Context, reverseID string
 	if reverseID == "" {
 		return 0
 	}
-	return int(queryForwardRestrictUniques(ctx).Where(op.Equal(node.ForwardRestrictUnique().ReverseID(), reverseID)).Count(false))
+	return queryForwardRestrictUniques(ctx).Where(op.Equal(node.ForwardRestrictUnique().ReverseID(), reverseID)).Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
