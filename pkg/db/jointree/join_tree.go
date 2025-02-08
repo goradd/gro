@@ -272,13 +272,32 @@ func (t *JoinTree) addSelectedColumns(builder *query.Builder) {
 		t.addGroupBySelects(builder)
 	}
 
+	if builder.HavingNode != nil {
+		t.addHavingSelects(builder)
+	}
+}
+
+func (t *JoinTree) addHavingSelects(builder *query.Builder) {
 	// Having clauses MUST be selected so they can be post filtered
 	for _, n := range query.ContainedNodes(builder.HavingNode) {
-		e, _, found := t.findNode(n)
-		if !found {
-			panic("prior node was not found in the tree")
+		switch n.NodeType_() {
+		case query.ColumnNodeType:
+			e, _, found := t.findNode(n)
+			if !found {
+				panic("have node was not found in the tree")
+			}
+			e.Parent.SelectedColumns.Add(e)
+
+		case query.AliasNodeType:
+			alias := n.(query.AliasNodeI).Alias()
+			n2 := t.FindAlias(alias)
+			if n2 == nil {
+				panic(fmt.Sprintf("alias in having was not found in Calculations: %s", alias))
+			}
+			// alias is already selected if its in the Calculations
+		default:
+			// do nothing
 		}
-		e.Parent.SelectedColumns.Add(e)
 	}
 }
 
@@ -333,8 +352,9 @@ func (t *JoinTree) addGroupBySelects(b *query.Builder) {
 
 		case query.AliasNodeType:
 			alias := n.(query.AliasNodeI).Alias()
-			if _, ok2 := b.Calculations[alias]; !ok2 {
-				panic(fmt.Sprintf("alias in group by not found in Calculations: %s", alias))
+			n2 := t.FindAlias(alias)
+			if n2 == nil {
+				panic(fmt.Sprintf("alias in group by was not found in Calculations: %s", alias))
 			}
 		case query.OperationNodeType:
 			panic("operation nodes in group bys must be aliased with a Calculation")

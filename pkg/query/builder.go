@@ -49,7 +49,7 @@ type BuilderI interface {
 	//Context() context.Context
 }
 
-type calcType struct {
+type calc struct {
 	BaseNode  TableNodeI
 	Operation OperationNodeI
 }
@@ -66,7 +66,7 @@ type Builder struct {
 	OrderBys     []Sorter
 	Conditions   []Node
 	IsDistinct   bool
-	Calculations map[string]calcType
+	Calculations map[string]calc
 	// Adds a COUNT(*) to the select list
 	GroupBys   []Node
 	Selects    []Node
@@ -112,12 +112,12 @@ func (b *Builder) Join(alias string, n Node, condition Node) {
 // Calculation adds the aliased calculation node operation onto base.
 func (b *Builder) Calculation(base TableNodeI, alias string, operation OperationNodeI) {
 	if b.Calculations == nil {
-		b.Calculations = make(map[string]calcType)
+		b.Calculations = make(map[string]calc)
 	}
 	if _, ok := b.Calculations[alias]; ok {
 		panic("alias already exists") // aliases must be unique across the entire operation
 	}
-	b.Calculations[alias] = calcType{base, operation}
+	b.Calculations[alias] = calc{base, operation}
 }
 
 // Where adds condition to the Where clause. Multiple calls to Condition will result in conditions joined with an And.
