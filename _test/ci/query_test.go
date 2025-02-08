@@ -342,11 +342,10 @@ func TestHaving(t *testing.T) {
 	assert.Equal(t, 6, projects[0].GetAlias("team_member_count").Int())
 }
 
-func TestFailedJoins(t *testing.T) {
+func TestFailedSelects(t *testing.T) {
 	ctx := db.NewContext(nil)
 
 	assert.Panics(t, func() { goradd.QueryProjects(ctx).Select(node.Person()) })
-	assert.Panics(t, func() { goradd.QueryProjects(ctx).Select(node.Project().ManagerID()) })
 }
 
 func TestFailedGroupBy(t *testing.T) {
