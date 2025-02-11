@@ -12,14 +12,13 @@ import (
 func TestReverseConditionalSelect(t *testing.T) {
 	ctx := db.NewContext(nil)
 	people := goradd.QueryPeople(ctx).
-		Select(node.Person().ManagerProjects()).
 		OrderBy(node.Person().ID(), node.Person().ManagerProjects().Name()).
 		Where(op.IsNotNull(node.Person().ManagerProjects().ID())). // Filter out people who are not managers
 		Select(node.Person().ManagerProjects().Name()).
 		Load()
 
 	if len(people[2].ManagerProjects()) != 2 {
-		t.Error("Did not find 2 ManagerProjectss.")
+		t.Error("Did not find 2 ManagerProjects.")
 	}
 
 	assert.Len(t, people[2].ManagerProjects(), 2)

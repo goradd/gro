@@ -24,6 +24,38 @@ func TestBasic(t *testing.T) {
 	}
 }
 
+func TestLoad(t *testing.T) {
+	ctx := db.NewContext(nil)
+
+	people := goradd.QueryPeople(ctx).
+		Where(op.Equal(node.Person().ID(), "7")).
+		Select(
+			node.Person().Projects(),        // many many
+			node.Person().ManagerProjects(), // reverse
+			node.Person().Login(),
+		).
+		Load()
+
+	person := people[0]
+	assert.Equal(t, "Wolfe", person.LastName(), "Last name was not selected by default")
+	assert.Len(t, person.Projects(), 2)
+	assert.Len(t, person.ManagerProjects(), 2)
+	assert.Equal(t, person.Types().Len(), 2)
+	assert.Equal(t, "kwolfe", person.Login().Username())
+
+	person = goradd.LoadPerson(ctx, "7",
+		node.Person().Projects(),        // many many
+		node.Person().ManagerProjects(), // reverse
+		node.Person().Login(),           // reverse unique
+	)
+
+	// Serialize and deserialize
+	assert.Len(t, person.Projects(), 2)
+	assert.Len(t, person.ManagerProjects(), 2)
+	assert.Equal(t, person.Types().Len(), 2)
+	assert.Equal(t, "kwolfe", person.Login().Username())
+}
+
 func TestSort(t *testing.T) {
 	ctx := db.NewContext(nil)
 	people := goradd.QueryPeople(ctx).

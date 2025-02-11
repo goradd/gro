@@ -1,15 +1,17 @@
 module github.com/goradd/orm
 
 require (
-	github.com/gedex/inflector v0.0.0-20170307190818-16278e9db813
 	github.com/go-sql-driver/mysql v1.8.1
+	github.com/goradd/all v0.0.0-20241219183152-54b82556d40d
+	github.com/goradd/gofile v1.2.0
 	github.com/goradd/goradd v0.31.10
-	github.com/goradd/maps v1.1.2
+	github.com/goradd/iter v0.0.0-20241219175333-9ab52add20e3
+	github.com/goradd/maps v1.2.0
 	github.com/goradd/strings v0.2.0
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/kenshaw/snaker v0.3.0
 	github.com/stretchr/testify v1.9.0
-	github.com/goradd/gofile v1.2.0
+	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f
 )
 
 require (
@@ -23,7 +25,6 @@ require (
 	github.com/microcosm-cc/bluemonday v1.0.26 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	golang.org/x/crypto v0.27.0 // indirect
-	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f // indirect
 	golang.org/x/net v0.21.0 // indirect
 	golang.org/x/sync v0.9.0 // indirect
 	golang.org/x/text v0.18.0 // indirect

@@ -1,12 +1,10 @@
 package jointree
 
 import (
-	"cmp"
 	iter2 "github.com/goradd/iter"
 	"github.com/goradd/maps"
 	"github.com/goradd/orm/pkg/query"
 	"iter"
-	"slices"
 )
 
 // Element is used to build the join tree. The join tree creates a hierarchy of joined nodes that let us
@@ -14,9 +12,9 @@ import (
 type Element struct {
 	QueryNode       query.Node
 	Parent          *Element
-	References      []*Element         // TableNodeI objects
-	Columns         []*Element         // All columns that will be used to build the query, including those in Where, OrderBy and other clauses
-	SelectedColumns maps.Set[*Element] // Pointers to elements in Columns that will be returned in the query
+	References      []*Element              // TableNodeI objects
+	Columns         []*Element              // All columns that will be used to build the query, including those in Where, OrderBy and other clauses
+	SelectedColumns maps.SliceSet[*Element] // Pointers to elements in Columns that will be returned in the query. Using a SliceSet to iterate in the order given.
 	//JoinCondition   query.Node
 	Alias        string                // computed or assigned alias
 	Calculations map[string]query.Node // calculations attached to this node by alias
@@ -51,23 +49,18 @@ func (j *Element) PrimaryKey() *Element {
 // SelectsIter iterates on all the selects in this element and its sub elements.
 func (j *Element) SelectsIter() iter.Seq[*Element] {
 	return func(yield func(*Element) bool) {
-		var cols func(*Element) bool
-		cols = func(e *Element) bool {
-			for _, c := range slices.SortedFunc(e.SelectedColumns.All(), func(e1, e2 *Element) int {
-				return cmp.Compare(e1.Alias, e2.Alias)
-			}) {
-				if !yield(c) {
-					return false
-				}
+		for c := range j.SelectedColumns.All() {
+			if !yield(c) {
+				return
 			}
-			for _, r := range e.References {
-				if !cols(r) {
-					return false
-				}
-			}
-			return false
 		}
-		cols(j)
+		for _, r := range j.References {
+			for k := range r.SelectsIter() {
+				if !yield(k) {
+					return
+				}
+			}
+		}
 	}
 }
 
@@ -92,21 +85,18 @@ func (j *Element) CalculationsIter() iter.Seq2[string, query.Node] {
 // ColumnIter iterates on all the columns in this element and its sub elements.
 func (j *Element) ColumnIter() iter.Seq[*Element] {
 	return func(yield func(*Element) bool) {
-		var cols func(*Element) bool
-		cols = func(e *Element) bool {
-			for _, c := range e.Columns {
-				if !yield(c) {
-					return false
-				}
+		for _, c := range j.Columns {
+			if !yield(c) {
+				return
 			}
-			for _, r := range e.References {
-				if !cols(r) {
-					return false
-				}
-			}
-			return false
 		}
-		cols(j)
+		for _, r := range j.References {
+			for k := range r.ColumnIter() {
+				if !yield(k) {
+					return
+				}
+			}
+		}
 	}
 }
 
