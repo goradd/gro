@@ -25,20 +25,27 @@
 
 {{elseif col.IsEnum()}}
 {{if col.IsEnumArray()}}
-           if n,ok := v.([]int); ok {
-               o.Set{{= col.Identifier }}(New{{= col.GoType() }}From(n...))
-           } else if n,ok := v.([]float64); ok {
-               o.Set{{= col.Identifier }}(New{{= col.GoType() }}From(n...))
-           } else if n,ok := v.([]string); ok {
-               a := New{{= col.GoType() }}()
-               for _,s := range n {
-                   a.Add({{= col.ReferenceType() }}From{{= col.Reference.EnumTable.FieldIdentifier(1) }}(s))
-               }
-               o.Set{{= col.Identifier }}(a)
-           } else {
-               return fmt.Errorf("json field %s must be a number", k)
-           }
-
+            if v == nil {
+                return fmt.Errorf("json field %s cannot be null", k)
+            }
+            if v2, ok := v.([]any); ok {
+                a := New{{= col.GoType() }}()
+                for _,i := range v2 {
+                    switch v3 := i.(type) {
+                    case string:
+                        a.Add({{= col.ReferenceType() }}From{{= col.Reference.EnumTable.FieldIdentifier(1) }}(v3))
+                    case int:
+                        a.Add({{= col.ReferenceType() }}(v3))
+                    case float64:
+                        a.Add({{= col.ReferenceType() }}(v3))
+                    default:
+                        return fmt.Errorf("json field '%s' must be an array of numbers or strings", k)
+                    }
+                }
+                o.Set{{= col.Identifier }}(a)
+            } else {
+                return fmt.Errorf("json field '%s' must be an array of numbers or strings", k)
+            }
 {{else}}
            if n,ok := v.(int); ok {
                o.Set{{= col.Identifier }}({{= col.ReferenceType() }}(n))

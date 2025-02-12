@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"github.com/goradd/maps"
-	"golang.org/x/exp/constraints"
 )
 
 type PersonType int
@@ -172,34 +171,6 @@ type PersonTypeSet = *maps.OrderedSet[PersonType]
 func NewPersonTypeSet(values ...PersonType) PersonTypeSet {
 	return maps.NewOrderedSet[PersonType](values...)
 }
-
-func NewPersonTypeSetFrom[K constraints.Integer | constraints.Float](values ...K) PersonTypeSet {
-	m := maps.NewOrderedSet[PersonType]()
-	for _, v := range values {
-		m.Add(PersonType(v))
-	}
-	return m
-}
-
-/*
-// PersonTypeSetFromNumbers converts an array of numeric values into a PersonTypeSet.
-func PersonTypeSetFromNumbers[T constraints.Integer | constraints.Float] (nums []T) (values PersonTypeSet) {
-	var s PersonTypeSet
-	for _, n := range nums {
-		s.Add(PersonType(n))
-	}
-	return s
-}
-
-// PersonTypeSetToInts
-func PersonTypeSetToInts(values PersonTypeSet) (ints []int) {
-	for _,v := range values.Values() {
-		ints = append(ints, int(v))
-	}
-	sort.Ints(ints)
-	return
-}
-*/
 
 func init() {
 	gob.Register(new(PersonTypeSet))

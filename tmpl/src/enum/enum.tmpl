@@ -223,38 +223,9 @@ func New{{= table.Identifier }}Set(values ...{{= table.Identifier }}) {{= table.
 	return maps.NewOrderedSet[{{= table.Identifier }}](values...)
 }
 
-func New{{= table.Identifier }}SetFrom[K constraints.Integer | constraints.Float](values ...K) {{= table.Identifier }}Set {
-	m := maps.NewOrderedSet[{{= table.Identifier }}]()
-	for _, v := range values {
-		m.Add({{= table.Identifier }}(v))
-	}
-	return m
-}
-
-/*
-// {{= table.Identifier }}SetFromNumbers converts an array of numeric values into a {{= table.Identifier }}Set.
-func {{= table.Identifier }}SetFromNumbers[T constraints.Integer | constraints.Float] (nums []T) (values {{= table.Identifier }}Set) {
-	var s {{= table.Identifier }}Set
-	for _, n := range nums {
-		s.Add({{= table.Identifier }}(n))
-	}
-	return s
-}
-
-// {{= table.Identifier }}SetToInts
-func {{= table.Identifier }}SetToInts(values {{= table.Identifier }}Set) (ints []int) {
-	for _,v := range values.Values() {
-		ints = append(ints, int(v))
-	}
-	sort.Ints(ints)
-	return
-}
-*/
-
 func init() {
     gob.Register(new({{= table.Identifier }}Set))
 }
-
 
 }}
     return

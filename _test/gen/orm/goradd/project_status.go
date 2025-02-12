@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"github.com/goradd/maps"
-	"golang.org/x/exp/constraints"
 )
 
 type ProjectStatus int
@@ -253,34 +252,6 @@ type ProjectStatusSet = *maps.OrderedSet[ProjectStatus]
 func NewProjectStatusSet(values ...ProjectStatus) ProjectStatusSet {
 	return maps.NewOrderedSet[ProjectStatus](values...)
 }
-
-func NewProjectStatusSetFrom[K constraints.Integer | constraints.Float](values ...K) ProjectStatusSet {
-	m := maps.NewOrderedSet[ProjectStatus]()
-	for _, v := range values {
-		m.Add(ProjectStatus(v))
-	}
-	return m
-}
-
-/*
-// ProjectStatusSetFromNumbers converts an array of numeric values into a ProjectStatusSet.
-func ProjectStatusSetFromNumbers[T constraints.Integer | constraints.Float] (nums []T) (values ProjectStatusSet) {
-	var s ProjectStatusSet
-	for _, n := range nums {
-		s.Add(ProjectStatus(n))
-	}
-	return s
-}
-
-// ProjectStatusSetToInts
-func ProjectStatusSetToInts(values ProjectStatusSet) (ints []int) {
-	for _,v := range values.Values() {
-		ints = append(ints, int(v))
-	}
-	sort.Ints(ints)
-	return
-}
-*/
 
 func init() {
 	gob.Register(new(ProjectStatusSet))

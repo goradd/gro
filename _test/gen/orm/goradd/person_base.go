@@ -2035,20 +2035,27 @@ func (o *personBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					return fmt.Errorf("json field %s cannot be null", k)
 				}
 
-				if n, ok := v.([]int); ok {
-					o.SetTypes(NewPersonTypeSetFrom(n...))
-				} else if n, ok := v.([]float64); ok {
-					o.SetTypes(NewPersonTypeSetFrom(n...))
-				} else if n, ok := v.([]string); ok {
+				if v == nil {
+					return fmt.Errorf("json field %s cannot be null", k)
+				}
+				if v2, ok := v.([]any); ok {
 					a := NewPersonTypeSet()
-					for _, s := range n {
-						a.Add(PersonTypeFromName(s))
+					for _, i := range v2 {
+						switch v3 := i.(type) {
+						case string:
+							a.Add(PersonTypeFromName(v3))
+						case int:
+							a.Add(PersonType(v3))
+						case float64:
+							a.Add(PersonType(v3))
+						default:
+							return fmt.Errorf("json field '%s' must be an array of numbers or strings", k)
+						}
 					}
 					o.SetTypes(a)
 				} else {
-					return fmt.Errorf("json field %s must be a number", k)
+					return fmt.Errorf("json field '%s' must be an array of numbers or strings", k)
 				}
-
 			}
 
 		}

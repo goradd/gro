@@ -67,14 +67,14 @@ func TestJsonUnmarshall2(t *testing.T) {
 		`{
 	"firstName":"John",
 	"lastName":"Doe",
-	"personTypes":[2, 3]
+	"types":[2, 3]
 }
 `),
 		&p)
 	assert.NoError(t, err)
 	assert.Equal(t, "John", p.FirstName())
 	assert.Equal(t, "Doe", p.LastName())
-	assert.ElementsMatch(t, []goradd.PersonType{goradd.PersonTypeManager, goradd.PersonTypeInactive}, p.Types())
+	assert.ElementsMatch(t, []goradd.PersonType{goradd.PersonTypeManager, goradd.PersonTypeInactive}, p.Types().Values())
 }
 
 func TestJsonMarshall3(t *testing.T) {

@@ -12709,44 +12709,11 @@ func (o *`); err != nil {
 
 			if col.IsEnumArray() {
 
-				if _, err = io.WriteString(_w, `           if n,ok := v.([]int); ok {
-               o.Set`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(New`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.GoType()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `From(n...))
-           } else if n,ok := v.([]float64); ok {
-               o.Set`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(New`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.GoType()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `From(n...))
-           } else if n,ok := v.([]string); ok {
-               a := New`); err != nil {
+				if _, err = io.WriteString(_w, `            if v == nil {
+                return fmt.Errorf("json field %s cannot be null", k)
+            }
+            if v2, ok := v.([]any); ok {
+                a := New`); err != nil {
 					return
 				}
 
@@ -12755,8 +12722,10 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `()
-               for _,s := range n {
-                   a.Add(`); err != nil {
+                for _,i := range v2 {
+                    switch v3 := i.(type) {
+                    case string:
+                        a.Add(`); err != nil {
 					return
 				}
 
@@ -12772,9 +12741,32 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `(s))
-               }
-               o.Set`); err != nil {
+				if _, err = io.WriteString(_w, `(v3))
+                    case int:
+                        a.Add(`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(v3))
+                    case float64:
+                        a.Add(`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(v3))
+                    default:
+                        return fmt.Errorf("json field '%s' must be an array of numbers or strings", k)
+                    }
+                }
+                o.Set`); err != nil {
 					return
 				}
 
@@ -12783,10 +12775,9 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `(a)
-           } else {
-               return fmt.Errorf("json field %s must be a number", k)
-           }
-
+            } else {
+                return fmt.Errorf("json field '%s' must be an array of numbers or strings", k)
+            }
 `); err != nil {
 					return
 				}
