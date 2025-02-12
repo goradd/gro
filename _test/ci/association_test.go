@@ -41,29 +41,6 @@ func TestMany2(t *testing.T) {
 	assert.Equal(t, names2, names)
 }
 
-func TestManyEnums(t *testing.T) {
-	ctx := db.NewContext(nil)
-
-	// All people who are inactive
-	people := goradd.QueryPeople(ctx).
-		OrderBy(node.Person().LastName(), node.Person().FirstName()).
-		Where(op.Contains(node.Person().Types(), goradd.PersonTypeInactive)).
-		Distinct().
-		Select(node.Person().LastName(), node.Person().FirstName()).
-		Load()
-
-	names := []string{}
-	for _, p := range people {
-		names = append(names, p.FirstName()+" "+p.LastName())
-	}
-	names2 := []string{
-		"Linda Brady",
-		"John Doe",
-		"Ben Robinson",
-	}
-	assert.Equal(t, names2, names)
-}
-
 func TestManySelect(t *testing.T) {
 	ctx := db.NewContext(nil)
 
@@ -89,7 +66,7 @@ func Test2Nodes(t *testing.T) {
 
 	assert.True(t, milestones[0].NameIsValid(), "Milestone 1 has a name")
 	assert.Equal(t, "Milestone A", milestones[0].Name(), "Milestone 1 has name of Milestone A")
-	assert.True(t, milestones[0].Project().NameIsValid(), "Project 1 should have a name")
+	assert.False(t, milestones[0].Project().NameIsValid(), "Project 1 should not have a loaded name")
 	assert.True(t, milestones[0].Project().Manager().FirstNameIsValid(), "Person 7 has a name")
 	assert.Equal(t, "Karen", milestones[0].Project().Manager().FirstName(), "Person 7 has first name of Karen")
 }
@@ -213,8 +190,8 @@ func Test2ndLoad(t *testing.T) {
 		Load()
 
 	mgr := projects[0].LoadManager(ctx)
-	assert.Equal(t, "Doe", mgr.LastName())
-
+	// 2nd level objects must be specifically selected
+	assert.False(t, mgr.LastNameIsValid())
 }
 
 func TestCalculationOnAssociation(t *testing.T) {

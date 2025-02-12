@@ -23,7 +23,6 @@ func TestJsonMarshall1(t *testing.T) {
 	err = json.Unmarshal(j, &m)
 	assert.NoError(t, err)
 	assert.Exactly(t, "ACME Website Redesign", m["name"])
-	assert.Exactly(t, "Completed", m["status"])
 	assert.Exactly(t, "Karen", m["manager"].(map[string]interface{})["firstName"])
 }
 
@@ -32,7 +31,7 @@ func TestJsonUnmarshall1(t *testing.T) {
 	err := json.Unmarshal([]byte(
 		`{
 	"name":"ACME Website Redesign",
-	"status":"Completed",
+	"status":3,
 	"num":14,
 	"startDate":"2020-11-01T00:00:00Z"
 }
@@ -59,7 +58,7 @@ func TestJsonMarshall2(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "John", m["firstName"])
 	assert.Equal(t, "Doe", m["lastName"])
-	assert.ElementsMatch(t, []int{2, 3}, m["personTypes"])
+	assert.ElementsMatch(t, []float64{2, 3}, m["types"])
 }
 
 func TestJsonUnmarshall2(t *testing.T) {

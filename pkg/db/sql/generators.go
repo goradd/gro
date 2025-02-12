@@ -225,7 +225,7 @@ func (g *sqlGenerator) generateOperationSql(n *OperationNode, useAlias bool) (sq
 		sb.WriteString(") ")
 
 	case OpStartsWith:
-		s := g.argList[len(g.argList)-1].(string)
+		s := fmt.Sprint(g.argList[len(g.argList)-1])
 		s += "%"
 		g.argList[len(g.argList)-1] = s
 		sb.WriteString("(")
@@ -233,7 +233,7 @@ func (g *sqlGenerator) generateOperationSql(n *OperationNode, useAlias bool) (sq
 		sb.WriteString(")")
 
 	case OpEndsWith:
-		s := g.argList[len(g.argList)-1].(string)
+		s := fmt.Sprint(g.argList[len(g.argList)-1])
 		s = "%" + s
 		g.argList[len(g.argList)-1] = s
 		sb.WriteString("(")
@@ -241,7 +241,7 @@ func (g *sqlGenerator) generateOperationSql(n *OperationNode, useAlias bool) (sq
 		sb.WriteString(")")
 
 	case OpContains:
-		s := g.argList[len(g.argList)-1].(string)
+		s := fmt.Sprint(g.argList[len(g.argList)-1])
 		s = "%" + s + "%"
 		g.argList[len(g.argList)-1] = s
 		sb.WriteString("(")
@@ -284,7 +284,7 @@ func (g *sqlGenerator) generateCountSql() (sql string, args []any) {
 		// Use a subquery to get the rows, then just count the rows
 		sql, args = g.generateSelectSql()
 
-		sql = "SELECT COUNT(*) FROM (" + sql + ")"
+		sql = "SELECT COUNT(*) FROM (" + sql + ") AS s"
 		return
 	}
 	// No need to subquery. Just count on the query.
