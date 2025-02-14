@@ -530,8 +530,9 @@ func GenerateUpdate(db DbI, table string, fields map[string]any, where map[strin
 	var s2 string
 	s2, args = generateWhereClause(db, where, true, args)
 	sb.WriteString(s2)
+	sql = sb.String()
 
-	return sql, args
+	return
 }
 
 // GenerateInsert is a helper function for database implementations to generate an insert statement.

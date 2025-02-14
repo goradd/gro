@@ -1436,7 +1436,6 @@ func (o *personBase) insert(ctx context.Context) {
 				}
 			}
 		}
-
 	}) // transaction
 
 	o.resetDirtyStatus()

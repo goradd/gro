@@ -28,7 +28,7 @@ func TestReverseConditionalSelect(t *testing.T) {
 }
 
 // Complex test finding all the team members of all the projects a person is managing, ordering by last name
-func TestReverseMany(t *testing.T) {
+func TestReverseManyLoad(t *testing.T) {
 	ctx := db.NewContext(nil)
 	people := goradd.QueryPeople(ctx).
 		OrderBy(node.Person().ID(), node.Person().ManagerProjects().TeamMembers().LastName(), node.Person().ManagerProjects().TeamMembers().FirstName()).
@@ -62,7 +62,7 @@ func TestReverseMany(t *testing.T) {
 	assert.True(t, people[6].IsDirty())
 }
 
-func TestUniqueReverse(t *testing.T) {
+func TestUniqueReverseLoad(t *testing.T) {
 	ctx := db.NewContext(nil)
 	person := goradd.QueryPeople(ctx).
 		Where(op.Equal(node.Person().LastName(), "Doe")).
@@ -76,9 +76,7 @@ func TestUniqueReverse(t *testing.T) {
 	assert.Equal(t, "jdoe", person.Login().Username())
 }
 
-/*
-// TestReverseReferenceManySave is testing save and delete for a reverse reference that cannot be null.
-func TestReverseReferenceManySave(t *testing.T) {
+func TestReverseManyNotNullInsert(t *testing.T) {
 	ctx := db.NewContext(nil)
 	// Test insert
 	person := goradd.NewPerson()
@@ -96,8 +94,62 @@ func TestReverseReferenceManySave(t *testing.T) {
 	person.SetAddresses([]*goradd.Address{
 		addr1, addr2,
 	})
-
 	person.Save(ctx)
+
+	id := person.ID()
+
+	addr1Id := addr1.ID()
+	assert.NotEmpty(t, addr1Id)
+
+	addr3 := person.Address(addr1Id)
+	assert.Equal(t, "There", addr3.Street(), "Successfully attached the new addresses onto the person object.")
+
+	person2 := goradd.LoadPerson(ctx, id, node.Person().Addresses())
+
+	assert.Equal(t, "Sam", person2.FirstName(), "Retrieved the correct person")
+	assert.Equal(t, 2, len(person2.Addresses()), "Retrieved the addresses attached to the person")
+
+	// Move a reference to a new object through pk assignment
+	person4 := goradd.NewPerson()
+	person4.SetFirstName("Yertle")
+	person4.SetLastName("The Turtle")
+	person4.SetAddressesByID([]string{addr1Id})
+	person4.Save(ctx)
+
+	addr := goradd.LoadAddress(ctx, addr1Id, node.Address().Person())
+	assert.Equal(t, person4.ID(), addr.PersonID())
+
+	person2.Delete(ctx)
+
+	person3 := goradd.LoadPerson(ctx, id, node.Person().Addresses())
+	assert.Nil(t, person3, "Successfully deleted the new person")
+
+	person4.Delete(ctx)
+
+	addr4 := goradd.LoadAddress(ctx, addr1Id)
+	assert.Nil(t, addr4, "Successfully deleted the address attached to the person")
+}
+
+func TestReverseManyNullInsertNewObject(t *testing.T) {
+	ctx := db.NewContext(nil)
+	// Test insert
+	person := goradd.NewPerson()
+	person.SetFirstName("Sam")
+	person.SetLastName("I Am")
+
+	addr1 := goradd.NewAddress()
+	addr1.SetCity("Here")
+	addr1.SetStreet("There")
+
+	addr2 := goradd.NewAddress()
+	addr2.SetCity("Near")
+	addr2.SetStreet("Far")
+
+	person.SetAddresses([]*goradd.Address{
+		addr1, addr2,
+	})
+	person.Save(ctx)
+
 	id := person.ID()
 
 	addr1Id := addr1.ID()
@@ -118,9 +170,9 @@ func TestReverseReferenceManySave(t *testing.T) {
 
 	addr4 := goradd.LoadAddress(ctx, addr1Id)
 	assert.Nil(t, addr4, "Successfully deleted the address attached to the person")
-
 }
 
+/*
 // Testing a reverse reference with a unique index, which will cause a one-to-one relationship.
 // This tests save and delete
 func TestReverseReferenceUniqueSave(t *testing.T) {
