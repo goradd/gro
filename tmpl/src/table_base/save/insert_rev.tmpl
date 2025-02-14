@@ -3,27 +3,29 @@
 //*** {{includeName}}
 }}
 {{
-{{# Update many-many references }}
+{{# Update reverse references }}
 
 {{for _,col := range table.ReverseReferences }}
-    {{# Nullable or not nullable, we do the same thing since there is no need to detach anything since this is new}}
-
     {{if col.IsUnique }}
 
     if o.{{= col.ReverseVariableIdentifier() }} != nil {
         o.{{= col.ReverseVariableIdentifier() }}.Set{{= col.Identifier }}(id)
         o.{{= col.ReverseVariableIdentifier() }}.Save(ctx)
+    } else if o.{{= col.ReverseVariableIdentifier() }}Pk != nil {
+        d.Update(ctx, "{{= col.Table.QueryName }}", map[string]any{"{{= col.QueryName }}": id}, map[string]any{"{{= col.Table.PrimaryKeyColumn().QueryName }}": *o.{{= col.ReverseVariableIdentifier() }}Pk})
     }
 
-    {{else}}
+    {{else}} {{# not unique }}
 
-    o.{{= col.ReverseVariableIdentifier() }}.Clear()
-    for _,obj := range o.{{= col.ReverseVariableIdentifier() }}.All() {
-        obj.Set{{= col.Identifier }}(id)
-        obj.Save(ctx)
-        o.{{= col.ReverseVariableIdentifier() }}.Set(obj.PrimaryKey(), obj)
+    if o.{{= col.ReverseVariableIdentifier() }}.Len() > 0 {
+        for _,obj := range o.{{= col.ReverseVariableIdentifier() }}.All() {
+            obj.Set{{= col.Identifier }}(id)
+            obj.Save(ctx)
+            o.{{= col.ReverseVariableIdentifier() }}.Set(obj.PrimaryKey(), obj)
+        }
+    } else if len(o.{{= col.ReverseVariableIdentifier() }}Pks) > 0 {
+        d.Update(ctx, "{{= col.Table.QueryName }}", map[string]any{"{{= col.QueryName }}": id}, map[string]any{"{{= col.Table.PrimaryKeyColumn().QueryName }}": o.{{= col.ReverseVariableIdentifier() }}Pks})
     }
-
     {{if}}
 
 {{for}}

@@ -322,18 +322,14 @@ func (o *reverseBase) SetForwardCascadeUnique(obj *ForwardCascadeUnique) {
 	o.revForwardCascadeUniqueIsDirty = true
 }
 
-// SetForwardCascadeUniqueByID
-// associates this Reverse with the ForwardCascadeUnique
-// that has primary key ids.
+// SetForwardCascadeUniqueByID associates this Reverse with the ForwardCascadeUnique
+// that has primary key id.
 //
 // The association is temporary until you call Save().
 // If a ForwardCascadeUnique is loaded, it will be unloaded.
 //
 // Since this is a unique relationship, if a different ForwardCascadeUnique object is currently pointing to this Reverse,
 // that ForwardCascadeUnique's ReverseID value will be set to null when Save is called.
-// If you did not use a join to query the attached ForwardCascadeUnique in the first place, used a conditional join,
-// or joined with an expansion, be particularly careful, since you may be inadvertently  changing an item
-// that is not currently loaded in this Reverse.
 func (o *reverseBase) SetForwardCascadeUniqueByID(id string) {
 	if o.revForwardCascadeUnique != nil && o.revForwardCascadeUnique.IsDirty() {
 		panic("The ReverseID value has changed. You must save it first before changing to a different one.")
@@ -487,18 +483,14 @@ func (o *reverseBase) SetForwardNullUnique(obj *ForwardNullUnique) {
 	o.revForwardNullUniqueIsDirty = true
 }
 
-// SetForwardNullUniqueByID
-// associates this Reverse with the ForwardNullUnique
-// that has primary key ids.
+// SetForwardNullUniqueByID associates this Reverse with the ForwardNullUnique
+// that has primary key id.
 //
 // The association is temporary until you call Save().
 // If a ForwardNullUnique is loaded, it will be unloaded.
 //
 // Since this is a unique relationship, if a different ForwardNullUnique object is currently pointing to this Reverse,
 // that ForwardNullUnique's ReverseID value will be set to null when Save is called.
-// If you did not use a join to query the attached ForwardNullUnique in the first place, used a conditional join,
-// or joined with an expansion, be particularly careful, since you may be inadvertently  changing an item
-// that is not currently loaded in this Reverse.
 func (o *reverseBase) SetForwardNullUniqueByID(id string) {
 	if o.revForwardNullUnique != nil && o.revForwardNullUnique.IsDirty() {
 		panic("The ReverseID value has changed. You must save it first before changing to a different one.")
@@ -646,18 +638,14 @@ func (o *reverseBase) SetForwardRestrictUnique(obj *ForwardRestrictUnique) {
 	o.revForwardRestrictUniqueIsDirty = true
 }
 
-// SetForwardRestrictUniqueByID
-// associates this Reverse with the ForwardRestrictUnique
-// that has primary key ids.
+// SetForwardRestrictUniqueByID associates this Reverse with the ForwardRestrictUnique
+// that has primary key id.
 //
 // The association is temporary until you call Save().
 // If a ForwardRestrictUnique is loaded, it will be unloaded.
 //
 // Since this is a unique relationship, if a different ForwardRestrictUnique object is currently pointing to this Reverse,
 // that ForwardRestrictUnique's ReverseID value will be set to null when Save is called.
-// If you did not use a join to query the attached ForwardRestrictUnique in the first place, used a conditional join,
-// or joined with an expansion, be particularly careful, since you may be inadvertently  changing an item
-// that is not currently loaded in this Reverse.
 func (o *reverseBase) SetForwardRestrictUniqueByID(id string) {
 	if o.revForwardRestrictUnique != nil && o.revForwardRestrictUnique.IsDirty() {
 		panic("The ReverseID value has changed. You must save it first before changing to a different one.")
@@ -1403,40 +1391,55 @@ func (o *reverseBase) insert(ctx context.Context) {
 		o.id = id
 		o._originalPK = id
 
-		o.revForwardCascades.Clear()
-		for _, obj := range o.revForwardCascades.All() {
-			obj.SetReverseID(id)
-			obj.Save(ctx)
-			o.revForwardCascades.Set(obj.PrimaryKey(), obj)
+		if o.revForwardCascades.Len() > 0 {
+			for _, obj := range o.revForwardCascades.All() {
+				obj.SetReverseID(id)
+				obj.Save(ctx)
+				o.revForwardCascades.Set(obj.PrimaryKey(), obj)
+			}
+		} else if len(o.revForwardCascadesPks) > 0 {
+			d.Update(ctx, "forward_cascade", map[string]any{"reverse_id": id}, map[string]any{"id": o.revForwardCascadesPks})
 		}
 
 		if o.revForwardCascadeUnique != nil {
 			o.revForwardCascadeUnique.SetReverseID(id)
 			o.revForwardCascadeUnique.Save(ctx)
+		} else if o.revForwardCascadeUniquePk != nil {
+			d.Update(ctx, "forward_cascade_unique", map[string]any{"reverse_id": id}, map[string]any{"id": *o.revForwardCascadeUniquePk})
 		}
 
-		o.revForwardNulls.Clear()
-		for _, obj := range o.revForwardNulls.All() {
-			obj.SetReverseID(id)
-			obj.Save(ctx)
-			o.revForwardNulls.Set(obj.PrimaryKey(), obj)
+		if o.revForwardNulls.Len() > 0 {
+			for _, obj := range o.revForwardNulls.All() {
+				obj.SetReverseID(id)
+				obj.Save(ctx)
+				o.revForwardNulls.Set(obj.PrimaryKey(), obj)
+			}
+		} else if len(o.revForwardNullsPks) > 0 {
+			d.Update(ctx, "forward_null", map[string]any{"reverse_id": id}, map[string]any{"id": o.revForwardNullsPks})
 		}
 
 		if o.revForwardNullUnique != nil {
 			o.revForwardNullUnique.SetReverseID(id)
 			o.revForwardNullUnique.Save(ctx)
+		} else if o.revForwardNullUniquePk != nil {
+			d.Update(ctx, "forward_null_unique", map[string]any{"reverse_id": id}, map[string]any{"id": *o.revForwardNullUniquePk})
 		}
 
-		o.revForwardRestricts.Clear()
-		for _, obj := range o.revForwardRestricts.All() {
-			obj.SetReverseID(id)
-			obj.Save(ctx)
-			o.revForwardRestricts.Set(obj.PrimaryKey(), obj)
+		if o.revForwardRestricts.Len() > 0 {
+			for _, obj := range o.revForwardRestricts.All() {
+				obj.SetReverseID(id)
+				obj.Save(ctx)
+				o.revForwardRestricts.Set(obj.PrimaryKey(), obj)
+			}
+		} else if len(o.revForwardRestrictsPks) > 0 {
+			d.Update(ctx, "forward_restrict", map[string]any{"reverse_id": id}, map[string]any{"id": o.revForwardRestrictsPks})
 		}
 
 		if o.revForwardRestrictUnique != nil {
 			o.revForwardRestrictUnique.SetReverseID(id)
 			o.revForwardRestrictUnique.Save(ctx)
+		} else if o.revForwardRestrictUniquePk != nil {
+			d.Update(ctx, "forward_restrict_unique", map[string]any{"reverse_id": id}, map[string]any{"id": *o.revForwardRestrictUniquePk})
 		}
 
 	}) // transaction

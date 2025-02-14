@@ -2,6 +2,7 @@ package sql
 
 import (
 	"fmt"
+	"github.com/goradd/all"
 	"github.com/goradd/iter"
 	"github.com/goradd/orm/pkg/db/jointree"
 	. "github.com/goradd/orm/pkg/query"
@@ -526,16 +527,9 @@ func GenerateUpdate(db DbI, table string, fields map[string]any, where map[strin
 	sb.WriteString(sql)
 	sb.WriteString("\nWHERE ")
 
-	for k, v := range iter.KeySort(where) {
-		args = append(args, v)
-		sb.WriteString(db.QuoteIdentifier(k))
-		sb.WriteString("=")
-		sb.WriteString(db.FormatArgument(len(args)))
-		sb.WriteString(" AND ")
-	}
-
-	// Remove trailing " AND "
-	sql = strings.TrimSuffix(sb.String(), " AND ")
+	var s2 string
+	s2, args = generateWhereClause(db, where, true, args)
+	sb.WriteString(s2)
 
 	return sql, args
 }
@@ -580,7 +574,7 @@ func GenerateDelete(db DbI, table string, where map[string]any) (sql string, arg
 	sb.WriteString("\nWHERE ")
 
 	var s string
-	s, args = generateWhereClause(db, where)
+	s, args = generateWhereClause(db, where, true, args)
 	sb.WriteString(s)
 
 	return sb.String(), args
@@ -602,7 +596,7 @@ func GenerateSelect(db DbI, table string, fieldNames []string, where map[string]
 	if len(where) > 0 {
 		sb.WriteString("\nWHERE ")
 		var s string
-		s, args = generateWhereClause(db, where)
+		s, args = generateWhereClause(db, where, true, args)
 		sb.WriteString(s)
 	}
 
@@ -614,30 +608,48 @@ func GenerateSelect(db DbI, table string, fieldNames []string, where map[string]
 	return sb.String(), args
 }
 
-func generateWhereClause(db DbI, where map[string]any) (sql string, args []any) {
-	var ors []string
-	for kOr, vOr := range iter.KeySort(where) {
-		if m, ok := vOr.(map[string]any); ok {
-			var ands []string
-			for kAnd, vAnd := range m {
-				args = append(args, vAnd)
-				var sb strings.Builder
-				sb.WriteString(db.QuoteIdentifier(kAnd))
-				sb.WriteString("=")
-				sb.WriteString(db.FormatArgument(len(args)))
-				ands = append(ands, sb.String())
+func generateWhereClause(db DbI, where map[string]any, connectWithOr bool, argsIn []any) (sql string, argsOut []any) {
+	var clauses []string
+	argsOut = argsIn
+	for key, value := range iter.KeySort(where) {
+		if m, ok := value.(map[string]any); ok {
+			var sql2 string
+			sql2, argsOut = generateWhereClause(db, m, !connectWithOr, argsOut)
+			clauses = append(clauses, sql2)
+		} else if ints, ok2 := value.([]int); ok2 {
+			s2 := db.QuoteIdentifier(key)
+			s2 += " IN ("
+			s2 += all.Join(ints, ",")
+			s2 += ")"
+			clauses = append(clauses, s2)
+		} else if strs, ok3 := value.([]string); ok3 {
+			var formattedStrings []string
+
+			for _, s := range strs {
+				argsOut = append(argsOut, s)
+				formattedStrings = append(formattedStrings, db.FormatArgument(len(argsOut)))
 			}
-			and := strings.Join(ands, " AND ")
-			ors = append(ors, and)
+
+			s2 := db.QuoteIdentifier(key)
+			s2 += " IN ("
+			s2 += strings.Join(formattedStrings, ",")
+			s2 += ")"
+			clauses = append(clauses, s2)
 		} else {
-			args = append(args, vOr)
+			argsOut = append(argsOut, value)
 			var sb strings.Builder
-			sb.WriteString(db.QuoteIdentifier(kOr))
+			sb.WriteString(db.QuoteIdentifier(key))
 			sb.WriteString("=")
-			sb.WriteString(db.FormatArgument(len(args)))
-			ors = append(ors, sb.String())
+			sb.WriteString(db.FormatArgument(len(argsOut)))
+			clauses = append(clauses, sb.String())
 		}
 	}
-	sql = strings.Join(ors, " OR ")
+	var sep string
+	if connectWithOr {
+		sep = " OR "
+	} else {
+		sep = " AND "
+	}
+	sql = "(" + strings.Join(clauses, sep) + ")"
 	return
 }

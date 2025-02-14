@@ -54,6 +54,12 @@ func TestPerson_SetTypes(t *testing.T) {
 	obj.SetTypes(types)
 
 	assert.Equal(t, types, obj.Types())
+	assert.False(t, obj.TypesIsNull())
+
+	// Test nil
+	obj.SetTypes(nil)
+	assert.Equal(t, nil, obj.Types(), "set nil")
+	assert.True(t, obj.TypesIsNull())
 
 	// test default
 	obj.SetTypes(nil)
@@ -106,6 +112,7 @@ func TestPerson_CRUD(t *testing.T) {
 	assert.Equal(t, lastName, obj.LastName())
 
 	assert.True(t, obj.TypesIsValid())
+	assert.False(t, obj.TypesIsNull())
 	assert.True(t, types.Equal(obj.Types()))
 
 }

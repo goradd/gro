@@ -36,6 +36,7 @@ type personBase struct {
 	lastNameIsDirty bool
 
 	types        PersonTypeSet
+	typesIsNull  bool
 	typesIsValid bool
 	typesIsDirty bool
 
@@ -115,8 +116,9 @@ func (o *personBase) Initialize() {
 
 	o.types = nil
 
-	o.typesIsValid = false
-	o.typesIsDirty = false
+	o.typesIsNull = true
+	o.typesIsValid = true
+	o.typesIsDirty = true
 
 	o._restored = false
 }
@@ -229,15 +231,44 @@ func (o *personBase) TypesIsValid() bool {
 	return o.typesIsValid
 }
 
-// SetTypes sets the value of Types in the object, to be saved later using the Save() function.
-func (o *personBase) SetTypes(types PersonTypeSet) {
-	o.typesIsValid = true
-	if !o.types.Equal(types) ||
-		!o._restored {
-		o.types = types
-		o.typesIsDirty = true
-	}
+// TypesIsNull returns true if the related database value is null.
+func (o *personBase) TypesIsNull() bool {
+	return o.typesIsNull
+}
 
+// Types_I returns the loaded value of Types as an interface.
+// If the value in the database is NULL, a nil interface is returned.
+func (o *personBase) Types_I() interface{} {
+	if o._restored && !o.typesIsValid {
+		panic("types was not selected in the last query and has not been set, and so is not valid")
+	} else if o.typesIsNull {
+		return nil
+	}
+	return o.types.Clone()
+}
+
+// SetTypes prepares for setting the type_enum value in the database.
+//
+// Pass nil to set it to a NULL value in the database.
+func (o *personBase) SetTypes(i interface{}) {
+	o.typesIsValid = true
+	if i == nil {
+		if !o.typesIsNull {
+			o.typesIsNull = true
+			o.typesIsDirty = true
+			o.types = nil
+		}
+	} else {
+		v := i.(PersonTypeSet)
+
+		if o.typesIsNull ||
+			!o._restored ||
+			!o.types.Equal(v) {
+			o.typesIsNull = false
+			o.types = v
+			o.typesIsDirty = true
+		}
+	}
 }
 
 // GetAlias returns the alias for the given key.
@@ -463,9 +494,8 @@ func (o *personBase) SetEmployeeInfo(obj *EmployeeInfo) {
 	o.revEmployeeInfoIsDirty = true
 }
 
-// SetEmployeeInfoByID
-// associates this Person with the EmployeeInfo
-// that has primary key ids.
+// SetEmployeeInfoByID associates this Person with the EmployeeInfo
+// that has primary key id.
 //
 // The association is temporary until you call Save().
 // If a EmployeeInfo is loaded, it will be unloaded.
@@ -527,18 +557,14 @@ func (o *personBase) SetLogin(obj *Login) {
 	o.revLoginIsDirty = true
 }
 
-// SetLoginByID
-// associates this Person with the Login
-// that has primary key ids.
+// SetLoginByID associates this Person with the Login
+// that has primary key id.
 //
 // The association is temporary until you call Save().
 // If a Login is loaded, it will be unloaded.
 //
 // Since this is a unique relationship, if a different Login object is currently pointing to this Person,
 // that Login's PersonID value will be set to null when Save is called.
-// If you did not use a join to query the attached Login in the first place, used a conditional join,
-// or joined with an expansion, be particularly careful, since you may be inadvertently  changing an item
-// that is not currently loaded in this Person.
 func (o *personBase) SetLoginByID(id string) {
 	if o.revLogin != nil && o.revLogin.IsDirty() {
 		panic("The PersonID value has changed. You must save it first before changing to a different one.")
@@ -1036,10 +1062,14 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 		o.lastName = ""
 	}
 
-	if v, ok := m["type_enum"]; ok && v != nil {
-		if s, ok2 := v.(string); ok2 {
+	if v, ok := m["type_enum"]; ok {
+		if v == nil {
+			o.types = nil
+			o.typesIsNull = true
+			o.typesIsValid = true
+			o.typesIsDirty = false
+		} else if s, ok2 := v.(string); ok2 {
 			var v PersonTypeSet
-
 			if s == "" {
 				o.types = nil
 			} else if err := json.Unmarshal([]byte(s), &v); err != nil {
@@ -1047,14 +1077,15 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 			} else {
 				o.types = v
 			}
+			o.typesIsNull = false
 			o.typesIsValid = true
 			o.typesIsDirty = false
-
 		} else {
 			panic("Wrong type found for type_enum.")
 		}
 	} else {
 		o.typesIsValid = false
+		o.typesIsNull = true
 		o.types = nil
 	}
 
@@ -1338,47 +1369,73 @@ func (o *personBase) insert(ctx context.Context) {
 			panic("a value for LastName is required, and there is no default value. Call SetLastName() before inserting the record.")
 		}
 
-		if !o.typesIsValid {
-			panic("a value for Types is required, and there is no default value. Call SetTypes() before inserting the record.")
-		}
-
 		m := o.getValidFields()
 
 		id := d.Insert(ctx, "person", m)
 		o.id = id
 		o._originalPK = id
 
-		o.revAddresses.Clear()
-		for _, obj := range o.revAddresses.All() {
-			obj.SetPersonID(id)
-			obj.Save(ctx)
-			o.revAddresses.Set(obj.PrimaryKey(), obj)
+		if o.revAddresses.Len() > 0 {
+			for _, obj := range o.revAddresses.All() {
+				obj.SetPersonID(id)
+				obj.Save(ctx)
+				o.revAddresses.Set(obj.PrimaryKey(), obj)
+			}
+		} else if len(o.revAddressesPks) > 0 {
+			d.Update(ctx, "address", map[string]any{"person_id": id}, map[string]any{"id": o.revAddressesPks})
 		}
 
 		if o.revEmployeeInfo != nil {
 			o.revEmployeeInfo.SetPersonID(id)
 			o.revEmployeeInfo.Save(ctx)
+		} else if o.revEmployeeInfoPk != nil {
+			d.Update(ctx, "employee_info", map[string]any{"person_id": id}, map[string]any{"id": *o.revEmployeeInfoPk})
 		}
 
 		if o.revLogin != nil {
 			o.revLogin.SetPersonID(id)
 			o.revLogin.Save(ctx)
+		} else if o.revLoginPk != nil {
+			d.Update(ctx, "login", map[string]any{"person_id": id}, map[string]any{"id": *o.revLoginPk})
 		}
 
-		o.revManagerProjects.Clear()
-		for _, obj := range o.revManagerProjects.All() {
-			obj.SetManagerID(id)
-			obj.Save(ctx)
-			o.revManagerProjects.Set(obj.PrimaryKey(), obj)
+		if o.revManagerProjects.Len() > 0 {
+			for _, obj := range o.revManagerProjects.All() {
+				obj.SetManagerID(id)
+				obj.Save(ctx)
+				o.revManagerProjects.Set(obj.PrimaryKey(), obj)
+			}
+		} else if len(o.revManagerProjectsPks) > 0 {
+			d.Update(ctx, "project", map[string]any{"manager_id": id}, map[string]any{"id": o.revManagerProjectsPks})
 		}
 
-		o.mmProjects.Clear()
-		for _, obj := range o.mmProjects.All() {
-			obj.Save(ctx)
-
+		if o.mmProjects.Len() > 0 {
+			for _, obj := range o.mmProjects.All() {
+				obj.Save(ctx)
+				db.Associate(ctx,
+					d,
+					"team_member_project_assn",
+					"team_member_id",
+					o.id,
+					"project_id",
+					obj.PrimaryKey(),
+				)
+			}
+		} else if len(o.mmProjectsPks) > 0 {
+			for _, pk := range o.mmProjectsPks {
+				obj := LoadProject(ctx, pk)
+				if obj != nil {
+					db.Associate(ctx,
+						d,
+						"team_member_project_assn",
+						"team_member_id",
+						o.id,
+						"project_id",
+						pk,
+					)
+				}
+			}
 		}
-
-		// TODO: Fix associations
 
 	}) // transaction
 
@@ -1401,8 +1458,12 @@ func (o *personBase) getModifiedFields() (fields map[string]interface{}) {
 		fields["last_name"] = o.lastName
 	}
 	if o.typesIsDirty {
-		b, _ := json.Marshal(o.types)
-		fields["type_enum"] = string(b)
+		if o.typesIsNull {
+			fields["type_enum"] = nil
+		} else {
+			b, _ := json.Marshal(o.types)
+			fields["type_enum"] = string(b)
+		}
 	}
 	return
 }
@@ -1417,8 +1478,12 @@ func (o *personBase) getValidFields() (fields map[string]interface{}) {
 		fields["last_name"] = o.lastName
 	}
 	if o.typesIsValid {
-		b, _ := json.Marshal(o.types)
-		fields["type_enum"] = string(b)
+		if o.typesIsNull {
+			fields["type_enum"] = nil
+		} else {
+			b, _ := json.Marshal(o.types)
+			fields["type_enum"] = string(b)
+		}
 	}
 	return
 }
@@ -1632,6 +1697,9 @@ func (o *personBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.types); err != nil {
 		return nil, fmt.Errorf("error encoding Person.types: %w", err)
 	}
+	if err := encoder.Encode(o.typesIsNull); err != nil {
+		return nil, fmt.Errorf("error encoding Person.typesIsNull: %w", err)
+	}
 	if err := encoder.Encode(o.typesIsValid); err != nil {
 		return nil, fmt.Errorf("error encoding Person.typesIsValid: %w", err)
 	}
@@ -1810,6 +1878,9 @@ func (o *personBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.types); err != nil {
 		return fmt.Errorf("error decoding Person.types: %w", err)
 	}
+	if err = dec.Decode(&o.typesIsNull); err != nil {
+		return fmt.Errorf("error decoding Person.typesIsNull: %w", err)
+	}
 	if err = dec.Decode(&o.typesIsValid); err != nil {
 		return fmt.Errorf("error decoding Person.typesIsValid: %w", err)
 	}
@@ -1938,7 +2009,11 @@ func (o *personBase) MarshalStringMap() map[string]interface{} {
 	}
 
 	if o.typesIsValid {
-		v["types"] = o.types
+		if o.typesIsNull {
+			v["types"] = nil
+		} else {
+			v["types"] = o.types
+		}
 	}
 
 	if o.revAddresses.Len() != 0 {
@@ -1987,7 +2062,7 @@ func (o *personBase) MarshalStringMap() map[string]interface{} {
 //	"id" - string
 //	"firstName" - string
 //	"lastName" - string
-//	"types" - PersonTypeSet
+//	"types" - PersonTypeSet, nullable
 func (o *personBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
 	if err = json.Unmarshal(data, &v); err != nil {
@@ -2032,7 +2107,8 @@ func (o *personBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 		case "types":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					o.SetTypes(v)
+					continue
 				}
 
 				if v == nil {

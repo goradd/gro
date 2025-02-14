@@ -164,6 +164,7 @@
             "name": "type_enum",
             "type": "enum_array",
             "size": 40,
+            "is_nullable": true,
             "case_insensitive": true
           }
         ],

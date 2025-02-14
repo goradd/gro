@@ -97,6 +97,126 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 			return err
 		}
 	}
+	{ // Write Reverses
+		if _, err := io.WriteString(writer, "["); err != nil {
+			return err
+		}
+
+		if _, err := io.WriteString(writer, `"reverse"`); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(writer, ",\n["); err != nil {
+			return err
+		}
+
+		cursor := QueryReverses(ctx).LoadCursor()
+		defer cursor.Close()
+		if obj := cursor.Next(); obj != nil {
+			if err := encoder.Encode(obj); err != nil {
+				return err
+			}
+		}
+
+		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+			if _, err := io.WriteString(writer, ",\n"); err != nil {
+				return err
+			}
+			if err := encoder.Encode(obj); err != nil {
+				return err
+			}
+		}
+
+		if _, err := io.WriteString(writer, "]\n]"); err != nil {
+			return err
+		}
+
+		if _, err := io.WriteString(writer, ","); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(writer, "\n"); err != nil {
+			return err
+		}
+	}
+	{ // Write TypeTests
+		if _, err := io.WriteString(writer, "["); err != nil {
+			return err
+		}
+
+		if _, err := io.WriteString(writer, `"type_test"`); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(writer, ",\n["); err != nil {
+			return err
+		}
+
+		cursor := QueryTypeTests(ctx).LoadCursor()
+		defer cursor.Close()
+		if obj := cursor.Next(); obj != nil {
+			if err := encoder.Encode(obj); err != nil {
+				return err
+			}
+		}
+
+		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+			if _, err := io.WriteString(writer, ",\n"); err != nil {
+				return err
+			}
+			if err := encoder.Encode(obj); err != nil {
+				return err
+			}
+		}
+
+		if _, err := io.WriteString(writer, "]\n]"); err != nil {
+			return err
+		}
+
+		if _, err := io.WriteString(writer, ","); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(writer, "\n"); err != nil {
+			return err
+		}
+	}
+	{ // Write UnsupportedTypes
+		if _, err := io.WriteString(writer, "["); err != nil {
+			return err
+		}
+
+		if _, err := io.WriteString(writer, `"unsupported_type"`); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(writer, ",\n["); err != nil {
+			return err
+		}
+
+		cursor := QueryUnsupportedTypes(ctx).LoadCursor()
+		defer cursor.Close()
+		if obj := cursor.Next(); obj != nil {
+			if err := encoder.Encode(obj); err != nil {
+				return err
+			}
+		}
+
+		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+			if _, err := io.WriteString(writer, ",\n"); err != nil {
+				return err
+			}
+			if err := encoder.Encode(obj); err != nil {
+				return err
+			}
+		}
+
+		if _, err := io.WriteString(writer, "]\n]"); err != nil {
+			return err
+		}
+
+		if _, err := io.WriteString(writer, ","); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(writer, "\n"); err != nil {
+			return err
+		}
+	}
 	{ // Write ForwardCascades
 		if _, err := io.WriteString(writer, "["); err != nil {
 			return err
@@ -297,126 +417,6 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 			return err
 		}
 	}
-	{ // Write Reverses
-		if _, err := io.WriteString(writer, "["); err != nil {
-			return err
-		}
-
-		if _, err := io.WriteString(writer, `"reverse"`); err != nil {
-			return err
-		}
-		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
-		}
-
-		cursor := QueryReverses(ctx).LoadCursor()
-		defer cursor.Close()
-		if obj := cursor.Next(); obj != nil {
-			if err := encoder.Encode(obj); err != nil {
-				return err
-			}
-		}
-
-		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
-			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
-			}
-			if err := encoder.Encode(obj); err != nil {
-				return err
-			}
-		}
-
-		if _, err := io.WriteString(writer, "]\n]"); err != nil {
-			return err
-		}
-
-		if _, err := io.WriteString(writer, ","); err != nil {
-			return err
-		}
-		if _, err := io.WriteString(writer, "\n"); err != nil {
-			return err
-		}
-	}
-	{ // Write TypeTests
-		if _, err := io.WriteString(writer, "["); err != nil {
-			return err
-		}
-
-		if _, err := io.WriteString(writer, `"type_test"`); err != nil {
-			return err
-		}
-		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
-		}
-
-		cursor := QueryTypeTests(ctx).LoadCursor()
-		defer cursor.Close()
-		if obj := cursor.Next(); obj != nil {
-			if err := encoder.Encode(obj); err != nil {
-				return err
-			}
-		}
-
-		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
-			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
-			}
-			if err := encoder.Encode(obj); err != nil {
-				return err
-			}
-		}
-
-		if _, err := io.WriteString(writer, "]\n]"); err != nil {
-			return err
-		}
-
-		if _, err := io.WriteString(writer, ","); err != nil {
-			return err
-		}
-		if _, err := io.WriteString(writer, "\n"); err != nil {
-			return err
-		}
-	}
-	{ // Write UnsupportedTypes
-		if _, err := io.WriteString(writer, "["); err != nil {
-			return err
-		}
-
-		if _, err := io.WriteString(writer, `"unsupported_type"`); err != nil {
-			return err
-		}
-		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
-		}
-
-		cursor := QueryUnsupportedTypes(ctx).LoadCursor()
-		defer cursor.Close()
-		if obj := cursor.Next(); obj != nil {
-			if err := encoder.Encode(obj); err != nil {
-				return err
-			}
-		}
-
-		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
-			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
-			}
-			if err := encoder.Encode(obj); err != nil {
-				return err
-			}
-		}
-
-		if _, err := io.WriteString(writer, "]\n]"); err != nil {
-			return err
-		}
-
-		if _, err := io.WriteString(writer, ","); err != nil {
-			return err
-		}
-		if _, err := io.WriteString(writer, "\n"); err != nil {
-			return err
-		}
-	}
 	{ // Write ForwardRestrictUniques
 		if _, err := io.WriteString(writer, "["); err != nil {
 			return err
@@ -522,20 +522,20 @@ func jsonDecodeTable(ctx context.Context, decoder *json.Decoder) error {
 			err = jsonDecodeDoubleIndices(ctx, decoder)
 		case "forward_cascade":
 			err = jsonDecodeForwardCascades(ctx, decoder)
-		case "forward_cascade_unique":
-			err = jsonDecodeForwardCascadeUniques(ctx, decoder)
-		case "forward_null":
-			err = jsonDecodeForwardNulls(ctx, decoder)
 		case "forward_null_unique":
 			err = jsonDecodeForwardNullUniques(ctx, decoder)
+		case "forward_restrict":
+			err = jsonDecodeForwardRestricts(ctx, decoder)
 		case "reverse":
 			err = jsonDecodeReverses(ctx, decoder)
 		case "type_test":
 			err = jsonDecodeTypeTests(ctx, decoder)
 		case "unsupported_type":
 			err = jsonDecodeUnsupportedTypes(ctx, decoder)
-		case "forward_restrict":
-			err = jsonDecodeForwardRestricts(ctx, decoder)
+		case "forward_cascade_unique":
+			err = jsonDecodeForwardCascadeUniques(ctx, decoder)
+		case "forward_null":
+			err = jsonDecodeForwardNulls(ctx, decoder)
 		case "forward_restrict_unique":
 			err = jsonDecodeForwardRestrictUniques(ctx, decoder)
 
@@ -628,74 +628,6 @@ func jsonDecodeForwardCascades(ctx context.Context, decoder *json.Decoder) error
 
 	return nil
 }
-func jsonDecodeForwardCascadeUniques(ctx context.Context, decoder *json.Decoder) error {
-	token, err := decoder.Token()
-	if err != nil {
-		fmt.Println("Error reading opening token:", err)
-		return err
-	}
-	// Ensure the first token is a start of an array
-	if delim, ok := token.(json.Delim); !ok || delim != '[' {
-		fmt.Println("Error: Expected the ForwardCascadeUnique list to start with an array")
-		return err
-	}
-
-	for decoder.More() {
-		obj := NewForwardCascadeUnique()
-		if err = decoder.Decode(&obj); err != nil {
-			return err
-		}
-		obj.Save(ctx)
-	}
-
-	// Check if the last token is the end of the array
-	token, err = decoder.Token()
-	if err != nil {
-		fmt.Println("Error reading the last token:", err)
-		return err
-	}
-
-	if delim, ok := token.(json.Delim); !ok || delim != ']' {
-		fmt.Println("Error: Expected the JSON to end with a closing array token")
-		return err
-	}
-
-	return nil
-}
-func jsonDecodeForwardNulls(ctx context.Context, decoder *json.Decoder) error {
-	token, err := decoder.Token()
-	if err != nil {
-		fmt.Println("Error reading opening token:", err)
-		return err
-	}
-	// Ensure the first token is a start of an array
-	if delim, ok := token.(json.Delim); !ok || delim != '[' {
-		fmt.Println("Error: Expected the ForwardNull list to start with an array")
-		return err
-	}
-
-	for decoder.More() {
-		obj := NewForwardNull()
-		if err = decoder.Decode(&obj); err != nil {
-			return err
-		}
-		obj.Save(ctx)
-	}
-
-	// Check if the last token is the end of the array
-	token, err = decoder.Token()
-	if err != nil {
-		fmt.Println("Error reading the last token:", err)
-		return err
-	}
-
-	if delim, ok := token.(json.Delim); !ok || delim != ']' {
-		fmt.Println("Error: Expected the JSON to end with a closing array token")
-		return err
-	}
-
-	return nil
-}
 func jsonDecodeForwardNullUniques(ctx context.Context, decoder *json.Decoder) error {
 	token, err := decoder.Token()
 	if err != nil {
@@ -710,6 +642,40 @@ func jsonDecodeForwardNullUniques(ctx context.Context, decoder *json.Decoder) er
 
 	for decoder.More() {
 		obj := NewForwardNullUnique()
+		if err = decoder.Decode(&obj); err != nil {
+			return err
+		}
+		obj.Save(ctx)
+	}
+
+	// Check if the last token is the end of the array
+	token, err = decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading the last token:", err)
+		return err
+	}
+
+	if delim, ok := token.(json.Delim); !ok || delim != ']' {
+		fmt.Println("Error: Expected the JSON to end with a closing array token")
+		return err
+	}
+
+	return nil
+}
+func jsonDecodeForwardRestricts(ctx context.Context, decoder *json.Decoder) error {
+	token, err := decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading opening token:", err)
+		return err
+	}
+	// Ensure the first token is a start of an array
+	if delim, ok := token.(json.Delim); !ok || delim != '[' {
+		fmt.Println("Error: Expected the ForwardRestrict list to start with an array")
+		return err
+	}
+
+	for decoder.More() {
+		obj := NewForwardRestrict()
 		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}
@@ -832,7 +798,7 @@ func jsonDecodeUnsupportedTypes(ctx context.Context, decoder *json.Decoder) erro
 
 	return nil
 }
-func jsonDecodeForwardRestricts(ctx context.Context, decoder *json.Decoder) error {
+func jsonDecodeForwardCascadeUniques(ctx context.Context, decoder *json.Decoder) error {
 	token, err := decoder.Token()
 	if err != nil {
 		fmt.Println("Error reading opening token:", err)
@@ -840,12 +806,46 @@ func jsonDecodeForwardRestricts(ctx context.Context, decoder *json.Decoder) erro
 	}
 	// Ensure the first token is a start of an array
 	if delim, ok := token.(json.Delim); !ok || delim != '[' {
-		fmt.Println("Error: Expected the ForwardRestrict list to start with an array")
+		fmt.Println("Error: Expected the ForwardCascadeUnique list to start with an array")
 		return err
 	}
 
 	for decoder.More() {
-		obj := NewForwardRestrict()
+		obj := NewForwardCascadeUnique()
+		if err = decoder.Decode(&obj); err != nil {
+			return err
+		}
+		obj.Save(ctx)
+	}
+
+	// Check if the last token is the end of the array
+	token, err = decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading the last token:", err)
+		return err
+	}
+
+	if delim, ok := token.(json.Delim); !ok || delim != ']' {
+		fmt.Println("Error: Expected the JSON to end with a closing array token")
+		return err
+	}
+
+	return nil
+}
+func jsonDecodeForwardNulls(ctx context.Context, decoder *json.Decoder) error {
+	token, err := decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading opening token:", err)
+		return err
+	}
+	// Ensure the first token is a start of an array
+	if delim, ok := token.(json.Delim); !ok || delim != '[' {
+		fmt.Println("Error: Expected the ForwardNull list to start with an array")
+		return err
+	}
+
+	for decoder.More() {
+		obj := NewForwardNull()
 		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}

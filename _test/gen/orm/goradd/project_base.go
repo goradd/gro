@@ -1853,34 +1853,97 @@ func (o *projectBase) insert(ctx context.Context) {
 		o.id = id
 		o._originalPK = id
 
-		o.revMilestones.Clear()
-		for _, obj := range o.revMilestones.All() {
-			obj.SetProjectID(id)
-			obj.Save(ctx)
-			o.revMilestones.Set(obj.PrimaryKey(), obj)
+		if o.revMilestones.Len() > 0 {
+			for _, obj := range o.revMilestones.All() {
+				obj.SetProjectID(id)
+				obj.Save(ctx)
+				o.revMilestones.Set(obj.PrimaryKey(), obj)
+			}
+		} else if len(o.revMilestonesPks) > 0 {
+			d.Update(ctx, "milestone", map[string]any{"project_id": id}, map[string]any{"id": o.revMilestonesPks})
 		}
 
-		o.mmChildren.Clear()
-		for _, obj := range o.mmChildren.All() {
-			obj.Save(ctx)
-
+		if o.mmChildren.Len() > 0 {
+			for _, obj := range o.mmChildren.All() {
+				obj.Save(ctx)
+				db.Associate(ctx,
+					d,
+					"related_project_assn",
+					"parent_id",
+					o.id,
+					"child_id",
+					obj.PrimaryKey(),
+				)
+			}
+		} else if len(o.mmChildrenPks) > 0 {
+			for _, pk := range o.mmChildrenPks {
+				obj := LoadProject(ctx, pk)
+				if obj != nil {
+					db.Associate(ctx,
+						d,
+						"related_project_assn",
+						"parent_id",
+						o.id,
+						"child_id",
+						pk,
+					)
+				}
+			}
 		}
-
-		// TODO: Fix associations
-		o.mmParents.Clear()
-		for _, obj := range o.mmParents.All() {
-			obj.Save(ctx)
-
+		if o.mmParents.Len() > 0 {
+			for _, obj := range o.mmParents.All() {
+				obj.Save(ctx)
+				db.Associate(ctx,
+					d,
+					"related_project_assn",
+					"child_id",
+					o.id,
+					"parent_id",
+					obj.PrimaryKey(),
+				)
+			}
+		} else if len(o.mmParentsPks) > 0 {
+			for _, pk := range o.mmParentsPks {
+				obj := LoadProject(ctx, pk)
+				if obj != nil {
+					db.Associate(ctx,
+						d,
+						"related_project_assn",
+						"child_id",
+						o.id,
+						"parent_id",
+						pk,
+					)
+				}
+			}
 		}
-
-		// TODO: Fix associations
-		o.mmTeamMembers.Clear()
-		for _, obj := range o.mmTeamMembers.All() {
-			obj.Save(ctx)
-
+		if o.mmTeamMembers.Len() > 0 {
+			for _, obj := range o.mmTeamMembers.All() {
+				obj.Save(ctx)
+				db.Associate(ctx,
+					d,
+					"team_member_project_assn",
+					"project_id",
+					o.id,
+					"team_member_id",
+					obj.PrimaryKey(),
+				)
+			}
+		} else if len(o.mmTeamMembersPks) > 0 {
+			for _, pk := range o.mmTeamMembersPks {
+				obj := LoadPerson(ctx, pk)
+				if obj != nil {
+					db.Associate(ctx,
+						d,
+						"team_member_project_assn",
+						"project_id",
+						o.id,
+						"team_member_id",
+						pk,
+					)
+				}
+			}
 		}
-
-		// TODO: Fix associations
 
 	}) // transaction
 

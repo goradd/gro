@@ -27,9 +27,16 @@ type SchemaExtractor interface {
 
 // DatabaseI is the interface that describes the behaviors required for a database implementation.
 //
-// Where values are sent to the database, the value's type should match the named field type.
 // Time values are converted to whatever time format the database prefers.
+//
 // JSON values must already be encoded as strings or []byte values.
+//
+// If where is not nil, it specifies fields and values that will limit the search.
+// Multiple field-value combinations will be Or'd together.
+// If a value is a map[string]any type, its key is ignored, and the keys and values of the enclosed type will be
+// And'd together. This Or-And pattern is recursive.
+// If a value is a slice of int or strings, those values will be put in an "IN" test.
+// For example, {"vals":[]int{1,2,3}} will result in SQL of "vals IN (1,2,3)".
 type DatabaseI interface {
 	// Update will put the given values into a record that already exists in the database. The fields value
 	// should include only fields that have changed. All records that match the keys and values in where are changed.
@@ -42,10 +49,6 @@ type DatabaseI interface {
 	Delete(ctx context.Context, table string, where map[string]interface{})
 	// Query executes a simple query on a single table using fields, where the keys of fields are the names of database fields to select,
 	// and the values are the types of data to return for each field.
-	//
-	// If where is not nil, it specifies fields and values that will limit the search.
-	// Multiple field-value combinations will be Or'd together.
-	// Values in the where map may also be a map[string]any type, in which case those values will be And'd together.
 	//
 	// If orderBy is not nil, it specifies field names to sort the data on, in ascending order.
 	Query(ctx context.Context, table string, fields map[string]ReceiverType, where map[string]any, orderBy []string) CursorI
