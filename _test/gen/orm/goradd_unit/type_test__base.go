@@ -9,6 +9,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"time"
 	"unicode/utf8"
 
@@ -284,34 +285,37 @@ func (o *typeTestBase) Date_I() interface{} {
 	return o.date
 }
 
-// SetDate prepares for setting the date value in the database.
+// SetDate sets the value of Date in the object, to be saved later in the database using the Save() function.
 //
-// Pass nil to set it to a NULL value in the database.
-//
-// The input will immediately be converted to UTC time.
+// The value v will be converted to UTC time.
 // The time will also be zeroed. This may cause the date value to change. To prevent this, be sure that the date given is already in UTC time.
-func (o *typeTestBase) SetDate(i interface{}) {
-	o.dateIsValid = true
-	if i == nil {
-		if !o.dateIsNull {
-			o.dateIsNull = true
-			o.dateIsDirty = true
-			o.date = time.Time{}
-		}
-	} else {
-		v := i.(time.Time)
-		v = v.UTC()
-
-		v = time.Date(v.Year(), v.Month(), v.Day(), 0, 0, 0, 0, v.Location())
-
-		if o.dateIsNull ||
-			!o._restored ||
-			o.date != v {
-			o.dateIsNull = false
-			o.date = v
-			o.dateIsDirty = true
-		}
+func (o *typeTestBase) SetDate(v time.Time) {
+	if o._restored &&
+		o.dateIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		!o.dateIsNull && // if the db value is null, force a set of value
+		o.date.Equal(v) {
+		// no change
+		return
 	}
+
+	o.dateIsValid = true
+	v = v.UTC()
+	v = time.Date(v.Year(), v.Month(), v.Day(), 0, 0, 0, 0, v.Location())
+	o.date = v
+	o.dateIsDirty = true
+	o.dateIsNull = false
+}
+
+// SetDateToNull() will set the date value in the database to NULL.
+// Date() will return the column's default value after this.
+func (o *typeTestBase) SetDateToNull() {
+	if !o.dateIsValid || !o.dateIsNull {
+		// If we know it is null in the database, don't save it
+		o.dateIsDirty = true
+	}
+	o.dateIsValid = true
+	o.dateIsNull = true
+	o.date = time.Time{}
 }
 
 // Time returns the loaded value of Time.
@@ -343,34 +347,37 @@ func (o *typeTestBase) Time_I() interface{} {
 	return o.time
 }
 
-// SetTime prepares for setting the time value in the database.
+// SetTime sets the value of Time in the object, to be saved later in the database using the Save() function.
 //
-// Pass nil to set it to a NULL value in the database.
-//
-// The input will immediately be converted to UTC time.
+// The value v will be converted to UTC time.
 // The date will also be zeroed. This process may cause the time value to change. To prevent this, be sure that the time given is already in UTC time.
-func (o *typeTestBase) SetTime(i interface{}) {
-	o.timeIsValid = true
-	if i == nil {
-		if !o.timeIsNull {
-			o.timeIsNull = true
-			o.timeIsDirty = true
-			o.time = time.Time{}
-		}
-	} else {
-		v := i.(time.Time)
-		v = v.UTC()
-
-		v = time.Date(0, 1, 1, v.Hour(), v.Minute(), v.Second(), v.Nanosecond(), time.UTC)
-
-		if o.timeIsNull ||
-			!o._restored ||
-			o.time != v {
-			o.timeIsNull = false
-			o.time = v
-			o.timeIsDirty = true
-		}
+func (o *typeTestBase) SetTime(v time.Time) {
+	if o._restored &&
+		o.timeIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		!o.timeIsNull && // if the db value is null, force a set of value
+		o.time.Equal(v) {
+		// no change
+		return
 	}
+
+	o.timeIsValid = true
+	v = v.UTC()
+	v = time.Date(0, 1, 1, v.Hour(), v.Minute(), v.Second(), v.Nanosecond(), time.UTC)
+	o.time = v
+	o.timeIsDirty = true
+	o.timeIsNull = false
+}
+
+// SetTimeToNull() will set the time value in the database to NULL.
+// Time() will return the column's default value after this.
+func (o *typeTestBase) SetTimeToNull() {
+	if !o.timeIsValid || !o.timeIsNull {
+		// If we know it is null in the database, don't save it
+		o.timeIsDirty = true
+	}
+	o.timeIsValid = true
+	o.timeIsNull = true
+	o.time = time.Time{}
 }
 
 // DateTime returns the loaded value of DateTime.
@@ -402,31 +409,35 @@ func (o *typeTestBase) DateTime_I() interface{} {
 	return o.dateTime
 }
 
-// SetDateTime prepares for setting the date_time value in the database.
+// SetDateTime sets the value of DateTime in the object, to be saved later in the database using the Save() function.
 //
-// Pass nil to set it to a NULL value in the database.
-//
-// The input will immediately be converted to UTC time.
-func (o *typeTestBase) SetDateTime(i interface{}) {
-	o.dateTimeIsValid = true
-	if i == nil {
-		if !o.dateTimeIsNull {
-			o.dateTimeIsNull = true
-			o.dateTimeIsDirty = true
-			o.dateTime = time.Time{}
-		}
-	} else {
-		v := i.(time.Time)
-		v = v.UTC()
-
-		if o.dateTimeIsNull ||
-			!o._restored ||
-			o.dateTime != v {
-			o.dateTimeIsNull = false
-			o.dateTime = v
-			o.dateTimeIsDirty = true
-		}
+// The value v will be converted to UTC time.
+func (o *typeTestBase) SetDateTime(v time.Time) {
+	if o._restored &&
+		o.dateTimeIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		!o.dateTimeIsNull && // if the db value is null, force a set of value
+		o.dateTime.Equal(v) {
+		// no change
+		return
 	}
+
+	o.dateTimeIsValid = true
+	v = v.UTC()
+	o.dateTime = v
+	o.dateTimeIsDirty = true
+	o.dateTimeIsNull = false
+}
+
+// SetDateTimeToNull() will set the date_time value in the database to NULL.
+// DateTime() will return the column's default value after this.
+func (o *typeTestBase) SetDateTimeToNull() {
+	if !o.dateTimeIsValid || !o.dateTimeIsNull {
+		// If we know it is null in the database, don't save it
+		o.dateTimeIsDirty = true
+	}
+	o.dateTimeIsValid = true
+	o.dateTimeIsNull = true
+	o.dateTime = time.Time{}
 }
 
 // Ts returns the loaded value of Ts.
@@ -458,6 +469,18 @@ func (o *typeTestBase) Ts_I() interface{} {
 	return o.ts
 }
 
+// SetTsToNull() will set the ts value in the database to NULL.
+// Ts() will return the column's default value after this.
+func (o *typeTestBase) SetTsToNull() {
+	if !o.tsIsValid || !o.tsIsNull {
+		// If we know it is null in the database, don't save it
+		o.tsIsDirty = true
+	}
+	o.tsIsValid = true
+	o.tsIsNull = true
+	o.ts = time.Time{}
+}
+
 // TestInt returns the loaded value of TestInt.
 func (o *typeTestBase) TestInt() int {
 	if o._restored && !o.testIntIsValid {
@@ -487,28 +510,32 @@ func (o *typeTestBase) TestInt_I() interface{} {
 	return o.testInt
 }
 
-// SetTestInt prepares for setting the test_int value in the database.
-//
-// Pass nil to set it to a NULL value in the database.
-func (o *typeTestBase) SetTestInt(i interface{}) {
-	o.testIntIsValid = true
-	if i == nil {
-		if !o.testIntIsNull {
-			o.testIntIsNull = true
-			o.testIntIsDirty = true
-			o.testInt = 5
-		}
-	} else {
-		v := i.(int)
-
-		if o.testIntIsNull ||
-			!o._restored ||
-			o.testInt != v {
-			o.testIntIsNull = false
-			o.testInt = v
-			o.testIntIsDirty = true
-		}
+// SetTestInt sets the value of TestInt in the object, to be saved later in the database using the Save() function.
+func (o *typeTestBase) SetTestInt(v int) {
+	if o._restored &&
+		o.testIntIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		!o.testIntIsNull && // if the db value is null, force a set of value
+		o.testInt == v {
+		// no change
+		return
 	}
+
+	o.testIntIsValid = true
+	o.testInt = v
+	o.testIntIsDirty = true
+	o.testIntIsNull = false
+}
+
+// SetTestIntToNull() will set the test_int value in the database to NULL.
+// TestInt() will return the column's default value after this.
+func (o *typeTestBase) SetTestIntToNull() {
+	if !o.testIntIsValid || !o.testIntIsNull {
+		// If we know it is null in the database, don't save it
+		o.testIntIsDirty = true
+	}
+	o.testIntIsValid = true
+	o.testIntIsNull = true
+	o.testInt = 5
 }
 
 // TestFloat returns the loaded value of TestFloat.
@@ -540,28 +567,32 @@ func (o *typeTestBase) TestFloat_I() interface{} {
 	return o.testFloat
 }
 
-// SetTestFloat prepares for setting the test_float value in the database.
-//
-// Pass nil to set it to a NULL value in the database.
-func (o *typeTestBase) SetTestFloat(i interface{}) {
-	o.testFloatIsValid = true
-	if i == nil {
-		if !o.testFloatIsNull {
-			o.testFloatIsNull = true
-			o.testFloatIsDirty = true
-			o.testFloat = 0
-		}
-	} else {
-		v := i.(float32)
-
-		if o.testFloatIsNull ||
-			!o._restored ||
-			o.testFloat != v {
-			o.testFloatIsNull = false
-			o.testFloat = v
-			o.testFloatIsDirty = true
-		}
+// SetTestFloat sets the value of TestFloat in the object, to be saved later in the database using the Save() function.
+func (o *typeTestBase) SetTestFloat(v float32) {
+	if o._restored &&
+		o.testFloatIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		!o.testFloatIsNull && // if the db value is null, force a set of value
+		o.testFloat == v {
+		// no change
+		return
 	}
+
+	o.testFloatIsValid = true
+	o.testFloat = v
+	o.testFloatIsDirty = true
+	o.testFloatIsNull = false
+}
+
+// SetTestFloatToNull() will set the test_float value in the database to NULL.
+// TestFloat() will return the column's default value after this.
+func (o *typeTestBase) SetTestFloatToNull() {
+	if !o.testFloatIsValid || !o.testFloatIsNull {
+		// If we know it is null in the database, don't save it
+		o.testFloatIsDirty = true
+	}
+	o.testFloatIsValid = true
+	o.testFloatIsNull = true
+	o.testFloat = 0
 }
 
 // TestDouble returns the loaded value of TestDouble.
@@ -577,14 +608,18 @@ func (o *typeTestBase) TestDoubleIsValid() bool {
 	return o.testDoubleIsValid
 }
 
-// SetTestDouble sets the value of TestDouble in the object, to be saved later using the Save() function.
-func (o *typeTestBase) SetTestDouble(testDouble float64) {
-	o.testDoubleIsValid = true
-	if o.testDouble != testDouble || !o._restored {
-		o.testDouble = testDouble
-		o.testDoubleIsDirty = true
+// SetTestDouble sets the value of TestDouble in the object, to be saved later in the database using the Save() function.
+func (o *typeTestBase) SetTestDouble(v float64) {
+	if o._restored &&
+		o.testDoubleIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.testDouble == v {
+		// no change
+		return
 	}
 
+	o.testDoubleIsValid = true
+	o.testDouble = v
+	o.testDoubleIsDirty = true
 }
 
 // TestText returns the loaded value of TestText.
@@ -616,31 +651,35 @@ func (o *typeTestBase) TestText_I() interface{} {
 	return o.testText
 }
 
-// SetTestText prepares for setting the test_text value in the database.
-//
-// Pass nil to set it to a NULL value in the database.
-func (o *typeTestBase) SetTestText(i interface{}) {
-	o.testTextIsValid = true
-	if i == nil {
-		if !o.testTextIsNull {
-			o.testTextIsNull = true
-			o.testTextIsDirty = true
-			o.testText = ""
-		}
-	} else {
-		v := i.(string)
-
-		if utf8.RuneCountInString(v) > TypeTestTestTextMaxLength {
-			panic("attempted to set TypeTest.TestText to a value larger than its maximum length in runes")
-		}
-		if o.testTextIsNull ||
-			!o._restored ||
-			o.testText != v {
-			o.testTextIsNull = false
-			o.testText = v
-			o.testTextIsDirty = true
-		}
+// SetTestText sets the value of TestText in the object, to be saved later in the database using the Save() function.
+func (o *typeTestBase) SetTestText(v string) {
+	if utf8.RuneCountInString(v) > TypeTestTestTextMaxLength {
+		panic("attempted to set TypeTest.TestText to a value larger than its maximum length in runes")
 	}
+	if o._restored &&
+		o.testTextIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		!o.testTextIsNull && // if the db value is null, force a set of value
+		o.testText == v {
+		// no change
+		return
+	}
+
+	o.testTextIsValid = true
+	o.testText = v
+	o.testTextIsDirty = true
+	o.testTextIsNull = false
+}
+
+// SetTestTextToNull() will set the test_text value in the database to NULL.
+// TestText() will return the column's default value after this.
+func (o *typeTestBase) SetTestTextToNull() {
+	if !o.testTextIsValid || !o.testTextIsNull {
+		// If we know it is null in the database, don't save it
+		o.testTextIsDirty = true
+	}
+	o.testTextIsValid = true
+	o.testTextIsNull = true
+	o.testText = ""
 }
 
 // TestBit returns the loaded value of TestBit.
@@ -672,27 +711,32 @@ func (o *typeTestBase) TestBit_I() interface{} {
 	return o.testBit
 }
 
-// SetTestBit prepares for setting the test_bit value in the database.
-//
-// Pass nil to set it to a NULL value in the database.
-func (o *typeTestBase) SetTestBit(i interface{}) {
-	o.testBitIsValid = true
-	if i == nil {
-		if !o.testBitIsNull {
-			o.testBitIsNull = true
-			o.testBitIsDirty = true
-			o.testBit = false
-		}
-	} else {
-		v := i.(bool)
-		if o.testBitIsNull ||
-			!o._restored ||
-			o.testBit != v {
-			o.testBitIsNull = false
-			o.testBit = v
-			o.testBitIsDirty = true
-		}
+// SetTestBit sets the value of TestBit in the object, to be saved later in the database using the Save() function.
+func (o *typeTestBase) SetTestBit(v bool) {
+	if o._restored &&
+		o.testBitIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		!o.testBitIsNull && // if the db value is null, force a set of value
+		o.testBit == v {
+		// no change
+		return
 	}
+
+	o.testBitIsValid = true
+	o.testBit = v
+	o.testBitIsDirty = true
+	o.testBitIsNull = false
+}
+
+// SetTestBitToNull() will set the test_bit value in the database to NULL.
+// TestBit() will return the column's default value after this.
+func (o *typeTestBase) SetTestBitToNull() {
+	if !o.testBitIsValid || !o.testBitIsNull {
+		// If we know it is null in the database, don't save it
+		o.testBitIsDirty = true
+	}
+	o.testBitIsValid = true
+	o.testBitIsNull = true
+	o.testBit = false
 }
 
 // TestVarchar returns the loaded value of TestVarchar.
@@ -724,31 +768,35 @@ func (o *typeTestBase) TestVarchar_I() interface{} {
 	return o.testVarchar
 }
 
-// SetTestVarchar prepares for setting the test_varchar value in the database.
-//
-// Pass nil to set it to a NULL value in the database.
-func (o *typeTestBase) SetTestVarchar(i interface{}) {
-	o.testVarcharIsValid = true
-	if i == nil {
-		if !o.testVarcharIsNull {
-			o.testVarcharIsNull = true
-			o.testVarcharIsDirty = true
-			o.testVarchar = ""
-		}
-	} else {
-		v := i.(string)
-
-		if utf8.RuneCountInString(v) > TypeTestTestVarcharMaxLength {
-			panic("attempted to set TypeTest.TestVarchar to a value larger than its maximum length in runes")
-		}
-		if o.testVarcharIsNull ||
-			!o._restored ||
-			o.testVarchar != v {
-			o.testVarcharIsNull = false
-			o.testVarchar = v
-			o.testVarcharIsDirty = true
-		}
+// SetTestVarchar sets the value of TestVarchar in the object, to be saved later in the database using the Save() function.
+func (o *typeTestBase) SetTestVarchar(v string) {
+	if utf8.RuneCountInString(v) > TypeTestTestVarcharMaxLength {
+		panic("attempted to set TypeTest.TestVarchar to a value larger than its maximum length in runes")
 	}
+	if o._restored &&
+		o.testVarcharIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		!o.testVarcharIsNull && // if the db value is null, force a set of value
+		o.testVarchar == v {
+		// no change
+		return
+	}
+
+	o.testVarcharIsValid = true
+	o.testVarchar = v
+	o.testVarcharIsDirty = true
+	o.testVarcharIsNull = false
+}
+
+// SetTestVarcharToNull() will set the test_varchar value in the database to NULL.
+// TestVarchar() will return the column's default value after this.
+func (o *typeTestBase) SetTestVarcharToNull() {
+	if !o.testVarcharIsValid || !o.testVarcharIsNull {
+		// If we know it is null in the database, don't save it
+		o.testVarcharIsDirty = true
+	}
+	o.testVarcharIsValid = true
+	o.testVarcharIsNull = true
+	o.testVarchar = ""
 }
 
 // TestBlob returns the loaded value of TestBlob.
@@ -764,15 +812,28 @@ func (o *typeTestBase) TestBlobIsValid() bool {
 	return o.testBlobIsValid
 }
 
-// SetTestBlob sets the value of TestBlob in the object, to be saved later using the Save() function.
-func (o *typeTestBase) SetTestBlob(testBlob []byte) {
-	o.testBlobIsValid = true
-	if len(testBlob) > TypeTestTestBlobMaxLength {
+// SetTestBlob copies the value of TestBlob, to be saved later in the database using the Save() function.
+// Passing nil will set test_blob to an empty array.
+func (o *typeTestBase) SetTestBlob(v []byte) {
+
+	if len(v) > TypeTestTestBlobMaxLength {
 		panic("attempted to set TypeTest.TestBlob to a value larger than its maximum length")
 	}
-	o.testBlob = testBlob // TODO: Copy bytes??
-	o.testBlobIsDirty = true
 
+	if o._restored &&
+		o.testBlobIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		bytes.Equal(o.testBlob, v) {
+		// no change
+		return
+	}
+
+	o.testBlobIsValid = true
+	if v == nil {
+		o.testBlob = []byte{}
+	} else {
+		o.testBlob = slices.Clone(v)
+	}
+	o.testBlobIsDirty = true
 }
 
 // GetAlias returns the alias for the given key.
@@ -2254,7 +2315,7 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 		case "date":
 			{
 				if v == nil {
-					o.SetDate(v)
+					o.SetDateToNull()
 					continue
 				}
 
@@ -2279,7 +2340,7 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 		case "time":
 			{
 				if v == nil {
-					o.SetTime(v)
+					o.SetTimeToNull()
 					continue
 				}
 
@@ -2304,7 +2365,7 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 		case "dateTime":
 			{
 				if v == nil {
-					o.SetDateTime(v)
+					o.SetDateTimeToNull()
 					continue
 				}
 
@@ -2329,7 +2390,7 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 		case "testInt":
 			{
 				if v == nil {
-					o.SetTestInt(v)
+					o.SetTestIntToNull()
 					continue
 				}
 
@@ -2345,7 +2406,7 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 		case "testFloat":
 			{
 				if v == nil {
-					o.SetTestFloat(v)
+					o.SetTestFloatToNull()
 					continue
 				}
 
@@ -2372,7 +2433,7 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 		case "testText":
 			{
 				if v == nil {
-					o.SetTestText(v)
+					o.SetTestTextToNull()
 					continue
 				}
 
@@ -2386,7 +2447,7 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 		case "testBit":
 			{
 				if v == nil {
-					o.SetTestBit(v)
+					o.SetTestBitToNull()
 					continue
 				}
 
@@ -2400,7 +2461,7 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 		case "testVarchar":
 			{
 				if v == nil {
-					o.SetTestVarchar(v)
+					o.SetTestVarcharToNull()
 					continue
 				}
 

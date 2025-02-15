@@ -179,29 +179,34 @@ func (o *loginBase) PersonID_I() interface{} {
 	return o.personID
 }
 
-// SetPersonID prepares for setting the person_id value in the database.
-//
-// Pass nil to set it to a NULL value in the database.
-func (o *loginBase) SetPersonID(i interface{}) {
-	o.personIDIsValid = true
-	if i == nil {
-		if !o.personIDIsNull {
-			o.personIDIsNull = true
-			o.personIDIsDirty = true
-			o.personID = ""
-			o.objPerson = nil
-		}
-	} else {
-		v := i.(string)
-		if o.personIDIsNull ||
-			!o._restored ||
-			o.personID != v {
-			o.personIDIsNull = false
-			o.personID = v
-			o.personIDIsDirty = true
-			o.objPerson = nil
-		}
+// SetPersonID sets the value of PersonID in the object, to be saved later in the database using the Save() function.
+func (o *loginBase) SetPersonID(v string) {
+	if o._restored &&
+		o.personIDIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		!o.personIDIsNull && // if the db value is null, force a set of value
+		o.personID == v {
+		// no change
+		return
 	}
+
+	o.personIDIsValid = true
+	o.personID = v
+	o.personIDIsDirty = true
+	o.personIDIsNull = false
+	o.objPerson = nil
+}
+
+// SetPersonIDToNull() will set the person_id value in the database to NULL.
+// PersonID() will return the column's default value after this.
+func (o *loginBase) SetPersonIDToNull() {
+	if !o.personIDIsValid || !o.personIDIsNull {
+		// If we know it is null in the database, don't save it
+		o.personIDIsDirty = true
+	}
+	o.personIDIsValid = true
+	o.personIDIsNull = true
+	o.personID = ""
+	o.objPerson = nil
 }
 
 // Person returns the current value of the loaded Person, and nil if its not loaded.
@@ -257,17 +262,21 @@ func (o *loginBase) UsernameIsValid() bool {
 	return o.usernameIsValid
 }
 
-// SetUsername sets the value of Username in the object, to be saved later using the Save() function.
-func (o *loginBase) SetUsername(username string) {
-	o.usernameIsValid = true
-	if utf8.RuneCountInString(username) > LoginUsernameMaxLength {
+// SetUsername sets the value of Username in the object, to be saved later in the database using the Save() function.
+func (o *loginBase) SetUsername(v string) {
+	if utf8.RuneCountInString(v) > LoginUsernameMaxLength {
 		panic("attempted to set Login.Username to a value larger than its maximum length in runes")
 	}
-	if o.username != username || !o._restored {
-		o.username = username
-		o.usernameIsDirty = true
+	if o._restored &&
+		o.usernameIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.username == v {
+		// no change
+		return
 	}
 
+	o.usernameIsValid = true
+	o.username = v
+	o.usernameIsDirty = true
 }
 
 // Password returns the loaded value of Password.
@@ -299,31 +308,35 @@ func (o *loginBase) Password_I() interface{} {
 	return o.password
 }
 
-// SetPassword prepares for setting the password value in the database.
-//
-// Pass nil to set it to a NULL value in the database.
-func (o *loginBase) SetPassword(i interface{}) {
-	o.passwordIsValid = true
-	if i == nil {
-		if !o.passwordIsNull {
-			o.passwordIsNull = true
-			o.passwordIsDirty = true
-			o.password = ""
-		}
-	} else {
-		v := i.(string)
-
-		if utf8.RuneCountInString(v) > LoginPasswordMaxLength {
-			panic("attempted to set Login.Password to a value larger than its maximum length in runes")
-		}
-		if o.passwordIsNull ||
-			!o._restored ||
-			o.password != v {
-			o.passwordIsNull = false
-			o.password = v
-			o.passwordIsDirty = true
-		}
+// SetPassword sets the value of Password in the object, to be saved later in the database using the Save() function.
+func (o *loginBase) SetPassword(v string) {
+	if utf8.RuneCountInString(v) > LoginPasswordMaxLength {
+		panic("attempted to set Login.Password to a value larger than its maximum length in runes")
 	}
+	if o._restored &&
+		o.passwordIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		!o.passwordIsNull && // if the db value is null, force a set of value
+		o.password == v {
+		// no change
+		return
+	}
+
+	o.passwordIsValid = true
+	o.password = v
+	o.passwordIsDirty = true
+	o.passwordIsNull = false
+}
+
+// SetPasswordToNull() will set the password value in the database to NULL.
+// Password() will return the column's default value after this.
+func (o *loginBase) SetPasswordToNull() {
+	if !o.passwordIsValid || !o.passwordIsNull {
+		// If we know it is null in the database, don't save it
+		o.passwordIsDirty = true
+	}
+	o.passwordIsValid = true
+	o.passwordIsNull = true
+	o.password = ""
 }
 
 // IsEnabled returns the loaded value of IsEnabled.
@@ -339,14 +352,18 @@ func (o *loginBase) IsEnabledIsValid() bool {
 	return o.isEnabledIsValid
 }
 
-// SetIsEnabled sets the value of IsEnabled in the object, to be saved later using the Save() function.
-func (o *loginBase) SetIsEnabled(isEnabled bool) {
-	o.isEnabledIsValid = true
-	if o.isEnabled != isEnabled || !o._restored {
-		o.isEnabled = isEnabled
-		o.isEnabledIsDirty = true
+// SetIsEnabled sets the value of IsEnabled in the object, to be saved later in the database using the Save() function.
+func (o *loginBase) SetIsEnabled(v bool) {
+	if o._restored &&
+		o.isEnabledIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.isEnabled == v {
+		// no change
+		return
 	}
 
+	o.isEnabledIsValid = true
+	o.isEnabled = v
+	o.isEnabledIsDirty = true
 }
 
 // GetAlias returns the alias for the given key.
@@ -1347,7 +1364,7 @@ func (o *loginBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 		case "personID":
 			{
 				if v == nil {
-					o.SetPersonID(v)
+					o.SetPersonIDToNull()
 					continue
 				}
 
@@ -1375,7 +1392,7 @@ func (o *loginBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 		case "password":
 			{
 				if v == nil {
-					o.SetPassword(v)
+					o.SetPasswordToNull()
 					continue
 				}
 

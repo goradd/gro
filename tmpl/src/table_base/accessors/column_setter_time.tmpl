@@ -1,0 +1,40 @@
+
+{{g
+//*** {{includeName}}
+}}
+
+{{
+// Set{{= col.Identifier }} sets the value of {{= col.Identifier }} in the object, to be saved later in the database using the Save() function.
+//
+// The value v will be converted to UTC time.
+{{if col.SchemaSubType == schema.ColSubTypeDateOnly}}
+// The time will also be zeroed. This may cause the date value to change. To prevent this, be sure that the date given is already in UTC time.
+{{elseif col.SchemaSubType == schema.ColSubTypeTimeOnly}}
+// The date will also be zeroed. This process may cause the time value to change. To prevent this, be sure that the time given is already in UTC time.
+{{if}}
+func (o *{{= table.DecapIdentifier }}Base) Set{{= col.Identifier }}(v {{= col.GoType() }}) {
+	if o._restored &&
+	    o.{{= col.VariableIdentifier() }}IsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+{{if col.IsNullable }}
+		!o.{{= col.VariableIdentifier() }}IsNull && // if the db value is null, force a set of value
+{{if}}
+        o.{{= col.VariableIdentifier() }}.Equal(v) {
+        // no change
+        return
+    }
+
+	o.{{= col.VariableIdentifier() }}IsValid = true
+    v = v.UTC()
+{{if col.SchemaSubType == schema.ColSubTypeDateOnly}}
+    v = time.Date(v.Year(), v.Month(), v.Day(), 0, 0, 0, 0, v.Location())
+{{elseif col.SchemaSubType == schema.ColSubTypeTimeOnly}}
+    v = time.Date(0, 1, 1, v.Hour(), v.Minute(), v.Second(), v.Nanosecond(), time.UTC)
+{{if}}
+	o.{{= col.VariableIdentifier() }} = v
+	o.{{= col.VariableIdentifier() }}IsDirty = true
+{{if col.IsNullable }}
+    o.{{= col.VariableIdentifier() }}IsNull = false
+{{if}}
+}
+
+}}

@@ -1,0 +1,27 @@
+
+{{g
+//*** {{includeName}}
+}}
+
+{{
+// Set{{= col.Identifier }} sets the value of {{= col.Identifier }} in the object, to be saved later in the database using the Save() function.
+func (o *{{= table.DecapIdentifier }}Base) Set{{= col.Identifier }}(v {{= col.GoType() }}) {
+	if o._restored &&
+	    o.{{= col.VariableIdentifier() }}IsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+{{if col.IsNullable }}
+		!o.{{= col.VariableIdentifier() }}IsNull && // if the db value is null, force a set of value
+{{if}}
+        o.{{= col.VariableIdentifier() }} == v {
+        // no change
+        return
+    }
+
+	o.{{= col.VariableIdentifier() }}IsValid = true
+	o.{{= col.VariableIdentifier() }} = v
+	o.{{= col.VariableIdentifier() }}IsDirty = true
+{{if col.IsNullable }}
+    o.{{= col.VariableIdentifier() }}IsNull = false
+{{if}}
+}
+
+}}

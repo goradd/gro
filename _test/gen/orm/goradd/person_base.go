@@ -179,17 +179,21 @@ func (o *personBase) FirstNameIsValid() bool {
 	return o.firstNameIsValid
 }
 
-// SetFirstName sets the value of FirstName in the object, to be saved later using the Save() function.
-func (o *personBase) SetFirstName(firstName string) {
-	o.firstNameIsValid = true
-	if utf8.RuneCountInString(firstName) > PersonFirstNameMaxLength {
+// SetFirstName sets the value of FirstName in the object, to be saved later in the database using the Save() function.
+func (o *personBase) SetFirstName(v string) {
+	if utf8.RuneCountInString(v) > PersonFirstNameMaxLength {
 		panic("attempted to set Person.FirstName to a value larger than its maximum length in runes")
 	}
-	if o.firstName != firstName || !o._restored {
-		o.firstName = firstName
-		o.firstNameIsDirty = true
+	if o._restored &&
+		o.firstNameIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.firstName == v {
+		// no change
+		return
 	}
 
+	o.firstNameIsValid = true
+	o.firstName = v
+	o.firstNameIsDirty = true
 }
 
 // LastName returns the loaded value of LastName.
@@ -205,17 +209,21 @@ func (o *personBase) LastNameIsValid() bool {
 	return o.lastNameIsValid
 }
 
-// SetLastName sets the value of LastName in the object, to be saved later using the Save() function.
-func (o *personBase) SetLastName(lastName string) {
-	o.lastNameIsValid = true
-	if utf8.RuneCountInString(lastName) > PersonLastNameMaxLength {
+// SetLastName sets the value of LastName in the object, to be saved later in the database using the Save() function.
+func (o *personBase) SetLastName(v string) {
+	if utf8.RuneCountInString(v) > PersonLastNameMaxLength {
 		panic("attempted to set Person.LastName to a value larger than its maximum length in runes")
 	}
-	if o.lastName != lastName || !o._restored {
-		o.lastName = lastName
-		o.lastNameIsDirty = true
+	if o._restored &&
+		o.lastNameIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.lastName == v {
+		// no change
+		return
 	}
 
+	o.lastNameIsValid = true
+	o.lastName = v
+	o.lastNameIsDirty = true
 }
 
 // Types returns the loaded value of Types.
@@ -247,28 +255,32 @@ func (o *personBase) Types_I() interface{} {
 	return o.types.Clone()
 }
 
-// SetTypes prepares for setting the type_enum value in the database.
-//
-// Pass nil to set it to a NULL value in the database.
-func (o *personBase) SetTypes(i interface{}) {
-	o.typesIsValid = true
-	if i == nil {
-		if !o.typesIsNull {
-			o.typesIsNull = true
-			o.typesIsDirty = true
-			o.types = nil
-		}
-	} else {
-		v := i.(PersonTypeSet)
-
-		if o.typesIsNull ||
-			!o._restored ||
-			!o.types.Equal(v) {
-			o.typesIsNull = false
-			o.types = v
-			o.typesIsDirty = true
-		}
+// SetTypes sets the value of Types in the object, to be saved later in the database using the Save() function.
+func (o *personBase) SetTypes(v PersonTypeSet) {
+	if o._restored &&
+		o.typesIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		!o.typesIsNull && // if the db value is null, force a set of value
+		o.types.Equal(v) {
+		// no change
+		return
 	}
+
+	o.typesIsValid = true
+	o.types = v.Clone()
+	o.typesIsDirty = true
+	o.typesIsNull = false
+}
+
+// SetTypesToNull() will set the type_enum value in the database to NULL.
+// Types() will return the column's default value after this.
+func (o *personBase) SetTypesToNull() {
+	if !o.typesIsValid || !o.typesIsNull {
+		// If we know it is null in the database, don't save it
+		o.typesIsDirty = true
+	}
+	o.typesIsValid = true
+	o.typesIsNull = true
+	o.types = nil
 }
 
 // GetAlias returns the alias for the given key.
@@ -1280,7 +1292,7 @@ func (o *personBase) update(ctx context.Context) {
 				Where(op.Equal(node.Login().PersonID(), o.PrimaryKey())).
 				Get()
 			if obj != nil && obj.PrimaryKey() != o.revLogin.PrimaryKey() {
-				obj.SetPersonID(nil)
+				obj.SetPersonIDToNull()
 				obj.Save(ctx)
 			}
 			if o.revLoginPk != nil {
@@ -1322,7 +1334,7 @@ func (o *personBase) update(ctx context.Context) {
 			for _, obj := range objs {
 				if !o.revManagerProjects.Has(obj.PrimaryKey()) {
 					// The old object is not in the group of new objects
-					obj.SetManagerID(nil)
+					obj.SetManagerIDToNull()
 					obj.Save(ctx)
 				}
 			}
@@ -1436,6 +1448,7 @@ func (o *personBase) insert(ctx context.Context) {
 				}
 			}
 		}
+
 	}) // transaction
 
 	o.resetDirtyStatus()
@@ -1523,7 +1536,7 @@ func (o *personBase) Delete(ctx context.Context) {
 				Select(node.Login().PersonID()).
 				Get()
 			if obj != nil {
-				obj.SetPersonID(nil)
+				obj.SetPersonIDToNull()
 				obj.Save(ctx)
 			}
 			// Set this object's pointer to the reverse object to nil to mark that we broke the link
@@ -1536,7 +1549,7 @@ func (o *personBase) Delete(ctx context.Context) {
 				Select(node.Project().ManagerID()).
 				Load()
 			for _, obj := range objs {
-				obj.SetManagerID(nil)
+				obj.SetManagerIDToNull()
 				obj.Save(ctx)
 			}
 			o.revManagerProjects.Clear()
@@ -2106,7 +2119,7 @@ func (o *personBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 		case "types":
 			{
 				if v == nil {
-					o.SetTypes(v)
+					o.SetTypesToNull()
 					continue
 				}
 

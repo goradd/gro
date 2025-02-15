@@ -144,17 +144,21 @@ func (o *personWithLockBase) FirstNameIsValid() bool {
 	return o.firstNameIsValid
 }
 
-// SetFirstName sets the value of FirstName in the object, to be saved later using the Save() function.
-func (o *personWithLockBase) SetFirstName(firstName string) {
-	o.firstNameIsValid = true
-	if utf8.RuneCountInString(firstName) > PersonWithLockFirstNameMaxLength {
+// SetFirstName sets the value of FirstName in the object, to be saved later in the database using the Save() function.
+func (o *personWithLockBase) SetFirstName(v string) {
+	if utf8.RuneCountInString(v) > PersonWithLockFirstNameMaxLength {
 		panic("attempted to set PersonWithLock.FirstName to a value larger than its maximum length in runes")
 	}
-	if o.firstName != firstName || !o._restored {
-		o.firstName = firstName
-		o.firstNameIsDirty = true
+	if o._restored &&
+		o.firstNameIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.firstName == v {
+		// no change
+		return
 	}
 
+	o.firstNameIsValid = true
+	o.firstName = v
+	o.firstNameIsDirty = true
 }
 
 // LastName returns the loaded value of LastName.
@@ -170,17 +174,21 @@ func (o *personWithLockBase) LastNameIsValid() bool {
 	return o.lastNameIsValid
 }
 
-// SetLastName sets the value of LastName in the object, to be saved later using the Save() function.
-func (o *personWithLockBase) SetLastName(lastName string) {
-	o.lastNameIsValid = true
-	if utf8.RuneCountInString(lastName) > PersonWithLockLastNameMaxLength {
+// SetLastName sets the value of LastName in the object, to be saved later in the database using the Save() function.
+func (o *personWithLockBase) SetLastName(v string) {
+	if utf8.RuneCountInString(v) > PersonWithLockLastNameMaxLength {
 		panic("attempted to set PersonWithLock.LastName to a value larger than its maximum length in runes")
 	}
-	if o.lastName != lastName || !o._restored {
-		o.lastName = lastName
-		o.lastNameIsDirty = true
+	if o._restored &&
+		o.lastNameIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.lastName == v {
+		// no change
+		return
 	}
 
+	o.lastNameIsValid = true
+	o.lastName = v
+	o.lastNameIsDirty = true
 }
 
 // SysTimestamp returns the loaded value of SysTimestamp.
@@ -210,6 +218,18 @@ func (o *personWithLockBase) SysTimestamp_I() interface{} {
 		return nil
 	}
 	return o.sysTimestamp
+}
+
+// SetSysTimestampToNull() will set the sys_timestamp value in the database to NULL.
+// SysTimestamp() will return the column's default value after this.
+func (o *personWithLockBase) SetSysTimestampToNull() {
+	if !o.sysTimestampIsValid || !o.sysTimestampIsNull {
+		// If we know it is null in the database, don't save it
+		o.sysTimestampIsDirty = true
+	}
+	o.sysTimestampIsValid = true
+	o.sysTimestampIsNull = true
+	o.sysTimestamp = time.Time{}
 }
 
 // GetAlias returns the alias for the given key.

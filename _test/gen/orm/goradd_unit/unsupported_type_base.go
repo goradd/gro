@@ -9,6 +9,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"slices"
 	"unicode/utf8"
 
 	"github.com/goradd/all"
@@ -339,15 +340,28 @@ func (o *unsupportedTypeBase) TypeSetIsValid() bool {
 	return o.typeSetIsValid
 }
 
-// SetTypeSet sets the value of TypeSet in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeSet(typeSet []byte) {
-	o.typeSetIsValid = true
-	if len(typeSet) > UnsupportedTypeTypeSetMaxLength {
+// SetTypeSet copies the value of TypeSet, to be saved later in the database using the Save() function.
+// Passing nil will set type_set to an empty array.
+func (o *unsupportedTypeBase) SetTypeSet(v []byte) {
+
+	if len(v) > UnsupportedTypeTypeSetMaxLength {
 		panic("attempted to set UnsupportedType.TypeSet to a value larger than its maximum length")
 	}
-	o.typeSet = typeSet // TODO: Copy bytes??
-	o.typeSetIsDirty = true
 
+	if o._restored &&
+		o.typeSetIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		bytes.Equal(o.typeSet, v) {
+		// no change
+		return
+	}
+
+	o.typeSetIsValid = true
+	if v == nil {
+		o.typeSet = []byte{}
+	} else {
+		o.typeSet = slices.Clone(v)
+	}
+	o.typeSetIsDirty = true
 }
 
 // TypeEnumerated returns the loaded value of TypeEnumerated.
@@ -363,15 +377,28 @@ func (o *unsupportedTypeBase) TypeEnumeratedIsValid() bool {
 	return o.typeEnumeratedIsValid
 }
 
-// SetTypeEnumerated sets the value of TypeEnumerated in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeEnumerated(typeEnumerated []byte) {
-	o.typeEnumeratedIsValid = true
-	if len(typeEnumerated) > UnsupportedTypeTypeEnumeratedMaxLength {
+// SetTypeEnumerated copies the value of TypeEnumerated, to be saved later in the database using the Save() function.
+// Passing nil will set type_enumerated to an empty array.
+func (o *unsupportedTypeBase) SetTypeEnumerated(v []byte) {
+
+	if len(v) > UnsupportedTypeTypeEnumeratedMaxLength {
 		panic("attempted to set UnsupportedType.TypeEnumerated to a value larger than its maximum length")
 	}
-	o.typeEnumerated = typeEnumerated // TODO: Copy bytes??
-	o.typeEnumeratedIsDirty = true
 
+	if o._restored &&
+		o.typeEnumeratedIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		bytes.Equal(o.typeEnumerated, v) {
+		// no change
+		return
+	}
+
+	o.typeEnumeratedIsValid = true
+	if v == nil {
+		o.typeEnumerated = []byte{}
+	} else {
+		o.typeEnumerated = slices.Clone(v)
+	}
+	o.typeEnumeratedIsDirty = true
 }
 
 // TypeDecimal returns the loaded value of TypeDecimal.
@@ -387,15 +414,28 @@ func (o *unsupportedTypeBase) TypeDecimalIsValid() bool {
 	return o.typeDecimalIsValid
 }
 
-// SetTypeDecimal sets the value of TypeDecimal in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeDecimal(typeDecimal []byte) {
-	o.typeDecimalIsValid = true
-	if len(typeDecimal) > UnsupportedTypeTypeDecimalMaxLength {
+// SetTypeDecimal copies the value of TypeDecimal, to be saved later in the database using the Save() function.
+// Passing nil will set type_decimal to an empty array.
+func (o *unsupportedTypeBase) SetTypeDecimal(v []byte) {
+
+	if len(v) > UnsupportedTypeTypeDecimalMaxLength {
 		panic("attempted to set UnsupportedType.TypeDecimal to a value larger than its maximum length")
 	}
-	o.typeDecimal = typeDecimal // TODO: Copy bytes??
-	o.typeDecimalIsDirty = true
 
+	if o._restored &&
+		o.typeDecimalIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		bytes.Equal(o.typeDecimal, v) {
+		// no change
+		return
+	}
+
+	o.typeDecimalIsValid = true
+	if v == nil {
+		o.typeDecimal = []byte{}
+	} else {
+		o.typeDecimal = slices.Clone(v)
+	}
+	o.typeDecimalIsDirty = true
 }
 
 // TypeDouble returns the loaded value of TypeDouble.
@@ -411,14 +451,18 @@ func (o *unsupportedTypeBase) TypeDoubleIsValid() bool {
 	return o.typeDoubleIsValid
 }
 
-// SetTypeDouble sets the value of TypeDouble in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeDouble(typeDouble float64) {
-	o.typeDoubleIsValid = true
-	if o.typeDouble != typeDouble || !o._restored {
-		o.typeDouble = typeDouble
-		o.typeDoubleIsDirty = true
+// SetTypeDouble sets the value of TypeDouble in the object, to be saved later in the database using the Save() function.
+func (o *unsupportedTypeBase) SetTypeDouble(v float64) {
+	if o._restored &&
+		o.typeDoubleIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeDouble == v {
+		// no change
+		return
 	}
 
+	o.typeDoubleIsValid = true
+	o.typeDouble = v
+	o.typeDoubleIsDirty = true
 }
 
 // TypeGeo returns the loaded value of TypeGeo.
@@ -434,12 +478,24 @@ func (o *unsupportedTypeBase) TypeGeoIsValid() bool {
 	return o.typeGeoIsValid
 }
 
-// SetTypeGeo sets the value of TypeGeo in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeGeo(typeGeo []byte) {
-	o.typeGeoIsValid = true
-	o.typeGeo = typeGeo // TODO: Copy bytes??
-	o.typeGeoIsDirty = true
+// SetTypeGeo copies the value of TypeGeo, to be saved later in the database using the Save() function.
+// Passing nil will set type_geo to an empty array.
+func (o *unsupportedTypeBase) SetTypeGeo(v []byte) {
 
+	if o._restored &&
+		o.typeGeoIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		bytes.Equal(o.typeGeo, v) {
+		// no change
+		return
+	}
+
+	o.typeGeoIsValid = true
+	if v == nil {
+		o.typeGeo = []byte{}
+	} else {
+		o.typeGeo = slices.Clone(v)
+	}
+	o.typeGeoIsDirty = true
 }
 
 // TypeTinyBlob returns the loaded value of TypeTinyBlob.
@@ -455,15 +511,28 @@ func (o *unsupportedTypeBase) TypeTinyBlobIsValid() bool {
 	return o.typeTinyBlobIsValid
 }
 
-// SetTypeTinyBlob sets the value of TypeTinyBlob in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeTinyBlob(typeTinyBlob []byte) {
-	o.typeTinyBlobIsValid = true
-	if len(typeTinyBlob) > UnsupportedTypeTypeTinyBlobMaxLength {
+// SetTypeTinyBlob copies the value of TypeTinyBlob, to be saved later in the database using the Save() function.
+// Passing nil will set type_tiny_blob to an empty array.
+func (o *unsupportedTypeBase) SetTypeTinyBlob(v []byte) {
+
+	if len(v) > UnsupportedTypeTypeTinyBlobMaxLength {
 		panic("attempted to set UnsupportedType.TypeTinyBlob to a value larger than its maximum length")
 	}
-	o.typeTinyBlob = typeTinyBlob // TODO: Copy bytes??
-	o.typeTinyBlobIsDirty = true
 
+	if o._restored &&
+		o.typeTinyBlobIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		bytes.Equal(o.typeTinyBlob, v) {
+		// no change
+		return
+	}
+
+	o.typeTinyBlobIsValid = true
+	if v == nil {
+		o.typeTinyBlob = []byte{}
+	} else {
+		o.typeTinyBlob = slices.Clone(v)
+	}
+	o.typeTinyBlobIsDirty = true
 }
 
 // TypeMediumBlob returns the loaded value of TypeMediumBlob.
@@ -479,15 +548,28 @@ func (o *unsupportedTypeBase) TypeMediumBlobIsValid() bool {
 	return o.typeMediumBlobIsValid
 }
 
-// SetTypeMediumBlob sets the value of TypeMediumBlob in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeMediumBlob(typeMediumBlob []byte) {
-	o.typeMediumBlobIsValid = true
-	if len(typeMediumBlob) > UnsupportedTypeTypeMediumBlobMaxLength {
+// SetTypeMediumBlob copies the value of TypeMediumBlob, to be saved later in the database using the Save() function.
+// Passing nil will set type_medium_blob to an empty array.
+func (o *unsupportedTypeBase) SetTypeMediumBlob(v []byte) {
+
+	if len(v) > UnsupportedTypeTypeMediumBlobMaxLength {
 		panic("attempted to set UnsupportedType.TypeMediumBlob to a value larger than its maximum length")
 	}
-	o.typeMediumBlob = typeMediumBlob // TODO: Copy bytes??
-	o.typeMediumBlobIsDirty = true
 
+	if o._restored &&
+		o.typeMediumBlobIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		bytes.Equal(o.typeMediumBlob, v) {
+		// no change
+		return
+	}
+
+	o.typeMediumBlobIsValid = true
+	if v == nil {
+		o.typeMediumBlob = []byte{}
+	} else {
+		o.typeMediumBlob = slices.Clone(v)
+	}
+	o.typeMediumBlobIsDirty = true
 }
 
 // TypeVarbinary returns the loaded value of TypeVarbinary.
@@ -503,12 +585,24 @@ func (o *unsupportedTypeBase) TypeVarbinaryIsValid() bool {
 	return o.typeVarbinaryIsValid
 }
 
-// SetTypeVarbinary sets the value of TypeVarbinary in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeVarbinary(typeVarbinary []byte) {
-	o.typeVarbinaryIsValid = true
-	o.typeVarbinary = typeVarbinary // TODO: Copy bytes??
-	o.typeVarbinaryIsDirty = true
+// SetTypeVarbinary copies the value of TypeVarbinary, to be saved later in the database using the Save() function.
+// Passing nil will set type_varbinary to an empty array.
+func (o *unsupportedTypeBase) SetTypeVarbinary(v []byte) {
 
+	if o._restored &&
+		o.typeVarbinaryIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		bytes.Equal(o.typeVarbinary, v) {
+		// no change
+		return
+	}
+
+	o.typeVarbinaryIsValid = true
+	if v == nil {
+		o.typeVarbinary = []byte{}
+	} else {
+		o.typeVarbinary = slices.Clone(v)
+	}
+	o.typeVarbinaryIsDirty = true
 }
 
 // TypeLongtext returns the loaded value of TypeLongtext.
@@ -524,17 +618,21 @@ func (o *unsupportedTypeBase) TypeLongtextIsValid() bool {
 	return o.typeLongtextIsValid
 }
 
-// SetTypeLongtext sets the value of TypeLongtext in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeLongtext(typeLongtext string) {
-	o.typeLongtextIsValid = true
-	if utf8.RuneCountInString(typeLongtext) > UnsupportedTypeTypeLongtextMaxLength {
+// SetTypeLongtext sets the value of TypeLongtext in the object, to be saved later in the database using the Save() function.
+func (o *unsupportedTypeBase) SetTypeLongtext(v string) {
+	if utf8.RuneCountInString(v) > UnsupportedTypeTypeLongtextMaxLength {
 		panic("attempted to set UnsupportedType.TypeLongtext to a value larger than its maximum length in runes")
 	}
-	if o.typeLongtext != typeLongtext || !o._restored {
-		o.typeLongtext = typeLongtext
-		o.typeLongtextIsDirty = true
+	if o._restored &&
+		o.typeLongtextIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeLongtext == v {
+		// no change
+		return
 	}
 
+	o.typeLongtextIsValid = true
+	o.typeLongtext = v
+	o.typeLongtextIsDirty = true
 }
 
 // TypeBinary returns the loaded value of TypeBinary.
@@ -550,12 +648,24 @@ func (o *unsupportedTypeBase) TypeBinaryIsValid() bool {
 	return o.typeBinaryIsValid
 }
 
-// SetTypeBinary sets the value of TypeBinary in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeBinary(typeBinary []byte) {
-	o.typeBinaryIsValid = true
-	o.typeBinary = typeBinary // TODO: Copy bytes??
-	o.typeBinaryIsDirty = true
+// SetTypeBinary copies the value of TypeBinary, to be saved later in the database using the Save() function.
+// Passing nil will set type_binary to an empty array.
+func (o *unsupportedTypeBase) SetTypeBinary(v []byte) {
 
+	if o._restored &&
+		o.typeBinaryIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		bytes.Equal(o.typeBinary, v) {
+		// no change
+		return
+	}
+
+	o.typeBinaryIsValid = true
+	if v == nil {
+		o.typeBinary = []byte{}
+	} else {
+		o.typeBinary = slices.Clone(v)
+	}
+	o.typeBinaryIsDirty = true
 }
 
 // TypeSmall returns the loaded value of TypeSmall.
@@ -571,14 +681,18 @@ func (o *unsupportedTypeBase) TypeSmallIsValid() bool {
 	return o.typeSmallIsValid
 }
 
-// SetTypeSmall sets the value of TypeSmall in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeSmall(typeSmall int) {
-	o.typeSmallIsValid = true
-	if o.typeSmall != typeSmall || !o._restored {
-		o.typeSmall = typeSmall
-		o.typeSmallIsDirty = true
+// SetTypeSmall sets the value of TypeSmall in the object, to be saved later in the database using the Save() function.
+func (o *unsupportedTypeBase) SetTypeSmall(v int) {
+	if o._restored &&
+		o.typeSmallIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeSmall == v {
+		// no change
+		return
 	}
 
+	o.typeSmallIsValid = true
+	o.typeSmall = v
+	o.typeSmallIsDirty = true
 }
 
 // TypeMedium returns the loaded value of TypeMedium.
@@ -594,14 +708,18 @@ func (o *unsupportedTypeBase) TypeMediumIsValid() bool {
 	return o.typeMediumIsValid
 }
 
-// SetTypeMedium sets the value of TypeMedium in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeMedium(typeMedium int) {
-	o.typeMediumIsValid = true
-	if o.typeMedium != typeMedium || !o._restored {
-		o.typeMedium = typeMedium
-		o.typeMediumIsDirty = true
+// SetTypeMedium sets the value of TypeMedium in the object, to be saved later in the database using the Save() function.
+func (o *unsupportedTypeBase) SetTypeMedium(v int) {
+	if o._restored &&
+		o.typeMediumIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeMedium == v {
+		// no change
+		return
 	}
 
+	o.typeMediumIsValid = true
+	o.typeMedium = v
+	o.typeMediumIsDirty = true
 }
 
 // TypeBig returns the loaded value of TypeBig.
@@ -617,14 +735,18 @@ func (o *unsupportedTypeBase) TypeBigIsValid() bool {
 	return o.typeBigIsValid
 }
 
-// SetTypeBig sets the value of TypeBig in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeBig(typeBig int64) {
-	o.typeBigIsValid = true
-	if o.typeBig != typeBig || !o._restored {
-		o.typeBig = typeBig
-		o.typeBigIsDirty = true
+// SetTypeBig sets the value of TypeBig in the object, to be saved later in the database using the Save() function.
+func (o *unsupportedTypeBase) SetTypeBig(v int64) {
+	if o._restored &&
+		o.typeBigIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeBig == v {
+		// no change
+		return
 	}
 
+	o.typeBigIsValid = true
+	o.typeBig = v
+	o.typeBigIsDirty = true
 }
 
 // TypePolygon returns the loaded value of TypePolygon.
@@ -640,12 +762,24 @@ func (o *unsupportedTypeBase) TypePolygonIsValid() bool {
 	return o.typePolygonIsValid
 }
 
-// SetTypePolygon sets the value of TypePolygon in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypePolygon(typePolygon []byte) {
-	o.typePolygonIsValid = true
-	o.typePolygon = typePolygon // TODO: Copy bytes??
-	o.typePolygonIsDirty = true
+// SetTypePolygon copies the value of TypePolygon, to be saved later in the database using the Save() function.
+// Passing nil will set type_polygon to an empty array.
+func (o *unsupportedTypeBase) SetTypePolygon(v []byte) {
 
+	if o._restored &&
+		o.typePolygonIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		bytes.Equal(o.typePolygon, v) {
+		// no change
+		return
+	}
+
+	o.typePolygonIsValid = true
+	if v == nil {
+		o.typePolygon = []byte{}
+	} else {
+		o.typePolygon = slices.Clone(v)
+	}
+	o.typePolygonIsDirty = true
 }
 
 // TypeUnsigned returns the loaded value of TypeUnsigned.
@@ -661,14 +795,18 @@ func (o *unsupportedTypeBase) TypeUnsignedIsValid() bool {
 	return o.typeUnsignedIsValid
 }
 
-// SetTypeUnsigned sets the value of TypeUnsigned in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeUnsigned(typeUnsigned uint) {
-	o.typeUnsignedIsValid = true
-	if o.typeUnsigned != typeUnsigned || !o._restored {
-		o.typeUnsigned = typeUnsigned
-		o.typeUnsignedIsDirty = true
+// SetTypeUnsigned sets the value of TypeUnsigned in the object, to be saved later in the database using the Save() function.
+func (o *unsupportedTypeBase) SetTypeUnsigned(v uint) {
+	if o._restored &&
+		o.typeUnsignedIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeUnsigned == v {
+		// no change
+		return
 	}
 
+	o.typeUnsignedIsValid = true
+	o.typeUnsigned = v
+	o.typeUnsignedIsDirty = true
 }
 
 // TypeMultfk1 returns the loaded value of TypeMultfk1.
@@ -684,17 +822,21 @@ func (o *unsupportedTypeBase) TypeMultfk1IsValid() bool {
 	return o.typeMultfk1IsValid
 }
 
-// SetTypeMultfk1 sets the value of TypeMultfk1 in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeMultfk1(typeMultfk1 string) {
-	o.typeMultfk1IsValid = true
-	if utf8.RuneCountInString(typeMultfk1) > UnsupportedTypeTypeMultfk1MaxLength {
+// SetTypeMultfk1 sets the value of TypeMultfk1 in the object, to be saved later in the database using the Save() function.
+func (o *unsupportedTypeBase) SetTypeMultfk1(v string) {
+	if utf8.RuneCountInString(v) > UnsupportedTypeTypeMultfk1MaxLength {
 		panic("attempted to set UnsupportedType.TypeMultfk1 to a value larger than its maximum length in runes")
 	}
-	if o.typeMultfk1 != typeMultfk1 || !o._restored {
-		o.typeMultfk1 = typeMultfk1
-		o.typeMultfk1IsDirty = true
+	if o._restored &&
+		o.typeMultfk1IsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeMultfk1 == v {
+		// no change
+		return
 	}
 
+	o.typeMultfk1IsValid = true
+	o.typeMultfk1 = v
+	o.typeMultfk1IsDirty = true
 }
 
 // TypeMultifk2 returns the loaded value of TypeMultifk2.
@@ -710,17 +852,21 @@ func (o *unsupportedTypeBase) TypeMultifk2IsValid() bool {
 	return o.typeMultifk2IsValid
 }
 
-// SetTypeMultifk2 sets the value of TypeMultifk2 in the object, to be saved later using the Save() function.
-func (o *unsupportedTypeBase) SetTypeMultifk2(typeMultifk2 string) {
-	o.typeMultifk2IsValid = true
-	if utf8.RuneCountInString(typeMultifk2) > UnsupportedTypeTypeMultifk2MaxLength {
+// SetTypeMultifk2 sets the value of TypeMultifk2 in the object, to be saved later in the database using the Save() function.
+func (o *unsupportedTypeBase) SetTypeMultifk2(v string) {
+	if utf8.RuneCountInString(v) > UnsupportedTypeTypeMultifk2MaxLength {
 		panic("attempted to set UnsupportedType.TypeMultifk2 to a value larger than its maximum length in runes")
 	}
-	if o.typeMultifk2 != typeMultifk2 || !o._restored {
-		o.typeMultifk2 = typeMultifk2
-		o.typeMultifk2IsDirty = true
+	if o._restored &&
+		o.typeMultifk2IsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeMultifk2 == v {
+		// no change
+		return
 	}
 
+	o.typeMultifk2IsValid = true
+	o.typeMultifk2 = v
+	o.typeMultifk2IsDirty = true
 }
 
 // GetAlias returns the alias for the given key.

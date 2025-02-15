@@ -11,7 +11,7 @@
             }
 {{else}}
             if v == nil {
-                o.Set{{= col.Identifier }}(v)
+                o.Set{{= col.Identifier }}ToNull()
                 continue
             }
 {{if}}

@@ -272,14 +272,18 @@ func (o *projectBase) NumIsValid() bool {
 	return o.numIsValid
 }
 
-// SetNum sets the value of Num in the object, to be saved later using the Save() function.
-func (o *projectBase) SetNum(num int) {
-	o.numIsValid = true
-	if o.num != num || !o._restored {
-		o.num = num
-		o.numIsDirty = true
+// SetNum sets the value of Num in the object, to be saved later in the database using the Save() function.
+func (o *projectBase) SetNum(v int) {
+	if o._restored &&
+		o.numIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.num == v {
+		// no change
+		return
 	}
 
+	o.numIsValid = true
+	o.num = v
+	o.numIsDirty = true
 }
 
 // Status returns the loaded value of Status.
@@ -295,14 +299,18 @@ func (o *projectBase) StatusIsValid() bool {
 	return o.statusIsValid
 }
 
-// SetStatus sets the value of Status in the object, to be saved later using the Save() function.
-func (o *projectBase) SetStatus(status ProjectStatus) {
-	o.statusIsValid = true
-	if o.status != status || !o._restored {
-		o.status = status
-		o.statusIsDirty = true
+// SetStatus sets the value of Status in the object, to be saved later in the database using the Save() function.
+func (o *projectBase) SetStatus(v ProjectStatus) {
+	if o._restored &&
+		o.statusIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.status == v {
+		// no change
+		return
 	}
 
+	o.statusIsValid = true
+	o.status = v
+	o.statusIsDirty = true
 }
 
 // ManagerID returns the loaded value of ManagerID.
@@ -334,29 +342,34 @@ func (o *projectBase) ManagerID_I() interface{} {
 	return o.managerID
 }
 
-// SetManagerID prepares for setting the manager_id value in the database.
-//
-// Pass nil to set it to a NULL value in the database.
-func (o *projectBase) SetManagerID(i interface{}) {
-	o.managerIDIsValid = true
-	if i == nil {
-		if !o.managerIDIsNull {
-			o.managerIDIsNull = true
-			o.managerIDIsDirty = true
-			o.managerID = ""
-			o.objManager = nil
-		}
-	} else {
-		v := i.(string)
-		if o.managerIDIsNull ||
-			!o._restored ||
-			o.managerID != v {
-			o.managerIDIsNull = false
-			o.managerID = v
-			o.managerIDIsDirty = true
-			o.objManager = nil
-		}
+// SetManagerID sets the value of ManagerID in the object, to be saved later in the database using the Save() function.
+func (o *projectBase) SetManagerID(v string) {
+	if o._restored &&
+		o.managerIDIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		!o.managerIDIsNull && // if the db value is null, force a set of value
+		o.managerID == v {
+		// no change
+		return
 	}
+
+	o.managerIDIsValid = true
+	o.managerID = v
+	o.managerIDIsDirty = true
+	o.managerIDIsNull = false
+	o.objManager = nil
+}
+
+// SetManagerIDToNull() will set the manager_id value in the database to NULL.
+// ManagerID() will return the column's default value after this.
+func (o *projectBase) SetManagerIDToNull() {
+	if !o.managerIDIsValid || !o.managerIDIsNull {
+		// If we know it is null in the database, don't save it
+		o.managerIDIsDirty = true
+	}
+	o.managerIDIsValid = true
+	o.managerIDIsNull = true
+	o.managerID = ""
+	o.objManager = nil
 }
 
 // Manager returns the current value of the loaded Manager, and nil if its not loaded.
@@ -412,17 +425,21 @@ func (o *projectBase) NameIsValid() bool {
 	return o.nameIsValid
 }
 
-// SetName sets the value of Name in the object, to be saved later using the Save() function.
-func (o *projectBase) SetName(name string) {
-	o.nameIsValid = true
-	if utf8.RuneCountInString(name) > ProjectNameMaxLength {
+// SetName sets the value of Name in the object, to be saved later in the database using the Save() function.
+func (o *projectBase) SetName(v string) {
+	if utf8.RuneCountInString(v) > ProjectNameMaxLength {
 		panic("attempted to set Project.Name to a value larger than its maximum length in runes")
 	}
-	if o.name != name || !o._restored {
-		o.name = name
-		o.nameIsDirty = true
+	if o._restored &&
+		o.nameIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.name == v {
+		// no change
+		return
 	}
 
+	o.nameIsValid = true
+	o.name = v
+	o.nameIsDirty = true
 }
 
 // Description returns the loaded value of Description.
@@ -454,31 +471,35 @@ func (o *projectBase) Description_I() interface{} {
 	return o.description
 }
 
-// SetDescription prepares for setting the description value in the database.
-//
-// Pass nil to set it to a NULL value in the database.
-func (o *projectBase) SetDescription(i interface{}) {
-	o.descriptionIsValid = true
-	if i == nil {
-		if !o.descriptionIsNull {
-			o.descriptionIsNull = true
-			o.descriptionIsDirty = true
-			o.description = ""
-		}
-	} else {
-		v := i.(string)
-
-		if utf8.RuneCountInString(v) > ProjectDescriptionMaxLength {
-			panic("attempted to set Project.Description to a value larger than its maximum length in runes")
-		}
-		if o.descriptionIsNull ||
-			!o._restored ||
-			o.description != v {
-			o.descriptionIsNull = false
-			o.description = v
-			o.descriptionIsDirty = true
-		}
+// SetDescription sets the value of Description in the object, to be saved later in the database using the Save() function.
+func (o *projectBase) SetDescription(v string) {
+	if utf8.RuneCountInString(v) > ProjectDescriptionMaxLength {
+		panic("attempted to set Project.Description to a value larger than its maximum length in runes")
 	}
+	if o._restored &&
+		o.descriptionIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		!o.descriptionIsNull && // if the db value is null, force a set of value
+		o.description == v {
+		// no change
+		return
+	}
+
+	o.descriptionIsValid = true
+	o.description = v
+	o.descriptionIsDirty = true
+	o.descriptionIsNull = false
+}
+
+// SetDescriptionToNull() will set the description value in the database to NULL.
+// Description() will return the column's default value after this.
+func (o *projectBase) SetDescriptionToNull() {
+	if !o.descriptionIsValid || !o.descriptionIsNull {
+		// If we know it is null in the database, don't save it
+		o.descriptionIsDirty = true
+	}
+	o.descriptionIsValid = true
+	o.descriptionIsNull = true
+	o.description = ""
 }
 
 // StartDate returns the loaded value of StartDate.
@@ -510,34 +531,37 @@ func (o *projectBase) StartDate_I() interface{} {
 	return o.startDate
 }
 
-// SetStartDate prepares for setting the start_date value in the database.
+// SetStartDate sets the value of StartDate in the object, to be saved later in the database using the Save() function.
 //
-// Pass nil to set it to a NULL value in the database.
-//
-// The input will immediately be converted to UTC time.
+// The value v will be converted to UTC time.
 // The time will also be zeroed. This may cause the date value to change. To prevent this, be sure that the date given is already in UTC time.
-func (o *projectBase) SetStartDate(i interface{}) {
-	o.startDateIsValid = true
-	if i == nil {
-		if !o.startDateIsNull {
-			o.startDateIsNull = true
-			o.startDateIsDirty = true
-			o.startDate = time.Time{}
-		}
-	} else {
-		v := i.(time.Time)
-		v = v.UTC()
-
-		v = time.Date(v.Year(), v.Month(), v.Day(), 0, 0, 0, 0, v.Location())
-
-		if o.startDateIsNull ||
-			!o._restored ||
-			o.startDate != v {
-			o.startDateIsNull = false
-			o.startDate = v
-			o.startDateIsDirty = true
-		}
+func (o *projectBase) SetStartDate(v time.Time) {
+	if o._restored &&
+		o.startDateIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		!o.startDateIsNull && // if the db value is null, force a set of value
+		o.startDate.Equal(v) {
+		// no change
+		return
 	}
+
+	o.startDateIsValid = true
+	v = v.UTC()
+	v = time.Date(v.Year(), v.Month(), v.Day(), 0, 0, 0, 0, v.Location())
+	o.startDate = v
+	o.startDateIsDirty = true
+	o.startDateIsNull = false
+}
+
+// SetStartDateToNull() will set the start_date value in the database to NULL.
+// StartDate() will return the column's default value after this.
+func (o *projectBase) SetStartDateToNull() {
+	if !o.startDateIsValid || !o.startDateIsNull {
+		// If we know it is null in the database, don't save it
+		o.startDateIsDirty = true
+	}
+	o.startDateIsValid = true
+	o.startDateIsNull = true
+	o.startDate = time.Time{}
 }
 
 // EndDate returns the loaded value of EndDate.
@@ -569,34 +593,37 @@ func (o *projectBase) EndDate_I() interface{} {
 	return o.endDate
 }
 
-// SetEndDate prepares for setting the end_date value in the database.
+// SetEndDate sets the value of EndDate in the object, to be saved later in the database using the Save() function.
 //
-// Pass nil to set it to a NULL value in the database.
-//
-// The input will immediately be converted to UTC time.
+// The value v will be converted to UTC time.
 // The time will also be zeroed. This may cause the date value to change. To prevent this, be sure that the date given is already in UTC time.
-func (o *projectBase) SetEndDate(i interface{}) {
-	o.endDateIsValid = true
-	if i == nil {
-		if !o.endDateIsNull {
-			o.endDateIsNull = true
-			o.endDateIsDirty = true
-			o.endDate = time.Time{}
-		}
-	} else {
-		v := i.(time.Time)
-		v = v.UTC()
-
-		v = time.Date(v.Year(), v.Month(), v.Day(), 0, 0, 0, 0, v.Location())
-
-		if o.endDateIsNull ||
-			!o._restored ||
-			o.endDate != v {
-			o.endDateIsNull = false
-			o.endDate = v
-			o.endDateIsDirty = true
-		}
+func (o *projectBase) SetEndDate(v time.Time) {
+	if o._restored &&
+		o.endDateIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		!o.endDateIsNull && // if the db value is null, force a set of value
+		o.endDate.Equal(v) {
+		// no change
+		return
 	}
+
+	o.endDateIsValid = true
+	v = v.UTC()
+	v = time.Date(v.Year(), v.Month(), v.Day(), 0, 0, 0, 0, v.Location())
+	o.endDate = v
+	o.endDateIsDirty = true
+	o.endDateIsNull = false
+}
+
+// SetEndDateToNull() will set the end_date value in the database to NULL.
+// EndDate() will return the column's default value after this.
+func (o *projectBase) SetEndDateToNull() {
+	if !o.endDateIsValid || !o.endDateIsNull {
+		// If we know it is null in the database, don't save it
+		o.endDateIsDirty = true
+	}
+	o.endDateIsValid = true
+	o.endDateIsNull = true
+	o.endDate = time.Time{}
 }
 
 // Budget returns the loaded value of Budget.
@@ -628,31 +655,42 @@ func (o *projectBase) Budget_I() interface{} {
 	return o.budget
 }
 
-// SetBudget prepares for setting the budget value in the database.
-//
-// Pass nil to set it to a NULL value in the database.
-func (o *projectBase) SetBudget(i interface{}) {
-	o.budgetIsValid = true
-	if i == nil {
-		if !o.budgetIsNull {
-			o.budgetIsNull = true
-			o.budgetIsDirty = true
-			o.budget = []byte(nil)
-		}
-	} else {
-		v := i.([]byte)
-
-		if len(v) > ProjectBudgetMaxLength {
-			panic("attempted to set Project.Budget to a value larger than its maximum length")
-		}
-		if o.budgetIsNull ||
-			!o._restored ||
-			!bytes.Equal(o.budget, v) {
-			o.budgetIsNull = false
-			o.budget = slices.Clone(v)
-			o.budgetIsDirty = true
-		}
+// SetBudget copies the value of Budget, to be saved later in the database using the Save() function.
+// Pass nil to set budget to NULL in the database.
+func (o *projectBase) SetBudget(v []byte) {
+	if v == nil {
+		o.SetBudgetToNull()
+		return
 	}
+
+	if len(v) > ProjectBudgetMaxLength {
+		panic("attempted to set Project.Budget to a value larger than its maximum length")
+	}
+
+	if o._restored &&
+		o.budgetIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		!o.budgetIsNull && // if the db value is null, force a set of value
+		bytes.Equal(o.budget, v) {
+		// no change
+		return
+	}
+
+	o.budgetIsValid = true
+	o.budget = slices.Clone(v)
+	o.budgetIsNull = false
+	o.budgetIsDirty = true
+}
+
+// SetBudgetToNull() will set the budget value in the database to NULL.
+// Budget() will return the column's default value after this.
+func (o *projectBase) SetBudgetToNull() {
+	if !o.budgetIsValid || !o.budgetIsNull {
+		// If we know it is null in the database, don't save it
+		o.budgetIsDirty = true
+	}
+	o.budgetIsValid = true
+	o.budgetIsNull = true
+	o.budget = []byte(nil)
 }
 
 // Spent returns the loaded value of Spent.
@@ -684,31 +722,42 @@ func (o *projectBase) Spent_I() interface{} {
 	return o.spent
 }
 
-// SetSpent prepares for setting the spent value in the database.
-//
-// Pass nil to set it to a NULL value in the database.
-func (o *projectBase) SetSpent(i interface{}) {
-	o.spentIsValid = true
-	if i == nil {
-		if !o.spentIsNull {
-			o.spentIsNull = true
-			o.spentIsDirty = true
-			o.spent = []byte(nil)
-		}
-	} else {
-		v := i.([]byte)
-
-		if len(v) > ProjectSpentMaxLength {
-			panic("attempted to set Project.Spent to a value larger than its maximum length")
-		}
-		if o.spentIsNull ||
-			!o._restored ||
-			!bytes.Equal(o.spent, v) {
-			o.spentIsNull = false
-			o.spent = slices.Clone(v)
-			o.spentIsDirty = true
-		}
+// SetSpent copies the value of Spent, to be saved later in the database using the Save() function.
+// Pass nil to set spent to NULL in the database.
+func (o *projectBase) SetSpent(v []byte) {
+	if v == nil {
+		o.SetSpentToNull()
+		return
 	}
+
+	if len(v) > ProjectSpentMaxLength {
+		panic("attempted to set Project.Spent to a value larger than its maximum length")
+	}
+
+	if o._restored &&
+		o.spentIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		!o.spentIsNull && // if the db value is null, force a set of value
+		bytes.Equal(o.spent, v) {
+		// no change
+		return
+	}
+
+	o.spentIsValid = true
+	o.spent = slices.Clone(v)
+	o.spentIsNull = false
+	o.spentIsDirty = true
+}
+
+// SetSpentToNull() will set the spent value in the database to NULL.
+// Spent() will return the column's default value after this.
+func (o *projectBase) SetSpentToNull() {
+	if !o.spentIsValid || !o.spentIsNull {
+		// If we know it is null in the database, don't save it
+		o.spentIsDirty = true
+	}
+	o.spentIsValid = true
+	o.spentIsNull = true
+	o.spent = []byte(nil)
 }
 
 // GetAlias returns the alias for the given key.
@@ -2878,7 +2927,7 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 		case "managerID":
 			{
 				if v == nil {
-					o.SetManagerID(v)
+					o.SetManagerIDToNull()
 					continue
 				}
 
@@ -2906,7 +2955,7 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 		case "description":
 			{
 				if v == nil {
-					o.SetDescription(v)
+					o.SetDescriptionToNull()
 					continue
 				}
 
@@ -2920,7 +2969,7 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 		case "startDate":
 			{
 				if v == nil {
-					o.SetStartDate(v)
+					o.SetStartDateToNull()
 					continue
 				}
 
@@ -2945,7 +2994,7 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 		case "endDate":
 			{
 				if v == nil {
-					o.SetEndDate(v)
+					o.SetEndDateToNull()
 					continue
 				}
 
@@ -2970,7 +3019,7 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 		case "budget":
 			{
 				if v == nil {
-					o.SetBudget(v)
+					o.SetBudgetToNull()
 					continue
 				}
 
@@ -3006,7 +3055,7 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 		case "spent":
 			{
 				if v == nil {
-					o.SetSpent(v)
+					o.SetSpentToNull()
 					continue
 				}
 

@@ -148,15 +148,19 @@ func (o *addressBase) PersonIDIsValid() bool {
 	return o.personIDIsValid
 }
 
-// SetPersonID sets the value of PersonID in the object, to be saved later using the Save() function.
-func (o *addressBase) SetPersonID(personID string) {
-	o.personIDIsValid = true
-	if o.personID != personID || !o._restored {
-		o.personID = personID
-		o.personIDIsDirty = true
-		o.objPerson = nil
+// SetPersonID sets the value of PersonID in the object, to be saved later in the database using the Save() function.
+func (o *addressBase) SetPersonID(v string) {
+	if o._restored &&
+		o.personIDIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.personID == v {
+		// no change
+		return
 	}
 
+	o.personIDIsValid = true
+	o.personID = v
+	o.personIDIsDirty = true
+	o.objPerson = nil
 }
 
 // Person returns the current value of the loaded Person, and nil if its not loaded.
@@ -205,17 +209,21 @@ func (o *addressBase) StreetIsValid() bool {
 	return o.streetIsValid
 }
 
-// SetStreet sets the value of Street in the object, to be saved later using the Save() function.
-func (o *addressBase) SetStreet(street string) {
-	o.streetIsValid = true
-	if utf8.RuneCountInString(street) > AddressStreetMaxLength {
+// SetStreet sets the value of Street in the object, to be saved later in the database using the Save() function.
+func (o *addressBase) SetStreet(v string) {
+	if utf8.RuneCountInString(v) > AddressStreetMaxLength {
 		panic("attempted to set Address.Street to a value larger than its maximum length in runes")
 	}
-	if o.street != street || !o._restored {
-		o.street = street
-		o.streetIsDirty = true
+	if o._restored &&
+		o.streetIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.street == v {
+		// no change
+		return
 	}
 
+	o.streetIsValid = true
+	o.street = v
+	o.streetIsDirty = true
 }
 
 // City returns the loaded value of City.
@@ -247,31 +255,35 @@ func (o *addressBase) City_I() interface{} {
 	return o.city
 }
 
-// SetCity prepares for setting the city value in the database.
-//
-// Pass nil to set it to a NULL value in the database.
-func (o *addressBase) SetCity(i interface{}) {
-	o.cityIsValid = true
-	if i == nil {
-		if !o.cityIsNull {
-			o.cityIsNull = true
-			o.cityIsDirty = true
-			o.city = "BOB"
-		}
-	} else {
-		v := i.(string)
-
-		if utf8.RuneCountInString(v) > AddressCityMaxLength {
-			panic("attempted to set Address.City to a value larger than its maximum length in runes")
-		}
-		if o.cityIsNull ||
-			!o._restored ||
-			o.city != v {
-			o.cityIsNull = false
-			o.city = v
-			o.cityIsDirty = true
-		}
+// SetCity sets the value of City in the object, to be saved later in the database using the Save() function.
+func (o *addressBase) SetCity(v string) {
+	if utf8.RuneCountInString(v) > AddressCityMaxLength {
+		panic("attempted to set Address.City to a value larger than its maximum length in runes")
 	}
+	if o._restored &&
+		o.cityIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		!o.cityIsNull && // if the db value is null, force a set of value
+		o.city == v {
+		// no change
+		return
+	}
+
+	o.cityIsValid = true
+	o.city = v
+	o.cityIsDirty = true
+	o.cityIsNull = false
+}
+
+// SetCityToNull() will set the city value in the database to NULL.
+// City() will return the column's default value after this.
+func (o *addressBase) SetCityToNull() {
+	if !o.cityIsValid || !o.cityIsNull {
+		// If we know it is null in the database, don't save it
+		o.cityIsDirty = true
+	}
+	o.cityIsValid = true
+	o.cityIsNull = true
+	o.city = "BOB"
 }
 
 // GetAlias returns the alias for the given key.
@@ -1174,7 +1186,7 @@ func (o *addressBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 		case "city":
 			{
 				if v == nil {
-					o.SetCity(v)
+					o.SetCityToNull()
 					continue
 				}
 

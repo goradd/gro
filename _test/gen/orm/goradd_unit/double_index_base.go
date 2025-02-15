@@ -123,14 +123,18 @@ func (o *doubleIndexBase) IDIsValid() bool {
 	return o.idIsValid
 }
 
-// SetID sets the value of ID in the object, to be saved later using the Save() function.
-func (o *doubleIndexBase) SetID(id int) {
-	o.idIsValid = true
-	if o.id != id || !o._restored {
-		o.id = id
-		o.idIsDirty = true
+// SetID sets the value of ID in the object, to be saved later in the database using the Save() function.
+func (o *doubleIndexBase) SetID(v int) {
+	if o._restored &&
+		o.idIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.id == v {
+		// no change
+		return
 	}
 
+	o.idIsValid = true
+	o.id = v
+	o.idIsDirty = true
 }
 
 // FieldInt returns the loaded value of FieldInt.
@@ -146,14 +150,18 @@ func (o *doubleIndexBase) FieldIntIsValid() bool {
 	return o.fieldIntIsValid
 }
 
-// SetFieldInt sets the value of FieldInt in the object, to be saved later using the Save() function.
-func (o *doubleIndexBase) SetFieldInt(fieldInt int) {
-	o.fieldIntIsValid = true
-	if o.fieldInt != fieldInt || !o._restored {
-		o.fieldInt = fieldInt
-		o.fieldIntIsDirty = true
+// SetFieldInt sets the value of FieldInt in the object, to be saved later in the database using the Save() function.
+func (o *doubleIndexBase) SetFieldInt(v int) {
+	if o._restored &&
+		o.fieldIntIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.fieldInt == v {
+		// no change
+		return
 	}
 
+	o.fieldIntIsValid = true
+	o.fieldInt = v
+	o.fieldIntIsDirty = true
 }
 
 // FieldString returns the loaded value of FieldString.
@@ -169,17 +177,21 @@ func (o *doubleIndexBase) FieldStringIsValid() bool {
 	return o.fieldStringIsValid
 }
 
-// SetFieldString sets the value of FieldString in the object, to be saved later using the Save() function.
-func (o *doubleIndexBase) SetFieldString(fieldString string) {
-	o.fieldStringIsValid = true
-	if utf8.RuneCountInString(fieldString) > DoubleIndexFieldStringMaxLength {
+// SetFieldString sets the value of FieldString in the object, to be saved later in the database using the Save() function.
+func (o *doubleIndexBase) SetFieldString(v string) {
+	if utf8.RuneCountInString(v) > DoubleIndexFieldStringMaxLength {
 		panic("attempted to set DoubleIndex.FieldString to a value larger than its maximum length in runes")
 	}
-	if o.fieldString != fieldString || !o._restored {
-		o.fieldString = fieldString
-		o.fieldStringIsDirty = true
+	if o._restored &&
+		o.fieldStringIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.fieldString == v {
+		// no change
+		return
 	}
 
+	o.fieldStringIsValid = true
+	o.fieldString = v
+	o.fieldStringIsDirty = true
 }
 
 // GetAlias returns the alias for the given key.

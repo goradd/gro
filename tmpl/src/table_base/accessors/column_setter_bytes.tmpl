@@ -1,0 +1,51 @@
+
+{{g
+//*** {{includeName}}
+}}
+
+{{
+// Set{{= col.Identifier }} copies the value of {{= col.Identifier }}, to be saved later in the database using the Save() function.
+{{if col.IsNullable }}
+// Pass nil to set {{= col.QueryName }} to NULL in the database.
+{{else}}
+// Passing nil will set {{= col.QueryName }} to an empty array.
+{{if}}
+func (o *{{= table.DecapIdentifier }}Base) Set{{= col.Identifier }}(v []byte) {
+{{if col.IsNullable }}
+	if v == nil {
+		o.Set{{= col.Identifier }}ToNull()
+   		return
+    }
+{{if}}
+
+{{if col.Size > 0}}
+    if len(v) > {{= table.Identifier}}{{= col.Identifier}}MaxLength {
+        panic("attempted to set {{= table.Identifier}}.{{= col.Identifier }} to a value larger than its maximum length")
+    }
+{{if}}
+
+	if o._restored &&
+	    o.{{= col.VariableIdentifier() }}IsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+{{if col.IsNullable }}
+		!o.{{= col.VariableIdentifier() }}IsNull && // if the db value is null, force a set of value
+{{if}}
+        bytes.Equal(o.{{= col.VariableIdentifier() }}, v) {
+        // no change
+        return
+    }
+
+	o.{{= col.VariableIdentifier() }}IsValid = true
+{{if col.IsNullable }}
+	o.{{= col.VariableIdentifier() }} = slices.Clone(v)
+    o.{{= col.VariableIdentifier() }}IsNull = false
+{{else}}
+	if v == nil {
+	    o.{{= col.VariableIdentifier() }} = []byte{}
+	} else {
+	    o.{{= col.VariableIdentifier() }} = slices.Clone(v)
+	}
+{{if}}
+	o.{{= col.VariableIdentifier() }}IsDirty = true
+}
+
+}}

@@ -108,14 +108,18 @@ func (o *giftBase) NumberIsValid() bool {
 	return o.numberIsValid
 }
 
-// SetNumber sets the value of Number in the object, to be saved later using the Save() function.
-func (o *giftBase) SetNumber(number int) {
-	o.numberIsValid = true
-	if o.number != number || !o._restored {
-		o.number = number
-		o.numberIsDirty = true
+// SetNumber sets the value of Number in the object, to be saved later in the database using the Save() function.
+func (o *giftBase) SetNumber(v int) {
+	if o._restored &&
+		o.numberIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.number == v {
+		// no change
+		return
 	}
 
+	o.numberIsValid = true
+	o.number = v
+	o.numberIsDirty = true
 }
 
 // Name returns the loaded value of Name.
@@ -131,17 +135,21 @@ func (o *giftBase) NameIsValid() bool {
 	return o.nameIsValid
 }
 
-// SetName sets the value of Name in the object, to be saved later using the Save() function.
-func (o *giftBase) SetName(name string) {
-	o.nameIsValid = true
-	if utf8.RuneCountInString(name) > GiftNameMaxLength {
+// SetName sets the value of Name in the object, to be saved later in the database using the Save() function.
+func (o *giftBase) SetName(v string) {
+	if utf8.RuneCountInString(v) > GiftNameMaxLength {
 		panic("attempted to set Gift.Name to a value larger than its maximum length in runes")
 	}
-	if o.name != name || !o._restored {
-		o.name = name
-		o.nameIsDirty = true
+	if o._restored &&
+		o.nameIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.name == v {
+		// no change
+		return
 	}
 
+	o.nameIsValid = true
+	o.name = v
+	o.nameIsDirty = true
 }
 
 // GetAlias returns the alias for the given key.

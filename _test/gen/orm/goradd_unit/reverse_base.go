@@ -151,17 +151,21 @@ func (o *reverseBase) NameIsValid() bool {
 	return o.nameIsValid
 }
 
-// SetName sets the value of Name in the object, to be saved later using the Save() function.
-func (o *reverseBase) SetName(name string) {
-	o.nameIsValid = true
-	if utf8.RuneCountInString(name) > ReverseNameMaxLength {
+// SetName sets the value of Name in the object, to be saved later in the database using the Save() function.
+func (o *reverseBase) SetName(v string) {
+	if utf8.RuneCountInString(v) > ReverseNameMaxLength {
 		panic("attempted to set Reverse.Name to a value larger than its maximum length in runes")
 	}
-	if o.name != name || !o._restored {
-		o.name = name
-		o.nameIsDirty = true
+	if o._restored &&
+		o.nameIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.name == v {
+		// no change
+		return
 	}
 
+	o.nameIsValid = true
+	o.name = v
+	o.nameIsDirty = true
 }
 
 // GetAlias returns the alias for the given key.
@@ -1193,7 +1197,7 @@ func (o *reverseBase) update(ctx context.Context) {
 			for _, obj := range objs {
 				if !o.revForwardCascades.Has(obj.PrimaryKey()) {
 					// The old object is not in the group of new objects
-					obj.SetReverseID(nil)
+					obj.SetReverseIDToNull()
 					obj.Save(ctx)
 				}
 			}
@@ -1218,7 +1222,7 @@ func (o *reverseBase) update(ctx context.Context) {
 				Where(op.Equal(node.ForwardCascadeUnique().ReverseID(), o.PrimaryKey())).
 				Get()
 			if obj != nil && obj.PrimaryKey() != o.revForwardCascadeUnique.PrimaryKey() {
-				obj.SetReverseID(nil)
+				obj.SetReverseIDToNull()
 				obj.Save(ctx)
 			}
 			if o.revForwardCascadeUniquePk != nil {
@@ -1260,7 +1264,7 @@ func (o *reverseBase) update(ctx context.Context) {
 			for _, obj := range objs {
 				if !o.revForwardNulls.Has(obj.PrimaryKey()) {
 					// The old object is not in the group of new objects
-					obj.SetReverseID(nil)
+					obj.SetReverseIDToNull()
 					obj.Save(ctx)
 				}
 			}
@@ -1285,7 +1289,7 @@ func (o *reverseBase) update(ctx context.Context) {
 				Where(op.Equal(node.ForwardNullUnique().ReverseID(), o.PrimaryKey())).
 				Get()
 			if obj != nil && obj.PrimaryKey() != o.revForwardNullUnique.PrimaryKey() {
-				obj.SetReverseID(nil)
+				obj.SetReverseIDToNull()
 				obj.Save(ctx)
 			}
 			if o.revForwardNullUniquePk != nil {
@@ -1345,7 +1349,7 @@ func (o *reverseBase) update(ctx context.Context) {
 				Where(op.Equal(node.ForwardRestrictUnique().ReverseID(), o.PrimaryKey())).
 				Get()
 			if obj != nil && obj.PrimaryKey() != o.revForwardRestrictUnique.PrimaryKey() {
-				obj.SetReverseID(nil)
+				obj.SetReverseIDToNull()
 				obj.Save(ctx)
 			}
 			if o.revForwardRestrictUniquePk != nil {
@@ -1485,7 +1489,7 @@ func (o *reverseBase) Delete(ctx context.Context) {
 				Select(node.ForwardCascade().ReverseID()).
 				Load()
 			for _, obj := range objs {
-				obj.SetReverseID(nil)
+				obj.SetReverseIDToNull()
 				obj.Save(ctx)
 			}
 			o.revForwardCascades.Clear()
@@ -1498,7 +1502,7 @@ func (o *reverseBase) Delete(ctx context.Context) {
 				Select(node.ForwardCascadeUnique().ReverseID()).
 				Get()
 			if obj != nil {
-				obj.SetReverseID(nil)
+				obj.SetReverseIDToNull()
 				obj.Save(ctx)
 			}
 			// Set this object's pointer to the reverse object to nil to mark that we broke the link
@@ -1511,7 +1515,7 @@ func (o *reverseBase) Delete(ctx context.Context) {
 				Select(node.ForwardNull().ReverseID()).
 				Load()
 			for _, obj := range objs {
-				obj.SetReverseID(nil)
+				obj.SetReverseIDToNull()
 				obj.Save(ctx)
 			}
 			o.revForwardNulls.Clear()
@@ -1524,7 +1528,7 @@ func (o *reverseBase) Delete(ctx context.Context) {
 				Select(node.ForwardNullUnique().ReverseID()).
 				Get()
 			if obj != nil {
-				obj.SetReverseID(nil)
+				obj.SetReverseIDToNull()
 				obj.Save(ctx)
 			}
 			// Set this object's pointer to the reverse object to nil to mark that we broke the link
@@ -1548,7 +1552,7 @@ func (o *reverseBase) Delete(ctx context.Context) {
 				Select(node.ForwardRestrictUnique().ReverseID()).
 				Get()
 			if obj != nil {
-				obj.SetReverseID(nil)
+				obj.SetReverseIDToNull()
 				obj.Save(ctx)
 			}
 			// Set this object's pointer to the reverse object to nil to mark that we broke the link

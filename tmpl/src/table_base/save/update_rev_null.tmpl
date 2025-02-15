@@ -20,7 +20,7 @@
                 for _,obj := range objs {
                     if !o.{{= col.ReverseVariableIdentifier() }}.Has(obj.PrimaryKey()) {
                         // The old object is not in the group of new objects
-                        obj.Set{{= col.Identifier }}(nil)
+                        obj.Set{{= col.Identifier }}ToNull()
                         obj.Save(ctx)
                     }
                 }

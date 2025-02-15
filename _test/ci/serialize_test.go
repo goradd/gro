@@ -91,7 +91,7 @@ func TestRecordSerializeComplex1(t *testing.T) {
 	person2 := serObject(t, person).(*goradd.Person)
 	assert.Len(t, person2.Projects(), 2)
 	assert.Len(t, person2.ManagerProjects(), 2)
-	assert.Len(t, person2.Types(), 2)
+	assert.Equal(t, 2, person2.Types().Len())
 	assert.Equal(t, "kwolfe", person2.Login().Username())
 }
 
@@ -108,6 +108,6 @@ func TestRecordSerializeComplex2(t *testing.T) {
 	login2 := serObject(t, login).(*goradd.Login)
 	assert.Len(t, login2.Person().Projects(), 2)
 	assert.Len(t, login2.Person().ManagerProjects(), 2)
-	assert.Len(t, login2.Person().Types(), 2)
+	assert.Equal(t, 2, login2.Person().Types().Len())
 	assert.Equal(t, "kwolfe", login2.Person().Login().Username())
 }

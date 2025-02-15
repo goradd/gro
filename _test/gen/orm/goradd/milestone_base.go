@@ -132,15 +132,19 @@ func (o *milestoneBase) ProjectIDIsValid() bool {
 	return o.projectIDIsValid
 }
 
-// SetProjectID sets the value of ProjectID in the object, to be saved later using the Save() function.
-func (o *milestoneBase) SetProjectID(projectID string) {
-	o.projectIDIsValid = true
-	if o.projectID != projectID || !o._restored {
-		o.projectID = projectID
-		o.projectIDIsDirty = true
-		o.objProject = nil
+// SetProjectID sets the value of ProjectID in the object, to be saved later in the database using the Save() function.
+func (o *milestoneBase) SetProjectID(v string) {
+	if o._restored &&
+		o.projectIDIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.projectID == v {
+		// no change
+		return
 	}
 
+	o.projectIDIsValid = true
+	o.projectID = v
+	o.projectIDIsDirty = true
+	o.objProject = nil
 }
 
 // Project returns the current value of the loaded Project, and nil if its not loaded.
@@ -189,17 +193,21 @@ func (o *milestoneBase) NameIsValid() bool {
 	return o.nameIsValid
 }
 
-// SetName sets the value of Name in the object, to be saved later using the Save() function.
-func (o *milestoneBase) SetName(name string) {
-	o.nameIsValid = true
-	if utf8.RuneCountInString(name) > MilestoneNameMaxLength {
+// SetName sets the value of Name in the object, to be saved later in the database using the Save() function.
+func (o *milestoneBase) SetName(v string) {
+	if utf8.RuneCountInString(v) > MilestoneNameMaxLength {
 		panic("attempted to set Milestone.Name to a value larger than its maximum length in runes")
 	}
-	if o.name != name || !o._restored {
-		o.name = name
-		o.nameIsDirty = true
+	if o._restored &&
+		o.nameIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.name == v {
+		// no change
+		return
 	}
 
+	o.nameIsValid = true
+	o.name = v
+	o.nameIsDirty = true
 }
 
 // GetAlias returns the alias for the given key.

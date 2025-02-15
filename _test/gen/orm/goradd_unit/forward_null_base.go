@@ -134,17 +134,21 @@ func (o *forwardNullBase) NameIsValid() bool {
 	return o.nameIsValid
 }
 
-// SetName sets the value of Name in the object, to be saved later using the Save() function.
-func (o *forwardNullBase) SetName(name string) {
-	o.nameIsValid = true
-	if utf8.RuneCountInString(name) > ForwardNullNameMaxLength {
+// SetName sets the value of Name in the object, to be saved later in the database using the Save() function.
+func (o *forwardNullBase) SetName(v string) {
+	if utf8.RuneCountInString(v) > ForwardNullNameMaxLength {
 		panic("attempted to set ForwardNull.Name to a value larger than its maximum length in runes")
 	}
-	if o.name != name || !o._restored {
-		o.name = name
-		o.nameIsDirty = true
+	if o._restored &&
+		o.nameIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.name == v {
+		// no change
+		return
 	}
 
+	o.nameIsValid = true
+	o.name = v
+	o.nameIsDirty = true
 }
 
 // ReverseID returns the loaded value of ReverseID.
@@ -176,29 +180,34 @@ func (o *forwardNullBase) ReverseID_I() interface{} {
 	return o.reverseID
 }
 
-// SetReverseID prepares for setting the reverse_id value in the database.
-//
-// Pass nil to set it to a NULL value in the database.
-func (o *forwardNullBase) SetReverseID(i interface{}) {
-	o.reverseIDIsValid = true
-	if i == nil {
-		if !o.reverseIDIsNull {
-			o.reverseIDIsNull = true
-			o.reverseIDIsDirty = true
-			o.reverseID = ""
-			o.objReverse = nil
-		}
-	} else {
-		v := i.(string)
-		if o.reverseIDIsNull ||
-			!o._restored ||
-			o.reverseID != v {
-			o.reverseIDIsNull = false
-			o.reverseID = v
-			o.reverseIDIsDirty = true
-			o.objReverse = nil
-		}
+// SetReverseID sets the value of ReverseID in the object, to be saved later in the database using the Save() function.
+func (o *forwardNullBase) SetReverseID(v string) {
+	if o._restored &&
+		o.reverseIDIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		!o.reverseIDIsNull && // if the db value is null, force a set of value
+		o.reverseID == v {
+		// no change
+		return
 	}
+
+	o.reverseIDIsValid = true
+	o.reverseID = v
+	o.reverseIDIsDirty = true
+	o.reverseIDIsNull = false
+	o.objReverse = nil
+}
+
+// SetReverseIDToNull() will set the reverse_id value in the database to NULL.
+// ReverseID() will return the column's default value after this.
+func (o *forwardNullBase) SetReverseIDToNull() {
+	if !o.reverseIDIsValid || !o.reverseIDIsNull {
+		// If we know it is null in the database, don't save it
+		o.reverseIDIsDirty = true
+	}
+	o.reverseIDIsValid = true
+	o.reverseIDIsNull = true
+	o.reverseID = ""
+	o.objReverse = nil
 }
 
 // Reverse returns the current value of the loaded Reverse, and nil if its not loaded.
@@ -1063,7 +1072,7 @@ func (o *forwardNullBase) UnmarshalStringMap(m map[string]interface{}) (err erro
 		case "reverseID":
 			{
 				if v == nil {
-					o.SetReverseID(v)
+					o.SetReverseIDToNull()
 					continue
 				}
 

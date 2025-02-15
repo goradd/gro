@@ -132,17 +132,21 @@ func (o *forwardRestrictBase) NameIsValid() bool {
 	return o.nameIsValid
 }
 
-// SetName sets the value of Name in the object, to be saved later using the Save() function.
-func (o *forwardRestrictBase) SetName(name string) {
-	o.nameIsValid = true
-	if utf8.RuneCountInString(name) > ForwardRestrictNameMaxLength {
+// SetName sets the value of Name in the object, to be saved later in the database using the Save() function.
+func (o *forwardRestrictBase) SetName(v string) {
+	if utf8.RuneCountInString(v) > ForwardRestrictNameMaxLength {
 		panic("attempted to set ForwardRestrict.Name to a value larger than its maximum length in runes")
 	}
-	if o.name != name || !o._restored {
-		o.name = name
-		o.nameIsDirty = true
+	if o._restored &&
+		o.nameIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.name == v {
+		// no change
+		return
 	}
 
+	o.nameIsValid = true
+	o.name = v
+	o.nameIsDirty = true
 }
 
 // ReverseID returns the loaded value of ReverseID.
@@ -158,15 +162,19 @@ func (o *forwardRestrictBase) ReverseIDIsValid() bool {
 	return o.reverseIDIsValid
 }
 
-// SetReverseID sets the value of ReverseID in the object, to be saved later using the Save() function.
-func (o *forwardRestrictBase) SetReverseID(reverseID string) {
-	o.reverseIDIsValid = true
-	if o.reverseID != reverseID || !o._restored {
-		o.reverseID = reverseID
-		o.reverseIDIsDirty = true
-		o.objReverse = nil
+// SetReverseID sets the value of ReverseID in the object, to be saved later in the database using the Save() function.
+func (o *forwardRestrictBase) SetReverseID(v string) {
+	if o._restored &&
+		o.reverseIDIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.reverseID == v {
+		// no change
+		return
 	}
 
+	o.reverseIDIsValid = true
+	o.reverseID = v
+	o.reverseIDIsDirty = true
+	o.objReverse = nil
 }
 
 // Reverse returns the current value of the loaded Reverse, and nil if its not loaded.

@@ -132,15 +132,19 @@ func (o *employeeInfoBase) PersonIDIsValid() bool {
 	return o.personIDIsValid
 }
 
-// SetPersonID sets the value of PersonID in the object, to be saved later using the Save() function.
-func (o *employeeInfoBase) SetPersonID(personID string) {
-	o.personIDIsValid = true
-	if o.personID != personID || !o._restored {
-		o.personID = personID
-		o.personIDIsDirty = true
-		o.objPerson = nil
+// SetPersonID sets the value of PersonID in the object, to be saved later in the database using the Save() function.
+func (o *employeeInfoBase) SetPersonID(v string) {
+	if o._restored &&
+		o.personIDIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.personID == v {
+		// no change
+		return
 	}
 
+	o.personIDIsValid = true
+	o.personID = v
+	o.personIDIsDirty = true
+	o.objPerson = nil
 }
 
 // Person returns the current value of the loaded Person, and nil if its not loaded.
@@ -189,14 +193,18 @@ func (o *employeeInfoBase) EmployeeNumberIsValid() bool {
 	return o.employeeNumberIsValid
 }
 
-// SetEmployeeNumber sets the value of EmployeeNumber in the object, to be saved later using the Save() function.
-func (o *employeeInfoBase) SetEmployeeNumber(employeeNumber int) {
-	o.employeeNumberIsValid = true
-	if o.employeeNumber != employeeNumber || !o._restored {
-		o.employeeNumber = employeeNumber
-		o.employeeNumberIsDirty = true
+// SetEmployeeNumber sets the value of EmployeeNumber in the object, to be saved later in the database using the Save() function.
+func (o *employeeInfoBase) SetEmployeeNumber(v int) {
+	if o._restored &&
+		o.employeeNumberIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.employeeNumber == v {
+		// no change
+		return
 	}
 
+	o.employeeNumberIsValid = true
+	o.employeeNumber = v
+	o.employeeNumberIsDirty = true
 }
 
 // GetAlias returns the alias for the given key.

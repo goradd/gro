@@ -7,7 +7,7 @@
                         Where(op.Equal(node.{{= col.Table.Identifier }}().{{= col.Identifier }}(), o.PrimaryKey())).
                         Get()
                 if obj != nil  && obj.PrimaryKey() != o.{{= col.ReverseVariableIdentifier() }}.PrimaryKey() {
-                   obj.Set{{= col.Identifier }}(nil)
+                   obj.Set{{= col.Identifier }}ToNull()
                    obj.Save(ctx)
                 }
                 if o.{{= col.ReversePkIdentifier() }} != nil {

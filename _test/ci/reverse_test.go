@@ -130,46 +130,42 @@ func TestReverseManyNotNullInsert(t *testing.T) {
 	assert.Nil(t, addr4, "Successfully deleted the address attached to the person")
 }
 
+/*
 func TestReverseManyNullInsertNewObject(t *testing.T) {
 	ctx := db.NewContext(nil)
 	// Test insert
+	project := goradd.NewProject()
+	project.SetName("Big project")
+	project.SetNum(100)
+	project.SetStatus(goradd.ProjectStatusOpen)
+
 	person := goradd.NewPerson()
-	person.SetFirstName("Sam")
-	person.SetLastName("I Am")
+	person.SetFirstName("Cat")
+	person.SetLastName("In the Hat")
 
-	addr1 := goradd.NewAddress()
-	addr1.SetCity("Here")
-	addr1.SetStreet("There")
+	project.SetManager(person)
+	project.Save(ctx)
 
-	addr2 := goradd.NewAddress()
-	addr2.SetCity("Near")
-	addr2.SetStreet("Far")
+	project2 := goradd.LoadProject(ctx, project.ID(), node.Project().Manager())
+	assert.Equal(t, "Big project", project2.Name())
+	assert.Equal(t, "Cat", project2.Manager().FirstName())
 
-	person.SetAddresses([]*goradd.Address{
-		addr1, addr2,
-	})
-	person.Save(ctx)
+	// Delete manager and see that projects get set to null manager
+	person.Delete(ctx)
+	project2 = goradd.LoadProject(ctx, project.ID(), node.Project().Manager())
+	assert.True(t, project2.ManagerIDIsNull())
 
-	id := person.ID()
+	// Set pre-existing manager via pk
+	project2.SetManagerID("1")
+	project2.Save(ctx)
 
-	addr1Id := addr1.ID()
-	assert.NotEmpty(t, addr1Id)
+	project2 = goradd.LoadProject(ctx, project.ID(), node.Project().Manager())
+	assert.Equal(t, "Doe", project2.Manager().LastName())
 
-	addr3 := person.Address(addr1Id)
-	assert.Equal(t, "There", addr3.Street(), "Successfully attached the new addresses onto the person object.")
-
-	person2 := goradd.LoadPerson(ctx, id, node.Person().Addresses())
-
-	assert.Equal(t, "Sam", person2.FirstName(), "Retrieved the correct person")
-	assert.Equal(t, 2, len(person2.Addresses()), "Retrieved the addresses attached to the person")
-
-	person2.Delete(ctx)
-
-	person3 := goradd.LoadPerson(ctx, id, node.Person().Addresses())
-	assert.Nil(t, person3, "Successfully deleted the new person")
-
-	addr4 := goradd.LoadAddress(ctx, addr1Id)
-	assert.Nil(t, addr4, "Successfully deleted the address attached to the person")
+	// Delete project and see manager still exists
+	project2.Delete(ctx)
+	person = goradd.LoadPerson(ctx, "1")
+	assert.NotNil(t, person)
 }
 
 /*

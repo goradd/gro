@@ -1,0 +1,21 @@
+
+{{g
+//*** {{includeName}}
+}}
+
+{{
+// Set{{= col.Identifier }}ToNull() will set the {{= col.QueryName }} value in the database to NULL.
+// {{= col.Identifier }}() will return the column's default value after this.
+func (o *{{= table.DecapIdentifier}}Base) Set{{= col.Identifier }}ToNull() {
+	if !o.{{= col.VariableIdentifier() }}IsValid || !o.{{= col.VariableIdentifier() }}IsNull {
+        // If we know it is null in the database, don't save it
+		o.{{= col.VariableIdentifier() }}IsDirty = true
+	}
+    o.{{= col.VariableIdentifier() }}IsValid = true
+    o.{{= col.VariableIdentifier() }}IsNull = true
+    o.{{= col.VariableIdentifier() }} = {{= col.DefaultValueAsValue() }}
+{{if col.IsReference() }}
+	o.{{= col.ReferenceVariableIdentifier() }} = nil
+{{if}}
+}
+}}

@@ -23,7 +23,7 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) {
                           Select(node.{{= rev.Table.Identifier}}().{{= rev.Identifier }}()).
                           Get()
                 if obj != nil {
-                   obj.Set{{= rev.Identifier }}(nil)
+                   obj.Set{{= rev.Identifier }}ToNull()
                    obj.Save(ctx)
                 }
                 // Set this object's pointer to the reverse object to nil to mark that we broke the link
@@ -49,7 +49,7 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) {
                           Select(node.{{= rev.Table.Identifier }}().{{= rev.Identifier }}()).
                           Load()
                 for _,obj := range objs {
-                   obj.Set{{= rev.Identifier }}(nil)
+                   obj.Set{{= rev.Identifier }}ToNull()
                    obj.Save(ctx)
                 }
                 o.{{= rev.ReverseVariableIdentifier() }}.Clear()
