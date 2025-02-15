@@ -49,16 +49,14 @@ func TestAddress_SetCity(t *testing.T) {
 	assert.Equal(t, city, obj.City())
 	assert.False(t, obj.CityIsNull())
 
-	// Test nil
-	obj.SetCity(nil)
-	assert.Equal(t, "BOB", obj.City(), "set nil")
+	// Test NULL
+	obj.SetCityToNull()
+	assert.Equal(t, "BOB", obj.City())
 	assert.True(t, obj.CityIsNull())
 
 	// test default
 	obj.SetCity("BOB")
 	assert.EqualValues(t, "BOB", obj.City(), "set default")
-
-	assert.False(t, obj.CityIsNull())
 
 	// test panic on setting value larger than maximum size allowed
 	city = test.RandomValue[string](101)

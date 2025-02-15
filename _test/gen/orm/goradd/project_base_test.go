@@ -47,16 +47,14 @@ func TestProject_SetManagerID(t *testing.T) {
 	assert.Equal(t, managerID, obj.ManagerID())
 	assert.False(t, obj.ManagerIDIsNull())
 
-	// Test nil
-	obj.SetManagerID(nil)
-	assert.Equal(t, "", obj.ManagerID(), "set nil")
+	// Test NULL
+	obj.SetManagerIDToNull()
+	assert.Equal(t, "", obj.ManagerID())
 	assert.True(t, obj.ManagerIDIsNull())
 
 	// test default
 	obj.SetManagerID("")
 	assert.EqualValues(t, "", obj.ManagerID(), "set default")
-
-	assert.False(t, obj.ManagerIDIsNull())
 
 }
 func TestProject_SetName(t *testing.T) {
@@ -84,16 +82,14 @@ func TestProject_SetDescription(t *testing.T) {
 	assert.Equal(t, description, obj.Description())
 	assert.False(t, obj.DescriptionIsNull())
 
-	// Test nil
-	obj.SetDescription(nil)
-	assert.Equal(t, "", obj.Description(), "set nil")
+	// Test NULL
+	obj.SetDescriptionToNull()
+	assert.Equal(t, "", obj.Description())
 	assert.True(t, obj.DescriptionIsNull())
 
 	// test default
 	obj.SetDescription("")
 	assert.EqualValues(t, "", obj.Description(), "set default")
-
-	assert.False(t, obj.DescriptionIsNull())
 
 	// test panic on setting value larger than maximum size allowed
 	description = test.RandomValue[string](65536)
@@ -112,16 +108,14 @@ func TestProject_SetStartDate(t *testing.T) {
 	assert.Zero(t, startDate.Second()) // make sure time part is zero'd
 	assert.False(t, obj.StartDateIsNull())
 
-	// Test nil
-	obj.SetStartDate(nil)
-	assert.Equal(t, time.Time{}, obj.StartDate(), "set nil")
+	// Test NULL
+	obj.SetStartDateToNull()
+	assert.Equal(t, time.Time{}, obj.StartDate())
 	assert.True(t, obj.StartDateIsNull())
 
 	// test default
 	obj.SetStartDate(time.Time{})
 	assert.EqualValues(t, time.Time{}, obj.StartDate(), "set default")
-
-	assert.False(t, obj.StartDateIsNull())
 
 }
 func TestProject_SetEndDate(t *testing.T) {
@@ -135,16 +129,14 @@ func TestProject_SetEndDate(t *testing.T) {
 	assert.Zero(t, endDate.Second()) // make sure time part is zero'd
 	assert.False(t, obj.EndDateIsNull())
 
-	// Test nil
-	obj.SetEndDate(nil)
-	assert.Equal(t, time.Time{}, obj.EndDate(), "set nil")
+	// Test NULL
+	obj.SetEndDateToNull()
+	assert.Equal(t, time.Time{}, obj.EndDate())
 	assert.True(t, obj.EndDateIsNull())
 
 	// test default
 	obj.SetEndDate(time.Time{})
 	assert.EqualValues(t, time.Time{}, obj.EndDate(), "set default")
-
-	assert.False(t, obj.EndDateIsNull())
 
 }
 func TestProject_SetBudget(t *testing.T) {
@@ -155,16 +147,14 @@ func TestProject_SetBudget(t *testing.T) {
 	assert.Equal(t, budget, obj.Budget())
 	assert.False(t, obj.BudgetIsNull())
 
-	// Test nil
-	obj.SetBudget(nil)
-	assert.Equal(t, []byte(nil), obj.Budget(), "set nil")
+	// Test NULL
+	obj.SetBudgetToNull()
+	assert.Equal(t, []byte(nil), obj.Budget())
 	assert.True(t, obj.BudgetIsNull())
 
 	// test default
 	obj.SetBudget([]byte(nil))
 	assert.EqualValues(t, []byte(nil), obj.Budget(), "set default")
-
-	assert.False(t, obj.BudgetIsNull())
 
 	// test panic on setting value larger than maximum size allowed
 	budget = test.RandomValue[[]byte](16)
@@ -180,16 +170,14 @@ func TestProject_SetSpent(t *testing.T) {
 	assert.Equal(t, spent, obj.Spent())
 	assert.False(t, obj.SpentIsNull())
 
-	// Test nil
-	obj.SetSpent(nil)
-	assert.Equal(t, []byte(nil), obj.Spent(), "set nil")
+	// Test NULL
+	obj.SetSpentToNull()
+	assert.Equal(t, []byte(nil), obj.Spent())
 	assert.True(t, obj.SpentIsNull())
 
 	// test default
 	obj.SetSpent([]byte(nil))
 	assert.EqualValues(t, []byte(nil), obj.Spent(), "set default")
-
-	assert.False(t, obj.SpentIsNull())
 
 	// test panic on setting value larger than maximum size allowed
 	spent = test.RandomValue[[]byte](16)

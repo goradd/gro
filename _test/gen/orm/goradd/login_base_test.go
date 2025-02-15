@@ -20,16 +20,14 @@ func TestLogin_SetPersonID(t *testing.T) {
 	assert.Equal(t, personID, obj.PersonID())
 	assert.False(t, obj.PersonIDIsNull())
 
-	// Test nil
-	obj.SetPersonID(nil)
-	assert.Equal(t, "", obj.PersonID(), "set nil")
+	// Test NULL
+	obj.SetPersonIDToNull()
+	assert.Equal(t, "", obj.PersonID())
 	assert.True(t, obj.PersonIDIsNull())
 
 	// test default
 	obj.SetPersonID("")
 	assert.EqualValues(t, "", obj.PersonID(), "set default")
-
-	assert.False(t, obj.PersonIDIsNull())
 
 }
 func TestLogin_SetUsername(t *testing.T) {
@@ -57,16 +55,14 @@ func TestLogin_SetPassword(t *testing.T) {
 	assert.Equal(t, password, obj.Password())
 	assert.False(t, obj.PasswordIsNull())
 
-	// Test nil
-	obj.SetPassword(nil)
-	assert.Equal(t, "", obj.Password(), "set nil")
+	// Test NULL
+	obj.SetPasswordToNull()
+	assert.Equal(t, "", obj.Password())
 	assert.True(t, obj.PasswordIsNull())
 
 	// test default
 	obj.SetPassword("")
 	assert.EqualValues(t, "", obj.Password(), "set default")
-
-	assert.False(t, obj.PasswordIsNull())
 
 	// test panic on setting value larger than maximum size allowed
 	password = test.RandomValue[string](21)

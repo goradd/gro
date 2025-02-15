@@ -1507,7 +1507,18 @@ func (o *`); err != nil {
 
 	if col.IsEnumArray() {
 
-		if _, err = io.WriteString(_w, `    return o.`); err != nil {
+		if _, err = io.WriteString(_w, `    if o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` == nil {
+        return nil
+    }
+    return o.`); err != nil {
 			return
 		}
 

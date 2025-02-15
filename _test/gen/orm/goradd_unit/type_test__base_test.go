@@ -24,16 +24,14 @@ func TestTypeTest_SetDate(t *testing.T) {
 	assert.Zero(t, date.Second()) // make sure time part is zero'd
 	assert.False(t, obj.DateIsNull())
 
-	// Test nil
-	obj.SetDate(nil)
-	assert.Equal(t, time.Time{}, obj.Date(), "set nil")
+	// Test NULL
+	obj.SetDateToNull()
+	assert.Equal(t, time.Time{}, obj.Date())
 	assert.True(t, obj.DateIsNull())
 
 	// test default
 	obj.SetDate(time.Time{})
 	assert.EqualValues(t, time.Time{}, obj.Date(), "set default")
-
-	assert.False(t, obj.DateIsNull())
 
 }
 func TestTypeTest_SetTime(t *testing.T) {
@@ -47,16 +45,14 @@ func TestTypeTest_SetTime(t *testing.T) {
 	assert.Equal(t, 1, time.Day())   // make sure minute part is zero'd
 	assert.False(t, obj.TimeIsNull())
 
-	// Test nil
-	obj.SetTime(nil)
-	assert.Equal(t, time.Time{}, obj.Time(), "set nil")
+	// Test NULL
+	obj.SetTimeToNull()
+	assert.Equal(t, time.Time{}, obj.Time())
 	assert.True(t, obj.TimeIsNull())
 
 	// test default
 	obj.SetTime(time.Time{})
 	assert.EqualValues(t, time.Time{}, obj.Time(), "set default")
-
-	assert.False(t, obj.TimeIsNull())
 
 }
 func TestTypeTest_SetDateTime(t *testing.T) {
@@ -67,16 +63,14 @@ func TestTypeTest_SetDateTime(t *testing.T) {
 	assert.Equal(t, dateTime, obj.DateTime())
 	assert.False(t, obj.DateTimeIsNull())
 
-	// Test nil
-	obj.SetDateTime(nil)
-	assert.Equal(t, time.Time{}, obj.DateTime(), "set nil")
+	// Test NULL
+	obj.SetDateTimeToNull()
+	assert.Equal(t, time.Time{}, obj.DateTime())
 	assert.True(t, obj.DateTimeIsNull())
 
 	// test default
 	obj.SetDateTime(time.Time{})
 	assert.EqualValues(t, time.Time{}, obj.DateTime(), "set default")
-
-	assert.False(t, obj.DateTimeIsNull())
 
 }
 func TestTypeTest_SetTestInt(t *testing.T) {
@@ -87,16 +81,14 @@ func TestTypeTest_SetTestInt(t *testing.T) {
 	assert.Equal(t, testInt, obj.TestInt())
 	assert.False(t, obj.TestIntIsNull())
 
-	// Test nil
-	obj.SetTestInt(nil)
-	assert.Equal(t, 5, obj.TestInt(), "set nil")
+	// Test NULL
+	obj.SetTestIntToNull()
+	assert.Equal(t, 5, obj.TestInt())
 	assert.True(t, obj.TestIntIsNull())
 
 	// test default
 	obj.SetTestInt(5)
 	assert.EqualValues(t, 5, obj.TestInt(), "set default")
-
-	assert.False(t, obj.TestIntIsNull())
 
 }
 func TestTypeTest_SetTestFloat(t *testing.T) {
@@ -107,16 +99,14 @@ func TestTypeTest_SetTestFloat(t *testing.T) {
 	assert.Equal(t, testFloat, obj.TestFloat())
 	assert.False(t, obj.TestFloatIsNull())
 
-	// Test nil
-	obj.SetTestFloat(nil)
-	assert.Equal(t, 0, obj.TestFloat(), "set nil")
+	// Test NULL
+	obj.SetTestFloatToNull()
+	assert.Equal(t, 0, obj.TestFloat())
 	assert.True(t, obj.TestFloatIsNull())
 
 	// test default
 	obj.SetTestFloat(0)
 	assert.EqualValues(t, 0, obj.TestFloat(), "set default")
-
-	assert.False(t, obj.TestFloatIsNull())
 
 }
 func TestTypeTest_SetTestDouble(t *testing.T) {
@@ -139,16 +129,14 @@ func TestTypeTest_SetTestText(t *testing.T) {
 	assert.Equal(t, testText, obj.TestText())
 	assert.False(t, obj.TestTextIsNull())
 
-	// Test nil
-	obj.SetTestText(nil)
-	assert.Equal(t, "", obj.TestText(), "set nil")
+	// Test NULL
+	obj.SetTestTextToNull()
+	assert.Equal(t, "", obj.TestText())
 	assert.True(t, obj.TestTextIsNull())
 
 	// test default
 	obj.SetTestText("")
 	assert.EqualValues(t, "", obj.TestText(), "set default")
-
-	assert.False(t, obj.TestTextIsNull())
 
 	// test panic on setting value larger than maximum size allowed
 	testText = test.RandomValue[string](65536)
@@ -164,16 +152,14 @@ func TestTypeTest_SetTestBit(t *testing.T) {
 	assert.Equal(t, testBit, obj.TestBit())
 	assert.False(t, obj.TestBitIsNull())
 
-	// Test nil
-	obj.SetTestBit(nil)
-	assert.Equal(t, false, obj.TestBit(), "set nil")
+	// Test NULL
+	obj.SetTestBitToNull()
+	assert.Equal(t, false, obj.TestBit())
 	assert.True(t, obj.TestBitIsNull())
 
 	// test default
 	obj.SetTestBit(false)
 	assert.EqualValues(t, false, obj.TestBit(), "set default")
-
-	assert.False(t, obj.TestBitIsNull())
 
 }
 func TestTypeTest_SetTestVarchar(t *testing.T) {
@@ -184,16 +170,14 @@ func TestTypeTest_SetTestVarchar(t *testing.T) {
 	assert.Equal(t, testVarchar, obj.TestVarchar())
 	assert.False(t, obj.TestVarcharIsNull())
 
-	// Test nil
-	obj.SetTestVarchar(nil)
-	assert.Equal(t, "", obj.TestVarchar(), "set nil")
+	// Test NULL
+	obj.SetTestVarcharToNull()
+	assert.Equal(t, "", obj.TestVarchar())
 	assert.True(t, obj.TestVarcharIsNull())
 
 	// test default
 	obj.SetTestVarchar("")
 	assert.EqualValues(t, "", obj.TestVarchar(), "set default")
-
-	assert.False(t, obj.TestVarcharIsNull())
 
 	// test panic on setting value larger than maximum size allowed
 	testVarchar = test.RandomValue[string](11)

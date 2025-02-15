@@ -56,9 +56,9 @@ func TestPerson_SetTypes(t *testing.T) {
 	assert.Equal(t, types, obj.Types())
 	assert.False(t, obj.TypesIsNull())
 
-	// Test nil
-	obj.SetTypes(nil)
-	assert.Equal(t, nil, obj.Types(), "set nil")
+	// Test NULL
+	obj.SetTypesToNull()
+	assert.Nil(t, obj.Types())
 	assert.True(t, obj.TypesIsNull())
 
 	// test default

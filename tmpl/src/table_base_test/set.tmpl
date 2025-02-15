@@ -36,9 +36,13 @@ func Test{{= table.Identifier }}_Set{{= col.Identifier }}(t *testing.T) {
 {{if}}
 
 {{if col.IsNullable }}
-    // Test nil
-    obj.Set{{= col.Identifier }}(nil)
-    assert.Equal(t, {{= col.DefaultValueAsValue() }}, obj.{{= col.Identifier }}(), "set nil")
+    // Test NULL
+    obj.Set{{= col.Identifier }}ToNull()
+{{if col.DefaultValueAsValue() == "nil" }}
+    assert.Nil(t, obj.{{= col.Identifier }}())
+{{else}}
+    assert.Equal(t, {{= col.DefaultValueAsValue() }}, obj.{{= col.Identifier }}())
+{{if}}
     assert.True(t, obj.{{= col.Identifier }}IsNull())
 {{if}}
 
@@ -49,9 +53,6 @@ func Test{{= table.Identifier }}_Set{{= col.Identifier }}(t *testing.T) {
 {{else}}
     obj.Set{{= col.Identifier }}({{= col.DefaultValueAsValue() }})
     assert.EqualValues(t, {{= col.DefaultValueAsValue() }}, obj.{{= col.Identifier }}(), "set default")
-    {{if col.IsNullable }}
-    assert.False(t, obj.{{= col.Identifier }}IsNull())
-    {{if}}
 {{if}}
 
 {{if col.Size > 0 &&

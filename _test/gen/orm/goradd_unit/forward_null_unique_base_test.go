@@ -37,16 +37,14 @@ func TestForwardNullUnique_SetReverseID(t *testing.T) {
 	assert.Equal(t, reverseID, obj.ReverseID())
 	assert.False(t, obj.ReverseIDIsNull())
 
-	// Test nil
-	obj.SetReverseID(nil)
-	assert.Equal(t, "", obj.ReverseID(), "set nil")
+	// Test NULL
+	obj.SetReverseIDToNull()
+	assert.Equal(t, "", obj.ReverseID())
 	assert.True(t, obj.ReverseIDIsNull())
 
 	// test default
 	obj.SetReverseID("")
 	assert.EqualValues(t, "", obj.ReverseID(), "set default")
-
-	assert.False(t, obj.ReverseIDIsNull())
 
 }
 

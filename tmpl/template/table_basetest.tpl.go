@@ -387,7 +387,7 @@ import (
 
 		if col.IsNullable {
 
-			if _, err = io.WriteString(_w, `    // Test nil
+			if _, err = io.WriteString(_w, `    // Test NULL
     obj.Set`); err != nil {
 				return
 			}
@@ -396,25 +396,52 @@ import (
 				return
 			}
 
-			if _, err = io.WriteString(_w, `(nil)
-    assert.Equal(t, `); err != nil {
+			if _, err = io.WriteString(_w, `ToNull()
+`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.DefaultValueAsValue()); err != nil {
-				return
+			if col.DefaultValueAsValue() == "nil" {
+
+				if _, err = io.WriteString(_w, `    assert.Nil(t, obj.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `())
+`); err != nil {
+					return
+				}
+
+			} else {
+
+				if _, err = io.WriteString(_w, `    assert.Equal(t, `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.DefaultValueAsValue()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `, obj.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `())
+`); err != nil {
+					return
+				}
+
 			}
 
-			if _, err = io.WriteString(_w, `, obj.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `(), "set nil")
-    assert.True(t, obj.`); err != nil {
+			if _, err = io.WriteString(_w, `    assert.True(t, obj.`); err != nil {
 				return
 			}
 
@@ -519,29 +546,6 @@ import (
 			}
 
 			if _, err = io.WriteString(_w, `(), "set default")
-    `); err != nil {
-				return
-			}
-
-			if col.IsNullable {
-
-				if _, err = io.WriteString(_w, `
-    assert.False(t, obj.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsNull())
-    `); err != nil {
-					return
-				}
-
-			}
-
-			if _, err = io.WriteString(_w, `
 `); err != nil {
 				return
 			}

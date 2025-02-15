@@ -231,6 +231,9 @@ func (o *personBase) Types() PersonTypeSet {
 	if o._restored && !o.typesIsValid {
 		panic("Types was not selected in the last query and has not been set, and so is not valid")
 	}
+	if o.types == nil {
+		return nil
+	}
 	return o.types.Clone()
 }
 
