@@ -222,45 +222,6 @@ func TestReverseManyNullInsertNewObject(t *testing.T) {
 	assert.NotNil(t, person)
 }
 
-/*
-// Testing a reverse reference with a unique index, which will cause a one-to-one relationship.
-// This tests save and delete
-func TestReverseReferenceUniqueSave(t *testing.T) {
-	ctx := db.NewContext(nil)
-
-	person := goradd.NewPerson()
-	person.SetFirstName("Sam")
-	person.SetLastName("I Am")
-
-	e1 := goradd.NewEmployeeInfo()
-	e1.SetEmployeeNumber(12345)
-	person.SetEmployeeInfo(e1)
-
-	person.Save(ctx)
-	id := person.ID()
-
-	e1Id := e1.ID()
-	assert.NotEmpty(t, e1Id)
-
-	e2 := person.EmployeeInfo()
-	assert.Equal(t, e1Id, e2.ID(), "Successfully attached the new employee info object onto the person object.")
-
-	person2 := goradd.LoadPerson(ctx, id, node.Person().EmployeeInfo())
-
-	assert.Equal(t, "Sam", person2.FirstName(), "Retrieved the correct person")
-	assert.Equal(t, e1Id, person2.EmployeeInfo().ID(), "Retrieved the employee info attached to the person")
-
-	person2.Delete(ctx)
-
-	person3 := goradd.LoadPerson(ctx, id, node.Person().EmployeeInfo())
-	assert.Nil(t, person3, "Successfully deleted the new person")
-
-	e4 := goradd.LoadEmployeeInfo(ctx, e1Id)
-	assert.Nil(t, e4, "Successfully deleted the employee info attached to the person")
-
-}
-*/
-
 func TestReverseReferenceCount(t *testing.T) {
 	ctx := db.NewContext(nil)
 

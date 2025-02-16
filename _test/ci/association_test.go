@@ -197,12 +197,11 @@ func Test2ndLoad(t *testing.T) {
 func TestCalculationOnAssociation(t *testing.T) {
 	ctx := db.NewContext(nil)
 	projects := goradd.QueryProjects(ctx).
-		Select(node.Project().TeamMembers()).
-		Calculation(node.Project().TeamMembers(), "count", op.Count(node.Project().TeamMembers())).
-		OrderBy(node.Project().Manager().FirstName()).
+		Calculation(node.Project(), "count", op.Count(node.Project().TeamMembers())).
+		GroupBy(node.Project()).
+		OrderBy(node.Project().ID()).
 		Load()
-	// TODO:
-	_ = projects
+	assert.Equal(t, 5, projects[0].GetAlias("count").Int())
 }
 
 /*

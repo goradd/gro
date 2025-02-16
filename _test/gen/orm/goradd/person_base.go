@@ -734,8 +734,8 @@ type PersonBuilder interface {
 	// doing otherwise will result in an error.
 	Select(nodes ...query.Node) PersonBuilder
 
-	// Calculation adds a calculation node with an aliased name.
-	// After the query, you can read the data using GetAlias() on a returned object.
+	// Calculation adds a calculation described by operation with the name alias.
+	// After the query, you can read the data using GetAlias() on the object identified by base.
 	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) PersonBuilder
 
 	// Distinct removes duplicates from the results of the query.

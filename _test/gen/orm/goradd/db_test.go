@@ -20,11 +20,11 @@ func ClearAll(ctx context.Context) {
 
 	db.Delete(ctx, "milestone", nil)
 	db.Delete(ctx, "login", nil)
-	db.Delete(ctx, "employee_info", nil)
 	db.Delete(ctx, "project", nil)
 	db.Delete(ctx, "person_with_lock", nil)
 	db.Delete(ctx, "person", nil)
 	db.Delete(ctx, "gift", nil)
+	db.Delete(ctx, "employee_info", nil)
 	db.Delete(ctx, "address", nil)
 
 }

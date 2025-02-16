@@ -6105,8 +6105,8 @@ type `); err != nil {
 
 	if _, err = io.WriteString(_w, `
 
-	// Calculation adds a calculation node with an aliased name.
-    // After the query, you can read the data using GetAlias() on a returned object.
+	// Calculation adds a calculation described by operation with the name alias.
+    // After the query, you can read the data using GetAlias() on the object identified by base.
 	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) `); err != nil {
 		return
 	}
