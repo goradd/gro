@@ -76,6 +76,59 @@ func TestUniqueReverseLoad(t *testing.T) {
 	assert.Equal(t, "jdoe", person.Login().Username())
 }
 
+func TestReverseUniqueInsert(t *testing.T) {
+	ctx := db.NewContext(nil)
+	// Test insert
+	person := goradd.NewPerson()
+	person.SetFirstName("Sam")
+	person.SetLastName("I Am")
+
+	// Not null reverse unique
+	empInfo := goradd.NewEmployeeInfo()
+	empInfo.SetEmployeeNumber(55)
+	person.SetEmployeeInfo(empInfo)
+
+	// Nullable reverse unique
+	login := goradd.NewLogin()
+	login.SetUsername("sammy")
+	person.SetLogin(login)
+
+	person.Save(ctx)
+
+	assert.NotZero(t, person.Login().PersonID())
+	assert.Equal(t, person.ID(), person.Login().PersonID())
+	assert.NotZero(t, person.EmployeeInfo().PersonID())
+	assert.Equal(t, person.ID(), person.EmployeeInfo().PersonID())
+
+	empInfo = goradd.LoadEmployeeInfo(ctx, person.EmployeeInfo().ID())
+	assert.Equal(t, person.ID(), empInfo.PersonID())
+
+	login = goradd.LoadLogin(ctx, person.Login().ID())
+	assert.Equal(t, person.ID(), login.PersonID())
+
+	person2 := goradd.NewPerson()
+	person2.SetFirstName("Yertle")
+	person2.SetLastName("The Turtle")
+	person2.SetLoginByID(person.Login().ID())
+	person2.SetEmployeeInfoByID(person.EmployeeInfo().ID())
+	person2.Save(ctx)
+
+	person2 = goradd.LoadPerson(ctx, person2.ID(), node.Person().EmployeeInfo(), node.Person().Login())
+	assert.Equal(t, person2.ID(), person2.EmployeeInfo().PersonID())
+	assert.Equal(t, person.EmployeeInfo().ID(), person2.EmployeeInfo().ID())
+	assert.Equal(t, person2.ID(), person2.Login().PersonID())
+	assert.Equal(t, person.Login().ID(), person2.Login().ID())
+
+	person2.Delete(ctx)
+	empInfo = goradd.LoadEmployeeInfo(ctx, person.EmployeeInfo().ID())
+	assert.Nil(t, empInfo)
+	login = goradd.LoadLogin(ctx, person.Login().ID())
+	assert.Zero(t, login.PersonID())
+	login.Delete(ctx)
+	login = goradd.LoadLogin(ctx, person.Login().ID())
+	assert.Nil(t, login)
+}
+
 func TestReverseManyNotNullInsert(t *testing.T) {
 	ctx := db.NewContext(nil)
 	// Test insert
