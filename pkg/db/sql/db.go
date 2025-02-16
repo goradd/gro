@@ -284,6 +284,8 @@ func (h *DbHelper) Query(ctx context.Context, table string, fields map[string]Re
 }
 
 // Delete deletes the indicated record from the database.
+// Care should be exercised when calling this directly, since related records are not modified in any way.
+// If this record has related records, the database structure may be corrupted.
 func (h *DbHelper) Delete(ctx context.Context, table string, where map[string]any) {
 	sql, args := GenerateDelete(h.dbi, table, where)
 	_, e := h.SqlExec(ctx, sql, args...)
@@ -333,8 +335,6 @@ func (h *DbHelper) BuilderQuery(builder *Builder) any {
 		return h.joinTreeLoad(builder.Ctx, joinTree)
 	case BuilderCommandLoadCursor:
 		return h.joinTreeLoadCursor(builder.Ctx, joinTree)
-	case BuilderCommandDelete:
-		h.joinTreeDelete(builder.Ctx, joinTree)
 	case BuilderCommandCount:
 		return h.joinTreeCount(builder.Ctx, joinTree)
 	}
@@ -397,15 +397,6 @@ func (h *DbHelper) joinTreeLoadCursor(ctx context.Context, joinTree *jointree.Jo
 		columnTypes = append(columnTypes, ColTypeBytes) // These will be unpacked when they are retrieved
 	}
 	return NewSqlCursor(rows, columnTypes, nil, joinTree)
-}
-
-func (h *DbHelper) joinTreeDelete(ctx context.Context, joinTree *jointree.JoinTree) {
-	g := newSqlGenerator(joinTree, h.dbi)
-	s, args := g.generateDeleteSql()
-	_, err := h.dbi.SqlExec(ctx, s, args...)
-	if err != nil {
-		panic(err)
-	}
 }
 
 func (h *DbHelper) joinTreeCount(ctx context.Context, joinTree *jointree.JoinTree) int {

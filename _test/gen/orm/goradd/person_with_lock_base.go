@@ -342,9 +342,6 @@ type PersonWithLockBuilder interface {
 	// To count distinct combinations of items, call Distinct() on the builder.
 	Count() int
 
-	// Delete uses the query builder to delete a group of records that match the criteria
-	Delete()
-
 	// Subquery terminates the query builder and tags it as a subquery within a larger query.
 	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
 	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
@@ -550,14 +547,6 @@ func (b *personWithLockQueryBuilder) Count() int {
 		return 0
 	}
 	return results.(int)
-}
-
-// Delete uses the query builder to delete a group of records that match the criteria.
-func (b *personWithLockQueryBuilder) Delete() {
-	b.builder.Command = query.BuilderCommandDelete
-	database := db.GetDatabase("goradd")
-	database.BuilderQuery(b.builder)
-	broadcast.BulkChange(b.builder.Context(), "goradd", "person_with_lock")
 }
 
 /*
@@ -783,7 +772,8 @@ func (o *personWithLockBase) Delete(ctx context.Context) {
 	broadcast.Delete(ctx, "goradd", "person_with_lock", fmt.Sprint(o.id))
 }
 
-// deletePersonWithLock deletes the associated record from the database.
+// deletePersonWithLock deletes the PersonWithLock with primary key pk from the database
+// and handles associated records.
 func deletePersonWithLock(ctx context.Context, pk string) {
 	d := db.GetDatabase("goradd")
 	d.Delete(ctx, "person_with_lock", map[string]any{"ID": pk})

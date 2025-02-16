@@ -325,35 +325,6 @@ func TestLazyLoad(t *testing.T) {
 	assert.Equal(t, "7", manager.ID())
 }
 
-func TestDeleteQuery(t *testing.T) {
-	ctx := db.NewContext(nil)
-
-	person := goradd.NewPerson()
-	person.SetFirstName("Test1")
-	person.SetLastName("Last1")
-	person.Save(ctx)
-
-	goradd.QueryPeople(ctx).
-		Where(
-			op.And(
-				op.Equal(
-					node.Person().FirstName(), "Test1"),
-				op.Equal(
-					node.Person().LastName(), "Last1"))).
-		Delete()
-
-	people := goradd.QueryPeople(ctx).
-		Where(
-			op.And(
-				op.Equal(
-					node.Person().FirstName(), "Test1"),
-				op.Equal(
-					node.Person().LastName(), "Last1"))).
-		Load()
-
-	assert.Len(t, people, 0, "Deleted the person")
-}
-
 func TestHaving(t *testing.T) {
 	// This particular test shows a quirk of SQL that requires:
 	// 1) If you have an aggregate clause (like COUNT), you MUST have a GROUPBY clause, and

@@ -344,9 +344,6 @@ type DoubleIndexBuilder interface {
 	// To count distinct combinations of items, call Distinct() on the builder.
 	Count() int
 
-	// Delete uses the query builder to delete a group of records that match the criteria
-	Delete()
-
 	// Subquery terminates the query builder and tags it as a subquery within a larger query.
 	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
 	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
@@ -554,14 +551,6 @@ func (b *doubleIndexQueryBuilder) Count() int {
 	return results.(int)
 }
 
-// Delete uses the query builder to delete a group of records that match the criteria.
-func (b *doubleIndexQueryBuilder) Delete() {
-	b.builder.Command = query.BuilderCommandDelete
-	database := db.GetDatabase("goradd_unit")
-	database.BuilderQuery(b.builder)
-	broadcast.BulkChange(b.builder.Context(), "goradd_unit", "double_index")
-}
-
 /*
 // Subquery terminates the query builder and tags it as a subquery within a larger query.
 // You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
@@ -752,7 +741,8 @@ func (o *doubleIndexBase) Delete(ctx context.Context) {
 	broadcast.Delete(ctx, "goradd_unit", "double_index", fmt.Sprint(o.id))
 }
 
-// deleteDoubleIndex deletes the associated record from the database.
+// deleteDoubleIndex deletes the DoubleIndex with primary key pk from the database
+// and handles associated records.
 func deleteDoubleIndex(ctx context.Context, pk int) {
 	d := db.GetDatabase("goradd_unit")
 	d.Delete(ctx, "double_index", map[string]any{"ID": pk})

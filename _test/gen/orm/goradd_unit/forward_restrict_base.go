@@ -320,9 +320,6 @@ type ForwardRestrictBuilder interface {
 	// To count distinct combinations of items, call Distinct() on the builder.
 	Count() int
 
-	// Delete uses the query builder to delete a group of records that match the criteria
-	Delete()
-
 	// Subquery terminates the query builder and tags it as a subquery within a larger query.
 	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
 	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
@@ -528,14 +525,6 @@ func (b *forwardRestrictQueryBuilder) Count() int {
 		return 0
 	}
 	return results.(int)
-}
-
-// Delete uses the query builder to delete a group of records that match the criteria.
-func (b *forwardRestrictQueryBuilder) Delete() {
-	b.builder.Command = query.BuilderCommandDelete
-	database := db.GetDatabase("goradd_unit")
-	database.BuilderQuery(b.builder)
-	broadcast.BulkChange(b.builder.Context(), "goradd_unit", "forward_restrict")
 }
 
 /*
@@ -750,7 +739,8 @@ func (o *forwardRestrictBase) Delete(ctx context.Context) {
 	broadcast.Delete(ctx, "goradd_unit", "forward_restrict", fmt.Sprint(o.id))
 }
 
-// deleteForwardRestrict deletes the associated record from the database.
+// deleteForwardRestrict deletes the ForwardRestrict with primary key pk from the database
+// and handles associated records.
 func deleteForwardRestrict(ctx context.Context, pk string) {
 	d := db.GetDatabase("goradd_unit")
 	d.Delete(ctx, "forward_restrict", map[string]any{"ID": pk})

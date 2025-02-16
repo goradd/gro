@@ -4,6 +4,28 @@
 }}
 {{
 // Delete deletes the record from the database.
+{{if len(table.ReverseReferences) > 0 }}
+//
+{{for _,rev := range table.ReverseReferences }}
+{{if rev.IsUnique}}
+{{if rev.IsNullable}}
+// An associated {{= rev.ReverseIdentifier() }} will have its {{= rev.Identifier }} field set to NULL.
+//
+{{else}}
+// An associated {{{= rev.ReverseIdentifier() }} will be deleted since its {{= rev.Identifier }} field is not nullable.
+//
+{{if}}
+{{else}} {{# not unique}}
+{{if rev.IsNullable}}
+// Associated {{= rev.ReverseIdentifier() }} will have their {{= rev.Identifier }} field set to NULL.
+//
+{{else}}
+// Associated {{= rev.ReverseIdentifier() }} will be deleted since their {{= rev.Identifier }} fields are not nullable.
+//
+{{if}}
+{{if}}
+{{for}}
+{{if}}
 func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) {
 	if !o._restored {
 		panic ("Cannot delete a record that has no primary key value.")
@@ -79,13 +101,14 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) {
 
     {{for}}
 
-	d.Delete(ctx, "{{= table.QueryName }}", map[string]any{"{{= table.PrimaryKeyColumn().Identifier }}": o.{{= table.PrimaryKeyColumn().VariableIdentifier() }} })
+	    d.Delete(ctx, "{{= table.QueryName }}", map[string]any{"{{= table.PrimaryKeyColumn().Identifier }}": o.{{= table.PrimaryKeyColumn().VariableIdentifier() }} })
 	})
 {{if}}
 	broadcast.Delete(ctx, "{{= table.DbKey }}", "{{= table.QueryName }}", fmt.Sprint(o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}))
 }
 
-// delete{{= table.Identifier }} deletes the associated record from the database.
+// delete{{= table.Identifier }} deletes the {{= table.Identifier }} with primary key pk from the database
+// and handles associated records.
 func delete{{= table.Identifier }}(ctx context.Context, pk {{= table.PrimaryKeyGoType() }}) {
 {{if len(table.ReverseReferences) == 0 && len(table.ManyManyReferences) == 0 }}
 	d := db.GetDatabase("{{= table.DbKey }}")

@@ -60,27 +60,6 @@ func (g *sqlGenerator) generateSelectSql() (sql string, args []any) {
 	return sb.String(), g.argList
 }
 
-func (g *sqlGenerator) generateDeleteSql() (sql string, args []any) {
-	var sb strings.Builder
-
-	if t, ok := g.dbi.(deleteUsesAliaser); ok && t.DeleteUsesAlias() {
-		j := g.jt.Root
-		alias := g.iq(j.Alias)
-		sb.WriteString("DELETE ")
-		sb.WriteString(alias)
-		sb.WriteString("\n")
-	} else {
-		sb.WriteString("DELETE\n")
-	}
-
-	sb.WriteString(g.generateFromSql())
-	sb.WriteString(g.generateWhereSql())
-	sb.WriteString(g.generateOrderBySql())
-	sb.WriteString(g.generateLimitSql())
-
-	return sb.String(), g.argList
-}
-
 func (g *sqlGenerator) generateColumnListWithAliases() (sql string) {
 	var sb strings.Builder
 

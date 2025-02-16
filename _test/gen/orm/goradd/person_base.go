@@ -784,9 +784,6 @@ type PersonBuilder interface {
 	// To count distinct combinations of items, call Distinct() on the builder.
 	Count() int
 
-	// Delete uses the query builder to delete a group of records that match the criteria
-	Delete()
-
 	// Subquery terminates the query builder and tags it as a subquery within a larger query.
 	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
 	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
@@ -992,14 +989,6 @@ func (b *personQueryBuilder) Count() int {
 		return 0
 	}
 	return results.(int)
-}
-
-// Delete uses the query builder to delete a group of records that match the criteria.
-func (b *personQueryBuilder) Delete() {
-	b.builder.Command = query.BuilderCommandDelete
-	database := db.GetDatabase("goradd")
-	database.BuilderQuery(b.builder)
-	broadcast.BulkChange(b.builder.Context(), "goradd", "person")
 }
 
 /*
@@ -1504,6 +1493,16 @@ func (o *personBase) getValidFields() (fields map[string]interface{}) {
 }
 
 // Delete deletes the record from the database.
+//
+
+// Associated Addresses will be deleted since their PersonID fields are not nullable.
+//
+// An associated {= rev.ReverseIdentifier()  will be deleted since its PersonID field is not nullable.
+//
+// An associated Login will have its PersonID field set to NULL.
+//
+
+// Associated ManagerProjects will have their ManagerID field set to NULL.
 func (o *personBase) Delete(ctx context.Context) {
 	if !o._restored {
 		panic("Cannot delete a record that has no primary key value.")
@@ -1571,7 +1570,8 @@ func (o *personBase) Delete(ctx context.Context) {
 	broadcast.Delete(ctx, "goradd", "person", fmt.Sprint(o.id))
 }
 
-// deletePerson deletes the associated record from the database.
+// deletePerson deletes the Person with primary key pk from the database
+// and handles associated records.
 func deletePerson(ctx context.Context, pk string) {
 	if obj := LoadPerson(ctx, pk, node.Person().PrimaryKey()); obj != nil {
 		obj.Delete(ctx)

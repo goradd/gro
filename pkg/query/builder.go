@@ -9,7 +9,6 @@ type BuilderCommand int
 
 const (
 	BuilderCommandLoad = iota
-	BuilderCommandDelete
 	BuilderCommandCount
 	BuilderCommandLoadCursor
 )

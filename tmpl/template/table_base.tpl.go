@@ -6219,9 +6219,6 @@ type `); err != nil {
     // To count distinct combinations of items, call Distinct() on the builder.
 	Count() int
 
-	// Delete uses the query builder to delete a group of records that match the criteria
-	Delete()
-
 	// Subquery terminates the query builder and tags it as a subquery within a larger query.
     // You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
     // Generally you would use this as a node to a Calculation function on the surrounding query builder.
@@ -6867,46 +6864,6 @@ func (b *`); err != nil {
         return 0
     }
 	return results.(int)
-}
-
-// Delete uses the query builder to delete a group of records that match the criteria.
-func (b *`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, builderStruct); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `)  Delete() {
-	b.builder.Command = query.BuilderCommandDelete
-	database := db.GetDatabase("`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.DbKey); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `")
-	database.BuilderQuery(b.builder)
-	broadcast.BulkChange(b.builder.Context(), "`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.DbKey); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `", "`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.QueryName); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `")
 }
 
 /*
@@ -10042,7 +9999,139 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 	//*** delete.tmpl
 
 	if _, err = io.WriteString(_w, `// Delete deletes the record from the database.
-func (o *`); err != nil {
+`); err != nil {
+		return
+	}
+
+	if len(table.ReverseReferences) > 0 {
+
+		if _, err = io.WriteString(_w, `//
+`); err != nil {
+			return
+		}
+
+		for _, rev := range table.ReverseReferences {
+
+			if rev.IsUnique {
+
+				if rev.IsNullable {
+
+					if _, err = io.WriteString(_w, `// An associated `); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, ` will have its `); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, rev.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, ` field set to NULL.
+//
+`); err != nil {
+						return
+					}
+
+				} else {
+
+					if _, err = io.WriteString(_w, `// An associated `); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `{= rev.ReverseIdentifier() `); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, ` will be deleted since its `); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, rev.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, ` field is not nullable.
+//
+`); err != nil {
+						return
+					}
+
+				}
+
+			} else {
+
+				if _, err = io.WriteString(_w, ` `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `
+`); err != nil {
+					return
+				}
+
+				if rev.IsNullable {
+
+					if _, err = io.WriteString(_w, `// Associated `); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, ` will have their `); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, rev.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, ` field set to NULL.
+//
+`); err != nil {
+						return
+					}
+
+				} else {
+
+					if _, err = io.WriteString(_w, `// Associated `); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, ` will be deleted since their `); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, rev.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, ` fields are not nullable.
+//
+`); err != nil {
+						return
+					}
+
+				}
+
+			}
+
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `func (o *`); err != nil {
 		return
 	}
 
@@ -10481,7 +10570,7 @@ func (o *`); err != nil {
 
 		if _, err = io.WriteString(_w, `
 
-	d.Delete(ctx, "`); err != nil {
+	    d.Delete(ctx, "`); err != nil {
 			return
 		}
 
@@ -10548,7 +10637,16 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, ` deletes the associated record from the database.
+	if _, err = io.WriteString(_w, ` deletes the `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` with primary key pk from the database
+// and handles associated records.
 func delete`); err != nil {
 		return
 	}

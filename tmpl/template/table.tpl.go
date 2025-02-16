@@ -315,7 +315,7 @@ func query`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ` deletes a `); err != nil {
+		if _, err = io.WriteString(_w, ` deletes the `); err != nil {
 			return
 		}
 
@@ -323,7 +323,7 @@ func query`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ` record from the database given its primary key.
+		if _, err = io.WriteString(_w, ` record wtih primary key pk from the database.
 // Note that you can also delete loaded `); err != nil {
 			return
 		}

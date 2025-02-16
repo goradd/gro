@@ -755,9 +755,6 @@ type ReverseBuilder interface {
 	// To count distinct combinations of items, call Distinct() on the builder.
 	Count() int
 
-	// Delete uses the query builder to delete a group of records that match the criteria
-	Delete()
-
 	// Subquery terminates the query builder and tags it as a subquery within a larger query.
 	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
 	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
@@ -963,14 +960,6 @@ func (b *reverseQueryBuilder) Count() int {
 		return 0
 	}
 	return results.(int)
-}
-
-// Delete uses the query builder to delete a group of records that match the criteria.
-func (b *reverseQueryBuilder) Delete() {
-	b.builder.Command = query.BuilderCommandDelete
-	database := db.GetDatabase("goradd_unit")
-	database.BuilderQuery(b.builder)
-	broadcast.BulkChange(b.builder.Context(), "goradd_unit", "reverse")
 }
 
 /*
@@ -1476,6 +1465,21 @@ func (o *reverseBase) getValidFields() (fields map[string]interface{}) {
 }
 
 // Delete deletes the record from the database.
+//
+
+// Associated ForwardCascades will have their ReverseID field set to NULL.
+//
+// An associated ForwardCascadeUnique will have its ReverseID field set to NULL.
+//
+
+// Associated ForwardNulls will have their ReverseID field set to NULL.
+//
+// An associated ForwardNullUnique will have its ReverseID field set to NULL.
+//
+
+// Associated ForwardRestricts will be deleted since their ReverseID fields are not nullable.
+//
+// An associated ForwardRestrictUnique will have its ReverseID field set to NULL.
 func (o *reverseBase) Delete(ctx context.Context) {
 	if !o._restored {
 		panic("Cannot delete a record that has no primary key value.")
@@ -1564,7 +1568,8 @@ func (o *reverseBase) Delete(ctx context.Context) {
 	broadcast.Delete(ctx, "goradd_unit", "reverse", fmt.Sprint(o.id))
 }
 
-// deleteReverse deletes the associated record from the database.
+// deleteReverse deletes the Reverse with primary key pk from the database
+// and handles associated records.
 func deleteReverse(ctx context.Context, pk string) {
 	if obj := LoadReverse(ctx, pk, node.Reverse().PrimaryKey()); obj != nil {
 		obj.Delete(ctx)

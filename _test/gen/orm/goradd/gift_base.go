@@ -281,9 +281,6 @@ type GiftBuilder interface {
 	// To count distinct combinations of items, call Distinct() on the builder.
 	Count() int
 
-	// Delete uses the query builder to delete a group of records that match the criteria
-	Delete()
-
 	// Subquery terminates the query builder and tags it as a subquery within a larger query.
 	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
 	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
@@ -491,14 +488,6 @@ func (b *giftQueryBuilder) Count() int {
 	return results.(int)
 }
 
-// Delete uses the query builder to delete a group of records that match the criteria.
-func (b *giftQueryBuilder) Delete() {
-	b.builder.Command = query.BuilderCommandDelete
-	database := db.GetDatabase("goradd")
-	database.BuilderQuery(b.builder)
-	broadcast.BulkChange(b.builder.Context(), "goradd", "gift")
-}
-
 /*
 // Subquery terminates the query builder and tags it as a subquery within a larger query.
 // You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
@@ -659,7 +648,8 @@ func (o *giftBase) Delete(ctx context.Context) {
 	broadcast.Delete(ctx, "goradd", "gift", fmt.Sprint(o.number))
 }
 
-// deleteGift deletes the associated record from the database.
+// deleteGift deletes the Gift with primary key pk from the database
+// and handles associated records.
 func deleteGift(ctx context.Context, pk int) {
 	d := db.GetDatabase("goradd")
 	d.Delete(ctx, "gift", map[string]any{"Number": pk})
