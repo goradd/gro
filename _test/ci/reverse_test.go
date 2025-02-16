@@ -127,6 +127,8 @@ func TestReverseUniqueInsert(t *testing.T) {
 	login.Delete(ctx)
 	login = goradd.LoadLogin(ctx, person.Login().ID())
 	assert.Nil(t, login)
+	person.Delete(ctx)
+	assert.Nil(t, goradd.LoadPerson(ctx, person.ID()))
 }
 
 func TestReverseManyNotNullInsert(t *testing.T) {
@@ -183,7 +185,6 @@ func TestReverseManyNotNullInsert(t *testing.T) {
 	assert.Nil(t, addr4, "Successfully deleted the address attached to the person")
 }
 
-/*
 func TestReverseManyNullInsertNewObject(t *testing.T) {
 	ctx := db.NewContext(nil)
 	// Test insert
