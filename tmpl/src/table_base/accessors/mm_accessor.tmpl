@@ -19,7 +19,7 @@ func (o *{{= table.DecapIdentifier}}Base) {{= mm.IdentifierPlural }}() []*{{= mm
 // Set{{= mm.IdentifierPlural }} sets the associated objects to the given slice of {{= mm.ObjectType() }} objects
 // in preparation for saving. The associations will not be updated until Save() is called.
 // Objects that are modified or are new will be saved before completing the association.
-func (o *{{= table.DecapIdentifier}}Base) Set{{= mm.IdentifierPlural }}(objs []*{{= mm.ObjectType() }}) {
+func (o *{{= table.DecapIdentifier}}Base) Set{{= mm.IdentifierPlural }}(objs ...*{{= mm.ObjectType() }}) {
     o.{{= mm.VariableIdentifier() }}.Clear()
 	o.{{= mm.VariableIdentifier() }}IsDirty = true
 	o.{{= mm.PkIdentifier() }} = nil
@@ -35,7 +35,7 @@ func (o *{{= table.DecapIdentifier}}Base) Set{{= mm.IdentifierPlural }}(objs []*
 // Save will load the items that will be associated in the database after the Save call.
 // After calling Save, the objects will be unloaded, and you must call Load again if you want
 // them loaded.
-func (o *{{= table.DecapIdentifier}}Base) Set{{= mm.IdentifierPlural }}By{{= mm.DestinationTable.PrimaryKeyColumn().Identifier }}({{= mm.DestinationTable.PrimaryKeyColumn().VariableIdentifierPlural() }} []{{= mm.DestinationTable.PrimaryKeyGoType() }}) {
+func (o *{{= table.DecapIdentifier}}Base) Set{{= mm.IdentifierPlural }}By{{= mm.DestinationTable.PrimaryKeyColumn().Identifier }}({{= mm.DestinationTable.PrimaryKeyColumn().VariableIdentifierPlural() }} ...{{= mm.DestinationTable.PrimaryKeyGoType() }}) {
 	o.{{= mm.VariableIdentifier() }}.Clear()
 	o.{{= mm.PkIdentifier() }} = {{= mm.DestinationTable.PrimaryKeyColumn().VariableIdentifierPlural() }}
 	o.{{= mm.VariableIdentifier() }}IsDirty = true

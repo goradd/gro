@@ -68,7 +68,7 @@ func (o *{{= table.DecapIdentifier}}Base) Count{{= rev.ReverseIdentifier() }}(ct
 // WARNING! If it has items already associated with it that will not be associated after a save,
 // Save will panic. Be sure to delete those items or otherwise fix those pointers before calling save.
 {{if}}
-func (o *{{= table.DecapIdentifier}}Base) Set{{= rev.ReverseIdentifier() }}(objs []*{{= rev.Table.Identifier }}) {
+func (o *{{= table.DecapIdentifier}}Base) Set{{= rev.ReverseIdentifier() }}(objs ...*{{= rev.Table.Identifier }}) {
     for obj := range o.{{= rev.ReverseVariableIdentifier() }}.ValuesIter() {
         if obj.IsDirty() {
             panic("You cannot overwrite items that have changed but have not been saved.")
@@ -100,7 +100,7 @@ func (o *{{= table.DecapIdentifier}}Base) Set{{= rev.ReverseIdentifier() }}(objs
 // WARNING! If it has items already associated with it that will not be associated after a save,
 // Save will panic. You should delete those items first.
 {{if}}
-func (o *{{= table.DecapIdentifier }}Base) Set{{= rev.ReverseIdentifier() }}By{{= rev.Table.PrimaryKeyColumn().Identifier }}({{= rev.Table.PrimaryKeyColumn().VariableIdentifierPlural() }} []{{= rev.Table.PrimaryKeyGoType() }}) {
+func (o *{{= table.DecapIdentifier }}Base) Set{{= rev.ReverseIdentifier() }}By{{= rev.Table.PrimaryKeyColumn().Identifier }}({{= rev.Table.PrimaryKeyColumn().VariableIdentifierPlural() }} ...{{= rev.Table.PrimaryKeyGoType() }}) {
     for obj := range o.{{= rev.ReverseVariableIdentifier() }}.ValuesIter() {
         if obj.IsDirty() {
             panic("You cannot overwrite items that have changed but have not been saved.")

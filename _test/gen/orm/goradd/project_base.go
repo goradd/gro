@@ -789,7 +789,7 @@ func (o *projectBase) Children() []*Project {
 // SetChildren sets the associated objects to the given slice of Project objects
 // in preparation for saving. The associations will not be updated until Save() is called.
 // Objects that are modified or are new will be saved before completing the association.
-func (o *projectBase) SetChildren(objs []*Project) {
+func (o *projectBase) SetChildren(objs ...*Project) {
 	o.mmChildren.Clear()
 	o.mmChildrenIsDirty = true
 	o.mmChildrenPks = nil
@@ -805,7 +805,7 @@ func (o *projectBase) SetChildren(objs []*Project) {
 // Save will load the items that will be associated in the database after the Save call.
 // After calling Save, the objects will be unloaded, and you must call Load again if you want
 // them loaded.
-func (o *projectBase) SetChildrenByID(ids []string) {
+func (o *projectBase) SetChildrenByID(ids ...string) {
 	o.mmChildren.Clear()
 	o.mmChildrenPks = ids
 	o.mmChildrenIsDirty = true
@@ -862,7 +862,7 @@ func (o *projectBase) Parents() []*Project {
 // SetParents sets the associated objects to the given slice of Project objects
 // in preparation for saving. The associations will not be updated until Save() is called.
 // Objects that are modified or are new will be saved before completing the association.
-func (o *projectBase) SetParents(objs []*Project) {
+func (o *projectBase) SetParents(objs ...*Project) {
 	o.mmParents.Clear()
 	o.mmParentsIsDirty = true
 	o.mmParentsPks = nil
@@ -878,7 +878,7 @@ func (o *projectBase) SetParents(objs []*Project) {
 // Save will load the items that will be associated in the database after the Save call.
 // After calling Save, the objects will be unloaded, and you must call Load again if you want
 // them loaded.
-func (o *projectBase) SetParentsByID(ids []string) {
+func (o *projectBase) SetParentsByID(ids ...string) {
 	o.mmParents.Clear()
 	o.mmParentsPks = ids
 	o.mmParentsIsDirty = true
@@ -935,7 +935,7 @@ func (o *projectBase) TeamMembers() []*Person {
 // SetTeamMembers sets the associated objects to the given slice of Person objects
 // in preparation for saving. The associations will not be updated until Save() is called.
 // Objects that are modified or are new will be saved before completing the association.
-func (o *projectBase) SetTeamMembers(objs []*Person) {
+func (o *projectBase) SetTeamMembers(objs ...*Person) {
 	o.mmTeamMembers.Clear()
 	o.mmTeamMembersIsDirty = true
 	o.mmTeamMembersPks = nil
@@ -951,7 +951,7 @@ func (o *projectBase) SetTeamMembers(objs []*Person) {
 // Save will load the items that will be associated in the database after the Save call.
 // After calling Save, the objects will be unloaded, and you must call Load again if you want
 // them loaded.
-func (o *projectBase) SetTeamMembersByID(ids []string) {
+func (o *projectBase) SetTeamMembersByID(ids ...string) {
 	o.mmTeamMembers.Clear()
 	o.mmTeamMembersPks = ids
 	o.mmTeamMembersIsDirty = true
@@ -1051,7 +1051,7 @@ func (o *projectBase) CountMilestones(ctx context.Context) int {
 // SetMilestones associates the objects in objs with the Project.
 // WARNING! If it has items already associated with it that will not be associated after a save,
 // Save will panic. Be sure to delete those items or otherwise fix those pointers before calling save.
-func (o *projectBase) SetMilestones(objs []*Milestone) {
+func (o *projectBase) SetMilestones(objs ...*Milestone) {
 	for obj := range o.revMilestones.ValuesIter() {
 		if obj.IsDirty() {
 			panic("You cannot overwrite items that have changed but have not been saved.")
@@ -1074,7 +1074,7 @@ func (o *projectBase) SetMilestones(objs []*Milestone) {
 //
 // WARNING! If it has items already associated with it that will not be associated after a save,
 // Save will panic. You should delete those items first.
-func (o *projectBase) SetMilestonesByID(ids []string) {
+func (o *projectBase) SetMilestonesByID(ids ...string) {
 	for obj := range o.revMilestones.ValuesIter() {
 		if obj.IsDirty() {
 			panic("You cannot overwrite items that have changed but have not been saved.")

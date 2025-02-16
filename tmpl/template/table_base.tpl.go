@@ -3535,7 +3535,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `(objs []*`); err != nil {
+		if _, err = io.WriteString(_w, `(objs ...*`); err != nil {
 			return
 		}
 
@@ -3655,7 +3655,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ` []`); err != nil {
+		if _, err = io.WriteString(_w, ` ...`); err != nil {
 			return
 		}
 
@@ -5066,7 +5066,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `(objs []*`); err != nil {
+			if _, err = io.WriteString(_w, `(objs ...*`); err != nil {
 				return
 			}
 
@@ -5297,7 +5297,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` []`); err != nil {
+			if _, err = io.WriteString(_w, ` ...`); err != nil {
 				return
 			}
 

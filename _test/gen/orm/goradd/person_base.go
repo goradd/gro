@@ -315,7 +315,7 @@ func (o *personBase) Projects() []*Project {
 // SetProjects sets the associated objects to the given slice of Project objects
 // in preparation for saving. The associations will not be updated until Save() is called.
 // Objects that are modified or are new will be saved before completing the association.
-func (o *personBase) SetProjects(objs []*Project) {
+func (o *personBase) SetProjects(objs ...*Project) {
 	o.mmProjects.Clear()
 	o.mmProjectsIsDirty = true
 	o.mmProjectsPks = nil
@@ -331,7 +331,7 @@ func (o *personBase) SetProjects(objs []*Project) {
 // Save will load the items that will be associated in the database after the Save call.
 // After calling Save, the objects will be unloaded, and you must call Load again if you want
 // them loaded.
-func (o *personBase) SetProjectsByID(ids []string) {
+func (o *personBase) SetProjectsByID(ids ...string) {
 	o.mmProjects.Clear()
 	o.mmProjectsPks = ids
 	o.mmProjectsIsDirty = true
@@ -431,7 +431,7 @@ func (o *personBase) CountAddresses(ctx context.Context) int {
 // SetAddresses associates the objects in objs with the Person.
 // WARNING! If it has items already associated with it that will not be associated after a save,
 // Save will panic. Be sure to delete those items or otherwise fix those pointers before calling save.
-func (o *personBase) SetAddresses(objs []*Address) {
+func (o *personBase) SetAddresses(objs ...*Address) {
 	for obj := range o.revAddresses.ValuesIter() {
 		if obj.IsDirty() {
 			panic("You cannot overwrite items that have changed but have not been saved.")
@@ -454,7 +454,7 @@ func (o *personBase) SetAddresses(objs []*Address) {
 //
 // WARNING! If it has items already associated with it that will not be associated after a save,
 // Save will panic. You should delete those items first.
-func (o *personBase) SetAddressesByID(ids []string) {
+func (o *personBase) SetAddressesByID(ids ...string) {
 	for obj := range o.revAddresses.ValuesIter() {
 		if obj.IsDirty() {
 			panic("You cannot overwrite items that have changed but have not been saved.")
@@ -650,7 +650,7 @@ func (o *personBase) CountManagerProjects(ctx context.Context) int {
 // If you did not use a join to query the items in the first place, used a conditional join,
 // or joined with an expansion, be particularly careful, since you may be changing items
 // that are not currently attached to this Person.
-func (o *personBase) SetManagerProjects(objs []*Project) {
+func (o *personBase) SetManagerProjects(objs ...*Project) {
 	for obj := range o.revManagerProjects.ValuesIter() {
 		if obj.IsDirty() {
 			panic("You cannot overwrite items that have changed but have not been saved.")
@@ -676,7 +676,7 @@ func (o *personBase) SetManagerProjects(objs []*Project) {
 // If you did not use a join to query the items in the first place, used a conditional join,
 // or joined with an expansion, be particularly careful, since you may be inadvertently changing items
 // that are not currently loaded in this Person object.
-func (o *personBase) SetManagerProjectsByID(ids []string) {
+func (o *personBase) SetManagerProjectsByID(ids ...string) {
 	for obj := range o.revManagerProjects.ValuesIter() {
 		if obj.IsDirty() {
 			panic("You cannot overwrite items that have changed but have not been saved.")

@@ -243,7 +243,7 @@ func (o *reverseBase) CountForwardCascades(ctx context.Context) int {
 // If you did not use a join to query the items in the first place, used a conditional join,
 // or joined with an expansion, be particularly careful, since you may be changing items
 // that are not currently attached to this Reverse.
-func (o *reverseBase) SetForwardCascades(objs []*ForwardCascade) {
+func (o *reverseBase) SetForwardCascades(objs ...*ForwardCascade) {
 	for obj := range o.revForwardCascades.ValuesIter() {
 		if obj.IsDirty() {
 			panic("You cannot overwrite items that have changed but have not been saved.")
@@ -269,7 +269,7 @@ func (o *reverseBase) SetForwardCascades(objs []*ForwardCascade) {
 // If you did not use a join to query the items in the first place, used a conditional join,
 // or joined with an expansion, be particularly careful, since you may be inadvertently changing items
 // that are not currently loaded in this Reverse object.
-func (o *reverseBase) SetForwardCascadesByID(ids []string) {
+func (o *reverseBase) SetForwardCascadesByID(ids ...string) {
 	for obj := range o.revForwardCascades.ValuesIter() {
 		if obj.IsDirty() {
 			panic("You cannot overwrite items that have changed but have not been saved.")
@@ -404,7 +404,7 @@ func (o *reverseBase) CountForwardNulls(ctx context.Context) int {
 // If you did not use a join to query the items in the first place, used a conditional join,
 // or joined with an expansion, be particularly careful, since you may be changing items
 // that are not currently attached to this Reverse.
-func (o *reverseBase) SetForwardNulls(objs []*ForwardNull) {
+func (o *reverseBase) SetForwardNulls(objs ...*ForwardNull) {
 	for obj := range o.revForwardNulls.ValuesIter() {
 		if obj.IsDirty() {
 			panic("You cannot overwrite items that have changed but have not been saved.")
@@ -430,7 +430,7 @@ func (o *reverseBase) SetForwardNulls(objs []*ForwardNull) {
 // If you did not use a join to query the items in the first place, used a conditional join,
 // or joined with an expansion, be particularly careful, since you may be inadvertently changing items
 // that are not currently loaded in this Reverse object.
-func (o *reverseBase) SetForwardNullsByID(ids []string) {
+func (o *reverseBase) SetForwardNullsByID(ids ...string) {
 	for obj := range o.revForwardNulls.ValuesIter() {
 		if obj.IsDirty() {
 			panic("You cannot overwrite items that have changed but have not been saved.")
@@ -562,7 +562,7 @@ func (o *reverseBase) CountForwardRestricts(ctx context.Context) int {
 // SetForwardRestricts associates the objects in objs with the Reverse.
 // WARNING! If it has items already associated with it that will not be associated after a save,
 // Save will panic. Be sure to delete those items or otherwise fix those pointers before calling save.
-func (o *reverseBase) SetForwardRestricts(objs []*ForwardRestrict) {
+func (o *reverseBase) SetForwardRestricts(objs ...*ForwardRestrict) {
 	for obj := range o.revForwardRestricts.ValuesIter() {
 		if obj.IsDirty() {
 			panic("You cannot overwrite items that have changed but have not been saved.")
@@ -585,7 +585,7 @@ func (o *reverseBase) SetForwardRestricts(objs []*ForwardRestrict) {
 //
 // WARNING! If it has items already associated with it that will not be associated after a save,
 // Save will panic. You should delete those items first.
-func (o *reverseBase) SetForwardRestrictsByID(ids []string) {
+func (o *reverseBase) SetForwardRestrictsByID(ids ...string) {
 	for obj := range o.revForwardRestricts.ValuesIter() {
 		if obj.IsDirty() {
 			panic("You cannot overwrite items that have changed but have not been saved.")

@@ -6,6 +6,7 @@ import (
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/op"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"testing"
 )
 
@@ -146,9 +147,9 @@ func TestReverseManyNotNullInsert(t *testing.T) {
 	addr2.SetCity("Near")
 	addr2.SetStreet("Far")
 
-	person.SetAddresses([]*goradd.Address{
+	person.SetAddresses(
 		addr1, addr2,
-	})
+	)
 	person.Save(ctx)
 
 	id := person.ID()
@@ -168,7 +169,7 @@ func TestReverseManyNotNullInsert(t *testing.T) {
 	person4 := goradd.NewPerson()
 	person4.SetFirstName("Yertle")
 	person4.SetLastName("The Turtle")
-	person4.SetAddressesByID([]string{addr1Id})
+	person4.SetAddressesByID(addr1Id)
 	person4.Save(ctx)
 
 	addr := goradd.LoadAddress(ctx, addr1Id, node.Address().Person())
@@ -251,6 +252,29 @@ func TestReverseLoadUnsaved(t *testing.T) {
 	assert.Panics(t, func() {
 		project.LoadMilestones(ctx)
 	})
+}
+
+func TestReverseSelectByID(t *testing.T) {
+	ctx := db.NewContext(nil)
+
+	projects := goradd.QueryProjects(ctx).
+		OrderBy(node.Project().Name().Descending()).
+		Load()
+
+	require.Len(t, projects, 4)
+	id := projects[3].ID()
+
+	// Reverse references
+	people := goradd.QueryPeople(ctx).
+		Select(node.Person().ManagerProjects()).
+		Where(op.Equal(node.Person().LastName(), "Wolfe")).
+		Load()
+
+	p := people[0]
+	require.NotNil(t, p)
+	m := p.ManagerProject(id)
+	require.NotNil(t, m, "Could not fine project as manager: "+id)
+	assert.Equal(t, m.Name(), "ACME Payment System")
 }
 
 /*

@@ -6,7 +6,6 @@ import (
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/op"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"testing"
 )
 
@@ -160,29 +159,6 @@ func TestConditionalJoin(t *testing.T) {
 }
 */
 
-func TestSelectByID(t *testing.T) {
-	ctx := db.NewContext(nil)
-
-	projects := goradd.QueryProjects(ctx).
-		OrderBy(node.Project().Name().Descending()).
-		Load()
-
-	require.Len(t, projects, 4)
-	id := projects[3].ID()
-
-	// Reverse references
-	people := goradd.QueryPeople(ctx).
-		Select(node.Person().ManagerProjects()).
-		Where(op.Equal(node.Person().LastName(), "Wolfe")).
-		Load()
-
-	p := people[0]
-	require.NotNil(t, p)
-	m := p.ManagerProject(id)
-	require.NotNil(t, m, "Could not fine project as manager: "+id)
-	assert.Equal(t, m.Name(), "ACME Payment System")
-}
-
 func Test2ndLoad(t *testing.T) {
 	ctx := db.NewContext(nil)
 	projects := goradd.QueryProjects(ctx).
@@ -194,7 +170,7 @@ func Test2ndLoad(t *testing.T) {
 	assert.False(t, mgr.LastNameIsValid())
 }
 
-func TestCalculationOnAssociation(t *testing.T) {
+func TestAssociationCalculation(t *testing.T) {
 	ctx := db.NewContext(nil)
 	projects := goradd.QueryProjects(ctx).
 		Calculation(node.Project(), "count", op.Count(node.Project().TeamMembers())).
@@ -204,18 +180,18 @@ func TestCalculationOnAssociation(t *testing.T) {
 	assert.Equal(t, 5, projects[0].GetAlias("count").Int())
 }
 
-/*
-func TestSetPrimaryKeys(t *testing.T) {
-	ctx := getContext()
-	person := goradd.LoadPerson(ctx, "1", node.Person().Projects())
-	assert.Len(t, person.Projects(), 2)
-	person.SetProjectPrimaryKeys([]string{"1", "2", "3"})
+func TestAssociationByPrimaryKeys(t *testing.T) {
+	ctx := db.NewContext(nil)
+	person := goradd.NewPerson()
+	person.SetFirstName("Fox")
+	person.SetLastName("In Box")
+	person.SetProjectsByID("1", "2", "3")
 	person.Save(ctx)
 
-	person2 := goradd.LoadPerson(ctx, "1", node.Person().Projects())
+	person2 := goradd.LoadPerson(ctx, person.ID(), node.Person().Projects())
 	assert.Len(t, person2.Projects(), 3)
 
-	person2.SetProjectPrimaryKeys([]string{"3", "4"})
-	person2.Save(ctx)
+	person2.Delete(ctx)
+	project := goradd.LoadProject(ctx, "1")
+	assert.NotNil(t, project)
 }
-*/
