@@ -36,7 +36,7 @@ type JoinTree struct {
 	Having             query.Node
 	hasSelects         bool
 	hasCalcs           bool
-	hasAggregates      bool
+	hasAggregate       bool
 }
 
 // NewJoinTree analyzes b and turns it into a JoinTree.
@@ -76,6 +76,7 @@ func (t *JoinTree) buildNodeTree(b *query.Builder) {
 	if len(b.Selects) > 0 {
 		t.hasSelects = true
 	}
+	t.hasAggregate = b.HasAggregate()
 
 	t.assignTableAliases(t.Root)
 }
@@ -108,10 +109,6 @@ func (t *JoinTree) buildCommand(b *query.Builder) {
 func (t *JoinTree) addNode(node query.Node) (top *Element) {
 	var tableName string
 	//var hasSubquery bool // Turns off the check to make sure all nodes come from the same table, since subqueries might have different tables
-
-	if query.NodeIsAggregate(node) {
-		t.hasAggregates = true
-	}
 
 	if sq, ok := node.(*query.SubqueryNode); ok {
 		top = t.addSubqueryNode(sq)
@@ -264,7 +261,7 @@ func (t *JoinTree) addSelectedColumns(builder *query.Builder) {
 		}
 	}
 
-	if !hasRootSelect && !(len(builder.GroupBys) > 0 || t.hasAggregates || t.IsDistinct || t.isSubquery || t.Command == query.BuilderCommandCount) {
+	if !hasRootSelect && !(len(builder.GroupBys) > 0 || t.hasAggregate || t.IsDistinct || t.isSubquery || t.Command == query.BuilderCommandCount) {
 		t.selectAllColumnNodes(t.Root.QueryNode.(query.TableNodeI))
 	}
 
@@ -439,7 +436,7 @@ func (t *JoinTree) checkCursor(builder *query.Builder) {
 }
 
 func (t *JoinTree) HasAggregates() bool {
-	return t.hasAggregates
+	return t.hasAggregate
 }
 
 func (t *JoinTree) HasCalcs() bool {

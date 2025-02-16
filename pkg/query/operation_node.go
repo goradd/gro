@@ -252,29 +252,22 @@ func OperationNodeDistinct(n *OperationNode) bool {
 	return n.distinct
 }
 
-// OperationNodeIsAggregate is used internally by the framework to get the isAggregate value.
-func OperationNodeIsAggregate(n *OperationNode) bool {
-	return n.isAggregate
-}
-
-// NodeHasAggregate is used internally by the framework to get the isAggregate value.
+// NodeHasAggregate is used by the orm to detect if this node or its subnodes has an aggregate function.
 func NodeHasAggregate(n Node) bool {
 	if on, ok := n.(*OperationNode); ok {
 		if on.isAggregate {
 			return true
 		}
 		for _, op := range on.operands {
-			return NodeHasAggregate(op)
+			if NodeHasAggregate(op) {
+				return true
+			}
 		}
-	}
-	return false
-}
-
-// NodeIsAggregate is used internally by the framework to get the isAggregate value.
-func NodeIsAggregate(n Node) bool {
-	if on, ok := n.(*OperationNode); ok {
-		if on.isAggregate {
-			return true
+	} else if cn, ok2 := n.(container); ok2 {
+		for _, n := range cn.containedNodes() {
+			if NodeHasAggregate(n) {
+				return true
+			}
 		}
 	}
 	return false

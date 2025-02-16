@@ -228,6 +228,20 @@ func (b *Builder) Nodes() (nodes []Node) {
 	return
 }
 
+// HasAggregate returns true if the builder has an aggregate function in it somwhere.
+func (b *Builder) HasAggregate() bool {
+	// first pass
+	topNodes := b.topNodes()
+
+	// unpack container nodes
+	for _, n := range topNodes {
+		if NodeHasAggregate(n) {
+			return true
+		}
+	}
+	return false
+}
+
 // topNodes returns all the top level nodes referred to in the query.
 // Some of the nodes returned may be container nodes.
 func (b *Builder) topNodes() []Node {
