@@ -98,8 +98,7 @@ const PersonTypesMaxLength = 40     // The number of runes the column can hold
 // Multiple calls to Initialize are not guaranteed to create sequential values for the primary key.
 func (o *personBase) Initialize() {
 
-	newObjectPkCounter = newObjectPkCounter - 1
-	o.id = fmt.Sprintf("%d", newObjectPkCounter)
+	o.id = db.TemporaryPrimaryKey()
 
 	o.idIsValid = false
 	o.idIsDirty = false
@@ -1494,14 +1493,9 @@ func (o *personBase) getValidFields() (fields map[string]interface{}) {
 
 // Delete deletes the record from the database.
 //
-
-// Associated Addresses will be deleted since their PersonID fields are not nullable.
-//
-// An associated {= rev.ReverseIdentifier()  will be deleted since its PersonID field is not nullable.
-//
+// Associated Addresses will also be deleted since their PersonID fields are not nullable.
+// An associated {= rev.ReverseIdentifier()  will also be deleted since its PersonID field is not nullable.
 // An associated Login will have its PersonID field set to NULL.
-//
-
 // Associated ManagerProjects will have their ManagerID field set to NULL.
 func (o *personBase) Delete(ctx context.Context) {
 	if !o._restored {

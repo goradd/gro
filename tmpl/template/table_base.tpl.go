@@ -909,8 +909,7 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 
 		if col.IsAutoId {
 
-			if _, err = io.WriteString(_w, `    newObjectPkCounter = newObjectPkCounter - 1
-    o.`); err != nil {
+			if _, err = io.WriteString(_w, `    o.`); err != nil {
 				return
 			}
 
@@ -918,7 +917,7 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` = fmt.Sprintf("%d", newObjectPkCounter)
+			if _, err = io.WriteString(_w, ` = db.TemporaryPrimaryKey()
 `); err != nil {
 				return
 			}
@@ -10033,7 +10032,6 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 					}
 
 					if _, err = io.WriteString(_w, ` field set to NULL.
-//
 `); err != nil {
 						return
 					}
@@ -10048,7 +10046,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 						return
 					}
 
-					if _, err = io.WriteString(_w, ` will be deleted since its `); err != nil {
+					if _, err = io.WriteString(_w, ` will also be deleted since its `); err != nil {
 						return
 					}
 
@@ -10057,7 +10055,6 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 					}
 
 					if _, err = io.WriteString(_w, ` field is not nullable.
-//
 `); err != nil {
 						return
 					}
@@ -10065,15 +10062,6 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 				}
 
 			} else {
-
-				if _, err = io.WriteString(_w, ` `); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `
-`); err != nil {
-					return
-				}
 
 				if rev.IsNullable {
 
@@ -10094,7 +10082,6 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 					}
 
 					if _, err = io.WriteString(_w, ` field set to NULL.
-//
 `); err != nil {
 						return
 					}
@@ -10109,7 +10096,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 						return
 					}
 
-					if _, err = io.WriteString(_w, ` will be deleted since their `); err != nil {
+					if _, err = io.WriteString(_w, ` will also be deleted since their `); err != nil {
 						return
 					}
 
@@ -10118,7 +10105,6 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 					}
 
 					if _, err = io.WriteString(_w, ` fields are not nullable.
-//
 `); err != nil {
 						return
 					}

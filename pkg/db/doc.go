@@ -9,8 +9,7 @@ database, it would minimize the amount of custom code you would need to write.
 
 Generally, SQL and NoSQL databases work very differently. However, many SQL databases have recently added
 NoSQL capabilities, like storing and searching JSON text. Similarly, NoSQL databases have added features to
-enable searching a database through relationships, similar to SQL capabilities. In addition, NoSQL design advice
-is often to flatten the database structure as much as possible, so that it looks a whole lot like a SQL database.
+enable searching a database through relationships, similar to SQL capabilities.
 
 The general approach Goradd takes is to describe data with key/value pairs. This fits in well with SQL,
 as key/value pairs are just table-column/field pairs. NoSQL works with key-value pairs as well.
@@ -32,6 +31,5 @@ and summing. GoRADD handles this difference by allowing individual GORADD databa
 some aggregate capabilities to a database, and also providing ways for individual developers to simply create their
 own custom queries that will be non-portable between databases. In any case, there is always a way to do what you
 want to do, just some databases are easier to work with.
-
 */
 package db

@@ -87,8 +87,7 @@ const ReverseNameMaxLength = 100 // The number of runes the column can hold
 // Multiple calls to Initialize are not guaranteed to create sequential values for the primary key.
 func (o *reverseBase) Initialize() {
 
-	newObjectPkCounter = newObjectPkCounter - 1
-	o.id = fmt.Sprintf("%d", newObjectPkCounter)
+	o.id = db.TemporaryPrimaryKey()
 
 	o.idIsValid = false
 	o.idIsDirty = false
@@ -1466,19 +1465,11 @@ func (o *reverseBase) getValidFields() (fields map[string]interface{}) {
 
 // Delete deletes the record from the database.
 //
-
 // Associated ForwardCascades will have their ReverseID field set to NULL.
-//
 // An associated ForwardCascadeUnique will have its ReverseID field set to NULL.
-//
-
 // Associated ForwardNulls will have their ReverseID field set to NULL.
-//
 // An associated ForwardNullUnique will have its ReverseID field set to NULL.
-//
-
-// Associated ForwardRestricts will be deleted since their ReverseID fields are not nullable.
-//
+// Associated ForwardRestricts will also be deleted since their ReverseID fields are not nullable.
 // An associated ForwardRestrictUnique will have its ReverseID field set to NULL.
 func (o *reverseBase) Delete(ctx context.Context) {
 	if !o._restored {

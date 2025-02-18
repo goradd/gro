@@ -61,8 +61,7 @@ const ForwardNullNameMaxLength = 100 // The number of runes the column can hold
 // Multiple calls to Initialize are not guaranteed to create sequential values for the primary key.
 func (o *forwardNullBase) Initialize() {
 
-	newObjectPkCounter = newObjectPkCounter - 1
-	o.id = fmt.Sprintf("%d", newObjectPkCounter)
+	o.id = db.TemporaryPrimaryKey()
 
 	o.idIsValid = false
 	o.idIsDirty = false

@@ -13,8 +13,7 @@ func (o *{{= table.DecapIdentifier}}Base) Initialize() {
 {{for _,col := range table.Columns}}
 
 {{if col.IsAutoId}}
-    newObjectPkCounter = newObjectPkCounter - 1
-    o.{{= col.VariableIdentifier() }} = fmt.Sprintf("%d", newObjectPkCounter)
+    o.{{= col.VariableIdentifier() }} = db.TemporaryPrimaryKey()
 {{else}}
 	o.{{= col.VariableIdentifier() }} = {{= col.DefaultValueAsValue() }}
 {{if}}

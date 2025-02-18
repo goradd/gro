@@ -10,18 +10,14 @@
 {{if rev.IsUnique}}
 {{if rev.IsNullable}}
 // An associated {{= rev.ReverseIdentifier() }} will have its {{= rev.Identifier }} field set to NULL.
-//
 {{else}}
-// An associated {{{= rev.ReverseIdentifier() }} will be deleted since its {{= rev.Identifier }} field is not nullable.
-//
+// An associated {{{= rev.ReverseIdentifier() }} will also be deleted since its {{= rev.Identifier }} field is not nullable.
 {{if}}
-{{else}} {{# not unique}}
+{{else}}
 {{if rev.IsNullable}}
 // Associated {{= rev.ReverseIdentifier() }} will have their {{= rev.Identifier }} field set to NULL.
-//
 {{else}}
-// Associated {{= rev.ReverseIdentifier() }} will be deleted since their {{= rev.Identifier }} fields are not nullable.
-//
+// Associated {{= rev.ReverseIdentifier() }} will also be deleted since their {{= rev.Identifier }} fields are not nullable.
 {{if}}
 {{if}}
 {{for}}

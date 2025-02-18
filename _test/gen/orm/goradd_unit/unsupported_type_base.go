@@ -148,8 +148,7 @@ const UnsupportedTypeTypeMultifk2MaxLength = 50 // The number of runes the colum
 // Multiple calls to Initialize are not guaranteed to create sequential values for the primary key.
 func (o *unsupportedTypeBase) Initialize() {
 
-	newObjectPkCounter = newObjectPkCounter - 1
-	o.typeSerial = fmt.Sprintf("%d", newObjectPkCounter)
+	o.typeSerial = db.TemporaryPrimaryKey()
 
 	o.typeSerialIsValid = false
 	o.typeSerialIsDirty = false

@@ -138,8 +138,7 @@ const ProjectSpentMaxLength = 15          // The number of bytes the column can 
 // Multiple calls to Initialize are not guaranteed to create sequential values for the primary key.
 func (o *projectBase) Initialize() {
 
-	newObjectPkCounter = newObjectPkCounter - 1
-	o.id = fmt.Sprintf("%d", newObjectPkCounter)
+	o.id = db.TemporaryPrimaryKey()
 
 	o.idIsValid = false
 	o.idIsDirty = false
@@ -2110,8 +2109,7 @@ func (o *projectBase) getValidFields() (fields map[string]interface{}) {
 
 // Delete deletes the record from the database.
 //
-
-// Associated Milestones will be deleted since their ProjectID fields are not nullable.
+// Associated Milestones will also be deleted since their ProjectID fields are not nullable.
 func (o *projectBase) Delete(ctx context.Context) {
 	if !o._restored {
 		panic("Cannot delete a record that has no primary key value.")
