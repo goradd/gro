@@ -2052,7 +2052,12 @@ func (o *reverseBase) MarshalStringMap() map[string]interface{} {
 //	"name" - string
 func (o *reverseBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
-	if err = json.Unmarshal(data, &v); err != nil {
+	if len(data) == 0 {
+		return
+	}
+	d := json.NewDecoder(bytes.NewReader(data))
+	d.UseNumber() // use a number to avoid precision errors
+	if err = d.Decode(&v); err != nil {
 		return err
 	}
 	return o.UnmarshalStringMap(v)
@@ -2068,7 +2073,7 @@ func (o *reverseBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 		case "name":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
 				if s, ok := v.(string); !ok {

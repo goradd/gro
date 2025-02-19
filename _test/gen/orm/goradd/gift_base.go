@@ -821,7 +821,12 @@ func (o *giftBase) MarshalStringMap() map[string]interface{} {
 //	"name" - string
 func (o *giftBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
-	if err = json.Unmarshal(data, &v); err != nil {
+	if len(data) == 0 {
+		return
+	}
+	d := json.NewDecoder(bytes.NewReader(data))
+	d.UseNumber() // use a number to avoid precision errors
+	if err = d.Decode(&v); err != nil {
 		return err
 	}
 	return o.UnmarshalStringMap(v)
@@ -837,22 +842,29 @@ func (o *giftBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 		case "number":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				if n, ok := v.(int); ok {
+				switch n := v.(type) {
+				case json.Number:
+					n2, err := n.Int64()
+					if err != nil {
+						return err
+					}
+					o.SetNumber(int(n2))
+				case int:
+					o.SetNumber(n)
+				case float64:
 					o.SetNumber(int(n))
-				} else if n, ok := v.(float64); ok {
-					o.SetNumber(int(n))
-				} else {
-					return fmt.Errorf("json field %s must be a number", k)
+				default:
+					return fmt.Errorf("field %s must be a number", k)
 				}
 			}
 
 		case "name":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
 				if s, ok := v.(string); !ok {

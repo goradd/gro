@@ -1337,7 +1337,12 @@ func (o *loginBase) MarshalStringMap() map[string]interface{} {
 //	"isEnabled" - bool
 func (o *loginBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
-	if err = json.Unmarshal(data, &v); err != nil {
+	if len(data) == 0 {
+		return
+	}
+	d := json.NewDecoder(bytes.NewReader(data))
+	d.UseNumber() // use a number to avoid precision errors
+	if err = d.Decode(&v); err != nil {
 		return err
 	}
 	return o.UnmarshalStringMap(v)
@@ -1358,7 +1363,7 @@ func (o *loginBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 				}
 
 				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
+					return fmt.Errorf("field %s must be a string", k)
 				} else {
 					o.SetPersonID(s)
 				}
@@ -1368,7 +1373,7 @@ func (o *loginBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 		case "username":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
 				if s, ok := v.(string); !ok {
@@ -1395,7 +1400,7 @@ func (o *loginBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 		case "isEnabled":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
 				if b, ok := v.(bool); !ok {

@@ -1032,7 +1032,12 @@ func (o *forwardCascadeBase) MarshalStringMap() map[string]interface{} {
 //	"reverseID" - string, nullable
 func (o *forwardCascadeBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
-	if err = json.Unmarshal(data, &v); err != nil {
+	if len(data) == 0 {
+		return
+	}
+	d := json.NewDecoder(bytes.NewReader(data))
+	d.UseNumber() // use a number to avoid precision errors
+	if err = d.Decode(&v); err != nil {
 		return err
 	}
 	return o.UnmarshalStringMap(v)
@@ -1048,7 +1053,7 @@ func (o *forwardCascadeBase) UnmarshalStringMap(m map[string]interface{}) (err e
 		case "name":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
 				if s, ok := v.(string); !ok {
@@ -1066,7 +1071,7 @@ func (o *forwardCascadeBase) UnmarshalStringMap(m map[string]interface{}) (err e
 				}
 
 				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
+					return fmt.Errorf("field %s must be a string", k)
 				} else {
 					o.SetReverseID(s)
 				}

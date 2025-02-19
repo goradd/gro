@@ -2870,7 +2870,12 @@ func (o *projectBase) MarshalStringMap() map[string]interface{} {
 //	"spent" - []byte, nullable
 func (o *projectBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
-	if err = json.Unmarshal(data, &v); err != nil {
+	if len(data) == 0 {
+		return
+	}
+	d := json.NewDecoder(bytes.NewReader(data))
+	d.UseNumber() // use a number to avoid precision errors
+	if err = d.Decode(&v); err != nil {
 		return err
 	}
 	return o.UnmarshalStringMap(v)
@@ -2886,32 +2891,46 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 		case "num":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				if n, ok := v.(int); ok {
+				switch n := v.(type) {
+				case json.Number:
+					n2, err := n.Int64()
+					if err != nil {
+						return err
+					}
+					o.SetNum(int(n2))
+				case int:
+					o.SetNum(n)
+				case float64:
 					o.SetNum(int(n))
-				} else if n, ok := v.(float64); ok {
-					o.SetNum(int(n))
-				} else {
-					return fmt.Errorf("json field %s must be a number", k)
+				default:
+					return fmt.Errorf("field %s must be a number", k)
 				}
 			}
 
 		case "status":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				if n, ok := v.(int); ok {
+				switch n := v.(type) {
+				case json.Number:
+					n2, err := n.Int64()
+					if err != nil {
+						return err
+					}
+					o.SetStatus(ProjectStatus(n2))
+				case int:
 					o.SetStatus(ProjectStatus(n))
-				} else if n, ok := v.(float64); ok {
-					o.SetStatus(ProjectStatus(int(n)))
-				} else if n, ok := v.(string); ok {
+				case float64:
+					o.SetStatus(ProjectStatus(n))
+				case string:
 					o.SetStatus(ProjectStatusFromName(n))
-				} else {
-					return fmt.Errorf("json field %s must be a number", k)
+				default:
+					return fmt.Errorf("field %s must be a number", k)
 				}
 			}
 
@@ -2923,7 +2942,7 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 				}
 
 				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
+					return fmt.Errorf("field %s must be a string", k)
 				} else {
 					o.SetManagerID(s)
 				}
@@ -2933,7 +2952,7 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 		case "name":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
 				if s, ok := v.(string); !ok {
@@ -2965,6 +2984,13 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 				}
 
 				switch d := v.(type) {
+				case json.Number:
+					// a numeric value, which for JSON, means milliseconds since epoc
+					n2, err := d.Int64()
+					if err != nil {
+						return err
+					}
+					o.SetStartDate(time.UnixMilli(n2).UTC())
 				case float64:
 					// a numeric value, which for JSON, means milliseconds since epoc
 					o.SetStartDate(time.UnixMilli(int64(d)).UTC())
@@ -2990,6 +3016,13 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 				}
 
 				switch d := v.(type) {
+				case json.Number:
+					// a numeric value, which for JSON, means milliseconds since epoc
+					n2, err := d.Int64()
+					if err != nil {
+						return err
+					}
+					o.SetEndDate(time.UnixMilli(n2).UTC())
 				case float64:
 					// a numeric value, which for JSON, means milliseconds since epoc
 					o.SetEndDate(time.UnixMilli(int64(d)).UTC())

@@ -2519,7 +2519,12 @@ func (o *unsupportedTypeBase) MarshalStringMap() map[string]interface{} {
 //	"typeMultifk2" - string
 func (o *unsupportedTypeBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
-	if err = json.Unmarshal(data, &v); err != nil {
+	if len(data) == 0 {
+		return
+	}
+	d := json.NewDecoder(bytes.NewReader(data))
+	d.UseNumber() // use a number to avoid precision errors
+	if err = d.Decode(&v); err != nil {
 		return err
 	}
 	return o.UnmarshalStringMap(v)
@@ -2535,7 +2540,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 		case "typeSet":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
 				switch d := v.(type) {
@@ -2570,7 +2575,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 		case "typeEnumerated":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
 				switch d := v.(type) {
@@ -2605,7 +2610,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 		case "typeDecimal":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
 				switch d := v.(type) {
@@ -2640,20 +2645,27 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 		case "typeDouble":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				if n, ok := v.(float64); ok {
+				switch n := v.(type) {
+				case json.Number:
+					n2, err := n.Float64()
+					if err != nil {
+						return err
+					}
+					o.SetTypeDouble(n2)
+				case float64:
 					o.SetTypeDouble(n)
-				} else {
-					return fmt.Errorf("json field %s must be a number", k)
+				default:
+					return fmt.Errorf("field %s must be a number", k)
 				}
 			}
 
 		case "typeGeo":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
 				switch d := v.(type) {
@@ -2688,7 +2700,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 		case "typeTinyBlob":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
 				switch d := v.(type) {
@@ -2723,7 +2735,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 		case "typeMediumBlob":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
 				switch d := v.(type) {
@@ -2758,7 +2770,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 		case "typeVarbinary":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
 				switch d := v.(type) {
@@ -2793,7 +2805,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 		case "typeLongtext":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
 				if s, ok := v.(string); !ok {
@@ -2806,7 +2818,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 		case "typeBinary":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
 				switch d := v.(type) {
@@ -2841,52 +2853,73 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 		case "typeSmall":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				if n, ok := v.(int); ok {
+				switch n := v.(type) {
+				case json.Number:
+					n2, err := n.Int64()
+					if err != nil {
+						return err
+					}
+					o.SetTypeSmall(int(n2))
+				case int:
+					o.SetTypeSmall(n)
+				case float64:
 					o.SetTypeSmall(int(n))
-				} else if n, ok := v.(float64); ok {
-					o.SetTypeSmall(int(n))
-				} else {
-					return fmt.Errorf("json field %s must be a number", k)
+				default:
+					return fmt.Errorf("field %s must be a number", k)
 				}
 			}
 
 		case "typeMedium":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				if n, ok := v.(int); ok {
+				switch n := v.(type) {
+				case json.Number:
+					n2, err := n.Int64()
+					if err != nil {
+						return err
+					}
+					o.SetTypeMedium(int(n2))
+				case int:
+					o.SetTypeMedium(n)
+				case float64:
 					o.SetTypeMedium(int(n))
-				} else if n, ok := v.(float64); ok {
-					o.SetTypeMedium(int(n))
-				} else {
-					return fmt.Errorf("json field %s must be a number", k)
+				default:
+					return fmt.Errorf("field %s must be a number", k)
 				}
 			}
 
 		case "typeBig":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				if n, ok := v.(int); ok {
+				switch n := v.(type) {
+				case json.Number:
+					n2, err := n.Int64()
+					if err != nil {
+						return err
+					}
+					o.SetTypeBig(n2)
+				case int:
 					o.SetTypeBig(int64(n))
-				} else if n, ok := v.(float64); ok {
+				case float64:
 					o.SetTypeBig(int64(n))
-				} else {
-					return fmt.Errorf("json field %s must be a number", k)
+				default:
+					return fmt.Errorf("field %s must be a number", k)
 				}
 			}
 
 		case "typePolygon":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
 				switch d := v.(type) {
@@ -2921,22 +2954,31 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 		case "typeUnsigned":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				if n, ok := v.(int); ok {
+				switch n := v.(type) {
+				case json.Number:
+					n2, err := n.Int64()
+					if err != nil {
+						return err
+					}
+					o.SetTypeUnsigned(uint(n2))
+				case int:
 					o.SetTypeUnsigned(uint(n))
-				} else if n, ok := v.(float64); ok {
+				case uint:
+					o.SetTypeUnsigned(n)
+				case float64:
 					o.SetTypeUnsigned(uint(n))
-				} else {
-					return fmt.Errorf("json field %s must be a number", k)
+				default:
+					return fmt.Errorf("field %s must be a number", k)
 				}
 			}
 
 		case "typeMultfk1":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
 				if s, ok := v.(string); !ok {
@@ -2949,7 +2991,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 		case "typeMultifk2":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
 				if s, ok := v.(string); !ok {

@@ -989,7 +989,12 @@ func (o *employeeInfoBase) MarshalStringMap() map[string]interface{} {
 //	"employeeNumber" - int
 func (o *employeeInfoBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
-	if err = json.Unmarshal(data, &v); err != nil {
+	if len(data) == 0 {
+		return
+	}
+	d := json.NewDecoder(bytes.NewReader(data))
+	d.UseNumber() // use a number to avoid precision errors
+	if err = d.Decode(&v); err != nil {
 		return err
 	}
 	return o.UnmarshalStringMap(v)
@@ -1005,11 +1010,11 @@ func (o *employeeInfoBase) UnmarshalStringMap(m map[string]interface{}) (err err
 		case "personID":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
 				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
+					return fmt.Errorf("field %s must be a string", k)
 				} else {
 					o.SetPersonID(s)
 				}
@@ -1019,15 +1024,22 @@ func (o *employeeInfoBase) UnmarshalStringMap(m map[string]interface{}) (err err
 		case "employeeNumber":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				if n, ok := v.(int); ok {
+				switch n := v.(type) {
+				case json.Number:
+					n2, err := n.Int64()
+					if err != nil {
+						return err
+					}
+					o.SetEmployeeNumber(int(n2))
+				case int:
+					o.SetEmployeeNumber(n)
+				case float64:
 					o.SetEmployeeNumber(int(n))
-				} else if n, ok := v.(float64); ok {
-					o.SetEmployeeNumber(int(n))
-				} else {
-					return fmt.Errorf("json field %s must be a number", k)
+				default:
+					return fmt.Errorf("field %s must be a number", k)
 				}
 			}
 

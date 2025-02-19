@@ -18,9 +18,16 @@
 //   "{{= col.JsonKey() }}" - {{= col.GoType() }}{{if col.IsNullable}}, nullable{{if}}
 {{for}}
 func (o *{{= table.DecapIdentifier}}Base) UnmarshalJSON (data []byte) (err error) {
-    var v map[string]interface{}
-    if err = json.Unmarshal(data, &v); err != nil { return err}
-    return o.UnmarshalStringMap(v)
+	var v map[string]interface{}
+	if len(data) == 0 {
+		return
+	}
+	d := json.NewDecoder(bytes.NewReader(data))
+	d.UseNumber() // use a number to avoid precision errors
+	if err = d.Decode(&v); err != nil {
+		return err
+	}
+	return o.UnmarshalStringMap(v)
 }
 
 // UnmarshalStringMap will load the values from the stringmap into the object.

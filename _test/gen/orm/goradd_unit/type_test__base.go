@@ -2288,7 +2288,12 @@ func (o *typeTestBase) MarshalStringMap() map[string]interface{} {
 //	"testBlob" - []byte
 func (o *typeTestBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
-	if err = json.Unmarshal(data, &v); err != nil {
+	if len(data) == 0 {
+		return
+	}
+	d := json.NewDecoder(bytes.NewReader(data))
+	d.UseNumber() // use a number to avoid precision errors
+	if err = d.Decode(&v); err != nil {
 		return err
 	}
 	return o.UnmarshalStringMap(v)
@@ -2309,6 +2314,13 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 				}
 
 				switch d := v.(type) {
+				case json.Number:
+					// a numeric value, which for JSON, means milliseconds since epoc
+					n2, err := d.Int64()
+					if err != nil {
+						return err
+					}
+					o.SetDate(time.UnixMilli(n2).UTC())
 				case float64:
 					// a numeric value, which for JSON, means milliseconds since epoc
 					o.SetDate(time.UnixMilli(int64(d)).UTC())
@@ -2334,6 +2346,13 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 				}
 
 				switch d := v.(type) {
+				case json.Number:
+					// a numeric value, which for JSON, means milliseconds since epoc
+					n2, err := d.Int64()
+					if err != nil {
+						return err
+					}
+					o.SetTime(time.UnixMilli(n2).UTC())
 				case float64:
 					// a numeric value, which for JSON, means milliseconds since epoc
 					o.SetTime(time.UnixMilli(int64(d)).UTC())
@@ -2359,6 +2378,13 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 				}
 
 				switch d := v.(type) {
+				case json.Number:
+					// a numeric value, which for JSON, means milliseconds since epoc
+					n2, err := d.Int64()
+					if err != nil {
+						return err
+					}
+					o.SetDateTime(time.UnixMilli(n2).UTC())
 				case float64:
 					// a numeric value, which for JSON, means milliseconds since epoc
 					o.SetDateTime(time.UnixMilli(int64(d)).UTC())
@@ -2383,12 +2409,19 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 					continue
 				}
 
-				if n, ok := v.(int); ok {
+				switch n := v.(type) {
+				case json.Number:
+					n2, err := n.Int64()
+					if err != nil {
+						return err
+					}
+					o.SetTestInt(int(n2))
+				case int:
+					o.SetTestInt(n)
+				case float64:
 					o.SetTestInt(int(n))
-				} else if n, ok := v.(float64); ok {
-					o.SetTestInt(int(n))
-				} else {
-					return fmt.Errorf("json field %s must be a number", k)
+				default:
+					return fmt.Errorf("field %s must be a number", k)
 				}
 			}
 
@@ -2399,23 +2432,39 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 					continue
 				}
 
-				if n, ok := v.(float64); ok {
+				switch n := v.(type) {
+				case json.Number:
+					n2, err := n.Float64()
+					if err != nil {
+						return err
+					}
+					o.SetTestFloat(float32(n2))
+				case float64:
 					o.SetTestFloat(float32(n))
-				} else {
-					return fmt.Errorf("json field %s must be a number", k)
+				case float32:
+					o.SetTestFloat(n)
+				default:
+					return fmt.Errorf("field %s must be a number", k)
 				}
 			}
 
 		case "testDouble":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				if n, ok := v.(float64); ok {
+				switch n := v.(type) {
+				case json.Number:
+					n2, err := n.Float64()
+					if err != nil {
+						return err
+					}
+					o.SetTestDouble(n2)
+				case float64:
 					o.SetTestDouble(n)
-				} else {
-					return fmt.Errorf("json field %s must be a number", k)
+				default:
+					return fmt.Errorf("field %s must be a number", k)
 				}
 			}
 
@@ -2464,7 +2513,7 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 		case "testBlob":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
 				switch d := v.(type) {

@@ -2074,7 +2074,12 @@ func (o *personBase) MarshalStringMap() map[string]interface{} {
 //	"types" - PersonTypeSet, nullable
 func (o *personBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
-	if err = json.Unmarshal(data, &v); err != nil {
+	if len(data) == 0 {
+		return
+	}
+	d := json.NewDecoder(bytes.NewReader(data))
+	d.UseNumber() // use a number to avoid precision errors
+	if err = d.Decode(&v); err != nil {
 		return err
 	}
 	return o.UnmarshalStringMap(v)
@@ -2090,7 +2095,7 @@ func (o *personBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 		case "firstName":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
 				if s, ok := v.(string); !ok {
@@ -2103,7 +2108,7 @@ func (o *personBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 		case "lastName":
 			{
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 
 				if s, ok := v.(string); !ok {
@@ -2121,12 +2126,18 @@ func (o *personBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 				}
 
 				if v == nil {
-					return fmt.Errorf("json field %s cannot be null", k)
+					return fmt.Errorf("field %s cannot be null", k)
 				}
 				if v2, ok := v.([]any); ok {
 					a := NewPersonTypeSet()
 					for _, i := range v2 {
 						switch v3 := i.(type) {
+						case json.Number:
+							n, err := v3.Int64()
+							if err != nil {
+								return err
+							}
+							a.Add(PersonType(n))
 						case string:
 							a.Add(PersonTypeFromName(v3))
 						case int:
@@ -2134,12 +2145,12 @@ func (o *personBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 						case float64:
 							a.Add(PersonType(v3))
 						default:
-							return fmt.Errorf("json field '%s' must be an array of numbers or strings", k)
+							return fmt.Errorf("field '%s' must be an array of numbers or strings", k)
 						}
 					}
 					o.SetTypes(a)
 				} else {
-					return fmt.Errorf("json field '%s' must be an array of numbers or strings", k)
+					return fmt.Errorf("field '%s' must be an array of numbers or strings", k)
 				}
 			}
 
