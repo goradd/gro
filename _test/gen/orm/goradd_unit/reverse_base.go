@@ -25,7 +25,6 @@ import (
 type reverseBase struct {
 	id        string
 	idIsValid bool
-	idIsDirty bool
 
 	name        string
 	nameIsValid bool
@@ -90,7 +89,6 @@ func (o *reverseBase) Initialize() {
 	o.id = db.TemporaryPrimaryKey()
 
 	o.idIsValid = false
-	o.idIsDirty = false
 
 	o.name = ""
 
@@ -991,7 +989,6 @@ func (o *reverseBase) load(m map[string]interface{}, objThis *Reverse) {
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
 			o.idIsValid = true
-			o.idIsDirty = false
 
 			o._originalPK = o.id
 
@@ -1014,6 +1011,7 @@ func (o *reverseBase) load(m map[string]interface{}, objThis *Reverse) {
 	} else {
 		o.nameIsValid = false
 		o.name = ""
+		o.nameIsDirty = false
 	}
 
 	// Reverse references
@@ -1445,9 +1443,6 @@ func (o *reverseBase) insert(ctx context.Context) {
 // will determine which specific fields are sent to the database to be changed.
 func (o *reverseBase) getModifiedFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-	if o.idIsDirty {
-		fields["id"] = o.id
-	}
 	if o.nameIsDirty {
 		fields["name"] = o.name
 	}
@@ -1569,7 +1564,6 @@ func deleteReverse(ctx context.Context, pk string) {
 
 // resetDirtyStatus resets the dirty status of every field in the object.
 func (o *reverseBase) resetDirtyStatus() {
-	o.idIsDirty = false
 	o.nameIsDirty = false
 	o.revForwardCascadesIsDirty = false
 	o.revForwardCascadeUniqueIsDirty = false
@@ -1582,8 +1576,7 @@ func (o *reverseBase) resetDirtyStatus() {
 
 // IsDirty returns true if the object has been changed since it was read from the database.
 func (o *reverseBase) IsDirty() (dirty bool) {
-	dirty = o.idIsDirty ||
-		o.nameIsDirty
+	dirty = o.nameIsDirty
 
 	dirty = dirty ||
 		o.revForwardCascadesIsDirty ||
@@ -1658,9 +1651,6 @@ func (o *reverseBase) MarshalBinary() ([]byte, error) {
 	}
 	if err := encoder.Encode(o.idIsValid); err != nil {
 		return nil, fmt.Errorf("error encoding Reverse.idIsValid: %w", err)
-	}
-	if err := encoder.Encode(o.idIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding Reverse.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.name); err != nil {
@@ -1847,9 +1837,6 @@ func (o *reverseBase) UnmarshalBinary(data []byte) (err error) {
 	}
 	if err = dec.Decode(&o.idIsValid); err != nil {
 		return fmt.Errorf("error decoding Reverse.idIsValid: %w", err)
-	}
-	if err = dec.Decode(&o.idIsDirty); err != nil {
-		return fmt.Errorf("error decoding Reverse.idIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.name); err != nil {

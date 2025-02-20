@@ -9,7 +9,9 @@
 			o.{{= col.VariableIdentifier() }} = {{= col.DefaultValueAsValue() }}
 			o.{{= col.VariableIdentifier() }}IsNull = true
 			o.{{= col.VariableIdentifier() }}IsValid = true
+{{if col.HasSetter() }}
 			o.{{= col.VariableIdentifier() }}IsDirty = false
+{{if}}
 {{if col.IsEnum() }}
 {{if col.IsEnumArray() }}
  		} else if s, ok2 := v.(string); ok2 {
@@ -30,7 +32,9 @@
 {{if}}
 			o.{{= col.VariableIdentifier() }}IsNull = false
 			o.{{= col.VariableIdentifier() }}IsValid = true
+{{if col.HasSetter() }}
 			o.{{= col.VariableIdentifier() }}IsDirty = false
+{{if}}
 		} else {
 			panic("Wrong type found for {{= col.QueryName }}.")
 		}
@@ -38,6 +42,9 @@
 		o.{{= col.VariableIdentifier() }}IsValid = false
 		o.{{= col.VariableIdentifier() }}IsNull = true
 		o.{{= col.VariableIdentifier() }} = {{= col.DefaultValueAsValue() }}
+{{if col.HasSetter() }}
+		o.{{= col.VariableIdentifier() }}IsDirty = false
+{{if}}
 	}
 
 }}

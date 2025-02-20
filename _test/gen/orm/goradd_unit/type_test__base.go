@@ -27,7 +27,6 @@ import (
 type typeTestBase struct {
 	id        string
 	idIsValid bool
-	idIsDirty bool
 
 	date        time.Time
 	dateIsNull  bool
@@ -47,7 +46,6 @@ type typeTestBase struct {
 	ts        time.Time
 	tsIsNull  bool
 	tsIsValid bool
-	tsIsDirty bool
 
 	testInt        int
 	testIntIsNull  bool
@@ -122,7 +120,6 @@ func (o *typeTestBase) Initialize() {
 	o.id = db.TemporaryPrimaryKey()
 
 	o.idIsValid = false
-	o.idIsDirty = false
 
 	o.date = time.Time{}
 
@@ -146,7 +143,6 @@ func (o *typeTestBase) Initialize() {
 
 	o.tsIsNull = false
 	o.tsIsValid = true
-	o.tsIsDirty = true
 
 	o.testInt = 5
 
@@ -466,18 +462,6 @@ func (o *typeTestBase) Ts_I() interface{} {
 		return nil
 	}
 	return o.ts
-}
-
-// SetTsToNull() will set the ts value in the database to NULL.
-// Ts() will return the column's default value after this.
-func (o *typeTestBase) SetTsToNull() {
-	if !o.tsIsValid || !o.tsIsNull {
-		// If we know it is null in the database, don't save it
-		o.tsIsDirty = true
-	}
-	o.tsIsValid = true
-	o.tsIsNull = true
-	o.ts = time.Time{}
 }
 
 // TestInt returns the loaded value of TestInt.
@@ -1252,7 +1236,6 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
 			o.idIsValid = true
-			o.idIsDirty = false
 
 			o._originalPK = o.id
 
@@ -1281,6 +1264,7 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 		o.dateIsValid = false
 		o.dateIsNull = true
 		o.date = time.Time{}
+		o.dateIsDirty = false
 	}
 
 	if v, ok := m["time"]; ok {
@@ -1300,6 +1284,7 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 		o.timeIsValid = false
 		o.timeIsNull = true
 		o.time = time.Time{}
+		o.timeIsDirty = false
 	}
 
 	if v, ok := m["date_time"]; ok {
@@ -1319,6 +1304,7 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 		o.dateTimeIsValid = false
 		o.dateTimeIsNull = true
 		o.dateTime = time.Time{}
+		o.dateTimeIsDirty = false
 	}
 
 	if v, ok := m["ts"]; ok {
@@ -1326,11 +1312,9 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 			o.ts = time.Time{}
 			o.tsIsNull = true
 			o.tsIsValid = true
-			o.tsIsDirty = false
 		} else if o.ts, ok = v.(time.Time); ok {
 			o.tsIsNull = false
 			o.tsIsValid = true
-			o.tsIsDirty = false
 		} else {
 			panic("Wrong type found for ts.")
 		}
@@ -1357,6 +1341,7 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 		o.testIntIsValid = false
 		o.testIntIsNull = true
 		o.testInt = 5
+		o.testIntIsDirty = false
 	}
 
 	if v, ok := m["test_float"]; ok {
@@ -1376,6 +1361,7 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 		o.testFloatIsValid = false
 		o.testFloatIsNull = true
 		o.testFloat = 0
+		o.testFloatIsDirty = false
 	}
 
 	if v, ok := m["test_double"]; ok && v != nil {
@@ -1389,6 +1375,7 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 	} else {
 		o.testDoubleIsValid = false
 		o.testDouble = 0
+		o.testDoubleIsDirty = false
 	}
 
 	if v, ok := m["test_text"]; ok {
@@ -1408,6 +1395,7 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 		o.testTextIsValid = false
 		o.testTextIsNull = true
 		o.testText = ""
+		o.testTextIsDirty = false
 	}
 
 	if v, ok := m["test_bit"]; ok {
@@ -1427,6 +1415,7 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 		o.testBitIsValid = false
 		o.testBitIsNull = true
 		o.testBit = false
+		o.testBitIsDirty = false
 	}
 
 	if v, ok := m["test_varchar"]; ok {
@@ -1446,6 +1435,7 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 		o.testVarcharIsValid = false
 		o.testVarcharIsNull = true
 		o.testVarchar = ""
+		o.testVarcharIsDirty = false
 	}
 
 	if v, ok := m["test_blob"]; ok && v != nil {
@@ -1459,6 +1449,7 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 	} else {
 		o.testBlobIsValid = false
 		o.testBlob = []byte(nil)
+		o.testBlobIsDirty = false
 	}
 
 	if v, ok := m["aliases_"]; ok {
@@ -1513,10 +1504,12 @@ func (o *typeTestBase) insert(ctx context.Context) {
 		if !o.testDoubleIsValid {
 			panic("a value for TestDouble is required, and there is no default value. Call SetTestDouble() before inserting the record.")
 		}
-
 		if !o.testBlobIsValid {
 			panic("a value for TestBlob is required, and there is no default value. Call SetTestBlob() before inserting the record.")
 		}
+
+		o.ts = time.Now().UTC()
+		o.tsIsValid = true
 
 		m := o.getValidFields()
 
@@ -1535,9 +1528,6 @@ func (o *typeTestBase) insert(ctx context.Context) {
 // will determine which specific fields are sent to the database to be changed.
 func (o *typeTestBase) getModifiedFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-	if o.idIsDirty {
-		fields["id"] = o.id
-	}
 	if o.dateIsDirty {
 		if o.dateIsNull {
 			fields["date"] = nil
@@ -1557,13 +1547,6 @@ func (o *typeTestBase) getModifiedFields() (fields map[string]interface{}) {
 			fields["date_time"] = nil
 		} else {
 			fields["date_time"] = o.dateTime
-		}
-	}
-	if o.tsIsDirty {
-		if o.tsIsNull {
-			fields["ts"] = nil
-		} else {
-			fields["ts"] = o.ts
 		}
 	}
 	if o.testIntIsDirty {
@@ -1705,11 +1688,9 @@ func deleteTypeTest(ctx context.Context, pk string) {
 
 // resetDirtyStatus resets the dirty status of every field in the object.
 func (o *typeTestBase) resetDirtyStatus() {
-	o.idIsDirty = false
 	o.dateIsDirty = false
 	o.timeIsDirty = false
 	o.dateTimeIsDirty = false
-	o.tsIsDirty = false
 	o.testIntIsDirty = false
 	o.testFloatIsDirty = false
 	o.testDoubleIsDirty = false
@@ -1722,11 +1703,9 @@ func (o *typeTestBase) resetDirtyStatus() {
 
 // IsDirty returns true if the object has been changed since it was read from the database.
 func (o *typeTestBase) IsDirty() (dirty bool) {
-	dirty = o.idIsDirty ||
-		o.dateIsDirty ||
+	dirty = o.dateIsDirty ||
 		o.timeIsDirty ||
 		o.dateTimeIsDirty ||
-		o.tsIsDirty ||
 		o.testIntIsDirty ||
 		o.testFloatIsDirty ||
 		o.testDoubleIsDirty ||
@@ -1835,9 +1814,6 @@ func (o *typeTestBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.idIsValid); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.idIsValid: %w", err)
 	}
-	if err := encoder.Encode(o.idIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.idIsDirty: %w", err)
-	}
 
 	if err := encoder.Encode(o.date); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.date: %w", err)
@@ -1886,9 +1862,6 @@ func (o *typeTestBase) MarshalBinary() ([]byte, error) {
 	}
 	if err := encoder.Encode(o.tsIsValid); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.tsIsValid: %w", err)
-	}
-	if err := encoder.Encode(o.tsIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.tsIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.testInt); err != nil {
@@ -2015,9 +1988,6 @@ func (o *typeTestBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.idIsValid); err != nil {
 		return fmt.Errorf("error decoding TypeTest.idIsValid: %w", err)
 	}
-	if err = dec.Decode(&o.idIsDirty); err != nil {
-		return fmt.Errorf("error decoding TypeTest.idIsDirty: %w", err)
-	}
 
 	if err = dec.Decode(&o.date); err != nil {
 		return fmt.Errorf("error decoding TypeTest.date: %w", err)
@@ -2066,9 +2036,6 @@ func (o *typeTestBase) UnmarshalBinary(data []byte) (err error) {
 	}
 	if err = dec.Decode(&o.tsIsValid); err != nil {
 		return fmt.Errorf("error decoding TypeTest.tsIsValid: %w", err)
-	}
-	if err = dec.Decode(&o.tsIsDirty); err != nil {
-		return fmt.Errorf("error decoding TypeTest.tsIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.testInt); err != nil {

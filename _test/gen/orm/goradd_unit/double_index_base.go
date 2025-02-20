@@ -598,6 +598,7 @@ func (o *doubleIndexBase) load(m map[string]interface{}, objThis *DoubleIndex) {
 	} else {
 		o.idIsValid = false
 		o.id = 0
+		o.idIsDirty = false
 	}
 
 	if v, ok := m["field_int"]; ok && v != nil {
@@ -611,6 +612,7 @@ func (o *doubleIndexBase) load(m map[string]interface{}, objThis *DoubleIndex) {
 	} else {
 		o.fieldIntIsValid = false
 		o.fieldInt = 0
+		o.fieldIntIsDirty = false
 	}
 
 	if v, ok := m["field_string"]; ok && v != nil {
@@ -624,6 +626,7 @@ func (o *doubleIndexBase) load(m map[string]interface{}, objThis *DoubleIndex) {
 	} else {
 		o.fieldStringIsValid = false
 		o.fieldString = ""
+		o.fieldStringIsDirty = false
 	}
 
 	if v, ok := m["aliases_"]; ok {
@@ -678,11 +681,9 @@ func (o *doubleIndexBase) insert(ctx context.Context) {
 		if !o.idIsValid {
 			panic("a value for ID is required, and there is no default value. Call SetID() before inserting the record.")
 		}
-
 		if !o.fieldIntIsValid {
 			panic("a value for FieldInt is required, and there is no default value. Call SetFieldInt() before inserting the record.")
 		}
-
 		if !o.fieldStringIsValid {
 			panic("a value for FieldString is required, and there is no default value. Call SetFieldString() before inserting the record.")
 		}

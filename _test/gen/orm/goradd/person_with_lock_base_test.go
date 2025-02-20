@@ -85,7 +85,6 @@ func TestPersonWithLock_CRUD(t *testing.T) {
 	assert.True(t, obj.LastNameIsValid())
 	assert.Equal(t, lastName, obj.LastName())
 
-	assert.True(t, obj.SysTimestampIsValid())
-	assert.False(t, obj.SysTimestampIsNull())
+	assert.True(t, obj.GroTimestampIsValid())
 
 }

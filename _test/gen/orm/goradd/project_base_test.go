@@ -185,6 +185,24 @@ func TestProject_SetSpent(t *testing.T) {
 		obj.SetSpent(spent)
 	})
 }
+func TestProject_SetParentProjectID(t *testing.T) {
+
+	obj := NewProject()
+	parentProjectID := test.RandomValue[string](0)
+	obj.SetParentProjectID(parentProjectID)
+	assert.Equal(t, parentProjectID, obj.ParentProjectID())
+	assert.False(t, obj.ParentProjectIDIsNull())
+
+	// Test NULL
+	obj.SetParentProjectIDToNull()
+	assert.Equal(t, "", obj.ParentProjectID())
+	assert.True(t, obj.ParentProjectIDIsNull())
+
+	// test default
+	obj.SetParentProjectID("")
+	assert.EqualValues(t, "", obj.ParentProjectID(), "set default")
+
+}
 
 // createMinimalSampleProject creates and saves a minimal version of a Project object
 // for testing.
@@ -241,6 +259,9 @@ func TestProject_CRUD(t *testing.T) {
 
 	endDate = obj.EndDate()
 
+	objParentProject := createMinimalSampleProject(ctx)
+	obj.SetParentProject(objParentProject)
+
 	obj.Save(ctx)
 
 	// Test retrieval
@@ -273,5 +294,9 @@ func TestProject_CRUD(t *testing.T) {
 	assert.True(t, obj.EndDateIsValid())
 	assert.False(t, obj.EndDateIsNull())
 	assert.Equal(t, endDate, obj.EndDate())
+
+	assert.True(t, obj.ParentProjectIDIsValid())
+	assert.False(t, obj.ParentProjectIDIsNull())
+	assert.NotEmpty(t, obj.ParentProjectID())
 
 }

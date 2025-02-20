@@ -19,7 +19,9 @@ type {{= table.DecapIdentifier}}Base struct {
 	{{= col.VariableIdentifier() }}IsNull bool
 {{if}}
 	{{= col.VariableIdentifier() }}IsValid bool
+{{if col.HasSetter() }}
 	{{= col.VariableIdentifier() }}IsDirty bool
+{{if}}
 {{if col.IsReference() }}
 	{{= col.ReferenceVariableIdentifier() }} *{{= col.ReferenceType() }}
 {{if}}

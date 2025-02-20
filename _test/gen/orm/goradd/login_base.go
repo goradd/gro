@@ -24,7 +24,6 @@ import (
 type loginBase struct {
 	id        string
 	idIsValid bool
-	idIsDirty bool
 
 	personID        string
 	personIDIsNull  bool
@@ -76,7 +75,6 @@ func (o *loginBase) Initialize() {
 	o.id = db.TemporaryPrimaryKey()
 
 	o.idIsValid = false
-	o.idIsDirty = false
 
 	o.personID = ""
 
@@ -782,7 +780,6 @@ func (o *loginBase) load(m map[string]interface{}, objThis *Login) {
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
 			o.idIsValid = true
-			o.idIsDirty = false
 
 			o._originalPK = o.id
 
@@ -811,6 +808,7 @@ func (o *loginBase) load(m map[string]interface{}, objThis *Login) {
 		o.personIDIsValid = false
 		o.personIDIsNull = true
 		o.personID = ""
+		o.personIDIsDirty = false
 	}
 
 	if v, ok := m["Person"]; ok {
@@ -837,6 +835,7 @@ func (o *loginBase) load(m map[string]interface{}, objThis *Login) {
 	} else {
 		o.usernameIsValid = false
 		o.username = ""
+		o.usernameIsDirty = false
 	}
 
 	if v, ok := m["password"]; ok {
@@ -856,6 +855,7 @@ func (o *loginBase) load(m map[string]interface{}, objThis *Login) {
 		o.passwordIsValid = false
 		o.passwordIsNull = true
 		o.password = ""
+		o.passwordIsDirty = false
 	}
 
 	if v, ok := m["is_enabled"]; ok && v != nil {
@@ -869,6 +869,7 @@ func (o *loginBase) load(m map[string]interface{}, objThis *Login) {
 	} else {
 		o.isEnabledIsValid = false
 		o.isEnabled = true
+		o.isEnabledIsDirty = false
 	}
 
 	if v, ok := m["aliases_"]; ok {
@@ -954,9 +955,6 @@ func (o *loginBase) insert(ctx context.Context) {
 // will determine which specific fields are sent to the database to be changed.
 func (o *loginBase) getModifiedFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-	if o.idIsDirty {
-		fields["id"] = o.id
-	}
 	if o.personIDIsDirty {
 		if o.personIDIsNull {
 			fields["person_id"] = nil
@@ -1026,7 +1024,6 @@ func deleteLogin(ctx context.Context, pk string) {
 
 // resetDirtyStatus resets the dirty status of every field in the object.
 func (o *loginBase) resetDirtyStatus() {
-	o.idIsDirty = false
 	o.personIDIsDirty = false
 	o.usernameIsDirty = false
 	o.passwordIsDirty = false
@@ -1036,8 +1033,7 @@ func (o *loginBase) resetDirtyStatus() {
 
 // IsDirty returns true if the object has been changed since it was read from the database.
 func (o *loginBase) IsDirty() (dirty bool) {
-	dirty = o.idIsDirty ||
-		o.personIDIsDirty ||
+	dirty = o.personIDIsDirty ||
 		(o.objPerson != nil && o.objPerson.IsDirty()) ||
 		o.usernameIsDirty ||
 		o.passwordIsDirty ||
@@ -1103,9 +1099,6 @@ func (o *loginBase) MarshalBinary() ([]byte, error) {
 	}
 	if err := encoder.Encode(o.idIsValid); err != nil {
 		return nil, fmt.Errorf("error encoding Login.idIsValid: %w", err)
-	}
-	if err := encoder.Encode(o.idIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding Login.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.personID); err != nil {
@@ -1205,9 +1198,6 @@ func (o *loginBase) UnmarshalBinary(data []byte) (err error) {
 	}
 	if err = dec.Decode(&o.idIsValid); err != nil {
 		return fmt.Errorf("error decoding Login.idIsValid: %w", err)
-	}
-	if err = dec.Decode(&o.idIsDirty); err != nil {
-		return fmt.Errorf("error decoding Login.idIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.personID); err != nil {

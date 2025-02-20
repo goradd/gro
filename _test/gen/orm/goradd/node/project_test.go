@@ -45,12 +45,42 @@ func TestSerializeReferencesProjectTable(t *testing.T) {
 		}
 	}
 
+	{
+		n := Project().ParentProject()
+		n2 := serNode(t, n)
+		parentNode := query.NodeParent(n2)
+		assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
+		assert.Equal(t, "project", parentNode.TableName_())
+
+		nodes := n.(query.TableNodeI).ColumnNodes_()
+		for _, cn := range nodes {
+			cn2 := serNode(t, cn)
+			assert.Equal(t, n.TableName_(), cn2.TableName_())
+			assert.Equal(t, query.ReferenceNodeType, query.NodeParent(cn2).NodeType_())
+		}
+	}
+
 }
 
 func TestSerializeReverseReferencesProjectTable(t *testing.T) {
 
 	{
 		n := Project().Milestones()
+		n2 := serNode(t, n)
+		parentNode := query.NodeParent(n2)
+		assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
+		assert.Equal(t, "project", parentNode.TableName_())
+
+		nodes := n.(query.TableNodeI).ColumnNodes_()
+		for _, cn := range nodes {
+			cn2 := serNode(t, cn)
+			assert.Equal(t, n.TableName_(), cn2.TableName_())
+			assert.Equal(t, query.ReverseNodeType, query.NodeParent(cn2).NodeType_())
+		}
+	}
+
+	{
+		n := Project().ParentProjectProjects()
 		n2 := serNode(t, n)
 		parentNode := query.NodeParent(n2)
 		assert.Equal(t, query.TableNodeType, parentNode.NodeType_())

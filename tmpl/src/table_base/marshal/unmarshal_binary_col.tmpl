@@ -14,9 +14,11 @@
     if err = dec.Decode(&o.{{= col.VariableIdentifier() }}IsValid); err != nil {
         return fmt.Errorf("error decoding {{= table.Identifier }}.{{= col.VariableIdentifier() }}IsValid: %w", err)
     }
+{{if col.HasSetter() }}
     if err = dec.Decode(&o.{{= col.VariableIdentifier() }}IsDirty); err != nil {
         return fmt.Errorf("error decoding {{= table.Identifier }}.{{= col.VariableIdentifier() }}IsDirty: %w", err)
     }
+{{if}}
 
 {{if col.IsReference()}}
     if err = dec.Decode(&isPtr); err != nil {

@@ -61,6 +61,12 @@ import "encoding/json"
 // the corresponding type in the database. Not all databases support 8-bit integers. Check
 // your database vendor to be sure.
 //
+// An int64 column may have the subtype of ColSubTypeGroTimestamp. This indicates that the column will be
+// filled in with time.Now().UnixMicro() when the record is saved. A column with this subtype will be used by the
+// ORM to implement optimistic locking, and for some database engines, might be required to implement transactions
+// (DynamoDB for one requires a special version column for transactions to function). Convention is to name this
+// column "gro_timestamp".
+//
 // # ColTypeTime
 //
 // This corresponds to a datetime in most databases. The value is stored in UTC time
@@ -130,6 +136,9 @@ const (
 	ColTypeEnum
 	ColTypeEnumArray
 )
+
+// GroTimeName is the convention for the name that the database uses for ColSubTypeGroTimestamp columns.
+const GroTimeName = "gro_timestamp"
 
 // String returns the string representation of a ColumnType.
 func (ct ColumnType) String() string {
@@ -215,6 +224,7 @@ const (
 	ColSubTypeNone ColumnSubType = iota
 	ColSubTypeDateOnly
 	ColSubTypeTimeOnly
+	ColSubTypeGroTimestamp // should be applied only to an int64 column
 )
 
 // String returns the string representation of a ColumnType.
@@ -226,6 +236,8 @@ func (ct ColumnSubType) String() string {
 		return "date_only"
 	case ColSubTypeTimeOnly:
 		return "time_only"
+	case ColSubTypeGroTimestamp:
+		return "gro_timestamp"
 	default:
 		return "none"
 	}
@@ -250,6 +262,8 @@ func (cst *ColumnSubType) UnmarshalJSON(data []byte) error {
 		*cst = ColSubTypeDateOnly
 	case "time_only":
 		*cst = ColSubTypeTimeOnly
+	case "gro_timestamp":
+		*cst = ColSubTypeGroTimestamp
 	default:
 		*cst = ColSubTypeNone
 	}

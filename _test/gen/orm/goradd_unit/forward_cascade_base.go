@@ -24,7 +24,6 @@ import (
 type forwardCascadeBase struct {
 	id        string
 	idIsValid bool
-	idIsDirty bool
 
 	name        string
 	nameIsValid bool
@@ -64,7 +63,6 @@ func (o *forwardCascadeBase) Initialize() {
 	o.id = db.TemporaryPrimaryKey()
 
 	o.idIsValid = false
-	o.idIsDirty = false
 
 	o.name = ""
 
@@ -606,7 +604,6 @@ func (o *forwardCascadeBase) load(m map[string]interface{}, objThis *ForwardCasc
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
 			o.idIsValid = true
-			o.idIsDirty = false
 
 			o._originalPK = o.id
 
@@ -629,6 +626,7 @@ func (o *forwardCascadeBase) load(m map[string]interface{}, objThis *ForwardCasc
 	} else {
 		o.nameIsValid = false
 		o.name = ""
+		o.nameIsDirty = false
 	}
 
 	if v, ok := m["reverse_id"]; ok {
@@ -648,6 +646,7 @@ func (o *forwardCascadeBase) load(m map[string]interface{}, objThis *ForwardCasc
 		o.reverseIDIsValid = false
 		o.reverseIDIsNull = true
 		o.reverseID = ""
+		o.reverseIDIsDirty = false
 	}
 
 	if v, ok := m["Reverse"]; ok {
@@ -746,9 +745,6 @@ func (o *forwardCascadeBase) insert(ctx context.Context) {
 // will determine which specific fields are sent to the database to be changed.
 func (o *forwardCascadeBase) getModifiedFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-	if o.idIsDirty {
-		fields["id"] = o.id
-	}
 	if o.nameIsDirty {
 		fields["name"] = o.name
 	}
@@ -798,7 +794,6 @@ func deleteForwardCascade(ctx context.Context, pk string) {
 
 // resetDirtyStatus resets the dirty status of every field in the object.
 func (o *forwardCascadeBase) resetDirtyStatus() {
-	o.idIsDirty = false
 	o.nameIsDirty = false
 	o.reverseIDIsDirty = false
 
@@ -806,8 +801,7 @@ func (o *forwardCascadeBase) resetDirtyStatus() {
 
 // IsDirty returns true if the object has been changed since it was read from the database.
 func (o *forwardCascadeBase) IsDirty() (dirty bool) {
-	dirty = o.idIsDirty ||
-		o.nameIsDirty ||
+	dirty = o.nameIsDirty ||
 		o.reverseIDIsDirty ||
 		(o.objReverse != nil && o.objReverse.IsDirty())
 
@@ -859,9 +853,6 @@ func (o *forwardCascadeBase) MarshalBinary() ([]byte, error) {
 	}
 	if err := encoder.Encode(o.idIsValid); err != nil {
 		return nil, fmt.Errorf("error encoding ForwardCascade.idIsValid: %w", err)
-	}
-	if err := encoder.Encode(o.idIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding ForwardCascade.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.name); err != nil {
@@ -938,9 +929,6 @@ func (o *forwardCascadeBase) UnmarshalBinary(data []byte) (err error) {
 	}
 	if err = dec.Decode(&o.idIsValid); err != nil {
 		return fmt.Errorf("error decoding ForwardCascade.idIsValid: %w", err)
-	}
-	if err = dec.Decode(&o.idIsDirty); err != nil {
-		return fmt.Errorf("error decoding ForwardCascade.idIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.name); err != nil {

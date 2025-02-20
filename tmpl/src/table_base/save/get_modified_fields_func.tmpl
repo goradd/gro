@@ -7,7 +7,7 @@
 // will determine which specific fields are sent to the database to be changed.
 func (o *{{= table.DecapIdentifier }}Base) getModifiedFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-{{for _,col := range table.Columns }}
+{{for _,col := range table.SettableColumns() }}
 	if o.{{= col.VariableIdentifier() }}IsDirty {
 {{if col.IsNullable}}
         if 	o.{{= col.VariableIdentifier() }}IsNull {

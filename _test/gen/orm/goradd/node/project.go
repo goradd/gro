@@ -35,6 +35,10 @@ type ProjectNode interface {
 	Budget() *query.ColumnNode
 	// Spent represents the spent column in the database.
 	Spent() *query.ColumnNode
+	// ParentProjectID represents the parent_project_id column in the database.
+	ParentProjectID() *query.ColumnNode
+	// ParentProject represents the ParentProject reference to a Project object.
+	ParentProject() ProjectNode
 	// Children represents the Children reference to Project objects.
 	Children() ProjectNode
 	// Parents represents the Parents reference to Project objects.
@@ -43,6 +47,8 @@ type ProjectNode interface {
 	TeamMembers() PersonNode
 	// Milestones represents the Milestones reference to Milestone objects.
 	Milestones() MilestoneNode
+	// ParentProjectProjects represents the ParentProjectProjects reference to Project objects.
+	ParentProjectProjects() ProjectNode
 }
 
 // projectTable represents the project table in a query. It uses a builder pattern to chain
@@ -99,6 +105,7 @@ func (n projectTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.EndDate())
 	nodes = append(nodes, n.Budget())
 	nodes = append(nodes, n.Spent())
+	nodes = append(nodes, n.ParentProjectID())
 	return nodes
 }
 
@@ -484,6 +491,66 @@ func (n *projectAssociation) Spent() *query.ColumnNode {
 	return cn
 }
 
+func (n projectTable) ParentProjectID() *query.ColumnNode {
+	cn := &query.ColumnNode{
+		QueryName:    "parent_project_id",
+		Identifier:   "ParentProjectID",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *projectReference) ParentProjectID() *query.ColumnNode {
+	cn := n.projectTable.ParentProjectID()
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *projectReverse) ParentProjectID() *query.ColumnNode {
+	cn := n.projectTable.ParentProjectID()
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *projectAssociation) ParentProjectID() *query.ColumnNode {
+	cn := n.projectTable.ParentProjectID()
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+// ParentProject represents the link to a Project object.
+func (n projectTable) ParentProject() ProjectNode {
+	cn := &projectReference{
+		ReferenceNode: query.ReferenceNode{
+			ColumnQueryName: "parent_project_id",
+			Identifier:      "ParentProject",
+			ReceiverType:    query.ColTypeString,
+		},
+	}
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *projectReference) ParentProject() ProjectNode {
+	cn := n.projectTable.ParentProject().(*projectReference)
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *projectReverse) ParentProject() ProjectNode {
+	cn := n.projectTable.ParentProject().(*projectReference)
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *projectAssociation) ParentProject() ProjectNode {
+	cn := n.projectTable.ParentProject().(*projectReference)
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
 // Children represents the many-to-many relationship formed by the related_project_assn table.
 func (n projectTable) Children() ProjectNode {
 	cn := &projectAssociation{
@@ -615,6 +682,39 @@ func (n *projectReverse) Milestones() MilestoneNode {
 
 func (n *projectAssociation) Milestones() MilestoneNode {
 	cn := n.projectTable.Milestones().(*milestoneReverse)
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+// ParentProjectProjects represents the many-to-one relationship formed by the reverse reference from the
+// parent_project_id column in the project table.
+func (n projectTable) ParentProjectProjects() ProjectNode {
+	cn := &projectReverse{
+		ReverseNode: query.ReverseNode{
+			ColumnQueryName: "parent_project_id",
+			Identifier:      "ParentProjectProjects",
+			ReceiverType:    query.ColTypeString,
+			IsUnique:        false,
+		},
+	}
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *projectReference) ParentProjectProjects() ProjectNode {
+	cn := n.projectTable.ParentProjectProjects().(*projectReverse)
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *projectReverse) ParentProjectProjects() ProjectNode {
+	cn := n.projectTable.ParentProjectProjects().(*projectReverse)
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *projectAssociation) ParentProjectProjects() ProjectNode {
+	cn := n.projectTable.ParentProjectProjects().(*projectReverse)
 	query.NodeSetParent(cn, n)
 	return cn
 }

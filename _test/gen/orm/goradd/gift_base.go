@@ -528,6 +528,7 @@ func (o *giftBase) load(m map[string]interface{}, objThis *Gift) {
 	} else {
 		o.numberIsValid = false
 		o.number = 0
+		o.numberIsDirty = false
 	}
 
 	if v, ok := m["name"]; ok && v != nil {
@@ -541,6 +542,7 @@ func (o *giftBase) load(m map[string]interface{}, objThis *Gift) {
 	} else {
 		o.nameIsValid = false
 		o.name = ""
+		o.nameIsDirty = false
 	}
 
 	if v, ok := m["aliases_"]; ok {
@@ -595,7 +597,6 @@ func (o *giftBase) insert(ctx context.Context) {
 		if !o.numberIsValid {
 			panic("a value for Number is required, and there is no default value. Call SetNumber() before inserting the record.")
 		}
-
 		if !o.nameIsValid {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}

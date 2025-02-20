@@ -24,7 +24,6 @@ import (
 type forwardRestrictBase struct {
 	id        string
 	idIsValid bool
-	idIsDirty bool
 
 	name        string
 	nameIsValid bool
@@ -63,7 +62,6 @@ func (o *forwardRestrictBase) Initialize() {
 	o.id = db.TemporaryPrimaryKey()
 
 	o.idIsValid = false
-	o.idIsDirty = false
 
 	o.name = ""
 
@@ -566,7 +564,6 @@ func (o *forwardRestrictBase) load(m map[string]interface{}, objThis *ForwardRes
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
 			o.idIsValid = true
-			o.idIsDirty = false
 
 			o._originalPK = o.id
 
@@ -589,6 +586,7 @@ func (o *forwardRestrictBase) load(m map[string]interface{}, objThis *ForwardRes
 	} else {
 		o.nameIsValid = false
 		o.name = ""
+		o.nameIsDirty = false
 	}
 
 	if v, ok := m["reverse_id"]; ok && v != nil {
@@ -602,6 +600,7 @@ func (o *forwardRestrictBase) load(m map[string]interface{}, objThis *ForwardRes
 	} else {
 		o.reverseIDIsValid = false
 		o.reverseID = ""
+		o.reverseIDIsDirty = false
 	}
 
 	if v, ok := m["Reverse"]; ok {
@@ -682,7 +681,6 @@ func (o *forwardRestrictBase) insert(ctx context.Context) {
 		if !o.nameIsValid {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
-
 		if !o.reverseIDIsValid {
 			panic("a value for ReverseID is required, and there is no default value. Call SetReverseID() before inserting the record.")
 		}
@@ -704,9 +702,6 @@ func (o *forwardRestrictBase) insert(ctx context.Context) {
 // will determine which specific fields are sent to the database to be changed.
 func (o *forwardRestrictBase) getModifiedFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-	if o.idIsDirty {
-		fields["id"] = o.id
-	}
 	if o.nameIsDirty {
 		fields["name"] = o.name
 	}
@@ -748,7 +743,6 @@ func deleteForwardRestrict(ctx context.Context, pk string) {
 
 // resetDirtyStatus resets the dirty status of every field in the object.
 func (o *forwardRestrictBase) resetDirtyStatus() {
-	o.idIsDirty = false
 	o.nameIsDirty = false
 	o.reverseIDIsDirty = false
 
@@ -756,8 +750,7 @@ func (o *forwardRestrictBase) resetDirtyStatus() {
 
 // IsDirty returns true if the object has been changed since it was read from the database.
 func (o *forwardRestrictBase) IsDirty() (dirty bool) {
-	dirty = o.idIsDirty ||
-		o.nameIsDirty ||
+	dirty = o.nameIsDirty ||
 		o.reverseIDIsDirty ||
 		(o.objReverse != nil && o.objReverse.IsDirty())
 
@@ -809,9 +802,6 @@ func (o *forwardRestrictBase) MarshalBinary() ([]byte, error) {
 	}
 	if err := encoder.Encode(o.idIsValid); err != nil {
 		return nil, fmt.Errorf("error encoding ForwardRestrict.idIsValid: %w", err)
-	}
-	if err := encoder.Encode(o.idIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding ForwardRestrict.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.name); err != nil {
@@ -885,9 +875,6 @@ func (o *forwardRestrictBase) UnmarshalBinary(data []byte) (err error) {
 	}
 	if err = dec.Decode(&o.idIsValid); err != nil {
 		return fmt.Errorf("error decoding ForwardRestrict.idIsValid: %w", err)
-	}
-	if err = dec.Decode(&o.idIsDirty); err != nil {
-		return fmt.Errorf("error decoding ForwardRestrict.idIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.name); err != nil {

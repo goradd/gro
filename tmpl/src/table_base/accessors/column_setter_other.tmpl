@@ -18,7 +18,9 @@ func (o *{{= table.DecapIdentifier }}Base) Set{{= col.Identifier }}(v {{= col.Go
 
 	o.{{= col.VariableIdentifier() }}IsValid = true
 	o.{{= col.VariableIdentifier() }} = v
+{{if col.HasSetter() }}
 	o.{{= col.VariableIdentifier() }}IsDirty = true
+{{if}}
 {{if col.IsNullable }}
     o.{{= col.VariableIdentifier() }}IsNull = false
 {{if}}

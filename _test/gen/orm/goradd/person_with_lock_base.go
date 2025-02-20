@@ -25,7 +25,6 @@ import (
 type personWithLockBase struct {
 	id        string
 	idIsValid bool
-	idIsDirty bool
 
 	firstName        string
 	firstNameIsValid bool
@@ -35,10 +34,8 @@ type personWithLockBase struct {
 	lastNameIsValid bool
 	lastNameIsDirty bool
 
-	sysTimestamp        time.Time
-	sysTimestampIsNull  bool
-	sysTimestampIsValid bool
-	sysTimestampIsDirty bool
+	groTimestamp        int64
+	groTimestampIsValid bool
 
 	// Custom aliases, if specified
 	_aliases map[string]any
@@ -55,7 +52,7 @@ const (
 	PersonWithLock_ID           = `ID`
 	PersonWithLock_FirstName    = `FirstName`
 	PersonWithLock_LastName     = `LastName`
-	PersonWithLock_SysTimestamp = `SysTimestamp`
+	PersonWithLock_GroTimestamp = `GroTimestamp`
 )
 
 const PersonWithLockFirstNameMaxLength = 50 // The number of runes the column can hold
@@ -69,7 +66,6 @@ func (o *personWithLockBase) Initialize() {
 	o.id = db.TemporaryPrimaryKey()
 
 	o.idIsValid = false
-	o.idIsDirty = false
 
 	o.firstName = ""
 
@@ -81,11 +77,9 @@ func (o *personWithLockBase) Initialize() {
 	o.lastNameIsValid = false
 	o.lastNameIsDirty = false
 
-	o.sysTimestamp = time.Time{}
+	o.groTimestamp = 0
 
-	o.sysTimestampIsNull = false
-	o.sysTimestampIsValid = true
-	o.sysTimestampIsDirty = true
+	o.groTimestampIsValid = false
 
 	o._restored = false
 }
@@ -190,45 +184,17 @@ func (o *personWithLockBase) SetLastName(v string) {
 	o.lastNameIsDirty = true
 }
 
-// SysTimestamp returns the loaded value of SysTimestamp.
-func (o *personWithLockBase) SysTimestamp() time.Time {
-	if o._restored && !o.sysTimestampIsValid {
-		panic("SysTimestamp was not selected in the last query and has not been set, and so is not valid")
+// GroTimestamp returns the loaded value of GroTimestamp.
+func (o *personWithLockBase) GroTimestamp() int64 {
+	if o._restored && !o.groTimestampIsValid {
+		panic("GroTimestamp was not selected in the last query and has not been set, and so is not valid")
 	}
-	return o.sysTimestamp
+	return o.groTimestamp
 }
 
-// SysTimestampIsValid returns true if the value was loaded from the database or has been set.
-func (o *personWithLockBase) SysTimestampIsValid() bool {
-	return o.sysTimestampIsValid
-}
-
-// SysTimestampIsNull returns true if the related database value is null.
-func (o *personWithLockBase) SysTimestampIsNull() bool {
-	return o.sysTimestampIsNull
-}
-
-// SysTimestamp_I returns the loaded value of SysTimestamp as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *personWithLockBase) SysTimestamp_I() interface{} {
-	if o._restored && !o.sysTimestampIsValid {
-		panic("sysTimestamp was not selected in the last query and has not been set, and so is not valid")
-	} else if o.sysTimestampIsNull {
-		return nil
-	}
-	return o.sysTimestamp
-}
-
-// SetSysTimestampToNull() will set the sys_timestamp value in the database to NULL.
-// SysTimestamp() will return the column's default value after this.
-func (o *personWithLockBase) SetSysTimestampToNull() {
-	if !o.sysTimestampIsValid || !o.sysTimestampIsNull {
-		// If we know it is null in the database, don't save it
-		o.sysTimestampIsDirty = true
-	}
-	o.sysTimestampIsValid = true
-	o.sysTimestampIsNull = true
-	o.sysTimestamp = time.Time{}
+// GroTimestampIsValid returns true if the value was loaded from the database or has been set.
+func (o *personWithLockBase) GroTimestampIsValid() bool {
+	return o.groTimestampIsValid
 }
 
 // GetAlias returns the alias for the given key.
@@ -578,11 +544,11 @@ func CountPersonWithLockByLastName(ctx context.Context, lastName string) int {
 	return queryPersonWithLocks(ctx).Where(op.Equal(node.PersonWithLock().LastName(), lastName)).Count()
 }
 
-// CountPersonWithLockBySysTimestamp queries the database and returns the number of PersonWithLock objects that
-// have sysTimestamp.
+// CountPersonWithLockByGroTimestamp queries the database and returns the number of PersonWithLock objects that
+// have groTimestamp.
 // doc: type=PersonWithLock
-func CountPersonWithLockBySysTimestamp(ctx context.Context, sysTimestamp time.Time) int {
-	return queryPersonWithLocks(ctx).Where(op.Equal(node.PersonWithLock().SysTimestamp(), sysTimestamp)).Count()
+func CountPersonWithLockByGroTimestamp(ctx context.Context, groTimestamp int64) int {
+	return queryPersonWithLocks(ctx).Where(op.Equal(node.PersonWithLock().GroTimestamp(), groTimestamp)).Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
@@ -592,7 +558,6 @@ func (o *personWithLockBase) load(m map[string]interface{}, objThis *PersonWithL
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
 			o.idIsValid = true
-			o.idIsDirty = false
 
 			o._originalPK = o.id
 
@@ -615,6 +580,7 @@ func (o *personWithLockBase) load(m map[string]interface{}, objThis *PersonWithL
 	} else {
 		o.firstNameIsValid = false
 		o.firstName = ""
+		o.firstNameIsDirty = false
 	}
 
 	if v, ok := m["last_name"]; ok && v != nil {
@@ -628,25 +594,19 @@ func (o *personWithLockBase) load(m map[string]interface{}, objThis *PersonWithL
 	} else {
 		o.lastNameIsValid = false
 		o.lastName = ""
+		o.lastNameIsDirty = false
 	}
 
-	if v, ok := m["sys_timestamp"]; ok {
-		if v == nil {
-			o.sysTimestamp = time.Time{}
-			o.sysTimestampIsNull = true
-			o.sysTimestampIsValid = true
-			o.sysTimestampIsDirty = false
-		} else if o.sysTimestamp, ok = v.(time.Time); ok {
-			o.sysTimestampIsNull = false
-			o.sysTimestampIsValid = true
-			o.sysTimestampIsDirty = false
+	if v, ok := m["gro_timestamp"]; ok && v != nil {
+		if o.groTimestamp, ok = v.(int64); ok {
+			o.groTimestampIsValid = true
+
 		} else {
-			panic("Wrong type found for sys_timestamp.")
+			panic("Wrong type found for gro_timestamp.")
 		}
 	} else {
-		o.sysTimestampIsValid = false
-		o.sysTimestampIsNull = true
-		o.sysTimestamp = time.Time{}
+		o.groTimestampIsValid = false
+		o.groTimestamp = 0
 	}
 
 	if v, ok := m["aliases_"]; ok {
@@ -701,10 +661,12 @@ func (o *personWithLockBase) insert(ctx context.Context) {
 		if !o.firstNameIsValid {
 			panic("a value for FirstName is required, and there is no default value. Call SetFirstName() before inserting the record.")
 		}
-
 		if !o.lastNameIsValid {
 			panic("a value for LastName is required, and there is no default value. Call SetLastName() before inserting the record.")
 		}
+
+		o.groTimestamp = time.Now().UnixMicro()
+		o.groTimestampIsValid = true
 
 		m := o.getValidFields()
 
@@ -723,21 +685,11 @@ func (o *personWithLockBase) insert(ctx context.Context) {
 // will determine which specific fields are sent to the database to be changed.
 func (o *personWithLockBase) getModifiedFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-	if o.idIsDirty {
-		fields["id"] = o.id
-	}
 	if o.firstNameIsDirty {
 		fields["first_name"] = o.firstName
 	}
 	if o.lastNameIsDirty {
 		fields["last_name"] = o.lastName
-	}
-	if o.sysTimestampIsDirty {
-		if o.sysTimestampIsNull {
-			fields["sys_timestamp"] = nil
-		} else {
-			fields["sys_timestamp"] = o.sysTimestamp
-		}
 	}
 	return
 }
@@ -751,12 +703,8 @@ func (o *personWithLockBase) getValidFields() (fields map[string]interface{}) {
 	if o.lastNameIsValid {
 		fields["last_name"] = o.lastName
 	}
-	if o.sysTimestampIsValid {
-		if o.sysTimestampIsNull {
-			fields["sys_timestamp"] = nil
-		} else {
-			fields["sys_timestamp"] = o.sysTimestamp
-		}
+	if o.groTimestampIsValid {
+		fields["gro_timestamp"] = o.groTimestamp
 	}
 	return
 }
@@ -781,19 +729,15 @@ func deletePersonWithLock(ctx context.Context, pk string) {
 
 // resetDirtyStatus resets the dirty status of every field in the object.
 func (o *personWithLockBase) resetDirtyStatus() {
-	o.idIsDirty = false
 	o.firstNameIsDirty = false
 	o.lastNameIsDirty = false
-	o.sysTimestampIsDirty = false
 
 }
 
 // IsDirty returns true if the object has been changed since it was read from the database.
 func (o *personWithLockBase) IsDirty() (dirty bool) {
-	dirty = o.idIsDirty ||
-		o.firstNameIsDirty ||
-		o.lastNameIsDirty ||
-		o.sysTimestampIsDirty
+	dirty = o.firstNameIsDirty ||
+		o.lastNameIsDirty
 
 	return
 }
@@ -823,11 +767,11 @@ func (o *personWithLockBase) Get(key string) interface{} {
 		}
 		return o.lastName
 
-	case "SysTimestamp":
-		if !o.sysTimestampIsValid {
+	case "GroTimestamp":
+		if !o.groTimestampIsValid {
 			return nil
 		}
-		return o.sysTimestamp
+		return o.groTimestamp
 
 	}
 	return nil
@@ -846,9 +790,6 @@ func (o *personWithLockBase) MarshalBinary() ([]byte, error) {
 	}
 	if err := encoder.Encode(o.idIsValid); err != nil {
 		return nil, fmt.Errorf("error encoding PersonWithLock.idIsValid: %w", err)
-	}
-	if err := encoder.Encode(o.idIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding PersonWithLock.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.firstName); err != nil {
@@ -871,17 +812,11 @@ func (o *personWithLockBase) MarshalBinary() ([]byte, error) {
 		return nil, fmt.Errorf("error encoding PersonWithLock.lastNameIsDirty: %w", err)
 	}
 
-	if err := encoder.Encode(o.sysTimestamp); err != nil {
-		return nil, fmt.Errorf("error encoding PersonWithLock.sysTimestamp: %w", err)
+	if err := encoder.Encode(o.groTimestamp); err != nil {
+		return nil, fmt.Errorf("error encoding PersonWithLock.groTimestamp: %w", err)
 	}
-	if err := encoder.Encode(o.sysTimestampIsNull); err != nil {
-		return nil, fmt.Errorf("error encoding PersonWithLock.sysTimestampIsNull: %w", err)
-	}
-	if err := encoder.Encode(o.sysTimestampIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding PersonWithLock.sysTimestampIsValid: %w", err)
-	}
-	if err := encoder.Encode(o.sysTimestampIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding PersonWithLock.sysTimestampIsDirty: %w", err)
+	if err := encoder.Encode(o.groTimestampIsValid); err != nil {
+		return nil, fmt.Errorf("error encoding PersonWithLock.groTimestampIsValid: %w", err)
 	}
 
 	if o._aliases == nil {
@@ -923,9 +858,6 @@ func (o *personWithLockBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.idIsValid); err != nil {
 		return fmt.Errorf("error decoding PersonWithLock.idIsValid: %w", err)
 	}
-	if err = dec.Decode(&o.idIsDirty); err != nil {
-		return fmt.Errorf("error decoding PersonWithLock.idIsDirty: %w", err)
-	}
 
 	if err = dec.Decode(&o.firstName); err != nil {
 		return fmt.Errorf("error decoding PersonWithLock.firstName: %w", err)
@@ -947,17 +879,11 @@ func (o *personWithLockBase) UnmarshalBinary(data []byte) (err error) {
 		return fmt.Errorf("error decoding PersonWithLock.lastNameIsDirty: %w", err)
 	}
 
-	if err = dec.Decode(&o.sysTimestamp); err != nil {
-		return fmt.Errorf("error decoding PersonWithLock.sysTimestamp: %w", err)
+	if err = dec.Decode(&o.groTimestamp); err != nil {
+		return fmt.Errorf("error decoding PersonWithLock.groTimestamp: %w", err)
 	}
-	if err = dec.Decode(&o.sysTimestampIsNull); err != nil {
-		return fmt.Errorf("error decoding PersonWithLock.sysTimestampIsNull: %w", err)
-	}
-	if err = dec.Decode(&o.sysTimestampIsValid); err != nil {
-		return fmt.Errorf("error decoding PersonWithLock.sysTimestampIsValid: %w", err)
-	}
-	if err = dec.Decode(&o.sysTimestampIsDirty); err != nil {
-		return fmt.Errorf("error decoding PersonWithLock.sysTimestampIsDirty: %w", err)
+	if err = dec.Decode(&o.groTimestampIsValid); err != nil {
+		return fmt.Errorf("error decoding PersonWithLock.groTimestampIsValid: %w", err)
 	}
 
 	return
@@ -990,12 +916,8 @@ func (o *personWithLockBase) MarshalStringMap() map[string]interface{} {
 		v["lastName"] = o.lastName
 	}
 
-	if o.sysTimestampIsValid {
-		if o.sysTimestampIsNull {
-			v["sysTimestamp"] = nil
-		} else {
-			v["sysTimestamp"] = o.sysTimestamp
-		}
+	if o.groTimestampIsValid {
+		v["groTimestamp"] = o.groTimestamp
 	}
 
 	for _k, _v := range o._aliases {
@@ -1017,7 +939,7 @@ func (o *personWithLockBase) MarshalStringMap() map[string]interface{} {
 //	"id" - string
 //	"firstName" - string
 //	"lastName" - string
-//	"sysTimestamp" - time.Time, nullable
+//	"groTimestamp" - int64
 func (o *personWithLockBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
 	if len(data) == 0 {

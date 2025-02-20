@@ -25,7 +25,9 @@
     	if o.{{= col.VariableIdentifier() }}, ok = v.({{= col.GoType() }}); ok {
 {{if}}
 			o.{{= col.VariableIdentifier() }}IsValid = true
+{{if col.HasSetter() }}
 			o.{{= col.VariableIdentifier() }}IsDirty = false
+{{if}}
         {{if col.IsPrimaryKey}}
             o._originalPK = o.{{= col.VariableIdentifier() }}
         {{if}}
@@ -35,6 +37,9 @@
 	} else {
 		o.{{= col.VariableIdentifier() }}IsValid = false
 		o.{{= col.VariableIdentifier() }} = {{= col.DefaultValueAsValue() }}
+{{if col.HasSetter() }}
+		o.{{= col.VariableIdentifier() }}IsDirty = false
+{{if}}
 	}
 
 }}

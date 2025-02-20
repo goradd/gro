@@ -190,10 +190,10 @@
             "case_insensitive": true
           },
           {
-            "name": "sys_timestamp",
-            "type": "time",
-            "default_value": "update",
-            "is_nullable": true
+            "name": "gro_timestamp",
+            "type": "int",
+            "sub_type": "gro_timestamp",
+            "size": 64
           }
         ],
         "key": "person_with_lock"
@@ -274,6 +274,15 @@
               "mysql": {
                 "type": "decimal(12,2)"
               }
+            }
+          },
+          {
+            "name": "parent_project_id",
+            "type": "ref",
+            "is_nullable": true,
+            "index_level": "Indexed",
+            "reference": {
+              "table": "project"
             }
           }
         ],

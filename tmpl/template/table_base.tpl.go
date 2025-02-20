@@ -265,17 +265,25 @@ type `); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `IsValid bool
-	`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `IsDirty bool
 `); err != nil {
 			return
+		}
+
+		if col.HasSetter() {
+
+			if _, err = io.WriteString(_w, `	`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsDirty bool
+`); err != nil {
+				return
+			}
+
 		}
 
 		if col.IsReference() {
@@ -966,24 +974,6 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 				}
 
 				if _, err = io.WriteString(_w, `IsNull = true
-	o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsValid = true
-	o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsDirty = true
 `); err != nil {
 					return
 				}
@@ -999,16 +989,28 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 				}
 
 				if _, err = io.WriteString(_w, `IsNull = false
-	o.`); err != nil {
+`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-					return
-				}
+			}
 
-				if _, err = io.WriteString(_w, `IsValid = true
-	o.`); err != nil {
+			if _, err = io.WriteString(_w, `	o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsValid = true
+`); err != nil {
+				return
+			}
+
+			if col.HasSetter() {
+
+				if _, err = io.WriteString(_w, `	o.`); err != nil {
 					return
 				}
 
@@ -1045,17 +1047,25 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 				}
 
 				if _, err = io.WriteString(_w, `IsValid = false
-	o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsDirty = false
 `); err != nil {
 					return
+				}
+
+				if col.HasSetter() {
+
+					if _, err = io.WriteString(_w, `	o.`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `IsDirty = false
+`); err != nil {
+						return
+					}
+
 				}
 
 			} else {
@@ -1069,17 +1079,25 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 				}
 
 				if _, err = io.WriteString(_w, `IsValid = true
-	o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsDirty = true
 `); err != nil {
 					return
+				}
+
+				if col.HasSetter() {
+
+					if _, err = io.WriteString(_w, `	o.`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `IsDirty = true
+`); err != nil {
+						return
+					}
+
 				}
 
 			}
@@ -1299,6 +1317,7 @@ func (tmpl *TableBaseTemplate) genAccessors(table *model.Table, _w io.Writer) (e
 				return
 			}
 		}
+
 		if err = tmpl.genColSetter(table, col, _w); err != nil {
 			return
 		}
@@ -2429,17 +2448,25 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, ` = v
-	o.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `IsDirty = true
 `); err != nil {
 			return
+		}
+
+		if col.HasSetter() {
+
+			if _, err = io.WriteString(_w, `	o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsDirty = true
+`); err != nil {
+				return
+			}
+
 		}
 
 		if col.IsNullable {
@@ -2621,6 +2648,9 @@ func (o *`); err != nil {
 }
 
 func (tmpl *TableBaseTemplate) genColNullSetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
+	if !col.HasSetter() {
+		return
+	}
 
 	//*** column_setter_null.tmpl
 
@@ -7151,17 +7181,25 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `IsValid = true
-			o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `IsDirty = false
 `); err != nil {
 				return
+			}
+
+			if col.HasSetter() {
+
+				if _, err = io.WriteString(_w, `			o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `IsDirty = false
+`); err != nil {
+					return
+				}
+
 			}
 
 			if col.IsEnum() {
@@ -7282,16 +7320,28 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `IsValid = true
-			o.`); err != nil {
+`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
+			if col.HasSetter() {
+
+				if _, err = io.WriteString(_w, `			o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `IsDirty = false
+`); err != nil {
+					return
+				}
+
 			}
 
-			if _, err = io.WriteString(_w, `IsDirty = false
-		} else {
+			if _, err = io.WriteString(_w, `		} else {
 			panic("Wrong type found for `); err != nil {
 				return
 			}
@@ -7338,7 +7388,28 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `
-	}
+`); err != nil {
+				return
+			}
+
+			if col.HasSetter() {
+
+				if _, err = io.WriteString(_w, `		o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `IsDirty = false
+`); err != nil {
+					return
+				}
+
+			}
+
+			if _, err = io.WriteString(_w, `	}
 
 `); err != nil {
 				return
@@ -7486,16 +7557,28 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `IsValid = true
-			o.`); err != nil {
+`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
+			if col.HasSetter() {
+
+				if _, err = io.WriteString(_w, `			o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `IsDirty = false
+`); err != nil {
+					return
+				}
+
 			}
 
-			if _, err = io.WriteString(_w, `IsDirty = false
-        `); err != nil {
+			if _, err = io.WriteString(_w, `        `); err != nil {
 				return
 			}
 
@@ -7556,7 +7639,28 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `
-	}
+`); err != nil {
+				return
+			}
+
+			if col.HasSetter() {
+
+				if _, err = io.WriteString(_w, `		o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `IsDirty = false
+`); err != nil {
+					return
+				}
+
+			}
+
+			if _, err = io.WriteString(_w, `	}
 
 `); err != nil {
 				return
@@ -9147,19 +9251,9 @@ func (o *`); err != nil {
 
 	for _, col := range table.Columns {
 
-		if _, err = io.WriteString(_w, `    `); err != nil {
-			return
-		}
+		if col.HasSetter() && !col.IsNullable && col.DefaultValue == nil {
 
-		if !col.IsAutoId && !col.IsNullable && col.DefaultValue == nil {
-
-			if _, err = io.WriteString(_w, `
-        `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `
-    if !o.`); err != nil {
+			if _, err = io.WriteString(_w, `    if !o.`); err != nil {
 				return
 			}
 
@@ -9186,15 +9280,69 @@ func (o *`); err != nil {
 
 			if _, err = io.WriteString(_w, `() before inserting the record.")
     }
-    `); err != nil {
+`); err != nil {
 				return
 			}
 
 		}
 
-		if _, err = io.WriteString(_w, `
+	}
+
+	if _, err = io.WriteString(_w, `
 `); err != nil {
-			return
+		return
+	}
+
+	for _, col := range table.Columns {
+
+		if col.ReceiverType == query.ColTypeTime && (col.DefaultValue == model.CreatedTime || col.DefaultValue == model.ModifiedTime) {
+
+			if _, err = io.WriteString(_w, `    o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` = time.Now().UTC()
+    o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsValid = true
+`); err != nil {
+				return
+			}
+
+		} else if col.ReceiverType == query.ColTypeInteger64 && col.SchemaSubType == schema.ColSubTypeGroTimestamp {
+
+			if _, err = io.WriteString(_w, `    o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` = time.Now().UnixMicro()
+    o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsValid = true
+`); err != nil {
+				return
+			}
+
 		}
 
 	}
@@ -9645,7 +9793,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	for _, col := range table.Columns {
+	for _, col := range table.SettableColumns() {
 
 		if _, err = io.WriteString(_w, `	if o.`); err != nil {
 			return
@@ -10757,7 +10905,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	for _, col := range table.Columns {
+	for _, col := range table.SettableColumns() {
 
 		if _, err = io.WriteString(_w, `	o.`); err != nil {
 			return
@@ -10825,7 +10973,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	for _i, _j := range table.Columns {
+	for _i, _j := range table.SettableColumns() {
 		_ = _j
 
 		if _, err = io.WriteString(_w, `o.`); err != nil {
@@ -10865,7 +11013,7 @@ func (o *`); err != nil {
 
 		}
 
-		if _i < len(table.Columns)-1 {
+		if _i < len(table.SettableColumns())-1 {
 			if _, err = io.WriteString(_w, "|| \n"); err != nil {
 				return
 			}
@@ -11348,34 +11496,46 @@ func (o *`); err != nil {
 
 		if _, err = io.WriteString(_w, `IsValid: %w", err)
     }
-    if err := encoder.Encode(o.`); err != nil {
+`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-			return
-		}
+		if col.HasSetter() {
 
-		if _, err = io.WriteString(_w, `IsDirty); err != nil {
+			if _, err = io.WriteString(_w, `    if err := encoder.Encode(o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsDirty); err != nil {
         return nil, fmt.Errorf("error encoding `); err != nil {
-			return
-		}
+				return
+			}
 
-		if _, err = io.WriteString(_w, table.Identifier); err != nil {
-			return
-		}
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
 
-		if _, err = io.WriteString(_w, `.`); err != nil {
-			return
-		}
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-			return
-		}
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
 
-		if _, err = io.WriteString(_w, `IsDirty: %w", err)
+			if _, err = io.WriteString(_w, `IsDirty: %w", err)
     }
+`); err != nil {
+				return
+			}
 
+		}
+
+		if _, err = io.WriteString(_w, `
 `); err != nil {
 			return
 		}
@@ -11937,34 +12097,46 @@ func (o *`); err != nil {
 
 		if _, err = io.WriteString(_w, `IsValid: %w", err)
     }
-    if err = dec.Decode(&o.`); err != nil {
+`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-			return
-		}
+		if col.HasSetter() {
 
-		if _, err = io.WriteString(_w, `IsDirty); err != nil {
+			if _, err = io.WriteString(_w, `    if err = dec.Decode(&o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsDirty); err != nil {
         return fmt.Errorf("error decoding `); err != nil {
-			return
-		}
+				return
+			}
 
-		if _, err = io.WriteString(_w, table.Identifier); err != nil {
-			return
-		}
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
 
-		if _, err = io.WriteString(_w, `.`); err != nil {
-			return
-		}
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-			return
-		}
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
 
-		if _, err = io.WriteString(_w, `IsDirty: %w", err)
+			if _, err = io.WriteString(_w, `IsDirty: %w", err)
     }
+`); err != nil {
+				return
+			}
 
+		}
+
+		if _, err = io.WriteString(_w, `
 `); err != nil {
 			return
 		}

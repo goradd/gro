@@ -8,7 +8,7 @@ func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) {
     d := Database()
 	db.ExecuteTransaction(ctx, d, func() {
 
-{{# Here we save forward references, get the id, and then set the corresponding foreign key }}
+{{# Here we save forward references, get the id, and then set the corresponding foreign key.}}
 {{for _,col := range table.Columns}}
     {{if col.IsReference() }}
     if o.{{= col.ReferenceVariableIdentifier() }} != nil {
@@ -20,14 +20,25 @@ func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) {
 {{for}}
 
 {{for _,col := range table.Columns}}
-    {{if !col.IsAutoId && !col.IsNullable && col.DefaultValue == nil}}
-        {{# Note: Most likely the user is inserting a new record, but forgot to set a required value, but there is the
+{{if col.HasSetter() && !col.IsNullable && col.DefaultValue == nil}}
+{{# Note: Most likely the user is inserting a new record, but forgot to set a required value, but there is the
               possibility that this is a retrieved record with missing fields (through the Select statement) and those
               missing fields are required, and the user is forcing an insert. }}
     if !o.{{= col.VariableIdentifier() }}IsValid {
         panic("a value for {{= col.Identifier }} is required, and there is no default value. Call Set{{= col.Identifier }}() before inserting the record.")
     }
-    {{if}}
+{{if}}
+{{for}}
+
+{{# Add auto-generated fields}}
+{{for _,col := range table.Columns}}
+{{if col.ReceiverType == query.ColTypeTime && (col.DefaultValue == model.CreatedTime || col.DefaultValue == model.ModifiedTime)}}
+    o.{{= col.VariableIdentifier() }} = time.Now().UTC()
+    o.{{= col.VariableIdentifier() }}IsValid = true
+{{elseif col.ReceiverType == query.ColTypeInteger64 && col.SchemaSubType == schema.ColSubTypeGroTimestamp }}
+    o.{{= col.VariableIdentifier() }} = time.Now().UnixMicro()
+    o.{{= col.VariableIdentifier() }}IsValid = true
+{{if}}
 {{for}}
 
     m := o.getValidFields()

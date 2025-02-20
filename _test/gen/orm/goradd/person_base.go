@@ -25,7 +25,6 @@ import (
 type personBase struct {
 	id        string
 	idIsValid bool
-	idIsDirty bool
 
 	firstName        string
 	firstNameIsValid bool
@@ -101,7 +100,6 @@ func (o *personBase) Initialize() {
 	o.id = db.TemporaryPrimaryKey()
 
 	o.idIsValid = false
-	o.idIsDirty = false
 
 	o.firstName = ""
 
@@ -1027,7 +1025,6 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
 			o.idIsValid = true
-			o.idIsDirty = false
 
 			o._originalPK = o.id
 
@@ -1050,6 +1047,7 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 	} else {
 		o.firstNameIsValid = false
 		o.firstName = ""
+		o.firstNameIsDirty = false
 	}
 
 	if v, ok := m["last_name"]; ok && v != nil {
@@ -1063,6 +1061,7 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 	} else {
 		o.lastNameIsValid = false
 		o.lastName = ""
+		o.lastNameIsDirty = false
 	}
 
 	if v, ok := m["type_enum"]; ok {
@@ -1090,6 +1089,7 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 		o.typesIsValid = false
 		o.typesIsNull = true
 		o.types = nil
+		o.typesIsDirty = false
 	}
 
 	// Many-Many references
@@ -1367,7 +1367,6 @@ func (o *personBase) insert(ctx context.Context) {
 		if !o.firstNameIsValid {
 			panic("a value for FirstName is required, and there is no default value. Call SetFirstName() before inserting the record.")
 		}
-
 		if !o.lastNameIsValid {
 			panic("a value for LastName is required, and there is no default value. Call SetLastName() before inserting the record.")
 		}
@@ -1451,9 +1450,6 @@ func (o *personBase) insert(ctx context.Context) {
 // will determine which specific fields are sent to the database to be changed.
 func (o *personBase) getModifiedFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-	if o.idIsDirty {
-		fields["id"] = o.id
-	}
 	if o.firstNameIsDirty {
 		fields["first_name"] = o.firstName
 	}
@@ -1574,7 +1570,6 @@ func deletePerson(ctx context.Context, pk string) {
 
 // resetDirtyStatus resets the dirty status of every field in the object.
 func (o *personBase) resetDirtyStatus() {
-	o.idIsDirty = false
 	o.firstNameIsDirty = false
 	o.lastNameIsDirty = false
 	o.typesIsDirty = false
@@ -1588,8 +1583,7 @@ func (o *personBase) resetDirtyStatus() {
 
 // IsDirty returns true if the object has been changed since it was read from the database.
 func (o *personBase) IsDirty() (dirty bool) {
-	dirty = o.idIsDirty ||
-		o.firstNameIsDirty ||
+	dirty = o.firstNameIsDirty ||
 		o.lastNameIsDirty ||
 		o.typesIsDirty
 
@@ -1678,9 +1672,6 @@ func (o *personBase) MarshalBinary() ([]byte, error) {
 	}
 	if err := encoder.Encode(o.idIsValid); err != nil {
 		return nil, fmt.Errorf("error encoding Person.idIsValid: %w", err)
-	}
-	if err := encoder.Encode(o.idIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding Person.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.firstName); err != nil {
@@ -1859,9 +1850,6 @@ func (o *personBase) UnmarshalBinary(data []byte) (err error) {
 	}
 	if err = dec.Decode(&o.idIsValid); err != nil {
 		return fmt.Errorf("error decoding Person.idIsValid: %w", err)
-	}
-	if err = dec.Decode(&o.idIsDirty); err != nil {
-		return fmt.Errorf("error decoding Person.idIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.firstName); err != nil {

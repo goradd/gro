@@ -283,6 +283,9 @@ func (cd *Column) HasSetter() bool {
 			return false
 		}
 	}
+	if cd.ReceiverType == ColTypeInteger64 && cd.SchemaSubType == schema.ColSubTypeGroTimestamp {
+		return false
+	}
 	return true
 }
 

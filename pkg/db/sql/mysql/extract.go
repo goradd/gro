@@ -413,6 +413,9 @@ func processTypeInfo(column mysqlColumn) (
 			typ = schema.ColTypeUint
 		} else {
 			typ = schema.ColTypeInt
+			if column.name == schema.GroTimeName {
+				subType = schema.ColSubTypeGroTimestamp
+			}
 		}
 
 	case "float":

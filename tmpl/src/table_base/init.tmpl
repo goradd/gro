@@ -21,20 +21,24 @@ func (o *{{= table.DecapIdentifier}}Base) Initialize() {
 {{if col.IsNullable}}
 {{if col.DefaultValue == nil}}
 	o.{{= col.VariableIdentifier() }}IsNull = true
-	o.{{= col.VariableIdentifier() }}IsValid = true
-	o.{{= col.VariableIdentifier() }}IsDirty = true
 {{else}}
 	o.{{= col.VariableIdentifier() }}IsNull = false
+{{if}}
 	o.{{= col.VariableIdentifier() }}IsValid = true
+{{if col.HasSetter() }}
 	o.{{= col.VariableIdentifier() }}IsDirty = true
 {{if}}
 {{else}} {{# not null }}
 {{if col.DefaultValue == nil}}
 	o.{{= col.VariableIdentifier() }}IsValid = false
+{{if col.HasSetter() }}
 	o.{{= col.VariableIdentifier() }}IsDirty = false
+{{if}}
 {{else}}
 	o.{{= col.VariableIdentifier() }}IsValid = true
+{{if col.HasSetter() }}
 	o.{{= col.VariableIdentifier() }}IsDirty = true
+{{if}}
 {{if}}
 {{if}}
 

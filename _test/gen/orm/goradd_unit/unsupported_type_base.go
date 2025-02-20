@@ -26,7 +26,6 @@ import (
 type unsupportedTypeBase struct {
 	typeSerial        string
 	typeSerialIsValid bool
-	typeSerialIsDirty bool
 
 	typeSet        []byte
 	typeSetIsValid bool
@@ -151,7 +150,6 @@ func (o *unsupportedTypeBase) Initialize() {
 	o.typeSerial = db.TemporaryPrimaryKey()
 
 	o.typeSerialIsValid = false
-	o.typeSerialIsDirty = false
 
 	o.typeSet = []byte(nil)
 
@@ -1327,7 +1325,6 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	if v, ok := m["type_serial"]; ok && v != nil {
 		if o.typeSerial, ok = v.(string); ok {
 			o.typeSerialIsValid = true
-			o.typeSerialIsDirty = false
 
 			o._originalPK = o.typeSerial
 
@@ -1350,6 +1347,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	} else {
 		o.typeSetIsValid = false
 		o.typeSet = []byte(nil)
+		o.typeSetIsDirty = false
 	}
 
 	if v, ok := m["type_enumerated"]; ok && v != nil {
@@ -1363,6 +1361,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	} else {
 		o.typeEnumeratedIsValid = false
 		o.typeEnumerated = []byte(nil)
+		o.typeEnumeratedIsDirty = false
 	}
 
 	if v, ok := m["type_decimal"]; ok && v != nil {
@@ -1376,6 +1375,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	} else {
 		o.typeDecimalIsValid = false
 		o.typeDecimal = []byte(nil)
+		o.typeDecimalIsDirty = false
 	}
 
 	if v, ok := m["type_double"]; ok && v != nil {
@@ -1389,6 +1389,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	} else {
 		o.typeDoubleIsValid = false
 		o.typeDouble = 0
+		o.typeDoubleIsDirty = false
 	}
 
 	if v, ok := m["type_geo"]; ok && v != nil {
@@ -1402,6 +1403,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	} else {
 		o.typeGeoIsValid = false
 		o.typeGeo = []byte(nil)
+		o.typeGeoIsDirty = false
 	}
 
 	if v, ok := m["type_tiny_blob"]; ok && v != nil {
@@ -1415,6 +1417,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	} else {
 		o.typeTinyBlobIsValid = false
 		o.typeTinyBlob = []byte(nil)
+		o.typeTinyBlobIsDirty = false
 	}
 
 	if v, ok := m["type_medium_blob"]; ok && v != nil {
@@ -1428,6 +1431,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	} else {
 		o.typeMediumBlobIsValid = false
 		o.typeMediumBlob = []byte(nil)
+		o.typeMediumBlobIsDirty = false
 	}
 
 	if v, ok := m["type_varbinary"]; ok && v != nil {
@@ -1441,6 +1445,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	} else {
 		o.typeVarbinaryIsValid = false
 		o.typeVarbinary = []byte(nil)
+		o.typeVarbinaryIsDirty = false
 	}
 
 	if v, ok := m["type_longtext"]; ok && v != nil {
@@ -1454,6 +1459,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	} else {
 		o.typeLongtextIsValid = false
 		o.typeLongtext = ""
+		o.typeLongtextIsDirty = false
 	}
 
 	if v, ok := m["type_binary"]; ok && v != nil {
@@ -1467,6 +1473,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	} else {
 		o.typeBinaryIsValid = false
 		o.typeBinary = []byte(nil)
+		o.typeBinaryIsDirty = false
 	}
 
 	if v, ok := m["type_small"]; ok && v != nil {
@@ -1480,6 +1487,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	} else {
 		o.typeSmallIsValid = false
 		o.typeSmall = 0
+		o.typeSmallIsDirty = false
 	}
 
 	if v, ok := m["type_medium"]; ok && v != nil {
@@ -1493,6 +1501,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	} else {
 		o.typeMediumIsValid = false
 		o.typeMedium = 0
+		o.typeMediumIsDirty = false
 	}
 
 	if v, ok := m["type_big"]; ok && v != nil {
@@ -1506,6 +1515,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	} else {
 		o.typeBigIsValid = false
 		o.typeBig = 0
+		o.typeBigIsDirty = false
 	}
 
 	if v, ok := m["type_polygon"]; ok && v != nil {
@@ -1519,6 +1529,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	} else {
 		o.typePolygonIsValid = false
 		o.typePolygon = []byte(nil)
+		o.typePolygonIsDirty = false
 	}
 
 	if v, ok := m["type_unsigned"]; ok && v != nil {
@@ -1532,6 +1543,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	} else {
 		o.typeUnsignedIsValid = false
 		o.typeUnsigned = 0x0
+		o.typeUnsignedIsDirty = false
 	}
 
 	if v, ok := m["type_multFk1"]; ok && v != nil {
@@ -1545,6 +1557,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	} else {
 		o.typeMultfk1IsValid = false
 		o.typeMultfk1 = ""
+		o.typeMultfk1IsDirty = false
 	}
 
 	if v, ok := m["type_multiFk2"]; ok && v != nil {
@@ -1558,6 +1571,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	} else {
 		o.typeMultifk2IsValid = false
 		o.typeMultifk2 = ""
+		o.typeMultifk2IsDirty = false
 	}
 
 	if v, ok := m["aliases_"]; ok {
@@ -1612,67 +1626,51 @@ func (o *unsupportedTypeBase) insert(ctx context.Context) {
 		if !o.typeSetIsValid {
 			panic("a value for TypeSet is required, and there is no default value. Call SetTypeSet() before inserting the record.")
 		}
-
 		if !o.typeEnumeratedIsValid {
 			panic("a value for TypeEnumerated is required, and there is no default value. Call SetTypeEnumerated() before inserting the record.")
 		}
-
 		if !o.typeDecimalIsValid {
 			panic("a value for TypeDecimal is required, and there is no default value. Call SetTypeDecimal() before inserting the record.")
 		}
-
 		if !o.typeDoubleIsValid {
 			panic("a value for TypeDouble is required, and there is no default value. Call SetTypeDouble() before inserting the record.")
 		}
-
 		if !o.typeGeoIsValid {
 			panic("a value for TypeGeo is required, and there is no default value. Call SetTypeGeo() before inserting the record.")
 		}
-
 		if !o.typeTinyBlobIsValid {
 			panic("a value for TypeTinyBlob is required, and there is no default value. Call SetTypeTinyBlob() before inserting the record.")
 		}
-
 		if !o.typeMediumBlobIsValid {
 			panic("a value for TypeMediumBlob is required, and there is no default value. Call SetTypeMediumBlob() before inserting the record.")
 		}
-
 		if !o.typeVarbinaryIsValid {
 			panic("a value for TypeVarbinary is required, and there is no default value. Call SetTypeVarbinary() before inserting the record.")
 		}
-
 		if !o.typeLongtextIsValid {
 			panic("a value for TypeLongtext is required, and there is no default value. Call SetTypeLongtext() before inserting the record.")
 		}
-
 		if !o.typeBinaryIsValid {
 			panic("a value for TypeBinary is required, and there is no default value. Call SetTypeBinary() before inserting the record.")
 		}
-
 		if !o.typeSmallIsValid {
 			panic("a value for TypeSmall is required, and there is no default value. Call SetTypeSmall() before inserting the record.")
 		}
-
 		if !o.typeMediumIsValid {
 			panic("a value for TypeMedium is required, and there is no default value. Call SetTypeMedium() before inserting the record.")
 		}
-
 		if !o.typeBigIsValid {
 			panic("a value for TypeBig is required, and there is no default value. Call SetTypeBig() before inserting the record.")
 		}
-
 		if !o.typePolygonIsValid {
 			panic("a value for TypePolygon is required, and there is no default value. Call SetTypePolygon() before inserting the record.")
 		}
-
 		if !o.typeUnsignedIsValid {
 			panic("a value for TypeUnsigned is required, and there is no default value. Call SetTypeUnsigned() before inserting the record.")
 		}
-
 		if !o.typeMultfk1IsValid {
 			panic("a value for TypeMultfk1 is required, and there is no default value. Call SetTypeMultfk1() before inserting the record.")
 		}
-
 		if !o.typeMultifk2IsValid {
 			panic("a value for TypeMultifk2 is required, and there is no default value. Call SetTypeMultifk2() before inserting the record.")
 		}
@@ -1694,9 +1692,6 @@ func (o *unsupportedTypeBase) insert(ctx context.Context) {
 // will determine which specific fields are sent to the database to be changed.
 func (o *unsupportedTypeBase) getModifiedFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-	if o.typeSerialIsDirty {
-		fields["type_serial"] = o.typeSerial
-	}
 	if o.typeSetIsDirty {
 		fields["type_set"] = o.typeSet
 	}
@@ -1828,7 +1823,6 @@ func deleteUnsupportedType(ctx context.Context, pk string) {
 
 // resetDirtyStatus resets the dirty status of every field in the object.
 func (o *unsupportedTypeBase) resetDirtyStatus() {
-	o.typeSerialIsDirty = false
 	o.typeSetIsDirty = false
 	o.typeEnumeratedIsDirty = false
 	o.typeDecimalIsDirty = false
@@ -1851,8 +1845,7 @@ func (o *unsupportedTypeBase) resetDirtyStatus() {
 
 // IsDirty returns true if the object has been changed since it was read from the database.
 func (o *unsupportedTypeBase) IsDirty() (dirty bool) {
-	dirty = o.typeSerialIsDirty ||
-		o.typeSetIsDirty ||
+	dirty = o.typeSetIsDirty ||
 		o.typeEnumeratedIsDirty ||
 		o.typeDecimalIsDirty ||
 		o.typeDoubleIsDirty ||
@@ -2005,9 +1998,6 @@ func (o *unsupportedTypeBase) MarshalBinary() ([]byte, error) {
 	}
 	if err := encoder.Encode(o.typeSerialIsValid); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeSerialIsValid: %w", err)
-	}
-	if err := encoder.Encode(o.typeSerialIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeSerialIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.typeSet); err != nil {
@@ -2218,9 +2208,6 @@ func (o *unsupportedTypeBase) UnmarshalBinary(data []byte) (err error) {
 	}
 	if err = dec.Decode(&o.typeSerialIsValid); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeSerialIsValid: %w", err)
-	}
-	if err = dec.Decode(&o.typeSerialIsDirty); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeSerialIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.typeSet); err != nil {

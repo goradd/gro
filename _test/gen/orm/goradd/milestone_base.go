@@ -24,7 +24,6 @@ import (
 type milestoneBase struct {
 	id        string
 	idIsValid bool
-	idIsDirty bool
 
 	projectID        string
 	projectIDIsValid bool
@@ -63,7 +62,6 @@ func (o *milestoneBase) Initialize() {
 	o.id = db.TemporaryPrimaryKey()
 
 	o.idIsValid = false
-	o.idIsDirty = false
 
 	o.projectID = ""
 
@@ -566,7 +564,6 @@ func (o *milestoneBase) load(m map[string]interface{}, objThis *Milestone) {
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
 			o.idIsValid = true
-			o.idIsDirty = false
 
 			o._originalPK = o.id
 
@@ -589,6 +586,7 @@ func (o *milestoneBase) load(m map[string]interface{}, objThis *Milestone) {
 	} else {
 		o.projectIDIsValid = false
 		o.projectID = ""
+		o.projectIDIsDirty = false
 	}
 
 	if v, ok := m["Project"]; ok {
@@ -615,6 +613,7 @@ func (o *milestoneBase) load(m map[string]interface{}, objThis *Milestone) {
 	} else {
 		o.nameIsValid = false
 		o.name = ""
+		o.nameIsDirty = false
 	}
 
 	if v, ok := m["aliases_"]; ok {
@@ -682,7 +681,6 @@ func (o *milestoneBase) insert(ctx context.Context) {
 		if !o.projectIDIsValid {
 			panic("a value for ProjectID is required, and there is no default value. Call SetProjectID() before inserting the record.")
 		}
-
 		if !o.nameIsValid {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
@@ -704,9 +702,6 @@ func (o *milestoneBase) insert(ctx context.Context) {
 // will determine which specific fields are sent to the database to be changed.
 func (o *milestoneBase) getModifiedFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-	if o.idIsDirty {
-		fields["id"] = o.id
-	}
 	if o.projectIDIsDirty {
 		fields["project_id"] = o.projectID
 	}
@@ -748,7 +743,6 @@ func deleteMilestone(ctx context.Context, pk string) {
 
 // resetDirtyStatus resets the dirty status of every field in the object.
 func (o *milestoneBase) resetDirtyStatus() {
-	o.idIsDirty = false
 	o.projectIDIsDirty = false
 	o.nameIsDirty = false
 
@@ -756,8 +750,7 @@ func (o *milestoneBase) resetDirtyStatus() {
 
 // IsDirty returns true if the object has been changed since it was read from the database.
 func (o *milestoneBase) IsDirty() (dirty bool) {
-	dirty = o.idIsDirty ||
-		o.projectIDIsDirty ||
+	dirty = o.projectIDIsDirty ||
 		(o.objProject != nil && o.objProject.IsDirty()) ||
 		o.nameIsDirty
 
@@ -809,9 +802,6 @@ func (o *milestoneBase) MarshalBinary() ([]byte, error) {
 	}
 	if err := encoder.Encode(o.idIsValid); err != nil {
 		return nil, fmt.Errorf("error encoding Milestone.idIsValid: %w", err)
-	}
-	if err := encoder.Encode(o.idIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding Milestone.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.projectID); err != nil {
@@ -885,9 +875,6 @@ func (o *milestoneBase) UnmarshalBinary(data []byte) (err error) {
 	}
 	if err = dec.Decode(&o.idIsValid); err != nil {
 		return fmt.Errorf("error decoding Milestone.idIsValid: %w", err)
-	}
-	if err = dec.Decode(&o.idIsDirty); err != nil {
-		return fmt.Errorf("error decoding Milestone.idIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.projectID); err != nil {

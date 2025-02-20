@@ -107,6 +107,17 @@ func (t *Table) HasAutoId() bool {
 	return t.PrimaryKeyColumn().IsAutoId
 }
 
+// SettableColumns returns an array of columns that are settable
+func (t *Table) SettableColumns() []*Column {
+	var out []*Column
+	for _, c := range t.Columns {
+		if c.HasSetter() {
+			out = append(out, c)
+		}
+	}
+	return out
+}
+
 // newTable will import the table provided by tableSchema.
 // If an error occurs, nil is returned.
 func newTable(dbKey string, tableSchema *schema.Table) *Table {
