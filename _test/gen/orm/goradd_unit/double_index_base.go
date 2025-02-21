@@ -639,23 +639,27 @@ func (o *doubleIndexBase) load(m map[string]interface{}, objThis *DoubleIndex) {
 
 // Save will update or insert the object, depending on the state of the object.
 // If it has any auto-generated ids, those will be updated.
-func (o *doubleIndexBase) Save(ctx context.Context) {
+// Database errors generally will be handled by the logger and not returned here,
+// since those indicate a problem with database driver or configuration.
+// Save will return a db.OptimisticLockError if it detects a collision when two users
+// are attempting to change the same database record.
+func (o *doubleIndexBase) Save(ctx context.Context) error {
 	if o._restored {
-		o.update(ctx)
+		return o.update(ctx)
 	} else {
-		o.insert(ctx)
+		return o.insert(ctx)
 	}
 }
 
 // update will update the values in the database, saving any changed values.
-func (o *doubleIndexBase) update(ctx context.Context) {
+func (o *doubleIndexBase) update(ctx context.Context) (err error) {
 	if !o._restored {
 		panic("cannot update a record that was not originally read from the database.")
 	}
 
 	var modifiedFields map[string]interface{}
 	d := Database()
-	db.ExecuteTransaction(ctx, d, func() {
+	err = db.ExecuteTransaction(ctx, d, func() error {
 
 		// TODO: Perform all reads and consistency checks before saves
 
@@ -665,18 +669,25 @@ func (o *doubleIndexBase) update(ctx context.Context) {
 			d.Update(ctx, "double_index", modifiedFields, map[string]any{"id": o._originalPK})
 		}
 
+		return nil
 	}) // transaction
+
+	if err != nil {
+		return
+	}
 
 	o.resetDirtyStatus()
 	if len(modifiedFields) != 0 {
 		broadcast.Update(ctx, "goradd_unit", "double_index", o._originalPK, all.SortedKeys(modifiedFields)...)
 	}
+
+	return
 }
 
 // insert will insert the object into the database. Related items will be saved.
-func (o *doubleIndexBase) insert(ctx context.Context) {
+func (o *doubleIndexBase) insert(ctx context.Context) (err error) {
 	d := Database()
-	db.ExecuteTransaction(ctx, d, func() {
+	err = db.ExecuteTransaction(ctx, d, func() error {
 
 		if !o.idIsValid {
 			panic("a value for ID is required, and there is no default value. Call SetID() before inserting the record.")
@@ -694,11 +705,18 @@ func (o *doubleIndexBase) insert(ctx context.Context) {
 		id := o.PrimaryKey()
 		o._originalPK = id
 
+		return nil
+
 	}) // transaction
+
+	if err != nil {
+		return
+	}
 
 	o.resetDirtyStatus()
 	o._restored = true
 	broadcast.Insert(ctx, "goradd_unit", "double_index", o.PrimaryKey())
+	return
 }
 
 // getModifiedFields returns the database columns that have been modified. This
@@ -733,21 +751,24 @@ func (o *doubleIndexBase) getValidFields() (fields map[string]interface{}) {
 }
 
 // Delete deletes the record from the database.
-func (o *doubleIndexBase) Delete(ctx context.Context) {
+func (o *doubleIndexBase) Delete(ctx context.Context) (err error) {
 	if !o._restored {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
 	d.Delete(ctx, "double_index", map[string]any{"ID": o.id})
+	return nil
 	broadcast.Delete(ctx, "goradd_unit", "double_index", fmt.Sprint(o.id))
+	return
 }
 
 // deleteDoubleIndex deletes the DoubleIndex with primary key pk from the database
 // and handles associated records.
-func deleteDoubleIndex(ctx context.Context, pk int) {
+func deleteDoubleIndex(ctx context.Context, pk int) error {
 	d := db.GetDatabase("goradd_unit")
 	d.Delete(ctx, "double_index", map[string]any{"ID": pk})
 	broadcast.Delete(ctx, "goradd_unit", "double_index", fmt.Sprint(pk))
+	return nil
 }
 
 // resetDirtyStatus resets the dirty status of every field in the object.

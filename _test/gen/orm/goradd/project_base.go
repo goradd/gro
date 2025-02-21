@@ -2060,23 +2060,27 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 
 // Save will update or insert the object, depending on the state of the object.
 // If it has any auto-generated ids, those will be updated.
-func (o *projectBase) Save(ctx context.Context) {
+// Database errors generally will be handled by the logger and not returned here,
+// since those indicate a problem with database driver or configuration.
+// Save will return a db.OptimisticLockError if it detects a collision when two users
+// are attempting to change the same database record.
+func (o *projectBase) Save(ctx context.Context) error {
 	if o._restored {
-		o.update(ctx)
+		return o.update(ctx)
 	} else {
-		o.insert(ctx)
+		return o.insert(ctx)
 	}
 }
 
 // update will update the values in the database, saving any changed values.
-func (o *projectBase) update(ctx context.Context) {
+func (o *projectBase) update(ctx context.Context) (err error) {
 	if !o._restored {
 		panic("cannot update a record that was not originally read from the database.")
 	}
 
 	var modifiedFields map[string]interface{}
 	d := Database()
-	db.ExecuteTransaction(ctx, d, func() {
+	err = db.ExecuteTransaction(ctx, d, func() error {
 
 		// TODO: Perform all reads and consistency checks before saves
 
@@ -2191,27 +2195,38 @@ func (o *projectBase) update(ctx context.Context) {
 			// TODO: fix associations
 		}
 
+		return nil
 	}) // transaction
+
+	if err != nil {
+		return
+	}
 
 	o.resetDirtyStatus()
 	if len(modifiedFields) != 0 {
 		broadcast.Update(ctx, "goradd", "project", o._originalPK, all.SortedKeys(modifiedFields)...)
 	}
+
+	return
 }
 
 // insert will insert the object into the database. Related items will be saved.
-func (o *projectBase) insert(ctx context.Context) {
+func (o *projectBase) insert(ctx context.Context) (err error) {
 	d := Database()
-	db.ExecuteTransaction(ctx, d, func() {
+	err = db.ExecuteTransaction(ctx, d, func() error {
 
 		if o.objManager != nil {
-			o.objManager.Save(ctx)
+			if err = o.objManager.Save(ctx); err != nil {
+				return err
+			}
 			id := o.objManager.PrimaryKey()
 			o.SetManagerID(id)
 		}
 
 		if o.objParentProject != nil {
-			o.objParentProject.Save(ctx)
+			if err = o.objParentProject.Save(ctx); err != nil {
+				return err
+			}
 			id := o.objParentProject.PrimaryKey()
 			o.SetParentProjectID(id)
 		}
@@ -2235,7 +2250,9 @@ func (o *projectBase) insert(ctx context.Context) {
 		if o.revMilestones.Len() > 0 {
 			for _, obj := range o.revMilestones.All() {
 				obj.SetProjectID(id)
-				obj.Save(ctx)
+				if err = obj.Save(ctx); err != nil {
+					return err
+				}
 				o.revMilestones.Set(obj.PrimaryKey(), obj)
 			}
 		} else if len(o.revMilestonesPks) > 0 {
@@ -2245,7 +2262,9 @@ func (o *projectBase) insert(ctx context.Context) {
 		if o.revParentProjectProjects.Len() > 0 {
 			for _, obj := range o.revParentProjectProjects.All() {
 				obj.SetParentProjectID(id)
-				obj.Save(ctx)
+				if err = obj.Save(ctx); err != nil {
+					return err
+				}
 				o.revParentProjectProjects.Set(obj.PrimaryKey(), obj)
 			}
 		} else if len(o.revParentProjectProjectsPks) > 0 {
@@ -2254,7 +2273,9 @@ func (o *projectBase) insert(ctx context.Context) {
 
 		if o.mmChildren.Len() > 0 {
 			for _, obj := range o.mmChildren.All() {
-				obj.Save(ctx)
+				if err = obj.Save(ctx); err != nil {
+					return err
+				}
 				db.Associate(ctx,
 					d,
 					"related_project_assn",
@@ -2281,7 +2302,9 @@ func (o *projectBase) insert(ctx context.Context) {
 		}
 		if o.mmParents.Len() > 0 {
 			for _, obj := range o.mmParents.All() {
-				obj.Save(ctx)
+				if err = obj.Save(ctx); err != nil {
+					return err
+				}
 				db.Associate(ctx,
 					d,
 					"related_project_assn",
@@ -2308,7 +2331,9 @@ func (o *projectBase) insert(ctx context.Context) {
 		}
 		if o.mmTeamMembers.Len() > 0 {
 			for _, obj := range o.mmTeamMembers.All() {
-				obj.Save(ctx)
+				if err = obj.Save(ctx); err != nil {
+					return err
+				}
 				db.Associate(ctx,
 					d,
 					"team_member_project_assn",
@@ -2334,11 +2359,18 @@ func (o *projectBase) insert(ctx context.Context) {
 			}
 		}
 
+		return nil
+
 	}) // transaction
+
+	if err != nil {
+		return
+	}
 
 	o.resetDirtyStatus()
 	o._restored = true
 	broadcast.Insert(ctx, "goradd", "project", o.PrimaryKey())
+	return
 }
 
 // getModifiedFields returns the database columns that have been modified. This
@@ -2474,19 +2506,21 @@ func (o *projectBase) getValidFields() (fields map[string]interface{}) {
 //
 // Associated Milestones will also be deleted since their ProjectID fields are not nullable.
 // Associated ParentProjectProjects will have their ParentProjectID field set to NULL.
-func (o *projectBase) Delete(ctx context.Context) {
+func (o *projectBase) Delete(ctx context.Context) (err error) {
 	if !o._restored {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	db.ExecuteTransaction(ctx, d, func() {
+	err = db.ExecuteTransaction(ctx, d, func() error {
 
 		{
 			objs := QueryMilestones(ctx).
 				Where(op.Equal(node.Milestone().ProjectID(), o.id)).
 				Load()
 			for _, obj := range objs {
-				obj.Delete(ctx)
+				if err = obj.Delete(ctx); err != nil {
+					return err
+				}
 			}
 			o.revMilestones.Clear()
 		}
@@ -2498,7 +2532,9 @@ func (o *projectBase) Delete(ctx context.Context) {
 				Load()
 			for _, obj := range objs {
 				obj.SetParentProjectIDToNull()
-				obj.Save(ctx)
+				if err = obj.Save(ctx); err != nil {
+					return err
+				}
 			}
 			o.revParentProjectProjects.Clear()
 		}
@@ -2528,16 +2564,25 @@ func (o *projectBase) Delete(ctx context.Context) {
 			[]Person(nil))
 
 		d.Delete(ctx, "project", map[string]any{"ID": o.id})
+		return nil
 	})
+
+	if err != nil {
+		return err
+	}
 	broadcast.Delete(ctx, "goradd", "project", fmt.Sprint(o.id))
+	return
 }
 
 // deleteProject deletes the Project with primary key pk from the database
 // and handles associated records.
-func deleteProject(ctx context.Context, pk string) {
+func deleteProject(ctx context.Context, pk string) error {
 	if obj := LoadProject(ctx, pk, node.Project().PrimaryKey()); obj != nil {
-		obj.Delete(ctx)
+		if err := obj.Delete(ctx); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 // resetDirtyStatus resets the dirty status of every field in the object.

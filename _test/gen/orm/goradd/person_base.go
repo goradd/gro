@@ -1198,23 +1198,27 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 
 // Save will update or insert the object, depending on the state of the object.
 // If it has any auto-generated ids, those will be updated.
-func (o *personBase) Save(ctx context.Context) {
+// Database errors generally will be handled by the logger and not returned here,
+// since those indicate a problem with database driver or configuration.
+// Save will return a db.OptimisticLockError if it detects a collision when two users
+// are attempting to change the same database record.
+func (o *personBase) Save(ctx context.Context) error {
 	if o._restored {
-		o.update(ctx)
+		return o.update(ctx)
 	} else {
-		o.insert(ctx)
+		return o.insert(ctx)
 	}
 }
 
 // update will update the values in the database, saving any changed values.
-func (o *personBase) update(ctx context.Context) {
+func (o *personBase) update(ctx context.Context) (err error) {
 	if !o._restored {
 		panic("cannot update a record that was not originally read from the database.")
 	}
 
 	var modifiedFields map[string]interface{}
 	d := Database()
-	db.ExecuteTransaction(ctx, d, func() {
+	err = db.ExecuteTransaction(ctx, d, func() error {
 
 		// TODO: Perform all reads and consistency checks before saves
 
@@ -1351,18 +1355,25 @@ func (o *personBase) update(ctx context.Context) {
 			// TODO: fix associations
 		}
 
+		return nil
 	}) // transaction
+
+	if err != nil {
+		return
+	}
 
 	o.resetDirtyStatus()
 	if len(modifiedFields) != 0 {
 		broadcast.Update(ctx, "goradd", "person", o._originalPK, all.SortedKeys(modifiedFields)...)
 	}
+
+	return
 }
 
 // insert will insert the object into the database. Related items will be saved.
-func (o *personBase) insert(ctx context.Context) {
+func (o *personBase) insert(ctx context.Context) (err error) {
 	d := Database()
-	db.ExecuteTransaction(ctx, d, func() {
+	err = db.ExecuteTransaction(ctx, d, func() error {
 
 		if !o.firstNameIsValid {
 			panic("a value for FirstName is required, and there is no default value. Call SetFirstName() before inserting the record.")
@@ -1380,7 +1391,9 @@ func (o *personBase) insert(ctx context.Context) {
 		if o.revAddresses.Len() > 0 {
 			for _, obj := range o.revAddresses.All() {
 				obj.SetPersonID(id)
-				obj.Save(ctx)
+				if err = obj.Save(ctx); err != nil {
+					return err
+				}
 				o.revAddresses.Set(obj.PrimaryKey(), obj)
 			}
 		} else if len(o.revAddressesPks) > 0 {
@@ -1389,14 +1402,18 @@ func (o *personBase) insert(ctx context.Context) {
 
 		if o.revEmployeeInfo != nil {
 			o.revEmployeeInfo.SetPersonID(id)
-			o.revEmployeeInfo.Save(ctx)
+			if err = o.revEmployeeInfo.Save(ctx); err != nil {
+				return err
+			}
 		} else if o.revEmployeeInfoPk != nil {
 			d.Update(ctx, "employee_info", map[string]any{"person_id": id}, map[string]any{"id": *o.revEmployeeInfoPk})
 		}
 
 		if o.revLogin != nil {
 			o.revLogin.SetPersonID(id)
-			o.revLogin.Save(ctx)
+			if err = o.revLogin.Save(ctx); err != nil {
+				return err
+			}
 		} else if o.revLoginPk != nil {
 			d.Update(ctx, "login", map[string]any{"person_id": id}, map[string]any{"id": *o.revLoginPk})
 		}
@@ -1404,7 +1421,9 @@ func (o *personBase) insert(ctx context.Context) {
 		if o.revManagerProjects.Len() > 0 {
 			for _, obj := range o.revManagerProjects.All() {
 				obj.SetManagerID(id)
-				obj.Save(ctx)
+				if err = obj.Save(ctx); err != nil {
+					return err
+				}
 				o.revManagerProjects.Set(obj.PrimaryKey(), obj)
 			}
 		} else if len(o.revManagerProjectsPks) > 0 {
@@ -1413,7 +1432,9 @@ func (o *personBase) insert(ctx context.Context) {
 
 		if o.mmProjects.Len() > 0 {
 			for _, obj := range o.mmProjects.All() {
-				obj.Save(ctx)
+				if err = obj.Save(ctx); err != nil {
+					return err
+				}
 				db.Associate(ctx,
 					d,
 					"team_member_project_assn",
@@ -1439,11 +1460,18 @@ func (o *personBase) insert(ctx context.Context) {
 			}
 		}
 
+		return nil
+
 	}) // transaction
+
+	if err != nil {
+		return
+	}
 
 	o.resetDirtyStatus()
 	o._restored = true
 	broadcast.Insert(ctx, "goradd", "person", o.PrimaryKey())
+	return
 }
 
 // getModifiedFields returns the database columns that have been modified. This
@@ -1493,19 +1521,21 @@ func (o *personBase) getValidFields() (fields map[string]interface{}) {
 // An associated {= rev.ReverseIdentifier()  will also be deleted since its PersonID field is not nullable.
 // An associated Login will have its PersonID field set to NULL.
 // Associated ManagerProjects will have their ManagerID field set to NULL.
-func (o *personBase) Delete(ctx context.Context) {
+func (o *personBase) Delete(ctx context.Context) (err error) {
 	if !o._restored {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	db.ExecuteTransaction(ctx, d, func() {
+	err = db.ExecuteTransaction(ctx, d, func() error {
 
 		{
 			objs := QueryAddresses(ctx).
 				Where(op.Equal(node.Address().PersonID(), o.id)).
 				Load()
 			for _, obj := range objs {
-				obj.Delete(ctx)
+				if err = obj.Delete(ctx); err != nil {
+					return err
+				}
 			}
 			o.revAddresses.Clear()
 		}
@@ -1515,7 +1545,9 @@ func (o *personBase) Delete(ctx context.Context) {
 				Where(op.Equal(node.EmployeeInfo().PersonID(), o.id)).
 				Get()
 			if obj != nil {
-				obj.Delete(ctx)
+				if err = obj.Delete(ctx); err != nil {
+					return err
+				}
 			}
 			// Set this object's pointer to the reverse object to nil to mark that we broke the link
 			o.revEmployeeInfo = nil
@@ -1529,7 +1561,9 @@ func (o *personBase) Delete(ctx context.Context) {
 				Get()
 			if obj != nil {
 				obj.SetPersonIDToNull()
-				obj.Save(ctx)
+				if err = obj.Save(ctx); err != nil {
+					return err
+				}
 			}
 			// Set this object's pointer to the reverse object to nil to mark that we broke the link
 			o.revLogin = nil
@@ -1542,7 +1576,9 @@ func (o *personBase) Delete(ctx context.Context) {
 				Load()
 			for _, obj := range objs {
 				obj.SetManagerIDToNull()
-				obj.Save(ctx)
+				if err = obj.Save(ctx); err != nil {
+					return err
+				}
 			}
 			o.revManagerProjects.Clear()
 		}
@@ -1556,16 +1592,25 @@ func (o *personBase) Delete(ctx context.Context) {
 			[]Project(nil))
 
 		d.Delete(ctx, "person", map[string]any{"ID": o.id})
+		return nil
 	})
+
+	if err != nil {
+		return err
+	}
 	broadcast.Delete(ctx, "goradd", "person", fmt.Sprint(o.id))
+	return
 }
 
 // deletePerson deletes the Person with primary key pk from the database
 // and handles associated records.
-func deletePerson(ctx context.Context, pk string) {
+func deletePerson(ctx context.Context, pk string) error {
 	if obj := LoadPerson(ctx, pk, node.Person().PrimaryKey()); obj != nil {
-		obj.Delete(ctx)
+		if err := obj.Delete(ctx); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 // resetDirtyStatus resets the dirty status of every field in the object.

@@ -6,7 +6,9 @@
 {{for _,mm := range table.ManyManyReferences}}
     if o.{{= mm.VariableIdentifier() }}.Len() > 0 {
         for _,obj := range o.{{= mm.VariableIdentifier() }}.All() {
-            obj.Save(ctx)
+            if err = obj.Save(ctx); err != nil {
+                return err
+            }
             db.Associate(ctx,
                 d,
                 "{{= mm.AssnTableName }}",

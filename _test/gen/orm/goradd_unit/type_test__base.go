@@ -1462,23 +1462,27 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 
 // Save will update or insert the object, depending on the state of the object.
 // If it has any auto-generated ids, those will be updated.
-func (o *typeTestBase) Save(ctx context.Context) {
+// Database errors generally will be handled by the logger and not returned here,
+// since those indicate a problem with database driver or configuration.
+// Save will return a db.OptimisticLockError if it detects a collision when two users
+// are attempting to change the same database record.
+func (o *typeTestBase) Save(ctx context.Context) error {
 	if o._restored {
-		o.update(ctx)
+		return o.update(ctx)
 	} else {
-		o.insert(ctx)
+		return o.insert(ctx)
 	}
 }
 
 // update will update the values in the database, saving any changed values.
-func (o *typeTestBase) update(ctx context.Context) {
+func (o *typeTestBase) update(ctx context.Context) (err error) {
 	if !o._restored {
 		panic("cannot update a record that was not originally read from the database.")
 	}
 
 	var modifiedFields map[string]interface{}
 	d := Database()
-	db.ExecuteTransaction(ctx, d, func() {
+	err = db.ExecuteTransaction(ctx, d, func() error {
 
 		// TODO: Perform all reads and consistency checks before saves
 
@@ -1488,18 +1492,25 @@ func (o *typeTestBase) update(ctx context.Context) {
 			d.Update(ctx, "type_test", modifiedFields, map[string]any{"id": o._originalPK})
 		}
 
+		return nil
 	}) // transaction
+
+	if err != nil {
+		return
+	}
 
 	o.resetDirtyStatus()
 	if len(modifiedFields) != 0 {
 		broadcast.Update(ctx, "goradd_unit", "type_test", o._originalPK, all.SortedKeys(modifiedFields)...)
 	}
+
+	return
 }
 
 // insert will insert the object into the database. Related items will be saved.
-func (o *typeTestBase) insert(ctx context.Context) {
+func (o *typeTestBase) insert(ctx context.Context) (err error) {
 	d := Database()
-	db.ExecuteTransaction(ctx, d, func() {
+	err = db.ExecuteTransaction(ctx, d, func() error {
 
 		if !o.testDoubleIsValid {
 			panic("a value for TestDouble is required, and there is no default value. Call SetTestDouble() before inserting the record.")
@@ -1517,11 +1528,18 @@ func (o *typeTestBase) insert(ctx context.Context) {
 		o.id = id
 		o._originalPK = id
 
+		return nil
+
 	}) // transaction
+
+	if err != nil {
+		return
+	}
 
 	o.resetDirtyStatus()
 	o._restored = true
 	broadcast.Insert(ctx, "goradd_unit", "type_test", o.PrimaryKey())
+	return
 }
 
 // getModifiedFields returns the database columns that have been modified. This
@@ -1669,21 +1687,24 @@ func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
 }
 
 // Delete deletes the record from the database.
-func (o *typeTestBase) Delete(ctx context.Context) {
+func (o *typeTestBase) Delete(ctx context.Context) (err error) {
 	if !o._restored {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
 	d.Delete(ctx, "type_test", map[string]any{"ID": o.id})
+	return nil
 	broadcast.Delete(ctx, "goradd_unit", "type_test", fmt.Sprint(o.id))
+	return
 }
 
 // deleteTypeTest deletes the TypeTest with primary key pk from the database
 // and handles associated records.
-func deleteTypeTest(ctx context.Context, pk string) {
+func deleteTypeTest(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd_unit")
 	d.Delete(ctx, "type_test", map[string]any{"ID": pk})
 	broadcast.Delete(ctx, "goradd_unit", "type_test", fmt.Sprint(pk))
+	return nil
 }
 
 // resetDirtyStatus resets the dirty status of every field in the object.

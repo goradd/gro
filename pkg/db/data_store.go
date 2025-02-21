@@ -99,11 +99,12 @@ func NewContext(ctx context.Context) context.Context {
 }
 
 // ExecuteTransaction wraps the function in a database transaction
-func ExecuteTransaction(ctx context.Context, d DatabaseI, f func()) {
+func ExecuteTransaction(ctx context.Context, d DatabaseI, f func() error) error {
 	txid := d.Begin(ctx)
 	defer d.Rollback(ctx, txid)
-	f()
+	err := f()
 	d.Commit(ctx, txid)
+	return err
 }
 
 // AssociateOnly resets a many-many relationship in the database.
@@ -121,11 +122,12 @@ func AssociateOnly[J, K any](ctx context.Context,
 	pk J,
 	relatedColumnName string,
 	relatedPks []K) {
-	ExecuteTransaction(ctx, d, func() {
+	_ = ExecuteTransaction(ctx, d, func() error {
 		d.Delete(ctx, assnTable, map[string]interface{}{srcColumnName: pk})
 		for _, relatedPk := range relatedPks {
 			d.Insert(ctx, assnTable, map[string]any{srcColumnName: pk, relatedColumnName: relatedPk})
 		}
+		return nil
 	})
 }
 

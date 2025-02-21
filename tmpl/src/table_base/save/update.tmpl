@@ -4,14 +4,14 @@
 }}
 {{
 // update will update the values in the database, saving any changed values.
-func (o *{{= table.DecapIdentifier}}Base) update(ctx context.Context) {
+func (o *{{= table.DecapIdentifier}}Base) update(ctx context.Context) (err error) {
     if !o._restored {
         panic ("cannot update a record that was not originally read from the database.")
     }
 
     var modifiedFields map[string]interface{}
     d := Database()
-    db.ExecuteTransaction(ctx, d, func() {
+    err = db.ExecuteTransaction(ctx, d, func() error {
 
     // TODO: Perform all reads and consistency checks before saves
 {{: "update_ref.tmpl" }}
@@ -25,12 +25,19 @@ func (o *{{= table.DecapIdentifier}}Base) update(ctx context.Context) {
 {{: "update_rev.tmpl" }}
 {{: "update_mm.tmpl" }}
 
+        return nil
     }) // transaction
+
+    if err != nil {
+        return
+    }
 
 	o.resetDirtyStatus()
 	if len(modifiedFields) != 0 {
         broadcast.Update(ctx, "{{= table.DbKey}}", "{{= table.QueryName}}", o._originalPK, all.SortedKeys(modifiedFields)...)
 	}
+
+	return
 }
 
 }}

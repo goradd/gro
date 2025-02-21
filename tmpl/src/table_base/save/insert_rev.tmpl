@@ -10,7 +10,9 @@
 
     if o.{{= col.ReverseVariableIdentifier() }} != nil {
         o.{{= col.ReverseVariableIdentifier() }}.Set{{= col.Identifier }}(id)
-        o.{{= col.ReverseVariableIdentifier() }}.Save(ctx)
+        if err = o.{{= col.ReverseVariableIdentifier() }}.Save(ctx); err != nil {
+            return err
+        }
     } else if o.{{= col.ReverseVariableIdentifier() }}Pk != nil {
         d.Update(ctx, "{{= col.Table.QueryName }}", map[string]any{"{{= col.QueryName }}": id}, map[string]any{"{{= col.Table.PrimaryKeyColumn().QueryName }}": *o.{{= col.ReverseVariableIdentifier() }}Pk})
     }
@@ -20,7 +22,9 @@
     if o.{{= col.ReverseVariableIdentifier() }}.Len() > 0 {
         for _,obj := range o.{{= col.ReverseVariableIdentifier() }}.All() {
             obj.Set{{= col.Identifier }}(id)
-            obj.Save(ctx)
+            if err = obj.Save(ctx); err != nil {
+                return err
+            }
             o.{{= col.ReverseVariableIdentifier() }}.Set(obj.PrimaryKey(), obj)
         }
     } else if len(o.{{= col.ReverseVariableIdentifier() }}Pks) > 0 {

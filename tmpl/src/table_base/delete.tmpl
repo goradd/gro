@@ -22,15 +22,16 @@
 {{if}}
 {{for}}
 {{if}}
-func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) {
+func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error) {
 	if !o._restored {
 		panic ("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
 {{if len(table.ReverseReferences) == 0 && len(table.ManyManyReferences) == 0}}
 	d.Delete(ctx, "{{table.QueryName}}", map[string]any{"{{= table.PrimaryKeyColumn().Identifier }}":o.{{= table.PrimaryKeyColumn().DecapIdentifier }} })
+    return nil
 {{else}}
-    db.ExecuteTransaction(ctx, d, func() {
+    err = db.ExecuteTransaction(ctx, d, func() error {
 	{{for _,rev := range table.ReverseReferences }}
         {{if rev.IsUnique }}
             {{if rev.IsNullable}}
@@ -41,8 +42,10 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) {
                           Select(node.{{= rev.Table.Identifier}}().{{= rev.Identifier }}()).
                           Get()
                 if obj != nil {
-                   obj.Set{{= rev.Identifier }}ToNull()
-                   obj.Save(ctx)
+                    obj.Set{{= rev.Identifier }}ToNull()
+                    if err = obj.Save(ctx); err != nil {
+                        return err
+                    }
                 }
                 // Set this object's pointer to the reverse object to nil to mark that we broke the link
                 o.{{= rev.ReverseVariableIdentifier() }} = nil
@@ -53,7 +56,9 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) {
                            Where(op.Equal(node.{{= rev.Table.Identifier}}().{{= rev.Identifier }}(), o.{{= table.PrimaryKeyColumn().VariableIdentifier() }})).
                            Get()
                  if obj != nil {
-                     obj.Delete(ctx)
+                     if err = obj.Delete(ctx); err != nil {
+                         return err
+                     }
                  }
                  // Set this object's pointer to the reverse object to nil to mark that we broke the link
                  o.{{= rev.ReverseVariableIdentifier() }} = nil
@@ -67,8 +72,10 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) {
                           Select(node.{{= rev.Table.Identifier }}().{{= rev.Identifier }}()).
                           Load()
                 for _,obj := range objs {
-                   obj.Set{{= rev.Identifier }}ToNull()
-                   obj.Save(ctx)
+                    obj.Set{{= rev.Identifier }}ToNull()
+                    if err = obj.Save(ctx); err != nil {
+                        return err
+                    }
                 }
                 o.{{= rev.ReverseVariableIdentifier() }}.Clear()
             }
@@ -78,7 +85,9 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) {
                           Where(op.Equal(node.{{= rev.Table.Identifier}}().{{= rev.Identifier}}(), o.{{= table.PrimaryKeyColumn().VariableIdentifier() }})).
                           Load()
                 for _,obj := range objs {
-                    obj.Delete(ctx)
+                    if err = obj.Delete(ctx); err != nil {
+                        return err
+                    }
                 }
                 o.{{= rev.ReverseVariableIdentifier() }}.Clear()
             }
@@ -98,22 +107,31 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) {
     {{for}}
 
 	    d.Delete(ctx, "{{= table.QueryName }}", map[string]any{"{{= table.PrimaryKeyColumn().Identifier }}": o.{{= table.PrimaryKeyColumn().VariableIdentifier() }} })
+        return nil
 	})
+
+	if err != nil {
+	    return err
+	}
 {{if}}
 	broadcast.Delete(ctx, "{{= table.DbKey }}", "{{= table.QueryName }}", fmt.Sprint(o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}))
+	return
 }
 
 // delete{{= table.Identifier }} deletes the {{= table.Identifier }} with primary key pk from the database
 // and handles associated records.
-func delete{{= table.Identifier }}(ctx context.Context, pk {{= table.PrimaryKeyGoType() }}) {
+func delete{{= table.Identifier }}(ctx context.Context, pk {{= table.PrimaryKeyGoType() }}) error {
 {{if len(table.ReverseReferences) == 0 && len(table.ManyManyReferences) == 0 }}
 	d := db.GetDatabase("{{= table.DbKey }}")
 	d.Delete(ctx, "{{= table.QueryName }}", map[string]any{"{{= table.PrimaryKeyColumn().Identifier }}": pk} )
 	broadcast.Delete(ctx, "{{= table.DbKey }}", "{{= table.QueryName }}", fmt.Sprint(pk))
 {{else}}
     if obj := Load{{= table.Identifier }}(ctx, pk, node.{{= table.Identifier}}().PrimaryKey()); obj != nil {
-        obj.Delete(ctx)
+        if err := obj.Delete(ctx); err != nil {
+            return err
+        }
     }
 {{if}}
+    return nil
 }
 }}

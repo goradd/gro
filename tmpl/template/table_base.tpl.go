@@ -8260,6 +8260,10 @@ func (tmpl *TableBaseTemplate) genSave(table *model.Table, _w io.Writer) (err er
 	if _, err = io.WriteString(_w, `
 // Save will update or insert the object, depending on the state of the object.
 // If it has any auto-generated ids, those will be updated.
+// Database errors generally will be handled by the logger and not returned here,
+// since those indicate a problem with database driver or configuration.
+// Save will return a db.OptimisticLockError if it detects a collision when two users
+// are attempting to change the same database record.
 func (o *`); err != nil {
 		return
 	}
@@ -8268,11 +8272,11 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Base) Save(ctx context.Context)  {
+	if _, err = io.WriteString(_w, `Base) Save(ctx context.Context) error {
 	if o._restored {
-		o.update(ctx)
+		return o.update(ctx)
 	} else {
-		o.insert(ctx)
+		return o.insert(ctx)
 	}
 }
 
@@ -8291,14 +8295,14 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Base) update(ctx context.Context) {
+	if _, err = io.WriteString(_w, `Base) update(ctx context.Context) (err error) {
     if !o._restored {
         panic ("cannot update a record that was not originally read from the database.")
     }
 
     var modifiedFields map[string]interface{}
     d := Database()
-    db.ExecuteTransaction(ctx, d, func() {
+    err = db.ExecuteTransaction(ctx, d, func() error {
 
     // TODO: Perform all reads and consistency checks before saves
 `); err != nil {
@@ -9133,7 +9137,12 @@ func (o *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `
+        return nil
     }) // transaction
+
+    if err != nil {
+        return
+    }
 
 	o.resetDirtyStatus()
 	if len(modifiedFields) != 0 {
@@ -9155,6 +9164,8 @@ func (o *`); err != nil {
 
 	if _, err = io.WriteString(_w, `", o._originalPK, all.SortedKeys(modifiedFields)...)
 	}
+
+	return
 }
 
 `); err != nil {
@@ -9177,9 +9188,9 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Base) insert(ctx context.Context) {
+	if _, err = io.WriteString(_w, `Base) insert(ctx context.Context) (err error) {
     d := Database()
-	db.ExecuteTransaction(ctx, d, func() {
+	err = db.ExecuteTransaction(ctx, d, func() error {
 
 `); err != nil {
 		return
@@ -9203,7 +9214,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, ` != nil {
-        o.`); err != nil {
+        if err = o.`); err != nil {
 				return
 			}
 
@@ -9211,7 +9222,9 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `.Save(ctx)
+			if _, err = io.WriteString(_w, `.Save(ctx); err != nil {
+            return err
+        }
         id := o.`); err != nil {
 				return
 			}
@@ -9446,7 +9459,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `(id)
-        o.`); err != nil {
+        if err = o.`); err != nil {
 				return
 			}
 
@@ -9454,7 +9467,9 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `.Save(ctx)
+			if _, err = io.WriteString(_w, `.Save(ctx); err != nil {
+            return err
+        }
     } else if o.`); err != nil {
 				return
 			}
@@ -9538,7 +9553,9 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `(id)
-            obj.Save(ctx)
+            if err = obj.Save(ctx); err != nil {
+                return err
+            }
             o.`); err != nil {
 				return
 			}
@@ -9633,7 +9650,9 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `.All() {
-            obj.Save(ctx)
+            if err = obj.Save(ctx); err != nil {
+                return err
+            }
             db.Associate(ctx,
                 d,
                 "`); err != nil {
@@ -9737,8 +9756,13 @@ func (o *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `
+        return nil
 
     }) // transaction
+
+    if err != nil {
+        return
+    }
 
 	o.resetDirtyStatus()
 	o._restored = true
@@ -9759,6 +9783,7 @@ func (o *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `", o.PrimaryKey())
+	return
 }
 
 `); err != nil {
@@ -10274,7 +10299,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Base) Delete(ctx context.Context) {
+	if _, err = io.WriteString(_w, `Base) Delete(ctx context.Context) (err error) {
 	if !o._restored {
 		panic ("Cannot delete a record that has no primary key value.")
 	}
@@ -10310,13 +10335,14 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 		}
 
 		if _, err = io.WriteString(_w, ` })
+    return nil
 `); err != nil {
 			return
 		}
 
 	} else {
 
-		if _, err = io.WriteString(_w, `    db.ExecuteTransaction(ctx, d, func() {
+		if _, err = io.WriteString(_w, `    err = db.ExecuteTransaction(ctx, d, func() error {
 	`); err != nil {
 			return
 		}
@@ -10393,7 +10419,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 					if _, err = io.WriteString(_w, `()).
                           Get()
                 if obj != nil {
-                   obj.Set`); err != nil {
+                    obj.Set`); err != nil {
 						return
 					}
 
@@ -10402,7 +10428,9 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 					}
 
 					if _, err = io.WriteString(_w, `ToNull()
-                   obj.Save(ctx)
+                    if err = obj.Save(ctx); err != nil {
+                        return err
+                    }
                 }
                 // Set this object's pointer to the reverse object to nil to mark that we broke the link
                 o.`); err != nil {
@@ -10459,7 +10487,9 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 					if _, err = io.WriteString(_w, `)).
                            Get()
                  if obj != nil {
-                     obj.Delete(ctx)
+                     if err = obj.Delete(ctx); err != nil {
+                         return err
+                     }
                  }
                  // Set this object's pointer to the reverse object to nil to mark that we broke the link
                  o.`); err != nil {
@@ -10551,7 +10581,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 					if _, err = io.WriteString(_w, `()).
                           Load()
                 for _,obj := range objs {
-                   obj.Set`); err != nil {
+                    obj.Set`); err != nil {
 						return
 					}
 
@@ -10560,7 +10590,9 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 					}
 
 					if _, err = io.WriteString(_w, `ToNull()
-                   obj.Save(ctx)
+                    if err = obj.Save(ctx); err != nil {
+                        return err
+                    }
                 }
                 o.`); err != nil {
 						return
@@ -10616,7 +10648,9 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 					if _, err = io.WriteString(_w, `)).
                           Load()
                 for _,obj := range objs {
-                    obj.Delete(ctx)
+                    if err = obj.Delete(ctx); err != nil {
+                        return err
+                    }
                 }
                 o.`); err != nil {
 						return
@@ -10730,7 +10764,12 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 		}
 
 		if _, err = io.WriteString(_w, ` })
+        return nil
 	})
+
+	if err != nil {
+	    return err
+	}
 `); err != nil {
 			return
 		}
@@ -10762,6 +10801,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 	}
 
 	if _, err = io.WriteString(_w, `))
+	return
 }
 
 // delete`); err != nil {
@@ -10798,7 +10838,7 @@ func delete`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `) {
+	if _, err = io.WriteString(_w, `) error {
 `); err != nil {
 		return
 	}
@@ -10871,7 +10911,9 @@ func delete`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `().PrimaryKey()); obj != nil {
-        obj.Delete(ctx)
+        if err := obj.Delete(ctx); err != nil {
+            return err
+        }
     }
 `); err != nil {
 			return
@@ -10879,7 +10921,8 @@ func delete`); err != nil {
 
 	}
 
-	if _, err = io.WriteString(_w, `}
+	if _, err = io.WriteString(_w, `    return nil
+}
 `); err != nil {
 		return
 	}

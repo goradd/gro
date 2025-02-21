@@ -4,15 +4,17 @@
 }}
 {{
 // insert will insert the object into the database. Related items will be saved.
-func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) {
+func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) (err error) {
     d := Database()
-	db.ExecuteTransaction(ctx, d, func() {
+	err = db.ExecuteTransaction(ctx, d, func() error {
 
 {{# Here we save forward references, get the id, and then set the corresponding foreign key.}}
 {{for _,col := range table.Columns}}
     {{if col.IsReference() }}
     if o.{{= col.ReferenceVariableIdentifier() }} != nil {
-        o.{{= col.ReferenceVariableIdentifier() }}.Save(ctx)
+        if err = o.{{= col.ReferenceVariableIdentifier() }}.Save(ctx); err != nil {
+            return err
+        }
         id := o.{{= col.ReferenceVariableIdentifier() }}.PrimaryKey()
         o.Set{{= col.Identifier }}(id)
     }
@@ -61,12 +63,18 @@ func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) {
 
 }}
 
+        return nil
 
     }) // transaction
+
+    if err != nil {
+        return
+    }
 
 	o.resetDirtyStatus()
 	o._restored = true
 	broadcast.Insert(ctx, "{{= table.DbKey }}", "{{= table.QueryName }}", o.PrimaryKey())
+	return
 }
 
 }}

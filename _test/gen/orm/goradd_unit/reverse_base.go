@@ -1137,23 +1137,27 @@ func (o *reverseBase) load(m map[string]interface{}, objThis *Reverse) {
 
 // Save will update or insert the object, depending on the state of the object.
 // If it has any auto-generated ids, those will be updated.
-func (o *reverseBase) Save(ctx context.Context) {
+// Database errors generally will be handled by the logger and not returned here,
+// since those indicate a problem with database driver or configuration.
+// Save will return a db.OptimisticLockError if it detects a collision when two users
+// are attempting to change the same database record.
+func (o *reverseBase) Save(ctx context.Context) error {
 	if o._restored {
-		o.update(ctx)
+		return o.update(ctx)
 	} else {
-		o.insert(ctx)
+		return o.insert(ctx)
 	}
 }
 
 // update will update the values in the database, saving any changed values.
-func (o *reverseBase) update(ctx context.Context) {
+func (o *reverseBase) update(ctx context.Context) (err error) {
 	if !o._restored {
 		panic("cannot update a record that was not originally read from the database.")
 	}
 
 	var modifiedFields map[string]interface{}
 	d := Database()
-	db.ExecuteTransaction(ctx, d, func() {
+	err = db.ExecuteTransaction(ctx, d, func() error {
 
 		// TODO: Perform all reads and consistency checks before saves
 
@@ -1358,18 +1362,25 @@ func (o *reverseBase) update(ctx context.Context) {
 
 		}
 
+		return nil
 	}) // transaction
+
+	if err != nil {
+		return
+	}
 
 	o.resetDirtyStatus()
 	if len(modifiedFields) != 0 {
 		broadcast.Update(ctx, "goradd_unit", "reverse", o._originalPK, all.SortedKeys(modifiedFields)...)
 	}
+
+	return
 }
 
 // insert will insert the object into the database. Related items will be saved.
-func (o *reverseBase) insert(ctx context.Context) {
+func (o *reverseBase) insert(ctx context.Context) (err error) {
 	d := Database()
-	db.ExecuteTransaction(ctx, d, func() {
+	err = db.ExecuteTransaction(ctx, d, func() error {
 
 		if !o.nameIsValid {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
@@ -1384,7 +1395,9 @@ func (o *reverseBase) insert(ctx context.Context) {
 		if o.revForwardCascades.Len() > 0 {
 			for _, obj := range o.revForwardCascades.All() {
 				obj.SetReverseID(id)
-				obj.Save(ctx)
+				if err = obj.Save(ctx); err != nil {
+					return err
+				}
 				o.revForwardCascades.Set(obj.PrimaryKey(), obj)
 			}
 		} else if len(o.revForwardCascadesPks) > 0 {
@@ -1393,7 +1406,9 @@ func (o *reverseBase) insert(ctx context.Context) {
 
 		if o.revForwardCascadeUnique != nil {
 			o.revForwardCascadeUnique.SetReverseID(id)
-			o.revForwardCascadeUnique.Save(ctx)
+			if err = o.revForwardCascadeUnique.Save(ctx); err != nil {
+				return err
+			}
 		} else if o.revForwardCascadeUniquePk != nil {
 			d.Update(ctx, "forward_cascade_unique", map[string]any{"reverse_id": id}, map[string]any{"id": *o.revForwardCascadeUniquePk})
 		}
@@ -1401,7 +1416,9 @@ func (o *reverseBase) insert(ctx context.Context) {
 		if o.revForwardNulls.Len() > 0 {
 			for _, obj := range o.revForwardNulls.All() {
 				obj.SetReverseID(id)
-				obj.Save(ctx)
+				if err = obj.Save(ctx); err != nil {
+					return err
+				}
 				o.revForwardNulls.Set(obj.PrimaryKey(), obj)
 			}
 		} else if len(o.revForwardNullsPks) > 0 {
@@ -1410,7 +1427,9 @@ func (o *reverseBase) insert(ctx context.Context) {
 
 		if o.revForwardNullUnique != nil {
 			o.revForwardNullUnique.SetReverseID(id)
-			o.revForwardNullUnique.Save(ctx)
+			if err = o.revForwardNullUnique.Save(ctx); err != nil {
+				return err
+			}
 		} else if o.revForwardNullUniquePk != nil {
 			d.Update(ctx, "forward_null_unique", map[string]any{"reverse_id": id}, map[string]any{"id": *o.revForwardNullUniquePk})
 		}
@@ -1418,7 +1437,9 @@ func (o *reverseBase) insert(ctx context.Context) {
 		if o.revForwardRestricts.Len() > 0 {
 			for _, obj := range o.revForwardRestricts.All() {
 				obj.SetReverseID(id)
-				obj.Save(ctx)
+				if err = obj.Save(ctx); err != nil {
+					return err
+				}
 				o.revForwardRestricts.Set(obj.PrimaryKey(), obj)
 			}
 		} else if len(o.revForwardRestrictsPks) > 0 {
@@ -1427,16 +1448,25 @@ func (o *reverseBase) insert(ctx context.Context) {
 
 		if o.revForwardRestrictUnique != nil {
 			o.revForwardRestrictUnique.SetReverseID(id)
-			o.revForwardRestrictUnique.Save(ctx)
+			if err = o.revForwardRestrictUnique.Save(ctx); err != nil {
+				return err
+			}
 		} else if o.revForwardRestrictUniquePk != nil {
 			d.Update(ctx, "forward_restrict_unique", map[string]any{"reverse_id": id}, map[string]any{"id": *o.revForwardRestrictUniquePk})
 		}
 
+		return nil
+
 	}) // transaction
+
+	if err != nil {
+		return
+	}
 
 	o.resetDirtyStatus()
 	o._restored = true
 	broadcast.Insert(ctx, "goradd_unit", "reverse", o.PrimaryKey())
+	return
 }
 
 // getModifiedFields returns the database columns that have been modified. This
@@ -1466,12 +1496,12 @@ func (o *reverseBase) getValidFields() (fields map[string]interface{}) {
 // An associated ForwardNullUnique will have its ReverseID field set to NULL.
 // Associated ForwardRestricts will also be deleted since their ReverseID fields are not nullable.
 // An associated ForwardRestrictUnique will have its ReverseID field set to NULL.
-func (o *reverseBase) Delete(ctx context.Context) {
+func (o *reverseBase) Delete(ctx context.Context) (err error) {
 	if !o._restored {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	db.ExecuteTransaction(ctx, d, func() {
+	err = db.ExecuteTransaction(ctx, d, func() error {
 
 		{
 			objs := QueryForwardCascades(ctx).
@@ -1480,7 +1510,9 @@ func (o *reverseBase) Delete(ctx context.Context) {
 				Load()
 			for _, obj := range objs {
 				obj.SetReverseIDToNull()
-				obj.Save(ctx)
+				if err = obj.Save(ctx); err != nil {
+					return err
+				}
 			}
 			o.revForwardCascades.Clear()
 		}
@@ -1493,7 +1525,9 @@ func (o *reverseBase) Delete(ctx context.Context) {
 				Get()
 			if obj != nil {
 				obj.SetReverseIDToNull()
-				obj.Save(ctx)
+				if err = obj.Save(ctx); err != nil {
+					return err
+				}
 			}
 			// Set this object's pointer to the reverse object to nil to mark that we broke the link
 			o.revForwardCascadeUnique = nil
@@ -1506,7 +1540,9 @@ func (o *reverseBase) Delete(ctx context.Context) {
 				Load()
 			for _, obj := range objs {
 				obj.SetReverseIDToNull()
-				obj.Save(ctx)
+				if err = obj.Save(ctx); err != nil {
+					return err
+				}
 			}
 			o.revForwardNulls.Clear()
 		}
@@ -1519,7 +1555,9 @@ func (o *reverseBase) Delete(ctx context.Context) {
 				Get()
 			if obj != nil {
 				obj.SetReverseIDToNull()
-				obj.Save(ctx)
+				if err = obj.Save(ctx); err != nil {
+					return err
+				}
 			}
 			// Set this object's pointer to the reverse object to nil to mark that we broke the link
 			o.revForwardNullUnique = nil
@@ -1530,7 +1568,9 @@ func (o *reverseBase) Delete(ctx context.Context) {
 				Where(op.Equal(node.ForwardRestrict().ReverseID(), o.id)).
 				Load()
 			for _, obj := range objs {
-				obj.Delete(ctx)
+				if err = obj.Delete(ctx); err != nil {
+					return err
+				}
 			}
 			o.revForwardRestricts.Clear()
 		}
@@ -1543,23 +1583,34 @@ func (o *reverseBase) Delete(ctx context.Context) {
 				Get()
 			if obj != nil {
 				obj.SetReverseIDToNull()
-				obj.Save(ctx)
+				if err = obj.Save(ctx); err != nil {
+					return err
+				}
 			}
 			// Set this object's pointer to the reverse object to nil to mark that we broke the link
 			o.revForwardRestrictUnique = nil
 		}
 
 		d.Delete(ctx, "reverse", map[string]any{"ID": o.id})
+		return nil
 	})
+
+	if err != nil {
+		return err
+	}
 	broadcast.Delete(ctx, "goradd_unit", "reverse", fmt.Sprint(o.id))
+	return
 }
 
 // deleteReverse deletes the Reverse with primary key pk from the database
 // and handles associated records.
-func deleteReverse(ctx context.Context, pk string) {
+func deleteReverse(ctx context.Context, pk string) error {
 	if obj := LoadReverse(ctx, pk, node.Reverse().PrimaryKey()); obj != nil {
-		obj.Delete(ctx)
+		if err := obj.Delete(ctx); err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 // resetDirtyStatus resets the dirty status of every field in the object.
