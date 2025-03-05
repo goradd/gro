@@ -8713,6 +8713,19 @@ func (o *`); err != nil {
 		//*** update_mm_col.tmpl
 
 		if _, err = io.WriteString(_w, `
+        for obj := range o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `.ValuesIter() {
+            if err := obj.Save(ctx); err != nil {
+                return err
+            }
+        }
         if o.`); err != nil {
 			return
 		}
@@ -8722,7 +8735,86 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `IsDirty {
-            for obj := range o.`); err != nil {
+            if (len(o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `) != 0) {
+                db.AssociateOnly(ctx,
+                    d,
+                    "`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.AssnTableName); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `",
+                    "`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.AssnSourceColumnName); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `",
+                    o.PrimaryKey(),
+                    "`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.AssnDestColumnName); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `",
+                    o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `)
+            } else {
+                db.AssociateOnly(ctx,
+                    d,
+                    "`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.AssnTableName); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `",
+                    "`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.AssnSourceColumnName); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `",
+                    o.PrimaryKey(),
+                    "`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.AssnDestColumnName); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `",
+                    o.`); err != nil {
 			return
 		}
 
@@ -8730,12 +8822,8 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `.ValuesIter() {
-                if err := obj.Save(ctx); err != nil {
-                    return err
-                }
+		if _, err = io.WriteString(_w, `.Keys())
             }
-            // TODO: fix associations
         }
 `); err != nil {
 			return

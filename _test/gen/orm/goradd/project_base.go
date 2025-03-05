@@ -2140,31 +2140,79 @@ func (o *projectBase) update(ctx context.Context) error {
 			}
 		}
 
+		for obj := range o.mmChildren.ValuesIter() {
+			if err := obj.Save(ctx); err != nil {
+				return err
+			}
+		}
 		if o.mmChildrenIsDirty {
-			for obj := range o.mmChildren.ValuesIter() {
-				if err := obj.Save(ctx); err != nil {
-					return err
-				}
+			if len(o.mmChildrenPks) != 0 {
+				db.AssociateOnly(ctx,
+					d,
+					"related_project_assn",
+					"parent_id",
+					o.PrimaryKey(),
+					"child_id",
+					o.mmChildrenPks)
+			} else {
+				db.AssociateOnly(ctx,
+					d,
+					"related_project_assn",
+					"parent_id",
+					o.PrimaryKey(),
+					"child_id",
+					o.mmChildren.Keys())
 			}
-			// TODO: fix associations
 		}
 
+		for obj := range o.mmParents.ValuesIter() {
+			if err := obj.Save(ctx); err != nil {
+				return err
+			}
+		}
 		if o.mmParentsIsDirty {
-			for obj := range o.mmParents.ValuesIter() {
-				if err := obj.Save(ctx); err != nil {
-					return err
-				}
+			if len(o.mmParentsPks) != 0 {
+				db.AssociateOnly(ctx,
+					d,
+					"related_project_assn",
+					"child_id",
+					o.PrimaryKey(),
+					"parent_id",
+					o.mmParentsPks)
+			} else {
+				db.AssociateOnly(ctx,
+					d,
+					"related_project_assn",
+					"child_id",
+					o.PrimaryKey(),
+					"parent_id",
+					o.mmParents.Keys())
 			}
-			// TODO: fix associations
 		}
 
-		if o.mmTeamMembersIsDirty {
-			for obj := range o.mmTeamMembers.ValuesIter() {
-				if err := obj.Save(ctx); err != nil {
-					return err
-				}
+		for obj := range o.mmTeamMembers.ValuesIter() {
+			if err := obj.Save(ctx); err != nil {
+				return err
 			}
-			// TODO: fix associations
+		}
+		if o.mmTeamMembersIsDirty {
+			if len(o.mmTeamMembersPks) != 0 {
+				db.AssociateOnly(ctx,
+					d,
+					"team_member_project_assn",
+					"project_id",
+					o.PrimaryKey(),
+					"team_member_id",
+					o.mmTeamMembersPks)
+			} else {
+				db.AssociateOnly(ctx,
+					d,
+					"team_member_project_assn",
+					"project_id",
+					o.PrimaryKey(),
+					"team_member_id",
+					o.mmTeamMembers.Keys())
+			}
 		}
 
 		return nil

@@ -5,12 +5,28 @@
 {{
 {{# Update many-many references }}
 
-        if o.{{= mm.VariableIdentifier() }}IsDirty {
-            for obj := range o.{{= mm.VariableIdentifier() }}.ValuesIter() {
-                if err := obj.Save(ctx); err != nil {
-                    return err
-                }
+        for obj := range o.{{= mm.VariableIdentifier() }}.ValuesIter() {
+            if err := obj.Save(ctx); err != nil {
+                return err
             }
-            // TODO: fix associations
+        }
+        if o.{{= mm.VariableIdentifier() }}IsDirty {
+            if (len(o.{{= mm.PkIdentifier() }}) != 0) {
+                db.AssociateOnly(ctx,
+                    d,
+                    "{{= mm.AssnTableName }}",
+                    "{{= mm.AssnSourceColumnName }}",
+                    o.PrimaryKey(),
+                    "{{= mm.AssnDestColumnName }}",
+                    o.{{= mm.PkIdentifier() }})
+            } else {
+                db.AssociateOnly(ctx,
+                    d,
+                    "{{= mm.AssnTableName }}",
+                    "{{= mm.AssnSourceColumnName }}",
+                    o.PrimaryKey(),
+                    "{{= mm.AssnDestColumnName }}",
+                    o.{{= mm.VariableIdentifier() }}.Keys())
+            }
         }
 }}

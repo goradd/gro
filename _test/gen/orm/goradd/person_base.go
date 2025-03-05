@@ -1270,13 +1270,29 @@ func (o *personBase) update(ctx context.Context) error {
 			}
 		}
 
-		if o.mmProjectsIsDirty {
-			for obj := range o.mmProjects.ValuesIter() {
-				if err := obj.Save(ctx); err != nil {
-					return err
-				}
+		for obj := range o.mmProjects.ValuesIter() {
+			if err := obj.Save(ctx); err != nil {
+				return err
 			}
-			// TODO: fix associations
+		}
+		if o.mmProjectsIsDirty {
+			if len(o.mmProjectsPks) != 0 {
+				db.AssociateOnly(ctx,
+					d,
+					"team_member_project_assn",
+					"team_member_id",
+					o.PrimaryKey(),
+					"project_id",
+					o.mmProjectsPks)
+			} else {
+				db.AssociateOnly(ctx,
+					d,
+					"team_member_project_assn",
+					"team_member_id",
+					o.PrimaryKey(),
+					"project_id",
+					o.mmProjects.Keys())
+			}
 		}
 
 		return nil
