@@ -595,7 +595,7 @@ func GenerateSelect(db DbI, table string, fieldNames []string, where map[string]
 // GenerateVersionLock is a helper function for database implementations to implement optimistic locking.
 // It generates the sql that will return the version number of the record, while also doing an exclusive write
 // lock on the row, if a transaction is active. If a transaction is not active, it will simply do a read of the version number.
-func GenerateVersionLock(db DbI, table string, pkName string, pkValue string, versionName string, inTransaction bool) (sql string, args []any) {
+func GenerateVersionLock(db DbI, table string, pkName string, pkValue any, versionName string, inTransaction bool) (sql string, args []any) {
 	var sb strings.Builder
 
 	sb.WriteString("SELECT ")
@@ -605,7 +605,8 @@ func GenerateVersionLock(db DbI, table string, pkName string, pkValue string, ve
 	sb.WriteString("\nWHERE ")
 	sb.WriteString(db.QuoteIdentifier(pkName))
 	sb.WriteString(" = ")
-	sb.WriteString(pkValue)
+	args = append(args, pkValue)
+	sb.WriteString(db.FormatArgument(len(args)))
 
 	if inTransaction && db.SupportsForUpdate() {
 		sb.WriteString(" FOR UPDATE")

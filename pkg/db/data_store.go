@@ -42,7 +42,7 @@ type DatabaseI interface {
 	// The fields value should include only fields that have changed.
 	// pkName is the query name of the primary key field and pkValue its value.
 	// optLockFieldName and optLockFieldValue points to a version field in the record that helps implement optimistic locking. These can be empty if no optimistic locking is required.
-	Update(ctx context.Context, table string, pkName string, pkValue string, fields map[string]any, optLockFieldName string, optLockFieldValue int64) error
+	Update(ctx context.Context, table string, pkName string, pkValue any, fields map[string]any, optLockFieldName string, optLockFieldValue int64) error
 	// Insert will insert a new record into the database with the given values, and return the new record's primary key value.
 	// fields should include all the required values in the database at a minimum.
 	Insert(ctx context.Context, table string, fields map[string]any) string

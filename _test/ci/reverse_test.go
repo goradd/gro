@@ -110,8 +110,8 @@ func TestReverseUniqueInsert(t *testing.T) {
 	person2 := goradd.NewPerson()
 	person2.SetFirstName("Yertle")
 	person2.SetLastName("The Turtle")
-	person2.SetLoginByID(person.Login().ID())
-	person2.SetEmployeeInfoByID(person.EmployeeInfo().ID())
+	person2.SetLogin(person.Login())
+	person2.SetEmployeeInfo(person.EmployeeInfo())
 	person2.Save(ctx)
 
 	person2 = goradd.LoadPerson(ctx, person2.ID(), node.Person().EmployeeInfo(), node.Person().Login())
@@ -164,23 +164,11 @@ func TestReverseManyNotNullInsert(t *testing.T) {
 
 	assert.Equal(t, "Sam", person2.FirstName(), "Retrieved the correct person")
 	assert.Equal(t, 2, len(person2.Addresses()), "Retrieved the addresses attached to the person")
-
-	// Move a reference to a new object through pk assignment
-	person4 := goradd.NewPerson()
-	person4.SetFirstName("Yertle")
-	person4.SetLastName("The Turtle")
-	person4.SetAddressesByID(addr1Id)
-	person4.Save(ctx)
-
-	addr := goradd.LoadAddress(ctx, addr1Id, node.Address().Person())
-	assert.Equal(t, person4.ID(), addr.PersonID())
-
+	
 	person2.Delete(ctx)
 
 	person3 := goradd.LoadPerson(ctx, id, node.Person().Addresses())
 	assert.Nil(t, person3, "Successfully deleted the new person")
-
-	person4.Delete(ctx)
 
 	addr4 := goradd.LoadAddress(ctx, addr1Id)
 	assert.Nil(t, addr4, "Successfully deleted the address attached to the person")

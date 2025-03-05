@@ -333,7 +333,7 @@ func (h *DbHelper) Insert(ctx context.Context, table string, fields map[string]i
 func (h *DbHelper) Update(ctx context.Context,
 	table string,
 	pkName string,
-	pkValue string,
+	pkValue any,
 	fields map[string]any,
 	optLockFieldName string,
 	optLockFieldValue int64,
