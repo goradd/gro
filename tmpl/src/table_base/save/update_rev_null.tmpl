@@ -6,9 +6,6 @@
                 currentObjs := Query{{= col.Table.IdentifierPlural }}(ctx).
                           Where(op.Equal(node.{{= col.Table.Identifier }}().{{= col.Identifier }}(), o.PrimaryKey())).
                           Select(node.{{= col.Table.Identifier }}().{{= col.Identifier }}()).
- {{if c := col.Table.LockColumn(); c != nil }}
-                          Select(node.{{= c.Table.Identifier }}().{{= c.Identifier }}()).
- {{if}}
                           Load()
 
                 for _,obj := range currentObjs {

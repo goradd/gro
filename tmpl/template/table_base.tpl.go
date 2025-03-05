@@ -8264,37 +8264,6 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `()).
- `); err != nil {
-					return
-				}
-
-				if c := col.Table.LockColumn(); c != nil {
-
-					if _, err = io.WriteString(_w, `
-                          Select(node.`); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, c.Table.Identifier); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, `().`); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, c.Identifier); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, `()).
- `); err != nil {
-						return
-					}
-
-				}
-
-				if _, err = io.WriteString(_w, `
                           Load()
 
                 for _,obj := range currentObjs {
