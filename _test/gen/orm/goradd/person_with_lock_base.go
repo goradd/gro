@@ -8,7 +8,6 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
-	"time"
 	"unicode/utf8"
 
 	"github.com/goradd/all"
@@ -34,8 +33,9 @@ type personWithLockBase struct {
 	lastNameIsValid bool
 	lastNameIsDirty bool
 
-	groTimestamp        int64
-	groTimestampIsValid bool
+	groLockTimestamp        int64
+	groLockTimestampIsValid bool
+	groLockTimestampIsDirty bool
 
 	// Custom aliases, if specified
 	_aliases map[string]any
@@ -49,10 +49,10 @@ type personWithLockBase struct {
 // IDs used to access the PersonWithLock object fields by name using the Get function.
 // doc: type=PersonWithLock
 const (
-	PersonWithLock_ID           = `ID`
-	PersonWithLock_FirstName    = `FirstName`
-	PersonWithLock_LastName     = `LastName`
-	PersonWithLock_GroTimestamp = `GroTimestamp`
+	PersonWithLock_ID               = `ID`
+	PersonWithLock_FirstName        = `FirstName`
+	PersonWithLock_LastName         = `LastName`
+	PersonWithLock_GroLockTimestamp = `GroLockTimestamp`
 )
 
 const PersonWithLockFirstNameMaxLength = 50 // The number of runes the column can hold
@@ -77,9 +77,12 @@ func (o *personWithLockBase) Initialize() {
 	o.lastNameIsValid = false
 	o.lastNameIsDirty = false
 
-	o.groTimestamp = 0
+	o.groLockTimestamp = 0
 
-	o.groTimestampIsValid = false
+	o.groLockTimestampIsValid = false
+	o.groLockTimestampIsDirty = false
+
+	o._aliases = nil
 
 	o._restored = false
 }
@@ -108,6 +111,9 @@ func (o *personWithLockBase) Copy() (newObject *PersonWithLock) {
 	}
 	if o.lastNameIsValid {
 		newObject.SetLastName(o.lastName)
+	}
+	if o.groLockTimestampIsValid {
+		newObject.SetGroLockTimestamp(o.groLockTimestamp)
 	}
 	return
 }
@@ -184,17 +190,31 @@ func (o *personWithLockBase) SetLastName(v string) {
 	o.lastNameIsDirty = true
 }
 
-// GroTimestamp returns the loaded value of GroTimestamp.
-func (o *personWithLockBase) GroTimestamp() int64 {
-	if o._restored && !o.groTimestampIsValid {
-		panic("GroTimestamp was not selected in the last query and has not been set, and so is not valid")
+// GroLockTimestamp returns the loaded value of GroLockTimestamp.
+func (o *personWithLockBase) GroLockTimestamp() int64 {
+	if o._restored && !o.groLockTimestampIsValid {
+		panic("GroLockTimestamp was not selected in the last query and has not been set, and so is not valid")
 	}
-	return o.groTimestamp
+	return o.groLockTimestamp
 }
 
-// GroTimestampIsValid returns true if the value was loaded from the database or has been set.
-func (o *personWithLockBase) GroTimestampIsValid() bool {
-	return o.groTimestampIsValid
+// GroLockTimestampIsValid returns true if the value was loaded from the database or has been set.
+func (o *personWithLockBase) GroLockTimestampIsValid() bool {
+	return o.groLockTimestampIsValid
+}
+
+// SetGroLockTimestamp sets the value of GroLockTimestamp in the object, to be saved later in the database using the Save() function.
+func (o *personWithLockBase) SetGroLockTimestamp(v int64) {
+	if o._restored &&
+		o.groLockTimestampIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.groLockTimestamp == v {
+		// no change
+		return
+	}
+
+	o.groLockTimestampIsValid = true
+	o.groLockTimestamp = v
+	o.groLockTimestampIsDirty = true
 }
 
 // GetAlias returns the alias for the given key.
@@ -255,6 +275,8 @@ type PersonWithLockBuilder interface {
 	// Some fields, like primary keys, are always selected.
 	// If you are using a GroupBy, most database drivers will only allow selecting on fields in the GroupBy, and
 	// doing otherwise will result in an error.
+	// If you intend to modify the resulting records, you MUST select the GroLockTimestamp column
+	// for optimistic locking protection.
 	Select(nodes ...query.Node) PersonWithLockBuilder
 
 	// Calculation adds a calculation described by operation with the name alias.
@@ -544,11 +566,11 @@ func CountPersonWithLockByLastName(ctx context.Context, lastName string) int {
 	return queryPersonWithLocks(ctx).Where(op.Equal(node.PersonWithLock().LastName(), lastName)).Count()
 }
 
-// CountPersonWithLockByGroTimestamp queries the database and returns the number of PersonWithLock objects that
-// have groTimestamp.
+// CountPersonWithLockByGroLockTimestamp queries the database and returns the number of PersonWithLock objects that
+// have groLockTimestamp.
 // doc: type=PersonWithLock
-func CountPersonWithLockByGroTimestamp(ctx context.Context, groTimestamp int64) int {
-	return queryPersonWithLocks(ctx).Where(op.Equal(node.PersonWithLock().GroTimestamp(), groTimestamp)).Count()
+func CountPersonWithLockByGroLockTimestamp(ctx context.Context, groLockTimestamp int64) int {
+	return queryPersonWithLocks(ctx).Where(op.Equal(node.PersonWithLock().GroLockTimestamp(), groLockTimestamp)).Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
@@ -597,16 +619,18 @@ func (o *personWithLockBase) load(m map[string]interface{}, objThis *PersonWithL
 		o.lastNameIsDirty = false
 	}
 
-	if v, ok := m["gro_timestamp"]; ok && v != nil {
-		if o.groTimestamp, ok = v.(int64); ok {
-			o.groTimestampIsValid = true
+	if v, ok := m["gro_lock_timestamp"]; ok && v != nil {
+		if o.groLockTimestamp, ok = v.(int64); ok {
+			o.groLockTimestampIsValid = true
+			o.groLockTimestampIsDirty = false
 
 		} else {
-			panic("Wrong type found for gro_timestamp.")
+			panic("Wrong type found for gro_lock_timestamp.")
 		}
 	} else {
-		o.groTimestampIsValid = false
-		o.groTimestamp = 0
+		o.groLockTimestampIsValid = false
+		o.groLockTimestamp = 0
+		o.groLockTimestampIsDirty = false
 	}
 
 	if v, ok := m["aliases_"]; ok {
@@ -632,28 +656,29 @@ func (o *personWithLockBase) Save(ctx context.Context) error {
 }
 
 // update will update the values in the database, saving any changed values.
-func (o *personWithLockBase) update(ctx context.Context) (err error) {
+func (o *personWithLockBase) update(ctx context.Context) error {
 	if !o._restored {
 		panic("cannot update a record that was not originally read from the database.")
 	}
 
 	var modifiedFields map[string]interface{}
 	d := Database()
-	err = db.ExecuteTransaction(ctx, d, func() error {
-
-		// TODO: Perform all reads and consistency checks before saves
+	err := db.ExecuteTransaction(ctx, d, func() error {
 
 		// Save all modified fields to the database
 		modifiedFields = o.getModifiedFields()
 		if len(modifiedFields) != 0 {
-			d.Update(ctx, "person_with_lock", modifiedFields, map[string]any{"id": o._originalPK})
+			// If this panics with an invalid GroLockTimestamp value, then the GroLockTimestamp field was not selected in a prior query. Be sure to include it in any Select statements.
+			err := d.Update(ctx, "person_with_lock", "id", o._originalPK, modifiedFields, "gro_lock_timestamp", o.GroLockTimestamp())
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil
 	}) // transaction
-
 	if err != nil {
-		return
+		return err
 	}
 
 	o.resetDirtyStatus()
@@ -661,7 +686,7 @@ func (o *personWithLockBase) update(ctx context.Context) (err error) {
 		broadcast.Update(ctx, "goradd", "person_with_lock", o._originalPK, all.SortedKeys(modifiedFields)...)
 	}
 
-	return
+	return nil
 }
 
 // insert will insert the object into the database. Related items will be saved.
@@ -675,9 +700,9 @@ func (o *personWithLockBase) insert(ctx context.Context) (err error) {
 		if !o.lastNameIsValid {
 			panic("a value for LastName is required, and there is no default value. Call SetLastName() before inserting the record.")
 		}
-
-		o.groTimestamp = time.Now().UnixMicro()
-		o.groTimestampIsValid = true
+		if !o.groLockTimestampIsValid {
+			panic("a value for GroLockTimestamp is required, and there is no default value. Call SetGroLockTimestamp() before inserting the record.")
+		}
 
 		m := o.getValidFields()
 
@@ -709,6 +734,9 @@ func (o *personWithLockBase) getModifiedFields() (fields map[string]interface{})
 	if o.lastNameIsDirty {
 		fields["last_name"] = o.lastName
 	}
+	if o.groLockTimestampIsDirty {
+		fields["gro_lock_timestamp"] = o.groLockTimestamp
+	}
 	return
 }
 
@@ -721,8 +749,8 @@ func (o *personWithLockBase) getValidFields() (fields map[string]interface{}) {
 	if o.lastNameIsValid {
 		fields["last_name"] = o.lastName
 	}
-	if o.groTimestampIsValid {
-		fields["gro_timestamp"] = o.groTimestamp
+	if o.groLockTimestampIsValid {
+		fields["gro_lock_timestamp"] = o.groLockTimestamp
 	}
 	return
 }
@@ -752,13 +780,15 @@ func deletePersonWithLock(ctx context.Context, pk string) error {
 func (o *personWithLockBase) resetDirtyStatus() {
 	o.firstNameIsDirty = false
 	o.lastNameIsDirty = false
+	o.groLockTimestampIsDirty = false
 
 }
 
 // IsDirty returns true if the object has been changed since it was read from the database.
 func (o *personWithLockBase) IsDirty() (dirty bool) {
 	dirty = o.firstNameIsDirty ||
-		o.lastNameIsDirty
+		o.lastNameIsDirty ||
+		o.groLockTimestampIsDirty
 
 	return
 }
@@ -788,11 +818,11 @@ func (o *personWithLockBase) Get(key string) interface{} {
 		}
 		return o.lastName
 
-	case "GroTimestamp":
-		if !o.groTimestampIsValid {
+	case "GroLockTimestamp":
+		if !o.groLockTimestampIsValid {
 			return nil
 		}
-		return o.groTimestamp
+		return o.groLockTimestamp
 
 	}
 	return nil
@@ -833,11 +863,14 @@ func (o *personWithLockBase) MarshalBinary() ([]byte, error) {
 		return nil, fmt.Errorf("error encoding PersonWithLock.lastNameIsDirty: %w", err)
 	}
 
-	if err := encoder.Encode(o.groTimestamp); err != nil {
-		return nil, fmt.Errorf("error encoding PersonWithLock.groTimestamp: %w", err)
+	if err := encoder.Encode(o.groLockTimestamp); err != nil {
+		return nil, fmt.Errorf("error encoding PersonWithLock.groLockTimestamp: %w", err)
 	}
-	if err := encoder.Encode(o.groTimestampIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding PersonWithLock.groTimestampIsValid: %w", err)
+	if err := encoder.Encode(o.groLockTimestampIsValid); err != nil {
+		return nil, fmt.Errorf("error encoding PersonWithLock.groLockTimestampIsValid: %w", err)
+	}
+	if err := encoder.Encode(o.groLockTimestampIsDirty); err != nil {
+		return nil, fmt.Errorf("error encoding PersonWithLock.groLockTimestampIsDirty: %w", err)
 	}
 
 	if o._aliases == nil {
@@ -900,11 +933,14 @@ func (o *personWithLockBase) UnmarshalBinary(data []byte) (err error) {
 		return fmt.Errorf("error decoding PersonWithLock.lastNameIsDirty: %w", err)
 	}
 
-	if err = dec.Decode(&o.groTimestamp); err != nil {
-		return fmt.Errorf("error decoding PersonWithLock.groTimestamp: %w", err)
+	if err = dec.Decode(&o.groLockTimestamp); err != nil {
+		return fmt.Errorf("error decoding PersonWithLock.groLockTimestamp: %w", err)
 	}
-	if err = dec.Decode(&o.groTimestampIsValid); err != nil {
-		return fmt.Errorf("error decoding PersonWithLock.groTimestampIsValid: %w", err)
+	if err = dec.Decode(&o.groLockTimestampIsValid); err != nil {
+		return fmt.Errorf("error decoding PersonWithLock.groLockTimestampIsValid: %w", err)
+	}
+	if err = dec.Decode(&o.groLockTimestampIsDirty); err != nil {
+		return fmt.Errorf("error decoding PersonWithLock.groLockTimestampIsDirty: %w", err)
 	}
 
 	return
@@ -937,8 +973,8 @@ func (o *personWithLockBase) MarshalStringMap() map[string]interface{} {
 		v["lastName"] = o.lastName
 	}
 
-	if o.groTimestampIsValid {
-		v["groTimestamp"] = o.groTimestamp
+	if o.groLockTimestampIsValid {
+		v["groLockTimestamp"] = o.groLockTimestamp
 	}
 
 	for _k, _v := range o._aliases {
@@ -960,7 +996,7 @@ func (o *personWithLockBase) MarshalStringMap() map[string]interface{} {
 //	"id" - string
 //	"firstName" - string
 //	"lastName" - string
-//	"groTimestamp" - int64
+//	"groLockTimestamp" - int64
 func (o *personWithLockBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
 	if len(data) == 0 {
@@ -1004,6 +1040,28 @@ func (o *personWithLockBase) UnmarshalStringMap(m map[string]interface{}) (err e
 					return fmt.Errorf("json field %s must be a string", k)
 				} else {
 					o.SetLastName(s)
+				}
+			}
+
+		case "groLockTimestamp":
+			{
+				if v == nil {
+					return fmt.Errorf("field %s cannot be null", k)
+				}
+
+				switch n := v.(type) {
+				case json.Number:
+					n2, err := n.Int64()
+					if err != nil {
+						return err
+					}
+					o.SetGroLockTimestamp(n2)
+				case int:
+					o.SetGroLockTimestamp(int64(n))
+				case float64:
+					o.SetGroLockTimestamp(int64(n))
+				default:
+					return fmt.Errorf("field %s must be a number", k)
 				}
 			}
 

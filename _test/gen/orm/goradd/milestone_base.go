@@ -73,6 +73,8 @@ func (o *milestoneBase) Initialize() {
 	o.nameIsValid = false
 	o.nameIsDirty = false
 
+	o._aliases = nil
+
 	o._restored = false
 }
 
@@ -639,20 +641,20 @@ func (o *milestoneBase) Save(ctx context.Context) error {
 }
 
 // update will update the values in the database, saving any changed values.
-func (o *milestoneBase) update(ctx context.Context) (err error) {
+func (o *milestoneBase) update(ctx context.Context) error {
 	if !o._restored {
 		panic("cannot update a record that was not originally read from the database.")
 	}
 
 	var modifiedFields map[string]interface{}
 	d := Database()
-	err = db.ExecuteTransaction(ctx, d, func() error {
-
-		// TODO: Perform all reads and consistency checks before saves
+	err := db.ExecuteTransaction(ctx, d, func() error {
 
 		// Save loaded Project object to get its new pk and update it here.
 		if o.objProject != nil {
-			o.objProject.Save(ctx)
+			if err := o.objProject.Save(ctx); err != nil {
+				return err
+			}
 			id := o.objProject.PrimaryKey()
 			o.SetProjectID(id)
 		}
@@ -660,14 +662,16 @@ func (o *milestoneBase) update(ctx context.Context) (err error) {
 		// Save all modified fields to the database
 		modifiedFields = o.getModifiedFields()
 		if len(modifiedFields) != 0 {
-			d.Update(ctx, "milestone", modifiedFields, map[string]any{"id": o._originalPK})
+			err := d.Update(ctx, "milestone", "id", o._originalPK, modifiedFields, "", 0)
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil
 	}) // transaction
-
 	if err != nil {
-		return
+		return err
 	}
 
 	o.resetDirtyStatus()
@@ -675,7 +679,7 @@ func (o *milestoneBase) update(ctx context.Context) (err error) {
 		broadcast.Update(ctx, "goradd", "milestone", o._originalPK, all.SortedKeys(modifiedFields)...)
 	}
 
-	return
+	return nil
 }
 
 // insert will insert the object into the database. Related items will be saved.

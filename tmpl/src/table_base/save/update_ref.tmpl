@@ -7,7 +7,9 @@
     {{if col.IsReference() }}
         // Save loaded {{= col.ReferenceIdentifier() }} object to get its new pk and update it here.
         if o.{{= col.ReferenceVariableIdentifier() }} != nil {
-            o.{{= col.ReferenceVariableIdentifier() }}.Save(ctx)
+            if err := o.{{= col.ReferenceVariableIdentifier() }}.Save(ctx); err != nil {
+                return err
+            }
             id := o.{{= col.ReferenceVariableIdentifier() }}.PrimaryKey()
             o.Set{{= col.Identifier }}(id)
         }

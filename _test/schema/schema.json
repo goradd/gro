@@ -190,9 +190,9 @@
             "case_insensitive": true
           },
           {
-            "name": "gro_timestamp",
+            "name": "gro_lock_timestamp",
             "type": "int",
-            "sub_type": "gro_timestamp",
+            "sub_type": "gro_lock_timestamp",
             "size": 64
           }
         ],

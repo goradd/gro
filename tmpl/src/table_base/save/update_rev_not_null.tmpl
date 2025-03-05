@@ -3,23 +3,23 @@
 //*** {{includeName}}
 }}
 {{
-                    // Since the other side of the relationship cannot be null, there cannot be objects that will be detached
-                    // TODO: Make this check earlier to lock the rows being changed
-
-                    objs := Query{{= col.Table.IdentifierPlural }}(ctx).
+                    // Since the other side of the relationship cannot be null, there cannot be objects that will be detached.
+                    oldObjs := Query{{= col.Table.IdentifierPlural }}(ctx).
                                Where(op.Equal(node.{{= col.Table.Identifier }}().{{= col.Identifier }}(), o.PrimaryKey())).
                                Select(node.{{= col.Table.Identifier }}().{{= col.Identifier }}()).
                                Load()
-                    for _,obj := range objs {
-                       if !o.{{= col.ReverseVariableIdentifier() }}.Has(obj.PrimaryKey()) {
-                           // The old object is not in the group of new objects
-                           panic("cannot remove a non-null reference. ")
-                       }
+                    for _,obj := range oldObjs {
+                        if !o.{{= col.ReverseVariableIdentifier() }}.Has(obj.PrimaryKey()) {
+                            // The old object is not in the group of new objects
+                            panic(fmt.Sprintf("cannot remove a non-null reference. Point the reference new a new record first. Primary Key: %v", obj.PrimaryKey()))
+                        }
                     }
 
                     for obj := range o.{{= col.ReverseVariableIdentifier() }}.ValuesIter() {
-                       obj.{{= col.VariableIdentifier() }}IsDirty = true // force a change in case data is stale
-                       obj.Set{{= col.Identifier }}(o.PrimaryKey())
-                       obj.Save(ctx)
+                        obj.Set{{= col.Identifier }}(o.PrimaryKey())
+                        obj.{{= col.VariableIdentifier() }}IsDirty = true // force a change in case data is stale
+                        if err := obj.Save(ctx); err != nil {
+                            return err
+                        }
                     }
 }}

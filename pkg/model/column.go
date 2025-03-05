@@ -215,18 +215,6 @@ func (cd *Column) ReverseVariableIdentifier() string {
 	}
 }
 
-// ReversePkIdentifier is the identifier to use for the local primary key storage of a reference.
-func (cd *Column) ReversePkIdentifier() string {
-	if cd.Reference == nil {
-		panic(fmt.Sprintf("column %s.%s is not a reference", cd.Table.Identifier, cd.Identifier))
-	}
-	if cd.IsUnique {
-		return "rev" + cd.Reference.ReverseIdentifier + "Pk"
-	} else {
-		return "rev" + cd.Reference.ReverseIdentifierPlural + "Pks"
-	}
-}
-
 // ReferenceJsonKey returns the key that will be used for the referenced object in JSON.
 func (cd *Column) ReferenceJsonKey() string {
 	if cd.Reference == nil {

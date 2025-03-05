@@ -7,18 +7,15 @@
                         Where(op.Equal(node.{{= col.Table.Identifier }}().{{= col.Identifier }}(), o.PrimaryKey())).
                         Get()
                 if obj != nil  && obj.PrimaryKey() != o.{{= col.ReverseVariableIdentifier() }}.PrimaryKey() {
-                   obj.Set{{= col.Identifier }}ToNull()
-                   obj.Save(ctx)
-                }
-                if o.{{= col.ReversePkIdentifier() }} != nil {
-                    if o.{{= col.ReverseVariableIdentifier() }} != nil && o.{{= col.ReverseVariableIdentifier() }}.IsDirty() {
-                        // Save detached record
-                        o.{{= col.ReverseVariableIdentifier() }}.Save(ctx)
+                    obj.Set{{= col.Identifier }}ToNull()
+                    if err := obj.Save(ctx); err != nil {
+                        return err
                     }
-                    o.{{= col.ReverseVariableIdentifier() }} = Load{{= col.Table.Identifier }}(ctx, *o.{{= col.ReversePkIdentifier() }}, node.{{= col.Table.Identifier }}().PrimaryKey())
                 }
                 o.{{= col.ReverseVariableIdentifier() }}.{{= col.VariableIdentifier()}}IsDirty = true // force a change in case data is stale
                 o.{{= col.ReverseVariableIdentifier() }}.Set{{= col.Identifier }}(o.PrimaryKey())
-                o.{{= col.ReverseVariableIdentifier() }}.Save(ctx)
+                if err := o.{{= col.ReverseVariableIdentifier() }}.Save(ctx); err != nil {
+                    return err
+                }
 
 }}

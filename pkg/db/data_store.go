@@ -38,19 +38,22 @@ type SchemaExtractor interface {
 // If a value is a slice of int or strings, those values will be put in an "IN" test.
 // For example, {"vals":[]int{1,2,3}} will result in SQL of "vals IN (1,2,3)".
 type DatabaseI interface {
-	// Update will put the given values into a record that already exists in the database. The fields value
-	// should include only fields that have changed. All records that match the keys and values in where are changed.
-	Update(ctx context.Context, table string, fields map[string]interface{}, where map[string]interface{})
+	// Update will put the given values into a single record that already exists in the database.
+	// The fields value should include only fields that have changed.
+	// pkName is the query name of the primary key field and pkValue its value.
+	// optLockFieldName and optLockFieldValue points to a version field in the record that helps implement optimistic locking. These can be empty if no optimistic locking is required.
+	Update(ctx context.Context, table string, pkName string, pkValue string, fields map[string]any, optLockFieldName string, optLockFieldValue int64) error
 	// Insert will insert a new record into the database with the given values, and return the new record's primary key value.
-	// The field's value should include all the required values in the database.
-	Insert(ctx context.Context, table string, fields map[string]interface{}) string
+	// fields should include all the required values in the database at a minimum.
+	Insert(ctx context.Context, table string, fields map[string]any) string
 	// Delete will delete records from the database that match the key value pairs in where.
 	// If where is nil, all the data will be deleted.
-	Delete(ctx context.Context, table string, where map[string]interface{})
+	Delete(ctx context.Context, table string, where map[string]any)
 	// Query executes a simple query on a single table using fields, where the keys of fields are the names of database fields to select,
 	// and the values are the types of data to return for each field.
-	//
 	// If orderBy is not nil, it specifies field names to sort the data on, in ascending order.
+	// If the database supports transactions and row locking, and a transaction is active, it will lock the rows read, and
+	// depending on the setting in the transaction, it will be either a read or a write lock.
 	Query(ctx context.Context, table string, fields map[string]ReceiverType, where map[string]any, orderBy []string) CursorI
 	// BuilderQuery performs a complex query using a query builder.
 	// The data returned will depend on the command inside the builder.
@@ -98,12 +101,15 @@ func NewContext(ctx context.Context) context.Context {
 	return ctx
 }
 
-// ExecuteTransaction wraps the function in a database transaction
+// ExecuteTransaction wraps the function f in a database transaction.
+// forWrite indicates that the transaction is a write transaction and should write lock any row locks.
 func ExecuteTransaction(ctx context.Context, d DatabaseI, f func() error) error {
 	txid := d.Begin(ctx)
 	defer d.Rollback(ctx, txid)
 	err := f()
-	d.Commit(ctx, txid)
+	if err == nil {
+		d.Commit(ctx, txid)
+	}
 	return err
 }
 

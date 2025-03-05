@@ -16,19 +16,6 @@
         }
     }
 
-    if o.{{= rev.ReversePkIdentifier() }} == nil {
-        if err := encoder.Encode(false); err != nil {
-            return nil, err
-        }
-    } else {
-        if err := encoder.Encode(true); err != nil {
-            return nil, err
-        }
-        if err := encoder.Encode(*o.{{= rev.ReversePkIdentifier() }}); err != nil {
-            return nil, fmt.Errorf("error encoding {{= table.Identifier }}.{{= rev.ReversePkIdentifier() }}: %w", err)
-        }
-    }
-
     if err := encoder.Encode(o.{{= rev.ReverseVariableIdentifier() }}IsDirty); err != nil {
         return nil, fmt.Errorf("error encoding {{= table.Identifier }}.{{= rev.ReverseVariableIdentifier() }}IsDirty: %w", err)
     }

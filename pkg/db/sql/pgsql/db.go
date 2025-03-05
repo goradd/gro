@@ -141,3 +141,7 @@ func (m *DB) Insert(ctx context.Context, table string, fields map[string]interfa
 		}
 	}
 }
+
+func (m *DB) SupportsForUpdate() bool {
+	return true
+}

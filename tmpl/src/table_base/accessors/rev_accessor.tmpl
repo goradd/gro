@@ -26,12 +26,7 @@ func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.ReverseIdentifier() }}(ctx
     }
 
 	qb := query{{= rev.Table.IdentifierPlural }}(ctx)
-	var cond *query.OperationNode
-	if o.{{= rev.ReversePkIdentifier() }} != nil {
-	    cond = op.In(node.{{= rev.Table.Identifier }}().PrimaryKey(), o.{{= rev.ReversePkIdentifier() }}...)
-	} else {
-        cond = op.Equal(node.{{= rev.Table.Identifier }}().{{= rev.Identifier }}(), o.PrimaryKey())
-    }
+	cond := op.Equal(node.{{= rev.Table.Identifier }}().{{= rev.Identifier }}(), o.PrimaryKey())
     if conditions != nil {
         conditions = append(conditions, cond)
         cond = op.And(conditions...)
@@ -44,7 +39,6 @@ func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.ReverseIdentifier() }}(ctx
         pk := obj.{{= rev.Table.PrimaryKeyColumn().Identifier }}()
         o.{{= rev.ReverseVariableIdentifier() }}.Set(pk, obj)
     }
-	o.{{= rev.ReversePkIdentifier() }} = nil
 
     if o.{{= rev.ReverseVariableIdentifier() }}.Len() == 0 {
         return nil
@@ -80,35 +74,6 @@ func (o *{{= table.DecapIdentifier}}Base) Set{{= rev.ReverseIdentifier() }}(objs
         pk := obj.{{= rev.Table.PrimaryKeyColumn().Identifier }}()
         o.{{= rev.ReverseVariableIdentifier() }}.Set(pk, obj)
     }
-    o.{{= rev.ReversePkIdentifier() }} = nil
-	o.{{= rev.ReverseVariableIdentifier() }}IsDirty = true
-}
-
-
-// Set{{= rev.ReverseIdentifier() }}By{{= rev.Table.PrimaryKeyColumn().Identifier }} associates this {{= table.Identifier }} with the {{= rev.Table.IdentifierPlural }} that have primary keys in {{= rev.Table.PrimaryKeyColumn().VariableIdentifierPlural() }}.
-// The association is done through the {{= rev.Table.Identifier }}.{{= rev.Identifier }} reverse relationship.
-//
-// The association is temporary until you call Save().
-//
-{{if rev.IsNullable }}
-// If there are {{= rev.Table.Identifier }} objects currently associated with this {{= table.Identifier }} that are not included
-// in {{= rev.Table.PrimaryKeyColumn().VariableIdentifierPlural() }}, those objects will have their {{= rev.Identifier }} value set to null when Save is called.
-// If you did not use a join to query the items in the first place, used a conditional join,
-// or joined with an expansion, be particularly careful, since you may be inadvertently changing items
-// that are not currently loaded in this {{= table.Identifier }} object.
-{{else}}
-// WARNING! If it has items already associated with it that will not be associated after a save,
-// Save will panic. You should delete those items first.
-{{if}}
-func (o *{{= table.DecapIdentifier }}Base) Set{{= rev.ReverseIdentifier() }}By{{= rev.Table.PrimaryKeyColumn().Identifier }}({{= rev.Table.PrimaryKeyColumn().VariableIdentifierPlural() }} ...{{= rev.Table.PrimaryKeyGoType() }}) {
-    for obj := range o.{{= rev.ReverseVariableIdentifier() }}.ValuesIter() {
-        if obj.IsDirty() {
-            panic("You cannot overwrite items that have changed but have not been saved.")
-        }
-    }
-
-    o.{{= rev.ReverseVariableIdentifier() }}.Clear()
-	o.{{= rev.ReversePkIdentifier() }} = {{= rev.Table.PrimaryKeyColumn().VariableIdentifierPlural() }}
 	o.{{= rev.ReverseVariableIdentifier() }}IsDirty = true
 }
 

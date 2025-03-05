@@ -236,6 +236,8 @@ func (o *unsupportedTypeBase) Initialize() {
 	o.typeMultifk2IsValid = false
 	o.typeMultifk2IsDirty = false
 
+	o._aliases = nil
+
 	o._restored = false
 }
 
@@ -1597,28 +1599,28 @@ func (o *unsupportedTypeBase) Save(ctx context.Context) error {
 }
 
 // update will update the values in the database, saving any changed values.
-func (o *unsupportedTypeBase) update(ctx context.Context) (err error) {
+func (o *unsupportedTypeBase) update(ctx context.Context) error {
 	if !o._restored {
 		panic("cannot update a record that was not originally read from the database.")
 	}
 
 	var modifiedFields map[string]interface{}
 	d := Database()
-	err = db.ExecuteTransaction(ctx, d, func() error {
-
-		// TODO: Perform all reads and consistency checks before saves
+	err := db.ExecuteTransaction(ctx, d, func() error {
 
 		// Save all modified fields to the database
 		modifiedFields = o.getModifiedFields()
 		if len(modifiedFields) != 0 {
-			d.Update(ctx, "unsupported_type", modifiedFields, map[string]any{"type_serial": o._originalPK})
+			err := d.Update(ctx, "unsupported_type", "type_serial", o._originalPK, modifiedFields, "", 0)
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil
 	}) // transaction
-
 	if err != nil {
-		return
+		return err
 	}
 
 	o.resetDirtyStatus()
@@ -1626,7 +1628,7 @@ func (o *unsupportedTypeBase) update(ctx context.Context) (err error) {
 		broadcast.Update(ctx, "goradd_unit", "unsupported_type", o._originalPK, all.SortedKeys(modifiedFields)...)
 	}
 
-	return
+	return nil
 }
 
 // insert will insert the object into the database. Related items will be saved.

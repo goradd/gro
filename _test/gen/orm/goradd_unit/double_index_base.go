@@ -75,6 +75,8 @@ func (o *doubleIndexBase) Initialize() {
 	o.fieldStringIsValid = false
 	o.fieldStringIsDirty = false
 
+	o._aliases = nil
+
 	o._restored = false
 }
 
@@ -652,28 +654,28 @@ func (o *doubleIndexBase) Save(ctx context.Context) error {
 }
 
 // update will update the values in the database, saving any changed values.
-func (o *doubleIndexBase) update(ctx context.Context) (err error) {
+func (o *doubleIndexBase) update(ctx context.Context) error {
 	if !o._restored {
 		panic("cannot update a record that was not originally read from the database.")
 	}
 
 	var modifiedFields map[string]interface{}
 	d := Database()
-	err = db.ExecuteTransaction(ctx, d, func() error {
-
-		// TODO: Perform all reads and consistency checks before saves
+	err := db.ExecuteTransaction(ctx, d, func() error {
 
 		// Save all modified fields to the database
 		modifiedFields = o.getModifiedFields()
 		if len(modifiedFields) != 0 {
-			d.Update(ctx, "double_index", modifiedFields, map[string]any{"id": o._originalPK})
+			err := d.Update(ctx, "double_index", "id", o._originalPK, modifiedFields, "", 0)
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil
 	}) // transaction
-
 	if err != nil {
-		return
+		return err
 	}
 
 	o.resetDirtyStatus()
@@ -681,7 +683,7 @@ func (o *doubleIndexBase) update(ctx context.Context) (err error) {
 		broadcast.Update(ctx, "goradd_unit", "double_index", o._originalPK, all.SortedKeys(modifiedFields)...)
 	}
 
-	return
+	return nil
 }
 
 // insert will insert the object into the database. Related items will be saved.

@@ -7,7 +7,9 @@
 
         if o.{{= mm.VariableIdentifier() }}IsDirty {
             for obj := range o.{{= mm.VariableIdentifier() }}.ValuesIter() {
-                obj.Save(ctx)
+                if err := obj.Save(ctx); err != nil {
+                    return err
+                }
             }
             // TODO: fix associations
         }

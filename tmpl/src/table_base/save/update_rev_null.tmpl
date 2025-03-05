@@ -3,30 +3,28 @@
 //*** {{includeName}}
 }}
 {{
-                if o.{{= col.ReversePkIdentifier() }} != nil {
-                    // Get objects we are going to associate if not already loaded
-                    objs := Query{{= col.Table.IdentifierPlural }}(ctx).
-                          Where(op.In(node.{{= col.Table.Identifier }}().PrimaryKey(), o.{{= col.ReversePkIdentifier() }}...)).
-                          Select(node.{{= col.Table.Identifier }}().{{= col.Identifier }}()).
-                          Load()
-                    _ = objs
-                    // TODO: save new group of objects
-                }
-                objs := Query{{= col.Table.IdentifierPlural }}(ctx).
+                currentObjs := Query{{= col.Table.IdentifierPlural }}(ctx).
                           Where(op.Equal(node.{{= col.Table.Identifier }}().{{= col.Identifier }}(), o.PrimaryKey())).
                           Select(node.{{= col.Table.Identifier }}().{{= col.Identifier }}()).
+ {{if c := col.Table.LockColumn(); c != nil }}
+                          Select(node.{{= c.Table.Identifier }}().{{= c.Identifier }}()).
+ {{if}}
                           Load()
 
-                for _,obj := range objs {
+                for _,obj := range currentObjs {
                     if !o.{{= col.ReverseVariableIdentifier() }}.Has(obj.PrimaryKey()) {
                         // The old object is not in the group of new objects
                         obj.Set{{= col.Identifier }}ToNull()
-                        obj.Save(ctx)
+                        if err := obj.Save(ctx); err != nil {
+                            return err
+                        }
                     }
                 }
                 for obj := range o.{{= col.ReverseVariableIdentifier() }}.ValuesIter() {
                     obj.{{= col.VariableIdentifier() }}IsDirty = true // force a change in case data is stale
                     obj.Set{{= col.Identifier }}(o.PrimaryKey())
-                    obj.Save(ctx)
+                    if err := obj.Save(ctx); err != nil {
+                        return err
+                    }
                 }
 }}

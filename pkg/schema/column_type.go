@@ -61,11 +61,11 @@ import "encoding/json"
 // the corresponding type in the database. Not all databases support 8-bit integers. Check
 // your database vendor to be sure.
 //
-// An int64 column may have the subtype of ColSubTypeGroTimestamp. This indicates that the column will be
-// filled in with time.Now().UnixMicro() when the record is saved. A column with this subtype will be used by the
-// ORM to implement optimistic locking, and for some database engines, might be required to implement transactions
-// (DynamoDB for one requires a special version column for transactions to function). Convention is to name this
-// column "gro_timestamp".
+// An int64 column may have the subtype of ColSubTypeGroTimestamp or ColSubTypeGroLockTimestamp.
+// This indicates that the column will be filled in with time.Now().UnixMicro() when the record is saved.
+// ColSubTypeGroLockTimestamp columns will also be used by the ORM to implement optimistic locking.
+// Some database engines, like DynamoDB, require a column with one of these subtypes in any table that
+// requires transactions. Convention is to name these columns "gro_timestamp" and "gro_lock_timestamp".
 //
 // # ColTypeTime
 //
@@ -137,8 +137,15 @@ const (
 	ColTypeEnumArray
 )
 
-// GroTimeName is the convention for the name that the database uses for ColSubTypeGroTimestamp columns.
-const GroTimeName = "gro_timestamp"
+// GroTimestampColumnName is the convention for the name of a ColSubTypeGroTimestamp column
+// that will automatically be updated with the UnixMicro time upon saving of the record.
+// Note that some database engines (DynamoDB for example), require the presence of this column
+// to support transaction processing.
+const GroTimestampColumnName = "gro_timestamp"
+
+// GroLockColumnName is the convention for the name of a ColSubTypeGroTimestamp column
+// that will also be used to perform optimistic locking by the ORM.
+const GroLockColumnName = "gro_lock_timestamp"
 
 // String returns the string representation of a ColumnType.
 func (ct ColumnType) String() string {
@@ -224,7 +231,8 @@ const (
 	ColSubTypeNone ColumnSubType = iota
 	ColSubTypeDateOnly
 	ColSubTypeTimeOnly
-	ColSubTypeGroTimestamp // should be applied only to an int64 column
+	ColSubTypeGroTimestamp     // should be applied only to an int64 column
+	ColSubTypeGroLockTimestamp // should be applied only to an int64 column
 )
 
 // String returns the string representation of a ColumnType.
@@ -238,6 +246,8 @@ func (ct ColumnSubType) String() string {
 		return "time_only"
 	case ColSubTypeGroTimestamp:
 		return "gro_timestamp"
+	case ColSubTypeGroLockTimestamp:
+		return "gro_lock_timestamp"
 	default:
 		return "none"
 	}
@@ -264,6 +274,8 @@ func (cst *ColumnSubType) UnmarshalJSON(data []byte) error {
 		*cst = ColSubTypeTimeOnly
 	case "gro_timestamp":
 		*cst = ColSubTypeGroTimestamp
+	case "gro_lock_timestamp":
+		*cst = ColSubTypeGroLockTimestamp
 	default:
 		*cst = ColSubTypeNone
 	}

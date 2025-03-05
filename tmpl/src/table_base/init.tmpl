@@ -44,6 +44,30 @@ func (o *{{= table.DecapIdentifier}}Base) Initialize() {
 
 {{for}}
 
+{{if len(table.ReverseReferences) > 0 }}
+// Reverse reference objects.
+{{for _,col := range table.ReverseReferences}}
+    {{if col.IsUnique}}
+        o.{{= col.ReverseVariableIdentifier() }} = nil
+        o.{{= col.ReverseVariableIdentifier() }}IsDirty = false
+    {{else}}
+        o.{{= col.ReverseVariableIdentifier() }}.Clear()
+        o.{{= col.ReverseVariableIdentifier() }}IsDirty = false
+	{{if}}
+{{for}}
+{{if}}
+
+{{if len(table.ManyManyReferences) > 0}}
+// Many-Many reference objects.
+{{for _,mm := range table.ManyManyReferences }}
+    o.{{= mm.VariableIdentifier() }}.Clear()
+    o.{{= mm.PkIdentifier() }} = nil
+    o.{{= mm.VariableIdentifier() }}IsDirty = false
+{{for}}
+{{if}}
+
+	o._aliases = nil
+
 	o._restored = false
 }
 

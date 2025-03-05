@@ -17,6 +17,10 @@ type deleteUsesAliaser interface {
 	DeleteUsesAlias() bool
 }
 
+type forUpdater interface {
+	ForUpdate() bool
+}
+
 // sqlGenerator is an aid to generating various sql statements.
 // SQL dialects are similar, but have small variations. This object
 // attempts to handle the major issues, while allowing individual
@@ -585,6 +589,27 @@ func GenerateSelect(db DbI, table string, fieldNames []string, where map[string]
 		sb.WriteString(strings.Join(orderBy, ", "))
 	}
 
+	return sb.String(), args
+}
+
+// GenerateVersionLock is a helper function for database implementations to implement optimistic locking.
+// It generates the sql that will return the version number of the record, while also doing an exclusive write
+// lock on the row, if a transaction is active. If a transaction is not active, it will simply do a read of the version number.
+func GenerateVersionLock(db DbI, table string, pkName string, pkValue string, versionName string, inTransaction bool) (sql string, args []any) {
+	var sb strings.Builder
+
+	sb.WriteString("SELECT ")
+	sb.WriteString(db.QuoteIdentifier(versionName))
+	sb.WriteString("\nFROM ")
+	sb.WriteString(db.QuoteIdentifier(table))
+	sb.WriteString("\nWHERE ")
+	sb.WriteString(db.QuoteIdentifier(pkName))
+	sb.WriteString(" = ")
+	sb.WriteString(pkValue)
+
+	if inTransaction && db.SupportsForUpdate() {
+		sb.WriteString(" FOR UPDATE")
+	}
 	return sb.String(), args
 }
 

@@ -364,24 +364,7 @@ type `); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `IsDirty bool
-        `); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReversePkIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, ` *`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Table.PrimaryKeyGoType()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `                // Primary key to associate at Save time
+				if _, err = io.WriteString(_w, `IsDirty bool // is a new one being associated
     `); err != nil {
 					return
 				}
@@ -414,23 +397,6 @@ type `); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `]  // Objects in the order they were queried
-        `); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReversePkIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, ` []`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Table.PrimaryKeyGoType()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `                // Primary keys to associate at Save time
         `); err != nil {
 					return
 				}
@@ -1112,6 +1078,136 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 	}
 
 	if _, err = io.WriteString(_w, `
+`); err != nil {
+		return
+	}
+
+	if len(table.ReverseReferences) > 0 {
+
+		if _, err = io.WriteString(_w, `// Reverse reference objects.
+`); err != nil {
+			return
+		}
+
+		for _, col := range table.ReverseReferences {
+
+			if _, err = io.WriteString(_w, `    `); err != nil {
+				return
+			}
+
+			if col.IsUnique {
+
+				if _, err = io.WriteString(_w, `
+        o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ` = nil
+        o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `IsDirty = false
+    `); err != nil {
+					return
+				}
+
+			} else {
+
+				if _, err = io.WriteString(_w, `
+        o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `.Clear()
+        o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `IsDirty = false
+	`); err != nil {
+					return
+				}
+
+			}
+
+			if _, err = io.WriteString(_w, `
+`); err != nil {
+				return
+			}
+
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
+`); err != nil {
+		return
+	}
+
+	if len(table.ManyManyReferences) > 0 {
+
+		if _, err = io.WriteString(_w, `// Many-Many reference objects.
+`); err != nil {
+			return
+		}
+
+		for _, mm := range table.ManyManyReferences {
+
+			if _, err = io.WriteString(_w, `    o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.Clear()
+    o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` = nil
+    o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsDirty = false
+`); err != nil {
+				return
+			}
+
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
+	o._aliases = nil
+
 	o._restored = false
 }
 
@@ -4151,35 +4247,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, ` == nil {
-	    var pk `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.Table.PrimaryKeyColumn().GoType()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `
-	    if o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` != nil {
-	        pk = *o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `
-	    } else {
-	        pk = o.`); err != nil {
+	    pk := o.`); err != nil {
 				return
 			}
 
@@ -4188,7 +4256,6 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `()
-	    }
 		o.`); err != nil {
 				return
 			}
@@ -4417,250 +4484,11 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` = nil
-	o.`); err != nil {
-				return
-			}
-
 			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
 				return
 			}
 
 			if _, err = io.WriteString(_w, `IsDirty = true
-}
-
-// Set`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `By`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.Table.PrimaryKeyColumn().Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` associates this `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` with the `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `
-// that has primary key `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.Table.PrimaryKeyColumn().VariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `.
-//
-// The association is temporary until you call Save().
-// If a `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` is loaded, it will be unloaded.
-//
-`); err != nil {
-				return
-			}
-
-			if rev.IsNullable {
-
-				if _, err = io.WriteString(_w, `// Since this is a unique relationship, if a different `); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, ` object is currently pointing to this `); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, table.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `,
-// that `); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `'s `); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, rev.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, ` value will be set to null when Save is called.
-`); err != nil {
-					return
-				}
-
-			} else {
-
-				if _, err = io.WriteString(_w, `// WARNING! Since this is a non-nullable unique relationship,
-// if a different `); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, ` object is currently pointing to this `); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, table.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `,
-// Save() will panic. You should delete that object first.
-`); err != nil {
-					return
-				}
-
-			}
-
-			if _, err = io.WriteString(_w, `func (o *`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `Base) Set`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `By`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.Table.PrimaryKeyColumn().Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `(`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.Table.PrimaryKeyColumn().VariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.Table.PrimaryKeyGoType()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `) {
-    if o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` != nil && o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `.IsDirty() {
-        panic("The `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` value has changed. You must save it first before changing to a different one.")
-    }
-	o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` = nil
-	o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `IsDirty = true
-	o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` = &`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.Table.PrimaryKeyColumn().VariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `
 }
 
 `); err != nil {
@@ -4863,35 +4691,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `(ctx)
-	var cond *query.OperationNode
-	if o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` != nil {
-	    cond = op.In(node.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `().PrimaryKey(), o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `...)
-	} else {
-        cond = op.Equal(node.`); err != nil {
+	cond := op.Equal(node.`); err != nil {
 				return
 			}
 
@@ -4908,7 +4708,6 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `(), o.PrimaryKey())
-    }
     if conditions != nil {
         conditions = append(conditions, cond)
         cond = op.And(conditions...)
@@ -4945,15 +4744,6 @@ func (o *`); err != nil {
 
 			if _, err = io.WriteString(_w, `.Set(pk, obj)
     }
-	o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` = nil
 
     if o.`); err != nil {
 				return
@@ -5148,234 +4938,6 @@ func (o *`); err != nil {
 
 			if _, err = io.WriteString(_w, `.Set(pk, obj)
     }
-    o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` = nil
-	o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `IsDirty = true
-}
-
-
-// Set`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `By`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.Table.PrimaryKeyColumn().Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` associates this `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` with the `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.Table.IdentifierPlural); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` that have primary keys in `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.Table.PrimaryKeyColumn().VariableIdentifierPlural()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `.
-// The association is done through the `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` reverse relationship.
-//
-// The association is temporary until you call Save().
-//
-`); err != nil {
-				return
-			}
-
-			if rev.IsNullable {
-
-				if _, err = io.WriteString(_w, `// If there are `); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, ` objects currently associated with this `); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, table.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, ` that are not included
-// in `); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, rev.Table.PrimaryKeyColumn().VariableIdentifierPlural()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `, those objects will have their `); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, rev.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, ` value set to null when Save is called.
-// If you did not use a join to query the items in the first place, used a conditional join,
-// or joined with an expansion, be particularly careful, since you may be inadvertently changing items
-// that are not currently loaded in this `); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, table.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, ` object.
-`); err != nil {
-					return
-				}
-
-			} else {
-
-				if _, err = io.WriteString(_w, `// WARNING! If it has items already associated with it that will not be associated after a save,
-// Save will panic. You should delete those items first.
-`); err != nil {
-					return
-				}
-
-			}
-
-			if _, err = io.WriteString(_w, `func (o *`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `Base) Set`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `By`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.Table.PrimaryKeyColumn().Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `(`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.Table.PrimaryKeyColumn().VariableIdentifierPlural()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` ...`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.Table.PrimaryKeyGoType()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `) {
-    for obj := range o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `.ValuesIter() {
-        if obj.IsDirty() {
-            panic("You cannot overwrite items that have changed but have not been saved.")
-        }
-    }
-
-    o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `.Clear()
-	o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` = `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.Table.PrimaryKeyColumn().VariableIdentifierPlural()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `
 	o.`); err != nil {
 				return
 			}
@@ -6125,7 +5687,29 @@ type `); err != nil {
     // Some fields, like primary keys, are always selected.
     // If you are using a GroupBy, most database drivers will only allow selecting on fields in the GroupBy, and
     // doing otherwise will result in an error.
-	Select(nodes... query.Node) `); err != nil {
+`); err != nil {
+		return
+	}
+
+	if table.LockColumn() != nil {
+
+		if _, err = io.WriteString(_w, `    // If you intend to modify the resulting records, you MUST select the `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.LockColumn().Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` column
+    // for optimistic locking protection.
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `	Select(nodes... query.Node) `); err != nil {
 		return
 	}
 
@@ -8295,16 +7879,14 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Base) update(ctx context.Context) (err error) {
+	if _, err = io.WriteString(_w, `Base) update(ctx context.Context) error {
     if !o._restored {
         panic ("cannot update a record that was not originally read from the database.")
     }
 
     var modifiedFields map[string]interface{}
     d := Database()
-    err = db.ExecuteTransaction(ctx, d, func() error {
-
-    // TODO: Perform all reads and consistency checks before saves
+    err := db.ExecuteTransaction(ctx, d, func() error {
 `); err != nil {
 		return
 	}
@@ -8343,7 +7925,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, ` != nil {
-            o.`); err != nil {
+            if err := o.`); err != nil {
 				return
 			}
 
@@ -8351,7 +7933,9 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `.Save(ctx)
+			if _, err = io.WriteString(_w, `.Save(ctx); err != nil {
+                return err
+            }
             id := o.`); err != nil {
 				return
 			}
@@ -8384,27 +7968,97 @@ func (o *`); err != nil {
 
 	}
 
-	if _, err = io.WriteString(_w, `
-        // Save all modified fields to the database
+	if _, err = io.WriteString(_w, `        // Save all modified fields to the database
         modifiedFields = o.getModifiedFields()
         if len(modifiedFields) != 0 {
-            d.Update(ctx, "`); err != nil {
+`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.QueryName); err != nil {
-		return
+	if c := table.LockColumn(); c == nil {
+
+		if _, err = io.WriteString(_w, `            err := d.Update(ctx, "`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.QueryName); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `", "`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().QueryName); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `", o._originalPK, modifiedFields, "", 0)
+`); err != nil {
+			return
+		}
+
+	} else {
+
+		if _, err = io.WriteString(_w, `            // If this panics with an invalid `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, c.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` value, then the `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, c.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` field was not selected in a prior query. Be sure to include it in any Select statements.
+            err := d.Update(ctx, "`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.QueryName); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `", "`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().QueryName); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `", o._originalPK, modifiedFields, "`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, c.QueryName); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `", o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, c.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `())
+`); err != nil {
+			return
+		}
+
 	}
 
-	if _, err = io.WriteString(_w, `", modifiedFields, map[string]any{"`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.PrimaryKeyColumn().QueryName); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `": o._originalPK})
+	if _, err = io.WriteString(_w, `            if err != nil {
+                return err
+            }
         }
 
 `); err != nil {
@@ -8486,7 +8140,7 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `.PrimaryKey() {
-                   obj.Set`); err != nil {
+                    obj.Set`); err != nil {
 					return
 				}
 
@@ -8495,78 +8149,9 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `ToNull()
-                   obj.Save(ctx)
-                }
-                if o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReversePkIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, ` != nil {
-                    if o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, ` != nil && o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `.IsDirty() {
-                        // Save detached record
-                        o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `.Save(ctx)
+                    if err := obj.Save(ctx); err != nil {
+                        return err
                     }
-                    o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, ` = Load`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Table.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(ctx, *o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReversePkIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `, node.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Table.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `().PrimaryKey())
                 }
                 o.`); err != nil {
 					return
@@ -8602,7 +8187,7 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `(o.PrimaryKey())
-                o.`); err != nil {
+                if err := o.`); err != nil {
 					return
 				}
 
@@ -8610,7 +8195,9 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `.Save(ctx)
+				if _, err = io.WriteString(_w, `.Save(ctx); err != nil {
+                    return err
+                }
 
 `); err != nil {
 					return
@@ -8634,64 +8221,7 @@ func (o *`); err != nil {
 
 				//*** update_rev_null.tmpl
 
-				if _, err = io.WriteString(_w, `                if o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReversePkIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, ` != nil {
-                    // Get objects we are going to associate if not already loaded
-                    objs := Query`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Table.IdentifierPlural); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(ctx).
-                          Where(op.In(node.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Table.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `().PrimaryKey(), o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReversePkIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `...)).
-                          Select(node.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Table.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `().`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `()).
-                          Load()
-                    _ = objs
-                    // TODO: save new group of objects
-                }
-                objs := Query`); err != nil {
+				if _, err = io.WriteString(_w, `                currentObjs := Query`); err != nil {
 					return
 				}
 
@@ -8734,9 +8264,40 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `()).
+ `); err != nil {
+					return
+				}
+
+				if c := col.Table.LockColumn(); c != nil {
+
+					if _, err = io.WriteString(_w, `
+                          Select(node.`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, c.Table.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `().`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, c.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `()).
+ `); err != nil {
+						return
+					}
+
+				}
+
+				if _, err = io.WriteString(_w, `
                           Load()
 
-                for _,obj := range objs {
+                for _,obj := range currentObjs {
                     if !o.`); err != nil {
 					return
 				}
@@ -8756,7 +8317,9 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `ToNull()
-                        obj.Save(ctx)
+                        if err := obj.Save(ctx); err != nil {
+                            return err
+                        }
                     }
                 }
                 for obj := range o.`); err != nil {
@@ -8786,7 +8349,9 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `(o.PrimaryKey())
-                    obj.Save(ctx)
+                    if err := obj.Save(ctx); err != nil {
+                        return err
+                    }
                 }
 `); err != nil {
 					return
@@ -8829,9 +8394,8 @@ func (o *`); err != nil {
 				//*** update_rev_not_null_unique.tmpl
 
 				if _, err = io.WriteString(_w, `                    // Since the other side of the relationship cannot be null, if there is an object already attached,
-                    // we panic. 
-                    // TODO: return an error instead
-                    obj := Query`); err != nil {
+                    // that is different than the one we are trying to attach, we panic.
+                    oldObj := Query`); err != nil {
 					return
 				}
 
@@ -8840,7 +8404,7 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `(ctx).
-                              Where(op.Equal(node.`); err != nil {
+                          Where(op.Equal(node.`); err != nil {
 					return
 				}
 
@@ -8857,8 +8421,35 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `(), o.PrimaryKey())).
-                              Get()
-                    if obj != nil  && obj.PrimaryKey() != o.`); err != nil {
+                          Select(node.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Table.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `().`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `()).
+                          Get()
+
+                    if oldObj != nil {
+                        if o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ` != nil && oldObj.PrimaryKey() != o.`); err != nil {
 					return
 				}
 
@@ -8867,7 +8458,55 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `.PrimaryKey() {
-                        panic("cannot set a unique non-null reference when another object is already set to it. Record " + obj.PrimaryKey() + " is pointing to " + o.PrimaryKey())
+                            panic("cannot set a unique non-null reference when another object is already set to it. " + o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `.PrimaryKey() + " is not " + oldObj.PrimaryKey())
+                        }
+                    }
+                    // we are moving the attachment from one place, to our object, or attaching an object that is already attached.
+                    if o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ` != nil {
+                        o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `.Set`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(o.PrimaryKey())
+                        if err := o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `.Save(ctx); err != nil {
+                            return err
+                        }
                     }
 `); err != nil {
 					return
@@ -8891,10 +8530,8 @@ func (o *`); err != nil {
 
 				//*** update_rev_not_null.tmpl
 
-				if _, err = io.WriteString(_w, `                    // Since the other side of the relationship cannot be null, there cannot be objects that will be detached
-                    // TODO: Make this check earlier to lock the rows being changed
-
-                    objs := Query`); err != nil {
+				if _, err = io.WriteString(_w, `                    // Since the other side of the relationship cannot be null, there cannot be objects that will be detached.
+                    oldObjs := Query`); err != nil {
 					return
 				}
 
@@ -8938,8 +8575,8 @@ func (o *`); err != nil {
 
 				if _, err = io.WriteString(_w, `()).
                                Load()
-                    for _,obj := range objs {
-                       if !o.`); err != nil {
+                    for _,obj := range oldObjs {
+                        if !o.`); err != nil {
 					return
 				}
 
@@ -8948,9 +8585,9 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `.Has(obj.PrimaryKey()) {
-                           // The old object is not in the group of new objects
-                           panic("cannot remove a non-null reference. ")
-                       }
+                            // The old object is not in the group of new objects
+                            panic(fmt.Sprintf("cannot remove a non-null reference. Point the reference new a new record first. Primary Key: %v", obj.PrimaryKey()))
+                        }
                     }
 
                     for obj := range o.`); err != nil {
@@ -8962,16 +8599,7 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `.ValuesIter() {
-                       obj.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsDirty = true // force a change in case data is stale
-                       obj.Set`); err != nil {
+                        obj.Set`); err != nil {
 					return
 				}
 
@@ -8980,7 +8608,18 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `(o.PrimaryKey())
-                       obj.Save(ctx)
+                        obj.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `IsDirty = true // force a change in case data is stale
+                        if err := obj.Save(ctx); err != nil {
+                            return err
+                        }
                     }
 `); err != nil {
 					return
@@ -9014,14 +8653,13 @@ func (o *`); err != nil {
 		//*** update_rev_save.tmpl
 
 		if _, err = io.WriteString(_w, `
-        `); err != nil {
+`); err != nil {
 			return
 		}
 
 		if col.IsUnique {
 
-			if _, err = io.WriteString(_w, `
-            // save related object
+			if _, err = io.WriteString(_w, `            // save related object
             if o.`); err != nil {
 				return
 			}
@@ -9031,7 +8669,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, ` != nil {
-                o.`); err != nil {
+                if err := o.`); err != nil {
 				return
 			}
 
@@ -9039,16 +8677,17 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `.Save(ctx)
+			if _, err = io.WriteString(_w, `.Save(ctx); err != nil {
+                    return err
+                }
             }
-        `); err != nil {
+`); err != nil {
 				return
 			}
 
 		} else {
 
-			if _, err = io.WriteString(_w, `
-            // save related objects
+			if _, err = io.WriteString(_w, `            // save related objects
             for obj := range o.`); err != nil {
 				return
 			}
@@ -9058,17 +8697,14 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `.ValuesIter() {
-                obj.Save(ctx)
+                if err := obj.Save(ctx); err != nil {
+                    return err
+                }
             }
-        `); err != nil {
+`); err != nil {
 				return
 			}
 
-		}
-
-		if _, err = io.WriteString(_w, `
-`); err != nil {
-			return
 		}
 
 		if _, err = io.WriteString(_w, `        }
@@ -9126,7 +8762,9 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `.ValuesIter() {
-                obj.Save(ctx)
+                if err := obj.Save(ctx); err != nil {
+                    return err
+                }
             }
             // TODO: fix associations
         }
@@ -9139,9 +8777,8 @@ func (o *`); err != nil {
 	if _, err = io.WriteString(_w, `
         return nil
     }) // transaction
-
     if err != nil {
-        return
+        return err
     }
 
 	o.resetDirtyStatus()
@@ -9165,7 +8802,7 @@ func (o *`); err != nil {
 	if _, err = io.WriteString(_w, `", o._originalPK, all.SortedKeys(modifiedFields)...)
 	}
 
-	return
+	return nil
 }
 
 `); err != nil {
@@ -9470,48 +9107,6 @@ func (o *`); err != nil {
 			if _, err = io.WriteString(_w, `.Save(ctx); err != nil {
             return err
         }
-    } else if o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `Pk != nil {
-        d.Update(ctx, "`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Table.QueryName); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `", map[string]any{"`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.QueryName); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `": id}, map[string]any{"`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Table.PrimaryKeyColumn().QueryName); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `": *o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `Pk})
     }
 
     `); err != nil {
@@ -9566,48 +9161,6 @@ func (o *`); err != nil {
 
 			if _, err = io.WriteString(_w, `.Set(obj.PrimaryKey(), obj)
         }
-    } else if len(o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `Pks) > 0 {
-        d.Update(ctx, "`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Table.QueryName); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `", map[string]any{"`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.QueryName); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `": id}, map[string]any{"`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Table.PrimaryKeyColumn().QueryName); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `": o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `Pks})
     }
     `); err != nil {
 				return
@@ -11692,51 +11245,6 @@ func (o *`); err != nil {
         }
     }
 
-    if o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` == nil {
-        if err := encoder.Encode(false); err != nil {
-            return nil, err
-        }
-    } else {
-        if err := encoder.Encode(true); err != nil {
-            return nil, err
-        }
-        if err := encoder.Encode(*o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `); err != nil {
-            return nil, fmt.Errorf("error encoding `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `: %w", err)
-        }
-    }
-
     if err := encoder.Encode(o.`); err != nil {
 				return
 			}
@@ -11782,38 +11290,6 @@ func (o *`); err != nil {
 
 			if _, err = io.WriteString(_w, ` ); err != nil {
         return nil, err
-    }
-    if err := encoder.Encode(len(o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `) != 0); err != nil {
-        return nil, err
-    }
-    if len(o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `) != 0 {
-        if err := encoder.Encode(o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` ); err != nil {
-            return nil, err
-        }
     }
 
     if err := encoder.Encode(o.`); err != nil {
@@ -12296,55 +11772,6 @@ func (o *`); err != nil {
         }
     }
 
-    if err = dec.Decode(&isPtr); err != nil {
-        return fmt.Errorf("error decoding `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` isPtr: %w", err)
-    }
-    if isPtr {
-        if err = dec.Decode(&o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `); err != nil {
-            return fmt.Errorf("error decoding `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `: %w", err)
-        }
-    }
-
     if err = dec.Decode(&o.`); err != nil {
 				return
 			}
@@ -12406,55 +11833,6 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `: %w", err)
-    }
-
-    if err = dec.Decode(&isPtr); err != nil {
-        return fmt.Errorf("error decoding `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` isPtr: %w", err)
-    }
-    if isPtr {
-        if err = dec.Decode(&o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `); err != nil {
-            return fmt.Errorf("error decoding `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReversePkIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `: %w", err)
-        }
     }
 
     if err = dec.Decode(&o.`); err != nil {

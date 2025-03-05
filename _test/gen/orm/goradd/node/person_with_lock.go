@@ -19,8 +19,8 @@ type PersonWithLockNode interface {
 	FirstName() *query.ColumnNode
 	// LastName represents the last_name column in the database.
 	LastName() *query.ColumnNode
-	// GroTimestamp represents the gro_timestamp column in the database.
-	GroTimestamp() *query.ColumnNode
+	// GroLockTimestamp represents the gro_lock_timestamp column in the database.
+	GroLockTimestamp() *query.ColumnNode
 }
 
 // personWithLockTable represents the person_with_lock table in a query. It uses a builder pattern to chain
@@ -60,7 +60,7 @@ func (n personWithLockTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.FirstName())
 	nodes = append(nodes, n.LastName())
-	nodes = append(nodes, n.GroTimestamp())
+	nodes = append(nodes, n.GroLockTimestamp())
 	return nodes
 }
 
@@ -142,10 +142,10 @@ func (n *personWithLockReverse) LastName() *query.ColumnNode {
 	return cn
 }
 
-func (n personWithLockTable) GroTimestamp() *query.ColumnNode {
+func (n personWithLockTable) GroLockTimestamp() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "gro_timestamp",
-		Identifier:   "GroTimestamp",
+		QueryName:    "gro_lock_timestamp",
+		Identifier:   "GroLockTimestamp",
 		ReceiverType: query.ColTypeInteger64,
 		IsPrimaryKey: false,
 	}
@@ -153,8 +153,8 @@ func (n personWithLockTable) GroTimestamp() *query.ColumnNode {
 	return cn
 }
 
-func (n *personWithLockReverse) GroTimestamp() *query.ColumnNode {
-	cn := n.personWithLockTable.GroTimestamp()
+func (n *personWithLockReverse) GroLockTimestamp() *query.ColumnNode {
+	cn := n.personWithLockTable.GroLockTimestamp()
 	query.NodeSetParent(cn, n)
 	return cn
 }

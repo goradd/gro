@@ -75,6 +75,8 @@ func (o *forwardCascadeBase) Initialize() {
 	o.reverseIDIsValid = true
 	o.reverseIDIsDirty = true
 
+	o._aliases = nil
+
 	o._restored = false
 }
 
@@ -685,20 +687,20 @@ func (o *forwardCascadeBase) Save(ctx context.Context) error {
 }
 
 // update will update the values in the database, saving any changed values.
-func (o *forwardCascadeBase) update(ctx context.Context) (err error) {
+func (o *forwardCascadeBase) update(ctx context.Context) error {
 	if !o._restored {
 		panic("cannot update a record that was not originally read from the database.")
 	}
 
 	var modifiedFields map[string]interface{}
 	d := Database()
-	err = db.ExecuteTransaction(ctx, d, func() error {
-
-		// TODO: Perform all reads and consistency checks before saves
+	err := db.ExecuteTransaction(ctx, d, func() error {
 
 		// Save loaded Reverse object to get its new pk and update it here.
 		if o.objReverse != nil {
-			o.objReverse.Save(ctx)
+			if err := o.objReverse.Save(ctx); err != nil {
+				return err
+			}
 			id := o.objReverse.PrimaryKey()
 			o.SetReverseID(id)
 		}
@@ -706,14 +708,16 @@ func (o *forwardCascadeBase) update(ctx context.Context) (err error) {
 		// Save all modified fields to the database
 		modifiedFields = o.getModifiedFields()
 		if len(modifiedFields) != 0 {
-			d.Update(ctx, "forward_cascade", modifiedFields, map[string]any{"id": o._originalPK})
+			err := d.Update(ctx, "forward_cascade", "id", o._originalPK, modifiedFields, "", 0)
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil
 	}) // transaction
-
 	if err != nil {
-		return
+		return err
 	}
 
 	o.resetDirtyStatus()
@@ -721,7 +725,7 @@ func (o *forwardCascadeBase) update(ctx context.Context) (err error) {
 		broadcast.Update(ctx, "goradd_unit", "forward_cascade", o._originalPK, all.SortedKeys(modifiedFields)...)
 	}
 
-	return
+	return nil
 }
 
 // insert will insert the object into the database. Related items will be saved.

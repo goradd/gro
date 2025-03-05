@@ -30,13 +30,15 @@ type Table struct {
 	Indexes []Index
 	// Options are key-value pairs of values that can be used to customize how code generation is performed
 	Options map[string]interface{}
-	// columnMap is an internal map of the columns by database name of the column
+	// columnMap is an internal map of the columns by query name of the column
 	columnMap map[string]*Column
 	// ReverseReferences are the columns from other tables, or even this table,
 	// that point to this column.
 	ReverseReferences []*Column
 	// ManyManyReferences describe the many-to-many references pointing to this table
 	ManyManyReferences []*ManyManyReference
+	// The cached optimistic locking column, if one is present
+	lockColumn *Column
 }
 
 // PrimaryKeyColumn returns the primary key column
@@ -118,6 +120,11 @@ func (t *Table) SettableColumns() []*Column {
 	return out
 }
 
+// LockColumn returns the special column that will be used to implement optimistic locking, if one exists for the table.
+func (t *Table) LockColumn() *Column {
+	return t.lockColumn
+}
+
 // newTable will import the table provided by tableSchema.
 // If an error occurs, nil is returned.
 func newTable(dbKey string, tableSchema *schema.Table) *Table {
@@ -163,6 +170,9 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 			idx := Index{Columns: []*Column{newCol},
 				IsUnique: schemaCol.IndexLevel != schema.IndexLevelIndexed}
 			t.Indexes = append(t.Indexes, idx)
+		}
+		if schemaCol.SubType == schema.ColSubTypeGroLockTimestamp {
+			t.lockColumn = newCol
 		}
 	}
 

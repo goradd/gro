@@ -32,6 +32,10 @@ type {{= builderInterface }} interface {
     // Some fields, like primary keys, are always selected.
     // If you are using a GroupBy, most database drivers will only allow selecting on fields in the GroupBy, and
     // doing otherwise will result in an error.
+{{if table.LockColumn() != nil }}
+    // If you intend to modify the resulting records, you MUST select the {{= table.LockColumn().Identifier }} column
+    // for optimistic locking protection.
+{{if}}
 	Select(nodes... query.Node) {{= builderInterface }}
 
 	// Calculation adds a calculation described by operation with the name alias.

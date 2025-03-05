@@ -4,12 +4,22 @@
 }}
 {{
                     // Since the other side of the relationship cannot be null, if there is an object already attached,
-                    // we panic. 
-                    // TODO: return an error instead
-                    obj := Query{{= col.Table.IdentifierPlural }}(ctx).
-                              Where(op.Equal(node.{{= col.Table.Identifier}}().{{= col.Identifier }}(), o.PrimaryKey())).
-                              Get()
-                    if obj != nil  && obj.PrimaryKey() != o.{{= col.ReverseVariableIdentifier() }}.PrimaryKey() {
-                        panic("cannot set a unique non-null reference when another object is already set to it. Record " + obj.PrimaryKey() + " is pointing to " + o.PrimaryKey())
+                    // that is different than the one we are trying to attach, we panic.
+                    oldObj := Query{{= col.Table.IdentifierPlural }}(ctx).
+                          Where(op.Equal(node.{{= col.Table.Identifier}}().{{= col.Identifier }}(), o.PrimaryKey())).
+                          Select(node.{{= col.Table.Identifier }}().{{= col.Identifier }}()).
+                          Get()
+
+                    if oldObj != nil {
+                        if o.{{= col.ReverseVariableIdentifier() }} != nil && oldObj.PrimaryKey() != o.{{= col.ReverseVariableIdentifier() }}.PrimaryKey() {
+                            panic("cannot set a unique non-null reference when another object is already set to it. " + o.{{= col.ReverseVariableIdentifier() }}.PrimaryKey() + " is not " + oldObj.PrimaryKey())
+                        }
+                    }
+                    // we are moving the attachment from one place, to our object, or attaching an object that is already attached.
+                    if o.{{= col.ReverseVariableIdentifier() }} != nil {
+                        o.{{= col.ReverseVariableIdentifier() }}.Set{{= col.Identifier }}(o.PrimaryKey())
+                        if err := o.{{= col.ReverseVariableIdentifier() }}.Save(ctx); err != nil {
+                            return err
+                        }
                     }
 }}

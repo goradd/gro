@@ -73,6 +73,8 @@ func (o *employeeInfoBase) Initialize() {
 	o.employeeNumberIsValid = false
 	o.employeeNumberIsDirty = false
 
+	o._aliases = nil
+
 	o._restored = false
 }
 
@@ -655,20 +657,20 @@ func (o *employeeInfoBase) Save(ctx context.Context) error {
 }
 
 // update will update the values in the database, saving any changed values.
-func (o *employeeInfoBase) update(ctx context.Context) (err error) {
+func (o *employeeInfoBase) update(ctx context.Context) error {
 	if !o._restored {
 		panic("cannot update a record that was not originally read from the database.")
 	}
 
 	var modifiedFields map[string]interface{}
 	d := Database()
-	err = db.ExecuteTransaction(ctx, d, func() error {
-
-		// TODO: Perform all reads and consistency checks before saves
+	err := db.ExecuteTransaction(ctx, d, func() error {
 
 		// Save loaded Person object to get its new pk and update it here.
 		if o.objPerson != nil {
-			o.objPerson.Save(ctx)
+			if err := o.objPerson.Save(ctx); err != nil {
+				return err
+			}
 			id := o.objPerson.PrimaryKey()
 			o.SetPersonID(id)
 		}
@@ -676,14 +678,16 @@ func (o *employeeInfoBase) update(ctx context.Context) (err error) {
 		// Save all modified fields to the database
 		modifiedFields = o.getModifiedFields()
 		if len(modifiedFields) != 0 {
-			d.Update(ctx, "employee_info", modifiedFields, map[string]any{"id": o._originalPK})
+			err := d.Update(ctx, "employee_info", "id", o._originalPK, modifiedFields, "", 0)
+			if err != nil {
+				return err
+			}
 		}
 
 		return nil
 	}) // transaction
-
 	if err != nil {
-		return
+		return err
 	}
 
 	o.resetDirtyStatus()
@@ -691,7 +695,7 @@ func (o *employeeInfoBase) update(ctx context.Context) (err error) {
 		broadcast.Update(ctx, "goradd", "employee_info", o._originalPK, all.SortedKeys(modifiedFields)...)
 	}
 
-	return
+	return nil
 }
 
 // insert will insert the object into the database. Related items will be saved.

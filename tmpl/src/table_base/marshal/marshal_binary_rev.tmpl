@@ -6,14 +6,6 @@
     if err := encoder.Encode(&o.{{= rev.ReverseVariableIdentifier() }} ); err != nil {
         return nil, err
     }
-    if err := encoder.Encode(len(o.{{= rev.ReversePkIdentifier() }}) != 0); err != nil {
-        return nil, err
-    }
-    if len(o.{{= rev.ReversePkIdentifier() }}) != 0 {
-        if err := encoder.Encode(o.{{= rev.ReversePkIdentifier() }} ); err != nil {
-            return nil, err
-        }
-    }
 
     if err := encoder.Encode(o.{{= rev.ReverseVariableIdentifier() }}IsDirty); err != nil {
         return nil, err

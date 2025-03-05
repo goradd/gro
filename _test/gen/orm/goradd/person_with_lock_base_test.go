@@ -46,6 +46,18 @@ func TestPersonWithLock_SetLastName(t *testing.T) {
 		obj.SetLastName(lastName)
 	})
 }
+func TestPersonWithLock_SetGroLockTimestamp(t *testing.T) {
+
+	obj := NewPersonWithLock()
+	groLockTimestamp := test.RandomValue[int64](64)
+	obj.SetGroLockTimestamp(groLockTimestamp)
+	assert.Equal(t, groLockTimestamp, obj.GroLockTimestamp())
+
+	// test default
+	obj.SetGroLockTimestamp(0)
+	assert.EqualValues(t, 0, obj.GroLockTimestamp(), "set default")
+
+}
 
 // createMinimalSamplePersonWithLock creates and saves a minimal version of a PersonWithLock object
 // for testing.
@@ -57,6 +69,9 @@ func createMinimalSamplePersonWithLock(ctx context.Context) *PersonWithLock {
 
 	lastName := test.RandomValue[string](50)
 	obj.SetLastName(lastName)
+
+	groLockTimestamp := test.RandomValue[int64](64)
+	obj.SetGroLockTimestamp(groLockTimestamp)
 
 	obj.Save(ctx)
 	return obj
@@ -70,6 +85,9 @@ func TestPersonWithLock_CRUD(t *testing.T) {
 
 	lastName := test.RandomValue[string](50)
 	obj.SetLastName(lastName)
+
+	groLockTimestamp := test.RandomValue[int64](64)
+	obj.SetGroLockTimestamp(groLockTimestamp)
 
 	obj.Save(ctx)
 
@@ -85,6 +103,7 @@ func TestPersonWithLock_CRUD(t *testing.T) {
 	assert.True(t, obj.LastNameIsValid())
 	assert.Equal(t, lastName, obj.LastName())
 
-	assert.True(t, obj.GroTimestampIsValid())
+	assert.True(t, obj.GroLockTimestampIsValid())
+	assert.Equal(t, groLockTimestamp, obj.GroLockTimestamp())
 
 }

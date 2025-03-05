@@ -33,6 +33,8 @@ type DbI interface {
 	// in a sql string. Some sqls just use "?" while others identify an argument
 	// by location, like Postgres's $1, $2, etc.
 	FormatArgument(n int) string
+	// The driver should return true if it supports SELECT ... FOR UPDATE clauses for row level locking in a transaction
+	SupportsForUpdate() bool
 }
 
 type contextKey string
@@ -78,6 +80,8 @@ func NewSqlDb(dbKey string, db *sql.DB, dbi DbI) DbHelper {
 
 // Begin starts a transaction. You should immediately defer a Rollback using the returned transaction id.
 // If you Commit before the Rollback happens, no Rollback will occur. The Begin-Commit-Rollback pattern is nestable.
+// Pass true to forWrite if this is a transaction that will insert or update data. This will cause row locks to be
+// write locks.
 func (h *DbHelper) Begin(ctx context.Context) (txid db.TransactionID) {
 	c := h.getContext(ctx)
 	if c == nil {
@@ -237,6 +241,15 @@ func (h *DbHelper) getContext(ctx context.Context) *sqlContext {
 	return nil
 }
 
+// IsInTransaction returns true if the database is in the middle of a transaction.
+func (h *DbHelper) IsInTransaction(ctx context.Context) (inTx bool) {
+	c := h.getContext(ctx)
+	if c != nil && c.txCount > 0 {
+		inTx = true
+	}
+	return
+}
+
 // DbKey returns the key of the database in the global database store.
 func (h *DbHelper) DbKey() string {
 	return h.dbKey
@@ -287,8 +300,8 @@ func (h *DbHelper) Query(ctx context.Context, table string, fields map[string]Re
 // Care should be exercised when calling this directly, since related records are not modified in any way.
 // If this record has related records, the database structure may be corrupted.
 func (h *DbHelper) Delete(ctx context.Context, table string, where map[string]any) {
-	sql, args := GenerateDelete(h.dbi, table, where)
-	_, e := h.SqlExec(ctx, sql, args...)
+	s, args := GenerateDelete(h.dbi, table, where)
+	_, e := h.SqlExec(ctx, s, args...)
 	if e != nil {
 		panic(e.Error())
 	}
@@ -297,8 +310,8 @@ func (h *DbHelper) Delete(ctx context.Context, table string, where map[string]an
 // Insert inserts the given data as a new record in the database.
 // It returns the record id of the new record.
 func (h *DbHelper) Insert(ctx context.Context, table string, fields map[string]interface{}) string {
-	sql, args := GenerateInsert(h.dbi, table, fields)
-	if r, err := h.SqlExec(ctx, sql, args...); err != nil {
+	s, args := GenerateInsert(h.dbi, table, fields)
+	if r, err := h.SqlExec(ctx, s, args...); err != nil {
 		panic(err.Error())
 	} else {
 		// Not all database implementations support LastInsertId
@@ -312,18 +325,51 @@ func (h *DbHelper) Insert(ctx context.Context, table string, fields map[string]i
 	}
 }
 
-// Update sets specific fields of a record that already exists in the database to the given data.
+// Update sets specific fields of a record that already exists in the database.
+// optLockFieldName is the name of a version field that will implement an optimistic locking check before executing the update.
+// Note that if the database is not currently in a transaction, then the optimistic lock
+// will be a cursory check, but will not be able to definitively prevent a prior write.
+// If optLockFieldName is provided, that field will be updated with a new version number value during the update process.
 func (h *DbHelper) Update(ctx context.Context,
 	table string,
+	pkName string,
+	pkValue string,
 	fields map[string]any,
-	where map[string]any,
-) {
+	optLockFieldName string,
+	optLockFieldValue int64,
+) error {
+	if optLockFieldName != "" {
+		s, args := GenerateVersionLock(h.dbi, table, pkName, pkValue, optLockFieldName, h.IsInTransaction(ctx))
+		if rows, err := h.SqlQuery(ctx, s, args...); err != nil {
+			return err
+		} else {
+			var version int64
+			defer rows.Close()
+			if !rows.Next() {
+				// The record was deleted prior to an update completing.
+				return db.NewRecordNotFoundError(fmt.Sprintf("Record not found, table: %s, pk: %s", table, pkValue))
+			}
+			if err = rows.Scan(&version); err != nil {
+				panic(err) // a database error, perhaps the version field does not exist in the database?
+			}
+			if version != optLockFieldValue {
+				// The record was changed prior to an update completing.
+				return db.NewOptimisticLockError(fmt.Sprintf("Optimistic lock error, table: %s, pk: %s", table, pkValue), nil)
+			}
+			// If we get here, and we are in a transaction, the record has been locked until the end of the transaction and optimistic locking is valid.
+			// If not in a transaction, we know that so far the record has not changed, but it still has a slight chance of changing between here
+			// and the execution of the GenerateUpdate below.
 
-	sql, args := GenerateUpdate(h.dbi, table, fields, where)
-	_, e := h.SqlExec(ctx, sql, args...)
-	if e != nil {
-		panic(e.Error())
+			// Generate a new version number prior to saving.
+			fields[optLockFieldName] = db.RecordVersion(optLockFieldValue)
+		}
 	}
+	s, args := GenerateUpdate(h.dbi, table, fields, map[string]any{pkName: pkValue})
+	_, e := h.SqlExec(ctx, s, args...)
+	if e != nil {
+		panic(e) // some kind of database error, should be notified immediately
+	}
+	return nil
 }
 
 // BuilderQuery performs a complex query using a query builder.

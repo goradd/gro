@@ -5,15 +5,19 @@
 {{
 {{# save reverse reference objects that are dirty, but relationship has not changed }}
 
-        {{if col.IsUnique }}
+{{if col.IsUnique }}
             // save related object
             if o.{{= col.ReverseVariableIdentifier() }} != nil {
-                o.{{= col.ReverseVariableIdentifier() }}.Save(ctx)
+                if err := o.{{= col.ReverseVariableIdentifier() }}.Save(ctx); err != nil {
+                    return err
+                }
             }
-        {{else}}
+{{else}}
             // save related objects
             for obj := range o.{{= col.ReverseVariableIdentifier() }}.ValuesIter() {
-                obj.Save(ctx)
+                if err := obj.Save(ctx); err != nil {
+                    return err
+                }
             }
-        {{if}}
+{{if}}
 }}
