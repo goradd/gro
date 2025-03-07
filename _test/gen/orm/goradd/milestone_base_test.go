@@ -62,23 +62,26 @@ func TestMilestone_CRUD(t *testing.T) {
 	ctx := db.NewContext(nil)
 
 	objProject := createMinimalSampleProject(ctx)
+	defer objProject.Delete(ctx)
 	obj.SetProject(objProject)
 
 	name := test.RandomValue[string](50)
 	obj.SetName(name)
 
-	obj.Save(ctx)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer obj.Delete(ctx)
 
 	// Test retrieval
-	obj = LoadMilestone(ctx, obj.PrimaryKey())
-	require.NotNil(t, obj)
+	obj2 := LoadMilestone(ctx, obj.PrimaryKey())
+	require.NotNil(t, obj2)
 
-	assert.True(t, obj.IDIsValid())
+	assert.True(t, obj2.IDIsValid())
 
-	assert.True(t, obj.ProjectIDIsValid())
-	assert.NotEmpty(t, obj.ProjectID())
+	assert.True(t, obj2.ProjectIDIsValid())
+	assert.NotEmpty(t, obj2.ProjectID())
 
-	assert.True(t, obj.NameIsValid())
-	assert.Equal(t, name, obj.Name())
+	assert.True(t, obj2.NameIsValid())
+	assert.Equal(t, name, obj2.Name())
 
 }

@@ -84,19 +84,21 @@ func TestDoubleIndex_CRUD(t *testing.T) {
 	fieldString := test.RandomValue[string](50)
 	obj.SetFieldString(fieldString)
 
-	obj.Save(ctx)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer obj.Delete(ctx)
 
 	// Test retrieval
-	obj = LoadDoubleIndex(ctx, obj.PrimaryKey())
-	require.NotNil(t, obj)
+	obj2 := LoadDoubleIndex(ctx, obj.PrimaryKey())
+	require.NotNil(t, obj2)
 
-	assert.True(t, obj.IDIsValid())
-	assert.Equal(t, id, obj.ID())
+	assert.True(t, obj2.IDIsValid())
+	assert.Equal(t, id, obj2.ID())
 
-	assert.True(t, obj.FieldIntIsValid())
-	assert.Equal(t, fieldInt, obj.FieldInt())
+	assert.True(t, obj2.FieldIntIsValid())
+	assert.Equal(t, fieldInt, obj2.FieldInt())
 
-	assert.True(t, obj.FieldStringIsValid())
-	assert.Equal(t, fieldString, obj.FieldString())
+	assert.True(t, obj2.FieldStringIsValid())
+	assert.Equal(t, fieldString, obj2.FieldString())
 
 }

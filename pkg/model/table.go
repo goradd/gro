@@ -171,7 +171,7 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 				IsUnique: schemaCol.IndexLevel != schema.IndexLevelIndexed}
 			t.Indexes = append(t.Indexes, idx)
 		}
-		if schemaCol.SubType == schema.ColSubTypeGroLockTimestamp {
+		if schemaCol.SubType == schema.ColSubTypeLock {
 			t.lockColumn = newCol
 		}
 	}

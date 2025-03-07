@@ -329,42 +329,44 @@ func TestUnsupportedType_CRUD(t *testing.T) {
 	typeMultifk2 := test.RandomValue[string](50)
 	obj.SetTypeMultifk2(typeMultifk2)
 
-	obj.Save(ctx)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer obj.Delete(ctx)
 
 	// Test retrieval
-	obj = LoadUnsupportedType(ctx, obj.PrimaryKey())
-	require.NotNil(t, obj)
+	obj2 := LoadUnsupportedType(ctx, obj.PrimaryKey())
+	require.NotNil(t, obj2)
 
-	assert.True(t, obj.TypeSerialIsValid())
+	assert.True(t, obj2.TypeSerialIsValid())
 
-	assert.True(t, obj.TypeDoubleIsValid())
-	assert.Equal(t, typeDouble, obj.TypeDouble())
+	assert.True(t, obj2.TypeDoubleIsValid())
+	assert.Equal(t, typeDouble, obj2.TypeDouble())
 
-	assert.True(t, obj.TypeTinyBlobIsValid())
-	assert.Equal(t, typeTinyBlob, obj.TypeTinyBlob())
+	assert.True(t, obj2.TypeTinyBlobIsValid())
+	assert.Equal(t, typeTinyBlob, obj2.TypeTinyBlob())
 
-	assert.True(t, obj.TypeMediumBlobIsValid())
-	assert.Equal(t, typeMediumBlob, obj.TypeMediumBlob())
+	assert.True(t, obj2.TypeMediumBlobIsValid())
+	assert.Equal(t, typeMediumBlob, obj2.TypeMediumBlob())
 
-	assert.True(t, obj.TypeLongtextIsValid())
-	assert.Equal(t, typeLongtext, obj.TypeLongtext())
+	assert.True(t, obj2.TypeLongtextIsValid())
+	assert.Equal(t, typeLongtext, obj2.TypeLongtext())
 
-	assert.True(t, obj.TypeSmallIsValid())
-	assert.Equal(t, typeSmall, obj.TypeSmall())
+	assert.True(t, obj2.TypeSmallIsValid())
+	assert.Equal(t, typeSmall, obj2.TypeSmall())
 
-	assert.True(t, obj.TypeMediumIsValid())
-	assert.Equal(t, typeMedium, obj.TypeMedium())
+	assert.True(t, obj2.TypeMediumIsValid())
+	assert.Equal(t, typeMedium, obj2.TypeMedium())
 
-	assert.True(t, obj.TypeBigIsValid())
-	assert.Equal(t, typeBig, obj.TypeBig())
+	assert.True(t, obj2.TypeBigIsValid())
+	assert.Equal(t, typeBig, obj2.TypeBig())
 
-	assert.True(t, obj.TypeUnsignedIsValid())
-	assert.Equal(t, typeUnsigned, obj.TypeUnsigned())
+	assert.True(t, obj2.TypeUnsignedIsValid())
+	assert.Equal(t, typeUnsigned, obj2.TypeUnsigned())
 
-	assert.True(t, obj.TypeMultfk1IsValid())
-	assert.Equal(t, typeMultfk1, obj.TypeMultfk1())
+	assert.True(t, obj2.TypeMultfk1IsValid())
+	assert.Equal(t, typeMultfk1, obj2.TypeMultfk1())
 
-	assert.True(t, obj.TypeMultifk2IsValid())
-	assert.Equal(t, typeMultifk2, obj.TypeMultifk2())
+	assert.True(t, obj2.TypeMultifk2IsValid())
+	assert.Equal(t, typeMultifk2, obj2.TypeMultifk2())
 
 }

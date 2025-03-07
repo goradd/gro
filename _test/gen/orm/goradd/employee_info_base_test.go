@@ -57,23 +57,26 @@ func TestEmployeeInfo_CRUD(t *testing.T) {
 	ctx := db.NewContext(nil)
 
 	objPerson := createMinimalSamplePerson(ctx)
+	defer objPerson.Delete(ctx)
 	obj.SetPerson(objPerson)
 
 	employeeNumber := test.RandomValue[int](32)
 	obj.SetEmployeeNumber(employeeNumber)
 
-	obj.Save(ctx)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer obj.Delete(ctx)
 
 	// Test retrieval
-	obj = LoadEmployeeInfo(ctx, obj.PrimaryKey())
-	require.NotNil(t, obj)
+	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey())
+	require.NotNil(t, obj2)
 
-	assert.True(t, obj.IDIsValid())
+	assert.True(t, obj2.IDIsValid())
 
-	assert.True(t, obj.PersonIDIsValid())
-	assert.NotEmpty(t, obj.PersonID())
+	assert.True(t, obj2.PersonIDIsValid())
+	assert.NotEmpty(t, obj2.PersonID())
 
-	assert.True(t, obj.EmployeeNumberIsValid())
-	assert.Equal(t, employeeNumber, obj.EmployeeNumber())
+	assert.True(t, obj2.EmployeeNumberIsValid())
+	assert.Equal(t, employeeNumber, obj2.EmployeeNumber())
 
 }

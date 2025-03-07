@@ -97,22 +97,24 @@ func TestPerson_CRUD(t *testing.T) {
 	types := test.RandomEnumArray(PersonTypes())
 	obj.SetTypes(types)
 
-	obj.Save(ctx)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer obj.Delete(ctx)
 
 	// Test retrieval
-	obj = LoadPerson(ctx, obj.PrimaryKey())
-	require.NotNil(t, obj)
+	obj2 := LoadPerson(ctx, obj.PrimaryKey())
+	require.NotNil(t, obj2)
 
-	assert.True(t, obj.IDIsValid())
+	assert.True(t, obj2.IDIsValid())
 
-	assert.True(t, obj.FirstNameIsValid())
-	assert.Equal(t, firstName, obj.FirstName())
+	assert.True(t, obj2.FirstNameIsValid())
+	assert.Equal(t, firstName, obj2.FirstName())
 
-	assert.True(t, obj.LastNameIsValid())
-	assert.Equal(t, lastName, obj.LastName())
+	assert.True(t, obj2.LastNameIsValid())
+	assert.Equal(t, lastName, obj2.LastName())
 
-	assert.True(t, obj.TypesIsValid())
-	assert.False(t, obj.TypesIsNull())
-	assert.True(t, types.Equal(obj.Types()))
+	assert.True(t, obj2.TypesIsValid())
+	assert.False(t, obj2.TypesIsNull())
+	assert.True(t, types.Equal(obj2.Types()))
 
 }

@@ -414,9 +414,9 @@ func processTypeInfo(column mysqlColumn) (
 		} else {
 			typ = schema.ColTypeInt
 			if column.name == schema.GroTimestampColumnName {
-				subType = schema.ColSubTypeGroTimestamp
+				subType = schema.ColSubTypeTimestamp
 			} else if column.name == schema.GroLockColumnName {
-				subType = schema.ColSubTypeGroLockTimestamp
+				subType = schema.ColSubTypeLock
 			}
 		}
 

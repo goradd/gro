@@ -970,6 +970,15 @@ func createMinimalSample`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `(ctx)
+    defer `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `.Delete(ctx)
     obj.Set`); err != nil {
 					return
 				}
@@ -1178,10 +1187,12 @@ func createMinimalSample`); err != nil {
 
 	}
 
-	if _, err = io.WriteString(_w, `    obj.Save(ctx)
+	if _, err = io.WriteString(_w, `    err := obj.Save(ctx)
+	assert.NoError(t, err)
+    defer obj.Delete(ctx)
 
     // Test retrieval
-    obj = Load`); err != nil {
+    obj2 := Load`); err != nil {
 		return
 	}
 
@@ -1190,7 +1201,7 @@ func createMinimalSample`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey())
-    require.NotNil(t, obj)
+    require.NotNil(t, obj2)
 
 `); err != nil {
 		return
@@ -1203,7 +1214,7 @@ func createMinimalSample`); err != nil {
 		} // cannot know what the set of valid input characters are.
 
 		if _, err = io.WriteString(_w, `
-    assert.True(t, obj.`); err != nil {
+    assert.True(t, obj2.`); err != nil {
 			return
 		}
 
@@ -1218,7 +1229,7 @@ func createMinimalSample`); err != nil {
 
 		if col.IsNullable {
 
-			if _, err = io.WriteString(_w, `    assert.False(t, obj.`); err != nil {
+			if _, err = io.WriteString(_w, `    assert.False(t, obj2.`); err != nil {
 				return
 			}
 
@@ -1237,7 +1248,7 @@ func createMinimalSample`); err != nil {
 
 			if col.IsReference() {
 
-				if _, err = io.WriteString(_w, `    assert.NotEmpty(t, obj.`); err != nil {
+				if _, err = io.WriteString(_w, `    assert.NotEmpty(t, obj2.`); err != nil {
 					return
 				}
 
@@ -1260,7 +1271,7 @@ func createMinimalSample`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `.Equal(obj.`); err != nil {
+				if _, err = io.WriteString(_w, `.Equal(obj2.`); err != nil {
 					return
 				}
 
@@ -1283,7 +1294,7 @@ func createMinimalSample`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `, obj.`); err != nil {
+				if _, err = io.WriteString(_w, `, obj2.`); err != nil {
 					return
 				}
 

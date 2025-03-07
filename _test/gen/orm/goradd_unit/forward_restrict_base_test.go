@@ -65,20 +65,23 @@ func TestForwardRestrict_CRUD(t *testing.T) {
 	obj.SetName(name)
 
 	objReverse := createMinimalSampleReverse(ctx)
+	defer objReverse.Delete(ctx)
 	obj.SetReverse(objReverse)
 
-	obj.Save(ctx)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer obj.Delete(ctx)
 
 	// Test retrieval
-	obj = LoadForwardRestrict(ctx, obj.PrimaryKey())
-	require.NotNil(t, obj)
+	obj2 := LoadForwardRestrict(ctx, obj.PrimaryKey())
+	require.NotNil(t, obj2)
 
-	assert.True(t, obj.IDIsValid())
+	assert.True(t, obj2.IDIsValid())
 
-	assert.True(t, obj.NameIsValid())
-	assert.Equal(t, name, obj.Name())
+	assert.True(t, obj2.NameIsValid())
+	assert.Equal(t, name, obj2.Name())
 
-	assert.True(t, obj.ReverseIDIsValid())
-	assert.NotEmpty(t, obj.ReverseID())
+	assert.True(t, obj2.ReverseIDIsValid())
+	assert.NotEmpty(t, obj2.ReverseID())
 
 }

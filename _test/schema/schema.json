@@ -190,9 +190,15 @@
             "case_insensitive": true
           },
           {
-            "name": "gro_lock_timestamp",
+            "name": "gro_lock",
             "type": "int",
-            "sub_type": "gro_lock_timestamp",
+            "sub_type": "gro_lock",
+            "size": 64
+          },
+          {
+            "name": "gro_timestamp",
+            "type": "int",
+            "sub_type": "gro_timestamp",
             "size": 64
           }
         ],
@@ -437,7 +443,23 @@
         "key": "double_index"
       },
       {
-        "name": "forward_cascade",
+        "name": "leaf",
+        "columns": [
+          {
+            "name": "id",
+            "type": "auto_primary_key"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "size": 100,
+            "case_insensitive": true
+          }
+        ],
+        "key": "leaf"
+      },
+      {
+        "name": "leaf_lock",
         "columns": [
           {
             "name": "id",
@@ -450,156 +472,71 @@
             "case_insensitive": true
           },
           {
-            "name": "reverse_id",
+            "name": "gro_lock_timestamp",
+            "type": "int",
+            "size": 64,
+            "is_nullable": true
+          }
+        ],
+        "key": "leaf_lock"
+      },
+      {
+        "name": "root",
+        "columns": [
+          {
+            "name": "id",
+            "type": "auto_primary_key"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "size": 100,
+            "case_insensitive": true
+          },
+          {
+            "name": "optional_leaf_id",
             "type": "ref",
             "is_nullable": true,
             "index_level": "Indexed",
             "reference": {
-              "table": "reverse"
+              "table": "leaf"
             }
-          }
-        ],
-        "key": "forward_cascade"
-      },
-      {
-        "name": "forward_cascade_unique",
-        "columns": [
-          {
-            "name": "id",
-            "type": "auto_primary_key"
           },
           {
-            "name": "name",
-            "type": "string",
-            "size": 100,
-            "case_insensitive": true
-          },
-          {
-            "name": "reverse_id",
+            "name": "required_leaf_id",
             "type": "ref",
-            "is_nullable": true,
+            "index_level": "Indexed",
+            "reference": {
+              "table": "leaf"
+            }
+          },
+          {
+            "name": "optional_leaf_unique_id",
+            "type": "ref",
             "index_level": "Unique",
             "reference": {
-              "table": "reverse"
+              "table": "leaf"
             }
-          }
-        ],
-        "key": "forward_cascade_unique"
-      },
-      {
-        "name": "forward_null",
-        "columns": [
-          {
-            "name": "id",
-            "type": "auto_primary_key"
           },
           {
-            "name": "name",
-            "type": "string",
-            "size": 100,
-            "case_insensitive": true
+            "name": "required_leaf_unique_id",
+            "type": "ref",
+            "index_level": "Unique",
+            "reference": {
+              "table": "leaf"
+            }
           },
           {
-            "name": "reverse_id",
+            "name": "parent_id",
             "type": "ref",
             "is_nullable": true,
             "index_level": "Indexed",
             "reference": {
-              "table": "reverse"
+              "table": "root"
             }
           }
         ],
-        "key": "forward_null"
-      },
-      {
-        "name": "forward_null_unique",
-        "columns": [
-          {
-            "name": "id",
-            "type": "auto_primary_key"
-          },
-          {
-            "name": "name",
-            "type": "string",
-            "size": 100,
-            "case_insensitive": true
-          },
-          {
-            "name": "reverse_id",
-            "type": "ref",
-            "is_nullable": true,
-            "index_level": "Unique",
-            "reference": {
-              "table": "reverse"
-            }
-          }
-        ],
-        "key": "forward_null_unique"
-      },
-      {
-        "name": "forward_restrict",
-        "columns": [
-          {
-            "name": "id",
-            "type": "auto_primary_key"
-          },
-          {
-            "name": "name",
-            "type": "string",
-            "size": 100,
-            "case_insensitive": true
-          },
-          {
-            "name": "reverse_id",
-            "type": "ref",
-            "index_level": "Indexed",
-            "reference": {
-              "table": "reverse"
-            }
-          }
-        ],
-        "key": "forward_restrict"
-      },
-      {
-        "name": "forward_restrict_unique",
-        "columns": [
-          {
-            "name": "id",
-            "type": "auto_primary_key"
-          },
-          {
-            "name": "name",
-            "type": "string",
-            "size": 100,
-            "case_insensitive": true
-          },
-          {
-            "name": "reverse_id",
-            "type": "ref",
-            "is_nullable": true,
-            "index_level": "Unique",
-            "reference": {
-              "table": "reverse"
-            }
-          }
-        ],
-        "key": "forward_restrict_unique"
-      },
-      {
-        "name": "reverse",
-        "columns": [
-          {
-            "name": "id",
-            "type": "auto_primary_key"
-          },
-          {
-            "name": "name",
-            "type": "string",
-            "size": 100,
-            "case_insensitive": true
-          }
-        ],
-        "key": "reverse"
+        "key": "root"
       },
       {
         "name": "two_key",

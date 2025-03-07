@@ -105,6 +105,7 @@ func TestLogin_CRUD(t *testing.T) {
 	ctx := db.NewContext(nil)
 
 	objPerson := createMinimalSamplePerson(ctx)
+	defer objPerson.Delete(ctx)
 	obj.SetPerson(objPerson)
 
 	username := test.RandomValue[string](20)
@@ -116,26 +117,28 @@ func TestLogin_CRUD(t *testing.T) {
 	isEnabled := test.RandomValue[bool](0)
 	obj.SetIsEnabled(isEnabled)
 
-	obj.Save(ctx)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer obj.Delete(ctx)
 
 	// Test retrieval
-	obj = LoadLogin(ctx, obj.PrimaryKey())
-	require.NotNil(t, obj)
+	obj2 := LoadLogin(ctx, obj.PrimaryKey())
+	require.NotNil(t, obj2)
 
-	assert.True(t, obj.IDIsValid())
+	assert.True(t, obj2.IDIsValid())
 
-	assert.True(t, obj.PersonIDIsValid())
-	assert.False(t, obj.PersonIDIsNull())
-	assert.NotEmpty(t, obj.PersonID())
+	assert.True(t, obj2.PersonIDIsValid())
+	assert.False(t, obj2.PersonIDIsNull())
+	assert.NotEmpty(t, obj2.PersonID())
 
-	assert.True(t, obj.UsernameIsValid())
-	assert.Equal(t, username, obj.Username())
+	assert.True(t, obj2.UsernameIsValid())
+	assert.Equal(t, username, obj2.Username())
 
-	assert.True(t, obj.PasswordIsValid())
-	assert.False(t, obj.PasswordIsNull())
-	assert.Equal(t, password, obj.Password())
+	assert.True(t, obj2.PasswordIsValid())
+	assert.False(t, obj2.PasswordIsNull())
+	assert.Equal(t, password, obj2.Password())
 
-	assert.True(t, obj.IsEnabledIsValid())
-	assert.Equal(t, isEnabled, obj.IsEnabled())
+	assert.True(t, obj2.IsEnabledIsValid())
+	assert.Equal(t, isEnabled, obj2.IsEnabled())
 
 }

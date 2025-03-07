@@ -7975,6 +7975,27 @@ func (o *`); err != nil {
 		return
 	}
 
+	for _, c := range table.Columns {
+
+		if c.SchemaSubType == schema.ColSubTypeTimestamp {
+
+			if _, err = io.WriteString(_w, `            modifiedFields["`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, c.QueryName); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `"] = time.Now().UnixMicro()
+`); err != nil {
+				return
+			}
+
+		}
+
+	}
+
 	if c := table.LockColumn(); c == nil {
 
 		if _, err = io.WriteString(_w, `            err := d.Update(ctx, "`); err != nil {
@@ -9026,7 +9047,7 @@ func (o *`); err != nil {
 				return
 			}
 
-		} else if col.ReceiverType == query.ColTypeInteger64 && col.SchemaSubType == schema.ColSubTypeGroTimestamp {
+		} else if col.ReceiverType == query.ColTypeInteger64 && col.SchemaSubType == schema.ColSubTypeTimestamp {
 
 			if _, err = io.WriteString(_w, `    o.`); err != nil {
 				return

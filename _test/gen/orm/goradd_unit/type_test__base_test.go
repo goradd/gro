@@ -281,53 +281,55 @@ func TestTypeTest_CRUD(t *testing.T) {
 	testBlob := test.RandomValue[[]byte](65535)
 	obj.SetTestBlob(testBlob)
 
-	obj.Save(ctx)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer obj.Delete(ctx)
 
 	// Test retrieval
-	obj = LoadTypeTest(ctx, obj.PrimaryKey())
-	require.NotNil(t, obj)
+	obj2 := LoadTypeTest(ctx, obj.PrimaryKey())
+	require.NotNil(t, obj2)
 
-	assert.True(t, obj.IDIsValid())
+	assert.True(t, obj2.IDIsValid())
 
-	assert.True(t, obj.DateIsValid())
-	assert.False(t, obj.DateIsNull())
-	assert.Equal(t, date, obj.Date())
+	assert.True(t, obj2.DateIsValid())
+	assert.False(t, obj2.DateIsNull())
+	assert.Equal(t, date, obj2.Date())
 
-	assert.True(t, obj.TimeIsValid())
-	assert.False(t, obj.TimeIsNull())
-	assert.Equal(t, time, obj.Time())
+	assert.True(t, obj2.TimeIsValid())
+	assert.False(t, obj2.TimeIsNull())
+	assert.Equal(t, time, obj2.Time())
 
-	assert.True(t, obj.DateTimeIsValid())
-	assert.False(t, obj.DateTimeIsNull())
-	assert.Equal(t, dateTime, obj.DateTime())
+	assert.True(t, obj2.DateTimeIsValid())
+	assert.False(t, obj2.DateTimeIsNull())
+	assert.Equal(t, dateTime, obj2.DateTime())
 
-	assert.True(t, obj.TsIsValid())
-	assert.False(t, obj.TsIsNull())
+	assert.True(t, obj2.TsIsValid())
+	assert.False(t, obj2.TsIsNull())
 
-	assert.True(t, obj.TestIntIsValid())
-	assert.False(t, obj.TestIntIsNull())
-	assert.Equal(t, testInt, obj.TestInt())
+	assert.True(t, obj2.TestIntIsValid())
+	assert.False(t, obj2.TestIntIsNull())
+	assert.Equal(t, testInt, obj2.TestInt())
 
-	assert.True(t, obj.TestFloatIsValid())
-	assert.False(t, obj.TestFloatIsNull())
-	assert.Equal(t, testFloat, obj.TestFloat())
+	assert.True(t, obj2.TestFloatIsValid())
+	assert.False(t, obj2.TestFloatIsNull())
+	assert.Equal(t, testFloat, obj2.TestFloat())
 
-	assert.True(t, obj.TestDoubleIsValid())
-	assert.Equal(t, testDouble, obj.TestDouble())
+	assert.True(t, obj2.TestDoubleIsValid())
+	assert.Equal(t, testDouble, obj2.TestDouble())
 
-	assert.True(t, obj.TestTextIsValid())
-	assert.False(t, obj.TestTextIsNull())
-	assert.Equal(t, testText, obj.TestText())
+	assert.True(t, obj2.TestTextIsValid())
+	assert.False(t, obj2.TestTextIsNull())
+	assert.Equal(t, testText, obj2.TestText())
 
-	assert.True(t, obj.TestBitIsValid())
-	assert.False(t, obj.TestBitIsNull())
-	assert.Equal(t, testBit, obj.TestBit())
+	assert.True(t, obj2.TestBitIsValid())
+	assert.False(t, obj2.TestBitIsNull())
+	assert.Equal(t, testBit, obj2.TestBit())
 
-	assert.True(t, obj.TestVarcharIsValid())
-	assert.False(t, obj.TestVarcharIsNull())
-	assert.Equal(t, testVarchar, obj.TestVarchar())
+	assert.True(t, obj2.TestVarcharIsValid())
+	assert.False(t, obj2.TestVarcharIsNull())
+	assert.Equal(t, testVarchar, obj2.TestVarchar())
 
-	assert.True(t, obj.TestBlobIsValid())
-	assert.Equal(t, testBlob, obj.TestBlob())
+	assert.True(t, obj2.TestBlobIsValid())
+	assert.Equal(t, testBlob, obj2.TestBlob())
 
 }

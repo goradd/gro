@@ -12,9 +12,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestReverse_SetName(t *testing.T) {
+func TestLeaf_SetName(t *testing.T) {
 
-	obj := NewReverse()
+	obj := NewLeaf()
 	name := test.RandomValue[string](100)
 	obj.SetName(name)
 	assert.Equal(t, name, obj.Name())
@@ -30,10 +30,10 @@ func TestReverse_SetName(t *testing.T) {
 	})
 }
 
-// createMinimalSampleReverse creates and saves a minimal version of a Reverse object
+// createMinimalSampleLeaf creates and saves a minimal version of a Leaf object
 // for testing.
-func createMinimalSampleReverse(ctx context.Context) *Reverse {
-	obj := NewReverse()
+func createMinimalSampleLeaf(ctx context.Context) *Leaf {
+	obj := NewLeaf()
 
 	name := test.RandomValue[string](100)
 	obj.SetName(name)
@@ -41,8 +41,8 @@ func createMinimalSampleReverse(ctx context.Context) *Reverse {
 	obj.Save(ctx)
 	return obj
 }
-func TestReverse_CRUD(t *testing.T) {
-	obj := NewReverse()
+func TestLeaf_CRUD(t *testing.T) {
+	obj := NewLeaf()
 	ctx := db.NewContext(nil)
 
 	name := test.RandomValue[string](100)
@@ -53,7 +53,7 @@ func TestReverse_CRUD(t *testing.T) {
 	defer obj.Delete(ctx)
 
 	// Test retrieval
-	obj2 := LoadReverse(ctx, obj.PrimaryKey())
+	obj2 := LoadLeaf(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj2)
 
 	assert.True(t, obj2.IDIsValid())

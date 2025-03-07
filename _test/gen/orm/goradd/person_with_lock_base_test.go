@@ -46,16 +46,16 @@ func TestPersonWithLock_SetLastName(t *testing.T) {
 		obj.SetLastName(lastName)
 	})
 }
-func TestPersonWithLock_SetGroLockTimestamp(t *testing.T) {
+func TestPersonWithLock_SetGroLock(t *testing.T) {
 
 	obj := NewPersonWithLock()
-	groLockTimestamp := test.RandomValue[int64](64)
-	obj.SetGroLockTimestamp(groLockTimestamp)
-	assert.Equal(t, groLockTimestamp, obj.GroLockTimestamp())
+	groLock := test.RandomValue[int64](64)
+	obj.SetGroLock(groLock)
+	assert.Equal(t, groLock, obj.GroLock())
 
 	// test default
-	obj.SetGroLockTimestamp(0)
-	assert.EqualValues(t, 0, obj.GroLockTimestamp(), "set default")
+	obj.SetGroLock(0)
+	assert.EqualValues(t, 0, obj.GroLock(), "set default")
 
 }
 
@@ -70,8 +70,8 @@ func createMinimalSamplePersonWithLock(ctx context.Context) *PersonWithLock {
 	lastName := test.RandomValue[string](50)
 	obj.SetLastName(lastName)
 
-	groLockTimestamp := test.RandomValue[int64](64)
-	obj.SetGroLockTimestamp(groLockTimestamp)
+	groLock := test.RandomValue[int64](64)
+	obj.SetGroLock(groLock)
 
 	obj.Save(ctx)
 	return obj
@@ -86,24 +86,28 @@ func TestPersonWithLock_CRUD(t *testing.T) {
 	lastName := test.RandomValue[string](50)
 	obj.SetLastName(lastName)
 
-	groLockTimestamp := test.RandomValue[int64](64)
-	obj.SetGroLockTimestamp(groLockTimestamp)
+	groLock := test.RandomValue[int64](64)
+	obj.SetGroLock(groLock)
 
-	obj.Save(ctx)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer obj.Delete(ctx)
 
 	// Test retrieval
-	obj = LoadPersonWithLock(ctx, obj.PrimaryKey())
-	require.NotNil(t, obj)
+	obj2 := LoadPersonWithLock(ctx, obj.PrimaryKey())
+	require.NotNil(t, obj2)
 
-	assert.True(t, obj.IDIsValid())
+	assert.True(t, obj2.IDIsValid())
 
-	assert.True(t, obj.FirstNameIsValid())
-	assert.Equal(t, firstName, obj.FirstName())
+	assert.True(t, obj2.FirstNameIsValid())
+	assert.Equal(t, firstName, obj2.FirstName())
 
-	assert.True(t, obj.LastNameIsValid())
-	assert.Equal(t, lastName, obj.LastName())
+	assert.True(t, obj2.LastNameIsValid())
+	assert.Equal(t, lastName, obj2.LastName())
 
-	assert.True(t, obj.GroLockTimestampIsValid())
-	assert.Equal(t, groLockTimestamp, obj.GroLockTimestamp())
+	assert.True(t, obj2.GroLockIsValid())
+	assert.Equal(t, groLock, obj2.GroLock())
+
+	assert.True(t, obj2.GroTimestampIsValid())
 
 }

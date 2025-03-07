@@ -88,6 +88,7 @@ func TestAddress_CRUD(t *testing.T) {
 	ctx := db.NewContext(nil)
 
 	objPerson := createMinimalSamplePerson(ctx)
+	defer objPerson.Delete(ctx)
 	obj.SetPerson(objPerson)
 
 	street := test.RandomValue[string](100)
@@ -96,22 +97,24 @@ func TestAddress_CRUD(t *testing.T) {
 	city := test.RandomValue[string](100)
 	obj.SetCity(city)
 
-	obj.Save(ctx)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer obj.Delete(ctx)
 
 	// Test retrieval
-	obj = LoadAddress(ctx, obj.PrimaryKey())
-	require.NotNil(t, obj)
+	obj2 := LoadAddress(ctx, obj.PrimaryKey())
+	require.NotNil(t, obj2)
 
-	assert.True(t, obj.IDIsValid())
+	assert.True(t, obj2.IDIsValid())
 
-	assert.True(t, obj.PersonIDIsValid())
-	assert.NotEmpty(t, obj.PersonID())
+	assert.True(t, obj2.PersonIDIsValid())
+	assert.NotEmpty(t, obj2.PersonID())
 
-	assert.True(t, obj.StreetIsValid())
-	assert.Equal(t, street, obj.Street())
+	assert.True(t, obj2.StreetIsValid())
+	assert.Equal(t, street, obj2.Street())
 
-	assert.True(t, obj.CityIsValid())
-	assert.False(t, obj.CityIsNull())
-	assert.Equal(t, city, obj.City())
+	assert.True(t, obj2.CityIsValid())
+	assert.False(t, obj2.CityIsNull())
+	assert.Equal(t, city, obj2.City())
 
 }

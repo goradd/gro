@@ -66,16 +66,18 @@ func TestGift_CRUD(t *testing.T) {
 	name := test.RandomValue[string](50)
 	obj.SetName(name)
 
-	obj.Save(ctx)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer obj.Delete(ctx)
 
 	// Test retrieval
-	obj = LoadGift(ctx, obj.PrimaryKey())
-	require.NotNil(t, obj)
+	obj2 := LoadGift(ctx, obj.PrimaryKey())
+	require.NotNil(t, obj2)
 
-	assert.True(t, obj.NumberIsValid())
-	assert.Equal(t, number, obj.Number())
+	assert.True(t, obj2.NumberIsValid())
+	assert.Equal(t, number, obj2.Number())
 
-	assert.True(t, obj.NameIsValid())
-	assert.Equal(t, name, obj.Name())
+	assert.True(t, obj2.NameIsValid())
+	assert.Equal(t, name, obj2.Name())
 
 }

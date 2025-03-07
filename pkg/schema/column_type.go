@@ -61,11 +61,15 @@ import "encoding/json"
 // the corresponding type in the database. Not all databases support 8-bit integers. Check
 // your database vendor to be sure.
 //
-// An int64 column may have the subtype of ColSubTypeGroTimestamp or ColSubTypeGroLockTimestamp.
-// This indicates that the column will be filled in with time.Now().UnixMicro() when the record is saved.
-// ColSubTypeGroLockTimestamp columns will also be used by the ORM to implement optimistic locking.
-// Some database engines, like DynamoDB, require a column with one of these subtypes in any table that
-// requires transactions. Convention is to name these columns "gro_timestamp" and "gro_lock_timestamp".
+// An int64 column may have the subtype of ColSubTypeTimestamp or ColSubTypeLock.
+// ColSubTypeTimestamp indicates that the column will be filled in with time.Now().UnixMicro() when the record is saved.
+// However, if a new value is computed, and the old value is greater than the new value, the new value will add one to the
+// value. This prevents the scenario where separate systems with unsynchronized clocks might create a later
+// value that would appear earlier, in case the timestamp is being used for UI synchronization. Combine with another
+// column with ColSubTypeLock to make sure a race condition between systems will not possibly break this process,
+// though if the app is not running scaled on multiple systems, this is unnecessary.
+// ColSubTypeLock columns will store a version number and be used by the ORM to implement optimistic locking.
+// Convention is to name these columns "gro_timestamp" and "gro_lock".
 //
 // # ColTypeTime
 //
@@ -75,8 +79,8 @@ import "encoding/json"
 // sorted, and javascript and other libraries are capable of converting UTC time to local
 // time in the client locale for display purposes.
 // MySQL will store the value as a DateTime and not a Timestamp, since Timestamps are assumed
-// to be in server local time and not UTC time and get time shifted
-// in transit. Postgres uses Timestamp without timezone (which is the default).
+// to be in server local time and not UTC time and get time shifted in transit. Also, some MySQLs have the
+// yr2038 bug. Postgres uses Timestamp without timezone (which is the default).
 // See the Column.DefaultValue doc for time specific behavior of default values.
 //
 // # ColTypeFloat
@@ -137,15 +141,13 @@ const (
 	ColTypeEnumArray
 )
 
-// GroTimestampColumnName is the convention for the name of a ColSubTypeGroTimestamp column
+// GroTimestampColumnName is the convention for the name of a ColSubTypeTimestamp column
 // that will automatically be updated with the UnixMicro time upon saving of the record.
-// Note that some database engines (DynamoDB for example), require the presence of this column
-// to support transaction processing.
 const GroTimestampColumnName = "gro_timestamp"
 
-// GroLockColumnName is the convention for the name of a ColSubTypeGroTimestamp column
+// GroLockColumnName is the convention for the name of a ColSubTypeLock column
 // that will also be used to perform optimistic locking by the ORM.
-const GroLockColumnName = "gro_lock_timestamp"
+const GroLockColumnName = "gro_lock"
 
 // String returns the string representation of a ColumnType.
 func (ct ColumnType) String() string {
@@ -231,8 +233,8 @@ const (
 	ColSubTypeNone ColumnSubType = iota
 	ColSubTypeDateOnly
 	ColSubTypeTimeOnly
-	ColSubTypeGroTimestamp     // should be applied only to an int64 column
-	ColSubTypeGroLockTimestamp // should be applied only to an int64 column
+	ColSubTypeTimestamp // should be applied only to an int64 column
+	ColSubTypeLock      // should be applied only to an int64 column
 )
 
 // String returns the string representation of a ColumnType.
@@ -244,10 +246,10 @@ func (ct ColumnSubType) String() string {
 		return "date_only"
 	case ColSubTypeTimeOnly:
 		return "time_only"
-	case ColSubTypeGroTimestamp:
+	case ColSubTypeTimestamp:
 		return "gro_timestamp"
-	case ColSubTypeGroLockTimestamp:
-		return "gro_lock_timestamp"
+	case ColSubTypeLock:
+		return "gro_lock"
 	default:
 		return "none"
 	}
@@ -273,9 +275,9 @@ func (cst *ColumnSubType) UnmarshalJSON(data []byte) error {
 	case "time_only":
 		*cst = ColSubTypeTimeOnly
 	case "gro_timestamp":
-		*cst = ColSubTypeGroTimestamp
-	case "gro_lock_timestamp":
-		*cst = ColSubTypeGroLockTimestamp
+		*cst = ColSubTypeTimestamp
+	case "gro_lock":
+		*cst = ColSubTypeLock
 	default:
 		*cst = ColSubTypeNone
 	}

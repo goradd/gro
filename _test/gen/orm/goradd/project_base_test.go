@@ -241,6 +241,7 @@ func TestProject_CRUD(t *testing.T) {
 	obj.SetStatus(status)
 
 	objManager := createMinimalSamplePerson(ctx)
+	defer objManager.Delete(ctx)
 	obj.SetManager(objManager)
 
 	name := test.RandomValue[string](100)
@@ -260,43 +261,46 @@ func TestProject_CRUD(t *testing.T) {
 	endDate = obj.EndDate()
 
 	objParentProject := createMinimalSampleProject(ctx)
+	defer objParentProject.Delete(ctx)
 	obj.SetParentProject(objParentProject)
 
-	obj.Save(ctx)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer obj.Delete(ctx)
 
 	// Test retrieval
-	obj = LoadProject(ctx, obj.PrimaryKey())
-	require.NotNil(t, obj)
+	obj2 := LoadProject(ctx, obj.PrimaryKey())
+	require.NotNil(t, obj2)
 
-	assert.True(t, obj.IDIsValid())
+	assert.True(t, obj2.IDIsValid())
 
-	assert.True(t, obj.NumIsValid())
-	assert.Equal(t, num, obj.Num())
+	assert.True(t, obj2.NumIsValid())
+	assert.Equal(t, num, obj2.Num())
 
-	assert.True(t, obj.StatusIsValid())
-	assert.Equal(t, status, obj.Status())
+	assert.True(t, obj2.StatusIsValid())
+	assert.Equal(t, status, obj2.Status())
 
-	assert.True(t, obj.ManagerIDIsValid())
-	assert.False(t, obj.ManagerIDIsNull())
-	assert.NotEmpty(t, obj.ManagerID())
+	assert.True(t, obj2.ManagerIDIsValid())
+	assert.False(t, obj2.ManagerIDIsNull())
+	assert.NotEmpty(t, obj2.ManagerID())
 
-	assert.True(t, obj.NameIsValid())
-	assert.Equal(t, name, obj.Name())
+	assert.True(t, obj2.NameIsValid())
+	assert.Equal(t, name, obj2.Name())
 
-	assert.True(t, obj.DescriptionIsValid())
-	assert.False(t, obj.DescriptionIsNull())
-	assert.Equal(t, description, obj.Description())
+	assert.True(t, obj2.DescriptionIsValid())
+	assert.False(t, obj2.DescriptionIsNull())
+	assert.Equal(t, description, obj2.Description())
 
-	assert.True(t, obj.StartDateIsValid())
-	assert.False(t, obj.StartDateIsNull())
-	assert.Equal(t, startDate, obj.StartDate())
+	assert.True(t, obj2.StartDateIsValid())
+	assert.False(t, obj2.StartDateIsNull())
+	assert.Equal(t, startDate, obj2.StartDate())
 
-	assert.True(t, obj.EndDateIsValid())
-	assert.False(t, obj.EndDateIsNull())
-	assert.Equal(t, endDate, obj.EndDate())
+	assert.True(t, obj2.EndDateIsValid())
+	assert.False(t, obj2.EndDateIsNull())
+	assert.Equal(t, endDate, obj2.EndDate())
 
-	assert.True(t, obj.ParentProjectIDIsValid())
-	assert.False(t, obj.ParentProjectIDIsNull())
-	assert.NotEmpty(t, obj.ParentProjectID())
+	assert.True(t, obj2.ParentProjectIDIsValid())
+	assert.False(t, obj2.ParentProjectIDIsNull())
+	assert.NotEmpty(t, obj2.ParentProjectID())
 
 }
