@@ -57,10 +57,19 @@ func TestReverseManyLoad(t *testing.T) {
 	}
 	assert.Len(t, names, 12) // Includes duplicates. If we ever get Distinct to manually remove duplicates, we should fix this.
 
-	// Test deep IsDirty
+	// Test deep IsDirty and Save
 	assert.False(t, people[6].IsDirty())
+	id := people[6].ManagerProjects()[0].TeamMembers()[0].ID()
+	fn := people[6].ManagerProjects()[0].TeamMembers()[0].FirstName()
 	people[6].ManagerProjects()[0].TeamMembers()[0].SetFirstName("A")
 	assert.True(t, people[6].IsDirty())
+	assert.NoError(t, people[6].Save(ctx))
+	p := goradd.LoadPerson(ctx, id)
+	assert.Equal(t, "A", p.FirstName())
+	assert.False(t, people[6].IsDirty())
+	// restore
+	p.SetFirstName(fn)
+	p.Save(ctx)
 }
 
 func TestUniqueReverseLoad(t *testing.T) {
@@ -164,7 +173,7 @@ func TestReverseManyNotNullInsert(t *testing.T) {
 
 	assert.Equal(t, "Sam", person2.FirstName(), "Retrieved the correct person")
 	assert.Equal(t, 2, len(person2.Addresses()), "Retrieved the addresses attached to the person")
-	
+
 	person2.Delete(ctx)
 
 	person3 := goradd.LoadPerson(ctx, id, node.Person().Addresses())
@@ -265,7 +274,6 @@ func TestReverseSelectByID(t *testing.T) {
 	assert.Equal(t, m.Name(), "ACME Payment System")
 }
 
-/*
 func TestReverseSet(t *testing.T) {
 	ctx := db.NewContext(nil)
 
@@ -312,4 +320,3 @@ func TestReverseSet(t *testing.T) {
 	projectsTest[1].Save(ctx)
 
 }
-*/

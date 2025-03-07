@@ -36,7 +36,6 @@ type personWithLockBase struct {
 
 	groLock        int64
 	groLockIsValid bool
-	groLockIsDirty bool
 
 	groTimestamp        int64
 	groTimestampIsValid bool
@@ -85,7 +84,6 @@ func (o *personWithLockBase) Initialize() {
 	o.groLock = 0
 
 	o.groLockIsValid = false
-	o.groLockIsDirty = false
 
 	o.groTimestamp = 0
 
@@ -120,9 +118,6 @@ func (o *personWithLockBase) Copy() (newObject *PersonWithLock) {
 	}
 	if o.lastNameIsValid {
 		newObject.SetLastName(o.lastName)
-	}
-	if o.groLockIsValid {
-		newObject.SetGroLock(o.groLock)
 	}
 	return
 }
@@ -212,20 +207,6 @@ func (o *personWithLockBase) GroLockIsValid() bool {
 	return o.groLockIsValid
 }
 
-// SetGroLock sets the value of GroLock in the object, to be saved later in the database using the Save() function.
-func (o *personWithLockBase) SetGroLock(v int64) {
-	if o._restored &&
-		o.groLockIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
-		o.groLock == v {
-		// no change
-		return
-	}
-
-	o.groLockIsValid = true
-	o.groLock = v
-	o.groLockIsDirty = true
-}
-
 // GroTimestamp returns the loaded value of GroTimestamp.
 func (o *personWithLockBase) GroTimestamp() int64 {
 	if o._restored && !o.groTimestampIsValid {
@@ -289,16 +270,17 @@ type PersonWithLockBuilder interface {
 	// Limit will return a subset of the data, limited to the offset and number of rows specified.
 	// For large data sets and specific types of queries, this can be slow, because it will perform
 	// the entire query before computing the limit.
-	// You cannot limit a query that has embedded arrays.
+	// You cannot limit a query that has selected a "many" relationship".
 	Limit(maxRowCount int, offset int) PersonWithLockBuilder
 
-	// Select optimizes the query to only return the specified fields.
-	// Once you put a Select in your query, you must specify all the fields that you will eventually read out.
+	// Select performs two functions:
+	//  - Passing a table type node will join the object or objects from that table to this object.
+	//  - Passing a column node will optimize the query to only return the specified fields.
+	// Once you select at least one column, you must select all the columns that you want in the result.
 	// Some fields, like primary keys, are always selected.
-	// If you are using a GroupBy, most database drivers will only allow selecting on fields in the GroupBy, and
-	// doing otherwise will result in an error.
-	// If you intend to modify the resulting records, you MUST select the GroLock column
-	// for optimistic locking protection.
+	// If you are using a GroupBy, you must select the fields in the GroupBy.
+	// If you intend to modify the resulting records, and you have selected at least one column,
+	// you MUST also select the GroLock column for optimistic locking protection.
 	Select(nodes ...query.Node) PersonWithLockBuilder
 
 	// Calculation adds a calculation described by operation with the name alias.
@@ -651,7 +633,6 @@ func (o *personWithLockBase) load(m map[string]interface{}, objThis *PersonWithL
 	if v, ok := m["gro_lock"]; ok && v != nil {
 		if o.groLock, ok = v.(int64); ok {
 			o.groLockIsValid = true
-			o.groLockIsDirty = false
 
 		} else {
 			panic("Wrong type found for gro_lock.")
@@ -659,7 +640,6 @@ func (o *personWithLockBase) load(m map[string]interface{}, objThis *PersonWithL
 	} else {
 		o.groLockIsValid = false
 		o.groLock = 0
-		o.groLockIsDirty = false
 	}
 
 	if v, ok := m["gro_timestamp"]; ok && v != nil {
@@ -742,9 +722,6 @@ func (o *personWithLockBase) insert(ctx context.Context) (err error) {
 		if !o.lastNameIsValid {
 			panic("a value for LastName is required, and there is no default value. Call SetLastName() before inserting the record.")
 		}
-		if !o.groLockIsValid {
-			panic("a value for GroLock is required, and there is no default value. Call SetGroLock() before inserting the record.")
-		}
 
 		o.groTimestamp = time.Now().UnixMicro()
 		o.groTimestampIsValid = true
@@ -778,9 +755,6 @@ func (o *personWithLockBase) getModifiedFields() (fields map[string]interface{})
 	}
 	if o.lastNameIsDirty {
 		fields["last_name"] = o.lastName
-	}
-	if o.groLockIsDirty {
-		fields["gro_lock"] = o.groLock
 	}
 	return
 }
@@ -828,15 +802,13 @@ func deletePersonWithLock(ctx context.Context, pk string) error {
 func (o *personWithLockBase) resetDirtyStatus() {
 	o.firstNameIsDirty = false
 	o.lastNameIsDirty = false
-	o.groLockIsDirty = false
 
 }
 
 // IsDirty returns true if the object has been changed since it was read from the database.
 func (o *personWithLockBase) IsDirty() (dirty bool) {
 	dirty = o.firstNameIsDirty ||
-		o.lastNameIsDirty ||
-		o.groLockIsDirty
+		o.lastNameIsDirty
 
 	return
 }
@@ -923,9 +895,6 @@ func (o *personWithLockBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.groLockIsValid); err != nil {
 		return nil, fmt.Errorf("error encoding PersonWithLock.groLockIsValid: %w", err)
 	}
-	if err := encoder.Encode(o.groLockIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding PersonWithLock.groLockIsDirty: %w", err)
-	}
 
 	if err := encoder.Encode(o.groTimestamp); err != nil {
 		return nil, fmt.Errorf("error encoding PersonWithLock.groTimestamp: %w", err)
@@ -999,9 +968,6 @@ func (o *personWithLockBase) UnmarshalBinary(data []byte) (err error) {
 	}
 	if err = dec.Decode(&o.groLockIsValid); err != nil {
 		return fmt.Errorf("error decoding PersonWithLock.groLockIsValid: %w", err)
-	}
-	if err = dec.Decode(&o.groLockIsDirty); err != nil {
-		return fmt.Errorf("error decoding PersonWithLock.groLockIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.groTimestamp); err != nil {
@@ -1113,28 +1079,6 @@ func (o *personWithLockBase) UnmarshalStringMap(m map[string]interface{}) (err e
 					return fmt.Errorf("json field %s must be a string", k)
 				} else {
 					o.SetLastName(s)
-				}
-			}
-
-		case "groLock":
-			{
-				if v == nil {
-					return fmt.Errorf("field %s cannot be null", k)
-				}
-
-				switch n := v.(type) {
-				case json.Number:
-					n2, err := n.Int64()
-					if err != nil {
-						return err
-					}
-					o.SetGroLock(n2)
-				case int:
-					o.SetGroLock(int64(n))
-				case float64:
-					o.SetGroLock(int64(n))
-				default:
-					return fmt.Errorf("field %s must be a number", k)
 				}
 			}
 

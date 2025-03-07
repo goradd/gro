@@ -3,6 +3,7 @@
 package node
 
 import (
+	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
@@ -29,6 +30,11 @@ type PersonWithLockNode interface {
 //
 // To use the personWithLockTable, call [PersonWithLock()] to start a reference chain when querying the person_with_lock table.
 type personWithLockTable struct {
+}
+
+type personWithLockReverse struct {
+	personWithLockTable
+	query.ReverseNode
 }
 
 // PersonWithLock returns a table node that starts a node chain that begins with the person_with_lock table.
@@ -61,13 +67,30 @@ func (n personWithLockTable) ColumnNodes_() (nodes []query.Node) {
 	return nodes
 }
 
+func (n *personWithLockReverse) ColumnNodes_() (nodes []query.Node) {
+	nodes = n.personWithLockTable.ColumnNodes_()
+	for _, cn := range nodes {
+		query.NodeSetParent(cn, n)
+	}
+	return
+}
+
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
 func (n personWithLockTable) IsEnum_() bool {
 	return false
 }
 
+func (n *personWithLockReverse) NodeType_() query.NodeType {
+	return query.ReverseNodeType
+}
+
 // PrimaryKey returns a node that points to the primary key column.
 func (n personWithLockTable) PrimaryKey() *query.ColumnNode {
+	return n.ID()
+}
+
+// PrimaryKey returns a node that points to the primary key column.
+func (n *personWithLockReverse) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
 
@@ -78,6 +101,12 @@ func (n personWithLockTable) ID() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *personWithLockReverse) ID() *query.ColumnNode {
+	cn := n.personWithLockTable.ID()
 	query.NodeSetParent(cn, n)
 	return cn
 }
@@ -93,6 +122,12 @@ func (n personWithLockTable) FirstName() *query.ColumnNode {
 	return cn
 }
 
+func (n *personWithLockReverse) FirstName() *query.ColumnNode {
+	cn := n.personWithLockTable.FirstName()
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
 func (n personWithLockTable) LastName() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:    "last_name",
@@ -100,6 +135,12 @@ func (n personWithLockTable) LastName() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *personWithLockReverse) LastName() *query.ColumnNode {
+	cn := n.personWithLockTable.LastName()
 	query.NodeSetParent(cn, n)
 	return cn
 }
@@ -115,6 +156,12 @@ func (n personWithLockTable) GroLock() *query.ColumnNode {
 	return cn
 }
 
+func (n *personWithLockReverse) GroLock() *query.ColumnNode {
+	cn := n.personWithLockTable.GroLock()
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
 func (n personWithLockTable) GroTimestamp() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:    "gro_timestamp",
@@ -122,6 +169,12 @@ func (n personWithLockTable) GroTimestamp() *query.ColumnNode {
 		ReceiverType: query.ColTypeInteger64,
 		IsPrimaryKey: false,
 	}
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *personWithLockReverse) GroTimestamp() *query.ColumnNode {
+	cn := n.personWithLockTable.GroTimestamp()
 	query.NodeSetParent(cn, n)
 	return cn
 }
@@ -134,6 +187,28 @@ func (n *personWithLockTable) GobDecode(data []byte) (err error) {
 	return
 }
 
+func (n *personWithLockReverse) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(&n.ReverseNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *personWithLockReverse) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ReverseNode); err != nil {
+		panic(err)
+	}
+	return
+}
+
 func init() {
 	gob.Register(new(personWithLockTable))
+	gob.Register(new(personWithLockReverse))
 }

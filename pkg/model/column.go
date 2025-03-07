@@ -271,7 +271,8 @@ func (cd *Column) HasSetter() bool {
 			return false
 		}
 	}
-	if cd.ReceiverType == ColTypeInteger64 && cd.SchemaSubType == schema.ColSubTypeTimestamp {
+	if cd.SchemaSubType == schema.ColSubTypeTimestamp ||
+		cd.SchemaSubType == schema.ColSubTypeLock {
 		return false
 	}
 	return true

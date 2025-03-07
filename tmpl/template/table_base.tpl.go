@@ -5671,7 +5671,7 @@ type `); err != nil {
 	// Limit will return a subset of the data, limited to the offset and number of rows specified.
     // For large data sets and specific types of queries, this can be slow, because it will perform
     // the entire query before computing the limit.
-    // You cannot limit a query that has embedded arrays.
+    // You cannot limit a query that has selected a "many" relationship".
 	Limit(maxRowCount int, offset int) `); err != nil {
 		return
 	}
@@ -5682,18 +5682,20 @@ type `); err != nil {
 
 	if _, err = io.WriteString(_w, `
 
-	// Select optimizes the query to only return the specified fields.
-    // Once you put a Select in your query, you must specify all the fields that you will eventually read out.
+	// Select performs two functions:
+	//  - Passing a table type node will join the object or objects from that table to this object.
+	//  - Passing a column node will optimize the query to only return the specified fields.
+    // Once you select at least one column, you must select all the columns that you want in the result.
     // Some fields, like primary keys, are always selected.
-    // If you are using a GroupBy, most database drivers will only allow selecting on fields in the GroupBy, and
-    // doing otherwise will result in an error.
+    // If you are using a GroupBy, you must select the fields in the GroupBy.
 `); err != nil {
 		return
 	}
 
 	if table.LockColumn() != nil {
 
-		if _, err = io.WriteString(_w, `    // If you intend to modify the resulting records, you MUST select the `); err != nil {
+		if _, err = io.WriteString(_w, `    // If you intend to modify the resulting records, and you have selected at least one column,
+    // you MUST also select the `); err != nil {
 			return
 		}
 
@@ -5701,8 +5703,7 @@ type `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ` column
-    // for optimistic locking protection.
+		if _, err = io.WriteString(_w, ` column for optimistic locking protection.
 `); err != nil {
 			return
 		}
