@@ -549,38 +549,38 @@ func (b *personWithLockQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
-// CountPersonWithLockByID queries the database and returns the number of PersonWithLock objects that
+// CountPersonWithLocksByID queries the database and returns the number of PersonWithLock objects that
 // have id.
 // doc: type=PersonWithLock
-func CountPersonWithLockByID(ctx context.Context, id string) int {
+func CountPersonWithLocksByID(ctx context.Context, id string) int {
 	return queryPersonWithLocks(ctx).Where(op.Equal(node.PersonWithLock().ID(), id)).Count()
 }
 
-// CountPersonWithLockByFirstName queries the database and returns the number of PersonWithLock objects that
+// CountPersonWithLocksByFirstName queries the database and returns the number of PersonWithLock objects that
 // have firstName.
 // doc: type=PersonWithLock
-func CountPersonWithLockByFirstName(ctx context.Context, firstName string) int {
+func CountPersonWithLocksByFirstName(ctx context.Context, firstName string) int {
 	return queryPersonWithLocks(ctx).Where(op.Equal(node.PersonWithLock().FirstName(), firstName)).Count()
 }
 
-// CountPersonWithLockByLastName queries the database and returns the number of PersonWithLock objects that
+// CountPersonWithLocksByLastName queries the database and returns the number of PersonWithLock objects that
 // have lastName.
 // doc: type=PersonWithLock
-func CountPersonWithLockByLastName(ctx context.Context, lastName string) int {
+func CountPersonWithLocksByLastName(ctx context.Context, lastName string) int {
 	return queryPersonWithLocks(ctx).Where(op.Equal(node.PersonWithLock().LastName(), lastName)).Count()
 }
 
-// CountPersonWithLockByGroLock queries the database and returns the number of PersonWithLock objects that
+// CountPersonWithLocksByGroLock queries the database and returns the number of PersonWithLock objects that
 // have groLock.
 // doc: type=PersonWithLock
-func CountPersonWithLockByGroLock(ctx context.Context, groLock int64) int {
+func CountPersonWithLocksByGroLock(ctx context.Context, groLock int64) int {
 	return queryPersonWithLocks(ctx).Where(op.Equal(node.PersonWithLock().GroLock(), groLock)).Count()
 }
 
-// CountPersonWithLockByGroTimestamp queries the database and returns the number of PersonWithLock objects that
+// CountPersonWithLocksByGroTimestamp queries the database and returns the number of PersonWithLock objects that
 // have groTimestamp.
 // doc: type=PersonWithLock
-func CountPersonWithLockByGroTimestamp(ctx context.Context, groTimestamp int64) int {
+func CountPersonWithLocksByGroTimestamp(ctx context.Context, groTimestamp int64) int {
 	return queryPersonWithLocks(ctx).Where(op.Equal(node.PersonWithLock().GroTimestamp(), groTimestamp)).Count()
 }
 
@@ -723,6 +723,8 @@ func (o *personWithLockBase) insert(ctx context.Context) (err error) {
 			panic("a value for LastName is required, and there is no default value. Call SetLastName() before inserting the record.")
 		}
 
+		o.groLock = db.RecordVersion(0)
+		o.groLockIsValid = true
 		o.groTimestamp = time.Now().UnixMicro()
 		o.groTimestampIsValid = true
 

@@ -664,9 +664,10 @@ func (o *rootBase) LoadParentRoots(ctx context.Context, conditions ...interface{
 	return o.revParentRoots.Values()
 }
 
-// CountParentRoots returns the number of Root objects in the database connected to this object.
+// CountParentRoots does a database query and returns the number of Root
+// objects currently in the database connected to this object.
 func (o *rootBase) CountParentRoots(ctx context.Context) int {
-	return CountRootByParentID(ctx, o.PrimaryKey())
+	return CountRootsByParentID(ctx, o.PrimaryKey())
 }
 
 // SetParentRoots associates the objects in objs with the Root.
@@ -1041,64 +1042,64 @@ func (b *rootQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
-// CountRootByID queries the database and returns the number of Root objects that
+// CountRootsByID queries the database and returns the number of Root objects that
 // have id.
 // doc: type=Root
-func CountRootByID(ctx context.Context, id string) int {
+func CountRootsByID(ctx context.Context, id string) int {
 	return queryRoots(ctx).Where(op.Equal(node.Root().ID(), id)).Count()
 }
 
-// CountRootByName queries the database and returns the number of Root objects that
+// CountRootsByName queries the database and returns the number of Root objects that
 // have name.
 // doc: type=Root
-func CountRootByName(ctx context.Context, name string) int {
+func CountRootsByName(ctx context.Context, name string) int {
 	return queryRoots(ctx).Where(op.Equal(node.Root().Name(), name)).Count()
 }
 
-// CountRootByOptionalLeafID queries the database and returns the number of Root objects that
+// CountRootsByOptionalLeafID queries the database and returns the number of Root objects that
 // have optionalLeafID.
 // doc: type=Root
-func CountRootByOptionalLeafID(ctx context.Context, optionalLeafID string) int {
+func CountRootsByOptionalLeafID(ctx context.Context, optionalLeafID string) int {
 	if optionalLeafID == "" {
 		return 0
 	}
 	return queryRoots(ctx).Where(op.Equal(node.Root().OptionalLeafID(), optionalLeafID)).Count()
 }
 
-// CountRootByRequiredLeafID queries the database and returns the number of Root objects that
+// CountRootsByRequiredLeafID queries the database and returns the number of Root objects that
 // have requiredLeafID.
 // doc: type=Root
-func CountRootByRequiredLeafID(ctx context.Context, requiredLeafID string) int {
+func CountRootsByRequiredLeafID(ctx context.Context, requiredLeafID string) int {
 	if requiredLeafID == "" {
 		return 0
 	}
 	return queryRoots(ctx).Where(op.Equal(node.Root().RequiredLeafID(), requiredLeafID)).Count()
 }
 
-// CountRootByOptionalLeafUniqueID queries the database and returns the number of Root objects that
+// CountRootsByOptionalLeafUniqueID queries the database and returns the number of Root objects that
 // have optionalLeafUniqueID.
 // doc: type=Root
-func CountRootByOptionalLeafUniqueID(ctx context.Context, optionalLeafUniqueID string) int {
+func CountRootsByOptionalLeafUniqueID(ctx context.Context, optionalLeafUniqueID string) int {
 	if optionalLeafUniqueID == "" {
 		return 0
 	}
 	return queryRoots(ctx).Where(op.Equal(node.Root().OptionalLeafUniqueID(), optionalLeafUniqueID)).Count()
 }
 
-// CountRootByRequiredLeafUniqueID queries the database and returns the number of Root objects that
+// CountRootsByRequiredLeafUniqueID queries the database and returns the number of Root objects that
 // have requiredLeafUniqueID.
 // doc: type=Root
-func CountRootByRequiredLeafUniqueID(ctx context.Context, requiredLeafUniqueID string) int {
+func CountRootsByRequiredLeafUniqueID(ctx context.Context, requiredLeafUniqueID string) int {
 	if requiredLeafUniqueID == "" {
 		return 0
 	}
 	return queryRoots(ctx).Where(op.Equal(node.Root().RequiredLeafUniqueID(), requiredLeafUniqueID)).Count()
 }
 
-// CountRootByParentID queries the database and returns the number of Root objects that
+// CountRootsByParentID queries the database and returns the number of Root objects that
 // have parentID.
 // doc: type=Root
-func CountRootByParentID(ctx context.Context, parentID string) int {
+func CountRootsByParentID(ctx context.Context, parentID string) int {
 	if parentID == "" {
 		return 0
 	}

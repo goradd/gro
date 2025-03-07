@@ -500,17 +500,17 @@ func (b *giftQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
-// CountGiftByNumber queries the database and returns the number of Gift objects that
+// CountGiftsByNumber queries the database and returns the number of Gift objects that
 // have number.
 // doc: type=Gift
-func CountGiftByNumber(ctx context.Context, number int) int {
+func CountGiftsByNumber(ctx context.Context, number int) int {
 	return queryGifts(ctx).Where(op.Equal(node.Gift().Number(), number)).Count()
 }
 
-// CountGiftByName queries the database and returns the number of Gift objects that
+// CountGiftsByName queries the database and returns the number of Gift objects that
 // have name.
 // doc: type=Gift
-func CountGiftByName(ctx context.Context, name string) int {
+func CountGiftsByName(ctx context.Context, name string) int {
 	return queryGifts(ctx).Where(op.Equal(node.Gift().Name(), name)).Count()
 }
 

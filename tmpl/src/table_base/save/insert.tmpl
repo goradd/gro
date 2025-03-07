@@ -37,8 +37,11 @@ func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) (err error
 {{if col.ReceiverType == query.ColTypeTime && (col.DefaultValue == model.CreatedTime || col.DefaultValue == model.ModifiedTime)}}
     o.{{= col.VariableIdentifier() }} = time.Now().UTC()
     o.{{= col.VariableIdentifier() }}IsValid = true
-{{elseif col.ReceiverType == query.ColTypeInteger64 && col.SchemaSubType == schema.ColSubTypeTimestamp }}
+{{elseif col.SchemaSubType == schema.ColSubTypeTimestamp }}
     o.{{= col.VariableIdentifier() }} = time.Now().UnixMicro()
+    o.{{= col.VariableIdentifier() }}IsValid = true
+{{elseif col.SchemaSubType == schema.ColSubTypeLock }}
+    o.{{= col.VariableIdentifier() }} = db.RecordVersion(0)
     o.{{= col.VariableIdentifier() }}IsValid = true
 {{if}}
 {{for}}

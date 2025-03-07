@@ -552,27 +552,27 @@ func (b *employeeInfoQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
-// CountEmployeeInfoByID queries the database and returns the number of EmployeeInfo objects that
+// CountEmployeeInfosByID queries the database and returns the number of EmployeeInfo objects that
 // have id.
 // doc: type=EmployeeInfo
-func CountEmployeeInfoByID(ctx context.Context, id string) int {
+func CountEmployeeInfosByID(ctx context.Context, id string) int {
 	return queryEmployeeInfos(ctx).Where(op.Equal(node.EmployeeInfo().ID(), id)).Count()
 }
 
-// CountEmployeeInfoByPersonID queries the database and returns the number of EmployeeInfo objects that
+// CountEmployeeInfosByPersonID queries the database and returns the number of EmployeeInfo objects that
 // have personID.
 // doc: type=EmployeeInfo
-func CountEmployeeInfoByPersonID(ctx context.Context, personID string) int {
+func CountEmployeeInfosByPersonID(ctx context.Context, personID string) int {
 	if personID == "" {
 		return 0
 	}
 	return queryEmployeeInfos(ctx).Where(op.Equal(node.EmployeeInfo().PersonID(), personID)).Count()
 }
 
-// CountEmployeeInfoByEmployeeNumber queries the database and returns the number of EmployeeInfo objects that
+// CountEmployeeInfosByEmployeeNumber queries the database and returns the number of EmployeeInfo objects that
 // have employeeNumber.
 // doc: type=EmployeeInfo
-func CountEmployeeInfoByEmployeeNumber(ctx context.Context, employeeNumber int) int {
+func CountEmployeeInfosByEmployeeNumber(ctx context.Context, employeeNumber int) int {
 	return queryEmployeeInfos(ctx).Where(op.Equal(node.EmployeeInfo().EmployeeNumber(), employeeNumber)).Count()
 }
 

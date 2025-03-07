@@ -431,9 +431,10 @@ func (o *personBase) LoadAddresses(ctx context.Context, conditions ...interface{
 	return o.revAddresses.Values()
 }
 
-// CountAddresses returns the number of Address objects in the database connected to this object.
+// CountAddresses does a database query and returns the number of Address
+// objects currently in the database connected to this object.
 func (o *personBase) CountAddresses(ctx context.Context) int {
-	return CountAddressByPersonID(ctx, o.PrimaryKey())
+	return CountAddressesByPersonID(ctx, o.PrimaryKey())
 }
 
 // SetAddresses associates the objects in objs with the Person.
@@ -574,9 +575,10 @@ func (o *personBase) LoadManagerProjects(ctx context.Context, conditions ...inte
 	return o.revManagerProjects.Values()
 }
 
-// CountManagerProjects returns the number of Project objects in the database connected to this object.
+// CountManagerProjects does a database query and returns the number of Project
+// objects currently in the database connected to this object.
 func (o *personBase) CountManagerProjects(ctx context.Context) int {
-	return CountProjectByManagerID(ctx, o.PrimaryKey())
+	return CountProjectsByManagerID(ctx, o.PrimaryKey())
 }
 
 // SetManagerProjects associates the objects in objs with the Person.
@@ -913,24 +915,24 @@ func (b *personQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
-// CountPersonByID queries the database and returns the number of Person objects that
+// CountPeopleByID queries the database and returns the number of Person objects that
 // have id.
 // doc: type=Person
-func CountPersonByID(ctx context.Context, id string) int {
+func CountPeopleByID(ctx context.Context, id string) int {
 	return queryPeople(ctx).Where(op.Equal(node.Person().ID(), id)).Count()
 }
 
-// CountPersonByFirstName queries the database and returns the number of Person objects that
+// CountPeopleByFirstName queries the database and returns the number of Person objects that
 // have firstName.
 // doc: type=Person
-func CountPersonByFirstName(ctx context.Context, firstName string) int {
+func CountPeopleByFirstName(ctx context.Context, firstName string) int {
 	return queryPeople(ctx).Where(op.Equal(node.Person().FirstName(), firstName)).Count()
 }
 
-// CountPersonByLastName queries the database and returns the number of Person objects that
+// CountPeopleByLastName queries the database and returns the number of Person objects that
 // have lastName.
 // doc: type=Person
-func CountPersonByLastName(ctx context.Context, lastName string) int {
+func CountPeopleByLastName(ctx context.Context, lastName string) int {
 	return queryPeople(ctx).Where(op.Equal(node.Person().LastName(), lastName)).Count()
 }
 

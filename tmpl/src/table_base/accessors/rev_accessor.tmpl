@@ -46,9 +46,10 @@ func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.ReverseIdentifier() }}(ctx
 	return o.{{= rev.ReverseVariableIdentifier() }}.Values()
 }
 
-// Count{{= rev.ReverseIdentifier() }} returns the number of {{= rev.Table.Identifier }} objects in the database connected to this object.
+// Count{{= rev.ReverseIdentifier() }} does a database query and returns the number of {{= rev.Table.Identifier }}
+// objects currently in the database connected to this object.
 func (o *{{= table.DecapIdentifier}}Base) Count{{= rev.ReverseIdentifier() }}(ctx context.Context) int {
-    return Count{{= rev.Table.Identifier }}By{{= rev.Identifier }}(ctx, o.PrimaryKey())
+    return Count{{= rev.Table.IdentifierPlural }}By{{= rev.Identifier }}(ctx, o.PrimaryKey())
 }
 
 // Set{{= rev.ReverseIdentifier() }} associates the objects in objs with the {{= table.Identifier }}.

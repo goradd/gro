@@ -356,12 +356,12 @@ func jsonDecodeTable(ctx context.Context, decoder *json.Decoder) error {
 			err = jsonDecodeLeafs(ctx, decoder)
 		case "leaf_lock":
 			err = jsonDecodeLeafLocks(ctx, decoder)
-		case "root":
-			err = jsonDecodeRoots(ctx, decoder)
 		case "type_test":
 			err = jsonDecodeTypeTests(ctx, decoder)
 		case "unsupported_type":
 			err = jsonDecodeUnsupportedTypes(ctx, decoder)
+		case "root":
+			err = jsonDecodeRoots(ctx, decoder)
 
 		}
 		if err != nil {
@@ -486,40 +486,6 @@ func jsonDecodeLeafLocks(ctx context.Context, decoder *json.Decoder) error {
 
 	return nil
 }
-func jsonDecodeRoots(ctx context.Context, decoder *json.Decoder) error {
-	token, err := decoder.Token()
-	if err != nil {
-		fmt.Println("Error reading opening token:", err)
-		return err
-	}
-	// Ensure the first token is a start of an array
-	if delim, ok := token.(json.Delim); !ok || delim != '[' {
-		fmt.Println("Error: Expected the Root list to start with an array")
-		return err
-	}
-
-	for decoder.More() {
-		obj := NewRoot()
-		if err = decoder.Decode(&obj); err != nil {
-			return err
-		}
-		obj.Save(ctx)
-	}
-
-	// Check if the last token is the end of the array
-	token, err = decoder.Token()
-	if err != nil {
-		fmt.Println("Error reading the last token:", err)
-		return err
-	}
-
-	if delim, ok := token.(json.Delim); !ok || delim != ']' {
-		fmt.Println("Error: Expected the JSON to end with a closing array token")
-		return err
-	}
-
-	return nil
-}
 func jsonDecodeTypeTests(ctx context.Context, decoder *json.Decoder) error {
 	token, err := decoder.Token()
 	if err != nil {
@@ -568,6 +534,40 @@ func jsonDecodeUnsupportedTypes(ctx context.Context, decoder *json.Decoder) erro
 
 	for decoder.More() {
 		obj := NewUnsupportedType()
+		if err = decoder.Decode(&obj); err != nil {
+			return err
+		}
+		obj.Save(ctx)
+	}
+
+	// Check if the last token is the end of the array
+	token, err = decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading the last token:", err)
+		return err
+	}
+
+	if delim, ok := token.(json.Delim); !ok || delim != ']' {
+		fmt.Println("Error: Expected the JSON to end with a closing array token")
+		return err
+	}
+
+	return nil
+}
+func jsonDecodeRoots(ctx context.Context, decoder *json.Decoder) error {
+	token, err := decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading opening token:", err)
+		return err
+	}
+	// Ensure the first token is a start of an array
+	if delim, ok := token.(json.Delim); !ok || delim != '[' {
+		fmt.Println("Error: Expected the Root list to start with an array")
+		return err
+	}
+
+	for decoder.More() {
+		obj := NewRoot()
 		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}

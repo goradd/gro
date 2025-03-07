@@ -563,24 +563,24 @@ func (b *doubleIndexQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
-// CountDoubleIndexByID queries the database and returns the number of DoubleIndex objects that
+// CountDoubleIndicesByID queries the database and returns the number of DoubleIndex objects that
 // have id.
 // doc: type=DoubleIndex
-func CountDoubleIndexByID(ctx context.Context, id int) int {
+func CountDoubleIndicesByID(ctx context.Context, id int) int {
 	return queryDoubleIndices(ctx).Where(op.Equal(node.DoubleIndex().ID(), id)).Count()
 }
 
-// CountDoubleIndexByFieldInt queries the database and returns the number of DoubleIndex objects that
+// CountDoubleIndicesByFieldInt queries the database and returns the number of DoubleIndex objects that
 // have fieldInt.
 // doc: type=DoubleIndex
-func CountDoubleIndexByFieldInt(ctx context.Context, fieldInt int) int {
+func CountDoubleIndicesByFieldInt(ctx context.Context, fieldInt int) int {
 	return queryDoubleIndices(ctx).Where(op.Equal(node.DoubleIndex().FieldInt(), fieldInt)).Count()
 }
 
-// CountDoubleIndexByFieldString queries the database and returns the number of DoubleIndex objects that
+// CountDoubleIndicesByFieldString queries the database and returns the number of DoubleIndex objects that
 // have fieldString.
 // doc: type=DoubleIndex
-func CountDoubleIndexByFieldString(ctx context.Context, fieldString string) int {
+func CountDoubleIndicesByFieldString(ctx context.Context, fieldString string) int {
 	return queryDoubleIndices(ctx).Where(op.Equal(node.DoubleIndex().FieldString(), fieldString)).Count()
 }
 

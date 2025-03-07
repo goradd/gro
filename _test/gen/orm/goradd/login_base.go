@@ -738,41 +738,41 @@ func (b *loginQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
-// CountLoginByID queries the database and returns the number of Login objects that
+// CountLoginsByID queries the database and returns the number of Login objects that
 // have id.
 // doc: type=Login
-func CountLoginByID(ctx context.Context, id string) int {
+func CountLoginsByID(ctx context.Context, id string) int {
 	return queryLogins(ctx).Where(op.Equal(node.Login().ID(), id)).Count()
 }
 
-// CountLoginByPersonID queries the database and returns the number of Login objects that
+// CountLoginsByPersonID queries the database and returns the number of Login objects that
 // have personID.
 // doc: type=Login
-func CountLoginByPersonID(ctx context.Context, personID string) int {
+func CountLoginsByPersonID(ctx context.Context, personID string) int {
 	if personID == "" {
 		return 0
 	}
 	return queryLogins(ctx).Where(op.Equal(node.Login().PersonID(), personID)).Count()
 }
 
-// CountLoginByUsername queries the database and returns the number of Login objects that
+// CountLoginsByUsername queries the database and returns the number of Login objects that
 // have username.
 // doc: type=Login
-func CountLoginByUsername(ctx context.Context, username string) int {
+func CountLoginsByUsername(ctx context.Context, username string) int {
 	return queryLogins(ctx).Where(op.Equal(node.Login().Username(), username)).Count()
 }
 
-// CountLoginByPassword queries the database and returns the number of Login objects that
+// CountLoginsByPassword queries the database and returns the number of Login objects that
 // have password.
 // doc: type=Login
-func CountLoginByPassword(ctx context.Context, password string) int {
+func CountLoginsByPassword(ctx context.Context, password string) int {
 	return queryLogins(ctx).Where(op.Equal(node.Login().Password(), password)).Count()
 }
 
-// CountLoginByIsEnabled queries the database and returns the number of Login objects that
+// CountLoginsByIsEnabled queries the database and returns the number of Login objects that
 // have isEnabled.
 // doc: type=Login
-func CountLoginByIsEnabled(ctx context.Context, isEnabled bool) int {
+func CountLoginsByIsEnabled(ctx context.Context, isEnabled bool) int {
 	return queryLogins(ctx).Where(op.Equal(node.Login().IsEnabled(), isEnabled)).Count()
 }
 

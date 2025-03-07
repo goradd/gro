@@ -290,8 +290,8 @@ func TestReverseSet(t *testing.T) {
 	newProjects := goradd.QueryProjects(ctx).
 		Where(op.In(node.Project().ID(), "1", "2")).
 		Load()
-	person.SetManagerProjects(newProjects)
-	person.Save(ctx)
+	person.SetManagerProjects(newProjects...)
+	require.NoError(t, person.Save(ctx))
 
 	personTest := goradd.QueryPeople(ctx).
 		Where(op.Equal(node.Person().ID(), "7")).
@@ -303,8 +303,14 @@ func TestReverseSet(t *testing.T) {
 	assert.Equal(t, "1", projectsTest[0].ID())
 	assert.Equal(t, "2", projectsTest[1].ID())
 
-	person.SetManagerProjects(projects)
-	person.Save(ctx)
+	// Set none
+	person.SetManagerProjects()
+	require.NoError(t, person.Save(ctx))
+	assert.Equal(t, 0, goradd.CountProjectsByManagerID(ctx, person.ID()))
+
+	// restore
+	person.SetManagerProjects(projects...)
+	require.NoError(t, person.Save(ctx))
 
 	person = goradd.QueryPeople(ctx).
 		Where(op.Equal(node.Person().ID(), "7")).
@@ -316,6 +322,7 @@ func TestReverseSet(t *testing.T) {
 	assert.Equal(t, "1", projects[0].ID())
 	assert.Equal(t, "4", projects[1].ID())
 
+	// Fix nil value caused by removal of project
 	projectsTest[1].SetManagerID("4")
 	projectsTest[1].Save(ctx)
 

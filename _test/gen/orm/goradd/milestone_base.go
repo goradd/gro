@@ -536,27 +536,27 @@ func (b *milestoneQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
-// CountMilestoneByID queries the database and returns the number of Milestone objects that
+// CountMilestonesByID queries the database and returns the number of Milestone objects that
 // have id.
 // doc: type=Milestone
-func CountMilestoneByID(ctx context.Context, id string) int {
+func CountMilestonesByID(ctx context.Context, id string) int {
 	return queryMilestones(ctx).Where(op.Equal(node.Milestone().ID(), id)).Count()
 }
 
-// CountMilestoneByProjectID queries the database and returns the number of Milestone objects that
+// CountMilestonesByProjectID queries the database and returns the number of Milestone objects that
 // have projectID.
 // doc: type=Milestone
-func CountMilestoneByProjectID(ctx context.Context, projectID string) int {
+func CountMilestonesByProjectID(ctx context.Context, projectID string) int {
 	if projectID == "" {
 		return 0
 	}
 	return queryMilestones(ctx).Where(op.Equal(node.Milestone().ProjectID(), projectID)).Count()
 }
 
-// CountMilestoneByName queries the database and returns the number of Milestone objects that
+// CountMilestonesByName queries the database and returns the number of Milestone objects that
 // have name.
 // doc: type=Milestone
-func CountMilestoneByName(ctx context.Context, name string) int {
+func CountMilestonesByName(ctx context.Context, name string) int {
 	return queryMilestones(ctx).Where(op.Equal(node.Milestone().Name(), name)).Count()
 }
 

@@ -4775,7 +4775,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` returns the number of `); err != nil {
+			if _, err = io.WriteString(_w, ` does a database query and returns the number of `); err != nil {
 				return
 			}
 
@@ -4783,7 +4783,8 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` objects in the database connected to this object.
+			if _, err = io.WriteString(_w, `
+// objects currently in the database connected to this object.
 func (o *`); err != nil {
 				return
 			}
@@ -4805,7 +4806,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
+			if _, err = io.WriteString(_w, rev.Table.IdentifierPlural); err != nil {
 				return
 			}
 
@@ -6525,7 +6526,7 @@ func (tmpl *TableBaseTemplate) genCount(table *model.Table, _w io.Writer) (err e
 			return
 		}
 
-		if _, err = io.WriteString(_w, fmt.Sprint(table.Identifier)); err != nil {
+		if _, err = io.WriteString(_w, fmt.Sprint(table.IdentifierPlural)); err != nil {
 			return
 		}
 
@@ -6568,7 +6569,7 @@ func Count`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, fmt.Sprint(table.Identifier)); err != nil {
+		if _, err = io.WriteString(_w, fmt.Sprint(table.IdentifierPlural)); err != nil {
 			return
 		}
 
@@ -9048,7 +9049,7 @@ func (o *`); err != nil {
 				return
 			}
 
-		} else if col.ReceiverType == query.ColTypeInteger64 && col.SchemaSubType == schema.ColSubTypeTimestamp {
+		} else if col.SchemaSubType == schema.ColSubTypeTimestamp {
 
 			if _, err = io.WriteString(_w, `    o.`); err != nil {
 				return
@@ -9059,6 +9060,30 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, ` = time.Now().UnixMicro()
+    o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsValid = true
+`); err != nil {
+				return
+			}
+
+		} else if col.SchemaSubType == schema.ColSubTypeLock {
+
+			if _, err = io.WriteString(_w, `    o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` = db.RecordVersion(0)
     o.`); err != nil {
 				return
 			}

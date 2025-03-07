@@ -1148,87 +1148,87 @@ func (b *typeTestQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
-// CountTypeTestByID queries the database and returns the number of TypeTest objects that
+// CountTypeTestsByID queries the database and returns the number of TypeTest objects that
 // have id.
 // doc: type=TypeTest
-func CountTypeTestByID(ctx context.Context, id string) int {
+func CountTypeTestsByID(ctx context.Context, id string) int {
 	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().ID(), id)).Count()
 }
 
-// CountTypeTestByDate queries the database and returns the number of TypeTest objects that
+// CountTypeTestsByDate queries the database and returns the number of TypeTest objects that
 // have date.
 // doc: type=TypeTest
-func CountTypeTestByDate(ctx context.Context, date time.Time) int {
+func CountTypeTestsByDate(ctx context.Context, date time.Time) int {
 	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().Date(), date)).Count()
 }
 
-// CountTypeTestByTime queries the database and returns the number of TypeTest objects that
+// CountTypeTestsByTime queries the database and returns the number of TypeTest objects that
 // have time.
 // doc: type=TypeTest
-func CountTypeTestByTime(ctx context.Context, time time.Time) int {
+func CountTypeTestsByTime(ctx context.Context, time time.Time) int {
 	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().Time(), time)).Count()
 }
 
-// CountTypeTestByDateTime queries the database and returns the number of TypeTest objects that
+// CountTypeTestsByDateTime queries the database and returns the number of TypeTest objects that
 // have dateTime.
 // doc: type=TypeTest
-func CountTypeTestByDateTime(ctx context.Context, dateTime time.Time) int {
+func CountTypeTestsByDateTime(ctx context.Context, dateTime time.Time) int {
 	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().DateTime(), dateTime)).Count()
 }
 
-// CountTypeTestByTs queries the database and returns the number of TypeTest objects that
+// CountTypeTestsByTs queries the database and returns the number of TypeTest objects that
 // have ts.
 // doc: type=TypeTest
-func CountTypeTestByTs(ctx context.Context, ts time.Time) int {
+func CountTypeTestsByTs(ctx context.Context, ts time.Time) int {
 	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().Ts(), ts)).Count()
 }
 
-// CountTypeTestByTestInt queries the database and returns the number of TypeTest objects that
+// CountTypeTestsByTestInt queries the database and returns the number of TypeTest objects that
 // have testInt.
 // doc: type=TypeTest
-func CountTypeTestByTestInt(ctx context.Context, testInt int) int {
+func CountTypeTestsByTestInt(ctx context.Context, testInt int) int {
 	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestInt(), testInt)).Count()
 }
 
-// CountTypeTestByTestFloat queries the database and returns the number of TypeTest objects that
+// CountTypeTestsByTestFloat queries the database and returns the number of TypeTest objects that
 // have testFloat.
 // doc: type=TypeTest
-func CountTypeTestByTestFloat(ctx context.Context, testFloat float32) int {
+func CountTypeTestsByTestFloat(ctx context.Context, testFloat float32) int {
 	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestFloat(), testFloat)).Count()
 }
 
-// CountTypeTestByTestDouble queries the database and returns the number of TypeTest objects that
+// CountTypeTestsByTestDouble queries the database and returns the number of TypeTest objects that
 // have testDouble.
 // doc: type=TypeTest
-func CountTypeTestByTestDouble(ctx context.Context, testDouble float64) int {
+func CountTypeTestsByTestDouble(ctx context.Context, testDouble float64) int {
 	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestDouble(), testDouble)).Count()
 }
 
-// CountTypeTestByTestText queries the database and returns the number of TypeTest objects that
+// CountTypeTestsByTestText queries the database and returns the number of TypeTest objects that
 // have testText.
 // doc: type=TypeTest
-func CountTypeTestByTestText(ctx context.Context, testText string) int {
+func CountTypeTestsByTestText(ctx context.Context, testText string) int {
 	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestText(), testText)).Count()
 }
 
-// CountTypeTestByTestBit queries the database and returns the number of TypeTest objects that
+// CountTypeTestsByTestBit queries the database and returns the number of TypeTest objects that
 // have testBit.
 // doc: type=TypeTest
-func CountTypeTestByTestBit(ctx context.Context, testBit bool) int {
+func CountTypeTestsByTestBit(ctx context.Context, testBit bool) int {
 	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestBit(), testBit)).Count()
 }
 
-// CountTypeTestByTestVarchar queries the database and returns the number of TypeTest objects that
+// CountTypeTestsByTestVarchar queries the database and returns the number of TypeTest objects that
 // have testVarchar.
 // doc: type=TypeTest
-func CountTypeTestByTestVarchar(ctx context.Context, testVarchar string) int {
+func CountTypeTestsByTestVarchar(ctx context.Context, testVarchar string) int {
 	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestVarchar(), testVarchar)).Count()
 }
 
-// CountTypeTestByTestBlob queries the database and returns the number of TypeTest objects that
+// CountTypeTestsByTestBlob queries the database and returns the number of TypeTest objects that
 // have testBlob.
 // doc: type=TypeTest
-func CountTypeTestByTestBlob(ctx context.Context, testBlob []byte) int {
+func CountTypeTestsByTestBlob(ctx context.Context, testBlob []byte) int {
 	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestBlob(), testBlob)).Count()
 }
 

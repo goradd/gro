@@ -1174,9 +1174,10 @@ func (o *projectBase) LoadMilestones(ctx context.Context, conditions ...interfac
 	return o.revMilestones.Values()
 }
 
-// CountMilestones returns the number of Milestone objects in the database connected to this object.
+// CountMilestones does a database query and returns the number of Milestone
+// objects currently in the database connected to this object.
 func (o *projectBase) CountMilestones(ctx context.Context) int {
-	return CountMilestoneByProjectID(ctx, o.PrimaryKey())
+	return CountMilestonesByProjectID(ctx, o.PrimaryKey())
 }
 
 // SetMilestones associates the objects in objs with the Project.
@@ -1241,9 +1242,10 @@ func (o *projectBase) LoadParentProjectProjects(ctx context.Context, conditions 
 	return o.revParentProjectProjects.Values()
 }
 
-// CountParentProjectProjects returns the number of Project objects in the database connected to this object.
+// CountParentProjectProjects does a database query and returns the number of Project
+// objects currently in the database connected to this object.
 func (o *projectBase) CountParentProjectProjects(ctx context.Context) int {
-	return CountProjectByParentProjectID(ctx, o.PrimaryKey())
+	return CountProjectsByParentProjectID(ctx, o.PrimaryKey())
 }
 
 // SetParentProjectProjects associates the objects in objs with the Project.
@@ -1599,83 +1601,83 @@ func (b *projectQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
-// CountProjectByID queries the database and returns the number of Project objects that
+// CountProjectsByID queries the database and returns the number of Project objects that
 // have id.
 // doc: type=Project
-func CountProjectByID(ctx context.Context, id string) int {
+func CountProjectsByID(ctx context.Context, id string) int {
 	return queryProjects(ctx).Where(op.Equal(node.Project().ID(), id)).Count()
 }
 
-// CountProjectByNum queries the database and returns the number of Project objects that
+// CountProjectsByNum queries the database and returns the number of Project objects that
 // have num.
 // doc: type=Project
-func CountProjectByNum(ctx context.Context, num int) int {
+func CountProjectsByNum(ctx context.Context, num int) int {
 	return queryProjects(ctx).Where(op.Equal(node.Project().Num(), num)).Count()
 }
 
-// CountProjectByStatus queries the database and returns the number of Project objects that
+// CountProjectsByStatus queries the database and returns the number of Project objects that
 // have status.
 // doc: type=Project
-func CountProjectByStatus(ctx context.Context, status ProjectStatus) int {
+func CountProjectsByStatus(ctx context.Context, status ProjectStatus) int {
 	return queryProjects(ctx).Where(op.Equal(node.Project().Status(), status)).Count()
 }
 
-// CountProjectByManagerID queries the database and returns the number of Project objects that
+// CountProjectsByManagerID queries the database and returns the number of Project objects that
 // have managerID.
 // doc: type=Project
-func CountProjectByManagerID(ctx context.Context, managerID string) int {
+func CountProjectsByManagerID(ctx context.Context, managerID string) int {
 	if managerID == "" {
 		return 0
 	}
 	return queryProjects(ctx).Where(op.Equal(node.Project().ManagerID(), managerID)).Count()
 }
 
-// CountProjectByName queries the database and returns the number of Project objects that
+// CountProjectsByName queries the database and returns the number of Project objects that
 // have name.
 // doc: type=Project
-func CountProjectByName(ctx context.Context, name string) int {
+func CountProjectsByName(ctx context.Context, name string) int {
 	return queryProjects(ctx).Where(op.Equal(node.Project().Name(), name)).Count()
 }
 
-// CountProjectByDescription queries the database and returns the number of Project objects that
+// CountProjectsByDescription queries the database and returns the number of Project objects that
 // have description.
 // doc: type=Project
-func CountProjectByDescription(ctx context.Context, description string) int {
+func CountProjectsByDescription(ctx context.Context, description string) int {
 	return queryProjects(ctx).Where(op.Equal(node.Project().Description(), description)).Count()
 }
 
-// CountProjectByStartDate queries the database and returns the number of Project objects that
+// CountProjectsByStartDate queries the database and returns the number of Project objects that
 // have startDate.
 // doc: type=Project
-func CountProjectByStartDate(ctx context.Context, startDate time.Time) int {
+func CountProjectsByStartDate(ctx context.Context, startDate time.Time) int {
 	return queryProjects(ctx).Where(op.Equal(node.Project().StartDate(), startDate)).Count()
 }
 
-// CountProjectByEndDate queries the database and returns the number of Project objects that
+// CountProjectsByEndDate queries the database and returns the number of Project objects that
 // have endDate.
 // doc: type=Project
-func CountProjectByEndDate(ctx context.Context, endDate time.Time) int {
+func CountProjectsByEndDate(ctx context.Context, endDate time.Time) int {
 	return queryProjects(ctx).Where(op.Equal(node.Project().EndDate(), endDate)).Count()
 }
 
-// CountProjectByBudget queries the database and returns the number of Project objects that
+// CountProjectsByBudget queries the database and returns the number of Project objects that
 // have budget.
 // doc: type=Project
-func CountProjectByBudget(ctx context.Context, budget []byte) int {
+func CountProjectsByBudget(ctx context.Context, budget []byte) int {
 	return queryProjects(ctx).Where(op.Equal(node.Project().Budget(), budget)).Count()
 }
 
-// CountProjectBySpent queries the database and returns the number of Project objects that
+// CountProjectsBySpent queries the database and returns the number of Project objects that
 // have spent.
 // doc: type=Project
-func CountProjectBySpent(ctx context.Context, spent []byte) int {
+func CountProjectsBySpent(ctx context.Context, spent []byte) int {
 	return queryProjects(ctx).Where(op.Equal(node.Project().Spent(), spent)).Count()
 }
 
-// CountProjectByParentProjectID queries the database and returns the number of Project objects that
+// CountProjectsByParentProjectID queries the database and returns the number of Project objects that
 // have parentProjectID.
 // doc: type=Project
-func CountProjectByParentProjectID(ctx context.Context, parentProjectID string) int {
+func CountProjectsByParentProjectID(ctx context.Context, parentProjectID string) int {
 	if parentProjectID == "" {
 		return 0
 	}

@@ -532,24 +532,24 @@ func (b *leafLockQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
-// CountLeafLockByID queries the database and returns the number of LeafLock objects that
+// CountLeafLocksByID queries the database and returns the number of LeafLock objects that
 // have id.
 // doc: type=LeafLock
-func CountLeafLockByID(ctx context.Context, id string) int {
+func CountLeafLocksByID(ctx context.Context, id string) int {
 	return queryLeafLocks(ctx).Where(op.Equal(node.LeafLock().ID(), id)).Count()
 }
 
-// CountLeafLockByName queries the database and returns the number of LeafLock objects that
+// CountLeafLocksByName queries the database and returns the number of LeafLock objects that
 // have name.
 // doc: type=LeafLock
-func CountLeafLockByName(ctx context.Context, name string) int {
+func CountLeafLocksByName(ctx context.Context, name string) int {
 	return queryLeafLocks(ctx).Where(op.Equal(node.LeafLock().Name(), name)).Count()
 }
 
-// CountLeafLockByGroLockTimestamp queries the database and returns the number of LeafLock objects that
+// CountLeafLocksByGroLockTimestamp queries the database and returns the number of LeafLock objects that
 // have groLockTimestamp.
 // doc: type=LeafLock
-func CountLeafLockByGroLockTimestamp(ctx context.Context, groLockTimestamp int64) int {
+func CountLeafLocksByGroLockTimestamp(ctx context.Context, groLockTimestamp int64) int {
 	return queryLeafLocks(ctx).Where(op.Equal(node.LeafLock().GroLockTimestamp(), groLockTimestamp)).Count()
 }
 

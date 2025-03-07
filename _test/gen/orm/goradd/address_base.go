@@ -612,34 +612,34 @@ func (b *addressQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
-// CountAddressByID queries the database and returns the number of Address objects that
+// CountAddressesByID queries the database and returns the number of Address objects that
 // have id.
 // doc: type=Address
-func CountAddressByID(ctx context.Context, id string) int {
+func CountAddressesByID(ctx context.Context, id string) int {
 	return queryAddresses(ctx).Where(op.Equal(node.Address().ID(), id)).Count()
 }
 
-// CountAddressByPersonID queries the database and returns the number of Address objects that
+// CountAddressesByPersonID queries the database and returns the number of Address objects that
 // have personID.
 // doc: type=Address
-func CountAddressByPersonID(ctx context.Context, personID string) int {
+func CountAddressesByPersonID(ctx context.Context, personID string) int {
 	if personID == "" {
 		return 0
 	}
 	return queryAddresses(ctx).Where(op.Equal(node.Address().PersonID(), personID)).Count()
 }
 
-// CountAddressByStreet queries the database and returns the number of Address objects that
+// CountAddressesByStreet queries the database and returns the number of Address objects that
 // have street.
 // doc: type=Address
-func CountAddressByStreet(ctx context.Context, street string) int {
+func CountAddressesByStreet(ctx context.Context, street string) int {
 	return queryAddresses(ctx).Where(op.Equal(node.Address().Street(), street)).Count()
 }
 
-// CountAddressByCity queries the database and returns the number of Address objects that
+// CountAddressesByCity queries the database and returns the number of Address objects that
 // have city.
 // doc: type=Address
-func CountAddressByCity(ctx context.Context, city string) int {
+func CountAddressesByCity(ctx context.Context, city string) int {
 	return queryAddresses(ctx).Where(op.Equal(node.Address().City(), city)).Count()
 }
 

@@ -10,10 +10,10 @@
     }
 }}
 
-// Count{{table.Identifier}}By{{col.Identifier}} queries the database and returns the number of {{table.Identifier}} objects that
+// Count{{table.IdentifierPlural}}By{{col.Identifier}} queries the database and returns the number of {{table.Identifier}} objects that
 // have {{= col.DecapIdentifier }}.
 // doc: type={{table.Identifier}}
-func Count{{table.Identifier}}By{{col.Identifier}}(ctx context.Context, {{= col.VariableIdentifier() }} {{= col.GoType()}}) int {
+func Count{{table.IdentifierPlural}}By{{col.Identifier}}(ctx context.Context, {{= col.VariableIdentifier() }} {{= col.GoType()}}) int {
 {{if col.IsReference() }}
     if {{= col.VariableIdentifier() }} == {{= col.DefaultValueAsValue() }} {
         return 0

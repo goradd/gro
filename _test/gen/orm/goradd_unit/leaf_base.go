@@ -225,9 +225,10 @@ func (o *leafBase) LoadOptionalLeafRoots(ctx context.Context, conditions ...inte
 	return o.revOptionalLeafRoots.Values()
 }
 
-// CountOptionalLeafRoots returns the number of Root objects in the database connected to this object.
+// CountOptionalLeafRoots does a database query and returns the number of Root
+// objects currently in the database connected to this object.
 func (o *leafBase) CountOptionalLeafRoots(ctx context.Context) int {
-	return CountRootByOptionalLeafID(ctx, o.PrimaryKey())
+	return CountRootsByOptionalLeafID(ctx, o.PrimaryKey())
 }
 
 // SetOptionalLeafRoots associates the objects in objs with the Leaf.
@@ -295,9 +296,10 @@ func (o *leafBase) LoadRequiredLeafRoots(ctx context.Context, conditions ...inte
 	return o.revRequiredLeafRoots.Values()
 }
 
-// CountRequiredLeafRoots returns the number of Root objects in the database connected to this object.
+// CountRequiredLeafRoots does a database query and returns the number of Root
+// objects currently in the database connected to this object.
 func (o *leafBase) CountRequiredLeafRoots(ctx context.Context) int {
-	return CountRootByRequiredLeafID(ctx, o.PrimaryKey())
+	return CountRootsByRequiredLeafID(ctx, o.PrimaryKey())
 }
 
 // SetRequiredLeafRoots associates the objects in objs with the Leaf.
@@ -705,17 +707,17 @@ func (b *leafQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
-// CountLeafByID queries the database and returns the number of Leaf objects that
+// CountLeafsByID queries the database and returns the number of Leaf objects that
 // have id.
 // doc: type=Leaf
-func CountLeafByID(ctx context.Context, id string) int {
+func CountLeafsByID(ctx context.Context, id string) int {
 	return queryLeafs(ctx).Where(op.Equal(node.Leaf().ID(), id)).Count()
 }
 
-// CountLeafByName queries the database and returns the number of Leaf objects that
+// CountLeafsByName queries the database and returns the number of Leaf objects that
 // have name.
 // doc: type=Leaf
-func CountLeafByName(ctx context.Context, name string) int {
+func CountLeafsByName(ctx context.Context, name string) int {
 	return queryLeafs(ctx).Where(op.Equal(node.Leaf().Name(), name)).Count()
 }
 
