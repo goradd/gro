@@ -27,11 +27,11 @@ type unsupportedTypeBase struct {
 	typeSerial        string
 	typeSerialIsValid bool
 
-	typeSet        []byte
+	typeSet        string
 	typeSetIsValid bool
 	typeSetIsDirty bool
 
-	typeEnumerated        []byte
+	typeEnumerated        string
 	typeEnumeratedIsValid bool
 	typeEnumeratedIsDirty bool
 
@@ -127,8 +127,8 @@ const (
 	UnsupportedType_TypeMultifk2   = `TypeMultifk2`
 )
 
-const UnsupportedTypeTypeSetMaxLength = 5               // The number of bytes the column can hold
-const UnsupportedTypeTypeEnumeratedMaxLength = 1        // The number of bytes the column can hold
+const UnsupportedTypeTypeSetMaxLength = 5               // The number of runes the column can hold
+const UnsupportedTypeTypeEnumeratedMaxLength = 1        // The number of runes the column can hold
 const UnsupportedTypeTypeDecimalMaxLength = 13          // The number of bytes the column can hold
 const UnsupportedTypeTypeTinyBlobMaxLength = 255        // The number of bytes the column can hold
 const UnsupportedTypeTypeMediumBlobMaxLength = 16777215 // The number of bytes the column can hold
@@ -151,17 +151,17 @@ func (o *unsupportedTypeBase) Initialize() {
 
 	o.typeSerialIsValid = false
 
-	o.typeSet = []byte(nil)
+	o.typeSet = ""
 
 	o.typeSetIsValid = false
 	o.typeSetIsDirty = false
 
-	o.typeEnumerated = []byte(nil)
+	o.typeEnumerated = ""
 
 	o.typeEnumeratedIsValid = false
 	o.typeEnumeratedIsDirty = false
 
-	o.typeDecimal = []byte(nil)
+	o.typeDecimal = []byte{}
 
 	o.typeDecimalIsValid = false
 	o.typeDecimalIsDirty = false
@@ -171,22 +171,22 @@ func (o *unsupportedTypeBase) Initialize() {
 	o.typeDoubleIsValid = false
 	o.typeDoubleIsDirty = false
 
-	o.typeGeo = []byte(nil)
+	o.typeGeo = []byte{}
 
 	o.typeGeoIsValid = false
 	o.typeGeoIsDirty = false
 
-	o.typeTinyBlob = []byte(nil)
+	o.typeTinyBlob = []byte{}
 
 	o.typeTinyBlobIsValid = false
 	o.typeTinyBlobIsDirty = false
 
-	o.typeMediumBlob = []byte(nil)
+	o.typeMediumBlob = []byte{}
 
 	o.typeMediumBlobIsValid = false
 	o.typeMediumBlobIsDirty = false
 
-	o.typeVarbinary = []byte(nil)
+	o.typeVarbinary = []byte{}
 
 	o.typeVarbinaryIsValid = false
 	o.typeVarbinaryIsDirty = false
@@ -196,7 +196,7 @@ func (o *unsupportedTypeBase) Initialize() {
 	o.typeLongtextIsValid = false
 	o.typeLongtextIsDirty = false
 
-	o.typeBinary = []byte(nil)
+	o.typeBinary = []byte{}
 
 	o.typeBinaryIsValid = false
 	o.typeBinaryIsDirty = false
@@ -216,7 +216,7 @@ func (o *unsupportedTypeBase) Initialize() {
 	o.typeBigIsValid = false
 	o.typeBigIsDirty = false
 
-	o.typePolygon = []byte(nil)
+	o.typePolygon = []byte{}
 
 	o.typePolygonIsValid = false
 	o.typePolygonIsDirty = false
@@ -327,7 +327,7 @@ func (o *unsupportedTypeBase) TypeSerialIsValid() bool {
 }
 
 // TypeSet returns the loaded value of TypeSet.
-func (o *unsupportedTypeBase) TypeSet() []byte {
+func (o *unsupportedTypeBase) TypeSet() string {
 	if o._restored && !o.typeSetIsValid {
 		panic("TypeSet was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -339,32 +339,25 @@ func (o *unsupportedTypeBase) TypeSetIsValid() bool {
 	return o.typeSetIsValid
 }
 
-// SetTypeSet copies the value of TypeSet, to be saved later in the database using the Save() function.
-// Passing nil will set type_set to an empty array.
-func (o *unsupportedTypeBase) SetTypeSet(v []byte) {
-
-	if len(v) > UnsupportedTypeTypeSetMaxLength {
-		panic("attempted to set UnsupportedType.TypeSet to a value larger than its maximum length")
+// SetTypeSet sets the value of TypeSet in the object, to be saved later in the database using the Save() function.
+func (o *unsupportedTypeBase) SetTypeSet(v string) {
+	if utf8.RuneCountInString(v) > UnsupportedTypeTypeSetMaxLength {
+		panic("attempted to set UnsupportedType.TypeSet to a value larger than its maximum length in runes")
 	}
-
 	if o._restored &&
 		o.typeSetIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
-		bytes.Equal(o.typeSet, v) {
+		o.typeSet == v {
 		// no change
 		return
 	}
 
 	o.typeSetIsValid = true
-	if v == nil {
-		o.typeSet = []byte{}
-	} else {
-		o.typeSet = slices.Clone(v)
-	}
+	o.typeSet = v
 	o.typeSetIsDirty = true
 }
 
 // TypeEnumerated returns the loaded value of TypeEnumerated.
-func (o *unsupportedTypeBase) TypeEnumerated() []byte {
+func (o *unsupportedTypeBase) TypeEnumerated() string {
 	if o._restored && !o.typeEnumeratedIsValid {
 		panic("TypeEnumerated was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -376,27 +369,20 @@ func (o *unsupportedTypeBase) TypeEnumeratedIsValid() bool {
 	return o.typeEnumeratedIsValid
 }
 
-// SetTypeEnumerated copies the value of TypeEnumerated, to be saved later in the database using the Save() function.
-// Passing nil will set type_enumerated to an empty array.
-func (o *unsupportedTypeBase) SetTypeEnumerated(v []byte) {
-
-	if len(v) > UnsupportedTypeTypeEnumeratedMaxLength {
-		panic("attempted to set UnsupportedType.TypeEnumerated to a value larger than its maximum length")
+// SetTypeEnumerated sets the value of TypeEnumerated in the object, to be saved later in the database using the Save() function.
+func (o *unsupportedTypeBase) SetTypeEnumerated(v string) {
+	if utf8.RuneCountInString(v) > UnsupportedTypeTypeEnumeratedMaxLength {
+		panic("attempted to set UnsupportedType.TypeEnumerated to a value larger than its maximum length in runes")
 	}
-
 	if o._restored &&
 		o.typeEnumeratedIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
-		bytes.Equal(o.typeEnumerated, v) {
+		o.typeEnumerated == v {
 		// no change
 		return
 	}
 
 	o.typeEnumeratedIsValid = true
-	if v == nil {
-		o.typeEnumerated = []byte{}
-	} else {
-		o.typeEnumerated = slices.Clone(v)
-	}
+	o.typeEnumerated = v
 	o.typeEnumeratedIsDirty = true
 }
 
@@ -1205,14 +1191,14 @@ func CountUnsupportedTypesByTypeSerial(ctx context.Context, typeSerial string) i
 // CountUnsupportedTypesByTypeSet queries the database and returns the number of UnsupportedType objects that
 // have typeSet.
 // doc: type=UnsupportedType
-func CountUnsupportedTypesByTypeSet(ctx context.Context, typeSet []byte) int {
+func CountUnsupportedTypesByTypeSet(ctx context.Context, typeSet string) int {
 	return queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeSet(), typeSet)).Count()
 }
 
 // CountUnsupportedTypesByTypeEnumerated queries the database and returns the number of UnsupportedType objects that
 // have typeEnumerated.
 // doc: type=UnsupportedType
-func CountUnsupportedTypesByTypeEnumerated(ctx context.Context, typeEnumerated []byte) int {
+func CountUnsupportedTypesByTypeEnumerated(ctx context.Context, typeEnumerated string) int {
 	return queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeEnumerated(), typeEnumerated)).Count()
 }
 
@@ -1340,7 +1326,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 	}
 
 	if v, ok := m["type_set"]; ok && v != nil {
-		if o.typeSet, ok = v.([]byte); ok {
+		if o.typeSet, ok = v.(string); ok {
 			o.typeSetIsValid = true
 			o.typeSetIsDirty = false
 
@@ -1349,12 +1335,12 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 		}
 	} else {
 		o.typeSetIsValid = false
-		o.typeSet = []byte(nil)
+		o.typeSet = ""
 		o.typeSetIsDirty = false
 	}
 
 	if v, ok := m["type_enumerated"]; ok && v != nil {
-		if o.typeEnumerated, ok = v.([]byte); ok {
+		if o.typeEnumerated, ok = v.(string); ok {
 			o.typeEnumeratedIsValid = true
 			o.typeEnumeratedIsDirty = false
 
@@ -1363,7 +1349,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 		}
 	} else {
 		o.typeEnumeratedIsValid = false
-		o.typeEnumerated = []byte(nil)
+		o.typeEnumerated = ""
 		o.typeEnumeratedIsDirty = false
 	}
 
@@ -1377,7 +1363,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 		}
 	} else {
 		o.typeDecimalIsValid = false
-		o.typeDecimal = []byte(nil)
+		o.typeDecimal = []byte{}
 		o.typeDecimalIsDirty = false
 	}
 
@@ -1405,7 +1391,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 		}
 	} else {
 		o.typeGeoIsValid = false
-		o.typeGeo = []byte(nil)
+		o.typeGeo = []byte{}
 		o.typeGeoIsDirty = false
 	}
 
@@ -1419,7 +1405,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 		}
 	} else {
 		o.typeTinyBlobIsValid = false
-		o.typeTinyBlob = []byte(nil)
+		o.typeTinyBlob = []byte{}
 		o.typeTinyBlobIsDirty = false
 	}
 
@@ -1433,7 +1419,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 		}
 	} else {
 		o.typeMediumBlobIsValid = false
-		o.typeMediumBlob = []byte(nil)
+		o.typeMediumBlob = []byte{}
 		o.typeMediumBlobIsDirty = false
 	}
 
@@ -1447,7 +1433,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 		}
 	} else {
 		o.typeVarbinaryIsValid = false
-		o.typeVarbinary = []byte(nil)
+		o.typeVarbinary = []byte{}
 		o.typeVarbinaryIsDirty = false
 	}
 
@@ -1475,7 +1461,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 		}
 	} else {
 		o.typeBinaryIsValid = false
-		o.typeBinary = []byte(nil)
+		o.typeBinary = []byte{}
 		o.typeBinaryIsDirty = false
 	}
 
@@ -1531,7 +1517,7 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 		}
 	} else {
 		o.typePolygonIsValid = false
-		o.typePolygon = []byte(nil)
+		o.typePolygon = []byte{}
 		o.typePolygonIsDirty = false
 	}
 
@@ -2511,8 +2497,8 @@ func (o *unsupportedTypeBase) MarshalStringMap() map[string]interface{} {
 // The fields it expects are:
 //
 //	"typeSerial" - string
-//	"typeSet" - []byte
-//	"typeEnumerated" - []byte
+//	"typeSet" - string
+//	"typeEnumerated" - string
 //	"typeDecimal" - []byte
 //	"typeDouble" - float64
 //	"typeGeo" - []byte
@@ -2554,33 +2540,11 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				switch d := v.(type) {
-				case string:
-					{
-						// A base 64 encoded string
-						if b, err2 := base64.StdEncoding.DecodeString(d); err2 == nil {
-							o.SetTypeSet(b)
-						} else {
-							return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
-						}
-					}
-				case []interface{}:
-					{
-						// An array of byte values. Unfortunately, these come through as float64s, and so need to be converted
-						b := make([]byte, len(d), len(d))
-						for i, b1 := range d {
-							if f, ok := b1.(float64); !ok {
-								return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
-							} else {
-								b[i] = uint8(f)
-							}
-						}
-						o.SetTypeSet(b)
-					}
-				default:
-					return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+				if s, ok := v.(string); !ok {
+					return fmt.Errorf("json field %s must be a string", k)
+				} else {
+					o.SetTypeSet(s)
 				}
-
 			}
 
 		case "typeEnumerated":
@@ -2589,33 +2553,11 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				switch d := v.(type) {
-				case string:
-					{
-						// A base 64 encoded string
-						if b, err2 := base64.StdEncoding.DecodeString(d); err2 == nil {
-							o.SetTypeEnumerated(b)
-						} else {
-							return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
-						}
-					}
-				case []interface{}:
-					{
-						// An array of byte values. Unfortunately, these come through as float64s, and so need to be converted
-						b := make([]byte, len(d), len(d))
-						for i, b1 := range d {
-							if f, ok := b1.(float64); !ok {
-								return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
-							} else {
-								b[i] = uint8(f)
-							}
-						}
-						o.SetTypeEnumerated(b)
-					}
-				default:
-					return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+				if s, ok := v.(string); !ok {
+					return fmt.Errorf("json field %s must be a string", k)
+				} else {
+					o.SetTypeEnumerated(s)
 				}
-
 			}
 
 		case "typeDecimal":

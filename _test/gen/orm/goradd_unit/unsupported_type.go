@@ -49,7 +49,7 @@ func queryUnsupportedTypes(ctx context.Context) UnsupportedTypeBuilder {
 	return newUnsupportedTypeBuilder(ctx)
 }
 
-// DeleteUnsupportedType deletes a unsupported_type record from the database given its primary key.
+// DeleteUnsupportedType deletes the unsupported_type record wtih primary key pk from the database.
 // Note that you can also delete loaded UnsupportedType objects by calling Delete on them.
 // doc: type=UnsupportedType
 func DeleteUnsupportedType(ctx context.Context, pk string) {

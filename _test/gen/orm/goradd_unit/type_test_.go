@@ -49,7 +49,7 @@ func queryTypeTests(ctx context.Context) TypeTestBuilder {
 	return newTypeTestBuilder(ctx)
 }
 
-// DeleteTypeTest deletes a type_test record from the database given its primary key.
+// DeleteTypeTest deletes the type_test record wtih primary key pk from the database.
 // Note that you can also delete loaded TypeTest objects by calling Delete on them.
 // doc: type=TypeTest
 func DeleteTypeTest(ctx context.Context, pk string) {

@@ -472,10 +472,10 @@
             "case_insensitive": true
           },
           {
-            "name": "gro_lock_timestamp",
+            "name": "gro_lock",
             "type": "int",
-            "size": 64,
-            "is_nullable": true
+            "sub_type": "gro_lock",
+            "size": 64
           }
         ],
         "key": "leaf_lock"
@@ -657,7 +657,7 @@
           },
           {
             "name": "type_set",
-            "type": "unknown",
+            "type": "string",
             "size": 5,
             "case_insensitive": true,
             "database_column_info": {
@@ -668,7 +668,7 @@
           },
           {
             "name": "type_enumerated",
-            "type": "unknown",
+            "type": "string",
             "size": 1,
             "case_insensitive": true,
             "database_column_info": {

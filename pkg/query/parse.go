@@ -13,9 +13,10 @@ import (
 //
 // If the SQL date time string does not have timezone information,
 // the resulting value will be in UTC time.
-// If an error occurs, the returned value will be the zero date.
+// If an error occurs, the returned value will be the zero time.
 func ParseTime(s string) (t time.Time) {
 	var form string
+	var timeOnly bool
 
 	if len(s) < 4 {
 		return // must at least have some minimal amount of data to start
@@ -66,11 +67,18 @@ func ParseTime(s string) (t time.Time) {
 			}
 		} else {
 			form = "15:04:05"
+			timeOnly = true
 		}
 	}
 	t, err := time.Parse(form, s)
 	if err == nil {
 		t = t.UTC()
+		if timeOnly {
+			// time.Parse will return a zero value year.
+			// However, some sql drivers will error on a zero valued year time value, even if its a time only field.
+			// So, we have to put the year into the acceptable range by adding 1 to the year.
+			t = t.AddDate(1, 0, 0)
+		}
 	} else {
 		z := time.Time{}
 		t = z // make sure we return a zero time

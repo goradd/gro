@@ -15,9 +15,9 @@ import (
 func TestAddress_SetPersonID(t *testing.T) {
 
 	obj := NewAddress()
-	personID := test.RandomValue[string](0)
-	obj.SetPersonID(personID)
-	assert.Equal(t, personID, obj.PersonID())
+	val := test.RandomValue[string](0)
+	obj.SetPersonID(val)
+	assert.Equal(t, val, obj.PersonID())
 
 	// test default
 	obj.SetPersonID("")
@@ -27,31 +27,31 @@ func TestAddress_SetPersonID(t *testing.T) {
 func TestAddress_SetStreet(t *testing.T) {
 
 	obj := NewAddress()
-	street := test.RandomValue[string](100)
-	obj.SetStreet(street)
-	assert.Equal(t, street, obj.Street())
+	val := test.RandomValue[string](100)
+	obj.SetStreet(val)
+	assert.Equal(t, val, obj.Street())
 
 	// test default
 	obj.SetStreet("")
 	assert.EqualValues(t, "", obj.Street(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
-	street = test.RandomValue[string](101)
+	val = test.RandomValue[string](101)
 	assert.Panics(t, func() {
-		obj.SetStreet(street)
+		obj.SetStreet(val)
 	})
 }
 func TestAddress_SetCity(t *testing.T) {
 
 	obj := NewAddress()
-	city := test.RandomValue[string](100)
-	obj.SetCity(city)
-	assert.Equal(t, city, obj.City())
+	val := test.RandomValue[string](100)
+	obj.SetCity(val)
+	assert.Equal(t, val, obj.City())
 	assert.False(t, obj.CityIsNull())
 
 	// Test NULL
 	obj.SetCityToNull()
-	assert.Equal(t, "BOB", obj.City())
+	assert.EqualValues(t, "BOB", obj.City())
 	assert.True(t, obj.CityIsNull())
 
 	// test default
@@ -59,9 +59,9 @@ func TestAddress_SetCity(t *testing.T) {
 	assert.EqualValues(t, "BOB", obj.City(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
-	city = test.RandomValue[string](101)
+	val = test.RandomValue[string](101)
 	assert.Panics(t, func() {
-		obj.SetCity(city)
+		obj.SetCity(val)
 	})
 }
 
@@ -71,14 +71,11 @@ func createMinimalSampleAddress(ctx context.Context) *Address {
 	obj := NewAddress()
 
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
-	objPerson := createMinimalSamplePerson(ctx)
-	obj.SetPerson(objPerson)
+	obj.SetPerson(createMinimalSamplePerson(ctx))
 
-	street := test.RandomValue[string](100)
-	obj.SetStreet(street)
+	obj.SetStreet(test.RandomValue[string](100))
 
-	city := test.RandomValue[string](100)
-	obj.SetCity(city)
+	obj.SetCity(test.RandomValue[string](100))
 
 	obj.Save(ctx)
 	return obj
@@ -87,15 +84,15 @@ func TestAddress_CRUD(t *testing.T) {
 	obj := NewAddress()
 	ctx := db.NewContext(nil)
 
-	objPerson := createMinimalSamplePerson(ctx)
-	defer objPerson.Delete(ctx)
-	obj.SetPerson(objPerson)
+	v_objPerson := createMinimalSamplePerson(ctx)
+	defer v_objPerson.Delete(ctx)
+	obj.SetPerson(v_objPerson)
 
-	street := test.RandomValue[string](100)
-	obj.SetStreet(street)
+	v_street := test.RandomValue[string](100)
+	obj.SetStreet(v_street)
 
-	city := test.RandomValue[string](100)
-	obj.SetCity(city)
+	v_city := test.RandomValue[string](100)
+	obj.SetCity(v_city)
 
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
@@ -111,10 +108,10 @@ func TestAddress_CRUD(t *testing.T) {
 	assert.NotEmpty(t, obj2.PersonID())
 
 	assert.True(t, obj2.StreetIsValid())
-	assert.Equal(t, street, obj2.Street())
+	assert.EqualValues(t, v_street, obj2.Street())
 
 	assert.True(t, obj2.CityIsValid())
 	assert.False(t, obj2.CityIsNull())
-	assert.Equal(t, city, obj2.City())
+	assert.EqualValues(t, v_city, obj2.City())
 
 }

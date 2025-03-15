@@ -15,37 +15,19 @@ import (
 func TestLeafLock_SetName(t *testing.T) {
 
 	obj := NewLeafLock()
-	name := test.RandomValue[string](100)
-	obj.SetName(name)
-	assert.Equal(t, name, obj.Name())
+	val := test.RandomValue[string](100)
+	obj.SetName(val)
+	assert.Equal(t, val, obj.Name())
 
 	// test default
 	obj.SetName("")
 	assert.EqualValues(t, "", obj.Name(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
-	name = test.RandomValue[string](101)
+	val = test.RandomValue[string](101)
 	assert.Panics(t, func() {
-		obj.SetName(name)
+		obj.SetName(val)
 	})
-}
-func TestLeafLock_SetGroLockTimestamp(t *testing.T) {
-
-	obj := NewLeafLock()
-	groLockTimestamp := test.RandomValue[int64](64)
-	obj.SetGroLockTimestamp(groLockTimestamp)
-	assert.Equal(t, groLockTimestamp, obj.GroLockTimestamp())
-	assert.False(t, obj.GroLockTimestampIsNull())
-
-	// Test NULL
-	obj.SetGroLockTimestampToNull()
-	assert.Equal(t, 0, obj.GroLockTimestamp())
-	assert.True(t, obj.GroLockTimestampIsNull())
-
-	// test default
-	obj.SetGroLockTimestamp(0)
-	assert.EqualValues(t, 0, obj.GroLockTimestamp(), "set default")
-
 }
 
 // createMinimalSampleLeafLock creates and saves a minimal version of a LeafLock object
@@ -53,11 +35,7 @@ func TestLeafLock_SetGroLockTimestamp(t *testing.T) {
 func createMinimalSampleLeafLock(ctx context.Context) *LeafLock {
 	obj := NewLeafLock()
 
-	name := test.RandomValue[string](100)
-	obj.SetName(name)
-
-	groLockTimestamp := test.RandomValue[int64](64)
-	obj.SetGroLockTimestamp(groLockTimestamp)
+	obj.SetName(test.RandomValue[string](100))
 
 	obj.Save(ctx)
 	return obj
@@ -66,11 +44,8 @@ func TestLeafLock_CRUD(t *testing.T) {
 	obj := NewLeafLock()
 	ctx := db.NewContext(nil)
 
-	name := test.RandomValue[string](100)
-	obj.SetName(name)
-
-	groLockTimestamp := test.RandomValue[int64](64)
-	obj.SetGroLockTimestamp(groLockTimestamp)
+	v_name := test.RandomValue[string](100)
+	obj.SetName(v_name)
 
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
@@ -83,10 +58,8 @@ func TestLeafLock_CRUD(t *testing.T) {
 	assert.True(t, obj2.IDIsValid())
 
 	assert.True(t, obj2.NameIsValid())
-	assert.Equal(t, name, obj2.Name())
+	assert.EqualValues(t, v_name, obj2.Name())
 
-	assert.True(t, obj2.GroLockTimestampIsValid())
-	assert.False(t, obj2.GroLockTimestampIsNull())
-	assert.Equal(t, groLockTimestamp, obj2.GroLockTimestamp())
+	assert.True(t, obj2.GroLockIsValid())
 
 }

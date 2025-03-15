@@ -191,13 +191,13 @@ func (o *projectBase) Initialize() {
 	o.endDateIsValid = true
 	o.endDateIsDirty = true
 
-	o.budget = []byte(nil)
+	o.budget = []byte{}
 
 	o.budgetIsNull = true
 	o.budgetIsValid = true
 	o.budgetIsDirty = true
 
-	o.spent = []byte(nil)
+	o.spent = []byte{}
 
 	o.spentIsNull = true
 	o.spentIsValid = true
@@ -728,7 +728,7 @@ func (o *projectBase) SetBudgetToNull() {
 	}
 	o.budgetIsValid = true
 	o.budgetIsNull = true
-	o.budget = []byte(nil)
+	o.budget = []byte{}
 }
 
 // Spent returns the loaded value of Spent.
@@ -795,7 +795,7 @@ func (o *projectBase) SetSpentToNull() {
 	}
 	o.spentIsValid = true
 	o.spentIsNull = true
-	o.spent = []byte(nil)
+	o.spent = []byte{}
 }
 
 // ParentProjectID returns the loaded value of ParentProjectID.
@@ -1840,7 +1840,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 
 	if v, ok := m["budget"]; ok {
 		if v == nil {
-			o.budget = []byte(nil)
+			o.budget = []byte{}
 			o.budgetIsNull = true
 			o.budgetIsValid = true
 			o.budgetIsDirty = false
@@ -1854,13 +1854,13 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 	} else {
 		o.budgetIsValid = false
 		o.budgetIsNull = true
-		o.budget = []byte(nil)
+		o.budget = []byte{}
 		o.budgetIsDirty = false
 	}
 
 	if v, ok := m["spent"]; ok {
 		if v == nil {
-			o.spent = []byte(nil)
+			o.spent = []byte{}
 			o.spentIsNull = true
 			o.spentIsValid = true
 			o.spentIsDirty = false
@@ -1874,7 +1874,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 	} else {
 		o.spentIsValid = false
 		o.spentIsNull = true
-		o.spent = []byte(nil)
+		o.spent = []byte{}
 		o.spentIsDirty = false
 	}
 

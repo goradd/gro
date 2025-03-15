@@ -2130,7 +2130,7 @@ func (tmpl *TableBaseTemplate) genColSetter(table *model.Table, col *model.Colum
 
 		} else if col.SchemaSubType == schema.ColSubTypeTimeOnly {
 
-			if _, err = io.WriteString(_w, `    v = time.Date(0, 1, 1, v.Hour(), v.Minute(), v.Second(), v.Nanosecond(), time.UTC)
+			if _, err = io.WriteString(_w, `    v = time.Date(1, 1, 1, v.Hour(), v.Minute(), v.Second(), v.Nanosecond(), time.UTC)
 `); err != nil {
 				return
 			}

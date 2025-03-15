@@ -17,8 +17,8 @@ type LeafLockNode interface {
 	ID() *query.ColumnNode
 	// Name represents the name column in the database.
 	Name() *query.ColumnNode
-	// GroLockTimestamp represents the gro_lock_timestamp column in the database.
-	GroLockTimestamp() *query.ColumnNode
+	// GroLock represents the gro_lock column in the database.
+	GroLock() *query.ColumnNode
 }
 
 // leafLockTable represents the leaf_lock table in a query. It uses a builder pattern to chain
@@ -57,7 +57,7 @@ func (n leafLockTable) DatabaseKey_() string {
 func (n leafLockTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.Name())
-	nodes = append(nodes, n.GroLockTimestamp())
+	nodes = append(nodes, n.GroLock())
 	return nodes
 }
 
@@ -122,10 +122,10 @@ func (n *leafLockReverse) Name() *query.ColumnNode {
 	return cn
 }
 
-func (n leafLockTable) GroLockTimestamp() *query.ColumnNode {
+func (n leafLockTable) GroLock() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "gro_lock_timestamp",
-		Identifier:   "GroLockTimestamp",
+		QueryName:    "gro_lock",
+		Identifier:   "GroLock",
 		ReceiverType: query.ColTypeInteger64,
 		IsPrimaryKey: false,
 	}
@@ -133,8 +133,8 @@ func (n leafLockTable) GroLockTimestamp() *query.ColumnNode {
 	return cn
 }
 
-func (n *leafLockReverse) GroLockTimestamp() *query.ColumnNode {
-	cn := n.leafLockTable.GroLockTimestamp()
+func (n *leafLockReverse) GroLock() *query.ColumnNode {
+	cn := n.leafLockTable.GroLock()
 	query.NodeSetParent(cn, n)
 	return cn
 }

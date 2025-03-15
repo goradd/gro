@@ -56,9 +56,9 @@ func (g ReceiverType) String() string {
 func (g ReceiverType) DefaultValue() any {
 	switch g {
 	case ColTypeUnknown:
-		return []byte(nil)
+		return []byte{}
 	case ColTypeBytes:
-		return []byte(nil)
+		return []byte{}
 	case ColTypeString:
 		return ""
 	case ColTypeInteger:

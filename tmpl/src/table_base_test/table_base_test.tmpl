@@ -20,4 +20,13 @@ import (
 
 {{: sample.tmpl }}
 
+var hasUnknown bool
+for _, col := range table.Columns {
+    if col.ReceiverType == query.ColTypeUnknown {
+        hasUnknown = true
+    } // cannot know what the set of valid input characters are.
+}
+
+if !hasUnknown {
 {{: save.tmpl }}
+}

@@ -2,34 +2,35 @@
 
 for _,col := range table.Columns {
     if !col.HasSetter() {continue}
+    testSize := min(col.Size, 100000)
 {{
 func Test{{= table.Identifier }}_Set{{= col.Identifier }}(t *testing.T) {
 
     obj := New{{= table.Identifier }}()
 {{if col.IsEnum() }}
     {{if col.IsEnumArray() }}
-    {{= col.VariableIdentifier() }} := 	test.RandomEnumArray({{= col.Reference.EnumTable.IdentifierPlural}}())
-    obj.Set{{= col.Identifier }}({{= col.VariableIdentifier() }})
+    val := 	test.RandomEnumArray({{= col.Reference.EnumTable.IdentifierPlural}}())
+    obj.Set{{= col.Identifier }}(val)
     {{else}}
-    {{= col.VariableIdentifier() }} := test.RandomEnum({{= col.Reference.EnumTable.IdentifierPlural}}())
-     obj.Set{{= col.Identifier }}({{= col.VariableIdentifier() }})
+    val := test.RandomEnum({{= col.Reference.EnumTable.IdentifierPlural}}())
+    obj.Set{{= col.Identifier }}(val)
    {{if}}
 {{else}}
-    {{= col.VariableIdentifier() }} := 	test.RandomValue[{{= col.GoType() }}]({{u col.Size }})
-    obj.Set{{= col.Identifier }}({{= col.VariableIdentifier() }})
+    val := 	test.RandomValue[{{= col.GoType() }}]({{u testSize }})
+    obj.Set{{= col.Identifier }}(val)
 {{if}}
 {{if col.SchemaSubType == schema.ColSubTypeDateOnly}}
-    {{= col.VariableIdentifier() }} = obj.{{= col.Identifier }}()
-    assert.Zero(t, {{= col.VariableIdentifier() }}.Minute()) // make sure time part is zero'd
-    assert.Zero(t, {{= col.VariableIdentifier() }}.Hour()) // make sure time part is zero'd
-    assert.Zero(t, {{= col.VariableIdentifier() }}.Second()) // make sure time part is zero'd
+    val = obj.{{= col.Identifier }}()
+    assert.Zero(t, val.Minute()) // make sure minute part is zero'd
+    assert.Zero(t, val.Hour()) // make sure hour part is zero'd
+    assert.Zero(t, val.Second()) // make sure second part is zero'd
 {{elseif col.SchemaSubType == schema.ColSubTypeTimeOnly}}
-    {{= col.VariableIdentifier() }} = obj.{{= col.Identifier }}()
-    assert.Zero(t, {{= col.VariableIdentifier() }}.Year()) // make sure minute part is zero'd
-    assert.Equal(t, 1, {{= col.VariableIdentifier() }}.Month()) // make sure minute part is zero'd
-    assert.Equal(t, 1, {{= col.VariableIdentifier() }}.Day()) // make sure minute part is zero'd
+    val = obj.{{= col.Identifier }}()
+    assert.EqualValues(t, 1, val.Year()) // make sure year part is zero'd. The zero value of time.Time has a year of 1.
+    assert.EqualValues(t, 1, val.Month()) // make sure month part is zero'd
+    assert.EqualValues(t, 1, val.Day()) // make sure day part is zero'd
 {{else}}
-    assert.Equal(t, {{= col.VariableIdentifier() }}, obj.{{= col.Identifier }}())
+    assert.Equal(t, val, obj.{{= col.Identifier }}())
 {{if}}
 {{if col.IsNullable }}
     assert.False(t, obj.{{= col.Identifier }}IsNull())
@@ -41,7 +42,7 @@ func Test{{= table.Identifier }}_Set{{= col.Identifier }}(t *testing.T) {
 {{if col.DefaultValueAsValue() == "nil" }}
     assert.Nil(t, obj.{{= col.Identifier }}())
 {{else}}
-    assert.Equal(t, {{= col.DefaultValueAsValue() }}, obj.{{= col.Identifier }}())
+    assert.EqualValues(t, {{= col.DefaultValueAsValue() }}, obj.{{= col.Identifier }}())
 {{if}}
     assert.True(t, obj.{{= col.Identifier }}IsNull())
 {{if}}
@@ -56,12 +57,13 @@ func Test{{= table.Identifier }}_Set{{= col.Identifier }}(t *testing.T) {
 {{if}}
 
 {{if col.Size > 0 &&
+        col.Size == testSize &&
         !col.IsEnum() &&
         (col.ReceiverType == query.ColTypeBytes || col.ReceiverType == query.ColTypeString || col.ReceiverType == query.ColTypeUnknown) }}
     // test panic on setting value larger than maximum size allowed
-    {{= col.VariableIdentifier() }} = test.RandomValue[{{= col.GoType() }}]({{u col.Size + 1}})
+    val = test.RandomValue[{{= col.GoType() }}]({{u col.Size + 1}})
     assert.Panics(t, func() {
-        obj.Set{{= col.Identifier }}({{= col.VariableIdentifier() }})
+        obj.Set{{= col.Identifier }}(val)
     })
 {{if}}
 }

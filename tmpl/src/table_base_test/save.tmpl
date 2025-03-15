@@ -7,27 +7,27 @@ func Test{{= table.Identifier }}_CRUD(t *testing.T) {
 
 {{for _,col := range table.Columns}}
 {{g
-    if col.ReceiverType == query.ColTypeUnknown {continue} // cannot know what the set of valid input characters are.
+    testSize := min(100000, col.Size)
 }}
 
 {{if col.HasSetter()}}
     {{if col.IsReference()}}
-    {{= col.ReferenceVariableIdentifier() }} := createMinimalSample{{= col.ReferenceType() }}(ctx)
-    defer {{= col.ReferenceVariableIdentifier() }}.Delete(ctx)
-    obj.Set{{= col.ReferenceIdentifier() }}({{= col.ReferenceVariableIdentifier() }})
+    v_{{= col.ReferenceVariableIdentifier() }} := createMinimalSample{{= col.ReferenceType() }}(ctx)
+    defer v_{{= col.ReferenceVariableIdentifier() }}.Delete(ctx)
+    obj.Set{{= col.ReferenceIdentifier() }}(v_{{= col.ReferenceVariableIdentifier() }})
     {{elseif col.IsEnum() }}
         {{if col.IsEnumArray() }}
-    {{= col.VariableIdentifier() }} := test.RandomEnumArray({{= col.Reference.EnumTable.IdentifierPlural}}())
-    obj.Set{{= col.Identifier }}({{= col.VariableIdentifier() }})
+    v_{{= col.VariableIdentifier() }} := test.RandomEnumArray({{= col.Reference.EnumTable.IdentifierPlural}}())
+    obj.Set{{= col.Identifier }}(v_{{= col.VariableIdentifier() }})
         {{else}}
-    {{= col.VariableIdentifier() }} := test.RandomEnum({{= col.Reference.EnumTable.IdentifierPlural}}())
-    obj.Set{{= col.Identifier }}({{= col.VariableIdentifier() }})
+    v_{{= col.VariableIdentifier() }} := test.RandomEnum({{= col.Reference.EnumTable.IdentifierPlural}}())
+    obj.Set{{= col.Identifier }}(v_{{= col.VariableIdentifier() }})
         {{if}}
     {{else}}
-    {{= col.VariableIdentifier() }} := 	test.RandomValue[{{= col.GoType() }}]({{u col.Size }})
-    obj.Set{{= col.Identifier }}({{= col.VariableIdentifier() }})
+    v_{{= col.VariableIdentifier() }} := test.RandomValue[{{= col.GoType() }}]({{u testSize }})
+    obj.Set{{= col.Identifier }}(v_{{= col.VariableIdentifier() }})
         {{if col.SchemaType == schema.ColTypeTime}}
-    {{= col.VariableIdentifier() }} = obj.{{= col.Identifier }}()
+    v_{{= col.VariableIdentifier() }} = obj.{{= col.Identifier }}()
         {{if}}
     {{if}}
 {{if}}
@@ -53,9 +53,9 @@ func Test{{= table.Identifier }}_CRUD(t *testing.T) {
 {{if col.IsReference() }}
     assert.NotEmpty(t, obj2.{{= col.Identifier }}())
 {{elseif col.IsEnumArray() }}
-    assert.True(t, {{= col.VariableIdentifier() }}.Equal(obj2.{{= col.Identifier }}()))
+    assert.True(t, v_{{= col.VariableIdentifier() }}.Equal(obj2.{{= col.Identifier }}()))
 {{else}}
-    assert.Equal(t, {{= col.VariableIdentifier() }}, obj2.{{= col.Identifier }}())
+    assert.EqualValues(t, v_{{= col.VariableIdentifier() }}, obj2.{{= col.Identifier }}())
 {{if}}
 {{if}}
 {{for}}

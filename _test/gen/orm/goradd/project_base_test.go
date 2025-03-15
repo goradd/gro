@@ -7,18 +7,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestProject_SetNum(t *testing.T) {
 
 	obj := NewProject()
-	num := test.RandomValue[int](32)
-	obj.SetNum(num)
-	assert.Equal(t, num, obj.Num())
+	val := test.RandomValue[int](32)
+	obj.SetNum(val)
+	assert.Equal(t, val, obj.Num())
 
 	// test default
 	obj.SetNum(0)
@@ -29,10 +27,10 @@ func TestProject_SetStatus(t *testing.T) {
 
 	obj := NewProject()
 
-	status := test.RandomEnum(ProjectStatuses())
-	obj.SetStatus(status)
+	val := test.RandomEnum(ProjectStatuses())
+	obj.SetStatus(val)
 
-	assert.Equal(t, status, obj.Status())
+	assert.Equal(t, val, obj.Status())
 
 	// test default
 	obj.SetStatus(0)
@@ -42,14 +40,14 @@ func TestProject_SetStatus(t *testing.T) {
 func TestProject_SetManagerID(t *testing.T) {
 
 	obj := NewProject()
-	managerID := test.RandomValue[string](0)
-	obj.SetManagerID(managerID)
-	assert.Equal(t, managerID, obj.ManagerID())
+	val := test.RandomValue[string](0)
+	obj.SetManagerID(val)
+	assert.Equal(t, val, obj.ManagerID())
 	assert.False(t, obj.ManagerIDIsNull())
 
 	// Test NULL
 	obj.SetManagerIDToNull()
-	assert.Equal(t, "", obj.ManagerID())
+	assert.EqualValues(t, "", obj.ManagerID())
 	assert.True(t, obj.ManagerIDIsNull())
 
 	// test default
@@ -60,31 +58,31 @@ func TestProject_SetManagerID(t *testing.T) {
 func TestProject_SetName(t *testing.T) {
 
 	obj := NewProject()
-	name := test.RandomValue[string](100)
-	obj.SetName(name)
-	assert.Equal(t, name, obj.Name())
+	val := test.RandomValue[string](100)
+	obj.SetName(val)
+	assert.Equal(t, val, obj.Name())
 
 	// test default
 	obj.SetName("")
 	assert.EqualValues(t, "", obj.Name(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
-	name = test.RandomValue[string](101)
+	val = test.RandomValue[string](101)
 	assert.Panics(t, func() {
-		obj.SetName(name)
+		obj.SetName(val)
 	})
 }
 func TestProject_SetDescription(t *testing.T) {
 
 	obj := NewProject()
-	description := test.RandomValue[string](65535)
-	obj.SetDescription(description)
-	assert.Equal(t, description, obj.Description())
+	val := test.RandomValue[string](65535)
+	obj.SetDescription(val)
+	assert.Equal(t, val, obj.Description())
 	assert.False(t, obj.DescriptionIsNull())
 
 	// Test NULL
 	obj.SetDescriptionToNull()
-	assert.Equal(t, "", obj.Description())
+	assert.EqualValues(t, "", obj.Description())
 	assert.True(t, obj.DescriptionIsNull())
 
 	// test default
@@ -92,25 +90,25 @@ func TestProject_SetDescription(t *testing.T) {
 	assert.EqualValues(t, "", obj.Description(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
-	description = test.RandomValue[string](65536)
+	val = test.RandomValue[string](65536)
 	assert.Panics(t, func() {
-		obj.SetDescription(description)
+		obj.SetDescription(val)
 	})
 }
 func TestProject_SetStartDate(t *testing.T) {
 
 	obj := NewProject()
-	startDate := test.RandomValue[time.Time](0)
-	obj.SetStartDate(startDate)
-	startDate = obj.StartDate()
-	assert.Zero(t, startDate.Minute()) // make sure time part is zero'd
-	assert.Zero(t, startDate.Hour())   // make sure time part is zero'd
-	assert.Zero(t, startDate.Second()) // make sure time part is zero'd
+	val := test.RandomValue[time.Time](0)
+	obj.SetStartDate(val)
+	val = obj.StartDate()
+	assert.Zero(t, val.Minute()) // make sure minute part is zero'd
+	assert.Zero(t, val.Hour())   // make sure hour part is zero'd
+	assert.Zero(t, val.Second()) // make sure second part is zero'd
 	assert.False(t, obj.StartDateIsNull())
 
 	// Test NULL
 	obj.SetStartDateToNull()
-	assert.Equal(t, time.Time{}, obj.StartDate())
+	assert.EqualValues(t, time.Time{}, obj.StartDate())
 	assert.True(t, obj.StartDateIsNull())
 
 	// test default
@@ -121,17 +119,17 @@ func TestProject_SetStartDate(t *testing.T) {
 func TestProject_SetEndDate(t *testing.T) {
 
 	obj := NewProject()
-	endDate := test.RandomValue[time.Time](0)
-	obj.SetEndDate(endDate)
-	endDate = obj.EndDate()
-	assert.Zero(t, endDate.Minute()) // make sure time part is zero'd
-	assert.Zero(t, endDate.Hour())   // make sure time part is zero'd
-	assert.Zero(t, endDate.Second()) // make sure time part is zero'd
+	val := test.RandomValue[time.Time](0)
+	obj.SetEndDate(val)
+	val = obj.EndDate()
+	assert.Zero(t, val.Minute()) // make sure minute part is zero'd
+	assert.Zero(t, val.Hour())   // make sure hour part is zero'd
+	assert.Zero(t, val.Second()) // make sure second part is zero'd
 	assert.False(t, obj.EndDateIsNull())
 
 	// Test NULL
 	obj.SetEndDateToNull()
-	assert.Equal(t, time.Time{}, obj.EndDate())
+	assert.EqualValues(t, time.Time{}, obj.EndDate())
 	assert.True(t, obj.EndDateIsNull())
 
 	// test default
@@ -142,60 +140,60 @@ func TestProject_SetEndDate(t *testing.T) {
 func TestProject_SetBudget(t *testing.T) {
 
 	obj := NewProject()
-	budget := test.RandomValue[[]byte](15)
-	obj.SetBudget(budget)
-	assert.Equal(t, budget, obj.Budget())
+	val := test.RandomValue[[]byte](15)
+	obj.SetBudget(val)
+	assert.Equal(t, val, obj.Budget())
 	assert.False(t, obj.BudgetIsNull())
 
 	// Test NULL
 	obj.SetBudgetToNull()
-	assert.Equal(t, []byte(nil), obj.Budget())
+	assert.EqualValues(t, []byte{}, obj.Budget())
 	assert.True(t, obj.BudgetIsNull())
 
 	// test default
-	obj.SetBudget([]byte(nil))
-	assert.EqualValues(t, []byte(nil), obj.Budget(), "set default")
+	obj.SetBudget([]byte{})
+	assert.EqualValues(t, []byte{}, obj.Budget(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
-	budget = test.RandomValue[[]byte](16)
+	val = test.RandomValue[[]byte](16)
 	assert.Panics(t, func() {
-		obj.SetBudget(budget)
+		obj.SetBudget(val)
 	})
 }
 func TestProject_SetSpent(t *testing.T) {
 
 	obj := NewProject()
-	spent := test.RandomValue[[]byte](15)
-	obj.SetSpent(spent)
-	assert.Equal(t, spent, obj.Spent())
+	val := test.RandomValue[[]byte](15)
+	obj.SetSpent(val)
+	assert.Equal(t, val, obj.Spent())
 	assert.False(t, obj.SpentIsNull())
 
 	// Test NULL
 	obj.SetSpentToNull()
-	assert.Equal(t, []byte(nil), obj.Spent())
+	assert.EqualValues(t, []byte{}, obj.Spent())
 	assert.True(t, obj.SpentIsNull())
 
 	// test default
-	obj.SetSpent([]byte(nil))
-	assert.EqualValues(t, []byte(nil), obj.Spent(), "set default")
+	obj.SetSpent([]byte{})
+	assert.EqualValues(t, []byte{}, obj.Spent(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
-	spent = test.RandomValue[[]byte](16)
+	val = test.RandomValue[[]byte](16)
 	assert.Panics(t, func() {
-		obj.SetSpent(spent)
+		obj.SetSpent(val)
 	})
 }
 func TestProject_SetParentProjectID(t *testing.T) {
 
 	obj := NewProject()
-	parentProjectID := test.RandomValue[string](0)
-	obj.SetParentProjectID(parentProjectID)
-	assert.Equal(t, parentProjectID, obj.ParentProjectID())
+	val := test.RandomValue[string](0)
+	obj.SetParentProjectID(val)
+	assert.Equal(t, val, obj.ParentProjectID())
 	assert.False(t, obj.ParentProjectIDIsNull())
 
 	// Test NULL
 	obj.SetParentProjectIDToNull()
-	assert.Equal(t, "", obj.ParentProjectID())
+	assert.EqualValues(t, "", obj.ParentProjectID())
 	assert.True(t, obj.ParentProjectIDIsNull())
 
 	// test default
@@ -209,98 +207,18 @@ func TestProject_SetParentProjectID(t *testing.T) {
 func createMinimalSampleProject(ctx context.Context) *Project {
 	obj := NewProject()
 
-	num := test.RandomValue[int](32)
-	obj.SetNum(num)
+	obj.SetNum(test.RandomValue[int](32))
 
-	status := test.RandomEnum(ProjectStatuses())
-	obj.SetStatus(status)
+	obj.SetStatus(test.RandomEnum(ProjectStatuses()))
 
-	name := test.RandomValue[string](100)
-	obj.SetName(name)
+	obj.SetName(test.RandomValue[string](100))
 
-	description := test.RandomValue[string](65535)
-	obj.SetDescription(description)
+	obj.SetDescription(test.RandomValue[string](65535))
 
-	startDate := test.RandomValue[time.Time](0)
-	obj.SetStartDate(startDate)
+	obj.SetStartDate(test.RandomValue[time.Time](0))
 
-	endDate := test.RandomValue[time.Time](0)
-	obj.SetEndDate(endDate)
+	obj.SetEndDate(test.RandomValue[time.Time](0))
 
 	obj.Save(ctx)
 	return obj
-}
-func TestProject_CRUD(t *testing.T) {
-	obj := NewProject()
-	ctx := db.NewContext(nil)
-
-	num := test.RandomValue[int](32)
-	obj.SetNum(num)
-
-	status := test.RandomEnum(ProjectStatuses())
-	obj.SetStatus(status)
-
-	objManager := createMinimalSamplePerson(ctx)
-	defer objManager.Delete(ctx)
-	obj.SetManager(objManager)
-
-	name := test.RandomValue[string](100)
-	obj.SetName(name)
-
-	description := test.RandomValue[string](65535)
-	obj.SetDescription(description)
-
-	startDate := test.RandomValue[time.Time](0)
-	obj.SetStartDate(startDate)
-
-	startDate = obj.StartDate()
-
-	endDate := test.RandomValue[time.Time](0)
-	obj.SetEndDate(endDate)
-
-	endDate = obj.EndDate()
-
-	objParentProject := createMinimalSampleProject(ctx)
-	defer objParentProject.Delete(ctx)
-	obj.SetParentProject(objParentProject)
-
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
-	defer obj.Delete(ctx)
-
-	// Test retrieval
-	obj2 := LoadProject(ctx, obj.PrimaryKey())
-	require.NotNil(t, obj2)
-
-	assert.True(t, obj2.IDIsValid())
-
-	assert.True(t, obj2.NumIsValid())
-	assert.Equal(t, num, obj2.Num())
-
-	assert.True(t, obj2.StatusIsValid())
-	assert.Equal(t, status, obj2.Status())
-
-	assert.True(t, obj2.ManagerIDIsValid())
-	assert.False(t, obj2.ManagerIDIsNull())
-	assert.NotEmpty(t, obj2.ManagerID())
-
-	assert.True(t, obj2.NameIsValid())
-	assert.Equal(t, name, obj2.Name())
-
-	assert.True(t, obj2.DescriptionIsValid())
-	assert.False(t, obj2.DescriptionIsNull())
-	assert.Equal(t, description, obj2.Description())
-
-	assert.True(t, obj2.StartDateIsValid())
-	assert.False(t, obj2.StartDateIsNull())
-	assert.Equal(t, startDate, obj2.StartDate())
-
-	assert.True(t, obj2.EndDateIsValid())
-	assert.False(t, obj2.EndDateIsNull())
-	assert.Equal(t, endDate, obj2.EndDate())
-
-	assert.True(t, obj2.ParentProjectIDIsValid())
-	assert.False(t, obj2.ParentProjectIDIsNull())
-	assert.NotEmpty(t, obj2.ParentProjectID())
-
 }

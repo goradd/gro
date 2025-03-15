@@ -179,7 +179,7 @@ func (o *typeTestBase) Initialize() {
 	o.testVarcharIsValid = true
 	o.testVarcharIsDirty = true
 
-	o.testBlob = []byte(nil)
+	o.testBlob = []byte{}
 
 	o.testBlobIsValid = false
 	o.testBlobIsDirty = false
@@ -359,7 +359,7 @@ func (o *typeTestBase) SetTime(v time.Time) {
 
 	o.timeIsValid = true
 	v = v.UTC()
-	v = time.Date(0, 1, 1, v.Hour(), v.Minute(), v.Second(), v.Nanosecond(), time.UTC)
+	v = time.Date(1, 1, 1, v.Hour(), v.Minute(), v.Second(), v.Nanosecond(), time.UTC)
 	o.time = v
 	o.timeIsDirty = true
 	o.timeIsNull = false
@@ -1451,7 +1451,7 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 		}
 	} else {
 		o.testBlobIsValid = false
-		o.testBlob = []byte(nil)
+		o.testBlob = []byte{}
 		o.testBlobIsDirty = false
 	}
 

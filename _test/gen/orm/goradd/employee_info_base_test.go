@@ -15,9 +15,9 @@ import (
 func TestEmployeeInfo_SetPersonID(t *testing.T) {
 
 	obj := NewEmployeeInfo()
-	personID := test.RandomValue[string](0)
-	obj.SetPersonID(personID)
-	assert.Equal(t, personID, obj.PersonID())
+	val := test.RandomValue[string](0)
+	obj.SetPersonID(val)
+	assert.Equal(t, val, obj.PersonID())
 
 	// test default
 	obj.SetPersonID("")
@@ -27,9 +27,9 @@ func TestEmployeeInfo_SetPersonID(t *testing.T) {
 func TestEmployeeInfo_SetEmployeeNumber(t *testing.T) {
 
 	obj := NewEmployeeInfo()
-	employeeNumber := test.RandomValue[int](32)
-	obj.SetEmployeeNumber(employeeNumber)
-	assert.Equal(t, employeeNumber, obj.EmployeeNumber())
+	val := test.RandomValue[int](32)
+	obj.SetEmployeeNumber(val)
+	assert.Equal(t, val, obj.EmployeeNumber())
 
 	// test default
 	obj.SetEmployeeNumber(0)
@@ -43,11 +43,9 @@ func createMinimalSampleEmployeeInfo(ctx context.Context) *EmployeeInfo {
 	obj := NewEmployeeInfo()
 
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
-	objPerson := createMinimalSamplePerson(ctx)
-	obj.SetPerson(objPerson)
+	obj.SetPerson(createMinimalSamplePerson(ctx))
 
-	employeeNumber := test.RandomValue[int](32)
-	obj.SetEmployeeNumber(employeeNumber)
+	obj.SetEmployeeNumber(test.RandomValue[int](32))
 
 	obj.Save(ctx)
 	return obj
@@ -56,12 +54,12 @@ func TestEmployeeInfo_CRUD(t *testing.T) {
 	obj := NewEmployeeInfo()
 	ctx := db.NewContext(nil)
 
-	objPerson := createMinimalSamplePerson(ctx)
-	defer objPerson.Delete(ctx)
-	obj.SetPerson(objPerson)
+	v_objPerson := createMinimalSamplePerson(ctx)
+	defer v_objPerson.Delete(ctx)
+	obj.SetPerson(v_objPerson)
 
-	employeeNumber := test.RandomValue[int](32)
-	obj.SetEmployeeNumber(employeeNumber)
+	v_employeeNumber := test.RandomValue[int](32)
+	obj.SetEmployeeNumber(v_employeeNumber)
 
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
@@ -77,6 +75,6 @@ func TestEmployeeInfo_CRUD(t *testing.T) {
 	assert.NotEmpty(t, obj2.PersonID())
 
 	assert.True(t, obj2.EmployeeNumberIsValid())
-	assert.Equal(t, employeeNumber, obj2.EmployeeNumber())
+	assert.EqualValues(t, v_employeeNumber, obj2.EmployeeNumber())
 
 }

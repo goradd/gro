@@ -15,18 +15,18 @@ import (
 func TestLeaf_SetName(t *testing.T) {
 
 	obj := NewLeaf()
-	name := test.RandomValue[string](100)
-	obj.SetName(name)
-	assert.Equal(t, name, obj.Name())
+	val := test.RandomValue[string](100)
+	obj.SetName(val)
+	assert.Equal(t, val, obj.Name())
 
 	// test default
 	obj.SetName("")
 	assert.EqualValues(t, "", obj.Name(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
-	name = test.RandomValue[string](101)
+	val = test.RandomValue[string](101)
 	assert.Panics(t, func() {
-		obj.SetName(name)
+		obj.SetName(val)
 	})
 }
 
@@ -35,8 +35,7 @@ func TestLeaf_SetName(t *testing.T) {
 func createMinimalSampleLeaf(ctx context.Context) *Leaf {
 	obj := NewLeaf()
 
-	name := test.RandomValue[string](100)
-	obj.SetName(name)
+	obj.SetName(test.RandomValue[string](100))
 
 	obj.Save(ctx)
 	return obj
@@ -45,8 +44,8 @@ func TestLeaf_CRUD(t *testing.T) {
 	obj := NewLeaf()
 	ctx := db.NewContext(nil)
 
-	name := test.RandomValue[string](100)
-	obj.SetName(name)
+	v_name := test.RandomValue[string](100)
+	obj.SetName(v_name)
 
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
@@ -59,6 +58,6 @@ func TestLeaf_CRUD(t *testing.T) {
 	assert.True(t, obj2.IDIsValid())
 
 	assert.True(t, obj2.NameIsValid())
-	assert.Equal(t, name, obj2.Name())
+	assert.EqualValues(t, v_name, obj2.Name())
 
 }

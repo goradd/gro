@@ -15,31 +15,31 @@ import (
 func TestRoot_SetName(t *testing.T) {
 
 	obj := NewRoot()
-	name := test.RandomValue[string](100)
-	obj.SetName(name)
-	assert.Equal(t, name, obj.Name())
+	val := test.RandomValue[string](100)
+	obj.SetName(val)
+	assert.Equal(t, val, obj.Name())
 
 	// test default
 	obj.SetName("")
 	assert.EqualValues(t, "", obj.Name(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
-	name = test.RandomValue[string](101)
+	val = test.RandomValue[string](101)
 	assert.Panics(t, func() {
-		obj.SetName(name)
+		obj.SetName(val)
 	})
 }
 func TestRoot_SetOptionalLeafID(t *testing.T) {
 
 	obj := NewRoot()
-	optionalLeafID := test.RandomValue[string](0)
-	obj.SetOptionalLeafID(optionalLeafID)
-	assert.Equal(t, optionalLeafID, obj.OptionalLeafID())
+	val := test.RandomValue[string](0)
+	obj.SetOptionalLeafID(val)
+	assert.Equal(t, val, obj.OptionalLeafID())
 	assert.False(t, obj.OptionalLeafIDIsNull())
 
 	// Test NULL
 	obj.SetOptionalLeafIDToNull()
-	assert.Equal(t, "", obj.OptionalLeafID())
+	assert.EqualValues(t, "", obj.OptionalLeafID())
 	assert.True(t, obj.OptionalLeafIDIsNull())
 
 	// test default
@@ -50,9 +50,9 @@ func TestRoot_SetOptionalLeafID(t *testing.T) {
 func TestRoot_SetRequiredLeafID(t *testing.T) {
 
 	obj := NewRoot()
-	requiredLeafID := test.RandomValue[string](0)
-	obj.SetRequiredLeafID(requiredLeafID)
-	assert.Equal(t, requiredLeafID, obj.RequiredLeafID())
+	val := test.RandomValue[string](0)
+	obj.SetRequiredLeafID(val)
+	assert.Equal(t, val, obj.RequiredLeafID())
 
 	// test default
 	obj.SetRequiredLeafID("")
@@ -62,9 +62,9 @@ func TestRoot_SetRequiredLeafID(t *testing.T) {
 func TestRoot_SetOptionalLeafUniqueID(t *testing.T) {
 
 	obj := NewRoot()
-	optionalLeafUniqueID := test.RandomValue[string](0)
-	obj.SetOptionalLeafUniqueID(optionalLeafUniqueID)
-	assert.Equal(t, optionalLeafUniqueID, obj.OptionalLeafUniqueID())
+	val := test.RandomValue[string](0)
+	obj.SetOptionalLeafUniqueID(val)
+	assert.Equal(t, val, obj.OptionalLeafUniqueID())
 
 	// test default
 	obj.SetOptionalLeafUniqueID("")
@@ -74,9 +74,9 @@ func TestRoot_SetOptionalLeafUniqueID(t *testing.T) {
 func TestRoot_SetRequiredLeafUniqueID(t *testing.T) {
 
 	obj := NewRoot()
-	requiredLeafUniqueID := test.RandomValue[string](0)
-	obj.SetRequiredLeafUniqueID(requiredLeafUniqueID)
-	assert.Equal(t, requiredLeafUniqueID, obj.RequiredLeafUniqueID())
+	val := test.RandomValue[string](0)
+	obj.SetRequiredLeafUniqueID(val)
+	assert.Equal(t, val, obj.RequiredLeafUniqueID())
 
 	// test default
 	obj.SetRequiredLeafUniqueID("")
@@ -86,14 +86,14 @@ func TestRoot_SetRequiredLeafUniqueID(t *testing.T) {
 func TestRoot_SetParentID(t *testing.T) {
 
 	obj := NewRoot()
-	parentID := test.RandomValue[string](0)
-	obj.SetParentID(parentID)
-	assert.Equal(t, parentID, obj.ParentID())
+	val := test.RandomValue[string](0)
+	obj.SetParentID(val)
+	assert.Equal(t, val, obj.ParentID())
 	assert.False(t, obj.ParentIDIsNull())
 
 	// Test NULL
 	obj.SetParentIDToNull()
-	assert.Equal(t, "", obj.ParentID())
+	assert.EqualValues(t, "", obj.ParentID())
 	assert.True(t, obj.ParentIDIsNull())
 
 	// test default
@@ -107,20 +107,16 @@ func TestRoot_SetParentID(t *testing.T) {
 func createMinimalSampleRoot(ctx context.Context) *Root {
 	obj := NewRoot()
 
-	name := test.RandomValue[string](100)
-	obj.SetName(name)
+	obj.SetName(test.RandomValue[string](100))
 
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
-	objRequiredLeaf := createMinimalSampleRequiredLeaf(ctx)
-	obj.SetRequiredLeaf(objRequiredLeaf)
+	obj.SetRequiredLeaf(createMinimalSampleLeaf(ctx))
 
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
-	objOptionalLeafUnique := createMinimalSampleOptionalLeafUnique(ctx)
-	obj.SetOptionalLeafUnique(objOptionalLeafUnique)
+	obj.SetOptionalLeafUnique(createMinimalSampleLeaf(ctx))
 
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
-	objRequiredLeafUnique := createMinimalSampleRequiredLeafUnique(ctx)
-	obj.SetRequiredLeafUnique(objRequiredLeafUnique)
+	obj.SetRequiredLeafUnique(createMinimalSampleLeaf(ctx))
 
 	obj.Save(ctx)
 	return obj
@@ -129,28 +125,28 @@ func TestRoot_CRUD(t *testing.T) {
 	obj := NewRoot()
 	ctx := db.NewContext(nil)
 
-	name := test.RandomValue[string](100)
-	obj.SetName(name)
+	v_name := test.RandomValue[string](100)
+	obj.SetName(v_name)
 
-	objOptionalLeaf := createMinimalSampleLeaf(ctx)
-	defer objOptionalLeaf.Delete(ctx)
-	obj.SetOptionalLeaf(objOptionalLeaf)
+	v_objOptionalLeaf := createMinimalSampleLeaf(ctx)
+	defer v_objOptionalLeaf.Delete(ctx)
+	obj.SetOptionalLeaf(v_objOptionalLeaf)
 
-	objRequiredLeaf := createMinimalSampleLeaf(ctx)
-	defer objRequiredLeaf.Delete(ctx)
-	obj.SetRequiredLeaf(objRequiredLeaf)
+	v_objRequiredLeaf := createMinimalSampleLeaf(ctx)
+	defer v_objRequiredLeaf.Delete(ctx)
+	obj.SetRequiredLeaf(v_objRequiredLeaf)
 
-	objOptionalLeafUnique := createMinimalSampleLeaf(ctx)
-	defer objOptionalLeafUnique.Delete(ctx)
-	obj.SetOptionalLeafUnique(objOptionalLeafUnique)
+	v_objOptionalLeafUnique := createMinimalSampleLeaf(ctx)
+	defer v_objOptionalLeafUnique.Delete(ctx)
+	obj.SetOptionalLeafUnique(v_objOptionalLeafUnique)
 
-	objRequiredLeafUnique := createMinimalSampleLeaf(ctx)
-	defer objRequiredLeafUnique.Delete(ctx)
-	obj.SetRequiredLeafUnique(objRequiredLeafUnique)
+	v_objRequiredLeafUnique := createMinimalSampleLeaf(ctx)
+	defer v_objRequiredLeafUnique.Delete(ctx)
+	obj.SetRequiredLeafUnique(v_objRequiredLeafUnique)
 
-	objParent := createMinimalSampleRoot(ctx)
-	defer objParent.Delete(ctx)
-	obj.SetParent(objParent)
+	v_objParent := createMinimalSampleRoot(ctx)
+	defer v_objParent.Delete(ctx)
+	obj.SetParent(v_objParent)
 
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
@@ -163,7 +159,7 @@ func TestRoot_CRUD(t *testing.T) {
 	assert.True(t, obj2.IDIsValid())
 
 	assert.True(t, obj2.NameIsValid())
-	assert.Equal(t, name, obj2.Name())
+	assert.EqualValues(t, v_name, obj2.Name())
 
 	assert.True(t, obj2.OptionalLeafIDIsValid())
 	assert.False(t, obj2.OptionalLeafIDIsNull())

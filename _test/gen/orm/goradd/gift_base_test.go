@@ -15,9 +15,9 @@ import (
 func TestGift_SetNumber(t *testing.T) {
 
 	obj := NewGift()
-	number := test.RandomValue[int](32)
-	obj.SetNumber(number)
-	assert.Equal(t, number, obj.Number())
+	val := test.RandomValue[int](32)
+	obj.SetNumber(val)
+	assert.Equal(t, val, obj.Number())
 
 	// test default
 	obj.SetNumber(0)
@@ -27,18 +27,18 @@ func TestGift_SetNumber(t *testing.T) {
 func TestGift_SetName(t *testing.T) {
 
 	obj := NewGift()
-	name := test.RandomValue[string](50)
-	obj.SetName(name)
-	assert.Equal(t, name, obj.Name())
+	val := test.RandomValue[string](50)
+	obj.SetName(val)
+	assert.Equal(t, val, obj.Name())
 
 	// test default
 	obj.SetName("")
 	assert.EqualValues(t, "", obj.Name(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
-	name = test.RandomValue[string](51)
+	val = test.RandomValue[string](51)
 	assert.Panics(t, func() {
-		obj.SetName(name)
+		obj.SetName(val)
 	})
 }
 
@@ -47,11 +47,9 @@ func TestGift_SetName(t *testing.T) {
 func createMinimalSampleGift(ctx context.Context) *Gift {
 	obj := NewGift()
 
-	number := test.RandomValue[int](32)
-	obj.SetNumber(number)
+	obj.SetNumber(test.RandomValue[int](32))
 
-	name := test.RandomValue[string](50)
-	obj.SetName(name)
+	obj.SetName(test.RandomValue[string](50))
 
 	obj.Save(ctx)
 	return obj
@@ -60,11 +58,11 @@ func TestGift_CRUD(t *testing.T) {
 	obj := NewGift()
 	ctx := db.NewContext(nil)
 
-	number := test.RandomValue[int](32)
-	obj.SetNumber(number)
+	v_number := test.RandomValue[int](32)
+	obj.SetNumber(v_number)
 
-	name := test.RandomValue[string](50)
-	obj.SetName(name)
+	v_name := test.RandomValue[string](50)
+	obj.SetName(v_name)
 
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
@@ -75,9 +73,9 @@ func TestGift_CRUD(t *testing.T) {
 	require.NotNil(t, obj2)
 
 	assert.True(t, obj2.NumberIsValid())
-	assert.Equal(t, number, obj2.Number())
+	assert.EqualValues(t, v_number, obj2.Number())
 
 	assert.True(t, obj2.NameIsValid())
-	assert.Equal(t, name, obj2.Name())
+	assert.EqualValues(t, v_name, obj2.Name())
 
 }

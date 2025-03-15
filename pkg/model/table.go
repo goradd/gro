@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
@@ -155,6 +156,12 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 	for _, schemaCol := range tableSchema.Columns {
 		newCol := newColumn(schemaCol)
 		newCol.Table = t
+		if (newCol.SchemaSubType == schema.ColSubTypeTimestamp ||
+			newCol.SchemaSubType == schema.ColSubTypeLock) && newCol.IsNullable {
+			slog.Warn(fmt.Sprintf("Column %s:%s should not be nullable. Nullable status will be ignored.", t.QueryName, newCol.QueryName))
+			newCol.IsNullable = false
+		}
+
 		if newCol.IsPrimaryKey {
 			pkCount++
 			if pkCount > 1 {

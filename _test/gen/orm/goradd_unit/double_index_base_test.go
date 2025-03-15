@@ -15,9 +15,9 @@ import (
 func TestDoubleIndex_SetID(t *testing.T) {
 
 	obj := NewDoubleIndex()
-	id := test.RandomValue[int](32)
-	obj.SetID(id)
-	assert.Equal(t, id, obj.ID())
+	val := test.RandomValue[int](32)
+	obj.SetID(val)
+	assert.Equal(t, val, obj.ID())
 
 	// test default
 	obj.SetID(0)
@@ -27,9 +27,9 @@ func TestDoubleIndex_SetID(t *testing.T) {
 func TestDoubleIndex_SetFieldInt(t *testing.T) {
 
 	obj := NewDoubleIndex()
-	fieldInt := test.RandomValue[int](32)
-	obj.SetFieldInt(fieldInt)
-	assert.Equal(t, fieldInt, obj.FieldInt())
+	val := test.RandomValue[int](32)
+	obj.SetFieldInt(val)
+	assert.Equal(t, val, obj.FieldInt())
 
 	// test default
 	obj.SetFieldInt(0)
@@ -39,18 +39,18 @@ func TestDoubleIndex_SetFieldInt(t *testing.T) {
 func TestDoubleIndex_SetFieldString(t *testing.T) {
 
 	obj := NewDoubleIndex()
-	fieldString := test.RandomValue[string](50)
-	obj.SetFieldString(fieldString)
-	assert.Equal(t, fieldString, obj.FieldString())
+	val := test.RandomValue[string](50)
+	obj.SetFieldString(val)
+	assert.Equal(t, val, obj.FieldString())
 
 	// test default
 	obj.SetFieldString("")
 	assert.EqualValues(t, "", obj.FieldString(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
-	fieldString = test.RandomValue[string](51)
+	val = test.RandomValue[string](51)
 	assert.Panics(t, func() {
-		obj.SetFieldString(fieldString)
+		obj.SetFieldString(val)
 	})
 }
 
@@ -59,14 +59,11 @@ func TestDoubleIndex_SetFieldString(t *testing.T) {
 func createMinimalSampleDoubleIndex(ctx context.Context) *DoubleIndex {
 	obj := NewDoubleIndex()
 
-	id := test.RandomValue[int](32)
-	obj.SetID(id)
+	obj.SetID(test.RandomValue[int](32))
 
-	fieldInt := test.RandomValue[int](32)
-	obj.SetFieldInt(fieldInt)
+	obj.SetFieldInt(test.RandomValue[int](32))
 
-	fieldString := test.RandomValue[string](50)
-	obj.SetFieldString(fieldString)
+	obj.SetFieldString(test.RandomValue[string](50))
 
 	obj.Save(ctx)
 	return obj
@@ -75,14 +72,14 @@ func TestDoubleIndex_CRUD(t *testing.T) {
 	obj := NewDoubleIndex()
 	ctx := db.NewContext(nil)
 
-	id := test.RandomValue[int](32)
-	obj.SetID(id)
+	v_id := test.RandomValue[int](32)
+	obj.SetID(v_id)
 
-	fieldInt := test.RandomValue[int](32)
-	obj.SetFieldInt(fieldInt)
+	v_fieldInt := test.RandomValue[int](32)
+	obj.SetFieldInt(v_fieldInt)
 
-	fieldString := test.RandomValue[string](50)
-	obj.SetFieldString(fieldString)
+	v_fieldString := test.RandomValue[string](50)
+	obj.SetFieldString(v_fieldString)
 
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
@@ -93,12 +90,12 @@ func TestDoubleIndex_CRUD(t *testing.T) {
 	require.NotNil(t, obj2)
 
 	assert.True(t, obj2.IDIsValid())
-	assert.Equal(t, id, obj2.ID())
+	assert.EqualValues(t, v_id, obj2.ID())
 
 	assert.True(t, obj2.FieldIntIsValid())
-	assert.Equal(t, fieldInt, obj2.FieldInt())
+	assert.EqualValues(t, v_fieldInt, obj2.FieldInt())
 
 	assert.True(t, obj2.FieldStringIsValid())
-	assert.Equal(t, fieldString, obj2.FieldString())
+	assert.EqualValues(t, v_fieldString, obj2.FieldString())
 
 }

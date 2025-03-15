@@ -16,17 +16,17 @@ import (
 func TestTypeTest_SetDate(t *testing.T) {
 
 	obj := NewTypeTest()
-	date := test.RandomValue[time.Time](0)
-	obj.SetDate(date)
-	date = obj.Date()
-	assert.Zero(t, date.Minute()) // make sure time part is zero'd
-	assert.Zero(t, date.Hour())   // make sure time part is zero'd
-	assert.Zero(t, date.Second()) // make sure time part is zero'd
+	val := test.RandomValue[time.Time](0)
+	obj.SetDate(val)
+	val = obj.Date()
+	assert.Zero(t, val.Minute()) // make sure minute part is zero'd
+	assert.Zero(t, val.Hour())   // make sure hour part is zero'd
+	assert.Zero(t, val.Second()) // make sure second part is zero'd
 	assert.False(t, obj.DateIsNull())
 
 	// Test NULL
 	obj.SetDateToNull()
-	assert.Equal(t, time.Time{}, obj.Date())
+	assert.EqualValues(t, time.Time{}, obj.Date())
 	assert.True(t, obj.DateIsNull())
 
 	// test default
@@ -37,17 +37,17 @@ func TestTypeTest_SetDate(t *testing.T) {
 func TestTypeTest_SetTime(t *testing.T) {
 
 	obj := NewTypeTest()
-	time := test.RandomValue[time.Time](0)
-	obj.SetTime(time)
-	time = obj.Time()
-	assert.Zero(t, time.Year())      // make sure minute part is zero'd
-	assert.Equal(t, 1, time.Month()) // make sure minute part is zero'd
-	assert.Equal(t, 1, time.Day())   // make sure minute part is zero'd
+	val := test.RandomValue[time.Time](0)
+	obj.SetTime(val)
+	val = obj.Time()
+	assert.EqualValues(t, 1, val.Year())  // make sure year part is zero'd. The zero value of time.Time has a year of 1.
+	assert.EqualValues(t, 1, val.Month()) // make sure month part is zero'd
+	assert.EqualValues(t, 1, val.Day())   // make sure day part is zero'd
 	assert.False(t, obj.TimeIsNull())
 
 	// Test NULL
 	obj.SetTimeToNull()
-	assert.Equal(t, time.Time{}, obj.Time())
+	assert.EqualValues(t, time.Time{}, obj.Time())
 	assert.True(t, obj.TimeIsNull())
 
 	// test default
@@ -58,14 +58,14 @@ func TestTypeTest_SetTime(t *testing.T) {
 func TestTypeTest_SetDateTime(t *testing.T) {
 
 	obj := NewTypeTest()
-	dateTime := test.RandomValue[time.Time](0)
-	obj.SetDateTime(dateTime)
-	assert.Equal(t, dateTime, obj.DateTime())
+	val := test.RandomValue[time.Time](0)
+	obj.SetDateTime(val)
+	assert.Equal(t, val, obj.DateTime())
 	assert.False(t, obj.DateTimeIsNull())
 
 	// Test NULL
 	obj.SetDateTimeToNull()
-	assert.Equal(t, time.Time{}, obj.DateTime())
+	assert.EqualValues(t, time.Time{}, obj.DateTime())
 	assert.True(t, obj.DateTimeIsNull())
 
 	// test default
@@ -76,14 +76,14 @@ func TestTypeTest_SetDateTime(t *testing.T) {
 func TestTypeTest_SetTestInt(t *testing.T) {
 
 	obj := NewTypeTest()
-	testInt := test.RandomValue[int](32)
-	obj.SetTestInt(testInt)
-	assert.Equal(t, testInt, obj.TestInt())
+	val := test.RandomValue[int](32)
+	obj.SetTestInt(val)
+	assert.Equal(t, val, obj.TestInt())
 	assert.False(t, obj.TestIntIsNull())
 
 	// Test NULL
 	obj.SetTestIntToNull()
-	assert.Equal(t, 5, obj.TestInt())
+	assert.EqualValues(t, 5, obj.TestInt())
 	assert.True(t, obj.TestIntIsNull())
 
 	// test default
@@ -94,14 +94,14 @@ func TestTypeTest_SetTestInt(t *testing.T) {
 func TestTypeTest_SetTestFloat(t *testing.T) {
 
 	obj := NewTypeTest()
-	testFloat := test.RandomValue[float32](32)
-	obj.SetTestFloat(testFloat)
-	assert.Equal(t, testFloat, obj.TestFloat())
+	val := test.RandomValue[float32](32)
+	obj.SetTestFloat(val)
+	assert.Equal(t, val, obj.TestFloat())
 	assert.False(t, obj.TestFloatIsNull())
 
 	// Test NULL
 	obj.SetTestFloatToNull()
-	assert.Equal(t, 0, obj.TestFloat())
+	assert.EqualValues(t, 0, obj.TestFloat())
 	assert.True(t, obj.TestFloatIsNull())
 
 	// test default
@@ -112,9 +112,9 @@ func TestTypeTest_SetTestFloat(t *testing.T) {
 func TestTypeTest_SetTestDouble(t *testing.T) {
 
 	obj := NewTypeTest()
-	testDouble := test.RandomValue[float64](64)
-	obj.SetTestDouble(testDouble)
-	assert.Equal(t, testDouble, obj.TestDouble())
+	val := test.RandomValue[float64](64)
+	obj.SetTestDouble(val)
+	assert.Equal(t, val, obj.TestDouble())
 
 	// test default
 	obj.SetTestDouble(0)
@@ -124,14 +124,14 @@ func TestTypeTest_SetTestDouble(t *testing.T) {
 func TestTypeTest_SetTestText(t *testing.T) {
 
 	obj := NewTypeTest()
-	testText := test.RandomValue[string](65535)
-	obj.SetTestText(testText)
-	assert.Equal(t, testText, obj.TestText())
+	val := test.RandomValue[string](65535)
+	obj.SetTestText(val)
+	assert.Equal(t, val, obj.TestText())
 	assert.False(t, obj.TestTextIsNull())
 
 	// Test NULL
 	obj.SetTestTextToNull()
-	assert.Equal(t, "", obj.TestText())
+	assert.EqualValues(t, "", obj.TestText())
 	assert.True(t, obj.TestTextIsNull())
 
 	// test default
@@ -139,22 +139,22 @@ func TestTypeTest_SetTestText(t *testing.T) {
 	assert.EqualValues(t, "", obj.TestText(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
-	testText = test.RandomValue[string](65536)
+	val = test.RandomValue[string](65536)
 	assert.Panics(t, func() {
-		obj.SetTestText(testText)
+		obj.SetTestText(val)
 	})
 }
 func TestTypeTest_SetTestBit(t *testing.T) {
 
 	obj := NewTypeTest()
-	testBit := test.RandomValue[bool](0)
-	obj.SetTestBit(testBit)
-	assert.Equal(t, testBit, obj.TestBit())
+	val := test.RandomValue[bool](0)
+	obj.SetTestBit(val)
+	assert.Equal(t, val, obj.TestBit())
 	assert.False(t, obj.TestBitIsNull())
 
 	// Test NULL
 	obj.SetTestBitToNull()
-	assert.Equal(t, false, obj.TestBit())
+	assert.EqualValues(t, false, obj.TestBit())
 	assert.True(t, obj.TestBitIsNull())
 
 	// test default
@@ -165,14 +165,14 @@ func TestTypeTest_SetTestBit(t *testing.T) {
 func TestTypeTest_SetTestVarchar(t *testing.T) {
 
 	obj := NewTypeTest()
-	testVarchar := test.RandomValue[string](10)
-	obj.SetTestVarchar(testVarchar)
-	assert.Equal(t, testVarchar, obj.TestVarchar())
+	val := test.RandomValue[string](10)
+	obj.SetTestVarchar(val)
+	assert.Equal(t, val, obj.TestVarchar())
 	assert.False(t, obj.TestVarcharIsNull())
 
 	// Test NULL
 	obj.SetTestVarcharToNull()
-	assert.Equal(t, "", obj.TestVarchar())
+	assert.EqualValues(t, "", obj.TestVarchar())
 	assert.True(t, obj.TestVarcharIsNull())
 
 	// test default
@@ -180,26 +180,26 @@ func TestTypeTest_SetTestVarchar(t *testing.T) {
 	assert.EqualValues(t, "", obj.TestVarchar(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
-	testVarchar = test.RandomValue[string](11)
+	val = test.RandomValue[string](11)
 	assert.Panics(t, func() {
-		obj.SetTestVarchar(testVarchar)
+		obj.SetTestVarchar(val)
 	})
 }
 func TestTypeTest_SetTestBlob(t *testing.T) {
 
 	obj := NewTypeTest()
-	testBlob := test.RandomValue[[]byte](65535)
-	obj.SetTestBlob(testBlob)
-	assert.Equal(t, testBlob, obj.TestBlob())
+	val := test.RandomValue[[]byte](65535)
+	obj.SetTestBlob(val)
+	assert.Equal(t, val, obj.TestBlob())
 
 	// test default
-	obj.SetTestBlob([]byte(nil))
-	assert.EqualValues(t, []byte(nil), obj.TestBlob(), "set default")
+	obj.SetTestBlob([]byte{})
+	assert.EqualValues(t, []byte{}, obj.TestBlob(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
-	testBlob = test.RandomValue[[]byte](65536)
+	val = test.RandomValue[[]byte](65536)
 	assert.Panics(t, func() {
-		obj.SetTestBlob(testBlob)
+		obj.SetTestBlob(val)
 	})
 }
 
@@ -208,35 +208,25 @@ func TestTypeTest_SetTestBlob(t *testing.T) {
 func createMinimalSampleTypeTest(ctx context.Context) *TypeTest {
 	obj := NewTypeTest()
 
-	date := test.RandomValue[time.Time](0)
-	obj.SetDate(date)
+	obj.SetDate(test.RandomValue[time.Time](0))
 
-	time := test.RandomValue[time.Time](0)
-	obj.SetTime(time)
+	obj.SetTime(test.RandomValue[time.Time](0))
 
-	dateTime := test.RandomValue[time.Time](0)
-	obj.SetDateTime(dateTime)
+	obj.SetDateTime(test.RandomValue[time.Time](0))
 
-	testInt := test.RandomValue[int](32)
-	obj.SetTestInt(testInt)
+	obj.SetTestInt(test.RandomValue[int](32))
 
-	testFloat := test.RandomValue[float32](32)
-	obj.SetTestFloat(testFloat)
+	obj.SetTestFloat(test.RandomValue[float32](32))
 
-	testDouble := test.RandomValue[float64](64)
-	obj.SetTestDouble(testDouble)
+	obj.SetTestDouble(test.RandomValue[float64](64))
 
-	testText := test.RandomValue[string](65535)
-	obj.SetTestText(testText)
+	obj.SetTestText(test.RandomValue[string](65535))
 
-	testBit := test.RandomValue[bool](0)
-	obj.SetTestBit(testBit)
+	obj.SetTestBit(test.RandomValue[bool](0))
 
-	testVarchar := test.RandomValue[string](10)
-	obj.SetTestVarchar(testVarchar)
+	obj.SetTestVarchar(test.RandomValue[string](10))
 
-	testBlob := test.RandomValue[[]byte](65535)
-	obj.SetTestBlob(testBlob)
+	obj.SetTestBlob(test.RandomValue[[]byte](65535))
 
 	obj.Save(ctx)
 	return obj
@@ -245,41 +235,41 @@ func TestTypeTest_CRUD(t *testing.T) {
 	obj := NewTypeTest()
 	ctx := db.NewContext(nil)
 
-	date := test.RandomValue[time.Time](0)
-	obj.SetDate(date)
+	v_date := test.RandomValue[time.Time](0)
+	obj.SetDate(v_date)
 
-	date = obj.Date()
+	v_date = obj.Date()
 
-	time := test.RandomValue[time.Time](0)
-	obj.SetTime(time)
+	v_time := test.RandomValue[time.Time](0)
+	obj.SetTime(v_time)
 
-	time = obj.Time()
+	v_time = obj.Time()
 
-	dateTime := test.RandomValue[time.Time](0)
-	obj.SetDateTime(dateTime)
+	v_dateTime := test.RandomValue[time.Time](0)
+	obj.SetDateTime(v_dateTime)
 
-	dateTime = obj.DateTime()
+	v_dateTime = obj.DateTime()
 
-	testInt := test.RandomValue[int](32)
-	obj.SetTestInt(testInt)
+	v_testInt := test.RandomValue[int](32)
+	obj.SetTestInt(v_testInt)
 
-	testFloat := test.RandomValue[float32](32)
-	obj.SetTestFloat(testFloat)
+	v_testFloat := test.RandomValue[float32](32)
+	obj.SetTestFloat(v_testFloat)
 
-	testDouble := test.RandomValue[float64](64)
-	obj.SetTestDouble(testDouble)
+	v_testDouble := test.RandomValue[float64](64)
+	obj.SetTestDouble(v_testDouble)
 
-	testText := test.RandomValue[string](65535)
-	obj.SetTestText(testText)
+	v_testText := test.RandomValue[string](65535)
+	obj.SetTestText(v_testText)
 
-	testBit := test.RandomValue[bool](0)
-	obj.SetTestBit(testBit)
+	v_testBit := test.RandomValue[bool](0)
+	obj.SetTestBit(v_testBit)
 
-	testVarchar := test.RandomValue[string](10)
-	obj.SetTestVarchar(testVarchar)
+	v_testVarchar := test.RandomValue[string](10)
+	obj.SetTestVarchar(v_testVarchar)
 
-	testBlob := test.RandomValue[[]byte](65535)
-	obj.SetTestBlob(testBlob)
+	v_testBlob := test.RandomValue[[]byte](65535)
+	obj.SetTestBlob(v_testBlob)
 
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
@@ -293,43 +283,43 @@ func TestTypeTest_CRUD(t *testing.T) {
 
 	assert.True(t, obj2.DateIsValid())
 	assert.False(t, obj2.DateIsNull())
-	assert.Equal(t, date, obj2.Date())
+	assert.EqualValues(t, v_date, obj2.Date())
 
 	assert.True(t, obj2.TimeIsValid())
 	assert.False(t, obj2.TimeIsNull())
-	assert.Equal(t, time, obj2.Time())
+	assert.EqualValues(t, v_time, obj2.Time())
 
 	assert.True(t, obj2.DateTimeIsValid())
 	assert.False(t, obj2.DateTimeIsNull())
-	assert.Equal(t, dateTime, obj2.DateTime())
+	assert.EqualValues(t, v_dateTime, obj2.DateTime())
 
 	assert.True(t, obj2.TsIsValid())
 	assert.False(t, obj2.TsIsNull())
 
 	assert.True(t, obj2.TestIntIsValid())
 	assert.False(t, obj2.TestIntIsNull())
-	assert.Equal(t, testInt, obj2.TestInt())
+	assert.EqualValues(t, v_testInt, obj2.TestInt())
 
 	assert.True(t, obj2.TestFloatIsValid())
 	assert.False(t, obj2.TestFloatIsNull())
-	assert.Equal(t, testFloat, obj2.TestFloat())
+	assert.EqualValues(t, v_testFloat, obj2.TestFloat())
 
 	assert.True(t, obj2.TestDoubleIsValid())
-	assert.Equal(t, testDouble, obj2.TestDouble())
+	assert.EqualValues(t, v_testDouble, obj2.TestDouble())
 
 	assert.True(t, obj2.TestTextIsValid())
 	assert.False(t, obj2.TestTextIsNull())
-	assert.Equal(t, testText, obj2.TestText())
+	assert.EqualValues(t, v_testText, obj2.TestText())
 
 	assert.True(t, obj2.TestBitIsValid())
 	assert.False(t, obj2.TestBitIsNull())
-	assert.Equal(t, testBit, obj2.TestBit())
+	assert.EqualValues(t, v_testBit, obj2.TestBit())
 
 	assert.True(t, obj2.TestVarcharIsValid())
 	assert.False(t, obj2.TestVarcharIsNull())
-	assert.Equal(t, testVarchar, obj2.TestVarchar())
+	assert.EqualValues(t, v_testVarchar, obj2.TestVarchar())
 
 	assert.True(t, obj2.TestBlobIsValid())
-	assert.Equal(t, testBlob, obj2.TestBlob())
+	assert.EqualValues(t, v_testBlob, obj2.TestBlob())
 
 }

@@ -54,7 +54,7 @@ func TestParseTime(t *testing.T) {
 		{
 			name:     "Time only",
 			input:    "12:34:56",
-			expected: time.Date(0, 1, 1, 12, 34, 56, 0, time.UTC),
+			expected: time.Date(1, 1, 1, 12, 34, 56, 0, time.UTC),
 		},
 		{
 			name:     "Invalid format",

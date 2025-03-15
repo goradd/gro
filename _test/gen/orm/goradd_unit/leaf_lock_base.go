@@ -29,10 +29,8 @@ type leafLockBase struct {
 	nameIsValid bool
 	nameIsDirty bool
 
-	groLockTimestamp        int64
-	groLockTimestampIsNull  bool
-	groLockTimestampIsValid bool
-	groLockTimestampIsDirty bool
+	groLock        int64
+	groLockIsValid bool
 
 	// Custom aliases, if specified
 	_aliases map[string]any
@@ -46,9 +44,9 @@ type leafLockBase struct {
 // IDs used to access the LeafLock object fields by name using the Get function.
 // doc: type=LeafLock
 const (
-	LeafLock_ID               = `ID`
-	LeafLock_Name             = `Name`
-	LeafLock_GroLockTimestamp = `GroLockTimestamp`
+	LeafLock_ID      = `ID`
+	LeafLock_Name    = `Name`
+	LeafLock_GroLock = `GroLock`
 )
 
 const LeafLockNameMaxLength = 100 // The number of runes the column can hold
@@ -67,11 +65,9 @@ func (o *leafLockBase) Initialize() {
 	o.nameIsValid = false
 	o.nameIsDirty = false
 
-	o.groLockTimestamp = 0
+	o.groLock = 0
 
-	o.groLockTimestampIsNull = true
-	o.groLockTimestampIsValid = true
-	o.groLockTimestampIsDirty = true
+	o.groLockIsValid = false
 
 	o._aliases = nil
 
@@ -99,9 +95,6 @@ func (o *leafLockBase) Copy() (newObject *LeafLock) {
 	newObject = NewLeafLock()
 	if o.nameIsValid {
 		newObject.SetName(o.name)
-	}
-	if o.groLockTimestampIsValid {
-		newObject.SetGroLockTimestamp(o.groLockTimestamp)
 	}
 	return
 }
@@ -148,61 +141,17 @@ func (o *leafLockBase) SetName(v string) {
 	o.nameIsDirty = true
 }
 
-// GroLockTimestamp returns the loaded value of GroLockTimestamp.
-func (o *leafLockBase) GroLockTimestamp() int64 {
-	if o._restored && !o.groLockTimestampIsValid {
-		panic("GroLockTimestamp was not selected in the last query and has not been set, and so is not valid")
+// GroLock returns the loaded value of GroLock.
+func (o *leafLockBase) GroLock() int64 {
+	if o._restored && !o.groLockIsValid {
+		panic("GroLock was not selected in the last query and has not been set, and so is not valid")
 	}
-	return o.groLockTimestamp
+	return o.groLock
 }
 
-// GroLockTimestampIsValid returns true if the value was loaded from the database or has been set.
-func (o *leafLockBase) GroLockTimestampIsValid() bool {
-	return o.groLockTimestampIsValid
-}
-
-// GroLockTimestampIsNull returns true if the related database value is null.
-func (o *leafLockBase) GroLockTimestampIsNull() bool {
-	return o.groLockTimestampIsNull
-}
-
-// GroLockTimestamp_I returns the loaded value of GroLockTimestamp as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *leafLockBase) GroLockTimestamp_I() interface{} {
-	if o._restored && !o.groLockTimestampIsValid {
-		panic("groLockTimestamp was not selected in the last query and has not been set, and so is not valid")
-	} else if o.groLockTimestampIsNull {
-		return nil
-	}
-	return o.groLockTimestamp
-}
-
-// SetGroLockTimestamp sets the value of GroLockTimestamp in the object, to be saved later in the database using the Save() function.
-func (o *leafLockBase) SetGroLockTimestamp(v int64) {
-	if o._restored &&
-		o.groLockTimestampIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
-		!o.groLockTimestampIsNull && // if the db value is null, force a set of value
-		o.groLockTimestamp == v {
-		// no change
-		return
-	}
-
-	o.groLockTimestampIsValid = true
-	o.groLockTimestamp = v
-	o.groLockTimestampIsDirty = true
-	o.groLockTimestampIsNull = false
-}
-
-// SetGroLockTimestampToNull() will set the gro_lock_timestamp value in the database to NULL.
-// GroLockTimestamp() will return the column's default value after this.
-func (o *leafLockBase) SetGroLockTimestampToNull() {
-	if !o.groLockTimestampIsValid || !o.groLockTimestampIsNull {
-		// If we know it is null in the database, don't save it
-		o.groLockTimestampIsDirty = true
-	}
-	o.groLockTimestampIsValid = true
-	o.groLockTimestampIsNull = true
-	o.groLockTimestamp = 0
+// GroLockIsValid returns true if the value was loaded from the database or has been set.
+func (o *leafLockBase) GroLockIsValid() bool {
+	return o.groLockIsValid
 }
 
 // GetAlias returns the alias for the given key.
@@ -264,6 +213,8 @@ type LeafLockBuilder interface {
 	// Once you select at least one column, you must select all the columns that you want in the result.
 	// Some fields, like primary keys, are always selected.
 	// If you are using a GroupBy, you must select the fields in the GroupBy.
+	// If you intend to modify the resulting records, and you have selected at least one column,
+	// you MUST also select the GroLock column for optimistic locking protection.
 	Select(nodes ...query.Node) LeafLockBuilder
 
 	// Calculation adds a calculation described by operation with the name alias.
@@ -546,11 +497,11 @@ func CountLeafLocksByName(ctx context.Context, name string) int {
 	return queryLeafLocks(ctx).Where(op.Equal(node.LeafLock().Name(), name)).Count()
 }
 
-// CountLeafLocksByGroLockTimestamp queries the database and returns the number of LeafLock objects that
-// have groLockTimestamp.
+// CountLeafLocksByGroLock queries the database and returns the number of LeafLock objects that
+// have groLock.
 // doc: type=LeafLock
-func CountLeafLocksByGroLockTimestamp(ctx context.Context, groLockTimestamp int64) int {
-	return queryLeafLocks(ctx).Where(op.Equal(node.LeafLock().GroLockTimestamp(), groLockTimestamp)).Count()
+func CountLeafLocksByGroLock(ctx context.Context, groLock int64) int {
+	return queryLeafLocks(ctx).Where(op.Equal(node.LeafLock().GroLock(), groLock)).Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
@@ -585,24 +536,16 @@ func (o *leafLockBase) load(m map[string]interface{}, objThis *LeafLock) {
 		o.nameIsDirty = false
 	}
 
-	if v, ok := m["gro_lock_timestamp"]; ok {
-		if v == nil {
-			o.groLockTimestamp = 0
-			o.groLockTimestampIsNull = true
-			o.groLockTimestampIsValid = true
-			o.groLockTimestampIsDirty = false
-		} else if o.groLockTimestamp, ok = v.(int64); ok {
-			o.groLockTimestampIsNull = false
-			o.groLockTimestampIsValid = true
-			o.groLockTimestampIsDirty = false
+	if v, ok := m["gro_lock"]; ok && v != nil {
+		if o.groLock, ok = v.(int64); ok {
+			o.groLockIsValid = true
+
 		} else {
-			panic("Wrong type found for gro_lock_timestamp.")
+			panic("Wrong type found for gro_lock.")
 		}
 	} else {
-		o.groLockTimestampIsValid = false
-		o.groLockTimestampIsNull = true
-		o.groLockTimestamp = 0
-		o.groLockTimestampIsDirty = false
+		o.groLockIsValid = false
+		o.groLock = 0
 	}
 
 	if v, ok := m["aliases_"]; ok {
@@ -640,7 +583,8 @@ func (o *leafLockBase) update(ctx context.Context) error {
 		// Save all modified fields to the database
 		modifiedFields = o.getModifiedFields()
 		if len(modifiedFields) != 0 {
-			err := d.Update(ctx, "leaf_lock", "id", o._originalPK, modifiedFields, "", 0)
+			// If this panics with an invalid GroLock value, then the GroLock field was not selected in a prior query. Be sure to include it in any Select statements.
+			err := d.Update(ctx, "leaf_lock", "id", o._originalPK, modifiedFields, "gro_lock", o.GroLock())
 			if err != nil {
 				return err
 			}
@@ -669,6 +613,9 @@ func (o *leafLockBase) insert(ctx context.Context) (err error) {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
 
+		o.groLock = db.RecordVersion(0)
+		o.groLockIsValid = true
+
 		m := o.getValidFields()
 
 		id := d.Insert(ctx, "leaf_lock", m)
@@ -696,13 +643,6 @@ func (o *leafLockBase) getModifiedFields() (fields map[string]interface{}) {
 	if o.nameIsDirty {
 		fields["name"] = o.name
 	}
-	if o.groLockTimestampIsDirty {
-		if o.groLockTimestampIsNull {
-			fields["gro_lock_timestamp"] = nil
-		} else {
-			fields["gro_lock_timestamp"] = o.groLockTimestamp
-		}
-	}
 	return
 }
 
@@ -712,12 +652,8 @@ func (o *leafLockBase) getValidFields() (fields map[string]interface{}) {
 	if o.nameIsValid {
 		fields["name"] = o.name
 	}
-	if o.groLockTimestampIsValid {
-		if o.groLockTimestampIsNull {
-			fields["gro_lock_timestamp"] = nil
-		} else {
-			fields["gro_lock_timestamp"] = o.groLockTimestamp
-		}
+	if o.groLockIsValid {
+		fields["gro_lock"] = o.groLock
 	}
 	return
 }
@@ -746,14 +682,12 @@ func deleteLeafLock(ctx context.Context, pk string) error {
 // resetDirtyStatus resets the dirty status of every field in the object.
 func (o *leafLockBase) resetDirtyStatus() {
 	o.nameIsDirty = false
-	o.groLockTimestampIsDirty = false
 
 }
 
 // IsDirty returns true if the object has been changed since it was read from the database.
 func (o *leafLockBase) IsDirty() (dirty bool) {
-	dirty = o.nameIsDirty ||
-		o.groLockTimestampIsDirty
+	dirty = o.nameIsDirty
 
 	return
 }
@@ -777,11 +711,11 @@ func (o *leafLockBase) Get(key string) interface{} {
 		}
 		return o.name
 
-	case "GroLockTimestamp":
-		if !o.groLockTimestampIsValid {
+	case "GroLock":
+		if !o.groLockIsValid {
 			return nil
 		}
-		return o.groLockTimestamp
+		return o.groLock
 
 	}
 	return nil
@@ -812,17 +746,11 @@ func (o *leafLockBase) MarshalBinary() ([]byte, error) {
 		return nil, fmt.Errorf("error encoding LeafLock.nameIsDirty: %w", err)
 	}
 
-	if err := encoder.Encode(o.groLockTimestamp); err != nil {
-		return nil, fmt.Errorf("error encoding LeafLock.groLockTimestamp: %w", err)
+	if err := encoder.Encode(o.groLock); err != nil {
+		return nil, fmt.Errorf("error encoding LeafLock.groLock: %w", err)
 	}
-	if err := encoder.Encode(o.groLockTimestampIsNull); err != nil {
-		return nil, fmt.Errorf("error encoding LeafLock.groLockTimestampIsNull: %w", err)
-	}
-	if err := encoder.Encode(o.groLockTimestampIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding LeafLock.groLockTimestampIsValid: %w", err)
-	}
-	if err := encoder.Encode(o.groLockTimestampIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding LeafLock.groLockTimestampIsDirty: %w", err)
+	if err := encoder.Encode(o.groLockIsValid); err != nil {
+		return nil, fmt.Errorf("error encoding LeafLock.groLockIsValid: %w", err)
 	}
 
 	if o._aliases == nil {
@@ -875,17 +803,11 @@ func (o *leafLockBase) UnmarshalBinary(data []byte) (err error) {
 		return fmt.Errorf("error decoding LeafLock.nameIsDirty: %w", err)
 	}
 
-	if err = dec.Decode(&o.groLockTimestamp); err != nil {
-		return fmt.Errorf("error decoding LeafLock.groLockTimestamp: %w", err)
+	if err = dec.Decode(&o.groLock); err != nil {
+		return fmt.Errorf("error decoding LeafLock.groLock: %w", err)
 	}
-	if err = dec.Decode(&o.groLockTimestampIsNull); err != nil {
-		return fmt.Errorf("error decoding LeafLock.groLockTimestampIsNull: %w", err)
-	}
-	if err = dec.Decode(&o.groLockTimestampIsValid); err != nil {
-		return fmt.Errorf("error decoding LeafLock.groLockTimestampIsValid: %w", err)
-	}
-	if err = dec.Decode(&o.groLockTimestampIsDirty); err != nil {
-		return fmt.Errorf("error decoding LeafLock.groLockTimestampIsDirty: %w", err)
+	if err = dec.Decode(&o.groLockIsValid); err != nil {
+		return fmt.Errorf("error decoding LeafLock.groLockIsValid: %w", err)
 	}
 
 	return
@@ -914,12 +836,8 @@ func (o *leafLockBase) MarshalStringMap() map[string]interface{} {
 		v["name"] = o.name
 	}
 
-	if o.groLockTimestampIsValid {
-		if o.groLockTimestampIsNull {
-			v["groLockTimestamp"] = nil
-		} else {
-			v["groLockTimestamp"] = o.groLockTimestamp
-		}
+	if o.groLockIsValid {
+		v["groLock"] = o.groLock
 	}
 
 	for _k, _v := range o._aliases {
@@ -940,7 +858,7 @@ func (o *leafLockBase) MarshalStringMap() map[string]interface{} {
 //
 //	"id" - string
 //	"name" - string
-//	"groLockTimestamp" - int64, nullable
+//	"groLock" - int64
 func (o *leafLockBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
 	if len(data) == 0 {
@@ -971,29 +889,6 @@ func (o *leafLockBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 					return fmt.Errorf("json field %s must be a string", k)
 				} else {
 					o.SetName(s)
-				}
-			}
-
-		case "groLockTimestamp":
-			{
-				if v == nil {
-					o.SetGroLockTimestampToNull()
-					continue
-				}
-
-				switch n := v.(type) {
-				case json.Number:
-					n2, err := n.Int64()
-					if err != nil {
-						return err
-					}
-					o.SetGroLockTimestamp(n2)
-				case int:
-					o.SetGroLockTimestamp(int64(n))
-				case float64:
-					o.SetGroLockTimestamp(int64(n))
-				default:
-					return fmt.Errorf("field %s must be a number", k)
 				}
 			}
 

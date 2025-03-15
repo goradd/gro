@@ -472,13 +472,11 @@ func processTypeInfo(column mysqlColumn) (
 		extra = map[string]interface{}{"type": column.columnType}
 
 	case "set":
-		err = fmt.Errorf("set is not supported. Use a json or string column type instead")
 		typ = schema.ColTypeUnknown
 		maxLength = uint64(column.characterMaxLen.Int64)
 		extra = map[string]interface{}{"type": column.columnType}
 
 	case "enum":
-		err = fmt.Errorf("enum is not supported directly. Use an enum table")
 		typ = schema.ColTypeUnknown
 		maxLength = uint64(column.characterMaxLen.Int64)
 		extra = map[string]interface{}{"type": column.columnType}

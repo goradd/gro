@@ -15,14 +15,14 @@ import (
 func TestLogin_SetPersonID(t *testing.T) {
 
 	obj := NewLogin()
-	personID := test.RandomValue[string](0)
-	obj.SetPersonID(personID)
-	assert.Equal(t, personID, obj.PersonID())
+	val := test.RandomValue[string](0)
+	obj.SetPersonID(val)
+	assert.Equal(t, val, obj.PersonID())
 	assert.False(t, obj.PersonIDIsNull())
 
 	// Test NULL
 	obj.SetPersonIDToNull()
-	assert.Equal(t, "", obj.PersonID())
+	assert.EqualValues(t, "", obj.PersonID())
 	assert.True(t, obj.PersonIDIsNull())
 
 	// test default
@@ -33,31 +33,31 @@ func TestLogin_SetPersonID(t *testing.T) {
 func TestLogin_SetUsername(t *testing.T) {
 
 	obj := NewLogin()
-	username := test.RandomValue[string](20)
-	obj.SetUsername(username)
-	assert.Equal(t, username, obj.Username())
+	val := test.RandomValue[string](20)
+	obj.SetUsername(val)
+	assert.Equal(t, val, obj.Username())
 
 	// test default
 	obj.SetUsername("")
 	assert.EqualValues(t, "", obj.Username(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
-	username = test.RandomValue[string](21)
+	val = test.RandomValue[string](21)
 	assert.Panics(t, func() {
-		obj.SetUsername(username)
+		obj.SetUsername(val)
 	})
 }
 func TestLogin_SetPassword(t *testing.T) {
 
 	obj := NewLogin()
-	password := test.RandomValue[string](20)
-	obj.SetPassword(password)
-	assert.Equal(t, password, obj.Password())
+	val := test.RandomValue[string](20)
+	obj.SetPassword(val)
+	assert.Equal(t, val, obj.Password())
 	assert.False(t, obj.PasswordIsNull())
 
 	// Test NULL
 	obj.SetPasswordToNull()
-	assert.Equal(t, "", obj.Password())
+	assert.EqualValues(t, "", obj.Password())
 	assert.True(t, obj.PasswordIsNull())
 
 	// test default
@@ -65,17 +65,17 @@ func TestLogin_SetPassword(t *testing.T) {
 	assert.EqualValues(t, "", obj.Password(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
-	password = test.RandomValue[string](21)
+	val = test.RandomValue[string](21)
 	assert.Panics(t, func() {
-		obj.SetPassword(password)
+		obj.SetPassword(val)
 	})
 }
 func TestLogin_SetIsEnabled(t *testing.T) {
 
 	obj := NewLogin()
-	isEnabled := test.RandomValue[bool](0)
-	obj.SetIsEnabled(isEnabled)
-	assert.Equal(t, isEnabled, obj.IsEnabled())
+	val := test.RandomValue[bool](0)
+	obj.SetIsEnabled(val)
+	assert.Equal(t, val, obj.IsEnabled())
 
 	// test default
 	obj.SetIsEnabled(true)
@@ -88,14 +88,11 @@ func TestLogin_SetIsEnabled(t *testing.T) {
 func createMinimalSampleLogin(ctx context.Context) *Login {
 	obj := NewLogin()
 
-	username := test.RandomValue[string](20)
-	obj.SetUsername(username)
+	obj.SetUsername(test.RandomValue[string](20))
 
-	password := test.RandomValue[string](20)
-	obj.SetPassword(password)
+	obj.SetPassword(test.RandomValue[string](20))
 
-	isEnabled := test.RandomValue[bool](0)
-	obj.SetIsEnabled(isEnabled)
+	obj.SetIsEnabled(test.RandomValue[bool](0))
 
 	obj.Save(ctx)
 	return obj
@@ -104,18 +101,18 @@ func TestLogin_CRUD(t *testing.T) {
 	obj := NewLogin()
 	ctx := db.NewContext(nil)
 
-	objPerson := createMinimalSamplePerson(ctx)
-	defer objPerson.Delete(ctx)
-	obj.SetPerson(objPerson)
+	v_objPerson := createMinimalSamplePerson(ctx)
+	defer v_objPerson.Delete(ctx)
+	obj.SetPerson(v_objPerson)
 
-	username := test.RandomValue[string](20)
-	obj.SetUsername(username)
+	v_username := test.RandomValue[string](20)
+	obj.SetUsername(v_username)
 
-	password := test.RandomValue[string](20)
-	obj.SetPassword(password)
+	v_password := test.RandomValue[string](20)
+	obj.SetPassword(v_password)
 
-	isEnabled := test.RandomValue[bool](0)
-	obj.SetIsEnabled(isEnabled)
+	v_isEnabled := test.RandomValue[bool](0)
+	obj.SetIsEnabled(v_isEnabled)
 
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
@@ -132,13 +129,13 @@ func TestLogin_CRUD(t *testing.T) {
 	assert.NotEmpty(t, obj2.PersonID())
 
 	assert.True(t, obj2.UsernameIsValid())
-	assert.Equal(t, username, obj2.Username())
+	assert.EqualValues(t, v_username, obj2.Username())
 
 	assert.True(t, obj2.PasswordIsValid())
 	assert.False(t, obj2.PasswordIsNull())
-	assert.Equal(t, password, obj2.Password())
+	assert.EqualValues(t, v_password, obj2.Password())
 
 	assert.True(t, obj2.IsEnabledIsValid())
-	assert.Equal(t, isEnabled, obj2.IsEnabled())
+	assert.EqualValues(t, v_isEnabled, obj2.IsEnabled())
 
 }

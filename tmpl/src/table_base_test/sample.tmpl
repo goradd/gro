@@ -14,21 +14,17 @@ func createMinimalSample{{= table.Identifier }}(ctx context.Context) *{{= table.
     {{if col.IsReference()}}
         {{if !col.IsNullable }}
     // A required forward reference will need to be fulfilled just to save the minimal version of this object
-    {{= col.ReferenceVariableIdentifier() }} := createMinimalSample{{= col.ReferenceIdentifier() }}(ctx)
-    obj.Set{{= col.ReferenceIdentifier() }}({{= col.ReferenceVariableIdentifier() }})
+    obj.Set{{= col.ReferenceIdentifier() }}(createMinimalSample{{= col.ReferenceType() }}(ctx))
         {{if}}
         {{# otherwise do not set the reference to avoid possible endless loop}}
     {{elseif col.IsEnum() }}
         {{if col.IsEnumArray() }}
-    {{= col.VariableIdentifier() }} := test.RandomEnumArray({{= col.Reference.EnumTable.IdentifierPlural}}())
-     obj.Set{{= col.Identifier }}({{= col.VariableIdentifier() }})
+     obj.Set{{= col.Identifier }}(test.RandomEnumArray({{= col.Reference.EnumTable.IdentifierPlural}}()))
        {{else}}
-    {{= col.VariableIdentifier() }} := test.RandomEnum({{= col.Reference.EnumTable.IdentifierPlural}}())
-     obj.Set{{= col.Identifier }}({{= col.VariableIdentifier() }})
+     obj.Set{{= col.Identifier }}(test.RandomEnum({{= col.Reference.EnumTable.IdentifierPlural}}()))
         {{if}}
     {{else}}
-    {{= col.VariableIdentifier() }} := 	test.RandomValue[{{= col.GoType() }}]({{u col.Size }})
-     obj.Set{{= col.Identifier }}({{= col.VariableIdentifier() }})
+     obj.Set{{= col.Identifier }}(test.RandomValue[{{= col.GoType() }}]({{u col.Size }}))
    {{if}}
 
 {{if}}

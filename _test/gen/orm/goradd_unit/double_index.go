@@ -49,7 +49,7 @@ func queryDoubleIndices(ctx context.Context) DoubleIndexBuilder {
 	return newDoubleIndexBuilder(ctx)
 }
 
-// DeleteDoubleIndex deletes a double_index record from the database given its primary key.
+// DeleteDoubleIndex deletes the double_index record wtih primary key pk from the database.
 // Note that you can also delete loaded DoubleIndex objects by calling Delete on them.
 // doc: type=DoubleIndex
 func DeleteDoubleIndex(ctx context.Context, pk int) {

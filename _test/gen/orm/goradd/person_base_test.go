@@ -15,45 +15,45 @@ import (
 func TestPerson_SetFirstName(t *testing.T) {
 
 	obj := NewPerson()
-	firstName := test.RandomValue[string](50)
-	obj.SetFirstName(firstName)
-	assert.Equal(t, firstName, obj.FirstName())
+	val := test.RandomValue[string](50)
+	obj.SetFirstName(val)
+	assert.Equal(t, val, obj.FirstName())
 
 	// test default
 	obj.SetFirstName("")
 	assert.EqualValues(t, "", obj.FirstName(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
-	firstName = test.RandomValue[string](51)
+	val = test.RandomValue[string](51)
 	assert.Panics(t, func() {
-		obj.SetFirstName(firstName)
+		obj.SetFirstName(val)
 	})
 }
 func TestPerson_SetLastName(t *testing.T) {
 
 	obj := NewPerson()
-	lastName := test.RandomValue[string](50)
-	obj.SetLastName(lastName)
-	assert.Equal(t, lastName, obj.LastName())
+	val := test.RandomValue[string](50)
+	obj.SetLastName(val)
+	assert.Equal(t, val, obj.LastName())
 
 	// test default
 	obj.SetLastName("")
 	assert.EqualValues(t, "", obj.LastName(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
-	lastName = test.RandomValue[string](51)
+	val = test.RandomValue[string](51)
 	assert.Panics(t, func() {
-		obj.SetLastName(lastName)
+		obj.SetLastName(val)
 	})
 }
 func TestPerson_SetTypes(t *testing.T) {
 
 	obj := NewPerson()
 
-	types := test.RandomEnumArray(PersonTypes())
-	obj.SetTypes(types)
+	val := test.RandomEnumArray(PersonTypes())
+	obj.SetTypes(val)
 
-	assert.Equal(t, types, obj.Types())
+	assert.Equal(t, val, obj.Types())
 	assert.False(t, obj.TypesIsNull())
 
 	// Test NULL
@@ -72,14 +72,11 @@ func TestPerson_SetTypes(t *testing.T) {
 func createMinimalSamplePerson(ctx context.Context) *Person {
 	obj := NewPerson()
 
-	firstName := test.RandomValue[string](50)
-	obj.SetFirstName(firstName)
+	obj.SetFirstName(test.RandomValue[string](50))
 
-	lastName := test.RandomValue[string](50)
-	obj.SetLastName(lastName)
+	obj.SetLastName(test.RandomValue[string](50))
 
-	types := test.RandomEnumArray(PersonTypes())
-	obj.SetTypes(types)
+	obj.SetTypes(test.RandomEnumArray(PersonTypes()))
 
 	obj.Save(ctx)
 	return obj
@@ -88,14 +85,14 @@ func TestPerson_CRUD(t *testing.T) {
 	obj := NewPerson()
 	ctx := db.NewContext(nil)
 
-	firstName := test.RandomValue[string](50)
-	obj.SetFirstName(firstName)
+	v_firstName := test.RandomValue[string](50)
+	obj.SetFirstName(v_firstName)
 
-	lastName := test.RandomValue[string](50)
-	obj.SetLastName(lastName)
+	v_lastName := test.RandomValue[string](50)
+	obj.SetLastName(v_lastName)
 
-	types := test.RandomEnumArray(PersonTypes())
-	obj.SetTypes(types)
+	v_types := test.RandomEnumArray(PersonTypes())
+	obj.SetTypes(v_types)
 
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
@@ -108,13 +105,13 @@ func TestPerson_CRUD(t *testing.T) {
 	assert.True(t, obj2.IDIsValid())
 
 	assert.True(t, obj2.FirstNameIsValid())
-	assert.Equal(t, firstName, obj2.FirstName())
+	assert.EqualValues(t, v_firstName, obj2.FirstName())
 
 	assert.True(t, obj2.LastNameIsValid())
-	assert.Equal(t, lastName, obj2.LastName())
+	assert.EqualValues(t, v_lastName, obj2.LastName())
 
 	assert.True(t, obj2.TypesIsValid())
 	assert.False(t, obj2.TypesIsNull())
-	assert.True(t, types.Equal(obj2.Types()))
+	assert.True(t, v_types.Equal(obj2.Types()))
 
 }

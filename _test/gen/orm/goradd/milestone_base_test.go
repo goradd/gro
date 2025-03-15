@@ -15,9 +15,9 @@ import (
 func TestMilestone_SetProjectID(t *testing.T) {
 
 	obj := NewMilestone()
-	projectID := test.RandomValue[string](0)
-	obj.SetProjectID(projectID)
-	assert.Equal(t, projectID, obj.ProjectID())
+	val := test.RandomValue[string](0)
+	obj.SetProjectID(val)
+	assert.Equal(t, val, obj.ProjectID())
 
 	// test default
 	obj.SetProjectID("")
@@ -27,18 +27,18 @@ func TestMilestone_SetProjectID(t *testing.T) {
 func TestMilestone_SetName(t *testing.T) {
 
 	obj := NewMilestone()
-	name := test.RandomValue[string](50)
-	obj.SetName(name)
-	assert.Equal(t, name, obj.Name())
+	val := test.RandomValue[string](50)
+	obj.SetName(val)
+	assert.Equal(t, val, obj.Name())
 
 	// test default
 	obj.SetName("")
 	assert.EqualValues(t, "", obj.Name(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
-	name = test.RandomValue[string](51)
+	val = test.RandomValue[string](51)
 	assert.Panics(t, func() {
-		obj.SetName(name)
+		obj.SetName(val)
 	})
 }
 
@@ -48,11 +48,9 @@ func createMinimalSampleMilestone(ctx context.Context) *Milestone {
 	obj := NewMilestone()
 
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
-	objProject := createMinimalSampleProject(ctx)
-	obj.SetProject(objProject)
+	obj.SetProject(createMinimalSampleProject(ctx))
 
-	name := test.RandomValue[string](50)
-	obj.SetName(name)
+	obj.SetName(test.RandomValue[string](50))
 
 	obj.Save(ctx)
 	return obj
@@ -61,12 +59,12 @@ func TestMilestone_CRUD(t *testing.T) {
 	obj := NewMilestone()
 	ctx := db.NewContext(nil)
 
-	objProject := createMinimalSampleProject(ctx)
-	defer objProject.Delete(ctx)
-	obj.SetProject(objProject)
+	v_objProject := createMinimalSampleProject(ctx)
+	defer v_objProject.Delete(ctx)
+	obj.SetProject(v_objProject)
 
-	name := test.RandomValue[string](50)
-	obj.SetName(name)
+	v_name := test.RandomValue[string](50)
+	obj.SetName(v_name)
 
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
@@ -82,6 +80,6 @@ func TestMilestone_CRUD(t *testing.T) {
 	assert.NotEmpty(t, obj2.ProjectID())
 
 	assert.True(t, obj2.NameIsValid())
-	assert.Equal(t, name, obj2.Name())
+	assert.EqualValues(t, v_name, obj2.Name())
 
 }
