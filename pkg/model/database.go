@@ -1,6 +1,7 @@
 package model
 
 import (
+	"cmp"
 	"fmt"
 	"github.com/goradd/all"
 	"github.com/goradd/maps"
@@ -325,5 +326,7 @@ func (m *Database) UniqueManyManyReferences() []*ManyManyReference {
 		}
 	}
 
-	return slices.Collect(maps2.Values(refs))
+	return slices.SortedFunc(maps2.Values(refs), func(reference *ManyManyReference, reference2 *ManyManyReference) int {
+		return cmp.Compare(reference.Identifier, reference2.Identifier)
+	})
 }
