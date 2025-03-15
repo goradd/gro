@@ -320,7 +320,9 @@ func (m *Database) MarshalOrder() (tables []*Table) {
 // UniqueManyManyReferences returns all the many-many references, but returning only one per association table.
 func (m *Database) UniqueManyManyReferences() []*ManyManyReference {
 	refs := make(map[string]*ManyManyReference)
-	for _, table := range m.Tables {
+	for _, table := range slices.SortedFunc(maps2.Values(m.Tables), func(table *Table, table2 *Table) int {
+		return cmp.Compare(table.QueryName, table2.QueryName)
+	}) {
 		for _, mm := range table.ManyManyReferences {
 			refs[mm.AssnTableName] = mm
 		}
