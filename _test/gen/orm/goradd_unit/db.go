@@ -169,6 +169,46 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 			return err
 		}
 	}
+	{ // Write Roots
+		if _, err := io.WriteString(writer, "["); err != nil {
+			return err
+		}
+
+		if _, err := io.WriteString(writer, `"root"`); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(writer, ",\n["); err != nil {
+			return err
+		}
+
+		cursor := QueryRoots(ctx).LoadCursor()
+		defer cursor.Close()
+		if obj := cursor.Next(); obj != nil {
+			if err := encoder.Encode(obj); err != nil {
+				return err
+			}
+		}
+
+		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+			if _, err := io.WriteString(writer, ",\n"); err != nil {
+				return err
+			}
+			if err := encoder.Encode(obj); err != nil {
+				return err
+			}
+		}
+
+		if _, err := io.WriteString(writer, "]\n]"); err != nil {
+			return err
+		}
+
+		if _, err := io.WriteString(writer, ","); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(writer, "\n"); err != nil {
+			return err
+		}
+	}
 	{ // Write TypeTests
 		if _, err := io.WriteString(writer, "["); err != nil {
 			return err
@@ -222,46 +262,6 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 		}
 
 		cursor := QueryUnsupportedTypes(ctx).LoadCursor()
-		defer cursor.Close()
-		if obj := cursor.Next(); obj != nil {
-			if err := encoder.Encode(obj); err != nil {
-				return err
-			}
-		}
-
-		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
-			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
-			}
-			if err := encoder.Encode(obj); err != nil {
-				return err
-			}
-		}
-
-		if _, err := io.WriteString(writer, "]\n]"); err != nil {
-			return err
-		}
-
-		if _, err := io.WriteString(writer, ","); err != nil {
-			return err
-		}
-		if _, err := io.WriteString(writer, "\n"); err != nil {
-			return err
-		}
-	}
-	{ // Write Roots
-		if _, err := io.WriteString(writer, "["); err != nil {
-			return err
-		}
-
-		if _, err := io.WriteString(writer, `"root"`); err != nil {
-			return err
-		}
-		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
-		}
-
-		cursor := QueryRoots(ctx).LoadCursor()
 		defer cursor.Close()
 		if obj := cursor.Next(); obj != nil {
 			if err := encoder.Encode(obj); err != nil {

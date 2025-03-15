@@ -3,7 +3,6 @@
 package node
 
 import (
-	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
@@ -46,11 +45,6 @@ type TypeTestNode interface {
 type typeTestTable struct {
 }
 
-type typeTestReverse struct {
-	typeTestTable
-	query.ReverseNode
-}
-
 // TypeTest returns a table node that starts a node chain that begins with the type_test table.
 func TypeTest() TypeTestNode {
 	return typeTestTable{}
@@ -88,30 +82,13 @@ func (n typeTestTable) ColumnNodes_() (nodes []query.Node) {
 	return nodes
 }
 
-func (n *typeTestReverse) ColumnNodes_() (nodes []query.Node) {
-	nodes = n.typeTestTable.ColumnNodes_()
-	for _, cn := range nodes {
-		query.NodeSetParent(cn, n)
-	}
-	return
-}
-
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
 func (n typeTestTable) IsEnum_() bool {
 	return false
 }
 
-func (n *typeTestReverse) NodeType_() query.NodeType {
-	return query.ReverseNodeType
-}
-
 // PrimaryKey returns a node that points to the primary key column.
 func (n typeTestTable) PrimaryKey() *query.ColumnNode {
-	return n.ID()
-}
-
-// PrimaryKey returns a node that points to the primary key column.
-func (n *typeTestReverse) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
 
@@ -122,12 +99,6 @@ func (n typeTestTable) ID() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
-func (n *typeTestReverse) ID() *query.ColumnNode {
-	cn := n.typeTestTable.ID()
 	query.NodeSetParent(cn, n)
 	return cn
 }
@@ -143,12 +114,6 @@ func (n typeTestTable) Date() *query.ColumnNode {
 	return cn
 }
 
-func (n *typeTestReverse) Date() *query.ColumnNode {
-	cn := n.typeTestTable.Date()
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
 func (n typeTestTable) Time() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:    "time",
@@ -156,12 +121,6 @@ func (n typeTestTable) Time() *query.ColumnNode {
 		ReceiverType: query.ColTypeTime,
 		IsPrimaryKey: false,
 	}
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
-func (n *typeTestReverse) Time() *query.ColumnNode {
-	cn := n.typeTestTable.Time()
 	query.NodeSetParent(cn, n)
 	return cn
 }
@@ -177,12 +136,6 @@ func (n typeTestTable) DateTime() *query.ColumnNode {
 	return cn
 }
 
-func (n *typeTestReverse) DateTime() *query.ColumnNode {
-	cn := n.typeTestTable.DateTime()
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
 func (n typeTestTable) Ts() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:    "ts",
@@ -190,12 +143,6 @@ func (n typeTestTable) Ts() *query.ColumnNode {
 		ReceiverType: query.ColTypeTime,
 		IsPrimaryKey: false,
 	}
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
-func (n *typeTestReverse) Ts() *query.ColumnNode {
-	cn := n.typeTestTable.Ts()
 	query.NodeSetParent(cn, n)
 	return cn
 }
@@ -211,12 +158,6 @@ func (n typeTestTable) TestInt() *query.ColumnNode {
 	return cn
 }
 
-func (n *typeTestReverse) TestInt() *query.ColumnNode {
-	cn := n.typeTestTable.TestInt()
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
 func (n typeTestTable) TestFloat() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:    "test_float",
@@ -224,12 +165,6 @@ func (n typeTestTable) TestFloat() *query.ColumnNode {
 		ReceiverType: query.ColTypeFloat32,
 		IsPrimaryKey: false,
 	}
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
-func (n *typeTestReverse) TestFloat() *query.ColumnNode {
-	cn := n.typeTestTable.TestFloat()
 	query.NodeSetParent(cn, n)
 	return cn
 }
@@ -245,12 +180,6 @@ func (n typeTestTable) TestDouble() *query.ColumnNode {
 	return cn
 }
 
-func (n *typeTestReverse) TestDouble() *query.ColumnNode {
-	cn := n.typeTestTable.TestDouble()
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
 func (n typeTestTable) TestText() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:    "test_text",
@@ -258,12 +187,6 @@ func (n typeTestTable) TestText() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
-func (n *typeTestReverse) TestText() *query.ColumnNode {
-	cn := n.typeTestTable.TestText()
 	query.NodeSetParent(cn, n)
 	return cn
 }
@@ -279,12 +202,6 @@ func (n typeTestTable) TestBit() *query.ColumnNode {
 	return cn
 }
 
-func (n *typeTestReverse) TestBit() *query.ColumnNode {
-	cn := n.typeTestTable.TestBit()
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
 func (n typeTestTable) TestVarchar() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:    "test_varchar",
@@ -292,12 +209,6 @@ func (n typeTestTable) TestVarchar() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
-func (n *typeTestReverse) TestVarchar() *query.ColumnNode {
-	cn := n.typeTestTable.TestVarchar()
 	query.NodeSetParent(cn, n)
 	return cn
 }
@@ -313,12 +224,6 @@ func (n typeTestTable) TestBlob() *query.ColumnNode {
 	return cn
 }
 
-func (n *typeTestReverse) TestBlob() *query.ColumnNode {
-	cn := n.typeTestTable.TestBlob()
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
 func (n typeTestTable) GobEncode() (data []byte, err error) {
 	return
 }
@@ -327,28 +232,6 @@ func (n *typeTestTable) GobDecode(data []byte) (err error) {
 	return
 }
 
-func (n *typeTestReverse) GobEncode() (data []byte, err error) {
-	var buf bytes.Buffer
-	e := gob.NewEncoder(&buf)
-
-	if err = e.Encode(&n.ReverseNode); err != nil {
-		panic(err)
-	}
-	data = buf.Bytes()
-	return
-}
-
-func (n *typeTestReverse) GobDecode(data []byte) (err error) {
-	buf := bytes.NewBuffer(data)
-	dec := gob.NewDecoder(buf)
-
-	if err = dec.Decode(&n.ReverseNode); err != nil {
-		panic(err)
-	}
-	return
-}
-
 func init() {
 	gob.Register(new(typeTestTable))
-	gob.Register(new(typeTestReverse))
 }

@@ -1,15 +1,17 @@
 {{g
 //*** {{includeName}}
 
-var hasReverse bool
-var hasReference bool
-var hasAssociation bool
+    var hasReverse bool
+    var hasReference bool
+    var hasAssociation bool
 
 }}
 
 {{# The master template for the nodes for a particular column.}}
 
 func (n *NodeTemplate)gen(table *model.Table, _w io.Writer) (err error) {
+    hasReference = false
+    
     for _,col := range table.Columns {
         if col.IsReference() {
             hasReference = true

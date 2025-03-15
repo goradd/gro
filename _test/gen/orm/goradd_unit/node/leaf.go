@@ -39,11 +39,6 @@ type leafReference struct {
 	query.ReferenceNode
 }
 
-type leafReverse struct {
-	leafTable
-	query.ReverseNode
-}
-
 // Leaf returns a table node that starts a node chain that begins with the leaf table.
 func Leaf() LeafNode {
 	return leafTable{}
@@ -79,14 +74,6 @@ func (n *leafReference) ColumnNodes_() (nodes []query.Node) {
 	return
 }
 
-func (n *leafReverse) ColumnNodes_() (nodes []query.Node) {
-	nodes = n.leafTable.ColumnNodes_()
-	for _, cn := range nodes {
-		query.NodeSetParent(cn, n)
-	}
-	return
-}
-
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
 func (n leafTable) IsEnum_() bool {
 	return false
@@ -96,10 +83,6 @@ func (n *leafReference) NodeType_() query.NodeType {
 	return query.ReferenceNodeType
 }
 
-func (n *leafReverse) NodeType_() query.NodeType {
-	return query.ReverseNodeType
-}
-
 // PrimaryKey returns a node that points to the primary key column.
 func (n leafTable) PrimaryKey() *query.ColumnNode {
 	return n.ID()
@@ -107,11 +90,6 @@ func (n leafTable) PrimaryKey() *query.ColumnNode {
 
 // PrimaryKey returns a node that points to the primary key column.
 func (n *leafReference) PrimaryKey() *query.ColumnNode {
-	return n.ID()
-}
-
-// PrimaryKey returns a node that points to the primary key column.
-func (n *leafReverse) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
 
@@ -132,12 +110,6 @@ func (n *leafReference) ID() *query.ColumnNode {
 	return cn
 }
 
-func (n *leafReverse) ID() *query.ColumnNode {
-	cn := n.leafTable.ID()
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
 func (n leafTable) Name() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:    "name",
@@ -150,12 +122,6 @@ func (n leafTable) Name() *query.ColumnNode {
 }
 
 func (n *leafReference) Name() *query.ColumnNode {
-	cn := n.leafTable.Name()
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
-func (n *leafReverse) Name() *query.ColumnNode {
 	cn := n.leafTable.Name()
 	query.NodeSetParent(cn, n)
 	return cn
@@ -182,12 +148,6 @@ func (n *leafReference) OptionalLeafRoots() RootNode {
 	return cn
 }
 
-func (n *leafReverse) OptionalLeafRoots() RootNode {
-	cn := n.leafTable.OptionalLeafRoots().(*rootReverse)
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
 // RequiredLeafRoots represents the many-to-one relationship formed by the reverse reference from the
 // required_leaf_id column in the root table.
 func (n leafTable) RequiredLeafRoots() RootNode {
@@ -204,12 +164,6 @@ func (n leafTable) RequiredLeafRoots() RootNode {
 }
 
 func (n *leafReference) RequiredLeafRoots() RootNode {
-	cn := n.leafTable.RequiredLeafRoots().(*rootReverse)
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
-func (n *leafReverse) RequiredLeafRoots() RootNode {
 	cn := n.leafTable.RequiredLeafRoots().(*rootReverse)
 	query.NodeSetParent(cn, n)
 	return cn
@@ -236,12 +190,6 @@ func (n *leafReference) OptionalLeafUniqueRoot() RootNode {
 	return cn
 }
 
-func (n *leafReverse) OptionalLeafUniqueRoot() RootNode {
-	cn := n.leafTable.OptionalLeafUniqueRoot().(*rootReverse)
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
 // RequiredLeafUniqueRoot represents the one-to-one relationship formed by the reverse reference from the
 // required_leaf_unique_id column in the root table.
 func (n leafTable) RequiredLeafUniqueRoot() RootNode {
@@ -258,12 +206,6 @@ func (n leafTable) RequiredLeafUniqueRoot() RootNode {
 }
 
 func (n *leafReference) RequiredLeafUniqueRoot() RootNode {
-	cn := n.leafTable.RequiredLeafUniqueRoot().(*rootReverse)
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
-func (n *leafReverse) RequiredLeafUniqueRoot() RootNode {
 	cn := n.leafTable.RequiredLeafUniqueRoot().(*rootReverse)
 	query.NodeSetParent(cn, n)
 	return cn
@@ -298,29 +240,7 @@ func (n *leafReference) GobDecode(data []byte) (err error) {
 	return
 }
 
-func (n *leafReverse) GobEncode() (data []byte, err error) {
-	var buf bytes.Buffer
-	e := gob.NewEncoder(&buf)
-
-	if err = e.Encode(&n.ReverseNode); err != nil {
-		panic(err)
-	}
-	data = buf.Bytes()
-	return
-}
-
-func (n *leafReverse) GobDecode(data []byte) (err error) {
-	buf := bytes.NewBuffer(data)
-	dec := gob.NewDecoder(buf)
-
-	if err = dec.Decode(&n.ReverseNode); err != nil {
-		panic(err)
-	}
-	return
-}
-
 func init() {
 	gob.Register(new(leafTable))
 	gob.Register(new(leafReference))
-	gob.Register(new(leafReverse))
 }

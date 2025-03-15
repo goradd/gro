@@ -267,8 +267,11 @@ func UpperCaseIdentifier(s string) (i string) {
 // Note that it cannot do this for circular references, and so if your database has circular
 // references, including self references, any foreign key checking will need to be turned off while importing the database.
 func (m *Database) MarshalOrder() (tables []*Table) {
-	var unusedTables maps.Set[*Table]
+	var unusedTables maps.SliceSet[*Table]
 
+	unusedTables.SetSortFunc(func(a, b *Table) bool {
+		return a.QueryName < b.QueryName
+	})
 	unusedTables.Add(slices.Collect(maps2.Values(m.Tables))...)
 	// First add the tables that have no forward references
 	for { // repeat until unusedTables is empty

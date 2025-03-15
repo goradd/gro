@@ -3,7 +3,6 @@
 package node
 
 import (
-	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
@@ -26,11 +25,6 @@ type DoubleIndexNode interface {
 //
 // To use the doubleIndexTable, call [DoubleIndex()] to start a reference chain when querying the double_index table.
 type doubleIndexTable struct {
-}
-
-type doubleIndexReverse struct {
-	doubleIndexTable
-	query.ReverseNode
 }
 
 // DoubleIndex returns a table node that starts a node chain that begins with the double_index table.
@@ -61,30 +55,13 @@ func (n doubleIndexTable) ColumnNodes_() (nodes []query.Node) {
 	return nodes
 }
 
-func (n *doubleIndexReverse) ColumnNodes_() (nodes []query.Node) {
-	nodes = n.doubleIndexTable.ColumnNodes_()
-	for _, cn := range nodes {
-		query.NodeSetParent(cn, n)
-	}
-	return
-}
-
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
 func (n doubleIndexTable) IsEnum_() bool {
 	return false
 }
 
-func (n *doubleIndexReverse) NodeType_() query.NodeType {
-	return query.ReverseNodeType
-}
-
 // PrimaryKey returns a node that points to the primary key column.
 func (n doubleIndexTable) PrimaryKey() *query.ColumnNode {
-	return n.ID()
-}
-
-// PrimaryKey returns a node that points to the primary key column.
-func (n *doubleIndexReverse) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
 
@@ -95,12 +72,6 @@ func (n doubleIndexTable) ID() *query.ColumnNode {
 		ReceiverType: query.ColTypeInteger,
 		IsPrimaryKey: true,
 	}
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
-func (n *doubleIndexReverse) ID() *query.ColumnNode {
-	cn := n.doubleIndexTable.ID()
 	query.NodeSetParent(cn, n)
 	return cn
 }
@@ -116,12 +87,6 @@ func (n doubleIndexTable) FieldInt() *query.ColumnNode {
 	return cn
 }
 
-func (n *doubleIndexReverse) FieldInt() *query.ColumnNode {
-	cn := n.doubleIndexTable.FieldInt()
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
 func (n doubleIndexTable) FieldString() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:    "field_string",
@@ -129,12 +94,6 @@ func (n doubleIndexTable) FieldString() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
-func (n *doubleIndexReverse) FieldString() *query.ColumnNode {
-	cn := n.doubleIndexTable.FieldString()
 	query.NodeSetParent(cn, n)
 	return cn
 }
@@ -147,28 +106,6 @@ func (n *doubleIndexTable) GobDecode(data []byte) (err error) {
 	return
 }
 
-func (n *doubleIndexReverse) GobEncode() (data []byte, err error) {
-	var buf bytes.Buffer
-	e := gob.NewEncoder(&buf)
-
-	if err = e.Encode(&n.ReverseNode); err != nil {
-		panic(err)
-	}
-	data = buf.Bytes()
-	return
-}
-
-func (n *doubleIndexReverse) GobDecode(data []byte) (err error) {
-	buf := bytes.NewBuffer(data)
-	dec := gob.NewDecoder(buf)
-
-	if err = dec.Decode(&n.ReverseNode); err != nil {
-		panic(err)
-	}
-	return
-}
-
 func init() {
 	gob.Register(new(doubleIndexTable))
-	gob.Register(new(doubleIndexReverse))
 }

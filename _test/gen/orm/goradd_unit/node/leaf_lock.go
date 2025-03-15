@@ -3,7 +3,6 @@
 package node
 
 import (
-	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
@@ -26,11 +25,6 @@ type LeafLockNode interface {
 //
 // To use the leafLockTable, call [LeafLock()] to start a reference chain when querying the leaf_lock table.
 type leafLockTable struct {
-}
-
-type leafLockReverse struct {
-	leafLockTable
-	query.ReverseNode
 }
 
 // LeafLock returns a table node that starts a node chain that begins with the leaf_lock table.
@@ -61,30 +55,13 @@ func (n leafLockTable) ColumnNodes_() (nodes []query.Node) {
 	return nodes
 }
 
-func (n *leafLockReverse) ColumnNodes_() (nodes []query.Node) {
-	nodes = n.leafLockTable.ColumnNodes_()
-	for _, cn := range nodes {
-		query.NodeSetParent(cn, n)
-	}
-	return
-}
-
 // IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
 func (n leafLockTable) IsEnum_() bool {
 	return false
 }
 
-func (n *leafLockReverse) NodeType_() query.NodeType {
-	return query.ReverseNodeType
-}
-
 // PrimaryKey returns a node that points to the primary key column.
 func (n leafLockTable) PrimaryKey() *query.ColumnNode {
-	return n.ID()
-}
-
-// PrimaryKey returns a node that points to the primary key column.
-func (n *leafLockReverse) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
 
@@ -95,12 +72,6 @@ func (n leafLockTable) ID() *query.ColumnNode {
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: true,
 	}
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
-func (n *leafLockReverse) ID() *query.ColumnNode {
-	cn := n.leafLockTable.ID()
 	query.NodeSetParent(cn, n)
 	return cn
 }
@@ -116,12 +87,6 @@ func (n leafLockTable) Name() *query.ColumnNode {
 	return cn
 }
 
-func (n *leafLockReverse) Name() *query.ColumnNode {
-	cn := n.leafLockTable.Name()
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
 func (n leafLockTable) GroLock() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:    "gro_lock",
@@ -129,12 +94,6 @@ func (n leafLockTable) GroLock() *query.ColumnNode {
 		ReceiverType: query.ColTypeInteger64,
 		IsPrimaryKey: false,
 	}
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
-func (n *leafLockReverse) GroLock() *query.ColumnNode {
-	cn := n.leafLockTable.GroLock()
 	query.NodeSetParent(cn, n)
 	return cn
 }
@@ -147,28 +106,6 @@ func (n *leafLockTable) GobDecode(data []byte) (err error) {
 	return
 }
 
-func (n *leafLockReverse) GobEncode() (data []byte, err error) {
-	var buf bytes.Buffer
-	e := gob.NewEncoder(&buf)
-
-	if err = e.Encode(&n.ReverseNode); err != nil {
-		panic(err)
-	}
-	data = buf.Bytes()
-	return
-}
-
-func (n *leafLockReverse) GobDecode(data []byte) (err error) {
-	buf := bytes.NewBuffer(data)
-	dec := gob.NewDecoder(buf)
-
-	if err = dec.Decode(&n.ReverseNode); err != nil {
-		panic(err)
-	}
-	return
-}
-
 func init() {
 	gob.Register(new(leafLockTable))
-	gob.Register(new(leafLockReverse))
 }

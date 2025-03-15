@@ -39,6 +39,8 @@ var hasReference bool
 var hasAssociation bool
 
 func (n *NodeTemplate) gen(table *model.Table, _w io.Writer) (err error) {
+	hasReference = false
+
 	for _, col := range table.Columns {
 		if col.IsReference() {
 			hasReference = true
