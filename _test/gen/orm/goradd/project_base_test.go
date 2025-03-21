@@ -3,7 +3,6 @@
 package goradd
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -202,9 +201,9 @@ func TestProject_SetParentProjectID(t *testing.T) {
 
 }
 
-// createMinimalSampleProject creates and saves a minimal version of a Project object
+// createMinimalSampleProject creates an unsaved minimal version of a Project object
 // for testing.
-func createMinimalSampleProject(ctx context.Context) *Project {
+func createMinimalSampleProject() *Project {
 	obj := NewProject()
 
 	obj.SetNum(test.RandomValue[int](32))
@@ -219,6 +218,22 @@ func createMinimalSampleProject(ctx context.Context) *Project {
 
 	obj.SetEndDate(test.RandomValue[time.Time](0))
 
-	obj.Save(ctx)
+	return obj
+}
+
+// createMaximalSampleProject creates an unsaved version of a Project object
+// for testing that includes references to minimal objects.
+func createMaximalSampleProject() *Project {
+	obj := createMinimalSampleProject()
+
+	obj.SetManager(createMinimalSamplePerson())
+
+	obj.SetParentProject(createMinimalSampleProject())
+
+	obj.SetMilestones(createMinimalSampleMilestone())
+	obj.SetParentProjectProjects(createMinimalSampleProject())
+	obj.SetChildren(createMinimalSampleProject())
+	obj.SetParents(createMinimalSampleProject())
+	obj.SetTeamMembers(createMinimalSamplePerson())
 	return obj
 }

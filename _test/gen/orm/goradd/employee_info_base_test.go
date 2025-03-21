@@ -3,7 +3,6 @@
 package goradd
 
 import (
-	"context"
 	"testing"
 
 	"github.com/goradd/orm/pkg/db"
@@ -37,24 +36,35 @@ func TestEmployeeInfo_SetEmployeeNumber(t *testing.T) {
 
 }
 
-// createMinimalSampleEmployeeInfo creates and saves a minimal version of a EmployeeInfo object
+// createMinimalSampleEmployeeInfo creates an unsaved minimal version of a EmployeeInfo object
 // for testing.
-func createMinimalSampleEmployeeInfo(ctx context.Context) *EmployeeInfo {
+func createMinimalSampleEmployeeInfo() *EmployeeInfo {
 	obj := NewEmployeeInfo()
 
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
-	obj.SetPerson(createMinimalSamplePerson(ctx))
+	// If the database is configured so that the referenced object points back here, either directly or through multiple
+	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
+	obj.SetPerson(createMinimalSamplePerson())
 
 	obj.SetEmployeeNumber(test.RandomValue[int](32))
 
-	obj.Save(ctx)
 	return obj
 }
+
+// createMaximalSampleEmployeeInfo creates an unsaved version of a EmployeeInfo object
+// for testing that includes references to minimal objects.
+func createMaximalSampleEmployeeInfo() *EmployeeInfo {
+	obj := createMinimalSampleEmployeeInfo()
+
+	return obj
+}
+
 func TestEmployeeInfo_CRUD(t *testing.T) {
 	obj := NewEmployeeInfo()
 	ctx := db.NewContext(nil)
 
-	v_objPerson := createMinimalSamplePerson(ctx)
+	v_objPerson := createMinimalSamplePerson()
+	assert.NoError(t, v_objPerson.Save(ctx))
 	defer v_objPerson.Delete(ctx)
 	obj.SetPerson(v_objPerson)
 

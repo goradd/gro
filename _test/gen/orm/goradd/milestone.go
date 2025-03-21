@@ -48,7 +48,7 @@ func queryMilestones(ctx context.Context) MilestoneBuilder {
 	return newMilestoneBuilder(ctx)
 }
 
-// DeleteMilestone deletes a milestone record from the database given its primary key.
+// DeleteMilestone deletes the milestone record wtih primary key pk from the database.
 // Note that you can also delete loaded Milestone objects by calling Delete on them.
 // doc: type=Milestone
 func DeleteMilestone(ctx context.Context, pk string) {

@@ -3,7 +3,6 @@
 package goradd_unit
 
 import (
-	"context"
 	"testing"
 	"time"
 
@@ -203,9 +202,9 @@ func TestTypeTest_SetTestBlob(t *testing.T) {
 	})
 }
 
-// createMinimalSampleTypeTest creates and saves a minimal version of a TypeTest object
+// createMinimalSampleTypeTest creates an unsaved minimal version of a TypeTest object
 // for testing.
-func createMinimalSampleTypeTest(ctx context.Context) *TypeTest {
+func createMinimalSampleTypeTest() *TypeTest {
 	obj := NewTypeTest()
 
 	obj.SetDate(test.RandomValue[time.Time](0))
@@ -228,9 +227,17 @@ func createMinimalSampleTypeTest(ctx context.Context) *TypeTest {
 
 	obj.SetTestBlob(test.RandomValue[[]byte](65535))
 
-	obj.Save(ctx)
 	return obj
 }
+
+// createMaximalSampleTypeTest creates an unsaved version of a TypeTest object
+// for testing that includes references to minimal objects.
+func createMaximalSampleTypeTest() *TypeTest {
+	obj := createMinimalSampleTypeTest()
+
+	return obj
+}
+
 func TestTypeTest_CRUD(t *testing.T) {
 	obj := NewTypeTest()
 	ctx := db.NewContext(nil)

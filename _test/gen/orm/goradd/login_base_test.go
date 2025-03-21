@@ -3,7 +3,6 @@
 package goradd
 
 import (
-	"context"
 	"testing"
 
 	"github.com/goradd/orm/pkg/db"
@@ -83,9 +82,9 @@ func TestLogin_SetIsEnabled(t *testing.T) {
 
 }
 
-// createMinimalSampleLogin creates and saves a minimal version of a Login object
+// createMinimalSampleLogin creates an unsaved minimal version of a Login object
 // for testing.
-func createMinimalSampleLogin(ctx context.Context) *Login {
+func createMinimalSampleLogin() *Login {
 	obj := NewLogin()
 
 	obj.SetUsername(test.RandomValue[string](20))
@@ -94,14 +93,25 @@ func createMinimalSampleLogin(ctx context.Context) *Login {
 
 	obj.SetIsEnabled(test.RandomValue[bool](0))
 
-	obj.Save(ctx)
 	return obj
 }
+
+// createMaximalSampleLogin creates an unsaved version of a Login object
+// for testing that includes references to minimal objects.
+func createMaximalSampleLogin() *Login {
+	obj := createMinimalSampleLogin()
+
+	obj.SetPerson(createMinimalSamplePerson())
+
+	return obj
+}
+
 func TestLogin_CRUD(t *testing.T) {
 	obj := NewLogin()
 	ctx := db.NewContext(nil)
 
-	v_objPerson := createMinimalSamplePerson(ctx)
+	v_objPerson := createMinimalSamplePerson()
+	assert.NoError(t, v_objPerson.Save(ctx))
 	defer v_objPerson.Delete(ctx)
 	obj.SetPerson(v_objPerson)
 

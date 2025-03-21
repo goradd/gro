@@ -3,7 +3,6 @@
 package goradd_unit
 
 import (
-	"context"
 	"testing"
 
 	"github.com/goradd/orm/pkg/db"
@@ -30,16 +29,28 @@ func TestLeaf_SetName(t *testing.T) {
 	})
 }
 
-// createMinimalSampleLeaf creates and saves a minimal version of a Leaf object
+// createMinimalSampleLeaf creates an unsaved minimal version of a Leaf object
 // for testing.
-func createMinimalSampleLeaf(ctx context.Context) *Leaf {
+func createMinimalSampleLeaf() *Leaf {
 	obj := NewLeaf()
 
 	obj.SetName(test.RandomValue[string](100))
 
-	obj.Save(ctx)
 	return obj
 }
+
+// createMaximalSampleLeaf creates an unsaved version of a Leaf object
+// for testing that includes references to minimal objects.
+func createMaximalSampleLeaf() *Leaf {
+	obj := createMinimalSampleLeaf()
+
+	obj.SetOptionalLeafRoots(createMinimalSampleRoot())
+	obj.SetRequiredLeafRoots(createMinimalSampleRoot())
+	obj.SetOptionalLeafUniqueRoot(createMinimalSampleRoot())
+	obj.SetRequiredLeafUniqueRoot(createMinimalSampleRoot())
+	return obj
+}
+
 func TestLeaf_CRUD(t *testing.T) {
 	obj := NewLeaf()
 	ctx := db.NewContext(nil)

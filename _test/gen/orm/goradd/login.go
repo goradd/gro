@@ -49,7 +49,7 @@ func queryLogins(ctx context.Context) LoginBuilder {
 	return newLoginBuilder(ctx)
 }
 
-// DeleteLogin deletes a login record from the database given its primary key.
+// DeleteLogin deletes the login record wtih primary key pk from the database.
 // Note that you can also delete loaded Login objects by calling Delete on them.
 // doc: type=Login
 func DeleteLogin(ctx context.Context, pk string) {

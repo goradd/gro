@@ -495,7 +495,7 @@ import (
 		return
 	}
 
-	if _, err = io.WriteString(_w, ` creates and saves a minimal version of a `); err != nil {
+	if _, err = io.WriteString(_w, ` creates an unsaved minimal version of a `); err != nil {
 		return
 	}
 
@@ -513,7 +513,7 @@ func createMinimalSample`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `(ctx context.Context) *`); err != nil {
+	if _, err = io.WriteString(_w, `() *`); err != nil {
 		return
 	}
 
@@ -559,6 +559,8 @@ func createMinimalSample`); err != nil {
 
 					if _, err = io.WriteString(_w, `
     // A required forward reference will need to be fulfilled just to save the minimal version of this object
+    // If the database is configured so that the referenced object points back here, either directly or through multiple
+    // forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
     obj.Set`); err != nil {
 						return
 					}
@@ -575,16 +577,11 @@ func createMinimalSample`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, `(ctx))
+					if _, err = io.WriteString(_w, `())
         `); err != nil {
 						return
 					}
 
-				}
-
-				if _, err = io.WriteString(_w, `
-        `); err != nil {
-					return
 				}
 
 				if _, err = io.WriteString(_w, `
@@ -698,9 +695,172 @@ func createMinimalSample`); err != nil {
 
 	}
 
-	if _, err = io.WriteString(_w, `    obj.Save(ctx)
-    return obj
+	if _, err = io.WriteString(_w, `    return obj
 }
+
+// createMaximalSample`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` creates an unsaved version of a `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` object
+// for testing that includes references to minimal objects.
+func createMaximalSample`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `() *`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` {
+    obj := createMinimalSample`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `()
+`); err != nil {
+		return
+	}
+
+	for _, col := range table.Columns {
+
+		if col.HasSetter() {
+
+			if _, err = io.WriteString(_w, `    `); err != nil {
+				return
+			}
+
+			if col.IsReference() {
+
+				if _, err = io.WriteString(_w, `
+        `); err != nil {
+					return
+				}
+
+				if col.IsNullable {
+
+					if _, err = io.WriteString(_w, `
+    obj.Set`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `(createMinimalSample`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `())
+        `); err != nil {
+						return
+					}
+
+				}
+
+				if _, err = io.WriteString(_w, `
+    `); err != nil {
+					return
+				}
+
+			}
+
+			if _, err = io.WriteString(_w, `
+`); err != nil {
+				return
+			}
+
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
+`); err != nil {
+		return
+	}
+
+	for _, col := range table.ReverseReferences {
+
+		if _, err = io.WriteString(_w, `    obj.Set`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.ReverseIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(createMinimalSample`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `())
+`); err != nil {
+			return
+		}
+
+	}
+
+	for _, mm := range table.ManyManyReferences {
+
+		if _, err = io.WriteString(_w, `    obj.Set`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(createMinimalSample`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.DestinationTable.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `())
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `    return obj
+}
+
 `); err != nil {
 		return
 	}
@@ -773,7 +933,16 @@ func createMinimalSample`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, `(ctx)
+					if _, err = io.WriteString(_w, `()
+    assert.NoError(t, v_`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `.Save(ctx))
     defer v_`); err != nil {
 						return
 					}

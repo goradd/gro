@@ -49,7 +49,7 @@ func queryPeople(ctx context.Context) PersonBuilder {
 	return newPersonBuilder(ctx)
 }
 
-// DeletePerson deletes a person record from the database given its primary key.
+// DeletePerson deletes the person record wtih primary key pk from the database.
 // Note that you can also delete loaded Person objects by calling Delete on them.
 // doc: type=Person
 func DeletePerson(ctx context.Context, pk string) {

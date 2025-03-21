@@ -49,7 +49,7 @@ func queryPersonWithLocks(ctx context.Context) PersonWithLockBuilder {
 	return newPersonWithLockBuilder(ctx)
 }
 
-// DeletePersonWithLock deletes a person_with_lock record from the database given its primary key.
+// DeletePersonWithLock deletes the person_with_lock record wtih primary key pk from the database.
 // Note that you can also delete loaded PersonWithLock objects by calling Delete on them.
 // doc: type=PersonWithLock
 func DeletePersonWithLock(ctx context.Context, pk string) {

@@ -3,7 +3,6 @@
 package goradd_unit
 
 import (
-	"context"
 	"testing"
 
 	"github.com/goradd/orm/pkg/db"
@@ -30,16 +29,24 @@ func TestLeafLock_SetName(t *testing.T) {
 	})
 }
 
-// createMinimalSampleLeafLock creates and saves a minimal version of a LeafLock object
+// createMinimalSampleLeafLock creates an unsaved minimal version of a LeafLock object
 // for testing.
-func createMinimalSampleLeafLock(ctx context.Context) *LeafLock {
+func createMinimalSampleLeafLock() *LeafLock {
 	obj := NewLeafLock()
 
 	obj.SetName(test.RandomValue[string](100))
 
-	obj.Save(ctx)
 	return obj
 }
+
+// createMaximalSampleLeafLock creates an unsaved version of a LeafLock object
+// for testing that includes references to minimal objects.
+func createMaximalSampleLeafLock() *LeafLock {
+	obj := createMinimalSampleLeafLock()
+
+	return obj
+}
+
 func TestLeafLock_CRUD(t *testing.T) {
 	obj := NewLeafLock()
 	ctx := db.NewContext(nil)

@@ -12,7 +12,8 @@ func Test{{= table.Identifier }}_CRUD(t *testing.T) {
 
 {{if col.HasSetter()}}
     {{if col.IsReference()}}
-    v_{{= col.ReferenceVariableIdentifier() }} := createMinimalSample{{= col.ReferenceType() }}(ctx)
+    v_{{= col.ReferenceVariableIdentifier() }} := createMinimalSample{{= col.ReferenceType() }}()
+    assert.NoError(t, v_{{= col.ReferenceVariableIdentifier() }}.Save(ctx))
     defer v_{{= col.ReferenceVariableIdentifier() }}.Delete(ctx)
     obj.Set{{= col.ReferenceIdentifier() }}(v_{{= col.ReferenceVariableIdentifier() }})
     {{elseif col.IsEnum() }}

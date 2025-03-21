@@ -3,7 +3,6 @@
 package goradd_unit
 
 import (
-	"context"
 	"testing"
 
 	"github.com/goradd/orm/pkg/db"
@@ -102,25 +101,44 @@ func TestRoot_SetParentID(t *testing.T) {
 
 }
 
-// createMinimalSampleRoot creates and saves a minimal version of a Root object
+// createMinimalSampleRoot creates an unsaved minimal version of a Root object
 // for testing.
-func createMinimalSampleRoot(ctx context.Context) *Root {
+func createMinimalSampleRoot() *Root {
 	obj := NewRoot()
 
 	obj.SetName(test.RandomValue[string](100))
 
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
-	obj.SetRequiredLeaf(createMinimalSampleLeaf(ctx))
+	// If the database is configured so that the referenced object points back here, either directly or through multiple
+	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
+	obj.SetRequiredLeaf(createMinimalSampleLeaf())
 
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
-	obj.SetOptionalLeafUnique(createMinimalSampleLeaf(ctx))
+	// If the database is configured so that the referenced object points back here, either directly or through multiple
+	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
+	obj.SetOptionalLeafUnique(createMinimalSampleLeaf())
 
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
-	obj.SetRequiredLeafUnique(createMinimalSampleLeaf(ctx))
+	// If the database is configured so that the referenced object points back here, either directly or through multiple
+	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
+	obj.SetRequiredLeafUnique(createMinimalSampleLeaf())
 
-	obj.Save(ctx)
 	return obj
 }
+
+// createMaximalSampleRoot creates an unsaved version of a Root object
+// for testing that includes references to minimal objects.
+func createMaximalSampleRoot() *Root {
+	obj := createMinimalSampleRoot()
+
+	obj.SetOptionalLeaf(createMinimalSampleLeaf())
+
+	obj.SetParent(createMinimalSampleRoot())
+
+	obj.SetParentRoots(createMinimalSampleRoot())
+	return obj
+}
+
 func TestRoot_CRUD(t *testing.T) {
 	obj := NewRoot()
 	ctx := db.NewContext(nil)
@@ -128,23 +146,28 @@ func TestRoot_CRUD(t *testing.T) {
 	v_name := test.RandomValue[string](100)
 	obj.SetName(v_name)
 
-	v_objOptionalLeaf := createMinimalSampleLeaf(ctx)
+	v_objOptionalLeaf := createMinimalSampleLeaf()
+	assert.NoError(t, v_objOptionalLeaf.Save(ctx))
 	defer v_objOptionalLeaf.Delete(ctx)
 	obj.SetOptionalLeaf(v_objOptionalLeaf)
 
-	v_objRequiredLeaf := createMinimalSampleLeaf(ctx)
+	v_objRequiredLeaf := createMinimalSampleLeaf()
+	assert.NoError(t, v_objRequiredLeaf.Save(ctx))
 	defer v_objRequiredLeaf.Delete(ctx)
 	obj.SetRequiredLeaf(v_objRequiredLeaf)
 
-	v_objOptionalLeafUnique := createMinimalSampleLeaf(ctx)
+	v_objOptionalLeafUnique := createMinimalSampleLeaf()
+	assert.NoError(t, v_objOptionalLeafUnique.Save(ctx))
 	defer v_objOptionalLeafUnique.Delete(ctx)
 	obj.SetOptionalLeafUnique(v_objOptionalLeafUnique)
 
-	v_objRequiredLeafUnique := createMinimalSampleLeaf(ctx)
+	v_objRequiredLeafUnique := createMinimalSampleLeaf()
+	assert.NoError(t, v_objRequiredLeafUnique.Save(ctx))
 	defer v_objRequiredLeafUnique.Delete(ctx)
 	obj.SetRequiredLeafUnique(v_objRequiredLeafUnique)
 
-	v_objParent := createMinimalSampleRoot(ctx)
+	v_objParent := createMinimalSampleRoot()
+	assert.NoError(t, v_objParent.Save(ctx))
 	defer v_objParent.Delete(ctx)
 	obj.SetParent(v_objParent)
 

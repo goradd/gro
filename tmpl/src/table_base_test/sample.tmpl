@@ -1,9 +1,9 @@
 //*** {{includeName}}
 
 {{
-// createMinimalSample{{= table.Identifier }} creates and saves a minimal version of a {{= table.Identifier }} object
+// createMinimalSample{{= table.Identifier }} creates an unsaved minimal version of a {{= table.Identifier }} object
 // for testing.
-func createMinimalSample{{= table.Identifier }}(ctx context.Context) *{{= table.Identifier }} {
+func createMinimalSample{{= table.Identifier }}() *{{= table.Identifier }} {
     obj := New{{= table.Identifier }}()
 
 {{for _,col := range table.Columns}}
@@ -14,9 +14,10 @@ func createMinimalSample{{= table.Identifier }}(ctx context.Context) *{{= table.
     {{if col.IsReference()}}
         {{if !col.IsNullable }}
     // A required forward reference will need to be fulfilled just to save the minimal version of this object
-    obj.Set{{= col.ReferenceIdentifier() }}(createMinimalSample{{= col.ReferenceType() }}(ctx))
+    // If the database is configured so that the referenced object points back here, either directly or through multiple
+    // forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
+    obj.Set{{= col.ReferenceIdentifier() }}(createMinimalSample{{= col.ReferenceType() }}())
         {{if}}
-        {{# otherwise do not set the reference to avoid possible endless loop}}
     {{elseif col.IsEnum() }}
         {{if col.IsEnumArray() }}
      obj.Set{{= col.Identifier }}(test.RandomEnumArray({{= col.Reference.EnumTable.IdentifierPlural}}()))
@@ -29,7 +30,30 @@ func createMinimalSample{{= table.Identifier }}(ctx context.Context) *{{= table.
 
 {{if}}
 {{for}}
-    obj.Save(ctx)
     return obj
 }
+
+// createMaximalSample{{= table.Identifier }} creates an unsaved version of a {{= table.Identifier }} object
+// for testing that includes references to minimal objects.
+func createMaximalSample{{= table.Identifier }}() *{{= table.Identifier }} {
+    obj := createMinimalSample{{= table.Identifier }}()
+{{for _,col := range table.Columns}}
+{{if col.HasSetter()}}
+    {{if col.IsReference()}}
+        {{if col.IsNullable }}
+    obj.Set{{= col.ReferenceIdentifier() }}(createMinimalSample{{= col.ReferenceType() }}())
+        {{if}}
+    {{if}}
+{{if}}
+{{for}}
+
+{{for _,col := range table.ReverseReferences}}
+    obj.Set{{= col.ReverseIdentifier() }}(createMinimalSample{{= col.Table.Identifier }}())
+{{for}}
+{{for _,mm := range table.ManyManyReferences}}
+    obj.Set{{= mm.IdentifierPlural }}(createMinimalSample{{= mm.DestinationTable.Identifier }}())
+{{for}}
+    return obj
+}
+
 }}

@@ -3,7 +3,6 @@
 package goradd_unit
 
 import (
-	"context"
 	"testing"
 
 	"github.com/goradd/orm/pkg/test"
@@ -245,9 +244,9 @@ func TestUnsupportedType_SetTypeMultifk2(t *testing.T) {
 	})
 }
 
-// createMinimalSampleUnsupportedType creates and saves a minimal version of a UnsupportedType object
+// createMinimalSampleUnsupportedType creates an unsaved minimal version of a UnsupportedType object
 // for testing.
-func createMinimalSampleUnsupportedType(ctx context.Context) *UnsupportedType {
+func createMinimalSampleUnsupportedType() *UnsupportedType {
 	obj := NewUnsupportedType()
 
 	obj.SetTypeSet(test.RandomValue[string](5))
@@ -274,6 +273,13 @@ func createMinimalSampleUnsupportedType(ctx context.Context) *UnsupportedType {
 
 	obj.SetTypeMultifk2(test.RandomValue[string](50))
 
-	obj.Save(ctx)
+	return obj
+}
+
+// createMaximalSampleUnsupportedType creates an unsaved version of a UnsupportedType object
+// for testing that includes references to minimal objects.
+func createMaximalSampleUnsupportedType() *UnsupportedType {
+	obj := createMinimalSampleUnsupportedType()
+
 	return obj
 }

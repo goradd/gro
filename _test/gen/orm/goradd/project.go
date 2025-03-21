@@ -48,7 +48,7 @@ func queryProjects(ctx context.Context) ProjectBuilder {
 	return newProjectBuilder(ctx)
 }
 
-// DeleteProject deletes a project record from the database given its primary key.
+// DeleteProject deletes the project record wtih primary key pk from the database.
 // Note that you can also delete loaded Project objects by calling Delete on them.
 // doc: type=Project
 func DeleteProject(ctx context.Context, pk string) {

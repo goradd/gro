@@ -3,7 +3,6 @@
 package goradd
 
 import (
-	"context"
 	"testing"
 
 	"github.com/goradd/orm/pkg/db"
@@ -42,18 +41,26 @@ func TestGift_SetName(t *testing.T) {
 	})
 }
 
-// createMinimalSampleGift creates and saves a minimal version of a Gift object
+// createMinimalSampleGift creates an unsaved minimal version of a Gift object
 // for testing.
-func createMinimalSampleGift(ctx context.Context) *Gift {
+func createMinimalSampleGift() *Gift {
 	obj := NewGift()
 
 	obj.SetNumber(test.RandomValue[int](32))
 
 	obj.SetName(test.RandomValue[string](50))
 
-	obj.Save(ctx)
 	return obj
 }
+
+// createMaximalSampleGift creates an unsaved version of a Gift object
+// for testing that includes references to minimal objects.
+func createMaximalSampleGift() *Gift {
+	obj := createMinimalSampleGift()
+
+	return obj
+}
+
 func TestGift_CRUD(t *testing.T) {
 	obj := NewGift()
 	ctx := db.NewContext(nil)

@@ -3,7 +3,6 @@
 package goradd
 
 import (
-	"context"
 	"testing"
 
 	"github.com/goradd/orm/pkg/db"
@@ -47,18 +46,26 @@ func TestPersonWithLock_SetLastName(t *testing.T) {
 	})
 }
 
-// createMinimalSamplePersonWithLock creates and saves a minimal version of a PersonWithLock object
+// createMinimalSamplePersonWithLock creates an unsaved minimal version of a PersonWithLock object
 // for testing.
-func createMinimalSamplePersonWithLock(ctx context.Context) *PersonWithLock {
+func createMinimalSamplePersonWithLock() *PersonWithLock {
 	obj := NewPersonWithLock()
 
 	obj.SetFirstName(test.RandomValue[string](50))
 
 	obj.SetLastName(test.RandomValue[string](50))
 
-	obj.Save(ctx)
 	return obj
 }
+
+// createMaximalSamplePersonWithLock creates an unsaved version of a PersonWithLock object
+// for testing that includes references to minimal objects.
+func createMaximalSamplePersonWithLock() *PersonWithLock {
+	obj := createMinimalSamplePersonWithLock()
+
+	return obj
+}
+
 func TestPersonWithLock_CRUD(t *testing.T) {
 	obj := NewPersonWithLock()
 	ctx := db.NewContext(nil)

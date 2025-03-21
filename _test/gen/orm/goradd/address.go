@@ -49,7 +49,7 @@ func queryAddresses(ctx context.Context) AddressBuilder {
 	return newAddressBuilder(ctx)
 }
 
-// DeleteAddress deletes a address record from the database given its primary key.
+// DeleteAddress deletes the address record wtih primary key pk from the database.
 // Note that you can also delete loaded Address objects by calling Delete on them.
 // doc: type=Address
 func DeleteAddress(ctx context.Context, pk string) {

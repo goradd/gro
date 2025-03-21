@@ -3,7 +3,6 @@
 package goradd
 
 import (
-	"context"
 	"testing"
 
 	"github.com/goradd/orm/pkg/db"
@@ -42,24 +41,35 @@ func TestMilestone_SetName(t *testing.T) {
 	})
 }
 
-// createMinimalSampleMilestone creates and saves a minimal version of a Milestone object
+// createMinimalSampleMilestone creates an unsaved minimal version of a Milestone object
 // for testing.
-func createMinimalSampleMilestone(ctx context.Context) *Milestone {
+func createMinimalSampleMilestone() *Milestone {
 	obj := NewMilestone()
 
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
-	obj.SetProject(createMinimalSampleProject(ctx))
+	// If the database is configured so that the referenced object points back here, either directly or through multiple
+	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
+	obj.SetProject(createMinimalSampleProject())
 
 	obj.SetName(test.RandomValue[string](50))
 
-	obj.Save(ctx)
 	return obj
 }
+
+// createMaximalSampleMilestone creates an unsaved version of a Milestone object
+// for testing that includes references to minimal objects.
+func createMaximalSampleMilestone() *Milestone {
+	obj := createMinimalSampleMilestone()
+
+	return obj
+}
+
 func TestMilestone_CRUD(t *testing.T) {
 	obj := NewMilestone()
 	ctx := db.NewContext(nil)
 
-	v_objProject := createMinimalSampleProject(ctx)
+	v_objProject := createMinimalSampleProject()
+	assert.NoError(t, v_objProject.Save(ctx))
 	defer v_objProject.Delete(ctx)
 	obj.SetProject(v_objProject)
 

@@ -3,7 +3,6 @@
 package goradd_unit
 
 import (
-	"context"
 	"testing"
 
 	"github.com/goradd/orm/pkg/db"
@@ -54,9 +53,9 @@ func TestDoubleIndex_SetFieldString(t *testing.T) {
 	})
 }
 
-// createMinimalSampleDoubleIndex creates and saves a minimal version of a DoubleIndex object
+// createMinimalSampleDoubleIndex creates an unsaved minimal version of a DoubleIndex object
 // for testing.
-func createMinimalSampleDoubleIndex(ctx context.Context) *DoubleIndex {
+func createMinimalSampleDoubleIndex() *DoubleIndex {
 	obj := NewDoubleIndex()
 
 	obj.SetID(test.RandomValue[int](32))
@@ -65,9 +64,17 @@ func createMinimalSampleDoubleIndex(ctx context.Context) *DoubleIndex {
 
 	obj.SetFieldString(test.RandomValue[string](50))
 
-	obj.Save(ctx)
 	return obj
 }
+
+// createMaximalSampleDoubleIndex creates an unsaved version of a DoubleIndex object
+// for testing that includes references to minimal objects.
+func createMaximalSampleDoubleIndex() *DoubleIndex {
+	obj := createMinimalSampleDoubleIndex()
+
+	return obj
+}
+
 func TestDoubleIndex_CRUD(t *testing.T) {
 	obj := NewDoubleIndex()
 	ctx := db.NewContext(nil)

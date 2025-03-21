@@ -3,7 +3,6 @@
 package goradd
 
 import (
-	"context"
 	"testing"
 
 	"github.com/goradd/orm/pkg/db"
@@ -67,9 +66,9 @@ func TestPerson_SetTypes(t *testing.T) {
 
 }
 
-// createMinimalSamplePerson creates and saves a minimal version of a Person object
+// createMinimalSamplePerson creates an unsaved minimal version of a Person object
 // for testing.
-func createMinimalSamplePerson(ctx context.Context) *Person {
+func createMinimalSamplePerson() *Person {
 	obj := NewPerson()
 
 	obj.SetFirstName(test.RandomValue[string](50))
@@ -78,9 +77,22 @@ func createMinimalSamplePerson(ctx context.Context) *Person {
 
 	obj.SetTypes(test.RandomEnumArray(PersonTypes()))
 
-	obj.Save(ctx)
 	return obj
 }
+
+// createMaximalSamplePerson creates an unsaved version of a Person object
+// for testing that includes references to minimal objects.
+func createMaximalSamplePerson() *Person {
+	obj := createMinimalSamplePerson()
+
+	obj.SetAddresses(createMinimalSampleAddress())
+	obj.SetEmployeeInfo(createMinimalSampleEmployeeInfo())
+	obj.SetLogin(createMinimalSampleLogin())
+	obj.SetManagerProjects(createMinimalSampleProject())
+	obj.SetProjects(createMinimalSampleProject())
+	return obj
+}
+
 func TestPerson_CRUD(t *testing.T) {
 	obj := NewPerson()
 	ctx := db.NewContext(nil)

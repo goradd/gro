@@ -48,7 +48,7 @@ func queryGifts(ctx context.Context) GiftBuilder {
 	return newGiftBuilder(ctx)
 }
 
-// DeleteGift deletes a gift record from the database given its primary key.
+// DeleteGift deletes the gift record wtih primary key pk from the database.
 // Note that you can also delete loaded Gift objects by calling Delete on them.
 // doc: type=Gift
 func DeleteGift(ctx context.Context, pk int) {

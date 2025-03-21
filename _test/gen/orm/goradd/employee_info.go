@@ -49,7 +49,7 @@ func queryEmployeeInfos(ctx context.Context) EmployeeInfoBuilder {
 	return newEmployeeInfoBuilder(ctx)
 }
 
-// DeleteEmployeeInfo deletes a employee_info record from the database given its primary key.
+// DeleteEmployeeInfo deletes the employee_info record wtih primary key pk from the database.
 // Note that you can also delete loaded EmployeeInfo objects by calling Delete on them.
 // doc: type=EmployeeInfo
 func DeleteEmployeeInfo(ctx context.Context, pk string) {
