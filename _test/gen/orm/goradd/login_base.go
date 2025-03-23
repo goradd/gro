@@ -948,8 +948,7 @@ func (o *loginBase) insert(ctx context.Context) (err error) {
 			if err = o.objPerson.Save(ctx); err != nil {
 				return err
 			}
-			id := o.objPerson.PrimaryKey()
-			o.SetPersonID(id)
+			o.personID = o.objPerson.PrimaryKey()
 		}
 
 		if !o.usernameIsValid {

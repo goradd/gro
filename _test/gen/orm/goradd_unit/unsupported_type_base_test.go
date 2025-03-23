@@ -3,10 +3,15 @@
 package goradd_unit
 
 import (
+	"context"
+	"strconv"
 	"testing"
 
+	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
+	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUnsupportedType_SetTypeSet(t *testing.T) {
@@ -244,6 +249,31 @@ func TestUnsupportedType_SetTypeMultifk2(t *testing.T) {
 	})
 }
 
+func TestUnsupportedType_Copy(t *testing.T) {
+	obj := createMinimalSampleUnsupportedType()
+
+	obj2 := obj.Copy()
+
+	assert.Equal(t, obj.TypeSet(), obj2.TypeSet())
+	assert.Equal(t, obj.TypeEnumerated(), obj2.TypeEnumerated())
+	assert.Equal(t, obj.TypeDecimal(), obj2.TypeDecimal())
+	assert.Equal(t, obj.TypeDouble(), obj2.TypeDouble())
+	assert.Equal(t, obj.TypeGeo(), obj2.TypeGeo())
+	assert.Equal(t, obj.TypeTinyBlob(), obj2.TypeTinyBlob())
+	assert.Equal(t, obj.TypeMediumBlob(), obj2.TypeMediumBlob())
+	assert.Equal(t, obj.TypeVarbinary(), obj2.TypeVarbinary())
+	assert.Equal(t, obj.TypeLongtext(), obj2.TypeLongtext())
+	assert.Equal(t, obj.TypeBinary(), obj2.TypeBinary())
+	assert.Equal(t, obj.TypeSmall(), obj2.TypeSmall())
+	assert.Equal(t, obj.TypeMedium(), obj2.TypeMedium())
+	assert.Equal(t, obj.TypeBig(), obj2.TypeBig())
+	assert.Equal(t, obj.TypePolygon(), obj2.TypePolygon())
+	assert.Equal(t, obj.TypeUnsigned(), obj2.TypeUnsigned())
+	assert.Equal(t, obj.TypeMultfk1(), obj2.TypeMultfk1())
+	assert.Equal(t, obj.TypeMultifk2(), obj2.TypeMultifk2())
+
+}
+
 // createMinimalSampleUnsupportedType creates an unsaved minimal version of a UnsupportedType object
 // for testing.
 func createMinimalSampleUnsupportedType() *UnsupportedType {
@@ -282,4 +312,54 @@ func createMaximalSampleUnsupportedType() *UnsupportedType {
 	obj := createMinimalSampleUnsupportedType()
 
 	return obj
+}
+
+// deleteSampleUnsupportedType deletes an object created and saved by one of the sample creator functions.
+func deleteSampleUnsupportedType(ctx context.Context, obj *UnsupportedType) {
+	if obj == nil {
+		return
+	}
+
+	obj.Delete(ctx)
+
+}
+
+func TestUnsupportedType_EmptyPrimaryKeyGetter(t *testing.T) {
+	obj := NewUnsupportedType()
+
+	i, err := strconv.Atoi(obj.TypeSerial())
+	assert.NoError(t, err)
+	assert.True(t, i < 0)
+}
+
+func TestUnsupportedType_Getters(t *testing.T) {
+	obj := createMinimalSampleUnsupportedType()
+
+	i, err := strconv.Atoi(obj.TypeSerial())
+	assert.NoError(t, err)
+	assert.True(t, i < 0)
+
+	ctx := db.NewContext(nil)
+	require.NoError(t, obj.Save(ctx))
+	defer deleteSampleUnsupportedType(ctx, obj)
+
+	obj2 := LoadUnsupportedType(ctx, obj.PrimaryKey(), node.UnsupportedType().PrimaryKey())
+
+	assert.Panics(t, func() { obj2.TypeSet() })
+	assert.Panics(t, func() { obj2.TypeEnumerated() })
+	assert.Panics(t, func() { obj2.TypeDecimal() })
+	assert.Panics(t, func() { obj2.TypeDouble() })
+	assert.Panics(t, func() { obj2.TypeGeo() })
+	assert.Panics(t, func() { obj2.TypeTinyBlob() })
+	assert.Panics(t, func() { obj2.TypeMediumBlob() })
+	assert.Panics(t, func() { obj2.TypeVarbinary() })
+	assert.Panics(t, func() { obj2.TypeLongtext() })
+	assert.Panics(t, func() { obj2.TypeBinary() })
+	assert.Panics(t, func() { obj2.TypeSmall() })
+	assert.Panics(t, func() { obj2.TypeMedium() })
+	assert.Panics(t, func() { obj2.TypeBig() })
+	assert.Panics(t, func() { obj2.TypePolygon() })
+	assert.Panics(t, func() { obj2.TypeUnsigned() })
+	assert.Panics(t, func() { obj2.TypeMultfk1() })
+	assert.Panics(t, func() { obj2.TypeMultifk2() })
 }

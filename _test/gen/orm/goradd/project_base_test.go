@@ -3,11 +3,16 @@
 package goradd
 
 import (
+	"context"
+	"strconv"
 	"testing"
 	"time"
 
+	"github.com/goradd/orm/_test/gen/orm/goradd/node"
+	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestProject_SetNum(t *testing.T) {
@@ -201,6 +206,24 @@ func TestProject_SetParentProjectID(t *testing.T) {
 
 }
 
+func TestProject_Copy(t *testing.T) {
+	obj := createMinimalSampleProject()
+
+	obj2 := obj.Copy()
+
+	assert.Equal(t, obj.Num(), obj2.Num())
+	assert.Equal(t, obj.Status(), obj2.Status())
+	assert.Equal(t, obj.ManagerID(), obj2.ManagerID())
+	assert.Equal(t, obj.Name(), obj2.Name())
+	assert.Equal(t, obj.Description(), obj2.Description())
+	assert.Equal(t, obj.StartDate(), obj2.StartDate())
+	assert.Equal(t, obj.EndDate(), obj2.EndDate())
+	assert.Equal(t, obj.Budget(), obj2.Budget())
+	assert.Equal(t, obj.Spent(), obj2.Spent())
+	assert.Equal(t, obj.ParentProjectID(), obj2.ParentProjectID())
+
+}
+
 // createMinimalSampleProject creates an unsaved minimal version of a Project object
 // for testing.
 func createMinimalSampleProject() *Project {
@@ -236,4 +259,68 @@ func createMaximalSampleProject() *Project {
 	obj.SetParents(createMinimalSampleProject())
 	obj.SetTeamMembers(createMinimalSamplePerson())
 	return obj
+}
+
+// deleteSampleProject deletes an object created and saved by one of the sample creator functions.
+func deleteSampleProject(ctx context.Context, obj *Project) {
+	if obj == nil {
+		return
+	}
+
+	for _, item := range obj.Milestones() {
+		deleteSampleMilestone(ctx, item)
+	}
+	for _, item := range obj.ParentProjectProjects() {
+		deleteSampleProject(ctx, item)
+	}
+
+	for _, item := range obj.Children() {
+		deleteSampleProject(ctx, item)
+	}
+	for _, item := range obj.Parents() {
+		deleteSampleProject(ctx, item)
+	}
+	for _, item := range obj.TeamMembers() {
+		deleteSamplePerson(ctx, item)
+	}
+
+	obj.Delete(ctx)
+
+	deleteSamplePerson(ctx, obj.Manager())
+
+	deleteSampleProject(ctx, obj.ParentProject())
+
+}
+
+func TestProject_EmptyPrimaryKeyGetter(t *testing.T) {
+	obj := NewProject()
+
+	i, err := strconv.Atoi(obj.ID())
+	assert.NoError(t, err)
+	assert.True(t, i < 0)
+}
+
+func TestProject_Getters(t *testing.T) {
+	obj := createMinimalSampleProject()
+
+	i, err := strconv.Atoi(obj.ID())
+	assert.NoError(t, err)
+	assert.True(t, i < 0)
+
+	ctx := db.NewContext(nil)
+	require.NoError(t, obj.Save(ctx))
+	defer deleteSampleProject(ctx, obj)
+
+	obj2 := LoadProject(ctx, obj.PrimaryKey(), node.Project().PrimaryKey())
+
+	assert.Panics(t, func() { obj2.Num() })
+	assert.Panics(t, func() { obj2.Status() })
+	assert.Panics(t, func() { obj2.ManagerID() })
+	assert.Panics(t, func() { obj2.Name() })
+	assert.Panics(t, func() { obj2.Description() })
+	assert.Panics(t, func() { obj2.StartDate() })
+	assert.Panics(t, func() { obj2.EndDate() })
+	assert.Panics(t, func() { obj2.Budget() })
+	assert.Panics(t, func() { obj2.Spent() })
+	assert.Panics(t, func() { obj2.ParentProjectID() })
 }

@@ -3,8 +3,10 @@
 package goradd_unit
 
 import (
+	"context"
 	"testing"
 
+	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -53,6 +55,17 @@ func TestDoubleIndex_SetFieldString(t *testing.T) {
 	})
 }
 
+func TestDoubleIndex_Copy(t *testing.T) {
+	obj := createMinimalSampleDoubleIndex()
+
+	obj2 := obj.Copy()
+
+	assert.Equal(t, obj.ID(), obj2.ID())
+	assert.Equal(t, obj.FieldInt(), obj2.FieldInt())
+	assert.Equal(t, obj.FieldString(), obj2.FieldString())
+
+}
+
 // createMinimalSampleDoubleIndex creates an unsaved minimal version of a DoubleIndex object
 // for testing.
 func createMinimalSampleDoubleIndex() *DoubleIndex {
@@ -73,6 +86,16 @@ func createMaximalSampleDoubleIndex() *DoubleIndex {
 	obj := createMinimalSampleDoubleIndex()
 
 	return obj
+}
+
+// deleteSampleDoubleIndex deletes an object created and saved by one of the sample creator functions.
+func deleteSampleDoubleIndex(ctx context.Context, obj *DoubleIndex) {
+	if obj == nil {
+		return
+	}
+
+	obj.Delete(ctx)
+
 }
 
 func TestDoubleIndex_CRUD(t *testing.T) {
@@ -96,13 +119,56 @@ func TestDoubleIndex_CRUD(t *testing.T) {
 	obj2 := LoadDoubleIndex(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj2)
 
+	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
+
 	assert.True(t, obj2.IDIsValid())
 	assert.EqualValues(t, v_id, obj2.ID())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.idIsDirty)
+	obj2.SetID(obj2.ID())
+	assert.False(t, obj2.idIsDirty)
 
 	assert.True(t, obj2.FieldIntIsValid())
 	assert.EqualValues(t, v_fieldInt, obj2.FieldInt())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.fieldIntIsDirty)
+	obj2.SetFieldInt(obj2.FieldInt())
+	assert.False(t, obj2.fieldIntIsDirty)
 
 	assert.True(t, obj2.FieldStringIsValid())
 	assert.EqualValues(t, v_fieldString, obj2.FieldString())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.fieldStringIsDirty)
+	obj2.SetFieldString(obj2.FieldString())
+	assert.False(t, obj2.fieldStringIsDirty)
 
+}
+
+func TestDoubleIndex_References(t *testing.T) {
+	obj := createMaximalSampleDoubleIndex()
+	ctx := db.NewContext(nil)
+	obj.Save(ctx)
+	defer deleteSampleDoubleIndex(ctx, obj)
+
+	// Test that referenced objects were saved and assigned ids
+
+}
+func TestDoubleIndex_EmptyPrimaryKeyGetter(t *testing.T) {
+	obj := NewDoubleIndex()
+
+	assert.Zero(t, obj.ID())
+}
+
+func TestDoubleIndex_Getters(t *testing.T) {
+	obj := createMinimalSampleDoubleIndex()
+
+	ctx := db.NewContext(nil)
+	require.NoError(t, obj.Save(ctx))
+	defer deleteSampleDoubleIndex(ctx, obj)
+
+	obj2 := LoadDoubleIndex(ctx, obj.PrimaryKey(), node.DoubleIndex().PrimaryKey())
+	assert.Equal(t, obj.ID(), obj2.ID())
+
+	assert.Panics(t, func() { obj2.FieldInt() })
+	assert.Panics(t, func() { obj2.FieldString() })
 }

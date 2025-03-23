@@ -3,8 +3,11 @@
 package goradd
 
 import (
+	"context"
+	"strconv"
 	"testing"
 
+	"github.com/goradd/orm/_test/gen/orm/goradd/node"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -66,6 +69,17 @@ func TestPerson_SetTypes(t *testing.T) {
 
 }
 
+func TestPerson_Copy(t *testing.T) {
+	obj := createMinimalSamplePerson()
+
+	obj2 := obj.Copy()
+
+	assert.Equal(t, obj.FirstName(), obj2.FirstName())
+	assert.Equal(t, obj.LastName(), obj2.LastName())
+	assert.Equal(t, obj.Types(), obj2.Types())
+
+}
+
 // createMinimalSamplePerson creates an unsaved minimal version of a Person object
 // for testing.
 func createMinimalSamplePerson() *Person {
@@ -93,6 +107,29 @@ func createMaximalSamplePerson() *Person {
 	return obj
 }
 
+// deleteSamplePerson deletes an object created and saved by one of the sample creator functions.
+func deleteSamplePerson(ctx context.Context, obj *Person) {
+	if obj == nil {
+		return
+	}
+
+	for _, item := range obj.Addresses() {
+		deleteSampleAddress(ctx, item)
+	}
+	deleteSampleEmployeeInfo(ctx, obj.EmployeeInfo())
+	deleteSampleLogin(ctx, obj.Login())
+	for _, item := range obj.ManagerProjects() {
+		deleteSampleProject(ctx, item)
+	}
+
+	for _, item := range obj.Projects() {
+		deleteSampleProject(ctx, item)
+	}
+
+	obj.Delete(ctx)
+
+}
+
 func TestPerson_CRUD(t *testing.T) {
 	obj := NewPerson()
 	ctx := db.NewContext(nil)
@@ -114,16 +151,65 @@ func TestPerson_CRUD(t *testing.T) {
 	obj2 := LoadPerson(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj2)
 
+	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
+
 	assert.True(t, obj2.IDIsValid())
 
 	assert.True(t, obj2.FirstNameIsValid())
 	assert.EqualValues(t, v_firstName, obj2.FirstName())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.firstNameIsDirty)
+	obj2.SetFirstName(obj2.FirstName())
+	assert.False(t, obj2.firstNameIsDirty)
 
 	assert.True(t, obj2.LastNameIsValid())
 	assert.EqualValues(t, v_lastName, obj2.LastName())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.lastNameIsDirty)
+	obj2.SetLastName(obj2.LastName())
+	assert.False(t, obj2.lastNameIsDirty)
 
 	assert.True(t, obj2.TypesIsValid())
 	assert.False(t, obj2.TypesIsNull())
 	assert.True(t, v_types.Equal(obj2.Types()))
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.typesIsDirty)
+	obj2.SetTypes(obj2.Types())
+	assert.False(t, obj2.typesIsDirty)
 
+}
+
+func TestPerson_References(t *testing.T) {
+	obj := createMaximalSamplePerson()
+	ctx := db.NewContext(nil)
+	obj.Save(ctx)
+	defer deleteSamplePerson(ctx, obj)
+
+	// Test that referenced objects were saved and assigned ids
+
+}
+func TestPerson_EmptyPrimaryKeyGetter(t *testing.T) {
+	obj := NewPerson()
+
+	i, err := strconv.Atoi(obj.ID())
+	assert.NoError(t, err)
+	assert.True(t, i < 0)
+}
+
+func TestPerson_Getters(t *testing.T) {
+	obj := createMinimalSamplePerson()
+
+	i, err := strconv.Atoi(obj.ID())
+	assert.NoError(t, err)
+	assert.True(t, i < 0)
+
+	ctx := db.NewContext(nil)
+	require.NoError(t, obj.Save(ctx))
+	defer deleteSamplePerson(ctx, obj)
+
+	obj2 := LoadPerson(ctx, obj.PrimaryKey(), node.Person().PrimaryKey())
+
+	assert.Panics(t, func() { obj2.FirstName() })
+	assert.Panics(t, func() { obj2.LastName() })
+	assert.Panics(t, func() { obj2.Types() })
 }

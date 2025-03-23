@@ -1,0 +1,42 @@
+//*** {{includeName}}
+
+{{
+func Test{{= table.Identifier }}_EmptyPrimaryKeyGetter(t *testing.T) {
+    obj := New{{= table.Identifier }}()
+
+{{if table.PrimaryKeyColumn().IsAutoId }}
+    i,err := strconv.Atoi(obj.{{= table.PrimaryKeyColumn().Identifier }}())
+    assert.NoError(t, err)
+    assert.True(t, i < 0)
+{{else}}
+    assert.Zero(t, obj.{{= table.PrimaryKeyColumn().Identifier }}())
+{{if}}
+}
+
+func Test{{= table.Identifier }}_Getters(t *testing.T) {
+    obj := createMinimalSample{{= table.Identifier }}()
+
+{{if table.PrimaryKeyColumn().IsAutoId }}
+    i,err := strconv.Atoi(obj.{{= table.PrimaryKeyColumn().Identifier }}())
+    assert.NoError(t, err)
+    assert.True(t, i < 0)
+{{if}}
+
+    ctx := db.NewContext(nil)
+    require.NoError(t, obj.Save(ctx))
+    defer deleteSample{{= table.Identifier }}(ctx, obj)
+
+    obj2 := Load{{= table.Identifier }}(ctx, obj.PrimaryKey(), node.{{= table.Identifier }}().PrimaryKey())
+{{if !table.PrimaryKeyColumn().IsAutoId }}
+    assert.Equal(t, obj.{{= table.PrimaryKeyColumn().Identifier }}(), obj2.{{= table.PrimaryKeyColumn().Identifier }}())
+{{if}}
+
+{{for _, col := range table.Columns }}
+{{if !col.IsPrimaryKey }}
+    assert.Panics(t, func() { obj2.{{= col.Identifier }}() })
+{{if}}
+{{for}}
+}
+
+}}
+

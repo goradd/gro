@@ -6,7 +6,7 @@
 // Set{{= col.ReferenceIdentifier() }} sets the value of {{= col.ReferenceIdentifier() }} in the object, to be saved later using the Save() function.
 func (o *{{= table.DecapIdentifier}}Base) Set{{= col.ReferenceIdentifier() }}({{= col.ReferenceVariableIdentifier() }} *{{= col.ReferenceType() }})  {
 	if {{= col.ReferenceVariableIdentifier() }} == nil {
-		panic("Cannot set {{= col.ReferenceIdentifier() }} to a null value.")
+		panic("Cannot set {{= col.ReferenceIdentifier() }} to a nil value since {{= col.Identifier }} is not nullable.")
 	} else {
 		o.{{= col.ReferenceVariableIdentifier() }} = {{= col.ReferenceVariableIdentifier() }}
 		o.{{= col.VariableIdentifier() }}IsValid = true

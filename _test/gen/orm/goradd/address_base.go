@@ -184,7 +184,7 @@ func (o *addressBase) LoadPerson(ctx context.Context) *Person {
 // SetPerson sets the value of Person in the object, to be saved later using the Save() function.
 func (o *addressBase) SetPerson(objPerson *Person) {
 	if objPerson == nil {
-		panic("Cannot set Person to a null value.")
+		panic("Cannot set Person to a nil value since PersonID is not nullable.")
 	} else {
 		o.objPerson = objPerson
 		o.personIDIsValid = true
@@ -795,8 +795,7 @@ func (o *addressBase) insert(ctx context.Context) (err error) {
 			if err = o.objPerson.Save(ctx); err != nil {
 				return err
 			}
-			id := o.objPerson.PrimaryKey()
-			o.SetPersonID(id)
+			o.personID = o.objPerson.PrimaryKey()
 		}
 
 		if !o.personIDIsValid {

@@ -3,8 +3,11 @@
 package goradd_unit
 
 import (
+	"context"
+	"strconv"
 	"testing"
 
+	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -101,6 +104,20 @@ func TestRoot_SetParentID(t *testing.T) {
 
 }
 
+func TestRoot_Copy(t *testing.T) {
+	obj := createMinimalSampleRoot()
+
+	obj2 := obj.Copy()
+
+	assert.Equal(t, obj.Name(), obj2.Name())
+	assert.Equal(t, obj.OptionalLeafID(), obj2.OptionalLeafID())
+	assert.Equal(t, obj.RequiredLeafID(), obj2.RequiredLeafID())
+	assert.Equal(t, obj.OptionalLeafUniqueID(), obj2.OptionalLeafUniqueID())
+	assert.Equal(t, obj.RequiredLeafUniqueID(), obj2.RequiredLeafUniqueID())
+	assert.Equal(t, obj.ParentID(), obj2.ParentID())
+
+}
+
 // createMinimalSampleRoot creates an unsaved minimal version of a Root object
 // for testing.
 func createMinimalSampleRoot() *Root {
@@ -139,6 +156,30 @@ func createMaximalSampleRoot() *Root {
 	return obj
 }
 
+// deleteSampleRoot deletes an object created and saved by one of the sample creator functions.
+func deleteSampleRoot(ctx context.Context, obj *Root) {
+	if obj == nil {
+		return
+	}
+
+	for _, item := range obj.ParentRoots() {
+		deleteSampleRoot(ctx, item)
+	}
+
+	obj.Delete(ctx)
+
+	deleteSampleLeaf(ctx, obj.OptionalLeaf())
+
+	deleteSampleLeaf(ctx, obj.RequiredLeaf())
+
+	deleteSampleLeaf(ctx, obj.OptionalLeafUnique())
+
+	deleteSampleLeaf(ctx, obj.RequiredLeafUnique())
+
+	deleteSampleRoot(ctx, obj.Parent())
+
+}
+
 func TestRoot_CRUD(t *testing.T) {
 	obj := NewRoot()
 	ctx := db.NewContext(nil)
@@ -148,27 +189,27 @@ func TestRoot_CRUD(t *testing.T) {
 
 	v_objOptionalLeaf := createMinimalSampleLeaf()
 	assert.NoError(t, v_objOptionalLeaf.Save(ctx))
-	defer v_objOptionalLeaf.Delete(ctx)
+	defer deleteSampleLeaf(ctx, v_objOptionalLeaf)
 	obj.SetOptionalLeaf(v_objOptionalLeaf)
 
 	v_objRequiredLeaf := createMinimalSampleLeaf()
 	assert.NoError(t, v_objRequiredLeaf.Save(ctx))
-	defer v_objRequiredLeaf.Delete(ctx)
+	defer deleteSampleLeaf(ctx, v_objRequiredLeaf)
 	obj.SetRequiredLeaf(v_objRequiredLeaf)
 
 	v_objOptionalLeafUnique := createMinimalSampleLeaf()
 	assert.NoError(t, v_objOptionalLeafUnique.Save(ctx))
-	defer v_objOptionalLeafUnique.Delete(ctx)
+	defer deleteSampleLeaf(ctx, v_objOptionalLeafUnique)
 	obj.SetOptionalLeafUnique(v_objOptionalLeafUnique)
 
 	v_objRequiredLeafUnique := createMinimalSampleLeaf()
 	assert.NoError(t, v_objRequiredLeafUnique.Save(ctx))
-	defer v_objRequiredLeafUnique.Delete(ctx)
+	defer deleteSampleLeaf(ctx, v_objRequiredLeafUnique)
 	obj.SetRequiredLeafUnique(v_objRequiredLeafUnique)
 
 	v_objParent := createMinimalSampleRoot()
 	assert.NoError(t, v_objParent.Save(ctx))
-	defer v_objParent.Delete(ctx)
+	defer deleteSampleRoot(ctx, v_objParent)
 	obj.SetParent(v_objParent)
 
 	err := obj.Save(ctx)
@@ -179,26 +220,104 @@ func TestRoot_CRUD(t *testing.T) {
 	obj2 := LoadRoot(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj2)
 
+	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
+
 	assert.True(t, obj2.IDIsValid())
 
 	assert.True(t, obj2.NameIsValid())
 	assert.EqualValues(t, v_name, obj2.Name())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.nameIsDirty)
+	obj2.SetName(obj2.Name())
+	assert.False(t, obj2.nameIsDirty)
 
 	assert.True(t, obj2.OptionalLeafIDIsValid())
 	assert.False(t, obj2.OptionalLeafIDIsNull())
 	assert.NotEmpty(t, obj2.OptionalLeafID())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.optionalLeafIDIsDirty)
+	obj2.SetOptionalLeafID(obj2.OptionalLeafID())
+	assert.False(t, obj2.optionalLeafIDIsDirty)
 
 	assert.True(t, obj2.RequiredLeafIDIsValid())
 	assert.NotEmpty(t, obj2.RequiredLeafID())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.requiredLeafIDIsDirty)
+	obj2.SetRequiredLeafID(obj2.RequiredLeafID())
+	assert.False(t, obj2.requiredLeafIDIsDirty)
 
 	assert.True(t, obj2.OptionalLeafUniqueIDIsValid())
 	assert.NotEmpty(t, obj2.OptionalLeafUniqueID())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.optionalLeafUniqueIDIsDirty)
+	obj2.SetOptionalLeafUniqueID(obj2.OptionalLeafUniqueID())
+	assert.False(t, obj2.optionalLeafUniqueIDIsDirty)
 
 	assert.True(t, obj2.RequiredLeafUniqueIDIsValid())
 	assert.NotEmpty(t, obj2.RequiredLeafUniqueID())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.requiredLeafUniqueIDIsDirty)
+	obj2.SetRequiredLeafUniqueID(obj2.RequiredLeafUniqueID())
+	assert.False(t, obj2.requiredLeafUniqueIDIsDirty)
 
 	assert.True(t, obj2.ParentIDIsValid())
 	assert.False(t, obj2.ParentIDIsNull())
 	assert.NotEmpty(t, obj2.ParentID())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.parentIDIsDirty)
+	obj2.SetParentID(obj2.ParentID())
+	assert.False(t, obj2.parentIDIsDirty)
 
+}
+
+func TestRoot_References(t *testing.T) {
+	obj := createMaximalSampleRoot()
+	ctx := db.NewContext(nil)
+	obj.Save(ctx)
+	defer deleteSampleRoot(ctx, obj)
+
+	// Test that referenced objects were saved and assigned ids
+	assert.NotNil(t, obj.OptionalLeaf())
+	assert.NotEqual(t, '-', obj.OptionalLeaf().PrimaryKey()[0])
+
+	assert.NotNil(t, obj.RequiredLeaf())
+	assert.NotEqual(t, '-', obj.RequiredLeaf().PrimaryKey()[0])
+
+	assert.NotNil(t, obj.OptionalLeafUnique())
+	assert.NotEqual(t, '-', obj.OptionalLeafUnique().PrimaryKey()[0])
+
+	assert.NotNil(t, obj.RequiredLeafUnique())
+	assert.NotEqual(t, '-', obj.RequiredLeafUnique().PrimaryKey()[0])
+
+	assert.NotNil(t, obj.Parent())
+	assert.NotEqual(t, '-', obj.Parent().PrimaryKey()[0])
+
+}
+func TestRoot_EmptyPrimaryKeyGetter(t *testing.T) {
+	obj := NewRoot()
+
+	i, err := strconv.Atoi(obj.ID())
+	assert.NoError(t, err)
+	assert.True(t, i < 0)
+}
+
+func TestRoot_Getters(t *testing.T) {
+	obj := createMinimalSampleRoot()
+
+	i, err := strconv.Atoi(obj.ID())
+	assert.NoError(t, err)
+	assert.True(t, i < 0)
+
+	ctx := db.NewContext(nil)
+	require.NoError(t, obj.Save(ctx))
+	defer deleteSampleRoot(ctx, obj)
+
+	obj2 := LoadRoot(ctx, obj.PrimaryKey(), node.Root().PrimaryKey())
+
+	assert.Panics(t, func() { obj2.Name() })
+	assert.Panics(t, func() { obj2.OptionalLeafID() })
+	assert.Panics(t, func() { obj2.RequiredLeafID() })
+	assert.Panics(t, func() { obj2.OptionalLeafUniqueID() })
+	assert.Panics(t, func() { obj2.RequiredLeafUniqueID() })
+	assert.Panics(t, func() { obj2.ParentID() })
 }

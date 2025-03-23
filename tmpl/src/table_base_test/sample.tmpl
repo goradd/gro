@@ -56,4 +56,37 @@ func createMaximalSample{{= table.Identifier }}() *{{= table.Identifier }} {
     return obj
 }
 
+// deleteSample{{= table.Identifier }} deletes an object created and saved by one of the sample creator functions.
+func deleteSample{{= table.Identifier }}(ctx context.Context, obj *{{= table.Identifier }}) {
+    if obj == nil {
+        return
+    }
+
+{{for _,col := range table.ReverseReferences}}
+{{if col.IsUnique }}
+    deleteSample{{= col.Table.Identifier }}(ctx, obj.{{= col.ReverseIdentifier() }}())
+{{else}}
+    for _,item := range obj.{{= col.ReverseIdentifier() }}() {
+        deleteSample{{= col.Table.Identifier }}(ctx, item)
+    }
+{{if}}
+{{for}}
+
+{{for _,mm := range table.ManyManyReferences}}
+    for _,item := range obj.{{= mm.IdentifierPlural }}() {
+        deleteSample{{= mm.ObjectType() }}(ctx, item)
+    }
+{{for}}
+
+    obj.Delete(ctx)
+{{for _,col := range table.Columns}}
+{{if col.HasSetter()}}
+    {{if col.IsReference()}}
+    deleteSample{{= col.ReferenceType() }}(ctx, obj.{{= col.ReferenceIdentifier() }}())
+    {{if}}
+{{if}}
+{{for}}
+}
+
+
 }}

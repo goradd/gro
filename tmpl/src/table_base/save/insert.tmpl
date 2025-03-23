@@ -15,8 +15,7 @@ func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) (err error
         if err = o.{{= col.ReferenceVariableIdentifier() }}.Save(ctx); err != nil {
             return err
         }
-        id := o.{{= col.ReferenceVariableIdentifier() }}.PrimaryKey()
-        o.Set{{= col.Identifier }}(id)
+        o.{{= col.VariableIdentifier() }} = o.{{= col.ReferenceVariableIdentifier() }}.PrimaryKey()
     }
     {{if}}
 {{for}}

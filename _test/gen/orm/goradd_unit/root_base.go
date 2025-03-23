@@ -374,7 +374,7 @@ func (o *rootBase) LoadRequiredLeaf(ctx context.Context) *Leaf {
 // SetRequiredLeaf sets the value of RequiredLeaf in the object, to be saved later using the Save() function.
 func (o *rootBase) SetRequiredLeaf(objRequiredLeaf *Leaf) {
 	if objRequiredLeaf == nil {
-		panic("Cannot set RequiredLeaf to a null value.")
+		panic("Cannot set RequiredLeaf to a nil value since RequiredLeafID is not nullable.")
 	} else {
 		o.objRequiredLeaf = objRequiredLeaf
 		o.requiredLeafIDIsValid = true
@@ -435,7 +435,7 @@ func (o *rootBase) LoadOptionalLeafUnique(ctx context.Context) *Leaf {
 // SetOptionalLeafUnique sets the value of OptionalLeafUnique in the object, to be saved later using the Save() function.
 func (o *rootBase) SetOptionalLeafUnique(objOptionalLeafUnique *Leaf) {
 	if objOptionalLeafUnique == nil {
-		panic("Cannot set OptionalLeafUnique to a null value.")
+		panic("Cannot set OptionalLeafUnique to a nil value since OptionalLeafUniqueID is not nullable.")
 	} else {
 		o.objOptionalLeafUnique = objOptionalLeafUnique
 		o.optionalLeafUniqueIDIsValid = true
@@ -496,7 +496,7 @@ func (o *rootBase) LoadRequiredLeafUnique(ctx context.Context) *Leaf {
 // SetRequiredLeafUnique sets the value of RequiredLeafUnique in the object, to be saved later using the Save() function.
 func (o *rootBase) SetRequiredLeafUnique(objRequiredLeafUnique *Leaf) {
 	if objRequiredLeafUnique == nil {
-		panic("Cannot set RequiredLeafUnique to a null value.")
+		panic("Cannot set RequiredLeafUnique to a nil value since RequiredLeafUniqueID is not nullable.")
 	} else {
 		o.objRequiredLeafUnique = objRequiredLeafUnique
 		o.requiredLeafUniqueIDIsValid = true
@@ -1455,40 +1455,35 @@ func (o *rootBase) insert(ctx context.Context) (err error) {
 			if err = o.objOptionalLeaf.Save(ctx); err != nil {
 				return err
 			}
-			id := o.objOptionalLeaf.PrimaryKey()
-			o.SetOptionalLeafID(id)
+			o.optionalLeafID = o.objOptionalLeaf.PrimaryKey()
 		}
 
 		if o.objRequiredLeaf != nil {
 			if err = o.objRequiredLeaf.Save(ctx); err != nil {
 				return err
 			}
-			id := o.objRequiredLeaf.PrimaryKey()
-			o.SetRequiredLeafID(id)
+			o.requiredLeafID = o.objRequiredLeaf.PrimaryKey()
 		}
 
 		if o.objOptionalLeafUnique != nil {
 			if err = o.objOptionalLeafUnique.Save(ctx); err != nil {
 				return err
 			}
-			id := o.objOptionalLeafUnique.PrimaryKey()
-			o.SetOptionalLeafUniqueID(id)
+			o.optionalLeafUniqueID = o.objOptionalLeafUnique.PrimaryKey()
 		}
 
 		if o.objRequiredLeafUnique != nil {
 			if err = o.objRequiredLeafUnique.Save(ctx); err != nil {
 				return err
 			}
-			id := o.objRequiredLeafUnique.PrimaryKey()
-			o.SetRequiredLeafUniqueID(id)
+			o.requiredLeafUniqueID = o.objRequiredLeafUnique.PrimaryKey()
 		}
 
 		if o.objParent != nil {
 			if err = o.objParent.Save(ctx); err != nil {
 				return err
 			}
-			id := o.objParent.PrimaryKey()
-			o.SetParentID(id)
+			o.parentID = o.objParent.PrimaryKey()
 		}
 
 		if !o.nameIsValid {

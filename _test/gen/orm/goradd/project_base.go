@@ -2241,16 +2241,14 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 			if err = o.objManager.Save(ctx); err != nil {
 				return err
 			}
-			id := o.objManager.PrimaryKey()
-			o.SetManagerID(id)
+			o.managerID = o.objManager.PrimaryKey()
 		}
 
 		if o.objParentProject != nil {
 			if err = o.objParentProject.Save(ctx); err != nil {
 				return err
 			}
-			id := o.objParentProject.PrimaryKey()
-			o.SetParentProjectID(id)
+			o.parentProjectID = o.objParentProject.PrimaryKey()
 		}
 
 		if !o.numIsValid {

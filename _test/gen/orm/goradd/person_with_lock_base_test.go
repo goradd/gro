@@ -3,8 +3,11 @@
 package goradd
 
 import (
+	"context"
+	"strconv"
 	"testing"
 
+	"github.com/goradd/orm/_test/gen/orm/goradd/node"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -46,6 +49,16 @@ func TestPersonWithLock_SetLastName(t *testing.T) {
 	})
 }
 
+func TestPersonWithLock_Copy(t *testing.T) {
+	obj := createMinimalSamplePersonWithLock()
+
+	obj2 := obj.Copy()
+
+	assert.Equal(t, obj.FirstName(), obj2.FirstName())
+	assert.Equal(t, obj.LastName(), obj2.LastName())
+
+}
+
 // createMinimalSamplePersonWithLock creates an unsaved minimal version of a PersonWithLock object
 // for testing.
 func createMinimalSamplePersonWithLock() *PersonWithLock {
@@ -66,6 +79,16 @@ func createMaximalSamplePersonWithLock() *PersonWithLock {
 	return obj
 }
 
+// deleteSamplePersonWithLock deletes an object created and saved by one of the sample creator functions.
+func deleteSamplePersonWithLock(ctx context.Context, obj *PersonWithLock) {
+	if obj == nil {
+		return
+	}
+
+	obj.Delete(ctx)
+
+}
+
 func TestPersonWithLock_CRUD(t *testing.T) {
 	obj := NewPersonWithLock()
 	ctx := db.NewContext(nil)
@@ -84,16 +107,62 @@ func TestPersonWithLock_CRUD(t *testing.T) {
 	obj2 := LoadPersonWithLock(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj2)
 
+	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
+
 	assert.True(t, obj2.IDIsValid())
 
 	assert.True(t, obj2.FirstNameIsValid())
 	assert.EqualValues(t, v_firstName, obj2.FirstName())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.firstNameIsDirty)
+	obj2.SetFirstName(obj2.FirstName())
+	assert.False(t, obj2.firstNameIsDirty)
 
 	assert.True(t, obj2.LastNameIsValid())
 	assert.EqualValues(t, v_lastName, obj2.LastName())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.lastNameIsDirty)
+	obj2.SetLastName(obj2.LastName())
+	assert.False(t, obj2.lastNameIsDirty)
 
 	assert.True(t, obj2.GroLockIsValid())
 
 	assert.True(t, obj2.GroTimestampIsValid())
 
+}
+
+func TestPersonWithLock_References(t *testing.T) {
+	obj := createMaximalSamplePersonWithLock()
+	ctx := db.NewContext(nil)
+	obj.Save(ctx)
+	defer deleteSamplePersonWithLock(ctx, obj)
+
+	// Test that referenced objects were saved and assigned ids
+
+}
+func TestPersonWithLock_EmptyPrimaryKeyGetter(t *testing.T) {
+	obj := NewPersonWithLock()
+
+	i, err := strconv.Atoi(obj.ID())
+	assert.NoError(t, err)
+	assert.True(t, i < 0)
+}
+
+func TestPersonWithLock_Getters(t *testing.T) {
+	obj := createMinimalSamplePersonWithLock()
+
+	i, err := strconv.Atoi(obj.ID())
+	assert.NoError(t, err)
+	assert.True(t, i < 0)
+
+	ctx := db.NewContext(nil)
+	require.NoError(t, obj.Save(ctx))
+	defer deleteSamplePersonWithLock(ctx, obj)
+
+	obj2 := LoadPersonWithLock(ctx, obj.PrimaryKey(), node.PersonWithLock().PrimaryKey())
+
+	assert.Panics(t, func() { obj2.FirstName() })
+	assert.Panics(t, func() { obj2.LastName() })
+	assert.Panics(t, func() { obj2.GroLock() })
+	assert.Panics(t, func() { obj2.GroTimestamp() })
 }

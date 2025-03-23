@@ -3,9 +3,12 @@
 package goradd_unit
 
 import (
+	"context"
+	"strconv"
 	"testing"
 	"time"
 
+	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -202,6 +205,24 @@ func TestTypeTest_SetTestBlob(t *testing.T) {
 	})
 }
 
+func TestTypeTest_Copy(t *testing.T) {
+	obj := createMinimalSampleTypeTest()
+
+	obj2 := obj.Copy()
+
+	assert.Equal(t, obj.Date(), obj2.Date())
+	assert.Equal(t, obj.Time(), obj2.Time())
+	assert.Equal(t, obj.DateTime(), obj2.DateTime())
+	assert.Equal(t, obj.TestInt(), obj2.TestInt())
+	assert.Equal(t, obj.TestFloat(), obj2.TestFloat())
+	assert.Equal(t, obj.TestDouble(), obj2.TestDouble())
+	assert.Equal(t, obj.TestText(), obj2.TestText())
+	assert.Equal(t, obj.TestBit(), obj2.TestBit())
+	assert.Equal(t, obj.TestVarchar(), obj2.TestVarchar())
+	assert.Equal(t, obj.TestBlob(), obj2.TestBlob())
+
+}
+
 // createMinimalSampleTypeTest creates an unsaved minimal version of a TypeTest object
 // for testing.
 func createMinimalSampleTypeTest() *TypeTest {
@@ -236,6 +257,16 @@ func createMaximalSampleTypeTest() *TypeTest {
 	obj := createMinimalSampleTypeTest()
 
 	return obj
+}
+
+// deleteSampleTypeTest deletes an object created and saved by one of the sample creator functions.
+func deleteSampleTypeTest(ctx context.Context, obj *TypeTest) {
+	if obj == nil {
+		return
+	}
+
+	obj.Delete(ctx)
+
 }
 
 func TestTypeTest_CRUD(t *testing.T) {
@@ -286,19 +317,33 @@ func TestTypeTest_CRUD(t *testing.T) {
 	obj2 := LoadTypeTest(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj2)
 
+	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
+
 	assert.True(t, obj2.IDIsValid())
 
 	assert.True(t, obj2.DateIsValid())
 	assert.False(t, obj2.DateIsNull())
 	assert.EqualValues(t, v_date, obj2.Date())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.dateIsDirty)
+	obj2.SetDate(obj2.Date())
+	assert.False(t, obj2.dateIsDirty)
 
 	assert.True(t, obj2.TimeIsValid())
 	assert.False(t, obj2.TimeIsNull())
 	assert.EqualValues(t, v_time, obj2.Time())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.timeIsDirty)
+	obj2.SetTime(obj2.Time())
+	assert.False(t, obj2.timeIsDirty)
 
 	assert.True(t, obj2.DateTimeIsValid())
 	assert.False(t, obj2.DateTimeIsNull())
 	assert.EqualValues(t, v_dateTime, obj2.DateTime())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.dateTimeIsDirty)
+	obj2.SetDateTime(obj2.DateTime())
+	assert.False(t, obj2.dateTimeIsDirty)
 
 	assert.True(t, obj2.TsIsValid())
 	assert.False(t, obj2.TsIsNull())
@@ -306,27 +351,98 @@ func TestTypeTest_CRUD(t *testing.T) {
 	assert.True(t, obj2.TestIntIsValid())
 	assert.False(t, obj2.TestIntIsNull())
 	assert.EqualValues(t, v_testInt, obj2.TestInt())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.testIntIsDirty)
+	obj2.SetTestInt(obj2.TestInt())
+	assert.False(t, obj2.testIntIsDirty)
 
 	assert.True(t, obj2.TestFloatIsValid())
 	assert.False(t, obj2.TestFloatIsNull())
 	assert.EqualValues(t, v_testFloat, obj2.TestFloat())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.testFloatIsDirty)
+	obj2.SetTestFloat(obj2.TestFloat())
+	assert.False(t, obj2.testFloatIsDirty)
 
 	assert.True(t, obj2.TestDoubleIsValid())
 	assert.EqualValues(t, v_testDouble, obj2.TestDouble())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.testDoubleIsDirty)
+	obj2.SetTestDouble(obj2.TestDouble())
+	assert.False(t, obj2.testDoubleIsDirty)
 
 	assert.True(t, obj2.TestTextIsValid())
 	assert.False(t, obj2.TestTextIsNull())
 	assert.EqualValues(t, v_testText, obj2.TestText())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.testTextIsDirty)
+	obj2.SetTestText(obj2.TestText())
+	assert.False(t, obj2.testTextIsDirty)
 
 	assert.True(t, obj2.TestBitIsValid())
 	assert.False(t, obj2.TestBitIsNull())
 	assert.EqualValues(t, v_testBit, obj2.TestBit())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.testBitIsDirty)
+	obj2.SetTestBit(obj2.TestBit())
+	assert.False(t, obj2.testBitIsDirty)
 
 	assert.True(t, obj2.TestVarcharIsValid())
 	assert.False(t, obj2.TestVarcharIsNull())
 	assert.EqualValues(t, v_testVarchar, obj2.TestVarchar())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.testVarcharIsDirty)
+	obj2.SetTestVarchar(obj2.TestVarchar())
+	assert.False(t, obj2.testVarcharIsDirty)
 
 	assert.True(t, obj2.TestBlobIsValid())
 	assert.EqualValues(t, v_testBlob, obj2.TestBlob())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.testBlobIsDirty)
+	obj2.SetTestBlob(obj2.TestBlob())
+	assert.False(t, obj2.testBlobIsDirty)
 
+}
+
+func TestTypeTest_References(t *testing.T) {
+	obj := createMaximalSampleTypeTest()
+	ctx := db.NewContext(nil)
+	obj.Save(ctx)
+	defer deleteSampleTypeTest(ctx, obj)
+
+	// Test that referenced objects were saved and assigned ids
+
+}
+func TestTypeTest_EmptyPrimaryKeyGetter(t *testing.T) {
+	obj := NewTypeTest()
+
+	i, err := strconv.Atoi(obj.ID())
+	assert.NoError(t, err)
+	assert.True(t, i < 0)
+}
+
+func TestTypeTest_Getters(t *testing.T) {
+	obj := createMinimalSampleTypeTest()
+
+	i, err := strconv.Atoi(obj.ID())
+	assert.NoError(t, err)
+	assert.True(t, i < 0)
+
+	ctx := db.NewContext(nil)
+	require.NoError(t, obj.Save(ctx))
+	defer deleteSampleTypeTest(ctx, obj)
+
+	obj2 := LoadTypeTest(ctx, obj.PrimaryKey(), node.TypeTest().PrimaryKey())
+
+	assert.Panics(t, func() { obj2.Date() })
+	assert.Panics(t, func() { obj2.Time() })
+	assert.Panics(t, func() { obj2.DateTime() })
+	assert.Panics(t, func() { obj2.Ts() })
+	assert.Panics(t, func() { obj2.TestInt() })
+	assert.Panics(t, func() { obj2.TestFloat() })
+	assert.Panics(t, func() { obj2.TestDouble() })
+	assert.Panics(t, func() { obj2.TestText() })
+	assert.Panics(t, func() { obj2.TestBit() })
+	assert.Panics(t, func() { obj2.TestVarchar() })
+	assert.Panics(t, func() { obj2.TestBlob() })
 }

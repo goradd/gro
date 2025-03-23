@@ -14,7 +14,7 @@ func Test{{= table.Identifier }}_CRUD(t *testing.T) {
     {{if col.IsReference()}}
     v_{{= col.ReferenceVariableIdentifier() }} := createMinimalSample{{= col.ReferenceType() }}()
     assert.NoError(t, v_{{= col.ReferenceVariableIdentifier() }}.Save(ctx))
-    defer v_{{= col.ReferenceVariableIdentifier() }}.Delete(ctx)
+    defer deleteSample{{= col.ReferenceType() }}(ctx, v_{{= col.ReferenceVariableIdentifier() }})
     obj.Set{{= col.ReferenceIdentifier() }}(v_{{= col.ReferenceVariableIdentifier() }})
     {{elseif col.IsEnum() }}
         {{if col.IsEnumArray() }}
@@ -41,6 +41,8 @@ func Test{{= table.Identifier }}_CRUD(t *testing.T) {
     obj2 := Load{{= table.Identifier }}(ctx, obj.PrimaryKey())
     require.NotNil(t, obj2)
 
+    assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
+
 {{for _,col := range table.Columns}}
 {{g
     if col.ReceiverType == query.ColTypeUnknown {continue} // cannot know what the set of valid input characters are.
@@ -58,8 +60,33 @@ func Test{{= table.Identifier }}_CRUD(t *testing.T) {
 {{else}}
     assert.EqualValues(t, v_{{= col.VariableIdentifier() }}, obj2.{{= col.Identifier }}())
 {{if}}
+    // test that setting it to the same value will not change the dirty bit
+    assert.False(t, obj2.{{= col.VariableIdentifier() }}IsDirty)
+    obj2.Set{{= col.Identifier }}(obj2.{{= col.Identifier }}())
+    assert.False(t, obj2.{{= col.VariableIdentifier() }}IsDirty)
 {{if}}
 {{for}}
+
+}
+
+
+func Test{{= table.Identifier }}_References(t *testing.T) {
+    obj := createMaximalSample{{= table.Identifier }}()
+    ctx := db.NewContext(nil)
+    obj.Save(ctx)
+    defer deleteSample{{= table.Identifier }}(ctx, obj)
+
+    // Test that referenced objects were saved and assigned ids
+{{for _,col := range table.Columns }}
+{{if col.IsReference() }}
+    assert.NotNil(t, obj.{{= col.ReferenceIdentifier() }}())
+{{if col.Reference.Table.PrimaryKeyColumn().IsAutoId }}
+    assert.NotEqual(t, '-', obj.{{= col.ReferenceIdentifier() }}().PrimaryKey()[0])
+{{if}}
+
+{{if}}
+{{for}}
+
 
 }
 }}

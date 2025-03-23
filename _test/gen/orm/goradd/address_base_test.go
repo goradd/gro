@@ -3,8 +3,11 @@
 package goradd
 
 import (
+	"context"
+	"strconv"
 	"testing"
 
+	"github.com/goradd/orm/_test/gen/orm/goradd/node"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -64,6 +67,17 @@ func TestAddress_SetCity(t *testing.T) {
 	})
 }
 
+func TestAddress_Copy(t *testing.T) {
+	obj := createMinimalSampleAddress()
+
+	obj2 := obj.Copy()
+
+	assert.Equal(t, obj.PersonID(), obj2.PersonID())
+	assert.Equal(t, obj.Street(), obj2.Street())
+	assert.Equal(t, obj.City(), obj2.City())
+
+}
+
 // createMinimalSampleAddress creates an unsaved minimal version of a Address object
 // for testing.
 func createMinimalSampleAddress() *Address {
@@ -89,13 +103,25 @@ func createMaximalSampleAddress() *Address {
 	return obj
 }
 
+// deleteSampleAddress deletes an object created and saved by one of the sample creator functions.
+func deleteSampleAddress(ctx context.Context, obj *Address) {
+	if obj == nil {
+		return
+	}
+
+	obj.Delete(ctx)
+
+	deleteSamplePerson(ctx, obj.Person())
+
+}
+
 func TestAddress_CRUD(t *testing.T) {
 	obj := NewAddress()
 	ctx := db.NewContext(nil)
 
 	v_objPerson := createMinimalSamplePerson()
 	assert.NoError(t, v_objPerson.Save(ctx))
-	defer v_objPerson.Delete(ctx)
+	defer deleteSamplePerson(ctx, v_objPerson)
 	obj.SetPerson(v_objPerson)
 
 	v_street := test.RandomValue[string](100)
@@ -112,16 +138,67 @@ func TestAddress_CRUD(t *testing.T) {
 	obj2 := LoadAddress(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj2)
 
+	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
+
 	assert.True(t, obj2.IDIsValid())
 
 	assert.True(t, obj2.PersonIDIsValid())
 	assert.NotEmpty(t, obj2.PersonID())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.personIDIsDirty)
+	obj2.SetPersonID(obj2.PersonID())
+	assert.False(t, obj2.personIDIsDirty)
 
 	assert.True(t, obj2.StreetIsValid())
 	assert.EqualValues(t, v_street, obj2.Street())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.streetIsDirty)
+	obj2.SetStreet(obj2.Street())
+	assert.False(t, obj2.streetIsDirty)
 
 	assert.True(t, obj2.CityIsValid())
 	assert.False(t, obj2.CityIsNull())
 	assert.EqualValues(t, v_city, obj2.City())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.cityIsDirty)
+	obj2.SetCity(obj2.City())
+	assert.False(t, obj2.cityIsDirty)
 
+}
+
+func TestAddress_References(t *testing.T) {
+	obj := createMaximalSampleAddress()
+	ctx := db.NewContext(nil)
+	obj.Save(ctx)
+	defer deleteSampleAddress(ctx, obj)
+
+	// Test that referenced objects were saved and assigned ids
+	assert.NotNil(t, obj.Person())
+	assert.NotEqual(t, '-', obj.Person().PrimaryKey()[0])
+
+}
+func TestAddress_EmptyPrimaryKeyGetter(t *testing.T) {
+	obj := NewAddress()
+
+	i, err := strconv.Atoi(obj.ID())
+	assert.NoError(t, err)
+	assert.True(t, i < 0)
+}
+
+func TestAddress_Getters(t *testing.T) {
+	obj := createMinimalSampleAddress()
+
+	i, err := strconv.Atoi(obj.ID())
+	assert.NoError(t, err)
+	assert.True(t, i < 0)
+
+	ctx := db.NewContext(nil)
+	require.NoError(t, obj.Save(ctx))
+	defer deleteSampleAddress(ctx, obj)
+
+	obj2 := LoadAddress(ctx, obj.PrimaryKey(), node.Address().PrimaryKey())
+
+	assert.Panics(t, func() { obj2.PersonID() })
+	assert.Panics(t, func() { obj2.Street() })
+	assert.Panics(t, func() { obj2.City() })
 }

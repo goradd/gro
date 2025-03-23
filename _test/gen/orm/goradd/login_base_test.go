@@ -3,8 +3,11 @@
 package goradd
 
 import (
+	"context"
+	"strconv"
 	"testing"
 
+	"github.com/goradd/orm/_test/gen/orm/goradd/node"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -82,6 +85,18 @@ func TestLogin_SetIsEnabled(t *testing.T) {
 
 }
 
+func TestLogin_Copy(t *testing.T) {
+	obj := createMinimalSampleLogin()
+
+	obj2 := obj.Copy()
+
+	assert.Equal(t, obj.PersonID(), obj2.PersonID())
+	assert.Equal(t, obj.Username(), obj2.Username())
+	assert.Equal(t, obj.Password(), obj2.Password())
+	assert.Equal(t, obj.IsEnabled(), obj2.IsEnabled())
+
+}
+
 // createMinimalSampleLogin creates an unsaved minimal version of a Login object
 // for testing.
 func createMinimalSampleLogin() *Login {
@@ -106,13 +121,25 @@ func createMaximalSampleLogin() *Login {
 	return obj
 }
 
+// deleteSampleLogin deletes an object created and saved by one of the sample creator functions.
+func deleteSampleLogin(ctx context.Context, obj *Login) {
+	if obj == nil {
+		return
+	}
+
+	obj.Delete(ctx)
+
+	deleteSamplePerson(ctx, obj.Person())
+
+}
+
 func TestLogin_CRUD(t *testing.T) {
 	obj := NewLogin()
 	ctx := db.NewContext(nil)
 
 	v_objPerson := createMinimalSamplePerson()
 	assert.NoError(t, v_objPerson.Save(ctx))
-	defer v_objPerson.Delete(ctx)
+	defer deleteSamplePerson(ctx, v_objPerson)
 	obj.SetPerson(v_objPerson)
 
 	v_username := test.RandomValue[string](20)
@@ -132,20 +159,76 @@ func TestLogin_CRUD(t *testing.T) {
 	obj2 := LoadLogin(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj2)
 
+	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
+
 	assert.True(t, obj2.IDIsValid())
 
 	assert.True(t, obj2.PersonIDIsValid())
 	assert.False(t, obj2.PersonIDIsNull())
 	assert.NotEmpty(t, obj2.PersonID())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.personIDIsDirty)
+	obj2.SetPersonID(obj2.PersonID())
+	assert.False(t, obj2.personIDIsDirty)
 
 	assert.True(t, obj2.UsernameIsValid())
 	assert.EqualValues(t, v_username, obj2.Username())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.usernameIsDirty)
+	obj2.SetUsername(obj2.Username())
+	assert.False(t, obj2.usernameIsDirty)
 
 	assert.True(t, obj2.PasswordIsValid())
 	assert.False(t, obj2.PasswordIsNull())
 	assert.EqualValues(t, v_password, obj2.Password())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.passwordIsDirty)
+	obj2.SetPassword(obj2.Password())
+	assert.False(t, obj2.passwordIsDirty)
 
 	assert.True(t, obj2.IsEnabledIsValid())
 	assert.EqualValues(t, v_isEnabled, obj2.IsEnabled())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.isEnabledIsDirty)
+	obj2.SetIsEnabled(obj2.IsEnabled())
+	assert.False(t, obj2.isEnabledIsDirty)
 
+}
+
+func TestLogin_References(t *testing.T) {
+	obj := createMaximalSampleLogin()
+	ctx := db.NewContext(nil)
+	obj.Save(ctx)
+	defer deleteSampleLogin(ctx, obj)
+
+	// Test that referenced objects were saved and assigned ids
+	assert.NotNil(t, obj.Person())
+	assert.NotEqual(t, '-', obj.Person().PrimaryKey()[0])
+
+}
+func TestLogin_EmptyPrimaryKeyGetter(t *testing.T) {
+	obj := NewLogin()
+
+	i, err := strconv.Atoi(obj.ID())
+	assert.NoError(t, err)
+	assert.True(t, i < 0)
+}
+
+func TestLogin_Getters(t *testing.T) {
+	obj := createMinimalSampleLogin()
+
+	i, err := strconv.Atoi(obj.ID())
+	assert.NoError(t, err)
+	assert.True(t, i < 0)
+
+	ctx := db.NewContext(nil)
+	require.NoError(t, obj.Save(ctx))
+	defer deleteSampleLogin(ctx, obj)
+
+	obj2 := LoadLogin(ctx, obj.PrimaryKey(), node.Login().PrimaryKey())
+
+	assert.Panics(t, func() { obj2.PersonID() })
+	assert.Panics(t, func() { obj2.Username() })
+	assert.Panics(t, func() { obj2.Password() })
+	assert.Panics(t, func() { obj2.IsEnabled() })
 }

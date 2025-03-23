@@ -3356,7 +3356,15 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, ` to a null value.")
+	if _, err = io.WriteString(_w, ` to a nil value since `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, col.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` is not nullable.")
 	} else {
 		o.`); err != nil {
 		return
@@ -8942,7 +8950,15 @@ func (o *`); err != nil {
 			if _, err = io.WriteString(_w, `.Save(ctx); err != nil {
             return err
         }
-        id := o.`); err != nil {
+        o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` = o.`); err != nil {
 				return
 			}
 
@@ -8951,15 +8967,6 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `.PrimaryKey()
-        o.Set`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `(id)
     }
     `); err != nil {
 				return

@@ -3,8 +3,11 @@
 package goradd
 
 import (
+	"context"
+	"strconv"
 	"testing"
 
+	"github.com/goradd/orm/_test/gen/orm/goradd/node"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -36,6 +39,16 @@ func TestEmployeeInfo_SetEmployeeNumber(t *testing.T) {
 
 }
 
+func TestEmployeeInfo_Copy(t *testing.T) {
+	obj := createMinimalSampleEmployeeInfo()
+
+	obj2 := obj.Copy()
+
+	assert.Equal(t, obj.PersonID(), obj2.PersonID())
+	assert.Equal(t, obj.EmployeeNumber(), obj2.EmployeeNumber())
+
+}
+
 // createMinimalSampleEmployeeInfo creates an unsaved minimal version of a EmployeeInfo object
 // for testing.
 func createMinimalSampleEmployeeInfo() *EmployeeInfo {
@@ -59,13 +72,25 @@ func createMaximalSampleEmployeeInfo() *EmployeeInfo {
 	return obj
 }
 
+// deleteSampleEmployeeInfo deletes an object created and saved by one of the sample creator functions.
+func deleteSampleEmployeeInfo(ctx context.Context, obj *EmployeeInfo) {
+	if obj == nil {
+		return
+	}
+
+	obj.Delete(ctx)
+
+	deleteSamplePerson(ctx, obj.Person())
+
+}
+
 func TestEmployeeInfo_CRUD(t *testing.T) {
 	obj := NewEmployeeInfo()
 	ctx := db.NewContext(nil)
 
 	v_objPerson := createMinimalSamplePerson()
 	assert.NoError(t, v_objPerson.Save(ctx))
-	defer v_objPerson.Delete(ctx)
+	defer deleteSamplePerson(ctx, v_objPerson)
 	obj.SetPerson(v_objPerson)
 
 	v_employeeNumber := test.RandomValue[int](32)
@@ -79,12 +104,58 @@ func TestEmployeeInfo_CRUD(t *testing.T) {
 	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj2)
 
+	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
+
 	assert.True(t, obj2.IDIsValid())
 
 	assert.True(t, obj2.PersonIDIsValid())
 	assert.NotEmpty(t, obj2.PersonID())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.personIDIsDirty)
+	obj2.SetPersonID(obj2.PersonID())
+	assert.False(t, obj2.personIDIsDirty)
 
 	assert.True(t, obj2.EmployeeNumberIsValid())
 	assert.EqualValues(t, v_employeeNumber, obj2.EmployeeNumber())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.employeeNumberIsDirty)
+	obj2.SetEmployeeNumber(obj2.EmployeeNumber())
+	assert.False(t, obj2.employeeNumberIsDirty)
 
+}
+
+func TestEmployeeInfo_References(t *testing.T) {
+	obj := createMaximalSampleEmployeeInfo()
+	ctx := db.NewContext(nil)
+	obj.Save(ctx)
+	defer deleteSampleEmployeeInfo(ctx, obj)
+
+	// Test that referenced objects were saved and assigned ids
+	assert.NotNil(t, obj.Person())
+	assert.NotEqual(t, '-', obj.Person().PrimaryKey()[0])
+
+}
+func TestEmployeeInfo_EmptyPrimaryKeyGetter(t *testing.T) {
+	obj := NewEmployeeInfo()
+
+	i, err := strconv.Atoi(obj.ID())
+	assert.NoError(t, err)
+	assert.True(t, i < 0)
+}
+
+func TestEmployeeInfo_Getters(t *testing.T) {
+	obj := createMinimalSampleEmployeeInfo()
+
+	i, err := strconv.Atoi(obj.ID())
+	assert.NoError(t, err)
+	assert.True(t, i < 0)
+
+	ctx := db.NewContext(nil)
+	require.NoError(t, obj.Save(ctx))
+	defer deleteSampleEmployeeInfo(ctx, obj)
+
+	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey(), node.EmployeeInfo().PrimaryKey())
+
+	assert.Panics(t, func() { obj2.PersonID() })
+	assert.Panics(t, func() { obj2.EmployeeNumber() })
 }

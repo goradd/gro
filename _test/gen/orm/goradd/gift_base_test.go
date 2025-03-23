@@ -3,8 +3,10 @@
 package goradd
 
 import (
+	"context"
 	"testing"
 
+	"github.com/goradd/orm/_test/gen/orm/goradd/node"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -41,6 +43,16 @@ func TestGift_SetName(t *testing.T) {
 	})
 }
 
+func TestGift_Copy(t *testing.T) {
+	obj := createMinimalSampleGift()
+
+	obj2 := obj.Copy()
+
+	assert.Equal(t, obj.Number(), obj2.Number())
+	assert.Equal(t, obj.Name(), obj2.Name())
+
+}
+
 // createMinimalSampleGift creates an unsaved minimal version of a Gift object
 // for testing.
 func createMinimalSampleGift() *Gift {
@@ -61,6 +73,16 @@ func createMaximalSampleGift() *Gift {
 	return obj
 }
 
+// deleteSampleGift deletes an object created and saved by one of the sample creator functions.
+func deleteSampleGift(ctx context.Context, obj *Gift) {
+	if obj == nil {
+		return
+	}
+
+	obj.Delete(ctx)
+
+}
+
 func TestGift_CRUD(t *testing.T) {
 	obj := NewGift()
 	ctx := db.NewContext(nil)
@@ -79,10 +101,48 @@ func TestGift_CRUD(t *testing.T) {
 	obj2 := LoadGift(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj2)
 
+	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
+
 	assert.True(t, obj2.NumberIsValid())
 	assert.EqualValues(t, v_number, obj2.Number())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.numberIsDirty)
+	obj2.SetNumber(obj2.Number())
+	assert.False(t, obj2.numberIsDirty)
 
 	assert.True(t, obj2.NameIsValid())
 	assert.EqualValues(t, v_name, obj2.Name())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.nameIsDirty)
+	obj2.SetName(obj2.Name())
+	assert.False(t, obj2.nameIsDirty)
 
+}
+
+func TestGift_References(t *testing.T) {
+	obj := createMaximalSampleGift()
+	ctx := db.NewContext(nil)
+	obj.Save(ctx)
+	defer deleteSampleGift(ctx, obj)
+
+	// Test that referenced objects were saved and assigned ids
+
+}
+func TestGift_EmptyPrimaryKeyGetter(t *testing.T) {
+	obj := NewGift()
+
+	assert.Zero(t, obj.Number())
+}
+
+func TestGift_Getters(t *testing.T) {
+	obj := createMinimalSampleGift()
+
+	ctx := db.NewContext(nil)
+	require.NoError(t, obj.Save(ctx))
+	defer deleteSampleGift(ctx, obj)
+
+	obj2 := LoadGift(ctx, obj.PrimaryKey(), node.Gift().PrimaryKey())
+	assert.Equal(t, obj.Number(), obj2.Number())
+
+	assert.Panics(t, func() { obj2.Name() })
 }

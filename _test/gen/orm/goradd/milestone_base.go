@@ -168,7 +168,7 @@ func (o *milestoneBase) LoadProject(ctx context.Context) *Project {
 // SetProject sets the value of Project in the object, to be saved later using the Save() function.
 func (o *milestoneBase) SetProject(objProject *Project) {
 	if objProject == nil {
-		panic("Cannot set Project to a null value.")
+		panic("Cannot set Project to a nil value since ProjectID is not nullable.")
 	} else {
 		o.objProject = objProject
 		o.projectIDIsValid = true
@@ -692,8 +692,7 @@ func (o *milestoneBase) insert(ctx context.Context) (err error) {
 			if err = o.objProject.Save(ctx); err != nil {
 				return err
 			}
-			id := o.objProject.PrimaryKey()
-			o.SetProjectID(id)
+			o.projectID = o.objProject.PrimaryKey()
 		}
 
 		if !o.projectIDIsValid {
