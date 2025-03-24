@@ -105,7 +105,7 @@ func deleteSampleDoubleIndex(ctx context.Context, obj *DoubleIndex) {
 
 }
 
-func TestDoubleIndex_CRUD(t *testing.T) {
+func TestDoubleIndex_BasicInsert(t *testing.T) {
 	obj := NewDoubleIndex()
 	ctx := db.NewContext(nil)
 
@@ -167,6 +167,20 @@ func TestDoubleIndex_InsertPanics(t *testing.T) {
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.fieldStringIsValid = true
 
+}
+
+func TestDoubleIndex_BasicUpdate(t *testing.T) {
+	obj := createMinimalSampleDoubleIndex()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSampleDoubleIndex(ctx, obj)
+	updateMinimalSampleDoubleIndex(obj)
+	assert.NoError(t, obj.Save(ctx))
+	obj2 := LoadDoubleIndex(ctx, obj.PrimaryKey())
+
+	assert.Equal(t, obj2.ID(), obj.ID())
+	assert.Equal(t, obj2.FieldInt(), obj.FieldInt())
+	assert.Equal(t, obj2.FieldString(), obj.FieldString())
 }
 
 func TestDoubleIndex_References(t *testing.T) {

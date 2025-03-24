@@ -7893,8 +7893,46 @@ func (o *`); err != nil {
     if !o._restored {
         panic ("cannot update a record that was not originally read from the database.")
     }
+    if !o.IsDirty() {
+        return nil // nothing to save
+    }
 
-    var modifiedFields map[string]interface{}
+var modifiedFields map[string]interface{}
+`); err != nil {
+		return
+	}
+
+	if c := table.LockColumn(); c != nil {
+
+		if _, err = io.WriteString(_w, `    var newLock int64
+`); err != nil {
+			return
+		}
+
+	}
+
+	for _, c := range table.Columns {
+
+		if c.SchemaSubType == schema.ColSubTypeTimestamp {
+
+			if _, err = io.WriteString(_w, `    var v_`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, c.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` int64
+`); err != nil {
+				return
+			}
+
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
     d := Database()
     err := db.ExecuteTransaction(ctx, d, func() error {
 `); err != nil {
@@ -7978,9 +8016,10 @@ func (o *`); err != nil {
 
 	}
 
-	if _, err = io.WriteString(_w, `        // Save all modified fields to the database
-        modifiedFields = o.getModifiedFields()
+	if _, err = io.WriteString(_w, `        modifiedFields = o.getModifiedFields()
         if len(modifiedFields) != 0 {
+            var err2 error
+
 `); err != nil {
 		return
 	}
@@ -7989,7 +8028,16 @@ func (o *`); err != nil {
 
 		if c.SchemaSubType == schema.ColSubTypeTimestamp {
 
-			if _, err = io.WriteString(_w, `            modifiedFields["`); err != nil {
+			if _, err = io.WriteString(_w, `            v_`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, c.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` = time.Now().UnixMicro()
+            modifiedFields["`); err != nil {
 				return
 			}
 
@@ -7997,7 +8045,15 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `"] = time.Now().UnixMicro()
+			if _, err = io.WriteString(_w, `"] = v_`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, c.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `
 `); err != nil {
 				return
 			}
@@ -8008,7 +8064,7 @@ func (o *`); err != nil {
 
 	if c := table.LockColumn(); c == nil {
 
-		if _, err = io.WriteString(_w, `            err := d.Update(ctx, "`); err != nil {
+		if _, err = io.WriteString(_w, `            _, err2 = d.Update(ctx, "`); err != nil {
 			return
 		}
 
@@ -8025,6 +8081,9 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `", o._originalPK, modifiedFields, "", 0)
+            if err2 != nil {
+                return err2
+            }
 `); err != nil {
 			return
 		}
@@ -8048,7 +8107,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, ` field was not selected in a prior query. Be sure to include it in any Select statements.
-            err := d.Update(ctx, "`); err != nil {
+            newLock, err2 = d.Update(ctx, "`); err != nil {
 			return
 		}
 
@@ -8081,16 +8140,16 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `())
+            if err2 != nil {
+                return err2
+            }
 `); err != nil {
 			return
 		}
 
 	}
 
-	if _, err = io.WriteString(_w, `            if err != nil {
-                return err
-            }
-        }
+	if _, err = io.WriteString(_w, `        }
 
 `); err != nil {
 		return
@@ -8868,7 +8927,67 @@ func (o *`); err != nil {
     if err != nil {
         return err
     }
+`); err != nil {
+		return
+	}
 
+	for _, c := range table.Columns {
+
+		if c.SchemaSubType == schema.ColSubTypeTimestamp {
+
+			if _, err = io.WriteString(_w, `    if v_`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, c.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` != 0 {
+        o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, c.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` = v_`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, c.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `
+    }
+`); err != nil {
+				return
+			}
+
+		} else if c.SchemaSubType == schema.ColSubTypeLock {
+
+			if _, err = io.WriteString(_w, `    if newLock != 0 {
+        o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, c.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` = newLock
+    }
+`); err != nil {
+				return
+			}
+
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
 	o.resetDirtyStatus()
 	if len(modifiedFields) != 0 {
         broadcast.Update(ctx, "`); err != nil {
@@ -10666,7 +10785,8 @@ func (o *`); err != nil {
 	if _, err = io.WriteString(_w, `
 }
 
-// IsDirty returns true if the object has been changed since it was read from the database.
+// IsDirty returns true if the object has been changed since it was read from the database or created.
+// However, a new object that has a column with a default value will be automatically marked as dirty upon creation.
 func (o *`); err != nil {
 		return
 	}

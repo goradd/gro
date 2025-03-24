@@ -97,7 +97,7 @@ func deleteSampleMilestone(ctx context.Context, obj *Milestone) {
 
 }
 
-func TestMilestone_CRUD(t *testing.T) {
+func TestMilestone_BasicInsert(t *testing.T) {
 	obj := NewMilestone()
 	ctx := db.NewContext(nil)
 
@@ -149,6 +149,20 @@ func TestMilestone_InsertPanics(t *testing.T) {
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.nameIsValid = true
 
+}
+
+func TestMilestone_BasicUpdate(t *testing.T) {
+	obj := createMinimalSampleMilestone()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSampleMilestone(ctx, obj)
+	updateMinimalSampleMilestone(obj)
+	assert.NoError(t, obj.Save(ctx))
+	obj2 := LoadMilestone(ctx, obj.PrimaryKey())
+
+	assert.Equal(t, obj2.ID(), obj.ID())
+	assert.Equal(t, obj2.ProjectID(), obj.ProjectID())
+	assert.Equal(t, obj2.Name(), obj.Name())
 }
 
 func TestMilestone_References(t *testing.T) {

@@ -91,7 +91,7 @@ func deleteSampleGift(ctx context.Context, obj *Gift) {
 
 }
 
-func TestGift_CRUD(t *testing.T) {
+func TestGift_BasicInsert(t *testing.T) {
 	obj := NewGift()
 	ctx := db.NewContext(nil)
 
@@ -139,6 +139,19 @@ func TestGift_InsertPanics(t *testing.T) {
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.nameIsValid = true
 
+}
+
+func TestGift_BasicUpdate(t *testing.T) {
+	obj := createMinimalSampleGift()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSampleGift(ctx, obj)
+	updateMinimalSampleGift(obj)
+	assert.NoError(t, obj.Save(ctx))
+	obj2 := LoadGift(ctx, obj.PrimaryKey())
+
+	assert.Equal(t, obj2.Number(), obj.Number())
+	assert.Equal(t, obj2.Name(), obj.Name())
 }
 
 func TestGift_References(t *testing.T) {

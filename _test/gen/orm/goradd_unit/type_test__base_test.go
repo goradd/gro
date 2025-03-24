@@ -269,7 +269,7 @@ func deleteSampleTypeTest(ctx context.Context, obj *TypeTest) {
 
 }
 
-func TestTypeTest_CRUD(t *testing.T) {
+func TestTypeTest_BasicInsert(t *testing.T) {
 	obj := NewTypeTest()
 	ctx := db.NewContext(nil)
 
@@ -416,6 +416,29 @@ func TestTypeTest_InsertPanics(t *testing.T) {
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.testBlobIsValid = true
 
+}
+
+func TestTypeTest_BasicUpdate(t *testing.T) {
+	obj := createMinimalSampleTypeTest()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSampleTypeTest(ctx, obj)
+	updateMinimalSampleTypeTest(obj)
+	assert.NoError(t, obj.Save(ctx))
+	obj2 := LoadTypeTest(ctx, obj.PrimaryKey())
+
+	assert.Equal(t, obj2.ID(), obj.ID())
+	assert.Equal(t, obj2.Date(), obj.Date())
+	assert.Equal(t, obj2.Time(), obj.Time())
+	assert.Equal(t, obj2.DateTime(), obj.DateTime())
+	assert.Equal(t, obj2.Ts(), obj.Ts())
+	assert.Equal(t, obj2.TestInt(), obj.TestInt())
+	assert.Equal(t, obj2.TestFloat(), obj.TestFloat())
+	assert.Equal(t, obj2.TestDouble(), obj.TestDouble())
+	assert.Equal(t, obj2.TestText(), obj.TestText())
+	assert.Equal(t, obj2.TestBit(), obj.TestBit())
+	assert.Equal(t, obj2.TestVarchar(), obj.TestVarchar())
+	assert.Equal(t, obj2.TestBlob(), obj.TestBlob())
 }
 
 func TestTypeTest_References(t *testing.T) {

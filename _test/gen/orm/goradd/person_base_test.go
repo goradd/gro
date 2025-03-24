@@ -137,7 +137,7 @@ func deleteSamplePerson(ctx context.Context, obj *Person) {
 
 }
 
-func TestPerson_CRUD(t *testing.T) {
+func TestPerson_BasicInsert(t *testing.T) {
 	obj := NewPerson()
 	ctx := db.NewContext(nil)
 
@@ -198,6 +198,21 @@ func TestPerson_InsertPanics(t *testing.T) {
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.lastNameIsValid = true
 
+}
+
+func TestPerson_BasicUpdate(t *testing.T) {
+	obj := createMinimalSamplePerson()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSamplePerson(ctx, obj)
+	updateMinimalSamplePerson(obj)
+	assert.NoError(t, obj.Save(ctx))
+	obj2 := LoadPerson(ctx, obj.PrimaryKey())
+
+	assert.Equal(t, obj2.ID(), obj.ID())
+	assert.Equal(t, obj2.FirstName(), obj.FirstName())
+	assert.Equal(t, obj2.LastName(), obj.LastName())
+	assert.Equal(t, obj2.Types(), obj.Types())
 }
 
 func TestPerson_References(t *testing.T) {

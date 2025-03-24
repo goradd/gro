@@ -8,28 +8,45 @@ func (o *{{= table.DecapIdentifier}}Base) update(ctx context.Context) error {
     if !o._restored {
         panic ("cannot update a record that was not originally read from the database.")
     }
+    if !o.IsDirty() {
+        return nil // nothing to save
+    }
 
-    var modifiedFields map[string]interface{}
+var modifiedFields map[string]interface{}
+{{if c := table.LockColumn(); c != nil }}
+    var newLock int64
+{{if}}
+{{for _,c := range table.Columns }}
+{{if c.SchemaSubType == schema.ColSubTypeTimestamp}}
+    var v_{{= c.VariableIdentifier() }} int64
+{{if}}
+{{for}}
+
     d := Database()
     err := db.ExecuteTransaction(ctx, d, func() error {
 {{: "update_ref.tmpl" }}
-        // Save all modified fields to the database
         modifiedFields = o.getModifiedFields()
         if len(modifiedFields) != 0 {
+            var err2 error
+
 {{for _,c := range table.Columns }}
 {{if c.SchemaSubType == schema.ColSubTypeTimestamp}}
-            modifiedFields["{{= c.QueryName }}"] = time.Now().UnixMicro()
+            v_{{= c.VariableIdentifier() }} = time.Now().UnixMicro()
+            modifiedFields["{{= c.QueryName }}"] = v_{{= c.VariableIdentifier() }}
 {{if}}
 {{for}}
 {{if c := table.LockColumn(); c == nil }}
-            err := d.Update(ctx, "{{= table.QueryName }}", "{{= table.PrimaryKeyColumn().QueryName }}", o._originalPK, modifiedFields, "", 0)
+            _, err2 = d.Update(ctx, "{{= table.QueryName }}", "{{= table.PrimaryKeyColumn().QueryName }}", o._originalPK, modifiedFields, "", 0)
+            if err2 != nil {
+                return err2
+            }
 {{else}}
             // If this panics with an invalid {{= c.Identifier}} value, then the {{= c.Identifier}} field was not selected in a prior query. Be sure to include it in any Select statements.
-            err := d.Update(ctx, "{{= table.QueryName }}", "{{= table.PrimaryKeyColumn().QueryName }}", o._originalPK, modifiedFields, "{{= c.QueryName }}", o.{{= c.Identifier}}())
-{{if}}
-            if err != nil {
-                return err
+            newLock, err2 = d.Update(ctx, "{{= table.QueryName }}", "{{= table.PrimaryKeyColumn().QueryName }}", o._originalPK, modifiedFields, "{{= c.QueryName }}", o.{{= c.Identifier}}())
+            if err2 != nil {
+                return err2
             }
+{{if}}
         }
 
 {{: "update_rev.tmpl" }}
@@ -40,6 +57,18 @@ func (o *{{= table.DecapIdentifier}}Base) update(ctx context.Context) error {
     if err != nil {
         return err
     }
+{{# update auto-generated fields after we are sure transaction was successful }}
+{{for _,c := range table.Columns }}
+{{if c.SchemaSubType == schema.ColSubTypeTimestamp}}
+    if v_{{= c.VariableIdentifier() }} != 0 {
+        o.{{= c.VariableIdentifier() }} = v_{{= c.VariableIdentifier() }}
+    }
+{{elseif c.SchemaSubType == schema.ColSubTypeLock}}
+    if newLock != 0 {
+        o.{{= c.VariableIdentifier() }} = newLock
+    }
+{{if}}
+{{for}}
 
 	o.resetDirtyStatus()
 	if len(modifiedFields) != 0 {

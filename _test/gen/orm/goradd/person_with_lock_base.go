@@ -681,19 +681,27 @@ func (o *personWithLockBase) update(ctx context.Context) error {
 	if !o._restored {
 		panic("cannot update a record that was not originally read from the database.")
 	}
+	if !o.IsDirty() {
+		return nil // nothing to save
+	}
 
 	var modifiedFields map[string]interface{}
+	var newLock int64
+	var v_groTimestamp int64
+
 	d := Database()
 	err := db.ExecuteTransaction(ctx, d, func() error {
 
-		// Save all modified fields to the database
 		modifiedFields = o.getModifiedFields()
 		if len(modifiedFields) != 0 {
-			modifiedFields["gro_timestamp"] = time.Now().UnixMicro()
+			var err2 error
+
+			v_groTimestamp = time.Now().UnixMicro()
+			modifiedFields["gro_timestamp"] = v_groTimestamp
 			// If this panics with an invalid GroLock value, then the GroLock field was not selected in a prior query. Be sure to include it in any Select statements.
-			err := d.Update(ctx, "person_with_lock", "id", o._originalPK, modifiedFields, "gro_lock", o.GroLock())
-			if err != nil {
-				return err
+			newLock, err2 = d.Update(ctx, "person_with_lock", "id", o._originalPK, modifiedFields, "gro_lock", o.GroLock())
+			if err2 != nil {
+				return err2
 			}
 		}
 
@@ -701,6 +709,12 @@ func (o *personWithLockBase) update(ctx context.Context) error {
 	}) // transaction
 	if err != nil {
 		return err
+	}
+	if newLock != 0 {
+		o.groLock = newLock
+	}
+	if v_groTimestamp != 0 {
+		o.groTimestamp = v_groTimestamp
 	}
 
 	o.resetDirtyStatus()
@@ -807,7 +821,8 @@ func (o *personWithLockBase) resetDirtyStatus() {
 
 }
 
-// IsDirty returns true if the object has been changed since it was read from the database.
+// IsDirty returns true if the object has been changed since it was read from the database or created.
+// However, a new object that has a column with a default value will be automatically marked as dirty upon creation.
 func (o *personWithLockBase) IsDirty() (dirty bool) {
 	dirty = o.firstNameIsDirty ||
 		o.lastNameIsDirty

@@ -186,7 +186,7 @@ func deleteSampleRoot(ctx context.Context, obj *Root) {
 
 }
 
-func TestRoot_CRUD(t *testing.T) {
+func TestRoot_BasicInsert(t *testing.T) {
 	obj := NewRoot()
 	ctx := db.NewContext(nil)
 
@@ -296,6 +296,24 @@ func TestRoot_InsertPanics(t *testing.T) {
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.requiredLeafUniqueIDIsValid = true
 
+}
+
+func TestRoot_BasicUpdate(t *testing.T) {
+	obj := createMinimalSampleRoot()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSampleRoot(ctx, obj)
+	updateMinimalSampleRoot(obj)
+	assert.NoError(t, obj.Save(ctx))
+	obj2 := LoadRoot(ctx, obj.PrimaryKey())
+
+	assert.Equal(t, obj2.ID(), obj.ID())
+	assert.Equal(t, obj2.Name(), obj.Name())
+	assert.Equal(t, obj2.OptionalLeafID(), obj.OptionalLeafID())
+	assert.Equal(t, obj2.RequiredLeafID(), obj.RequiredLeafID())
+	assert.Equal(t, obj2.OptionalLeafUniqueID(), obj.OptionalLeafUniqueID())
+	assert.Equal(t, obj2.RequiredLeafUniqueID(), obj.RequiredLeafUniqueID())
+	assert.Equal(t, obj2.ParentID(), obj.ParentID())
 }
 
 func TestRoot_References(t *testing.T) {

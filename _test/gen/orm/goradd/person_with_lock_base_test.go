@@ -97,7 +97,7 @@ func deleteSamplePersonWithLock(ctx context.Context, obj *PersonWithLock) {
 
 }
 
-func TestPersonWithLock_CRUD(t *testing.T) {
+func TestPersonWithLock_BasicInsert(t *testing.T) {
 	obj := NewPersonWithLock()
 	ctx := db.NewContext(nil)
 
@@ -151,6 +151,22 @@ func TestPersonWithLock_InsertPanics(t *testing.T) {
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.lastNameIsValid = true
 
+}
+
+func TestPersonWithLock_BasicUpdate(t *testing.T) {
+	obj := createMinimalSamplePersonWithLock()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSamplePersonWithLock(ctx, obj)
+	updateMinimalSamplePersonWithLock(obj)
+	assert.NoError(t, obj.Save(ctx))
+	obj2 := LoadPersonWithLock(ctx, obj.PrimaryKey())
+
+	assert.Equal(t, obj2.ID(), obj.ID())
+	assert.Equal(t, obj2.FirstName(), obj.FirstName())
+	assert.Equal(t, obj2.LastName(), obj.LastName())
+	assert.Equal(t, obj2.GroLock(), obj.GroLock())
+	assert.Equal(t, obj2.GroTimestamp(), obj.GroTimestamp())
 }
 
 func TestPersonWithLock_References(t *testing.T) {

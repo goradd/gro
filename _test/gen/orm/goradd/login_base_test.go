@@ -140,7 +140,7 @@ func deleteSampleLogin(ctx context.Context, obj *Login) {
 
 }
 
-func TestLogin_CRUD(t *testing.T) {
+func TestLogin_BasicInsert(t *testing.T) {
 	obj := NewLogin()
 	ctx := db.NewContext(nil)
 
@@ -210,6 +210,22 @@ func TestLogin_InsertPanics(t *testing.T) {
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.usernameIsValid = true
 
+}
+
+func TestLogin_BasicUpdate(t *testing.T) {
+	obj := createMinimalSampleLogin()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSampleLogin(ctx, obj)
+	updateMinimalSampleLogin(obj)
+	assert.NoError(t, obj.Save(ctx))
+	obj2 := LoadLogin(ctx, obj.PrimaryKey())
+
+	assert.Equal(t, obj2.ID(), obj.ID())
+	assert.Equal(t, obj2.PersonID(), obj.PersonID())
+	assert.Equal(t, obj2.Username(), obj.Username())
+	assert.Equal(t, obj2.Password(), obj.Password())
+	assert.Equal(t, obj2.IsEnabled(), obj.IsEnabled())
 }
 
 func TestLogin_References(t *testing.T) {

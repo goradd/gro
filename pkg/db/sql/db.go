@@ -13,6 +13,7 @@ import (
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/db/jointree"
 	. "github.com/goradd/orm/pkg/query"
+	"log"
 	"log/slog"
 	"strings"
 	"time"
@@ -141,7 +142,7 @@ func (h *DbHelper) Rollback(ctx context.Context, txid db.TransactionID) {
 		c.txCount = 0
 		c.tx = nil
 		if err != nil {
-			panic(err.Error())
+			log.Panic(err.Error())
 		}
 	}
 }
@@ -337,39 +338,61 @@ func (h *DbHelper) Update(ctx context.Context,
 	fields map[string]any,
 	optLockFieldName string,
 	optLockFieldValue int64,
-) error {
+) (newLock int64, err error) {
+	if len(fields) == 0 {
+		panic("fields must not be empty")
+	}
+	newLock, err = h.checkLock(ctx, table, pkName, pkValue, optLockFieldName, optLockFieldValue)
+	if err != nil {
+		return
+	}
+	if newLock != 0 {
+		fields[optLockFieldName] = newLock
+	}
+	s, args := GenerateUpdate(h.dbi, table, fields, map[string]any{pkName: pkValue})
+	_, err = h.SqlExec(ctx, s, args...)
+	if err != nil {
+		log.Panic(err) // some kind of database error, should be notified immediately
+	}
+	return
+}
+
+func (h *DbHelper) checkLock(ctx context.Context,
+	table string,
+	pkName string,
+	pkValue any,
+	optLockFieldName string,
+	optLockFieldValue int64) (newLock int64, err error) {
+
 	if optLockFieldName != "" {
 		s, args := GenerateVersionLock(h.dbi, table, pkName, pkValue, optLockFieldName, h.IsInTransaction(ctx))
-		if rows, err := h.SqlQuery(ctx, s, args...); err != nil {
-			return err
+		var rows *sql.Rows
+		if rows, err = h.SqlQuery(ctx, s, args...); err != nil {
+			return
 		} else {
 			var version int64
 			defer rows.Close()
 			if !rows.Next() {
 				// The record was deleted prior to an update completing.
-				return db.NewRecordNotFoundError(fmt.Sprintf("Record not found, table: %s, pk: %s", table, pkValue))
+				err = db.NewRecordNotFoundError(fmt.Sprintf("Record not found, table: %s, pk: %s", table, pkValue))
+				return
 			}
 			if err = rows.Scan(&version); err != nil {
 				panic(err) // a database error, perhaps the version field does not exist in the database?
 			}
 			if version != optLockFieldValue {
 				// The record was changed prior to an update completing.
-				return db.NewOptimisticLockError(fmt.Sprintf("Optimistic lock error, table: %s, pk: %s", table, pkValue), nil)
+				err = db.NewOptimisticLockError(fmt.Sprintf("Optimistic lock error, table: %s, pk: %s", table, pkValue), nil)
+				return
 			}
 			// If we get here, and we are in a transaction, the record has been locked until the end of the transaction and optimistic locking is valid.
 			// If not in a transaction, we know that so far the record has not changed, but it still has a slight chance of changing between here
 			// and the execution of the GenerateUpdate below.
-
 			// Generate a new version number prior to saving.
-			fields[optLockFieldName] = db.RecordVersion(optLockFieldValue)
+			newLock = db.RecordVersion(optLockFieldValue)
 		}
 	}
-	s, args := GenerateUpdate(h.dbi, table, fields, map[string]any{pkName: pkValue})
-	_, e := h.SqlExec(ctx, s, args...)
-	if e != nil {
-		panic(e) // some kind of database error, should be notified immediately
-	}
-	return nil
+	return
 }
 
 // BuilderQuery performs a complex query using a query builder.

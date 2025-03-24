@@ -91,7 +91,7 @@ func deleteSampleLeaf(ctx context.Context, obj *Leaf) {
 
 }
 
-func TestLeaf_CRUD(t *testing.T) {
+func TestLeaf_BasicInsert(t *testing.T) {
 	obj := NewLeaf()
 	ctx := db.NewContext(nil)
 
@@ -127,6 +127,19 @@ func TestLeaf_InsertPanics(t *testing.T) {
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.nameIsValid = true
 
+}
+
+func TestLeaf_BasicUpdate(t *testing.T) {
+	obj := createMinimalSampleLeaf()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSampleLeaf(ctx, obj)
+	updateMinimalSampleLeaf(obj)
+	assert.NoError(t, obj.Save(ctx))
+	obj2 := LoadLeaf(ctx, obj.PrimaryKey())
+
+	assert.Equal(t, obj2.ID(), obj.ID())
+	assert.Equal(t, obj2.Name(), obj.Name())
 }
 
 func TestLeaf_References(t *testing.T) {

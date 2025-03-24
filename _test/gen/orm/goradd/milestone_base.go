@@ -646,8 +646,12 @@ func (o *milestoneBase) update(ctx context.Context) error {
 	if !o._restored {
 		panic("cannot update a record that was not originally read from the database.")
 	}
+	if !o.IsDirty() {
+		return nil // nothing to save
+	}
 
 	var modifiedFields map[string]interface{}
+
 	d := Database()
 	err := db.ExecuteTransaction(ctx, d, func() error {
 
@@ -660,12 +664,13 @@ func (o *milestoneBase) update(ctx context.Context) error {
 			o.SetProjectID(id)
 		}
 
-		// Save all modified fields to the database
 		modifiedFields = o.getModifiedFields()
 		if len(modifiedFields) != 0 {
-			err := d.Update(ctx, "milestone", "id", o._originalPK, modifiedFields, "", 0)
-			if err != nil {
-				return err
+			var err2 error
+
+			_, err2 = d.Update(ctx, "milestone", "id", o._originalPK, modifiedFields, "", 0)
+			if err2 != nil {
+				return err2
 			}
 		}
 
@@ -775,7 +780,8 @@ func (o *milestoneBase) resetDirtyStatus() {
 
 }
 
-// IsDirty returns true if the object has been changed since it was read from the database.
+// IsDirty returns true if the object has been changed since it was read from the database or created.
+// However, a new object that has a column with a default value will be automatically marked as dirty upon creation.
 func (o *milestoneBase) IsDirty() (dirty bool) {
 	dirty = o.projectIDIsDirty ||
 		(o.objProject != nil && o.objProject.IsDirty()) ||

@@ -78,7 +78,7 @@ func deleteSampleLeafLock(ctx context.Context, obj *LeafLock) {
 
 }
 
-func TestLeafLock_CRUD(t *testing.T) {
+func TestLeafLock_BasicInsert(t *testing.T) {
 	obj := NewLeafLock()
 	ctx := db.NewContext(nil)
 
@@ -116,6 +116,20 @@ func TestLeafLock_InsertPanics(t *testing.T) {
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.nameIsValid = true
 
+}
+
+func TestLeafLock_BasicUpdate(t *testing.T) {
+	obj := createMinimalSampleLeafLock()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSampleLeafLock(ctx, obj)
+	updateMinimalSampleLeafLock(obj)
+	assert.NoError(t, obj.Save(ctx))
+	obj2 := LoadLeafLock(ctx, obj.PrimaryKey())
+
+	assert.Equal(t, obj2.ID(), obj.ID())
+	assert.Equal(t, obj2.Name(), obj.Name())
+	assert.Equal(t, obj2.GroLock(), obj.GroLock())
 }
 
 func TestLeafLock_References(t *testing.T) {

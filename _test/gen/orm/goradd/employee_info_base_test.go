@@ -92,7 +92,7 @@ func deleteSampleEmployeeInfo(ctx context.Context, obj *EmployeeInfo) {
 
 }
 
-func TestEmployeeInfo_CRUD(t *testing.T) {
+func TestEmployeeInfo_BasicInsert(t *testing.T) {
 	obj := NewEmployeeInfo()
 	ctx := db.NewContext(nil)
 
@@ -144,6 +144,20 @@ func TestEmployeeInfo_InsertPanics(t *testing.T) {
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.employeeNumberIsValid = true
 
+}
+
+func TestEmployeeInfo_BasicUpdate(t *testing.T) {
+	obj := createMinimalSampleEmployeeInfo()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSampleEmployeeInfo(ctx, obj)
+	updateMinimalSampleEmployeeInfo(obj)
+	assert.NoError(t, obj.Save(ctx))
+	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey())
+
+	assert.Equal(t, obj2.ID(), obj.ID())
+	assert.Equal(t, obj2.PersonID(), obj.PersonID())
+	assert.Equal(t, obj2.EmployeeNumber(), obj.EmployeeNumber())
 }
 
 func TestEmployeeInfo_References(t *testing.T) {

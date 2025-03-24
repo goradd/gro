@@ -122,7 +122,7 @@ func deleteSampleAddress(ctx context.Context, obj *Address) {
 
 }
 
-func TestAddress_CRUD(t *testing.T) {
+func TestAddress_BasicInsert(t *testing.T) {
 	obj := NewAddress()
 	ctx := db.NewContext(nil)
 
@@ -185,6 +185,21 @@ func TestAddress_InsertPanics(t *testing.T) {
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.streetIsValid = true
 
+}
+
+func TestAddress_BasicUpdate(t *testing.T) {
+	obj := createMinimalSampleAddress()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSampleAddress(ctx, obj)
+	updateMinimalSampleAddress(obj)
+	assert.NoError(t, obj.Save(ctx))
+	obj2 := LoadAddress(ctx, obj.PrimaryKey())
+
+	assert.Equal(t, obj2.ID(), obj.ID())
+	assert.Equal(t, obj2.PersonID(), obj.PersonID())
+	assert.Equal(t, obj2.Street(), obj.Street())
+	assert.Equal(t, obj2.City(), obj.City())
 }
 
 func TestAddress_References(t *testing.T) {
