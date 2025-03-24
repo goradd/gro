@@ -227,36 +227,36 @@ func TestTypeTest_Copy(t *testing.T) {
 // for testing.
 func createMinimalSampleTypeTest() *TypeTest {
 	obj := NewTypeTest()
-
-	obj.SetDate(test.RandomValue[time.Time](0))
-
-	obj.SetTime(test.RandomValue[time.Time](0))
-
-	obj.SetDateTime(test.RandomValue[time.Time](0))
-
-	obj.SetTestInt(test.RandomValue[int](32))
-
-	obj.SetTestFloat(test.RandomValue[float32](32))
-
-	obj.SetTestDouble(test.RandomValue[float64](64))
-
-	obj.SetTestText(test.RandomValue[string](65535))
-
-	obj.SetTestBit(test.RandomValue[bool](0))
-
-	obj.SetTestVarchar(test.RandomValue[string](10))
-
-	obj.SetTestBlob(test.RandomValue[[]byte](65535))
-
+	updateMinimalSampleTypeTest(obj)
 	return obj
+}
+
+// updateMinimalSampleTypeTest sets the values of a minimal sample to new, random values.
+func updateMinimalSampleTypeTest(obj *TypeTest) {
+	obj.SetDate(test.RandomValue[time.Time](0))
+	obj.SetTime(test.RandomValue[time.Time](0))
+	obj.SetDateTime(test.RandomValue[time.Time](0))
+	obj.SetTestInt(test.RandomValue[int](32))
+	obj.SetTestFloat(test.RandomValue[float32](32))
+	obj.SetTestDouble(test.RandomValue[float64](64))
+	obj.SetTestText(test.RandomValue[string](65535))
+	obj.SetTestBit(test.RandomValue[bool](0))
+	obj.SetTestVarchar(test.RandomValue[string](10))
+	obj.SetTestBlob(test.RandomValue[[]byte](65535))
 }
 
 // createMaximalSampleTypeTest creates an unsaved version of a TypeTest object
 // for testing that includes references to minimal objects.
 func createMaximalSampleTypeTest() *TypeTest {
-	obj := createMinimalSampleTypeTest()
-
+	obj := NewTypeTest()
+	updateMaximalSampleTypeTest(obj)
 	return obj
+}
+
+// updateMaximalSampleTypeTest sets all the maximal sample values to new values.
+func updateMaximalSampleTypeTest(obj *TypeTest) {
+	updateMinimalSampleTypeTest(obj)
+
 }
 
 // deleteSampleTypeTest deletes an object created and saved by one of the sample creator functions.
@@ -401,6 +401,20 @@ func TestTypeTest_CRUD(t *testing.T) {
 	assert.False(t, obj2.testBlobIsDirty)
 	obj2.SetTestBlob(obj2.TestBlob())
 	assert.False(t, obj2.testBlobIsDirty)
+
+}
+
+func TestTypeTest_InsertPanics(t *testing.T) {
+	obj := createMinimalSampleTypeTest()
+	ctx := db.NewContext(nil)
+
+	obj.testDoubleIsValid = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.testDoubleIsValid = true
+
+	obj.testBlobIsValid = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.testBlobIsValid = true
 
 }
 

@@ -278,40 +278,38 @@ func TestUnsupportedType_Copy(t *testing.T) {
 // for testing.
 func createMinimalSampleUnsupportedType() *UnsupportedType {
 	obj := NewUnsupportedType()
-
-	obj.SetTypeSet(test.RandomValue[string](5))
-
-	obj.SetTypeEnumerated(test.RandomValue[string](1))
-
-	obj.SetTypeDouble(test.RandomValue[float64](64))
-
-	obj.SetTypeTinyBlob(test.RandomValue[[]byte](255))
-
-	obj.SetTypeMediumBlob(test.RandomValue[[]byte](16777215))
-
-	obj.SetTypeLongtext(test.RandomValue[string](4294967295))
-
-	obj.SetTypeSmall(test.RandomValue[int](16))
-
-	obj.SetTypeMedium(test.RandomValue[int](24))
-
-	obj.SetTypeBig(test.RandomValue[int64](64))
-
-	obj.SetTypeUnsigned(test.RandomValue[uint](32))
-
-	obj.SetTypeMultfk1(test.RandomValue[string](50))
-
-	obj.SetTypeMultifk2(test.RandomValue[string](50))
-
+	updateMinimalSampleUnsupportedType(obj)
 	return obj
+}
+
+// updateMinimalSampleUnsupportedType sets the values of a minimal sample to new, random values.
+func updateMinimalSampleUnsupportedType(obj *UnsupportedType) {
+	obj.SetTypeSet(test.RandomValue[string](5))
+	obj.SetTypeEnumerated(test.RandomValue[string](1))
+	obj.SetTypeDouble(test.RandomValue[float64](64))
+	obj.SetTypeTinyBlob(test.RandomValue[[]byte](255))
+	obj.SetTypeMediumBlob(test.RandomValue[[]byte](16777215))
+	obj.SetTypeLongtext(test.RandomValue[string](4294967295))
+	obj.SetTypeSmall(test.RandomValue[int](16))
+	obj.SetTypeMedium(test.RandomValue[int](24))
+	obj.SetTypeBig(test.RandomValue[int64](64))
+	obj.SetTypeUnsigned(test.RandomValue[uint](32))
+	obj.SetTypeMultfk1(test.RandomValue[string](50))
+	obj.SetTypeMultifk2(test.RandomValue[string](50))
 }
 
 // createMaximalSampleUnsupportedType creates an unsaved version of a UnsupportedType object
 // for testing that includes references to minimal objects.
 func createMaximalSampleUnsupportedType() *UnsupportedType {
-	obj := createMinimalSampleUnsupportedType()
-
+	obj := NewUnsupportedType()
+	updateMaximalSampleUnsupportedType(obj)
 	return obj
+}
+
+// updateMaximalSampleUnsupportedType sets all the maximal sample values to new values.
+func updateMaximalSampleUnsupportedType(obj *UnsupportedType) {
+	updateMinimalSampleUnsupportedType(obj)
+
 }
 
 // deleteSampleUnsupportedType deletes an object created and saved by one of the sample creator functions.

@@ -82,25 +82,32 @@ func TestAddress_Copy(t *testing.T) {
 // for testing.
 func createMinimalSampleAddress() *Address {
 	obj := NewAddress()
+	updateMinimalSampleAddress(obj)
+	return obj
+}
 
+// updateMinimalSampleAddress sets the values of a minimal sample to new, random values.
+func updateMinimalSampleAddress(obj *Address) {
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
 	// If the database is configured so that the referenced object points back here, either directly or through multiple
 	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
 	obj.SetPerson(createMinimalSamplePerson())
-
 	obj.SetStreet(test.RandomValue[string](100))
-
 	obj.SetCity(test.RandomValue[string](100))
-
-	return obj
 }
 
 // createMaximalSampleAddress creates an unsaved version of a Address object
 // for testing that includes references to minimal objects.
 func createMaximalSampleAddress() *Address {
-	obj := createMinimalSampleAddress()
-
+	obj := NewAddress()
+	updateMaximalSampleAddress(obj)
 	return obj
+}
+
+// updateMaximalSampleAddress sets all the maximal sample values to new values.
+func updateMaximalSampleAddress(obj *Address) {
+	updateMinimalSampleAddress(obj)
+
 }
 
 // deleteSampleAddress deletes an object created and saved by one of the sample creator functions.
@@ -163,6 +170,20 @@ func TestAddress_CRUD(t *testing.T) {
 	assert.False(t, obj2.cityIsDirty)
 	obj2.SetCity(obj2.City())
 	assert.False(t, obj2.cityIsDirty)
+
+}
+
+func TestAddress_InsertPanics(t *testing.T) {
+	obj := createMinimalSampleAddress()
+	ctx := db.NewContext(nil)
+
+	obj.personIDIsValid = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.personIDIsValid = true
+
+	obj.streetIsValid = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.streetIsValid = true
 
 }
 

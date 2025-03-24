@@ -101,24 +101,31 @@ func TestLogin_Copy(t *testing.T) {
 // for testing.
 func createMinimalSampleLogin() *Login {
 	obj := NewLogin()
-
-	obj.SetUsername(test.RandomValue[string](20))
-
-	obj.SetPassword(test.RandomValue[string](20))
-
-	obj.SetIsEnabled(test.RandomValue[bool](0))
-
+	updateMinimalSampleLogin(obj)
 	return obj
+}
+
+// updateMinimalSampleLogin sets the values of a minimal sample to new, random values.
+func updateMinimalSampleLogin(obj *Login) {
+	obj.SetUsername(test.RandomValue[string](20))
+	obj.SetPassword(test.RandomValue[string](20))
+	obj.SetIsEnabled(test.RandomValue[bool](0))
 }
 
 // createMaximalSampleLogin creates an unsaved version of a Login object
 // for testing that includes references to minimal objects.
 func createMaximalSampleLogin() *Login {
-	obj := createMinimalSampleLogin()
+	obj := NewLogin()
+	updateMaximalSampleLogin(obj)
+	return obj
+}
+
+// updateMaximalSampleLogin sets all the maximal sample values to new values.
+func updateMaximalSampleLogin(obj *Login) {
+	updateMinimalSampleLogin(obj)
 
 	obj.SetPerson(createMinimalSamplePerson())
 
-	return obj
 }
 
 // deleteSampleLogin deletes an object created and saved by one of the sample creator functions.
@@ -192,6 +199,16 @@ func TestLogin_CRUD(t *testing.T) {
 	assert.False(t, obj2.isEnabledIsDirty)
 	obj2.SetIsEnabled(obj2.IsEnabled())
 	assert.False(t, obj2.isEnabledIsDirty)
+
+}
+
+func TestLogin_InsertPanics(t *testing.T) {
+	obj := createMinimalSampleLogin()
+	ctx := db.NewContext(nil)
+
+	obj.usernameIsValid = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.usernameIsValid = true
 
 }
 

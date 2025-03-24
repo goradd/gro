@@ -593,7 +593,44 @@ func createMinimalSample`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `()
+    updateMinimalSample`); err != nil {
+		return
+	}
 
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `(obj)
+    return obj
+}
+
+// updateMinimalSample`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` sets the values of a minimal sample to new, random values.
+func updateMinimalSample`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `(obj *`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `)  {
 `); err != nil {
 		return
 	}
@@ -606,21 +643,11 @@ func createMinimalSample`); err != nil {
 
 		if col.HasSetter() {
 
-			if _, err = io.WriteString(_w, `    `); err != nil {
-				return
-			}
-
 			if col.IsReference() {
-
-				if _, err = io.WriteString(_w, `
-        `); err != nil {
-					return
-				}
 
 				if !col.IsNullable {
 
-					if _, err = io.WriteString(_w, `
-    // A required forward reference will need to be fulfilled just to save the minimal version of this object
+					if _, err = io.WriteString(_w, `    // A required forward reference will need to be fulfilled just to save the minimal version of this object
     // If the database is configured so that the referenced object points back here, either directly or through multiple
     // forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
     obj.Set`); err != nil {
@@ -640,28 +667,17 @@ func createMinimalSample`); err != nil {
 					}
 
 					if _, err = io.WriteString(_w, `())
-        `); err != nil {
+`); err != nil {
 						return
 					}
 
 				}
 
-				if _, err = io.WriteString(_w, `
-    `); err != nil {
-					return
-				}
-
 			} else if col.IsEnum() {
-
-				if _, err = io.WriteString(_w, `
-        `); err != nil {
-					return
-				}
 
 				if col.IsEnumArray() {
 
-					if _, err = io.WriteString(_w, `
-     obj.Set`); err != nil {
+					if _, err = io.WriteString(_w, `     obj.Set`); err != nil {
 						return
 					}
 
@@ -678,14 +694,13 @@ func createMinimalSample`); err != nil {
 					}
 
 					if _, err = io.WriteString(_w, `()))
-       `); err != nil {
+`); err != nil {
 						return
 					}
 
 				} else {
 
-					if _, err = io.WriteString(_w, `
-     obj.Set`); err != nil {
+					if _, err = io.WriteString(_w, `     obj.Set`); err != nil {
 						return
 					}
 
@@ -702,21 +717,15 @@ func createMinimalSample`); err != nil {
 					}
 
 					if _, err = io.WriteString(_w, `()))
-        `); err != nil {
+`); err != nil {
 						return
 					}
 
 				}
 
-				if _, err = io.WriteString(_w, `
-    `); err != nil {
-					return
-				}
-
 			} else {
 
-				if _, err = io.WriteString(_w, `
-     obj.Set`); err != nil {
+				if _, err = io.WriteString(_w, `     obj.Set`); err != nil {
 					return
 				}
 
@@ -741,24 +750,17 @@ func createMinimalSample`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `))
-   `); err != nil {
+`); err != nil {
 					return
 				}
 
-			}
-
-			if _, err = io.WriteString(_w, `
-
-`); err != nil {
-				return
 			}
 
 		}
 
 	}
 
-	if _, err = io.WriteString(_w, `    return obj
-}
+	if _, err = io.WriteString(_w, `}
 
 // createMaximalSample`); err != nil {
 		return
@@ -795,7 +797,7 @@ func createMaximalSample`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, ` {
-    obj := createMinimalSample`); err != nil {
+    obj := New`); err != nil {
 		return
 	}
 
@@ -804,6 +806,53 @@ func createMaximalSample`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `()
+    updateMaximalSample`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `(obj)
+    return obj
+}
+
+// updateMaximalSample`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` sets all the maximal sample values to new values.
+func updateMaximalSample`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `(obj *`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `) {
+    updateMinimalSample`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `(obj)
 `); err != nil {
 		return
 	}
@@ -920,8 +969,7 @@ func createMaximalSample`); err != nil {
 
 	}
 
-	if _, err = io.WriteString(_w, `    return obj
-}
+	if _, err = io.WriteString(_w, `}
 
 // deleteSample`); err != nil {
 		return
@@ -1566,6 +1614,76 @@ func deleteSample`); err != nil {
 					return
 				}
 
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `
+}
+
+func Test`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `_InsertPanics(t *testing.T) {
+    obj := createMinimalSample`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+    ctx := db.NewContext(nil)
+
+ `); err != nil {
+			return
+		}
+
+		for _, col := range table.Columns {
+
+			if _, err = io.WriteString(_w, `
+ `); err != nil {
+				return
+			}
+
+			if !col.IsNullable && col.HasSetter() && col.DefaultValue == nil {
+
+				if _, err = io.WriteString(_w, `
+    obj.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `IsValid = false
+    assert.Panics(t, func() {obj.Save(ctx)})
+    obj.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `IsValid = true
+
+ `); err != nil {
+					return
+				}
+
+			}
+
+			if _, err = io.WriteString(_w, `
+ `); err != nil {
+				return
 			}
 
 		}

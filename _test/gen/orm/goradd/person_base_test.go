@@ -84,27 +84,34 @@ func TestPerson_Copy(t *testing.T) {
 // for testing.
 func createMinimalSamplePerson() *Person {
 	obj := NewPerson()
-
-	obj.SetFirstName(test.RandomValue[string](50))
-
-	obj.SetLastName(test.RandomValue[string](50))
-
-	obj.SetTypes(test.RandomEnumArray(PersonTypes()))
-
+	updateMinimalSamplePerson(obj)
 	return obj
+}
+
+// updateMinimalSamplePerson sets the values of a minimal sample to new, random values.
+func updateMinimalSamplePerson(obj *Person) {
+	obj.SetFirstName(test.RandomValue[string](50))
+	obj.SetLastName(test.RandomValue[string](50))
+	obj.SetTypes(test.RandomEnumArray(PersonTypes()))
 }
 
 // createMaximalSamplePerson creates an unsaved version of a Person object
 // for testing that includes references to minimal objects.
 func createMaximalSamplePerson() *Person {
-	obj := createMinimalSamplePerson()
+	obj := NewPerson()
+	updateMaximalSamplePerson(obj)
+	return obj
+}
+
+// updateMaximalSamplePerson sets all the maximal sample values to new values.
+func updateMaximalSamplePerson(obj *Person) {
+	updateMinimalSamplePerson(obj)
 
 	obj.SetAddresses(createMinimalSampleAddress())
 	obj.SetEmployeeInfo(createMinimalSampleEmployeeInfo())
 	obj.SetLogin(createMinimalSampleLogin())
 	obj.SetManagerProjects(createMinimalSampleProject())
 	obj.SetProjects(createMinimalSampleProject())
-	return obj
 }
 
 // deleteSamplePerson deletes an object created and saved by one of the sample creator functions.
@@ -176,6 +183,20 @@ func TestPerson_CRUD(t *testing.T) {
 	assert.False(t, obj2.typesIsDirty)
 	obj2.SetTypes(obj2.Types())
 	assert.False(t, obj2.typesIsDirty)
+
+}
+
+func TestPerson_InsertPanics(t *testing.T) {
+	obj := createMinimalSamplePerson()
+	ctx := db.NewContext(nil)
+
+	obj.firstNameIsValid = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.firstNameIsValid = true
+
+	obj.lastNameIsValid = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.lastNameIsValid = true
 
 }
 

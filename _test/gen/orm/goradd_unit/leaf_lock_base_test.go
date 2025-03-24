@@ -45,18 +45,27 @@ func TestLeafLock_Copy(t *testing.T) {
 // for testing.
 func createMinimalSampleLeafLock() *LeafLock {
 	obj := NewLeafLock()
-
-	obj.SetName(test.RandomValue[string](100))
-
+	updateMinimalSampleLeafLock(obj)
 	return obj
+}
+
+// updateMinimalSampleLeafLock sets the values of a minimal sample to new, random values.
+func updateMinimalSampleLeafLock(obj *LeafLock) {
+	obj.SetName(test.RandomValue[string](100))
 }
 
 // createMaximalSampleLeafLock creates an unsaved version of a LeafLock object
 // for testing that includes references to minimal objects.
 func createMaximalSampleLeafLock() *LeafLock {
-	obj := createMinimalSampleLeafLock()
-
+	obj := NewLeafLock()
+	updateMaximalSampleLeafLock(obj)
 	return obj
+}
+
+// updateMaximalSampleLeafLock sets all the maximal sample values to new values.
+func updateMaximalSampleLeafLock(obj *LeafLock) {
+	updateMinimalSampleLeafLock(obj)
+
 }
 
 // deleteSampleLeafLock deletes an object created and saved by one of the sample creator functions.
@@ -96,6 +105,16 @@ func TestLeafLock_CRUD(t *testing.T) {
 	assert.False(t, obj2.nameIsDirty)
 
 	assert.True(t, obj2.GroLockIsValid())
+
+}
+
+func TestLeafLock_InsertPanics(t *testing.T) {
+	obj := createMinimalSampleLeafLock()
+	ctx := db.NewContext(nil)
+
+	obj.nameIsValid = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.nameIsValid = true
 
 }
 

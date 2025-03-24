@@ -70,22 +70,29 @@ func TestDoubleIndex_Copy(t *testing.T) {
 // for testing.
 func createMinimalSampleDoubleIndex() *DoubleIndex {
 	obj := NewDoubleIndex()
-
-	obj.SetID(test.RandomValue[int](32))
-
-	obj.SetFieldInt(test.RandomValue[int](32))
-
-	obj.SetFieldString(test.RandomValue[string](50))
-
+	updateMinimalSampleDoubleIndex(obj)
 	return obj
+}
+
+// updateMinimalSampleDoubleIndex sets the values of a minimal sample to new, random values.
+func updateMinimalSampleDoubleIndex(obj *DoubleIndex) {
+	obj.SetID(test.RandomValue[int](32))
+	obj.SetFieldInt(test.RandomValue[int](32))
+	obj.SetFieldString(test.RandomValue[string](50))
 }
 
 // createMaximalSampleDoubleIndex creates an unsaved version of a DoubleIndex object
 // for testing that includes references to minimal objects.
 func createMaximalSampleDoubleIndex() *DoubleIndex {
-	obj := createMinimalSampleDoubleIndex()
-
+	obj := NewDoubleIndex()
+	updateMaximalSampleDoubleIndex(obj)
 	return obj
+}
+
+// updateMaximalSampleDoubleIndex sets all the maximal sample values to new values.
+func updateMaximalSampleDoubleIndex(obj *DoubleIndex) {
+	updateMinimalSampleDoubleIndex(obj)
+
 }
 
 // deleteSampleDoubleIndex deletes an object created and saved by one of the sample creator functions.
@@ -141,6 +148,24 @@ func TestDoubleIndex_CRUD(t *testing.T) {
 	assert.False(t, obj2.fieldStringIsDirty)
 	obj2.SetFieldString(obj2.FieldString())
 	assert.False(t, obj2.fieldStringIsDirty)
+
+}
+
+func TestDoubleIndex_InsertPanics(t *testing.T) {
+	obj := createMinimalSampleDoubleIndex()
+	ctx := db.NewContext(nil)
+
+	obj.idIsValid = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.idIsValid = true
+
+	obj.fieldIntIsValid = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.fieldIntIsValid = true
+
+	obj.fieldStringIsValid = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.fieldStringIsValid = true
 
 }
 

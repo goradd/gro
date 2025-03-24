@@ -57,20 +57,28 @@ func TestGift_Copy(t *testing.T) {
 // for testing.
 func createMinimalSampleGift() *Gift {
 	obj := NewGift()
-
-	obj.SetNumber(test.RandomValue[int](32))
-
-	obj.SetName(test.RandomValue[string](50))
-
+	updateMinimalSampleGift(obj)
 	return obj
+}
+
+// updateMinimalSampleGift sets the values of a minimal sample to new, random values.
+func updateMinimalSampleGift(obj *Gift) {
+	obj.SetNumber(test.RandomValue[int](32))
+	obj.SetName(test.RandomValue[string](50))
 }
 
 // createMaximalSampleGift creates an unsaved version of a Gift object
 // for testing that includes references to minimal objects.
 func createMaximalSampleGift() *Gift {
-	obj := createMinimalSampleGift()
-
+	obj := NewGift()
+	updateMaximalSampleGift(obj)
 	return obj
+}
+
+// updateMaximalSampleGift sets all the maximal sample values to new values.
+func updateMaximalSampleGift(obj *Gift) {
+	updateMinimalSampleGift(obj)
+
 }
 
 // deleteSampleGift deletes an object created and saved by one of the sample creator functions.
@@ -116,6 +124,20 @@ func TestGift_CRUD(t *testing.T) {
 	assert.False(t, obj2.nameIsDirty)
 	obj2.SetName(obj2.Name())
 	assert.False(t, obj2.nameIsDirty)
+
+}
+
+func TestGift_InsertPanics(t *testing.T) {
+	obj := createMinimalSampleGift()
+	ctx := db.NewContext(nil)
+
+	obj.numberIsValid = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.numberIsValid = true
+
+	obj.nameIsValid = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.nameIsValid = true
 
 }
 

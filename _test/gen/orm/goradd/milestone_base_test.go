@@ -58,23 +58,31 @@ func TestMilestone_Copy(t *testing.T) {
 // for testing.
 func createMinimalSampleMilestone() *Milestone {
 	obj := NewMilestone()
+	updateMinimalSampleMilestone(obj)
+	return obj
+}
 
+// updateMinimalSampleMilestone sets the values of a minimal sample to new, random values.
+func updateMinimalSampleMilestone(obj *Milestone) {
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
 	// If the database is configured so that the referenced object points back here, either directly or through multiple
 	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
 	obj.SetProject(createMinimalSampleProject())
-
 	obj.SetName(test.RandomValue[string](50))
-
-	return obj
 }
 
 // createMaximalSampleMilestone creates an unsaved version of a Milestone object
 // for testing that includes references to minimal objects.
 func createMaximalSampleMilestone() *Milestone {
-	obj := createMinimalSampleMilestone()
-
+	obj := NewMilestone()
+	updateMaximalSampleMilestone(obj)
 	return obj
+}
+
+// updateMaximalSampleMilestone sets all the maximal sample values to new values.
+func updateMaximalSampleMilestone(obj *Milestone) {
+	updateMinimalSampleMilestone(obj)
+
 }
 
 // deleteSampleMilestone deletes an object created and saved by one of the sample creator functions.
@@ -126,6 +134,20 @@ func TestMilestone_CRUD(t *testing.T) {
 	assert.False(t, obj2.nameIsDirty)
 	obj2.SetName(obj2.Name())
 	assert.False(t, obj2.nameIsDirty)
+
+}
+
+func TestMilestone_InsertPanics(t *testing.T) {
+	obj := createMinimalSampleMilestone()
+	ctx := db.NewContext(nil)
+
+	obj.projectIDIsValid = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.projectIDIsValid = true
+
+	obj.nameIsValid = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.nameIsValid = true
 
 }
 

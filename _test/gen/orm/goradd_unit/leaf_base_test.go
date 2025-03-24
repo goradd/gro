@@ -45,22 +45,31 @@ func TestLeaf_Copy(t *testing.T) {
 // for testing.
 func createMinimalSampleLeaf() *Leaf {
 	obj := NewLeaf()
-
-	obj.SetName(test.RandomValue[string](100))
-
+	updateMinimalSampleLeaf(obj)
 	return obj
+}
+
+// updateMinimalSampleLeaf sets the values of a minimal sample to new, random values.
+func updateMinimalSampleLeaf(obj *Leaf) {
+	obj.SetName(test.RandomValue[string](100))
 }
 
 // createMaximalSampleLeaf creates an unsaved version of a Leaf object
 // for testing that includes references to minimal objects.
 func createMaximalSampleLeaf() *Leaf {
-	obj := createMinimalSampleLeaf()
+	obj := NewLeaf()
+	updateMaximalSampleLeaf(obj)
+	return obj
+}
+
+// updateMaximalSampleLeaf sets all the maximal sample values to new values.
+func updateMaximalSampleLeaf(obj *Leaf) {
+	updateMinimalSampleLeaf(obj)
 
 	obj.SetOptionalLeafRoots(createMinimalSampleRoot())
 	obj.SetRequiredLeafRoots(createMinimalSampleRoot())
 	obj.SetOptionalLeafUniqueRoot(createMinimalSampleRoot())
 	obj.SetRequiredLeafUniqueRoot(createMinimalSampleRoot())
-	return obj
 }
 
 // deleteSampleLeaf deletes an object created and saved by one of the sample creator functions.
@@ -107,6 +116,16 @@ func TestLeaf_CRUD(t *testing.T) {
 	assert.False(t, obj2.nameIsDirty)
 	obj2.SetName(obj2.Name())
 	assert.False(t, obj2.nameIsDirty)
+
+}
+
+func TestLeaf_InsertPanics(t *testing.T) {
+	obj := createMinimalSampleLeaf()
+	ctx := db.NewContext(nil)
+
+	obj.nameIsValid = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.nameIsValid = true
 
 }
 

@@ -228,26 +228,31 @@ func TestProject_Copy(t *testing.T) {
 // for testing.
 func createMinimalSampleProject() *Project {
 	obj := NewProject()
-
-	obj.SetNum(test.RandomValue[int](32))
-
-	obj.SetStatus(test.RandomEnum(ProjectStatuses()))
-
-	obj.SetName(test.RandomValue[string](100))
-
-	obj.SetDescription(test.RandomValue[string](65535))
-
-	obj.SetStartDate(test.RandomValue[time.Time](0))
-
-	obj.SetEndDate(test.RandomValue[time.Time](0))
-
+	updateMinimalSampleProject(obj)
 	return obj
+}
+
+// updateMinimalSampleProject sets the values of a minimal sample to new, random values.
+func updateMinimalSampleProject(obj *Project) {
+	obj.SetNum(test.RandomValue[int](32))
+	obj.SetStatus(test.RandomEnum(ProjectStatuses()))
+	obj.SetName(test.RandomValue[string](100))
+	obj.SetDescription(test.RandomValue[string](65535))
+	obj.SetStartDate(test.RandomValue[time.Time](0))
+	obj.SetEndDate(test.RandomValue[time.Time](0))
 }
 
 // createMaximalSampleProject creates an unsaved version of a Project object
 // for testing that includes references to minimal objects.
 func createMaximalSampleProject() *Project {
-	obj := createMinimalSampleProject()
+	obj := NewProject()
+	updateMaximalSampleProject(obj)
+	return obj
+}
+
+// updateMaximalSampleProject sets all the maximal sample values to new values.
+func updateMaximalSampleProject(obj *Project) {
+	updateMinimalSampleProject(obj)
 
 	obj.SetManager(createMinimalSamplePerson())
 
@@ -258,7 +263,6 @@ func createMaximalSampleProject() *Project {
 	obj.SetChildren(createMinimalSampleProject())
 	obj.SetParents(createMinimalSampleProject())
 	obj.SetTeamMembers(createMinimalSamplePerson())
-	return obj
 }
 
 // deleteSampleProject deletes an object created and saved by one of the sample creator functions.

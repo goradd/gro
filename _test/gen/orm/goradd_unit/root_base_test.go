@@ -122,38 +122,44 @@ func TestRoot_Copy(t *testing.T) {
 // for testing.
 func createMinimalSampleRoot() *Root {
 	obj := NewRoot()
+	updateMinimalSampleRoot(obj)
+	return obj
+}
 
+// updateMinimalSampleRoot sets the values of a minimal sample to new, random values.
+func updateMinimalSampleRoot(obj *Root) {
 	obj.SetName(test.RandomValue[string](100))
-
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
 	// If the database is configured so that the referenced object points back here, either directly or through multiple
 	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
 	obj.SetRequiredLeaf(createMinimalSampleLeaf())
-
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
 	// If the database is configured so that the referenced object points back here, either directly or through multiple
 	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
 	obj.SetOptionalLeafUnique(createMinimalSampleLeaf())
-
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
 	// If the database is configured so that the referenced object points back here, either directly or through multiple
 	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
 	obj.SetRequiredLeafUnique(createMinimalSampleLeaf())
-
-	return obj
 }
 
 // createMaximalSampleRoot creates an unsaved version of a Root object
 // for testing that includes references to minimal objects.
 func createMaximalSampleRoot() *Root {
-	obj := createMinimalSampleRoot()
+	obj := NewRoot()
+	updateMaximalSampleRoot(obj)
+	return obj
+}
+
+// updateMaximalSampleRoot sets all the maximal sample values to new values.
+func updateMaximalSampleRoot(obj *Root) {
+	updateMinimalSampleRoot(obj)
 
 	obj.SetOptionalLeaf(createMinimalSampleLeaf())
 
 	obj.SetParent(createMinimalSampleRoot())
 
 	obj.SetParentRoots(createMinimalSampleRoot())
-	return obj
 }
 
 // deleteSampleRoot deletes an object created and saved by one of the sample creator functions.
@@ -267,6 +273,28 @@ func TestRoot_CRUD(t *testing.T) {
 	assert.False(t, obj2.parentIDIsDirty)
 	obj2.SetParentID(obj2.ParentID())
 	assert.False(t, obj2.parentIDIsDirty)
+
+}
+
+func TestRoot_InsertPanics(t *testing.T) {
+	obj := createMinimalSampleRoot()
+	ctx := db.NewContext(nil)
+
+	obj.nameIsValid = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.nameIsValid = true
+
+	obj.requiredLeafIDIsValid = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.requiredLeafIDIsValid = true
+
+	obj.optionalLeafUniqueIDIsValid = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.optionalLeafUniqueIDIsValid = true
+
+	obj.requiredLeafUniqueIDIsValid = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.requiredLeafUniqueIDIsValid = true
 
 }
 

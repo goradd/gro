@@ -63,20 +63,28 @@ func TestPersonWithLock_Copy(t *testing.T) {
 // for testing.
 func createMinimalSamplePersonWithLock() *PersonWithLock {
 	obj := NewPersonWithLock()
-
-	obj.SetFirstName(test.RandomValue[string](50))
-
-	obj.SetLastName(test.RandomValue[string](50))
-
+	updateMinimalSamplePersonWithLock(obj)
 	return obj
+}
+
+// updateMinimalSamplePersonWithLock sets the values of a minimal sample to new, random values.
+func updateMinimalSamplePersonWithLock(obj *PersonWithLock) {
+	obj.SetFirstName(test.RandomValue[string](50))
+	obj.SetLastName(test.RandomValue[string](50))
 }
 
 // createMaximalSamplePersonWithLock creates an unsaved version of a PersonWithLock object
 // for testing that includes references to minimal objects.
 func createMaximalSamplePersonWithLock() *PersonWithLock {
-	obj := createMinimalSamplePersonWithLock()
-
+	obj := NewPersonWithLock()
+	updateMaximalSamplePersonWithLock(obj)
 	return obj
+}
+
+// updateMaximalSamplePersonWithLock sets all the maximal sample values to new values.
+func updateMaximalSamplePersonWithLock(obj *PersonWithLock) {
+	updateMinimalSamplePersonWithLock(obj)
+
 }
 
 // deleteSamplePersonWithLock deletes an object created and saved by one of the sample creator functions.
@@ -128,6 +136,20 @@ func TestPersonWithLock_CRUD(t *testing.T) {
 	assert.True(t, obj2.GroLockIsValid())
 
 	assert.True(t, obj2.GroTimestampIsValid())
+
+}
+
+func TestPersonWithLock_InsertPanics(t *testing.T) {
+	obj := createMinimalSamplePersonWithLock()
+	ctx := db.NewContext(nil)
+
+	obj.firstNameIsValid = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.firstNameIsValid = true
+
+	obj.lastNameIsValid = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.lastNameIsValid = true
 
 }
 
