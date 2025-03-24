@@ -18,6 +18,8 @@ func randomString(source string, n int) string {
 
 // RandomValue provides to the generated tests random values for types corresponding to ReceiverType Go types.
 // For strings and []byte types, if size is 0, a size of 10 will be used as a reasonable limit.
+// size will indicate the number of bytes or characters generated.
+// times do not generate fractional seconds, since the value might be truncated depending on the sql dialect and data type.
 func RandomValue[T any](size int) T {
 	var v T
 	var i any

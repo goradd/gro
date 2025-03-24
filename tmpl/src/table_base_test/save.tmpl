@@ -93,7 +93,11 @@ func Test{{= table.Identifier }}_BasicUpdate(t *testing.T) {
     obj2 := Load{{= table.Identifier }}(ctx, obj.PrimaryKey())
 
 {{for _,col := range table.Columns}}
-    assert.Equal(t, obj2.{{= col.Identifier }}(), obj.{{= col.Identifier }}())
+{{if col.ReceiverType == query.ColTypeTime}} {{# In some situations, fractional times may be truncated by the database }}
+    assert.WithinDuration(t, obj2.{{= col.Identifier }}(), obj.{{= col.Identifier }}(), time.Second, "{{= col.Identifier }} not within one second")
+{{else}}
+    assert.Equal(t, obj2.{{= col.Identifier }}(), obj.{{= col.Identifier }}(), "{{= col.Identifier }} did not update")
+{{if}}
 {{for}}
 }
 

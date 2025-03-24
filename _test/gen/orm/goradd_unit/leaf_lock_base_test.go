@@ -14,6 +14,45 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// createMinimalSampleLeafLock creates an unsaved minimal version of a LeafLock object
+// for testing.
+func createMinimalSampleLeafLock() *LeafLock {
+	obj := NewLeafLock()
+	updateMinimalSampleLeafLock(obj)
+	return obj
+}
+
+// updateMinimalSampleLeafLock sets the values of a minimal sample to new, random values.
+func updateMinimalSampleLeafLock(obj *LeafLock) {
+
+	obj.SetName(test.RandomValue[string](100))
+
+}
+
+// createMaximalSampleLeafLock creates an unsaved version of a LeafLock object
+// for testing that includes references to minimal objects.
+func createMaximalSampleLeafLock() *LeafLock {
+	obj := NewLeafLock()
+	updateMaximalSampleLeafLock(obj)
+	return obj
+}
+
+// updateMaximalSampleLeafLock sets all the maximal sample values to new values.
+func updateMaximalSampleLeafLock(obj *LeafLock) {
+	updateMinimalSampleLeafLock(obj)
+
+}
+
+// deleteSampleLeafLock deletes an object created and saved by one of the sample creator functions.
+func deleteSampleLeafLock(ctx context.Context, obj *LeafLock) {
+	if obj == nil {
+		return
+	}
+
+	obj.Delete(ctx)
+
+}
+
 func TestLeafLock_SetName(t *testing.T) {
 
 	obj := NewLeafLock()
@@ -38,43 +77,6 @@ func TestLeafLock_Copy(t *testing.T) {
 	obj2 := obj.Copy()
 
 	assert.Equal(t, obj.Name(), obj2.Name())
-
-}
-
-// createMinimalSampleLeafLock creates an unsaved minimal version of a LeafLock object
-// for testing.
-func createMinimalSampleLeafLock() *LeafLock {
-	obj := NewLeafLock()
-	updateMinimalSampleLeafLock(obj)
-	return obj
-}
-
-// updateMinimalSampleLeafLock sets the values of a minimal sample to new, random values.
-func updateMinimalSampleLeafLock(obj *LeafLock) {
-	obj.SetName(test.RandomValue[string](100))
-}
-
-// createMaximalSampleLeafLock creates an unsaved version of a LeafLock object
-// for testing that includes references to minimal objects.
-func createMaximalSampleLeafLock() *LeafLock {
-	obj := NewLeafLock()
-	updateMaximalSampleLeafLock(obj)
-	return obj
-}
-
-// updateMaximalSampleLeafLock sets all the maximal sample values to new values.
-func updateMaximalSampleLeafLock(obj *LeafLock) {
-	updateMinimalSampleLeafLock(obj)
-
-}
-
-// deleteSampleLeafLock deletes an object created and saved by one of the sample creator functions.
-func deleteSampleLeafLock(ctx context.Context, obj *LeafLock) {
-	if obj == nil {
-		return
-	}
-
-	obj.Delete(ctx)
 
 }
 
@@ -127,9 +129,9 @@ func TestLeafLock_BasicUpdate(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	obj2 := LoadLeafLock(ctx, obj.PrimaryKey())
 
-	assert.Equal(t, obj2.ID(), obj.ID())
-	assert.Equal(t, obj2.Name(), obj.Name())
-	assert.Equal(t, obj2.GroLock(), obj.GroLock())
+	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
+	assert.Equal(t, obj2.Name(), obj.Name(), "Name did not update")
+	assert.Equal(t, obj2.GroLock(), obj.GroLock(), "GroLock did not update")
 }
 
 func TestLeafLock_References(t *testing.T) {

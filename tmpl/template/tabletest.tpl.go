@@ -8,6 +8,7 @@ import (
 
 	"github.com/goradd/orm/pkg/codegen"
 	"github.com/goradd/orm/pkg/model"
+	"github.com/goradd/orm/pkg/query"
 )
 
 func init() {
@@ -30,6 +31,13 @@ func (tmpl *TableTestTemplate) GenerateTable(table *model.Table, _w io.Writer, i
 	//*** table_test.tmpl
 
 	// The master template for the table test
+
+	var hasUnknown bool
+	for _, col := range table.Columns {
+		if col.ReceiverType == query.ColTypeUnknown {
+			hasUnknown = true
+		} // cannot know what the set of valid input characters are.
+	}
 
 	if _, err = io.WriteString(_w, `package `); err != nil {
 		return
@@ -131,39 +139,50 @@ func Test`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `_Delete(t *testing.T) {
-    ctx := db.NewContext(nil)
+`); err != nil {
+		return
+	}
 
+	if !hasUnknown {
+
+		if _, err = io.WriteString(_w, `    ctx := db.NewContext(nil)
     obj := createMinimalSample`); err != nil {
-		return
-	}
+			return
+		}
 
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
-		return
-	}
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
 
-	if _, err = io.WriteString(_w, `()
+		if _, err = io.WriteString(_w, `()
     err := obj.Save(ctx)
     assert.NoError(t, err)
     Delete`); err != nil {
-		return
-	}
+			return
+		}
 
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
-		return
-	}
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
 
-	if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey())
+		if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey())
     obj2 := Load`); err != nil {
-		return
-	}
+			return
+		}
 
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
-		return
-	}
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
 
-	if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey())
+		if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey())
     assert.Nil(t, obj2)
-}
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `}
 
 
 

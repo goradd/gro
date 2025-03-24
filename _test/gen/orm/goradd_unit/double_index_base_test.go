@@ -13,6 +13,48 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// createMinimalSampleDoubleIndex creates an unsaved minimal version of a DoubleIndex object
+// for testing.
+func createMinimalSampleDoubleIndex() *DoubleIndex {
+	obj := NewDoubleIndex()
+	updateMinimalSampleDoubleIndex(obj)
+	return obj
+}
+
+// updateMinimalSampleDoubleIndex sets the values of a minimal sample to new, random values.
+func updateMinimalSampleDoubleIndex(obj *DoubleIndex) {
+
+	obj.SetID(test.RandomValue[int](32))
+
+	obj.SetFieldInt(test.RandomValue[int](32))
+
+	obj.SetFieldString(test.RandomValue[string](50))
+}
+
+// createMaximalSampleDoubleIndex creates an unsaved version of a DoubleIndex object
+// for testing that includes references to minimal objects.
+func createMaximalSampleDoubleIndex() *DoubleIndex {
+	obj := NewDoubleIndex()
+	updateMaximalSampleDoubleIndex(obj)
+	return obj
+}
+
+// updateMaximalSampleDoubleIndex sets all the maximal sample values to new values.
+func updateMaximalSampleDoubleIndex(obj *DoubleIndex) {
+	updateMinimalSampleDoubleIndex(obj)
+
+}
+
+// deleteSampleDoubleIndex deletes an object created and saved by one of the sample creator functions.
+func deleteSampleDoubleIndex(ctx context.Context, obj *DoubleIndex) {
+	if obj == nil {
+		return
+	}
+
+	obj.Delete(ctx)
+
+}
+
 func TestDoubleIndex_SetID(t *testing.T) {
 
 	obj := NewDoubleIndex()
@@ -63,45 +105,6 @@ func TestDoubleIndex_Copy(t *testing.T) {
 	assert.Equal(t, obj.ID(), obj2.ID())
 	assert.Equal(t, obj.FieldInt(), obj2.FieldInt())
 	assert.Equal(t, obj.FieldString(), obj2.FieldString())
-
-}
-
-// createMinimalSampleDoubleIndex creates an unsaved minimal version of a DoubleIndex object
-// for testing.
-func createMinimalSampleDoubleIndex() *DoubleIndex {
-	obj := NewDoubleIndex()
-	updateMinimalSampleDoubleIndex(obj)
-	return obj
-}
-
-// updateMinimalSampleDoubleIndex sets the values of a minimal sample to new, random values.
-func updateMinimalSampleDoubleIndex(obj *DoubleIndex) {
-	obj.SetID(test.RandomValue[int](32))
-	obj.SetFieldInt(test.RandomValue[int](32))
-	obj.SetFieldString(test.RandomValue[string](50))
-}
-
-// createMaximalSampleDoubleIndex creates an unsaved version of a DoubleIndex object
-// for testing that includes references to minimal objects.
-func createMaximalSampleDoubleIndex() *DoubleIndex {
-	obj := NewDoubleIndex()
-	updateMaximalSampleDoubleIndex(obj)
-	return obj
-}
-
-// updateMaximalSampleDoubleIndex sets all the maximal sample values to new values.
-func updateMaximalSampleDoubleIndex(obj *DoubleIndex) {
-	updateMinimalSampleDoubleIndex(obj)
-
-}
-
-// deleteSampleDoubleIndex deletes an object created and saved by one of the sample creator functions.
-func deleteSampleDoubleIndex(ctx context.Context, obj *DoubleIndex) {
-	if obj == nil {
-		return
-	}
-
-	obj.Delete(ctx)
 
 }
 
@@ -178,9 +181,9 @@ func TestDoubleIndex_BasicUpdate(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	obj2 := LoadDoubleIndex(ctx, obj.PrimaryKey())
 
-	assert.Equal(t, obj2.ID(), obj.ID())
-	assert.Equal(t, obj2.FieldInt(), obj.FieldInt())
-	assert.Equal(t, obj2.FieldString(), obj.FieldString())
+	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
+	assert.Equal(t, obj2.FieldInt(), obj.FieldInt(), "FieldInt did not update")
+	assert.Equal(t, obj2.FieldString(), obj.FieldString(), "FieldString did not update")
 }
 
 func TestDoubleIndex_References(t *testing.T) {

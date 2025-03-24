@@ -14,6 +14,52 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// createMinimalSampleLogin creates an unsaved minimal version of a Login object
+// for testing.
+func createMinimalSampleLogin() *Login {
+	obj := NewLogin()
+	updateMinimalSampleLogin(obj)
+	return obj
+}
+
+// updateMinimalSampleLogin sets the values of a minimal sample to new, random values.
+func updateMinimalSampleLogin(obj *Login) {
+
+	obj.SetUsername(test.RandomValue[string](20))
+
+	obj.SetPassword(test.RandomValue[string](20))
+
+	obj.SetIsEnabled(test.RandomValue[bool](0))
+}
+
+// createMaximalSampleLogin creates an unsaved version of a Login object
+// for testing that includes references to minimal objects.
+func createMaximalSampleLogin() *Login {
+	obj := NewLogin()
+	updateMaximalSampleLogin(obj)
+	return obj
+}
+
+// updateMaximalSampleLogin sets all the maximal sample values to new values.
+func updateMaximalSampleLogin(obj *Login) {
+	updateMinimalSampleLogin(obj)
+
+	obj.SetPerson(createMinimalSamplePerson())
+
+}
+
+// deleteSampleLogin deletes an object created and saved by one of the sample creator functions.
+func deleteSampleLogin(ctx context.Context, obj *Login) {
+	if obj == nil {
+		return
+	}
+
+	obj.Delete(ctx)
+
+	deleteSamplePerson(ctx, obj.Person())
+
+}
+
 func TestLogin_SetPersonID(t *testing.T) {
 
 	obj := NewLogin()
@@ -94,49 +140,6 @@ func TestLogin_Copy(t *testing.T) {
 	assert.Equal(t, obj.Username(), obj2.Username())
 	assert.Equal(t, obj.Password(), obj2.Password())
 	assert.Equal(t, obj.IsEnabled(), obj2.IsEnabled())
-
-}
-
-// createMinimalSampleLogin creates an unsaved minimal version of a Login object
-// for testing.
-func createMinimalSampleLogin() *Login {
-	obj := NewLogin()
-	updateMinimalSampleLogin(obj)
-	return obj
-}
-
-// updateMinimalSampleLogin sets the values of a minimal sample to new, random values.
-func updateMinimalSampleLogin(obj *Login) {
-	obj.SetUsername(test.RandomValue[string](20))
-	obj.SetPassword(test.RandomValue[string](20))
-	obj.SetIsEnabled(test.RandomValue[bool](0))
-}
-
-// createMaximalSampleLogin creates an unsaved version of a Login object
-// for testing that includes references to minimal objects.
-func createMaximalSampleLogin() *Login {
-	obj := NewLogin()
-	updateMaximalSampleLogin(obj)
-	return obj
-}
-
-// updateMaximalSampleLogin sets all the maximal sample values to new values.
-func updateMaximalSampleLogin(obj *Login) {
-	updateMinimalSampleLogin(obj)
-
-	obj.SetPerson(createMinimalSamplePerson())
-
-}
-
-// deleteSampleLogin deletes an object created and saved by one of the sample creator functions.
-func deleteSampleLogin(ctx context.Context, obj *Login) {
-	if obj == nil {
-		return
-	}
-
-	obj.Delete(ctx)
-
-	deleteSamplePerson(ctx, obj.Person())
 
 }
 
@@ -221,11 +224,11 @@ func TestLogin_BasicUpdate(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	obj2 := LoadLogin(ctx, obj.PrimaryKey())
 
-	assert.Equal(t, obj2.ID(), obj.ID())
-	assert.Equal(t, obj2.PersonID(), obj.PersonID())
-	assert.Equal(t, obj2.Username(), obj.Username())
-	assert.Equal(t, obj2.Password(), obj.Password())
-	assert.Equal(t, obj2.IsEnabled(), obj.IsEnabled())
+	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
+	assert.Equal(t, obj2.PersonID(), obj.PersonID(), "PersonID did not update")
+	assert.Equal(t, obj2.Username(), obj.Username(), "Username did not update")
+	assert.Equal(t, obj2.Password(), obj.Password(), "Password did not update")
+	assert.Equal(t, obj2.IsEnabled(), obj.IsEnabled(), "IsEnabled did not update")
 }
 
 func TestLogin_References(t *testing.T) {

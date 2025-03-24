@@ -14,6 +14,51 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// createMinimalSampleMilestone creates an unsaved minimal version of a Milestone object
+// for testing.
+func createMinimalSampleMilestone() *Milestone {
+	obj := NewMilestone()
+	updateMinimalSampleMilestone(obj)
+	return obj
+}
+
+// updateMinimalSampleMilestone sets the values of a minimal sample to new, random values.
+func updateMinimalSampleMilestone(obj *Milestone) {
+
+	// A required forward reference will need to be fulfilled just to save the minimal version of this object
+	// If the database is configured so that the referenced object points back here, either directly or through multiple
+	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
+	obj.SetProject(createMinimalSampleProject())
+
+	obj.SetName(test.RandomValue[string](50))
+}
+
+// createMaximalSampleMilestone creates an unsaved version of a Milestone object
+// for testing that includes references to minimal objects.
+func createMaximalSampleMilestone() *Milestone {
+	obj := NewMilestone()
+	updateMaximalSampleMilestone(obj)
+	return obj
+}
+
+// updateMaximalSampleMilestone sets all the maximal sample values to new values.
+func updateMaximalSampleMilestone(obj *Milestone) {
+	updateMinimalSampleMilestone(obj)
+
+}
+
+// deleteSampleMilestone deletes an object created and saved by one of the sample creator functions.
+func deleteSampleMilestone(ctx context.Context, obj *Milestone) {
+	if obj == nil {
+		return
+	}
+
+	obj.Delete(ctx)
+
+	deleteSampleProject(ctx, obj.Project())
+
+}
+
 func TestMilestone_SetProjectID(t *testing.T) {
 
 	obj := NewMilestone()
@@ -51,49 +96,6 @@ func TestMilestone_Copy(t *testing.T) {
 
 	assert.Equal(t, obj.ProjectID(), obj2.ProjectID())
 	assert.Equal(t, obj.Name(), obj2.Name())
-
-}
-
-// createMinimalSampleMilestone creates an unsaved minimal version of a Milestone object
-// for testing.
-func createMinimalSampleMilestone() *Milestone {
-	obj := NewMilestone()
-	updateMinimalSampleMilestone(obj)
-	return obj
-}
-
-// updateMinimalSampleMilestone sets the values of a minimal sample to new, random values.
-func updateMinimalSampleMilestone(obj *Milestone) {
-	// A required forward reference will need to be fulfilled just to save the minimal version of this object
-	// If the database is configured so that the referenced object points back here, either directly or through multiple
-	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
-	obj.SetProject(createMinimalSampleProject())
-	obj.SetName(test.RandomValue[string](50))
-}
-
-// createMaximalSampleMilestone creates an unsaved version of a Milestone object
-// for testing that includes references to minimal objects.
-func createMaximalSampleMilestone() *Milestone {
-	obj := NewMilestone()
-	updateMaximalSampleMilestone(obj)
-	return obj
-}
-
-// updateMaximalSampleMilestone sets all the maximal sample values to new values.
-func updateMaximalSampleMilestone(obj *Milestone) {
-	updateMinimalSampleMilestone(obj)
-
-}
-
-// deleteSampleMilestone deletes an object created and saved by one of the sample creator functions.
-func deleteSampleMilestone(ctx context.Context, obj *Milestone) {
-	if obj == nil {
-		return
-	}
-
-	obj.Delete(ctx)
-
-	deleteSampleProject(ctx, obj.Project())
 
 }
 
@@ -160,9 +162,9 @@ func TestMilestone_BasicUpdate(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	obj2 := LoadMilestone(ctx, obj.PrimaryKey())
 
-	assert.Equal(t, obj2.ID(), obj.ID())
-	assert.Equal(t, obj2.ProjectID(), obj.ProjectID())
-	assert.Equal(t, obj2.Name(), obj.Name())
+	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
+	assert.Equal(t, obj2.ProjectID(), obj.ProjectID(), "ProjectID did not update")
+	assert.Equal(t, obj2.Name(), obj.Name(), "Name did not update")
 }
 
 func TestMilestone_References(t *testing.T) {

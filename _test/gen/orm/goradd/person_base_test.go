@@ -14,6 +14,66 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// createMinimalSamplePerson creates an unsaved minimal version of a Person object
+// for testing.
+func createMinimalSamplePerson() *Person {
+	obj := NewPerson()
+	updateMinimalSamplePerson(obj)
+	return obj
+}
+
+// updateMinimalSamplePerson sets the values of a minimal sample to new, random values.
+func updateMinimalSamplePerson(obj *Person) {
+
+	obj.SetFirstName(test.RandomValue[string](50))
+
+	obj.SetLastName(test.RandomValue[string](50))
+
+	obj.SetTypes(test.RandomEnumArray(PersonTypes()))
+}
+
+// createMaximalSamplePerson creates an unsaved version of a Person object
+// for testing that includes references to minimal objects.
+func createMaximalSamplePerson() *Person {
+	obj := NewPerson()
+	updateMaximalSamplePerson(obj)
+	return obj
+}
+
+// updateMaximalSamplePerson sets all the maximal sample values to new values.
+func updateMaximalSamplePerson(obj *Person) {
+	updateMinimalSamplePerson(obj)
+
+	obj.SetAddresses(createMinimalSampleAddress())
+	obj.SetEmployeeInfo(createMinimalSampleEmployeeInfo())
+	obj.SetLogin(createMinimalSampleLogin())
+	obj.SetManagerProjects(createMinimalSampleProject())
+	obj.SetProjects(createMinimalSampleProject())
+}
+
+// deleteSamplePerson deletes an object created and saved by one of the sample creator functions.
+func deleteSamplePerson(ctx context.Context, obj *Person) {
+	if obj == nil {
+		return
+	}
+
+	for _, item := range obj.Addresses() {
+		deleteSampleAddress(ctx, item)
+	}
+	deleteSampleEmployeeInfo(ctx, obj.EmployeeInfo())
+	deleteSampleLogin(ctx, obj.Login())
+	for _, item := range obj.ManagerProjects() {
+		deleteSampleProject(ctx, item)
+	}
+
+	for _, item := range obj.Projects() {
+		deleteSampleProject(ctx, item)
+	}
+
+	obj.Delete(ctx)
+
+}
+
 func TestPerson_SetFirstName(t *testing.T) {
 
 	obj := NewPerson()
@@ -77,63 +137,6 @@ func TestPerson_Copy(t *testing.T) {
 	assert.Equal(t, obj.FirstName(), obj2.FirstName())
 	assert.Equal(t, obj.LastName(), obj2.LastName())
 	assert.Equal(t, obj.Types(), obj2.Types())
-
-}
-
-// createMinimalSamplePerson creates an unsaved minimal version of a Person object
-// for testing.
-func createMinimalSamplePerson() *Person {
-	obj := NewPerson()
-	updateMinimalSamplePerson(obj)
-	return obj
-}
-
-// updateMinimalSamplePerson sets the values of a minimal sample to new, random values.
-func updateMinimalSamplePerson(obj *Person) {
-	obj.SetFirstName(test.RandomValue[string](50))
-	obj.SetLastName(test.RandomValue[string](50))
-	obj.SetTypes(test.RandomEnumArray(PersonTypes()))
-}
-
-// createMaximalSamplePerson creates an unsaved version of a Person object
-// for testing that includes references to minimal objects.
-func createMaximalSamplePerson() *Person {
-	obj := NewPerson()
-	updateMaximalSamplePerson(obj)
-	return obj
-}
-
-// updateMaximalSamplePerson sets all the maximal sample values to new values.
-func updateMaximalSamplePerson(obj *Person) {
-	updateMinimalSamplePerson(obj)
-
-	obj.SetAddresses(createMinimalSampleAddress())
-	obj.SetEmployeeInfo(createMinimalSampleEmployeeInfo())
-	obj.SetLogin(createMinimalSampleLogin())
-	obj.SetManagerProjects(createMinimalSampleProject())
-	obj.SetProjects(createMinimalSampleProject())
-}
-
-// deleteSamplePerson deletes an object created and saved by one of the sample creator functions.
-func deleteSamplePerson(ctx context.Context, obj *Person) {
-	if obj == nil {
-		return
-	}
-
-	for _, item := range obj.Addresses() {
-		deleteSampleAddress(ctx, item)
-	}
-	deleteSampleEmployeeInfo(ctx, obj.EmployeeInfo())
-	deleteSampleLogin(ctx, obj.Login())
-	for _, item := range obj.ManagerProjects() {
-		deleteSampleProject(ctx, item)
-	}
-
-	for _, item := range obj.Projects() {
-		deleteSampleProject(ctx, item)
-	}
-
-	obj.Delete(ctx)
 
 }
 
@@ -209,10 +212,10 @@ func TestPerson_BasicUpdate(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	obj2 := LoadPerson(ctx, obj.PrimaryKey())
 
-	assert.Equal(t, obj2.ID(), obj.ID())
-	assert.Equal(t, obj2.FirstName(), obj.FirstName())
-	assert.Equal(t, obj2.LastName(), obj.LastName())
-	assert.Equal(t, obj2.Types(), obj.Types())
+	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
+	assert.Equal(t, obj2.FirstName(), obj.FirstName(), "FirstName did not update")
+	assert.Equal(t, obj2.LastName(), obj.LastName(), "LastName did not update")
+	assert.Equal(t, obj2.Types(), obj.Types(), "Types did not update")
 }
 
 func TestPerson_References(t *testing.T) {

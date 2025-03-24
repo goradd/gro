@@ -2,6 +2,13 @@
 
 // The master template for the table test
 
+var hasUnknown bool
+for _, col := range table.Columns {
+    if col.ReceiverType == query.ColTypeUnknown {
+        hasUnknown = true
+    } // cannot know what the set of valid input characters are.
+}
+
 {{
 package {{= tmpl.Package }}
 
@@ -32,14 +39,15 @@ func Test{{= table.Identifier }}_String(t *testing.T) {
 }
 
 func Test{{= table.Identifier }}_Delete(t *testing.T) {
+{{if !hasUnknown}}
     ctx := db.NewContext(nil)
-
     obj := createMinimalSample{{= table.Identifier }}()
     err := obj.Save(ctx)
     assert.NoError(t, err)
     Delete{{= table.Identifier }}(ctx, obj.PrimaryKey())
     obj2 := Load{{= table.Identifier }}(ctx, obj.PrimaryKey())
     assert.Nil(t, obj2)
+{{if}}
 }
 
 

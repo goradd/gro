@@ -14,6 +14,47 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// createMinimalSamplePersonWithLock creates an unsaved minimal version of a PersonWithLock object
+// for testing.
+func createMinimalSamplePersonWithLock() *PersonWithLock {
+	obj := NewPersonWithLock()
+	updateMinimalSamplePersonWithLock(obj)
+	return obj
+}
+
+// updateMinimalSamplePersonWithLock sets the values of a minimal sample to new, random values.
+func updateMinimalSamplePersonWithLock(obj *PersonWithLock) {
+
+	obj.SetFirstName(test.RandomValue[string](50))
+
+	obj.SetLastName(test.RandomValue[string](50))
+
+}
+
+// createMaximalSamplePersonWithLock creates an unsaved version of a PersonWithLock object
+// for testing that includes references to minimal objects.
+func createMaximalSamplePersonWithLock() *PersonWithLock {
+	obj := NewPersonWithLock()
+	updateMaximalSamplePersonWithLock(obj)
+	return obj
+}
+
+// updateMaximalSamplePersonWithLock sets all the maximal sample values to new values.
+func updateMaximalSamplePersonWithLock(obj *PersonWithLock) {
+	updateMinimalSamplePersonWithLock(obj)
+
+}
+
+// deleteSamplePersonWithLock deletes an object created and saved by one of the sample creator functions.
+func deleteSamplePersonWithLock(ctx context.Context, obj *PersonWithLock) {
+	if obj == nil {
+		return
+	}
+
+	obj.Delete(ctx)
+
+}
+
 func TestPersonWithLock_SetFirstName(t *testing.T) {
 
 	obj := NewPersonWithLock()
@@ -56,44 +97,6 @@ func TestPersonWithLock_Copy(t *testing.T) {
 
 	assert.Equal(t, obj.FirstName(), obj2.FirstName())
 	assert.Equal(t, obj.LastName(), obj2.LastName())
-
-}
-
-// createMinimalSamplePersonWithLock creates an unsaved minimal version of a PersonWithLock object
-// for testing.
-func createMinimalSamplePersonWithLock() *PersonWithLock {
-	obj := NewPersonWithLock()
-	updateMinimalSamplePersonWithLock(obj)
-	return obj
-}
-
-// updateMinimalSamplePersonWithLock sets the values of a minimal sample to new, random values.
-func updateMinimalSamplePersonWithLock(obj *PersonWithLock) {
-	obj.SetFirstName(test.RandomValue[string](50))
-	obj.SetLastName(test.RandomValue[string](50))
-}
-
-// createMaximalSamplePersonWithLock creates an unsaved version of a PersonWithLock object
-// for testing that includes references to minimal objects.
-func createMaximalSamplePersonWithLock() *PersonWithLock {
-	obj := NewPersonWithLock()
-	updateMaximalSamplePersonWithLock(obj)
-	return obj
-}
-
-// updateMaximalSamplePersonWithLock sets all the maximal sample values to new values.
-func updateMaximalSamplePersonWithLock(obj *PersonWithLock) {
-	updateMinimalSamplePersonWithLock(obj)
-
-}
-
-// deleteSamplePersonWithLock deletes an object created and saved by one of the sample creator functions.
-func deleteSamplePersonWithLock(ctx context.Context, obj *PersonWithLock) {
-	if obj == nil {
-		return
-	}
-
-	obj.Delete(ctx)
 
 }
 
@@ -162,11 +165,11 @@ func TestPersonWithLock_BasicUpdate(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	obj2 := LoadPersonWithLock(ctx, obj.PrimaryKey())
 
-	assert.Equal(t, obj2.ID(), obj.ID())
-	assert.Equal(t, obj2.FirstName(), obj.FirstName())
-	assert.Equal(t, obj2.LastName(), obj.LastName())
-	assert.Equal(t, obj2.GroLock(), obj.GroLock())
-	assert.Equal(t, obj2.GroTimestamp(), obj.GroTimestamp())
+	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
+	assert.Equal(t, obj2.FirstName(), obj.FirstName(), "FirstName did not update")
+	assert.Equal(t, obj2.LastName(), obj.LastName(), "LastName did not update")
+	assert.Equal(t, obj2.GroLock(), obj.GroLock(), "GroLock did not update")
+	assert.Equal(t, obj2.GroTimestamp(), obj.GroTimestamp(), "GroTimestamp did not update")
 }
 
 func TestPersonWithLock_References(t *testing.T) {

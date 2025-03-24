@@ -15,6 +15,62 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// createMinimalSampleTypeTest creates an unsaved minimal version of a TypeTest object
+// for testing.
+func createMinimalSampleTypeTest() *TypeTest {
+	obj := NewTypeTest()
+	updateMinimalSampleTypeTest(obj)
+	return obj
+}
+
+// updateMinimalSampleTypeTest sets the values of a minimal sample to new, random values.
+func updateMinimalSampleTypeTest(obj *TypeTest) {
+
+	obj.SetDate(test.RandomValue[time.Time](0))
+
+	obj.SetTime(test.RandomValue[time.Time](0))
+
+	obj.SetDateTime(test.RandomValue[time.Time](0))
+
+	obj.SetTestInt(test.RandomValue[int](32))
+
+	obj.SetTestFloat(test.RandomValue[float32](32))
+
+	obj.SetTestDouble(test.RandomValue[float64](64))
+
+	obj.SetTestText(test.RandomValue[string](65535))
+
+	obj.SetTestBit(test.RandomValue[bool](0))
+
+	obj.SetTestVarchar(test.RandomValue[string](10))
+
+	obj.SetTestBlob(test.RandomValue[[]byte](65535))
+}
+
+// createMaximalSampleTypeTest creates an unsaved version of a TypeTest object
+// for testing that includes references to minimal objects.
+func createMaximalSampleTypeTest() *TypeTest {
+	obj := NewTypeTest()
+	updateMaximalSampleTypeTest(obj)
+	return obj
+}
+
+// updateMaximalSampleTypeTest sets all the maximal sample values to new values.
+func updateMaximalSampleTypeTest(obj *TypeTest) {
+	updateMinimalSampleTypeTest(obj)
+
+}
+
+// deleteSampleTypeTest deletes an object created and saved by one of the sample creator functions.
+func deleteSampleTypeTest(ctx context.Context, obj *TypeTest) {
+	if obj == nil {
+		return
+	}
+
+	obj.Delete(ctx)
+
+}
+
 func TestTypeTest_SetDate(t *testing.T) {
 
 	obj := NewTypeTest()
@@ -223,52 +279,6 @@ func TestTypeTest_Copy(t *testing.T) {
 
 }
 
-// createMinimalSampleTypeTest creates an unsaved minimal version of a TypeTest object
-// for testing.
-func createMinimalSampleTypeTest() *TypeTest {
-	obj := NewTypeTest()
-	updateMinimalSampleTypeTest(obj)
-	return obj
-}
-
-// updateMinimalSampleTypeTest sets the values of a minimal sample to new, random values.
-func updateMinimalSampleTypeTest(obj *TypeTest) {
-	obj.SetDate(test.RandomValue[time.Time](0))
-	obj.SetTime(test.RandomValue[time.Time](0))
-	obj.SetDateTime(test.RandomValue[time.Time](0))
-	obj.SetTestInt(test.RandomValue[int](32))
-	obj.SetTestFloat(test.RandomValue[float32](32))
-	obj.SetTestDouble(test.RandomValue[float64](64))
-	obj.SetTestText(test.RandomValue[string](65535))
-	obj.SetTestBit(test.RandomValue[bool](0))
-	obj.SetTestVarchar(test.RandomValue[string](10))
-	obj.SetTestBlob(test.RandomValue[[]byte](65535))
-}
-
-// createMaximalSampleTypeTest creates an unsaved version of a TypeTest object
-// for testing that includes references to minimal objects.
-func createMaximalSampleTypeTest() *TypeTest {
-	obj := NewTypeTest()
-	updateMaximalSampleTypeTest(obj)
-	return obj
-}
-
-// updateMaximalSampleTypeTest sets all the maximal sample values to new values.
-func updateMaximalSampleTypeTest(obj *TypeTest) {
-	updateMinimalSampleTypeTest(obj)
-
-}
-
-// deleteSampleTypeTest deletes an object created and saved by one of the sample creator functions.
-func deleteSampleTypeTest(ctx context.Context, obj *TypeTest) {
-	if obj == nil {
-		return
-	}
-
-	obj.Delete(ctx)
-
-}
-
 func TestTypeTest_BasicInsert(t *testing.T) {
 	obj := NewTypeTest()
 	ctx := db.NewContext(nil)
@@ -427,18 +437,22 @@ func TestTypeTest_BasicUpdate(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	obj2 := LoadTypeTest(ctx, obj.PrimaryKey())
 
-	assert.Equal(t, obj2.ID(), obj.ID())
-	assert.Equal(t, obj2.Date(), obj.Date())
-	assert.Equal(t, obj2.Time(), obj.Time())
-	assert.Equal(t, obj2.DateTime(), obj.DateTime())
-	assert.Equal(t, obj2.Ts(), obj.Ts())
-	assert.Equal(t, obj2.TestInt(), obj.TestInt())
-	assert.Equal(t, obj2.TestFloat(), obj.TestFloat())
-	assert.Equal(t, obj2.TestDouble(), obj.TestDouble())
-	assert.Equal(t, obj2.TestText(), obj.TestText())
-	assert.Equal(t, obj2.TestBit(), obj.TestBit())
-	assert.Equal(t, obj2.TestVarchar(), obj.TestVarchar())
-	assert.Equal(t, obj2.TestBlob(), obj.TestBlob())
+	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
+
+	assert.WithinDuration(t, obj2.Date(), obj.Date(), time.Second, "Date not within one second")
+
+	assert.WithinDuration(t, obj2.Time(), obj.Time(), time.Second, "Time not within one second")
+
+	assert.WithinDuration(t, obj2.DateTime(), obj.DateTime(), time.Second, "DateTime not within one second")
+
+	assert.WithinDuration(t, obj2.Ts(), obj.Ts(), time.Second, "Ts not within one second")
+	assert.Equal(t, obj2.TestInt(), obj.TestInt(), "TestInt did not update")
+	assert.Equal(t, obj2.TestFloat(), obj.TestFloat(), "TestFloat did not update")
+	assert.Equal(t, obj2.TestDouble(), obj.TestDouble(), "TestDouble did not update")
+	assert.Equal(t, obj2.TestText(), obj.TestText(), "TestText did not update")
+	assert.Equal(t, obj2.TestBit(), obj.TestBit(), "TestBit did not update")
+	assert.Equal(t, obj2.TestVarchar(), obj.TestVarchar(), "TestVarchar did not update")
+	assert.Equal(t, obj2.TestBlob(), obj.TestBlob(), "TestBlob did not update")
 }
 
 func TestTypeTest_References(t *testing.T) {

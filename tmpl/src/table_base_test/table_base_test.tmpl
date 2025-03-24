@@ -16,10 +16,6 @@ import (
 )
 }}
 
-{{: set.tmpl }}
-
-{{: sample.tmpl }}
-
 var hasUnknown bool
 for _, col := range table.Columns {
     if col.ReceiverType == query.ColTypeUnknown {
@@ -27,8 +23,14 @@ for _, col := range table.Columns {
     } // cannot know what the set of valid input characters are.
 }
 
+{{: sample.tmpl }}
+
 if !hasUnknown {
+{{: set.tmpl }}
+
 {{: save.tmpl }}
-}
 
 {{: get.tmpl }}
+}
+
+

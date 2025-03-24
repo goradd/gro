@@ -8,7 +8,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/goradd/orm/pkg/db"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,12 +22,4 @@ func TestUnsupportedType_String(t *testing.T) {
 }
 
 func TestUnsupportedType_Delete(t *testing.T) {
-	ctx := db.NewContext(nil)
-
-	obj := createMinimalSampleUnsupportedType()
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
-	DeleteUnsupportedType(ctx, obj.PrimaryKey())
-	obj2 := LoadUnsupportedType(ctx, obj.PrimaryKey())
-	assert.Nil(t, obj2)
 }

@@ -14,33 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestLeaf_SetName(t *testing.T) {
-
-	obj := NewLeaf()
-	val := test.RandomValue[string](100)
-	obj.SetName(val)
-	assert.Equal(t, val, obj.Name())
-
-	// test default
-	obj.SetName("")
-	assert.EqualValues(t, "", obj.Name(), "set default")
-
-	// test panic on setting value larger than maximum size allowed
-	val = test.RandomValue[string](101)
-	assert.Panics(t, func() {
-		obj.SetName(val)
-	})
-}
-
-func TestLeaf_Copy(t *testing.T) {
-	obj := createMinimalSampleLeaf()
-
-	obj2 := obj.Copy()
-
-	assert.Equal(t, obj.Name(), obj2.Name())
-
-}
-
 // createMinimalSampleLeaf creates an unsaved minimal version of a Leaf object
 // for testing.
 func createMinimalSampleLeaf() *Leaf {
@@ -51,6 +24,7 @@ func createMinimalSampleLeaf() *Leaf {
 
 // updateMinimalSampleLeaf sets the values of a minimal sample to new, random values.
 func updateMinimalSampleLeaf(obj *Leaf) {
+
 	obj.SetName(test.RandomValue[string](100))
 }
 
@@ -88,6 +62,33 @@ func deleteSampleLeaf(ctx context.Context, obj *Leaf) {
 	deleteSampleRoot(ctx, obj.RequiredLeafUniqueRoot())
 
 	obj.Delete(ctx)
+
+}
+
+func TestLeaf_SetName(t *testing.T) {
+
+	obj := NewLeaf()
+	val := test.RandomValue[string](100)
+	obj.SetName(val)
+	assert.Equal(t, val, obj.Name())
+
+	// test default
+	obj.SetName("")
+	assert.EqualValues(t, "", obj.Name(), "set default")
+
+	// test panic on setting value larger than maximum size allowed
+	val = test.RandomValue[string](101)
+	assert.Panics(t, func() {
+		obj.SetName(val)
+	})
+}
+
+func TestLeaf_Copy(t *testing.T) {
+	obj := createMinimalSampleLeaf()
+
+	obj2 := obj.Copy()
+
+	assert.Equal(t, obj.Name(), obj2.Name())
 
 }
 
@@ -138,8 +139,8 @@ func TestLeaf_BasicUpdate(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	obj2 := LoadLeaf(ctx, obj.PrimaryKey())
 
-	assert.Equal(t, obj2.ID(), obj.ID())
-	assert.Equal(t, obj2.Name(), obj.Name())
+	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
+	assert.Equal(t, obj2.Name(), obj.Name(), "Name did not update")
 }
 
 func TestLeaf_References(t *testing.T) {

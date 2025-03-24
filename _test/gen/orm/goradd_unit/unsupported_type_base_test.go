@@ -4,275 +4,9 @@ package goradd_unit
 
 import (
 	"context"
-	"strconv"
-	"testing"
 
-	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
-	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
-
-func TestUnsupportedType_SetTypeSet(t *testing.T) {
-
-	obj := NewUnsupportedType()
-	val := test.RandomValue[string](5)
-	obj.SetTypeSet(val)
-	assert.Equal(t, val, obj.TypeSet())
-
-	// test default
-	obj.SetTypeSet("")
-	assert.EqualValues(t, "", obj.TypeSet(), "set default")
-
-	// test panic on setting value larger than maximum size allowed
-	val = test.RandomValue[string](6)
-	assert.Panics(t, func() {
-		obj.SetTypeSet(val)
-	})
-}
-func TestUnsupportedType_SetTypeEnumerated(t *testing.T) {
-
-	obj := NewUnsupportedType()
-	val := test.RandomValue[string](1)
-	obj.SetTypeEnumerated(val)
-	assert.Equal(t, val, obj.TypeEnumerated())
-
-	// test default
-	obj.SetTypeEnumerated("")
-	assert.EqualValues(t, "", obj.TypeEnumerated(), "set default")
-
-	// test panic on setting value larger than maximum size allowed
-	val = test.RandomValue[string](2)
-	assert.Panics(t, func() {
-		obj.SetTypeEnumerated(val)
-	})
-}
-func TestUnsupportedType_SetTypeDecimal(t *testing.T) {
-
-	obj := NewUnsupportedType()
-	val := test.RandomValue[[]byte](13)
-	obj.SetTypeDecimal(val)
-	assert.Equal(t, val, obj.TypeDecimal())
-
-	// test default
-	obj.SetTypeDecimal([]byte{})
-	assert.EqualValues(t, []byte{}, obj.TypeDecimal(), "set default")
-
-	// test panic on setting value larger than maximum size allowed
-	val = test.RandomValue[[]byte](14)
-	assert.Panics(t, func() {
-		obj.SetTypeDecimal(val)
-	})
-}
-func TestUnsupportedType_SetTypeDouble(t *testing.T) {
-
-	obj := NewUnsupportedType()
-	val := test.RandomValue[float64](64)
-	obj.SetTypeDouble(val)
-	assert.Equal(t, val, obj.TypeDouble())
-
-	// test default
-	obj.SetTypeDouble(0)
-	assert.EqualValues(t, 0, obj.TypeDouble(), "set default")
-
-}
-func TestUnsupportedType_SetTypeGeo(t *testing.T) {
-
-	obj := NewUnsupportedType()
-	val := test.RandomValue[[]byte](0)
-	obj.SetTypeGeo(val)
-	assert.Equal(t, val, obj.TypeGeo())
-
-	// test default
-	obj.SetTypeGeo([]byte{})
-	assert.EqualValues(t, []byte{}, obj.TypeGeo(), "set default")
-
-}
-func TestUnsupportedType_SetTypeTinyBlob(t *testing.T) {
-
-	obj := NewUnsupportedType()
-	val := test.RandomValue[[]byte](255)
-	obj.SetTypeTinyBlob(val)
-	assert.Equal(t, val, obj.TypeTinyBlob())
-
-	// test default
-	obj.SetTypeTinyBlob([]byte{})
-	assert.EqualValues(t, []byte{}, obj.TypeTinyBlob(), "set default")
-
-	// test panic on setting value larger than maximum size allowed
-	val = test.RandomValue[[]byte](256)
-	assert.Panics(t, func() {
-		obj.SetTypeTinyBlob(val)
-	})
-}
-func TestUnsupportedType_SetTypeMediumBlob(t *testing.T) {
-
-	obj := NewUnsupportedType()
-	val := test.RandomValue[[]byte](100000)
-	obj.SetTypeMediumBlob(val)
-	assert.Equal(t, val, obj.TypeMediumBlob())
-
-	// test default
-	obj.SetTypeMediumBlob([]byte{})
-	assert.EqualValues(t, []byte{}, obj.TypeMediumBlob(), "set default")
-
-}
-func TestUnsupportedType_SetTypeVarbinary(t *testing.T) {
-
-	obj := NewUnsupportedType()
-	val := test.RandomValue[[]byte](0)
-	obj.SetTypeVarbinary(val)
-	assert.Equal(t, val, obj.TypeVarbinary())
-
-	// test default
-	obj.SetTypeVarbinary([]byte{})
-	assert.EqualValues(t, []byte{}, obj.TypeVarbinary(), "set default")
-
-}
-func TestUnsupportedType_SetTypeLongtext(t *testing.T) {
-
-	obj := NewUnsupportedType()
-	val := test.RandomValue[string](100000)
-	obj.SetTypeLongtext(val)
-	assert.Equal(t, val, obj.TypeLongtext())
-
-	// test default
-	obj.SetTypeLongtext("")
-	assert.EqualValues(t, "", obj.TypeLongtext(), "set default")
-
-}
-func TestUnsupportedType_SetTypeBinary(t *testing.T) {
-
-	obj := NewUnsupportedType()
-	val := test.RandomValue[[]byte](0)
-	obj.SetTypeBinary(val)
-	assert.Equal(t, val, obj.TypeBinary())
-
-	// test default
-	obj.SetTypeBinary([]byte{})
-	assert.EqualValues(t, []byte{}, obj.TypeBinary(), "set default")
-
-}
-func TestUnsupportedType_SetTypeSmall(t *testing.T) {
-
-	obj := NewUnsupportedType()
-	val := test.RandomValue[int](16)
-	obj.SetTypeSmall(val)
-	assert.Equal(t, val, obj.TypeSmall())
-
-	// test default
-	obj.SetTypeSmall(0)
-	assert.EqualValues(t, 0, obj.TypeSmall(), "set default")
-
-}
-func TestUnsupportedType_SetTypeMedium(t *testing.T) {
-
-	obj := NewUnsupportedType()
-	val := test.RandomValue[int](24)
-	obj.SetTypeMedium(val)
-	assert.Equal(t, val, obj.TypeMedium())
-
-	// test default
-	obj.SetTypeMedium(0)
-	assert.EqualValues(t, 0, obj.TypeMedium(), "set default")
-
-}
-func TestUnsupportedType_SetTypeBig(t *testing.T) {
-
-	obj := NewUnsupportedType()
-	val := test.RandomValue[int64](64)
-	obj.SetTypeBig(val)
-	assert.Equal(t, val, obj.TypeBig())
-
-	// test default
-	obj.SetTypeBig(0)
-	assert.EqualValues(t, 0, obj.TypeBig(), "set default")
-
-}
-func TestUnsupportedType_SetTypePolygon(t *testing.T) {
-
-	obj := NewUnsupportedType()
-	val := test.RandomValue[[]byte](0)
-	obj.SetTypePolygon(val)
-	assert.Equal(t, val, obj.TypePolygon())
-
-	// test default
-	obj.SetTypePolygon([]byte{})
-	assert.EqualValues(t, []byte{}, obj.TypePolygon(), "set default")
-
-}
-func TestUnsupportedType_SetTypeUnsigned(t *testing.T) {
-
-	obj := NewUnsupportedType()
-	val := test.RandomValue[uint](32)
-	obj.SetTypeUnsigned(val)
-	assert.Equal(t, val, obj.TypeUnsigned())
-
-	// test default
-	obj.SetTypeUnsigned(0x0)
-	assert.EqualValues(t, 0x0, obj.TypeUnsigned(), "set default")
-
-}
-func TestUnsupportedType_SetTypeMultfk1(t *testing.T) {
-
-	obj := NewUnsupportedType()
-	val := test.RandomValue[string](50)
-	obj.SetTypeMultfk1(val)
-	assert.Equal(t, val, obj.TypeMultfk1())
-
-	// test default
-	obj.SetTypeMultfk1("")
-	assert.EqualValues(t, "", obj.TypeMultfk1(), "set default")
-
-	// test panic on setting value larger than maximum size allowed
-	val = test.RandomValue[string](51)
-	assert.Panics(t, func() {
-		obj.SetTypeMultfk1(val)
-	})
-}
-func TestUnsupportedType_SetTypeMultifk2(t *testing.T) {
-
-	obj := NewUnsupportedType()
-	val := test.RandomValue[string](50)
-	obj.SetTypeMultifk2(val)
-	assert.Equal(t, val, obj.TypeMultifk2())
-
-	// test default
-	obj.SetTypeMultifk2("")
-	assert.EqualValues(t, "", obj.TypeMultifk2(), "set default")
-
-	// test panic on setting value larger than maximum size allowed
-	val = test.RandomValue[string](51)
-	assert.Panics(t, func() {
-		obj.SetTypeMultifk2(val)
-	})
-}
-
-func TestUnsupportedType_Copy(t *testing.T) {
-	obj := createMinimalSampleUnsupportedType()
-
-	obj2 := obj.Copy()
-
-	assert.Equal(t, obj.TypeSet(), obj2.TypeSet())
-	assert.Equal(t, obj.TypeEnumerated(), obj2.TypeEnumerated())
-	assert.Equal(t, obj.TypeDecimal(), obj2.TypeDecimal())
-	assert.Equal(t, obj.TypeDouble(), obj2.TypeDouble())
-	assert.Equal(t, obj.TypeGeo(), obj2.TypeGeo())
-	assert.Equal(t, obj.TypeTinyBlob(), obj2.TypeTinyBlob())
-	assert.Equal(t, obj.TypeMediumBlob(), obj2.TypeMediumBlob())
-	assert.Equal(t, obj.TypeVarbinary(), obj2.TypeVarbinary())
-	assert.Equal(t, obj.TypeLongtext(), obj2.TypeLongtext())
-	assert.Equal(t, obj.TypeBinary(), obj2.TypeBinary())
-	assert.Equal(t, obj.TypeSmall(), obj2.TypeSmall())
-	assert.Equal(t, obj.TypeMedium(), obj2.TypeMedium())
-	assert.Equal(t, obj.TypeBig(), obj2.TypeBig())
-	assert.Equal(t, obj.TypePolygon(), obj2.TypePolygon())
-	assert.Equal(t, obj.TypeUnsigned(), obj2.TypeUnsigned())
-	assert.Equal(t, obj.TypeMultfk1(), obj2.TypeMultfk1())
-	assert.Equal(t, obj.TypeMultifk2(), obj2.TypeMultifk2())
-
-}
 
 // createMinimalSampleUnsupportedType creates an unsaved minimal version of a UnsupportedType object
 // for testing.
@@ -284,17 +18,29 @@ func createMinimalSampleUnsupportedType() *UnsupportedType {
 
 // updateMinimalSampleUnsupportedType sets the values of a minimal sample to new, random values.
 func updateMinimalSampleUnsupportedType(obj *UnsupportedType) {
+
 	obj.SetTypeSet(test.RandomValue[string](5))
+
 	obj.SetTypeEnumerated(test.RandomValue[string](1))
+
 	obj.SetTypeDouble(test.RandomValue[float64](64))
+
 	obj.SetTypeTinyBlob(test.RandomValue[[]byte](255))
-	obj.SetTypeMediumBlob(test.RandomValue[[]byte](16777215))
-	obj.SetTypeLongtext(test.RandomValue[string](4294967295))
+
+	obj.SetTypeMediumBlob(test.RandomValue[[]byte](100000))
+
+	obj.SetTypeLongtext(test.RandomValue[string](100000))
+
 	obj.SetTypeSmall(test.RandomValue[int](16))
+
 	obj.SetTypeMedium(test.RandomValue[int](24))
+
 	obj.SetTypeBig(test.RandomValue[int64](64))
+
 	obj.SetTypeUnsigned(test.RandomValue[uint](32))
+
 	obj.SetTypeMultfk1(test.RandomValue[string](50))
+
 	obj.SetTypeMultifk2(test.RandomValue[string](50))
 }
 
@@ -320,44 +66,4 @@ func deleteSampleUnsupportedType(ctx context.Context, obj *UnsupportedType) {
 
 	obj.Delete(ctx)
 
-}
-
-func TestUnsupportedType_EmptyPrimaryKeyGetter(t *testing.T) {
-	obj := NewUnsupportedType()
-
-	i, err := strconv.Atoi(obj.TypeSerial())
-	assert.NoError(t, err)
-	assert.True(t, i < 0)
-}
-
-func TestUnsupportedType_Getters(t *testing.T) {
-	obj := createMinimalSampleUnsupportedType()
-
-	i, err := strconv.Atoi(obj.TypeSerial())
-	assert.NoError(t, err)
-	assert.True(t, i < 0)
-
-	ctx := db.NewContext(nil)
-	require.NoError(t, obj.Save(ctx))
-	defer deleteSampleUnsupportedType(ctx, obj)
-
-	obj2 := LoadUnsupportedType(ctx, obj.PrimaryKey(), node.UnsupportedType().PrimaryKey())
-
-	assert.Panics(t, func() { obj2.TypeSet() })
-	assert.Panics(t, func() { obj2.TypeEnumerated() })
-	assert.Panics(t, func() { obj2.TypeDecimal() })
-	assert.Panics(t, func() { obj2.TypeDouble() })
-	assert.Panics(t, func() { obj2.TypeGeo() })
-	assert.Panics(t, func() { obj2.TypeTinyBlob() })
-	assert.Panics(t, func() { obj2.TypeMediumBlob() })
-	assert.Panics(t, func() { obj2.TypeVarbinary() })
-	assert.Panics(t, func() { obj2.TypeLongtext() })
-	assert.Panics(t, func() { obj2.TypeBinary() })
-	assert.Panics(t, func() { obj2.TypeSmall() })
-	assert.Panics(t, func() { obj2.TypeMedium() })
-	assert.Panics(t, func() { obj2.TypeBig() })
-	assert.Panics(t, func() { obj2.TypePolygon() })
-	assert.Panics(t, func() { obj2.TypeUnsigned() })
-	assert.Panics(t, func() { obj2.TypeMultfk1() })
-	assert.Panics(t, func() { obj2.TypeMultifk2() })
 }

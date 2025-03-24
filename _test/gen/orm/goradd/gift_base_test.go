@@ -13,6 +13,46 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// createMinimalSampleGift creates an unsaved minimal version of a Gift object
+// for testing.
+func createMinimalSampleGift() *Gift {
+	obj := NewGift()
+	updateMinimalSampleGift(obj)
+	return obj
+}
+
+// updateMinimalSampleGift sets the values of a minimal sample to new, random values.
+func updateMinimalSampleGift(obj *Gift) {
+
+	obj.SetNumber(test.RandomValue[int](32))
+
+	obj.SetName(test.RandomValue[string](50))
+}
+
+// createMaximalSampleGift creates an unsaved version of a Gift object
+// for testing that includes references to minimal objects.
+func createMaximalSampleGift() *Gift {
+	obj := NewGift()
+	updateMaximalSampleGift(obj)
+	return obj
+}
+
+// updateMaximalSampleGift sets all the maximal sample values to new values.
+func updateMaximalSampleGift(obj *Gift) {
+	updateMinimalSampleGift(obj)
+
+}
+
+// deleteSampleGift deletes an object created and saved by one of the sample creator functions.
+func deleteSampleGift(ctx context.Context, obj *Gift) {
+	if obj == nil {
+		return
+	}
+
+	obj.Delete(ctx)
+
+}
+
 func TestGift_SetNumber(t *testing.T) {
 
 	obj := NewGift()
@@ -50,44 +90,6 @@ func TestGift_Copy(t *testing.T) {
 
 	assert.Equal(t, obj.Number(), obj2.Number())
 	assert.Equal(t, obj.Name(), obj2.Name())
-
-}
-
-// createMinimalSampleGift creates an unsaved minimal version of a Gift object
-// for testing.
-func createMinimalSampleGift() *Gift {
-	obj := NewGift()
-	updateMinimalSampleGift(obj)
-	return obj
-}
-
-// updateMinimalSampleGift sets the values of a minimal sample to new, random values.
-func updateMinimalSampleGift(obj *Gift) {
-	obj.SetNumber(test.RandomValue[int](32))
-	obj.SetName(test.RandomValue[string](50))
-}
-
-// createMaximalSampleGift creates an unsaved version of a Gift object
-// for testing that includes references to minimal objects.
-func createMaximalSampleGift() *Gift {
-	obj := NewGift()
-	updateMaximalSampleGift(obj)
-	return obj
-}
-
-// updateMaximalSampleGift sets all the maximal sample values to new values.
-func updateMaximalSampleGift(obj *Gift) {
-	updateMinimalSampleGift(obj)
-
-}
-
-// deleteSampleGift deletes an object created and saved by one of the sample creator functions.
-func deleteSampleGift(ctx context.Context, obj *Gift) {
-	if obj == nil {
-		return
-	}
-
-	obj.Delete(ctx)
 
 }
 
@@ -150,8 +152,8 @@ func TestGift_BasicUpdate(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	obj2 := LoadGift(ctx, obj.PrimaryKey())
 
-	assert.Equal(t, obj2.Number(), obj.Number())
-	assert.Equal(t, obj2.Name(), obj.Name())
+	assert.Equal(t, obj2.Number(), obj.Number(), "Number did not update")
+	assert.Equal(t, obj2.Name(), obj.Name(), "Name did not update")
 }
 
 func TestGift_References(t *testing.T) {

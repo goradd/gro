@@ -14,6 +14,51 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// createMinimalSampleEmployeeInfo creates an unsaved minimal version of a EmployeeInfo object
+// for testing.
+func createMinimalSampleEmployeeInfo() *EmployeeInfo {
+	obj := NewEmployeeInfo()
+	updateMinimalSampleEmployeeInfo(obj)
+	return obj
+}
+
+// updateMinimalSampleEmployeeInfo sets the values of a minimal sample to new, random values.
+func updateMinimalSampleEmployeeInfo(obj *EmployeeInfo) {
+
+	// A required forward reference will need to be fulfilled just to save the minimal version of this object
+	// If the database is configured so that the referenced object points back here, either directly or through multiple
+	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
+	obj.SetPerson(createMinimalSamplePerson())
+
+	obj.SetEmployeeNumber(test.RandomValue[int](32))
+}
+
+// createMaximalSampleEmployeeInfo creates an unsaved version of a EmployeeInfo object
+// for testing that includes references to minimal objects.
+func createMaximalSampleEmployeeInfo() *EmployeeInfo {
+	obj := NewEmployeeInfo()
+	updateMaximalSampleEmployeeInfo(obj)
+	return obj
+}
+
+// updateMaximalSampleEmployeeInfo sets all the maximal sample values to new values.
+func updateMaximalSampleEmployeeInfo(obj *EmployeeInfo) {
+	updateMinimalSampleEmployeeInfo(obj)
+
+}
+
+// deleteSampleEmployeeInfo deletes an object created and saved by one of the sample creator functions.
+func deleteSampleEmployeeInfo(ctx context.Context, obj *EmployeeInfo) {
+	if obj == nil {
+		return
+	}
+
+	obj.Delete(ctx)
+
+	deleteSamplePerson(ctx, obj.Person())
+
+}
+
 func TestEmployeeInfo_SetPersonID(t *testing.T) {
 
 	obj := NewEmployeeInfo()
@@ -46,49 +91,6 @@ func TestEmployeeInfo_Copy(t *testing.T) {
 
 	assert.Equal(t, obj.PersonID(), obj2.PersonID())
 	assert.Equal(t, obj.EmployeeNumber(), obj2.EmployeeNumber())
-
-}
-
-// createMinimalSampleEmployeeInfo creates an unsaved minimal version of a EmployeeInfo object
-// for testing.
-func createMinimalSampleEmployeeInfo() *EmployeeInfo {
-	obj := NewEmployeeInfo()
-	updateMinimalSampleEmployeeInfo(obj)
-	return obj
-}
-
-// updateMinimalSampleEmployeeInfo sets the values of a minimal sample to new, random values.
-func updateMinimalSampleEmployeeInfo(obj *EmployeeInfo) {
-	// A required forward reference will need to be fulfilled just to save the minimal version of this object
-	// If the database is configured so that the referenced object points back here, either directly or through multiple
-	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
-	obj.SetPerson(createMinimalSamplePerson())
-	obj.SetEmployeeNumber(test.RandomValue[int](32))
-}
-
-// createMaximalSampleEmployeeInfo creates an unsaved version of a EmployeeInfo object
-// for testing that includes references to minimal objects.
-func createMaximalSampleEmployeeInfo() *EmployeeInfo {
-	obj := NewEmployeeInfo()
-	updateMaximalSampleEmployeeInfo(obj)
-	return obj
-}
-
-// updateMaximalSampleEmployeeInfo sets all the maximal sample values to new values.
-func updateMaximalSampleEmployeeInfo(obj *EmployeeInfo) {
-	updateMinimalSampleEmployeeInfo(obj)
-
-}
-
-// deleteSampleEmployeeInfo deletes an object created and saved by one of the sample creator functions.
-func deleteSampleEmployeeInfo(ctx context.Context, obj *EmployeeInfo) {
-	if obj == nil {
-		return
-	}
-
-	obj.Delete(ctx)
-
-	deleteSamplePerson(ctx, obj.Person())
 
 }
 
@@ -155,9 +157,9 @@ func TestEmployeeInfo_BasicUpdate(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey())
 
-	assert.Equal(t, obj2.ID(), obj.ID())
-	assert.Equal(t, obj2.PersonID(), obj.PersonID())
-	assert.Equal(t, obj2.EmployeeNumber(), obj.EmployeeNumber())
+	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
+	assert.Equal(t, obj2.PersonID(), obj.PersonID(), "PersonID did not update")
+	assert.Equal(t, obj2.EmployeeNumber(), obj.EmployeeNumber(), "EmployeeNumber did not update")
 }
 
 func TestEmployeeInfo_References(t *testing.T) {
