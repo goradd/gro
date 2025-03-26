@@ -101,18 +101,11 @@ func TestPersonWithLock_Copy(t *testing.T) {
 }
 
 func TestPersonWithLock_BasicInsert(t *testing.T) {
-	obj := NewPersonWithLock()
+	obj := createMinimalSamplePersonWithLock()
 	ctx := db.NewContext(nil)
-
-	v_firstName := test.RandomValue[string](50)
-	obj.SetFirstName(v_firstName)
-
-	v_lastName := test.RandomValue[string](50)
-	obj.SetLastName(v_lastName)
-
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
-	defer obj.Delete(ctx)
+	defer deleteSamplePersonWithLock(ctx, obj)
 
 	// Test retrieval
 	obj2 := LoadPersonWithLock(ctx, obj.PrimaryKey())
@@ -123,14 +116,18 @@ func TestPersonWithLock_BasicInsert(t *testing.T) {
 	assert.True(t, obj2.IDIsValid())
 
 	assert.True(t, obj2.FirstNameIsValid())
-	assert.EqualValues(t, v_firstName, obj2.FirstName())
+
+	assert.EqualValues(t, obj.FirstName(), obj2.FirstName())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.firstNameIsDirty)
 	obj2.SetFirstName(obj2.FirstName())
 	assert.False(t, obj2.firstNameIsDirty)
 
 	assert.True(t, obj2.LastNameIsValid())
-	assert.EqualValues(t, v_lastName, obj2.LastName())
+
+	assert.EqualValues(t, obj.LastName(), obj2.LastName())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.lastNameIsDirty)
 	obj2.SetLastName(obj2.LastName())

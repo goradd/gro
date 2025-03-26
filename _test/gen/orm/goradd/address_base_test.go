@@ -33,6 +33,7 @@ func updateMinimalSampleAddress(obj *Address) {
 	obj.SetStreet(test.RandomValue[string](100))
 
 	obj.SetCity(test.RandomValue[string](100))
+
 }
 
 // createMaximalSampleAddress creates an unsaved version of a Address object
@@ -126,23 +127,11 @@ func TestAddress_Copy(t *testing.T) {
 }
 
 func TestAddress_BasicInsert(t *testing.T) {
-	obj := NewAddress()
+	obj := createMinimalSampleAddress()
 	ctx := db.NewContext(nil)
-
-	v_objPerson := createMinimalSamplePerson()
-	assert.NoError(t, v_objPerson.Save(ctx))
-	defer deleteSamplePerson(ctx, v_objPerson)
-	obj.SetPerson(v_objPerson)
-
-	v_street := test.RandomValue[string](100)
-	obj.SetStreet(v_street)
-
-	v_city := test.RandomValue[string](100)
-	obj.SetCity(v_city)
-
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
-	defer obj.Delete(ctx)
+	defer deleteSampleAddress(ctx, obj)
 
 	// Test retrieval
 	obj2 := LoadAddress(ctx, obj.PrimaryKey())
@@ -152,15 +141,10 @@ func TestAddress_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.IDIsValid())
 
-	assert.True(t, obj2.PersonIDIsValid())
-	assert.NotEmpty(t, obj2.PersonID())
-	// test that setting it to the same value will not change the dirty bit
-	assert.False(t, obj2.personIDIsDirty)
-	obj2.SetPersonID(obj2.PersonID())
-	assert.False(t, obj2.personIDIsDirty)
-
 	assert.True(t, obj2.StreetIsValid())
-	assert.EqualValues(t, v_street, obj2.Street())
+
+	assert.EqualValues(t, obj.Street(), obj2.Street())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.streetIsDirty)
 	obj2.SetStreet(obj2.Street())
@@ -168,7 +152,9 @@ func TestAddress_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.CityIsValid())
 	assert.False(t, obj2.CityIsNull())
-	assert.EqualValues(t, v_city, obj2.City())
+
+	assert.EqualValues(t, obj.City(), obj2.City())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.cityIsDirty)
 	obj2.SetCity(obj2.City())

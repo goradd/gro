@@ -736,7 +736,7 @@ const  (
 					return
 				}
 
-				if _, err = io.WriteString(_w, strconv.FormatUint(uint64(col.Size), 10)); err != nil {
+				if _, err = io.WriteString(_w, strconv.FormatUint(uint64(col.MaxLength()), 10)); err != nil {
 					return
 				}
 
@@ -763,7 +763,7 @@ const  (
 					return
 				}
 
-				if _, err = io.WriteString(_w, strconv.FormatUint(uint64(col.Size), 10)); err != nil {
+				if _, err = io.WriteString(_w, strconv.FormatUint(uint64(col.MaxLength()), 10)); err != nil {
 					return
 				}
 
@@ -2633,108 +2633,6 @@ func (o *`); err != nil {
 
 	if _, err = io.WriteString(_w, `IsNull
 }
-
-// `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `_I returns the loaded value of `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, ` as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `Base) `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `_I() interface{} {
-	if o._restored && !o.`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `IsValid {
-		panic ("`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, ` was not selected in the last query and has not been set, and so is not valid")
-	} else if o.`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `IsNull {
-	    return nil
-	}
-`); err != nil {
-		return
-	}
-
-	if col.IsEnumArray() {
-
-		if _, err = io.WriteString(_w, `    return o.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `.Clone()
-`); err != nil {
-			return
-		}
-
-	} else {
-
-		if _, err = io.WriteString(_w, `	return o.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `
-`); err != nil {
-			return
-		}
-
-	}
-
-	if _, err = io.WriteString(_w, `}
 
 `); err != nil {
 		return

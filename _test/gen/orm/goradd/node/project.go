@@ -437,7 +437,7 @@ func (n projectTable) Budget() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:    "budget",
 		Identifier:   "Budget",
-		ReceiverType: query.ColTypeUnknown,
+		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
 	query.NodeSetParent(cn, n)
@@ -466,7 +466,7 @@ func (n projectTable) Spent() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:    "spent",
 		Identifier:   "Spent",
-		ReceiverType: query.ColTypeUnknown,
+		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
 	query.NodeSetParent(cn, n)

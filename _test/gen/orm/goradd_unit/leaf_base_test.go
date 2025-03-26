@@ -26,6 +26,7 @@ func createMinimalSampleLeaf() *Leaf {
 func updateMinimalSampleLeaf(obj *Leaf) {
 
 	obj.SetName(test.RandomValue[string](100))
+
 }
 
 // createMaximalSampleLeaf creates an unsaved version of a Leaf object
@@ -93,15 +94,11 @@ func TestLeaf_Copy(t *testing.T) {
 }
 
 func TestLeaf_BasicInsert(t *testing.T) {
-	obj := NewLeaf()
+	obj := createMinimalSampleLeaf()
 	ctx := db.NewContext(nil)
-
-	v_name := test.RandomValue[string](100)
-	obj.SetName(v_name)
-
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
-	defer obj.Delete(ctx)
+	defer deleteSampleLeaf(ctx, obj)
 
 	// Test retrieval
 	obj2 := LoadLeaf(ctx, obj.PrimaryKey())
@@ -112,7 +109,9 @@ func TestLeaf_BasicInsert(t *testing.T) {
 	assert.True(t, obj2.IDIsValid())
 
 	assert.True(t, obj2.NameIsValid())
-	assert.EqualValues(t, v_name, obj2.Name())
+
+	assert.EqualValues(t, obj.Name(), obj2.Name())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.nameIsDirty)
 	obj2.SetName(obj2.Name())

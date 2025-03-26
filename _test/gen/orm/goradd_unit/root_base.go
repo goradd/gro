@@ -243,17 +243,6 @@ func (o *rootBase) OptionalLeafIDIsNull() bool {
 	return o.optionalLeafIDIsNull
 }
 
-// OptionalLeafID_I returns the loaded value of OptionalLeafID as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *rootBase) OptionalLeafID_I() interface{} {
-	if o._restored && !o.optionalLeafIDIsValid {
-		panic("optionalLeafID was not selected in the last query and has not been set, and so is not valid")
-	} else if o.optionalLeafIDIsNull {
-		return nil
-	}
-	return o.optionalLeafID
-}
-
 // SetOptionalLeafID sets the value of OptionalLeafID in the object, to be saved later in the database using the Save() function.
 func (o *rootBase) SetOptionalLeafID(v string) {
 	if o._restored &&
@@ -523,17 +512,6 @@ func (o *rootBase) ParentIDIsValid() bool {
 // ParentIDIsNull returns true if the related database value is null.
 func (o *rootBase) ParentIDIsNull() bool {
 	return o.parentIDIsNull
-}
-
-// ParentID_I returns the loaded value of ParentID as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *rootBase) ParentID_I() interface{} {
-	if o._restored && !o.parentIDIsValid {
-		panic("parentID was not selected in the last query and has not been set, and so is not valid")
-	} else if o.parentIDIsNull {
-		return nil
-	}
-	return o.parentID
 }
 
 // SetParentID sets the value of ParentID in the object, to be saved later in the database using the Save() function.

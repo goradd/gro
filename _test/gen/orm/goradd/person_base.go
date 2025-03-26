@@ -261,17 +261,6 @@ func (o *personBase) TypesIsNull() bool {
 	return o.typesIsNull
 }
 
-// Types_I returns the loaded value of Types as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *personBase) Types_I() interface{} {
-	if o._restored && !o.typesIsValid {
-		panic("types was not selected in the last query and has not been set, and so is not valid")
-	} else if o.typesIsNull {
-		return nil
-	}
-	return o.types.Clone()
-}
-
 // SetTypes sets the value of Types in the object, to be saved later in the database using the Save() function.
 func (o *personBase) SetTypes(v PersonTypeSet) {
 	if o._restored &&

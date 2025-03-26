@@ -45,6 +45,7 @@ func updateMinimalSampleTypeTest(obj *TypeTest) {
 	obj.SetTestVarchar(test.RandomValue[string](10))
 
 	obj.SetTestBlob(test.RandomValue[[]byte](65535))
+
 }
 
 // createMaximalSampleTypeTest creates an unsaved version of a TypeTest object
@@ -280,48 +281,11 @@ func TestTypeTest_Copy(t *testing.T) {
 }
 
 func TestTypeTest_BasicInsert(t *testing.T) {
-	obj := NewTypeTest()
+	obj := createMinimalSampleTypeTest()
 	ctx := db.NewContext(nil)
-
-	v_date := test.RandomValue[time.Time](0)
-	obj.SetDate(v_date)
-
-	v_date = obj.Date()
-
-	v_time := test.RandomValue[time.Time](0)
-	obj.SetTime(v_time)
-
-	v_time = obj.Time()
-
-	v_dateTime := test.RandomValue[time.Time](0)
-	obj.SetDateTime(v_dateTime)
-
-	v_dateTime = obj.DateTime()
-
-	v_testInt := test.RandomValue[int](32)
-	obj.SetTestInt(v_testInt)
-
-	v_testFloat := test.RandomValue[float32](32)
-	obj.SetTestFloat(v_testFloat)
-
-	v_testDouble := test.RandomValue[float64](64)
-	obj.SetTestDouble(v_testDouble)
-
-	v_testText := test.RandomValue[string](65535)
-	obj.SetTestText(v_testText)
-
-	v_testBit := test.RandomValue[bool](0)
-	obj.SetTestBit(v_testBit)
-
-	v_testVarchar := test.RandomValue[string](10)
-	obj.SetTestVarchar(v_testVarchar)
-
-	v_testBlob := test.RandomValue[[]byte](65535)
-	obj.SetTestBlob(v_testBlob)
-
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
-	defer obj.Delete(ctx)
+	defer deleteSampleTypeTest(ctx, obj)
 
 	// Test retrieval
 	obj2 := LoadTypeTest(ctx, obj.PrimaryKey())
@@ -333,7 +297,9 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.DateIsValid())
 	assert.False(t, obj2.DateIsNull())
-	assert.EqualValues(t, v_date, obj2.Date())
+
+	assert.EqualValues(t, obj.Date(), obj2.Date())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.dateIsDirty)
 	obj2.SetDate(obj2.Date())
@@ -341,7 +307,9 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.TimeIsValid())
 	assert.False(t, obj2.TimeIsNull())
-	assert.EqualValues(t, v_time, obj2.Time())
+
+	assert.EqualValues(t, obj.Time(), obj2.Time())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.timeIsDirty)
 	obj2.SetTime(obj2.Time())
@@ -349,7 +317,9 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.DateTimeIsValid())
 	assert.False(t, obj2.DateTimeIsNull())
-	assert.EqualValues(t, v_dateTime, obj2.DateTime())
+
+	assert.EqualValues(t, obj.DateTime(), obj2.DateTime())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.dateTimeIsDirty)
 	obj2.SetDateTime(obj2.DateTime())
@@ -360,7 +330,9 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.TestIntIsValid())
 	assert.False(t, obj2.TestIntIsNull())
-	assert.EqualValues(t, v_testInt, obj2.TestInt())
+
+	assert.EqualValues(t, obj.TestInt(), obj2.TestInt())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.testIntIsDirty)
 	obj2.SetTestInt(obj2.TestInt())
@@ -368,14 +340,18 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.TestFloatIsValid())
 	assert.False(t, obj2.TestFloatIsNull())
-	assert.EqualValues(t, v_testFloat, obj2.TestFloat())
+
+	assert.EqualValues(t, obj.TestFloat(), obj2.TestFloat())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.testFloatIsDirty)
 	obj2.SetTestFloat(obj2.TestFloat())
 	assert.False(t, obj2.testFloatIsDirty)
 
 	assert.True(t, obj2.TestDoubleIsValid())
-	assert.EqualValues(t, v_testDouble, obj2.TestDouble())
+
+	assert.EqualValues(t, obj.TestDouble(), obj2.TestDouble())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.testDoubleIsDirty)
 	obj2.SetTestDouble(obj2.TestDouble())
@@ -383,7 +359,9 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.TestTextIsValid())
 	assert.False(t, obj2.TestTextIsNull())
-	assert.EqualValues(t, v_testText, obj2.TestText())
+
+	assert.EqualValues(t, obj.TestText(), obj2.TestText())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.testTextIsDirty)
 	obj2.SetTestText(obj2.TestText())
@@ -391,7 +369,9 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.TestBitIsValid())
 	assert.False(t, obj2.TestBitIsNull())
-	assert.EqualValues(t, v_testBit, obj2.TestBit())
+
+	assert.EqualValues(t, obj.TestBit(), obj2.TestBit())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.testBitIsDirty)
 	obj2.SetTestBit(obj2.TestBit())
@@ -399,14 +379,18 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.TestVarcharIsValid())
 	assert.False(t, obj2.TestVarcharIsNull())
-	assert.EqualValues(t, v_testVarchar, obj2.TestVarchar())
+
+	assert.EqualValues(t, obj.TestVarchar(), obj2.TestVarchar())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.testVarcharIsDirty)
 	obj2.SetTestVarchar(obj2.TestVarchar())
 	assert.False(t, obj2.testVarcharIsDirty)
 
 	assert.True(t, obj2.TestBlobIsValid())
-	assert.EqualValues(t, v_testBlob, obj2.TestBlob())
+
+	assert.EqualValues(t, obj.TestBlob(), obj2.TestBlob())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.testBlobIsDirty)
 	obj2.SetTestBlob(obj2.TestBlob())

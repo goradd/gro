@@ -30,6 +30,7 @@ func updateMinimalSamplePerson(obj *Person) {
 	obj.SetLastName(test.RandomValue[string](50))
 
 	obj.SetTypes(test.RandomEnumArray(PersonTypes()))
+
 }
 
 // createMaximalSamplePerson creates an unsaved version of a Person object
@@ -141,21 +142,11 @@ func TestPerson_Copy(t *testing.T) {
 }
 
 func TestPerson_BasicInsert(t *testing.T) {
-	obj := NewPerson()
+	obj := createMinimalSamplePerson()
 	ctx := db.NewContext(nil)
-
-	v_firstName := test.RandomValue[string](50)
-	obj.SetFirstName(v_firstName)
-
-	v_lastName := test.RandomValue[string](50)
-	obj.SetLastName(v_lastName)
-
-	v_types := test.RandomEnumArray(PersonTypes())
-	obj.SetTypes(v_types)
-
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
-	defer obj.Delete(ctx)
+	defer deleteSamplePerson(ctx, obj)
 
 	// Test retrieval
 	obj2 := LoadPerson(ctx, obj.PrimaryKey())
@@ -166,14 +157,18 @@ func TestPerson_BasicInsert(t *testing.T) {
 	assert.True(t, obj2.IDIsValid())
 
 	assert.True(t, obj2.FirstNameIsValid())
-	assert.EqualValues(t, v_firstName, obj2.FirstName())
+
+	assert.EqualValues(t, obj.FirstName(), obj2.FirstName())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.firstNameIsDirty)
 	obj2.SetFirstName(obj2.FirstName())
 	assert.False(t, obj2.firstNameIsDirty)
 
 	assert.True(t, obj2.LastNameIsValid())
-	assert.EqualValues(t, v_lastName, obj2.LastName())
+
+	assert.EqualValues(t, obj.LastName(), obj2.LastName())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.lastNameIsDirty)
 	obj2.SetLastName(obj2.LastName())
@@ -181,7 +176,7 @@ func TestPerson_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.TypesIsValid())
 	assert.False(t, obj2.TypesIsNull())
-	assert.True(t, v_types.Equal(obj2.Types()))
+	assert.True(t, obj.Types().Equal(obj2.Types()))
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.typesIsDirty)
 	obj2.SetTypes(obj2.Types())

@@ -192,40 +192,11 @@ func TestRoot_Copy(t *testing.T) {
 }
 
 func TestRoot_BasicInsert(t *testing.T) {
-	obj := NewRoot()
+	obj := createMinimalSampleRoot()
 	ctx := db.NewContext(nil)
-
-	v_name := test.RandomValue[string](100)
-	obj.SetName(v_name)
-
-	v_objOptionalLeaf := createMinimalSampleLeaf()
-	assert.NoError(t, v_objOptionalLeaf.Save(ctx))
-	defer deleteSampleLeaf(ctx, v_objOptionalLeaf)
-	obj.SetOptionalLeaf(v_objOptionalLeaf)
-
-	v_objRequiredLeaf := createMinimalSampleLeaf()
-	assert.NoError(t, v_objRequiredLeaf.Save(ctx))
-	defer deleteSampleLeaf(ctx, v_objRequiredLeaf)
-	obj.SetRequiredLeaf(v_objRequiredLeaf)
-
-	v_objOptionalLeafUnique := createMinimalSampleLeaf()
-	assert.NoError(t, v_objOptionalLeafUnique.Save(ctx))
-	defer deleteSampleLeaf(ctx, v_objOptionalLeafUnique)
-	obj.SetOptionalLeafUnique(v_objOptionalLeafUnique)
-
-	v_objRequiredLeafUnique := createMinimalSampleLeaf()
-	assert.NoError(t, v_objRequiredLeafUnique.Save(ctx))
-	defer deleteSampleLeaf(ctx, v_objRequiredLeafUnique)
-	obj.SetRequiredLeafUnique(v_objRequiredLeafUnique)
-
-	v_objParent := createMinimalSampleRoot()
-	assert.NoError(t, v_objParent.Save(ctx))
-	defer deleteSampleRoot(ctx, v_objParent)
-	obj.SetParent(v_objParent)
-
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
-	defer obj.Delete(ctx)
+	defer deleteSampleRoot(ctx, obj)
 
 	// Test retrieval
 	obj2 := LoadRoot(ctx, obj.PrimaryKey())
@@ -236,48 +207,13 @@ func TestRoot_BasicInsert(t *testing.T) {
 	assert.True(t, obj2.IDIsValid())
 
 	assert.True(t, obj2.NameIsValid())
-	assert.EqualValues(t, v_name, obj2.Name())
+
+	assert.EqualValues(t, obj.Name(), obj2.Name())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.nameIsDirty)
 	obj2.SetName(obj2.Name())
 	assert.False(t, obj2.nameIsDirty)
-
-	assert.True(t, obj2.OptionalLeafIDIsValid())
-	assert.False(t, obj2.OptionalLeafIDIsNull())
-	assert.NotEmpty(t, obj2.OptionalLeafID())
-	// test that setting it to the same value will not change the dirty bit
-	assert.False(t, obj2.optionalLeafIDIsDirty)
-	obj2.SetOptionalLeafID(obj2.OptionalLeafID())
-	assert.False(t, obj2.optionalLeafIDIsDirty)
-
-	assert.True(t, obj2.RequiredLeafIDIsValid())
-	assert.NotEmpty(t, obj2.RequiredLeafID())
-	// test that setting it to the same value will not change the dirty bit
-	assert.False(t, obj2.requiredLeafIDIsDirty)
-	obj2.SetRequiredLeafID(obj2.RequiredLeafID())
-	assert.False(t, obj2.requiredLeafIDIsDirty)
-
-	assert.True(t, obj2.OptionalLeafUniqueIDIsValid())
-	assert.NotEmpty(t, obj2.OptionalLeafUniqueID())
-	// test that setting it to the same value will not change the dirty bit
-	assert.False(t, obj2.optionalLeafUniqueIDIsDirty)
-	obj2.SetOptionalLeafUniqueID(obj2.OptionalLeafUniqueID())
-	assert.False(t, obj2.optionalLeafUniqueIDIsDirty)
-
-	assert.True(t, obj2.RequiredLeafUniqueIDIsValid())
-	assert.NotEmpty(t, obj2.RequiredLeafUniqueID())
-	// test that setting it to the same value will not change the dirty bit
-	assert.False(t, obj2.requiredLeafUniqueIDIsDirty)
-	obj2.SetRequiredLeafUniqueID(obj2.RequiredLeafUniqueID())
-	assert.False(t, obj2.requiredLeafUniqueIDIsDirty)
-
-	assert.True(t, obj2.ParentIDIsValid())
-	assert.False(t, obj2.ParentIDIsNull())
-	assert.NotEmpty(t, obj2.ParentID())
-	// test that setting it to the same value will not change the dirty bit
-	assert.False(t, obj2.parentIDIsDirty)
-	obj2.SetParentID(obj2.ParentID())
-	assert.False(t, obj2.parentIDIsDirty)
 
 }
 

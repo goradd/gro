@@ -29,6 +29,7 @@ func updateMinimalSampleDoubleIndex(obj *DoubleIndex) {
 	obj.SetFieldInt(test.RandomValue[int](32))
 
 	obj.SetFieldString(test.RandomValue[string](50))
+
 }
 
 // createMaximalSampleDoubleIndex creates an unsaved version of a DoubleIndex object
@@ -109,21 +110,11 @@ func TestDoubleIndex_Copy(t *testing.T) {
 }
 
 func TestDoubleIndex_BasicInsert(t *testing.T) {
-	obj := NewDoubleIndex()
+	obj := createMinimalSampleDoubleIndex()
 	ctx := db.NewContext(nil)
-
-	v_id := test.RandomValue[int](32)
-	obj.SetID(v_id)
-
-	v_fieldInt := test.RandomValue[int](32)
-	obj.SetFieldInt(v_fieldInt)
-
-	v_fieldString := test.RandomValue[string](50)
-	obj.SetFieldString(v_fieldString)
-
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
-	defer obj.Delete(ctx)
+	defer deleteSampleDoubleIndex(ctx, obj)
 
 	// Test retrieval
 	obj2 := LoadDoubleIndex(ctx, obj.PrimaryKey())
@@ -132,21 +123,27 @@ func TestDoubleIndex_BasicInsert(t *testing.T) {
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
 	assert.True(t, obj2.IDIsValid())
-	assert.EqualValues(t, v_id, obj2.ID())
+
+	assert.EqualValues(t, obj.ID(), obj2.ID())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.idIsDirty)
 	obj2.SetID(obj2.ID())
 	assert.False(t, obj2.idIsDirty)
 
 	assert.True(t, obj2.FieldIntIsValid())
-	assert.EqualValues(t, v_fieldInt, obj2.FieldInt())
+
+	assert.EqualValues(t, obj.FieldInt(), obj2.FieldInt())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.fieldIntIsDirty)
 	obj2.SetFieldInt(obj2.FieldInt())
 	assert.False(t, obj2.fieldIntIsDirty)
 
 	assert.True(t, obj2.FieldStringIsValid())
-	assert.EqualValues(t, v_fieldString, obj2.FieldString())
+
+	assert.EqualValues(t, obj.FieldString(), obj2.FieldString())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.fieldStringIsDirty)
 	obj2.SetFieldString(obj2.FieldString())

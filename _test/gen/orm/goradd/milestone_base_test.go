@@ -31,6 +31,7 @@ func updateMinimalSampleMilestone(obj *Milestone) {
 	obj.SetProject(createMinimalSampleProject())
 
 	obj.SetName(test.RandomValue[string](50))
+
 }
 
 // createMaximalSampleMilestone creates an unsaved version of a Milestone object
@@ -100,20 +101,11 @@ func TestMilestone_Copy(t *testing.T) {
 }
 
 func TestMilestone_BasicInsert(t *testing.T) {
-	obj := NewMilestone()
+	obj := createMinimalSampleMilestone()
 	ctx := db.NewContext(nil)
-
-	v_objProject := createMinimalSampleProject()
-	assert.NoError(t, v_objProject.Save(ctx))
-	defer deleteSampleProject(ctx, v_objProject)
-	obj.SetProject(v_objProject)
-
-	v_name := test.RandomValue[string](50)
-	obj.SetName(v_name)
-
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
-	defer obj.Delete(ctx)
+	defer deleteSampleMilestone(ctx, obj)
 
 	// Test retrieval
 	obj2 := LoadMilestone(ctx, obj.PrimaryKey())
@@ -123,15 +115,10 @@ func TestMilestone_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.IDIsValid())
 
-	assert.True(t, obj2.ProjectIDIsValid())
-	assert.NotEmpty(t, obj2.ProjectID())
-	// test that setting it to the same value will not change the dirty bit
-	assert.False(t, obj2.projectIDIsDirty)
-	obj2.SetProjectID(obj2.ProjectID())
-	assert.False(t, obj2.projectIDIsDirty)
-
 	assert.True(t, obj2.NameIsValid())
-	assert.EqualValues(t, v_name, obj2.Name())
+
+	assert.EqualValues(t, obj.Name(), obj2.Name())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.nameIsDirty)
 	obj2.SetName(obj2.Name())

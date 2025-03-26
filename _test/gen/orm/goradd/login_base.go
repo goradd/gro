@@ -167,17 +167,6 @@ func (o *loginBase) PersonIDIsNull() bool {
 	return o.personIDIsNull
 }
 
-// PersonID_I returns the loaded value of PersonID as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *loginBase) PersonID_I() interface{} {
-	if o._restored && !o.personIDIsValid {
-		panic("personID was not selected in the last query and has not been set, and so is not valid")
-	} else if o.personIDIsNull {
-		return nil
-	}
-	return o.personID
-}
-
 // SetPersonID sets the value of PersonID in the object, to be saved later in the database using the Save() function.
 func (o *loginBase) SetPersonID(v string) {
 	if o._restored &&
@@ -294,17 +283,6 @@ func (o *loginBase) PasswordIsValid() bool {
 // PasswordIsNull returns true if the related database value is null.
 func (o *loginBase) PasswordIsNull() bool {
 	return o.passwordIsNull
-}
-
-// Password_I returns the loaded value of Password as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *loginBase) Password_I() interface{} {
-	if o._restored && !o.passwordIsValid {
-		panic("password was not selected in the last query and has not been set, and so is not valid")
-	} else if o.passwordIsNull {
-		return nil
-	}
-	return o.password
 }
 
 // SetPassword sets the value of Password in the object, to be saved later in the database using the Save() function.

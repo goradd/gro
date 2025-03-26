@@ -31,6 +31,7 @@ func updateMinimalSampleEmployeeInfo(obj *EmployeeInfo) {
 	obj.SetPerson(createMinimalSamplePerson())
 
 	obj.SetEmployeeNumber(test.RandomValue[int](32))
+
 }
 
 // createMaximalSampleEmployeeInfo creates an unsaved version of a EmployeeInfo object
@@ -95,20 +96,11 @@ func TestEmployeeInfo_Copy(t *testing.T) {
 }
 
 func TestEmployeeInfo_BasicInsert(t *testing.T) {
-	obj := NewEmployeeInfo()
+	obj := createMinimalSampleEmployeeInfo()
 	ctx := db.NewContext(nil)
-
-	v_objPerson := createMinimalSamplePerson()
-	assert.NoError(t, v_objPerson.Save(ctx))
-	defer deleteSamplePerson(ctx, v_objPerson)
-	obj.SetPerson(v_objPerson)
-
-	v_employeeNumber := test.RandomValue[int](32)
-	obj.SetEmployeeNumber(v_employeeNumber)
-
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
-	defer obj.Delete(ctx)
+	defer deleteSampleEmployeeInfo(ctx, obj)
 
 	// Test retrieval
 	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey())
@@ -118,15 +110,10 @@ func TestEmployeeInfo_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.IDIsValid())
 
-	assert.True(t, obj2.PersonIDIsValid())
-	assert.NotEmpty(t, obj2.PersonID())
-	// test that setting it to the same value will not change the dirty bit
-	assert.False(t, obj2.personIDIsDirty)
-	obj2.SetPersonID(obj2.PersonID())
-	assert.False(t, obj2.personIDIsDirty)
-
 	assert.True(t, obj2.EmployeeNumberIsValid())
-	assert.EqualValues(t, v_employeeNumber, obj2.EmployeeNumber())
+
+	assert.EqualValues(t, obj.EmployeeNumber(), obj2.EmployeeNumber())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.employeeNumberIsDirty)
 	obj2.SetEmployeeNumber(obj2.EmployeeNumber())

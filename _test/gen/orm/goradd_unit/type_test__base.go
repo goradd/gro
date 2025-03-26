@@ -271,17 +271,6 @@ func (o *typeTestBase) DateIsNull() bool {
 	return o.dateIsNull
 }
 
-// Date_I returns the loaded value of Date as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *typeTestBase) Date_I() interface{} {
-	if o._restored && !o.dateIsValid {
-		panic("date was not selected in the last query and has not been set, and so is not valid")
-	} else if o.dateIsNull {
-		return nil
-	}
-	return o.date
-}
-
 // SetDate sets the value of Date in the object, to be saved later in the database using the Save() function.
 //
 // The value v will be converted to UTC time.
@@ -331,17 +320,6 @@ func (o *typeTestBase) TimeIsValid() bool {
 // TimeIsNull returns true if the related database value is null.
 func (o *typeTestBase) TimeIsNull() bool {
 	return o.timeIsNull
-}
-
-// Time_I returns the loaded value of Time as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *typeTestBase) Time_I() interface{} {
-	if o._restored && !o.timeIsValid {
-		panic("time was not selected in the last query and has not been set, and so is not valid")
-	} else if o.timeIsNull {
-		return nil
-	}
-	return o.time
 }
 
 // SetTime sets the value of Time in the object, to be saved later in the database using the Save() function.
@@ -395,17 +373,6 @@ func (o *typeTestBase) DateTimeIsNull() bool {
 	return o.dateTimeIsNull
 }
 
-// DateTime_I returns the loaded value of DateTime as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *typeTestBase) DateTime_I() interface{} {
-	if o._restored && !o.dateTimeIsValid {
-		panic("dateTime was not selected in the last query and has not been set, and so is not valid")
-	} else if o.dateTimeIsNull {
-		return nil
-	}
-	return o.dateTime
-}
-
 // SetDateTime sets the value of DateTime in the object, to be saved later in the database using the Save() function.
 //
 // The value v will be converted to UTC time.
@@ -455,17 +422,6 @@ func (o *typeTestBase) TsIsNull() bool {
 	return o.tsIsNull
 }
 
-// Ts_I returns the loaded value of Ts as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *typeTestBase) Ts_I() interface{} {
-	if o._restored && !o.tsIsValid {
-		panic("ts was not selected in the last query and has not been set, and so is not valid")
-	} else if o.tsIsNull {
-		return nil
-	}
-	return o.ts
-}
-
 // TestInt returns the loaded value of TestInt.
 func (o *typeTestBase) TestInt() int {
 	if o._restored && !o.testIntIsValid {
@@ -482,17 +438,6 @@ func (o *typeTestBase) TestIntIsValid() bool {
 // TestIntIsNull returns true if the related database value is null.
 func (o *typeTestBase) TestIntIsNull() bool {
 	return o.testIntIsNull
-}
-
-// TestInt_I returns the loaded value of TestInt as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *typeTestBase) TestInt_I() interface{} {
-	if o._restored && !o.testIntIsValid {
-		panic("testInt was not selected in the last query and has not been set, and so is not valid")
-	} else if o.testIntIsNull {
-		return nil
-	}
-	return o.testInt
 }
 
 // SetTestInt sets the value of TestInt in the object, to be saved later in the database using the Save() function.
@@ -539,17 +484,6 @@ func (o *typeTestBase) TestFloatIsValid() bool {
 // TestFloatIsNull returns true if the related database value is null.
 func (o *typeTestBase) TestFloatIsNull() bool {
 	return o.testFloatIsNull
-}
-
-// TestFloat_I returns the loaded value of TestFloat as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *typeTestBase) TestFloat_I() interface{} {
-	if o._restored && !o.testFloatIsValid {
-		panic("testFloat was not selected in the last query and has not been set, and so is not valid")
-	} else if o.testFloatIsNull {
-		return nil
-	}
-	return o.testFloat
 }
 
 // SetTestFloat sets the value of TestFloat in the object, to be saved later in the database using the Save() function.
@@ -625,17 +559,6 @@ func (o *typeTestBase) TestTextIsNull() bool {
 	return o.testTextIsNull
 }
 
-// TestText_I returns the loaded value of TestText as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *typeTestBase) TestText_I() interface{} {
-	if o._restored && !o.testTextIsValid {
-		panic("testText was not selected in the last query and has not been set, and so is not valid")
-	} else if o.testTextIsNull {
-		return nil
-	}
-	return o.testText
-}
-
 // SetTestText sets the value of TestText in the object, to be saved later in the database using the Save() function.
 func (o *typeTestBase) SetTestText(v string) {
 	if utf8.RuneCountInString(v) > TypeTestTestTextMaxLength {
@@ -685,17 +608,6 @@ func (o *typeTestBase) TestBitIsNull() bool {
 	return o.testBitIsNull
 }
 
-// TestBit_I returns the loaded value of TestBit as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *typeTestBase) TestBit_I() interface{} {
-	if o._restored && !o.testBitIsValid {
-		panic("testBit was not selected in the last query and has not been set, and so is not valid")
-	} else if o.testBitIsNull {
-		return nil
-	}
-	return o.testBit
-}
-
 // SetTestBit sets the value of TestBit in the object, to be saved later in the database using the Save() function.
 func (o *typeTestBase) SetTestBit(v bool) {
 	if o._restored &&
@@ -740,17 +652,6 @@ func (o *typeTestBase) TestVarcharIsValid() bool {
 // TestVarcharIsNull returns true if the related database value is null.
 func (o *typeTestBase) TestVarcharIsNull() bool {
 	return o.testVarcharIsNull
-}
-
-// TestVarchar_I returns the loaded value of TestVarchar as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *typeTestBase) TestVarchar_I() interface{} {
-	if o._restored && !o.testVarcharIsValid {
-		panic("testVarchar was not selected in the last query and has not been set, and so is not valid")
-	} else if o.testVarcharIsNull {
-		return nil
-	}
-	return o.testVarchar
 }
 
 // SetTestVarchar sets the value of TestVarchar in the object, to be saved later in the database using the Save() function.

@@ -3,6 +3,7 @@ package test
 import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -68,4 +69,77 @@ func TestRandomValue(t *testing.T) {
 	i2 := RandomValue[int](0)
 	assert.Equal(t, i2, i)
 
+}
+
+func TestRandomDecimal(t *testing.T) {
+	seed := NewSeed()
+	fmt.Println("Seed=", seed)
+
+	if RandomDecimal(0, 0) != "0" {
+		t.Errorf(`RandomDecimal(0, 0) did not return 0`)
+	}
+
+	s := RandomDecimal(1, 1)
+	if len(s) > 3 {
+		t.Errorf(`RandomDecimal(1,1) returned a string of length %d`, len(s))
+	}
+	if _, err := strconv.ParseFloat(s, 64); err != nil {
+		t.Errorf(`Non-float was returned by RandomDecimal(1,1)`)
+	}
+
+	s = RandomDecimal(1, 0)
+	if len(s) > 2 {
+		t.Errorf(`RandomDecimal(1,0) returned a string of length %d`, len(s))
+	}
+	if _, err := strconv.Atoi(s); err != nil {
+		t.Errorf(`Non-integer was returned by RandomDecimal(1,0)`)
+	}
+
+	s = RandomDecimal(2, 2)
+	if len(s) > 4 {
+		t.Errorf(`RandomDecimal(2,2) returned a string of length %d`, len(s))
+	}
+	if _, err := strconv.ParseFloat(s, 64); err != nil {
+		t.Errorf(`Non-float was returned by RandomDecimal(2,2): %s`, err.Error())
+	}
+
+	s = RandomDecimal(3, 3)
+	if len(s) > 5 {
+		t.Errorf(`RandomDecimal(3,3) returned a string of length %d`, len(s))
+	}
+	if _, err := strconv.ParseFloat(s, 64); err != nil {
+		t.Errorf(`Non-float was returned by RandomDecimal(3,3): %s`, err.Error())
+	}
+
+	s = RandomDecimal(3, 1)
+	if len(s) > 5 {
+		t.Errorf(`RandomDecimal(3,1) returned a string of length %d`, len(s))
+	}
+	if _, err := strconv.ParseFloat(s, 64); err != nil {
+		t.Errorf(`Non-float was returned by RandomDecimal(3,1): %s`, err.Error())
+	}
+
+	s = RandomDecimal(3, 0)
+	if len(s) > 4 {
+		t.Errorf(`RandomDecimal(3,0) returned a string of length %d`, len(s))
+	}
+	if _, err := strconv.Atoi(s); err != nil {
+		t.Errorf(`Non-integer was returned by RandomDecimal(3,0)`)
+	}
+
+	s = RandomDecimal(10, 10)
+	if len(s) > 12 {
+		t.Errorf(`RandomDecimal(10,10) returned a string of length %d`, len(s))
+	}
+	if _, err := strconv.ParseFloat(s, 64); err != nil {
+		t.Errorf(`Non-float was returned by RandomDecimal(10,10): %s`, err.Error())
+	}
+
+	s = RandomDecimal(10, 5)
+	if len(s) > 12 {
+		t.Errorf(`RandomDecimal(10,5) returned a string of length %d`, len(s))
+	}
+	if _, err := strconv.ParseFloat(s, 64); err != nil {
+		t.Errorf(`Non-float was returned by RandomDecimal(10,5): %s`, err.Error())
+	}
 }

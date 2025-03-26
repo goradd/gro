@@ -27,6 +27,7 @@ func updateMinimalSampleGift(obj *Gift) {
 	obj.SetNumber(test.RandomValue[int](32))
 
 	obj.SetName(test.RandomValue[string](50))
+
 }
 
 // createMaximalSampleGift creates an unsaved version of a Gift object
@@ -94,18 +95,11 @@ func TestGift_Copy(t *testing.T) {
 }
 
 func TestGift_BasicInsert(t *testing.T) {
-	obj := NewGift()
+	obj := createMinimalSampleGift()
 	ctx := db.NewContext(nil)
-
-	v_number := test.RandomValue[int](32)
-	obj.SetNumber(v_number)
-
-	v_name := test.RandomValue[string](50)
-	obj.SetName(v_name)
-
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
-	defer obj.Delete(ctx)
+	defer deleteSampleGift(ctx, obj)
 
 	// Test retrieval
 	obj2 := LoadGift(ctx, obj.PrimaryKey())
@@ -114,14 +108,18 @@ func TestGift_BasicInsert(t *testing.T) {
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
 	assert.True(t, obj2.NumberIsValid())
-	assert.EqualValues(t, v_number, obj2.Number())
+
+	assert.EqualValues(t, obj.Number(), obj2.Number())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.numberIsDirty)
 	obj2.SetNumber(obj2.Number())
 	assert.False(t, obj2.numberIsDirty)
 
 	assert.True(t, obj2.NameIsValid())
-	assert.EqualValues(t, v_name, obj2.Name())
+
+	assert.EqualValues(t, obj.Name(), obj2.Name())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.nameIsDirty)
 	obj2.SetName(obj2.Name())

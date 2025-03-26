@@ -38,7 +38,8 @@ func RandomValue[T any](size int) T {
 		if size == 0 {
 			size = 10
 		}
-		i = randomString(strings.AlphaAll, size)
+		i = randomString(strings.AlphaNumeric, size)
+
 	case int:
 		var v int
 		switch size {
@@ -110,4 +111,22 @@ func RandomEnumArray[T ~int](valueList []T) *maps.OrderedSet[T] {
 		}
 	}
 	return values
+}
+
+func RandomDecimal(precision int, scale int) string {
+	l := precision - scale
+	pc := rng.Intn(l + 1)
+	sc := rng.Intn(scale + 1)
+	var s string
+	if pc > 0 {
+		s = randomString(strings.Numbers, pc)
+	}
+	if sc > 0 {
+		s += "." + randomString(strings.Numbers, sc)
+	}
+	if s == "" || s == "." {
+		return "0"
+	}
+	s = randomString("+-", 1) + s
+	return s
 }

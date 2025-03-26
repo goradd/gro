@@ -230,11 +230,29 @@ func (ct *ColumnType) UnmarshalJSON(data []byte) error {
 type ColumnSubType int
 
 const (
+	// ColSubTypeNone indicates no sub type and is the default
 	ColSubTypeNone ColumnSubType = iota
+	// ColSubTypeDateOnly is for time columns that only contain a date.
+	// The time will be in UTC and will have zero values for hour, minute, seconds, and nanoseconds
 	ColSubTypeDateOnly
+	// ColSubTypeTimeOnly is for time columns that have no date component.
+	// Date components will be 1-1-1 at timezone will be UTC.
+	// Care must be taken when converting string times, since time.Parse will return a time with date component 1-1-0,
+	// however, some database drivers will not accept a 1-1-0 time, even when setting a time-only column.
 	ColSubTypeTimeOnly
-	ColSubTypeTimestamp // should be applied only to an int64 column
-	ColSubTypeLock      // should be applied only to an int64 column
+	// ColSubTypeTimestamp is an int64 column that will automatically be given the UnixMicro value when a record is
+	// successfully inserted or updated.
+	ColSubTypeTimestamp
+	// ColSubTypeLock is an int64 column that contains a record version number that will be used to optimistically
+	// lock the record while saving. The value is automatically generated and will be unique even across multiple
+	// instances of the application.
+	ColSubTypeLock
+	// ColSubTypeNumeric is a string that only accepts numeric values, as in positive or negative numbers with
+	// a decimal point. SQL databases use a NUMERIC or DECIMAL column, and NoSQL generally just supports this natively.
+	// This is not a floating point number, as those numbers can have precision limitations.
+	// Because of this, numeric values are preferred when storing currency values.
+	// See the math/big package for working with these types of values in Go.
+	ColSubTypeNumeric
 )
 
 // String returns the string representation of a ColumnType.
@@ -250,6 +268,8 @@ func (ct ColumnSubType) String() string {
 		return "gro_timestamp"
 	case ColSubTypeLock:
 		return "gro_lock"
+	case ColSubTypeNumeric:
+		return "numeric"
 	default:
 		return "none"
 	}
@@ -278,6 +298,8 @@ func (cst *ColumnSubType) UnmarshalJSON(data []byte) error {
 		*cst = ColSubTypeTimestamp
 	case "gro_lock":
 		*cst = ColSubTypeLock
+	case "numeric":
+		*cst = ColSubTypeNumeric
 	default:
 		*cst = ColSubTypeNone
 	}

@@ -5,11 +5,9 @@ package goradd
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
-	"slices"
 	"time"
 	"unicode/utf8"
 
@@ -62,12 +60,12 @@ type projectBase struct {
 	endDateIsValid bool
 	endDateIsDirty bool
 
-	budget        []byte
+	budget        string
 	budgetIsNull  bool
 	budgetIsValid bool
 	budgetIsDirty bool
 
-	spent        []byte
+	spent        string
 	spentIsNull  bool
 	spentIsValid bool
 	spentIsDirty bool
@@ -140,8 +138,8 @@ const ProjectStatusMax = 2147483647
 const ProjectStatusMin = -2147483648
 const ProjectNameMaxLength = 100          // The number of runes the column can hold
 const ProjectDescriptionMaxLength = 65535 // The number of runes the column can hold
-const ProjectBudgetMaxLength = 15         // The number of bytes the column can hold
-const ProjectSpentMaxLength = 15          // The number of bytes the column can hold
+const ProjectBudgetMaxLength = 14         // The number of runes the column can hold
+const ProjectSpentMaxLength = 14          // The number of runes the column can hold
 
 // Initialize or re-initialize a Project database object to default values.
 // The primary key will get a temporary negative number which will be replaced when the object is saved.
@@ -191,13 +189,13 @@ func (o *projectBase) Initialize() {
 	o.endDateIsValid = true
 	o.endDateIsDirty = true
 
-	o.budget = []byte{}
+	o.budget = ""
 
 	o.budgetIsNull = true
 	o.budgetIsValid = true
 	o.budgetIsDirty = true
 
-	o.spent = []byte{}
+	o.spent = ""
 
 	o.spentIsNull = true
 	o.spentIsValid = true
@@ -369,17 +367,6 @@ func (o *projectBase) ManagerIDIsNull() bool {
 	return o.managerIDIsNull
 }
 
-// ManagerID_I returns the loaded value of ManagerID as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *projectBase) ManagerID_I() interface{} {
-	if o._restored && !o.managerIDIsValid {
-		panic("managerID was not selected in the last query and has not been set, and so is not valid")
-	} else if o.managerIDIsNull {
-		return nil
-	}
-	return o.managerID
-}
-
 // SetManagerID sets the value of ManagerID in the object, to be saved later in the database using the Save() function.
 func (o *projectBase) SetManagerID(v string) {
 	if o._restored &&
@@ -498,17 +485,6 @@ func (o *projectBase) DescriptionIsNull() bool {
 	return o.descriptionIsNull
 }
 
-// Description_I returns the loaded value of Description as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *projectBase) Description_I() interface{} {
-	if o._restored && !o.descriptionIsValid {
-		panic("description was not selected in the last query and has not been set, and so is not valid")
-	} else if o.descriptionIsNull {
-		return nil
-	}
-	return o.description
-}
-
 // SetDescription sets the value of Description in the object, to be saved later in the database using the Save() function.
 func (o *projectBase) SetDescription(v string) {
 	if utf8.RuneCountInString(v) > ProjectDescriptionMaxLength {
@@ -556,17 +532,6 @@ func (o *projectBase) StartDateIsValid() bool {
 // StartDateIsNull returns true if the related database value is null.
 func (o *projectBase) StartDateIsNull() bool {
 	return o.startDateIsNull
-}
-
-// StartDate_I returns the loaded value of StartDate as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *projectBase) StartDate_I() interface{} {
-	if o._restored && !o.startDateIsValid {
-		panic("startDate was not selected in the last query and has not been set, and so is not valid")
-	} else if o.startDateIsNull {
-		return nil
-	}
-	return o.startDate
 }
 
 // SetStartDate sets the value of StartDate in the object, to be saved later in the database using the Save() function.
@@ -620,17 +585,6 @@ func (o *projectBase) EndDateIsNull() bool {
 	return o.endDateIsNull
 }
 
-// EndDate_I returns the loaded value of EndDate as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *projectBase) EndDate_I() interface{} {
-	if o._restored && !o.endDateIsValid {
-		panic("endDate was not selected in the last query and has not been set, and so is not valid")
-	} else if o.endDateIsNull {
-		return nil
-	}
-	return o.endDate
-}
-
 // SetEndDate sets the value of EndDate in the object, to be saved later in the database using the Save() function.
 //
 // The value v will be converted to UTC time.
@@ -665,7 +619,7 @@ func (o *projectBase) SetEndDateToNull() {
 }
 
 // Budget returns the loaded value of Budget.
-func (o *projectBase) Budget() []byte {
+func (o *projectBase) Budget() string {
 	if o._restored && !o.budgetIsValid {
 		panic("Budget was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -682,41 +636,23 @@ func (o *projectBase) BudgetIsNull() bool {
 	return o.budgetIsNull
 }
 
-// Budget_I returns the loaded value of Budget as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *projectBase) Budget_I() interface{} {
-	if o._restored && !o.budgetIsValid {
-		panic("budget was not selected in the last query and has not been set, and so is not valid")
-	} else if o.budgetIsNull {
-		return nil
+// SetBudget sets the value of Budget in the object, to be saved later in the database using the Save() function.
+func (o *projectBase) SetBudget(v string) {
+	if utf8.RuneCountInString(v) > ProjectBudgetMaxLength {
+		panic("attempted to set Project.Budget to a value larger than its maximum length in runes")
 	}
-	return o.budget
-}
-
-// SetBudget copies the value of Budget, to be saved later in the database using the Save() function.
-// Pass nil to set budget to NULL in the database.
-func (o *projectBase) SetBudget(v []byte) {
-	if v == nil {
-		o.SetBudgetToNull()
-		return
-	}
-
-	if len(v) > ProjectBudgetMaxLength {
-		panic("attempted to set Project.Budget to a value larger than its maximum length")
-	}
-
 	if o._restored &&
 		o.budgetIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.budgetIsNull && // if the db value is null, force a set of value
-		bytes.Equal(o.budget, v) {
+		o.budget == v {
 		// no change
 		return
 	}
 
 	o.budgetIsValid = true
-	o.budget = slices.Clone(v)
-	o.budgetIsNull = false
+	o.budget = v
 	o.budgetIsDirty = true
+	o.budgetIsNull = false
 }
 
 // SetBudgetToNull() will set the budget value in the database to NULL.
@@ -728,11 +664,11 @@ func (o *projectBase) SetBudgetToNull() {
 	}
 	o.budgetIsValid = true
 	o.budgetIsNull = true
-	o.budget = []byte{}
+	o.budget = ""
 }
 
 // Spent returns the loaded value of Spent.
-func (o *projectBase) Spent() []byte {
+func (o *projectBase) Spent() string {
 	if o._restored && !o.spentIsValid {
 		panic("Spent was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -749,41 +685,23 @@ func (o *projectBase) SpentIsNull() bool {
 	return o.spentIsNull
 }
 
-// Spent_I returns the loaded value of Spent as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *projectBase) Spent_I() interface{} {
-	if o._restored && !o.spentIsValid {
-		panic("spent was not selected in the last query and has not been set, and so is not valid")
-	} else if o.spentIsNull {
-		return nil
+// SetSpent sets the value of Spent in the object, to be saved later in the database using the Save() function.
+func (o *projectBase) SetSpent(v string) {
+	if utf8.RuneCountInString(v) > ProjectSpentMaxLength {
+		panic("attempted to set Project.Spent to a value larger than its maximum length in runes")
 	}
-	return o.spent
-}
-
-// SetSpent copies the value of Spent, to be saved later in the database using the Save() function.
-// Pass nil to set spent to NULL in the database.
-func (o *projectBase) SetSpent(v []byte) {
-	if v == nil {
-		o.SetSpentToNull()
-		return
-	}
-
-	if len(v) > ProjectSpentMaxLength {
-		panic("attempted to set Project.Spent to a value larger than its maximum length")
-	}
-
 	if o._restored &&
 		o.spentIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.spentIsNull && // if the db value is null, force a set of value
-		bytes.Equal(o.spent, v) {
+		o.spent == v {
 		// no change
 		return
 	}
 
 	o.spentIsValid = true
-	o.spent = slices.Clone(v)
-	o.spentIsNull = false
+	o.spent = v
 	o.spentIsDirty = true
+	o.spentIsNull = false
 }
 
 // SetSpentToNull() will set the spent value in the database to NULL.
@@ -795,7 +713,7 @@ func (o *projectBase) SetSpentToNull() {
 	}
 	o.spentIsValid = true
 	o.spentIsNull = true
-	o.spent = []byte{}
+	o.spent = ""
 }
 
 // ParentProjectID returns the loaded value of ParentProjectID.
@@ -814,17 +732,6 @@ func (o *projectBase) ParentProjectIDIsValid() bool {
 // ParentProjectIDIsNull returns true if the related database value is null.
 func (o *projectBase) ParentProjectIDIsNull() bool {
 	return o.parentProjectIDIsNull
-}
-
-// ParentProjectID_I returns the loaded value of ParentProjectID as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *projectBase) ParentProjectID_I() interface{} {
-	if o._restored && !o.parentProjectIDIsValid {
-		panic("parentProjectID was not selected in the last query and has not been set, and so is not valid")
-	} else if o.parentProjectIDIsNull {
-		return nil
-	}
-	return o.parentProjectID
 }
 
 // SetParentProjectID sets the value of ParentProjectID in the object, to be saved later in the database using the Save() function.
@@ -1663,14 +1570,14 @@ func CountProjectsByEndDate(ctx context.Context, endDate time.Time) int {
 // CountProjectsByBudget queries the database and returns the number of Project objects that
 // have budget.
 // doc: type=Project
-func CountProjectsByBudget(ctx context.Context, budget []byte) int {
+func CountProjectsByBudget(ctx context.Context, budget string) int {
 	return queryProjects(ctx).Where(op.Equal(node.Project().Budget(), budget)).Count()
 }
 
 // CountProjectsBySpent queries the database and returns the number of Project objects that
 // have spent.
 // doc: type=Project
-func CountProjectsBySpent(ctx context.Context, spent []byte) int {
+func CountProjectsBySpent(ctx context.Context, spent string) int {
 	return queryProjects(ctx).Where(op.Equal(node.Project().Spent(), spent)).Count()
 }
 
@@ -1840,11 +1747,11 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 
 	if v, ok := m["budget"]; ok {
 		if v == nil {
-			o.budget = []byte{}
+			o.budget = ""
 			o.budgetIsNull = true
 			o.budgetIsValid = true
 			o.budgetIsDirty = false
-		} else if o.budget, ok = v.([]byte); ok {
+		} else if o.budget, ok = v.(string); ok {
 			o.budgetIsNull = false
 			o.budgetIsValid = true
 			o.budgetIsDirty = false
@@ -1854,17 +1761,17 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 	} else {
 		o.budgetIsValid = false
 		o.budgetIsNull = true
-		o.budget = []byte{}
+		o.budget = ""
 		o.budgetIsDirty = false
 	}
 
 	if v, ok := m["spent"]; ok {
 		if v == nil {
-			o.spent = []byte{}
+			o.spent = ""
 			o.spentIsNull = true
 			o.spentIsValid = true
 			o.spentIsDirty = false
-		} else if o.spent, ok = v.([]byte); ok {
+		} else if o.spent, ok = v.(string); ok {
 			o.spentIsNull = false
 			o.spentIsValid = true
 			o.spentIsDirty = false
@@ -1874,7 +1781,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 	} else {
 		o.spentIsValid = false
 		o.spentIsNull = true
-		o.spent = []byte{}
+		o.spent = ""
 		o.spentIsDirty = false
 	}
 
@@ -3384,8 +3291,8 @@ func (o *projectBase) MarshalStringMap() map[string]interface{} {
 //	"description" - string, nullable
 //	"startDate" - time.Time, nullable
 //	"endDate" - time.Time, nullable
-//	"budget" - []byte, nullable
-//	"spent" - []byte, nullable
+//	"budget" - string, nullable
+//	"spent" - string, nullable
 //	"parentProjectID" - string, nullable
 func (o *projectBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
@@ -3566,33 +3473,11 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					continue
 				}
 
-				switch d := v.(type) {
-				case string:
-					{
-						// A base 64 encoded string
-						if b, err2 := base64.StdEncoding.DecodeString(d); err2 == nil {
-							o.SetBudget(b)
-						} else {
-							return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
-						}
-					}
-				case []interface{}:
-					{
-						// An array of byte values. Unfortunately, these come through as float64s, and so need to be converted
-						b := make([]byte, len(d), len(d))
-						for i, b1 := range d {
-							if f, ok := b1.(float64); !ok {
-								return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
-							} else {
-								b[i] = uint8(f)
-							}
-						}
-						o.SetBudget(b)
-					}
-				default:
-					return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+				if s, ok := v.(string); !ok {
+					return fmt.Errorf("json field %s must be a string", k)
+				} else {
+					o.SetBudget(s)
 				}
-
 			}
 
 		case "spent":
@@ -3602,33 +3487,11 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					continue
 				}
 
-				switch d := v.(type) {
-				case string:
-					{
-						// A base 64 encoded string
-						if b, err2 := base64.StdEncoding.DecodeString(d); err2 == nil {
-							o.SetSpent(b)
-						} else {
-							return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
-						}
-					}
-				case []interface{}:
-					{
-						// An array of byte values. Unfortunately, these come through as float64s, and so need to be converted
-						b := make([]byte, len(d), len(d))
-						for i, b1 := range d {
-							if f, ok := b1.(float64); !ok {
-								return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
-							} else {
-								b[i] = uint8(f)
-							}
-						}
-						o.SetSpent(b)
-					}
-				default:
-					return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+				if s, ok := v.(string); !ok {
+					return fmt.Errorf("json field %s must be a string", k)
+				} else {
+					o.SetSpent(s)
 				}
-
 			}
 
 		case "parentProjectID":

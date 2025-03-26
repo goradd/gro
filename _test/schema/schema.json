@@ -262,8 +262,9 @@
           },
           {
             "name": "budget",
-            "type": "unknown",
-            "size": 15,
+            "type": "string",
+            "sub_type": "numeric",
+            "size": 131084,
             "is_nullable": true,
             "database_column_info": {
               "mysql": {
@@ -273,8 +274,9 @@
           },
           {
             "name": "spent",
-            "type": "unknown",
-            "size": 15,
+            "type": "string",
+            "sub_type": "numeric",
+            "size": 131084,
             "is_nullable": true,
             "database_column_info": {
               "mysql": {
@@ -657,7 +659,7 @@
           },
           {
             "name": "type_set",
-            "type": "string",
+            "type": "unknown",
             "size": 5,
             "case_insensitive": true,
             "database_column_info": {
@@ -668,7 +670,7 @@
           },
           {
             "name": "type_enumerated",
-            "type": "string",
+            "type": "unknown",
             "size": 1,
             "case_insensitive": true,
             "database_column_info": {
@@ -679,8 +681,9 @@
           },
           {
             "name": "type_decimal",
-            "type": "unknown",
-            "size": 13,
+            "type": "string",
+            "sub_type": "numeric",
+            "size": 262154,
             "database_column_info": {
               "mysql": {
                 "type": "decimal(10,4)"

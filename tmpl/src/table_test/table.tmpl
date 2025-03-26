@@ -2,10 +2,10 @@
 
 // The master template for the table test
 
-var hasUnknown bool
+var hasRequiredUnknown bool
 for _, col := range table.Columns {
-    if col.ReceiverType == query.ColTypeUnknown {
-        hasUnknown = true
+    if col.ReceiverType == query.ColTypeUnknown && !col.IsNullable {
+        hasRequiredUnknown = true
     } // cannot know what the set of valid input characters are.
 }
 
@@ -39,7 +39,7 @@ func Test{{= table.Identifier }}_String(t *testing.T) {
 }
 
 func Test{{= table.Identifier }}_Delete(t *testing.T) {
-{{if !hasUnknown}}
+{{if !hasRequiredUnknown}}
     ctx := db.NewContext(nil)
     obj := createMinimalSample{{= table.Identifier }}()
     err := obj.Save(ctx)

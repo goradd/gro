@@ -125,7 +125,7 @@ func (n unsupportedTypeTable) TypeSet() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:    "type_set",
 		Identifier:   "TypeSet",
-		ReceiverType: query.ColTypeString,
+		ReceiverType: query.ColTypeUnknown,
 		IsPrimaryKey: false,
 	}
 	query.NodeSetParent(cn, n)
@@ -136,7 +136,7 @@ func (n unsupportedTypeTable) TypeEnumerated() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:    "type_enumerated",
 		Identifier:   "TypeEnumerated",
-		ReceiverType: query.ColTypeString,
+		ReceiverType: query.ColTypeUnknown,
 		IsPrimaryKey: false,
 	}
 	query.NodeSetParent(cn, n)
@@ -147,7 +147,7 @@ func (n unsupportedTypeTable) TypeDecimal() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:    "type_decimal",
 		Identifier:   "TypeDecimal",
-		ReceiverType: query.ColTypeUnknown,
+		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}
 	query.NodeSetParent(cn, n)

@@ -29,9 +29,9 @@ const  (
 {{for _,col := range table.Columns}}
 {{if col.Size > 0}}
 {{if col.ReceiverType == query.ColTypeString}}
-    const {{= table.Identifier }}{{= col.Identifier }}MaxLength = {{u col.Size }} // The number of runes the column can hold
+    const {{= table.Identifier }}{{= col.Identifier }}MaxLength = {{u col.MaxLength() }} // The number of runes the column can hold
 {{elseif col.ReceiverType == query.ColTypeBytes || col.ReceiverType == query.ColTypeUnknown }}
-    const {{= table.Identifier }}{{= col.Identifier }}MaxLength = {{u col.Size }} // The number of bytes the column can hold
+    const {{= table.Identifier }}{{= col.Identifier }}MaxLength = {{u col.MaxLength() }} // The number of bytes the column can hold
 {{elseif col.ReceiverType == query.ColTypeInteger || col.ReceiverType == query.ColTypeUnsigned }}
     const {{= table.Identifier }}{{= col.Identifier }}Max = {{L col.MaxInt() }}
     const {{= table.Identifier }}{{= col.Identifier }}Min = {{L col.MinInt() }}

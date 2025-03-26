@@ -313,6 +313,7 @@ func (h *DbHelper) Delete(ctx context.Context, table string, where map[string]an
 func (h *DbHelper) Insert(ctx context.Context, table string, fields map[string]interface{}) string {
 	s, args := GenerateInsert(h.dbi, table, fields)
 	if r, err := h.SqlExec(ctx, s, args...); err != nil {
+		log.Printf("Sql error for: %s, %v", s, args)
 		panic(err.Error())
 	} else {
 		// Not all database implementations support LastInsertId

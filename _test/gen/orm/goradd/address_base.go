@@ -243,17 +243,6 @@ func (o *addressBase) CityIsNull() bool {
 	return o.cityIsNull
 }
 
-// City_I returns the loaded value of City as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *addressBase) City_I() interface{} {
-	if o._restored && !o.cityIsValid {
-		panic("city was not selected in the last query and has not been set, and so is not valid")
-	} else if o.cityIsNull {
-		return nil
-	}
-	return o.city
-}
-
 // SetCity sets the value of City in the object, to be saved later in the database using the Save() function.
 func (o *addressBase) SetCity(v string) {
 	if utf8.RuneCountInString(v) > AddressCityMaxLength {

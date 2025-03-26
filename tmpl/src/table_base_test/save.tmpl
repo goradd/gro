@@ -2,40 +2,11 @@
 
 {{
 func Test{{= table.Identifier }}_BasicInsert(t *testing.T) {
-    obj := New{{= table.Identifier }}()
+    obj := createMinimalSample{{= table.Identifier }}()
     ctx := db.NewContext(nil)
-
-{{for _,col := range table.Columns}}
-{{g
-    testSize := min(100000, col.Size)
-}}
-
-{{if col.HasSetter()}}
-    {{if col.IsReference()}}
-    v_{{= col.ReferenceVariableIdentifier() }} := createMinimalSample{{= col.ReferenceType() }}()
-    assert.NoError(t, v_{{= col.ReferenceVariableIdentifier() }}.Save(ctx))
-    defer deleteSample{{= col.ReferenceType() }}(ctx, v_{{= col.ReferenceVariableIdentifier() }})
-    obj.Set{{= col.ReferenceIdentifier() }}(v_{{= col.ReferenceVariableIdentifier() }})
-    {{elseif col.IsEnum() }}
-        {{if col.IsEnumArray() }}
-    v_{{= col.VariableIdentifier() }} := test.RandomEnumArray({{= col.Reference.EnumTable.IdentifierPlural}}())
-    obj.Set{{= col.Identifier }}(v_{{= col.VariableIdentifier() }})
-        {{else}}
-    v_{{= col.VariableIdentifier() }} := test.RandomEnum({{= col.Reference.EnumTable.IdentifierPlural}}())
-    obj.Set{{= col.Identifier }}(v_{{= col.VariableIdentifier() }})
-        {{if}}
-    {{else}}
-    v_{{= col.VariableIdentifier() }} := test.RandomValue[{{= col.GoType() }}]({{u testSize }})
-    obj.Set{{= col.Identifier }}(v_{{= col.VariableIdentifier() }})
-        {{if col.SchemaType == schema.ColTypeTime}}
-    v_{{= col.VariableIdentifier() }} = obj.{{= col.Identifier }}()
-        {{if}}
-    {{if}}
-{{if}}
-{{for}}
     err := obj.Save(ctx)
 	assert.NoError(t, err)
-    defer obj.Delete(ctx)
+    defer deleteSample{{= table.Identifier }}(ctx, obj)
 
     // Test retrieval
     obj2 := Load{{= table.Identifier }}(ctx, obj.PrimaryKey())
@@ -46,6 +17,7 @@ func Test{{= table.Identifier }}_BasicInsert(t *testing.T) {
 {{for _,col := range table.Columns}}
 {{g
     if col.ReceiverType == query.ColTypeUnknown {continue} // cannot know what the set of valid input characters are.
+    if col.IsReference() {continue} // forward references will be tested in the References test.
 }}
 
     assert.True(t, obj2.{{= col.Identifier }}IsValid())
@@ -53,12 +25,14 @@ func Test{{= table.Identifier }}_BasicInsert(t *testing.T) {
     assert.False(t, obj2.{{= col.Identifier }}IsNull())
 {{if}}
 {{if col.HasSetter()}}
-{{if col.IsReference() }}
-    assert.NotEmpty(t, obj2.{{= col.Identifier }}())
-{{elseif col.IsEnumArray() }}
-    assert.True(t, v_{{= col.VariableIdentifier() }}.Equal(obj2.{{= col.Identifier }}()))
+{{if col.IsEnumArray() }}
+    assert.True(t, obj.{{= col.Identifier }}().Equal(obj2.{{= col.Identifier }}()))
 {{else}}
-    assert.EqualValues(t, v_{{= col.VariableIdentifier() }}, obj2.{{= col.Identifier }}())
+
+{{if col.SchemaSubType != schema.ColSubTypeNumeric }}
+    assert.EqualValues(t, obj.{{= col.Identifier }}(), obj2.{{= col.Identifier }}())
+{{if}}
+
 {{if}}
     // test that setting it to the same value will not change the dirty bit
     assert.False(t, obj2.{{= col.VariableIdentifier() }}IsDirty)
@@ -95,7 +69,7 @@ func Test{{= table.Identifier }}_BasicUpdate(t *testing.T) {
 {{for _,col := range table.Columns}}
 {{if col.ReceiverType == query.ColTypeTime}} {{# In some situations, fractional times may be truncated by the database }}
     assert.WithinDuration(t, obj2.{{= col.Identifier }}(), obj.{{= col.Identifier }}(), time.Second, "{{= col.Identifier }} not within one second")
-{{else}}
+{{elseif col.SchemaSubType != schema.ColSubTypeNumeric}}
     assert.Equal(t, obj2.{{= col.Identifier }}(), obj.{{= col.Identifier }}(), "{{= col.Identifier }} did not update")
 {{if}}
 {{for}}

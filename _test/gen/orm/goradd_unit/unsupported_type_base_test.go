@@ -19,9 +19,7 @@ func createMinimalSampleUnsupportedType() *UnsupportedType {
 // updateMinimalSampleUnsupportedType sets the values of a minimal sample to new, random values.
 func updateMinimalSampleUnsupportedType(obj *UnsupportedType) {
 
-	obj.SetTypeSet(test.RandomValue[string](5))
-
-	obj.SetTypeEnumerated(test.RandomValue[string](1))
+	obj.SetTypeDecimal(test.RandomDecimal(10, 4))
 
 	obj.SetTypeDouble(test.RandomValue[float64](64))
 
@@ -42,6 +40,7 @@ func updateMinimalSampleUnsupportedType(obj *UnsupportedType) {
 	obj.SetTypeMultfk1(test.RandomValue[string](50))
 
 	obj.SetTypeMultifk2(test.RandomValue[string](50))
+
 }
 
 // createMaximalSampleUnsupportedType creates an unsaved version of a UnsupportedType object

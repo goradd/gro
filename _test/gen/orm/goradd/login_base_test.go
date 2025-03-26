@@ -30,6 +30,7 @@ func updateMinimalSampleLogin(obj *Login) {
 	obj.SetPassword(test.RandomValue[string](20))
 
 	obj.SetIsEnabled(test.RandomValue[bool](0))
+
 }
 
 // createMaximalSampleLogin creates an unsaved version of a Login object
@@ -144,26 +145,11 @@ func TestLogin_Copy(t *testing.T) {
 }
 
 func TestLogin_BasicInsert(t *testing.T) {
-	obj := NewLogin()
+	obj := createMinimalSampleLogin()
 	ctx := db.NewContext(nil)
-
-	v_objPerson := createMinimalSamplePerson()
-	assert.NoError(t, v_objPerson.Save(ctx))
-	defer deleteSamplePerson(ctx, v_objPerson)
-	obj.SetPerson(v_objPerson)
-
-	v_username := test.RandomValue[string](20)
-	obj.SetUsername(v_username)
-
-	v_password := test.RandomValue[string](20)
-	obj.SetPassword(v_password)
-
-	v_isEnabled := test.RandomValue[bool](0)
-	obj.SetIsEnabled(v_isEnabled)
-
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
-	defer obj.Delete(ctx)
+	defer deleteSampleLogin(ctx, obj)
 
 	// Test retrieval
 	obj2 := LoadLogin(ctx, obj.PrimaryKey())
@@ -173,16 +159,10 @@ func TestLogin_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.IDIsValid())
 
-	assert.True(t, obj2.PersonIDIsValid())
-	assert.False(t, obj2.PersonIDIsNull())
-	assert.NotEmpty(t, obj2.PersonID())
-	// test that setting it to the same value will not change the dirty bit
-	assert.False(t, obj2.personIDIsDirty)
-	obj2.SetPersonID(obj2.PersonID())
-	assert.False(t, obj2.personIDIsDirty)
-
 	assert.True(t, obj2.UsernameIsValid())
-	assert.EqualValues(t, v_username, obj2.Username())
+
+	assert.EqualValues(t, obj.Username(), obj2.Username())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.usernameIsDirty)
 	obj2.SetUsername(obj2.Username())
@@ -190,14 +170,18 @@ func TestLogin_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.PasswordIsValid())
 	assert.False(t, obj2.PasswordIsNull())
-	assert.EqualValues(t, v_password, obj2.Password())
+
+	assert.EqualValues(t, obj.Password(), obj2.Password())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.passwordIsDirty)
 	obj2.SetPassword(obj2.Password())
 	assert.False(t, obj2.passwordIsDirty)
 
 	assert.True(t, obj2.IsEnabledIsValid())
-	assert.EqualValues(t, v_isEnabled, obj2.IsEnabled())
+
+	assert.EqualValues(t, obj.IsEnabled(), obj2.IsEnabled())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.isEnabledIsDirty)
 	obj2.SetIsEnabled(obj2.IsEnabled())

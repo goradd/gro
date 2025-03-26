@@ -357,7 +357,7 @@ func processTypeInfo(column mysqlColumn) (
 	defaultValue interface{},
 	extra map[string]interface{},
 	err error) {
-	dataLen := sql2.GetDataDefLength(column.columnType)
+	dataLen, dataSubLen := sql2.GetDataDefLength(column.columnType)
 	isUnsigned := strings.Contains(column.columnType, "unsigned")
 
 	switch column.dataType {
@@ -461,11 +461,11 @@ func processTypeInfo(column mysqlColumn) (
 
 	case "decimal":
 		// No native equivalent in Go.
-		// See the shopspring/decimal package for possible support.
-		// You will need to shepherd numbers into and out of []byte format to move data to the database.
-		typ = schema.ColTypeUnknown
-		maxLength = uint64(dataLen) + 3
+		// See the shopspring/decimal or math/big packages for possible support.
+		typ = schema.ColTypeString
+		maxLength = uint64(dataLen) + uint64(dataSubLen<<16)
 		extra = map[string]interface{}{"type": column.columnType}
+		subType = schema.ColSubTypeNumeric
 
 	case "year":
 		typ = schema.ColTypeInt

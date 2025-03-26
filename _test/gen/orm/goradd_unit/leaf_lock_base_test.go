@@ -81,15 +81,11 @@ func TestLeafLock_Copy(t *testing.T) {
 }
 
 func TestLeafLock_BasicInsert(t *testing.T) {
-	obj := NewLeafLock()
+	obj := createMinimalSampleLeafLock()
 	ctx := db.NewContext(nil)
-
-	v_name := test.RandomValue[string](100)
-	obj.SetName(v_name)
-
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
-	defer obj.Delete(ctx)
+	defer deleteSampleLeafLock(ctx, obj)
 
 	// Test retrieval
 	obj2 := LoadLeafLock(ctx, obj.PrimaryKey())
@@ -100,7 +96,9 @@ func TestLeafLock_BasicInsert(t *testing.T) {
 	assert.True(t, obj2.IDIsValid())
 
 	assert.True(t, obj2.NameIsValid())
-	assert.EqualValues(t, v_name, obj2.Name())
+
+	assert.EqualValues(t, obj.Name(), obj2.Name())
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.nameIsDirty)
 	obj2.SetName(obj2.Name())

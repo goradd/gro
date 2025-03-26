@@ -325,6 +325,31 @@ func (cd *Column) MinInt() int64 {
 	return 0
 }
 
+// MaxLength returns the maximum length of the column, which normally is Column.Size, but
+// in certain situations might be something else.
+func (cd *Column) MaxLength() uint64 {
+	if cd.SchemaSubType == schema.ColSubTypeNumeric {
+		return cd.Size&0x0000ffff + 2 // allow for +/- and decimal point
+	}
+	return cd.Size
+}
+
+// DecimalPrecision returns the precision value of a decimal number that is packed into the Size value.
+func (cd *Column) DecimalPrecision() uint64 {
+	if cd.SchemaSubType == schema.ColSubTypeNumeric {
+		return cd.Size & 0x0000ffff
+	}
+	return 0
+}
+
+// DecimalScale returns the scale value of a decimal number when it is packed into the Size value.
+func (cd *Column) DecimalScale() uint64 {
+	if cd.SchemaSubType == schema.ColSubTypeNumeric {
+		return cd.Size >> 16
+	}
+	return 0
+}
+
 func newColumn(schemaCol *schema.Column) *Column {
 	var recType ReceiverType
 	if schemaCol.Type == schema.ColTypeReference {

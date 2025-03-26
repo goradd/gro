@@ -32,10 +32,10 @@ func (tmpl *TableTestTemplate) GenerateTable(table *model.Table, _w io.Writer, i
 
 	// The master template for the table test
 
-	var hasUnknown bool
+	var hasRequiredUnknown bool
 	for _, col := range table.Columns {
-		if col.ReceiverType == query.ColTypeUnknown {
-			hasUnknown = true
+		if col.ReceiverType == query.ColTypeUnknown && !col.IsNullable {
+			hasRequiredUnknown = true
 		} // cannot know what the set of valid input characters are.
 	}
 
@@ -143,7 +143,7 @@ func Test`); err != nil {
 		return
 	}
 
-	if !hasUnknown {
+	if !hasRequiredUnknown {
 
 		if _, err = io.WriteString(_w, `    ctx := db.NewContext(nil)
     obj := createMinimalSample`); err != nil {

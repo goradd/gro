@@ -11,30 +11,41 @@ func createMinimalSample{{= table.Identifier }}() *{{= table.Identifier }} {
 
 // updateMinimalSample{{= table.Identifier }} sets the values of a minimal sample to new, random values.
 func updateMinimalSample{{= table.Identifier }}(obj *{{= table.Identifier }})  {
-{{for _,col := range table.Columns}}
+{{for _,col := range table.Columns }}
 {{g
     if col.ReceiverType == query.ColTypeUnknown {continue} // cannot know what the set of valid input characters are.
     testSize := min(col.Size, 100000)
 }}
 
-{{if col.HasSetter()}}
-{{if col.IsReference()}}
+{{if col.HasSetter() }}
+{{if col.IsReference() }}
 {{if !col.IsNullable }}
     // A required forward reference will need to be fulfilled just to save the minimal version of this object
     // If the database is configured so that the referenced object points back here, either directly or through multiple
     // forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
     obj.Set{{= col.ReferenceIdentifier() }}(createMinimalSample{{= col.ReferenceType() }}())
 {{if}}
+
 {{elseif col.IsEnum() }}
+
 {{if col.IsEnumArray() }}
      obj.Set{{= col.Identifier }}(test.RandomEnumArray({{= col.Reference.EnumTable.IdentifierPlural}}()))
 {{else}}
      obj.Set{{= col.Identifier }}(test.RandomEnum({{= col.Reference.EnumTable.IdentifierPlural}}()))
 {{if}}
+
 {{else}}
-     obj.Set{{= col.Identifier }}(test.RandomValue[{{= col.GoType() }}]({{u testSize}}))
+
+{{if col.SchemaSubType == schema.ColSubTypeNumeric }}
+    obj.Set{{= col.Identifier }}(test.RandomDecimal({{u col.DecimalPrecision()}}, {{u col.DecimalScale()}} ))
+{{else}}
+    obj.Set{{= col.Identifier }}(test.RandomValue[{{= col.GoType() }}]({{u testSize}}))
 {{if}}
+
 {{if}}
+
+{{if}}
+
 {{for}}
 }
 

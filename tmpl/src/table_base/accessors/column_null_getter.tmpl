@@ -9,19 +9,4 @@ func (o *{{= table.DecapIdentifier}}Base) {{= col.Identifier }}IsNull() bool {
 	return o.{{= col.VariableIdentifier() }}IsNull
 }
 
-// {{= col.Identifier }}_I returns the loaded value of {{= col.Identifier }} as an interface.
-// If the value in the database is NULL, a nil interface is returned.
-func (o *{{= table.DecapIdentifier}}Base) {{= col.Identifier }}_I() interface{} {
-	if o._restored && !o.{{= col.VariableIdentifier() }}IsValid {
-		panic ("{{= col.VariableIdentifier() }} was not selected in the last query and has not been set, and so is not valid")
-	} else if o.{{= col.VariableIdentifier() }}IsNull {
-	    return nil
-	}
-{{if col.IsEnumArray() }}
-    return o.{{= col.VariableIdentifier() }}.Clone()
-{{else}}
-	return o.{{= col.VariableIdentifier() }}
-{{if}}
-}
-
 }}

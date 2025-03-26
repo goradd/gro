@@ -16,7 +16,11 @@ func Test{{= table.Identifier }}_Set{{= col.Identifier }}(t *testing.T) {
     obj.Set{{= col.Identifier }}(val)
    {{if}}
 {{else}}
+{{if col.SchemaSubType == schema.ColSubTypeNumeric }}
+    val := 	test.RandomDecimal({{u col.DecimalPrecision()}}, {{u col.DecimalScale()}} )
+{{else}}
     val := 	test.RandomValue[{{= col.GoType() }}]({{u testSize }})
+{{if}}
     obj.Set{{= col.Identifier }}(val)
 {{if}}
 {{if col.SchemaSubType == schema.ColSubTypeDateOnly}}
@@ -61,7 +65,7 @@ func Test{{= table.Identifier }}_Set{{= col.Identifier }}(t *testing.T) {
         !col.IsEnum() &&
         (col.ReceiverType == query.ColTypeBytes || col.ReceiverType == query.ColTypeString || col.ReceiverType == query.ColTypeUnknown) }}
     // test panic on setting value larger than maximum size allowed
-    val = test.RandomValue[{{= col.GoType() }}]({{u col.Size + 1}})
+    val = test.RandomValue[{{= col.GoType() }}]({{u col.MaxLength() + 1}})
     assert.Panics(t, func() {
         obj.Set{{= col.Identifier }}(val)
     })
