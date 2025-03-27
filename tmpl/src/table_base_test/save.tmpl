@@ -94,11 +94,12 @@ func Test{{= table.Identifier }}_References(t *testing.T) {
 {{if}}
 {{for}}
 
+    // Test lazy loading
     obj2 := Load{{= table.Identifier }}(ctx, obj.PrimaryKey())
     objPkOnly := Load{{= table.Identifier }}(ctx, obj.PrimaryKey(), node.{{= table.Identifier }}().PrimaryKey())
     _ = obj2 // avoid error if there are no references
     _ = objPkOnly
-    
+
 {{for _,col := range table.Columns }}
 {{if col.IsReference() }}
     assert.Nil(t, obj2.{{= col.ReferenceIdentifier() }}(), "{{= col.ReferenceIdentifier() }} is not loaded initially")
@@ -119,5 +120,53 @@ func Test{{= table.Identifier }}_References(t *testing.T) {
 
 {{if}}
 {{for}}
+
+{{for _,col := range table.ReverseReferences }}
+    assert.Nil(t, obj2.{{= col.ReverseIdentifier() }}(), "{{= col.ReverseIdentifier() }} is not loaded initially")
+    v_{{= col.ReverseIdentifier() }} := obj2.Load{{= col.ReverseIdentifier() }}(ctx)
+    assert.NotNil(t, v_{{= col.ReverseIdentifier() }})
+{{if col.IsUnique}}
+    assert.Equal(t, v_{{= col.ReverseIdentifier() }}.PrimaryKey(), obj2.{{= col.ReverseIdentifier() }}().PrimaryKey())
+    assert.Equal(t, obj.{{= col.ReverseIdentifier() }}().PrimaryKey(), obj2.{{= col.ReverseIdentifier() }}().PrimaryKey())
+{{else}}
+    assert.Len(t, v_{{= col.ReverseIdentifier() }}, 1)
+{{if}}
+{{for}}
+
+{{for _,mm := range table.ManyManyReferences }}
+    assert.Nil(t, obj2.{{= mm.IdentifierPlural }}(), "{{= mm.IdentifierPlural }} is not loaded initially")
+    v_{{= mm.IdentifierPlural }} := obj2.Load{{= mm.IdentifierPlural }}(ctx)
+    assert.NotNil(t, v_{{= mm.IdentifierPlural }})
+    assert.Len(t, v_{{= mm.IdentifierPlural }}, 1)
+{{for}}
+
+    // test eager loading
+    obj3 := Load{{= table.Identifier }}(ctx, obj.PrimaryKey(), {{for _,col := range table.Columns
+}} {{if col.IsReference() }}node.{{= table.Identifier }}().{{= col.ReferenceIdentifier() }}(),
+{{if}}
+{{for}}{{for _,col := range table.ReverseReferences
+}}node.{{= table.Identifier }}().{{= col.ReverseIdentifier() }}(),
+{{for}}{{for _,mm := range table.ManyManyReferences
+}}node.{{= table.Identifier }}().{{= mm.IdentifierPlural }}(),
+{{for}}
+    )
+    _ = obj3 // avoid error if there are no references
+
+{{for _,col := range table.Columns }}
+{{if col.IsReference() }}
+    assert.Equal(t, obj2.{{= col.ReferenceIdentifier() }}().PrimaryKey(), obj3.{{= col.ReferenceIdentifier() }}().PrimaryKey())
+{{if}}
+{{for}}
+{{for _,col := range table.ReverseReferences }}
+{{if col.IsUnique}}
+    assert.Equal(t, obj2.{{= col.ReverseIdentifier() }}().PrimaryKey(), obj3.{{= col.ReverseIdentifier() }}().PrimaryKey())
+{{else}}
+    assert.Equal(t, len(obj2.{{= col.ReverseIdentifier() }}()), len(obj3.{{= col.ReverseIdentifier() }}()))
+{{if}}
+{{for}}
+{{for _,mm := range table.ManyManyReferences }}
+    assert.Equal(t, len(obj2.{{= mm.IdentifierPlural }}()), len(obj3.{{= mm.IdentifierPlural }}()))
+{{for}}
+
 }
 }}

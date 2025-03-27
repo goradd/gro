@@ -229,10 +229,50 @@ func TestPerson_References(t *testing.T) {
 
 	// Test that referenced objects were saved and assigned ids
 
+	// Test lazy loading
 	obj2 := LoadPerson(ctx, obj.PrimaryKey())
 	objPkOnly := LoadPerson(ctx, obj.PrimaryKey(), node.Person().PrimaryKey())
 	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
+
+	assert.Nil(t, obj2.Addresses(), "Addresses is not loaded initially")
+	v_Addresses := obj2.LoadAddresses(ctx)
+	assert.NotNil(t, v_Addresses)
+	assert.Len(t, v_Addresses, 1)
+	assert.Nil(t, obj2.EmployeeInfo(), "EmployeeInfo is not loaded initially")
+	v_EmployeeInfo := obj2.LoadEmployeeInfo(ctx)
+	assert.NotNil(t, v_EmployeeInfo)
+	assert.Equal(t, v_EmployeeInfo.PrimaryKey(), obj2.EmployeeInfo().PrimaryKey())
+	assert.Equal(t, obj.EmployeeInfo().PrimaryKey(), obj2.EmployeeInfo().PrimaryKey())
+	assert.Nil(t, obj2.Login(), "Login is not loaded initially")
+	v_Login := obj2.LoadLogin(ctx)
+	assert.NotNil(t, v_Login)
+	assert.Equal(t, v_Login.PrimaryKey(), obj2.Login().PrimaryKey())
+	assert.Equal(t, obj.Login().PrimaryKey(), obj2.Login().PrimaryKey())
+	assert.Nil(t, obj2.ManagerProjects(), "ManagerProjects is not loaded initially")
+	v_ManagerProjects := obj2.LoadManagerProjects(ctx)
+	assert.NotNil(t, v_ManagerProjects)
+	assert.Len(t, v_ManagerProjects, 1)
+
+	assert.Nil(t, obj2.Projects(), "Projects is not loaded initially")
+	v_Projects := obj2.LoadProjects(ctx)
+	assert.NotNil(t, v_Projects)
+	assert.Len(t, v_Projects, 1)
+
+	// test eager loading
+	obj3 := LoadPerson(ctx, obj.PrimaryKey(), node.Person().Addresses(),
+		node.Person().EmployeeInfo(),
+		node.Person().Login(),
+		node.Person().ManagerProjects(),
+		node.Person().Projects(),
+	)
+	_ = obj3 // avoid error if there are no references
+
+	assert.Equal(t, len(obj2.Addresses()), len(obj3.Addresses()))
+	assert.Equal(t, obj2.EmployeeInfo().PrimaryKey(), obj3.EmployeeInfo().PrimaryKey())
+	assert.Equal(t, obj2.Login().PrimaryKey(), obj3.Login().PrimaryKey())
+	assert.Equal(t, len(obj2.ManagerProjects()), len(obj3.ManagerProjects()))
+	assert.Equal(t, len(obj2.Projects()), len(obj3.Projects()))
 
 }
 func TestPerson_EmptyPrimaryKeyGetter(t *testing.T) {

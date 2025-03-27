@@ -183,10 +183,15 @@ func TestPersonWithLock_References(t *testing.T) {
 
 	// Test that referenced objects were saved and assigned ids
 
+	// Test lazy loading
 	obj2 := LoadPersonWithLock(ctx, obj.PrimaryKey())
 	objPkOnly := LoadPersonWithLock(ctx, obj.PrimaryKey(), node.PersonWithLock().PrimaryKey())
 	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
+
+	// test eager loading
+	obj3 := LoadPersonWithLock(ctx, obj.PrimaryKey())
+	_ = obj3 // avoid error if there are no references
 
 }
 func TestPersonWithLock_EmptyPrimaryKeyGetter(t *testing.T) {

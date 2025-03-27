@@ -172,6 +172,7 @@ func TestMilestone_References(t *testing.T) {
 	assert.NotNil(t, obj.Project())
 	assert.NotEqual(t, '-', obj.Project().PrimaryKey()[0])
 
+	// Test lazy loading
 	obj2 := LoadMilestone(ctx, obj.PrimaryKey())
 	objPkOnly := LoadMilestone(ctx, obj.PrimaryKey(), node.Milestone().PrimaryKey())
 	_ = obj2 // avoid error if there are no references
@@ -190,6 +191,12 @@ func TestMilestone_References(t *testing.T) {
 	assert.Panics(t, func() {
 		objPkOnly.SetProject(nil)
 	})
+
+	// test eager loading
+	obj3 := LoadMilestone(ctx, obj.PrimaryKey(), node.Milestone().Project())
+	_ = obj3 // avoid error if there are no references
+
+	assert.Equal(t, obj2.Project().PrimaryKey(), obj3.Project().PrimaryKey())
 
 }
 func TestMilestone_EmptyPrimaryKeyGetter(t *testing.T) {

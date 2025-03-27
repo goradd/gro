@@ -199,10 +199,15 @@ func TestDoubleIndex_References(t *testing.T) {
 
 	// Test that referenced objects were saved and assigned ids
 
+	// Test lazy loading
 	obj2 := LoadDoubleIndex(ctx, obj.PrimaryKey())
 	objPkOnly := LoadDoubleIndex(ctx, obj.PrimaryKey(), node.DoubleIndex().PrimaryKey())
 	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
+
+	// test eager loading
+	obj3 := LoadDoubleIndex(ctx, obj.PrimaryKey())
+	_ = obj3 // avoid error if there are no references
 
 }
 func TestDoubleIndex_EmptyPrimaryKeyGetter(t *testing.T) {

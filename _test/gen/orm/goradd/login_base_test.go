@@ -235,6 +235,7 @@ func TestLogin_References(t *testing.T) {
 	assert.NotNil(t, obj.Person())
 	assert.NotEqual(t, '-', obj.Person().PrimaryKey()[0])
 
+	// Test lazy loading
 	obj2 := LoadLogin(ctx, obj.PrimaryKey())
 	objPkOnly := LoadLogin(ctx, obj.PrimaryKey(), node.Login().PrimaryKey())
 	_ = obj2 // avoid error if there are no references
@@ -249,6 +250,12 @@ func TestLogin_References(t *testing.T) {
 
 	assert.False(t, objPkOnly.PersonIDIsValid())
 	assert.Nil(t, objPkOnly.LoadPerson(ctx))
+
+	// test eager loading
+	obj3 := LoadLogin(ctx, obj.PrimaryKey(), node.Login().Person())
+	_ = obj3 // avoid error if there are no references
+
+	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())
 
 }
 func TestLogin_EmptyPrimaryKeyGetter(t *testing.T) {

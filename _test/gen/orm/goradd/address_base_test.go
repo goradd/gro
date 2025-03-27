@@ -211,6 +211,7 @@ func TestAddress_References(t *testing.T) {
 	assert.NotNil(t, obj.Person())
 	assert.NotEqual(t, '-', obj.Person().PrimaryKey()[0])
 
+	// Test lazy loading
 	obj2 := LoadAddress(ctx, obj.PrimaryKey())
 	objPkOnly := LoadAddress(ctx, obj.PrimaryKey(), node.Address().PrimaryKey())
 	_ = obj2 // avoid error if there are no references
@@ -229,6 +230,12 @@ func TestAddress_References(t *testing.T) {
 	assert.Panics(t, func() {
 		objPkOnly.SetPerson(nil)
 	})
+
+	// test eager loading
+	obj3 := LoadAddress(ctx, obj.PrimaryKey(), node.Address().Person())
+	_ = obj3 // avoid error if there are no references
+
+	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())
 
 }
 func TestAddress_EmptyPrimaryKeyGetter(t *testing.T) {

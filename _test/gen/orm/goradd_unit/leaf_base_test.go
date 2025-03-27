@@ -154,10 +154,43 @@ func TestLeaf_References(t *testing.T) {
 
 	// Test that referenced objects were saved and assigned ids
 
+	// Test lazy loading
 	obj2 := LoadLeaf(ctx, obj.PrimaryKey())
 	objPkOnly := LoadLeaf(ctx, obj.PrimaryKey(), node.Leaf().PrimaryKey())
 	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
+
+	assert.Nil(t, obj2.OptionalLeafRoots(), "OptionalLeafRoots is not loaded initially")
+	v_OptionalLeafRoots := obj2.LoadOptionalLeafRoots(ctx)
+	assert.NotNil(t, v_OptionalLeafRoots)
+	assert.Len(t, v_OptionalLeafRoots, 1)
+	assert.Nil(t, obj2.RequiredLeafRoots(), "RequiredLeafRoots is not loaded initially")
+	v_RequiredLeafRoots := obj2.LoadRequiredLeafRoots(ctx)
+	assert.NotNil(t, v_RequiredLeafRoots)
+	assert.Len(t, v_RequiredLeafRoots, 1)
+	assert.Nil(t, obj2.OptionalLeafUniqueRoot(), "OptionalLeafUniqueRoot is not loaded initially")
+	v_OptionalLeafUniqueRoot := obj2.LoadOptionalLeafUniqueRoot(ctx)
+	assert.NotNil(t, v_OptionalLeafUniqueRoot)
+	assert.Equal(t, v_OptionalLeafUniqueRoot.PrimaryKey(), obj2.OptionalLeafUniqueRoot().PrimaryKey())
+	assert.Equal(t, obj.OptionalLeafUniqueRoot().PrimaryKey(), obj2.OptionalLeafUniqueRoot().PrimaryKey())
+	assert.Nil(t, obj2.RequiredLeafUniqueRoot(), "RequiredLeafUniqueRoot is not loaded initially")
+	v_RequiredLeafUniqueRoot := obj2.LoadRequiredLeafUniqueRoot(ctx)
+	assert.NotNil(t, v_RequiredLeafUniqueRoot)
+	assert.Equal(t, v_RequiredLeafUniqueRoot.PrimaryKey(), obj2.RequiredLeafUniqueRoot().PrimaryKey())
+	assert.Equal(t, obj.RequiredLeafUniqueRoot().PrimaryKey(), obj2.RequiredLeafUniqueRoot().PrimaryKey())
+
+	// test eager loading
+	obj3 := LoadLeaf(ctx, obj.PrimaryKey(), node.Leaf().OptionalLeafRoots(),
+		node.Leaf().RequiredLeafRoots(),
+		node.Leaf().OptionalLeafUniqueRoot(),
+		node.Leaf().RequiredLeafUniqueRoot(),
+	)
+	_ = obj3 // avoid error if there are no references
+
+	assert.Equal(t, len(obj2.OptionalLeafRoots()), len(obj3.OptionalLeafRoots()))
+	assert.Equal(t, len(obj2.RequiredLeafRoots()), len(obj3.RequiredLeafRoots()))
+	assert.Equal(t, obj2.OptionalLeafUniqueRoot().PrimaryKey(), obj3.OptionalLeafUniqueRoot().PrimaryKey())
+	assert.Equal(t, obj2.RequiredLeafUniqueRoot().PrimaryKey(), obj3.RequiredLeafUniqueRoot().PrimaryKey())
 
 }
 func TestLeaf_EmptyPrimaryKeyGetter(t *testing.T) {

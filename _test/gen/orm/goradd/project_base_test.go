@@ -462,6 +462,7 @@ func TestProject_References(t *testing.T) {
 	assert.NotNil(t, obj.ParentProject())
 	assert.NotEqual(t, '-', obj.ParentProject().PrimaryKey()[0])
 
+	// Test lazy loading
 	obj2 := LoadProject(ctx, obj.PrimaryKey())
 	objPkOnly := LoadProject(ctx, obj.PrimaryKey(), node.Project().PrimaryKey())
 	_ = obj2 // avoid error if there are no references
@@ -486,6 +487,47 @@ func TestProject_References(t *testing.T) {
 
 	assert.False(t, objPkOnly.ParentProjectIDIsValid())
 	assert.Nil(t, objPkOnly.LoadParentProject(ctx))
+
+	assert.Nil(t, obj2.Milestones(), "Milestones is not loaded initially")
+	v_Milestones := obj2.LoadMilestones(ctx)
+	assert.NotNil(t, v_Milestones)
+	assert.Len(t, v_Milestones, 1)
+	assert.Nil(t, obj2.ParentProjectProjects(), "ParentProjectProjects is not loaded initially")
+	v_ParentProjectProjects := obj2.LoadParentProjectProjects(ctx)
+	assert.NotNil(t, v_ParentProjectProjects)
+	assert.Len(t, v_ParentProjectProjects, 1)
+
+	assert.Nil(t, obj2.Children(), "Children is not loaded initially")
+	v_Children := obj2.LoadChildren(ctx)
+	assert.NotNil(t, v_Children)
+	assert.Len(t, v_Children, 1)
+	assert.Nil(t, obj2.Parents(), "Parents is not loaded initially")
+	v_Parents := obj2.LoadParents(ctx)
+	assert.NotNil(t, v_Parents)
+	assert.Len(t, v_Parents, 1)
+	assert.Nil(t, obj2.TeamMembers(), "TeamMembers is not loaded initially")
+	v_TeamMembers := obj2.LoadTeamMembers(ctx)
+	assert.NotNil(t, v_TeamMembers)
+	assert.Len(t, v_TeamMembers, 1)
+
+	// test eager loading
+	obj3 := LoadProject(ctx, obj.PrimaryKey(), node.Project().Manager(),
+		node.Project().ParentProject(),
+		node.Project().Milestones(),
+		node.Project().ParentProjectProjects(),
+		node.Project().Children(),
+		node.Project().Parents(),
+		node.Project().TeamMembers(),
+	)
+	_ = obj3 // avoid error if there are no references
+
+	assert.Equal(t, obj2.Manager().PrimaryKey(), obj3.Manager().PrimaryKey())
+	assert.Equal(t, obj2.ParentProject().PrimaryKey(), obj3.ParentProject().PrimaryKey())
+	assert.Equal(t, len(obj2.Milestones()), len(obj3.Milestones()))
+	assert.Equal(t, len(obj2.ParentProjectProjects()), len(obj3.ParentProjectProjects()))
+	assert.Equal(t, len(obj2.Children()), len(obj3.Children()))
+	assert.Equal(t, len(obj2.Parents()), len(obj3.Parents()))
+	assert.Equal(t, len(obj2.TeamMembers()), len(obj3.TeamMembers()))
 
 }
 func TestProject_EmptyPrimaryKeyGetter(t *testing.T) {

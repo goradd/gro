@@ -144,10 +144,15 @@ func TestLeafLock_References(t *testing.T) {
 
 	// Test that referenced objects were saved and assigned ids
 
+	// Test lazy loading
 	obj2 := LoadLeafLock(ctx, obj.PrimaryKey())
 	objPkOnly := LoadLeafLock(ctx, obj.PrimaryKey(), node.LeafLock().PrimaryKey())
 	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
+
+	// test eager loading
+	obj3 := LoadLeafLock(ctx, obj.PrimaryKey())
+	_ = obj3 // avoid error if there are no references
 
 }
 func TestLeafLock_EmptyPrimaryKeyGetter(t *testing.T) {

@@ -299,6 +299,7 @@ func TestRoot_References(t *testing.T) {
 	assert.NotNil(t, obj.Parent())
 	assert.NotEqual(t, '-', obj.Parent().PrimaryKey()[0])
 
+	// Test lazy loading
 	obj2 := LoadRoot(ctx, obj.PrimaryKey())
 	objPkOnly := LoadRoot(ctx, obj.PrimaryKey(), node.Root().PrimaryKey())
 	_ = obj2 // avoid error if there are no references
@@ -365,6 +366,28 @@ func TestRoot_References(t *testing.T) {
 
 	assert.False(t, objPkOnly.ParentIDIsValid())
 	assert.Nil(t, objPkOnly.LoadParent(ctx))
+
+	assert.Nil(t, obj2.ParentRoots(), "ParentRoots is not loaded initially")
+	v_ParentRoots := obj2.LoadParentRoots(ctx)
+	assert.NotNil(t, v_ParentRoots)
+	assert.Len(t, v_ParentRoots, 1)
+
+	// test eager loading
+	obj3 := LoadRoot(ctx, obj.PrimaryKey(), node.Root().OptionalLeaf(),
+		node.Root().RequiredLeaf(),
+		node.Root().OptionalLeafUnique(),
+		node.Root().RequiredLeafUnique(),
+		node.Root().Parent(),
+		node.Root().ParentRoots(),
+	)
+	_ = obj3 // avoid error if there are no references
+
+	assert.Equal(t, obj2.OptionalLeaf().PrimaryKey(), obj3.OptionalLeaf().PrimaryKey())
+	assert.Equal(t, obj2.RequiredLeaf().PrimaryKey(), obj3.RequiredLeaf().PrimaryKey())
+	assert.Equal(t, obj2.OptionalLeafUnique().PrimaryKey(), obj3.OptionalLeafUnique().PrimaryKey())
+	assert.Equal(t, obj2.RequiredLeafUnique().PrimaryKey(), obj3.RequiredLeafUnique().PrimaryKey())
+	assert.Equal(t, obj2.Parent().PrimaryKey(), obj3.Parent().PrimaryKey())
+	assert.Equal(t, len(obj2.ParentRoots()), len(obj3.ParentRoots()))
 
 }
 func TestRoot_EmptyPrimaryKeyGetter(t *testing.T) {

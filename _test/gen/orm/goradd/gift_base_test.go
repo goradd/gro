@@ -168,10 +168,15 @@ func TestGift_References(t *testing.T) {
 
 	// Test that referenced objects were saved and assigned ids
 
+	// Test lazy loading
 	obj2 := LoadGift(ctx, obj.PrimaryKey())
 	objPkOnly := LoadGift(ctx, obj.PrimaryKey(), node.Gift().PrimaryKey())
 	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
+
+	// test eager loading
+	obj3 := LoadGift(ctx, obj.PrimaryKey())
+	_ = obj3 // avoid error if there are no references
 
 }
 func TestGift_EmptyPrimaryKeyGetter(t *testing.T) {

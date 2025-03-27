@@ -469,10 +469,15 @@ func TestTypeTest_References(t *testing.T) {
 
 	// Test that referenced objects were saved and assigned ids
 
+	// Test lazy loading
 	obj2 := LoadTypeTest(ctx, obj.PrimaryKey())
 	objPkOnly := LoadTypeTest(ctx, obj.PrimaryKey(), node.TypeTest().PrimaryKey())
 	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
+
+	// test eager loading
+	obj3 := LoadTypeTest(ctx, obj.PrimaryKey())
+	_ = obj3 // avoid error if there are no references
 
 }
 func TestTypeTest_EmptyPrimaryKeyGetter(t *testing.T) {

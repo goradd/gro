@@ -167,6 +167,7 @@ func TestEmployeeInfo_References(t *testing.T) {
 	assert.NotNil(t, obj.Person())
 	assert.NotEqual(t, '-', obj.Person().PrimaryKey()[0])
 
+	// Test lazy loading
 	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey())
 	objPkOnly := LoadEmployeeInfo(ctx, obj.PrimaryKey(), node.EmployeeInfo().PrimaryKey())
 	_ = obj2 // avoid error if there are no references
@@ -185,6 +186,12 @@ func TestEmployeeInfo_References(t *testing.T) {
 	assert.Panics(t, func() {
 		objPkOnly.SetPerson(nil)
 	})
+
+	// test eager loading
+	obj3 := LoadEmployeeInfo(ctx, obj.PrimaryKey(), node.EmployeeInfo().Person())
+	_ = obj3 // avoid error if there are no references
+
+	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())
 
 }
 func TestEmployeeInfo_EmptyPrimaryKeyGetter(t *testing.T) {
