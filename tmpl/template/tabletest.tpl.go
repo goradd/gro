@@ -231,7 +231,32 @@ func Test`); err != nil {
 
 		if _, err = io.WriteString(_w, `()
     err := obj.Save(ctx)
-    assert.NoError(t, err)
+`); err != nil {
+			return
+		}
+
+		for _, col := range table.Columns {
+
+			if col.IsReference() && !col.IsNullable {
+
+				if _, err = io.WriteString(_w, `    defer obj.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `().Delete(ctx)
+`); err != nil {
+					return
+				}
+
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `    assert.NoError(t, err)
     Delete`); err != nil {
 			return
 		}

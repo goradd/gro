@@ -5884,7 +5884,7 @@ func (b *`); err != nil {
 }
 
 // Load terminates the query builder, performs the query, and returns a slice of interfaces.
-// This can then satisfy a variety of interface that loads arrays of objects, including KeyLabeler.
+// This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
 func (b *`); err != nil {
@@ -5989,17 +5989,6 @@ func (b *`); err != nil {
 
 	if _, err = io.WriteString(_w, `")
 	result := database.BuilderQuery(b.builder)
-	if (result == nil) {
-	    return `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.VariableNamePlural()); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `Cursor{}
-	}
 	cursor := result.(query.CursorI)
 
 	return `); err != nil {
@@ -9982,6 +9971,9 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 	}
 
 	if _, err = io.WriteString(_w, `Base) Delete(ctx context.Context) (err error) {
+    if o == nil {
+        return // allow deleting of a nil object to be a noop
+    }
 	if !o._restored {
 		panic ("Cannot delete a record that has no primary key value.")
 	}

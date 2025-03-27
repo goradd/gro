@@ -17,10 +17,10 @@ func runTests(m *testing.M) int {
 func setup(m *testing.M) {
 	fmt.Println("Setting up tests...")
 
-	fmt.Println(test.NewSeed())
+	//fmt.Println(test.NewSeed())
 
 	// uncomment the next line to re-use a previously created seed to recreate a test
-	// UseSeed(seed)
+	test.UseSeed(1000)
 
 	InitDB()
 }

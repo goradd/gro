@@ -9,6 +9,7 @@ import (
 
 	"github.com/goradd/orm/_test/gen/orm/goradd/node"
 	"github.com/goradd/orm/pkg/db"
+	"github.com/goradd/orm/pkg/op"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -42,6 +43,7 @@ func createMaximalSamplePerson() *Person {
 }
 
 // updateMaximalSamplePerson sets all the maximal sample values to new values.
+// This will set new values for references, so save the old values and delete them.
 func updateMaximalSamplePerson(obj *Person) {
 	updateMinimalSamplePerson(obj)
 
@@ -259,4 +261,66 @@ func TestPerson_Getters(t *testing.T) {
 	assert.Panics(t, func() { obj2.FirstName() })
 	assert.Panics(t, func() { obj2.LastName() })
 	assert.Panics(t, func() { obj2.Types() })
+}
+
+func TestPerson_QueryLoad(t *testing.T) {
+	obj := createMinimalSamplePerson()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSamplePerson(ctx, obj)
+
+	objs := QueryPeople(ctx).
+		Where(op.Equal(node.Person().PrimaryKey(), obj.PrimaryKey())).
+		OrderBy(node.Person().PrimaryKey()). // exercise order by
+		Limit(1, 0).                         // exercise limit
+		Load()
+
+	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+}
+func TestPerson_QueryLoadI(t *testing.T) {
+	obj := createMinimalSamplePerson()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSamplePerson(ctx, obj)
+
+	objs := QueryPeople(ctx).
+		Where(op.Equal(node.Person().PrimaryKey(), obj.PrimaryKey())).
+		LoadI()
+
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
+}
+func TestPerson_QueryCursor(t *testing.T) {
+	obj := createMinimalSamplePerson()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSamplePerson(ctx, obj)
+
+	cursor := QueryPeople(ctx).
+		Where(op.Equal(node.Person().PrimaryKey(), obj.PrimaryKey())).
+		LoadCursor()
+
+	obj2 := cursor.Next()
+	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
+	assert.Nil(t, cursor.Next())
+
+	// test empty cursor result
+	cursor = QueryPeople(ctx).
+		Where(op.Equal(1, 0)).
+		LoadCursor()
+	assert.Nil(t, cursor.Next())
+
+}
+func TestPerson_Count(t *testing.T) {
+	obj := createMaximalSamplePerson()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSamplePerson(ctx, obj)
+
+	assert.Less(t, 0, CountPeopleByID(ctx, obj.ID()))
+	assert.Less(t, 0, CountPeopleByFirstName(ctx, obj.FirstName()))
+	assert.Less(t, 0, CountPeopleByLastName(ctx, obj.LastName()))
 }

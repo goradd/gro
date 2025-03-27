@@ -9,6 +9,7 @@ import (
 
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
 	"github.com/goradd/orm/pkg/db"
+	"github.com/goradd/orm/pkg/op"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -30,17 +31,23 @@ func updateMinimalSampleRoot(obj *Root) {
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
 	// If the database is configured so that the referenced object points back here, either directly or through multiple
 	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
-	obj.SetRequiredLeaf(createMinimalSampleLeaf())
+	if obj.RequiredLeaf() == nil { // only update if not already set, so that delete will remove it later
+		obj.SetRequiredLeaf(createMinimalSampleLeaf())
+	}
 
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
 	// If the database is configured so that the referenced object points back here, either directly or through multiple
 	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
-	obj.SetOptionalLeafUnique(createMinimalSampleLeaf())
+	if obj.OptionalLeafUnique() == nil { // only update if not already set, so that delete will remove it later
+		obj.SetOptionalLeafUnique(createMinimalSampleLeaf())
+	}
 
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
 	// If the database is configured so that the referenced object points back here, either directly or through multiple
 	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
-	obj.SetRequiredLeafUnique(createMinimalSampleLeaf())
+	if obj.RequiredLeafUnique() == nil { // only update if not already set, so that delete will remove it later
+		obj.SetRequiredLeafUnique(createMinimalSampleLeaf())
+	}
 
 }
 
@@ -53,6 +60,7 @@ func createMaximalSampleRoot() *Root {
 }
 
 // updateMaximalSampleRoot sets all the maximal sample values to new values.
+// This will set new values for references, so save the old values and delete them.
 func updateMaximalSampleRoot(obj *Root) {
 	updateMinimalSampleRoot(obj)
 
@@ -388,4 +396,70 @@ func TestRoot_Getters(t *testing.T) {
 	assert.Panics(t, func() { obj2.OptionalLeafUniqueID() })
 	assert.Panics(t, func() { obj2.RequiredLeafUniqueID() })
 	assert.Panics(t, func() { obj2.ParentID() })
+}
+
+func TestRoot_QueryLoad(t *testing.T) {
+	obj := createMinimalSampleRoot()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleRoot(ctx, obj)
+
+	objs := QueryRoots(ctx).
+		Where(op.Equal(node.Root().PrimaryKey(), obj.PrimaryKey())).
+		OrderBy(node.Root().PrimaryKey()). // exercise order by
+		Limit(1, 0).                       // exercise limit
+		Load()
+
+	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+}
+func TestRoot_QueryLoadI(t *testing.T) {
+	obj := createMinimalSampleRoot()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleRoot(ctx, obj)
+
+	objs := QueryRoots(ctx).
+		Where(op.Equal(node.Root().PrimaryKey(), obj.PrimaryKey())).
+		LoadI()
+
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
+}
+func TestRoot_QueryCursor(t *testing.T) {
+	obj := createMinimalSampleRoot()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleRoot(ctx, obj)
+
+	cursor := QueryRoots(ctx).
+		Where(op.Equal(node.Root().PrimaryKey(), obj.PrimaryKey())).
+		LoadCursor()
+
+	obj2 := cursor.Next()
+	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
+	assert.Nil(t, cursor.Next())
+
+	// test empty cursor result
+	cursor = QueryRoots(ctx).
+		Where(op.Equal(1, 0)).
+		LoadCursor()
+	assert.Nil(t, cursor.Next())
+
+}
+func TestRoot_Count(t *testing.T) {
+	obj := createMaximalSampleRoot()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleRoot(ctx, obj)
+
+	assert.Less(t, 0, CountRootsByID(ctx, obj.ID()))
+	assert.Less(t, 0, CountRootsByName(ctx, obj.Name()))
+	assert.Less(t, 0, CountRootsByOptionalLeafID(ctx, obj.OptionalLeafID()))
+	assert.Less(t, 0, CountRootsByRequiredLeafID(ctx, obj.RequiredLeafID()))
+	assert.Less(t, 0, CountRootsByOptionalLeafUniqueID(ctx, obj.OptionalLeafUniqueID()))
+	assert.Less(t, 0, CountRootsByRequiredLeafUniqueID(ctx, obj.RequiredLeafUniqueID()))
+	assert.Less(t, 0, CountRootsByParentID(ctx, obj.ParentID()))
 }

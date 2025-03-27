@@ -171,7 +171,16 @@ func updateMinimalSample`); err != nil {
 					if _, err = io.WriteString(_w, `    // A required forward reference will need to be fulfilled just to save the minimal version of this object
     // If the database is configured so that the referenced object points back here, either directly or through multiple
     // forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
-    obj.Set`); err != nil {
+    if obj.`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `() == nil { // only update if not already set, so that delete will remove it later
+        obj.Set`); err != nil {
 						return
 					}
 
@@ -188,6 +197,7 @@ func updateMinimalSample`); err != nil {
 					}
 
 					if _, err = io.WriteString(_w, `())
+    }
 `); err != nil {
 						return
 					}
@@ -418,6 +428,7 @@ func createMaximalSample`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, ` sets all the maximal sample values to new values.
+// This will set new values for references, so save the old values and delete them.
 func updateMaximalSample`); err != nil {
 		return
 	}
@@ -2125,6 +2136,293 @@ func Test`); err != nil {
 
 		if _, err = io.WriteString(_w, `}
 
+`); err != nil {
+			return
+		}
+
+		//*** query.tmpl
+
+		if _, err = io.WriteString(_w, `func Test`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `_QueryLoad(t *testing.T) {
+    obj := createMinimalSample`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+    ctx := db.NewContext(nil)
+    err := obj.Save(ctx)
+	assert.NoError(t, err)
+    defer deleteSample`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx, obj)
+
+    objs := Query`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx).
+        Where(op.Equal(node.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().PrimaryKey(), obj.PrimaryKey())).
+        OrderBy(node.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().PrimaryKey()). // exercise order by
+        Limit(1,0). // exercise limit
+        Load()
+
+    assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+}
+`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `func Test`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `_QueryLoadI(t *testing.T) {
+    obj := createMinimalSample`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+    ctx := db.NewContext(nil)
+    err := obj.Save(ctx)
+	assert.NoError(t, err)
+    defer deleteSample`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx, obj)
+
+    objs := Query`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx).
+        Where(op.Equal(node.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().PrimaryKey(), obj.PrimaryKey())).
+        LoadI()
+
+    assert.Equal(t, obj.PrimaryKey(), objs[0].Get("`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `"))
+}
+`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `func Test`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `_QueryCursor(t *testing.T) {
+    obj := createMinimalSample`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+    ctx := db.NewContext(nil)
+    err := obj.Save(ctx)
+	assert.NoError(t, err)
+    defer deleteSample`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx, obj)
+
+    cursor := Query`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx).
+        Where(op.Equal(node.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().PrimaryKey(), obj.PrimaryKey())).
+        LoadCursor()
+
+    obj2 := cursor.Next()
+    assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
+    assert.Nil(t, cursor.Next())
+
+    // test empty cursor result
+    cursor = Query`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx).
+        Where(op.Equal(1, 0)).
+        LoadCursor()
+    assert.Nil(t, cursor.Next())
+
+}
+`); err != nil {
+			return
+		}
+
+		//*** count.tmpl
+
+		if _, err = io.WriteString(_w, `func Test`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `_Count(t *testing.T) {
+    obj := createMaximalSample`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+    ctx := db.NewContext(nil)
+    err := obj.Save(ctx)
+	assert.NoError(t, err)
+    defer deleteSample`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx, obj)
+
+`); err != nil {
+			return
+		}
+
+		for _, col := range table.Columns {
+
+			if !col.IsEnum() {
+
+				if _, err = io.WriteString(_w, `    assert.Less(t, 0, Count`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `By`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(ctx, obj.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `()))
+`); err != nil {
+					return
+				}
+
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `}
 `); err != nil {
 			return
 		}

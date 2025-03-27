@@ -1,0 +1,60 @@
+//*** {{includeName}}
+
+{{
+func Test{{= table.Identifier }}_QueryLoad(t *testing.T) {
+    obj := createMinimalSample{{= table.Identifier }}()
+    ctx := db.NewContext(nil)
+    err := obj.Save(ctx)
+	assert.NoError(t, err)
+    defer deleteSample{{= table.Identifier }}(ctx, obj)
+
+    objs := Query{{= table.IdentifierPlural }}(ctx).
+        Where(op.Equal(node.{{= table.Identifier }}().PrimaryKey(), obj.PrimaryKey())).
+        OrderBy(node.{{= table.Identifier }}().PrimaryKey()). // exercise order by
+        Limit(1,0). // exercise limit
+        Load()
+
+    assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+}
+}}
+
+{{
+func Test{{= table.Identifier }}_QueryLoadI(t *testing.T) {
+    obj := createMinimalSample{{= table.Identifier }}()
+    ctx := db.NewContext(nil)
+    err := obj.Save(ctx)
+	assert.NoError(t, err)
+    defer deleteSample{{= table.Identifier }}(ctx, obj)
+
+    objs := Query{{= table.IdentifierPlural }}(ctx).
+        Where(op.Equal(node.{{= table.Identifier }}().PrimaryKey(), obj.PrimaryKey())).
+        LoadI()
+
+    assert.Equal(t, obj.PrimaryKey(), objs[0].Get("{{= table.PrimaryKeyColumn().Identifier }}"))
+}
+}}
+
+{{
+func Test{{= table.Identifier }}_QueryCursor(t *testing.T) {
+    obj := createMinimalSample{{= table.Identifier }}()
+    ctx := db.NewContext(nil)
+    err := obj.Save(ctx)
+	assert.NoError(t, err)
+    defer deleteSample{{= table.Identifier }}(ctx, obj)
+
+    cursor := Query{{= table.IdentifierPlural }}(ctx).
+        Where(op.Equal(node.{{= table.Identifier }}().PrimaryKey(), obj.PrimaryKey())).
+        LoadCursor()
+
+    obj2 := cursor.Next()
+    assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
+    assert.Nil(t, cursor.Next())
+
+    // test empty cursor result
+    cursor = Query{{= table.IdentifierPlural }}(ctx).
+        Where(op.Equal(1, 0)).
+        LoadCursor()
+    assert.Nil(t, cursor.Next())
+
+}
+}}

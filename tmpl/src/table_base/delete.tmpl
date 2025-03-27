@@ -23,6 +23,9 @@
 {{for}}
 {{if}}
 func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error) {
+    if o == nil {
+        return // allow deleting of a nil object to be a noop
+    }
 	if !o._restored {
 		panic ("Cannot delete a record that has no primary key value.")
 	}

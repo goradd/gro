@@ -44,6 +44,7 @@ func TestEmployeeInfo_Delete(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMinimalSampleEmployeeInfo()
 	err := obj.Save(ctx)
+	defer obj.Person().Delete(ctx)
 	assert.NoError(t, err)
 	DeleteEmployeeInfo(ctx, obj.PrimaryKey())
 	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey())

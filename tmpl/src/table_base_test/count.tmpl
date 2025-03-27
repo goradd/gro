@@ -1,0 +1,16 @@
+//*** {{includeName}}
+
+{{
+func Test{{= table.Identifier }}_Count(t *testing.T) {
+    obj := createMaximalSample{{= table.Identifier }}()
+    ctx := db.NewContext(nil)
+    err := obj.Save(ctx)
+	assert.NoError(t, err)
+    defer deleteSample{{= table.Identifier }}(ctx, obj)
+
+{{for _,col := range table.Columns }}
+{{if !col.IsEnum()}}
+    assert.Less(t, 0, Count{{= table.IdentifierPlural}}By{{= col.Identifier}}(ctx, obj.{{= col.Identifier}}()))
+{{if}}
+{{for}}}
+}}

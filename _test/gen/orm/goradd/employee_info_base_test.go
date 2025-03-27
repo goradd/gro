@@ -9,6 +9,7 @@ import (
 
 	"github.com/goradd/orm/_test/gen/orm/goradd/node"
 	"github.com/goradd/orm/pkg/db"
+	"github.com/goradd/orm/pkg/op"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -28,7 +29,9 @@ func updateMinimalSampleEmployeeInfo(obj *EmployeeInfo) {
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
 	// If the database is configured so that the referenced object points back here, either directly or through multiple
 	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
-	obj.SetPerson(createMinimalSamplePerson())
+	if obj.Person() == nil { // only update if not already set, so that delete will remove it later
+		obj.SetPerson(createMinimalSamplePerson())
+	}
 
 	obj.SetEmployeeNumber(test.RandomValue[int](32))
 
@@ -43,6 +46,7 @@ func createMaximalSampleEmployeeInfo() *EmployeeInfo {
 }
 
 // updateMaximalSampleEmployeeInfo sets all the maximal sample values to new values.
+// This will set new values for references, so save the old values and delete them.
 func updateMaximalSampleEmployeeInfo(obj *EmployeeInfo) {
 	updateMinimalSampleEmployeeInfo(obj)
 
@@ -208,4 +212,66 @@ func TestEmployeeInfo_Getters(t *testing.T) {
 
 	assert.Panics(t, func() { obj2.PersonID() })
 	assert.Panics(t, func() { obj2.EmployeeNumber() })
+}
+
+func TestEmployeeInfo_QueryLoad(t *testing.T) {
+	obj := createMinimalSampleEmployeeInfo()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleEmployeeInfo(ctx, obj)
+
+	objs := QueryEmployeeInfos(ctx).
+		Where(op.Equal(node.EmployeeInfo().PrimaryKey(), obj.PrimaryKey())).
+		OrderBy(node.EmployeeInfo().PrimaryKey()). // exercise order by
+		Limit(1, 0).                               // exercise limit
+		Load()
+
+	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+}
+func TestEmployeeInfo_QueryLoadI(t *testing.T) {
+	obj := createMinimalSampleEmployeeInfo()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleEmployeeInfo(ctx, obj)
+
+	objs := QueryEmployeeInfos(ctx).
+		Where(op.Equal(node.EmployeeInfo().PrimaryKey(), obj.PrimaryKey())).
+		LoadI()
+
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
+}
+func TestEmployeeInfo_QueryCursor(t *testing.T) {
+	obj := createMinimalSampleEmployeeInfo()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleEmployeeInfo(ctx, obj)
+
+	cursor := QueryEmployeeInfos(ctx).
+		Where(op.Equal(node.EmployeeInfo().PrimaryKey(), obj.PrimaryKey())).
+		LoadCursor()
+
+	obj2 := cursor.Next()
+	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
+	assert.Nil(t, cursor.Next())
+
+	// test empty cursor result
+	cursor = QueryEmployeeInfos(ctx).
+		Where(op.Equal(1, 0)).
+		LoadCursor()
+	assert.Nil(t, cursor.Next())
+
+}
+func TestEmployeeInfo_Count(t *testing.T) {
+	obj := createMaximalSampleEmployeeInfo()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleEmployeeInfo(ctx, obj)
+
+	assert.Less(t, 0, CountEmployeeInfosByID(ctx, obj.ID()))
+	assert.Less(t, 0, CountEmployeeInfosByPersonID(ctx, obj.PersonID()))
+	assert.Less(t, 0, CountEmployeeInfosByEmployeeNumber(ctx, obj.EmployeeNumber()))
 }

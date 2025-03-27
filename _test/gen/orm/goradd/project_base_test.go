@@ -10,6 +10,7 @@ import (
 
 	"github.com/goradd/orm/_test/gen/orm/goradd/node"
 	"github.com/goradd/orm/pkg/db"
+	"github.com/goradd/orm/pkg/op"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -53,6 +54,7 @@ func createMaximalSampleProject() *Project {
 }
 
 // updateMaximalSampleProject sets all the maximal sample values to new values.
+// This will set new values for references, so save the old values and delete them.
 func updateMaximalSampleProject(obj *Project) {
 	updateMinimalSampleProject(obj)
 
@@ -519,4 +521,73 @@ func TestProject_Getters(t *testing.T) {
 	assert.Panics(t, func() { obj2.Budget() })
 	assert.Panics(t, func() { obj2.Spent() })
 	assert.Panics(t, func() { obj2.ParentProjectID() })
+}
+
+func TestProject_QueryLoad(t *testing.T) {
+	obj := createMinimalSampleProject()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleProject(ctx, obj)
+
+	objs := QueryProjects(ctx).
+		Where(op.Equal(node.Project().PrimaryKey(), obj.PrimaryKey())).
+		OrderBy(node.Project().PrimaryKey()). // exercise order by
+		Limit(1, 0).                          // exercise limit
+		Load()
+
+	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+}
+func TestProject_QueryLoadI(t *testing.T) {
+	obj := createMinimalSampleProject()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleProject(ctx, obj)
+
+	objs := QueryProjects(ctx).
+		Where(op.Equal(node.Project().PrimaryKey(), obj.PrimaryKey())).
+		LoadI()
+
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
+}
+func TestProject_QueryCursor(t *testing.T) {
+	obj := createMinimalSampleProject()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleProject(ctx, obj)
+
+	cursor := QueryProjects(ctx).
+		Where(op.Equal(node.Project().PrimaryKey(), obj.PrimaryKey())).
+		LoadCursor()
+
+	obj2 := cursor.Next()
+	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
+	assert.Nil(t, cursor.Next())
+
+	// test empty cursor result
+	cursor = QueryProjects(ctx).
+		Where(op.Equal(1, 0)).
+		LoadCursor()
+	assert.Nil(t, cursor.Next())
+
+}
+func TestProject_Count(t *testing.T) {
+	obj := createMaximalSampleProject()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleProject(ctx, obj)
+
+	assert.Less(t, 0, CountProjectsByID(ctx, obj.ID()))
+	assert.Less(t, 0, CountProjectsByNum(ctx, obj.Num()))
+	assert.Less(t, 0, CountProjectsByManagerID(ctx, obj.ManagerID()))
+	assert.Less(t, 0, CountProjectsByName(ctx, obj.Name()))
+	assert.Less(t, 0, CountProjectsByDescription(ctx, obj.Description()))
+	assert.Less(t, 0, CountProjectsByStartDate(ctx, obj.StartDate()))
+	assert.Less(t, 0, CountProjectsByEndDate(ctx, obj.EndDate()))
+	assert.Less(t, 0, CountProjectsByBudget(ctx, obj.Budget()))
+	assert.Less(t, 0, CountProjectsBySpent(ctx, obj.Spent()))
+	assert.Less(t, 0, CountProjectsByParentProjectID(ctx, obj.ParentProjectID()))
 }

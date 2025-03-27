@@ -398,17 +398,17 @@ func (h *DbHelper) checkLock(ctx context.Context,
 
 // BuilderQuery performs a complex query using a query builder.
 // The data returned will depend on the command inside the builder.
-func (h *DbHelper) BuilderQuery(builder *Builder) any {
+func (h *DbHelper) BuilderQuery(builder *Builder) (ret any) {
 	joinTree := jointree.NewJoinTree(builder)
 	switch joinTree.Command {
 	case BuilderCommandLoad:
-		return h.joinTreeLoad(builder.Ctx, joinTree)
+		ret = h.joinTreeLoad(builder.Ctx, joinTree)
 	case BuilderCommandLoadCursor:
-		return h.joinTreeLoadCursor(builder.Ctx, joinTree)
+		ret = h.joinTreeLoadCursor(builder.Ctx, joinTree)
 	case BuilderCommandCount:
-		return h.joinTreeCount(builder.Ctx, joinTree)
+		ret = h.joinTreeCount(builder.Ctx, joinTree)
 	}
-	return nil
+	return
 }
 
 func (h *DbHelper) joinTreeLoad(ctx context.Context, joinTree *jointree.JoinTree) []map[string]any {

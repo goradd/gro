@@ -9,6 +9,7 @@ import (
 
 	"github.com/goradd/orm/_test/gen/orm/goradd/node"
 	"github.com/goradd/orm/pkg/db"
+	"github.com/goradd/orm/pkg/op"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -40,6 +41,7 @@ func createMaximalSamplePersonWithLock() *PersonWithLock {
 }
 
 // updateMaximalSamplePersonWithLock sets all the maximal sample values to new values.
+// This will set new values for references, so save the old values and delete them.
 func updateMaximalSamplePersonWithLock(obj *PersonWithLock) {
 	updateMinimalSamplePersonWithLock(obj)
 
@@ -214,4 +216,68 @@ func TestPersonWithLock_Getters(t *testing.T) {
 	assert.Panics(t, func() { obj2.LastName() })
 	assert.Panics(t, func() { obj2.GroLock() })
 	assert.Panics(t, func() { obj2.GroTimestamp() })
+}
+
+func TestPersonWithLock_QueryLoad(t *testing.T) {
+	obj := createMinimalSamplePersonWithLock()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSamplePersonWithLock(ctx, obj)
+
+	objs := QueryPersonWithLocks(ctx).
+		Where(op.Equal(node.PersonWithLock().PrimaryKey(), obj.PrimaryKey())).
+		OrderBy(node.PersonWithLock().PrimaryKey()). // exercise order by
+		Limit(1, 0).                                 // exercise limit
+		Load()
+
+	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+}
+func TestPersonWithLock_QueryLoadI(t *testing.T) {
+	obj := createMinimalSamplePersonWithLock()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSamplePersonWithLock(ctx, obj)
+
+	objs := QueryPersonWithLocks(ctx).
+		Where(op.Equal(node.PersonWithLock().PrimaryKey(), obj.PrimaryKey())).
+		LoadI()
+
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
+}
+func TestPersonWithLock_QueryCursor(t *testing.T) {
+	obj := createMinimalSamplePersonWithLock()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSamplePersonWithLock(ctx, obj)
+
+	cursor := QueryPersonWithLocks(ctx).
+		Where(op.Equal(node.PersonWithLock().PrimaryKey(), obj.PrimaryKey())).
+		LoadCursor()
+
+	obj2 := cursor.Next()
+	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
+	assert.Nil(t, cursor.Next())
+
+	// test empty cursor result
+	cursor = QueryPersonWithLocks(ctx).
+		Where(op.Equal(1, 0)).
+		LoadCursor()
+	assert.Nil(t, cursor.Next())
+
+}
+func TestPersonWithLock_Count(t *testing.T) {
+	obj := createMaximalSamplePersonWithLock()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSamplePersonWithLock(ctx, obj)
+
+	assert.Less(t, 0, CountPersonWithLocksByID(ctx, obj.ID()))
+	assert.Less(t, 0, CountPersonWithLocksByFirstName(ctx, obj.FirstName()))
+	assert.Less(t, 0, CountPersonWithLocksByLastName(ctx, obj.LastName()))
+	assert.Less(t, 0, CountPersonWithLocksByGroLock(ctx, obj.GroLock()))
+	assert.Less(t, 0, CountPersonWithLocksByGroTimestamp(ctx, obj.GroTimestamp()))
 }

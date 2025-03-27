@@ -44,6 +44,7 @@ func TestMilestone_Delete(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMinimalSampleMilestone()
 	err := obj.Save(ctx)
+	defer obj.Project().Delete(ctx)
 	assert.NoError(t, err)
 	DeleteMilestone(ctx, obj.PrimaryKey())
 	obj2 := LoadMilestone(ctx, obj.PrimaryKey())

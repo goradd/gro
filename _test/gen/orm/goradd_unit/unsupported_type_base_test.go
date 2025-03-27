@@ -52,6 +52,7 @@ func createMaximalSampleUnsupportedType() *UnsupportedType {
 }
 
 // updateMaximalSampleUnsupportedType sets all the maximal sample values to new values.
+// This will set new values for references, so save the old values and delete them.
 func updateMaximalSampleUnsupportedType(obj *UnsupportedType) {
 	updateMinimalSampleUnsupportedType(obj)
 

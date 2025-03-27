@@ -842,7 +842,7 @@ func (b *rootQueryBuilder) Load() (roots []*Root) {
 }
 
 // Load terminates the query builder, performs the query, and returns a slice of interfaces.
-// This can then satisfy a variety of interface that loads arrays of objects, including KeyLabeler.
+// This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
 func (b *rootQueryBuilder) LoadI() (roots []query.OrmObj) {
@@ -876,9 +876,6 @@ func (b *rootQueryBuilder) LoadCursor() rootsCursor {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
 	result := database.BuilderQuery(b.builder)
-	if result == nil {
-		return rootsCursor{}
-	}
 	cursor := result.(query.CursorI)
 
 	return rootsCursor{cursor}
@@ -1582,6 +1579,9 @@ func (o *rootBase) getValidFields() (fields map[string]interface{}) {
 //
 // Associated ParentRoots will have their ParentID field set to NULL.
 func (o *rootBase) Delete(ctx context.Context) (err error) {
+	if o == nil {
+		return // allow deleting of a nil object to be a noop
+	}
 	if !o._restored {
 		panic("Cannot delete a record that has no primary key value.")
 	}

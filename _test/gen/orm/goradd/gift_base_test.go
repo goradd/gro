@@ -8,6 +8,7 @@ import (
 
 	"github.com/goradd/orm/_test/gen/orm/goradd/node"
 	"github.com/goradd/orm/pkg/db"
+	"github.com/goradd/orm/pkg/op"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -39,6 +40,7 @@ func createMaximalSampleGift() *Gift {
 }
 
 // updateMaximalSampleGift sets all the maximal sample values to new values.
+// This will set new values for references, so save the old values and delete them.
 func updateMaximalSampleGift(obj *Gift) {
 	updateMinimalSampleGift(obj)
 
@@ -191,4 +193,65 @@ func TestGift_Getters(t *testing.T) {
 	assert.Equal(t, obj.Number(), obj2.Number())
 
 	assert.Panics(t, func() { obj2.Name() })
+}
+
+func TestGift_QueryLoad(t *testing.T) {
+	obj := createMinimalSampleGift()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleGift(ctx, obj)
+
+	objs := QueryGifts(ctx).
+		Where(op.Equal(node.Gift().PrimaryKey(), obj.PrimaryKey())).
+		OrderBy(node.Gift().PrimaryKey()). // exercise order by
+		Limit(1, 0).                       // exercise limit
+		Load()
+
+	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+}
+func TestGift_QueryLoadI(t *testing.T) {
+	obj := createMinimalSampleGift()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleGift(ctx, obj)
+
+	objs := QueryGifts(ctx).
+		Where(op.Equal(node.Gift().PrimaryKey(), obj.PrimaryKey())).
+		LoadI()
+
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("Number"))
+}
+func TestGift_QueryCursor(t *testing.T) {
+	obj := createMinimalSampleGift()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleGift(ctx, obj)
+
+	cursor := QueryGifts(ctx).
+		Where(op.Equal(node.Gift().PrimaryKey(), obj.PrimaryKey())).
+		LoadCursor()
+
+	obj2 := cursor.Next()
+	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
+	assert.Nil(t, cursor.Next())
+
+	// test empty cursor result
+	cursor = QueryGifts(ctx).
+		Where(op.Equal(1, 0)).
+		LoadCursor()
+	assert.Nil(t, cursor.Next())
+
+}
+func TestGift_Count(t *testing.T) {
+	obj := createMaximalSampleGift()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleGift(ctx, obj)
+
+	assert.Less(t, 0, CountGiftsByNumber(ctx, obj.Number()))
+	assert.Less(t, 0, CountGiftsByName(ctx, obj.Name()))
 }

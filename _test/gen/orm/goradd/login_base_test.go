@@ -9,6 +9,7 @@ import (
 
 	"github.com/goradd/orm/_test/gen/orm/goradd/node"
 	"github.com/goradd/orm/pkg/db"
+	"github.com/goradd/orm/pkg/op"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -42,6 +43,7 @@ func createMaximalSampleLogin() *Login {
 }
 
 // updateMaximalSampleLogin sets all the maximal sample values to new values.
+// This will set new values for references, so save the old values and delete them.
 func updateMaximalSampleLogin(obj *Login) {
 	updateMinimalSampleLogin(obj)
 
@@ -276,4 +278,68 @@ func TestLogin_Getters(t *testing.T) {
 	assert.Panics(t, func() { obj2.Username() })
 	assert.Panics(t, func() { obj2.Password() })
 	assert.Panics(t, func() { obj2.IsEnabled() })
+}
+
+func TestLogin_QueryLoad(t *testing.T) {
+	obj := createMinimalSampleLogin()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleLogin(ctx, obj)
+
+	objs := QueryLogins(ctx).
+		Where(op.Equal(node.Login().PrimaryKey(), obj.PrimaryKey())).
+		OrderBy(node.Login().PrimaryKey()). // exercise order by
+		Limit(1, 0).                        // exercise limit
+		Load()
+
+	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+}
+func TestLogin_QueryLoadI(t *testing.T) {
+	obj := createMinimalSampleLogin()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleLogin(ctx, obj)
+
+	objs := QueryLogins(ctx).
+		Where(op.Equal(node.Login().PrimaryKey(), obj.PrimaryKey())).
+		LoadI()
+
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
+}
+func TestLogin_QueryCursor(t *testing.T) {
+	obj := createMinimalSampleLogin()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleLogin(ctx, obj)
+
+	cursor := QueryLogins(ctx).
+		Where(op.Equal(node.Login().PrimaryKey(), obj.PrimaryKey())).
+		LoadCursor()
+
+	obj2 := cursor.Next()
+	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
+	assert.Nil(t, cursor.Next())
+
+	// test empty cursor result
+	cursor = QueryLogins(ctx).
+		Where(op.Equal(1, 0)).
+		LoadCursor()
+	assert.Nil(t, cursor.Next())
+
+}
+func TestLogin_Count(t *testing.T) {
+	obj := createMaximalSampleLogin()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleLogin(ctx, obj)
+
+	assert.Less(t, 0, CountLoginsByID(ctx, obj.ID()))
+	assert.Less(t, 0, CountLoginsByPersonID(ctx, obj.PersonID()))
+	assert.Less(t, 0, CountLoginsByUsername(ctx, obj.Username()))
+	assert.Less(t, 0, CountLoginsByPassword(ctx, obj.Password()))
+	assert.Less(t, 0, CountLoginsByIsEnabled(ctx, obj.IsEnabled()))
 }

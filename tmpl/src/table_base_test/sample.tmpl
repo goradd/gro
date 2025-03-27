@@ -23,7 +23,9 @@ func updateMinimalSample{{= table.Identifier }}(obj *{{= table.Identifier }})  {
     // A required forward reference will need to be fulfilled just to save the minimal version of this object
     // If the database is configured so that the referenced object points back here, either directly or through multiple
     // forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
-    obj.Set{{= col.ReferenceIdentifier() }}(createMinimalSample{{= col.ReferenceType() }}())
+    if obj.{{= col.ReferenceIdentifier() }}() == nil { // only update if not already set, so that delete will remove it later
+        obj.Set{{= col.ReferenceIdentifier() }}(createMinimalSample{{= col.ReferenceType() }}())
+    }
 {{if}}
 
 {{elseif col.IsEnum() }}
@@ -58,6 +60,7 @@ func createMaximalSample{{= table.Identifier }}() *{{= table.Identifier }} {
 }
 
 // updateMaximalSample{{= table.Identifier }} sets all the maximal sample values to new values.
+// This will set new values for references, so save the old values and delete them.
 func updateMaximalSample{{= table.Identifier }}(obj *{{= table.Identifier }}) {
     updateMinimalSample{{= table.Identifier }}(obj)
 {{for _,col := range table.Columns}}

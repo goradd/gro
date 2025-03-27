@@ -44,6 +44,7 @@ func TestAddress_Delete(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMinimalSampleAddress()
 	err := obj.Save(ctx)
+	defer obj.Person().Delete(ctx)
 	assert.NoError(t, err)
 	DeleteAddress(ctx, obj.PrimaryKey())
 	obj2 := LoadAddress(ctx, obj.PrimaryKey())

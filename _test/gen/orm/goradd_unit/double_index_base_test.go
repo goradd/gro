@@ -8,6 +8,7 @@ import (
 
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
 	"github.com/goradd/orm/pkg/db"
+	"github.com/goradd/orm/pkg/op"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -41,6 +42,7 @@ func createMaximalSampleDoubleIndex() *DoubleIndex {
 }
 
 // updateMaximalSampleDoubleIndex sets all the maximal sample values to new values.
+// This will set new values for references, so save the old values and delete them.
 func updateMaximalSampleDoubleIndex(obj *DoubleIndex) {
 	updateMinimalSampleDoubleIndex(obj)
 
@@ -223,4 +225,66 @@ func TestDoubleIndex_Getters(t *testing.T) {
 
 	assert.Panics(t, func() { obj2.FieldInt() })
 	assert.Panics(t, func() { obj2.FieldString() })
+}
+
+func TestDoubleIndex_QueryLoad(t *testing.T) {
+	obj := createMinimalSampleDoubleIndex()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleDoubleIndex(ctx, obj)
+
+	objs := QueryDoubleIndices(ctx).
+		Where(op.Equal(node.DoubleIndex().PrimaryKey(), obj.PrimaryKey())).
+		OrderBy(node.DoubleIndex().PrimaryKey()). // exercise order by
+		Limit(1, 0).                              // exercise limit
+		Load()
+
+	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+}
+func TestDoubleIndex_QueryLoadI(t *testing.T) {
+	obj := createMinimalSampleDoubleIndex()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleDoubleIndex(ctx, obj)
+
+	objs := QueryDoubleIndices(ctx).
+		Where(op.Equal(node.DoubleIndex().PrimaryKey(), obj.PrimaryKey())).
+		LoadI()
+
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
+}
+func TestDoubleIndex_QueryCursor(t *testing.T) {
+	obj := createMinimalSampleDoubleIndex()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleDoubleIndex(ctx, obj)
+
+	cursor := QueryDoubleIndices(ctx).
+		Where(op.Equal(node.DoubleIndex().PrimaryKey(), obj.PrimaryKey())).
+		LoadCursor()
+
+	obj2 := cursor.Next()
+	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
+	assert.Nil(t, cursor.Next())
+
+	// test empty cursor result
+	cursor = QueryDoubleIndices(ctx).
+		Where(op.Equal(1, 0)).
+		LoadCursor()
+	assert.Nil(t, cursor.Next())
+
+}
+func TestDoubleIndex_Count(t *testing.T) {
+	obj := createMaximalSampleDoubleIndex()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleDoubleIndex(ctx, obj)
+
+	assert.Less(t, 0, CountDoubleIndicesByID(ctx, obj.ID()))
+	assert.Less(t, 0, CountDoubleIndicesByFieldInt(ctx, obj.FieldInt()))
+	assert.Less(t, 0, CountDoubleIndicesByFieldString(ctx, obj.FieldString()))
 }

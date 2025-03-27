@@ -9,6 +9,7 @@ import (
 
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
 	"github.com/goradd/orm/pkg/db"
+	"github.com/goradd/orm/pkg/op"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -38,6 +39,7 @@ func createMaximalSampleLeaf() *Leaf {
 }
 
 // updateMaximalSampleLeaf sets all the maximal sample values to new values.
+// This will set new values for references, so save the old values and delete them.
 func updateMaximalSampleLeaf(obj *Leaf) {
 	updateMinimalSampleLeaf(obj)
 
@@ -182,4 +184,65 @@ func TestLeaf_Getters(t *testing.T) {
 	obj2 := LoadLeaf(ctx, obj.PrimaryKey(), node.Leaf().PrimaryKey())
 
 	assert.Panics(t, func() { obj2.Name() })
+}
+
+func TestLeaf_QueryLoad(t *testing.T) {
+	obj := createMinimalSampleLeaf()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleLeaf(ctx, obj)
+
+	objs := QueryLeafs(ctx).
+		Where(op.Equal(node.Leaf().PrimaryKey(), obj.PrimaryKey())).
+		OrderBy(node.Leaf().PrimaryKey()). // exercise order by
+		Limit(1, 0).                       // exercise limit
+		Load()
+
+	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+}
+func TestLeaf_QueryLoadI(t *testing.T) {
+	obj := createMinimalSampleLeaf()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleLeaf(ctx, obj)
+
+	objs := QueryLeafs(ctx).
+		Where(op.Equal(node.Leaf().PrimaryKey(), obj.PrimaryKey())).
+		LoadI()
+
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
+}
+func TestLeaf_QueryCursor(t *testing.T) {
+	obj := createMinimalSampleLeaf()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleLeaf(ctx, obj)
+
+	cursor := QueryLeafs(ctx).
+		Where(op.Equal(node.Leaf().PrimaryKey(), obj.PrimaryKey())).
+		LoadCursor()
+
+	obj2 := cursor.Next()
+	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
+	assert.Nil(t, cursor.Next())
+
+	// test empty cursor result
+	cursor = QueryLeafs(ctx).
+		Where(op.Equal(1, 0)).
+		LoadCursor()
+	assert.Nil(t, cursor.Next())
+
+}
+func TestLeaf_Count(t *testing.T) {
+	obj := createMaximalSampleLeaf()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleLeaf(ctx, obj)
+
+	assert.Less(t, 0, CountLeafsByID(ctx, obj.ID()))
+	assert.Less(t, 0, CountLeafsByName(ctx, obj.Name()))
 }

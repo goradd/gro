@@ -529,7 +529,7 @@ func (b *leafQueryBuilder) Load() (leafs []*Leaf) {
 }
 
 // Load terminates the query builder, performs the query, and returns a slice of interfaces.
-// This can then satisfy a variety of interface that loads arrays of objects, including KeyLabeler.
+// This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
 func (b *leafQueryBuilder) LoadI() (leafs []query.OrmObj) {
@@ -563,9 +563,6 @@ func (b *leafQueryBuilder) LoadCursor() leafsCursor {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
 	result := database.BuilderQuery(b.builder)
-	if result == nil {
-		return leafsCursor{}
-	}
 	cursor := result.(query.CursorI)
 
 	return leafsCursor{cursor}
@@ -1110,6 +1107,9 @@ func (o *leafBase) getValidFields() (fields map[string]interface{}) {
 // An associated {= rev.ReverseIdentifier()  will also be deleted since its OptionalLeafUniqueID field is not nullable.
 // An associated {= rev.ReverseIdentifier()  will also be deleted since its RequiredLeafUniqueID field is not nullable.
 func (o *leafBase) Delete(ctx context.Context) (err error) {
+	if o == nil {
+		return // allow deleting of a nil object to be a noop
+	}
 	if !o._restored {
 		panic("Cannot delete a record that has no primary key value.")
 	}

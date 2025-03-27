@@ -9,6 +9,7 @@ import (
 
 	"github.com/goradd/orm/_test/gen/orm/goradd/node"
 	"github.com/goradd/orm/pkg/db"
+	"github.com/goradd/orm/pkg/op"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -28,7 +29,9 @@ func updateMinimalSampleMilestone(obj *Milestone) {
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
 	// If the database is configured so that the referenced object points back here, either directly or through multiple
 	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
-	obj.SetProject(createMinimalSampleProject())
+	if obj.Project() == nil { // only update if not already set, so that delete will remove it later
+		obj.SetProject(createMinimalSampleProject())
+	}
 
 	obj.SetName(test.RandomValue[string](50))
 
@@ -43,6 +46,7 @@ func createMaximalSampleMilestone() *Milestone {
 }
 
 // updateMaximalSampleMilestone sets all the maximal sample values to new values.
+// This will set new values for references, so save the old values and delete them.
 func updateMaximalSampleMilestone(obj *Milestone) {
 	updateMinimalSampleMilestone(obj)
 
@@ -213,4 +217,66 @@ func TestMilestone_Getters(t *testing.T) {
 
 	assert.Panics(t, func() { obj2.ProjectID() })
 	assert.Panics(t, func() { obj2.Name() })
+}
+
+func TestMilestone_QueryLoad(t *testing.T) {
+	obj := createMinimalSampleMilestone()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleMilestone(ctx, obj)
+
+	objs := QueryMilestones(ctx).
+		Where(op.Equal(node.Milestone().PrimaryKey(), obj.PrimaryKey())).
+		OrderBy(node.Milestone().PrimaryKey()). // exercise order by
+		Limit(1, 0).                            // exercise limit
+		Load()
+
+	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+}
+func TestMilestone_QueryLoadI(t *testing.T) {
+	obj := createMinimalSampleMilestone()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleMilestone(ctx, obj)
+
+	objs := QueryMilestones(ctx).
+		Where(op.Equal(node.Milestone().PrimaryKey(), obj.PrimaryKey())).
+		LoadI()
+
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
+}
+func TestMilestone_QueryCursor(t *testing.T) {
+	obj := createMinimalSampleMilestone()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleMilestone(ctx, obj)
+
+	cursor := QueryMilestones(ctx).
+		Where(op.Equal(node.Milestone().PrimaryKey(), obj.PrimaryKey())).
+		LoadCursor()
+
+	obj2 := cursor.Next()
+	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
+	assert.Nil(t, cursor.Next())
+
+	// test empty cursor result
+	cursor = QueryMilestones(ctx).
+		Where(op.Equal(1, 0)).
+		LoadCursor()
+	assert.Nil(t, cursor.Next())
+
+}
+func TestMilestone_Count(t *testing.T) {
+	obj := createMaximalSampleMilestone()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleMilestone(ctx, obj)
+
+	assert.Less(t, 0, CountMilestonesByID(ctx, obj.ID()))
+	assert.Less(t, 0, CountMilestonesByProjectID(ctx, obj.ProjectID()))
+	assert.Less(t, 0, CountMilestonesByName(ctx, obj.Name()))
 }

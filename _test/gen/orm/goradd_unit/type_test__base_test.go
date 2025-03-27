@@ -10,6 +10,7 @@ import (
 
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
 	"github.com/goradd/orm/pkg/db"
+	"github.com/goradd/orm/pkg/op"
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -57,6 +58,7 @@ func createMaximalSampleTypeTest() *TypeTest {
 }
 
 // updateMaximalSampleTypeTest sets all the maximal sample values to new values.
+// This will set new values for references, so save the old values and delete them.
 func updateMaximalSampleTypeTest(obj *TypeTest) {
 	updateMinimalSampleTypeTest(obj)
 
@@ -507,4 +509,75 @@ func TestTypeTest_Getters(t *testing.T) {
 	assert.Panics(t, func() { obj2.TestBit() })
 	assert.Panics(t, func() { obj2.TestVarchar() })
 	assert.Panics(t, func() { obj2.TestBlob() })
+}
+
+func TestTypeTest_QueryLoad(t *testing.T) {
+	obj := createMinimalSampleTypeTest()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleTypeTest(ctx, obj)
+
+	objs := QueryTypeTests(ctx).
+		Where(op.Equal(node.TypeTest().PrimaryKey(), obj.PrimaryKey())).
+		OrderBy(node.TypeTest().PrimaryKey()). // exercise order by
+		Limit(1, 0).                           // exercise limit
+		Load()
+
+	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+}
+func TestTypeTest_QueryLoadI(t *testing.T) {
+	obj := createMinimalSampleTypeTest()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleTypeTest(ctx, obj)
+
+	objs := QueryTypeTests(ctx).
+		Where(op.Equal(node.TypeTest().PrimaryKey(), obj.PrimaryKey())).
+		LoadI()
+
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
+}
+func TestTypeTest_QueryCursor(t *testing.T) {
+	obj := createMinimalSampleTypeTest()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleTypeTest(ctx, obj)
+
+	cursor := QueryTypeTests(ctx).
+		Where(op.Equal(node.TypeTest().PrimaryKey(), obj.PrimaryKey())).
+		LoadCursor()
+
+	obj2 := cursor.Next()
+	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
+	assert.Nil(t, cursor.Next())
+
+	// test empty cursor result
+	cursor = QueryTypeTests(ctx).
+		Where(op.Equal(1, 0)).
+		LoadCursor()
+	assert.Nil(t, cursor.Next())
+
+}
+func TestTypeTest_Count(t *testing.T) {
+	obj := createMaximalSampleTypeTest()
+	ctx := db.NewContext(nil)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleTypeTest(ctx, obj)
+
+	assert.Less(t, 0, CountTypeTestsByID(ctx, obj.ID()))
+	assert.Less(t, 0, CountTypeTestsByDate(ctx, obj.Date()))
+	assert.Less(t, 0, CountTypeTestsByTime(ctx, obj.Time()))
+	assert.Less(t, 0, CountTypeTestsByDateTime(ctx, obj.DateTime()))
+	assert.Less(t, 0, CountTypeTestsByTs(ctx, obj.Ts()))
+	assert.Less(t, 0, CountTypeTestsByTestInt(ctx, obj.TestInt()))
+	assert.Less(t, 0, CountTypeTestsByTestFloat(ctx, obj.TestFloat()))
+	assert.Less(t, 0, CountTypeTestsByTestDouble(ctx, obj.TestDouble()))
+	assert.Less(t, 0, CountTypeTestsByTestText(ctx, obj.TestText()))
+	assert.Less(t, 0, CountTypeTestsByTestBit(ctx, obj.TestBit()))
+	assert.Less(t, 0, CountTypeTestsByTestVarchar(ctx, obj.TestVarchar()))
+	assert.Less(t, 0, CountTypeTestsByTestBlob(ctx, obj.TestBlob()))
 }

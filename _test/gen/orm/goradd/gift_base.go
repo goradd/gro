@@ -322,7 +322,7 @@ func (b *giftQueryBuilder) Load() (gifts []*Gift) {
 }
 
 // Load terminates the query builder, performs the query, and returns a slice of interfaces.
-// This can then satisfy a variety of interface that loads arrays of objects, including KeyLabeler.
+// This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
 func (b *giftQueryBuilder) LoadI() (gifts []query.OrmObj) {
@@ -356,9 +356,6 @@ func (b *giftQueryBuilder) LoadCursor() giftsCursor {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
 	result := database.BuilderQuery(b.builder)
-	if result == nil {
-		return giftsCursor{}
-	}
 	cursor := result.(query.CursorI)
 
 	return giftsCursor{cursor}
@@ -668,6 +665,9 @@ func (o *giftBase) getValidFields() (fields map[string]interface{}) {
 
 // Delete deletes the record from the database.
 func (o *giftBase) Delete(ctx context.Context) (err error) {
+	if o == nil {
+		return // allow deleting of a nil object to be a noop
+	}
 	if !o._restored {
 		panic("Cannot delete a record that has no primary key value.")
 	}
