@@ -136,7 +136,7 @@ func TestLeafLock_BasicUpdate(t *testing.T) {
 	assert.Equal(t, obj2.GroLock(), obj.GroLock(), "GroLock did not update")
 }
 
-func TestLeafLock_References(t *testing.T) {
+func TestLeafLock_ReferenceLoad(t *testing.T) {
 	obj := createMaximalSampleLeafLock()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)

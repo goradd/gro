@@ -157,7 +157,7 @@ func TestEmployeeInfo_BasicUpdate(t *testing.T) {
 	assert.Equal(t, obj2.EmployeeNumber(), obj.EmployeeNumber(), "EmployeeNumber did not update")
 }
 
-func TestEmployeeInfo_References(t *testing.T) {
+func TestEmployeeInfo_ReferenceLoad(t *testing.T) {
 	obj := createMaximalSampleEmployeeInfo()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)

@@ -201,7 +201,7 @@ func TestAddress_BasicUpdate(t *testing.T) {
 	assert.Equal(t, obj2.City(), obj.City(), "City did not update")
 }
 
-func TestAddress_References(t *testing.T) {
+func TestAddress_ReferenceLoad(t *testing.T) {
 	obj := createMaximalSampleAddress()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)

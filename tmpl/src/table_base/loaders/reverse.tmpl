@@ -15,12 +15,6 @@
 				obj.load(v3, obj)
 				o.{{= col.ReverseVariableIdentifier() }}.Set(obj.PrimaryKey(), obj)
 			}
-		case map[string]any:	// single expansion
-			obj := new({{= col.Table.Identifier }})
-			obj.load(v2, obj)
-		    o.{{= col.ReverseVariableIdentifier() }}.Clear()
-			o.{{= col.ReverseVariableIdentifier() }}.Set(obj.PrimaryKey(), obj)
-			o.{{= col.ReverseVariableIdentifier() }}IsDirty = false
 		default:
 			panic("Wrong type found for {{= col.ReverseVariableIdentifier() }} object.")
 		}

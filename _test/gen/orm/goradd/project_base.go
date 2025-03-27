@@ -1884,12 +1884,6 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 				obj.load(v3, obj)
 				o.revMilestones.Set(obj.PrimaryKey(), obj)
 			}
-		case map[string]any: // single expansion
-			obj := new(Milestone)
-			obj.load(v2, obj)
-			o.revMilestones.Clear()
-			o.revMilestones.Set(obj.PrimaryKey(), obj)
-			o.revMilestonesIsDirty = false
 		default:
 			panic("Wrong type found for revMilestones object.")
 		}
@@ -1908,12 +1902,6 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 				obj.load(v3, obj)
 				o.revParentProjectProjects.Set(obj.PrimaryKey(), obj)
 			}
-		case map[string]any: // single expansion
-			obj := new(Project)
-			obj.load(v2, obj)
-			o.revParentProjectProjects.Clear()
-			o.revParentProjectProjects.Set(obj.PrimaryKey(), obj)
-			o.revParentProjectProjectsIsDirty = false
 		default:
 			panic("Wrong type found for revParentProjectProjects object.")
 		}

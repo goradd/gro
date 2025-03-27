@@ -175,7 +175,7 @@ func TestPersonWithLock_BasicUpdate(t *testing.T) {
 	assert.Equal(t, obj2.GroTimestamp(), obj.GroTimestamp(), "GroTimestamp did not update")
 }
 
-func TestPersonWithLock_References(t *testing.T) {
+func TestPersonWithLock_ReferenceLoad(t *testing.T) {
 	obj := createMaximalSamplePersonWithLock()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)

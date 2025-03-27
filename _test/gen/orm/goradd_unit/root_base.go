@@ -1273,12 +1273,6 @@ func (o *rootBase) load(m map[string]interface{}, objThis *Root) {
 				obj.load(v3, obj)
 				o.revParentRoots.Set(obj.PrimaryKey(), obj)
 			}
-		case map[string]any: // single expansion
-			obj := new(Root)
-			obj.load(v2, obj)
-			o.revParentRoots.Clear()
-			o.revParentRoots.Set(obj.PrimaryKey(), obj)
-			o.revParentRootsIsDirty = false
 		default:
 			panic("Wrong type found for revParentRoots object.")
 		}

@@ -461,7 +461,7 @@ func TestTypeTest_BasicUpdate(t *testing.T) {
 	assert.Equal(t, obj2.TestBlob(), obj.TestBlob(), "TestBlob did not update")
 }
 
-func TestTypeTest_References(t *testing.T) {
+func TestTypeTest_ReferenceLoad(t *testing.T) {
 	obj := createMaximalSampleTypeTest()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)

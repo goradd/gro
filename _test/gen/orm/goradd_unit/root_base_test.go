@@ -277,7 +277,7 @@ func TestRoot_BasicUpdate(t *testing.T) {
 	assert.Equal(t, obj2.ParentID(), obj.ParentID(), "ParentID did not update")
 }
 
-func TestRoot_References(t *testing.T) {
+func TestRoot_ReferenceLoad(t *testing.T) {
 	obj := createMaximalSampleRoot()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)

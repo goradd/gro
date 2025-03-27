@@ -77,7 +77,7 @@ func Test{{= table.Identifier }}_BasicUpdate(t *testing.T) {
 
 
 
-func Test{{= table.Identifier }}_References(t *testing.T) {
+func Test{{= table.Identifier }}_ReferenceLoad(t *testing.T) {
     obj := createMaximalSample{{= table.Identifier }}()
     ctx := db.NewContext(nil)
     obj.Save(ctx)

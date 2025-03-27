@@ -1685,7 +1685,7 @@ func Test`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `_References(t *testing.T) {
+		if _, err = io.WriteString(_w, `_ReferenceLoad(t *testing.T) {
     obj := createMaximalSample`); err != nil {
 			return
 		}

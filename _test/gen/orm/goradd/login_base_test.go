@@ -225,7 +225,7 @@ func TestLogin_BasicUpdate(t *testing.T) {
 	assert.Equal(t, obj2.IsEnabled(), obj.IsEnabled(), "IsEnabled did not update")
 }
 
-func TestLogin_References(t *testing.T) {
+func TestLogin_ReferenceLoad(t *testing.T) {
 	obj := createMaximalSampleLogin()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)

@@ -7611,44 +7611,6 @@ func (o *`); err != nil {
 
 			if _, err = io.WriteString(_w, `.Set(obj.PrimaryKey(), obj)
 			}
-		case map[string]any:	// single expansion
-			obj := new(`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `)
-			obj.load(v2, obj)
-		    o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `.Clear()
-			o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `.Set(obj.PrimaryKey(), obj)
-			o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `IsDirty = false
 		default:
 			panic("Wrong type found for `); err != nil {
 				return

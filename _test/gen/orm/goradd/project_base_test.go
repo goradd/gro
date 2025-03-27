@@ -449,7 +449,7 @@ func TestProject_BasicUpdate(t *testing.T) {
 	assert.Equal(t, obj2.ParentProjectID(), obj.ParentProjectID(), "ParentProjectID did not update")
 }
 
-func TestProject_References(t *testing.T) {
+func TestProject_ReferenceLoad(t *testing.T) {
 	obj := createMaximalSampleProject()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)

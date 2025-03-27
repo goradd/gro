@@ -191,7 +191,7 @@ func TestDoubleIndex_BasicUpdate(t *testing.T) {
 	assert.Equal(t, obj2.FieldString(), obj.FieldString(), "FieldString did not update")
 }
 
-func TestDoubleIndex_References(t *testing.T) {
+func TestDoubleIndex_ReferenceLoad(t *testing.T) {
 	obj := createMaximalSampleDoubleIndex()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)

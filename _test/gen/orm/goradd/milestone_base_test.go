@@ -162,7 +162,7 @@ func TestMilestone_BasicUpdate(t *testing.T) {
 	assert.Equal(t, obj2.Name(), obj.Name(), "Name did not update")
 }
 
-func TestMilestone_References(t *testing.T) {
+func TestMilestone_ReferenceLoad(t *testing.T) {
 	obj := createMaximalSampleMilestone()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)

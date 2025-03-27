@@ -221,7 +221,7 @@ func TestPerson_BasicUpdate(t *testing.T) {
 	assert.Equal(t, obj2.Types(), obj.Types(), "Types did not update")
 }
 
-func TestPerson_References(t *testing.T) {
+func TestPerson_ReferenceLoad(t *testing.T) {
 	obj := createMaximalSamplePerson()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)

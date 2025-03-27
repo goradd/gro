@@ -160,7 +160,7 @@ func TestGift_BasicUpdate(t *testing.T) {
 	assert.Equal(t, obj2.Name(), obj.Name(), "Name did not update")
 }
 
-func TestGift_References(t *testing.T) {
+func TestGift_ReferenceLoad(t *testing.T) {
 	obj := createMaximalSampleGift()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)

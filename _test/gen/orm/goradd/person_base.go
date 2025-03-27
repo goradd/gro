@@ -1029,12 +1029,6 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 				obj.load(v3, obj)
 				o.revAddresses.Set(obj.PrimaryKey(), obj)
 			}
-		case map[string]any: // single expansion
-			obj := new(Address)
-			obj.load(v2, obj)
-			o.revAddresses.Clear()
-			o.revAddresses.Set(obj.PrimaryKey(), obj)
-			o.revAddressesIsDirty = false
 		default:
 			panic("Wrong type found for revAddresses object.")
 		}
@@ -1079,12 +1073,6 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 				obj.load(v3, obj)
 				o.revManagerProjects.Set(obj.PrimaryKey(), obj)
 			}
-		case map[string]any: // single expansion
-			obj := new(Project)
-			obj.load(v2, obj)
-			o.revManagerProjects.Clear()
-			o.revManagerProjects.Set(obj.PrimaryKey(), obj)
-			o.revManagerProjectsIsDirty = false
 		default:
 			panic("Wrong type found for revManagerProjects object.")
 		}

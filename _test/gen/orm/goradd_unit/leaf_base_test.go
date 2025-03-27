@@ -146,7 +146,7 @@ func TestLeaf_BasicUpdate(t *testing.T) {
 	assert.Equal(t, obj2.Name(), obj.Name(), "Name did not update")
 }
 
-func TestLeaf_References(t *testing.T) {
+func TestLeaf_ReferenceLoad(t *testing.T) {
 	obj := createMaximalSampleLeaf()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)

@@ -763,12 +763,6 @@ func (o *leafBase) load(m map[string]interface{}, objThis *Leaf) {
 				obj.load(v3, obj)
 				o.revOptionalLeafRoots.Set(obj.PrimaryKey(), obj)
 			}
-		case map[string]any: // single expansion
-			obj := new(Root)
-			obj.load(v2, obj)
-			o.revOptionalLeafRoots.Clear()
-			o.revOptionalLeafRoots.Set(obj.PrimaryKey(), obj)
-			o.revOptionalLeafRootsIsDirty = false
 		default:
 			panic("Wrong type found for revOptionalLeafRoots object.")
 		}
@@ -787,12 +781,6 @@ func (o *leafBase) load(m map[string]interface{}, objThis *Leaf) {
 				obj.load(v3, obj)
 				o.revRequiredLeafRoots.Set(obj.PrimaryKey(), obj)
 			}
-		case map[string]any: // single expansion
-			obj := new(Root)
-			obj.load(v2, obj)
-			o.revRequiredLeafRoots.Clear()
-			o.revRequiredLeafRoots.Set(obj.PrimaryKey(), obj)
-			o.revRequiredLeafRootsIsDirty = false
 		default:
 			panic("Wrong type found for revRequiredLeafRoots object.")
 		}
