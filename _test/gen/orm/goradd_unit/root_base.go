@@ -1322,8 +1322,7 @@ func (o *rootBase) update(ctx context.Context) error {
 			if err := o.objOptionalLeaf.Save(ctx); err != nil {
 				return err
 			}
-			id := o.objOptionalLeaf.PrimaryKey()
-			o.SetOptionalLeafID(id)
+			o.optionalLeafID = o.objOptionalLeaf.PrimaryKey()
 		}
 
 		// Save loaded RequiredLeaf object to get its new pk and update it here.
@@ -1331,8 +1330,7 @@ func (o *rootBase) update(ctx context.Context) error {
 			if err := o.objRequiredLeaf.Save(ctx); err != nil {
 				return err
 			}
-			id := o.objRequiredLeaf.PrimaryKey()
-			o.SetRequiredLeafID(id)
+			o.requiredLeafID = o.objRequiredLeaf.PrimaryKey()
 		}
 
 		// Save loaded OptionalLeafUnique object to get its new pk and update it here.
@@ -1340,8 +1338,7 @@ func (o *rootBase) update(ctx context.Context) error {
 			if err := o.objOptionalLeafUnique.Save(ctx); err != nil {
 				return err
 			}
-			id := o.objOptionalLeafUnique.PrimaryKey()
-			o.SetOptionalLeafUniqueID(id)
+			o.optionalLeafUniqueID = o.objOptionalLeafUnique.PrimaryKey()
 		}
 
 		// Save loaded RequiredLeafUnique object to get its new pk and update it here.
@@ -1349,8 +1346,7 @@ func (o *rootBase) update(ctx context.Context) error {
 			if err := o.objRequiredLeafUnique.Save(ctx); err != nil {
 				return err
 			}
-			id := o.objRequiredLeafUnique.PrimaryKey()
-			o.SetRequiredLeafUniqueID(id)
+			o.requiredLeafUniqueID = o.objRequiredLeafUnique.PrimaryKey()
 		}
 
 		// Save loaded Parent object to get its new pk and update it here.
@@ -1358,8 +1354,7 @@ func (o *rootBase) update(ctx context.Context) error {
 			if err := o.objParent.Save(ctx); err != nil {
 				return err
 			}
-			id := o.objParent.PrimaryKey()
-			o.SetParentID(id)
+			o.parentID = o.objParent.PrimaryKey()
 		}
 
 		modifiedFields = o.getModifiedFields()
@@ -1389,11 +1384,20 @@ func (o *rootBase) update(ctx context.Context) error {
 					}
 				}
 			}
-			for obj := range o.revParentRoots.ValuesIter() {
-				obj.parentIDIsDirty = true // force a change in case data is stale
-				obj.SetParentID(o.PrimaryKey())
-				if err := obj.Save(ctx); err != nil {
-					return err
+			{
+				keys := o.revParentRoots.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
+				for i, k := range keys {
+					obj := o.revParentRoots.Get(k)
+					obj.SetParentID(o.PrimaryKey())
+					obj.parentIDIsDirty = true // force a change in case data is stale
+					if err := obj.Save(ctx); err != nil {
+						return err
+					}
+					if obj.PrimaryKey() != k {
+						// update slice map key without changing order
+						o.revParentRoots.Delete(k)
+						o.revParentRoots.SetAt(i, obj.PrimaryKey(), obj)
+					}
 				}
 			}
 

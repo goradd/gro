@@ -258,6 +258,24 @@ func TestLogin_ReferenceLoad(t *testing.T) {
 	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())
 
 }
+
+func TestLogin_ReferenceUpdate(t *testing.T) {
+	obj := createMaximalSampleLogin()
+	ctx := db.NewContext(nil)
+	obj.Save(ctx)
+	defer deleteSampleLogin(ctx, obj)
+
+	obj2 := LoadLogin(ctx, obj.PrimaryKey())
+	updateMaximalSampleLogin(obj2)
+	assert.NoError(t, obj2.Save(ctx))
+	defer deleteSampleLogin(ctx, obj2)
+
+	obj3 := LoadLogin(ctx, obj2.PrimaryKey(), node.Login().Person())
+	_ = obj3 // avoid error if there are no references
+
+	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())
+
+}
 func TestLogin_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewLogin()
 

@@ -52,6 +52,8 @@ func createMaximalSampleAddress() *Address {
 func updateMaximalSampleAddress(obj *Address) {
 	updateMinimalSampleAddress(obj)
 
+	obj.SetPerson(createMinimalSamplePerson())
+
 }
 
 // deleteSampleAddress deletes an object created and saved by one of the sample creator functions.
@@ -233,6 +235,24 @@ func TestAddress_ReferenceLoad(t *testing.T) {
 
 	// test eager loading
 	obj3 := LoadAddress(ctx, obj.PrimaryKey(), node.Address().Person())
+	_ = obj3 // avoid error if there are no references
+
+	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())
+
+}
+
+func TestAddress_ReferenceUpdate(t *testing.T) {
+	obj := createMaximalSampleAddress()
+	ctx := db.NewContext(nil)
+	obj.Save(ctx)
+	defer deleteSampleAddress(ctx, obj)
+
+	obj2 := LoadAddress(ctx, obj.PrimaryKey())
+	updateMaximalSampleAddress(obj2)
+	assert.NoError(t, obj2.Save(ctx))
+	defer deleteSampleAddress(ctx, obj2)
+
+	obj3 := LoadAddress(ctx, obj2.PrimaryKey(), node.Address().Person())
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())

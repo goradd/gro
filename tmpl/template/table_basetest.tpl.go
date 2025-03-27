@@ -470,37 +470,23 @@ func updateMaximalSample`); err != nil {
 			if col.IsReference() {
 
 				if _, err = io.WriteString(_w, `
-        `); err != nil {
+    obj.Set`); err != nil {
 					return
 				}
 
-				if col.IsNullable {
-
-					if _, err = io.WriteString(_w, `
-    obj.Set`); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, `(createMinimalSample`); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, `())
-        `); err != nil {
-						return
-					}
-
+				if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+					return
 				}
 
-				if _, err = io.WriteString(_w, `
+				if _, err = io.WriteString(_w, `(createMinimalSample`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `())
     `); err != nil {
 					return
 				}
@@ -2293,6 +2279,286 @@ func Test`); err != nil {
 
 			}
 
+		}
+
+		for _, mm := range table.ManyManyReferences {
+
+			if _, err = io.WriteString(_w, `    assert.Equal(t, len(obj2.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()), len(obj3.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()))
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `
+}
+
+func Test`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `_ReferenceUpdate(t *testing.T) {
+    obj := createMaximalSample`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+    ctx := db.NewContext(nil)
+    obj.Save(ctx)
+    defer deleteSample`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx, obj)
+
+    obj2 := Load`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey())
+    updateMaximalSample`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(obj2)
+    assert.NoError(t, obj2.Save(ctx))
+    defer deleteSample`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx, obj2)
+
+    obj3 := Load`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx, obj2.PrimaryKey(), `); err != nil {
+			return
+		}
+
+		for _, col := range table.Columns {
+
+			if _, err = io.WriteString(_w, ` `); err != nil {
+				return
+			}
+
+			if col.IsReference() {
+
+				if _, err = io.WriteString(_w, `node.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, table.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `().`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(),
+`); err != nil {
+					return
+				}
+
+			}
+
+		}
+
+		for _, col := range table.ReverseReferences {
+
+			if _, err = io.WriteString(_w, `node.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.ReverseIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(),
+`); err != nil {
+				return
+			}
+
+		}
+
+		for _, mm := range table.ManyManyReferences {
+
+			if _, err = io.WriteString(_w, `node.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(),
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `    )
+    _ = obj3 // avoid error if there are no references
+
+`); err != nil {
+			return
+		}
+
+		for _, col := range table.Columns {
+
+			if col.IsReference() {
+
+				if _, err = io.WriteString(_w, `    assert.Equal(t, obj2.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `().PrimaryKey(), obj3.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `().PrimaryKey())
+`); err != nil {
+					return
+				}
+
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `
+`); err != nil {
+			return
+		}
+
+		for _, col := range table.ReverseReferences {
+
+			if col.IsUnique {
+
+				if _, err = io.WriteString(_w, `    assert.Equal(t, obj2.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReverseIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `().PrimaryKey(), obj3.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReverseIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `().PrimaryKey())
+`); err != nil {
+					return
+				}
+
+			} else {
+
+				if _, err = io.WriteString(_w, `    assert.Equal(t, len(obj2.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReverseIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `()), len(obj3.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReverseIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `()))
+`); err != nil {
+					return
+				}
+
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `
+`); err != nil {
+			return
 		}
 
 		for _, mm := range table.ManyManyReferences {

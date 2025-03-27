@@ -155,6 +155,22 @@ func TestLeafLock_ReferenceLoad(t *testing.T) {
 	_ = obj3 // avoid error if there are no references
 
 }
+
+func TestLeafLock_ReferenceUpdate(t *testing.T) {
+	obj := createMaximalSampleLeafLock()
+	ctx := db.NewContext(nil)
+	obj.Save(ctx)
+	defer deleteSampleLeafLock(ctx, obj)
+
+	obj2 := LoadLeafLock(ctx, obj.PrimaryKey())
+	updateMaximalSampleLeafLock(obj2)
+	assert.NoError(t, obj2.Save(ctx))
+	defer deleteSampleLeafLock(ctx, obj2)
+
+	obj3 := LoadLeafLock(ctx, obj2.PrimaryKey())
+	_ = obj3 // avoid error if there are no references
+
+}
 func TestLeafLock_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewLeafLock()
 

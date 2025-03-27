@@ -275,6 +275,34 @@ func TestPerson_ReferenceLoad(t *testing.T) {
 	assert.Equal(t, len(obj2.Projects()), len(obj3.Projects()))
 
 }
+
+func TestPerson_ReferenceUpdate(t *testing.T) {
+	obj := createMaximalSamplePerson()
+	ctx := db.NewContext(nil)
+	obj.Save(ctx)
+	defer deleteSamplePerson(ctx, obj)
+
+	obj2 := LoadPerson(ctx, obj.PrimaryKey())
+	updateMaximalSamplePerson(obj2)
+	assert.NoError(t, obj2.Save(ctx))
+	defer deleteSamplePerson(ctx, obj2)
+
+	obj3 := LoadPerson(ctx, obj2.PrimaryKey(), node.Person().Addresses(),
+		node.Person().EmployeeInfo(),
+		node.Person().Login(),
+		node.Person().ManagerProjects(),
+		node.Person().Projects(),
+	)
+	_ = obj3 // avoid error if there are no references
+
+	assert.Equal(t, len(obj2.Addresses()), len(obj3.Addresses()))
+	assert.Equal(t, obj2.EmployeeInfo().PrimaryKey(), obj3.EmployeeInfo().PrimaryKey())
+	assert.Equal(t, obj2.Login().PrimaryKey(), obj3.Login().PrimaryKey())
+	assert.Equal(t, len(obj2.ManagerProjects()), len(obj3.ManagerProjects()))
+
+	assert.Equal(t, len(obj2.Projects()), len(obj3.Projects()))
+
+}
 func TestPerson_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewPerson()
 

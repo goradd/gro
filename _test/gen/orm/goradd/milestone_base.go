@@ -658,8 +658,7 @@ func (o *milestoneBase) update(ctx context.Context) error {
 			if err := o.objProject.Save(ctx); err != nil {
 				return err
 			}
-			id := o.objProject.PrimaryKey()
-			o.SetProjectID(id)
+			o.projectID = o.objProject.PrimaryKey()
 		}
 
 		modifiedFields = o.getModifiedFields()

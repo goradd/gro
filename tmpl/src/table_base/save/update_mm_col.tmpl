@@ -4,10 +4,17 @@
 }}
 {{
 {{# Update many-many references }}
-
-        for obj := range o.{{= mm.VariableIdentifier() }}.ValuesIter() {
+    {
+        keys := o.{{= mm.VariableIdentifier() }}.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
+        for i, k := range keys {
+            obj := o.{{= mm.VariableIdentifier() }}.Get(k)
             if err := obj.Save(ctx); err != nil {
                 return err
+            }
+            if obj.PrimaryKey() != k {
+                // update key in the slice map without changing the order
+                o.{{= mm.VariableIdentifier() }}.Delete(k)
+                o.{{= mm.VariableIdentifier() }}.SetAt(i, obj.PrimaryKey(), obj)
             }
         }
         if o.{{= mm.VariableIdentifier() }}IsDirty {
@@ -29,4 +36,5 @@
                     o.{{= mm.VariableIdentifier() }}.Keys())
             }
         }
+    }
 }}

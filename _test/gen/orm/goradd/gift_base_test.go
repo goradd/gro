@@ -179,6 +179,22 @@ func TestGift_ReferenceLoad(t *testing.T) {
 	_ = obj3 // avoid error if there are no references
 
 }
+
+func TestGift_ReferenceUpdate(t *testing.T) {
+	obj := createMaximalSampleGift()
+	ctx := db.NewContext(nil)
+	obj.Save(ctx)
+	defer deleteSampleGift(ctx, obj)
+
+	obj2 := LoadGift(ctx, obj.PrimaryKey())
+	updateMaximalSampleGift(obj2)
+	assert.NoError(t, obj2.Save(ctx))
+	defer deleteSampleGift(ctx, obj2)
+
+	obj3 := LoadGift(ctx, obj2.PrimaryKey())
+	_ = obj3 // avoid error if there are no references
+
+}
 func TestGift_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewGift()
 

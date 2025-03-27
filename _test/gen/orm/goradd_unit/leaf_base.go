@@ -878,11 +878,20 @@ func (o *leafBase) update(ctx context.Context) error {
 					}
 				}
 			}
-			for obj := range o.revOptionalLeafRoots.ValuesIter() {
-				obj.optionalLeafIDIsDirty = true // force a change in case data is stale
-				obj.SetOptionalLeafID(o.PrimaryKey())
-				if err := obj.Save(ctx); err != nil {
-					return err
+			{
+				keys := o.revOptionalLeafRoots.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
+				for i, k := range keys {
+					obj := o.revOptionalLeafRoots.Get(k)
+					obj.SetOptionalLeafID(o.PrimaryKey())
+					obj.optionalLeafIDIsDirty = true // force a change in case data is stale
+					if err := obj.Save(ctx); err != nil {
+						return err
+					}
+					if obj.PrimaryKey() != k {
+						// update slice map key without changing order
+						o.revOptionalLeafRoots.Delete(k)
+						o.revOptionalLeafRoots.SetAt(i, obj.PrimaryKey(), obj)
+					}
 				}
 			}
 
@@ -905,16 +914,23 @@ func (o *leafBase) update(ctx context.Context) error {
 				Load()
 			for _, obj := range oldObjs {
 				if !o.revRequiredLeafRoots.Has(obj.PrimaryKey()) {
-					// The old object is not in the group of new objects
-					panic(fmt.Sprintf("cannot remove a non-null reference. Point the reference new a new record first. Primary Key: %v", obj.PrimaryKey()))
+					obj.Delete(ctx) // old object is not in group of new objects, so delete it since it has a non-null reference to o.
 				}
 			}
-
-			for obj := range o.revRequiredLeafRoots.ValuesIter() {
-				obj.SetRequiredLeafID(o.PrimaryKey())
-				obj.requiredLeafIDIsDirty = true // force a change in case data is stale
-				if err := obj.Save(ctx); err != nil {
-					return err
+			{
+				keys := o.revRequiredLeafRoots.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
+				for i, k := range keys {
+					obj := o.revRequiredLeafRoots.Get(k)
+					obj.SetRequiredLeafID(o.PrimaryKey())
+					obj.requiredLeafIDIsDirty = true // force a change in case data is stale
+					if err := obj.Save(ctx); err != nil {
+						return err
+					}
+					if obj.PrimaryKey() != k {
+						// update slice map key without changing order
+						o.revRequiredLeafRoots.Delete(k)
+						o.revRequiredLeafRoots.SetAt(i, obj.PrimaryKey(), obj)
+					}
 				}
 			}
 
@@ -930,8 +946,8 @@ func (o *leafBase) update(ctx context.Context) error {
 		if o.revOptionalLeafUniqueRootIsDirty {
 			// relation connection changed
 
-			// Since the other side of the relationship cannot be null, if there is an object already attached,
-			// that is different than the one we are trying to attach, we panic.
+			// Since the other side of the relationship cannot be null, if there is an object already attached
+			// that is different than the one we are trying to attach, we delete the old one.
 			oldObj := QueryRoots(ctx).
 				Where(op.Equal(node.Root().OptionalLeafUniqueID(), o.PrimaryKey())).
 				Select(node.Root().OptionalLeafUniqueID()).
@@ -939,7 +955,7 @@ func (o *leafBase) update(ctx context.Context) error {
 
 			if oldObj != nil {
 				if o.revOptionalLeafUniqueRoot != nil && oldObj.PrimaryKey() != o.revOptionalLeafUniqueRoot.PrimaryKey() {
-					panic("cannot set a unique non-null reference when another object is already set to it. " + o.revOptionalLeafUniqueRoot.PrimaryKey() + " is not " + oldObj.PrimaryKey())
+					oldObj.Delete(ctx)
 				}
 			}
 			// we are moving the attachment from one place, to our object, or attaching an object that is already attached.
@@ -962,8 +978,8 @@ func (o *leafBase) update(ctx context.Context) error {
 		if o.revRequiredLeafUniqueRootIsDirty {
 			// relation connection changed
 
-			// Since the other side of the relationship cannot be null, if there is an object already attached,
-			// that is different than the one we are trying to attach, we panic.
+			// Since the other side of the relationship cannot be null, if there is an object already attached
+			// that is different than the one we are trying to attach, we delete the old one.
 			oldObj := QueryRoots(ctx).
 				Where(op.Equal(node.Root().RequiredLeafUniqueID(), o.PrimaryKey())).
 				Select(node.Root().RequiredLeafUniqueID()).
@@ -971,7 +987,7 @@ func (o *leafBase) update(ctx context.Context) error {
 
 			if oldObj != nil {
 				if o.revRequiredLeafUniqueRoot != nil && oldObj.PrimaryKey() != o.revRequiredLeafUniqueRoot.PrimaryKey() {
-					panic("cannot set a unique non-null reference when another object is already set to it. " + o.revRequiredLeafUniqueRoot.PrimaryKey() + " is not " + oldObj.PrimaryKey())
+					oldObj.Delete(ctx)
 				}
 			}
 			// we are moving the attachment from one place, to our object, or attaching an object that is already attached.

@@ -50,6 +50,8 @@ func createMaximalSampleMilestone() *Milestone {
 func updateMaximalSampleMilestone(obj *Milestone) {
 	updateMinimalSampleMilestone(obj)
 
+	obj.SetProject(createMinimalSampleProject())
+
 }
 
 // deleteSampleMilestone deletes an object created and saved by one of the sample creator functions.
@@ -194,6 +196,24 @@ func TestMilestone_ReferenceLoad(t *testing.T) {
 
 	// test eager loading
 	obj3 := LoadMilestone(ctx, obj.PrimaryKey(), node.Milestone().Project())
+	_ = obj3 // avoid error if there are no references
+
+	assert.Equal(t, obj2.Project().PrimaryKey(), obj3.Project().PrimaryKey())
+
+}
+
+func TestMilestone_ReferenceUpdate(t *testing.T) {
+	obj := createMaximalSampleMilestone()
+	ctx := db.NewContext(nil)
+	obj.Save(ctx)
+	defer deleteSampleMilestone(ctx, obj)
+
+	obj2 := LoadMilestone(ctx, obj.PrimaryKey())
+	updateMaximalSampleMilestone(obj2)
+	assert.NoError(t, obj2.Save(ctx))
+	defer deleteSampleMilestone(ctx, obj2)
+
+	obj3 := LoadMilestone(ctx, obj2.PrimaryKey(), node.Milestone().Project())
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Project().PrimaryKey(), obj3.Project().PrimaryKey())

@@ -50,6 +50,8 @@ func createMaximalSampleEmployeeInfo() *EmployeeInfo {
 func updateMaximalSampleEmployeeInfo(obj *EmployeeInfo) {
 	updateMinimalSampleEmployeeInfo(obj)
 
+	obj.SetPerson(createMinimalSamplePerson())
+
 }
 
 // deleteSampleEmployeeInfo deletes an object created and saved by one of the sample creator functions.
@@ -189,6 +191,24 @@ func TestEmployeeInfo_ReferenceLoad(t *testing.T) {
 
 	// test eager loading
 	obj3 := LoadEmployeeInfo(ctx, obj.PrimaryKey(), node.EmployeeInfo().Person())
+	_ = obj3 // avoid error if there are no references
+
+	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())
+
+}
+
+func TestEmployeeInfo_ReferenceUpdate(t *testing.T) {
+	obj := createMaximalSampleEmployeeInfo()
+	ctx := db.NewContext(nil)
+	obj.Save(ctx)
+	defer deleteSampleEmployeeInfo(ctx, obj)
+
+	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey())
+	updateMaximalSampleEmployeeInfo(obj2)
+	assert.NoError(t, obj2.Save(ctx))
+	defer deleteSampleEmployeeInfo(ctx, obj2)
+
+	obj3 := LoadEmployeeInfo(ctx, obj2.PrimaryKey(), node.EmployeeInfo().Person())
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())

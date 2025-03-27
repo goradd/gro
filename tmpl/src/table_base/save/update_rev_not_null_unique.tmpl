@@ -3,8 +3,8 @@
 //*** {{includeName}}
 }}
 {{
-                    // Since the other side of the relationship cannot be null, if there is an object already attached,
-                    // that is different than the one we are trying to attach, we panic.
+                    // Since the other side of the relationship cannot be null, if there is an object already attached
+                    // that is different than the one we are trying to attach, we delete the old one.
                     oldObj := Query{{= col.Table.IdentifierPlural }}(ctx).
                           Where(op.Equal(node.{{= col.Table.Identifier}}().{{= col.Identifier }}(), o.PrimaryKey())).
                           Select(node.{{= col.Table.Identifier }}().{{= col.Identifier }}()).
@@ -12,7 +12,7 @@
 
                     if oldObj != nil {
                         if o.{{= col.ReverseVariableIdentifier() }} != nil && oldObj.PrimaryKey() != o.{{= col.ReverseVariableIdentifier() }}.PrimaryKey() {
-                            panic("cannot set a unique non-null reference when another object is already set to it. " + o.{{= col.ReverseVariableIdentifier() }}.PrimaryKey() + " is not " + oldObj.PrimaryKey())
+                            oldObj.Delete(ctx)
                         }
                     }
                     // we are moving the attachment from one place, to our object, or attaching an object that is already attached.

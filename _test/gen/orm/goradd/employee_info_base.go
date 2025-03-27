@@ -674,8 +674,7 @@ func (o *employeeInfoBase) update(ctx context.Context) error {
 			if err := o.objPerson.Save(ctx); err != nil {
 				return err
 			}
-			id := o.objPerson.PrimaryKey()
-			o.SetPersonID(id)
+			o.personID = o.objPerson.PrimaryKey()
 		}
 
 		modifiedFields = o.getModifiedFields()

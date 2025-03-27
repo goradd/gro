@@ -210,6 +210,22 @@ func TestDoubleIndex_ReferenceLoad(t *testing.T) {
 	_ = obj3 // avoid error if there are no references
 
 }
+
+func TestDoubleIndex_ReferenceUpdate(t *testing.T) {
+	obj := createMaximalSampleDoubleIndex()
+	ctx := db.NewContext(nil)
+	obj.Save(ctx)
+	defer deleteSampleDoubleIndex(ctx, obj)
+
+	obj2 := LoadDoubleIndex(ctx, obj.PrimaryKey())
+	updateMaximalSampleDoubleIndex(obj2)
+	assert.NoError(t, obj2.Save(ctx))
+	defer deleteSampleDoubleIndex(ctx, obj2)
+
+	obj3 := LoadDoubleIndex(ctx, obj2.PrimaryKey())
+	_ = obj3 // avoid error if there are no references
+
+}
 func TestDoubleIndex_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewDoubleIndex()
 

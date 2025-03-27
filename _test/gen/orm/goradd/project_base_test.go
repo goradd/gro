@@ -530,6 +530,39 @@ func TestProject_ReferenceLoad(t *testing.T) {
 	assert.Equal(t, len(obj2.TeamMembers()), len(obj3.TeamMembers()))
 
 }
+
+func TestProject_ReferenceUpdate(t *testing.T) {
+	obj := createMaximalSampleProject()
+	ctx := db.NewContext(nil)
+	obj.Save(ctx)
+	defer deleteSampleProject(ctx, obj)
+
+	obj2 := LoadProject(ctx, obj.PrimaryKey())
+	updateMaximalSampleProject(obj2)
+	assert.NoError(t, obj2.Save(ctx))
+	defer deleteSampleProject(ctx, obj2)
+
+	obj3 := LoadProject(ctx, obj2.PrimaryKey(), node.Project().Manager(),
+		node.Project().ParentProject(),
+		node.Project().Milestones(),
+		node.Project().ParentProjectProjects(),
+		node.Project().Children(),
+		node.Project().Parents(),
+		node.Project().TeamMembers(),
+	)
+	_ = obj3 // avoid error if there are no references
+
+	assert.Equal(t, obj2.Manager().PrimaryKey(), obj3.Manager().PrimaryKey())
+	assert.Equal(t, obj2.ParentProject().PrimaryKey(), obj3.ParentProject().PrimaryKey())
+
+	assert.Equal(t, len(obj2.Milestones()), len(obj3.Milestones()))
+	assert.Equal(t, len(obj2.ParentProjectProjects()), len(obj3.ParentProjectProjects()))
+
+	assert.Equal(t, len(obj2.Children()), len(obj3.Children()))
+	assert.Equal(t, len(obj2.Parents()), len(obj3.Parents()))
+	assert.Equal(t, len(obj2.TeamMembers()), len(obj3.TeamMembers()))
+
+}
 func TestProject_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewProject()
 

@@ -193,6 +193,31 @@ func TestLeaf_ReferenceLoad(t *testing.T) {
 	assert.Equal(t, obj2.RequiredLeafUniqueRoot().PrimaryKey(), obj3.RequiredLeafUniqueRoot().PrimaryKey())
 
 }
+
+func TestLeaf_ReferenceUpdate(t *testing.T) {
+	obj := createMaximalSampleLeaf()
+	ctx := db.NewContext(nil)
+	obj.Save(ctx)
+	defer deleteSampleLeaf(ctx, obj)
+
+	obj2 := LoadLeaf(ctx, obj.PrimaryKey())
+	updateMaximalSampleLeaf(obj2)
+	assert.NoError(t, obj2.Save(ctx))
+	defer deleteSampleLeaf(ctx, obj2)
+
+	obj3 := LoadLeaf(ctx, obj2.PrimaryKey(), node.Leaf().OptionalLeafRoots(),
+		node.Leaf().RequiredLeafRoots(),
+		node.Leaf().OptionalLeafUniqueRoot(),
+		node.Leaf().RequiredLeafUniqueRoot(),
+	)
+	_ = obj3 // avoid error if there are no references
+
+	assert.Equal(t, len(obj2.OptionalLeafRoots()), len(obj3.OptionalLeafRoots()))
+	assert.Equal(t, len(obj2.RequiredLeafRoots()), len(obj3.RequiredLeafRoots()))
+	assert.Equal(t, obj2.OptionalLeafUniqueRoot().PrimaryKey(), obj3.OptionalLeafUniqueRoot().PrimaryKey())
+	assert.Equal(t, obj2.RequiredLeafUniqueRoot().PrimaryKey(), obj3.RequiredLeafUniqueRoot().PrimaryKey())
+
+}
 func TestLeaf_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewLeaf()
 

@@ -66,6 +66,12 @@ func updateMaximalSampleRoot(obj *Root) {
 
 	obj.SetOptionalLeaf(createMinimalSampleLeaf())
 
+	obj.SetRequiredLeaf(createMinimalSampleLeaf())
+
+	obj.SetOptionalLeafUnique(createMinimalSampleLeaf())
+
+	obj.SetRequiredLeafUnique(createMinimalSampleLeaf())
+
 	obj.SetParent(createMinimalSampleRoot())
 
 	obj.SetParentRoots(createMinimalSampleRoot())
@@ -387,6 +393,36 @@ func TestRoot_ReferenceLoad(t *testing.T) {
 	assert.Equal(t, obj2.OptionalLeafUnique().PrimaryKey(), obj3.OptionalLeafUnique().PrimaryKey())
 	assert.Equal(t, obj2.RequiredLeafUnique().PrimaryKey(), obj3.RequiredLeafUnique().PrimaryKey())
 	assert.Equal(t, obj2.Parent().PrimaryKey(), obj3.Parent().PrimaryKey())
+	assert.Equal(t, len(obj2.ParentRoots()), len(obj3.ParentRoots()))
+
+}
+
+func TestRoot_ReferenceUpdate(t *testing.T) {
+	obj := createMaximalSampleRoot()
+	ctx := db.NewContext(nil)
+	obj.Save(ctx)
+	defer deleteSampleRoot(ctx, obj)
+
+	obj2 := LoadRoot(ctx, obj.PrimaryKey())
+	updateMaximalSampleRoot(obj2)
+	assert.NoError(t, obj2.Save(ctx))
+	defer deleteSampleRoot(ctx, obj2)
+
+	obj3 := LoadRoot(ctx, obj2.PrimaryKey(), node.Root().OptionalLeaf(),
+		node.Root().RequiredLeaf(),
+		node.Root().OptionalLeafUnique(),
+		node.Root().RequiredLeafUnique(),
+		node.Root().Parent(),
+		node.Root().ParentRoots(),
+	)
+	_ = obj3 // avoid error if there are no references
+
+	assert.Equal(t, obj2.OptionalLeaf().PrimaryKey(), obj3.OptionalLeaf().PrimaryKey())
+	assert.Equal(t, obj2.RequiredLeaf().PrimaryKey(), obj3.RequiredLeaf().PrimaryKey())
+	assert.Equal(t, obj2.OptionalLeafUnique().PrimaryKey(), obj3.OptionalLeafUnique().PrimaryKey())
+	assert.Equal(t, obj2.RequiredLeafUnique().PrimaryKey(), obj3.RequiredLeafUnique().PrimaryKey())
+	assert.Equal(t, obj2.Parent().PrimaryKey(), obj3.Parent().PrimaryKey())
+
 	assert.Equal(t, len(obj2.ParentRoots()), len(obj3.ParentRoots()))
 
 }

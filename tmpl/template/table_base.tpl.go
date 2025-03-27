@@ -7834,7 +7834,15 @@ var modifiedFields map[string]interface{}
 			if _, err = io.WriteString(_w, `.Save(ctx); err != nil {
                 return err
             }
-            id := o.`); err != nil {
+            o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` = o.`); err != nil {
 				return
 			}
 
@@ -7843,15 +7851,6 @@ var modifiedFields map[string]interface{}
 			}
 
 			if _, err = io.WriteString(_w, `.PrimaryKey()
-            o.Set`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `(id)
         }
     `); err != nil {
 				return
@@ -8231,7 +8230,8 @@ var modifiedFields map[string]interface{}
                         }
                     }
                 }
-                for obj := range o.`); err != nil {
+                {
+                    keys := o.`); err != nil {
 					return
 				}
 
@@ -8239,17 +8239,18 @@ var modifiedFields map[string]interface{}
 					return
 				}
 
-				if _, err = io.WriteString(_w, `.ValuesIter() {
-                    obj.`); err != nil {
+				if _, err = io.WriteString(_w, `.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
+                    for i, k := range keys {
+                        obj := o.`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `IsDirty = true // force a change in case data is stale
-                    obj.Set`); err != nil {
+				if _, err = io.WriteString(_w, `.Get(k)
+                        obj.Set`); err != nil {
 					return
 				}
 
@@ -8258,10 +8259,42 @@ var modifiedFields map[string]interface{}
 				}
 
 				if _, err = io.WriteString(_w, `(o.PrimaryKey())
-                    if err := obj.Save(ctx); err != nil {
-                        return err
+                        obj.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `IsDirty = true // force a change in case data is stale
+                        if err := obj.Save(ctx); err != nil {
+                            return err
+                        }
+                        if obj.PrimaryKey() != k {
+                            // update slice map key without changing order
+                            o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `.Delete(k)
+                            o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `.SetAt(i, obj.PrimaryKey(), obj)
+                        }
                     }
                 }
+
 `); err != nil {
 					return
 				}
@@ -8302,8 +8335,8 @@ var modifiedFields map[string]interface{}
 
 				//*** update_rev_not_null_unique.tmpl
 
-				if _, err = io.WriteString(_w, `                    // Since the other side of the relationship cannot be null, if there is an object already attached,
-                    // that is different than the one we are trying to attach, we panic.
+				if _, err = io.WriteString(_w, `                    // Since the other side of the relationship cannot be null, if there is an object already attached
+                    // that is different than the one we are trying to attach, we delete the old one.
                     oldObj := Query`); err != nil {
 					return
 				}
@@ -8367,15 +8400,7 @@ var modifiedFields map[string]interface{}
 				}
 
 				if _, err = io.WriteString(_w, `.PrimaryKey() {
-                            panic("cannot set a unique non-null reference when another object is already set to it. " + o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `.PrimaryKey() + " is not " + oldObj.PrimaryKey())
+                            oldObj.Delete(ctx)
                         }
                     }
                     // we are moving the attachment from one place, to our object, or attaching an object that is already attached.
@@ -8494,12 +8519,11 @@ var modifiedFields map[string]interface{}
 				}
 
 				if _, err = io.WriteString(_w, `.Has(obj.PrimaryKey()) {
-                            // The old object is not in the group of new objects
-                            panic(fmt.Sprintf("cannot remove a non-null reference. Point the reference new a new record first. Primary Key: %v", obj.PrimaryKey()))
+                            obj.Delete(ctx) // old object is not in group of new objects, so delete it since it has a non-null reference to o.
                         }
                     }
-
-                    for obj := range o.`); err != nil {
+                    {
+                        keys := o.`); err != nil {
 					return
 				}
 
@@ -8507,8 +8531,18 @@ var modifiedFields map[string]interface{}
 					return
 				}
 
-				if _, err = io.WriteString(_w, `.ValuesIter() {
-                        obj.Set`); err != nil {
+				if _, err = io.WriteString(_w, `.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
+                        for i, k := range keys {
+                            obj := o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `.Get(k)
+                            obj.Set`); err != nil {
 					return
 				}
 
@@ -8517,7 +8551,7 @@ var modifiedFields map[string]interface{}
 				}
 
 				if _, err = io.WriteString(_w, `(o.PrimaryKey())
-                        obj.`); err != nil {
+                            obj.`); err != nil {
 					return
 				}
 
@@ -8526,8 +8560,30 @@ var modifiedFields map[string]interface{}
 				}
 
 				if _, err = io.WriteString(_w, `IsDirty = true // force a change in case data is stale
-                        if err := obj.Save(ctx); err != nil {
-                            return err
+                            if err := obj.Save(ctx); err != nil {
+                                return err
+                            }
+                            if obj.PrimaryKey() != k {
+                                // update slice map key without changing order
+                                o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `.Delete(k)
+                                o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `.SetAt(i, obj.PrimaryKey(), obj)
+                            }
                         }
                     }
 `); err != nil {
@@ -8652,8 +8708,8 @@ var modifiedFields map[string]interface{}
 
 		//*** update_mm_col.tmpl
 
-		if _, err = io.WriteString(_w, `
-        for obj := range o.`); err != nil {
+		if _, err = io.WriteString(_w, `    {
+        keys := o.`); err != nil {
 			return
 		}
 
@@ -8661,9 +8717,40 @@ var modifiedFields map[string]interface{}
 			return
 		}
 
-		if _, err = io.WriteString(_w, `.ValuesIter() {
+		if _, err = io.WriteString(_w, `.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
+        for i, k := range keys {
+            obj := o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `.Get(k)
             if err := obj.Save(ctx); err != nil {
                 return err
+            }
+            if obj.PrimaryKey() != k {
+                // update key in the slice map without changing the order
+                o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `.Delete(k)
+                o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `.SetAt(i, obj.PrimaryKey(), obj)
             }
         }
         if o.`); err != nil {
@@ -8765,6 +8852,7 @@ var modifiedFields map[string]interface{}
 		if _, err = io.WriteString(_w, `.Keys())
             }
         }
+    }
 `); err != nil {
 			return
 		}

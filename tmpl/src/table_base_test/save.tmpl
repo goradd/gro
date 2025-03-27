@@ -169,4 +169,46 @@ func Test{{= table.Identifier }}_ReferenceLoad(t *testing.T) {
 {{for}}
 
 }
+
+func Test{{= table.Identifier }}_ReferenceUpdate(t *testing.T) {
+    obj := createMaximalSample{{= table.Identifier }}()
+    ctx := db.NewContext(nil)
+    obj.Save(ctx)
+    defer deleteSample{{= table.Identifier }}(ctx, obj)
+
+    obj2 := Load{{= table.Identifier }}(ctx, obj.PrimaryKey())
+    updateMaximalSample{{= table.Identifier }}(obj2)
+    assert.NoError(t, obj2.Save(ctx))
+    defer deleteSample{{= table.Identifier }}(ctx, obj2)
+
+    obj3 := Load{{= table.Identifier }}(ctx, obj2.PrimaryKey(), {{for _,col := range table.Columns
+}} {{if col.IsReference() }}node.{{= table.Identifier }}().{{= col.ReferenceIdentifier() }}(),
+{{if}}
+{{for}}{{for _,col := range table.ReverseReferences
+}}node.{{= table.Identifier }}().{{= col.ReverseIdentifier() }}(),
+{{for}}{{for _,mm := range table.ManyManyReferences
+}}node.{{= table.Identifier }}().{{= mm.IdentifierPlural }}(),
+{{for}}
+    )
+    _ = obj3 // avoid error if there are no references
+
+{{for _,col := range table.Columns }}
+{{if col.IsReference() }}
+    assert.Equal(t, obj2.{{= col.ReferenceIdentifier() }}().PrimaryKey(), obj3.{{= col.ReferenceIdentifier() }}().PrimaryKey())
+{{if}}
+{{for}}
+
+{{for _,col := range table.ReverseReferences }}
+{{if col.IsUnique}}
+    assert.Equal(t, obj2.{{= col.ReverseIdentifier() }}().PrimaryKey(), obj3.{{= col.ReverseIdentifier() }}().PrimaryKey())
+{{else}}
+    assert.Equal(t, len(obj2.{{= col.ReverseIdentifier() }}()), len(obj3.{{= col.ReverseIdentifier() }}()))
+{{if}}
+{{for}}
+
+{{for _,mm := range table.ManyManyReferences }}
+    assert.Equal(t, len(obj2.{{= mm.IdentifierPlural }}()), len(obj3.{{= mm.IdentifierPlural }}()))
+{{for}}
+
+}
 }}

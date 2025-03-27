@@ -1137,16 +1137,23 @@ func (o *personBase) update(ctx context.Context) error {
 				Load()
 			for _, obj := range oldObjs {
 				if !o.revAddresses.Has(obj.PrimaryKey()) {
-					// The old object is not in the group of new objects
-					panic(fmt.Sprintf("cannot remove a non-null reference. Point the reference new a new record first. Primary Key: %v", obj.PrimaryKey()))
+					obj.Delete(ctx) // old object is not in group of new objects, so delete it since it has a non-null reference to o.
 				}
 			}
-
-			for obj := range o.revAddresses.ValuesIter() {
-				obj.SetPersonID(o.PrimaryKey())
-				obj.personIDIsDirty = true // force a change in case data is stale
-				if err := obj.Save(ctx); err != nil {
-					return err
+			{
+				keys := o.revAddresses.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
+				for i, k := range keys {
+					obj := o.revAddresses.Get(k)
+					obj.SetPersonID(o.PrimaryKey())
+					obj.personIDIsDirty = true // force a change in case data is stale
+					if err := obj.Save(ctx); err != nil {
+						return err
+					}
+					if obj.PrimaryKey() != k {
+						// update slice map key without changing order
+						o.revAddresses.Delete(k)
+						o.revAddresses.SetAt(i, obj.PrimaryKey(), obj)
+					}
 				}
 			}
 
@@ -1162,8 +1169,8 @@ func (o *personBase) update(ctx context.Context) error {
 		if o.revEmployeeInfoIsDirty {
 			// relation connection changed
 
-			// Since the other side of the relationship cannot be null, if there is an object already attached,
-			// that is different than the one we are trying to attach, we panic.
+			// Since the other side of the relationship cannot be null, if there is an object already attached
+			// that is different than the one we are trying to attach, we delete the old one.
 			oldObj := QueryEmployeeInfos(ctx).
 				Where(op.Equal(node.EmployeeInfo().PersonID(), o.PrimaryKey())).
 				Select(node.EmployeeInfo().PersonID()).
@@ -1171,7 +1178,7 @@ func (o *personBase) update(ctx context.Context) error {
 
 			if oldObj != nil {
 				if o.revEmployeeInfo != nil && oldObj.PrimaryKey() != o.revEmployeeInfo.PrimaryKey() {
-					panic("cannot set a unique non-null reference when another object is already set to it. " + o.revEmployeeInfo.PrimaryKey() + " is not " + oldObj.PrimaryKey())
+					oldObj.Delete(ctx)
 				}
 			}
 			// we are moving the attachment from one place, to our object, or attaching an object that is already attached.
@@ -1235,11 +1242,20 @@ func (o *personBase) update(ctx context.Context) error {
 					}
 				}
 			}
-			for obj := range o.revManagerProjects.ValuesIter() {
-				obj.managerIDIsDirty = true // force a change in case data is stale
-				obj.SetManagerID(o.PrimaryKey())
-				if err := obj.Save(ctx); err != nil {
-					return err
+			{
+				keys := o.revManagerProjects.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
+				for i, k := range keys {
+					obj := o.revManagerProjects.Get(k)
+					obj.SetManagerID(o.PrimaryKey())
+					obj.managerIDIsDirty = true // force a change in case data is stale
+					if err := obj.Save(ctx); err != nil {
+						return err
+					}
+					if obj.PrimaryKey() != k {
+						// update slice map key without changing order
+						o.revManagerProjects.Delete(k)
+						o.revManagerProjects.SetAt(i, obj.PrimaryKey(), obj)
+					}
 				}
 			}
 
@@ -1253,28 +1269,37 @@ func (o *personBase) update(ctx context.Context) error {
 			}
 		}
 
-		for obj := range o.mmProjects.ValuesIter() {
-			if err := obj.Save(ctx); err != nil {
-				return err
+		{
+			keys := o.mmProjects.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
+			for i, k := range keys {
+				obj := o.mmProjects.Get(k)
+				if err := obj.Save(ctx); err != nil {
+					return err
+				}
+				if obj.PrimaryKey() != k {
+					// update key in the slice map without changing the order
+					o.mmProjects.Delete(k)
+					o.mmProjects.SetAt(i, obj.PrimaryKey(), obj)
+				}
 			}
-		}
-		if o.mmProjectsIsDirty {
-			if len(o.mmProjectsPks) != 0 {
-				db.AssociateOnly(ctx,
-					d,
-					"team_member_project_assn",
-					"team_member_id",
-					o.PrimaryKey(),
-					"project_id",
-					o.mmProjectsPks)
-			} else {
-				db.AssociateOnly(ctx,
-					d,
-					"team_member_project_assn",
-					"team_member_id",
-					o.PrimaryKey(),
-					"project_id",
-					o.mmProjects.Keys())
+			if o.mmProjectsIsDirty {
+				if len(o.mmProjectsPks) != 0 {
+					db.AssociateOnly(ctx,
+						d,
+						"team_member_project_assn",
+						"team_member_id",
+						o.PrimaryKey(),
+						"project_id",
+						o.mmProjectsPks)
+				} else {
+					db.AssociateOnly(ctx,
+						d,
+						"team_member_project_assn",
+						"team_member_id",
+						o.PrimaryKey(),
+						"project_id",
+						o.mmProjects.Keys())
+				}
 			}
 		}
 

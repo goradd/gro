@@ -194,6 +194,22 @@ func TestPersonWithLock_ReferenceLoad(t *testing.T) {
 	_ = obj3 // avoid error if there are no references
 
 }
+
+func TestPersonWithLock_ReferenceUpdate(t *testing.T) {
+	obj := createMaximalSamplePersonWithLock()
+	ctx := db.NewContext(nil)
+	obj.Save(ctx)
+	defer deleteSamplePersonWithLock(ctx, obj)
+
+	obj2 := LoadPersonWithLock(ctx, obj.PrimaryKey())
+	updateMaximalSamplePersonWithLock(obj2)
+	assert.NoError(t, obj2.Save(ctx))
+	defer deleteSamplePersonWithLock(ctx, obj2)
+
+	obj3 := LoadPersonWithLock(ctx, obj2.PrimaryKey())
+	_ = obj3 // avoid error if there are no references
+
+}
 func TestPersonWithLock_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewPersonWithLock()
 

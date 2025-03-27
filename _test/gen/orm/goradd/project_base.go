@@ -1951,8 +1951,7 @@ func (o *projectBase) update(ctx context.Context) error {
 			if err := o.objManager.Save(ctx); err != nil {
 				return err
 			}
-			id := o.objManager.PrimaryKey()
-			o.SetManagerID(id)
+			o.managerID = o.objManager.PrimaryKey()
 		}
 
 		// Save loaded ParentProject object to get its new pk and update it here.
@@ -1960,8 +1959,7 @@ func (o *projectBase) update(ctx context.Context) error {
 			if err := o.objParentProject.Save(ctx); err != nil {
 				return err
 			}
-			id := o.objParentProject.PrimaryKey()
-			o.SetParentProjectID(id)
+			o.parentProjectID = o.objParentProject.PrimaryKey()
 		}
 
 		modifiedFields = o.getModifiedFields()
@@ -1984,16 +1982,23 @@ func (o *projectBase) update(ctx context.Context) error {
 				Load()
 			for _, obj := range oldObjs {
 				if !o.revMilestones.Has(obj.PrimaryKey()) {
-					// The old object is not in the group of new objects
-					panic(fmt.Sprintf("cannot remove a non-null reference. Point the reference new a new record first. Primary Key: %v", obj.PrimaryKey()))
+					obj.Delete(ctx) // old object is not in group of new objects, so delete it since it has a non-null reference to o.
 				}
 			}
-
-			for obj := range o.revMilestones.ValuesIter() {
-				obj.SetProjectID(o.PrimaryKey())
-				obj.projectIDIsDirty = true // force a change in case data is stale
-				if err := obj.Save(ctx); err != nil {
-					return err
+			{
+				keys := o.revMilestones.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
+				for i, k := range keys {
+					obj := o.revMilestones.Get(k)
+					obj.SetProjectID(o.PrimaryKey())
+					obj.projectIDIsDirty = true // force a change in case data is stale
+					if err := obj.Save(ctx); err != nil {
+						return err
+					}
+					if obj.PrimaryKey() != k {
+						// update slice map key without changing order
+						o.revMilestones.Delete(k)
+						o.revMilestones.SetAt(i, obj.PrimaryKey(), obj)
+					}
 				}
 			}
 
@@ -2023,11 +2028,20 @@ func (o *projectBase) update(ctx context.Context) error {
 					}
 				}
 			}
-			for obj := range o.revParentProjectProjects.ValuesIter() {
-				obj.parentProjectIDIsDirty = true // force a change in case data is stale
-				obj.SetParentProjectID(o.PrimaryKey())
-				if err := obj.Save(ctx); err != nil {
-					return err
+			{
+				keys := o.revParentProjectProjects.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
+				for i, k := range keys {
+					obj := o.revParentProjectProjects.Get(k)
+					obj.SetParentProjectID(o.PrimaryKey())
+					obj.parentProjectIDIsDirty = true // force a change in case data is stale
+					if err := obj.Save(ctx); err != nil {
+						return err
+					}
+					if obj.PrimaryKey() != k {
+						// update slice map key without changing order
+						o.revParentProjectProjects.Delete(k)
+						o.revParentProjectProjects.SetAt(i, obj.PrimaryKey(), obj)
+					}
 				}
 			}
 
@@ -2041,78 +2055,105 @@ func (o *projectBase) update(ctx context.Context) error {
 			}
 		}
 
-		for obj := range o.mmChildren.ValuesIter() {
-			if err := obj.Save(ctx); err != nil {
-				return err
+		{
+			keys := o.mmChildren.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
+			for i, k := range keys {
+				obj := o.mmChildren.Get(k)
+				if err := obj.Save(ctx); err != nil {
+					return err
+				}
+				if obj.PrimaryKey() != k {
+					// update key in the slice map without changing the order
+					o.mmChildren.Delete(k)
+					o.mmChildren.SetAt(i, obj.PrimaryKey(), obj)
+				}
 			}
-		}
-		if o.mmChildrenIsDirty {
-			if len(o.mmChildrenPks) != 0 {
-				db.AssociateOnly(ctx,
-					d,
-					"related_project_assn",
-					"parent_id",
-					o.PrimaryKey(),
-					"child_id",
-					o.mmChildrenPks)
-			} else {
-				db.AssociateOnly(ctx,
-					d,
-					"related_project_assn",
-					"parent_id",
-					o.PrimaryKey(),
-					"child_id",
-					o.mmChildren.Keys())
-			}
-		}
-
-		for obj := range o.mmParents.ValuesIter() {
-			if err := obj.Save(ctx); err != nil {
-				return err
-			}
-		}
-		if o.mmParentsIsDirty {
-			if len(o.mmParentsPks) != 0 {
-				db.AssociateOnly(ctx,
-					d,
-					"related_project_assn",
-					"child_id",
-					o.PrimaryKey(),
-					"parent_id",
-					o.mmParentsPks)
-			} else {
-				db.AssociateOnly(ctx,
-					d,
-					"related_project_assn",
-					"child_id",
-					o.PrimaryKey(),
-					"parent_id",
-					o.mmParents.Keys())
+			if o.mmChildrenIsDirty {
+				if len(o.mmChildrenPks) != 0 {
+					db.AssociateOnly(ctx,
+						d,
+						"related_project_assn",
+						"parent_id",
+						o.PrimaryKey(),
+						"child_id",
+						o.mmChildrenPks)
+				} else {
+					db.AssociateOnly(ctx,
+						d,
+						"related_project_assn",
+						"parent_id",
+						o.PrimaryKey(),
+						"child_id",
+						o.mmChildren.Keys())
+				}
 			}
 		}
 
-		for obj := range o.mmTeamMembers.ValuesIter() {
-			if err := obj.Save(ctx); err != nil {
-				return err
+		{
+			keys := o.mmParents.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
+			for i, k := range keys {
+				obj := o.mmParents.Get(k)
+				if err := obj.Save(ctx); err != nil {
+					return err
+				}
+				if obj.PrimaryKey() != k {
+					// update key in the slice map without changing the order
+					o.mmParents.Delete(k)
+					o.mmParents.SetAt(i, obj.PrimaryKey(), obj)
+				}
+			}
+			if o.mmParentsIsDirty {
+				if len(o.mmParentsPks) != 0 {
+					db.AssociateOnly(ctx,
+						d,
+						"related_project_assn",
+						"child_id",
+						o.PrimaryKey(),
+						"parent_id",
+						o.mmParentsPks)
+				} else {
+					db.AssociateOnly(ctx,
+						d,
+						"related_project_assn",
+						"child_id",
+						o.PrimaryKey(),
+						"parent_id",
+						o.mmParents.Keys())
+				}
 			}
 		}
-		if o.mmTeamMembersIsDirty {
-			if len(o.mmTeamMembersPks) != 0 {
-				db.AssociateOnly(ctx,
-					d,
-					"team_member_project_assn",
-					"project_id",
-					o.PrimaryKey(),
-					"team_member_id",
-					o.mmTeamMembersPks)
-			} else {
-				db.AssociateOnly(ctx,
-					d,
-					"team_member_project_assn",
-					"project_id",
-					o.PrimaryKey(),
-					"team_member_id",
-					o.mmTeamMembers.Keys())
+
+		{
+			keys := o.mmTeamMembers.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
+			for i, k := range keys {
+				obj := o.mmTeamMembers.Get(k)
+				if err := obj.Save(ctx); err != nil {
+					return err
+				}
+				if obj.PrimaryKey() != k {
+					// update key in the slice map without changing the order
+					o.mmTeamMembers.Delete(k)
+					o.mmTeamMembers.SetAt(i, obj.PrimaryKey(), obj)
+				}
+			}
+			if o.mmTeamMembersIsDirty {
+				if len(o.mmTeamMembersPks) != 0 {
+					db.AssociateOnly(ctx,
+						d,
+						"team_member_project_assn",
+						"project_id",
+						o.PrimaryKey(),
+						"team_member_id",
+						o.mmTeamMembersPks)
+				} else {
+					db.AssociateOnly(ctx,
+						d,
+						"team_member_project_assn",
+						"project_id",
+						o.PrimaryKey(),
+						"team_member_id",
+						o.mmTeamMembers.Keys())
+				}
 			}
 		}
 

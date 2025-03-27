@@ -480,6 +480,22 @@ func TestTypeTest_ReferenceLoad(t *testing.T) {
 	_ = obj3 // avoid error if there are no references
 
 }
+
+func TestTypeTest_ReferenceUpdate(t *testing.T) {
+	obj := createMaximalSampleTypeTest()
+	ctx := db.NewContext(nil)
+	obj.Save(ctx)
+	defer deleteSampleTypeTest(ctx, obj)
+
+	obj2 := LoadTypeTest(ctx, obj.PrimaryKey())
+	updateMaximalSampleTypeTest(obj2)
+	assert.NoError(t, obj2.Save(ctx))
+	defer deleteSampleTypeTest(ctx, obj2)
+
+	obj3 := LoadTypeTest(ctx, obj2.PrimaryKey())
+	_ = obj3 // avoid error if there are no references
+
+}
 func TestTypeTest_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewTypeTest()
 
