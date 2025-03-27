@@ -26,6 +26,8 @@ func Test{{= table.Identifier }}_Getters(t *testing.T) {
     require.NoError(t, obj.Save(ctx))
     defer deleteSample{{= table.Identifier }}(ctx, obj)
 
+    assert.True(t, Has{{= table.Identifier }}(ctx, obj.PrimaryKey()))
+
     obj2 := Load{{= table.Identifier }}(ctx, obj.PrimaryKey(), node.{{= table.Identifier }}().PrimaryKey())
 {{if !table.PrimaryKeyColumn().IsAutoId }}
     assert.Equal(t, obj.{{= table.PrimaryKeyColumn().Identifier }}(), obj2.{{= table.PrimaryKeyColumn().Identifier }}())

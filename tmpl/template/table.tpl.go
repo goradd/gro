@@ -172,8 +172,7 @@ func (o *`); err != nil {
     // Add your own initializations here
 }
 
-// String implements the Stringer interface and returns the default label for the object as it appears in html lists.
-// Typically you would change this to whatever was pertinent to your application.
+// String implements the Stringer interface and returns a description of the record, primarily for debugging.
 func (o *`); err != nil {
 		return
 	}
@@ -183,6 +182,47 @@ func (o *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `) String() string  {
+    if o == nil {
+        return ""
+    }
+    return fmt.Sprintf("`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` %v", o.PrimaryKey())
+}
+
+// Key returns a unique key for the object, among a list of similar objects.
+func (o *`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `) Key() string  {
+    if o == nil {
+        return ""
+    }
+    return fmt.Sprintf("%v", o.PrimaryKey())
+}
+
+// Label returns a human readable label of the object.
+// This would be what a user would see as a description of the object if choosing from a list.
+func (o *`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `) Label() string  {
     if o == nil {
         return ""
     }
@@ -196,11 +236,11 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `
+		if _, err = io.WriteString(_w, `()
 `); err != nil {
 			return
 		}
@@ -211,7 +251,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		if _, err = io.WriteString(_w, table.Title); err != nil {
 			return
 		}
 
@@ -223,6 +263,7 @@ func (o *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `}
+
 
 // Query`); err != nil {
 		return

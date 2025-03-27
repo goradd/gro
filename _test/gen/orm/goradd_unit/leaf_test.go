@@ -5,6 +5,8 @@ package goradd_unit
 // Your edits to this file will be preserved.
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/goradd/orm/pkg/db"
@@ -18,12 +20,28 @@ func TestLeaf_String(t *testing.T) {
 
 	obj = NewLeaf()
 	s := obj.String()
+	assert.True(t, strings.HasPrefix(s, "Leaf"))
+}
+
+func TestLeaf_Key(t *testing.T) {
+	var obj *Leaf
+	assert.Equal(t, "", obj.Key())
+
+	obj = NewLeaf()
+	assert.Equal(t, fmt.Sprintf("%v", obj.PrimaryKey()), obj.Key())
+}
+
+func TestLeaf_Label(t *testing.T) {
+	var obj *Leaf
+	assert.Equal(t, "", obj.Key())
+
+	obj = NewLeaf()
+	s := obj.Label()
 	assert.Equal(t, "", s)
 }
 
 func TestLeaf_Delete(t *testing.T) {
 	ctx := db.NewContext(nil)
-
 	obj := createMinimalSampleLeaf()
 	err := obj.Save(ctx)
 	assert.NoError(t, err)

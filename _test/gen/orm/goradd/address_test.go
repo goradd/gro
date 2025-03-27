@@ -5,6 +5,7 @@ package goradd
 // Your edits to this file will be preserved.
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -22,9 +23,25 @@ func TestAddress_String(t *testing.T) {
 	assert.True(t, strings.HasPrefix(s, "Address"))
 }
 
+func TestAddress_Key(t *testing.T) {
+	var obj *Address
+	assert.Equal(t, "", obj.Key())
+
+	obj = NewAddress()
+	assert.Equal(t, fmt.Sprintf("%v", obj.PrimaryKey()), obj.Key())
+}
+
+func TestAddress_Label(t *testing.T) {
+	var obj *Address
+	assert.Equal(t, "", obj.Key())
+
+	obj = NewAddress()
+	s := obj.Label()
+	assert.True(t, strings.HasPrefix(s, "Address"))
+}
+
 func TestAddress_Delete(t *testing.T) {
 	ctx := db.NewContext(nil)
-
 	obj := createMinimalSampleAddress()
 	err := obj.Save(ctx)
 	assert.NoError(t, err)

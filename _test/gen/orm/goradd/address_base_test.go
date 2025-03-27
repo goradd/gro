@@ -65,6 +65,8 @@ func deleteSampleAddress(ctx context.Context, obj *Address) {
 func TestAddress_SetPersonID(t *testing.T) {
 
 	obj := NewAddress()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[string](0)
 	obj.SetPersonID(val)
 	assert.Equal(t, val, obj.PersonID())
@@ -77,6 +79,8 @@ func TestAddress_SetPersonID(t *testing.T) {
 func TestAddress_SetStreet(t *testing.T) {
 
 	obj := NewAddress()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[string](100)
 	obj.SetStreet(val)
 	assert.Equal(t, val, obj.Street())
@@ -94,6 +98,8 @@ func TestAddress_SetStreet(t *testing.T) {
 func TestAddress_SetCity(t *testing.T) {
 
 	obj := NewAddress()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[string](100)
 	obj.SetCity(val)
 	assert.Equal(t, val, obj.City())
@@ -201,6 +207,25 @@ func TestAddress_References(t *testing.T) {
 	assert.NotNil(t, obj.Person())
 	assert.NotEqual(t, '-', obj.Person().PrimaryKey()[0])
 
+	obj2 := LoadAddress(ctx, obj.PrimaryKey())
+	objPkOnly := LoadAddress(ctx, obj.PrimaryKey(), node.Address().PrimaryKey())
+	_ = obj2 // avoid error if there are no references
+	_ = objPkOnly
+
+	assert.Nil(t, obj2.Person(), "Person is not loaded initially")
+	v_Person := obj2.LoadPerson(ctx)
+	assert.NotNil(t, v_Person)
+	assert.Equal(t, v_Person.PrimaryKey(), obj2.Person().PrimaryKey())
+	assert.Equal(t, obj.Person().PrimaryKey(), obj2.Person().PrimaryKey())
+	assert.True(t, obj2.PersonIDIsValid())
+
+	assert.False(t, objPkOnly.PersonIDIsValid())
+	assert.Nil(t, objPkOnly.LoadPerson(ctx))
+
+	assert.Panics(t, func() {
+		objPkOnly.SetPerson(nil)
+	})
+
 }
 func TestAddress_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewAddress()
@@ -220,6 +245,8 @@ func TestAddress_Getters(t *testing.T) {
 	ctx := db.NewContext(nil)
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSampleAddress(ctx, obj)
+
+	assert.True(t, HasAddress(ctx, obj.PrimaryKey()))
 
 	obj2 := LoadAddress(ctx, obj.PrimaryKey(), node.Address().PrimaryKey())
 

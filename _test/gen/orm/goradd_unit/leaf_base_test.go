@@ -69,6 +69,8 @@ func deleteSampleLeaf(ctx context.Context, obj *Leaf) {
 func TestLeaf_SetName(t *testing.T) {
 
 	obj := NewLeaf()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[string](100)
 	obj.SetName(val)
 	assert.Equal(t, val, obj.Name())
@@ -150,6 +152,11 @@ func TestLeaf_References(t *testing.T) {
 
 	// Test that referenced objects were saved and assigned ids
 
+	obj2 := LoadLeaf(ctx, obj.PrimaryKey())
+	objPkOnly := LoadLeaf(ctx, obj.PrimaryKey(), node.Leaf().PrimaryKey())
+	_ = obj2 // avoid error if there are no references
+	_ = objPkOnly
+
 }
 func TestLeaf_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewLeaf()
@@ -169,6 +176,8 @@ func TestLeaf_Getters(t *testing.T) {
 	ctx := db.NewContext(nil)
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSampleLeaf(ctx, obj)
+
+	assert.True(t, HasLeaf(ctx, obj.PrimaryKey()))
 
 	obj2 := LoadLeaf(ctx, obj.PrimaryKey(), node.Leaf().PrimaryKey())
 

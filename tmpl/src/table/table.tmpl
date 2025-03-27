@@ -32,18 +32,35 @@ func (o *{{= table.Identifier }}) Initialize() {
     // Add your own initializations here
 }
 
-// String implements the Stringer interface and returns the default label for the object as it appears in html lists.
-// Typically you would change this to whatever was pertinent to your application.
+// String implements the Stringer interface and returns a description of the record, primarily for debugging.
 func (o *{{= table.Identifier }}) String() string  {
     if o == nil {
         return ""
     }
-{{if col := table.ColumnByName("name"); col != nil}}
-    return o.{{= col.VariableIdentifier() }}
-{{else}}
     return fmt.Sprintf("{{= table.Identifier }} %v", o.PrimaryKey())
+}
+
+// Key returns a unique key for the object, among a list of similar objects.
+func (o *{{= table.Identifier }}) Key() string  {
+    if o == nil {
+        return ""
+    }
+    return fmt.Sprintf("%v", o.PrimaryKey())
+}
+
+// Label returns a human readable label of the object.
+// This would be what a user would see as a description of the object if choosing from a list.
+func (o *{{= table.Identifier }}) Label() string  {
+    if o == nil {
+        return ""
+    }
+{{if col := table.ColumnByName("name"); col != nil}}
+    return o.{{= col.Identifier }}()
+{{else}}
+    return fmt.Sprintf("{{= table.Title }} %v", o.PrimaryKey())
 {{if}}
 }
+
 
 // Query{{= table.IdentifierPlural }} returns a new query builder.
 func Query{{= table.IdentifierPlural }}(ctx context.Context) {{= table.Identifier }}Builder {

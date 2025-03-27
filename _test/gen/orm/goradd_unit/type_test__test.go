@@ -5,6 +5,7 @@ package goradd_unit
 // Your edits to this file will be preserved.
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -22,9 +23,25 @@ func TestTypeTest_String(t *testing.T) {
 	assert.True(t, strings.HasPrefix(s, "TypeTest"))
 }
 
+func TestTypeTest_Key(t *testing.T) {
+	var obj *TypeTest
+	assert.Equal(t, "", obj.Key())
+
+	obj = NewTypeTest()
+	assert.Equal(t, fmt.Sprintf("%v", obj.PrimaryKey()), obj.Key())
+}
+
+func TestTypeTest_Label(t *testing.T) {
+	var obj *TypeTest
+	assert.Equal(t, "", obj.Key())
+
+	obj = NewTypeTest()
+	s := obj.Label()
+	assert.True(t, strings.HasPrefix(s, "Type Test"))
+}
+
 func TestTypeTest_Delete(t *testing.T) {
 	ctx := db.NewContext(nil)
-
 	obj := createMinimalSampleTypeTest()
 	err := obj.Save(ctx)
 	assert.NoError(t, err)

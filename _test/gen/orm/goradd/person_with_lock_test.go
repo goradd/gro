@@ -5,6 +5,7 @@ package goradd
 // Your edits to this file will be preserved.
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -22,9 +23,25 @@ func TestPersonWithLock_String(t *testing.T) {
 	assert.True(t, strings.HasPrefix(s, "PersonWithLock"))
 }
 
+func TestPersonWithLock_Key(t *testing.T) {
+	var obj *PersonWithLock
+	assert.Equal(t, "", obj.Key())
+
+	obj = NewPersonWithLock()
+	assert.Equal(t, fmt.Sprintf("%v", obj.PrimaryKey()), obj.Key())
+}
+
+func TestPersonWithLock_Label(t *testing.T) {
+	var obj *PersonWithLock
+	assert.Equal(t, "", obj.Key())
+
+	obj = NewPersonWithLock()
+	s := obj.Label()
+	assert.True(t, strings.HasPrefix(s, "Person With Lock"))
+}
+
 func TestPersonWithLock_Delete(t *testing.T) {
 	ctx := db.NewContext(nil)
-
 	obj := createMinimalSamplePersonWithLock()
 	err := obj.Save(ctx)
 	assert.NoError(t, err)

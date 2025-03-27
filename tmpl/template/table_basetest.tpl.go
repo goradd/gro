@@ -774,6 +774,8 @@ func deleteSample`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `()
+
+    assert.True(t, obj.IsNew())
 `); err != nil {
 				return
 			}
@@ -1743,8 +1745,182 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `
+    obj2 := Load`); err != nil {
+			return
+		}
 
-}
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey())
+    objPkOnly := Load`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey(), node.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().PrimaryKey())
+    _ = obj2 // avoid error if there are no references
+    _ = objPkOnly
+    
+`); err != nil {
+			return
+		}
+
+		for _, col := range table.Columns {
+
+			if col.IsReference() {
+
+				if _, err = io.WriteString(_w, `    assert.Nil(t, obj2.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(), "`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ` is not loaded initially")
+    v_`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ` := obj2.Load`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(ctx)
+    assert.NotNil(t, v_`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `)
+    assert.Equal(t, v_`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `.PrimaryKey(), obj2.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `().PrimaryKey())
+    assert.Equal(t, obj.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `().PrimaryKey(), obj2.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `().PrimaryKey())
+    assert.True(t, obj2.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `IsValid())
+
+    assert.False(t, objPkOnly.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `IsValid())
+    assert.Nil(t, objPkOnly.Load`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(ctx))
+
+`); err != nil {
+					return
+				}
+
+				if !col.IsNullable {
+
+					if _, err = io.WriteString(_w, `    assert.Panics(t, func() {
+        objPkOnly.Set`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `(nil)
+    })
+`); err != nil {
+						return
+					}
+
+				}
+
+				if _, err = io.WriteString(_w, `
+`); err != nil {
+					return
+				}
+
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `}
 `); err != nil {
 			return
 		}
@@ -1864,6 +2040,16 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `(ctx, obj)
+
+    assert.True(t, Has`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey()))
 
     obj2 := Load`); err != nil {
 			return

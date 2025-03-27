@@ -75,6 +75,8 @@ func deleteSampleTypeTest(ctx context.Context, obj *TypeTest) {
 func TestTypeTest_SetDate(t *testing.T) {
 
 	obj := NewTypeTest()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[time.Time](0)
 	obj.SetDate(val)
 	val = obj.Date()
@@ -96,6 +98,8 @@ func TestTypeTest_SetDate(t *testing.T) {
 func TestTypeTest_SetTime(t *testing.T) {
 
 	obj := NewTypeTest()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[time.Time](0)
 	obj.SetTime(val)
 	val = obj.Time()
@@ -117,6 +121,8 @@ func TestTypeTest_SetTime(t *testing.T) {
 func TestTypeTest_SetDateTime(t *testing.T) {
 
 	obj := NewTypeTest()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[time.Time](0)
 	obj.SetDateTime(val)
 	assert.Equal(t, val, obj.DateTime())
@@ -135,6 +141,8 @@ func TestTypeTest_SetDateTime(t *testing.T) {
 func TestTypeTest_SetTestInt(t *testing.T) {
 
 	obj := NewTypeTest()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[int](32)
 	obj.SetTestInt(val)
 	assert.Equal(t, val, obj.TestInt())
@@ -153,6 +161,8 @@ func TestTypeTest_SetTestInt(t *testing.T) {
 func TestTypeTest_SetTestFloat(t *testing.T) {
 
 	obj := NewTypeTest()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[float32](32)
 	obj.SetTestFloat(val)
 	assert.Equal(t, val, obj.TestFloat())
@@ -171,6 +181,8 @@ func TestTypeTest_SetTestFloat(t *testing.T) {
 func TestTypeTest_SetTestDouble(t *testing.T) {
 
 	obj := NewTypeTest()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[float64](64)
 	obj.SetTestDouble(val)
 	assert.Equal(t, val, obj.TestDouble())
@@ -183,6 +195,8 @@ func TestTypeTest_SetTestDouble(t *testing.T) {
 func TestTypeTest_SetTestText(t *testing.T) {
 
 	obj := NewTypeTest()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[string](65535)
 	obj.SetTestText(val)
 	assert.Equal(t, val, obj.TestText())
@@ -206,6 +220,8 @@ func TestTypeTest_SetTestText(t *testing.T) {
 func TestTypeTest_SetTestBit(t *testing.T) {
 
 	obj := NewTypeTest()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[bool](0)
 	obj.SetTestBit(val)
 	assert.Equal(t, val, obj.TestBit())
@@ -224,6 +240,8 @@ func TestTypeTest_SetTestBit(t *testing.T) {
 func TestTypeTest_SetTestVarchar(t *testing.T) {
 
 	obj := NewTypeTest()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[string](10)
 	obj.SetTestVarchar(val)
 	assert.Equal(t, val, obj.TestVarchar())
@@ -247,6 +265,8 @@ func TestTypeTest_SetTestVarchar(t *testing.T) {
 func TestTypeTest_SetTestBlob(t *testing.T) {
 
 	obj := NewTypeTest()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[[]byte](65535)
 	obj.SetTestBlob(val)
 	assert.Equal(t, val, obj.TestBlob())
@@ -447,6 +467,11 @@ func TestTypeTest_References(t *testing.T) {
 
 	// Test that referenced objects were saved and assigned ids
 
+	obj2 := LoadTypeTest(ctx, obj.PrimaryKey())
+	objPkOnly := LoadTypeTest(ctx, obj.PrimaryKey(), node.TypeTest().PrimaryKey())
+	_ = obj2 // avoid error if there are no references
+	_ = objPkOnly
+
 }
 func TestTypeTest_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewTypeTest()
@@ -466,6 +491,8 @@ func TestTypeTest_Getters(t *testing.T) {
 	ctx := db.NewContext(nil)
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSampleTypeTest(ctx, obj)
+
+	assert.True(t, HasTypeTest(ctx, obj.PrimaryKey()))
 
 	obj2 := LoadTypeTest(ctx, obj.PrimaryKey(), node.TypeTest().PrimaryKey())
 

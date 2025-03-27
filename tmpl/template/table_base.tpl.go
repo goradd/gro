@@ -3349,7 +3349,8 @@ func (tmpl *TableBaseTemplate) genAliasGetter(table *model.Table, _w io.Writer) 
 	//*** alias_getter.tmpl
 
 	if _, err = io.WriteString(_w, `
-// GetAlias returns the alias for the given key.
+// GetAlias returns the value for the Alias node aliasKey that was returned in the most
+// recent query.
 func (o *`); err != nil {
 		return
 	}
@@ -3358,11 +3359,11 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Base) GetAlias(key string) query.AliasValue {
-	if a,ok := o._aliases[key]; ok {
+	if _, err = io.WriteString(_w, `Base) GetAlias(aliasKey string) query.AliasValue {
+	if a,ok := o._aliases[aliasKey]; ok {
 		return query.NewAliasValue(a)
 	} else {
-		panic ("Alias " + key + " not found.")
+		panic ("Alias " + aliasKey + " not found.")
 	}
 }
 
@@ -5697,7 +5698,7 @@ type `); err != nil {
     // This can then satisfy a general interface that loads arrays of objects.
     // If there are any errors, nil is returned and the specific error is stored in the context.
     // If no results come back from the query, it will return a non-nil empty slice.
-	LoadI() []any
+	LoadI() []query.OrmObj
 
     // LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
     //
@@ -5883,7 +5884,7 @@ func (b *`); err != nil {
 }
 
 // Load terminates the query builder, performs the query, and returns a slice of interfaces.
-// This can then satisfy a general interface that loads arrays of objects.
+// This can then satisfy a variety of interface that loads arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
 func (b *`); err != nil {
@@ -5902,7 +5903,7 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, ` []any) {
+	if _, err = io.WriteString(_w, ` []query.OrmObj) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("`); err != nil {
 		return
@@ -10916,7 +10917,8 @@ func (tmpl *TableBaseTemplate) genGet(table *model.Table, _w io.Writer) (err err
 
 	if _, err = io.WriteString(_w, `// Get returns the value of a field in the object based on the field's name.
 // It will also get related objects if they are loaded.
-// Invalid fields and objects are returned as nil
+// Invalid fields and objects are returned as nil.
+// Get can be used to retrieve a value by using the Identifier of a node.
 func (o *`); err != nil {
 		return
 	}

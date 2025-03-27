@@ -5,6 +5,8 @@ package goradd
 // Your edits to this file will be preserved.
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/goradd/orm/pkg/db"
@@ -18,12 +20,28 @@ func TestGift_String(t *testing.T) {
 
 	obj = NewGift()
 	s := obj.String()
+	assert.True(t, strings.HasPrefix(s, "Gift"))
+}
+
+func TestGift_Key(t *testing.T) {
+	var obj *Gift
+	assert.Equal(t, "", obj.Key())
+
+	obj = NewGift()
+	assert.Equal(t, fmt.Sprintf("%v", obj.PrimaryKey()), obj.Key())
+}
+
+func TestGift_Label(t *testing.T) {
+	var obj *Gift
+	assert.Equal(t, "", obj.Key())
+
+	obj = NewGift()
+	s := obj.Label()
 	assert.Equal(t, "", s)
 }
 
 func TestGift_Delete(t *testing.T) {
 	ctx := db.NewContext(nil)
-
 	obj := createMinimalSampleGift()
 	err := obj.Save(ctx)
 	assert.NoError(t, err)

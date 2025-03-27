@@ -78,6 +78,8 @@ func deleteSamplePerson(ctx context.Context, obj *Person) {
 func TestPerson_SetFirstName(t *testing.T) {
 
 	obj := NewPerson()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[string](50)
 	obj.SetFirstName(val)
 	assert.Equal(t, val, obj.FirstName())
@@ -95,6 +97,8 @@ func TestPerson_SetFirstName(t *testing.T) {
 func TestPerson_SetLastName(t *testing.T) {
 
 	obj := NewPerson()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[string](50)
 	obj.SetLastName(val)
 	assert.Equal(t, val, obj.LastName())
@@ -112,6 +116,8 @@ func TestPerson_SetLastName(t *testing.T) {
 func TestPerson_SetTypes(t *testing.T) {
 
 	obj := NewPerson()
+
+	assert.True(t, obj.IsNew())
 
 	val := test.RandomEnumArray(PersonTypes())
 	obj.SetTypes(val)
@@ -221,6 +227,11 @@ func TestPerson_References(t *testing.T) {
 
 	// Test that referenced objects were saved and assigned ids
 
+	obj2 := LoadPerson(ctx, obj.PrimaryKey())
+	objPkOnly := LoadPerson(ctx, obj.PrimaryKey(), node.Person().PrimaryKey())
+	_ = obj2 // avoid error if there are no references
+	_ = objPkOnly
+
 }
 func TestPerson_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewPerson()
@@ -240,6 +251,8 @@ func TestPerson_Getters(t *testing.T) {
 	ctx := db.NewContext(nil)
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSamplePerson(ctx, obj)
+
+	assert.True(t, HasPerson(ctx, obj.PrimaryKey()))
 
 	obj2 := LoadPerson(ctx, obj.PrimaryKey(), node.Person().PrimaryKey())
 

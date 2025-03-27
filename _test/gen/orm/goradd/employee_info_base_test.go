@@ -63,6 +63,8 @@ func deleteSampleEmployeeInfo(ctx context.Context, obj *EmployeeInfo) {
 func TestEmployeeInfo_SetPersonID(t *testing.T) {
 
 	obj := NewEmployeeInfo()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[string](0)
 	obj.SetPersonID(val)
 	assert.Equal(t, val, obj.PersonID())
@@ -75,6 +77,8 @@ func TestEmployeeInfo_SetPersonID(t *testing.T) {
 func TestEmployeeInfo_SetEmployeeNumber(t *testing.T) {
 
 	obj := NewEmployeeInfo()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[int](32)
 	obj.SetEmployeeNumber(val)
 	assert.Equal(t, val, obj.EmployeeNumber())
@@ -159,6 +163,25 @@ func TestEmployeeInfo_References(t *testing.T) {
 	assert.NotNil(t, obj.Person())
 	assert.NotEqual(t, '-', obj.Person().PrimaryKey()[0])
 
+	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey())
+	objPkOnly := LoadEmployeeInfo(ctx, obj.PrimaryKey(), node.EmployeeInfo().PrimaryKey())
+	_ = obj2 // avoid error if there are no references
+	_ = objPkOnly
+
+	assert.Nil(t, obj2.Person(), "Person is not loaded initially")
+	v_Person := obj2.LoadPerson(ctx)
+	assert.NotNil(t, v_Person)
+	assert.Equal(t, v_Person.PrimaryKey(), obj2.Person().PrimaryKey())
+	assert.Equal(t, obj.Person().PrimaryKey(), obj2.Person().PrimaryKey())
+	assert.True(t, obj2.PersonIDIsValid())
+
+	assert.False(t, objPkOnly.PersonIDIsValid())
+	assert.Nil(t, objPkOnly.LoadPerson(ctx))
+
+	assert.Panics(t, func() {
+		objPkOnly.SetPerson(nil)
+	})
+
 }
 func TestEmployeeInfo_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewEmployeeInfo()
@@ -178,6 +201,8 @@ func TestEmployeeInfo_Getters(t *testing.T) {
 	ctx := db.NewContext(nil)
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSampleEmployeeInfo(ctx, obj)
+
+	assert.True(t, HasEmployeeInfo(ctx, obj.PrimaryKey()))
 
 	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey(), node.EmployeeInfo().PrimaryKey())
 

@@ -5,6 +5,7 @@ package goradd_unit
 // Your edits to this file will be preserved.
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -19,6 +20,23 @@ func TestUnsupportedType_String(t *testing.T) {
 	obj = NewUnsupportedType()
 	s := obj.String()
 	assert.True(t, strings.HasPrefix(s, "UnsupportedType"))
+}
+
+func TestUnsupportedType_Key(t *testing.T) {
+	var obj *UnsupportedType
+	assert.Equal(t, "", obj.Key())
+
+	obj = NewUnsupportedType()
+	assert.Equal(t, fmt.Sprintf("%v", obj.PrimaryKey()), obj.Key())
+}
+
+func TestUnsupportedType_Label(t *testing.T) {
+	var obj *UnsupportedType
+	assert.Equal(t, "", obj.Key())
+
+	obj = NewUnsupportedType()
+	s := obj.Label()
+	assert.True(t, strings.HasPrefix(s, "Unsupported Type"))
 }
 
 func TestUnsupportedType_Delete(t *testing.T) {

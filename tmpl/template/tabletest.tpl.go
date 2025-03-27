@@ -100,6 +100,79 @@ func Test`); err != nil {
 
 	if _, err = io.WriteString(_w, `()
     s := obj.String()
+    assert.True(t, strings.HasPrefix(s, "`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `"))
+}
+
+func Test`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `_Key(t *testing.T) {
+    var obj *`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `
+    assert.Equal(t, "", obj.Key())
+
+    obj = New`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `()
+    assert.Equal(t, fmt.Sprintf("%v", obj.PrimaryKey()), obj.Key())
+}
+
+func Test`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `_Label(t *testing.T) {
+    var obj *`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `
+    assert.Equal(t, "", obj.Key())
+
+    obj = New`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `()
+    s := obj.Label()
 `); err != nil {
 		return
 	}
@@ -117,7 +190,7 @@ func Test`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		if _, err = io.WriteString(_w, table.Title); err != nil {
 			return
 		}
 
@@ -129,6 +202,8 @@ func Test`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `}
+
+
 
 func Test`); err != nil {
 		return

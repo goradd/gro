@@ -63,6 +63,8 @@ func deleteSampleMilestone(ctx context.Context, obj *Milestone) {
 func TestMilestone_SetProjectID(t *testing.T) {
 
 	obj := NewMilestone()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[string](0)
 	obj.SetProjectID(val)
 	assert.Equal(t, val, obj.ProjectID())
@@ -75,6 +77,8 @@ func TestMilestone_SetProjectID(t *testing.T) {
 func TestMilestone_SetName(t *testing.T) {
 
 	obj := NewMilestone()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[string](50)
 	obj.SetName(val)
 	assert.Equal(t, val, obj.Name())
@@ -164,6 +168,25 @@ func TestMilestone_References(t *testing.T) {
 	assert.NotNil(t, obj.Project())
 	assert.NotEqual(t, '-', obj.Project().PrimaryKey()[0])
 
+	obj2 := LoadMilestone(ctx, obj.PrimaryKey())
+	objPkOnly := LoadMilestone(ctx, obj.PrimaryKey(), node.Milestone().PrimaryKey())
+	_ = obj2 // avoid error if there are no references
+	_ = objPkOnly
+
+	assert.Nil(t, obj2.Project(), "Project is not loaded initially")
+	v_Project := obj2.LoadProject(ctx)
+	assert.NotNil(t, v_Project)
+	assert.Equal(t, v_Project.PrimaryKey(), obj2.Project().PrimaryKey())
+	assert.Equal(t, obj.Project().PrimaryKey(), obj2.Project().PrimaryKey())
+	assert.True(t, obj2.ProjectIDIsValid())
+
+	assert.False(t, objPkOnly.ProjectIDIsValid())
+	assert.Nil(t, objPkOnly.LoadProject(ctx))
+
+	assert.Panics(t, func() {
+		objPkOnly.SetProject(nil)
+	})
+
 }
 func TestMilestone_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewMilestone()
@@ -183,6 +206,8 @@ func TestMilestone_Getters(t *testing.T) {
 	ctx := db.NewContext(nil)
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSampleMilestone(ctx, obj)
+
+	assert.True(t, HasMilestone(ctx, obj.PrimaryKey()))
 
 	obj2 := LoadMilestone(ctx, obj.PrimaryKey(), node.Milestone().PrimaryKey())
 

@@ -56,6 +56,8 @@ func deleteSampleLeafLock(ctx context.Context, obj *LeafLock) {
 func TestLeafLock_SetName(t *testing.T) {
 
 	obj := NewLeafLock()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[string](100)
 	obj.SetName(val)
 	assert.Equal(t, val, obj.Name())
@@ -140,6 +142,11 @@ func TestLeafLock_References(t *testing.T) {
 
 	// Test that referenced objects were saved and assigned ids
 
+	obj2 := LoadLeafLock(ctx, obj.PrimaryKey())
+	objPkOnly := LoadLeafLock(ctx, obj.PrimaryKey(), node.LeafLock().PrimaryKey())
+	_ = obj2 // avoid error if there are no references
+	_ = objPkOnly
+
 }
 func TestLeafLock_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewLeafLock()
@@ -159,6 +166,8 @@ func TestLeafLock_Getters(t *testing.T) {
 	ctx := db.NewContext(nil)
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSampleLeafLock(ctx, obj)
+
+	assert.True(t, HasLeafLock(ctx, obj.PrimaryKey()))
 
 	obj2 := LoadLeafLock(ctx, obj.PrimaryKey(), node.LeafLock().PrimaryKey())
 

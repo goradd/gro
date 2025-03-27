@@ -101,6 +101,8 @@ func deleteSampleProject(ctx context.Context, obj *Project) {
 func TestProject_SetNum(t *testing.T) {
 
 	obj := NewProject()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[int](32)
 	obj.SetNum(val)
 	assert.Equal(t, val, obj.Num())
@@ -113,6 +115,8 @@ func TestProject_SetNum(t *testing.T) {
 func TestProject_SetStatus(t *testing.T) {
 
 	obj := NewProject()
+
+	assert.True(t, obj.IsNew())
 
 	val := test.RandomEnum(ProjectStatuses())
 	obj.SetStatus(val)
@@ -127,6 +131,8 @@ func TestProject_SetStatus(t *testing.T) {
 func TestProject_SetManagerID(t *testing.T) {
 
 	obj := NewProject()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[string](0)
 	obj.SetManagerID(val)
 	assert.Equal(t, val, obj.ManagerID())
@@ -145,6 +151,8 @@ func TestProject_SetManagerID(t *testing.T) {
 func TestProject_SetName(t *testing.T) {
 
 	obj := NewProject()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[string](100)
 	obj.SetName(val)
 	assert.Equal(t, val, obj.Name())
@@ -162,6 +170,8 @@ func TestProject_SetName(t *testing.T) {
 func TestProject_SetDescription(t *testing.T) {
 
 	obj := NewProject()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[string](65535)
 	obj.SetDescription(val)
 	assert.Equal(t, val, obj.Description())
@@ -185,6 +195,8 @@ func TestProject_SetDescription(t *testing.T) {
 func TestProject_SetStartDate(t *testing.T) {
 
 	obj := NewProject()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[time.Time](0)
 	obj.SetStartDate(val)
 	val = obj.StartDate()
@@ -206,6 +218,8 @@ func TestProject_SetStartDate(t *testing.T) {
 func TestProject_SetEndDate(t *testing.T) {
 
 	obj := NewProject()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[time.Time](0)
 	obj.SetEndDate(val)
 	val = obj.EndDate()
@@ -227,6 +241,8 @@ func TestProject_SetEndDate(t *testing.T) {
 func TestProject_SetBudget(t *testing.T) {
 
 	obj := NewProject()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomDecimal(12, 2)
 	obj.SetBudget(val)
 	assert.Equal(t, val, obj.Budget())
@@ -245,6 +261,8 @@ func TestProject_SetBudget(t *testing.T) {
 func TestProject_SetSpent(t *testing.T) {
 
 	obj := NewProject()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomDecimal(12, 2)
 	obj.SetSpent(val)
 	assert.Equal(t, val, obj.Spent())
@@ -263,6 +281,8 @@ func TestProject_SetSpent(t *testing.T) {
 func TestProject_SetParentProjectID(t *testing.T) {
 
 	obj := NewProject()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[string](0)
 	obj.SetParentProjectID(val)
 	assert.Equal(t, val, obj.ParentProjectID())
@@ -440,6 +460,31 @@ func TestProject_References(t *testing.T) {
 	assert.NotNil(t, obj.ParentProject())
 	assert.NotEqual(t, '-', obj.ParentProject().PrimaryKey()[0])
 
+	obj2 := LoadProject(ctx, obj.PrimaryKey())
+	objPkOnly := LoadProject(ctx, obj.PrimaryKey(), node.Project().PrimaryKey())
+	_ = obj2 // avoid error if there are no references
+	_ = objPkOnly
+
+	assert.Nil(t, obj2.Manager(), "Manager is not loaded initially")
+	v_Manager := obj2.LoadManager(ctx)
+	assert.NotNil(t, v_Manager)
+	assert.Equal(t, v_Manager.PrimaryKey(), obj2.Manager().PrimaryKey())
+	assert.Equal(t, obj.Manager().PrimaryKey(), obj2.Manager().PrimaryKey())
+	assert.True(t, obj2.ManagerIDIsValid())
+
+	assert.False(t, objPkOnly.ManagerIDIsValid())
+	assert.Nil(t, objPkOnly.LoadManager(ctx))
+
+	assert.Nil(t, obj2.ParentProject(), "ParentProject is not loaded initially")
+	v_ParentProject := obj2.LoadParentProject(ctx)
+	assert.NotNil(t, v_ParentProject)
+	assert.Equal(t, v_ParentProject.PrimaryKey(), obj2.ParentProject().PrimaryKey())
+	assert.Equal(t, obj.ParentProject().PrimaryKey(), obj2.ParentProject().PrimaryKey())
+	assert.True(t, obj2.ParentProjectIDIsValid())
+
+	assert.False(t, objPkOnly.ParentProjectIDIsValid())
+	assert.Nil(t, objPkOnly.LoadParentProject(ctx))
+
 }
 func TestProject_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewProject()
@@ -459,6 +504,8 @@ func TestProject_Getters(t *testing.T) {
 	ctx := db.NewContext(nil)
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSampleProject(ctx, obj)
+
+	assert.True(t, HasProject(ctx, obj.PrimaryKey()))
 
 	obj2 := LoadProject(ctx, obj.PrimaryKey(), node.Project().PrimaryKey())
 

@@ -58,6 +58,8 @@ func deleteSamplePersonWithLock(ctx context.Context, obj *PersonWithLock) {
 func TestPersonWithLock_SetFirstName(t *testing.T) {
 
 	obj := NewPersonWithLock()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[string](50)
 	obj.SetFirstName(val)
 	assert.Equal(t, val, obj.FirstName())
@@ -75,6 +77,8 @@ func TestPersonWithLock_SetFirstName(t *testing.T) {
 func TestPersonWithLock_SetLastName(t *testing.T) {
 
 	obj := NewPersonWithLock()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[string](50)
 	obj.SetLastName(val)
 	assert.Equal(t, val, obj.LastName())
@@ -177,6 +181,11 @@ func TestPersonWithLock_References(t *testing.T) {
 
 	// Test that referenced objects were saved and assigned ids
 
+	obj2 := LoadPersonWithLock(ctx, obj.PrimaryKey())
+	objPkOnly := LoadPersonWithLock(ctx, obj.PrimaryKey(), node.PersonWithLock().PrimaryKey())
+	_ = obj2 // avoid error if there are no references
+	_ = objPkOnly
+
 }
 func TestPersonWithLock_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewPersonWithLock()
@@ -196,6 +205,8 @@ func TestPersonWithLock_Getters(t *testing.T) {
 	ctx := db.NewContext(nil)
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSamplePersonWithLock(ctx, obj)
+
+	assert.True(t, HasPersonWithLock(ctx, obj.PrimaryKey()))
 
 	obj2 := LoadPersonWithLock(ctx, obj.PrimaryKey(), node.PersonWithLock().PrimaryKey())
 

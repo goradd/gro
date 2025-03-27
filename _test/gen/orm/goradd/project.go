@@ -7,6 +7,7 @@ package goradd
 import (
 	"context"
 	"encoding/gob"
+	"fmt"
 )
 
 // Project represents an item in the project table in the database.
@@ -27,13 +28,29 @@ func (o *Project) Initialize() {
 	// Add your own initializations here
 }
 
-// String implements the Stringer interface and returns the default label for the object as it appears in html lists.
-// Typically you would change this to whatever was pertinent to your application.
+// String implements the Stringer interface and returns a description of the record, primarily for debugging.
 func (o *Project) String() string {
 	if o == nil {
 		return ""
 	}
-	return o.name
+	return fmt.Sprintf("Project %v", o.PrimaryKey())
+}
+
+// Key returns a unique key for the object, among a list of similar objects.
+func (o *Project) Key() string {
+	if o == nil {
+		return ""
+	}
+	return fmt.Sprintf("%v", o.PrimaryKey())
+}
+
+// Label returns a human readable label of the object.
+// This would be what a user would see as a description of the object if choosing from a list.
+func (o *Project) Label() string {
+	if o == nil {
+		return ""
+	}
+	return o.Name()
 }
 
 // QueryProjects returns a new query builder.

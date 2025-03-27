@@ -15,7 +15,8 @@ type ColumnNodeI interface {
 type ColumnNode struct {
 	// The query name of the column in the database.
 	QueryName string
-	// The name of the column's data as used in source code.
+	// The identifier of the data in the corresponding object.
+	// Pass this to Get() to retrieve a value.
 	Identifier string
 	// The receiver type for the column
 	ReceiverType ReceiverType

@@ -5,7 +5,8 @@
 {{
 // Get returns the value of a field in the object based on the field's name.
 // It will also get related objects if they are loaded.
-// Invalid fields and objects are returned as nil
+// Invalid fields and objects are returned as nil.
+// Get can be used to retrieve a value by using the Identifier of a node.
 func (o *{{= table.DecapIdentifier}}Base) Get(key string) interface{} {
 
     switch key {

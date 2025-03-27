@@ -59,6 +59,8 @@ func deleteSampleDoubleIndex(ctx context.Context, obj *DoubleIndex) {
 func TestDoubleIndex_SetID(t *testing.T) {
 
 	obj := NewDoubleIndex()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[int](32)
 	obj.SetID(val)
 	assert.Equal(t, val, obj.ID())
@@ -71,6 +73,8 @@ func TestDoubleIndex_SetID(t *testing.T) {
 func TestDoubleIndex_SetFieldInt(t *testing.T) {
 
 	obj := NewDoubleIndex()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[int](32)
 	obj.SetFieldInt(val)
 	assert.Equal(t, val, obj.FieldInt())
@@ -83,6 +87,8 @@ func TestDoubleIndex_SetFieldInt(t *testing.T) {
 func TestDoubleIndex_SetFieldString(t *testing.T) {
 
 	obj := NewDoubleIndex()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[string](50)
 	obj.SetFieldString(val)
 	assert.Equal(t, val, obj.FieldString())
@@ -191,6 +197,11 @@ func TestDoubleIndex_References(t *testing.T) {
 
 	// Test that referenced objects were saved and assigned ids
 
+	obj2 := LoadDoubleIndex(ctx, obj.PrimaryKey())
+	objPkOnly := LoadDoubleIndex(ctx, obj.PrimaryKey(), node.DoubleIndex().PrimaryKey())
+	_ = obj2 // avoid error if there are no references
+	_ = objPkOnly
+
 }
 func TestDoubleIndex_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewDoubleIndex()
@@ -204,6 +215,8 @@ func TestDoubleIndex_Getters(t *testing.T) {
 	ctx := db.NewContext(nil)
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSampleDoubleIndex(ctx, obj)
+
+	assert.True(t, HasDoubleIndex(ctx, obj.PrimaryKey()))
 
 	obj2 := LoadDoubleIndex(ctx, obj.PrimaryKey(), node.DoubleIndex().PrimaryKey())
 	assert.Equal(t, obj.ID(), obj2.ID())

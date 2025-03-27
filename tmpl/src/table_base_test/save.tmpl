@@ -94,6 +94,30 @@ func Test{{= table.Identifier }}_References(t *testing.T) {
 {{if}}
 {{for}}
 
+    obj2 := Load{{= table.Identifier }}(ctx, obj.PrimaryKey())
+    objPkOnly := Load{{= table.Identifier }}(ctx, obj.PrimaryKey(), node.{{= table.Identifier }}().PrimaryKey())
+    _ = obj2 // avoid error if there are no references
+    _ = objPkOnly
+    
+{{for _,col := range table.Columns }}
+{{if col.IsReference() }}
+    assert.Nil(t, obj2.{{= col.ReferenceIdentifier() }}(), "{{= col.ReferenceIdentifier() }} is not loaded initially")
+    v_{{= col.ReferenceIdentifier() }} := obj2.Load{{= col.ReferenceIdentifier() }}(ctx)
+    assert.NotNil(t, v_{{= col.ReferenceIdentifier() }})
+    assert.Equal(t, v_{{= col.ReferenceIdentifier() }}.PrimaryKey(), obj2.{{= col.ReferenceIdentifier() }}().PrimaryKey())
+    assert.Equal(t, obj.{{= col.ReferenceIdentifier() }}().PrimaryKey(), obj2.{{= col.ReferenceIdentifier() }}().PrimaryKey())
+    assert.True(t, obj2.{{= col.Identifier }}IsValid())
 
+    assert.False(t, objPkOnly.{{= col.Identifier }}IsValid())
+    assert.Nil(t, objPkOnly.Load{{= col.ReferenceIdentifier() }}(ctx))
+
+{{if !col.IsNullable }}
+    assert.Panics(t, func() {
+        objPkOnly.Set{{= col.ReferenceIdentifier() }}(nil)
+    })
+{{if}}
+
+{{if}}
+{{for}}
 }
 }}

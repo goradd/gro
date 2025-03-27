@@ -28,13 +28,29 @@ func (o *EmployeeInfo) Initialize() {
 	// Add your own initializations here
 }
 
-// String implements the Stringer interface and returns the default label for the object as it appears in html lists.
-// Typically you would change this to whatever was pertinent to your application.
+// String implements the Stringer interface and returns a description of the record, primarily for debugging.
 func (o *EmployeeInfo) String() string {
 	if o == nil {
 		return ""
 	}
 	return fmt.Sprintf("EmployeeInfo %v", o.PrimaryKey())
+}
+
+// Key returns a unique key for the object, among a list of similar objects.
+func (o *EmployeeInfo) Key() string {
+	if o == nil {
+		return ""
+	}
+	return fmt.Sprintf("%v", o.PrimaryKey())
+}
+
+// Label returns a human readable label of the object.
+// This would be what a user would see as a description of the object if choosing from a list.
+func (o *EmployeeInfo) Label() string {
+	if o == nil {
+		return ""
+	}
+	return fmt.Sprintf("Employee Info %v", o.PrimaryKey())
 }
 
 // QueryEmployeeInfos returns a new query builder.

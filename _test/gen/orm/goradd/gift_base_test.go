@@ -57,6 +57,8 @@ func deleteSampleGift(ctx context.Context, obj *Gift) {
 func TestGift_SetNumber(t *testing.T) {
 
 	obj := NewGift()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[int](32)
 	obj.SetNumber(val)
 	assert.Equal(t, val, obj.Number())
@@ -69,6 +71,8 @@ func TestGift_SetNumber(t *testing.T) {
 func TestGift_SetName(t *testing.T) {
 
 	obj := NewGift()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[string](50)
 	obj.SetName(val)
 	assert.Equal(t, val, obj.Name())
@@ -162,6 +166,11 @@ func TestGift_References(t *testing.T) {
 
 	// Test that referenced objects were saved and assigned ids
 
+	obj2 := LoadGift(ctx, obj.PrimaryKey())
+	objPkOnly := LoadGift(ctx, obj.PrimaryKey(), node.Gift().PrimaryKey())
+	_ = obj2 // avoid error if there are no references
+	_ = objPkOnly
+
 }
 func TestGift_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewGift()
@@ -175,6 +184,8 @@ func TestGift_Getters(t *testing.T) {
 	ctx := db.NewContext(nil)
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSampleGift(ctx, obj)
+
+	assert.True(t, HasGift(ctx, obj.PrimaryKey()))
 
 	obj2 := LoadGift(ctx, obj.PrimaryKey(), node.Gift().PrimaryKey())
 	assert.Equal(t, obj.Number(), obj2.Number())

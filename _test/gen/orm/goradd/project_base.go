@@ -804,12 +804,13 @@ func (o *projectBase) SetParentProject(objParentProject *Project) {
 	}
 }
 
-// GetAlias returns the alias for the given key.
-func (o *projectBase) GetAlias(key string) query.AliasValue {
-	if a, ok := o._aliases[key]; ok {
+// GetAlias returns the value for the Alias node aliasKey that was returned in the most
+// recent query.
+func (o *projectBase) GetAlias(aliasKey string) query.AliasValue {
+	if a, ok := o._aliases[aliasKey]; ok {
 		return query.NewAliasValue(a)
 	} else {
-		panic("Alias " + key + " not found.")
+		panic("Alias " + aliasKey + " not found.")
 	}
 }
 
@@ -1264,7 +1265,7 @@ type ProjectBuilder interface {
 	// This can then satisfy a general interface that loads arrays of objects.
 	// If there are any errors, nil is returned and the specific error is stored in the context.
 	// If no results come back from the query, it will return a non-nil empty slice.
-	LoadI() []any
+	LoadI() []query.OrmObj
 
 	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
 	//
@@ -1329,10 +1330,10 @@ func (b *projectQueryBuilder) Load() (projects []*Project) {
 }
 
 // Load terminates the query builder, performs the query, and returns a slice of interfaces.
-// This can then satisfy a general interface that loads arrays of objects.
+// This can then satisfy a variety of interface that loads arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *projectQueryBuilder) LoadI() (projects []any) {
+func (b *projectQueryBuilder) LoadI() (projects []query.OrmObj) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
 	results := database.BuilderQuery(b.builder)
@@ -2582,7 +2583,8 @@ func (o *projectBase) IsDirty() (dirty bool) {
 
 // Get returns the value of a field in the object based on the field's name.
 // It will also get related objects if they are loaded.
-// Invalid fields and objects are returned as nil
+// Invalid fields and objects are returned as nil.
+// Get can be used to retrieve a value by using the Identifier of a node.
 func (o *projectBase) Get(key string) interface{} {
 
 	switch key {

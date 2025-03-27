@@ -31,12 +31,31 @@ func Test{{= table.Identifier }}_String(t *testing.T) {
 
     obj = New{{= table.Identifier }}()
     s := obj.String()
+    assert.True(t, strings.HasPrefix(s, "{{= table.Identifier }}"))
+}
+
+func Test{{= table.Identifier }}_Key(t *testing.T) {
+    var obj *{{= table.Identifier }}
+    assert.Equal(t, "", obj.Key())
+
+    obj = New{{= table.Identifier }}()
+    assert.Equal(t, fmt.Sprintf("%v", obj.PrimaryKey()), obj.Key())
+}
+
+func Test{{= table.Identifier }}_Label(t *testing.T) {
+    var obj *{{= table.Identifier }}
+    assert.Equal(t, "", obj.Key())
+
+    obj = New{{= table.Identifier }}()
+    s := obj.Label()
 {{if col := table.ColumnByName("name"); col != nil}}
     assert.Equal(t, "", s)
 {{else}}
-    assert.True(t, strings.HasPrefix(s, "{{= table.Identifier }}"))
+    assert.True(t, strings.HasPrefix(s, "{{= table.Title }}"))
 {{if}}
 }
+
+
 
 func Test{{= table.Identifier }}_Delete(t *testing.T) {
 {{if !hasRequiredUnknown}}

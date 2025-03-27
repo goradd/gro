@@ -64,6 +64,8 @@ func deleteSampleLogin(ctx context.Context, obj *Login) {
 func TestLogin_SetPersonID(t *testing.T) {
 
 	obj := NewLogin()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[string](0)
 	obj.SetPersonID(val)
 	assert.Equal(t, val, obj.PersonID())
@@ -82,6 +84,8 @@ func TestLogin_SetPersonID(t *testing.T) {
 func TestLogin_SetUsername(t *testing.T) {
 
 	obj := NewLogin()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[string](20)
 	obj.SetUsername(val)
 	assert.Equal(t, val, obj.Username())
@@ -99,6 +103,8 @@ func TestLogin_SetUsername(t *testing.T) {
 func TestLogin_SetPassword(t *testing.T) {
 
 	obj := NewLogin()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[string](20)
 	obj.SetPassword(val)
 	assert.Equal(t, val, obj.Password())
@@ -122,6 +128,8 @@ func TestLogin_SetPassword(t *testing.T) {
 func TestLogin_SetIsEnabled(t *testing.T) {
 
 	obj := NewLogin()
+
+	assert.True(t, obj.IsNew())
 	val := test.RandomValue[bool](0)
 	obj.SetIsEnabled(val)
 	assert.Equal(t, val, obj.IsEnabled())
@@ -225,6 +233,21 @@ func TestLogin_References(t *testing.T) {
 	assert.NotNil(t, obj.Person())
 	assert.NotEqual(t, '-', obj.Person().PrimaryKey()[0])
 
+	obj2 := LoadLogin(ctx, obj.PrimaryKey())
+	objPkOnly := LoadLogin(ctx, obj.PrimaryKey(), node.Login().PrimaryKey())
+	_ = obj2 // avoid error if there are no references
+	_ = objPkOnly
+
+	assert.Nil(t, obj2.Person(), "Person is not loaded initially")
+	v_Person := obj2.LoadPerson(ctx)
+	assert.NotNil(t, v_Person)
+	assert.Equal(t, v_Person.PrimaryKey(), obj2.Person().PrimaryKey())
+	assert.Equal(t, obj.Person().PrimaryKey(), obj2.Person().PrimaryKey())
+	assert.True(t, obj2.PersonIDIsValid())
+
+	assert.False(t, objPkOnly.PersonIDIsValid())
+	assert.Nil(t, objPkOnly.LoadPerson(ctx))
+
 }
 func TestLogin_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewLogin()
@@ -244,6 +267,8 @@ func TestLogin_Getters(t *testing.T) {
 	ctx := db.NewContext(nil)
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSampleLogin(ctx, obj)
+
+	assert.True(t, HasLogin(ctx, obj.PrimaryKey()))
 
 	obj2 := LoadLogin(ctx, obj.PrimaryKey(), node.Login().PrimaryKey())
 

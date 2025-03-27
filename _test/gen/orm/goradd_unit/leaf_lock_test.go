@@ -5,6 +5,8 @@ package goradd_unit
 // Your edits to this file will be preserved.
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/goradd/orm/pkg/db"
@@ -18,12 +20,28 @@ func TestLeafLock_String(t *testing.T) {
 
 	obj = NewLeafLock()
 	s := obj.String()
+	assert.True(t, strings.HasPrefix(s, "LeafLock"))
+}
+
+func TestLeafLock_Key(t *testing.T) {
+	var obj *LeafLock
+	assert.Equal(t, "", obj.Key())
+
+	obj = NewLeafLock()
+	assert.Equal(t, fmt.Sprintf("%v", obj.PrimaryKey()), obj.Key())
+}
+
+func TestLeafLock_Label(t *testing.T) {
+	var obj *LeafLock
+	assert.Equal(t, "", obj.Key())
+
+	obj = NewLeafLock()
+	s := obj.Label()
 	assert.Equal(t, "", s)
 }
 
 func TestLeafLock_Delete(t *testing.T) {
 	ctx := db.NewContext(nil)
-
 	obj := createMinimalSampleLeafLock()
 	err := obj.Save(ctx)
 	assert.NoError(t, err)

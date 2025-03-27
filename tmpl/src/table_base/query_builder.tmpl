@@ -61,7 +61,7 @@ type {{= builderInterface }} interface {
     // This can then satisfy a general interface that loads arrays of objects.
     // If there are any errors, nil is returned and the specific error is stored in the context.
     // If no results come back from the query, it will return a non-nil empty slice.
-	LoadI() []any
+	LoadI() []query.OrmObj
 
     // LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
     //
@@ -127,10 +127,10 @@ func (b *{{= builderStruct }}) Load() ({{= table.VariableNamePlural() }} []*{{= 
 }
 
 // Load terminates the query builder, performs the query, and returns a slice of interfaces.
-// This can then satisfy a general interface that loads arrays of objects.
+// This can then satisfy a variety of interface that loads arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *{{= builderStruct }}) LoadI() ({{= table.VariableNamePlural() }} []any) {
+func (b *{{= builderStruct }}) LoadI() ({{= table.VariableNamePlural() }} []query.OrmObj) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("{{= table.DbKey }}")
 	results := database.BuilderQuery(b.builder)

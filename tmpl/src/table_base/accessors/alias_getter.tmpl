@@ -4,12 +4,13 @@
 }}
 {{
 
-// GetAlias returns the alias for the given key.
-func (o *{{= table.DecapIdentifier}}Base) GetAlias(key string) query.AliasValue {
-	if a,ok := o._aliases[key]; ok {
+// GetAlias returns the value for the Alias node aliasKey that was returned in the most
+// recent query.
+func (o *{{= table.DecapIdentifier}}Base) GetAlias(aliasKey string) query.AliasValue {
+	if a,ok := o._aliases[aliasKey]; ok {
 		return query.NewAliasValue(a)
 	} else {
-		panic ("Alias " + key + " not found.")
+		panic ("Alias " + aliasKey + " not found.")
 	}
 }
 
