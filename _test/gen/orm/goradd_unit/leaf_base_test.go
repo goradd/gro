@@ -277,7 +277,10 @@ func TestLeaf_Getters(t *testing.T) {
 
 	obj2 := LoadLeaf(ctx, obj.PrimaryKey(), node.Leaf().PrimaryKey())
 
+	assert.Equal(t, obj.ID(), obj.Get(node.Leaf().ID().Identifier))
+	assert.Equal(t, obj.Name(), obj.Get(node.Leaf().Name().Identifier))
 	assert.Panics(t, func() { obj2.Name() })
+	assert.Nil(t, obj2.Get(node.Leaf().Name().Identifier))
 }
 
 func TestLeaf_QueryLoad(t *testing.T) {
@@ -337,6 +340,9 @@ func TestLeaf_Count(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleLeaf(ctx, obj)
 
+	assert.Less(t, 0, CountLeafs(ctx))
+
 	assert.Less(t, 0, CountLeafsByID(ctx, obj.ID()))
 	assert.Less(t, 0, CountLeafsByName(ctx, obj.Name()))
+
 }

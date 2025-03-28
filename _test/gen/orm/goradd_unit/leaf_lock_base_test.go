@@ -216,8 +216,13 @@ func TestLeafLock_Getters(t *testing.T) {
 
 	obj2 := LoadLeafLock(ctx, obj.PrimaryKey(), node.LeafLock().PrimaryKey())
 
+	assert.Equal(t, obj.ID(), obj.Get(node.LeafLock().ID().Identifier))
+	assert.Equal(t, obj.Name(), obj.Get(node.LeafLock().Name().Identifier))
 	assert.Panics(t, func() { obj2.Name() })
+	assert.Nil(t, obj2.Get(node.LeafLock().Name().Identifier))
+	assert.Equal(t, obj.GroLock(), obj.Get(node.LeafLock().GroLock().Identifier))
 	assert.Panics(t, func() { obj2.GroLock() })
+	assert.Nil(t, obj2.Get(node.LeafLock().GroLock().Identifier))
 }
 
 func TestLeafLock_QueryLoad(t *testing.T) {
@@ -277,7 +282,10 @@ func TestLeafLock_Count(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleLeafLock(ctx, obj)
 
+	assert.Less(t, 0, CountLeafLocks(ctx))
+
 	assert.Less(t, 0, CountLeafLocksByID(ctx, obj.ID()))
 	assert.Less(t, 0, CountLeafLocksByName(ctx, obj.Name()))
 	assert.Less(t, 0, CountLeafLocksByGroLock(ctx, obj.GroLock()))
+
 }

@@ -705,18 +705,22 @@ func (b *leafQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
+func CountLeafs(ctx context.Context) int {
+	return QueryLeafs(ctx).Count()
+}
+
 // CountLeafsByID queries the database and returns the number of Leaf objects that
 // have id.
 // doc: type=Leaf
 func CountLeafsByID(ctx context.Context, id string) int {
-	return queryLeafs(ctx).Where(op.Equal(node.Leaf().ID(), id)).Count()
+	return QueryLeafs(ctx).Where(op.Equal(node.Leaf().ID(), id)).Count()
 }
 
 // CountLeafsByName queries the database and returns the number of Leaf objects that
 // have name.
 // doc: type=Leaf
 func CountLeafsByName(ctx context.Context, name string) int {
-	return queryLeafs(ctx).Where(op.Equal(node.Leaf().Name(), name)).Count()
+	return QueryLeafs(ctx).Where(op.Equal(node.Leaf().Name(), name)).Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
@@ -1033,15 +1037,16 @@ func (o *leafBase) insert(ctx context.Context) (err error) {
 
 		m := o.getValidFields()
 
-		id := d.Insert(ctx, "leaf", m)
-		o.id = id
-		o._originalPK = id
+		newPk := d.Insert(ctx, "leaf", m)
+		o.id = newPk
+		o._originalPK = newPk
+		o.idIsValid = true
 
 		if o.revOptionalLeafRoots.Len() > 0 {
 			keys := o.revOptionalLeafRoots.Keys()
 			for i, k := range keys {
 				obj := o.revOptionalLeafRoots.Get(k)
-				obj.SetOptionalLeafID(id)
+				obj.SetOptionalLeafID(newPk)
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
@@ -1056,7 +1061,7 @@ func (o *leafBase) insert(ctx context.Context) (err error) {
 			keys := o.revRequiredLeafRoots.Keys()
 			for i, k := range keys {
 				obj := o.revRequiredLeafRoots.Get(k)
-				obj.SetRequiredLeafID(id)
+				obj.SetRequiredLeafID(newPk)
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
@@ -1068,14 +1073,14 @@ func (o *leafBase) insert(ctx context.Context) (err error) {
 		}
 
 		if o.revOptionalLeafUniqueRoot != nil {
-			o.revOptionalLeafUniqueRoot.SetOptionalLeafUniqueID(id)
+			o.revOptionalLeafUniqueRoot.SetOptionalLeafUniqueID(newPk)
 			if err = o.revOptionalLeafUniqueRoot.Save(ctx); err != nil {
 				return err
 			}
 		}
 
 		if o.revRequiredLeafUniqueRoot != nil {
-			o.revRequiredLeafUniqueRoot.SetRequiredLeafUniqueID(id)
+			o.revRequiredLeafUniqueRoot.SetRequiredLeafUniqueID(newPk)
 			if err = o.revRequiredLeafUniqueRoot.Save(ctx); err != nil {
 				return err
 			}

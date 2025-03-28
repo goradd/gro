@@ -481,25 +481,29 @@ func (b *leafLockQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
+func CountLeafLocks(ctx context.Context) int {
+	return QueryLeafLocks(ctx).Count()
+}
+
 // CountLeafLocksByID queries the database and returns the number of LeafLock objects that
 // have id.
 // doc: type=LeafLock
 func CountLeafLocksByID(ctx context.Context, id string) int {
-	return queryLeafLocks(ctx).Where(op.Equal(node.LeafLock().ID(), id)).Count()
+	return QueryLeafLocks(ctx).Where(op.Equal(node.LeafLock().ID(), id)).Count()
 }
 
 // CountLeafLocksByName queries the database and returns the number of LeafLock objects that
 // have name.
 // doc: type=LeafLock
 func CountLeafLocksByName(ctx context.Context, name string) int {
-	return queryLeafLocks(ctx).Where(op.Equal(node.LeafLock().Name(), name)).Count()
+	return QueryLeafLocks(ctx).Where(op.Equal(node.LeafLock().Name(), name)).Count()
 }
 
 // CountLeafLocksByGroLock queries the database and returns the number of LeafLock objects that
 // have groLock.
 // doc: type=LeafLock
 func CountLeafLocksByGroLock(ctx context.Context, groLock int64) int {
-	return queryLeafLocks(ctx).Where(op.Equal(node.LeafLock().GroLock(), groLock)).Count()
+	return QueryLeafLocks(ctx).Where(op.Equal(node.LeafLock().GroLock(), groLock)).Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
@@ -625,9 +629,10 @@ func (o *leafLockBase) insert(ctx context.Context) (err error) {
 
 		m := o.getValidFields()
 
-		id := d.Insert(ctx, "leaf_lock", m)
-		o.id = id
-		o._originalPK = id
+		newPk := d.Insert(ctx, "leaf_lock", m)
+		o.id = newPk
+		o._originalPK = newPk
+		o.idIsValid = true
 
 		return nil
 

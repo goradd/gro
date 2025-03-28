@@ -1506,25 +1506,29 @@ func (b *projectQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
+func CountProjects(ctx context.Context) int {
+	return QueryProjects(ctx).Count()
+}
+
 // CountProjectsByID queries the database and returns the number of Project objects that
 // have id.
 // doc: type=Project
 func CountProjectsByID(ctx context.Context, id string) int {
-	return queryProjects(ctx).Where(op.Equal(node.Project().ID(), id)).Count()
+	return QueryProjects(ctx).Where(op.Equal(node.Project().ID(), id)).Count()
 }
 
 // CountProjectsByNum queries the database and returns the number of Project objects that
 // have num.
 // doc: type=Project
 func CountProjectsByNum(ctx context.Context, num int) int {
-	return queryProjects(ctx).Where(op.Equal(node.Project().Num(), num)).Count()
+	return QueryProjects(ctx).Where(op.Equal(node.Project().Num(), num)).Count()
 }
 
 // CountProjectsByStatus queries the database and returns the number of Project objects that
 // have status.
 // doc: type=Project
 func CountProjectsByStatus(ctx context.Context, status ProjectStatus) int {
-	return queryProjects(ctx).Where(op.Equal(node.Project().Status(), status)).Count()
+	return QueryProjects(ctx).Where(op.Equal(node.Project().Status(), status)).Count()
 }
 
 // CountProjectsByManagerID queries the database and returns the number of Project objects that
@@ -1534,49 +1538,49 @@ func CountProjectsByManagerID(ctx context.Context, managerID string) int {
 	if managerID == "" {
 		return 0
 	}
-	return queryProjects(ctx).Where(op.Equal(node.Project().ManagerID(), managerID)).Count()
+	return QueryProjects(ctx).Where(op.Equal(node.Project().ManagerID(), managerID)).Count()
 }
 
 // CountProjectsByName queries the database and returns the number of Project objects that
 // have name.
 // doc: type=Project
 func CountProjectsByName(ctx context.Context, name string) int {
-	return queryProjects(ctx).Where(op.Equal(node.Project().Name(), name)).Count()
+	return QueryProjects(ctx).Where(op.Equal(node.Project().Name(), name)).Count()
 }
 
 // CountProjectsByDescription queries the database and returns the number of Project objects that
 // have description.
 // doc: type=Project
 func CountProjectsByDescription(ctx context.Context, description string) int {
-	return queryProjects(ctx).Where(op.Equal(node.Project().Description(), description)).Count()
+	return QueryProjects(ctx).Where(op.Equal(node.Project().Description(), description)).Count()
 }
 
 // CountProjectsByStartDate queries the database and returns the number of Project objects that
 // have startDate.
 // doc: type=Project
 func CountProjectsByStartDate(ctx context.Context, startDate time.Time) int {
-	return queryProjects(ctx).Where(op.Equal(node.Project().StartDate(), startDate)).Count()
+	return QueryProjects(ctx).Where(op.Equal(node.Project().StartDate(), startDate)).Count()
 }
 
 // CountProjectsByEndDate queries the database and returns the number of Project objects that
 // have endDate.
 // doc: type=Project
 func CountProjectsByEndDate(ctx context.Context, endDate time.Time) int {
-	return queryProjects(ctx).Where(op.Equal(node.Project().EndDate(), endDate)).Count()
+	return QueryProjects(ctx).Where(op.Equal(node.Project().EndDate(), endDate)).Count()
 }
 
 // CountProjectsByBudget queries the database and returns the number of Project objects that
 // have budget.
 // doc: type=Project
 func CountProjectsByBudget(ctx context.Context, budget string) int {
-	return queryProjects(ctx).Where(op.Equal(node.Project().Budget(), budget)).Count()
+	return QueryProjects(ctx).Where(op.Equal(node.Project().Budget(), budget)).Count()
 }
 
 // CountProjectsBySpent queries the database and returns the number of Project objects that
 // have spent.
 // doc: type=Project
 func CountProjectsBySpent(ctx context.Context, spent string) int {
-	return queryProjects(ctx).Where(op.Equal(node.Project().Spent(), spent)).Count()
+	return QueryProjects(ctx).Where(op.Equal(node.Project().Spent(), spent)).Count()
 }
 
 // CountProjectsByParentProjectID queries the database and returns the number of Project objects that
@@ -1586,7 +1590,7 @@ func CountProjectsByParentProjectID(ctx context.Context, parentProjectID string)
 	if parentProjectID == "" {
 		return 0
 	}
-	return queryProjects(ctx).Where(op.Equal(node.Project().ParentProjectID(), parentProjectID)).Count()
+	return QueryProjects(ctx).Where(op.Equal(node.Project().ParentProjectID(), parentProjectID)).Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
@@ -2202,15 +2206,16 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 
 		m := o.getValidFields()
 
-		id := d.Insert(ctx, "project", m)
-		o.id = id
-		o._originalPK = id
+		newPk := d.Insert(ctx, "project", m)
+		o.id = newPk
+		o._originalPK = newPk
+		o.idIsValid = true
 
 		if o.revMilestones.Len() > 0 {
 			keys := o.revMilestones.Keys()
 			for i, k := range keys {
 				obj := o.revMilestones.Get(k)
-				obj.SetProjectID(id)
+				obj.SetProjectID(newPk)
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
@@ -2225,7 +2230,7 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 			keys := o.revParentProjectProjects.Keys()
 			for i, k := range keys {
 				obj := o.revParentProjectProjects.Get(k)
-				obj.SetParentProjectID(id)
+				obj.SetParentProjectID(newPk)
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
@@ -2251,22 +2256,22 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 					d,
 					"related_project_assn",
 					"parent_id",
-					o.id,
+					newPk,
 					"child_id",
 					obj.PrimaryKey(),
 				)
 			}
 		} else if len(o.mmChildrenPks) > 0 {
-			for _, pk := range o.mmChildrenPks {
-				obj := LoadProject(ctx, pk)
+			for _, k := range o.mmChildrenPks {
+				obj := LoadProject(ctx, k)
 				if obj != nil {
 					db.Associate(ctx,
 						d,
 						"related_project_assn",
 						"parent_id",
-						o.id,
+						newPk,
 						"child_id",
-						pk,
+						k,
 					)
 				}
 			}
@@ -2286,22 +2291,22 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 					d,
 					"related_project_assn",
 					"child_id",
-					o.id,
+					newPk,
 					"parent_id",
 					obj.PrimaryKey(),
 				)
 			}
 		} else if len(o.mmParentsPks) > 0 {
-			for _, pk := range o.mmParentsPks {
-				obj := LoadProject(ctx, pk)
+			for _, k := range o.mmParentsPks {
+				obj := LoadProject(ctx, k)
 				if obj != nil {
 					db.Associate(ctx,
 						d,
 						"related_project_assn",
 						"child_id",
-						o.id,
+						newPk,
 						"parent_id",
-						pk,
+						k,
 					)
 				}
 			}
@@ -2321,22 +2326,22 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 					d,
 					"team_member_project_assn",
 					"project_id",
-					o.id,
+					newPk,
 					"team_member_id",
 					obj.PrimaryKey(),
 				)
 			}
 		} else if len(o.mmTeamMembersPks) > 0 {
-			for _, pk := range o.mmTeamMembersPks {
-				obj := LoadPerson(ctx, pk)
+			for _, k := range o.mmTeamMembersPks {
+				obj := LoadPerson(ctx, k)
 				if obj != nil {
 					db.Associate(ctx,
 						d,
 						"team_member_project_assn",
 						"project_id",
-						o.id,
+						newPk,
 						"team_member_id",
-						pk,
+						k,
 					)
 				}
 			}

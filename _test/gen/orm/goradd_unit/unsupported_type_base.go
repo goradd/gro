@@ -1186,130 +1186,134 @@ func (b *unsupportedTypeQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
+func CountUnsupportedTypes(ctx context.Context) int {
+	return QueryUnsupportedTypes(ctx).Count()
+}
+
 // CountUnsupportedTypesByTypeSerial queries the database and returns the number of UnsupportedType objects that
 // have typeSerial.
 // doc: type=UnsupportedType
 func CountUnsupportedTypesByTypeSerial(ctx context.Context, typeSerial string) int {
-	return queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeSerial(), typeSerial)).Count()
+	return QueryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeSerial(), typeSerial)).Count()
 }
 
 // CountUnsupportedTypesByTypeSet queries the database and returns the number of UnsupportedType objects that
 // have typeSet.
 // doc: type=UnsupportedType
 func CountUnsupportedTypesByTypeSet(ctx context.Context, typeSet []byte) int {
-	return queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeSet(), typeSet)).Count()
+	return QueryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeSet(), typeSet)).Count()
 }
 
 // CountUnsupportedTypesByTypeEnumerated queries the database and returns the number of UnsupportedType objects that
 // have typeEnumerated.
 // doc: type=UnsupportedType
 func CountUnsupportedTypesByTypeEnumerated(ctx context.Context, typeEnumerated []byte) int {
-	return queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeEnumerated(), typeEnumerated)).Count()
+	return QueryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeEnumerated(), typeEnumerated)).Count()
 }
 
 // CountUnsupportedTypesByTypeDecimal queries the database and returns the number of UnsupportedType objects that
 // have typeDecimal.
 // doc: type=UnsupportedType
 func CountUnsupportedTypesByTypeDecimal(ctx context.Context, typeDecimal string) int {
-	return queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeDecimal(), typeDecimal)).Count()
+	return QueryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeDecimal(), typeDecimal)).Count()
 }
 
 // CountUnsupportedTypesByTypeDouble queries the database and returns the number of UnsupportedType objects that
 // have typeDouble.
 // doc: type=UnsupportedType
 func CountUnsupportedTypesByTypeDouble(ctx context.Context, typeDouble float64) int {
-	return queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeDouble(), typeDouble)).Count()
+	return QueryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeDouble(), typeDouble)).Count()
 }
 
 // CountUnsupportedTypesByTypeGeo queries the database and returns the number of UnsupportedType objects that
 // have typeGeo.
 // doc: type=UnsupportedType
 func CountUnsupportedTypesByTypeGeo(ctx context.Context, typeGeo []byte) int {
-	return queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeGeo(), typeGeo)).Count()
+	return QueryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeGeo(), typeGeo)).Count()
 }
 
 // CountUnsupportedTypesByTypeTinyBlob queries the database and returns the number of UnsupportedType objects that
 // have typeTinyBlob.
 // doc: type=UnsupportedType
 func CountUnsupportedTypesByTypeTinyBlob(ctx context.Context, typeTinyBlob []byte) int {
-	return queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeTinyBlob(), typeTinyBlob)).Count()
+	return QueryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeTinyBlob(), typeTinyBlob)).Count()
 }
 
 // CountUnsupportedTypesByTypeMediumBlob queries the database and returns the number of UnsupportedType objects that
 // have typeMediumBlob.
 // doc: type=UnsupportedType
 func CountUnsupportedTypesByTypeMediumBlob(ctx context.Context, typeMediumBlob []byte) int {
-	return queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeMediumBlob(), typeMediumBlob)).Count()
+	return QueryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeMediumBlob(), typeMediumBlob)).Count()
 }
 
 // CountUnsupportedTypesByTypeVarbinary queries the database and returns the number of UnsupportedType objects that
 // have typeVarbinary.
 // doc: type=UnsupportedType
 func CountUnsupportedTypesByTypeVarbinary(ctx context.Context, typeVarbinary []byte) int {
-	return queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeVarbinary(), typeVarbinary)).Count()
+	return QueryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeVarbinary(), typeVarbinary)).Count()
 }
 
 // CountUnsupportedTypesByTypeLongtext queries the database and returns the number of UnsupportedType objects that
 // have typeLongtext.
 // doc: type=UnsupportedType
 func CountUnsupportedTypesByTypeLongtext(ctx context.Context, typeLongtext string) int {
-	return queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeLongtext(), typeLongtext)).Count()
+	return QueryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeLongtext(), typeLongtext)).Count()
 }
 
 // CountUnsupportedTypesByTypeBinary queries the database and returns the number of UnsupportedType objects that
 // have typeBinary.
 // doc: type=UnsupportedType
 func CountUnsupportedTypesByTypeBinary(ctx context.Context, typeBinary []byte) int {
-	return queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeBinary(), typeBinary)).Count()
+	return QueryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeBinary(), typeBinary)).Count()
 }
 
 // CountUnsupportedTypesByTypeSmall queries the database and returns the number of UnsupportedType objects that
 // have typeSmall.
 // doc: type=UnsupportedType
 func CountUnsupportedTypesByTypeSmall(ctx context.Context, typeSmall int) int {
-	return queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeSmall(), typeSmall)).Count()
+	return QueryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeSmall(), typeSmall)).Count()
 }
 
 // CountUnsupportedTypesByTypeMedium queries the database and returns the number of UnsupportedType objects that
 // have typeMedium.
 // doc: type=UnsupportedType
 func CountUnsupportedTypesByTypeMedium(ctx context.Context, typeMedium int) int {
-	return queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeMedium(), typeMedium)).Count()
+	return QueryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeMedium(), typeMedium)).Count()
 }
 
 // CountUnsupportedTypesByTypeBig queries the database and returns the number of UnsupportedType objects that
 // have typeBig.
 // doc: type=UnsupportedType
 func CountUnsupportedTypesByTypeBig(ctx context.Context, typeBig int64) int {
-	return queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeBig(), typeBig)).Count()
+	return QueryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeBig(), typeBig)).Count()
 }
 
 // CountUnsupportedTypesByTypePolygon queries the database and returns the number of UnsupportedType objects that
 // have typePolygon.
 // doc: type=UnsupportedType
 func CountUnsupportedTypesByTypePolygon(ctx context.Context, typePolygon []byte) int {
-	return queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypePolygon(), typePolygon)).Count()
+	return QueryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypePolygon(), typePolygon)).Count()
 }
 
 // CountUnsupportedTypesByTypeUnsigned queries the database and returns the number of UnsupportedType objects that
 // have typeUnsigned.
 // doc: type=UnsupportedType
 func CountUnsupportedTypesByTypeUnsigned(ctx context.Context, typeUnsigned uint) int {
-	return queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeUnsigned(), typeUnsigned)).Count()
+	return QueryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeUnsigned(), typeUnsigned)).Count()
 }
 
 // CountUnsupportedTypesByTypeMultfk1 queries the database and returns the number of UnsupportedType objects that
 // have typeMultfk1.
 // doc: type=UnsupportedType
 func CountUnsupportedTypesByTypeMultfk1(ctx context.Context, typeMultfk1 string) int {
-	return queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeMultfk1(), typeMultfk1)).Count()
+	return QueryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeMultfk1(), typeMultfk1)).Count()
 }
 
 // CountUnsupportedTypesByTypeMultifk2 queries the database and returns the number of UnsupportedType objects that
 // have typeMultifk2.
 // doc: type=UnsupportedType
 func CountUnsupportedTypesByTypeMultifk2(ctx context.Context, typeMultifk2 string) int {
-	return queryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeMultifk2(), typeMultifk2)).Count()
+	return QueryUnsupportedTypes(ctx).Where(op.Equal(node.UnsupportedType().TypeMultifk2(), typeMultifk2)).Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
@@ -1687,9 +1691,10 @@ func (o *unsupportedTypeBase) insert(ctx context.Context) (err error) {
 
 		m := o.getValidFields()
 
-		id := d.Insert(ctx, "unsupported_type", m)
-		o.typeSerial = id
-		o._originalPK = id
+		newPk := d.Insert(ctx, "unsupported_type", m)
+		o.typeSerial = newPk
+		o._originalPK = newPk
+		o.typeSerialIsValid = true
 
 		return nil
 

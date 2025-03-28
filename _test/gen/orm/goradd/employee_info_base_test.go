@@ -263,8 +263,13 @@ func TestEmployeeInfo_Getters(t *testing.T) {
 
 	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey(), node.EmployeeInfo().PrimaryKey())
 
+	assert.Equal(t, obj.ID(), obj.Get(node.EmployeeInfo().ID().Identifier))
+	assert.Equal(t, obj.PersonID(), obj.Get(node.EmployeeInfo().PersonID().Identifier))
 	assert.Panics(t, func() { obj2.PersonID() })
+	assert.Nil(t, obj2.Get(node.EmployeeInfo().PersonID().Identifier))
+	assert.Equal(t, obj.EmployeeNumber(), obj.Get(node.EmployeeInfo().EmployeeNumber().Identifier))
 	assert.Panics(t, func() { obj2.EmployeeNumber() })
+	assert.Nil(t, obj2.Get(node.EmployeeInfo().EmployeeNumber().Identifier))
 }
 
 func TestEmployeeInfo_QueryLoad(t *testing.T) {
@@ -324,7 +329,10 @@ func TestEmployeeInfo_Count(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleEmployeeInfo(ctx, obj)
 
+	assert.Less(t, 0, CountEmployeeInfos(ctx))
+
 	assert.Less(t, 0, CountEmployeeInfosByID(ctx, obj.ID()))
 	assert.Less(t, 0, CountEmployeeInfosByPersonID(ctx, obj.PersonID()))
 	assert.Less(t, 0, CountEmployeeInfosByEmployeeNumber(ctx, obj.EmployeeNumber()))
+
 }

@@ -1018,18 +1018,22 @@ func (b *rootQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
+func CountRoots(ctx context.Context) int {
+	return QueryRoots(ctx).Count()
+}
+
 // CountRootsByID queries the database and returns the number of Root objects that
 // have id.
 // doc: type=Root
 func CountRootsByID(ctx context.Context, id string) int {
-	return queryRoots(ctx).Where(op.Equal(node.Root().ID(), id)).Count()
+	return QueryRoots(ctx).Where(op.Equal(node.Root().ID(), id)).Count()
 }
 
 // CountRootsByName queries the database and returns the number of Root objects that
 // have name.
 // doc: type=Root
 func CountRootsByName(ctx context.Context, name string) int {
-	return queryRoots(ctx).Where(op.Equal(node.Root().Name(), name)).Count()
+	return QueryRoots(ctx).Where(op.Equal(node.Root().Name(), name)).Count()
 }
 
 // CountRootsByOptionalLeafID queries the database and returns the number of Root objects that
@@ -1039,7 +1043,7 @@ func CountRootsByOptionalLeafID(ctx context.Context, optionalLeafID string) int 
 	if optionalLeafID == "" {
 		return 0
 	}
-	return queryRoots(ctx).Where(op.Equal(node.Root().OptionalLeafID(), optionalLeafID)).Count()
+	return QueryRoots(ctx).Where(op.Equal(node.Root().OptionalLeafID(), optionalLeafID)).Count()
 }
 
 // CountRootsByRequiredLeafID queries the database and returns the number of Root objects that
@@ -1049,7 +1053,7 @@ func CountRootsByRequiredLeafID(ctx context.Context, requiredLeafID string) int 
 	if requiredLeafID == "" {
 		return 0
 	}
-	return queryRoots(ctx).Where(op.Equal(node.Root().RequiredLeafID(), requiredLeafID)).Count()
+	return QueryRoots(ctx).Where(op.Equal(node.Root().RequiredLeafID(), requiredLeafID)).Count()
 }
 
 // CountRootsByOptionalLeafUniqueID queries the database and returns the number of Root objects that
@@ -1059,7 +1063,7 @@ func CountRootsByOptionalLeafUniqueID(ctx context.Context, optionalLeafUniqueID 
 	if optionalLeafUniqueID == "" {
 		return 0
 	}
-	return queryRoots(ctx).Where(op.Equal(node.Root().OptionalLeafUniqueID(), optionalLeafUniqueID)).Count()
+	return QueryRoots(ctx).Where(op.Equal(node.Root().OptionalLeafUniqueID(), optionalLeafUniqueID)).Count()
 }
 
 // CountRootsByRequiredLeafUniqueID queries the database and returns the number of Root objects that
@@ -1069,7 +1073,7 @@ func CountRootsByRequiredLeafUniqueID(ctx context.Context, requiredLeafUniqueID 
 	if requiredLeafUniqueID == "" {
 		return 0
 	}
-	return queryRoots(ctx).Where(op.Equal(node.Root().RequiredLeafUniqueID(), requiredLeafUniqueID)).Count()
+	return QueryRoots(ctx).Where(op.Equal(node.Root().RequiredLeafUniqueID(), requiredLeafUniqueID)).Count()
 }
 
 // CountRootsByParentID queries the database and returns the number of Root objects that
@@ -1079,7 +1083,7 @@ func CountRootsByParentID(ctx context.Context, parentID string) int {
 	if parentID == "" {
 		return 0
 	}
-	return queryRoots(ctx).Where(op.Equal(node.Root().ParentID(), parentID)).Count()
+	return QueryRoots(ctx).Where(op.Equal(node.Root().ParentID(), parentID)).Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
@@ -1480,15 +1484,16 @@ func (o *rootBase) insert(ctx context.Context) (err error) {
 
 		m := o.getValidFields()
 
-		id := d.Insert(ctx, "root", m)
-		o.id = id
-		o._originalPK = id
+		newPk := d.Insert(ctx, "root", m)
+		o.id = newPk
+		o._originalPK = newPk
+		o.idIsValid = true
 
 		if o.revParentRoots.Len() > 0 {
 			keys := o.revParentRoots.Keys()
 			for i, k := range keys {
 				obj := o.revParentRoots.Get(k)
-				obj.SetParentID(id)
+				obj.SetParentID(newPk)
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}

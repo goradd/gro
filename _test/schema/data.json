@@ -124,86 +124,156 @@
 ["person_with_lock",
 [{
   "firstName": "John",
-  "groLockTimestamp": 0,
+  "groLock": 0,
+  "groTimestamp": 0,
   "id": "1",
   "lastName": "Doe"
 }
 ,
 {
   "firstName": "Kendall",
-  "groLockTimestamp": 0,
+  "groLock": 0,
+  "groTimestamp": 0,
   "id": "2",
   "lastName": "Public"
 }
 ,
 {
   "firstName": "Ben",
-  "groLockTimestamp": 0,
+  "groLock": 0,
+  "groTimestamp": 0,
   "id": "3",
   "lastName": "Robinson"
 }
 ,
 {
   "firstName": "Mike",
-  "groLockTimestamp": 0,
+  "groLock": 0,
+  "groTimestamp": 0,
   "id": "4",
   "lastName": "Ho"
 }
 ,
 {
   "firstName": "Alfred",
-  "groLockTimestamp": 0,
+  "groLock": 0,
+  "groTimestamp": 0,
   "id": "5",
   "lastName": "Newman"
 }
 ,
 {
   "firstName": "Wendy",
-  "groLockTimestamp": 0,
+  "groLock": 0,
+  "groTimestamp": 0,
   "id": "6",
   "lastName": "Johnson"
 }
 ,
 {
   "firstName": "Karen",
-  "groLockTimestamp": 0,
+  "groLock": 0,
+  "groTimestamp": 0,
   "id": "7",
   "lastName": "Wolfe"
 }
 ,
 {
   "firstName": "Samantha",
-  "groLockTimestamp": 0,
+  "groLock": 0,
+  "groTimestamp": 0,
   "id": "8",
   "lastName": "Jones"
 }
 ,
 {
   "firstName": "Linda",
-  "groLockTimestamp": 0,
+  "groLock": 0,
+  "groTimestamp": 0,
   "id": "9",
   "lastName": "Brady"
 }
 ,
 {
   "firstName": "Jennifer",
-  "groLockTimestamp": 0,
+  "groLock": 0,
+  "groTimestamp": 0,
   "id": "10",
   "lastName": "Smith"
 }
 ,
 {
   "firstName": "Brett",
-  "groLockTimestamp": 0,
+  "groLock": 0,
+  "groTimestamp": 0,
   "id": "11",
   "lastName": "Carlisle"
 }
 ,
 {
   "firstName": "Jacob",
-  "groLockTimestamp": 0,
+  "groLock": 0,
+  "groTimestamp": 0,
   "id": "12",
   "lastName": "Pratt"
+}
+]
+],
+["project",
+[{
+  "budget": "9560.25",
+  "description": "The redesign of the main website for ACME Incorporated",
+  "endDate": "2004-07-01T00:00:00Z",
+  "id": "1",
+  "managerID": "7",
+  "name": "ACME Website Redesign",
+  "num": 1,
+  "parentProjectID": null,
+  "spent": "10250.75",
+  "startDate": "2004-03-01T00:00:00Z",
+  "status": 3
+}
+,
+{
+  "budget": "80500.00",
+  "description": "Implementation of a back-office Human Resources system for State College",
+  "endDate": null,
+  "id": "2",
+  "managerID": "4",
+  "name": "State College HR System",
+  "num": 2,
+  "parentProjectID": null,
+  "spent": "73200.00",
+  "startDate": "2006-02-15T00:00:00Z",
+  "status": 1
+}
+,
+{
+  "budget": "2500.00",
+  "description": "Main website architecture for the Blueman Industrial Group",
+  "endDate": "2006-04-15T00:00:00Z",
+  "id": "3",
+  "managerID": "1",
+  "name": "Blueman Industrial Site Architecture",
+  "num": 3,
+  "parentProjectID": null,
+  "spent": "4200.50",
+  "startDate": "2006-03-01T00:00:00Z",
+  "status": 1
+}
+,
+{
+  "budget": "5124.67",
+  "description": "Accounts Payable payment system for ACME Incorporated",
+  "endDate": "2005-10-20T00:00:00Z",
+  "id": "4",
+  "managerID": "7",
+  "name": "ACME Payment System",
+  "num": 4,
+  "parentProjectID": null,
+  "spent": "5175.30",
+  "startDate": "2005-08-15T00:00:00Z",
+  "status": 2
 }
 ]
 ],
@@ -296,64 +366,6 @@
 }
 ]
 ],
-["project",
-[{
-  "budget": "OTU2MC4yNQ==",
-  "description": "The redesign of the main website for ACME Incorporated",
-  "endDate": "2004-07-01T00:00:00Z",
-  "id": "1",
-  "managerID": "7",
-  "name": "ACME Website Redesign",
-  "num": 1,
-  "parentProjectID": null,
-  "spent": "MTAyNTAuNzU=",
-  "startDate": "2004-03-01T00:00:00Z",
-  "status": 3
-}
-,
-{
-  "budget": "ODA1MDAuMDA=",
-  "description": "Implementation of a back-office Human Resources system for State College",
-  "endDate": null,
-  "id": "2",
-  "managerID": "4",
-  "name": "State College HR System",
-  "num": 2,
-  "parentProjectID": null,
-  "spent": "NzMyMDAuMDA=",
-  "startDate": "2006-02-15T00:00:00Z",
-  "status": 1
-}
-,
-{
-  "budget": "MjUwMC4wMA==",
-  "description": "Main website architecture for the Blueman Industrial Group",
-  "endDate": "2006-04-15T00:00:00Z",
-  "id": "3",
-  "managerID": "1",
-  "name": "Blueman Industrial Site Architecture",
-  "num": 3,
-  "parentProjectID": null,
-  "spent": "NDIwMC41MA==",
-  "startDate": "2006-03-01T00:00:00Z",
-  "status": 1
-}
-,
-{
-  "budget": "NTEyNC42Nw==",
-  "description": "Accounts Payable payment system for ACME Incorporated",
-  "endDate": "2005-10-20T00:00:00Z",
-  "id": "4",
-  "managerID": "7",
-  "name": "ACME Payment System",
-  "num": 4,
-  "parentProjectID": null,
-  "spent": "NTE3NS4zMA==",
-  "startDate": "2005-08-15T00:00:00Z",
-  "status": 2
-}
-]
-],
 ["milestone",
 [{
   "id": "1",
@@ -417,6 +429,21 @@
 ]
 ]
 ,
+["related_project_assn",[{
+  "child_id": "3",
+  "parent_id": "1"
+}
+,
+{
+  "child_id": "4",
+  "parent_id": "1"
+}
+,
+{
+  "child_id": "1",
+  "parent_id": "4"
+}
+]],
 ["team_member_project_assn",[{
   "project_id": "3",
   "team_member_id": "1"
@@ -530,20 +557,5 @@
 {
   "project_id": "4",
   "team_member_id": "12"
-}
-]],
-["related_project_assn",[{
-  "child_id": "3",
-  "parent_id": "1"
-}
-,
-{
-  "child_id": "4",
-  "parent_id": "1"
-}
-,
-{
-  "child_id": "1",
-  "parent_id": "4"
 }
 ]]]

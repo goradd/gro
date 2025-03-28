@@ -367,9 +367,16 @@ func TestPerson_Getters(t *testing.T) {
 
 	obj2 := LoadPerson(ctx, obj.PrimaryKey(), node.Person().PrimaryKey())
 
+	assert.Equal(t, obj.ID(), obj.Get(node.Person().ID().Identifier))
+	assert.Equal(t, obj.FirstName(), obj.Get(node.Person().FirstName().Identifier))
 	assert.Panics(t, func() { obj2.FirstName() })
+	assert.Nil(t, obj2.Get(node.Person().FirstName().Identifier))
+	assert.Equal(t, obj.LastName(), obj.Get(node.Person().LastName().Identifier))
 	assert.Panics(t, func() { obj2.LastName() })
+	assert.Nil(t, obj2.Get(node.Person().LastName().Identifier))
+	assert.Equal(t, obj.Types(), obj.Get(node.Person().Types().Identifier))
 	assert.Panics(t, func() { obj2.Types() })
+	assert.Nil(t, obj2.Get(node.Person().Types().Identifier))
 }
 
 func TestPerson_QueryLoad(t *testing.T) {
@@ -429,7 +436,10 @@ func TestPerson_Count(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSamplePerson(ctx, obj)
 
+	assert.Less(t, 0, CountPeople(ctx))
+
 	assert.Less(t, 0, CountPeopleByID(ctx, obj.ID()))
 	assert.Less(t, 0, CountPeopleByFirstName(ctx, obj.FirstName()))
 	assert.Less(t, 0, CountPeopleByLastName(ctx, obj.LastName()))
+
 }

@@ -541,17 +541,40 @@ func TestTypeTest_Getters(t *testing.T) {
 
 	obj2 := LoadTypeTest(ctx, obj.PrimaryKey(), node.TypeTest().PrimaryKey())
 
+	assert.Equal(t, obj.ID(), obj.Get(node.TypeTest().ID().Identifier))
+	assert.Equal(t, obj.Date(), obj.Get(node.TypeTest().Date().Identifier))
 	assert.Panics(t, func() { obj2.Date() })
+	assert.Nil(t, obj2.Get(node.TypeTest().Date().Identifier))
+	assert.Equal(t, obj.Time(), obj.Get(node.TypeTest().Time().Identifier))
 	assert.Panics(t, func() { obj2.Time() })
+	assert.Nil(t, obj2.Get(node.TypeTest().Time().Identifier))
+	assert.Equal(t, obj.DateTime(), obj.Get(node.TypeTest().DateTime().Identifier))
 	assert.Panics(t, func() { obj2.DateTime() })
+	assert.Nil(t, obj2.Get(node.TypeTest().DateTime().Identifier))
+	assert.Equal(t, obj.Ts(), obj.Get(node.TypeTest().Ts().Identifier))
 	assert.Panics(t, func() { obj2.Ts() })
+	assert.Nil(t, obj2.Get(node.TypeTest().Ts().Identifier))
+	assert.Equal(t, obj.TestInt(), obj.Get(node.TypeTest().TestInt().Identifier))
 	assert.Panics(t, func() { obj2.TestInt() })
+	assert.Nil(t, obj2.Get(node.TypeTest().TestInt().Identifier))
+	assert.Equal(t, obj.TestFloat(), obj.Get(node.TypeTest().TestFloat().Identifier))
 	assert.Panics(t, func() { obj2.TestFloat() })
+	assert.Nil(t, obj2.Get(node.TypeTest().TestFloat().Identifier))
+	assert.Equal(t, obj.TestDouble(), obj.Get(node.TypeTest().TestDouble().Identifier))
 	assert.Panics(t, func() { obj2.TestDouble() })
+	assert.Nil(t, obj2.Get(node.TypeTest().TestDouble().Identifier))
+	assert.Equal(t, obj.TestText(), obj.Get(node.TypeTest().TestText().Identifier))
 	assert.Panics(t, func() { obj2.TestText() })
+	assert.Nil(t, obj2.Get(node.TypeTest().TestText().Identifier))
+	assert.Equal(t, obj.TestBit(), obj.Get(node.TypeTest().TestBit().Identifier))
 	assert.Panics(t, func() { obj2.TestBit() })
+	assert.Nil(t, obj2.Get(node.TypeTest().TestBit().Identifier))
+	assert.Equal(t, obj.TestVarchar(), obj.Get(node.TypeTest().TestVarchar().Identifier))
 	assert.Panics(t, func() { obj2.TestVarchar() })
+	assert.Nil(t, obj2.Get(node.TypeTest().TestVarchar().Identifier))
+	assert.Equal(t, obj.TestBlob(), obj.Get(node.TypeTest().TestBlob().Identifier))
 	assert.Panics(t, func() { obj2.TestBlob() })
+	assert.Nil(t, obj2.Get(node.TypeTest().TestBlob().Identifier))
 }
 
 func TestTypeTest_QueryLoad(t *testing.T) {
@@ -611,6 +634,8 @@ func TestTypeTest_Count(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleTypeTest(ctx, obj)
 
+	assert.Less(t, 0, CountTypeTests(ctx))
+
 	assert.Less(t, 0, CountTypeTestsByID(ctx, obj.ID()))
 	assert.Less(t, 0, CountTypeTestsByDate(ctx, obj.Date()))
 	assert.Less(t, 0, CountTypeTestsByTime(ctx, obj.Time()))
@@ -623,4 +648,5 @@ func TestTypeTest_Count(t *testing.T) {
 	assert.Less(t, 0, CountTypeTestsByTestBit(ctx, obj.TestBit()))
 	assert.Less(t, 0, CountTypeTestsByTestVarchar(ctx, obj.TestVarchar()))
 	assert.Less(t, 0, CountTypeTestsByTestBlob(ctx, obj.TestBlob()))
+
 }

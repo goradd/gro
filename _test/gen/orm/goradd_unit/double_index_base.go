@@ -561,25 +561,29 @@ func (b *doubleIndexQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
+func CountDoubleIndices(ctx context.Context) int {
+	return QueryDoubleIndices(ctx).Count()
+}
+
 // CountDoubleIndicesByID queries the database and returns the number of DoubleIndex objects that
 // have id.
 // doc: type=DoubleIndex
 func CountDoubleIndicesByID(ctx context.Context, id int) int {
-	return queryDoubleIndices(ctx).Where(op.Equal(node.DoubleIndex().ID(), id)).Count()
+	return QueryDoubleIndices(ctx).Where(op.Equal(node.DoubleIndex().ID(), id)).Count()
 }
 
 // CountDoubleIndicesByFieldInt queries the database and returns the number of DoubleIndex objects that
 // have fieldInt.
 // doc: type=DoubleIndex
 func CountDoubleIndicesByFieldInt(ctx context.Context, fieldInt int) int {
-	return queryDoubleIndices(ctx).Where(op.Equal(node.DoubleIndex().FieldInt(), fieldInt)).Count()
+	return QueryDoubleIndices(ctx).Where(op.Equal(node.DoubleIndex().FieldInt(), fieldInt)).Count()
 }
 
 // CountDoubleIndicesByFieldString queries the database and returns the number of DoubleIndex objects that
 // have fieldString.
 // doc: type=DoubleIndex
 func CountDoubleIndicesByFieldString(ctx context.Context, fieldString string) int {
-	return queryDoubleIndices(ctx).Where(op.Equal(node.DoubleIndex().FieldString(), fieldString)).Count()
+	return QueryDoubleIndices(ctx).Where(op.Equal(node.DoubleIndex().FieldString(), fieldString)).Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
@@ -708,8 +712,9 @@ func (o *doubleIndexBase) insert(ctx context.Context) (err error) {
 		m := o.getValidFields()
 
 		d.Insert(ctx, "double_index", m)
-		id := o.PrimaryKey()
-		o._originalPK = id
+		newPk := o.PrimaryKey()
+		o._originalPK = newPk
+		o.idIsValid = true
 
 		return nil
 

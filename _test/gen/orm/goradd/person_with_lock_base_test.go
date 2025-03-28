@@ -257,10 +257,19 @@ func TestPersonWithLock_Getters(t *testing.T) {
 
 	obj2 := LoadPersonWithLock(ctx, obj.PrimaryKey(), node.PersonWithLock().PrimaryKey())
 
+	assert.Equal(t, obj.ID(), obj.Get(node.PersonWithLock().ID().Identifier))
+	assert.Equal(t, obj.FirstName(), obj.Get(node.PersonWithLock().FirstName().Identifier))
 	assert.Panics(t, func() { obj2.FirstName() })
+	assert.Nil(t, obj2.Get(node.PersonWithLock().FirstName().Identifier))
+	assert.Equal(t, obj.LastName(), obj.Get(node.PersonWithLock().LastName().Identifier))
 	assert.Panics(t, func() { obj2.LastName() })
+	assert.Nil(t, obj2.Get(node.PersonWithLock().LastName().Identifier))
+	assert.Equal(t, obj.GroLock(), obj.Get(node.PersonWithLock().GroLock().Identifier))
 	assert.Panics(t, func() { obj2.GroLock() })
+	assert.Nil(t, obj2.Get(node.PersonWithLock().GroLock().Identifier))
+	assert.Equal(t, obj.GroTimestamp(), obj.Get(node.PersonWithLock().GroTimestamp().Identifier))
 	assert.Panics(t, func() { obj2.GroTimestamp() })
+	assert.Nil(t, obj2.Get(node.PersonWithLock().GroTimestamp().Identifier))
 }
 
 func TestPersonWithLock_QueryLoad(t *testing.T) {
@@ -320,9 +329,12 @@ func TestPersonWithLock_Count(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSamplePersonWithLock(ctx, obj)
 
+	assert.Less(t, 0, CountPersonWithLocks(ctx))
+
 	assert.Less(t, 0, CountPersonWithLocksByID(ctx, obj.ID()))
 	assert.Less(t, 0, CountPersonWithLocksByFirstName(ctx, obj.FirstName()))
 	assert.Less(t, 0, CountPersonWithLocksByLastName(ctx, obj.LastName()))
 	assert.Less(t, 0, CountPersonWithLocksByGroLock(ctx, obj.GroLock()))
 	assert.Less(t, 0, CountPersonWithLocksByGroTimestamp(ctx, obj.GroTimestamp()))
+
 }

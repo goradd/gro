@@ -714,11 +714,15 @@ func (b *loginQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
+func CountLogins(ctx context.Context) int {
+	return QueryLogins(ctx).Count()
+}
+
 // CountLoginsByID queries the database and returns the number of Login objects that
 // have id.
 // doc: type=Login
 func CountLoginsByID(ctx context.Context, id string) int {
-	return queryLogins(ctx).Where(op.Equal(node.Login().ID(), id)).Count()
+	return QueryLogins(ctx).Where(op.Equal(node.Login().ID(), id)).Count()
 }
 
 // CountLoginsByPersonID queries the database and returns the number of Login objects that
@@ -728,28 +732,28 @@ func CountLoginsByPersonID(ctx context.Context, personID string) int {
 	if personID == "" {
 		return 0
 	}
-	return queryLogins(ctx).Where(op.Equal(node.Login().PersonID(), personID)).Count()
+	return QueryLogins(ctx).Where(op.Equal(node.Login().PersonID(), personID)).Count()
 }
 
 // CountLoginsByUsername queries the database and returns the number of Login objects that
 // have username.
 // doc: type=Login
 func CountLoginsByUsername(ctx context.Context, username string) int {
-	return queryLogins(ctx).Where(op.Equal(node.Login().Username(), username)).Count()
+	return QueryLogins(ctx).Where(op.Equal(node.Login().Username(), username)).Count()
 }
 
 // CountLoginsByPassword queries the database and returns the number of Login objects that
 // have password.
 // doc: type=Login
 func CountLoginsByPassword(ctx context.Context, password string) int {
-	return queryLogins(ctx).Where(op.Equal(node.Login().Password(), password)).Count()
+	return QueryLogins(ctx).Where(op.Equal(node.Login().Password(), password)).Count()
 }
 
 // CountLoginsByIsEnabled queries the database and returns the number of Login objects that
 // have isEnabled.
 // doc: type=Login
 func CountLoginsByIsEnabled(ctx context.Context, isEnabled bool) int {
-	return queryLogins(ctx).Where(op.Equal(node.Login().IsEnabled(), isEnabled)).Count()
+	return QueryLogins(ctx).Where(op.Equal(node.Login().IsEnabled(), isEnabled)).Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
@@ -937,9 +941,10 @@ func (o *loginBase) insert(ctx context.Context) (err error) {
 
 		m := o.getValidFields()
 
-		id := d.Insert(ctx, "login", m)
-		o.id = id
-		o._originalPK = id
+		newPk := d.Insert(ctx, "login", m)
+		o.id = newPk
+		o._originalPK = newPk
+		o.idIsValid = true
 
 		return nil
 

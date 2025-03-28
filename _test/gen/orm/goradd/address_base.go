@@ -599,11 +599,15 @@ func (b *addressQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
+func CountAddresses(ctx context.Context) int {
+	return QueryAddresses(ctx).Count()
+}
+
 // CountAddressesByID queries the database and returns the number of Address objects that
 // have id.
 // doc: type=Address
 func CountAddressesByID(ctx context.Context, id string) int {
-	return queryAddresses(ctx).Where(op.Equal(node.Address().ID(), id)).Count()
+	return QueryAddresses(ctx).Where(op.Equal(node.Address().ID(), id)).Count()
 }
 
 // CountAddressesByPersonID queries the database and returns the number of Address objects that
@@ -613,21 +617,21 @@ func CountAddressesByPersonID(ctx context.Context, personID string) int {
 	if personID == "" {
 		return 0
 	}
-	return queryAddresses(ctx).Where(op.Equal(node.Address().PersonID(), personID)).Count()
+	return QueryAddresses(ctx).Where(op.Equal(node.Address().PersonID(), personID)).Count()
 }
 
 // CountAddressesByStreet queries the database and returns the number of Address objects that
 // have street.
 // doc: type=Address
 func CountAddressesByStreet(ctx context.Context, street string) int {
-	return queryAddresses(ctx).Where(op.Equal(node.Address().Street(), street)).Count()
+	return QueryAddresses(ctx).Where(op.Equal(node.Address().Street(), street)).Count()
 }
 
 // CountAddressesByCity queries the database and returns the number of Address objects that
 // have city.
 // doc: type=Address
 func CountAddressesByCity(ctx context.Context, city string) int {
-	return queryAddresses(ctx).Where(op.Equal(node.Address().City(), city)).Count()
+	return QueryAddresses(ctx).Where(op.Equal(node.Address().City(), city)).Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
@@ -798,9 +802,10 @@ func (o *addressBase) insert(ctx context.Context) (err error) {
 
 		m := o.getValidFields()
 
-		id := d.Insert(ctx, "address", m)
-		o.id = id
-		o._originalPK = id
+		newPk := d.Insert(ctx, "address", m)
+		o.id = newPk
+		o._originalPK = newPk
+		o.idIsValid = true
 
 		return nil
 

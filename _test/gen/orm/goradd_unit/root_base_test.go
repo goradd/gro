@@ -501,12 +501,25 @@ func TestRoot_Getters(t *testing.T) {
 
 	obj2 := LoadRoot(ctx, obj.PrimaryKey(), node.Root().PrimaryKey())
 
+	assert.Equal(t, obj.ID(), obj.Get(node.Root().ID().Identifier))
+	assert.Equal(t, obj.Name(), obj.Get(node.Root().Name().Identifier))
 	assert.Panics(t, func() { obj2.Name() })
+	assert.Nil(t, obj2.Get(node.Root().Name().Identifier))
+	assert.Equal(t, obj.OptionalLeafID(), obj.Get(node.Root().OptionalLeafID().Identifier))
 	assert.Panics(t, func() { obj2.OptionalLeafID() })
+	assert.Nil(t, obj2.Get(node.Root().OptionalLeafID().Identifier))
+	assert.Equal(t, obj.RequiredLeafID(), obj.Get(node.Root().RequiredLeafID().Identifier))
 	assert.Panics(t, func() { obj2.RequiredLeafID() })
+	assert.Nil(t, obj2.Get(node.Root().RequiredLeafID().Identifier))
+	assert.Equal(t, obj.OptionalLeafUniqueID(), obj.Get(node.Root().OptionalLeafUniqueID().Identifier))
 	assert.Panics(t, func() { obj2.OptionalLeafUniqueID() })
+	assert.Nil(t, obj2.Get(node.Root().OptionalLeafUniqueID().Identifier))
+	assert.Equal(t, obj.RequiredLeafUniqueID(), obj.Get(node.Root().RequiredLeafUniqueID().Identifier))
 	assert.Panics(t, func() { obj2.RequiredLeafUniqueID() })
+	assert.Nil(t, obj2.Get(node.Root().RequiredLeafUniqueID().Identifier))
+	assert.Equal(t, obj.ParentID(), obj.Get(node.Root().ParentID().Identifier))
 	assert.Panics(t, func() { obj2.ParentID() })
+	assert.Nil(t, obj2.Get(node.Root().ParentID().Identifier))
 }
 
 func TestRoot_QueryLoad(t *testing.T) {
@@ -566,6 +579,8 @@ func TestRoot_Count(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleRoot(ctx, obj)
 
+	assert.Less(t, 0, CountRoots(ctx))
+
 	assert.Less(t, 0, CountRootsByID(ctx, obj.ID()))
 	assert.Less(t, 0, CountRootsByName(ctx, obj.Name()))
 	assert.Less(t, 0, CountRootsByOptionalLeafID(ctx, obj.OptionalLeafID()))
@@ -573,4 +588,5 @@ func TestRoot_Count(t *testing.T) {
 	assert.Less(t, 0, CountRootsByOptionalLeafUniqueID(ctx, obj.OptionalLeafUniqueID()))
 	assert.Less(t, 0, CountRootsByRequiredLeafUniqueID(ctx, obj.RequiredLeafUniqueID()))
 	assert.Less(t, 0, CountRootsByParentID(ctx, obj.ParentID()))
+
 }

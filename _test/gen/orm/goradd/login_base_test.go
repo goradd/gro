@@ -327,10 +327,19 @@ func TestLogin_Getters(t *testing.T) {
 
 	obj2 := LoadLogin(ctx, obj.PrimaryKey(), node.Login().PrimaryKey())
 
+	assert.Equal(t, obj.ID(), obj.Get(node.Login().ID().Identifier))
+	assert.Equal(t, obj.PersonID(), obj.Get(node.Login().PersonID().Identifier))
 	assert.Panics(t, func() { obj2.PersonID() })
+	assert.Nil(t, obj2.Get(node.Login().PersonID().Identifier))
+	assert.Equal(t, obj.Username(), obj.Get(node.Login().Username().Identifier))
 	assert.Panics(t, func() { obj2.Username() })
+	assert.Nil(t, obj2.Get(node.Login().Username().Identifier))
+	assert.Equal(t, obj.Password(), obj.Get(node.Login().Password().Identifier))
 	assert.Panics(t, func() { obj2.Password() })
+	assert.Nil(t, obj2.Get(node.Login().Password().Identifier))
+	assert.Equal(t, obj.IsEnabled(), obj.Get(node.Login().IsEnabled().Identifier))
 	assert.Panics(t, func() { obj2.IsEnabled() })
+	assert.Nil(t, obj2.Get(node.Login().IsEnabled().Identifier))
 }
 
 func TestLogin_QueryLoad(t *testing.T) {
@@ -390,9 +399,12 @@ func TestLogin_Count(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleLogin(ctx, obj)
 
+	assert.Less(t, 0, CountLogins(ctx))
+
 	assert.Less(t, 0, CountLoginsByID(ctx, obj.ID()))
 	assert.Less(t, 0, CountLoginsByPersonID(ctx, obj.PersonID()))
 	assert.Less(t, 0, CountLoginsByUsername(ctx, obj.Username()))
 	assert.Less(t, 0, CountLoginsByPassword(ctx, obj.Password()))
 	assert.Less(t, 0, CountLoginsByIsEnabled(ctx, obj.IsEnabled()))
+
 }

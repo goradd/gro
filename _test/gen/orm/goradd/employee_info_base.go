@@ -550,11 +550,15 @@ func (b *employeeInfoQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
+func CountEmployeeInfos(ctx context.Context) int {
+	return QueryEmployeeInfos(ctx).Count()
+}
+
 // CountEmployeeInfosByID queries the database and returns the number of EmployeeInfo objects that
 // have id.
 // doc: type=EmployeeInfo
 func CountEmployeeInfosByID(ctx context.Context, id string) int {
-	return queryEmployeeInfos(ctx).Where(op.Equal(node.EmployeeInfo().ID(), id)).Count()
+	return QueryEmployeeInfos(ctx).Where(op.Equal(node.EmployeeInfo().ID(), id)).Count()
 }
 
 // CountEmployeeInfosByPersonID queries the database and returns the number of EmployeeInfo objects that
@@ -564,14 +568,14 @@ func CountEmployeeInfosByPersonID(ctx context.Context, personID string) int {
 	if personID == "" {
 		return 0
 	}
-	return queryEmployeeInfos(ctx).Where(op.Equal(node.EmployeeInfo().PersonID(), personID)).Count()
+	return QueryEmployeeInfos(ctx).Where(op.Equal(node.EmployeeInfo().PersonID(), personID)).Count()
 }
 
 // CountEmployeeInfosByEmployeeNumber queries the database and returns the number of EmployeeInfo objects that
 // have employeeNumber.
 // doc: type=EmployeeInfo
 func CountEmployeeInfosByEmployeeNumber(ctx context.Context, employeeNumber int) int {
-	return queryEmployeeInfos(ctx).Where(op.Equal(node.EmployeeInfo().EmployeeNumber(), employeeNumber)).Count()
+	return QueryEmployeeInfos(ctx).Where(op.Equal(node.EmployeeInfo().EmployeeNumber(), employeeNumber)).Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
@@ -722,9 +726,10 @@ func (o *employeeInfoBase) insert(ctx context.Context) (err error) {
 
 		m := o.getValidFields()
 
-		id := d.Insert(ctx, "employee_info", m)
-		o.id = id
-		o._originalPK = id
+		newPk := d.Insert(ctx, "employee_info", m)
+		o.id = newPk
+		o._originalPK = newPk
+		o.idIsValid = true
 
 		return nil
 

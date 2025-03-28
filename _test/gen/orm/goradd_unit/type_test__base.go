@@ -1047,88 +1047,92 @@ func (b *typeTestQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
+func CountTypeTests(ctx context.Context) int {
+	return QueryTypeTests(ctx).Count()
+}
+
 // CountTypeTestsByID queries the database and returns the number of TypeTest objects that
 // have id.
 // doc: type=TypeTest
 func CountTypeTestsByID(ctx context.Context, id string) int {
-	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().ID(), id)).Count()
+	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().ID(), id)).Count()
 }
 
 // CountTypeTestsByDate queries the database and returns the number of TypeTest objects that
 // have date.
 // doc: type=TypeTest
 func CountTypeTestsByDate(ctx context.Context, date time.Time) int {
-	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().Date(), date)).Count()
+	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().Date(), date)).Count()
 }
 
 // CountTypeTestsByTime queries the database and returns the number of TypeTest objects that
 // have time.
 // doc: type=TypeTest
 func CountTypeTestsByTime(ctx context.Context, time time.Time) int {
-	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().Time(), time)).Count()
+	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().Time(), time)).Count()
 }
 
 // CountTypeTestsByDateTime queries the database and returns the number of TypeTest objects that
 // have dateTime.
 // doc: type=TypeTest
 func CountTypeTestsByDateTime(ctx context.Context, dateTime time.Time) int {
-	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().DateTime(), dateTime)).Count()
+	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().DateTime(), dateTime)).Count()
 }
 
 // CountTypeTestsByTs queries the database and returns the number of TypeTest objects that
 // have ts.
 // doc: type=TypeTest
 func CountTypeTestsByTs(ctx context.Context, ts time.Time) int {
-	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().Ts(), ts)).Count()
+	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().Ts(), ts)).Count()
 }
 
 // CountTypeTestsByTestInt queries the database and returns the number of TypeTest objects that
 // have testInt.
 // doc: type=TypeTest
 func CountTypeTestsByTestInt(ctx context.Context, testInt int) int {
-	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestInt(), testInt)).Count()
+	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestInt(), testInt)).Count()
 }
 
 // CountTypeTestsByTestFloat queries the database and returns the number of TypeTest objects that
 // have testFloat.
 // doc: type=TypeTest
 func CountTypeTestsByTestFloat(ctx context.Context, testFloat float32) int {
-	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestFloat(), testFloat)).Count()
+	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestFloat(), testFloat)).Count()
 }
 
 // CountTypeTestsByTestDouble queries the database and returns the number of TypeTest objects that
 // have testDouble.
 // doc: type=TypeTest
 func CountTypeTestsByTestDouble(ctx context.Context, testDouble float64) int {
-	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestDouble(), testDouble)).Count()
+	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestDouble(), testDouble)).Count()
 }
 
 // CountTypeTestsByTestText queries the database and returns the number of TypeTest objects that
 // have testText.
 // doc: type=TypeTest
 func CountTypeTestsByTestText(ctx context.Context, testText string) int {
-	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestText(), testText)).Count()
+	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestText(), testText)).Count()
 }
 
 // CountTypeTestsByTestBit queries the database and returns the number of TypeTest objects that
 // have testBit.
 // doc: type=TypeTest
 func CountTypeTestsByTestBit(ctx context.Context, testBit bool) int {
-	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestBit(), testBit)).Count()
+	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestBit(), testBit)).Count()
 }
 
 // CountTypeTestsByTestVarchar queries the database and returns the number of TypeTest objects that
 // have testVarchar.
 // doc: type=TypeTest
 func CountTypeTestsByTestVarchar(ctx context.Context, testVarchar string) int {
-	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestVarchar(), testVarchar)).Count()
+	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestVarchar(), testVarchar)).Count()
 }
 
 // CountTypeTestsByTestBlob queries the database and returns the number of TypeTest objects that
 // have testBlob.
 // doc: type=TypeTest
 func CountTypeTestsByTestBlob(ctx context.Context, testBlob []byte) int {
-	return queryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestBlob(), testBlob)).Count()
+	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestBlob(), testBlob)).Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
@@ -1431,9 +1435,10 @@ func (o *typeTestBase) insert(ctx context.Context) (err error) {
 
 		m := o.getValidFields()
 
-		id := d.Insert(ctx, "type_test", m)
-		o.id = id
-		o._originalPK = id
+		newPk := d.Insert(ctx, "type_test", m)
+		o.id = newPk
+		o._originalPK = newPk
+		o.idIsValid = true
 
 		return nil
 

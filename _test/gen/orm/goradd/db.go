@@ -556,7 +556,9 @@ func jsonDecodeGifts(ctx context.Context, decoder *json.Decoder) error {
 		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}
-		obj.Save(ctx)
+		if err = obj.Save(ctx); err != nil {
+			return err
+		}
 	}
 
 	// Check if the last token is the end of the array
@@ -590,7 +592,9 @@ func jsonDecodePeople(ctx context.Context, decoder *json.Decoder) error {
 		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}
-		obj.Save(ctx)
+		if err = obj.Save(ctx); err != nil {
+			return err
+		}
 	}
 
 	// Check if the last token is the end of the array
@@ -624,7 +628,9 @@ func jsonDecodePersonWithLocks(ctx context.Context, decoder *json.Decoder) error
 		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}
-		obj.Save(ctx)
+		if err = obj.Save(ctx); err != nil {
+			return err
+		}
 	}
 
 	// Check if the last token is the end of the array
@@ -658,7 +664,9 @@ func jsonDecodeProjects(ctx context.Context, decoder *json.Decoder) error {
 		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}
-		obj.Save(ctx)
+		if err = obj.Save(ctx); err != nil {
+			return err
+		}
 	}
 
 	// Check if the last token is the end of the array
@@ -692,7 +700,9 @@ func jsonDecodeAddresses(ctx context.Context, decoder *json.Decoder) error {
 		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}
-		obj.Save(ctx)
+		if err = obj.Save(ctx); err != nil {
+			return err
+		}
 	}
 
 	// Check if the last token is the end of the array
@@ -726,7 +736,9 @@ func jsonDecodeEmployeeInfos(ctx context.Context, decoder *json.Decoder) error {
 		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}
-		obj.Save(ctx)
+		if err = obj.Save(ctx); err != nil {
+			return err
+		}
 	}
 
 	// Check if the last token is the end of the array
@@ -760,7 +772,9 @@ func jsonDecodeLogins(ctx context.Context, decoder *json.Decoder) error {
 		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}
-		obj.Save(ctx)
+		if err = obj.Save(ctx); err != nil {
+			return err
+		}
 	}
 
 	// Check if the last token is the end of the array
@@ -794,7 +808,9 @@ func jsonDecodeMilestones(ctx context.Context, decoder *json.Decoder) error {
 		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}
-		obj.Save(ctx)
+		if err = obj.Save(ctx); err != nil {
+			return err
+		}
 	}
 
 	// Check if the last token is the end of the array

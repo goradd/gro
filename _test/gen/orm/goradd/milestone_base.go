@@ -534,11 +534,15 @@ func (b *milestoneQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
+func CountMilestones(ctx context.Context) int {
+	return QueryMilestones(ctx).Count()
+}
+
 // CountMilestonesByID queries the database and returns the number of Milestone objects that
 // have id.
 // doc: type=Milestone
 func CountMilestonesByID(ctx context.Context, id string) int {
-	return queryMilestones(ctx).Where(op.Equal(node.Milestone().ID(), id)).Count()
+	return QueryMilestones(ctx).Where(op.Equal(node.Milestone().ID(), id)).Count()
 }
 
 // CountMilestonesByProjectID queries the database and returns the number of Milestone objects that
@@ -548,14 +552,14 @@ func CountMilestonesByProjectID(ctx context.Context, projectID string) int {
 	if projectID == "" {
 		return 0
 	}
-	return queryMilestones(ctx).Where(op.Equal(node.Milestone().ProjectID(), projectID)).Count()
+	return QueryMilestones(ctx).Where(op.Equal(node.Milestone().ProjectID(), projectID)).Count()
 }
 
 // CountMilestonesByName queries the database and returns the number of Milestone objects that
 // have name.
 // doc: type=Milestone
 func CountMilestonesByName(ctx context.Context, name string) int {
-	return queryMilestones(ctx).Where(op.Equal(node.Milestone().Name(), name)).Count()
+	return QueryMilestones(ctx).Where(op.Equal(node.Milestone().Name(), name)).Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
@@ -706,9 +710,10 @@ func (o *milestoneBase) insert(ctx context.Context) (err error) {
 
 		m := o.getValidFields()
 
-		id := d.Insert(ctx, "milestone", m)
-		o.id = id
-		o._originalPK = id
+		newPk := d.Insert(ctx, "milestone", m)
+		o.id = newPk
+		o._originalPK = newPk
+		o.idIsValid = true
 
 		return nil
 

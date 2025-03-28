@@ -6406,12 +6406,32 @@ func (tmpl *TableBaseTemplate) genCount(table *model.Table, _w io.Writer) (err e
 
 	//*** count.tmpl
 
-	for _, col := range table.Columns {
+	if _, err = io.WriteString(_w, `
+func Count`); err != nil {
+		return
+	}
 
-		if _, err = io.WriteString(_w, `
+	if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `(ctx context.Context) int {
+	return Query`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `(ctx).Count()
+}
+
 `); err != nil {
-			return
-		}
+		return
+	}
+
+	for _, col := range table.Columns {
 
 		if col.IsEnumArray() {
 			continue
@@ -6525,7 +6545,7 @@ func Count`); err != nil {
 
 		}
 
-		if _, err = io.WriteString(_w, `	return query`); err != nil {
+		if _, err = io.WriteString(_w, `	return Query`); err != nil {
 			return
 		}
 
@@ -6564,6 +6584,11 @@ func Count`); err != nil {
 			return
 		}
 
+	}
+
+	if _, err = io.WriteString(_w, `
+`); err != nil {
+		return
 	}
 
 	return
@@ -9174,7 +9199,7 @@ func (o *`); err != nil {
 
 	if table.HasAutoId() {
 
-		if _, err = io.WriteString(_w, `	id := d.Insert(ctx, "`); err != nil {
+		if _, err = io.WriteString(_w, `	newPk := d.Insert(ctx, "`); err != nil {
 			return
 		}
 
@@ -9191,8 +9216,8 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ` = id
-	o._originalPK = id
+		if _, err = io.WriteString(_w, ` = newPk
+	o._originalPK = newPk
 `); err != nil {
 			return
 		}
@@ -9208,15 +9233,24 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `", m)
-	id := o.PrimaryKey()
-	o._originalPK = id
+	newPk := o.PrimaryKey()
+	o._originalPK = newPk
 `); err != nil {
 			return
 		}
 
 	}
 
-	if _, err = io.WriteString(_w, `
+	if _, err = io.WriteString(_w, `    o.`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.PrimaryKeyColumn().VariableIdentifier()); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `IsValid = true
+
 `); err != nil {
 		return
 	}
@@ -9263,7 +9297,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `(id)
+			if _, err = io.WriteString(_w, `(newPk)
         if err = o.`); err != nil {
 				return
 			}
@@ -9325,7 +9359,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `(id)
+			if _, err = io.WriteString(_w, `(newPk)
             if err = obj.Save(ctx); err != nil {
                 return err
             }
@@ -9445,7 +9479,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `",
-                o.id,
+                newPk,
                 "`); err != nil {
 			return
 		}
@@ -9467,7 +9501,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `Pks) > 0 {
-        for _,pk := range o.`); err != nil {
+        for _,k := range o.`); err != nil {
 			return
 		}
 
@@ -9484,7 +9518,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `(ctx, pk)
+		if _, err = io.WriteString(_w, `(ctx, k)
             if (obj != nil) {
                 db.Associate(ctx,
                     d,
@@ -9506,7 +9540,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `",
-                    o.id,
+                    newPk,
                     "`); err != nil {
 			return
 		}
@@ -9516,7 +9550,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `",
-                    pk,
+                    k,
                 )
             }
         }

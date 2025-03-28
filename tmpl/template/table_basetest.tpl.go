@@ -3326,6 +3326,35 @@ func Test`); err != nil {
 
 		for _, col := range table.Columns {
 
+			if _, err = io.WriteString(_w, `    assert.Equal(t, obj.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(), obj.Get(node.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().Identifier))
+`); err != nil {
+				return
+			}
+
 			if !col.IsPrimaryKey {
 
 				if _, err = io.WriteString(_w, `    assert.Panics(t, func() { obj2.`); err != nil {
@@ -3337,6 +3366,23 @@ func Test`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `() })
+    assert.Nil(t, obj2.Get(node.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, table.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `().`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `().Identifier))
 `); err != nil {
 					return
 				}
@@ -3592,6 +3638,16 @@ func Test`); err != nil {
 
 		if _, err = io.WriteString(_w, `(ctx, obj)
 
+    assert.Less(t, 0, Count`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx))
+
 `); err != nil {
 			return
 		}
@@ -3633,7 +3689,8 @@ func Test`); err != nil {
 
 		}
 
-		if _, err = io.WriteString(_w, `}
+		if _, err = io.WriteString(_w, `
+}
 `); err != nil {
 			return
 		}

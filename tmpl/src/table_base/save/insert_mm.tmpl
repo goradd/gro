@@ -19,22 +19,22 @@
                 d,
                 "{{= mm.AssnTableName }}",
                 "{{= mm.AssnSourceColumnName }}",
-                o.id,
+                newPk,
                 "{{= mm.AssnDestColumnName }}",
                 obj.PrimaryKey(),
             )
         }
     } else if len(o.{{= mm.VariableIdentifier() }}Pks) > 0 {
-        for _,pk := range o.{{= mm.VariableIdentifier() }}Pks {
-            obj := Load{{= mm.DestinationTable.Identifier }}(ctx, pk)
+        for _,k := range o.{{= mm.VariableIdentifier() }}Pks {
+            obj := Load{{= mm.DestinationTable.Identifier }}(ctx, k)
             if (obj != nil) {
                 db.Associate(ctx,
                     d,
                     "{{= mm.AssnTableName }}",
                     "{{= mm.AssnSourceColumnName }}",
-                    o.id,
+                    newPk,
                     "{{= mm.AssnDestColumnName }}",
-                    pk,
+                    k,
                 )
             }
         }

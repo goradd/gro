@@ -1,0 +1,24 @@
+{{g
+//*** {{includeName}}
+}}
+
+{{
+func TestDbJson(t *testing.T) {
+    ctx := db.NewContext(nil)
+    defer deleteSample{{= table.Identifier }}(ctx, obj)
+
+    // get single comparison objects and data sizes
+{{for _,table := range orderedTables}}
+    v_{{= table.Identifier}} := createMinimalSample{{= table.Identifier }}()
+    assert.NoError(t, v_{{= table.Identifier}}.Save(ctx))
+{{for}}
+{{for _,table := range orderedTables}}
+    v_{{= table.Identifier}}Count := Count{{= table.IdentifierPlural}}(ctx)
+{{for}}
+
+    var b bytes.Buffer
+    w := bufio.NewWriter(&b)
+    assert.NoError(t, JsonEncodeAll(ctx, w))
+}
+
+}}

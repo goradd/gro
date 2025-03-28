@@ -48,15 +48,15 @@ func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) (err error
     m := o.getValidFields()
 
 {{if table.HasAutoId() }}
-	id := d.Insert(ctx, "{{= table.QueryName }}", m)
-	o.{{= table.PrimaryKeyColumn().VariableIdentifier()
- }} = id
-	o._originalPK = id
+	newPk := d.Insert(ctx, "{{= table.QueryName }}", m)
+	o.{{= table.PrimaryKeyColumn().VariableIdentifier() }} = newPk
+	o._originalPK = newPk
 {{else}}
 	d.Insert(ctx, "{{= table.QueryName }}", m)
-	id := o.PrimaryKey()
-	o._originalPK = id
+	newPk := o.PrimaryKey()
+	o._originalPK = newPk
 {{if}}
+    o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}IsValid = true
 
 {{g
 

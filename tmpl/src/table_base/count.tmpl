@@ -2,8 +2,14 @@
 {{g
 //*** {{includeName}}
 }}
-{{for _,col := range table.Columns }}
 
+{{
+
+func Count{{= table.IdentifierPlural }}(ctx context.Context) int {
+	return Query{{= table.IdentifierPlural }}(ctx).Count()
+}
+
+{{for _,col := range table.Columns }}
 {{g
     if col.IsEnumArray() {
         continue
@@ -19,10 +25,12 @@ func Count{{table.IdentifierPlural}}By{{col.Identifier}}(ctx context.Context, {{
         return 0
     }
 {{if}}
-	return query{{= table.IdentifierPlural }}(ctx).Where(op.Equal(node.{{= table.Identifier }}().{{= col.Identifier }}(), {{= col.DecapIdentifier }})).Count()
+	return Query{{= table.IdentifierPlural }}(ctx).Where(op.Equal(node.{{= table.Identifier }}().{{= col.Identifier }}(), {{= col.DecapIdentifier }})).Count()
 }
 
 {{for}}
+
+}}
 
 
 

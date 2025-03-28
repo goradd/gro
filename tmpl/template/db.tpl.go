@@ -556,7 +556,9 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}
-		obj.Save(ctx)
+		if err = obj.Save(ctx); err != nil {
+		    return err
+		}
 	}
 
 	// Check if the last token is the end of the array

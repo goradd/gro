@@ -231,7 +231,10 @@ func TestGift_Getters(t *testing.T) {
 	obj2 := LoadGift(ctx, obj.PrimaryKey(), node.Gift().PrimaryKey())
 	assert.Equal(t, obj.Number(), obj2.Number())
 
+	assert.Equal(t, obj.Number(), obj.Get(node.Gift().Number().Identifier))
+	assert.Equal(t, obj.Name(), obj.Get(node.Gift().Name().Identifier))
 	assert.Panics(t, func() { obj2.Name() })
+	assert.Nil(t, obj2.Get(node.Gift().Name().Identifier))
 }
 
 func TestGift_QueryLoad(t *testing.T) {
@@ -291,6 +294,9 @@ func TestGift_Count(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleGift(ctx, obj)
 
+	assert.Less(t, 0, CountGifts(ctx))
+
 	assert.Less(t, 0, CountGiftsByNumber(ctx, obj.Number()))
 	assert.Less(t, 0, CountGiftsByName(ctx, obj.Name()))
+
 }

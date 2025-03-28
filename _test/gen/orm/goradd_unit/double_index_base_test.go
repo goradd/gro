@@ -262,8 +262,13 @@ func TestDoubleIndex_Getters(t *testing.T) {
 	obj2 := LoadDoubleIndex(ctx, obj.PrimaryKey(), node.DoubleIndex().PrimaryKey())
 	assert.Equal(t, obj.ID(), obj2.ID())
 
+	assert.Equal(t, obj.ID(), obj.Get(node.DoubleIndex().ID().Identifier))
+	assert.Equal(t, obj.FieldInt(), obj.Get(node.DoubleIndex().FieldInt().Identifier))
 	assert.Panics(t, func() { obj2.FieldInt() })
+	assert.Nil(t, obj2.Get(node.DoubleIndex().FieldInt().Identifier))
+	assert.Equal(t, obj.FieldString(), obj.Get(node.DoubleIndex().FieldString().Identifier))
 	assert.Panics(t, func() { obj2.FieldString() })
+	assert.Nil(t, obj2.Get(node.DoubleIndex().FieldString().Identifier))
 }
 
 func TestDoubleIndex_QueryLoad(t *testing.T) {
@@ -323,7 +328,10 @@ func TestDoubleIndex_Count(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleDoubleIndex(ctx, obj)
 
+	assert.Less(t, 0, CountDoubleIndices(ctx))
+
 	assert.Less(t, 0, CountDoubleIndicesByID(ctx, obj.ID()))
 	assert.Less(t, 0, CountDoubleIndicesByFieldInt(ctx, obj.FieldInt()))
 	assert.Less(t, 0, CountDoubleIndicesByFieldString(ctx, obj.FieldString()))
+
 }

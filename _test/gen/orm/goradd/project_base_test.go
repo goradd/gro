@@ -646,16 +646,37 @@ func TestProject_Getters(t *testing.T) {
 
 	obj2 := LoadProject(ctx, obj.PrimaryKey(), node.Project().PrimaryKey())
 
+	assert.Equal(t, obj.ID(), obj.Get(node.Project().ID().Identifier))
+	assert.Equal(t, obj.Num(), obj.Get(node.Project().Num().Identifier))
 	assert.Panics(t, func() { obj2.Num() })
+	assert.Nil(t, obj2.Get(node.Project().Num().Identifier))
+	assert.Equal(t, obj.Status(), obj.Get(node.Project().Status().Identifier))
 	assert.Panics(t, func() { obj2.Status() })
+	assert.Nil(t, obj2.Get(node.Project().Status().Identifier))
+	assert.Equal(t, obj.ManagerID(), obj.Get(node.Project().ManagerID().Identifier))
 	assert.Panics(t, func() { obj2.ManagerID() })
+	assert.Nil(t, obj2.Get(node.Project().ManagerID().Identifier))
+	assert.Equal(t, obj.Name(), obj.Get(node.Project().Name().Identifier))
 	assert.Panics(t, func() { obj2.Name() })
+	assert.Nil(t, obj2.Get(node.Project().Name().Identifier))
+	assert.Equal(t, obj.Description(), obj.Get(node.Project().Description().Identifier))
 	assert.Panics(t, func() { obj2.Description() })
+	assert.Nil(t, obj2.Get(node.Project().Description().Identifier))
+	assert.Equal(t, obj.StartDate(), obj.Get(node.Project().StartDate().Identifier))
 	assert.Panics(t, func() { obj2.StartDate() })
+	assert.Nil(t, obj2.Get(node.Project().StartDate().Identifier))
+	assert.Equal(t, obj.EndDate(), obj.Get(node.Project().EndDate().Identifier))
 	assert.Panics(t, func() { obj2.EndDate() })
+	assert.Nil(t, obj2.Get(node.Project().EndDate().Identifier))
+	assert.Equal(t, obj.Budget(), obj.Get(node.Project().Budget().Identifier))
 	assert.Panics(t, func() { obj2.Budget() })
+	assert.Nil(t, obj2.Get(node.Project().Budget().Identifier))
+	assert.Equal(t, obj.Spent(), obj.Get(node.Project().Spent().Identifier))
 	assert.Panics(t, func() { obj2.Spent() })
+	assert.Nil(t, obj2.Get(node.Project().Spent().Identifier))
+	assert.Equal(t, obj.ParentProjectID(), obj.Get(node.Project().ParentProjectID().Identifier))
 	assert.Panics(t, func() { obj2.ParentProjectID() })
+	assert.Nil(t, obj2.Get(node.Project().ParentProjectID().Identifier))
 }
 
 func TestProject_QueryLoad(t *testing.T) {
@@ -715,6 +736,8 @@ func TestProject_Count(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleProject(ctx, obj)
 
+	assert.Less(t, 0, CountProjects(ctx))
+
 	assert.Less(t, 0, CountProjectsByID(ctx, obj.ID()))
 	assert.Less(t, 0, CountProjectsByNum(ctx, obj.Num()))
 	assert.Less(t, 0, CountProjectsByManagerID(ctx, obj.ManagerID()))
@@ -725,4 +748,5 @@ func TestProject_Count(t *testing.T) {
 	assert.Less(t, 0, CountProjectsByBudget(ctx, obj.Budget()))
 	assert.Less(t, 0, CountProjectsBySpent(ctx, obj.Spent()))
 	assert.Less(t, 0, CountProjectsByParentProjectID(ctx, obj.ParentProjectID()))
+
 }

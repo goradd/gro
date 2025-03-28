@@ -268,8 +268,13 @@ func TestMilestone_Getters(t *testing.T) {
 
 	obj2 := LoadMilestone(ctx, obj.PrimaryKey(), node.Milestone().PrimaryKey())
 
+	assert.Equal(t, obj.ID(), obj.Get(node.Milestone().ID().Identifier))
+	assert.Equal(t, obj.ProjectID(), obj.Get(node.Milestone().ProjectID().Identifier))
 	assert.Panics(t, func() { obj2.ProjectID() })
+	assert.Nil(t, obj2.Get(node.Milestone().ProjectID().Identifier))
+	assert.Equal(t, obj.Name(), obj.Get(node.Milestone().Name().Identifier))
 	assert.Panics(t, func() { obj2.Name() })
+	assert.Nil(t, obj2.Get(node.Milestone().Name().Identifier))
 }
 
 func TestMilestone_QueryLoad(t *testing.T) {
@@ -329,7 +334,10 @@ func TestMilestone_Count(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleMilestone(ctx, obj)
 
+	assert.Less(t, 0, CountMilestones(ctx))
+
 	assert.Less(t, 0, CountMilestonesByID(ctx, obj.ID()))
 	assert.Less(t, 0, CountMilestonesByProjectID(ctx, obj.ProjectID()))
 	assert.Less(t, 0, CountMilestonesByName(ctx, obj.Name()))
+
 }

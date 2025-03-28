@@ -307,9 +307,16 @@ func TestAddress_Getters(t *testing.T) {
 
 	obj2 := LoadAddress(ctx, obj.PrimaryKey(), node.Address().PrimaryKey())
 
+	assert.Equal(t, obj.ID(), obj.Get(node.Address().ID().Identifier))
+	assert.Equal(t, obj.PersonID(), obj.Get(node.Address().PersonID().Identifier))
 	assert.Panics(t, func() { obj2.PersonID() })
+	assert.Nil(t, obj2.Get(node.Address().PersonID().Identifier))
+	assert.Equal(t, obj.Street(), obj.Get(node.Address().Street().Identifier))
 	assert.Panics(t, func() { obj2.Street() })
+	assert.Nil(t, obj2.Get(node.Address().Street().Identifier))
+	assert.Equal(t, obj.City(), obj.Get(node.Address().City().Identifier))
 	assert.Panics(t, func() { obj2.City() })
+	assert.Nil(t, obj2.Get(node.Address().City().Identifier))
 }
 
 func TestAddress_QueryLoad(t *testing.T) {
@@ -369,8 +376,11 @@ func TestAddress_Count(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleAddress(ctx, obj)
 
+	assert.Less(t, 0, CountAddresses(ctx))
+
 	assert.Less(t, 0, CountAddressesByID(ctx, obj.ID()))
 	assert.Less(t, 0, CountAddressesByPersonID(ctx, obj.PersonID()))
 	assert.Less(t, 0, CountAddressesByStreet(ctx, obj.Street()))
 	assert.Less(t, 0, CountAddressesByCity(ctx, obj.City()))
+
 }

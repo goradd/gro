@@ -902,25 +902,29 @@ func (b *personQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
+func CountPeople(ctx context.Context) int {
+	return QueryPeople(ctx).Count()
+}
+
 // CountPeopleByID queries the database and returns the number of Person objects that
 // have id.
 // doc: type=Person
 func CountPeopleByID(ctx context.Context, id string) int {
-	return queryPeople(ctx).Where(op.Equal(node.Person().ID(), id)).Count()
+	return QueryPeople(ctx).Where(op.Equal(node.Person().ID(), id)).Count()
 }
 
 // CountPeopleByFirstName queries the database and returns the number of Person objects that
 // have firstName.
 // doc: type=Person
 func CountPeopleByFirstName(ctx context.Context, firstName string) int {
-	return queryPeople(ctx).Where(op.Equal(node.Person().FirstName(), firstName)).Count()
+	return QueryPeople(ctx).Where(op.Equal(node.Person().FirstName(), firstName)).Count()
 }
 
 // CountPeopleByLastName queries the database and returns the number of Person objects that
 // have lastName.
 // doc: type=Person
 func CountPeopleByLastName(ctx context.Context, lastName string) int {
-	return queryPeople(ctx).Where(op.Equal(node.Person().LastName(), lastName)).Count()
+	return QueryPeople(ctx).Where(op.Equal(node.Person().LastName(), lastName)).Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
@@ -1331,15 +1335,16 @@ func (o *personBase) insert(ctx context.Context) (err error) {
 
 		m := o.getValidFields()
 
-		id := d.Insert(ctx, "person", m)
-		o.id = id
-		o._originalPK = id
+		newPk := d.Insert(ctx, "person", m)
+		o.id = newPk
+		o._originalPK = newPk
+		o.idIsValid = true
 
 		if o.revAddresses.Len() > 0 {
 			keys := o.revAddresses.Keys()
 			for i, k := range keys {
 				obj := o.revAddresses.Get(k)
-				obj.SetPersonID(id)
+				obj.SetPersonID(newPk)
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
@@ -1351,14 +1356,14 @@ func (o *personBase) insert(ctx context.Context) (err error) {
 		}
 
 		if o.revEmployeeInfo != nil {
-			o.revEmployeeInfo.SetPersonID(id)
+			o.revEmployeeInfo.SetPersonID(newPk)
 			if err = o.revEmployeeInfo.Save(ctx); err != nil {
 				return err
 			}
 		}
 
 		if o.revLogin != nil {
-			o.revLogin.SetPersonID(id)
+			o.revLogin.SetPersonID(newPk)
 			if err = o.revLogin.Save(ctx); err != nil {
 				return err
 			}
@@ -1368,7 +1373,7 @@ func (o *personBase) insert(ctx context.Context) (err error) {
 			keys := o.revManagerProjects.Keys()
 			for i, k := range keys {
 				obj := o.revManagerProjects.Get(k)
-				obj.SetManagerID(id)
+				obj.SetManagerID(newPk)
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
@@ -1394,22 +1399,22 @@ func (o *personBase) insert(ctx context.Context) (err error) {
 					d,
 					"team_member_project_assn",
 					"team_member_id",
-					o.id,
+					newPk,
 					"project_id",
 					obj.PrimaryKey(),
 				)
 			}
 		} else if len(o.mmProjectsPks) > 0 {
-			for _, pk := range o.mmProjectsPks {
-				obj := LoadProject(ctx, pk)
+			for _, k := range o.mmProjectsPks {
+				obj := LoadProject(ctx, k)
 				if obj != nil {
 					db.Associate(ctx,
 						d,
 						"team_member_project_assn",
 						"team_member_id",
-						o.id,
+						newPk,
 						"project_id",
-						pk,
+						k,
 					)
 				}
 			}

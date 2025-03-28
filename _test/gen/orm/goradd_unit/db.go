@@ -401,7 +401,9 @@ func jsonDecodeDoubleIndices(ctx context.Context, decoder *json.Decoder) error {
 		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}
-		obj.Save(ctx)
+		if err = obj.Save(ctx); err != nil {
+			return err
+		}
 	}
 
 	// Check if the last token is the end of the array
@@ -435,7 +437,9 @@ func jsonDecodeLeafs(ctx context.Context, decoder *json.Decoder) error {
 		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}
-		obj.Save(ctx)
+		if err = obj.Save(ctx); err != nil {
+			return err
+		}
 	}
 
 	// Check if the last token is the end of the array
@@ -469,7 +473,9 @@ func jsonDecodeLeafLocks(ctx context.Context, decoder *json.Decoder) error {
 		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}
-		obj.Save(ctx)
+		if err = obj.Save(ctx); err != nil {
+			return err
+		}
 	}
 
 	// Check if the last token is the end of the array
@@ -503,7 +509,9 @@ func jsonDecodeRoots(ctx context.Context, decoder *json.Decoder) error {
 		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}
-		obj.Save(ctx)
+		if err = obj.Save(ctx); err != nil {
+			return err
+		}
 	}
 
 	// Check if the last token is the end of the array
@@ -537,7 +545,9 @@ func jsonDecodeTypeTests(ctx context.Context, decoder *json.Decoder) error {
 		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}
-		obj.Save(ctx)
+		if err = obj.Save(ctx); err != nil {
+			return err
+		}
 	}
 
 	// Check if the last token is the end of the array
@@ -571,7 +581,9 @@ func jsonDecodeUnsupportedTypes(ctx context.Context, decoder *json.Decoder) erro
 		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}
-		obj.Save(ctx)
+		if err = obj.Save(ctx); err != nil {
+			return err
+		}
 	}
 
 	// Check if the last token is the end of the array

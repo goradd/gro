@@ -498,18 +498,22 @@ func (b *giftQueryBuilder)  Subquery() *query.SubqueryNode {
 }
 */
 
+func CountGifts(ctx context.Context) int {
+	return QueryGifts(ctx).Count()
+}
+
 // CountGiftsByNumber queries the database and returns the number of Gift objects that
 // have number.
 // doc: type=Gift
 func CountGiftsByNumber(ctx context.Context, number int) int {
-	return queryGifts(ctx).Where(op.Equal(node.Gift().Number(), number)).Count()
+	return QueryGifts(ctx).Where(op.Equal(node.Gift().Number(), number)).Count()
 }
 
 // CountGiftsByName queries the database and returns the number of Gift objects that
 // have name.
 // doc: type=Gift
 func CountGiftsByName(ctx context.Context, name string) int {
-	return queryGifts(ctx).Where(op.Equal(node.Gift().Name(), name)).Count()
+	return QueryGifts(ctx).Where(op.Equal(node.Gift().Name(), name)).Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
@@ -621,8 +625,9 @@ func (o *giftBase) insert(ctx context.Context) (err error) {
 		m := o.getValidFields()
 
 		d.Insert(ctx, "gift", m)
-		id := o.PrimaryKey()
-		o._originalPK = id
+		newPk := o.PrimaryKey()
+		o._originalPK = newPk
+		o.numberIsValid = true
 
 		return nil
 
