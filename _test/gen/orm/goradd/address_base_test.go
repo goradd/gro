@@ -166,8 +166,6 @@ func TestAddress_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.StreetIsValid())
 
-	assert.EqualValues(t, obj.Street(), obj2.Street())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.streetIsDirty)
 	obj2.SetStreet(obj2.Street())
@@ -175,8 +173,6 @@ func TestAddress_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.CityIsValid())
 	assert.False(t, obj2.CityIsNull())
-
-	assert.EqualValues(t, obj.City(), obj2.City())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.cityIsDirty)

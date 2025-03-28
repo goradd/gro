@@ -39,7 +39,7 @@ func updateMinimalSample{{= table.Identifier }}(obj *{{= table.Identifier }})  {
 
 {{else}}
 
-{{if col.SchemaSubType == schema.ColSubTypeNumeric }}
+{{if col.IsDecimal() }}
     obj.Set{{= col.Identifier }}(test.RandomDecimal({{u col.DecimalPrecision()}}, {{u col.DecimalScale()}} ))
 {{else}}
     obj.Set{{= col.Identifier }}(test.RandomValue[{{= col.GoType() }}]({{u testSize}}))

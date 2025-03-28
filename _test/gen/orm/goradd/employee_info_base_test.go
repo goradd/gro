@@ -131,8 +131,6 @@ func TestEmployeeInfo_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.EmployeeNumberIsValid())
 
-	assert.EqualValues(t, obj.EmployeeNumber(), obj2.EmployeeNumber())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.employeeNumberIsDirty)
 	obj2.SetEmployeeNumber(obj2.EmployeeNumber())

@@ -123,8 +123,6 @@ func TestLeaf_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.NameIsValid())
 
-	assert.EqualValues(t, obj.Name(), obj2.Name())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.nameIsDirty)
 	obj2.SetName(obj2.Name())

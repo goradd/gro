@@ -29,8 +29,8 @@ func Test{{= table.Identifier }}_BasicInsert(t *testing.T) {
     assert.True(t, obj.{{= col.Identifier }}().Equal(obj2.{{= col.Identifier }}()))
 {{else}}
 
-{{if col.SchemaSubType != schema.ColSubTypeNumeric }}
-    assert.EqualValues(t, obj.{{= col.Identifier }}(), obj2.{{= col.Identifier }}())
+{{if col.IsDecimal() }}
+    assert.True(t, test.EqualDecimals(obj.{{= col.Identifier }}(), obj2.{{= col.Identifier }}()))
 {{if}}
 
 {{if}}

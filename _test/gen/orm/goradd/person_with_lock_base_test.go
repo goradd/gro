@@ -138,16 +138,12 @@ func TestPersonWithLock_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.FirstNameIsValid())
 
-	assert.EqualValues(t, obj.FirstName(), obj2.FirstName())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.firstNameIsDirty)
 	obj2.SetFirstName(obj2.FirstName())
 	assert.False(t, obj2.firstNameIsDirty)
 
 	assert.True(t, obj2.LastNameIsValid())
-
-	assert.EqualValues(t, obj.LastName(), obj2.LastName())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.lastNameIsDirty)

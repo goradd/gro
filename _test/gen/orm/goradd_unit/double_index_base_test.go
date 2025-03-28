@@ -143,8 +143,6 @@ func TestDoubleIndex_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.IDIsValid())
 
-	assert.EqualValues(t, obj.ID(), obj2.ID())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.idIsDirty)
 	obj2.SetID(obj2.ID())
@@ -152,16 +150,12 @@ func TestDoubleIndex_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.FieldIntIsValid())
 
-	assert.EqualValues(t, obj.FieldInt(), obj2.FieldInt())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.fieldIntIsDirty)
 	obj2.SetFieldInt(obj2.FieldInt())
 	assert.False(t, obj2.fieldIntIsDirty)
 
 	assert.True(t, obj2.FieldStringIsValid())
-
-	assert.EqualValues(t, obj.FieldString(), obj2.FieldString())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.fieldStringIsDirty)

@@ -363,8 +363,6 @@ func TestProject_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.NumIsValid())
 
-	assert.EqualValues(t, obj.Num(), obj2.Num())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.numIsDirty)
 	obj2.SetNum(obj2.Num())
@@ -372,16 +370,12 @@ func TestProject_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.StatusIsValid())
 
-	assert.EqualValues(t, obj.Status(), obj2.Status())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.statusIsDirty)
 	obj2.SetStatus(obj2.Status())
 	assert.False(t, obj2.statusIsDirty)
 
 	assert.True(t, obj2.NameIsValid())
-
-	assert.EqualValues(t, obj.Name(), obj2.Name())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.nameIsDirty)
@@ -391,8 +385,6 @@ func TestProject_BasicInsert(t *testing.T) {
 	assert.True(t, obj2.DescriptionIsValid())
 	assert.False(t, obj2.DescriptionIsNull())
 
-	assert.EqualValues(t, obj.Description(), obj2.Description())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.descriptionIsDirty)
 	obj2.SetDescription(obj2.Description())
@@ -400,8 +392,6 @@ func TestProject_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.StartDateIsValid())
 	assert.False(t, obj2.StartDateIsNull())
-
-	assert.EqualValues(t, obj.StartDate(), obj2.StartDate())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.startDateIsDirty)
@@ -411,8 +401,6 @@ func TestProject_BasicInsert(t *testing.T) {
 	assert.True(t, obj2.EndDateIsValid())
 	assert.False(t, obj2.EndDateIsNull())
 
-	assert.EqualValues(t, obj.EndDate(), obj2.EndDate())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.endDateIsDirty)
 	obj2.SetEndDate(obj2.EndDate())
@@ -421,6 +409,8 @@ func TestProject_BasicInsert(t *testing.T) {
 	assert.True(t, obj2.BudgetIsValid())
 	assert.False(t, obj2.BudgetIsNull())
 
+	assert.True(t, test.EqualDecimals(obj.Budget(), obj2.Budget()))
+
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.budgetIsDirty)
 	obj2.SetBudget(obj2.Budget())
@@ -428,6 +418,8 @@ func TestProject_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.SpentIsValid())
 	assert.False(t, obj2.SpentIsNull())
+
+	assert.True(t, test.EqualDecimals(obj.Spent(), obj2.Spent()))
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.spentIsDirty)

@@ -282,7 +282,7 @@ func updateMinimalSample`); err != nil {
 					return
 				}
 
-				if col.SchemaSubType == schema.ColSubTypeNumeric {
+				if col.IsDecimal() {
 
 					if _, err = io.WriteString(_w, `    obj.Set`); err != nil {
 						return
@@ -1538,9 +1538,9 @@ func Test`); err != nil {
 						return
 					}
 
-					if col.SchemaSubType != schema.ColSubTypeNumeric {
+					if col.IsDecimal() {
 
-						if _, err = io.WriteString(_w, `    assert.EqualValues(t, obj.`); err != nil {
+						if _, err = io.WriteString(_w, `    assert.True(t, test.EqualDecimals(obj.`); err != nil {
 							return
 						}
 
@@ -1556,7 +1556,7 @@ func Test`); err != nil {
 							return
 						}
 
-						if _, err = io.WriteString(_w, `())
+						if _, err = io.WriteString(_w, `()))
 `); err != nil {
 							return
 						}

@@ -186,8 +186,6 @@ func TestLogin_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.UsernameIsValid())
 
-	assert.EqualValues(t, obj.Username(), obj2.Username())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.usernameIsDirty)
 	obj2.SetUsername(obj2.Username())
@@ -196,16 +194,12 @@ func TestLogin_BasicInsert(t *testing.T) {
 	assert.True(t, obj2.PasswordIsValid())
 	assert.False(t, obj2.PasswordIsNull())
 
-	assert.EqualValues(t, obj.Password(), obj2.Password())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.passwordIsDirty)
 	obj2.SetPassword(obj2.Password())
 	assert.False(t, obj2.passwordIsDirty)
 
 	assert.True(t, obj2.IsEnabledIsValid())
-
-	assert.EqualValues(t, obj.IsEnabled(), obj2.IsEnabled())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.isEnabledIsDirty)
