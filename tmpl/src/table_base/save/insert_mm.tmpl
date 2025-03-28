@@ -5,9 +5,15 @@
 {{
 {{for _,mm := range table.ManyManyReferences}}
     if o.{{= mm.VariableIdentifier() }}.Len() > 0 {
-        for _,obj := range o.{{= mm.VariableIdentifier() }}.All() {
+        keys := o.{{= mm.VariableIdentifier() }}.Keys()
+        for i, k := range keys {
+            obj := o.{{= mm.VariableIdentifier() }}.Get(k)
             if err = obj.Save(ctx); err != nil {
                 return err
+            }
+            if k != obj.PrimaryKey() {
+                o.{{= mm.VariableIdentifier() }}.Delete(k)
+                o.{{= mm.VariableIdentifier() }}.SetAt(i, obj.PrimaryKey(), obj)
             }
             db.Associate(ctx,
                 d,

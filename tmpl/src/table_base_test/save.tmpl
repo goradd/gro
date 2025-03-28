@@ -170,7 +170,7 @@ func Test{{= table.Identifier }}_ReferenceLoad(t *testing.T) {
 
 }
 
-func Test{{= table.Identifier }}_ReferenceUpdate(t *testing.T) {
+func Test{{= table.Identifier }}_ReferenceUpdateNewObjects(t *testing.T) {
     obj := createMaximalSample{{= table.Identifier }}()
     ctx := db.NewContext(nil)
     obj.Save(ctx)
@@ -211,4 +211,59 @@ func Test{{= table.Identifier }}_ReferenceUpdate(t *testing.T) {
 {{for}}
 
 }
+
+func Test{{= table.Identifier }}_ReferenceUpdateOldObjects(t *testing.T) {
+    obj := createMaximalSample{{= table.Identifier }}()
+    ctx := db.NewContext(nil)
+    assert.NoError(t, obj.Save(ctx))
+    defer deleteSample{{= table.Identifier }}(ctx, obj)
+
+{{for _,col := range table.Columns }}
+{{if col.IsReference() }}
+    updateMinimalSample{{= col.ReferenceType() }}(obj.{{= col.ReferenceIdentifier() }}())
+{{if}}
+{{for}}
+{{for _,col := range table.ReverseReferences }}
+{{if col.IsUnique}}
+    updateMinimalSample{{= col.Table.Identifier }}(obj.{{= col.ReverseIdentifier() }}())
+{{else}}
+    updateMinimalSample{{= col.Table.Identifier }}(obj.{{= col.ReverseIdentifier() }}()[0])
+{{if}}
+{{for}}
+{{for _,mm := range table.ManyManyReferences }}
+    updateMinimalSample{{= mm.ObjectType() }}(obj.{{= mm.IdentifierPlural }}()[0])
+{{for}}
+
+    assert.NoError(t, obj.Save(ctx))
+
+    obj2 := Load{{= table.Identifier }}(ctx, obj.PrimaryKey(), {{for _,col := range table.Columns
+    }} {{if col.IsReference() }}node.{{= table.Identifier }}().{{= col.ReferenceIdentifier() }}(),
+    {{if}}
+    {{for}}{{for _,col := range table.ReverseReferences
+    }}node.{{= table.Identifier }}().{{= col.ReverseIdentifier() }}(),
+    {{for}}{{for _,mm := range table.ManyManyReferences
+    }}node.{{= table.Identifier }}().{{= mm.IdentifierPlural }}(),
+    {{for}}
+    )
+    _ = obj2 // avoid error if there are no references
+
+{{for _,col := range table.Columns }}
+{{if col.IsReference() }}
+    assertEqualFields{{= col.ReferenceType() }}(t, obj2.{{= col.ReferenceIdentifier() }}(), obj.{{= col.ReferenceIdentifier() }}())
+{{if}}
+{{for}}
+
+{{for _,col := range table.ReverseReferences }}
+{{if col.IsUnique}}
+    assertEqualFields{{= col.Table.Identifier }}(t, obj2.{{= col.ReverseIdentifier() }}(), obj.{{= col.ReverseIdentifier() }}())
+{{else}}
+    assertEqualFields{{= col.Table.Identifier }}(t, obj2.{{= col.ReverseIdentifier() }}()[0], obj.{{= col.ReverseIdentifier() }}()[0])
+{{if}}
+{{for}}
+
+{{for _,mm := range table.ManyManyReferences }}
+    assertEqualFields{{= mm.ObjectType() }}(t, obj2.{{= mm.IdentifierPlural }}()[0], obj.{{= mm.IdentifierPlural }}()[0])
+{{for}}
+}
 }}
+

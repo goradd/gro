@@ -21,6 +21,7 @@ import (
 func createMinimalSampleTypeTest() *TypeTest {
 	obj := NewTypeTest()
 	updateMinimalSampleTypeTest(obj)
+
 	return obj
 }
 
@@ -71,6 +72,34 @@ func deleteSampleTypeTest(ctx context.Context, obj *TypeTest) {
 	}
 
 	obj.Delete(ctx)
+
+}
+
+// assertEqualFieldsTypeTest compares two objects and asserts that the basic fields are equal.
+func assertEqualFieldsTypeTest(t *testing.T, obj1, obj2 *TypeTest) {
+	assert.EqualValues(t, obj1.ID(), obj2.ID())
+
+	assert.EqualValues(t, obj1.Date(), obj2.Date())
+
+	assert.EqualValues(t, obj1.Time(), obj2.Time())
+
+	assert.EqualValues(t, obj1.DateTime(), obj2.DateTime())
+
+	assert.EqualValues(t, obj1.Ts(), obj2.Ts())
+
+	assert.EqualValues(t, obj1.TestInt(), obj2.TestInt())
+
+	assert.EqualValues(t, obj1.TestFloat(), obj2.TestFloat())
+
+	assert.EqualValues(t, obj1.TestDouble(), obj2.TestDouble())
+
+	assert.EqualValues(t, obj1.TestText(), obj2.TestText())
+
+	assert.EqualValues(t, obj1.TestBit(), obj2.TestBit())
+
+	assert.EqualValues(t, obj1.TestVarchar(), obj2.TestVarchar())
+
+	assert.EqualValues(t, obj1.TestBlob(), obj2.TestBlob())
 
 }
 
@@ -481,7 +510,7 @@ func TestTypeTest_ReferenceLoad(t *testing.T) {
 
 }
 
-func TestTypeTest_ReferenceUpdate(t *testing.T) {
+func TestTypeTest_ReferenceUpdateNewObjects(t *testing.T) {
 	obj := createMaximalSampleTypeTest()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)
@@ -494,6 +523,19 @@ func TestTypeTest_ReferenceUpdate(t *testing.T) {
 
 	obj3 := LoadTypeTest(ctx, obj2.PrimaryKey())
 	_ = obj3 // avoid error if there are no references
+
+}
+
+func TestTypeTest_ReferenceUpdateOldObjects(t *testing.T) {
+	obj := createMaximalSampleTypeTest()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSampleTypeTest(ctx, obj)
+
+	assert.NoError(t, obj.Save(ctx))
+
+	obj2 := LoadTypeTest(ctx, obj.PrimaryKey())
+	_ = obj2 // avoid error if there are no references
 
 }
 func TestTypeTest_EmptyPrimaryKeyGetter(t *testing.T) {

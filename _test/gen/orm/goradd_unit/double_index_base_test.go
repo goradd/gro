@@ -19,6 +19,7 @@ import (
 func createMinimalSampleDoubleIndex() *DoubleIndex {
 	obj := NewDoubleIndex()
 	updateMinimalSampleDoubleIndex(obj)
+
 	return obj
 }
 
@@ -55,6 +56,16 @@ func deleteSampleDoubleIndex(ctx context.Context, obj *DoubleIndex) {
 	}
 
 	obj.Delete(ctx)
+
+}
+
+// assertEqualFieldsDoubleIndex compares two objects and asserts that the basic fields are equal.
+func assertEqualFieldsDoubleIndex(t *testing.T, obj1, obj2 *DoubleIndex) {
+	assert.EqualValues(t, obj1.ID(), obj2.ID())
+
+	assert.EqualValues(t, obj1.FieldInt(), obj2.FieldInt())
+
+	assert.EqualValues(t, obj1.FieldString(), obj2.FieldString())
 
 }
 
@@ -211,7 +222,7 @@ func TestDoubleIndex_ReferenceLoad(t *testing.T) {
 
 }
 
-func TestDoubleIndex_ReferenceUpdate(t *testing.T) {
+func TestDoubleIndex_ReferenceUpdateNewObjects(t *testing.T) {
 	obj := createMaximalSampleDoubleIndex()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)
@@ -224,6 +235,19 @@ func TestDoubleIndex_ReferenceUpdate(t *testing.T) {
 
 	obj3 := LoadDoubleIndex(ctx, obj2.PrimaryKey())
 	_ = obj3 // avoid error if there are no references
+
+}
+
+func TestDoubleIndex_ReferenceUpdateOldObjects(t *testing.T) {
+	obj := createMaximalSampleDoubleIndex()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSampleDoubleIndex(ctx, obj)
+
+	assert.NoError(t, obj.Save(ctx))
+
+	obj2 := LoadDoubleIndex(ctx, obj.PrimaryKey())
+	_ = obj2 // avoid error if there are no references
 
 }
 func TestDoubleIndex_EmptyPrimaryKeyGetter(t *testing.T) {

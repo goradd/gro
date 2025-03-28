@@ -9298,7 +9298,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `.Len() > 0 {
-        for _,obj := range o.`); err != nil {
+        keys := o.`); err != nil {
 				return
 			}
 
@@ -9306,7 +9306,17 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `.All() {
+			if _, err = io.WriteString(_w, `.Keys()
+        for i, k := range keys {
+            obj := o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.Get(k)
             obj.Set`); err != nil {
 				return
 			}
@@ -9319,7 +9329,8 @@ func (o *`); err != nil {
             if err = obj.Save(ctx); err != nil {
                 return err
             }
-            o.`); err != nil {
+            if obj.PrimaryKey() != k {
+                o.`); err != nil {
 				return
 			}
 
@@ -9327,7 +9338,17 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `.Set(obj.PrimaryKey(), obj)
+			if _, err = io.WriteString(_w, `.Delete(k)
+                o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.SetAt(i, obj.PrimaryKey(), obj)
+            }
         }
     }
     `); err != nil {
@@ -9362,7 +9383,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `.Len() > 0 {
-        for _,obj := range o.`); err != nil {
+        keys := o.`); err != nil {
 			return
 		}
 
@@ -9370,9 +9391,39 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `.All() {
+		if _, err = io.WriteString(_w, `.Keys()
+        for i, k := range keys {
+            obj := o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `.Get(k)
             if err = obj.Save(ctx); err != nil {
                 return err
+            }
+            if k != obj.PrimaryKey() {
+                o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `.Delete(k)
+                o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `.SetAt(i, obj.PrimaryKey(), obj)
             }
             db.Associate(ctx,
                 d,
@@ -10717,6 +10768,15 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `IsDirty = false
+	o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Pks = nil
 `); err != nil {
 			return
 		}

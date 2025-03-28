@@ -1336,12 +1336,17 @@ func (o *personBase) insert(ctx context.Context) (err error) {
 		o._originalPK = id
 
 		if o.revAddresses.Len() > 0 {
-			for _, obj := range o.revAddresses.All() {
+			keys := o.revAddresses.Keys()
+			for i, k := range keys {
+				obj := o.revAddresses.Get(k)
 				obj.SetPersonID(id)
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
-				o.revAddresses.Set(obj.PrimaryKey(), obj)
+				if obj.PrimaryKey() != k {
+					o.revAddresses.Delete(k)
+					o.revAddresses.SetAt(i, obj.PrimaryKey(), obj)
+				}
 			}
 		}
 
@@ -1360,19 +1365,30 @@ func (o *personBase) insert(ctx context.Context) (err error) {
 		}
 
 		if o.revManagerProjects.Len() > 0 {
-			for _, obj := range o.revManagerProjects.All() {
+			keys := o.revManagerProjects.Keys()
+			for i, k := range keys {
+				obj := o.revManagerProjects.Get(k)
 				obj.SetManagerID(id)
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
-				o.revManagerProjects.Set(obj.PrimaryKey(), obj)
+				if obj.PrimaryKey() != k {
+					o.revManagerProjects.Delete(k)
+					o.revManagerProjects.SetAt(i, obj.PrimaryKey(), obj)
+				}
 			}
 		}
 
 		if o.mmProjects.Len() > 0 {
-			for _, obj := range o.mmProjects.All() {
+			keys := o.mmProjects.Keys()
+			for i, k := range keys {
+				obj := o.mmProjects.Get(k)
 				if err = obj.Save(ctx); err != nil {
 					return err
+				}
+				if k != obj.PrimaryKey() {
+					o.mmProjects.Delete(k)
+					o.mmProjects.SetAt(i, obj.PrimaryKey(), obj)
 				}
 				db.Associate(ctx,
 					d,
@@ -1565,6 +1581,7 @@ func (o *personBase) resetDirtyStatus() {
 	o.revLoginIsDirty = false
 	o.revManagerProjectsIsDirty = false
 	o.mmProjectsIsDirty = false
+	o.mmProjectsPks = nil
 
 }
 

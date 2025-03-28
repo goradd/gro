@@ -20,6 +20,22 @@ import (
 func createMinimalSampleRoot() *Root {
 	obj := NewRoot()
 	updateMinimalSampleRoot(obj)
+
+	// A required forward reference will need to be fulfilled just to save the minimal version of this object
+	// If the database is configured so that the referenced object points back here, either directly or through multiple
+	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
+	obj.SetRequiredLeaf(createMinimalSampleLeaf())
+
+	// A required forward reference will need to be fulfilled just to save the minimal version of this object
+	// If the database is configured so that the referenced object points back here, either directly or through multiple
+	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
+	obj.SetOptionalLeafUnique(createMinimalSampleLeaf())
+
+	// A required forward reference will need to be fulfilled just to save the minimal version of this object
+	// If the database is configured so that the referenced object points back here, either directly or through multiple
+	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
+	obj.SetRequiredLeafUnique(createMinimalSampleLeaf())
+
 	return obj
 }
 
@@ -27,27 +43,6 @@ func createMinimalSampleRoot() *Root {
 func updateMinimalSampleRoot(obj *Root) {
 
 	obj.SetName(test.RandomValue[string](100))
-
-	// A required forward reference will need to be fulfilled just to save the minimal version of this object
-	// If the database is configured so that the referenced object points back here, either directly or through multiple
-	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
-	if obj.RequiredLeaf() == nil { // only update if not already set, so that delete will remove it later
-		obj.SetRequiredLeaf(createMinimalSampleLeaf())
-	}
-
-	// A required forward reference will need to be fulfilled just to save the minimal version of this object
-	// If the database is configured so that the referenced object points back here, either directly or through multiple
-	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
-	if obj.OptionalLeafUnique() == nil { // only update if not already set, so that delete will remove it later
-		obj.SetOptionalLeafUnique(createMinimalSampleLeaf())
-	}
-
-	// A required forward reference will need to be fulfilled just to save the minimal version of this object
-	// If the database is configured so that the referenced object points back here, either directly or through multiple
-	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
-	if obj.RequiredLeafUnique() == nil { // only update if not already set, so that delete will remove it later
-		obj.SetRequiredLeafUnique(createMinimalSampleLeaf())
-	}
 
 }
 
@@ -98,6 +93,24 @@ func deleteSampleRoot(ctx context.Context, obj *Root) {
 	deleteSampleLeaf(ctx, obj.RequiredLeafUnique())
 
 	deleteSampleRoot(ctx, obj.Parent())
+
+}
+
+// assertEqualFieldsRoot compares two objects and asserts that the basic fields are equal.
+func assertEqualFieldsRoot(t *testing.T, obj1, obj2 *Root) {
+	assert.EqualValues(t, obj1.ID(), obj2.ID())
+
+	assert.EqualValues(t, obj1.Name(), obj2.Name())
+
+	assert.EqualValues(t, obj1.OptionalLeafID(), obj2.OptionalLeafID())
+
+	assert.EqualValues(t, obj1.RequiredLeafID(), obj2.RequiredLeafID())
+
+	assert.EqualValues(t, obj1.OptionalLeafUniqueID(), obj2.OptionalLeafUniqueID())
+
+	assert.EqualValues(t, obj1.RequiredLeafUniqueID(), obj2.RequiredLeafUniqueID())
+
+	assert.EqualValues(t, obj1.ParentID(), obj2.ParentID())
 
 }
 
@@ -397,7 +410,7 @@ func TestRoot_ReferenceLoad(t *testing.T) {
 
 }
 
-func TestRoot_ReferenceUpdate(t *testing.T) {
+func TestRoot_ReferenceUpdateNewObjects(t *testing.T) {
 	obj := createMaximalSampleRoot()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)
@@ -424,6 +437,47 @@ func TestRoot_ReferenceUpdate(t *testing.T) {
 	assert.Equal(t, obj2.Parent().PrimaryKey(), obj3.Parent().PrimaryKey())
 
 	assert.Equal(t, len(obj2.ParentRoots()), len(obj3.ParentRoots()))
+
+}
+
+func TestRoot_ReferenceUpdateOldObjects(t *testing.T) {
+	obj := createMaximalSampleRoot()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSampleRoot(ctx, obj)
+
+	updateMinimalSampleLeaf(obj.OptionalLeaf())
+	updateMinimalSampleLeaf(obj.RequiredLeaf())
+	updateMinimalSampleLeaf(obj.OptionalLeafUnique())
+	updateMinimalSampleLeaf(obj.RequiredLeafUnique())
+	updateMinimalSampleRoot(obj.Parent())
+	updateMinimalSampleRoot(obj.ParentRoots()[0])
+
+	assert.NoError(t, obj.Save(ctx))
+
+	obj2 := LoadRoot(ctx, obj.PrimaryKey(),
+
+		node.Root().OptionalLeaf(),
+
+		node.Root().RequiredLeaf(),
+
+		node.Root().OptionalLeafUnique(),
+
+		node.Root().RequiredLeafUnique(),
+
+		node.Root().Parent(),
+
+		node.Root().ParentRoots(),
+	)
+	_ = obj2 // avoid error if there are no references
+
+	assertEqualFieldsLeaf(t, obj2.OptionalLeaf(), obj.OptionalLeaf())
+	assertEqualFieldsLeaf(t, obj2.RequiredLeaf(), obj.RequiredLeaf())
+	assertEqualFieldsLeaf(t, obj2.OptionalLeafUnique(), obj.OptionalLeafUnique())
+	assertEqualFieldsLeaf(t, obj2.RequiredLeafUnique(), obj.RequiredLeafUnique())
+	assertEqualFieldsRoot(t, obj2.Parent(), obj.Parent())
+
+	assertEqualFieldsRoot(t, obj2.ParentRoots()[0], obj.ParentRoots()[0])
 
 }
 func TestRoot_EmptyPrimaryKeyGetter(t *testing.T) {

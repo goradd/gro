@@ -1038,22 +1038,32 @@ func (o *leafBase) insert(ctx context.Context) (err error) {
 		o._originalPK = id
 
 		if o.revOptionalLeafRoots.Len() > 0 {
-			for _, obj := range o.revOptionalLeafRoots.All() {
+			keys := o.revOptionalLeafRoots.Keys()
+			for i, k := range keys {
+				obj := o.revOptionalLeafRoots.Get(k)
 				obj.SetOptionalLeafID(id)
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
-				o.revOptionalLeafRoots.Set(obj.PrimaryKey(), obj)
+				if obj.PrimaryKey() != k {
+					o.revOptionalLeafRoots.Delete(k)
+					o.revOptionalLeafRoots.SetAt(i, obj.PrimaryKey(), obj)
+				}
 			}
 		}
 
 		if o.revRequiredLeafRoots.Len() > 0 {
-			for _, obj := range o.revRequiredLeafRoots.All() {
+			keys := o.revRequiredLeafRoots.Keys()
+			for i, k := range keys {
+				obj := o.revRequiredLeafRoots.Get(k)
 				obj.SetRequiredLeafID(id)
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
-				o.revRequiredLeafRoots.Set(obj.PrimaryKey(), obj)
+				if obj.PrimaryKey() != k {
+					o.revRequiredLeafRoots.Delete(k)
+					o.revRequiredLeafRoots.SetAt(i, obj.PrimaryKey(), obj)
+				}
 			}
 		}
 

@@ -1485,12 +1485,17 @@ func (o *rootBase) insert(ctx context.Context) (err error) {
 		o._originalPK = id
 
 		if o.revParentRoots.Len() > 0 {
-			for _, obj := range o.revParentRoots.All() {
+			keys := o.revParentRoots.Keys()
+			for i, k := range keys {
+				obj := o.revParentRoots.Get(k)
 				obj.SetParentID(id)
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
-				o.revParentRoots.Set(obj.PrimaryKey(), obj)
+				if obj.PrimaryKey() != k {
+					o.revParentRoots.Delete(k)
+					o.revParentRoots.SetAt(i, obj.PrimaryKey(), obj)
+				}
 			}
 		}
 

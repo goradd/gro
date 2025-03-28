@@ -2207,29 +2207,45 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 		o._originalPK = id
 
 		if o.revMilestones.Len() > 0 {
-			for _, obj := range o.revMilestones.All() {
+			keys := o.revMilestones.Keys()
+			for i, k := range keys {
+				obj := o.revMilestones.Get(k)
 				obj.SetProjectID(id)
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
-				o.revMilestones.Set(obj.PrimaryKey(), obj)
+				if obj.PrimaryKey() != k {
+					o.revMilestones.Delete(k)
+					o.revMilestones.SetAt(i, obj.PrimaryKey(), obj)
+				}
 			}
 		}
 
 		if o.revParentProjectProjects.Len() > 0 {
-			for _, obj := range o.revParentProjectProjects.All() {
+			keys := o.revParentProjectProjects.Keys()
+			for i, k := range keys {
+				obj := o.revParentProjectProjects.Get(k)
 				obj.SetParentProjectID(id)
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
-				o.revParentProjectProjects.Set(obj.PrimaryKey(), obj)
+				if obj.PrimaryKey() != k {
+					o.revParentProjectProjects.Delete(k)
+					o.revParentProjectProjects.SetAt(i, obj.PrimaryKey(), obj)
+				}
 			}
 		}
 
 		if o.mmChildren.Len() > 0 {
-			for _, obj := range o.mmChildren.All() {
+			keys := o.mmChildren.Keys()
+			for i, k := range keys {
+				obj := o.mmChildren.Get(k)
 				if err = obj.Save(ctx); err != nil {
 					return err
+				}
+				if k != obj.PrimaryKey() {
+					o.mmChildren.Delete(k)
+					o.mmChildren.SetAt(i, obj.PrimaryKey(), obj)
 				}
 				db.Associate(ctx,
 					d,
@@ -2256,9 +2272,15 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 			}
 		}
 		if o.mmParents.Len() > 0 {
-			for _, obj := range o.mmParents.All() {
+			keys := o.mmParents.Keys()
+			for i, k := range keys {
+				obj := o.mmParents.Get(k)
 				if err = obj.Save(ctx); err != nil {
 					return err
+				}
+				if k != obj.PrimaryKey() {
+					o.mmParents.Delete(k)
+					o.mmParents.SetAt(i, obj.PrimaryKey(), obj)
 				}
 				db.Associate(ctx,
 					d,
@@ -2285,9 +2307,15 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 			}
 		}
 		if o.mmTeamMembers.Len() > 0 {
-			for _, obj := range o.mmTeamMembers.All() {
+			keys := o.mmTeamMembers.Keys()
+			for i, k := range keys {
+				obj := o.mmTeamMembers.Get(k)
 				if err = obj.Save(ctx); err != nil {
 					return err
+				}
+				if k != obj.PrimaryKey() {
+					o.mmTeamMembers.Delete(k)
+					o.mmTeamMembers.SetAt(i, obj.PrimaryKey(), obj)
 				}
 				db.Associate(ctx,
 					d,
@@ -2558,8 +2586,11 @@ func (o *projectBase) resetDirtyStatus() {
 	o.revMilestonesIsDirty = false
 	o.revParentProjectProjectsIsDirty = false
 	o.mmChildrenIsDirty = false
+	o.mmChildrenPks = nil
 	o.mmParentsIsDirty = false
+	o.mmParentsPks = nil
 	o.mmTeamMembersIsDirty = false
+	o.mmTeamMembersPks = nil
 
 }
 

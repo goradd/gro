@@ -20,18 +20,17 @@ import (
 func createMinimalSampleEmployeeInfo() *EmployeeInfo {
 	obj := NewEmployeeInfo()
 	updateMinimalSampleEmployeeInfo(obj)
+
+	// A required forward reference will need to be fulfilled just to save the minimal version of this object
+	// If the database is configured so that the referenced object points back here, either directly or through multiple
+	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
+	obj.SetPerson(createMinimalSamplePerson())
+
 	return obj
 }
 
 // updateMinimalSampleEmployeeInfo sets the values of a minimal sample to new, random values.
 func updateMinimalSampleEmployeeInfo(obj *EmployeeInfo) {
-
-	// A required forward reference will need to be fulfilled just to save the minimal version of this object
-	// If the database is configured so that the referenced object points back here, either directly or through multiple
-	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
-	if obj.Person() == nil { // only update if not already set, so that delete will remove it later
-		obj.SetPerson(createMinimalSamplePerson())
-	}
 
 	obj.SetEmployeeNumber(test.RandomValue[int](32))
 
@@ -63,6 +62,16 @@ func deleteSampleEmployeeInfo(ctx context.Context, obj *EmployeeInfo) {
 	obj.Delete(ctx)
 
 	deleteSamplePerson(ctx, obj.Person())
+
+}
+
+// assertEqualFieldsEmployeeInfo compares two objects and asserts that the basic fields are equal.
+func assertEqualFieldsEmployeeInfo(t *testing.T, obj1, obj2 *EmployeeInfo) {
+	assert.EqualValues(t, obj1.ID(), obj2.ID())
+
+	assert.EqualValues(t, obj1.PersonID(), obj2.PersonID())
+
+	assert.EqualValues(t, obj1.EmployeeNumber(), obj2.EmployeeNumber())
 
 }
 
@@ -197,7 +206,7 @@ func TestEmployeeInfo_ReferenceLoad(t *testing.T) {
 
 }
 
-func TestEmployeeInfo_ReferenceUpdate(t *testing.T) {
+func TestEmployeeInfo_ReferenceUpdateNewObjects(t *testing.T) {
 	obj := createMaximalSampleEmployeeInfo()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)
@@ -212,6 +221,25 @@ func TestEmployeeInfo_ReferenceUpdate(t *testing.T) {
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())
+
+}
+
+func TestEmployeeInfo_ReferenceUpdateOldObjects(t *testing.T) {
+	obj := createMaximalSampleEmployeeInfo()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSampleEmployeeInfo(ctx, obj)
+
+	updateMinimalSamplePerson(obj.Person())
+
+	assert.NoError(t, obj.Save(ctx))
+
+	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey(),
+		node.EmployeeInfo().Person(),
+	)
+	_ = obj2 // avoid error if there are no references
+
+	assertEqualFieldsPerson(t, obj2.Person(), obj.Person())
 
 }
 func TestEmployeeInfo_EmptyPrimaryKeyGetter(t *testing.T) {

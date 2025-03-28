@@ -20,6 +20,7 @@ import (
 func createMinimalSampleLogin() *Login {
 	obj := NewLogin()
 	updateMinimalSampleLogin(obj)
+
 	return obj
 }
 
@@ -60,6 +61,20 @@ func deleteSampleLogin(ctx context.Context, obj *Login) {
 	obj.Delete(ctx)
 
 	deleteSamplePerson(ctx, obj.Person())
+
+}
+
+// assertEqualFieldsLogin compares two objects and asserts that the basic fields are equal.
+func assertEqualFieldsLogin(t *testing.T, obj1, obj2 *Login) {
+	assert.EqualValues(t, obj1.ID(), obj2.ID())
+
+	assert.EqualValues(t, obj1.PersonID(), obj2.PersonID())
+
+	assert.EqualValues(t, obj1.Username(), obj2.Username())
+
+	assert.EqualValues(t, obj1.Password(), obj2.Password())
+
+	assert.EqualValues(t, obj1.IsEnabled(), obj2.IsEnabled())
 
 }
 
@@ -259,7 +274,7 @@ func TestLogin_ReferenceLoad(t *testing.T) {
 
 }
 
-func TestLogin_ReferenceUpdate(t *testing.T) {
+func TestLogin_ReferenceUpdateNewObjects(t *testing.T) {
 	obj := createMaximalSampleLogin()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)
@@ -274,6 +289,25 @@ func TestLogin_ReferenceUpdate(t *testing.T) {
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())
+
+}
+
+func TestLogin_ReferenceUpdateOldObjects(t *testing.T) {
+	obj := createMaximalSampleLogin()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSampleLogin(ctx, obj)
+
+	updateMinimalSamplePerson(obj.Person())
+
+	assert.NoError(t, obj.Save(ctx))
+
+	obj2 := LoadLogin(ctx, obj.PrimaryKey(),
+		node.Login().Person(),
+	)
+	_ = obj2 // avoid error if there are no references
+
+	assertEqualFieldsPerson(t, obj2.Person(), obj.Person())
 
 }
 func TestLogin_EmptyPrimaryKeyGetter(t *testing.T) {

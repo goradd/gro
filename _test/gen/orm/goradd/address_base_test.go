@@ -20,18 +20,17 @@ import (
 func createMinimalSampleAddress() *Address {
 	obj := NewAddress()
 	updateMinimalSampleAddress(obj)
+
+	// A required forward reference will need to be fulfilled just to save the minimal version of this object
+	// If the database is configured so that the referenced object points back here, either directly or through multiple
+	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
+	obj.SetPerson(createMinimalSamplePerson())
+
 	return obj
 }
 
 // updateMinimalSampleAddress sets the values of a minimal sample to new, random values.
 func updateMinimalSampleAddress(obj *Address) {
-
-	// A required forward reference will need to be fulfilled just to save the minimal version of this object
-	// If the database is configured so that the referenced object points back here, either directly or through multiple
-	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
-	if obj.Person() == nil { // only update if not already set, so that delete will remove it later
-		obj.SetPerson(createMinimalSamplePerson())
-	}
 
 	obj.SetStreet(test.RandomValue[string](100))
 
@@ -65,6 +64,18 @@ func deleteSampleAddress(ctx context.Context, obj *Address) {
 	obj.Delete(ctx)
 
 	deleteSamplePerson(ctx, obj.Person())
+
+}
+
+// assertEqualFieldsAddress compares two objects and asserts that the basic fields are equal.
+func assertEqualFieldsAddress(t *testing.T, obj1, obj2 *Address) {
+	assert.EqualValues(t, obj1.ID(), obj2.ID())
+
+	assert.EqualValues(t, obj1.PersonID(), obj2.PersonID())
+
+	assert.EqualValues(t, obj1.Street(), obj2.Street())
+
+	assert.EqualValues(t, obj1.City(), obj2.City())
 
 }
 
@@ -241,7 +252,7 @@ func TestAddress_ReferenceLoad(t *testing.T) {
 
 }
 
-func TestAddress_ReferenceUpdate(t *testing.T) {
+func TestAddress_ReferenceUpdateNewObjects(t *testing.T) {
 	obj := createMaximalSampleAddress()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)
@@ -256,6 +267,25 @@ func TestAddress_ReferenceUpdate(t *testing.T) {
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())
+
+}
+
+func TestAddress_ReferenceUpdateOldObjects(t *testing.T) {
+	obj := createMaximalSampleAddress()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSampleAddress(ctx, obj)
+
+	updateMinimalSamplePerson(obj.Person())
+
+	assert.NoError(t, obj.Save(ctx))
+
+	obj2 := LoadAddress(ctx, obj.PrimaryKey(),
+		node.Address().Person(),
+	)
+	_ = obj2 // avoid error if there are no references
+
+	assertEqualFieldsPerson(t, obj2.Person(), obj.Person())
 
 }
 func TestAddress_EmptyPrimaryKeyGetter(t *testing.T) {

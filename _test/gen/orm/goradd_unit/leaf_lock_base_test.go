@@ -20,6 +20,7 @@ import (
 func createMinimalSampleLeafLock() *LeafLock {
 	obj := NewLeafLock()
 	updateMinimalSampleLeafLock(obj)
+
 	return obj
 }
 
@@ -52,6 +53,16 @@ func deleteSampleLeafLock(ctx context.Context, obj *LeafLock) {
 	}
 
 	obj.Delete(ctx)
+
+}
+
+// assertEqualFieldsLeafLock compares two objects and asserts that the basic fields are equal.
+func assertEqualFieldsLeafLock(t *testing.T, obj1, obj2 *LeafLock) {
+	assert.EqualValues(t, obj1.ID(), obj2.ID())
+
+	assert.EqualValues(t, obj1.Name(), obj2.Name())
+
+	assert.EqualValues(t, obj1.GroLock(), obj2.GroLock())
 
 }
 
@@ -156,7 +167,7 @@ func TestLeafLock_ReferenceLoad(t *testing.T) {
 
 }
 
-func TestLeafLock_ReferenceUpdate(t *testing.T) {
+func TestLeafLock_ReferenceUpdateNewObjects(t *testing.T) {
 	obj := createMaximalSampleLeafLock()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)
@@ -169,6 +180,19 @@ func TestLeafLock_ReferenceUpdate(t *testing.T) {
 
 	obj3 := LoadLeafLock(ctx, obj2.PrimaryKey())
 	_ = obj3 // avoid error if there are no references
+
+}
+
+func TestLeafLock_ReferenceUpdateOldObjects(t *testing.T) {
+	obj := createMaximalSampleLeafLock()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSampleLeafLock(ctx, obj)
+
+	assert.NoError(t, obj.Save(ctx))
+
+	obj2 := LoadLeafLock(ctx, obj.PrimaryKey())
+	_ = obj2 // avoid error if there are no references
 
 }
 func TestLeafLock_EmptyPrimaryKeyGetter(t *testing.T) {

@@ -13,6 +13,7 @@ func (o *{{= table.DecapIdentifier}}Base) resetDirtyStatus() {
 {{for}}
 {{for _,mm := range table.ManyManyReferences }}
 	o.{{= mm.VariableIdentifier() }}IsDirty = false
+	o.{{= mm.VariableIdentifier() }}Pks = nil
 {{for}}
 
 }

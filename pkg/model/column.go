@@ -156,6 +156,10 @@ func (cd *Column) IsEnumArray() bool {
 	return cd.SchemaType == schema.ColTypeEnumArray
 }
 
+func (cd *Column) IsDecimal() bool {
+	return cd.SchemaSubType == schema.ColSubTypeNumeric
+}
+
 // ReferenceIdentifier returns the capitalized name that should be used to refer to the object
 // in a forward reference. This is not the object's type.
 func (cd *Column) ReferenceIdentifier() string {

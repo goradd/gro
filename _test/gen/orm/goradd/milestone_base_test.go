@@ -20,18 +20,17 @@ import (
 func createMinimalSampleMilestone() *Milestone {
 	obj := NewMilestone()
 	updateMinimalSampleMilestone(obj)
+
+	// A required forward reference will need to be fulfilled just to save the minimal version of this object
+	// If the database is configured so that the referenced object points back here, either directly or through multiple
+	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
+	obj.SetProject(createMinimalSampleProject())
+
 	return obj
 }
 
 // updateMinimalSampleMilestone sets the values of a minimal sample to new, random values.
 func updateMinimalSampleMilestone(obj *Milestone) {
-
-	// A required forward reference will need to be fulfilled just to save the minimal version of this object
-	// If the database is configured so that the referenced object points back here, either directly or through multiple
-	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
-	if obj.Project() == nil { // only update if not already set, so that delete will remove it later
-		obj.SetProject(createMinimalSampleProject())
-	}
 
 	obj.SetName(test.RandomValue[string](50))
 
@@ -63,6 +62,16 @@ func deleteSampleMilestone(ctx context.Context, obj *Milestone) {
 	obj.Delete(ctx)
 
 	deleteSampleProject(ctx, obj.Project())
+
+}
+
+// assertEqualFieldsMilestone compares two objects and asserts that the basic fields are equal.
+func assertEqualFieldsMilestone(t *testing.T, obj1, obj2 *Milestone) {
+	assert.EqualValues(t, obj1.ID(), obj2.ID())
+
+	assert.EqualValues(t, obj1.ProjectID(), obj2.ProjectID())
+
+	assert.EqualValues(t, obj1.Name(), obj2.Name())
 
 }
 
@@ -202,7 +211,7 @@ func TestMilestone_ReferenceLoad(t *testing.T) {
 
 }
 
-func TestMilestone_ReferenceUpdate(t *testing.T) {
+func TestMilestone_ReferenceUpdateNewObjects(t *testing.T) {
 	obj := createMaximalSampleMilestone()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)
@@ -217,6 +226,25 @@ func TestMilestone_ReferenceUpdate(t *testing.T) {
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Project().PrimaryKey(), obj3.Project().PrimaryKey())
+
+}
+
+func TestMilestone_ReferenceUpdateOldObjects(t *testing.T) {
+	obj := createMaximalSampleMilestone()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSampleMilestone(ctx, obj)
+
+	updateMinimalSampleProject(obj.Project())
+
+	assert.NoError(t, obj.Save(ctx))
+
+	obj2 := LoadMilestone(ctx, obj.PrimaryKey(),
+		node.Milestone().Project(),
+	)
+	_ = obj2 // avoid error if there are no references
+
+	assertEqualFieldsProject(t, obj2.Project(), obj.Project())
 
 }
 func TestMilestone_EmptyPrimaryKeyGetter(t *testing.T) {

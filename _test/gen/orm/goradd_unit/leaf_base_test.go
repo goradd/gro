@@ -20,6 +20,7 @@ import (
 func createMinimalSampleLeaf() *Leaf {
 	obj := NewLeaf()
 	updateMinimalSampleLeaf(obj)
+
 	return obj
 }
 
@@ -65,6 +66,14 @@ func deleteSampleLeaf(ctx context.Context, obj *Leaf) {
 	deleteSampleRoot(ctx, obj.RequiredLeafUniqueRoot())
 
 	obj.Delete(ctx)
+
+}
+
+// assertEqualFieldsLeaf compares two objects and asserts that the basic fields are equal.
+func assertEqualFieldsLeaf(t *testing.T, obj1, obj2 *Leaf) {
+	assert.EqualValues(t, obj1.ID(), obj2.ID())
+
+	assert.EqualValues(t, obj1.Name(), obj2.Name())
 
 }
 
@@ -194,7 +203,7 @@ func TestLeaf_ReferenceLoad(t *testing.T) {
 
 }
 
-func TestLeaf_ReferenceUpdate(t *testing.T) {
+func TestLeaf_ReferenceUpdateNewObjects(t *testing.T) {
 	obj := createMaximalSampleLeaf()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)
@@ -216,6 +225,35 @@ func TestLeaf_ReferenceUpdate(t *testing.T) {
 	assert.Equal(t, len(obj2.RequiredLeafRoots()), len(obj3.RequiredLeafRoots()))
 	assert.Equal(t, obj2.OptionalLeafUniqueRoot().PrimaryKey(), obj3.OptionalLeafUniqueRoot().PrimaryKey())
 	assert.Equal(t, obj2.RequiredLeafUniqueRoot().PrimaryKey(), obj3.RequiredLeafUniqueRoot().PrimaryKey())
+
+}
+
+func TestLeaf_ReferenceUpdateOldObjects(t *testing.T) {
+	obj := createMaximalSampleLeaf()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSampleLeaf(ctx, obj)
+
+	updateMinimalSampleRoot(obj.OptionalLeafRoots()[0])
+	updateMinimalSampleRoot(obj.RequiredLeafRoots()[0])
+	updateMinimalSampleRoot(obj.OptionalLeafUniqueRoot())
+	updateMinimalSampleRoot(obj.RequiredLeafUniqueRoot())
+
+	assert.NoError(t, obj.Save(ctx))
+
+	obj2 := LoadLeaf(ctx, obj.PrimaryKey(),
+
+		node.Leaf().OptionalLeafRoots(),
+		node.Leaf().RequiredLeafRoots(),
+		node.Leaf().OptionalLeafUniqueRoot(),
+		node.Leaf().RequiredLeafUniqueRoot(),
+	)
+	_ = obj2 // avoid error if there are no references
+
+	assertEqualFieldsRoot(t, obj2.OptionalLeafRoots()[0], obj.OptionalLeafRoots()[0])
+	assertEqualFieldsRoot(t, obj2.RequiredLeafRoots()[0], obj.RequiredLeafRoots()[0])
+	assertEqualFieldsRoot(t, obj2.OptionalLeafUniqueRoot(), obj.OptionalLeafUniqueRoot())
+	assertEqualFieldsRoot(t, obj2.RequiredLeafUniqueRoot(), obj.RequiredLeafUniqueRoot())
 
 }
 func TestLeaf_EmptyPrimaryKeyGetter(t *testing.T) {

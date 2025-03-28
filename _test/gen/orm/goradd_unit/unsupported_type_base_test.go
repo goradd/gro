@@ -4,8 +4,10 @@ package goradd_unit
 
 import (
 	"context"
+	"testing"
 
 	"github.com/goradd/orm/pkg/test"
+	"github.com/stretchr/testify/assert"
 )
 
 // createMinimalSampleUnsupportedType creates an unsaved minimal version of a UnsupportedType object
@@ -13,6 +15,7 @@ import (
 func createMinimalSampleUnsupportedType() *UnsupportedType {
 	obj := NewUnsupportedType()
 	updateMinimalSampleUnsupportedType(obj)
+
 	return obj
 }
 
@@ -65,5 +68,45 @@ func deleteSampleUnsupportedType(ctx context.Context, obj *UnsupportedType) {
 	}
 
 	obj.Delete(ctx)
+
+}
+
+// assertEqualFieldsUnsupportedType compares two objects and asserts that the basic fields are equal.
+func assertEqualFieldsUnsupportedType(t *testing.T, obj1, obj2 *UnsupportedType) {
+	assert.EqualValues(t, obj1.TypeSerial(), obj2.TypeSerial())
+
+	assert.EqualValues(t, obj1.TypeSet(), obj2.TypeSet())
+
+	assert.EqualValues(t, obj1.TypeEnumerated(), obj2.TypeEnumerated())
+
+	assert.True(t, test.EqualDecimals(obj1.TypeDecimal(), obj2.TypeDecimal()))
+
+	assert.EqualValues(t, obj1.TypeDouble(), obj2.TypeDouble())
+
+	assert.EqualValues(t, obj1.TypeGeo(), obj2.TypeGeo())
+
+	assert.EqualValues(t, obj1.TypeTinyBlob(), obj2.TypeTinyBlob())
+
+	assert.EqualValues(t, obj1.TypeMediumBlob(), obj2.TypeMediumBlob())
+
+	assert.EqualValues(t, obj1.TypeVarbinary(), obj2.TypeVarbinary())
+
+	assert.EqualValues(t, obj1.TypeLongtext(), obj2.TypeLongtext())
+
+	assert.EqualValues(t, obj1.TypeBinary(), obj2.TypeBinary())
+
+	assert.EqualValues(t, obj1.TypeSmall(), obj2.TypeSmall())
+
+	assert.EqualValues(t, obj1.TypeMedium(), obj2.TypeMedium())
+
+	assert.EqualValues(t, obj1.TypeBig(), obj2.TypeBig())
+
+	assert.EqualValues(t, obj1.TypePolygon(), obj2.TypePolygon())
+
+	assert.EqualValues(t, obj1.TypeUnsigned(), obj2.TypeUnsigned())
+
+	assert.EqualValues(t, obj1.TypeMultfk1(), obj2.TypeMultfk1())
+
+	assert.EqualValues(t, obj1.TypeMultifk2(), obj2.TypeMultifk2())
 
 }

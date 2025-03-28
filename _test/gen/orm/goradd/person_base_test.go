@@ -20,6 +20,7 @@ import (
 func createMinimalSamplePerson() *Person {
 	obj := NewPerson()
 	updateMinimalSamplePerson(obj)
+
 	return obj
 }
 
@@ -74,6 +75,18 @@ func deleteSamplePerson(ctx context.Context, obj *Person) {
 	}
 
 	obj.Delete(ctx)
+
+}
+
+// assertEqualFieldsPerson compares two objects and asserts that the basic fields are equal.
+func assertEqualFieldsPerson(t *testing.T, obj1, obj2 *Person) {
+	assert.EqualValues(t, obj1.ID(), obj2.ID())
+
+	assert.EqualValues(t, obj1.FirstName(), obj2.FirstName())
+
+	assert.EqualValues(t, obj1.LastName(), obj2.LastName())
+
+	assert.True(t, obj1.Types().Equal(obj2.Types()))
 
 }
 
@@ -276,7 +289,7 @@ func TestPerson_ReferenceLoad(t *testing.T) {
 
 }
 
-func TestPerson_ReferenceUpdate(t *testing.T) {
+func TestPerson_ReferenceUpdateNewObjects(t *testing.T) {
 	obj := createMaximalSamplePerson()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)
@@ -302,6 +315,38 @@ func TestPerson_ReferenceUpdate(t *testing.T) {
 
 	assert.Equal(t, len(obj2.Projects()), len(obj3.Projects()))
 
+}
+
+func TestPerson_ReferenceUpdateOldObjects(t *testing.T) {
+	obj := createMaximalSamplePerson()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSamplePerson(ctx, obj)
+
+	updateMinimalSampleAddress(obj.Addresses()[0])
+	updateMinimalSampleEmployeeInfo(obj.EmployeeInfo())
+	updateMinimalSampleLogin(obj.Login())
+	updateMinimalSampleProject(obj.ManagerProjects()[0])
+	updateMinimalSampleProject(obj.Projects()[0])
+
+	assert.NoError(t, obj.Save(ctx))
+
+	obj2 := LoadPerson(ctx, obj.PrimaryKey(),
+
+		node.Person().Addresses(),
+		node.Person().EmployeeInfo(),
+		node.Person().Login(),
+		node.Person().ManagerProjects(),
+		node.Person().Projects(),
+	)
+	_ = obj2 // avoid error if there are no references
+
+	assertEqualFieldsAddress(t, obj2.Addresses()[0], obj.Addresses()[0])
+	assertEqualFieldsEmployeeInfo(t, obj2.EmployeeInfo(), obj.EmployeeInfo())
+	assertEqualFieldsLogin(t, obj2.Login(), obj.Login())
+	assertEqualFieldsProject(t, obj2.ManagerProjects()[0], obj.ManagerProjects()[0])
+
+	assertEqualFieldsProject(t, obj2.Projects()[0], obj.Projects()[0])
 }
 func TestPerson_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewPerson()

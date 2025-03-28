@@ -21,6 +21,7 @@ import (
 func createMinimalSampleProject() *Project {
 	obj := NewProject()
 	updateMinimalSampleProject(obj)
+
 	return obj
 }
 
@@ -97,6 +98,32 @@ func deleteSampleProject(ctx context.Context, obj *Project) {
 	deleteSamplePerson(ctx, obj.Manager())
 
 	deleteSampleProject(ctx, obj.ParentProject())
+
+}
+
+// assertEqualFieldsProject compares two objects and asserts that the basic fields are equal.
+func assertEqualFieldsProject(t *testing.T, obj1, obj2 *Project) {
+	assert.EqualValues(t, obj1.ID(), obj2.ID())
+
+	assert.EqualValues(t, obj1.Num(), obj2.Num())
+
+	assert.EqualValues(t, obj1.Status(), obj2.Status())
+
+	assert.EqualValues(t, obj1.ManagerID(), obj2.ManagerID())
+
+	assert.EqualValues(t, obj1.Name(), obj2.Name())
+
+	assert.EqualValues(t, obj1.Description(), obj2.Description())
+
+	assert.EqualValues(t, obj1.StartDate(), obj2.StartDate())
+
+	assert.EqualValues(t, obj1.EndDate(), obj2.EndDate())
+
+	assert.True(t, test.EqualDecimals(obj1.Budget(), obj2.Budget()))
+
+	assert.True(t, test.EqualDecimals(obj1.Spent(), obj2.Spent()))
+
+	assert.EqualValues(t, obj1.ParentProjectID(), obj2.ParentProjectID())
 
 }
 
@@ -531,7 +558,7 @@ func TestProject_ReferenceLoad(t *testing.T) {
 
 }
 
-func TestProject_ReferenceUpdate(t *testing.T) {
+func TestProject_ReferenceUpdateNewObjects(t *testing.T) {
 	obj := createMaximalSampleProject()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)
@@ -562,6 +589,47 @@ func TestProject_ReferenceUpdate(t *testing.T) {
 	assert.Equal(t, len(obj2.Parents()), len(obj3.Parents()))
 	assert.Equal(t, len(obj2.TeamMembers()), len(obj3.TeamMembers()))
 
+}
+
+func TestProject_ReferenceUpdateOldObjects(t *testing.T) {
+	obj := createMaximalSampleProject()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSampleProject(ctx, obj)
+
+	updateMinimalSamplePerson(obj.Manager())
+	updateMinimalSampleProject(obj.ParentProject())
+	updateMinimalSampleMilestone(obj.Milestones()[0])
+	updateMinimalSampleProject(obj.ParentProjectProjects()[0])
+	updateMinimalSampleProject(obj.Children()[0])
+	updateMinimalSampleProject(obj.Parents()[0])
+	updateMinimalSamplePerson(obj.TeamMembers()[0])
+
+	assert.NoError(t, obj.Save(ctx))
+
+	obj2 := LoadProject(ctx, obj.PrimaryKey(),
+
+		node.Project().Manager(),
+
+		node.Project().ParentProject(),
+
+		node.Project().Milestones(),
+		node.Project().ParentProjectProjects(),
+		node.Project().Children(),
+		node.Project().Parents(),
+		node.Project().TeamMembers(),
+	)
+	_ = obj2 // avoid error if there are no references
+
+	assertEqualFieldsPerson(t, obj2.Manager(), obj.Manager())
+	assertEqualFieldsProject(t, obj2.ParentProject(), obj.ParentProject())
+
+	assertEqualFieldsMilestone(t, obj2.Milestones()[0], obj.Milestones()[0])
+	assertEqualFieldsProject(t, obj2.ParentProjectProjects()[0], obj.ParentProjectProjects()[0])
+
+	assertEqualFieldsProject(t, obj2.Children()[0], obj.Children()[0])
+	assertEqualFieldsProject(t, obj2.Parents()[0], obj.Parents()[0])
+	assertEqualFieldsPerson(t, obj2.TeamMembers()[0], obj.TeamMembers()[0])
 }
 func TestProject_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewProject()

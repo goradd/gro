@@ -19,6 +19,7 @@ import (
 func createMinimalSampleGift() *Gift {
 	obj := NewGift()
 	updateMinimalSampleGift(obj)
+
 	return obj
 }
 
@@ -53,6 +54,14 @@ func deleteSampleGift(ctx context.Context, obj *Gift) {
 	}
 
 	obj.Delete(ctx)
+
+}
+
+// assertEqualFieldsGift compares two objects and asserts that the basic fields are equal.
+func assertEqualFieldsGift(t *testing.T, obj1, obj2 *Gift) {
+	assert.EqualValues(t, obj1.Number(), obj2.Number())
+
+	assert.EqualValues(t, obj1.Name(), obj2.Name())
 
 }
 
@@ -180,7 +189,7 @@ func TestGift_ReferenceLoad(t *testing.T) {
 
 }
 
-func TestGift_ReferenceUpdate(t *testing.T) {
+func TestGift_ReferenceUpdateNewObjects(t *testing.T) {
 	obj := createMaximalSampleGift()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)
@@ -193,6 +202,19 @@ func TestGift_ReferenceUpdate(t *testing.T) {
 
 	obj3 := LoadGift(ctx, obj2.PrimaryKey())
 	_ = obj3 // avoid error if there are no references
+
+}
+
+func TestGift_ReferenceUpdateOldObjects(t *testing.T) {
+	obj := createMaximalSampleGift()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSampleGift(ctx, obj)
+
+	assert.NoError(t, obj.Save(ctx))
+
+	obj2 := LoadGift(ctx, obj.PrimaryKey())
+	_ = obj2 // avoid error if there are no references
 
 }
 func TestGift_EmptyPrimaryKeyGetter(t *testing.T) {

@@ -18,12 +18,17 @@
     {{else}} {{# not unique }}
 
     if o.{{= col.ReverseVariableIdentifier() }}.Len() > 0 {
-        for _,obj := range o.{{= col.ReverseVariableIdentifier() }}.All() {
+        keys := o.{{= col.ReverseVariableIdentifier() }}.Keys()
+        for i, k := range keys {
+            obj := o.{{= col.ReverseVariableIdentifier() }}.Get(k)
             obj.Set{{= col.Identifier }}(id)
             if err = obj.Save(ctx); err != nil {
                 return err
             }
-            o.{{= col.ReverseVariableIdentifier() }}.Set(obj.PrimaryKey(), obj)
+            if obj.PrimaryKey() != k {
+                o.{{= col.ReverseVariableIdentifier() }}.Delete(k)
+                o.{{= col.ReverseVariableIdentifier() }}.SetAt(i, obj.PrimaryKey(), obj)
+            }
         }
     }
     {{if}}

@@ -20,6 +20,7 @@ import (
 func createMinimalSamplePersonWithLock() *PersonWithLock {
 	obj := NewPersonWithLock()
 	updateMinimalSamplePersonWithLock(obj)
+
 	return obj
 }
 
@@ -54,6 +55,20 @@ func deleteSamplePersonWithLock(ctx context.Context, obj *PersonWithLock) {
 	}
 
 	obj.Delete(ctx)
+
+}
+
+// assertEqualFieldsPersonWithLock compares two objects and asserts that the basic fields are equal.
+func assertEqualFieldsPersonWithLock(t *testing.T, obj1, obj2 *PersonWithLock) {
+	assert.EqualValues(t, obj1.ID(), obj2.ID())
+
+	assert.EqualValues(t, obj1.FirstName(), obj2.FirstName())
+
+	assert.EqualValues(t, obj1.LastName(), obj2.LastName())
+
+	assert.EqualValues(t, obj1.GroLock(), obj2.GroLock())
+
+	assert.EqualValues(t, obj1.GroTimestamp(), obj2.GroTimestamp())
 
 }
 
@@ -195,7 +210,7 @@ func TestPersonWithLock_ReferenceLoad(t *testing.T) {
 
 }
 
-func TestPersonWithLock_ReferenceUpdate(t *testing.T) {
+func TestPersonWithLock_ReferenceUpdateNewObjects(t *testing.T) {
 	obj := createMaximalSamplePersonWithLock()
 	ctx := db.NewContext(nil)
 	obj.Save(ctx)
@@ -208,6 +223,19 @@ func TestPersonWithLock_ReferenceUpdate(t *testing.T) {
 
 	obj3 := LoadPersonWithLock(ctx, obj2.PrimaryKey())
 	_ = obj3 // avoid error if there are no references
+
+}
+
+func TestPersonWithLock_ReferenceUpdateOldObjects(t *testing.T) {
+	obj := createMaximalSamplePersonWithLock()
+	ctx := db.NewContext(nil)
+	assert.NoError(t, obj.Save(ctx))
+	defer deleteSamplePersonWithLock(ctx, obj)
+
+	assert.NoError(t, obj.Save(ctx))
+
+	obj2 := LoadPersonWithLock(ctx, obj.PrimaryKey())
+	_ = obj2 // avoid error if there are no references
 
 }
 func TestPersonWithLock_EmptyPrimaryKeyGetter(t *testing.T) {
