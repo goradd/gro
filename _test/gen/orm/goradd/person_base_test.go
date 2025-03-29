@@ -4,6 +4,7 @@ package goradd
 
 import (
 	"context"
+	"encoding/json"
 	"strconv"
 	"testing"
 
@@ -466,4 +467,29 @@ func TestPerson_Count(t *testing.T) {
 	assert.Less(t, 0, CountPeopleByFirstName(ctx, obj.FirstName()))
 	assert.Less(t, 0, CountPeopleByLastName(ctx, obj.LastName()))
 
+}
+func TestPerson_MarshalJSON(t *testing.T) {
+	obj := createMinimalSamplePerson()
+
+	b, err := json.Marshal(obj)
+	assert.NoError(t, err)
+
+	obj2 := NewPerson()
+	err = json.Unmarshal(b, &obj2)
+	assert.NoError(t, err)
+
+	assertEqualFieldsPerson(t, obj, obj2)
+}
+
+func TestPerson_MarshalBinary(t *testing.T) {
+	obj := createMinimalSamplePerson()
+
+	b, err := obj.MarshalBinary()
+	assert.NoError(t, err)
+
+	obj2 := NewPerson()
+	err = obj2.UnmarshalBinary(b)
+	assert.NoError(t, err)
+
+	assertEqualFieldsPerson(t, obj, obj2)
 }

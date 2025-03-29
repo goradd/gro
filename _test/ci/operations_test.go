@@ -153,7 +153,7 @@ func TestAggregates(t *testing.T) {
 		Calculation(node.Project(), "max", op.Max(node.Project().Spent())).
 		Load()
 
-	assert.False(t, projects3[0].NameIsValid(), "aggregate functions should not select fields automatically")
+	assert.False(t, projects3[0].NameIsLoaded(), "aggregate functions should not select fields automatically")
 	assert.EqualValues(t, 73200.0, projects3[0].GetAlias("max").Float())
 }
 

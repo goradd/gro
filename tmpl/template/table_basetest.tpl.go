@@ -3715,6 +3715,102 @@ func Test`); err != nil {
 			return
 		}
 
+		//*** marshal.tmpl
+
+		if _, err = io.WriteString(_w, `func Test`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `_MarshalJSON(t *testing.T) {
+    obj := createMinimalSample`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+
+    b,err := json.Marshal(obj)
+    assert.NoError(t, err)
+
+    obj2 := New`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+    err = json.Unmarshal(b, &obj2)
+    assert.NoError(t, err)
+
+    assertEqualFields`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(t, obj, obj2)
+}
+
+func Test`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `_MarshalBinary(t *testing.T) {
+    obj := createMinimalSample`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+
+    b,err := obj.MarshalBinary()
+    assert.NoError(t, err)
+
+    obj2 := New`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+    err = obj2.UnmarshalBinary(b)
+    assert.NoError(t, err)
+
+    assertEqualFields`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(t, obj, obj2)
+}
+
+`); err != nil {
+			return
+		}
+
 	}
 
 	return

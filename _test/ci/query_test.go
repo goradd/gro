@@ -250,9 +250,9 @@ func TestSelect(t *testing.T) {
 		Load()
 
 	project := projects[0]
-	assert.True(t, project.NameIsValid())
-	assert.False(t, project.ManagerIDIsValid())
-	assert.True(t, project.IDIsValid())
+	assert.True(t, project.NameIsLoaded())
+	assert.False(t, project.ManagerIDIsLoaded())
+	assert.True(t, project.IDIsLoaded())
 }
 
 func TestLimit(t *testing.T) {

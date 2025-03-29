@@ -4,6 +4,7 @@ package goradd
 
 import (
 	"context"
+	"encoding/json"
 	"strconv"
 	"testing"
 
@@ -434,4 +435,29 @@ func TestLogin_Count(t *testing.T) {
 	assert.Less(t, 0, CountLoginsByPassword(ctx, obj.Password()))
 	assert.Less(t, 0, CountLoginsByIsEnabled(ctx, obj.IsEnabled()))
 
+}
+func TestLogin_MarshalJSON(t *testing.T) {
+	obj := createMinimalSampleLogin()
+
+	b, err := json.Marshal(obj)
+	assert.NoError(t, err)
+
+	obj2 := NewLogin()
+	err = json.Unmarshal(b, &obj2)
+	assert.NoError(t, err)
+
+	assertEqualFieldsLogin(t, obj, obj2)
+}
+
+func TestLogin_MarshalBinary(t *testing.T) {
+	obj := createMinimalSampleLogin()
+
+	b, err := obj.MarshalBinary()
+	assert.NoError(t, err)
+
+	obj2 := NewLogin()
+	err = obj2.UnmarshalBinary(b)
+	assert.NoError(t, err)
+
+	assertEqualFieldsLogin(t, obj, obj2)
 }

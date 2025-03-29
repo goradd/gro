@@ -4,6 +4,7 @@ package goradd
 
 import (
 	"context"
+	"encoding/json"
 	"strconv"
 	"testing"
 
@@ -362,4 +363,29 @@ func TestPersonWithLock_Count(t *testing.T) {
 	assert.Less(t, 0, CountPersonWithLocksByGroLock(ctx, obj.GroLock()))
 	assert.Less(t, 0, CountPersonWithLocksByGroTimestamp(ctx, obj.GroTimestamp()))
 
+}
+func TestPersonWithLock_MarshalJSON(t *testing.T) {
+	obj := createMinimalSamplePersonWithLock()
+
+	b, err := json.Marshal(obj)
+	assert.NoError(t, err)
+
+	obj2 := NewPersonWithLock()
+	err = json.Unmarshal(b, &obj2)
+	assert.NoError(t, err)
+
+	assertEqualFieldsPersonWithLock(t, obj, obj2)
+}
+
+func TestPersonWithLock_MarshalBinary(t *testing.T) {
+	obj := createMinimalSamplePersonWithLock()
+
+	b, err := obj.MarshalBinary()
+	assert.NoError(t, err)
+
+	obj2 := NewPersonWithLock()
+	err = obj2.UnmarshalBinary(b)
+	assert.NoError(t, err)
+
+	assertEqualFieldsPersonWithLock(t, obj, obj2)
 }

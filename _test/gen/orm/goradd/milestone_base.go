@@ -58,7 +58,7 @@ const MilestoneNameMaxLength = 50 // The number of runes the column can hold
 // Multiple calls to Initialize are not guaranteed to create sequential values for the primary key.
 func (o *milestoneBase) Initialize() {
 	o.id = db.TemporaryPrimaryKey()
-	o.idIsLoaded = false
+	o.idIsLoaded = true
 	o.idIsDirty = false
 
 	o.projectID = ""

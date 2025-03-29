@@ -107,7 +107,7 @@ const TypeTestTestBlobMaxLength = 65535 // The number of bytes the column can ho
 // Multiple calls to Initialize are not guaranteed to create sequential values for the primary key.
 func (o *typeTestBase) Initialize() {
 	o.id = db.TemporaryPrimaryKey()
-	o.idIsLoaded = false
+	o.idIsLoaded = true
 	o.idIsDirty = false
 
 	o.date = time.Time{}

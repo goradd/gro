@@ -4,6 +4,7 @@ package goradd
 
 import (
 	"context"
+	"encoding/json"
 	"strconv"
 	"testing"
 	"time"
@@ -776,4 +777,29 @@ func TestProject_Count(t *testing.T) {
 	assert.Less(t, 0, CountProjectsBySpent(ctx, obj.Spent()))
 	assert.Less(t, 0, CountProjectsByParentProjectID(ctx, obj.ParentProjectID()))
 
+}
+func TestProject_MarshalJSON(t *testing.T) {
+	obj := createMinimalSampleProject()
+
+	b, err := json.Marshal(obj)
+	assert.NoError(t, err)
+
+	obj2 := NewProject()
+	err = json.Unmarshal(b, &obj2)
+	assert.NoError(t, err)
+
+	assertEqualFieldsProject(t, obj, obj2)
+}
+
+func TestProject_MarshalBinary(t *testing.T) {
+	obj := createMinimalSampleProject()
+
+	b, err := obj.MarshalBinary()
+	assert.NoError(t, err)
+
+	obj2 := NewProject()
+	err = obj2.UnmarshalBinary(b)
+	assert.NoError(t, err)
+
+	assertEqualFieldsProject(t, obj, obj2)
 }

@@ -164,7 +164,7 @@ func (cd *Column) IsDecimal() bool {
 
 // HasDefaultValue returns true if the column has a default value.
 func (cd *Column) HasDefaultValue() bool {
-	return cd.DefaultValue != nil
+	return cd.IsAutoId || cd.DefaultValue != nil
 }
 
 // ReferenceIdentifier returns the capitalized name that should be used to refer to the object

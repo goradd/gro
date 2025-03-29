@@ -58,7 +58,7 @@ const EmployeeInfoEmployeeNumberMin = -2147483648
 // Multiple calls to Initialize are not guaranteed to create sequential values for the primary key.
 func (o *employeeInfoBase) Initialize() {
 	o.id = db.TemporaryPrimaryKey()
-	o.idIsLoaded = false
+	o.idIsLoaded = true
 	o.idIsDirty = false
 
 	o.personID = ""

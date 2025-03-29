@@ -24,8 +24,8 @@ func TestReverseConditionalSelect(t *testing.T) {
 
 	assert.Len(t, people[2].ManagerProjects(), 2)
 	assert.Equal(t, people[2].ManagerProjects()[0].Name(), "ACME Payment System")
-	assert.True(t, people[2].ManagerProjects()[0].IDIsValid())
-	assert.False(t, people[2].ManagerProjects()[0].NumIsValid())
+	assert.True(t, people[2].ManagerProjects()[0].IDIsLoaded())
+	assert.False(t, people[2].ManagerProjects()[0].NumIsLoaded())
 }
 
 // Complex test finding all the team members of all the projects a person is managing, ordering by last name

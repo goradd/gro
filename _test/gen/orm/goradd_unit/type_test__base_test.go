@@ -4,6 +4,7 @@ package goradd_unit
 
 import (
 	"context"
+	"encoding/json"
 	"strconv"
 	"testing"
 	"time"
@@ -681,4 +682,29 @@ func TestTypeTest_Count(t *testing.T) {
 	assert.Less(t, 0, CountTypeTestsByTestVarchar(ctx, obj.TestVarchar()))
 	assert.Less(t, 0, CountTypeTestsByTestBlob(ctx, obj.TestBlob()))
 
+}
+func TestTypeTest_MarshalJSON(t *testing.T) {
+	obj := createMinimalSampleTypeTest()
+
+	b, err := json.Marshal(obj)
+	assert.NoError(t, err)
+
+	obj2 := NewTypeTest()
+	err = json.Unmarshal(b, &obj2)
+	assert.NoError(t, err)
+
+	assertEqualFieldsTypeTest(t, obj, obj2)
+}
+
+func TestTypeTest_MarshalBinary(t *testing.T) {
+	obj := createMinimalSampleTypeTest()
+
+	b, err := obj.MarshalBinary()
+	assert.NoError(t, err)
+
+	obj2 := NewTypeTest()
+	err = obj2.UnmarshalBinary(b)
+	assert.NoError(t, err)
+
+	assertEqualFieldsTypeTest(t, obj, obj2)
 }

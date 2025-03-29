@@ -4,6 +4,7 @@ package goradd
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/goradd/orm/_test/gen/orm/goradd/node"
@@ -302,4 +303,29 @@ func TestGift_Count(t *testing.T) {
 	assert.Less(t, 0, CountGiftsByNumber(ctx, obj.Number()))
 	assert.Less(t, 0, CountGiftsByName(ctx, obj.Name()))
 
+}
+func TestGift_MarshalJSON(t *testing.T) {
+	obj := createMinimalSampleGift()
+
+	b, err := json.Marshal(obj)
+	assert.NoError(t, err)
+
+	obj2 := NewGift()
+	err = json.Unmarshal(b, &obj2)
+	assert.NoError(t, err)
+
+	assertEqualFieldsGift(t, obj, obj2)
+}
+
+func TestGift_MarshalBinary(t *testing.T) {
+	obj := createMinimalSampleGift()
+
+	b, err := obj.MarshalBinary()
+	assert.NoError(t, err)
+
+	obj2 := NewGift()
+	err = obj2.UnmarshalBinary(b)
+	assert.NoError(t, err)
+
+	assertEqualFieldsGift(t, obj, obj2)
 }

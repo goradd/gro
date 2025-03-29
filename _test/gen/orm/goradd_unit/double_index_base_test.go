@@ -4,6 +4,7 @@ package goradd_unit
 
 import (
 	"context"
+	"encoding/json"
 	"testing"
 
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
@@ -338,4 +339,29 @@ func TestDoubleIndex_Count(t *testing.T) {
 	assert.Less(t, 0, CountDoubleIndicesByFieldInt(ctx, obj.FieldInt()))
 	assert.Less(t, 0, CountDoubleIndicesByFieldString(ctx, obj.FieldString()))
 
+}
+func TestDoubleIndex_MarshalJSON(t *testing.T) {
+	obj := createMinimalSampleDoubleIndex()
+
+	b, err := json.Marshal(obj)
+	assert.NoError(t, err)
+
+	obj2 := NewDoubleIndex()
+	err = json.Unmarshal(b, &obj2)
+	assert.NoError(t, err)
+
+	assertEqualFieldsDoubleIndex(t, obj, obj2)
+}
+
+func TestDoubleIndex_MarshalBinary(t *testing.T) {
+	obj := createMinimalSampleDoubleIndex()
+
+	b, err := obj.MarshalBinary()
+	assert.NoError(t, err)
+
+	obj2 := NewDoubleIndex()
+	err = obj2.UnmarshalBinary(b)
+	assert.NoError(t, err)
+
+	assertEqualFieldsDoubleIndex(t, obj, obj2)
 }

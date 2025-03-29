@@ -4,6 +4,7 @@ package goradd
 
 import (
 	"context"
+	"encoding/json"
 	"strconv"
 	"testing"
 
@@ -361,4 +362,29 @@ func TestMilestone_Count(t *testing.T) {
 	assert.Less(t, 0, CountMilestonesByProjectID(ctx, obj.ProjectID()))
 	assert.Less(t, 0, CountMilestonesByName(ctx, obj.Name()))
 
+}
+func TestMilestone_MarshalJSON(t *testing.T) {
+	obj := createMinimalSampleMilestone()
+
+	b, err := json.Marshal(obj)
+	assert.NoError(t, err)
+
+	obj2 := NewMilestone()
+	err = json.Unmarshal(b, &obj2)
+	assert.NoError(t, err)
+
+	assertEqualFieldsMilestone(t, obj, obj2)
+}
+
+func TestMilestone_MarshalBinary(t *testing.T) {
+	obj := createMinimalSampleMilestone()
+
+	b, err := obj.MarshalBinary()
+	assert.NoError(t, err)
+
+	obj2 := NewMilestone()
+	err = obj2.UnmarshalBinary(b)
+	assert.NoError(t, err)
+
+	assertEqualFieldsMilestone(t, obj, obj2)
 }

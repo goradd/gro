@@ -133,7 +133,7 @@ const ProjectSpentMaxLength = 14          // The number of runes the column can 
 // Multiple calls to Initialize are not guaranteed to create sequential values for the primary key.
 func (o *projectBase) Initialize() {
 	o.id = db.TemporaryPrimaryKey()
-	o.idIsLoaded = false
+	o.idIsLoaded = true
 	o.idIsDirty = false
 
 	o.num = 0

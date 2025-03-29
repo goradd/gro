@@ -1,0 +1,30 @@
+//*** {{includeName}}
+
+{{
+func Test{{= table.Identifier }}_MarshalJSON(t *testing.T) {
+    obj := createMinimalSample{{= table.Identifier }}()
+
+    b,err := json.Marshal(obj)
+    assert.NoError(t, err)
+
+    obj2 := New{{= table.Identifier }}()
+    err = json.Unmarshal(b, &obj2)
+    assert.NoError(t, err)
+
+    assertEqualFields{{= table.Identifier }}(t, obj, obj2)
+}
+
+func Test{{= table.Identifier }}_MarshalBinary(t *testing.T) {
+    obj := createMinimalSample{{= table.Identifier }}()
+
+    b,err := obj.MarshalBinary()
+    assert.NoError(t, err)
+
+    obj2 := New{{= table.Identifier }}()
+    err = obj2.UnmarshalBinary(b)
+    assert.NoError(t, err)
+
+    assertEqualFields{{= table.Identifier }}(t, obj, obj2)
+}
+
+}}

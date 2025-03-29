@@ -63,10 +63,10 @@ func Test2Nodes(t *testing.T) {
 		Where(op.Equal(node.Milestone().ID(), 1)). // Filter out people who are not managers
 		Load()
 
-	assert.True(t, milestones[0].NameIsValid(), "Milestone 1 has a name")
+	assert.True(t, milestones[0].NameIsLoaded(), "Milestone 1 has a name")
 	assert.Equal(t, "Milestone A", milestones[0].Name(), "Milestone 1 has name of Milestone A")
-	assert.False(t, milestones[0].Project().NameIsValid(), "Project 1 should not have a loaded name")
-	assert.True(t, milestones[0].Project().Manager().FirstNameIsValid(), "Person 7 has a name")
+	assert.False(t, milestones[0].Project().NameIsLoaded(), "Project 1 should not have a loaded name")
+	assert.True(t, milestones[0].Project().Manager().FirstNameIsLoaded(), "Person 7 has a name")
 	assert.Equal(t, "Karen", milestones[0].Project().Manager().FirstName(), "Person 7 has first name of Karen")
 }
 
@@ -167,7 +167,7 @@ func Test2ndLoad(t *testing.T) {
 
 	mgr := projects[0].LoadManager(ctx)
 	// 2nd level objects must be specifically selected
-	assert.False(t, mgr.LastNameIsValid())
+	assert.False(t, mgr.LastNameIsLoaded())
 }
 
 func TestAssociationCalculation(t *testing.T) {

@@ -4,6 +4,7 @@ package goradd
 
 import (
 	"context"
+	"encoding/json"
 	"strconv"
 	"testing"
 
@@ -405,4 +406,29 @@ func TestAddress_Count(t *testing.T) {
 	assert.Less(t, 0, CountAddressesByStreet(ctx, obj.Street()))
 	assert.Less(t, 0, CountAddressesByCity(ctx, obj.City()))
 
+}
+func TestAddress_MarshalJSON(t *testing.T) {
+	obj := createMinimalSampleAddress()
+
+	b, err := json.Marshal(obj)
+	assert.NoError(t, err)
+
+	obj2 := NewAddress()
+	err = json.Unmarshal(b, &obj2)
+	assert.NoError(t, err)
+
+	assertEqualFieldsAddress(t, obj, obj2)
+}
+
+func TestAddress_MarshalBinary(t *testing.T) {
+	obj := createMinimalSampleAddress()
+
+	b, err := obj.MarshalBinary()
+	assert.NoError(t, err)
+
+	obj2 := NewAddress()
+	err = obj2.UnmarshalBinary(b)
+	assert.NoError(t, err)
+
+	assertEqualFieldsAddress(t, obj, obj2)
 }

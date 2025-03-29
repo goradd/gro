@@ -22,7 +22,7 @@ func (o *{{= table.DecapIdentifier}}Base) Initialize() {
 	o.{{= col.VariableIdentifier() }}IsNull = true
 {{if}}
 {{if}}{{# IsNullable}}
-	o.{{= col.VariableIdentifier() }}IsLoaded = {{if col.HasDefaultValue() }}true{{else}}false{{if}}
+	o.{{= col.VariableIdentifier() }}IsLoaded = {{if col.HasDefaultValue()}}true{{else}}false{{if}}
 {{if col.HasSetter() }}
 	o.{{= col.VariableIdentifier() }}IsDirty = false
 {{if}}

@@ -4,6 +4,7 @@ package goradd_unit
 
 import (
 	"context"
+	"encoding/json"
 	"strconv"
 	"testing"
 
@@ -367,4 +368,29 @@ func TestLeaf_Count(t *testing.T) {
 	assert.Less(t, 0, CountLeafsByID(ctx, obj.ID()))
 	assert.Less(t, 0, CountLeafsByName(ctx, obj.Name()))
 
+}
+func TestLeaf_MarshalJSON(t *testing.T) {
+	obj := createMinimalSampleLeaf()
+
+	b, err := json.Marshal(obj)
+	assert.NoError(t, err)
+
+	obj2 := NewLeaf()
+	err = json.Unmarshal(b, &obj2)
+	assert.NoError(t, err)
+
+	assertEqualFieldsLeaf(t, obj, obj2)
+}
+
+func TestLeaf_MarshalBinary(t *testing.T) {
+	obj := createMinimalSampleLeaf()
+
+	b, err := obj.MarshalBinary()
+	assert.NoError(t, err)
+
+	obj2 := NewLeaf()
+	err = obj2.UnmarshalBinary(b)
+	assert.NoError(t, err)
+
+	assertEqualFieldsLeaf(t, obj, obj2)
 }

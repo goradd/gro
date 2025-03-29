@@ -67,7 +67,7 @@ const LeafNameMaxLength = 100 // The number of runes the column can hold
 // Multiple calls to Initialize are not guaranteed to create sequential values for the primary key.
 func (o *leafBase) Initialize() {
 	o.id = db.TemporaryPrimaryKey()
-	o.idIsLoaded = false
+	o.idIsLoaded = true
 	o.idIsDirty = false
 
 	o.name = ""

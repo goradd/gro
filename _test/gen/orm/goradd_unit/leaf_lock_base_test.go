@@ -4,6 +4,7 @@ package goradd_unit
 
 import (
 	"context"
+	"encoding/json"
 	"strconv"
 	"testing"
 
@@ -311,4 +312,29 @@ func TestLeafLock_Count(t *testing.T) {
 	assert.Less(t, 0, CountLeafLocksByName(ctx, obj.Name()))
 	assert.Less(t, 0, CountLeafLocksByGroLock(ctx, obj.GroLock()))
 
+}
+func TestLeafLock_MarshalJSON(t *testing.T) {
+	obj := createMinimalSampleLeafLock()
+
+	b, err := json.Marshal(obj)
+	assert.NoError(t, err)
+
+	obj2 := NewLeafLock()
+	err = json.Unmarshal(b, &obj2)
+	assert.NoError(t, err)
+
+	assertEqualFieldsLeafLock(t, obj, obj2)
+}
+
+func TestLeafLock_MarshalBinary(t *testing.T) {
+	obj := createMinimalSampleLeafLock()
+
+	b, err := obj.MarshalBinary()
+	assert.NoError(t, err)
+
+	obj2 := NewLeafLock()
+	err = obj2.UnmarshalBinary(b)
+	assert.NoError(t, err)
+
+	assertEqualFieldsLeafLock(t, obj, obj2)
 }

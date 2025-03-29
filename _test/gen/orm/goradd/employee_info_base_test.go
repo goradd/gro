@@ -4,6 +4,7 @@ package goradd
 
 import (
 	"context"
+	"encoding/json"
 	"strconv"
 	"testing"
 
@@ -356,4 +357,29 @@ func TestEmployeeInfo_Count(t *testing.T) {
 	assert.Less(t, 0, CountEmployeeInfosByPersonID(ctx, obj.PersonID()))
 	assert.Less(t, 0, CountEmployeeInfosByEmployeeNumber(ctx, obj.EmployeeNumber()))
 
+}
+func TestEmployeeInfo_MarshalJSON(t *testing.T) {
+	obj := createMinimalSampleEmployeeInfo()
+
+	b, err := json.Marshal(obj)
+	assert.NoError(t, err)
+
+	obj2 := NewEmployeeInfo()
+	err = json.Unmarshal(b, &obj2)
+	assert.NoError(t, err)
+
+	assertEqualFieldsEmployeeInfo(t, obj, obj2)
+}
+
+func TestEmployeeInfo_MarshalBinary(t *testing.T) {
+	obj := createMinimalSampleEmployeeInfo()
+
+	b, err := obj.MarshalBinary()
+	assert.NoError(t, err)
+
+	obj2 := NewEmployeeInfo()
+	err = obj2.UnmarshalBinary(b)
+	assert.NoError(t, err)
+
+	assertEqualFieldsEmployeeInfo(t, obj, obj2)
 }
