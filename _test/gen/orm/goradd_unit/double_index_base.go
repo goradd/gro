@@ -22,17 +22,15 @@ import (
 // The member variables of the structure are private and should not normally be accessed by the DoubleIndex embedder.
 // Instead, use the accessor functions.
 type doubleIndexBase struct {
-	id        int
-	idIsValid bool
-	idIsDirty bool
-
-	fieldInt        int
-	fieldIntIsValid bool
-	fieldIntIsDirty bool
-
-	fieldString        string
-	fieldStringIsValid bool
-	fieldStringIsDirty bool
+	id                  int
+	idIsLoaded          bool
+	idIsDirty           bool
+	fieldInt            int
+	fieldIntIsLoaded    bool
+	fieldIntIsDirty     bool
+	fieldString         string
+	fieldStringIsLoaded bool
+	fieldStringIsDirty  bool
 
 	// Custom aliases, if specified
 	_aliases map[string]any
@@ -59,24 +57,19 @@ const DoubleIndexFieldStringMaxLength = 50 // The number of runes the column can
 
 // Initialize or re-initialize a DoubleIndex database object to default values.
 func (o *doubleIndexBase) Initialize() {
-
 	o.id = 0
-
-	o.idIsValid = false
+	o.idIsLoaded = false
 	o.idIsDirty = false
 
 	o.fieldInt = 0
-
-	o.fieldIntIsValid = false
+	o.fieldIntIsLoaded = false
 	o.fieldIntIsDirty = false
 
 	o.fieldString = ""
-
-	o.fieldStringIsValid = false
+	o.fieldStringIsLoaded = false
 	o.fieldStringIsDirty = false
 
 	o._aliases = nil
-
 	o._restored = false
 }
 
@@ -91,92 +84,93 @@ func (o *doubleIndexBase) OriginalPrimaryKey() int {
 	return o._originalPK
 }
 
-// Copy copies all valid fields to a new DoubleIndex object.
+// Copy copies most fields to a new DoubleIndex object.
 // Forward reference ids will be copied, but reverse and many-many references will not.
 // Attached objects will not be included in the copy.
-// You will need to manually set the primary key field before saving.
+// Automatically generated fields will not be included in the copy.
+// The primary key field will not be copied. You will need to manually set the primary key field before saving.
 // Call Save() on the new object to save it into the database.
 // Copy might panic if any fields in the database were set to a size larger than the
 // maximum size through a process that accessed the database outside of the ORM.
 func (o *doubleIndexBase) Copy() (newObject *DoubleIndex) {
 	newObject = NewDoubleIndex()
-	if o.idIsValid {
+	if o.idIsLoaded {
 		newObject.SetID(o.id)
 	}
-	if o.fieldIntIsValid {
+	if o.fieldIntIsLoaded {
 		newObject.SetFieldInt(o.fieldInt)
 	}
-	if o.fieldStringIsValid {
+	if o.fieldStringIsLoaded {
 		newObject.SetFieldString(o.fieldString)
 	}
 	return
 }
 
-// ID returns the loaded value of ID.
+// ID returns the value of ID.
 func (o *doubleIndexBase) ID() int {
-	if o._restored && !o.idIsValid {
+	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.id
 }
 
-// IDIsValid returns true if the value was loaded from the database or has been set.
-func (o *doubleIndexBase) IDIsValid() bool {
-	return o.idIsValid
+// IDIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *doubleIndexBase) IDIsLoaded() bool {
+	return o.idIsLoaded
 }
 
 // SetID sets the value of ID in the object, to be saved later in the database using the Save() function.
 func (o *doubleIndexBase) SetID(v int) {
 	if o._restored &&
-		o.idIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.idIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.id == v {
 		// no change
 		return
 	}
 
-	o.idIsValid = true
+	o.idIsLoaded = true
 	o.id = v
 	o.idIsDirty = true
 }
 
-// FieldInt returns the loaded value of FieldInt.
+// FieldInt returns the value of FieldInt.
 func (o *doubleIndexBase) FieldInt() int {
-	if o._restored && !o.fieldIntIsValid {
+	if o._restored && !o.fieldIntIsLoaded {
 		panic("FieldInt was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.fieldInt
 }
 
-// FieldIntIsValid returns true if the value was loaded from the database or has been set.
-func (o *doubleIndexBase) FieldIntIsValid() bool {
-	return o.fieldIntIsValid
+// FieldIntIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *doubleIndexBase) FieldIntIsLoaded() bool {
+	return o.fieldIntIsLoaded
 }
 
 // SetFieldInt sets the value of FieldInt in the object, to be saved later in the database using the Save() function.
 func (o *doubleIndexBase) SetFieldInt(v int) {
 	if o._restored &&
-		o.fieldIntIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.fieldIntIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.fieldInt == v {
 		// no change
 		return
 	}
 
-	o.fieldIntIsValid = true
+	o.fieldIntIsLoaded = true
 	o.fieldInt = v
 	o.fieldIntIsDirty = true
 }
 
-// FieldString returns the loaded value of FieldString.
+// FieldString returns the value of FieldString.
 func (o *doubleIndexBase) FieldString() string {
-	if o._restored && !o.fieldStringIsValid {
+	if o._restored && !o.fieldStringIsLoaded {
 		panic("FieldString was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.fieldString
 }
 
-// FieldStringIsValid returns true if the value was loaded from the database or has been set.
-func (o *doubleIndexBase) FieldStringIsValid() bool {
-	return o.fieldStringIsValid
+// FieldStringIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *doubleIndexBase) FieldStringIsLoaded() bool {
+	return o.fieldStringIsLoaded
 }
 
 // SetFieldString sets the value of FieldString in the object, to be saved later in the database using the Save() function.
@@ -185,13 +179,13 @@ func (o *doubleIndexBase) SetFieldString(v string) {
 		panic("attempted to set DoubleIndex.FieldString to a value larger than its maximum length in runes")
 	}
 	if o._restored &&
-		o.fieldStringIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.fieldStringIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.fieldString == v {
 		// no change
 		return
 	}
 
-	o.fieldStringIsValid = true
+	o.fieldStringIsLoaded = true
 	o.fieldString = v
 	o.fieldStringIsDirty = true
 }
@@ -592,7 +586,7 @@ func (o *doubleIndexBase) load(m map[string]interface{}, objThis *DoubleIndex) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(int); ok {
-			o.idIsValid = true
+			o.idIsLoaded = true
 			o.idIsDirty = false
 
 			o._originalPK = o.id
@@ -601,35 +595,35 @@ func (o *doubleIndexBase) load(m map[string]interface{}, objThis *DoubleIndex) {
 			panic("Wrong type found for id.")
 		}
 	} else {
-		o.idIsValid = false
+		o.idIsLoaded = false
 		o.id = 0
 		o.idIsDirty = false
 	}
 
 	if v, ok := m["field_int"]; ok && v != nil {
 		if o.fieldInt, ok = v.(int); ok {
-			o.fieldIntIsValid = true
+			o.fieldIntIsLoaded = true
 			o.fieldIntIsDirty = false
 
 		} else {
 			panic("Wrong type found for field_int.")
 		}
 	} else {
-		o.fieldIntIsValid = false
+		o.fieldIntIsLoaded = false
 		o.fieldInt = 0
 		o.fieldIntIsDirty = false
 	}
 
 	if v, ok := m["field_string"]; ok && v != nil {
 		if o.fieldString, ok = v.(string); ok {
-			o.fieldStringIsValid = true
+			o.fieldStringIsLoaded = true
 			o.fieldStringIsDirty = false
 
 		} else {
 			panic("Wrong type found for field_string.")
 		}
 	} else {
-		o.fieldStringIsValid = false
+		o.fieldStringIsLoaded = false
 		o.fieldString = ""
 		o.fieldStringIsDirty = false
 	}
@@ -643,11 +637,12 @@ func (o *doubleIndexBase) load(m map[string]interface{}, objThis *DoubleIndex) {
 }
 
 // Save will update or insert the object, depending on the state of the object.
-// If it has any auto-generated ids, those will be updated.
-// Database errors generally will be handled by the logger and not returned here,
-// since those indicate a problem with database driver or configuration.
+// If it has an auto-generated primary key, it will be changed after an insert.
+// Database errors generally will be handled by a panic and not returned here,
+// since those indicate a problem with a database driver or configuration.
 // Save will return a db.OptimisticLockError if it detects a collision when two users
 // are attempting to change the same database record.
+// Updating a record that has not changed will have no effect on the database.
 func (o *doubleIndexBase) Save(ctx context.Context) error {
 	if o._restored {
 		return o.update(ctx)
@@ -657,6 +652,7 @@ func (o *doubleIndexBase) Save(ctx context.Context) error {
 }
 
 // update will update the values in the database, saving any changed values.
+// If the table has auto-generated values, those will be updated automatically.
 func (o *doubleIndexBase) update(ctx context.Context) error {
 	if !o._restored {
 		panic("cannot update a record that was not originally read from the database.")
@@ -670,7 +666,7 @@ func (o *doubleIndexBase) update(ctx context.Context) error {
 	d := Database()
 	err := db.ExecuteTransaction(ctx, d, func() error {
 
-		modifiedFields = o.getModifiedFields()
+		modifiedFields = o.getUpdateFields()
 		if len(modifiedFields) != 0 {
 			var err2 error
 
@@ -696,25 +692,25 @@ func (o *doubleIndexBase) update(ctx context.Context) error {
 
 // insert will insert the object into the database. Related items will be saved.
 func (o *doubleIndexBase) insert(ctx context.Context) (err error) {
+	var insertFields map[string]interface{}
 	d := Database()
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
-		if !o.idIsValid {
+		if !o.idIsLoaded {
 			panic("a value for ID is required, and there is no default value. Call SetID() before inserting the record.")
 		}
-		if !o.fieldIntIsValid {
+		if !o.fieldIntIsLoaded {
 			panic("a value for FieldInt is required, and there is no default value. Call SetFieldInt() before inserting the record.")
 		}
-		if !o.fieldStringIsValid {
+		if !o.fieldStringIsLoaded {
 			panic("a value for FieldString is required, and there is no default value. Call SetFieldString() before inserting the record.")
 		}
 
-		m := o.getValidFields()
+		insertFields = o.getInsertFields()
 
-		d.Insert(ctx, "double_index", m)
+		d.Insert(ctx, "double_index", insertFields)
 		newPk := o.PrimaryKey()
 		o._originalPK = newPk
-		o.idIsValid = true
 
 		return nil
 
@@ -730,9 +726,9 @@ func (o *doubleIndexBase) insert(ctx context.Context) (err error) {
 	return
 }
 
-// getModifiedFields returns the database columns that have been modified. This
-// will determine which specific fields are sent to the database to be changed.
-func (o *doubleIndexBase) getModifiedFields() (fields map[string]interface{}) {
+// getUpdateFields returns the database columns that will be sent to the update process.
+// This will include timestamp fields only if some other column has changed.
+func (o *doubleIndexBase) getUpdateFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.idIsDirty {
 		fields["id"] = o.id
@@ -746,18 +742,20 @@ func (o *doubleIndexBase) getModifiedFields() (fields map[string]interface{}) {
 	return
 }
 
-// getValidFields returns the fields that have valid data in them in a form ready to send to the database.
-func (o *doubleIndexBase) getValidFields() (fields map[string]interface{}) {
+// getInsertFields returns the fields that will be specified in an insert operation.
+// Optional fields that have not been set and have no default will be returned as nil.
+// NoSql databases should interpret this as no value. Sql databases should interpret this as
+// explicitly setting a NULL value, which would override any database specific default value.
+// Auto-generated fields will be returned with their generated values, except AutoId fields, which are generated by the
+// database driver and updated after the insert.
+func (o *doubleIndexBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-	if o.idIsValid {
-		fields["id"] = o.id
-	}
-	if o.fieldIntIsValid {
-		fields["field_int"] = o.fieldInt
-	}
-	if o.fieldStringIsValid {
-		fields["field_string"] = o.fieldString
-	}
+
+	fields["id"] = o.id
+
+	fields["field_int"] = o.fieldInt
+
+	fields["field_string"] = o.fieldString
 	return
 }
 
@@ -812,19 +810,19 @@ func (o *doubleIndexBase) Get(key string) interface{} {
 	switch key {
 
 	case "ID":
-		if !o.idIsValid {
+		if !o.idIsLoaded {
 			return nil
 		}
 		return o.id
 
 	case "FieldInt":
-		if !o.fieldIntIsValid {
+		if !o.fieldIntIsLoaded {
 			return nil
 		}
 		return o.fieldInt
 
 	case "FieldString":
-		if !o.fieldStringIsValid {
+		if !o.fieldStringIsLoaded {
 			return nil
 		}
 		return o.fieldString
@@ -844,8 +842,8 @@ func (o *doubleIndexBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.id); err != nil {
 		return nil, fmt.Errorf("error encoding DoubleIndex.id: %w", err)
 	}
-	if err := encoder.Encode(o.idIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding DoubleIndex.idIsValid: %w", err)
+	if err := encoder.Encode(o.idIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding DoubleIndex.idIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.idIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding DoubleIndex.idIsDirty: %w", err)
@@ -854,8 +852,8 @@ func (o *doubleIndexBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.fieldInt); err != nil {
 		return nil, fmt.Errorf("error encoding DoubleIndex.fieldInt: %w", err)
 	}
-	if err := encoder.Encode(o.fieldIntIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding DoubleIndex.fieldIntIsValid: %w", err)
+	if err := encoder.Encode(o.fieldIntIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding DoubleIndex.fieldIntIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.fieldIntIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding DoubleIndex.fieldIntIsDirty: %w", err)
@@ -864,8 +862,8 @@ func (o *doubleIndexBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.fieldString); err != nil {
 		return nil, fmt.Errorf("error encoding DoubleIndex.fieldString: %w", err)
 	}
-	if err := encoder.Encode(o.fieldStringIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding DoubleIndex.fieldStringIsValid: %w", err)
+	if err := encoder.Encode(o.fieldStringIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding DoubleIndex.fieldStringIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.fieldStringIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding DoubleIndex.fieldStringIsDirty: %w", err)
@@ -907,8 +905,8 @@ func (o *doubleIndexBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.id); err != nil {
 		return fmt.Errorf("error decoding DoubleIndex.id: %w", err)
 	}
-	if err = dec.Decode(&o.idIsValid); err != nil {
-		return fmt.Errorf("error decoding DoubleIndex.idIsValid: %w", err)
+	if err = dec.Decode(&o.idIsLoaded); err != nil {
+		return fmt.Errorf("error decoding DoubleIndex.idIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.idIsDirty); err != nil {
 		return fmt.Errorf("error decoding DoubleIndex.idIsDirty: %w", err)
@@ -917,8 +915,8 @@ func (o *doubleIndexBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.fieldInt); err != nil {
 		return fmt.Errorf("error decoding DoubleIndex.fieldInt: %w", err)
 	}
-	if err = dec.Decode(&o.fieldIntIsValid); err != nil {
-		return fmt.Errorf("error decoding DoubleIndex.fieldIntIsValid: %w", err)
+	if err = dec.Decode(&o.fieldIntIsLoaded); err != nil {
+		return fmt.Errorf("error decoding DoubleIndex.fieldIntIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.fieldIntIsDirty); err != nil {
 		return fmt.Errorf("error decoding DoubleIndex.fieldIntIsDirty: %w", err)
@@ -927,8 +925,8 @@ func (o *doubleIndexBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.fieldString); err != nil {
 		return fmt.Errorf("error decoding DoubleIndex.fieldString: %w", err)
 	}
-	if err = dec.Decode(&o.fieldStringIsValid); err != nil {
-		return fmt.Errorf("error decoding DoubleIndex.fieldStringIsValid: %w", err)
+	if err = dec.Decode(&o.fieldStringIsLoaded); err != nil {
+		return fmt.Errorf("error decoding DoubleIndex.fieldStringIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.fieldStringIsDirty); err != nil {
 		return fmt.Errorf("error decoding DoubleIndex.fieldStringIsDirty: %w", err)
@@ -952,15 +950,15 @@ func (o *doubleIndexBase) MarshalJSON() (data []byte, err error) {
 func (o *doubleIndexBase) MarshalStringMap() map[string]interface{} {
 	v := make(map[string]interface{})
 
-	if o.idIsValid {
+	if o.idIsLoaded {
 		v["id"] = o.id
 	}
 
-	if o.fieldIntIsValid {
+	if o.fieldIntIsLoaded {
 		v["fieldInt"] = o.fieldInt
 	}
 
-	if o.fieldStringIsValid {
+	if o.fieldStringIsLoaded {
 		v["fieldString"] = o.fieldString
 	}
 

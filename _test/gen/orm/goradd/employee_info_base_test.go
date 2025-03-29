@@ -67,14 +67,32 @@ func deleteSampleEmployeeInfo(ctx context.Context, obj *EmployeeInfo) {
 
 // assertEqualFieldsEmployeeInfo compares two objects and asserts that the basic fields are equal.
 func assertEqualFieldsEmployeeInfo(t *testing.T, obj1, obj2 *EmployeeInfo) {
-	assert.EqualValues(t, obj1.ID(), obj2.ID())
-
-	assert.EqualValues(t, obj1.PersonID(), obj2.PersonID())
-
-	assert.EqualValues(t, obj1.EmployeeNumber(), obj2.EmployeeNumber())
+	if obj1.IDIsLoaded() && obj2.IDIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.ID(), obj2.ID())
+	}
+	if obj1.PersonIDIsLoaded() && obj2.PersonIDIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.PersonID(), obj2.PersonID())
+	}
+	if obj1.EmployeeNumberIsLoaded() && obj2.EmployeeNumberIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.EmployeeNumber(), obj2.EmployeeNumber())
+	}
 
 }
 
+func TestEmployeeInfo_SetID(t *testing.T) {
+
+	obj := NewEmployeeInfo()
+
+	assert.True(t, obj.IsNew())
+	val := test.RandomNumberString()
+	obj.SetID(val)
+	assert.Equal(t, val, obj.ID())
+
+	// test default
+	obj.SetID("")
+	assert.EqualValues(t, "", obj.ID(), "set default")
+
+}
 func TestEmployeeInfo_SetPersonID(t *testing.T) {
 
 	obj := NewEmployeeInfo()
@@ -127,9 +145,14 @@ func TestEmployeeInfo_BasicInsert(t *testing.T) {
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
-	assert.True(t, obj2.IDIsValid())
+	assert.True(t, obj2.IDIsLoaded())
 
-	assert.True(t, obj2.EmployeeNumberIsValid())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.idIsDirty)
+	obj2.SetID(obj2.ID())
+	assert.False(t, obj2.idIsDirty)
+
+	assert.True(t, obj2.EmployeeNumberIsLoaded())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.employeeNumberIsDirty)
@@ -142,13 +165,13 @@ func TestEmployeeInfo_InsertPanics(t *testing.T) {
 	obj := createMinimalSampleEmployeeInfo()
 	ctx := db.NewContext(nil)
 
-	obj.personIDIsValid = false
+	obj.personIDIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.personIDIsValid = true
+	obj.personIDIsLoaded = true
 
-	obj.employeeNumberIsValid = false
+	obj.employeeNumberIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.employeeNumberIsValid = true
+	obj.employeeNumberIsLoaded = true
 
 }
 
@@ -162,7 +185,6 @@ func TestEmployeeInfo_BasicUpdate(t *testing.T) {
 	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey())
 
 	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
-	assert.Equal(t, obj2.PersonID(), obj.PersonID(), "PersonID did not update")
 	assert.Equal(t, obj2.EmployeeNumber(), obj.EmployeeNumber(), "EmployeeNumber did not update")
 }
 
@@ -187,9 +209,9 @@ func TestEmployeeInfo_ReferenceLoad(t *testing.T) {
 	assert.NotNil(t, v_Person)
 	assert.Equal(t, v_Person.PrimaryKey(), obj2.Person().PrimaryKey())
 	assert.Equal(t, obj.Person().PrimaryKey(), obj2.Person().PrimaryKey())
-	assert.True(t, obj2.PersonIDIsValid())
+	assert.True(t, obj2.PersonIDIsLoaded())
 
-	assert.False(t, objPkOnly.PersonIDIsValid())
+	assert.False(t, objPkOnly.PersonIDIsLoaded())
 	assert.Nil(t, objPkOnly.LoadPerson(ctx))
 
 	assert.Panics(t, func() {
@@ -264,7 +286,6 @@ func TestEmployeeInfo_Getters(t *testing.T) {
 	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey(), node.EmployeeInfo().PrimaryKey())
 
 	assert.Equal(t, obj.ID(), obj.Get(node.EmployeeInfo().ID().Identifier))
-	assert.Equal(t, obj.PersonID(), obj.Get(node.EmployeeInfo().PersonID().Identifier))
 	assert.Panics(t, func() { obj2.PersonID() })
 	assert.Nil(t, obj2.Get(node.EmployeeInfo().PersonID().Identifier))
 	assert.Equal(t, obj.EmployeeNumber(), obj.Get(node.EmployeeInfo().EmployeeNumber().Identifier))

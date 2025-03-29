@@ -12,7 +12,7 @@ func (o *{{= table.DecapIdentifier}}Base) {{= col.ReferenceIdentifier() }}() *{{
 // Load{{= col.ReferenceIdentifier() }} returns the related {{= col.ReferenceIdentifier() }}. If it is not already loaded,
 // it will attempt to load it, provided the {{= col.Identifier }} column has been loaded first.
 func (o *{{= table.DecapIdentifier}}Base) Load{{= col.ReferenceIdentifier() }}(ctx context.Context) *{{= col.ReferenceType() }} {
-	if !o.{{= col.VariableIdentifier() }}IsValid  {
+	if !o.{{= col.VariableIdentifier() }}IsLoaded  {
 		return nil
 	}
 

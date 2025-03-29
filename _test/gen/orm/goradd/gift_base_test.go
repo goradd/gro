@@ -59,9 +59,12 @@ func deleteSampleGift(ctx context.Context, obj *Gift) {
 
 // assertEqualFieldsGift compares two objects and asserts that the basic fields are equal.
 func assertEqualFieldsGift(t *testing.T, obj1, obj2 *Gift) {
-	assert.EqualValues(t, obj1.Number(), obj2.Number())
-
-	assert.EqualValues(t, obj1.Name(), obj2.Name())
+	if obj1.NumberIsLoaded() && obj2.NumberIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.Number(), obj2.Number())
+	}
+	if obj1.NameIsLoaded() && obj2.NameIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.Name(), obj2.Name())
+	}
 
 }
 
@@ -122,14 +125,14 @@ func TestGift_BasicInsert(t *testing.T) {
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
-	assert.True(t, obj2.NumberIsValid())
+	assert.True(t, obj2.NumberIsLoaded())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.numberIsDirty)
 	obj2.SetNumber(obj2.Number())
 	assert.False(t, obj2.numberIsDirty)
 
-	assert.True(t, obj2.NameIsValid())
+	assert.True(t, obj2.NameIsLoaded())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.nameIsDirty)
@@ -142,13 +145,13 @@ func TestGift_InsertPanics(t *testing.T) {
 	obj := createMinimalSampleGift()
 	ctx := db.NewContext(nil)
 
-	obj.numberIsValid = false
+	obj.numberIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.numberIsValid = true
+	obj.numberIsLoaded = true
 
-	obj.nameIsValid = false
+	obj.nameIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.nameIsValid = true
+	obj.nameIsLoaded = true
 
 }
 

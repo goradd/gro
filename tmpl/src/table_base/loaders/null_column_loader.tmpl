@@ -8,7 +8,7 @@
 		if v == nil {
 			o.{{= col.VariableIdentifier() }} = {{= col.DefaultValueAsValue() }}
 			o.{{= col.VariableIdentifier() }}IsNull = true
-			o.{{= col.VariableIdentifier() }}IsValid = true
+			o.{{= col.VariableIdentifier() }}IsLoaded = true
 {{if col.HasSetter() }}
 			o.{{= col.VariableIdentifier() }}IsDirty = false
 {{if}}
@@ -31,7 +31,7 @@
 		} else if o.{{= col.VariableIdentifier() }}, ok = v.({{= col.GoType() }}); ok {
 {{if}}
 			o.{{= col.VariableIdentifier() }}IsNull = false
-			o.{{= col.VariableIdentifier() }}IsValid = true
+			o.{{= col.VariableIdentifier() }}IsLoaded = true
 {{if col.HasSetter() }}
 			o.{{= col.VariableIdentifier() }}IsDirty = false
 {{if}}
@@ -39,7 +39,7 @@
 			panic("Wrong type found for {{= col.QueryName }}.")
 		}
 	} else {
-		o.{{= col.VariableIdentifier() }}IsValid = false
+		o.{{= col.VariableIdentifier() }}IsLoaded = false
 		o.{{= col.VariableIdentifier() }}IsNull = true
 		o.{{= col.VariableIdentifier() }} = {{= col.DefaultValueAsValue() }}
 {{if col.HasSetter() }}

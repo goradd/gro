@@ -5,9 +5,9 @@
 
 }}
 {{
-// {{= col.Identifier }} returns the loaded value of {{= col.Identifier }}.
+// {{= col.Identifier }} returns the value of {{= col.Identifier }}.
 func (o *{{= table.DecapIdentifier}}Base) {{= col.Identifier }}() {{= col.GoType() }} {
-	if o._restored && !o.{{= col.VariableIdentifier() }}IsValid {
+	if o._restored && !o.{{= col.VariableIdentifier() }}IsLoaded {
 		panic ("{{= col.Identifier }} was not selected in the last query and has not been set, and so is not valid")
 	}
 {{if col.IsEnumArray() }}

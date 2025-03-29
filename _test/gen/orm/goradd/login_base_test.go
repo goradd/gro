@@ -66,18 +66,38 @@ func deleteSampleLogin(ctx context.Context, obj *Login) {
 
 // assertEqualFieldsLogin compares two objects and asserts that the basic fields are equal.
 func assertEqualFieldsLogin(t *testing.T, obj1, obj2 *Login) {
-	assert.EqualValues(t, obj1.ID(), obj2.ID())
-
-	assert.EqualValues(t, obj1.PersonID(), obj2.PersonID())
-
-	assert.EqualValues(t, obj1.Username(), obj2.Username())
-
-	assert.EqualValues(t, obj1.Password(), obj2.Password())
-
-	assert.EqualValues(t, obj1.IsEnabled(), obj2.IsEnabled())
+	if obj1.IDIsLoaded() && obj2.IDIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.ID(), obj2.ID())
+	}
+	if obj1.PersonIDIsLoaded() && obj2.PersonIDIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.PersonID(), obj2.PersonID())
+	}
+	if obj1.UsernameIsLoaded() && obj2.UsernameIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.Username(), obj2.Username())
+	}
+	if obj1.PasswordIsLoaded() && obj2.PasswordIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.Password(), obj2.Password())
+	}
+	if obj1.IsEnabledIsLoaded() && obj2.IsEnabledIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.IsEnabled(), obj2.IsEnabled())
+	}
 
 }
 
+func TestLogin_SetID(t *testing.T) {
+
+	obj := NewLogin()
+
+	assert.True(t, obj.IsNew())
+	val := test.RandomNumberString()
+	obj.SetID(val)
+	assert.Equal(t, val, obj.ID())
+
+	// test default
+	obj.SetID("")
+	assert.EqualValues(t, "", obj.ID(), "set default")
+
+}
 func TestLogin_SetPersonID(t *testing.T) {
 
 	obj := NewLogin()
@@ -182,16 +202,21 @@ func TestLogin_BasicInsert(t *testing.T) {
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
-	assert.True(t, obj2.IDIsValid())
+	assert.True(t, obj2.IDIsLoaded())
 
-	assert.True(t, obj2.UsernameIsValid())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.idIsDirty)
+	obj2.SetID(obj2.ID())
+	assert.False(t, obj2.idIsDirty)
+
+	assert.True(t, obj2.UsernameIsLoaded())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.usernameIsDirty)
 	obj2.SetUsername(obj2.Username())
 	assert.False(t, obj2.usernameIsDirty)
 
-	assert.True(t, obj2.PasswordIsValid())
+	assert.True(t, obj2.PasswordIsLoaded())
 	assert.False(t, obj2.PasswordIsNull())
 
 	// test that setting it to the same value will not change the dirty bit
@@ -199,7 +224,7 @@ func TestLogin_BasicInsert(t *testing.T) {
 	obj2.SetPassword(obj2.Password())
 	assert.False(t, obj2.passwordIsDirty)
 
-	assert.True(t, obj2.IsEnabledIsValid())
+	assert.True(t, obj2.IsEnabledIsLoaded())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.isEnabledIsDirty)
@@ -212,9 +237,13 @@ func TestLogin_InsertPanics(t *testing.T) {
 	obj := createMinimalSampleLogin()
 	ctx := db.NewContext(nil)
 
-	obj.usernameIsValid = false
+	obj.usernameIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.usernameIsValid = true
+	obj.usernameIsLoaded = true
+
+	obj.isEnabledIsLoaded = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.isEnabledIsLoaded = true
 
 }
 
@@ -228,7 +257,6 @@ func TestLogin_BasicUpdate(t *testing.T) {
 	obj2 := LoadLogin(ctx, obj.PrimaryKey())
 
 	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
-	assert.Equal(t, obj2.PersonID(), obj.PersonID(), "PersonID did not update")
 	assert.Equal(t, obj2.Username(), obj.Username(), "Username did not update")
 	assert.Equal(t, obj2.Password(), obj.Password(), "Password did not update")
 	assert.Equal(t, obj2.IsEnabled(), obj.IsEnabled(), "IsEnabled did not update")
@@ -255,9 +283,9 @@ func TestLogin_ReferenceLoad(t *testing.T) {
 	assert.NotNil(t, v_Person)
 	assert.Equal(t, v_Person.PrimaryKey(), obj2.Person().PrimaryKey())
 	assert.Equal(t, obj.Person().PrimaryKey(), obj2.Person().PrimaryKey())
-	assert.True(t, obj2.PersonIDIsValid())
+	assert.True(t, obj2.PersonIDIsLoaded())
 
-	assert.False(t, objPkOnly.PersonIDIsValid())
+	assert.False(t, objPkOnly.PersonIDIsLoaded())
 	assert.Nil(t, objPkOnly.LoadPerson(ctx))
 
 	// test eager loading
@@ -328,7 +356,6 @@ func TestLogin_Getters(t *testing.T) {
 	obj2 := LoadLogin(ctx, obj.PrimaryKey(), node.Login().PrimaryKey())
 
 	assert.Equal(t, obj.ID(), obj.Get(node.Login().ID().Identifier))
-	assert.Equal(t, obj.PersonID(), obj.Get(node.Login().PersonID().Identifier))
 	assert.Panics(t, func() { obj2.PersonID() })
 	assert.Nil(t, obj2.Get(node.Login().PersonID().Identifier))
 	assert.Equal(t, obj.Username(), obj.Get(node.Login().Username().Identifier))

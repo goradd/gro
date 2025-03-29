@@ -24,63 +24,52 @@ import (
 // The member variables of the structure are private and should not normally be accessed by the Project embedder.
 // Instead, use the accessor functions.
 type projectBase struct {
-	id        string
-	idIsValid bool
-
-	num        int
-	numIsValid bool
-	numIsDirty bool
-
-	status        ProjectStatus
-	statusIsValid bool
-	statusIsDirty bool
-
-	managerID        string
-	managerIDIsNull  bool
-	managerIDIsValid bool
-	managerIDIsDirty bool
-	objManager       *Person
-
-	name        string
-	nameIsValid bool
-	nameIsDirty bool
-
-	description        string
-	descriptionIsNull  bool
-	descriptionIsValid bool
-	descriptionIsDirty bool
-
-	startDate        time.Time
-	startDateIsNull  bool
-	startDateIsValid bool
-	startDateIsDirty bool
-
-	endDate        time.Time
-	endDateIsNull  bool
-	endDateIsValid bool
-	endDateIsDirty bool
-
-	budget        string
-	budgetIsNull  bool
-	budgetIsValid bool
-	budgetIsDirty bool
-
-	spent        string
-	spentIsNull  bool
-	spentIsValid bool
-	spentIsDirty bool
-
-	parentProjectID        string
-	parentProjectIDIsNull  bool
-	parentProjectIDIsValid bool
-	parentProjectIDIsDirty bool
-	objParentProject       *Project
+	id                      string
+	idIsLoaded              bool
+	idIsDirty               bool
+	num                     int
+	numIsLoaded             bool
+	numIsDirty              bool
+	status                  ProjectStatus
+	statusIsLoaded          bool
+	statusIsDirty           bool
+	managerID               string
+	managerIDIsNull         bool
+	managerIDIsLoaded       bool
+	managerIDIsDirty        bool
+	objManager              *Person
+	name                    string
+	nameIsLoaded            bool
+	nameIsDirty             bool
+	description             string
+	descriptionIsNull       bool
+	descriptionIsLoaded     bool
+	descriptionIsDirty      bool
+	startDate               time.Time
+	startDateIsNull         bool
+	startDateIsLoaded       bool
+	startDateIsDirty        bool
+	endDate                 time.Time
+	endDateIsNull           bool
+	endDateIsLoaded         bool
+	endDateIsDirty          bool
+	budget                  string
+	budgetIsNull            bool
+	budgetIsLoaded          bool
+	budgetIsDirty           bool
+	spent                   string
+	spentIsNull             bool
+	spentIsLoaded           bool
+	spentIsDirty            bool
+	parentProjectID         string
+	parentProjectIDIsNull   bool
+	parentProjectIDIsLoaded bool
+	parentProjectIDIsDirty  bool
+	objParentProject        *Project
 
 	// Reverse reference objects.
-
-	revMilestones        maps.SliceMap[string, *Milestone] // Objects in the order they were queried
-	revMilestonesIsDirty bool
-
+	revMilestones                   maps.SliceMap[string, *Milestone] // Objects in the order they were queried
+	revMilestonesIsDirty            bool
 	revParentProjectProjects        maps.SliceMap[string, *Project] // Objects in the order they were queried
 	revParentProjectProjectsIsDirty bool
 
@@ -107,29 +96,27 @@ type projectBase struct {
 // IDs used to access the Project object fields by name using the Get function.
 // doc: type=Project
 const (
-	Project_ID              = `ID`
-	Project_Num             = `Num`
-	Project_Status          = `Status`
-	Project_ManagerID       = `ManagerID`
-	Project_Manager         = `Manager`
-	Project_Name            = `Name`
-	Project_Description     = `Description`
-	Project_StartDate       = `StartDate`
-	Project_EndDate         = `EndDate`
-	Project_Budget          = `Budget`
-	Project_Spent           = `Spent`
-	Project_ParentProjectID = `ParentProjectID`
-	Project_ParentProject   = `ParentProject`
-
+	Project_ID                   = `ID`
+	Project_Num                  = `Num`
+	Project_Status               = `Status`
+	Project_ManagerID            = `ManagerID`
+	Project_Manager              = `Manager`
+	Project_Name                 = `Name`
+	Project_Description          = `Description`
+	Project_StartDate            = `StartDate`
+	Project_EndDate              = `EndDate`
+	Project_Budget               = `Budget`
+	Project_Spent                = `Spent`
+	Project_ParentProjectID      = `ParentProjectID`
+	Project_ParentProject        = `ParentProject`
 	ProjectMilestones            = `Milestones`
 	ProjectParentProjectProjects = `ParentProjectProjects`
-
-	ProjectChild       = `Child`
-	ProjectChildren    = `Children`
-	ProjectParent      = `Parent`
-	ProjectParents     = `Parents`
-	ProjectTeamMember  = `TeamMember`
-	ProjectTeamMembers = `TeamMembers`
+	ProjectChild                 = `Child`
+	ProjectChildren              = `Children`
+	ProjectParent                = `Parent`
+	ProjectParents               = `Parents`
+	ProjectTeamMember            = `TeamMember`
+	ProjectTeamMembers           = `TeamMembers`
 )
 
 const ProjectNumMax = 2147483647
@@ -145,67 +132,56 @@ const ProjectSpentMaxLength = 14          // The number of runes the column can 
 // The primary key will get a temporary negative number which will be replaced when the object is saved.
 // Multiple calls to Initialize are not guaranteed to create sequential values for the primary key.
 func (o *projectBase) Initialize() {
-
 	o.id = db.TemporaryPrimaryKey()
-
-	o.idIsValid = false
+	o.idIsLoaded = false
+	o.idIsDirty = false
 
 	o.num = 0
-
-	o.numIsValid = false
+	o.numIsLoaded = false
 	o.numIsDirty = false
 
 	o.status = 0
-
-	o.statusIsValid = false
+	o.statusIsLoaded = false
 	o.statusIsDirty = false
 
 	o.managerID = ""
-
 	o.managerIDIsNull = true
-	o.managerIDIsValid = true
-	o.managerIDIsDirty = true
+	o.managerIDIsLoaded = false
+	o.managerIDIsDirty = false
 
 	o.name = ""
-
-	o.nameIsValid = false
+	o.nameIsLoaded = false
 	o.nameIsDirty = false
 
 	o.description = ""
-
 	o.descriptionIsNull = true
-	o.descriptionIsValid = true
-	o.descriptionIsDirty = true
+	o.descriptionIsLoaded = false
+	o.descriptionIsDirty = false
 
 	o.startDate = time.Time{}
-
 	o.startDateIsNull = true
-	o.startDateIsValid = true
-	o.startDateIsDirty = true
+	o.startDateIsLoaded = false
+	o.startDateIsDirty = false
 
 	o.endDate = time.Time{}
-
 	o.endDateIsNull = true
-	o.endDateIsValid = true
-	o.endDateIsDirty = true
+	o.endDateIsLoaded = false
+	o.endDateIsDirty = false
 
 	o.budget = ""
-
 	o.budgetIsNull = true
-	o.budgetIsValid = true
-	o.budgetIsDirty = true
+	o.budgetIsLoaded = false
+	o.budgetIsDirty = false
 
 	o.spent = ""
-
 	o.spentIsNull = true
-	o.spentIsValid = true
-	o.spentIsDirty = true
+	o.spentIsLoaded = false
+	o.spentIsDirty = false
 
 	o.parentProjectID = ""
-
 	o.parentProjectIDIsNull = true
-	o.parentProjectIDIsValid = true
-	o.parentProjectIDIsDirty = true
+	o.parentProjectIDIsLoaded = false
+	o.parentProjectIDIsDirty = false
 
 	// Reverse reference objects.
 
@@ -227,7 +203,6 @@ func (o *projectBase) Initialize() {
 	o.mmTeamMembersIsDirty = false
 
 	o._aliases = nil
-
 	o._restored = false
 }
 
@@ -242,124 +217,149 @@ func (o *projectBase) OriginalPrimaryKey() string {
 	return o._originalPK
 }
 
-// Copy copies all valid fields to a new Project object.
+// Copy copies most fields to a new Project object.
 // Forward reference ids will be copied, but reverse and many-many references will not.
 // Attached objects will not be included in the copy.
+// Automatically generated fields will not be included in the copy.
+// The primary key field will not be copied, since it is normally auto-generated.
 // Call Save() on the new object to save it into the database.
 // Copy might panic if any fields in the database were set to a size larger than the
 // maximum size through a process that accessed the database outside of the ORM.
 func (o *projectBase) Copy() (newObject *Project) {
 	newObject = NewProject()
-	if o.numIsValid {
+	if o.idIsLoaded {
+		newObject.SetID(o.id)
+	}
+	if o.numIsLoaded {
 		newObject.SetNum(o.num)
 	}
-	if o.statusIsValid {
+	if o.statusIsLoaded {
 		newObject.SetStatus(o.status)
 	}
-	if o.managerIDIsValid {
+	if o.managerIDIsLoaded {
 		newObject.SetManagerID(o.managerID)
 	}
-	if o.nameIsValid {
+	if o.nameIsLoaded {
 		newObject.SetName(o.name)
 	}
-	if o.descriptionIsValid {
+	if o.descriptionIsLoaded {
 		newObject.SetDescription(o.description)
 	}
-	if o.startDateIsValid {
+	if o.startDateIsLoaded {
 		newObject.SetStartDate(o.startDate)
 	}
-	if o.endDateIsValid {
+	if o.endDateIsLoaded {
 		newObject.SetEndDate(o.endDate)
 	}
-	if o.budgetIsValid {
+	if o.budgetIsLoaded {
 		newObject.SetBudget(o.budget)
 	}
-	if o.spentIsValid {
+	if o.spentIsLoaded {
 		newObject.SetSpent(o.spent)
 	}
-	if o.parentProjectIDIsValid {
+	if o.parentProjectIDIsLoaded {
 		newObject.SetParentProjectID(o.parentProjectID)
 	}
 	return
 }
 
-// ID returns the loaded value of ID or
-// the zero value if not loaded. Call IDIsValid() to determine
-// if it is loaded.
+// ID returns the value of ID.
 func (o *projectBase) ID() string {
-	return fmt.Sprint(o.id)
+	if o._restored && !o.idIsLoaded {
+		panic("ID was not selected in the last query and has not been set, and so is not valid")
+	}
+	return o.id
 }
 
-// IDIsValid returns true if the value was loaded from the database or has been set.
-func (o *projectBase) IDIsValid() bool {
-	return o._restored && o.idIsValid
+// IDIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *projectBase) IDIsLoaded() bool {
+	return o.idIsLoaded
 }
 
-// Num returns the loaded value of Num.
+// SetID sets the value of ID in the object, to be saved later in the database using the Save() function.
+// Normally you will not need to call this function, since the ID value is automatically generated by the
+// database driver. Exceptions might include importing data to a new datbase, or correcting primary key conflicts when
+// merging data. In these cases, related tables will NOT be automatically updated by the ORM, so you should do that manually.
+// Note that if the database is a SQL database and it is set up so that foreign keys CASCADE on UPDATE, the database will
+// handle the change.
+func (o *projectBase) SetID(v string) {
+	if o._restored &&
+		o.idIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.id == v {
+		// no change
+		return
+	}
+
+	o.idIsLoaded = true
+	o.id = v
+	o.idIsDirty = true
+}
+
+// Num returns the value of Num.
 func (o *projectBase) Num() int {
-	if o._restored && !o.numIsValid {
+	if o._restored && !o.numIsLoaded {
 		panic("Num was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.num
 }
 
-// NumIsValid returns true if the value was loaded from the database or has been set.
-func (o *projectBase) NumIsValid() bool {
-	return o.numIsValid
+// NumIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *projectBase) NumIsLoaded() bool {
+	return o.numIsLoaded
 }
 
 // SetNum sets the value of Num in the object, to be saved later in the database using the Save() function.
 func (o *projectBase) SetNum(v int) {
 	if o._restored &&
-		o.numIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.numIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.num == v {
 		// no change
 		return
 	}
 
-	o.numIsValid = true
+	o.numIsLoaded = true
 	o.num = v
 	o.numIsDirty = true
 }
 
-// Status returns the loaded value of Status.
+// Status returns the value of Status.
 func (o *projectBase) Status() ProjectStatus {
-	if o._restored && !o.statusIsValid {
+	if o._restored && !o.statusIsLoaded {
 		panic("Status was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.status
 }
 
-// StatusIsValid returns true if the value was loaded from the database or has been set.
-func (o *projectBase) StatusIsValid() bool {
-	return o.statusIsValid
+// StatusIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *projectBase) StatusIsLoaded() bool {
+	return o.statusIsLoaded
 }
 
 // SetStatus sets the value of Status in the object, to be saved later in the database using the Save() function.
 func (o *projectBase) SetStatus(v ProjectStatus) {
 	if o._restored &&
-		o.statusIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.statusIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.status == v {
 		// no change
 		return
 	}
 
-	o.statusIsValid = true
+	o.statusIsLoaded = true
 	o.status = v
 	o.statusIsDirty = true
 }
 
-// ManagerID returns the loaded value of ManagerID.
+// ManagerID returns the value of ManagerID.
 func (o *projectBase) ManagerID() string {
-	if o._restored && !o.managerIDIsValid {
+	if o._restored && !o.managerIDIsLoaded {
 		panic("ManagerID was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.managerID
 }
 
-// ManagerIDIsValid returns true if the value was loaded from the database or has been set.
-func (o *projectBase) ManagerIDIsValid() bool {
-	return o.managerIDIsValid
+// ManagerIDIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *projectBase) ManagerIDIsLoaded() bool {
+	return o.managerIDIsLoaded
 }
 
 // ManagerIDIsNull returns true if the related database value is null.
@@ -370,14 +370,14 @@ func (o *projectBase) ManagerIDIsNull() bool {
 // SetManagerID sets the value of ManagerID in the object, to be saved later in the database using the Save() function.
 func (o *projectBase) SetManagerID(v string) {
 	if o._restored &&
-		o.managerIDIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.managerIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.managerIDIsNull && // if the db value is null, force a set of value
 		o.managerID == v {
 		// no change
 		return
 	}
 
-	o.managerIDIsValid = true
+	o.managerIDIsLoaded = true
 	o.managerID = v
 	o.managerIDIsDirty = true
 	o.managerIDIsNull = false
@@ -387,11 +387,11 @@ func (o *projectBase) SetManagerID(v string) {
 // SetManagerIDToNull() will set the manager_id value in the database to NULL.
 // ManagerID() will return the column's default value after this.
 func (o *projectBase) SetManagerIDToNull() {
-	if !o.managerIDIsValid || !o.managerIDIsNull {
+	if !o.managerIDIsLoaded || !o.managerIDIsNull {
 		// If we know it is null in the database, don't save it
 		o.managerIDIsDirty = true
 	}
-	o.managerIDIsValid = true
+	o.managerIDIsLoaded = true
 	o.managerIDIsNull = true
 	o.managerID = ""
 	o.objManager = nil
@@ -405,7 +405,7 @@ func (o *projectBase) Manager() *Person {
 // LoadManager returns the related Manager. If it is not already loaded,
 // it will attempt to load it, provided the ManagerID column has been loaded first.
 func (o *projectBase) LoadManager(ctx context.Context) *Person {
-	if !o.managerIDIsValid {
+	if !o.managerIDIsLoaded {
 		return nil
 	}
 
@@ -419,7 +419,7 @@ func (o *projectBase) LoadManager(ctx context.Context) *Person {
 // SetManager will set the reference to manager. The referenced object
 // will be saved when Project is saved. Pass nil to break the connection.
 func (o *projectBase) SetManager(objManager *Person) {
-	o.managerIDIsValid = true
+	o.managerIDIsLoaded = true
 	if objManager == nil {
 		if !o.managerIDIsNull || !o._restored {
 			o.managerIDIsNull = true
@@ -437,17 +437,17 @@ func (o *projectBase) SetManager(objManager *Person) {
 	}
 }
 
-// Name returns the loaded value of Name.
+// Name returns the value of Name.
 func (o *projectBase) Name() string {
-	if o._restored && !o.nameIsValid {
+	if o._restored && !o.nameIsLoaded {
 		panic("Name was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.name
 }
 
-// NameIsValid returns true if the value was loaded from the database or has been set.
-func (o *projectBase) NameIsValid() bool {
-	return o.nameIsValid
+// NameIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *projectBase) NameIsLoaded() bool {
+	return o.nameIsLoaded
 }
 
 // SetName sets the value of Name in the object, to be saved later in the database using the Save() function.
@@ -456,28 +456,28 @@ func (o *projectBase) SetName(v string) {
 		panic("attempted to set Project.Name to a value larger than its maximum length in runes")
 	}
 	if o._restored &&
-		o.nameIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.nameIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.name == v {
 		// no change
 		return
 	}
 
-	o.nameIsValid = true
+	o.nameIsLoaded = true
 	o.name = v
 	o.nameIsDirty = true
 }
 
-// Description returns the loaded value of Description.
+// Description returns the value of Description.
 func (o *projectBase) Description() string {
-	if o._restored && !o.descriptionIsValid {
+	if o._restored && !o.descriptionIsLoaded {
 		panic("Description was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.description
 }
 
-// DescriptionIsValid returns true if the value was loaded from the database or has been set.
-func (o *projectBase) DescriptionIsValid() bool {
-	return o.descriptionIsValid
+// DescriptionIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *projectBase) DescriptionIsLoaded() bool {
+	return o.descriptionIsLoaded
 }
 
 // DescriptionIsNull returns true if the related database value is null.
@@ -491,14 +491,14 @@ func (o *projectBase) SetDescription(v string) {
 		panic("attempted to set Project.Description to a value larger than its maximum length in runes")
 	}
 	if o._restored &&
-		o.descriptionIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.descriptionIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.descriptionIsNull && // if the db value is null, force a set of value
 		o.description == v {
 		// no change
 		return
 	}
 
-	o.descriptionIsValid = true
+	o.descriptionIsLoaded = true
 	o.description = v
 	o.descriptionIsDirty = true
 	o.descriptionIsNull = false
@@ -507,26 +507,26 @@ func (o *projectBase) SetDescription(v string) {
 // SetDescriptionToNull() will set the description value in the database to NULL.
 // Description() will return the column's default value after this.
 func (o *projectBase) SetDescriptionToNull() {
-	if !o.descriptionIsValid || !o.descriptionIsNull {
+	if !o.descriptionIsLoaded || !o.descriptionIsNull {
 		// If we know it is null in the database, don't save it
 		o.descriptionIsDirty = true
 	}
-	o.descriptionIsValid = true
+	o.descriptionIsLoaded = true
 	o.descriptionIsNull = true
 	o.description = ""
 }
 
-// StartDate returns the loaded value of StartDate.
+// StartDate returns the value of StartDate.
 func (o *projectBase) StartDate() time.Time {
-	if o._restored && !o.startDateIsValid {
+	if o._restored && !o.startDateIsLoaded {
 		panic("StartDate was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.startDate
 }
 
-// StartDateIsValid returns true if the value was loaded from the database or has been set.
-func (o *projectBase) StartDateIsValid() bool {
-	return o.startDateIsValid
+// StartDateIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *projectBase) StartDateIsLoaded() bool {
+	return o.startDateIsLoaded
 }
 
 // StartDateIsNull returns true if the related database value is null.
@@ -540,14 +540,14 @@ func (o *projectBase) StartDateIsNull() bool {
 // The time will also be zeroed. This may cause the date value to change. To prevent this, be sure that the date given is already in UTC time.
 func (o *projectBase) SetStartDate(v time.Time) {
 	if o._restored &&
-		o.startDateIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.startDateIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.startDateIsNull && // if the db value is null, force a set of value
 		o.startDate.Equal(v) {
 		// no change
 		return
 	}
 
-	o.startDateIsValid = true
+	o.startDateIsLoaded = true
 	v = v.UTC()
 	v = time.Date(v.Year(), v.Month(), v.Day(), 0, 0, 0, 0, v.Location())
 	o.startDate = v
@@ -558,26 +558,26 @@ func (o *projectBase) SetStartDate(v time.Time) {
 // SetStartDateToNull() will set the start_date value in the database to NULL.
 // StartDate() will return the column's default value after this.
 func (o *projectBase) SetStartDateToNull() {
-	if !o.startDateIsValid || !o.startDateIsNull {
+	if !o.startDateIsLoaded || !o.startDateIsNull {
 		// If we know it is null in the database, don't save it
 		o.startDateIsDirty = true
 	}
-	o.startDateIsValid = true
+	o.startDateIsLoaded = true
 	o.startDateIsNull = true
 	o.startDate = time.Time{}
 }
 
-// EndDate returns the loaded value of EndDate.
+// EndDate returns the value of EndDate.
 func (o *projectBase) EndDate() time.Time {
-	if o._restored && !o.endDateIsValid {
+	if o._restored && !o.endDateIsLoaded {
 		panic("EndDate was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.endDate
 }
 
-// EndDateIsValid returns true if the value was loaded from the database or has been set.
-func (o *projectBase) EndDateIsValid() bool {
-	return o.endDateIsValid
+// EndDateIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *projectBase) EndDateIsLoaded() bool {
+	return o.endDateIsLoaded
 }
 
 // EndDateIsNull returns true if the related database value is null.
@@ -591,14 +591,14 @@ func (o *projectBase) EndDateIsNull() bool {
 // The time will also be zeroed. This may cause the date value to change. To prevent this, be sure that the date given is already in UTC time.
 func (o *projectBase) SetEndDate(v time.Time) {
 	if o._restored &&
-		o.endDateIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.endDateIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.endDateIsNull && // if the db value is null, force a set of value
 		o.endDate.Equal(v) {
 		// no change
 		return
 	}
 
-	o.endDateIsValid = true
+	o.endDateIsLoaded = true
 	v = v.UTC()
 	v = time.Date(v.Year(), v.Month(), v.Day(), 0, 0, 0, 0, v.Location())
 	o.endDate = v
@@ -609,26 +609,26 @@ func (o *projectBase) SetEndDate(v time.Time) {
 // SetEndDateToNull() will set the end_date value in the database to NULL.
 // EndDate() will return the column's default value after this.
 func (o *projectBase) SetEndDateToNull() {
-	if !o.endDateIsValid || !o.endDateIsNull {
+	if !o.endDateIsLoaded || !o.endDateIsNull {
 		// If we know it is null in the database, don't save it
 		o.endDateIsDirty = true
 	}
-	o.endDateIsValid = true
+	o.endDateIsLoaded = true
 	o.endDateIsNull = true
 	o.endDate = time.Time{}
 }
 
-// Budget returns the loaded value of Budget.
+// Budget returns the value of Budget.
 func (o *projectBase) Budget() string {
-	if o._restored && !o.budgetIsValid {
+	if o._restored && !o.budgetIsLoaded {
 		panic("Budget was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.budget
 }
 
-// BudgetIsValid returns true if the value was loaded from the database or has been set.
-func (o *projectBase) BudgetIsValid() bool {
-	return o.budgetIsValid
+// BudgetIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *projectBase) BudgetIsLoaded() bool {
+	return o.budgetIsLoaded
 }
 
 // BudgetIsNull returns true if the related database value is null.
@@ -642,14 +642,14 @@ func (o *projectBase) SetBudget(v string) {
 		panic("attempted to set Project.Budget to a value larger than its maximum length in runes")
 	}
 	if o._restored &&
-		o.budgetIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.budgetIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.budgetIsNull && // if the db value is null, force a set of value
 		o.budget == v {
 		// no change
 		return
 	}
 
-	o.budgetIsValid = true
+	o.budgetIsLoaded = true
 	o.budget = v
 	o.budgetIsDirty = true
 	o.budgetIsNull = false
@@ -658,26 +658,26 @@ func (o *projectBase) SetBudget(v string) {
 // SetBudgetToNull() will set the budget value in the database to NULL.
 // Budget() will return the column's default value after this.
 func (o *projectBase) SetBudgetToNull() {
-	if !o.budgetIsValid || !o.budgetIsNull {
+	if !o.budgetIsLoaded || !o.budgetIsNull {
 		// If we know it is null in the database, don't save it
 		o.budgetIsDirty = true
 	}
-	o.budgetIsValid = true
+	o.budgetIsLoaded = true
 	o.budgetIsNull = true
 	o.budget = ""
 }
 
-// Spent returns the loaded value of Spent.
+// Spent returns the value of Spent.
 func (o *projectBase) Spent() string {
-	if o._restored && !o.spentIsValid {
+	if o._restored && !o.spentIsLoaded {
 		panic("Spent was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.spent
 }
 
-// SpentIsValid returns true if the value was loaded from the database or has been set.
-func (o *projectBase) SpentIsValid() bool {
-	return o.spentIsValid
+// SpentIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *projectBase) SpentIsLoaded() bool {
+	return o.spentIsLoaded
 }
 
 // SpentIsNull returns true if the related database value is null.
@@ -691,14 +691,14 @@ func (o *projectBase) SetSpent(v string) {
 		panic("attempted to set Project.Spent to a value larger than its maximum length in runes")
 	}
 	if o._restored &&
-		o.spentIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.spentIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.spentIsNull && // if the db value is null, force a set of value
 		o.spent == v {
 		// no change
 		return
 	}
 
-	o.spentIsValid = true
+	o.spentIsLoaded = true
 	o.spent = v
 	o.spentIsDirty = true
 	o.spentIsNull = false
@@ -707,26 +707,26 @@ func (o *projectBase) SetSpent(v string) {
 // SetSpentToNull() will set the spent value in the database to NULL.
 // Spent() will return the column's default value after this.
 func (o *projectBase) SetSpentToNull() {
-	if !o.spentIsValid || !o.spentIsNull {
+	if !o.spentIsLoaded || !o.spentIsNull {
 		// If we know it is null in the database, don't save it
 		o.spentIsDirty = true
 	}
-	o.spentIsValid = true
+	o.spentIsLoaded = true
 	o.spentIsNull = true
 	o.spent = ""
 }
 
-// ParentProjectID returns the loaded value of ParentProjectID.
+// ParentProjectID returns the value of ParentProjectID.
 func (o *projectBase) ParentProjectID() string {
-	if o._restored && !o.parentProjectIDIsValid {
+	if o._restored && !o.parentProjectIDIsLoaded {
 		panic("ParentProjectID was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.parentProjectID
 }
 
-// ParentProjectIDIsValid returns true if the value was loaded from the database or has been set.
-func (o *projectBase) ParentProjectIDIsValid() bool {
-	return o.parentProjectIDIsValid
+// ParentProjectIDIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *projectBase) ParentProjectIDIsLoaded() bool {
+	return o.parentProjectIDIsLoaded
 }
 
 // ParentProjectIDIsNull returns true if the related database value is null.
@@ -737,14 +737,14 @@ func (o *projectBase) ParentProjectIDIsNull() bool {
 // SetParentProjectID sets the value of ParentProjectID in the object, to be saved later in the database using the Save() function.
 func (o *projectBase) SetParentProjectID(v string) {
 	if o._restored &&
-		o.parentProjectIDIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.parentProjectIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.parentProjectIDIsNull && // if the db value is null, force a set of value
 		o.parentProjectID == v {
 		// no change
 		return
 	}
 
-	o.parentProjectIDIsValid = true
+	o.parentProjectIDIsLoaded = true
 	o.parentProjectID = v
 	o.parentProjectIDIsDirty = true
 	o.parentProjectIDIsNull = false
@@ -754,11 +754,11 @@ func (o *projectBase) SetParentProjectID(v string) {
 // SetParentProjectIDToNull() will set the parent_project_id value in the database to NULL.
 // ParentProjectID() will return the column's default value after this.
 func (o *projectBase) SetParentProjectIDToNull() {
-	if !o.parentProjectIDIsValid || !o.parentProjectIDIsNull {
+	if !o.parentProjectIDIsLoaded || !o.parentProjectIDIsNull {
 		// If we know it is null in the database, don't save it
 		o.parentProjectIDIsDirty = true
 	}
-	o.parentProjectIDIsValid = true
+	o.parentProjectIDIsLoaded = true
 	o.parentProjectIDIsNull = true
 	o.parentProjectID = ""
 	o.objParentProject = nil
@@ -772,7 +772,7 @@ func (o *projectBase) ParentProject() *Project {
 // LoadParentProject returns the related ParentProject. If it is not already loaded,
 // it will attempt to load it, provided the ParentProjectID column has been loaded first.
 func (o *projectBase) LoadParentProject(ctx context.Context) *Project {
-	if !o.parentProjectIDIsValid {
+	if !o.parentProjectIDIsLoaded {
 		return nil
 	}
 
@@ -786,7 +786,7 @@ func (o *projectBase) LoadParentProject(ctx context.Context) *Project {
 // SetParentProject will set the reference to parentProject. The referenced object
 // will be saved when Project is saved. Pass nil to break the connection.
 func (o *projectBase) SetParentProject(objParentProject *Project) {
-	o.parentProjectIDIsValid = true
+	o.parentProjectIDIsLoaded = true
 	if objParentProject == nil {
 		if !o.parentProjectIDIsNull || !o._restored {
 			o.parentProjectIDIsNull = true
@@ -1599,7 +1599,8 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
-			o.idIsValid = true
+			o.idIsLoaded = true
+			o.idIsDirty = false
 
 			o._originalPK = o.id
 
@@ -1607,20 +1608,21 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 			panic("Wrong type found for id.")
 		}
 	} else {
-		o.idIsValid = false
+		o.idIsLoaded = false
 		o.id = ""
+		o.idIsDirty = false
 	}
 
 	if v, ok := m["num"]; ok && v != nil {
 		if o.num, ok = v.(int); ok {
-			o.numIsValid = true
+			o.numIsLoaded = true
 			o.numIsDirty = false
 
 		} else {
 			panic("Wrong type found for num.")
 		}
 	} else {
-		o.numIsValid = false
+		o.numIsLoaded = false
 		o.num = 0
 		o.numIsDirty = false
 	}
@@ -1628,14 +1630,14 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 	if v, ok := m["status_enum"]; ok && v != nil {
 		if i, ok2 := v.(int); ok2 {
 			o.status = ProjectStatus(i)
-			o.statusIsValid = true
+			o.statusIsLoaded = true
 			o.statusIsDirty = false
 
 		} else {
 			panic("Wrong type found for status_enum.")
 		}
 	} else {
-		o.statusIsValid = false
+		o.statusIsLoaded = false
 		o.status = 0
 		o.statusIsDirty = false
 	}
@@ -1644,17 +1646,17 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 		if v == nil {
 			o.managerID = ""
 			o.managerIDIsNull = true
-			o.managerIDIsValid = true
+			o.managerIDIsLoaded = true
 			o.managerIDIsDirty = false
 		} else if o.managerID, ok = v.(string); ok {
 			o.managerIDIsNull = false
-			o.managerIDIsValid = true
+			o.managerIDIsLoaded = true
 			o.managerIDIsDirty = false
 		} else {
 			panic("Wrong type found for manager_id.")
 		}
 	} else {
-		o.managerIDIsValid = false
+		o.managerIDIsLoaded = false
 		o.managerIDIsNull = true
 		o.managerID = ""
 		o.managerIDIsDirty = false
@@ -1664,7 +1666,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 		if objManager, ok2 := v.(map[string]any); ok2 {
 			o.objManager = new(Person)
 			o.objManager.load(objManager, o.objManager)
-			o.managerIDIsValid = true
+			o.managerIDIsLoaded = true
 			o.managerIDIsDirty = false
 		} else {
 			panic("Wrong type found for Manager object.")
@@ -1675,14 +1677,14 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 
 	if v, ok := m["name"]; ok && v != nil {
 		if o.name, ok = v.(string); ok {
-			o.nameIsValid = true
+			o.nameIsLoaded = true
 			o.nameIsDirty = false
 
 		} else {
 			panic("Wrong type found for name.")
 		}
 	} else {
-		o.nameIsValid = false
+		o.nameIsLoaded = false
 		o.name = ""
 		o.nameIsDirty = false
 	}
@@ -1691,17 +1693,17 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 		if v == nil {
 			o.description = ""
 			o.descriptionIsNull = true
-			o.descriptionIsValid = true
+			o.descriptionIsLoaded = true
 			o.descriptionIsDirty = false
 		} else if o.description, ok = v.(string); ok {
 			o.descriptionIsNull = false
-			o.descriptionIsValid = true
+			o.descriptionIsLoaded = true
 			o.descriptionIsDirty = false
 		} else {
 			panic("Wrong type found for description.")
 		}
 	} else {
-		o.descriptionIsValid = false
+		o.descriptionIsLoaded = false
 		o.descriptionIsNull = true
 		o.description = ""
 		o.descriptionIsDirty = false
@@ -1711,17 +1713,17 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 		if v == nil {
 			o.startDate = time.Time{}
 			o.startDateIsNull = true
-			o.startDateIsValid = true
+			o.startDateIsLoaded = true
 			o.startDateIsDirty = false
 		} else if o.startDate, ok = v.(time.Time); ok {
 			o.startDateIsNull = false
-			o.startDateIsValid = true
+			o.startDateIsLoaded = true
 			o.startDateIsDirty = false
 		} else {
 			panic("Wrong type found for start_date.")
 		}
 	} else {
-		o.startDateIsValid = false
+		o.startDateIsLoaded = false
 		o.startDateIsNull = true
 		o.startDate = time.Time{}
 		o.startDateIsDirty = false
@@ -1731,17 +1733,17 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 		if v == nil {
 			o.endDate = time.Time{}
 			o.endDateIsNull = true
-			o.endDateIsValid = true
+			o.endDateIsLoaded = true
 			o.endDateIsDirty = false
 		} else if o.endDate, ok = v.(time.Time); ok {
 			o.endDateIsNull = false
-			o.endDateIsValid = true
+			o.endDateIsLoaded = true
 			o.endDateIsDirty = false
 		} else {
 			panic("Wrong type found for end_date.")
 		}
 	} else {
-		o.endDateIsValid = false
+		o.endDateIsLoaded = false
 		o.endDateIsNull = true
 		o.endDate = time.Time{}
 		o.endDateIsDirty = false
@@ -1751,17 +1753,17 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 		if v == nil {
 			o.budget = ""
 			o.budgetIsNull = true
-			o.budgetIsValid = true
+			o.budgetIsLoaded = true
 			o.budgetIsDirty = false
 		} else if o.budget, ok = v.(string); ok {
 			o.budgetIsNull = false
-			o.budgetIsValid = true
+			o.budgetIsLoaded = true
 			o.budgetIsDirty = false
 		} else {
 			panic("Wrong type found for budget.")
 		}
 	} else {
-		o.budgetIsValid = false
+		o.budgetIsLoaded = false
 		o.budgetIsNull = true
 		o.budget = ""
 		o.budgetIsDirty = false
@@ -1771,17 +1773,17 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 		if v == nil {
 			o.spent = ""
 			o.spentIsNull = true
-			o.spentIsValid = true
+			o.spentIsLoaded = true
 			o.spentIsDirty = false
 		} else if o.spent, ok = v.(string); ok {
 			o.spentIsNull = false
-			o.spentIsValid = true
+			o.spentIsLoaded = true
 			o.spentIsDirty = false
 		} else {
 			panic("Wrong type found for spent.")
 		}
 	} else {
-		o.spentIsValid = false
+		o.spentIsLoaded = false
 		o.spentIsNull = true
 		o.spent = ""
 		o.spentIsDirty = false
@@ -1791,17 +1793,17 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 		if v == nil {
 			o.parentProjectID = ""
 			o.parentProjectIDIsNull = true
-			o.parentProjectIDIsValid = true
+			o.parentProjectIDIsLoaded = true
 			o.parentProjectIDIsDirty = false
 		} else if o.parentProjectID, ok = v.(string); ok {
 			o.parentProjectIDIsNull = false
-			o.parentProjectIDIsValid = true
+			o.parentProjectIDIsLoaded = true
 			o.parentProjectIDIsDirty = false
 		} else {
 			panic("Wrong type found for parent_project_id.")
 		}
 	} else {
-		o.parentProjectIDIsValid = false
+		o.parentProjectIDIsLoaded = false
 		o.parentProjectIDIsNull = true
 		o.parentProjectID = ""
 		o.parentProjectIDIsDirty = false
@@ -1811,7 +1813,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 		if objParentProject, ok2 := v.(map[string]any); ok2 {
 			o.objParentProject = new(Project)
 			o.objParentProject.load(objParentProject, o.objParentProject)
-			o.parentProjectIDIsValid = true
+			o.parentProjectIDIsLoaded = true
 			o.parentProjectIDIsDirty = false
 		} else {
 			panic("Wrong type found for ParentProject object.")
@@ -1923,11 +1925,12 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 }
 
 // Save will update or insert the object, depending on the state of the object.
-// If it has any auto-generated ids, those will be updated.
-// Database errors generally will be handled by the logger and not returned here,
-// since those indicate a problem with database driver or configuration.
+// If it has an auto-generated primary key, it will be changed after an insert.
+// Database errors generally will be handled by a panic and not returned here,
+// since those indicate a problem with a database driver or configuration.
 // Save will return a db.OptimisticLockError if it detects a collision when two users
 // are attempting to change the same database record.
+// Updating a record that has not changed will have no effect on the database.
 func (o *projectBase) Save(ctx context.Context) error {
 	if o._restored {
 		return o.update(ctx)
@@ -1937,6 +1940,7 @@ func (o *projectBase) Save(ctx context.Context) error {
 }
 
 // update will update the values in the database, saving any changed values.
+// If the table has auto-generated values, those will be updated automatically.
 func (o *projectBase) update(ctx context.Context) error {
 	if !o._restored {
 		panic("cannot update a record that was not originally read from the database.")
@@ -1966,7 +1970,7 @@ func (o *projectBase) update(ctx context.Context) error {
 			o.parentProjectID = o.objParentProject.PrimaryKey()
 		}
 
-		modifiedFields = o.getModifiedFields()
+		modifiedFields = o.getUpdateFields()
 		if len(modifiedFields) != 0 {
 			var err2 error
 
@@ -2177,6 +2181,7 @@ func (o *projectBase) update(ctx context.Context) error {
 
 // insert will insert the object into the database. Related items will be saved.
 func (o *projectBase) insert(ctx context.Context) (err error) {
+	var insertFields map[string]interface{}
 	d := Database()
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
@@ -2194,22 +2199,22 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 			o.parentProjectID = o.objParentProject.PrimaryKey()
 		}
 
-		if !o.numIsValid {
+		if !o.numIsLoaded {
 			panic("a value for Num is required, and there is no default value. Call SetNum() before inserting the record.")
 		}
-		if !o.statusIsValid {
+		if !o.statusIsLoaded {
 			panic("a value for Status is required, and there is no default value. Call SetStatus() before inserting the record.")
 		}
-		if !o.nameIsValid {
+		if !o.nameIsLoaded {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
 
-		m := o.getValidFields()
+		insertFields = o.getInsertFields()
 
-		newPk := d.Insert(ctx, "project", m)
+		newPk := d.Insert(ctx, "project", insertFields)
 		o.id = newPk
 		o._originalPK = newPk
-		o.idIsValid = true
+		o.idIsLoaded = true
 
 		if o.revMilestones.Len() > 0 {
 			keys := o.revMilestones.Keys()
@@ -2361,10 +2366,13 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 	return
 }
 
-// getModifiedFields returns the database columns that have been modified. This
-// will determine which specific fields are sent to the database to be changed.
-func (o *projectBase) getModifiedFields() (fields map[string]interface{}) {
+// getUpdateFields returns the database columns that will be sent to the update process.
+// This will include timestamp fields only if some other column has changed.
+func (o *projectBase) getUpdateFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
+	if o.idIsDirty {
+		fields["id"] = o.id
+	}
 	if o.numIsDirty {
 		fields["num"] = o.num
 	}
@@ -2426,66 +2434,57 @@ func (o *projectBase) getModifiedFields() (fields map[string]interface{}) {
 	return
 }
 
-// getValidFields returns the fields that have valid data in them in a form ready to send to the database.
-func (o *projectBase) getValidFields() (fields map[string]interface{}) {
+// getInsertFields returns the fields that will be specified in an insert operation.
+// Optional fields that have not been set and have no default will be returned as nil.
+// NoSql databases should interpret this as no value. Sql databases should interpret this as
+// explicitly setting a NULL value, which would override any database specific default value.
+// Auto-generated fields will be returned with their generated values, except AutoId fields, which are generated by the
+// database driver and updated after the insert.
+func (o *projectBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-	if o.numIsValid {
-		fields["num"] = o.num
+	if o.idIsDirty {
+		fields["id"] = o.id
 	}
-	if o.statusIsValid {
-		fields["status_enum"] = o.status
+
+	fields["num"] = o.num
+
+	fields["status_enum"] = o.status
+	if o.managerIDIsNull {
+		fields["manager_id"] = nil
+	} else {
+		fields["manager_id"] = o.managerID
 	}
-	if o.managerIDIsValid {
-		if o.managerIDIsNull {
-			fields["manager_id"] = nil
-		} else {
-			fields["manager_id"] = o.managerID
-		}
+
+	fields["name"] = o.name
+	if o.descriptionIsNull {
+		fields["description"] = nil
+	} else {
+		fields["description"] = o.description
 	}
-	if o.nameIsValid {
-		fields["name"] = o.name
+	if o.startDateIsNull {
+		fields["start_date"] = nil
+	} else {
+		fields["start_date"] = o.startDate
 	}
-	if o.descriptionIsValid {
-		if o.descriptionIsNull {
-			fields["description"] = nil
-		} else {
-			fields["description"] = o.description
-		}
+	if o.endDateIsNull {
+		fields["end_date"] = nil
+	} else {
+		fields["end_date"] = o.endDate
 	}
-	if o.startDateIsValid {
-		if o.startDateIsNull {
-			fields["start_date"] = nil
-		} else {
-			fields["start_date"] = o.startDate
-		}
+	if o.budgetIsNull {
+		fields["budget"] = nil
+	} else {
+		fields["budget"] = o.budget
 	}
-	if o.endDateIsValid {
-		if o.endDateIsNull {
-			fields["end_date"] = nil
-		} else {
-			fields["end_date"] = o.endDate
-		}
+	if o.spentIsNull {
+		fields["spent"] = nil
+	} else {
+		fields["spent"] = o.spent
 	}
-	if o.budgetIsValid {
-		if o.budgetIsNull {
-			fields["budget"] = nil
-		} else {
-			fields["budget"] = o.budget
-		}
-	}
-	if o.spentIsValid {
-		if o.spentIsNull {
-			fields["spent"] = nil
-		} else {
-			fields["spent"] = o.spent
-		}
-	}
-	if o.parentProjectIDIsValid {
-		if o.parentProjectIDIsNull {
-			fields["parent_project_id"] = nil
-		} else {
-			fields["parent_project_id"] = o.parentProjectID
-		}
+	if o.parentProjectIDIsNull {
+		fields["parent_project_id"] = nil
+	} else {
+		fields["parent_project_id"] = o.parentProjectID
 	}
 	return
 }
@@ -2578,6 +2577,7 @@ func deleteProject(ctx context.Context, pk string) error {
 
 // resetDirtyStatus resets the dirty status of every field in the object.
 func (o *projectBase) resetDirtyStatus() {
+	o.idIsDirty = false
 	o.numIsDirty = false
 	o.statusIsDirty = false
 	o.managerIDIsDirty = false
@@ -2602,7 +2602,8 @@ func (o *projectBase) resetDirtyStatus() {
 // IsDirty returns true if the object has been changed since it was read from the database or created.
 // However, a new object that has a column with a default value will be automatically marked as dirty upon creation.
 func (o *projectBase) IsDirty() (dirty bool) {
-	dirty = o.numIsDirty ||
+	dirty = o.idIsDirty ||
+		o.numIsDirty ||
 		o.statusIsDirty ||
 		o.managerIDIsDirty ||
 		(o.objManager != nil && o.objManager.IsDirty()) ||
@@ -2655,25 +2656,25 @@ func (o *projectBase) Get(key string) interface{} {
 	switch key {
 
 	case "ID":
-		if !o.idIsValid {
+		if !o.idIsLoaded {
 			return nil
 		}
 		return o.id
 
 	case "Num":
-		if !o.numIsValid {
+		if !o.numIsLoaded {
 			return nil
 		}
 		return o.num
 
 	case "Status":
-		if !o.statusIsValid {
+		if !o.statusIsLoaded {
 			return nil
 		}
 		return o.status
 
 	case "ManagerID":
-		if !o.managerIDIsValid {
+		if !o.managerIDIsLoaded {
 			return nil
 		}
 		return o.managerID
@@ -2682,43 +2683,43 @@ func (o *projectBase) Get(key string) interface{} {
 		return o.Manager()
 
 	case "Name":
-		if !o.nameIsValid {
+		if !o.nameIsLoaded {
 			return nil
 		}
 		return o.name
 
 	case "Description":
-		if !o.descriptionIsValid {
+		if !o.descriptionIsLoaded {
 			return nil
 		}
 		return o.description
 
 	case "StartDate":
-		if !o.startDateIsValid {
+		if !o.startDateIsLoaded {
 			return nil
 		}
 		return o.startDate
 
 	case "EndDate":
-		if !o.endDateIsValid {
+		if !o.endDateIsLoaded {
 			return nil
 		}
 		return o.endDate
 
 	case "Budget":
-		if !o.budgetIsValid {
+		if !o.budgetIsLoaded {
 			return nil
 		}
 		return o.budget
 
 	case "Spent":
-		if !o.spentIsValid {
+		if !o.spentIsLoaded {
 			return nil
 		}
 		return o.spent
 
 	case "ParentProjectID":
-		if !o.parentProjectIDIsValid {
+		if !o.parentProjectIDIsLoaded {
 			return nil
 		}
 		return o.parentProjectID
@@ -2753,15 +2754,18 @@ func (o *projectBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.id); err != nil {
 		return nil, fmt.Errorf("error encoding Project.id: %w", err)
 	}
-	if err := encoder.Encode(o.idIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Project.idIsValid: %w", err)
+	if err := encoder.Encode(o.idIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Project.idIsLoaded: %w", err)
+	}
+	if err := encoder.Encode(o.idIsDirty); err != nil {
+		return nil, fmt.Errorf("error encoding Project.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.num); err != nil {
 		return nil, fmt.Errorf("error encoding Project.num: %w", err)
 	}
-	if err := encoder.Encode(o.numIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Project.numIsValid: %w", err)
+	if err := encoder.Encode(o.numIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Project.numIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.numIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding Project.numIsDirty: %w", err)
@@ -2770,8 +2774,8 @@ func (o *projectBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.status); err != nil {
 		return nil, fmt.Errorf("error encoding Project.status: %w", err)
 	}
-	if err := encoder.Encode(o.statusIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Project.statusIsValid: %w", err)
+	if err := encoder.Encode(o.statusIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Project.statusIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.statusIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding Project.statusIsDirty: %w", err)
@@ -2783,8 +2787,8 @@ func (o *projectBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.managerIDIsNull); err != nil {
 		return nil, fmt.Errorf("error encoding Project.managerIDIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.managerIDIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Project.managerIDIsValid: %w", err)
+	if err := encoder.Encode(o.managerIDIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Project.managerIDIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.managerIDIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding Project.managerIDIsDirty: %w", err)
@@ -2806,8 +2810,8 @@ func (o *projectBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.name); err != nil {
 		return nil, fmt.Errorf("error encoding Project.name: %w", err)
 	}
-	if err := encoder.Encode(o.nameIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Project.nameIsValid: %w", err)
+	if err := encoder.Encode(o.nameIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Project.nameIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.nameIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding Project.nameIsDirty: %w", err)
@@ -2819,8 +2823,8 @@ func (o *projectBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.descriptionIsNull); err != nil {
 		return nil, fmt.Errorf("error encoding Project.descriptionIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.descriptionIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Project.descriptionIsValid: %w", err)
+	if err := encoder.Encode(o.descriptionIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Project.descriptionIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.descriptionIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding Project.descriptionIsDirty: %w", err)
@@ -2832,8 +2836,8 @@ func (o *projectBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.startDateIsNull); err != nil {
 		return nil, fmt.Errorf("error encoding Project.startDateIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.startDateIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Project.startDateIsValid: %w", err)
+	if err := encoder.Encode(o.startDateIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Project.startDateIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.startDateIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding Project.startDateIsDirty: %w", err)
@@ -2845,8 +2849,8 @@ func (o *projectBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.endDateIsNull); err != nil {
 		return nil, fmt.Errorf("error encoding Project.endDateIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.endDateIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Project.endDateIsValid: %w", err)
+	if err := encoder.Encode(o.endDateIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Project.endDateIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.endDateIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding Project.endDateIsDirty: %w", err)
@@ -2858,8 +2862,8 @@ func (o *projectBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.budgetIsNull); err != nil {
 		return nil, fmt.Errorf("error encoding Project.budgetIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.budgetIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Project.budgetIsValid: %w", err)
+	if err := encoder.Encode(o.budgetIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Project.budgetIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.budgetIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding Project.budgetIsDirty: %w", err)
@@ -2871,8 +2875,8 @@ func (o *projectBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.spentIsNull); err != nil {
 		return nil, fmt.Errorf("error encoding Project.spentIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.spentIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Project.spentIsValid: %w", err)
+	if err := encoder.Encode(o.spentIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Project.spentIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.spentIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding Project.spentIsDirty: %w", err)
@@ -2884,8 +2888,8 @@ func (o *projectBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.parentProjectIDIsNull); err != nil {
 		return nil, fmt.Errorf("error encoding Project.parentProjectIDIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.parentProjectIDIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Project.parentProjectIDIsValid: %w", err)
+	if err := encoder.Encode(o.parentProjectIDIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Project.parentProjectIDIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.parentProjectIDIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding Project.parentProjectIDIsDirty: %w", err)
@@ -3001,15 +3005,18 @@ func (o *projectBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.id); err != nil {
 		return fmt.Errorf("error decoding Project.id: %w", err)
 	}
-	if err = dec.Decode(&o.idIsValid); err != nil {
-		return fmt.Errorf("error decoding Project.idIsValid: %w", err)
+	if err = dec.Decode(&o.idIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Project.idIsLoaded: %w", err)
+	}
+	if err = dec.Decode(&o.idIsDirty); err != nil {
+		return fmt.Errorf("error decoding Project.idIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.num); err != nil {
 		return fmt.Errorf("error decoding Project.num: %w", err)
 	}
-	if err = dec.Decode(&o.numIsValid); err != nil {
-		return fmt.Errorf("error decoding Project.numIsValid: %w", err)
+	if err = dec.Decode(&o.numIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Project.numIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.numIsDirty); err != nil {
 		return fmt.Errorf("error decoding Project.numIsDirty: %w", err)
@@ -3018,8 +3025,8 @@ func (o *projectBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.status); err != nil {
 		return fmt.Errorf("error decoding Project.status: %w", err)
 	}
-	if err = dec.Decode(&o.statusIsValid); err != nil {
-		return fmt.Errorf("error decoding Project.statusIsValid: %w", err)
+	if err = dec.Decode(&o.statusIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Project.statusIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.statusIsDirty); err != nil {
 		return fmt.Errorf("error decoding Project.statusIsDirty: %w", err)
@@ -3031,8 +3038,8 @@ func (o *projectBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.managerIDIsNull); err != nil {
 		return fmt.Errorf("error decoding Project.managerIDIsNull: %w", err)
 	}
-	if err = dec.Decode(&o.managerIDIsValid); err != nil {
-		return fmt.Errorf("error decoding Project.managerIDIsValid: %w", err)
+	if err = dec.Decode(&o.managerIDIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Project.managerIDIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.managerIDIsDirty); err != nil {
 		return fmt.Errorf("error decoding Project.managerIDIsDirty: %w", err)
@@ -3049,8 +3056,8 @@ func (o *projectBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.name); err != nil {
 		return fmt.Errorf("error decoding Project.name: %w", err)
 	}
-	if err = dec.Decode(&o.nameIsValid); err != nil {
-		return fmt.Errorf("error decoding Project.nameIsValid: %w", err)
+	if err = dec.Decode(&o.nameIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Project.nameIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.nameIsDirty); err != nil {
 		return fmt.Errorf("error decoding Project.nameIsDirty: %w", err)
@@ -3062,8 +3069,8 @@ func (o *projectBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.descriptionIsNull); err != nil {
 		return fmt.Errorf("error decoding Project.descriptionIsNull: %w", err)
 	}
-	if err = dec.Decode(&o.descriptionIsValid); err != nil {
-		return fmt.Errorf("error decoding Project.descriptionIsValid: %w", err)
+	if err = dec.Decode(&o.descriptionIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Project.descriptionIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.descriptionIsDirty); err != nil {
 		return fmt.Errorf("error decoding Project.descriptionIsDirty: %w", err)
@@ -3075,8 +3082,8 @@ func (o *projectBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.startDateIsNull); err != nil {
 		return fmt.Errorf("error decoding Project.startDateIsNull: %w", err)
 	}
-	if err = dec.Decode(&o.startDateIsValid); err != nil {
-		return fmt.Errorf("error decoding Project.startDateIsValid: %w", err)
+	if err = dec.Decode(&o.startDateIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Project.startDateIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.startDateIsDirty); err != nil {
 		return fmt.Errorf("error decoding Project.startDateIsDirty: %w", err)
@@ -3088,8 +3095,8 @@ func (o *projectBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.endDateIsNull); err != nil {
 		return fmt.Errorf("error decoding Project.endDateIsNull: %w", err)
 	}
-	if err = dec.Decode(&o.endDateIsValid); err != nil {
-		return fmt.Errorf("error decoding Project.endDateIsValid: %w", err)
+	if err = dec.Decode(&o.endDateIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Project.endDateIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.endDateIsDirty); err != nil {
 		return fmt.Errorf("error decoding Project.endDateIsDirty: %w", err)
@@ -3101,8 +3108,8 @@ func (o *projectBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.budgetIsNull); err != nil {
 		return fmt.Errorf("error decoding Project.budgetIsNull: %w", err)
 	}
-	if err = dec.Decode(&o.budgetIsValid); err != nil {
-		return fmt.Errorf("error decoding Project.budgetIsValid: %w", err)
+	if err = dec.Decode(&o.budgetIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Project.budgetIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.budgetIsDirty); err != nil {
 		return fmt.Errorf("error decoding Project.budgetIsDirty: %w", err)
@@ -3114,8 +3121,8 @@ func (o *projectBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.spentIsNull); err != nil {
 		return fmt.Errorf("error decoding Project.spentIsNull: %w", err)
 	}
-	if err = dec.Decode(&o.spentIsValid); err != nil {
-		return fmt.Errorf("error decoding Project.spentIsValid: %w", err)
+	if err = dec.Decode(&o.spentIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Project.spentIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.spentIsDirty); err != nil {
 		return fmt.Errorf("error decoding Project.spentIsDirty: %w", err)
@@ -3127,8 +3134,8 @@ func (o *projectBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.parentProjectIDIsNull); err != nil {
 		return fmt.Errorf("error decoding Project.parentProjectIDIsNull: %w", err)
 	}
-	if err = dec.Decode(&o.parentProjectIDIsValid); err != nil {
-		return fmt.Errorf("error decoding Project.parentProjectIDIsValid: %w", err)
+	if err = dec.Decode(&o.parentProjectIDIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Project.parentProjectIDIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.parentProjectIDIsDirty); err != nil {
 		return fmt.Errorf("error decoding Project.parentProjectIDIsDirty: %w", err)
@@ -3220,19 +3227,19 @@ func (o *projectBase) MarshalJSON() (data []byte, err error) {
 func (o *projectBase) MarshalStringMap() map[string]interface{} {
 	v := make(map[string]interface{})
 
-	if o.idIsValid {
+	if o.idIsLoaded {
 		v["id"] = o.id
 	}
 
-	if o.numIsValid {
+	if o.numIsLoaded {
 		v["num"] = o.num
 	}
 
-	if o.statusIsValid {
+	if o.statusIsLoaded {
 		v["status"] = o.status
 	}
 
-	if o.managerIDIsValid {
+	if o.managerIDIsLoaded {
 		if o.managerIDIsNull {
 			v["managerID"] = nil
 		} else {
@@ -3244,11 +3251,11 @@ func (o *projectBase) MarshalStringMap() map[string]interface{} {
 		v["manager"] = val.MarshalStringMap()
 	}
 
-	if o.nameIsValid {
+	if o.nameIsLoaded {
 		v["name"] = o.name
 	}
 
-	if o.descriptionIsValid {
+	if o.descriptionIsLoaded {
 		if o.descriptionIsNull {
 			v["description"] = nil
 		} else {
@@ -3256,7 +3263,7 @@ func (o *projectBase) MarshalStringMap() map[string]interface{} {
 		}
 	}
 
-	if o.startDateIsValid {
+	if o.startDateIsLoaded {
 		if o.startDateIsNull {
 			v["startDate"] = nil
 		} else {
@@ -3264,7 +3271,7 @@ func (o *projectBase) MarshalStringMap() map[string]interface{} {
 		}
 	}
 
-	if o.endDateIsValid {
+	if o.endDateIsLoaded {
 		if o.endDateIsNull {
 			v["endDate"] = nil
 		} else {
@@ -3272,7 +3279,7 @@ func (o *projectBase) MarshalStringMap() map[string]interface{} {
 		}
 	}
 
-	if o.budgetIsValid {
+	if o.budgetIsLoaded {
 		if o.budgetIsNull {
 			v["budget"] = nil
 		} else {
@@ -3280,7 +3287,7 @@ func (o *projectBase) MarshalStringMap() map[string]interface{} {
 		}
 	}
 
-	if o.spentIsValid {
+	if o.spentIsLoaded {
 		if o.spentIsNull {
 			v["spent"] = nil
 		} else {
@@ -3288,7 +3295,7 @@ func (o *projectBase) MarshalStringMap() map[string]interface{} {
 		}
 	}
 
-	if o.parentProjectIDIsValid {
+	if o.parentProjectIDIsLoaded {
 		if o.parentProjectIDIsNull {
 			v["parentProjectID"] = nil
 		} else {
@@ -3380,6 +3387,19 @@ func (o *projectBase) UnmarshalJSON(data []byte) (err error) {
 func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 	for k, v := range m {
 		switch k {
+
+		case "id":
+			{
+				if v == nil {
+					return fmt.Errorf("field %s cannot be null", k)
+				}
+
+				if s, ok := v.(string); !ok {
+					return fmt.Errorf("json field %s must be a string", k)
+				} else {
+					o.SetID(s)
+				}
+			}
 
 		case "num":
 			{

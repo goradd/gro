@@ -156,8 +156,15 @@ func (cd *Column) IsEnumArray() bool {
 	return cd.SchemaType == schema.ColTypeEnumArray
 }
 
+// IsDecimal returns true if the column is a Decimal (Numeric) string value, meaning
+// is a variable precision decimal number.
 func (cd *Column) IsDecimal() bool {
 	return cd.SchemaSubType == schema.ColSubTypeNumeric
+}
+
+// HasDefaultValue returns true if the column has a default value.
+func (cd *Column) HasDefaultValue() bool {
+	return cd.DefaultValue != nil
 }
 
 // ReferenceIdentifier returns the capitalized name that should be used to refer to the object
@@ -241,6 +248,9 @@ func (cd *Column) ReverseJsonKey() string {
 
 // GoType return the Go type of the internal member variable corresponding to the column.
 func (cd *Column) GoType() string {
+	if cd.IsAutoId {
+		return "string"
+	}
 	if ref := cd.Reference; ref != nil {
 		if table := cd.Reference.Table; table != nil {
 			if col := table.PrimaryKeyColumn(); col != nil {
@@ -267,9 +277,6 @@ func (cd *Column) GoType() string {
 // HasSetter returns true if the column should be allowed to be set by the programmer. Some columns should not be alterable,
 // including AutoID columns, and time based columns that automatically set or update their times.
 func (cd *Column) HasSetter() bool {
-	if cd.IsAutoId {
-		return false
-	}
 	if cd.ReceiverType == ColTypeTime {
 		if cd.DefaultValue == CreatedTime || cd.DefaultValue == ModifiedTime {
 			return false

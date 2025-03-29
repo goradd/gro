@@ -69,16 +69,35 @@ func deleteSampleAddress(ctx context.Context, obj *Address) {
 
 // assertEqualFieldsAddress compares two objects and asserts that the basic fields are equal.
 func assertEqualFieldsAddress(t *testing.T, obj1, obj2 *Address) {
-	assert.EqualValues(t, obj1.ID(), obj2.ID())
-
-	assert.EqualValues(t, obj1.PersonID(), obj2.PersonID())
-
-	assert.EqualValues(t, obj1.Street(), obj2.Street())
-
-	assert.EqualValues(t, obj1.City(), obj2.City())
+	if obj1.IDIsLoaded() && obj2.IDIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.ID(), obj2.ID())
+	}
+	if obj1.PersonIDIsLoaded() && obj2.PersonIDIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.PersonID(), obj2.PersonID())
+	}
+	if obj1.StreetIsLoaded() && obj2.StreetIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.Street(), obj2.Street())
+	}
+	if obj1.CityIsLoaded() && obj2.CityIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.City(), obj2.City())
+	}
 
 }
 
+func TestAddress_SetID(t *testing.T) {
+
+	obj := NewAddress()
+
+	assert.True(t, obj.IsNew())
+	val := test.RandomNumberString()
+	obj.SetID(val)
+	assert.Equal(t, val, obj.ID())
+
+	// test default
+	obj.SetID("")
+	assert.EqualValues(t, "", obj.ID(), "set default")
+
+}
 func TestAddress_SetPersonID(t *testing.T) {
 
 	obj := NewAddress()
@@ -162,16 +181,21 @@ func TestAddress_BasicInsert(t *testing.T) {
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
-	assert.True(t, obj2.IDIsValid())
+	assert.True(t, obj2.IDIsLoaded())
 
-	assert.True(t, obj2.StreetIsValid())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.idIsDirty)
+	obj2.SetID(obj2.ID())
+	assert.False(t, obj2.idIsDirty)
+
+	assert.True(t, obj2.StreetIsLoaded())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.streetIsDirty)
 	obj2.SetStreet(obj2.Street())
 	assert.False(t, obj2.streetIsDirty)
 
-	assert.True(t, obj2.CityIsValid())
+	assert.True(t, obj2.CityIsLoaded())
 	assert.False(t, obj2.CityIsNull())
 
 	// test that setting it to the same value will not change the dirty bit
@@ -185,13 +209,13 @@ func TestAddress_InsertPanics(t *testing.T) {
 	obj := createMinimalSampleAddress()
 	ctx := db.NewContext(nil)
 
-	obj.personIDIsValid = false
+	obj.personIDIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.personIDIsValid = true
+	obj.personIDIsLoaded = true
 
-	obj.streetIsValid = false
+	obj.streetIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.streetIsValid = true
+	obj.streetIsLoaded = true
 
 }
 
@@ -205,7 +229,6 @@ func TestAddress_BasicUpdate(t *testing.T) {
 	obj2 := LoadAddress(ctx, obj.PrimaryKey())
 
 	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
-	assert.Equal(t, obj2.PersonID(), obj.PersonID(), "PersonID did not update")
 	assert.Equal(t, obj2.Street(), obj.Street(), "Street did not update")
 	assert.Equal(t, obj2.City(), obj.City(), "City did not update")
 }
@@ -231,9 +254,9 @@ func TestAddress_ReferenceLoad(t *testing.T) {
 	assert.NotNil(t, v_Person)
 	assert.Equal(t, v_Person.PrimaryKey(), obj2.Person().PrimaryKey())
 	assert.Equal(t, obj.Person().PrimaryKey(), obj2.Person().PrimaryKey())
-	assert.True(t, obj2.PersonIDIsValid())
+	assert.True(t, obj2.PersonIDIsLoaded())
 
-	assert.False(t, objPkOnly.PersonIDIsValid())
+	assert.False(t, objPkOnly.PersonIDIsLoaded())
 	assert.Nil(t, objPkOnly.LoadPerson(ctx))
 
 	assert.Panics(t, func() {
@@ -308,7 +331,6 @@ func TestAddress_Getters(t *testing.T) {
 	obj2 := LoadAddress(ctx, obj.PrimaryKey(), node.Address().PrimaryKey())
 
 	assert.Equal(t, obj.ID(), obj.Get(node.Address().ID().Identifier))
-	assert.Equal(t, obj.PersonID(), obj.Get(node.Address().PersonID().Identifier))
 	assert.Panics(t, func() { obj2.PersonID() })
 	assert.Nil(t, obj2.Get(node.Address().PersonID().Identifier))
 	assert.Equal(t, obj.Street(), obj.Get(node.Address().Street().Identifier))

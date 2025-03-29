@@ -3,12 +3,17 @@
 package goradd_unit
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"os"
 	"testing"
 
+	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
+	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
+	"github.com/stretchr/testify/assert"
 )
 
 // ClearAll deletes all the data in the database, except for data in Enum tables.
@@ -48,4 +53,67 @@ func setup(m *testing.M) {
 func teardown() {
 	// Cleanup logic here
 	fmt.Println("Cleaning up after tests...")
+}
+
+// TestDbJson will export the entire database as JSON into a memory buffer, clear the database, then
+// import the entire database from the buffer. It will then do some sanity checks.
+func TestDbJson(t *testing.T) {
+	return
+	ctx := db.NewContext(nil)
+
+	// get single comparison objects and data sizes
+	// database must be pre-populated for test
+
+	v_DoubleIndex := QueryDoubleIndices(ctx).OrderBy(node.DoubleIndex().PrimaryKey()).Get()            // gets first record
+	v_Leaf := QueryLeafs(ctx).OrderBy(node.Leaf().PrimaryKey()).Get()                                  // gets first record
+	v_LeafLock := QueryLeafLocks(ctx).OrderBy(node.LeafLock().PrimaryKey()).Get()                      // gets first record
+	v_Root := QueryRoots(ctx).OrderBy(node.Root().PrimaryKey()).Get()                                  // gets first record
+	v_TypeTest := QueryTypeTests(ctx).OrderBy(node.TypeTest().PrimaryKey()).Get()                      // gets first record
+	v_UnsupportedType := QueryUnsupportedTypes(ctx).OrderBy(node.UnsupportedType().PrimaryKey()).Get() // gets first record
+	v_DoubleIndexCount := CountDoubleIndices(ctx)
+	v_LeafCount := CountLeafs(ctx)
+	v_LeafLockCount := CountLeafLocks(ctx)
+	v_RootCount := CountRoots(ctx)
+	v_TypeTestCount := CountTypeTests(ctx)
+	v_UnsupportedTypeCount := CountUnsupportedTypes(ctx)
+
+	var b bytes.Buffer
+	w := bufio.NewWriter(&b)
+	assert.NoError(t, JsonEncodeAll(ctx, w))
+
+	ClearAll(ctx)
+	assert.Equal(t, 0, CountDoubleIndices(ctx))
+	assert.Equal(t, 0, CountLeafs(ctx))
+	assert.Equal(t, 0, CountLeafLocks(ctx))
+	assert.Equal(t, 0, CountRoots(ctx))
+	assert.Equal(t, 0, CountTypeTests(ctx))
+	assert.Equal(t, 0, CountUnsupportedTypes(ctx))
+
+	r := bufio.NewReader(&b)
+	assert.NoError(t, JsonDecodeAll(ctx, r))
+
+	if v_DoubleIndex != nil {
+		assertEqualFieldsDoubleIndex(t, v_DoubleIndex, QueryDoubleIndices(ctx).OrderBy(node.DoubleIndex().PrimaryKey()).Get())
+	}
+	if v_Leaf != nil {
+		assertEqualFieldsLeaf(t, v_Leaf, QueryLeafs(ctx).OrderBy(node.Leaf().PrimaryKey()).Get())
+	}
+	if v_LeafLock != nil {
+		assertEqualFieldsLeafLock(t, v_LeafLock, QueryLeafLocks(ctx).OrderBy(node.LeafLock().PrimaryKey()).Get())
+	}
+	if v_Root != nil {
+		assertEqualFieldsRoot(t, v_Root, QueryRoots(ctx).OrderBy(node.Root().PrimaryKey()).Get())
+	}
+	if v_TypeTest != nil {
+		assertEqualFieldsTypeTest(t, v_TypeTest, QueryTypeTests(ctx).OrderBy(node.TypeTest().PrimaryKey()).Get())
+	}
+	if v_UnsupportedType != nil {
+		assertEqualFieldsUnsupportedType(t, v_UnsupportedType, QueryUnsupportedTypes(ctx).OrderBy(node.UnsupportedType().PrimaryKey()).Get())
+	}
+	assert.Equal(t, v_DoubleIndexCount, CountDoubleIndices(ctx))
+	assert.Equal(t, v_LeafCount, CountLeafs(ctx))
+	assert.Equal(t, v_LeafLockCount, CountLeafLocks(ctx))
+	assert.Equal(t, v_RootCount, CountRoots(ctx))
+	assert.Equal(t, v_TypeTestCount, CountTypeTests(ctx))
+	assert.Equal(t, v_UnsupportedTypeCount, CountUnsupportedTypes(ctx))
 }

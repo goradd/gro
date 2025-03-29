@@ -1,6 +1,7 @@
 package test
 
 import (
+	"fmt"
 	"github.com/goradd/maps"
 	"github.com/goradd/strings"
 	"golang.org/x/exp/constraints"
@@ -95,6 +96,11 @@ func RandomValue[T any](size int) T {
 func RandomNum[T constraints.Integer | constraints.Float](low int, high int) T {
 	v := rng.Intn(high - low)
 	return T(v + low)
+}
+
+func RandomNumberString() string {
+	v := rng.Intn(10000) + 1
+	return fmt.Sprint(v)
 }
 
 func RandomEnum[T ~int](valueList []T) T {

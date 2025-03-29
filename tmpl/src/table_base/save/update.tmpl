@@ -4,6 +4,7 @@
 }}
 {{
 // update will update the values in the database, saving any changed values.
+// If the table has auto-generated values, those will be updated automatically.
 func (o *{{= table.DecapIdentifier}}Base) update(ctx context.Context) error {
     if !o._restored {
         panic ("cannot update a record that was not originally read from the database.")
@@ -12,29 +13,18 @@ func (o *{{= table.DecapIdentifier}}Base) update(ctx context.Context) error {
         return nil // nothing to save
     }
 
-var modifiedFields map[string]interface{}
+    var modifiedFields map[string]interface{}
 {{if c := table.LockColumn(); c != nil }}
     var newLock int64
 {{if}}
-{{for _,c := range table.Columns }}
-{{if c.SchemaSubType == schema.ColSubTypeTimestamp}}
-    var v_{{= c.VariableIdentifier() }} int64
-{{if}}
-{{for}}
 
     d := Database()
     err := db.ExecuteTransaction(ctx, d, func() error {
 {{: "update_ref.tmpl" }}
-        modifiedFields = o.getModifiedFields()
+        modifiedFields = o.getUpdateFields()
         if len(modifiedFields) != 0 {
             var err2 error
 
-{{for _,c := range table.Columns }}
-{{if c.SchemaSubType == schema.ColSubTypeTimestamp}}
-            v_{{= c.VariableIdentifier() }} = time.Now().UnixMicro()
-            modifiedFields["{{= c.QueryName }}"] = v_{{= c.VariableIdentifier() }}
-{{if}}
-{{for}}
 {{if c := table.LockColumn(); c == nil }}
             _, err2 = d.Update(ctx, "{{= table.QueryName }}", "{{= table.PrimaryKeyColumn().QueryName }}", o._originalPK, modifiedFields, "", 0)
             if err2 != nil {
@@ -58,14 +48,15 @@ var modifiedFields map[string]interface{}
         return err
     }
 {{# update auto-generated fields after we are sure transaction was successful }}
-{{for _,c := range table.Columns }}
-{{if c.SchemaSubType == schema.ColSubTypeTimestamp}}
-    if v_{{= c.VariableIdentifier() }} != 0 {
-        o.{{= c.VariableIdentifier() }} = v_{{= c.VariableIdentifier() }}
-    }
-{{elseif c.SchemaSubType == schema.ColSubTypeLock}}
+{{for _,col := range table.Columns }}
+{{if col.SchemaSubType == schema.ColSubTypeTimestamp ||
+        col.ReceiverType == query.ColTypeTime && col.DefaultValue == model.ModifiedTime }}
+    o.{{= col.VariableIdentifier() }} = modifiedFields["{{= col.QueryName }}"].({{= col.GoType() }})
+    o.{{= col.VariableIdentifier() }}IsLoaded = true
+{{elseif col.SchemaSubType == schema.ColSubTypeLock}}
     if newLock != 0 {
-        o.{{= c.VariableIdentifier() }} = newLock
+        o.{{= col.VariableIdentifier() }} = newLock
+        o.{{= col.VariableIdentifier() }}IsLoaded = true
     }
 {{if}}
 {{for}}

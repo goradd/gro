@@ -24,76 +24,60 @@ import (
 // The member variables of the structure are private and should not normally be accessed by the UnsupportedType embedder.
 // Instead, use the accessor functions.
 type unsupportedTypeBase struct {
-	typeSerial        string
-	typeSerialIsValid bool
-
-	typeSet        []byte
-	typeSetIsValid bool
-	typeSetIsDirty bool
-
-	typeEnumerated        []byte
-	typeEnumeratedIsValid bool
-	typeEnumeratedIsDirty bool
-
-	typeDecimal        string
-	typeDecimalIsValid bool
-	typeDecimalIsDirty bool
-
-	typeDouble        float64
-	typeDoubleIsValid bool
-	typeDoubleIsDirty bool
-
-	typeGeo        []byte
-	typeGeoIsValid bool
-	typeGeoIsDirty bool
-
-	typeTinyBlob        []byte
-	typeTinyBlobIsValid bool
-	typeTinyBlobIsDirty bool
-
-	typeMediumBlob        []byte
-	typeMediumBlobIsValid bool
-	typeMediumBlobIsDirty bool
-
-	typeVarbinary        []byte
-	typeVarbinaryIsValid bool
-	typeVarbinaryIsDirty bool
-
-	typeLongtext        string
-	typeLongtextIsValid bool
-	typeLongtextIsDirty bool
-
-	typeBinary        []byte
-	typeBinaryIsValid bool
-	typeBinaryIsDirty bool
-
-	typeSmall        int
-	typeSmallIsValid bool
-	typeSmallIsDirty bool
-
-	typeMedium        int
-	typeMediumIsValid bool
-	typeMediumIsDirty bool
-
-	typeBig        int64
-	typeBigIsValid bool
-	typeBigIsDirty bool
-
-	typePolygon        []byte
-	typePolygonIsValid bool
-	typePolygonIsDirty bool
-
-	typeUnsigned        uint
-	typeUnsignedIsValid bool
-	typeUnsignedIsDirty bool
-
-	typeMultfk1        string
-	typeMultfk1IsValid bool
-	typeMultfk1IsDirty bool
-
-	typeMultifk2        string
-	typeMultifk2IsValid bool
-	typeMultifk2IsDirty bool
+	typeSerial             string
+	typeSerialIsLoaded     bool
+	typeSerialIsDirty      bool
+	typeSet                []byte
+	typeSetIsLoaded        bool
+	typeSetIsDirty         bool
+	typeEnumerated         []byte
+	typeEnumeratedIsLoaded bool
+	typeEnumeratedIsDirty  bool
+	typeDecimal            string
+	typeDecimalIsLoaded    bool
+	typeDecimalIsDirty     bool
+	typeDouble             float64
+	typeDoubleIsLoaded     bool
+	typeDoubleIsDirty      bool
+	typeGeo                []byte
+	typeGeoIsLoaded        bool
+	typeGeoIsDirty         bool
+	typeTinyBlob           []byte
+	typeTinyBlobIsLoaded   bool
+	typeTinyBlobIsDirty    bool
+	typeMediumBlob         []byte
+	typeMediumBlobIsLoaded bool
+	typeMediumBlobIsDirty  bool
+	typeVarbinary          []byte
+	typeVarbinaryIsLoaded  bool
+	typeVarbinaryIsDirty   bool
+	typeLongtext           string
+	typeLongtextIsLoaded   bool
+	typeLongtextIsDirty    bool
+	typeBinary             []byte
+	typeBinaryIsLoaded     bool
+	typeBinaryIsDirty      bool
+	typeSmall              int
+	typeSmallIsLoaded      bool
+	typeSmallIsDirty       bool
+	typeMedium             int
+	typeMediumIsLoaded     bool
+	typeMediumIsDirty      bool
+	typeBig                int64
+	typeBigIsLoaded        bool
+	typeBigIsDirty         bool
+	typePolygon            []byte
+	typePolygonIsLoaded    bool
+	typePolygonIsDirty     bool
+	typeUnsigned           uint
+	typeUnsignedIsLoaded   bool
+	typeUnsignedIsDirty    bool
+	typeMultfk1            string
+	typeMultfk1IsLoaded    bool
+	typeMultfk1IsDirty     bool
+	typeMultifk2           string
+	typeMultifk2IsLoaded   bool
+	typeMultifk2IsDirty    bool
 
 	// Custom aliases, if specified
 	_aliases map[string]any
@@ -146,98 +130,79 @@ const UnsupportedTypeTypeMultifk2MaxLength = 50 // The number of runes the colum
 // The primary key will get a temporary negative number which will be replaced when the object is saved.
 // Multiple calls to Initialize are not guaranteed to create sequential values for the primary key.
 func (o *unsupportedTypeBase) Initialize() {
-
 	o.typeSerial = db.TemporaryPrimaryKey()
-
-	o.typeSerialIsValid = false
+	o.typeSerialIsLoaded = false
+	o.typeSerialIsDirty = false
 
 	o.typeSet = []byte{}
-
-	o.typeSetIsValid = false
+	o.typeSetIsLoaded = false
 	o.typeSetIsDirty = false
 
 	o.typeEnumerated = []byte{}
-
-	o.typeEnumeratedIsValid = false
+	o.typeEnumeratedIsLoaded = false
 	o.typeEnumeratedIsDirty = false
 
 	o.typeDecimal = ""
-
-	o.typeDecimalIsValid = false
+	o.typeDecimalIsLoaded = false
 	o.typeDecimalIsDirty = false
 
 	o.typeDouble = 0
-
-	o.typeDoubleIsValid = false
+	o.typeDoubleIsLoaded = false
 	o.typeDoubleIsDirty = false
 
 	o.typeGeo = []byte{}
-
-	o.typeGeoIsValid = false
+	o.typeGeoIsLoaded = false
 	o.typeGeoIsDirty = false
 
 	o.typeTinyBlob = []byte{}
-
-	o.typeTinyBlobIsValid = false
+	o.typeTinyBlobIsLoaded = false
 	o.typeTinyBlobIsDirty = false
 
 	o.typeMediumBlob = []byte{}
-
-	o.typeMediumBlobIsValid = false
+	o.typeMediumBlobIsLoaded = false
 	o.typeMediumBlobIsDirty = false
 
 	o.typeVarbinary = []byte{}
-
-	o.typeVarbinaryIsValid = false
+	o.typeVarbinaryIsLoaded = false
 	o.typeVarbinaryIsDirty = false
 
 	o.typeLongtext = ""
-
-	o.typeLongtextIsValid = false
+	o.typeLongtextIsLoaded = false
 	o.typeLongtextIsDirty = false
 
 	o.typeBinary = []byte{}
-
-	o.typeBinaryIsValid = false
+	o.typeBinaryIsLoaded = false
 	o.typeBinaryIsDirty = false
 
 	o.typeSmall = 0
-
-	o.typeSmallIsValid = false
+	o.typeSmallIsLoaded = false
 	o.typeSmallIsDirty = false
 
 	o.typeMedium = 0
-
-	o.typeMediumIsValid = false
+	o.typeMediumIsLoaded = false
 	o.typeMediumIsDirty = false
 
 	o.typeBig = 0
-
-	o.typeBigIsValid = false
+	o.typeBigIsLoaded = false
 	o.typeBigIsDirty = false
 
 	o.typePolygon = []byte{}
-
-	o.typePolygonIsValid = false
+	o.typePolygonIsLoaded = false
 	o.typePolygonIsDirty = false
 
 	o.typeUnsigned = 0x0
-
-	o.typeUnsignedIsValid = false
+	o.typeUnsignedIsLoaded = false
 	o.typeUnsignedIsDirty = false
 
 	o.typeMultfk1 = ""
-
-	o.typeMultfk1IsValid = false
+	o.typeMultfk1IsLoaded = false
 	o.typeMultfk1IsDirty = false
 
 	o.typeMultifk2 = ""
-
-	o.typeMultifk2IsValid = false
+	o.typeMultifk2IsLoaded = false
 	o.typeMultifk2IsDirty = false
 
 	o._aliases = nil
-
 	o._restored = false
 }
 
@@ -252,91 +217,116 @@ func (o *unsupportedTypeBase) OriginalPrimaryKey() string {
 	return o._originalPK
 }
 
-// Copy copies all valid fields to a new UnsupportedType object.
+// Copy copies most fields to a new UnsupportedType object.
 // Forward reference ids will be copied, but reverse and many-many references will not.
 // Attached objects will not be included in the copy.
+// Automatically generated fields will not be included in the copy.
+// The primary key field will not be copied, since it is normally auto-generated.
 // Call Save() on the new object to save it into the database.
 // Copy might panic if any fields in the database were set to a size larger than the
 // maximum size through a process that accessed the database outside of the ORM.
 func (o *unsupportedTypeBase) Copy() (newObject *UnsupportedType) {
 	newObject = NewUnsupportedType()
-	if o.typeSetIsValid {
+	if o.typeSerialIsLoaded {
+		newObject.SetTypeSerial(o.typeSerial)
+	}
+	if o.typeSetIsLoaded {
 		newObject.SetTypeSet(o.typeSet)
 	}
-	if o.typeEnumeratedIsValid {
+	if o.typeEnumeratedIsLoaded {
 		newObject.SetTypeEnumerated(o.typeEnumerated)
 	}
-	if o.typeDecimalIsValid {
+	if o.typeDecimalIsLoaded {
 		newObject.SetTypeDecimal(o.typeDecimal)
 	}
-	if o.typeDoubleIsValid {
+	if o.typeDoubleIsLoaded {
 		newObject.SetTypeDouble(o.typeDouble)
 	}
-	if o.typeGeoIsValid {
+	if o.typeGeoIsLoaded {
 		newObject.SetTypeGeo(o.typeGeo)
 	}
-	if o.typeTinyBlobIsValid {
+	if o.typeTinyBlobIsLoaded {
 		newObject.SetTypeTinyBlob(o.typeTinyBlob)
 	}
-	if o.typeMediumBlobIsValid {
+	if o.typeMediumBlobIsLoaded {
 		newObject.SetTypeMediumBlob(o.typeMediumBlob)
 	}
-	if o.typeVarbinaryIsValid {
+	if o.typeVarbinaryIsLoaded {
 		newObject.SetTypeVarbinary(o.typeVarbinary)
 	}
-	if o.typeLongtextIsValid {
+	if o.typeLongtextIsLoaded {
 		newObject.SetTypeLongtext(o.typeLongtext)
 	}
-	if o.typeBinaryIsValid {
+	if o.typeBinaryIsLoaded {
 		newObject.SetTypeBinary(o.typeBinary)
 	}
-	if o.typeSmallIsValid {
+	if o.typeSmallIsLoaded {
 		newObject.SetTypeSmall(o.typeSmall)
 	}
-	if o.typeMediumIsValid {
+	if o.typeMediumIsLoaded {
 		newObject.SetTypeMedium(o.typeMedium)
 	}
-	if o.typeBigIsValid {
+	if o.typeBigIsLoaded {
 		newObject.SetTypeBig(o.typeBig)
 	}
-	if o.typePolygonIsValid {
+	if o.typePolygonIsLoaded {
 		newObject.SetTypePolygon(o.typePolygon)
 	}
-	if o.typeUnsignedIsValid {
+	if o.typeUnsignedIsLoaded {
 		newObject.SetTypeUnsigned(o.typeUnsigned)
 	}
-	if o.typeMultfk1IsValid {
+	if o.typeMultfk1IsLoaded {
 		newObject.SetTypeMultfk1(o.typeMultfk1)
 	}
-	if o.typeMultifk2IsValid {
+	if o.typeMultifk2IsLoaded {
 		newObject.SetTypeMultifk2(o.typeMultifk2)
 	}
 	return
 }
 
-// TypeSerial returns the loaded value of TypeSerial or
-// the zero value if not loaded. Call TypeSerialIsValid() to determine
-// if it is loaded.
+// TypeSerial returns the value of TypeSerial.
 func (o *unsupportedTypeBase) TypeSerial() string {
-	return fmt.Sprint(o.typeSerial)
+	if o._restored && !o.typeSerialIsLoaded {
+		panic("TypeSerial was not selected in the last query and has not been set, and so is not valid")
+	}
+	return o.typeSerial
 }
 
-// TypeSerialIsValid returns true if the value was loaded from the database or has been set.
-func (o *unsupportedTypeBase) TypeSerialIsValid() bool {
-	return o._restored && o.typeSerialIsValid
+// TypeSerialIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *unsupportedTypeBase) TypeSerialIsLoaded() bool {
+	return o.typeSerialIsLoaded
 }
 
-// TypeSet returns the loaded value of TypeSet.
+// SetTypeSerial sets the value of TypeSerial in the object, to be saved later in the database using the Save() function.
+// Normally you will not need to call this function, since the TypeSerial value is automatically generated by the
+// database driver. Exceptions might include importing data to a new datbase, or correcting primary key conflicts when
+// merging data. In these cases, related tables will NOT be automatically updated by the ORM, so you should do that manually.
+// Note that if the database is a SQL database and it is set up so that foreign keys CASCADE on UPDATE, the database will
+// handle the change.
+func (o *unsupportedTypeBase) SetTypeSerial(v string) {
+	if o._restored &&
+		o.typeSerialIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeSerial == v {
+		// no change
+		return
+	}
+
+	o.typeSerialIsLoaded = true
+	o.typeSerial = v
+	o.typeSerialIsDirty = true
+}
+
+// TypeSet returns the value of TypeSet.
 func (o *unsupportedTypeBase) TypeSet() []byte {
-	if o._restored && !o.typeSetIsValid {
+	if o._restored && !o.typeSetIsLoaded {
 		panic("TypeSet was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.typeSet
 }
 
-// TypeSetIsValid returns true if the value was loaded from the database or has been set.
-func (o *unsupportedTypeBase) TypeSetIsValid() bool {
-	return o.typeSetIsValid
+// TypeSetIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *unsupportedTypeBase) TypeSetIsLoaded() bool {
+	return o.typeSetIsLoaded
 }
 
 // SetTypeSet copies the value of TypeSet, to be saved later in the database using the Save() function.
@@ -348,13 +338,13 @@ func (o *unsupportedTypeBase) SetTypeSet(v []byte) {
 	}
 
 	if o._restored &&
-		o.typeSetIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeSetIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		bytes.Equal(o.typeSet, v) {
 		// no change
 		return
 	}
 
-	o.typeSetIsValid = true
+	o.typeSetIsLoaded = true
 	if v == nil {
 		o.typeSet = []byte{}
 	} else {
@@ -363,17 +353,17 @@ func (o *unsupportedTypeBase) SetTypeSet(v []byte) {
 	o.typeSetIsDirty = true
 }
 
-// TypeEnumerated returns the loaded value of TypeEnumerated.
+// TypeEnumerated returns the value of TypeEnumerated.
 func (o *unsupportedTypeBase) TypeEnumerated() []byte {
-	if o._restored && !o.typeEnumeratedIsValid {
+	if o._restored && !o.typeEnumeratedIsLoaded {
 		panic("TypeEnumerated was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.typeEnumerated
 }
 
-// TypeEnumeratedIsValid returns true if the value was loaded from the database or has been set.
-func (o *unsupportedTypeBase) TypeEnumeratedIsValid() bool {
-	return o.typeEnumeratedIsValid
+// TypeEnumeratedIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *unsupportedTypeBase) TypeEnumeratedIsLoaded() bool {
+	return o.typeEnumeratedIsLoaded
 }
 
 // SetTypeEnumerated copies the value of TypeEnumerated, to be saved later in the database using the Save() function.
@@ -385,13 +375,13 @@ func (o *unsupportedTypeBase) SetTypeEnumerated(v []byte) {
 	}
 
 	if o._restored &&
-		o.typeEnumeratedIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeEnumeratedIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		bytes.Equal(o.typeEnumerated, v) {
 		// no change
 		return
 	}
 
-	o.typeEnumeratedIsValid = true
+	o.typeEnumeratedIsLoaded = true
 	if v == nil {
 		o.typeEnumerated = []byte{}
 	} else {
@@ -400,17 +390,17 @@ func (o *unsupportedTypeBase) SetTypeEnumerated(v []byte) {
 	o.typeEnumeratedIsDirty = true
 }
 
-// TypeDecimal returns the loaded value of TypeDecimal.
+// TypeDecimal returns the value of TypeDecimal.
 func (o *unsupportedTypeBase) TypeDecimal() string {
-	if o._restored && !o.typeDecimalIsValid {
+	if o._restored && !o.typeDecimalIsLoaded {
 		panic("TypeDecimal was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.typeDecimal
 }
 
-// TypeDecimalIsValid returns true if the value was loaded from the database or has been set.
-func (o *unsupportedTypeBase) TypeDecimalIsValid() bool {
-	return o.typeDecimalIsValid
+// TypeDecimalIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *unsupportedTypeBase) TypeDecimalIsLoaded() bool {
+	return o.typeDecimalIsLoaded
 }
 
 // SetTypeDecimal sets the value of TypeDecimal in the object, to be saved later in the database using the Save() function.
@@ -419,55 +409,55 @@ func (o *unsupportedTypeBase) SetTypeDecimal(v string) {
 		panic("attempted to set UnsupportedType.TypeDecimal to a value larger than its maximum length in runes")
 	}
 	if o._restored &&
-		o.typeDecimalIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeDecimalIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.typeDecimal == v {
 		// no change
 		return
 	}
 
-	o.typeDecimalIsValid = true
+	o.typeDecimalIsLoaded = true
 	o.typeDecimal = v
 	o.typeDecimalIsDirty = true
 }
 
-// TypeDouble returns the loaded value of TypeDouble.
+// TypeDouble returns the value of TypeDouble.
 func (o *unsupportedTypeBase) TypeDouble() float64 {
-	if o._restored && !o.typeDoubleIsValid {
+	if o._restored && !o.typeDoubleIsLoaded {
 		panic("TypeDouble was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.typeDouble
 }
 
-// TypeDoubleIsValid returns true if the value was loaded from the database or has been set.
-func (o *unsupportedTypeBase) TypeDoubleIsValid() bool {
-	return o.typeDoubleIsValid
+// TypeDoubleIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *unsupportedTypeBase) TypeDoubleIsLoaded() bool {
+	return o.typeDoubleIsLoaded
 }
 
 // SetTypeDouble sets the value of TypeDouble in the object, to be saved later in the database using the Save() function.
 func (o *unsupportedTypeBase) SetTypeDouble(v float64) {
 	if o._restored &&
-		o.typeDoubleIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeDoubleIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.typeDouble == v {
 		// no change
 		return
 	}
 
-	o.typeDoubleIsValid = true
+	o.typeDoubleIsLoaded = true
 	o.typeDouble = v
 	o.typeDoubleIsDirty = true
 }
 
-// TypeGeo returns the loaded value of TypeGeo.
+// TypeGeo returns the value of TypeGeo.
 func (o *unsupportedTypeBase) TypeGeo() []byte {
-	if o._restored && !o.typeGeoIsValid {
+	if o._restored && !o.typeGeoIsLoaded {
 		panic("TypeGeo was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.typeGeo
 }
 
-// TypeGeoIsValid returns true if the value was loaded from the database or has been set.
-func (o *unsupportedTypeBase) TypeGeoIsValid() bool {
-	return o.typeGeoIsValid
+// TypeGeoIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *unsupportedTypeBase) TypeGeoIsLoaded() bool {
+	return o.typeGeoIsLoaded
 }
 
 // SetTypeGeo copies the value of TypeGeo, to be saved later in the database using the Save() function.
@@ -475,13 +465,13 @@ func (o *unsupportedTypeBase) TypeGeoIsValid() bool {
 func (o *unsupportedTypeBase) SetTypeGeo(v []byte) {
 
 	if o._restored &&
-		o.typeGeoIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeGeoIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		bytes.Equal(o.typeGeo, v) {
 		// no change
 		return
 	}
 
-	o.typeGeoIsValid = true
+	o.typeGeoIsLoaded = true
 	if v == nil {
 		o.typeGeo = []byte{}
 	} else {
@@ -490,17 +480,17 @@ func (o *unsupportedTypeBase) SetTypeGeo(v []byte) {
 	o.typeGeoIsDirty = true
 }
 
-// TypeTinyBlob returns the loaded value of TypeTinyBlob.
+// TypeTinyBlob returns the value of TypeTinyBlob.
 func (o *unsupportedTypeBase) TypeTinyBlob() []byte {
-	if o._restored && !o.typeTinyBlobIsValid {
+	if o._restored && !o.typeTinyBlobIsLoaded {
 		panic("TypeTinyBlob was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.typeTinyBlob
 }
 
-// TypeTinyBlobIsValid returns true if the value was loaded from the database or has been set.
-func (o *unsupportedTypeBase) TypeTinyBlobIsValid() bool {
-	return o.typeTinyBlobIsValid
+// TypeTinyBlobIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *unsupportedTypeBase) TypeTinyBlobIsLoaded() bool {
+	return o.typeTinyBlobIsLoaded
 }
 
 // SetTypeTinyBlob copies the value of TypeTinyBlob, to be saved later in the database using the Save() function.
@@ -512,13 +502,13 @@ func (o *unsupportedTypeBase) SetTypeTinyBlob(v []byte) {
 	}
 
 	if o._restored &&
-		o.typeTinyBlobIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeTinyBlobIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		bytes.Equal(o.typeTinyBlob, v) {
 		// no change
 		return
 	}
 
-	o.typeTinyBlobIsValid = true
+	o.typeTinyBlobIsLoaded = true
 	if v == nil {
 		o.typeTinyBlob = []byte{}
 	} else {
@@ -527,17 +517,17 @@ func (o *unsupportedTypeBase) SetTypeTinyBlob(v []byte) {
 	o.typeTinyBlobIsDirty = true
 }
 
-// TypeMediumBlob returns the loaded value of TypeMediumBlob.
+// TypeMediumBlob returns the value of TypeMediumBlob.
 func (o *unsupportedTypeBase) TypeMediumBlob() []byte {
-	if o._restored && !o.typeMediumBlobIsValid {
+	if o._restored && !o.typeMediumBlobIsLoaded {
 		panic("TypeMediumBlob was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.typeMediumBlob
 }
 
-// TypeMediumBlobIsValid returns true if the value was loaded from the database or has been set.
-func (o *unsupportedTypeBase) TypeMediumBlobIsValid() bool {
-	return o.typeMediumBlobIsValid
+// TypeMediumBlobIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *unsupportedTypeBase) TypeMediumBlobIsLoaded() bool {
+	return o.typeMediumBlobIsLoaded
 }
 
 // SetTypeMediumBlob copies the value of TypeMediumBlob, to be saved later in the database using the Save() function.
@@ -549,13 +539,13 @@ func (o *unsupportedTypeBase) SetTypeMediumBlob(v []byte) {
 	}
 
 	if o._restored &&
-		o.typeMediumBlobIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeMediumBlobIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		bytes.Equal(o.typeMediumBlob, v) {
 		// no change
 		return
 	}
 
-	o.typeMediumBlobIsValid = true
+	o.typeMediumBlobIsLoaded = true
 	if v == nil {
 		o.typeMediumBlob = []byte{}
 	} else {
@@ -564,17 +554,17 @@ func (o *unsupportedTypeBase) SetTypeMediumBlob(v []byte) {
 	o.typeMediumBlobIsDirty = true
 }
 
-// TypeVarbinary returns the loaded value of TypeVarbinary.
+// TypeVarbinary returns the value of TypeVarbinary.
 func (o *unsupportedTypeBase) TypeVarbinary() []byte {
-	if o._restored && !o.typeVarbinaryIsValid {
+	if o._restored && !o.typeVarbinaryIsLoaded {
 		panic("TypeVarbinary was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.typeVarbinary
 }
 
-// TypeVarbinaryIsValid returns true if the value was loaded from the database or has been set.
-func (o *unsupportedTypeBase) TypeVarbinaryIsValid() bool {
-	return o.typeVarbinaryIsValid
+// TypeVarbinaryIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *unsupportedTypeBase) TypeVarbinaryIsLoaded() bool {
+	return o.typeVarbinaryIsLoaded
 }
 
 // SetTypeVarbinary copies the value of TypeVarbinary, to be saved later in the database using the Save() function.
@@ -582,13 +572,13 @@ func (o *unsupportedTypeBase) TypeVarbinaryIsValid() bool {
 func (o *unsupportedTypeBase) SetTypeVarbinary(v []byte) {
 
 	if o._restored &&
-		o.typeVarbinaryIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeVarbinaryIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		bytes.Equal(o.typeVarbinary, v) {
 		// no change
 		return
 	}
 
-	o.typeVarbinaryIsValid = true
+	o.typeVarbinaryIsLoaded = true
 	if v == nil {
 		o.typeVarbinary = []byte{}
 	} else {
@@ -597,17 +587,17 @@ func (o *unsupportedTypeBase) SetTypeVarbinary(v []byte) {
 	o.typeVarbinaryIsDirty = true
 }
 
-// TypeLongtext returns the loaded value of TypeLongtext.
+// TypeLongtext returns the value of TypeLongtext.
 func (o *unsupportedTypeBase) TypeLongtext() string {
-	if o._restored && !o.typeLongtextIsValid {
+	if o._restored && !o.typeLongtextIsLoaded {
 		panic("TypeLongtext was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.typeLongtext
 }
 
-// TypeLongtextIsValid returns true if the value was loaded from the database or has been set.
-func (o *unsupportedTypeBase) TypeLongtextIsValid() bool {
-	return o.typeLongtextIsValid
+// TypeLongtextIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *unsupportedTypeBase) TypeLongtextIsLoaded() bool {
+	return o.typeLongtextIsLoaded
 }
 
 // SetTypeLongtext sets the value of TypeLongtext in the object, to be saved later in the database using the Save() function.
@@ -616,28 +606,28 @@ func (o *unsupportedTypeBase) SetTypeLongtext(v string) {
 		panic("attempted to set UnsupportedType.TypeLongtext to a value larger than its maximum length in runes")
 	}
 	if o._restored &&
-		o.typeLongtextIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeLongtextIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.typeLongtext == v {
 		// no change
 		return
 	}
 
-	o.typeLongtextIsValid = true
+	o.typeLongtextIsLoaded = true
 	o.typeLongtext = v
 	o.typeLongtextIsDirty = true
 }
 
-// TypeBinary returns the loaded value of TypeBinary.
+// TypeBinary returns the value of TypeBinary.
 func (o *unsupportedTypeBase) TypeBinary() []byte {
-	if o._restored && !o.typeBinaryIsValid {
+	if o._restored && !o.typeBinaryIsLoaded {
 		panic("TypeBinary was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.typeBinary
 }
 
-// TypeBinaryIsValid returns true if the value was loaded from the database or has been set.
-func (o *unsupportedTypeBase) TypeBinaryIsValid() bool {
-	return o.typeBinaryIsValid
+// TypeBinaryIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *unsupportedTypeBase) TypeBinaryIsLoaded() bool {
+	return o.typeBinaryIsLoaded
 }
 
 // SetTypeBinary copies the value of TypeBinary, to be saved later in the database using the Save() function.
@@ -645,13 +635,13 @@ func (o *unsupportedTypeBase) TypeBinaryIsValid() bool {
 func (o *unsupportedTypeBase) SetTypeBinary(v []byte) {
 
 	if o._restored &&
-		o.typeBinaryIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeBinaryIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		bytes.Equal(o.typeBinary, v) {
 		// no change
 		return
 	}
 
-	o.typeBinaryIsValid = true
+	o.typeBinaryIsLoaded = true
 	if v == nil {
 		o.typeBinary = []byte{}
 	} else {
@@ -660,98 +650,98 @@ func (o *unsupportedTypeBase) SetTypeBinary(v []byte) {
 	o.typeBinaryIsDirty = true
 }
 
-// TypeSmall returns the loaded value of TypeSmall.
+// TypeSmall returns the value of TypeSmall.
 func (o *unsupportedTypeBase) TypeSmall() int {
-	if o._restored && !o.typeSmallIsValid {
+	if o._restored && !o.typeSmallIsLoaded {
 		panic("TypeSmall was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.typeSmall
 }
 
-// TypeSmallIsValid returns true if the value was loaded from the database or has been set.
-func (o *unsupportedTypeBase) TypeSmallIsValid() bool {
-	return o.typeSmallIsValid
+// TypeSmallIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *unsupportedTypeBase) TypeSmallIsLoaded() bool {
+	return o.typeSmallIsLoaded
 }
 
 // SetTypeSmall sets the value of TypeSmall in the object, to be saved later in the database using the Save() function.
 func (o *unsupportedTypeBase) SetTypeSmall(v int) {
 	if o._restored &&
-		o.typeSmallIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeSmallIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.typeSmall == v {
 		// no change
 		return
 	}
 
-	o.typeSmallIsValid = true
+	o.typeSmallIsLoaded = true
 	o.typeSmall = v
 	o.typeSmallIsDirty = true
 }
 
-// TypeMedium returns the loaded value of TypeMedium.
+// TypeMedium returns the value of TypeMedium.
 func (o *unsupportedTypeBase) TypeMedium() int {
-	if o._restored && !o.typeMediumIsValid {
+	if o._restored && !o.typeMediumIsLoaded {
 		panic("TypeMedium was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.typeMedium
 }
 
-// TypeMediumIsValid returns true if the value was loaded from the database or has been set.
-func (o *unsupportedTypeBase) TypeMediumIsValid() bool {
-	return o.typeMediumIsValid
+// TypeMediumIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *unsupportedTypeBase) TypeMediumIsLoaded() bool {
+	return o.typeMediumIsLoaded
 }
 
 // SetTypeMedium sets the value of TypeMedium in the object, to be saved later in the database using the Save() function.
 func (o *unsupportedTypeBase) SetTypeMedium(v int) {
 	if o._restored &&
-		o.typeMediumIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeMediumIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.typeMedium == v {
 		// no change
 		return
 	}
 
-	o.typeMediumIsValid = true
+	o.typeMediumIsLoaded = true
 	o.typeMedium = v
 	o.typeMediumIsDirty = true
 }
 
-// TypeBig returns the loaded value of TypeBig.
+// TypeBig returns the value of TypeBig.
 func (o *unsupportedTypeBase) TypeBig() int64 {
-	if o._restored && !o.typeBigIsValid {
+	if o._restored && !o.typeBigIsLoaded {
 		panic("TypeBig was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.typeBig
 }
 
-// TypeBigIsValid returns true if the value was loaded from the database or has been set.
-func (o *unsupportedTypeBase) TypeBigIsValid() bool {
-	return o.typeBigIsValid
+// TypeBigIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *unsupportedTypeBase) TypeBigIsLoaded() bool {
+	return o.typeBigIsLoaded
 }
 
 // SetTypeBig sets the value of TypeBig in the object, to be saved later in the database using the Save() function.
 func (o *unsupportedTypeBase) SetTypeBig(v int64) {
 	if o._restored &&
-		o.typeBigIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeBigIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.typeBig == v {
 		// no change
 		return
 	}
 
-	o.typeBigIsValid = true
+	o.typeBigIsLoaded = true
 	o.typeBig = v
 	o.typeBigIsDirty = true
 }
 
-// TypePolygon returns the loaded value of TypePolygon.
+// TypePolygon returns the value of TypePolygon.
 func (o *unsupportedTypeBase) TypePolygon() []byte {
-	if o._restored && !o.typePolygonIsValid {
+	if o._restored && !o.typePolygonIsLoaded {
 		panic("TypePolygon was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.typePolygon
 }
 
-// TypePolygonIsValid returns true if the value was loaded from the database or has been set.
-func (o *unsupportedTypeBase) TypePolygonIsValid() bool {
-	return o.typePolygonIsValid
+// TypePolygonIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *unsupportedTypeBase) TypePolygonIsLoaded() bool {
+	return o.typePolygonIsLoaded
 }
 
 // SetTypePolygon copies the value of TypePolygon, to be saved later in the database using the Save() function.
@@ -759,13 +749,13 @@ func (o *unsupportedTypeBase) TypePolygonIsValid() bool {
 func (o *unsupportedTypeBase) SetTypePolygon(v []byte) {
 
 	if o._restored &&
-		o.typePolygonIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typePolygonIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		bytes.Equal(o.typePolygon, v) {
 		// no change
 		return
 	}
 
-	o.typePolygonIsValid = true
+	o.typePolygonIsLoaded = true
 	if v == nil {
 		o.typePolygon = []byte{}
 	} else {
@@ -774,44 +764,44 @@ func (o *unsupportedTypeBase) SetTypePolygon(v []byte) {
 	o.typePolygonIsDirty = true
 }
 
-// TypeUnsigned returns the loaded value of TypeUnsigned.
+// TypeUnsigned returns the value of TypeUnsigned.
 func (o *unsupportedTypeBase) TypeUnsigned() uint {
-	if o._restored && !o.typeUnsignedIsValid {
+	if o._restored && !o.typeUnsignedIsLoaded {
 		panic("TypeUnsigned was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.typeUnsigned
 }
 
-// TypeUnsignedIsValid returns true if the value was loaded from the database or has been set.
-func (o *unsupportedTypeBase) TypeUnsignedIsValid() bool {
-	return o.typeUnsignedIsValid
+// TypeUnsignedIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *unsupportedTypeBase) TypeUnsignedIsLoaded() bool {
+	return o.typeUnsignedIsLoaded
 }
 
 // SetTypeUnsigned sets the value of TypeUnsigned in the object, to be saved later in the database using the Save() function.
 func (o *unsupportedTypeBase) SetTypeUnsigned(v uint) {
 	if o._restored &&
-		o.typeUnsignedIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeUnsignedIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.typeUnsigned == v {
 		// no change
 		return
 	}
 
-	o.typeUnsignedIsValid = true
+	o.typeUnsignedIsLoaded = true
 	o.typeUnsigned = v
 	o.typeUnsignedIsDirty = true
 }
 
-// TypeMultfk1 returns the loaded value of TypeMultfk1.
+// TypeMultfk1 returns the value of TypeMultfk1.
 func (o *unsupportedTypeBase) TypeMultfk1() string {
-	if o._restored && !o.typeMultfk1IsValid {
+	if o._restored && !o.typeMultfk1IsLoaded {
 		panic("TypeMultfk1 was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.typeMultfk1
 }
 
-// TypeMultfk1IsValid returns true if the value was loaded from the database or has been set.
-func (o *unsupportedTypeBase) TypeMultfk1IsValid() bool {
-	return o.typeMultfk1IsValid
+// TypeMultfk1IsLoaded returns true if the value was loaded from the database or has been set.
+func (o *unsupportedTypeBase) TypeMultfk1IsLoaded() bool {
+	return o.typeMultfk1IsLoaded
 }
 
 // SetTypeMultfk1 sets the value of TypeMultfk1 in the object, to be saved later in the database using the Save() function.
@@ -820,28 +810,28 @@ func (o *unsupportedTypeBase) SetTypeMultfk1(v string) {
 		panic("attempted to set UnsupportedType.TypeMultfk1 to a value larger than its maximum length in runes")
 	}
 	if o._restored &&
-		o.typeMultfk1IsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeMultfk1IsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.typeMultfk1 == v {
 		// no change
 		return
 	}
 
-	o.typeMultfk1IsValid = true
+	o.typeMultfk1IsLoaded = true
 	o.typeMultfk1 = v
 	o.typeMultfk1IsDirty = true
 }
 
-// TypeMultifk2 returns the loaded value of TypeMultifk2.
+// TypeMultifk2 returns the value of TypeMultifk2.
 func (o *unsupportedTypeBase) TypeMultifk2() string {
-	if o._restored && !o.typeMultifk2IsValid {
+	if o._restored && !o.typeMultifk2IsLoaded {
 		panic("TypeMultifk2 was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.typeMultifk2
 }
 
-// TypeMultifk2IsValid returns true if the value was loaded from the database or has been set.
-func (o *unsupportedTypeBase) TypeMultifk2IsValid() bool {
-	return o.typeMultifk2IsValid
+// TypeMultifk2IsLoaded returns true if the value was loaded from the database or has been set.
+func (o *unsupportedTypeBase) TypeMultifk2IsLoaded() bool {
+	return o.typeMultifk2IsLoaded
 }
 
 // SetTypeMultifk2 sets the value of TypeMultifk2 in the object, to be saved later in the database using the Save() function.
@@ -850,13 +840,13 @@ func (o *unsupportedTypeBase) SetTypeMultifk2(v string) {
 		panic("attempted to set UnsupportedType.TypeMultifk2 to a value larger than its maximum length in runes")
 	}
 	if o._restored &&
-		o.typeMultifk2IsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeMultifk2IsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.typeMultifk2 == v {
 		// no change
 		return
 	}
 
-	o.typeMultifk2IsValid = true
+	o.typeMultifk2IsLoaded = true
 	o.typeMultifk2 = v
 	o.typeMultifk2IsDirty = true
 }
@@ -1322,7 +1312,8 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 
 	if v, ok := m["type_serial"]; ok && v != nil {
 		if o.typeSerial, ok = v.(string); ok {
-			o.typeSerialIsValid = true
+			o.typeSerialIsLoaded = true
+			o.typeSerialIsDirty = false
 
 			o._originalPK = o.typeSerial
 
@@ -1330,244 +1321,245 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 			panic("Wrong type found for type_serial.")
 		}
 	} else {
-		o.typeSerialIsValid = false
+		o.typeSerialIsLoaded = false
 		o.typeSerial = ""
+		o.typeSerialIsDirty = false
 	}
 
 	if v, ok := m["type_set"]; ok && v != nil {
 		if o.typeSet, ok = v.([]byte); ok {
-			o.typeSetIsValid = true
+			o.typeSetIsLoaded = true
 			o.typeSetIsDirty = false
 
 		} else {
 			panic("Wrong type found for type_set.")
 		}
 	} else {
-		o.typeSetIsValid = false
+		o.typeSetIsLoaded = false
 		o.typeSet = []byte{}
 		o.typeSetIsDirty = false
 	}
 
 	if v, ok := m["type_enumerated"]; ok && v != nil {
 		if o.typeEnumerated, ok = v.([]byte); ok {
-			o.typeEnumeratedIsValid = true
+			o.typeEnumeratedIsLoaded = true
 			o.typeEnumeratedIsDirty = false
 
 		} else {
 			panic("Wrong type found for type_enumerated.")
 		}
 	} else {
-		o.typeEnumeratedIsValid = false
+		o.typeEnumeratedIsLoaded = false
 		o.typeEnumerated = []byte{}
 		o.typeEnumeratedIsDirty = false
 	}
 
 	if v, ok := m["type_decimal"]; ok && v != nil {
 		if o.typeDecimal, ok = v.(string); ok {
-			o.typeDecimalIsValid = true
+			o.typeDecimalIsLoaded = true
 			o.typeDecimalIsDirty = false
 
 		} else {
 			panic("Wrong type found for type_decimal.")
 		}
 	} else {
-		o.typeDecimalIsValid = false
+		o.typeDecimalIsLoaded = false
 		o.typeDecimal = ""
 		o.typeDecimalIsDirty = false
 	}
 
 	if v, ok := m["type_double"]; ok && v != nil {
 		if o.typeDouble, ok = v.(float64); ok {
-			o.typeDoubleIsValid = true
+			o.typeDoubleIsLoaded = true
 			o.typeDoubleIsDirty = false
 
 		} else {
 			panic("Wrong type found for type_double.")
 		}
 	} else {
-		o.typeDoubleIsValid = false
+		o.typeDoubleIsLoaded = false
 		o.typeDouble = 0
 		o.typeDoubleIsDirty = false
 	}
 
 	if v, ok := m["type_geo"]; ok && v != nil {
 		if o.typeGeo, ok = v.([]byte); ok {
-			o.typeGeoIsValid = true
+			o.typeGeoIsLoaded = true
 			o.typeGeoIsDirty = false
 
 		} else {
 			panic("Wrong type found for type_geo.")
 		}
 	} else {
-		o.typeGeoIsValid = false
+		o.typeGeoIsLoaded = false
 		o.typeGeo = []byte{}
 		o.typeGeoIsDirty = false
 	}
 
 	if v, ok := m["type_tiny_blob"]; ok && v != nil {
 		if o.typeTinyBlob, ok = v.([]byte); ok {
-			o.typeTinyBlobIsValid = true
+			o.typeTinyBlobIsLoaded = true
 			o.typeTinyBlobIsDirty = false
 
 		} else {
 			panic("Wrong type found for type_tiny_blob.")
 		}
 	} else {
-		o.typeTinyBlobIsValid = false
+		o.typeTinyBlobIsLoaded = false
 		o.typeTinyBlob = []byte{}
 		o.typeTinyBlobIsDirty = false
 	}
 
 	if v, ok := m["type_medium_blob"]; ok && v != nil {
 		if o.typeMediumBlob, ok = v.([]byte); ok {
-			o.typeMediumBlobIsValid = true
+			o.typeMediumBlobIsLoaded = true
 			o.typeMediumBlobIsDirty = false
 
 		} else {
 			panic("Wrong type found for type_medium_blob.")
 		}
 	} else {
-		o.typeMediumBlobIsValid = false
+		o.typeMediumBlobIsLoaded = false
 		o.typeMediumBlob = []byte{}
 		o.typeMediumBlobIsDirty = false
 	}
 
 	if v, ok := m["type_varbinary"]; ok && v != nil {
 		if o.typeVarbinary, ok = v.([]byte); ok {
-			o.typeVarbinaryIsValid = true
+			o.typeVarbinaryIsLoaded = true
 			o.typeVarbinaryIsDirty = false
 
 		} else {
 			panic("Wrong type found for type_varbinary.")
 		}
 	} else {
-		o.typeVarbinaryIsValid = false
+		o.typeVarbinaryIsLoaded = false
 		o.typeVarbinary = []byte{}
 		o.typeVarbinaryIsDirty = false
 	}
 
 	if v, ok := m["type_longtext"]; ok && v != nil {
 		if o.typeLongtext, ok = v.(string); ok {
-			o.typeLongtextIsValid = true
+			o.typeLongtextIsLoaded = true
 			o.typeLongtextIsDirty = false
 
 		} else {
 			panic("Wrong type found for type_longtext.")
 		}
 	} else {
-		o.typeLongtextIsValid = false
+		o.typeLongtextIsLoaded = false
 		o.typeLongtext = ""
 		o.typeLongtextIsDirty = false
 	}
 
 	if v, ok := m["type_binary"]; ok && v != nil {
 		if o.typeBinary, ok = v.([]byte); ok {
-			o.typeBinaryIsValid = true
+			o.typeBinaryIsLoaded = true
 			o.typeBinaryIsDirty = false
 
 		} else {
 			panic("Wrong type found for type_binary.")
 		}
 	} else {
-		o.typeBinaryIsValid = false
+		o.typeBinaryIsLoaded = false
 		o.typeBinary = []byte{}
 		o.typeBinaryIsDirty = false
 	}
 
 	if v, ok := m["type_small"]; ok && v != nil {
 		if o.typeSmall, ok = v.(int); ok {
-			o.typeSmallIsValid = true
+			o.typeSmallIsLoaded = true
 			o.typeSmallIsDirty = false
 
 		} else {
 			panic("Wrong type found for type_small.")
 		}
 	} else {
-		o.typeSmallIsValid = false
+		o.typeSmallIsLoaded = false
 		o.typeSmall = 0
 		o.typeSmallIsDirty = false
 	}
 
 	if v, ok := m["type_medium"]; ok && v != nil {
 		if o.typeMedium, ok = v.(int); ok {
-			o.typeMediumIsValid = true
+			o.typeMediumIsLoaded = true
 			o.typeMediumIsDirty = false
 
 		} else {
 			panic("Wrong type found for type_medium.")
 		}
 	} else {
-		o.typeMediumIsValid = false
+		o.typeMediumIsLoaded = false
 		o.typeMedium = 0
 		o.typeMediumIsDirty = false
 	}
 
 	if v, ok := m["type_big"]; ok && v != nil {
 		if o.typeBig, ok = v.(int64); ok {
-			o.typeBigIsValid = true
+			o.typeBigIsLoaded = true
 			o.typeBigIsDirty = false
 
 		} else {
 			panic("Wrong type found for type_big.")
 		}
 	} else {
-		o.typeBigIsValid = false
+		o.typeBigIsLoaded = false
 		o.typeBig = 0
 		o.typeBigIsDirty = false
 	}
 
 	if v, ok := m["type_polygon"]; ok && v != nil {
 		if o.typePolygon, ok = v.([]byte); ok {
-			o.typePolygonIsValid = true
+			o.typePolygonIsLoaded = true
 			o.typePolygonIsDirty = false
 
 		} else {
 			panic("Wrong type found for type_polygon.")
 		}
 	} else {
-		o.typePolygonIsValid = false
+		o.typePolygonIsLoaded = false
 		o.typePolygon = []byte{}
 		o.typePolygonIsDirty = false
 	}
 
 	if v, ok := m["type_unsigned"]; ok && v != nil {
 		if o.typeUnsigned, ok = v.(uint); ok {
-			o.typeUnsignedIsValid = true
+			o.typeUnsignedIsLoaded = true
 			o.typeUnsignedIsDirty = false
 
 		} else {
 			panic("Wrong type found for type_unsigned.")
 		}
 	} else {
-		o.typeUnsignedIsValid = false
+		o.typeUnsignedIsLoaded = false
 		o.typeUnsigned = 0x0
 		o.typeUnsignedIsDirty = false
 	}
 
 	if v, ok := m["type_multFk1"]; ok && v != nil {
 		if o.typeMultfk1, ok = v.(string); ok {
-			o.typeMultfk1IsValid = true
+			o.typeMultfk1IsLoaded = true
 			o.typeMultfk1IsDirty = false
 
 		} else {
 			panic("Wrong type found for type_multFk1.")
 		}
 	} else {
-		o.typeMultfk1IsValid = false
+		o.typeMultfk1IsLoaded = false
 		o.typeMultfk1 = ""
 		o.typeMultfk1IsDirty = false
 	}
 
 	if v, ok := m["type_multiFk2"]; ok && v != nil {
 		if o.typeMultifk2, ok = v.(string); ok {
-			o.typeMultifk2IsValid = true
+			o.typeMultifk2IsLoaded = true
 			o.typeMultifk2IsDirty = false
 
 		} else {
 			panic("Wrong type found for type_multiFk2.")
 		}
 	} else {
-		o.typeMultifk2IsValid = false
+		o.typeMultifk2IsLoaded = false
 		o.typeMultifk2 = ""
 		o.typeMultifk2IsDirty = false
 	}
@@ -1581,11 +1573,12 @@ func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *Unsupporte
 }
 
 // Save will update or insert the object, depending on the state of the object.
-// If it has any auto-generated ids, those will be updated.
-// Database errors generally will be handled by the logger and not returned here,
-// since those indicate a problem with database driver or configuration.
+// If it has an auto-generated primary key, it will be changed after an insert.
+// Database errors generally will be handled by a panic and not returned here,
+// since those indicate a problem with a database driver or configuration.
 // Save will return a db.OptimisticLockError if it detects a collision when two users
 // are attempting to change the same database record.
+// Updating a record that has not changed will have no effect on the database.
 func (o *unsupportedTypeBase) Save(ctx context.Context) error {
 	if o._restored {
 		return o.update(ctx)
@@ -1595,6 +1588,7 @@ func (o *unsupportedTypeBase) Save(ctx context.Context) error {
 }
 
 // update will update the values in the database, saving any changed values.
+// If the table has auto-generated values, those will be updated automatically.
 func (o *unsupportedTypeBase) update(ctx context.Context) error {
 	if !o._restored {
 		panic("cannot update a record that was not originally read from the database.")
@@ -1608,7 +1602,7 @@ func (o *unsupportedTypeBase) update(ctx context.Context) error {
 	d := Database()
 	err := db.ExecuteTransaction(ctx, d, func() error {
 
-		modifiedFields = o.getModifiedFields()
+		modifiedFields = o.getUpdateFields()
 		if len(modifiedFields) != 0 {
 			var err2 error
 
@@ -1634,67 +1628,68 @@ func (o *unsupportedTypeBase) update(ctx context.Context) error {
 
 // insert will insert the object into the database. Related items will be saved.
 func (o *unsupportedTypeBase) insert(ctx context.Context) (err error) {
+	var insertFields map[string]interface{}
 	d := Database()
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
-		if !o.typeSetIsValid {
+		if !o.typeSetIsLoaded {
 			panic("a value for TypeSet is required, and there is no default value. Call SetTypeSet() before inserting the record.")
 		}
-		if !o.typeEnumeratedIsValid {
+		if !o.typeEnumeratedIsLoaded {
 			panic("a value for TypeEnumerated is required, and there is no default value. Call SetTypeEnumerated() before inserting the record.")
 		}
-		if !o.typeDecimalIsValid {
+		if !o.typeDecimalIsLoaded {
 			panic("a value for TypeDecimal is required, and there is no default value. Call SetTypeDecimal() before inserting the record.")
 		}
-		if !o.typeDoubleIsValid {
+		if !o.typeDoubleIsLoaded {
 			panic("a value for TypeDouble is required, and there is no default value. Call SetTypeDouble() before inserting the record.")
 		}
-		if !o.typeGeoIsValid {
+		if !o.typeGeoIsLoaded {
 			panic("a value for TypeGeo is required, and there is no default value. Call SetTypeGeo() before inserting the record.")
 		}
-		if !o.typeTinyBlobIsValid {
+		if !o.typeTinyBlobIsLoaded {
 			panic("a value for TypeTinyBlob is required, and there is no default value. Call SetTypeTinyBlob() before inserting the record.")
 		}
-		if !o.typeMediumBlobIsValid {
+		if !o.typeMediumBlobIsLoaded {
 			panic("a value for TypeMediumBlob is required, and there is no default value. Call SetTypeMediumBlob() before inserting the record.")
 		}
-		if !o.typeVarbinaryIsValid {
+		if !o.typeVarbinaryIsLoaded {
 			panic("a value for TypeVarbinary is required, and there is no default value. Call SetTypeVarbinary() before inserting the record.")
 		}
-		if !o.typeLongtextIsValid {
+		if !o.typeLongtextIsLoaded {
 			panic("a value for TypeLongtext is required, and there is no default value. Call SetTypeLongtext() before inserting the record.")
 		}
-		if !o.typeBinaryIsValid {
+		if !o.typeBinaryIsLoaded {
 			panic("a value for TypeBinary is required, and there is no default value. Call SetTypeBinary() before inserting the record.")
 		}
-		if !o.typeSmallIsValid {
+		if !o.typeSmallIsLoaded {
 			panic("a value for TypeSmall is required, and there is no default value. Call SetTypeSmall() before inserting the record.")
 		}
-		if !o.typeMediumIsValid {
+		if !o.typeMediumIsLoaded {
 			panic("a value for TypeMedium is required, and there is no default value. Call SetTypeMedium() before inserting the record.")
 		}
-		if !o.typeBigIsValid {
+		if !o.typeBigIsLoaded {
 			panic("a value for TypeBig is required, and there is no default value. Call SetTypeBig() before inserting the record.")
 		}
-		if !o.typePolygonIsValid {
+		if !o.typePolygonIsLoaded {
 			panic("a value for TypePolygon is required, and there is no default value. Call SetTypePolygon() before inserting the record.")
 		}
-		if !o.typeUnsignedIsValid {
+		if !o.typeUnsignedIsLoaded {
 			panic("a value for TypeUnsigned is required, and there is no default value. Call SetTypeUnsigned() before inserting the record.")
 		}
-		if !o.typeMultfk1IsValid {
+		if !o.typeMultfk1IsLoaded {
 			panic("a value for TypeMultfk1 is required, and there is no default value. Call SetTypeMultfk1() before inserting the record.")
 		}
-		if !o.typeMultifk2IsValid {
+		if !o.typeMultifk2IsLoaded {
 			panic("a value for TypeMultifk2 is required, and there is no default value. Call SetTypeMultifk2() before inserting the record.")
 		}
 
-		m := o.getValidFields()
+		insertFields = o.getInsertFields()
 
-		newPk := d.Insert(ctx, "unsupported_type", m)
+		newPk := d.Insert(ctx, "unsupported_type", insertFields)
 		o.typeSerial = newPk
 		o._originalPK = newPk
-		o.typeSerialIsValid = true
+		o.typeSerialIsLoaded = true
 
 		return nil
 
@@ -1710,10 +1705,13 @@ func (o *unsupportedTypeBase) insert(ctx context.Context) (err error) {
 	return
 }
 
-// getModifiedFields returns the database columns that have been modified. This
-// will determine which specific fields are sent to the database to be changed.
-func (o *unsupportedTypeBase) getModifiedFields() (fields map[string]interface{}) {
+// getUpdateFields returns the database columns that will be sent to the update process.
+// This will include timestamp fields only if some other column has changed.
+func (o *unsupportedTypeBase) getUpdateFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
+	if o.typeSerialIsDirty {
+		fields["type_serial"] = o.typeSerial
+	}
 	if o.typeSetIsDirty {
 		fields["type_set"] = o.typeSet
 	}
@@ -1768,60 +1766,51 @@ func (o *unsupportedTypeBase) getModifiedFields() (fields map[string]interface{}
 	return
 }
 
-// getValidFields returns the fields that have valid data in them in a form ready to send to the database.
-func (o *unsupportedTypeBase) getValidFields() (fields map[string]interface{}) {
+// getInsertFields returns the fields that will be specified in an insert operation.
+// Optional fields that have not been set and have no default will be returned as nil.
+// NoSql databases should interpret this as no value. Sql databases should interpret this as
+// explicitly setting a NULL value, which would override any database specific default value.
+// Auto-generated fields will be returned with their generated values, except AutoId fields, which are generated by the
+// database driver and updated after the insert.
+func (o *unsupportedTypeBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-	if o.typeSetIsValid {
-		fields["type_set"] = o.typeSet
+	if o.typeSerialIsDirty {
+		fields["type_serial"] = o.typeSerial
 	}
-	if o.typeEnumeratedIsValid {
-		fields["type_enumerated"] = o.typeEnumerated
-	}
-	if o.typeDecimalIsValid {
-		fields["type_decimal"] = o.typeDecimal
-	}
-	if o.typeDoubleIsValid {
-		fields["type_double"] = o.typeDouble
-	}
-	if o.typeGeoIsValid {
-		fields["type_geo"] = o.typeGeo
-	}
-	if o.typeTinyBlobIsValid {
-		fields["type_tiny_blob"] = o.typeTinyBlob
-	}
-	if o.typeMediumBlobIsValid {
-		fields["type_medium_blob"] = o.typeMediumBlob
-	}
-	if o.typeVarbinaryIsValid {
-		fields["type_varbinary"] = o.typeVarbinary
-	}
-	if o.typeLongtextIsValid {
-		fields["type_longtext"] = o.typeLongtext
-	}
-	if o.typeBinaryIsValid {
-		fields["type_binary"] = o.typeBinary
-	}
-	if o.typeSmallIsValid {
-		fields["type_small"] = o.typeSmall
-	}
-	if o.typeMediumIsValid {
-		fields["type_medium"] = o.typeMedium
-	}
-	if o.typeBigIsValid {
-		fields["type_big"] = o.typeBig
-	}
-	if o.typePolygonIsValid {
-		fields["type_polygon"] = o.typePolygon
-	}
-	if o.typeUnsignedIsValid {
-		fields["type_unsigned"] = o.typeUnsigned
-	}
-	if o.typeMultfk1IsValid {
-		fields["type_multFk1"] = o.typeMultfk1
-	}
-	if o.typeMultifk2IsValid {
-		fields["type_multiFk2"] = o.typeMultifk2
-	}
+
+	fields["type_set"] = o.typeSet
+
+	fields["type_enumerated"] = o.typeEnumerated
+
+	fields["type_decimal"] = o.typeDecimal
+
+	fields["type_double"] = o.typeDouble
+
+	fields["type_geo"] = o.typeGeo
+
+	fields["type_tiny_blob"] = o.typeTinyBlob
+
+	fields["type_medium_blob"] = o.typeMediumBlob
+
+	fields["type_varbinary"] = o.typeVarbinary
+
+	fields["type_longtext"] = o.typeLongtext
+
+	fields["type_binary"] = o.typeBinary
+
+	fields["type_small"] = o.typeSmall
+
+	fields["type_medium"] = o.typeMedium
+
+	fields["type_big"] = o.typeBig
+
+	fields["type_polygon"] = o.typePolygon
+
+	fields["type_unsigned"] = o.typeUnsigned
+
+	fields["type_multFk1"] = o.typeMultfk1
+
+	fields["type_multiFk2"] = o.typeMultifk2
 	return
 }
 
@@ -1851,6 +1840,7 @@ func deleteUnsupportedType(ctx context.Context, pk string) error {
 
 // resetDirtyStatus resets the dirty status of every field in the object.
 func (o *unsupportedTypeBase) resetDirtyStatus() {
+	o.typeSerialIsDirty = false
 	o.typeSetIsDirty = false
 	o.typeEnumeratedIsDirty = false
 	o.typeDecimalIsDirty = false
@@ -1874,7 +1864,8 @@ func (o *unsupportedTypeBase) resetDirtyStatus() {
 // IsDirty returns true if the object has been changed since it was read from the database or created.
 // However, a new object that has a column with a default value will be automatically marked as dirty upon creation.
 func (o *unsupportedTypeBase) IsDirty() (dirty bool) {
-	dirty = o.typeSetIsDirty ||
+	dirty = o.typeSerialIsDirty ||
+		o.typeSetIsDirty ||
 		o.typeEnumeratedIsDirty ||
 		o.typeDecimalIsDirty ||
 		o.typeDoubleIsDirty ||
@@ -1904,109 +1895,109 @@ func (o *unsupportedTypeBase) Get(key string) interface{} {
 	switch key {
 
 	case "TypeSerial":
-		if !o.typeSerialIsValid {
+		if !o.typeSerialIsLoaded {
 			return nil
 		}
 		return o.typeSerial
 
 	case "TypeSet":
-		if !o.typeSetIsValid {
+		if !o.typeSetIsLoaded {
 			return nil
 		}
 		return o.typeSet
 
 	case "TypeEnumerated":
-		if !o.typeEnumeratedIsValid {
+		if !o.typeEnumeratedIsLoaded {
 			return nil
 		}
 		return o.typeEnumerated
 
 	case "TypeDecimal":
-		if !o.typeDecimalIsValid {
+		if !o.typeDecimalIsLoaded {
 			return nil
 		}
 		return o.typeDecimal
 
 	case "TypeDouble":
-		if !o.typeDoubleIsValid {
+		if !o.typeDoubleIsLoaded {
 			return nil
 		}
 		return o.typeDouble
 
 	case "TypeGeo":
-		if !o.typeGeoIsValid {
+		if !o.typeGeoIsLoaded {
 			return nil
 		}
 		return o.typeGeo
 
 	case "TypeTinyBlob":
-		if !o.typeTinyBlobIsValid {
+		if !o.typeTinyBlobIsLoaded {
 			return nil
 		}
 		return o.typeTinyBlob
 
 	case "TypeMediumBlob":
-		if !o.typeMediumBlobIsValid {
+		if !o.typeMediumBlobIsLoaded {
 			return nil
 		}
 		return o.typeMediumBlob
 
 	case "TypeVarbinary":
-		if !o.typeVarbinaryIsValid {
+		if !o.typeVarbinaryIsLoaded {
 			return nil
 		}
 		return o.typeVarbinary
 
 	case "TypeLongtext":
-		if !o.typeLongtextIsValid {
+		if !o.typeLongtextIsLoaded {
 			return nil
 		}
 		return o.typeLongtext
 
 	case "TypeBinary":
-		if !o.typeBinaryIsValid {
+		if !o.typeBinaryIsLoaded {
 			return nil
 		}
 		return o.typeBinary
 
 	case "TypeSmall":
-		if !o.typeSmallIsValid {
+		if !o.typeSmallIsLoaded {
 			return nil
 		}
 		return o.typeSmall
 
 	case "TypeMedium":
-		if !o.typeMediumIsValid {
+		if !o.typeMediumIsLoaded {
 			return nil
 		}
 		return o.typeMedium
 
 	case "TypeBig":
-		if !o.typeBigIsValid {
+		if !o.typeBigIsLoaded {
 			return nil
 		}
 		return o.typeBig
 
 	case "TypePolygon":
-		if !o.typePolygonIsValid {
+		if !o.typePolygonIsLoaded {
 			return nil
 		}
 		return o.typePolygon
 
 	case "TypeUnsigned":
-		if !o.typeUnsignedIsValid {
+		if !o.typeUnsignedIsLoaded {
 			return nil
 		}
 		return o.typeUnsigned
 
 	case "TypeMultfk1":
-		if !o.typeMultfk1IsValid {
+		if !o.typeMultfk1IsLoaded {
 			return nil
 		}
 		return o.typeMultfk1
 
 	case "TypeMultifk2":
-		if !o.typeMultifk2IsValid {
+		if !o.typeMultifk2IsLoaded {
 			return nil
 		}
 		return o.typeMultifk2
@@ -2026,15 +2017,18 @@ func (o *unsupportedTypeBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.typeSerial); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeSerial: %w", err)
 	}
-	if err := encoder.Encode(o.typeSerialIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeSerialIsValid: %w", err)
+	if err := encoder.Encode(o.typeSerialIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.typeSerialIsLoaded: %w", err)
+	}
+	if err := encoder.Encode(o.typeSerialIsDirty); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.typeSerialIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.typeSet); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeSet: %w", err)
 	}
-	if err := encoder.Encode(o.typeSetIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeSetIsValid: %w", err)
+	if err := encoder.Encode(o.typeSetIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.typeSetIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeSetIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeSetIsDirty: %w", err)
@@ -2043,8 +2037,8 @@ func (o *unsupportedTypeBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.typeEnumerated); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeEnumerated: %w", err)
 	}
-	if err := encoder.Encode(o.typeEnumeratedIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeEnumeratedIsValid: %w", err)
+	if err := encoder.Encode(o.typeEnumeratedIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.typeEnumeratedIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeEnumeratedIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeEnumeratedIsDirty: %w", err)
@@ -2053,8 +2047,8 @@ func (o *unsupportedTypeBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.typeDecimal); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeDecimal: %w", err)
 	}
-	if err := encoder.Encode(o.typeDecimalIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeDecimalIsValid: %w", err)
+	if err := encoder.Encode(o.typeDecimalIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.typeDecimalIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeDecimalIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeDecimalIsDirty: %w", err)
@@ -2063,8 +2057,8 @@ func (o *unsupportedTypeBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.typeDouble); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeDouble: %w", err)
 	}
-	if err := encoder.Encode(o.typeDoubleIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeDoubleIsValid: %w", err)
+	if err := encoder.Encode(o.typeDoubleIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.typeDoubleIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeDoubleIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeDoubleIsDirty: %w", err)
@@ -2073,8 +2067,8 @@ func (o *unsupportedTypeBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.typeGeo); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeGeo: %w", err)
 	}
-	if err := encoder.Encode(o.typeGeoIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeGeoIsValid: %w", err)
+	if err := encoder.Encode(o.typeGeoIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.typeGeoIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeGeoIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeGeoIsDirty: %w", err)
@@ -2083,8 +2077,8 @@ func (o *unsupportedTypeBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.typeTinyBlob); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeTinyBlob: %w", err)
 	}
-	if err := encoder.Encode(o.typeTinyBlobIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeTinyBlobIsValid: %w", err)
+	if err := encoder.Encode(o.typeTinyBlobIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.typeTinyBlobIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeTinyBlobIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeTinyBlobIsDirty: %w", err)
@@ -2093,8 +2087,8 @@ func (o *unsupportedTypeBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.typeMediumBlob); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeMediumBlob: %w", err)
 	}
-	if err := encoder.Encode(o.typeMediumBlobIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeMediumBlobIsValid: %w", err)
+	if err := encoder.Encode(o.typeMediumBlobIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.typeMediumBlobIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeMediumBlobIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeMediumBlobIsDirty: %w", err)
@@ -2103,8 +2097,8 @@ func (o *unsupportedTypeBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.typeVarbinary); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeVarbinary: %w", err)
 	}
-	if err := encoder.Encode(o.typeVarbinaryIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeVarbinaryIsValid: %w", err)
+	if err := encoder.Encode(o.typeVarbinaryIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.typeVarbinaryIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeVarbinaryIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeVarbinaryIsDirty: %w", err)
@@ -2113,8 +2107,8 @@ func (o *unsupportedTypeBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.typeLongtext); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeLongtext: %w", err)
 	}
-	if err := encoder.Encode(o.typeLongtextIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeLongtextIsValid: %w", err)
+	if err := encoder.Encode(o.typeLongtextIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.typeLongtextIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeLongtextIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeLongtextIsDirty: %w", err)
@@ -2123,8 +2117,8 @@ func (o *unsupportedTypeBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.typeBinary); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeBinary: %w", err)
 	}
-	if err := encoder.Encode(o.typeBinaryIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeBinaryIsValid: %w", err)
+	if err := encoder.Encode(o.typeBinaryIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.typeBinaryIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeBinaryIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeBinaryIsDirty: %w", err)
@@ -2133,8 +2127,8 @@ func (o *unsupportedTypeBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.typeSmall); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeSmall: %w", err)
 	}
-	if err := encoder.Encode(o.typeSmallIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeSmallIsValid: %w", err)
+	if err := encoder.Encode(o.typeSmallIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.typeSmallIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeSmallIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeSmallIsDirty: %w", err)
@@ -2143,8 +2137,8 @@ func (o *unsupportedTypeBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.typeMedium); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeMedium: %w", err)
 	}
-	if err := encoder.Encode(o.typeMediumIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeMediumIsValid: %w", err)
+	if err := encoder.Encode(o.typeMediumIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.typeMediumIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeMediumIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeMediumIsDirty: %w", err)
@@ -2153,8 +2147,8 @@ func (o *unsupportedTypeBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.typeBig); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeBig: %w", err)
 	}
-	if err := encoder.Encode(o.typeBigIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeBigIsValid: %w", err)
+	if err := encoder.Encode(o.typeBigIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.typeBigIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeBigIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeBigIsDirty: %w", err)
@@ -2163,8 +2157,8 @@ func (o *unsupportedTypeBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.typePolygon); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typePolygon: %w", err)
 	}
-	if err := encoder.Encode(o.typePolygonIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typePolygonIsValid: %w", err)
+	if err := encoder.Encode(o.typePolygonIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.typePolygonIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typePolygonIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typePolygonIsDirty: %w", err)
@@ -2173,8 +2167,8 @@ func (o *unsupportedTypeBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.typeUnsigned); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeUnsigned: %w", err)
 	}
-	if err := encoder.Encode(o.typeUnsignedIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeUnsignedIsValid: %w", err)
+	if err := encoder.Encode(o.typeUnsignedIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.typeUnsignedIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeUnsignedIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeUnsignedIsDirty: %w", err)
@@ -2183,8 +2177,8 @@ func (o *unsupportedTypeBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.typeMultfk1); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeMultfk1: %w", err)
 	}
-	if err := encoder.Encode(o.typeMultfk1IsValid); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeMultfk1IsValid: %w", err)
+	if err := encoder.Encode(o.typeMultfk1IsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.typeMultfk1IsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeMultfk1IsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeMultfk1IsDirty: %w", err)
@@ -2193,8 +2187,8 @@ func (o *unsupportedTypeBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.typeMultifk2); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeMultifk2: %w", err)
 	}
-	if err := encoder.Encode(o.typeMultifk2IsValid); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeMultifk2IsValid: %w", err)
+	if err := encoder.Encode(o.typeMultifk2IsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding UnsupportedType.typeMultifk2IsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeMultifk2IsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding UnsupportedType.typeMultifk2IsDirty: %w", err)
@@ -2236,15 +2230,18 @@ func (o *unsupportedTypeBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.typeSerial); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeSerial: %w", err)
 	}
-	if err = dec.Decode(&o.typeSerialIsValid); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeSerialIsValid: %w", err)
+	if err = dec.Decode(&o.typeSerialIsLoaded); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeSerialIsLoaded: %w", err)
+	}
+	if err = dec.Decode(&o.typeSerialIsDirty); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeSerialIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.typeSet); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeSet: %w", err)
 	}
-	if err = dec.Decode(&o.typeSetIsValid); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeSetIsValid: %w", err)
+	if err = dec.Decode(&o.typeSetIsLoaded); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeSetIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.typeSetIsDirty); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeSetIsDirty: %w", err)
@@ -2253,8 +2250,8 @@ func (o *unsupportedTypeBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.typeEnumerated); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeEnumerated: %w", err)
 	}
-	if err = dec.Decode(&o.typeEnumeratedIsValid); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeEnumeratedIsValid: %w", err)
+	if err = dec.Decode(&o.typeEnumeratedIsLoaded); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeEnumeratedIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.typeEnumeratedIsDirty); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeEnumeratedIsDirty: %w", err)
@@ -2263,8 +2260,8 @@ func (o *unsupportedTypeBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.typeDecimal); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeDecimal: %w", err)
 	}
-	if err = dec.Decode(&o.typeDecimalIsValid); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeDecimalIsValid: %w", err)
+	if err = dec.Decode(&o.typeDecimalIsLoaded); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeDecimalIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.typeDecimalIsDirty); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeDecimalIsDirty: %w", err)
@@ -2273,8 +2270,8 @@ func (o *unsupportedTypeBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.typeDouble); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeDouble: %w", err)
 	}
-	if err = dec.Decode(&o.typeDoubleIsValid); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeDoubleIsValid: %w", err)
+	if err = dec.Decode(&o.typeDoubleIsLoaded); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeDoubleIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.typeDoubleIsDirty); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeDoubleIsDirty: %w", err)
@@ -2283,8 +2280,8 @@ func (o *unsupportedTypeBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.typeGeo); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeGeo: %w", err)
 	}
-	if err = dec.Decode(&o.typeGeoIsValid); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeGeoIsValid: %w", err)
+	if err = dec.Decode(&o.typeGeoIsLoaded); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeGeoIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.typeGeoIsDirty); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeGeoIsDirty: %w", err)
@@ -2293,8 +2290,8 @@ func (o *unsupportedTypeBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.typeTinyBlob); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeTinyBlob: %w", err)
 	}
-	if err = dec.Decode(&o.typeTinyBlobIsValid); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeTinyBlobIsValid: %w", err)
+	if err = dec.Decode(&o.typeTinyBlobIsLoaded); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeTinyBlobIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.typeTinyBlobIsDirty); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeTinyBlobIsDirty: %w", err)
@@ -2303,8 +2300,8 @@ func (o *unsupportedTypeBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.typeMediumBlob); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeMediumBlob: %w", err)
 	}
-	if err = dec.Decode(&o.typeMediumBlobIsValid); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeMediumBlobIsValid: %w", err)
+	if err = dec.Decode(&o.typeMediumBlobIsLoaded); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeMediumBlobIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.typeMediumBlobIsDirty); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeMediumBlobIsDirty: %w", err)
@@ -2313,8 +2310,8 @@ func (o *unsupportedTypeBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.typeVarbinary); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeVarbinary: %w", err)
 	}
-	if err = dec.Decode(&o.typeVarbinaryIsValid); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeVarbinaryIsValid: %w", err)
+	if err = dec.Decode(&o.typeVarbinaryIsLoaded); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeVarbinaryIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.typeVarbinaryIsDirty); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeVarbinaryIsDirty: %w", err)
@@ -2323,8 +2320,8 @@ func (o *unsupportedTypeBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.typeLongtext); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeLongtext: %w", err)
 	}
-	if err = dec.Decode(&o.typeLongtextIsValid); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeLongtextIsValid: %w", err)
+	if err = dec.Decode(&o.typeLongtextIsLoaded); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeLongtextIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.typeLongtextIsDirty); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeLongtextIsDirty: %w", err)
@@ -2333,8 +2330,8 @@ func (o *unsupportedTypeBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.typeBinary); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeBinary: %w", err)
 	}
-	if err = dec.Decode(&o.typeBinaryIsValid); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeBinaryIsValid: %w", err)
+	if err = dec.Decode(&o.typeBinaryIsLoaded); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeBinaryIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.typeBinaryIsDirty); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeBinaryIsDirty: %w", err)
@@ -2343,8 +2340,8 @@ func (o *unsupportedTypeBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.typeSmall); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeSmall: %w", err)
 	}
-	if err = dec.Decode(&o.typeSmallIsValid); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeSmallIsValid: %w", err)
+	if err = dec.Decode(&o.typeSmallIsLoaded); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeSmallIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.typeSmallIsDirty); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeSmallIsDirty: %w", err)
@@ -2353,8 +2350,8 @@ func (o *unsupportedTypeBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.typeMedium); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeMedium: %w", err)
 	}
-	if err = dec.Decode(&o.typeMediumIsValid); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeMediumIsValid: %w", err)
+	if err = dec.Decode(&o.typeMediumIsLoaded); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeMediumIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.typeMediumIsDirty); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeMediumIsDirty: %w", err)
@@ -2363,8 +2360,8 @@ func (o *unsupportedTypeBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.typeBig); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeBig: %w", err)
 	}
-	if err = dec.Decode(&o.typeBigIsValid); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeBigIsValid: %w", err)
+	if err = dec.Decode(&o.typeBigIsLoaded); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeBigIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.typeBigIsDirty); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeBigIsDirty: %w", err)
@@ -2373,8 +2370,8 @@ func (o *unsupportedTypeBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.typePolygon); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typePolygon: %w", err)
 	}
-	if err = dec.Decode(&o.typePolygonIsValid); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typePolygonIsValid: %w", err)
+	if err = dec.Decode(&o.typePolygonIsLoaded); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typePolygonIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.typePolygonIsDirty); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typePolygonIsDirty: %w", err)
@@ -2383,8 +2380,8 @@ func (o *unsupportedTypeBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.typeUnsigned); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeUnsigned: %w", err)
 	}
-	if err = dec.Decode(&o.typeUnsignedIsValid); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeUnsignedIsValid: %w", err)
+	if err = dec.Decode(&o.typeUnsignedIsLoaded); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeUnsignedIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.typeUnsignedIsDirty); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeUnsignedIsDirty: %w", err)
@@ -2393,8 +2390,8 @@ func (o *unsupportedTypeBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.typeMultfk1); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeMultfk1: %w", err)
 	}
-	if err = dec.Decode(&o.typeMultfk1IsValid); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeMultfk1IsValid: %w", err)
+	if err = dec.Decode(&o.typeMultfk1IsLoaded); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeMultfk1IsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.typeMultfk1IsDirty); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeMultfk1IsDirty: %w", err)
@@ -2403,8 +2400,8 @@ func (o *unsupportedTypeBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.typeMultifk2); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeMultifk2: %w", err)
 	}
-	if err = dec.Decode(&o.typeMultifk2IsValid); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeMultifk2IsValid: %w", err)
+	if err = dec.Decode(&o.typeMultifk2IsLoaded); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeMultifk2IsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.typeMultifk2IsDirty); err != nil {
 		return fmt.Errorf("error decoding UnsupportedType.typeMultifk2IsDirty: %w", err)
@@ -2428,75 +2425,75 @@ func (o *unsupportedTypeBase) MarshalJSON() (data []byte, err error) {
 func (o *unsupportedTypeBase) MarshalStringMap() map[string]interface{} {
 	v := make(map[string]interface{})
 
-	if o.typeSerialIsValid {
+	if o.typeSerialIsLoaded {
 		v["typeSerial"] = o.typeSerial
 	}
 
-	if o.typeSetIsValid {
+	if o.typeSetIsLoaded {
 		v["typeSet"] = o.typeSet
 	}
 
-	if o.typeEnumeratedIsValid {
+	if o.typeEnumeratedIsLoaded {
 		v["typeEnumerated"] = o.typeEnumerated
 	}
 
-	if o.typeDecimalIsValid {
+	if o.typeDecimalIsLoaded {
 		v["typeDecimal"] = o.typeDecimal
 	}
 
-	if o.typeDoubleIsValid {
+	if o.typeDoubleIsLoaded {
 		v["typeDouble"] = o.typeDouble
 	}
 
-	if o.typeGeoIsValid {
+	if o.typeGeoIsLoaded {
 		v["typeGeo"] = o.typeGeo
 	}
 
-	if o.typeTinyBlobIsValid {
+	if o.typeTinyBlobIsLoaded {
 		v["typeTinyBlob"] = o.typeTinyBlob
 	}
 
-	if o.typeMediumBlobIsValid {
+	if o.typeMediumBlobIsLoaded {
 		v["typeMediumBlob"] = o.typeMediumBlob
 	}
 
-	if o.typeVarbinaryIsValid {
+	if o.typeVarbinaryIsLoaded {
 		v["typeVarbinary"] = o.typeVarbinary
 	}
 
-	if o.typeLongtextIsValid {
+	if o.typeLongtextIsLoaded {
 		v["typeLongtext"] = o.typeLongtext
 	}
 
-	if o.typeBinaryIsValid {
+	if o.typeBinaryIsLoaded {
 		v["typeBinary"] = o.typeBinary
 	}
 
-	if o.typeSmallIsValid {
+	if o.typeSmallIsLoaded {
 		v["typeSmall"] = o.typeSmall
 	}
 
-	if o.typeMediumIsValid {
+	if o.typeMediumIsLoaded {
 		v["typeMedium"] = o.typeMedium
 	}
 
-	if o.typeBigIsValid {
+	if o.typeBigIsLoaded {
 		v["typeBig"] = o.typeBig
 	}
 
-	if o.typePolygonIsValid {
+	if o.typePolygonIsLoaded {
 		v["typePolygon"] = o.typePolygon
 	}
 
-	if o.typeUnsignedIsValid {
+	if o.typeUnsignedIsLoaded {
 		v["typeUnsigned"] = o.typeUnsigned
 	}
 
-	if o.typeMultfk1IsValid {
+	if o.typeMultfk1IsLoaded {
 		v["typeMultfk1"] = o.typeMultfk1
 	}
 
-	if o.typeMultifk2IsValid {
+	if o.typeMultifk2IsLoaded {
 		v["typeMultifk2"] = o.typeMultifk2
 	}
 
@@ -2553,6 +2550,19 @@ func (o *unsupportedTypeBase) UnmarshalJSON(data []byte) (err error) {
 func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 	for k, v := range m {
 		switch k {
+
+		case "typeSerial":
+			{
+				if v == nil {
+					return fmt.Errorf("field %s cannot be null", k)
+				}
+
+				if s, ok := v.(string); !ok {
+					return fmt.Errorf("json field %s must be a string", k)
+				} else {
+					o.SetTypeSerial(s)
+				}
+			}
 
 		case "typeSet":
 			{

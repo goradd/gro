@@ -52,17 +52,11 @@ import (
 	"github.com/goradd/orm/pkg/test"
 	"testing"
 )
-
 `); err != nil {
 		return
 	}
 
 	//*** clear_all.tmpl
-
-	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
-	}
 
 	if _, err = io.WriteString(_w, `
 // ClearAll deletes all the data in the database, except for data in Enum tables.
@@ -119,17 +113,7 @@ func ClearAll(ctx context.Context) {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
-	}
-
 	//*** test_main.tmpl
-
-	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
-	}
 
 	if _, err = io.WriteString(_w, `
 func TestMain(m *testing.M) {
@@ -163,7 +147,195 @@ func teardown() {
 		return
 	}
 
+	//*** test_json.tmpl
+
+	orderedTables := database.MarshalOrder()
+	//assnTables := database.UniqueManyManyReferences()
+
+	if _, err = io.WriteString(_w, `// TestDbJson will export the entire database as JSON into a memory buffer, clear the database, then
+// import the entire database from the buffer. It will then do some sanity checks.
+func TestDbJson(t *testing.T) {
+return
+    ctx := db.NewContext(nil)
+
+    // get single comparison objects and data sizes
+    // database must be pre-populated for test
+
+`); err != nil {
+		return
+	}
+
+	for _, table := range orderedTables {
+
+		if _, err = io.WriteString(_w, `    v_`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` := Query`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx).OrderBy(node.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().PrimaryKey()).Get() // gets first record
+`); err != nil {
+			return
+		}
+
+	}
+
+	for _, table := range orderedTables {
+
+		if _, err = io.WriteString(_w, `    v_`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Count := Count`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx)
+`); err != nil {
+			return
+		}
+
+	}
+
 	if _, err = io.WriteString(_w, `
+    var b bytes.Buffer
+    w := bufio.NewWriter(&b)
+    assert.NoError(t, JsonEncodeAll(ctx, w))
+
+    ClearAll(ctx)
+`); err != nil {
+		return
+	}
+
+	for _, table := range orderedTables {
+
+		if _, err = io.WriteString(_w, `    assert.Equal(t, 0, Count`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx))
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
+    r := bufio.NewReader(&b)
+    assert.NoError(t, JsonDecodeAll(ctx, r))
+
+`); err != nil {
+		return
+	}
+
+	for _, table := range orderedTables {
+
+		if _, err = io.WriteString(_w, `    if v_`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` != nil {
+        assertEqualFields`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(t, v_`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `, Query`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx).OrderBy(node.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().PrimaryKey()).Get())
+    }
+`); err != nil {
+			return
+		}
+
+	}
+
+	for _, table := range orderedTables {
+
+		if _, err = io.WriteString(_w, `    assert.Equal(t, v_`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Count, Count`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx))
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `}
+
 `); err != nil {
 		return
 	}

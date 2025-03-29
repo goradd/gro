@@ -61,11 +61,15 @@ func deleteSampleDoubleIndex(ctx context.Context, obj *DoubleIndex) {
 
 // assertEqualFieldsDoubleIndex compares two objects and asserts that the basic fields are equal.
 func assertEqualFieldsDoubleIndex(t *testing.T, obj1, obj2 *DoubleIndex) {
-	assert.EqualValues(t, obj1.ID(), obj2.ID())
-
-	assert.EqualValues(t, obj1.FieldInt(), obj2.FieldInt())
-
-	assert.EqualValues(t, obj1.FieldString(), obj2.FieldString())
+	if obj1.IDIsLoaded() && obj2.IDIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.ID(), obj2.ID())
+	}
+	if obj1.FieldIntIsLoaded() && obj2.FieldIntIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.FieldInt(), obj2.FieldInt())
+	}
+	if obj1.FieldStringIsLoaded() && obj2.FieldStringIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.FieldString(), obj2.FieldString())
+	}
 
 }
 
@@ -141,21 +145,21 @@ func TestDoubleIndex_BasicInsert(t *testing.T) {
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
-	assert.True(t, obj2.IDIsValid())
+	assert.True(t, obj2.IDIsLoaded())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.idIsDirty)
 	obj2.SetID(obj2.ID())
 	assert.False(t, obj2.idIsDirty)
 
-	assert.True(t, obj2.FieldIntIsValid())
+	assert.True(t, obj2.FieldIntIsLoaded())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.fieldIntIsDirty)
 	obj2.SetFieldInt(obj2.FieldInt())
 	assert.False(t, obj2.fieldIntIsDirty)
 
-	assert.True(t, obj2.FieldStringIsValid())
+	assert.True(t, obj2.FieldStringIsLoaded())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.fieldStringIsDirty)
@@ -168,17 +172,17 @@ func TestDoubleIndex_InsertPanics(t *testing.T) {
 	obj := createMinimalSampleDoubleIndex()
 	ctx := db.NewContext(nil)
 
-	obj.idIsValid = false
+	obj.idIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.idIsValid = true
+	obj.idIsLoaded = true
 
-	obj.fieldIntIsValid = false
+	obj.fieldIntIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.fieldIntIsValid = true
+	obj.fieldIntIsLoaded = true
 
-	obj.fieldStringIsValid = false
+	obj.fieldStringIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.fieldStringIsValid = true
+	obj.fieldStringIsLoaded = true
 
 }
 

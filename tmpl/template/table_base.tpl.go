@@ -192,51 +192,31 @@ type `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `Base struct {
-
 `); err != nil {
 		return
 	}
 
 	for _, col := range table.Columns {
 
-		if col.IsAutoId {
+		if _, err = io.WriteString(_w, `	`); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `	`); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, ` `); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, ` string
+		if _, err = io.WriteString(_w, col.GoType()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `
 `); err != nil {
-				return
-			}
-
-		} else {
-
-			if _, err = io.WriteString(_w, `	`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.GoType()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `
-`); err != nil {
-				return
-			}
-
+			return
 		}
 
 		if col.IsNullable {
@@ -264,7 +244,7 @@ type `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `IsValid bool
+		if _, err = io.WriteString(_w, `IsLoaded bool
 `); err != nil {
 			return
 		}
@@ -311,35 +291,21 @@ type `); err != nil {
 
 		}
 
-		if _, err = io.WriteString(_w, `
-`); err != nil {
-			return
-		}
-
-	}
-
-	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
 	}
 
 	if len(table.ReverseReferences) > 0 {
 
-		if _, err = io.WriteString(_w, `// Reverse reference objects.
+		if _, err = io.WriteString(_w, `
+    // Reverse reference objects.
 `); err != nil {
 			return
 		}
 
 		for _, col := range table.ReverseReferences {
 
-			if _, err = io.WriteString(_w, `    `); err != nil {
-				return
-			}
-
 			if col.IsUnique {
 
-				if _, err = io.WriteString(_w, `
-        `); err != nil {
+				if _, err = io.WriteString(_w, `    `); err != nil {
 					return
 				}
 
@@ -356,7 +322,7 @@ type `); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `
-        `); err != nil {
+    `); err != nil {
 					return
 				}
 
@@ -365,14 +331,13 @@ type `); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `IsDirty bool // is a new one being associated
-    `); err != nil {
+`); err != nil {
 					return
 				}
 
 			} else {
 
-				if _, err = io.WriteString(_w, `
-        `); err != nil {
+				if _, err = io.WriteString(_w, `    `); err != nil {
 					return
 				}
 
@@ -397,7 +362,7 @@ type `); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `]  // Objects in the order they were queried
-        `); err != nil {
+    `); err != nil {
 					return
 				}
 
@@ -406,29 +371,20 @@ type `); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `IsDirty bool
-	`); err != nil {
+`); err != nil {
 					return
 				}
 
-			}
-
-			if _, err = io.WriteString(_w, `
-`); err != nil {
-				return
 			}
 
 		}
 
 	}
 
-	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
-	}
-
 	if len(table.ManyManyReferences) > 0 {
 
-		if _, err = io.WriteString(_w, `// Many-Many reference objects.
+		if _, err = io.WriteString(_w, `
+// Many-Many reference objects.
 `); err != nil {
 			return
 		}
@@ -543,7 +499,6 @@ func (tmpl *TableBaseTemplate) genConst(table *model.Table, _w io.Writer) (err e
 
 	if _, err = io.WriteString(_w, `
 const  (
-
 `); err != nil {
 		return
 	}
@@ -614,11 +569,6 @@ const  (
 
 	}
 
-	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
-	}
-
 	for _, rev := range table.ReverseReferences {
 
 		if _, err = io.WriteString(_w, `    `); err != nil {
@@ -646,11 +596,6 @@ const  (
 			return
 		}
 
-	}
-
-	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
 	}
 
 	for _, mm := range table.ManyManyReferences {
@@ -703,8 +648,7 @@ const  (
 
 	}
 
-	if _, err = io.WriteString(_w, `
-) `); err != nil {
+	if _, err = io.WriteString(_w, `) `); err != nil {
 		return
 	}
 
@@ -870,17 +814,11 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 	}
 
 	if _, err = io.WriteString(_w, `Base) Initialize() {
-
 `); err != nil {
 		return
 	}
 
 	for _, col := range table.Columns {
-
-		if _, err = io.WriteString(_w, `
-`); err != nil {
-			return
-		}
 
 		if col.IsAutoId {
 
@@ -922,29 +860,9 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 
 		}
 
-		if _, err = io.WriteString(_w, `
-`); err != nil {
-			return
-		}
-
 		if col.IsNullable {
 
-			if col.DefaultValue == nil {
-
-				if _, err = io.WriteString(_w, `	o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsNull = true
-`); err != nil {
-					return
-				}
-
-			} else {
+			if col.HasDefaultValue() {
 
 				if _, err = io.WriteString(_w, `	o.`); err != nil {
 					return
@@ -959,81 +877,6 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 					return
 				}
 
-			}
-
-			if _, err = io.WriteString(_w, `	o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `IsValid = true
-`); err != nil {
-				return
-			}
-
-			if col.HasSetter() {
-
-				if _, err = io.WriteString(_w, `	o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsDirty = true
-`); err != nil {
-					return
-				}
-
-			}
-
-		} else {
-
-			if _, err = io.WriteString(_w, ` `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `
-`); err != nil {
-				return
-			}
-
-			if col.DefaultValue == nil {
-
-				if _, err = io.WriteString(_w, `	o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsValid = false
-`); err != nil {
-					return
-				}
-
-				if col.HasSetter() {
-
-					if _, err = io.WriteString(_w, `	o.`); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, `IsDirty = false
-`); err != nil {
-						return
-					}
-
-				}
-
 			} else {
 
 				if _, err = io.WriteString(_w, `	o.`); err != nil {
@@ -1044,28 +887,59 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 					return
 				}
 
-				if _, err = io.WriteString(_w, `IsValid = true
+				if _, err = io.WriteString(_w, `IsNull = true
 `); err != nil {
 					return
 				}
 
-				if col.HasSetter() {
+			}
 
-					if _, err = io.WriteString(_w, `	o.`); err != nil {
-						return
-					}
+		}
 
-					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-						return
-					}
+		if _, err = io.WriteString(_w, `	o.`); err != nil {
+			return
+		}
 
-					if _, err = io.WriteString(_w, `IsDirty = true
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `IsLoaded = `); err != nil {
+			return
+		}
+
+		if col.HasDefaultValue() {
+
+			if _, err = io.WriteString(_w, `true`); err != nil {
+				return
+			}
+
+		} else {
+
+			if _, err = io.WriteString(_w, `false`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `
 `); err != nil {
-						return
-					}
+			return
+		}
 
-				}
+		if col.HasSetter() {
 
+			if _, err = io.WriteString(_w, `	o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsDirty = false
+`); err != nil {
+				return
 			}
 
 		}
@@ -1077,14 +951,10 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 
 	}
 
-	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
-	}
-
 	if len(table.ReverseReferences) > 0 {
 
-		if _, err = io.WriteString(_w, `// Reverse reference objects.
+		if _, err = io.WriteString(_w, `
+// Reverse reference objects.
 `); err != nil {
 			return
 		}
@@ -1156,14 +1026,10 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 
 	}
 
-	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
-	}
-
 	if len(table.ManyManyReferences) > 0 {
 
-		if _, err = io.WriteString(_w, `// Many-Many reference objects.
+		if _, err = io.WriteString(_w, `
+// Many-Many reference objects.
 `); err != nil {
 			return
 		}
@@ -1207,7 +1073,6 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 
 	if _, err = io.WriteString(_w, `
 	o._aliases = nil
-
 	o._restored = false
 }
 
@@ -1286,7 +1151,7 @@ func (tmpl *TableBaseTemplate) genCopy(table *model.Table, _w io.Writer) (err er
 	//*** copy.tmpl
 
 	if _, err = io.WriteString(_w, `
-// Copy copies all valid fields to a new `); err != nil {
+// Copy copies most fields to a new `); err != nil {
 		return
 	}
 
@@ -1296,21 +1161,29 @@ func (tmpl *TableBaseTemplate) genCopy(table *model.Table, _w io.Writer) (err er
 
 	if _, err = io.WriteString(_w, ` object.
 // Forward reference ids will be copied, but reverse and many-many references will not.
-// Attached objects will not be included in the copy.`); err != nil {
+// Attached objects will not be included in the copy.
+// Automatically generated fields will not be included in the copy.
+`); err != nil {
 		return
 	}
 
-	if !table.HasAutoId() {
+	if table.HasAutoId() {
 
-		if _, err = io.WriteString(_w, `
-// You will need to manually set the primary key field before saving.`); err != nil {
+		if _, err = io.WriteString(_w, `// The primary key field will not be copied, since it is normally auto-generated.
+`); err != nil {
+			return
+		}
+
+	} else {
+
+		if _, err = io.WriteString(_w, `// The primary key field will not be copied. You will need to manually set the primary key field before saving.
+`); err != nil {
 			return
 		}
 
 	}
 
-	if _, err = io.WriteString(_w, `
-// Call Save() on the new object to save it into the database.
+	if _, err = io.WriteString(_w, `// Call Save() on the new object to save it into the database.
 // Copy might panic if any fields in the database were set to a size larger than the
 // maximum size through a process that accessed the database outside of the ORM.
 func (o *`); err != nil {
@@ -1343,41 +1216,37 @@ func (o *`); err != nil {
 		return
 	}
 
-	for _, col := range table.Columns {
+	for _, col := range table.SettableColumns() {
 
-		if col.HasSetter() {
+		if _, err = io.WriteString(_w, `    if o.`); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `    if o.`); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `IsValid {
+		if _, err = io.WriteString(_w, `IsLoaded {
         newObject.Set`); err != nil {
-				return
-			}
+			return
+		}
 
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `(o.`); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, `(o.`); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `)
+		if _, err = io.WriteString(_w, `)
     }
 `); err != nil {
-				return
-			}
-
+			return
 		}
 
 	}
@@ -1395,13 +1264,6 @@ func (o *`); err != nil {
 
 func (tmpl *TableBaseTemplate) genAccessors(table *model.Table, _w io.Writer) (err error) {
 	for _, col := range table.Columns {
-		if col.IsAutoId {
-			if err = tmpl.genAutoIdGetter(table, col, _w); err != nil {
-				return
-			}
-			continue
-		}
-
 		if err = tmpl.genColGetter(table, col, _w); err != nil {
 			return
 		}
@@ -1449,108 +1311,6 @@ func (tmpl *TableBaseTemplate) genAccessors(table *model.Table, _w io.Writer) (e
 	return
 }
 
-func (tmpl *TableBaseTemplate) genAutoIdGetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
-
-	//*** auto_id_getter.tmpl
-
-	if _, err = io.WriteString(_w, `// `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, ` returns the loaded value of `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, ` or
-// the zero value if not loaded. Call `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `IsValid() to determine
-// if it is loaded.
-func (o *`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `Base) `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `() string {
-	return fmt.Sprint(o.`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `)
-}
-
-// `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `IsValid returns true if the value was loaded from the database or has been set.
-func (o *`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `Base) `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `IsValid() bool {
-	return o._restored && o.`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `IsValid
-}
-`); err != nil {
-		return
-	}
-
-	return
-}
-
 func (tmpl *TableBaseTemplate) genColGetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
 
 	//*** column_getter.tmpl
@@ -1563,7 +1323,7 @@ func (tmpl *TableBaseTemplate) genColGetter(table *model.Table, col *model.Colum
 		return
 	}
 
-	if _, err = io.WriteString(_w, ` returns the loaded value of `); err != nil {
+	if _, err = io.WriteString(_w, ` returns the value of `); err != nil {
 		return
 	}
 
@@ -1605,7 +1365,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `IsValid {
+	if _, err = io.WriteString(_w, `IsLoaded {
 		panic ("`); err != nil {
 		return
 	}
@@ -1684,7 +1444,7 @@ func (tmpl *TableBaseTemplate) genColValid(table *model.Table, col *model.Column
 		return
 	}
 
-	if _, err = io.WriteString(_w, `IsValid returns true if the value was loaded from the database or has been set.
+	if _, err = io.WriteString(_w, `IsLoaded returns true if the value was loaded from the database or has been set.
 func (o *`); err != nil {
 		return
 	}
@@ -1701,7 +1461,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `IsValid() bool {
+	if _, err = io.WriteString(_w, `IsLoaded() bool {
 	return o.`); err != nil {
 		return
 	}
@@ -1710,7 +1470,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `IsValid
+	if _, err = io.WriteString(_w, `IsLoaded
 }
 
 `); err != nil {
@@ -1879,7 +1639,7 @@ func (tmpl *TableBaseTemplate) genColSetter(table *model.Table, col *model.Colum
 			return
 		}
 
-		if _, err = io.WriteString(_w, `IsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		if _, err = io.WriteString(_w, `IsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 `); err != nil {
 			return
 		}
@@ -1922,7 +1682,7 @@ func (tmpl *TableBaseTemplate) genColSetter(table *model.Table, col *model.Colum
 			return
 		}
 
-		if _, err = io.WriteString(_w, `IsValid = true
+		if _, err = io.WriteString(_w, `IsLoaded = true
 `); err != nil {
 			return
 		}
@@ -2072,7 +1832,7 @@ func (tmpl *TableBaseTemplate) genColSetter(table *model.Table, col *model.Colum
 			return
 		}
 
-		if _, err = io.WriteString(_w, `IsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		if _, err = io.WriteString(_w, `IsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 `); err != nil {
 			return
 		}
@@ -2115,7 +1875,7 @@ func (tmpl *TableBaseTemplate) genColSetter(table *model.Table, col *model.Colum
 			return
 		}
 
-		if _, err = io.WriteString(_w, `IsValid = true
+		if _, err = io.WriteString(_w, `IsLoaded = true
     v = v.UTC()
 `); err != nil {
 			return
@@ -2203,7 +1963,32 @@ func (tmpl *TableBaseTemplate) genColSetter(table *model.Table, col *model.Colum
 		}
 
 		if _, err = io.WriteString(_w, ` in the object, to be saved later in the database using the Save() function.
-func (o *`); err != nil {
+`); err != nil {
+			return
+		}
+
+		if col.IsAutoId {
+
+			if _, err = io.WriteString(_w, `// Normally you will not need to call this function, since the `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` value is automatically generated by the
+// database driver. Exceptions might include importing data to a new datbase, or correcting primary key conflicts when
+// merging data. In these cases, related tables will NOT be automatically updated by the ORM, so you should do that manually.
+// Note that if the database is a SQL database and it is set up so that foreign keys CASCADE on UPDATE, the database will
+// handle the change.
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `func (o *`); err != nil {
 			return
 		}
 
@@ -2280,7 +2065,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `IsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		if _, err = io.WriteString(_w, `IsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 `); err != nil {
 			return
 		}
@@ -2346,7 +2131,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `IsValid = true
+		if _, err = io.WriteString(_w, `IsLoaded = true
 `); err != nil {
 			return
 		}
@@ -2491,7 +2276,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `IsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		if _, err = io.WriteString(_w, `IsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 `); err != nil {
 			return
 		}
@@ -2534,7 +2319,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `IsValid = true
+		if _, err = io.WriteString(_w, `IsLoaded = true
 	o.`); err != nil {
 			return
 		}
@@ -2699,7 +2484,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `IsValid || !o.`); err != nil {
+	if _, err = io.WriteString(_w, `IsLoaded || !o.`); err != nil {
 		return
 	}
 
@@ -2727,7 +2512,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `IsValid = true
+	if _, err = io.WriteString(_w, `IsLoaded = true
     o.`); err != nil {
 		return
 	}
@@ -2900,7 +2685,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `IsValid  {
+	if _, err = io.WriteString(_w, `IsLoaded  {
 		return nil
 	}
 
@@ -3030,7 +2815,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `IsValid = true
+	if _, err = io.WriteString(_w, `IsLoaded = true
 	if `); err != nil {
 		return
 	}
@@ -3289,7 +3074,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `IsValid = true
+	if _, err = io.WriteString(_w, `IsLoaded = true
 		if o.`); err != nil {
 		return
 	}
@@ -6687,7 +6472,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `IsValid = true
+			if _, err = io.WriteString(_w, `IsLoaded = true
 `); err != nil {
 				return
 			}
@@ -6826,7 +6611,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `IsValid = true
+			if _, err = io.WriteString(_w, `IsLoaded = true
 `); err != nil {
 				return
 			}
@@ -6868,7 +6653,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `IsValid = false
+			if _, err = io.WriteString(_w, `IsLoaded = false
 		o.`); err != nil {
 				return
 			}
@@ -7063,7 +6848,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `IsValid = true
+			if _, err = io.WriteString(_w, `IsLoaded = true
 `); err != nil {
 				return
 			}
@@ -7128,7 +6913,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `IsValid = false
+			if _, err = io.WriteString(_w, `IsLoaded = false
 		o.`); err != nil {
 				return
 			}
@@ -7268,7 +7053,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `IsValid = true
+			if _, err = io.WriteString(_w, `IsLoaded = true
 			o.`); err != nil {
 				return
 			}
@@ -7728,11 +7513,12 @@ func (tmpl *TableBaseTemplate) genSave(table *model.Table, _w io.Writer) (err er
 
 	if _, err = io.WriteString(_w, `
 // Save will update or insert the object, depending on the state of the object.
-// If it has any auto-generated ids, those will be updated.
-// Database errors generally will be handled by the logger and not returned here,
-// since those indicate a problem with database driver or configuration.
+// If it has an auto-generated primary key, it will be changed after an insert.
+// Database errors generally will be handled by a panic and not returned here,
+// since those indicate a problem with a database driver or configuration.
 // Save will return a db.OptimisticLockError if it detects a collision when two users
 // are attempting to change the same database record.
+// Updating a record that has not changed will have no effect on the database.
 func (o *`); err != nil {
 		return
 	}
@@ -7756,6 +7542,7 @@ func (o *`); err != nil {
 	//*** update.tmpl
 
 	if _, err = io.WriteString(_w, `// update will update the values in the database, saving any changed values.
+// If the table has auto-generated values, those will be updated automatically.
 func (o *`); err != nil {
 		return
 	}
@@ -7772,7 +7559,7 @@ func (o *`); err != nil {
         return nil // nothing to save
     }
 
-var modifiedFields map[string]interface{}
+    var modifiedFields map[string]interface{}
 `); err != nil {
 		return
 	}
@@ -7782,27 +7569,6 @@ var modifiedFields map[string]interface{}
 		if _, err = io.WriteString(_w, `    var newLock int64
 `); err != nil {
 			return
-		}
-
-	}
-
-	for _, c := range table.Columns {
-
-		if c.SchemaSubType == schema.ColSubTypeTimestamp {
-
-			if _, err = io.WriteString(_w, `    var v_`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, c.VariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` int64
-`); err != nil {
-				return
-			}
-
 		}
 
 	}
@@ -7890,50 +7656,12 @@ var modifiedFields map[string]interface{}
 
 	}
 
-	if _, err = io.WriteString(_w, `        modifiedFields = o.getModifiedFields()
+	if _, err = io.WriteString(_w, `        modifiedFields = o.getUpdateFields()
         if len(modifiedFields) != 0 {
             var err2 error
 
 `); err != nil {
 		return
-	}
-
-	for _, c := range table.Columns {
-
-		if c.SchemaSubType == schema.ColSubTypeTimestamp {
-
-			if _, err = io.WriteString(_w, `            v_`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, c.VariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` = time.Now().UnixMicro()
-            modifiedFields["`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, c.QueryName); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `"] = v_`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, c.VariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `
-`); err != nil {
-				return
-			}
-
-		}
-
 	}
 
 	if c := table.LockColumn(); c == nil {
@@ -8894,53 +8622,70 @@ var modifiedFields map[string]interface{}
 		return
 	}
 
-	for _, c := range table.Columns {
+	for _, col := range table.Columns {
 
-		if c.SchemaSubType == schema.ColSubTypeTimestamp {
+		if col.SchemaSubType == schema.ColSubTypeTimestamp ||
+			col.ReceiverType == query.ColTypeTime && col.DefaultValue == model.ModifiedTime {
 
-			if _, err = io.WriteString(_w, `    if v_`); err != nil {
+			if _, err = io.WriteString(_w, `    o.`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, c.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` != 0 {
-        o.`); err != nil {
+			if _, err = io.WriteString(_w, ` = modifiedFields["`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, c.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.QueryName); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` = v_`); err != nil {
+			if _, err = io.WriteString(_w, `"].(`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, c.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.GoType()); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `
-    }
+			if _, err = io.WriteString(_w, `)
+    o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsLoaded = true
 `); err != nil {
 				return
 			}
 
-		} else if c.SchemaSubType == schema.ColSubTypeLock {
+		} else if col.SchemaSubType == schema.ColSubTypeLock {
 
 			if _, err = io.WriteString(_w, `    if newLock != 0 {
         o.`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, c.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 				return
 			}
 
 			if _, err = io.WriteString(_w, ` = newLock
+        o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsLoaded = true
     }
 `); err != nil {
 				return
@@ -8996,6 +8741,7 @@ func (o *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `Base) insert(ctx context.Context) (err error) {
+    var insertFields map[string]interface{}
     d := Database()
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
@@ -9068,9 +8814,9 @@ func (o *`); err != nil {
 		return
 	}
 
-	for _, col := range table.Columns {
+	for _, col := range table.SettableColumns() {
 
-		if col.HasSetter() && !col.IsNullable && col.DefaultValue == nil {
+		if !col.IsAutoId && !col.IsNullable {
 
 			if _, err = io.WriteString(_w, `    if !o.`); err != nil {
 				return
@@ -9080,7 +8826,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `IsValid {
+			if _, err = io.WriteString(_w, `IsLoaded {
         panic("a value for `); err != nil {
 				return
 			}
@@ -9108,90 +8854,7 @@ func (o *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
-	}
-
-	for _, col := range table.Columns {
-
-		if col.ReceiverType == query.ColTypeTime && (col.DefaultValue == model.CreatedTime || col.DefaultValue == model.ModifiedTime) {
-
-			if _, err = io.WriteString(_w, `    o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` = time.Now().UTC()
-    o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `IsValid = true
-`); err != nil {
-				return
-			}
-
-		} else if col.SchemaSubType == schema.ColSubTypeTimestamp {
-
-			if _, err = io.WriteString(_w, `    o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` = time.Now().UnixMicro()
-    o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `IsValid = true
-`); err != nil {
-				return
-			}
-
-		} else if col.SchemaSubType == schema.ColSubTypeLock {
-
-			if _, err = io.WriteString(_w, `    o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` = db.RecordVersion(0)
-    o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `IsValid = true
-`); err != nil {
-				return
-			}
-
-		}
-
-	}
-
-	if _, err = io.WriteString(_w, `
-    m := o.getValidFields()
+    insertFields = o.getInsertFields()
 
 `); err != nil {
 		return
@@ -9207,7 +8870,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `", m)
+		if _, err = io.WriteString(_w, `", insertFields)
 	o.`); err != nil {
 			return
 		}
@@ -9218,6 +8881,15 @@ func (o *`); err != nil {
 
 		if _, err = io.WriteString(_w, ` = newPk
 	o._originalPK = newPk
+    o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().VariableIdentifier()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `IsLoaded = true
 `); err != nil {
 			return
 		}
@@ -9232,7 +8904,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `", m)
+		if _, err = io.WriteString(_w, `", insertFields)
 	newPk := o.PrimaryKey()
 	o._originalPK = newPk
 `); err != nil {
@@ -9241,16 +8913,7 @@ func (o *`); err != nil {
 
 	}
 
-	if _, err = io.WriteString(_w, `    o.`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.PrimaryKeyColumn().VariableIdentifier()); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `IsValid = true
-
+	if _, err = io.WriteString(_w, `
 `); err != nil {
 		return
 	}
@@ -9569,7 +9232,59 @@ func (o *`); err != nil {
     if err != nil {
         return
     }
+`); err != nil {
+		return
+	}
 
+	for _, col := range table.Columns {
+
+		if col.ReceiverType == query.ColTypeTime && (col.DefaultValue == model.CreatedTime || col.DefaultValue == model.ModifiedTime) ||
+			col.SchemaSubType == schema.ColSubTypeTimestamp ||
+			col.SchemaSubType == schema.ColSubTypeLock {
+
+			if _, err = io.WriteString(_w, `    o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` = insertFields["`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.QueryName); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `"].(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.GoType()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `)
+    o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsLoaded = true
+`); err != nil {
+				return
+			}
+
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
 	o.resetDirtyStatus()
 	o._restored = true
 	broadcast.Insert(ctx, "`); err != nil {
@@ -9606,10 +9321,19 @@ func (o *`); err != nil {
 		return
 	}
 
-	//*** get_modified_fields_func.tmpl
+	//*** get_update_fields_func.tmpl
 
-	if _, err = io.WriteString(_w, `// getModifiedFields returns the database columns that have been modified. This
-// will determine which specific fields are sent to the database to be changed.
+	var hasTimestamp bool
+
+	for _, col := range table.Columns {
+		if col.ReceiverType == query.ColTypeTime && col.DefaultValue == model.ModifiedTime ||
+			col.SchemaSubType == schema.ColSubTypeTimestamp {
+			hasTimestamp = true
+		}
+	}
+
+	if _, err = io.WriteString(_w, `// getUpdateFields returns the database columns that will be sent to the update process.
+// This will include timestamp fields only if some other column has changed.
 func (o *`); err != nil {
 		return
 	}
@@ -9618,7 +9342,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Base) getModifiedFields() (fields map[string]interface{}) {
+	if _, err = io.WriteString(_w, `Base) getUpdateFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 `); err != nil {
 		return
@@ -9778,6 +9502,56 @@ func (o *`); err != nil {
 
 	}
 
+	if hasTimestamp {
+
+		if _, err = io.WriteString(_w, `    if len(fields) > 0 {
+`); err != nil {
+			return
+		}
+
+		for _, col := range table.Columns {
+
+			if col.ReceiverType == query.ColTypeTime && col.DefaultValue == model.ModifiedTime {
+
+				if _, err = io.WriteString(_w, `        fields["`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.QueryName); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `"] = time.Now().UTC()
+`); err != nil {
+					return
+				}
+
+			} else if col.SchemaSubType == schema.ColSubTypeTimestamp {
+
+				if _, err = io.WriteString(_w, `        fields["`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.QueryName); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `"] = time.Now().UnixMicro()
+`); err != nil {
+					return
+				}
+
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `    }
+`); err != nil {
+			return
+		}
+
+	}
+
 	if _, err = io.WriteString(_w, `	return
 }
 
@@ -9785,9 +9559,14 @@ func (o *`); err != nil {
 		return
 	}
 
-	//*** get_valid_fields_func.tmpl
+	//*** get_insert_fields_func.tmpl
 
-	if _, err = io.WriteString(_w, `// getValidFields returns the fields that have valid data in them in a form ready to send to the database.
+	if _, err = io.WriteString(_w, `// getInsertFields returns the fields that will be specified in an insert operation.
+// Optional fields that have not been set and have no default will be returned as nil.
+// NoSql databases should interpret this as no value. Sql databases should interpret this as
+// explicitly setting a NULL value, which would override any database specific default value.
+// Auto-generated fields will be returned with their generated values, except AutoId fields, which are generated by the
+// database driver and updated after the insert.
 func (o *`); err != nil {
 		return
 	}
@@ -9796,32 +9575,95 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Base) getValidFields() (fields map[string]interface{}) {
+	if _, err = io.WriteString(_w, `Base) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 `); err != nil {
 		return
 	}
 
 	for _, col := range table.Columns {
+
 		if col.IsAutoId {
-			continue
-		}
-		if _, err = io.WriteString(_w, `	if o.`); err != nil {
-			return
-		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-			return
-		}
+			if _, err = io.WriteString(_w, `    if o.`); err != nil {
+				return
+			}
 
-		if _, err = io.WriteString(_w, `IsValid {
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsDirty {
+        fields["`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.QueryName); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `"] = o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `
+    }
 `); err != nil {
-			return
-		}
+				return
+			}
 
-		if col.IsNullable {
+		} else if col.ReceiverType == query.ColTypeTime && (col.DefaultValue == model.CreatedTime || col.DefaultValue == model.ModifiedTime) {
 
-			if _, err = io.WriteString(_w, `        if 	o.`); err != nil {
+			if _, err = io.WriteString(_w, `    fields["`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.QueryName); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `"] = time.Now().UTC()
+`); err != nil {
+				return
+			}
+
+		} else if col.SchemaSubType == schema.ColSubTypeTimestamp {
+
+			if _, err = io.WriteString(_w, `    fields["`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.QueryName); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `"] = time.Now().UnixMicro()
+`); err != nil {
+				return
+			}
+
+		} else if col.SchemaSubType == schema.ColSubTypeLock {
+
+			if _, err = io.WriteString(_w, `    fields["`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.QueryName); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `"] = db.RecordVersion(0)
+`); err != nil {
+				return
+			}
+
+		} else if col.IsNullable {
+
+			if _, err = io.WriteString(_w, `    if o.`); err != nil {
 				return
 			}
 
@@ -9830,7 +9672,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `IsNull {
-            fields["`); err != nil {
+        fields["`); err != nil {
 				return
 			}
 
@@ -9839,66 +9681,10 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `"] = nil
-        } else {
+    } else {
 `); err != nil {
 				return
 			}
-
-			if col.IsEnumArray() {
-
-				if _, err = io.WriteString(_w, `            b,_ := json.Marshal(o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `)
-            fields["`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.QueryName); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `"] = string(b)
-`); err != nil {
-					return
-				}
-
-			} else {
-
-				if _, err = io.WriteString(_w, `  		    fields["`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.QueryName); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `"] = o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `
-`); err != nil {
-					return
-				}
-
-			}
-
-			if _, err = io.WriteString(_w, `        }
-`); err != nil {
-				return
-			}
-
-		} else {
 
 			if col.IsEnumArray() {
 
@@ -9949,11 +9735,71 @@ func (o *`); err != nil {
 
 			}
 
-		}
-
-		if _, err = io.WriteString(_w, `	}
+			if _, err = io.WriteString(_w, `    }
 `); err != nil {
-			return
+				return
+			}
+
+		} else {
+
+			if _, err = io.WriteString(_w, ` `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `
+`); err != nil {
+				return
+			}
+
+			if col.IsEnumArray() {
+
+				if _, err = io.WriteString(_w, `    b,_ := json.Marshal(o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `)
+    fields["`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.QueryName); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `"] = string(b)
+`); err != nil {
+					return
+				}
+
+			} else {
+
+				if _, err = io.WriteString(_w, `    fields["`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.QueryName); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `"] = o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `
+`); err != nil {
+					return
+				}
+
+			}
+
 		}
 
 	}
@@ -11090,7 +10936,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `IsValid {
+		if _, err = io.WriteString(_w, `IsLoaded {
             return nil
         }
         return o.`); err != nil {
@@ -11340,7 +11186,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `IsValid); err != nil {
+		if _, err = io.WriteString(_w, `IsLoaded); err != nil {
         return nil, fmt.Errorf("error encoding `); err != nil {
 			return
 		}
@@ -11357,7 +11203,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `IsValid: %w", err)
+		if _, err = io.WriteString(_w, `IsLoaded: %w", err)
     }
 `); err != nil {
 			return
@@ -11864,7 +11710,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `IsValid); err != nil {
+		if _, err = io.WriteString(_w, `IsLoaded); err != nil {
         return fmt.Errorf("error decoding `); err != nil {
 			return
 		}
@@ -11881,7 +11727,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `IsValid: %w", err)
+		if _, err = io.WriteString(_w, `IsLoaded: %w", err)
     }
 `); err != nil {
 			return
@@ -12315,7 +12161,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `IsValid {
+		if _, err = io.WriteString(_w, `IsLoaded {
 `); err != nil {
 			return
 		}
@@ -12663,10 +12509,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	for _, col := range table.Columns {
-		if !col.HasSetter() {
-			continue
-		}
+	for _, col := range table.SettableColumns() {
 
 		//*** unmarshal_stringmap_col.tmpl
 

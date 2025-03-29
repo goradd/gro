@@ -67,14 +67,32 @@ func deleteSampleMilestone(ctx context.Context, obj *Milestone) {
 
 // assertEqualFieldsMilestone compares two objects and asserts that the basic fields are equal.
 func assertEqualFieldsMilestone(t *testing.T, obj1, obj2 *Milestone) {
-	assert.EqualValues(t, obj1.ID(), obj2.ID())
-
-	assert.EqualValues(t, obj1.ProjectID(), obj2.ProjectID())
-
-	assert.EqualValues(t, obj1.Name(), obj2.Name())
+	if obj1.IDIsLoaded() && obj2.IDIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.ID(), obj2.ID())
+	}
+	if obj1.ProjectIDIsLoaded() && obj2.ProjectIDIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.ProjectID(), obj2.ProjectID())
+	}
+	if obj1.NameIsLoaded() && obj2.NameIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.Name(), obj2.Name())
+	}
 
 }
 
+func TestMilestone_SetID(t *testing.T) {
+
+	obj := NewMilestone()
+
+	assert.True(t, obj.IsNew())
+	val := test.RandomNumberString()
+	obj.SetID(val)
+	assert.Equal(t, val, obj.ID())
+
+	// test default
+	obj.SetID("")
+	assert.EqualValues(t, "", obj.ID(), "set default")
+
+}
 func TestMilestone_SetProjectID(t *testing.T) {
 
 	obj := NewMilestone()
@@ -132,9 +150,14 @@ func TestMilestone_BasicInsert(t *testing.T) {
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
-	assert.True(t, obj2.IDIsValid())
+	assert.True(t, obj2.IDIsLoaded())
 
-	assert.True(t, obj2.NameIsValid())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.idIsDirty)
+	obj2.SetID(obj2.ID())
+	assert.False(t, obj2.idIsDirty)
+
+	assert.True(t, obj2.NameIsLoaded())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.nameIsDirty)
@@ -147,13 +170,13 @@ func TestMilestone_InsertPanics(t *testing.T) {
 	obj := createMinimalSampleMilestone()
 	ctx := db.NewContext(nil)
 
-	obj.projectIDIsValid = false
+	obj.projectIDIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.projectIDIsValid = true
+	obj.projectIDIsLoaded = true
 
-	obj.nameIsValid = false
+	obj.nameIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.nameIsValid = true
+	obj.nameIsLoaded = true
 
 }
 
@@ -167,7 +190,6 @@ func TestMilestone_BasicUpdate(t *testing.T) {
 	obj2 := LoadMilestone(ctx, obj.PrimaryKey())
 
 	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
-	assert.Equal(t, obj2.ProjectID(), obj.ProjectID(), "ProjectID did not update")
 	assert.Equal(t, obj2.Name(), obj.Name(), "Name did not update")
 }
 
@@ -192,9 +214,9 @@ func TestMilestone_ReferenceLoad(t *testing.T) {
 	assert.NotNil(t, v_Project)
 	assert.Equal(t, v_Project.PrimaryKey(), obj2.Project().PrimaryKey())
 	assert.Equal(t, obj.Project().PrimaryKey(), obj2.Project().PrimaryKey())
-	assert.True(t, obj2.ProjectIDIsValid())
+	assert.True(t, obj2.ProjectIDIsLoaded())
 
-	assert.False(t, objPkOnly.ProjectIDIsValid())
+	assert.False(t, objPkOnly.ProjectIDIsLoaded())
 	assert.Nil(t, objPkOnly.LoadProject(ctx))
 
 	assert.Panics(t, func() {
@@ -269,7 +291,6 @@ func TestMilestone_Getters(t *testing.T) {
 	obj2 := LoadMilestone(ctx, obj.PrimaryKey(), node.Milestone().PrimaryKey())
 
 	assert.Equal(t, obj.ID(), obj.Get(node.Milestone().ID().Identifier))
-	assert.Equal(t, obj.ProjectID(), obj.Get(node.Milestone().ProjectID().Identifier))
 	assert.Panics(t, func() { obj2.ProjectID() })
 	assert.Nil(t, obj2.Get(node.Milestone().ProjectID().Identifier))
 	assert.Equal(t, obj.Name(), obj.Get(node.Milestone().Name().Identifier))

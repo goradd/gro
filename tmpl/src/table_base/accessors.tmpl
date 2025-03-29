@@ -4,11 +4,6 @@
 }}
 func (tmpl *TableBaseTemplate)genAccessors(table *model.Table, _w io.Writer) (err error) {
     for _,col := range table.Columns {
-        if col.IsAutoId {
-            if err = tmpl.genAutoIdGetter(table, col, _w); err != nil {return}
-            continue
-        }
-
         if err = tmpl.genColGetter(table, col, _w); err != nil {return}
         if err = tmpl.genColValid(table, col, _w); err != nil {return}
         if col.IsNullable {
@@ -33,11 +28,6 @@ func (tmpl *TableBaseTemplate)genAccessors(table *model.Table, _w io.Writer) (er
     if err = tmpl.genAliasGetter(table, _w); err != nil {return}
     if err = tmpl.genIsNew(table, _w); err != nil {return}
 
-    return
-}
-
-func (tmpl *TableBaseTemplate)genAutoIdGetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
-{{: "accessors/auto_id_getter.tmpl" }}
     return
 }
 

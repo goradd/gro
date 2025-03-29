@@ -22,13 +22,12 @@ import (
 // The member variables of the structure are private and should not normally be accessed by the Gift embedder.
 // Instead, use the accessor functions.
 type giftBase struct {
-	number        int
-	numberIsValid bool
-	numberIsDirty bool
-
-	name        string
-	nameIsValid bool
-	nameIsDirty bool
+	number         int
+	numberIsLoaded bool
+	numberIsDirty  bool
+	name           string
+	nameIsLoaded   bool
+	nameIsDirty    bool
 
 	// Custom aliases, if specified
 	_aliases map[string]any
@@ -52,19 +51,15 @@ const GiftNameMaxLength = 50 // The number of runes the column can hold
 
 // Initialize or re-initialize a Gift database object to default values.
 func (o *giftBase) Initialize() {
-
 	o.number = 0
-
-	o.numberIsValid = false
+	o.numberIsLoaded = false
 	o.numberIsDirty = false
 
 	o.name = ""
-
-	o.nameIsValid = false
+	o.nameIsLoaded = false
 	o.nameIsDirty = false
 
 	o._aliases = nil
-
 	o._restored = false
 }
 
@@ -79,62 +74,63 @@ func (o *giftBase) OriginalPrimaryKey() int {
 	return o._originalPK
 }
 
-// Copy copies all valid fields to a new Gift object.
+// Copy copies most fields to a new Gift object.
 // Forward reference ids will be copied, but reverse and many-many references will not.
 // Attached objects will not be included in the copy.
-// You will need to manually set the primary key field before saving.
+// Automatically generated fields will not be included in the copy.
+// The primary key field will not be copied. You will need to manually set the primary key field before saving.
 // Call Save() on the new object to save it into the database.
 // Copy might panic if any fields in the database were set to a size larger than the
 // maximum size through a process that accessed the database outside of the ORM.
 func (o *giftBase) Copy() (newObject *Gift) {
 	newObject = NewGift()
-	if o.numberIsValid {
+	if o.numberIsLoaded {
 		newObject.SetNumber(o.number)
 	}
-	if o.nameIsValid {
+	if o.nameIsLoaded {
 		newObject.SetName(o.name)
 	}
 	return
 }
 
-// Number returns the loaded value of Number.
+// Number returns the value of Number.
 func (o *giftBase) Number() int {
-	if o._restored && !o.numberIsValid {
+	if o._restored && !o.numberIsLoaded {
 		panic("Number was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.number
 }
 
-// NumberIsValid returns true if the value was loaded from the database or has been set.
-func (o *giftBase) NumberIsValid() bool {
-	return o.numberIsValid
+// NumberIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *giftBase) NumberIsLoaded() bool {
+	return o.numberIsLoaded
 }
 
 // SetNumber sets the value of Number in the object, to be saved later in the database using the Save() function.
 func (o *giftBase) SetNumber(v int) {
 	if o._restored &&
-		o.numberIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.numberIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.number == v {
 		// no change
 		return
 	}
 
-	o.numberIsValid = true
+	o.numberIsLoaded = true
 	o.number = v
 	o.numberIsDirty = true
 }
 
-// Name returns the loaded value of Name.
+// Name returns the value of Name.
 func (o *giftBase) Name() string {
-	if o._restored && !o.nameIsValid {
+	if o._restored && !o.nameIsLoaded {
 		panic("Name was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.name
 }
 
-// NameIsValid returns true if the value was loaded from the database or has been set.
-func (o *giftBase) NameIsValid() bool {
-	return o.nameIsValid
+// NameIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *giftBase) NameIsLoaded() bool {
+	return o.nameIsLoaded
 }
 
 // SetName sets the value of Name in the object, to be saved later in the database using the Save() function.
@@ -143,13 +139,13 @@ func (o *giftBase) SetName(v string) {
 		panic("attempted to set Gift.Name to a value larger than its maximum length in runes")
 	}
 	if o._restored &&
-		o.nameIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.nameIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.name == v {
 		// no change
 		return
 	}
 
-	o.nameIsValid = true
+	o.nameIsLoaded = true
 	o.name = v
 	o.nameIsDirty = true
 }
@@ -522,7 +518,7 @@ func (o *giftBase) load(m map[string]interface{}, objThis *Gift) {
 
 	if v, ok := m["number"]; ok && v != nil {
 		if o.number, ok = v.(int); ok {
-			o.numberIsValid = true
+			o.numberIsLoaded = true
 			o.numberIsDirty = false
 
 			o._originalPK = o.number
@@ -531,21 +527,21 @@ func (o *giftBase) load(m map[string]interface{}, objThis *Gift) {
 			panic("Wrong type found for number.")
 		}
 	} else {
-		o.numberIsValid = false
+		o.numberIsLoaded = false
 		o.number = 0
 		o.numberIsDirty = false
 	}
 
 	if v, ok := m["name"]; ok && v != nil {
 		if o.name, ok = v.(string); ok {
-			o.nameIsValid = true
+			o.nameIsLoaded = true
 			o.nameIsDirty = false
 
 		} else {
 			panic("Wrong type found for name.")
 		}
 	} else {
-		o.nameIsValid = false
+		o.nameIsLoaded = false
 		o.name = ""
 		o.nameIsDirty = false
 	}
@@ -559,11 +555,12 @@ func (o *giftBase) load(m map[string]interface{}, objThis *Gift) {
 }
 
 // Save will update or insert the object, depending on the state of the object.
-// If it has any auto-generated ids, those will be updated.
-// Database errors generally will be handled by the logger and not returned here,
-// since those indicate a problem with database driver or configuration.
+// If it has an auto-generated primary key, it will be changed after an insert.
+// Database errors generally will be handled by a panic and not returned here,
+// since those indicate a problem with a database driver or configuration.
 // Save will return a db.OptimisticLockError if it detects a collision when two users
 // are attempting to change the same database record.
+// Updating a record that has not changed will have no effect on the database.
 func (o *giftBase) Save(ctx context.Context) error {
 	if o._restored {
 		return o.update(ctx)
@@ -573,6 +570,7 @@ func (o *giftBase) Save(ctx context.Context) error {
 }
 
 // update will update the values in the database, saving any changed values.
+// If the table has auto-generated values, those will be updated automatically.
 func (o *giftBase) update(ctx context.Context) error {
 	if !o._restored {
 		panic("cannot update a record that was not originally read from the database.")
@@ -586,7 +584,7 @@ func (o *giftBase) update(ctx context.Context) error {
 	d := Database()
 	err := db.ExecuteTransaction(ctx, d, func() error {
 
-		modifiedFields = o.getModifiedFields()
+		modifiedFields = o.getUpdateFields()
 		if len(modifiedFields) != 0 {
 			var err2 error
 
@@ -612,22 +610,22 @@ func (o *giftBase) update(ctx context.Context) error {
 
 // insert will insert the object into the database. Related items will be saved.
 func (o *giftBase) insert(ctx context.Context) (err error) {
+	var insertFields map[string]interface{}
 	d := Database()
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
-		if !o.numberIsValid {
+		if !o.numberIsLoaded {
 			panic("a value for Number is required, and there is no default value. Call SetNumber() before inserting the record.")
 		}
-		if !o.nameIsValid {
+		if !o.nameIsLoaded {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
 
-		m := o.getValidFields()
+		insertFields = o.getInsertFields()
 
-		d.Insert(ctx, "gift", m)
+		d.Insert(ctx, "gift", insertFields)
 		newPk := o.PrimaryKey()
 		o._originalPK = newPk
-		o.numberIsValid = true
 
 		return nil
 
@@ -643,9 +641,9 @@ func (o *giftBase) insert(ctx context.Context) (err error) {
 	return
 }
 
-// getModifiedFields returns the database columns that have been modified. This
-// will determine which specific fields are sent to the database to be changed.
-func (o *giftBase) getModifiedFields() (fields map[string]interface{}) {
+// getUpdateFields returns the database columns that will be sent to the update process.
+// This will include timestamp fields only if some other column has changed.
+func (o *giftBase) getUpdateFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.numberIsDirty {
 		fields["number"] = o.number
@@ -656,15 +654,18 @@ func (o *giftBase) getModifiedFields() (fields map[string]interface{}) {
 	return
 }
 
-// getValidFields returns the fields that have valid data in them in a form ready to send to the database.
-func (o *giftBase) getValidFields() (fields map[string]interface{}) {
+// getInsertFields returns the fields that will be specified in an insert operation.
+// Optional fields that have not been set and have no default will be returned as nil.
+// NoSql databases should interpret this as no value. Sql databases should interpret this as
+// explicitly setting a NULL value, which would override any database specific default value.
+// Auto-generated fields will be returned with their generated values, except AutoId fields, which are generated by the
+// database driver and updated after the insert.
+func (o *giftBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-	if o.numberIsValid {
-		fields["number"] = o.number
-	}
-	if o.nameIsValid {
-		fields["name"] = o.name
-	}
+
+	fields["number"] = o.number
+
+	fields["name"] = o.name
 	return
 }
 
@@ -717,13 +718,13 @@ func (o *giftBase) Get(key string) interface{} {
 	switch key {
 
 	case "Number":
-		if !o.numberIsValid {
+		if !o.numberIsLoaded {
 			return nil
 		}
 		return o.number
 
 	case "Name":
-		if !o.nameIsValid {
+		if !o.nameIsLoaded {
 			return nil
 		}
 		return o.name
@@ -743,8 +744,8 @@ func (o *giftBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.number); err != nil {
 		return nil, fmt.Errorf("error encoding Gift.number: %w", err)
 	}
-	if err := encoder.Encode(o.numberIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Gift.numberIsValid: %w", err)
+	if err := encoder.Encode(o.numberIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Gift.numberIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.numberIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding Gift.numberIsDirty: %w", err)
@@ -753,8 +754,8 @@ func (o *giftBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.name); err != nil {
 		return nil, fmt.Errorf("error encoding Gift.name: %w", err)
 	}
-	if err := encoder.Encode(o.nameIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Gift.nameIsValid: %w", err)
+	if err := encoder.Encode(o.nameIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Gift.nameIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.nameIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding Gift.nameIsDirty: %w", err)
@@ -796,8 +797,8 @@ func (o *giftBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.number); err != nil {
 		return fmt.Errorf("error decoding Gift.number: %w", err)
 	}
-	if err = dec.Decode(&o.numberIsValid); err != nil {
-		return fmt.Errorf("error decoding Gift.numberIsValid: %w", err)
+	if err = dec.Decode(&o.numberIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Gift.numberIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.numberIsDirty); err != nil {
 		return fmt.Errorf("error decoding Gift.numberIsDirty: %w", err)
@@ -806,8 +807,8 @@ func (o *giftBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.name); err != nil {
 		return fmt.Errorf("error decoding Gift.name: %w", err)
 	}
-	if err = dec.Decode(&o.nameIsValid); err != nil {
-		return fmt.Errorf("error decoding Gift.nameIsValid: %w", err)
+	if err = dec.Decode(&o.nameIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Gift.nameIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.nameIsDirty); err != nil {
 		return fmt.Errorf("error decoding Gift.nameIsDirty: %w", err)
@@ -831,11 +832,11 @@ func (o *giftBase) MarshalJSON() (data []byte, err error) {
 func (o *giftBase) MarshalStringMap() map[string]interface{} {
 	v := make(map[string]interface{})
 
-	if o.numberIsValid {
+	if o.numberIsLoaded {
 		v["number"] = o.number
 	}
 
-	if o.nameIsValid {
+	if o.nameIsLoaded {
 		v["name"] = o.name
 	}
 

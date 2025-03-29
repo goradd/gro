@@ -3,7 +3,7 @@
 }}
 {{
 
-    if o.{{= col.VariableIdentifier() }}IsValid {
+    if o.{{= col.VariableIdentifier() }}IsLoaded {
 {{if col.IsNullable}}
         if o.{{= col.VariableIdentifier() }}IsNull {
             v["{{= col.JsonKey() }}"] = nil

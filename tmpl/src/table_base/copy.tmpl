@@ -1,24 +1,26 @@
-
 {{g
 //*** {{includeName}}
 }}
 {{
 
-// Copy copies all valid fields to a new {{= table.Identifier}} object.
+// Copy copies most fields to a new {{= table.Identifier}} object.
 // Forward reference ids will be copied, but reverse and many-many references will not.
-// Attached objects will not be included in the copy.{{if !table.HasAutoId() }}
-// You will need to manually set the primary key field before saving.{{if}}
+// Attached objects will not be included in the copy.
+// Automatically generated fields will not be included in the copy.
+{{if table.HasAutoId() }}
+// The primary key field will not be copied, since it is normally auto-generated.
+{{else}}
+// The primary key field will not be copied. You will need to manually set the primary key field before saving.
+{{if}}
 // Call Save() on the new object to save it into the database.
 // Copy might panic if any fields in the database were set to a size larger than the
 // maximum size through a process that accessed the database outside of the ORM.
 func (o *{{= table.DecapIdentifier}}Base) Copy() (newObject *{{= table.Identifier}}) {
     newObject = New{{= table.Identifier }}()
-{{for _,col := range table.Columns }}
-{{if col.HasSetter() }}
-    if o.{{= col.VariableIdentifier() }}IsValid {
+{{for _,col := range table.SettableColumns() }}
+    if o.{{= col.VariableIdentifier() }}IsLoaded {
         newObject.Set{{= col.Identifier }}(o.{{= col.VariableIdentifier() }})
     }
-{{if}}
 {{for}}
     return
 }

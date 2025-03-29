@@ -304,6 +304,7 @@ func (h *DbHelper) Delete(ctx context.Context, table string, where map[string]an
 	s, args := GenerateDelete(h.dbi, table, where)
 	_, e := h.SqlExec(ctx, s, args...)
 	if e != nil {
+		log.Printf("Sql error for: %s, %v", s, args)
 		panic(e.Error())
 	}
 }

@@ -14,7 +14,7 @@
 {{if}}
 func (o *{{= table.DecapIdentifier }}Base) Set{{= col.Identifier }}(v {{= col.GoType() }}) {
 	if o._restored &&
-	    o.{{= col.VariableIdentifier() }}IsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+	    o.{{= col.VariableIdentifier() }}IsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 {{if col.IsNullable }}
 		!o.{{= col.VariableIdentifier() }}IsNull && // if the db value is null, force a set of value
 {{if}}
@@ -23,7 +23,7 @@ func (o *{{= table.DecapIdentifier }}Base) Set{{= col.Identifier }}(v {{= col.Go
         return
     }
 
-	o.{{= col.VariableIdentifier() }}IsValid = true
+	o.{{= col.VariableIdentifier() }}IsLoaded = true
     v = v.UTC()
 {{if col.SchemaSubType == schema.ColSubTypeDateOnly}}
     v = time.Date(v.Year(), v.Month(), v.Day(), 0, 0, 0, 0, v.Location())

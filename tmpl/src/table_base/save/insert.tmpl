@@ -5,6 +5,7 @@
 {{
 // insert will insert the object into the database. Related items will be saved.
 func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) (err error) {
+    var insertFields map[string]interface{}
     d := Database()
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
@@ -20,43 +21,29 @@ func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) (err error
     {{if}}
 {{for}}
 
-{{for _,col := range table.Columns}}
-{{if col.HasSetter() && !col.IsNullable && col.DefaultValue == nil}}
+{{for _,col := range table.SettableColumns() }}
+{{if !col.IsAutoId && !col.IsNullable}}
 {{# Note: Most likely the user is inserting a new record, but forgot to set a required value, but there is the
               possibility that this is a retrieved record with missing fields (through the Select statement) and those
               missing fields are required, and the user is forcing an insert. }}
-    if !o.{{= col.VariableIdentifier() }}IsValid {
+    if !o.{{= col.VariableIdentifier() }}IsLoaded {
         panic("a value for {{= col.Identifier }} is required, and there is no default value. Call Set{{= col.Identifier }}() before inserting the record.")
     }
 {{if}}
 {{for}}
 
-{{# Add auto-generated fields}}
-{{for _,col := range table.Columns}}
-{{if col.ReceiverType == query.ColTypeTime && (col.DefaultValue == model.CreatedTime || col.DefaultValue == model.ModifiedTime)}}
-    o.{{= col.VariableIdentifier() }} = time.Now().UTC()
-    o.{{= col.VariableIdentifier() }}IsValid = true
-{{elseif col.SchemaSubType == schema.ColSubTypeTimestamp }}
-    o.{{= col.VariableIdentifier() }} = time.Now().UnixMicro()
-    o.{{= col.VariableIdentifier() }}IsValid = true
-{{elseif col.SchemaSubType == schema.ColSubTypeLock }}
-    o.{{= col.VariableIdentifier() }} = db.RecordVersion(0)
-    o.{{= col.VariableIdentifier() }}IsValid = true
-{{if}}
-{{for}}
-
-    m := o.getValidFields()
+    insertFields = o.getInsertFields()
 
 {{if table.HasAutoId() }}
-	newPk := d.Insert(ctx, "{{= table.QueryName }}", m)
+	newPk := d.Insert(ctx, "{{= table.QueryName }}", insertFields)
 	o.{{= table.PrimaryKeyColumn().VariableIdentifier() }} = newPk
 	o._originalPK = newPk
+    o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}IsLoaded = true
 {{else}}
-	d.Insert(ctx, "{{= table.QueryName }}", m)
+	d.Insert(ctx, "{{= table.QueryName }}", insertFields)
 	newPk := o.PrimaryKey()
 	o._originalPK = newPk
 {{if}}
-    o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}IsValid = true
 
 {{g
 
@@ -72,6 +59,15 @@ func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) (err error
     if err != nil {
         return
     }
+{{# Update local copies of auto generated fields }}
+{{for _,col := range table.Columns}}
+{{if col.ReceiverType == query.ColTypeTime && (col.DefaultValue == model.CreatedTime || col.DefaultValue == model.ModifiedTime) ||
+        col.SchemaSubType == schema.ColSubTypeTimestamp ||
+        col.SchemaSubType == schema.ColSubTypeLock }}
+    o.{{= col.VariableIdentifier() }} = insertFields["{{= col.QueryName }}"].({{= col.GoType() }})
+    o.{{= col.VariableIdentifier() }}IsLoaded = true
+{{if}}
+{{for}}
 
 	o.resetDirtyStatus()
 	o._restored = true

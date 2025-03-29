@@ -13,7 +13,7 @@ func (o *{{= table.DecapIdentifier}}Base) Get(key string) interface{} {
 
 {{for _,col := range table.Columns }}
     case "{{= col.Identifier }}":
-        if !o.{{= col.DecapIdentifier }}IsValid {
+        if !o.{{= col.DecapIdentifier }}IsLoaded {
             return nil
         }
         return o.{{= col.DecapIdentifier }}

@@ -39,8 +39,7 @@ func (o *{{= table.DecapIdentifier}}Base) UnmarshalStringMap(m map[string]interf
 
 }}
 
-for _,col := range table.Columns {
-    if !col.HasSetter() {continue}
+for _,col := range table.SettableColumns() {
     {{: "marshal/unmarshal_stringmap_col.tmpl" }}
 }
 

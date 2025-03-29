@@ -98,22 +98,44 @@ func deleteSampleRoot(ctx context.Context, obj *Root) {
 
 // assertEqualFieldsRoot compares two objects and asserts that the basic fields are equal.
 func assertEqualFieldsRoot(t *testing.T, obj1, obj2 *Root) {
-	assert.EqualValues(t, obj1.ID(), obj2.ID())
-
-	assert.EqualValues(t, obj1.Name(), obj2.Name())
-
-	assert.EqualValues(t, obj1.OptionalLeafID(), obj2.OptionalLeafID())
-
-	assert.EqualValues(t, obj1.RequiredLeafID(), obj2.RequiredLeafID())
-
-	assert.EqualValues(t, obj1.OptionalLeafUniqueID(), obj2.OptionalLeafUniqueID())
-
-	assert.EqualValues(t, obj1.RequiredLeafUniqueID(), obj2.RequiredLeafUniqueID())
-
-	assert.EqualValues(t, obj1.ParentID(), obj2.ParentID())
+	if obj1.IDIsLoaded() && obj2.IDIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.ID(), obj2.ID())
+	}
+	if obj1.NameIsLoaded() && obj2.NameIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.Name(), obj2.Name())
+	}
+	if obj1.OptionalLeafIDIsLoaded() && obj2.OptionalLeafIDIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.OptionalLeafID(), obj2.OptionalLeafID())
+	}
+	if obj1.RequiredLeafIDIsLoaded() && obj2.RequiredLeafIDIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.RequiredLeafID(), obj2.RequiredLeafID())
+	}
+	if obj1.OptionalLeafUniqueIDIsLoaded() && obj2.OptionalLeafUniqueIDIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.OptionalLeafUniqueID(), obj2.OptionalLeafUniqueID())
+	}
+	if obj1.RequiredLeafUniqueIDIsLoaded() && obj2.RequiredLeafUniqueIDIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.RequiredLeafUniqueID(), obj2.RequiredLeafUniqueID())
+	}
+	if obj1.ParentIDIsLoaded() && obj2.ParentIDIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.ParentID(), obj2.ParentID())
+	}
 
 }
 
+func TestRoot_SetID(t *testing.T) {
+
+	obj := NewRoot()
+
+	assert.True(t, obj.IsNew())
+	val := test.RandomNumberString()
+	obj.SetID(val)
+	assert.Equal(t, val, obj.ID())
+
+	// test default
+	obj.SetID("")
+	assert.EqualValues(t, "", obj.ID(), "set default")
+
+}
 func TestRoot_SetName(t *testing.T) {
 
 	obj := NewRoot()
@@ -243,9 +265,14 @@ func TestRoot_BasicInsert(t *testing.T) {
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
-	assert.True(t, obj2.IDIsValid())
+	assert.True(t, obj2.IDIsLoaded())
 
-	assert.True(t, obj2.NameIsValid())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.idIsDirty)
+	obj2.SetID(obj2.ID())
+	assert.False(t, obj2.idIsDirty)
+
+	assert.True(t, obj2.NameIsLoaded())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.nameIsDirty)
@@ -258,21 +285,21 @@ func TestRoot_InsertPanics(t *testing.T) {
 	obj := createMinimalSampleRoot()
 	ctx := db.NewContext(nil)
 
-	obj.nameIsValid = false
+	obj.nameIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.nameIsValid = true
+	obj.nameIsLoaded = true
 
-	obj.requiredLeafIDIsValid = false
+	obj.requiredLeafIDIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.requiredLeafIDIsValid = true
+	obj.requiredLeafIDIsLoaded = true
 
-	obj.optionalLeafUniqueIDIsValid = false
+	obj.optionalLeafUniqueIDIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.optionalLeafUniqueIDIsValid = true
+	obj.optionalLeafUniqueIDIsLoaded = true
 
-	obj.requiredLeafUniqueIDIsValid = false
+	obj.requiredLeafUniqueIDIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.requiredLeafUniqueIDIsValid = true
+	obj.requiredLeafUniqueIDIsLoaded = true
 
 }
 
@@ -287,11 +314,6 @@ func TestRoot_BasicUpdate(t *testing.T) {
 
 	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
 	assert.Equal(t, obj2.Name(), obj.Name(), "Name did not update")
-	assert.Equal(t, obj2.OptionalLeafID(), obj.OptionalLeafID(), "OptionalLeafID did not update")
-	assert.Equal(t, obj2.RequiredLeafID(), obj.RequiredLeafID(), "RequiredLeafID did not update")
-	assert.Equal(t, obj2.OptionalLeafUniqueID(), obj.OptionalLeafUniqueID(), "OptionalLeafUniqueID did not update")
-	assert.Equal(t, obj2.RequiredLeafUniqueID(), obj.RequiredLeafUniqueID(), "RequiredLeafUniqueID did not update")
-	assert.Equal(t, obj2.ParentID(), obj.ParentID(), "ParentID did not update")
 }
 
 func TestRoot_ReferenceLoad(t *testing.T) {
@@ -327,9 +349,9 @@ func TestRoot_ReferenceLoad(t *testing.T) {
 	assert.NotNil(t, v_OptionalLeaf)
 	assert.Equal(t, v_OptionalLeaf.PrimaryKey(), obj2.OptionalLeaf().PrimaryKey())
 	assert.Equal(t, obj.OptionalLeaf().PrimaryKey(), obj2.OptionalLeaf().PrimaryKey())
-	assert.True(t, obj2.OptionalLeafIDIsValid())
+	assert.True(t, obj2.OptionalLeafIDIsLoaded())
 
-	assert.False(t, objPkOnly.OptionalLeafIDIsValid())
+	assert.False(t, objPkOnly.OptionalLeafIDIsLoaded())
 	assert.Nil(t, objPkOnly.LoadOptionalLeaf(ctx))
 
 	assert.Nil(t, obj2.RequiredLeaf(), "RequiredLeaf is not loaded initially")
@@ -337,9 +359,9 @@ func TestRoot_ReferenceLoad(t *testing.T) {
 	assert.NotNil(t, v_RequiredLeaf)
 	assert.Equal(t, v_RequiredLeaf.PrimaryKey(), obj2.RequiredLeaf().PrimaryKey())
 	assert.Equal(t, obj.RequiredLeaf().PrimaryKey(), obj2.RequiredLeaf().PrimaryKey())
-	assert.True(t, obj2.RequiredLeafIDIsValid())
+	assert.True(t, obj2.RequiredLeafIDIsLoaded())
 
-	assert.False(t, objPkOnly.RequiredLeafIDIsValid())
+	assert.False(t, objPkOnly.RequiredLeafIDIsLoaded())
 	assert.Nil(t, objPkOnly.LoadRequiredLeaf(ctx))
 
 	assert.Panics(t, func() {
@@ -351,9 +373,9 @@ func TestRoot_ReferenceLoad(t *testing.T) {
 	assert.NotNil(t, v_OptionalLeafUnique)
 	assert.Equal(t, v_OptionalLeafUnique.PrimaryKey(), obj2.OptionalLeafUnique().PrimaryKey())
 	assert.Equal(t, obj.OptionalLeafUnique().PrimaryKey(), obj2.OptionalLeafUnique().PrimaryKey())
-	assert.True(t, obj2.OptionalLeafUniqueIDIsValid())
+	assert.True(t, obj2.OptionalLeafUniqueIDIsLoaded())
 
-	assert.False(t, objPkOnly.OptionalLeafUniqueIDIsValid())
+	assert.False(t, objPkOnly.OptionalLeafUniqueIDIsLoaded())
 	assert.Nil(t, objPkOnly.LoadOptionalLeafUnique(ctx))
 
 	assert.Panics(t, func() {
@@ -365,9 +387,9 @@ func TestRoot_ReferenceLoad(t *testing.T) {
 	assert.NotNil(t, v_RequiredLeafUnique)
 	assert.Equal(t, v_RequiredLeafUnique.PrimaryKey(), obj2.RequiredLeafUnique().PrimaryKey())
 	assert.Equal(t, obj.RequiredLeafUnique().PrimaryKey(), obj2.RequiredLeafUnique().PrimaryKey())
-	assert.True(t, obj2.RequiredLeafUniqueIDIsValid())
+	assert.True(t, obj2.RequiredLeafUniqueIDIsLoaded())
 
-	assert.False(t, objPkOnly.RequiredLeafUniqueIDIsValid())
+	assert.False(t, objPkOnly.RequiredLeafUniqueIDIsLoaded())
 	assert.Nil(t, objPkOnly.LoadRequiredLeafUnique(ctx))
 
 	assert.Panics(t, func() {
@@ -379,9 +401,9 @@ func TestRoot_ReferenceLoad(t *testing.T) {
 	assert.NotNil(t, v_Parent)
 	assert.Equal(t, v_Parent.PrimaryKey(), obj2.Parent().PrimaryKey())
 	assert.Equal(t, obj.Parent().PrimaryKey(), obj2.Parent().PrimaryKey())
-	assert.True(t, obj2.ParentIDIsValid())
+	assert.True(t, obj2.ParentIDIsLoaded())
 
-	assert.False(t, objPkOnly.ParentIDIsValid())
+	assert.False(t, objPkOnly.ParentIDIsLoaded())
 	assert.Nil(t, objPkOnly.LoadParent(ctx))
 
 	assert.Nil(t, obj2.ParentRoots(), "ParentRoots is not loaded initially")
@@ -505,19 +527,14 @@ func TestRoot_Getters(t *testing.T) {
 	assert.Equal(t, obj.Name(), obj.Get(node.Root().Name().Identifier))
 	assert.Panics(t, func() { obj2.Name() })
 	assert.Nil(t, obj2.Get(node.Root().Name().Identifier))
-	assert.Equal(t, obj.OptionalLeafID(), obj.Get(node.Root().OptionalLeafID().Identifier))
 	assert.Panics(t, func() { obj2.OptionalLeafID() })
 	assert.Nil(t, obj2.Get(node.Root().OptionalLeafID().Identifier))
-	assert.Equal(t, obj.RequiredLeafID(), obj.Get(node.Root().RequiredLeafID().Identifier))
 	assert.Panics(t, func() { obj2.RequiredLeafID() })
 	assert.Nil(t, obj2.Get(node.Root().RequiredLeafID().Identifier))
-	assert.Equal(t, obj.OptionalLeafUniqueID(), obj.Get(node.Root().OptionalLeafUniqueID().Identifier))
 	assert.Panics(t, func() { obj2.OptionalLeafUniqueID() })
 	assert.Nil(t, obj2.Get(node.Root().OptionalLeafUniqueID().Identifier))
-	assert.Equal(t, obj.RequiredLeafUniqueID(), obj.Get(node.Root().RequiredLeafUniqueID().Identifier))
 	assert.Panics(t, func() { obj2.RequiredLeafUniqueID() })
 	assert.Nil(t, obj2.Get(node.Root().RequiredLeafUniqueID().Identifier))
-	assert.Equal(t, obj.ParentID(), obj.Get(node.Root().ParentID().Identifier))
 	assert.Panics(t, func() { obj2.ParentID() })
 	assert.Nil(t, obj2.Get(node.Root().ParentID().Identifier))
 }

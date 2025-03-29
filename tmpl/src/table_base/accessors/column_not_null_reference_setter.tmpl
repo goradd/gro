@@ -9,7 +9,7 @@ func (o *{{= table.DecapIdentifier}}Base) Set{{= col.ReferenceIdentifier() }}({{
 		panic("Cannot set {{= col.ReferenceIdentifier() }} to a nil value since {{= col.Identifier }} is not nullable.")
 	} else {
 		o.{{= col.ReferenceVariableIdentifier() }} = {{= col.ReferenceVariableIdentifier() }}
-		o.{{= col.VariableIdentifier() }}IsValid = true
+		o.{{= col.VariableIdentifier() }}IsLoaded = true
 		if o.{{= col.VariableIdentifier() }} != {{= col.ReferenceVariableIdentifier() }}.PrimaryKey() {
 			o.{{= col.VariableIdentifier() }} = {{= col.ReferenceVariableIdentifier() }}.PrimaryKey()
 			o.{{= col.VariableIdentifier() }}IsDirty = true

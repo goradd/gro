@@ -23,33 +23,27 @@ import (
 // The member variables of the structure are private and should not normally be accessed by the Person embedder.
 // Instead, use the accessor functions.
 type personBase struct {
-	id        string
-	idIsValid bool
-
-	firstName        string
-	firstNameIsValid bool
-	firstNameIsDirty bool
-
-	lastName        string
-	lastNameIsValid bool
-	lastNameIsDirty bool
-
-	types        PersonTypeSet
-	typesIsNull  bool
-	typesIsValid bool
-	typesIsDirty bool
+	id                string
+	idIsLoaded        bool
+	idIsDirty         bool
+	firstName         string
+	firstNameIsLoaded bool
+	firstNameIsDirty  bool
+	lastName          string
+	lastNameIsLoaded  bool
+	lastNameIsDirty   bool
+	types             PersonTypeSet
+	typesIsNull       bool
+	typesIsLoaded     bool
+	typesIsDirty      bool
 
 	// Reverse reference objects.
-
-	revAddresses        maps.SliceMap[string, *Address] // Objects in the order they were queried
-	revAddressesIsDirty bool
-
-	revEmployeeInfo        *EmployeeInfo
-	revEmployeeInfoIsDirty bool // is a new one being associated
-
-	revLogin        *Login
-	revLoginIsDirty bool // is a new one being associated
-
+	revAddresses              maps.SliceMap[string, *Address] // Objects in the order they were queried
+	revAddressesIsDirty       bool
+	revEmployeeInfo           *EmployeeInfo
+	revEmployeeInfoIsDirty    bool // is a new one being associated
+	revLogin                  *Login
+	revLoginIsDirty           bool                            // is a new one being associated
 	revManagerProjects        maps.SliceMap[string, *Project] // Objects in the order they were queried
 	revManagerProjectsIsDirty bool
 
@@ -70,18 +64,16 @@ type personBase struct {
 // IDs used to access the Person object fields by name using the Get function.
 // doc: type=Person
 const (
-	Person_ID        = `ID`
-	Person_FirstName = `FirstName`
-	Person_LastName  = `LastName`
-	Person_Types     = `Types`
-
+	Person_ID             = `ID`
+	Person_FirstName      = `FirstName`
+	Person_LastName       = `LastName`
+	Person_Types          = `Types`
 	PersonAddresses       = `Addresses`
 	PersonEmployeeInfo    = `EmployeeInfo`
 	PersonLogin           = `Login`
 	PersonManagerProjects = `ManagerProjects`
-
-	PersonProject  = `Project`
-	PersonProjects = `Projects`
+	PersonProject         = `Project`
+	PersonProjects        = `Projects`
 )
 
 const PersonFirstNameMaxLength = 50 // The number of runes the column can hold
@@ -92,26 +84,22 @@ const PersonTypesMaxLength = 40     // The number of runes the column can hold
 // The primary key will get a temporary negative number which will be replaced when the object is saved.
 // Multiple calls to Initialize are not guaranteed to create sequential values for the primary key.
 func (o *personBase) Initialize() {
-
 	o.id = db.TemporaryPrimaryKey()
-
-	o.idIsValid = false
+	o.idIsLoaded = false
+	o.idIsDirty = false
 
 	o.firstName = ""
-
-	o.firstNameIsValid = false
+	o.firstNameIsLoaded = false
 	o.firstNameIsDirty = false
 
 	o.lastName = ""
-
-	o.lastNameIsValid = false
+	o.lastNameIsLoaded = false
 	o.lastNameIsDirty = false
 
 	o.types = nil
-
 	o.typesIsNull = true
-	o.typesIsValid = true
-	o.typesIsDirty = true
+	o.typesIsLoaded = false
+	o.typesIsDirty = false
 
 	// Reverse reference objects.
 
@@ -133,7 +121,6 @@ func (o *personBase) Initialize() {
 	o.mmProjectsIsDirty = false
 
 	o._aliases = nil
-
 	o._restored = false
 }
 
@@ -148,49 +135,74 @@ func (o *personBase) OriginalPrimaryKey() string {
 	return o._originalPK
 }
 
-// Copy copies all valid fields to a new Person object.
+// Copy copies most fields to a new Person object.
 // Forward reference ids will be copied, but reverse and many-many references will not.
 // Attached objects will not be included in the copy.
+// Automatically generated fields will not be included in the copy.
+// The primary key field will not be copied, since it is normally auto-generated.
 // Call Save() on the new object to save it into the database.
 // Copy might panic if any fields in the database were set to a size larger than the
 // maximum size through a process that accessed the database outside of the ORM.
 func (o *personBase) Copy() (newObject *Person) {
 	newObject = NewPerson()
-	if o.firstNameIsValid {
+	if o.idIsLoaded {
+		newObject.SetID(o.id)
+	}
+	if o.firstNameIsLoaded {
 		newObject.SetFirstName(o.firstName)
 	}
-	if o.lastNameIsValid {
+	if o.lastNameIsLoaded {
 		newObject.SetLastName(o.lastName)
 	}
-	if o.typesIsValid {
+	if o.typesIsLoaded {
 		newObject.SetTypes(o.types)
 	}
 	return
 }
 
-// ID returns the loaded value of ID or
-// the zero value if not loaded. Call IDIsValid() to determine
-// if it is loaded.
+// ID returns the value of ID.
 func (o *personBase) ID() string {
-	return fmt.Sprint(o.id)
+	if o._restored && !o.idIsLoaded {
+		panic("ID was not selected in the last query and has not been set, and so is not valid")
+	}
+	return o.id
 }
 
-// IDIsValid returns true if the value was loaded from the database or has been set.
-func (o *personBase) IDIsValid() bool {
-	return o._restored && o.idIsValid
+// IDIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *personBase) IDIsLoaded() bool {
+	return o.idIsLoaded
 }
 
-// FirstName returns the loaded value of FirstName.
+// SetID sets the value of ID in the object, to be saved later in the database using the Save() function.
+// Normally you will not need to call this function, since the ID value is automatically generated by the
+// database driver. Exceptions might include importing data to a new datbase, or correcting primary key conflicts when
+// merging data. In these cases, related tables will NOT be automatically updated by the ORM, so you should do that manually.
+// Note that if the database is a SQL database and it is set up so that foreign keys CASCADE on UPDATE, the database will
+// handle the change.
+func (o *personBase) SetID(v string) {
+	if o._restored &&
+		o.idIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.id == v {
+		// no change
+		return
+	}
+
+	o.idIsLoaded = true
+	o.id = v
+	o.idIsDirty = true
+}
+
+// FirstName returns the value of FirstName.
 func (o *personBase) FirstName() string {
-	if o._restored && !o.firstNameIsValid {
+	if o._restored && !o.firstNameIsLoaded {
 		panic("FirstName was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.firstName
 }
 
-// FirstNameIsValid returns true if the value was loaded from the database or has been set.
-func (o *personBase) FirstNameIsValid() bool {
-	return o.firstNameIsValid
+// FirstNameIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *personBase) FirstNameIsLoaded() bool {
+	return o.firstNameIsLoaded
 }
 
 // SetFirstName sets the value of FirstName in the object, to be saved later in the database using the Save() function.
@@ -199,28 +211,28 @@ func (o *personBase) SetFirstName(v string) {
 		panic("attempted to set Person.FirstName to a value larger than its maximum length in runes")
 	}
 	if o._restored &&
-		o.firstNameIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.firstNameIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.firstName == v {
 		// no change
 		return
 	}
 
-	o.firstNameIsValid = true
+	o.firstNameIsLoaded = true
 	o.firstName = v
 	o.firstNameIsDirty = true
 }
 
-// LastName returns the loaded value of LastName.
+// LastName returns the value of LastName.
 func (o *personBase) LastName() string {
-	if o._restored && !o.lastNameIsValid {
+	if o._restored && !o.lastNameIsLoaded {
 		panic("LastName was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.lastName
 }
 
-// LastNameIsValid returns true if the value was loaded from the database or has been set.
-func (o *personBase) LastNameIsValid() bool {
-	return o.lastNameIsValid
+// LastNameIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *personBase) LastNameIsLoaded() bool {
+	return o.lastNameIsLoaded
 }
 
 // SetLastName sets the value of LastName in the object, to be saved later in the database using the Save() function.
@@ -229,20 +241,20 @@ func (o *personBase) SetLastName(v string) {
 		panic("attempted to set Person.LastName to a value larger than its maximum length in runes")
 	}
 	if o._restored &&
-		o.lastNameIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.lastNameIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.lastName == v {
 		// no change
 		return
 	}
 
-	o.lastNameIsValid = true
+	o.lastNameIsLoaded = true
 	o.lastName = v
 	o.lastNameIsDirty = true
 }
 
-// Types returns the loaded value of Types.
+// Types returns the value of Types.
 func (o *personBase) Types() PersonTypeSet {
-	if o._restored && !o.typesIsValid {
+	if o._restored && !o.typesIsLoaded {
 		panic("Types was not selected in the last query and has not been set, and so is not valid")
 	}
 	if o.types == nil {
@@ -251,9 +263,9 @@ func (o *personBase) Types() PersonTypeSet {
 	return o.types.Clone()
 }
 
-// TypesIsValid returns true if the value was loaded from the database or has been set.
-func (o *personBase) TypesIsValid() bool {
-	return o.typesIsValid
+// TypesIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *personBase) TypesIsLoaded() bool {
+	return o.typesIsLoaded
 }
 
 // TypesIsNull returns true if the related database value is null.
@@ -264,14 +276,14 @@ func (o *personBase) TypesIsNull() bool {
 // SetTypes sets the value of Types in the object, to be saved later in the database using the Save() function.
 func (o *personBase) SetTypes(v PersonTypeSet) {
 	if o._restored &&
-		o.typesIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typesIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.typesIsNull && // if the db value is null, force a set of value
 		o.types.Equal(v) {
 		// no change
 		return
 	}
 
-	o.typesIsValid = true
+	o.typesIsLoaded = true
 	o.types = v.Clone()
 	o.typesIsDirty = true
 	o.typesIsNull = false
@@ -280,11 +292,11 @@ func (o *personBase) SetTypes(v PersonTypeSet) {
 // SetTypesToNull() will set the type_enum value in the database to NULL.
 // Types() will return the column's default value after this.
 func (o *personBase) SetTypesToNull() {
-	if !o.typesIsValid || !o.typesIsNull {
+	if !o.typesIsLoaded || !o.typesIsNull {
 		// If we know it is null in the database, don't save it
 		o.typesIsDirty = true
 	}
-	o.typesIsValid = true
+	o.typesIsLoaded = true
 	o.typesIsNull = true
 	o.types = nil
 }
@@ -933,7 +945,8 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
-			o.idIsValid = true
+			o.idIsLoaded = true
+			o.idIsDirty = false
 
 			o._originalPK = o.id
 
@@ -941,34 +954,35 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 			panic("Wrong type found for id.")
 		}
 	} else {
-		o.idIsValid = false
+		o.idIsLoaded = false
 		o.id = ""
+		o.idIsDirty = false
 	}
 
 	if v, ok := m["first_name"]; ok && v != nil {
 		if o.firstName, ok = v.(string); ok {
-			o.firstNameIsValid = true
+			o.firstNameIsLoaded = true
 			o.firstNameIsDirty = false
 
 		} else {
 			panic("Wrong type found for first_name.")
 		}
 	} else {
-		o.firstNameIsValid = false
+		o.firstNameIsLoaded = false
 		o.firstName = ""
 		o.firstNameIsDirty = false
 	}
 
 	if v, ok := m["last_name"]; ok && v != nil {
 		if o.lastName, ok = v.(string); ok {
-			o.lastNameIsValid = true
+			o.lastNameIsLoaded = true
 			o.lastNameIsDirty = false
 
 		} else {
 			panic("Wrong type found for last_name.")
 		}
 	} else {
-		o.lastNameIsValid = false
+		o.lastNameIsLoaded = false
 		o.lastName = ""
 		o.lastNameIsDirty = false
 	}
@@ -977,7 +991,7 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 		if v == nil {
 			o.types = nil
 			o.typesIsNull = true
-			o.typesIsValid = true
+			o.typesIsLoaded = true
 			o.typesIsDirty = false
 		} else if s, ok2 := v.(string); ok2 {
 			var v PersonTypeSet
@@ -989,13 +1003,13 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 				o.types = v
 			}
 			o.typesIsNull = false
-			o.typesIsValid = true
+			o.typesIsLoaded = true
 			o.typesIsDirty = false
 		} else {
 			panic("Wrong type found for type_enum.")
 		}
 	} else {
-		o.typesIsValid = false
+		o.typesIsLoaded = false
 		o.typesIsNull = true
 		o.types = nil
 		o.typesIsDirty = false
@@ -1094,11 +1108,12 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 }
 
 // Save will update or insert the object, depending on the state of the object.
-// If it has any auto-generated ids, those will be updated.
-// Database errors generally will be handled by the logger and not returned here,
-// since those indicate a problem with database driver or configuration.
+// If it has an auto-generated primary key, it will be changed after an insert.
+// Database errors generally will be handled by a panic and not returned here,
+// since those indicate a problem with a database driver or configuration.
 // Save will return a db.OptimisticLockError if it detects a collision when two users
 // are attempting to change the same database record.
+// Updating a record that has not changed will have no effect on the database.
 func (o *personBase) Save(ctx context.Context) error {
 	if o._restored {
 		return o.update(ctx)
@@ -1108,6 +1123,7 @@ func (o *personBase) Save(ctx context.Context) error {
 }
 
 // update will update the values in the database, saving any changed values.
+// If the table has auto-generated values, those will be updated automatically.
 func (o *personBase) update(ctx context.Context) error {
 	if !o._restored {
 		panic("cannot update a record that was not originally read from the database.")
@@ -1121,7 +1137,7 @@ func (o *personBase) update(ctx context.Context) error {
 	d := Database()
 	err := db.ExecuteTransaction(ctx, d, func() error {
 
-		modifiedFields = o.getModifiedFields()
+		modifiedFields = o.getUpdateFields()
 		if len(modifiedFields) != 0 {
 			var err2 error
 
@@ -1323,22 +1339,23 @@ func (o *personBase) update(ctx context.Context) error {
 
 // insert will insert the object into the database. Related items will be saved.
 func (o *personBase) insert(ctx context.Context) (err error) {
+	var insertFields map[string]interface{}
 	d := Database()
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
-		if !o.firstNameIsValid {
+		if !o.firstNameIsLoaded {
 			panic("a value for FirstName is required, and there is no default value. Call SetFirstName() before inserting the record.")
 		}
-		if !o.lastNameIsValid {
+		if !o.lastNameIsLoaded {
 			panic("a value for LastName is required, and there is no default value. Call SetLastName() before inserting the record.")
 		}
 
-		m := o.getValidFields()
+		insertFields = o.getInsertFields()
 
-		newPk := d.Insert(ctx, "person", m)
+		newPk := d.Insert(ctx, "person", insertFields)
 		o.id = newPk
 		o._originalPK = newPk
-		o.idIsValid = true
+		o.idIsLoaded = true
 
 		if o.revAddresses.Len() > 0 {
 			keys := o.revAddresses.Keys()
@@ -1434,10 +1451,13 @@ func (o *personBase) insert(ctx context.Context) (err error) {
 	return
 }
 
-// getModifiedFields returns the database columns that have been modified. This
-// will determine which specific fields are sent to the database to be changed.
-func (o *personBase) getModifiedFields() (fields map[string]interface{}) {
+// getUpdateFields returns the database columns that will be sent to the update process.
+// This will include timestamp fields only if some other column has changed.
+func (o *personBase) getUpdateFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
+	if o.idIsDirty {
+		fields["id"] = o.id
+	}
 	if o.firstNameIsDirty {
 		fields["first_name"] = o.firstName
 	}
@@ -1455,22 +1475,26 @@ func (o *personBase) getModifiedFields() (fields map[string]interface{}) {
 	return
 }
 
-// getValidFields returns the fields that have valid data in them in a form ready to send to the database.
-func (o *personBase) getValidFields() (fields map[string]interface{}) {
+// getInsertFields returns the fields that will be specified in an insert operation.
+// Optional fields that have not been set and have no default will be returned as nil.
+// NoSql databases should interpret this as no value. Sql databases should interpret this as
+// explicitly setting a NULL value, which would override any database specific default value.
+// Auto-generated fields will be returned with their generated values, except AutoId fields, which are generated by the
+// database driver and updated after the insert.
+func (o *personBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-	if o.firstNameIsValid {
-		fields["first_name"] = o.firstName
+	if o.idIsDirty {
+		fields["id"] = o.id
 	}
-	if o.lastNameIsValid {
-		fields["last_name"] = o.lastName
-	}
-	if o.typesIsValid {
-		if o.typesIsNull {
-			fields["type_enum"] = nil
-		} else {
-			b, _ := json.Marshal(o.types)
-			fields["type_enum"] = string(b)
-		}
+
+	fields["first_name"] = o.firstName
+
+	fields["last_name"] = o.lastName
+	if o.typesIsNull {
+		fields["type_enum"] = nil
+	} else {
+		b, _ := json.Marshal(o.types)
+		fields["type_enum"] = string(b)
 	}
 	return
 }
@@ -1578,6 +1602,7 @@ func deletePerson(ctx context.Context, pk string) error {
 
 // resetDirtyStatus resets the dirty status of every field in the object.
 func (o *personBase) resetDirtyStatus() {
+	o.idIsDirty = false
 	o.firstNameIsDirty = false
 	o.lastNameIsDirty = false
 	o.typesIsDirty = false
@@ -1593,7 +1618,8 @@ func (o *personBase) resetDirtyStatus() {
 // IsDirty returns true if the object has been changed since it was read from the database or created.
 // However, a new object that has a column with a default value will be automatically marked as dirty upon creation.
 func (o *personBase) IsDirty() (dirty bool) {
-	dirty = o.firstNameIsDirty ||
+	dirty = o.idIsDirty ||
+		o.firstNameIsDirty ||
 		o.lastNameIsDirty ||
 		o.typesIsDirty
 
@@ -1631,25 +1657,25 @@ func (o *personBase) Get(key string) interface{} {
 	switch key {
 
 	case "ID":
-		if !o.idIsValid {
+		if !o.idIsLoaded {
 			return nil
 		}
 		return o.id
 
 	case "FirstName":
-		if !o.firstNameIsValid {
+		if !o.firstNameIsLoaded {
 			return nil
 		}
 		return o.firstName
 
 	case "LastName":
-		if !o.lastNameIsValid {
+		if !o.lastNameIsLoaded {
 			return nil
 		}
 		return o.lastName
 
 	case "Types":
-		if !o.typesIsValid {
+		if !o.typesIsLoaded {
 			return nil
 		}
 		return o.types
@@ -1681,15 +1707,18 @@ func (o *personBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.id); err != nil {
 		return nil, fmt.Errorf("error encoding Person.id: %w", err)
 	}
-	if err := encoder.Encode(o.idIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Person.idIsValid: %w", err)
+	if err := encoder.Encode(o.idIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Person.idIsLoaded: %w", err)
+	}
+	if err := encoder.Encode(o.idIsDirty); err != nil {
+		return nil, fmt.Errorf("error encoding Person.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.firstName); err != nil {
 		return nil, fmt.Errorf("error encoding Person.firstName: %w", err)
 	}
-	if err := encoder.Encode(o.firstNameIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Person.firstNameIsValid: %w", err)
+	if err := encoder.Encode(o.firstNameIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Person.firstNameIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.firstNameIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding Person.firstNameIsDirty: %w", err)
@@ -1698,8 +1727,8 @@ func (o *personBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.lastName); err != nil {
 		return nil, fmt.Errorf("error encoding Person.lastName: %w", err)
 	}
-	if err := encoder.Encode(o.lastNameIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Person.lastNameIsValid: %w", err)
+	if err := encoder.Encode(o.lastNameIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Person.lastNameIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.lastNameIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding Person.lastNameIsDirty: %w", err)
@@ -1711,8 +1740,8 @@ func (o *personBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.typesIsNull); err != nil {
 		return nil, fmt.Errorf("error encoding Person.typesIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.typesIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Person.typesIsValid: %w", err)
+	if err := encoder.Encode(o.typesIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Person.typesIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typesIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding Person.typesIsDirty: %w", err)
@@ -1817,15 +1846,18 @@ func (o *personBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.id); err != nil {
 		return fmt.Errorf("error decoding Person.id: %w", err)
 	}
-	if err = dec.Decode(&o.idIsValid); err != nil {
-		return fmt.Errorf("error decoding Person.idIsValid: %w", err)
+	if err = dec.Decode(&o.idIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Person.idIsLoaded: %w", err)
+	}
+	if err = dec.Decode(&o.idIsDirty); err != nil {
+		return fmt.Errorf("error decoding Person.idIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.firstName); err != nil {
 		return fmt.Errorf("error decoding Person.firstName: %w", err)
 	}
-	if err = dec.Decode(&o.firstNameIsValid); err != nil {
-		return fmt.Errorf("error decoding Person.firstNameIsValid: %w", err)
+	if err = dec.Decode(&o.firstNameIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Person.firstNameIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.firstNameIsDirty); err != nil {
 		return fmt.Errorf("error decoding Person.firstNameIsDirty: %w", err)
@@ -1834,8 +1866,8 @@ func (o *personBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.lastName); err != nil {
 		return fmt.Errorf("error decoding Person.lastName: %w", err)
 	}
-	if err = dec.Decode(&o.lastNameIsValid); err != nil {
-		return fmt.Errorf("error decoding Person.lastNameIsValid: %w", err)
+	if err = dec.Decode(&o.lastNameIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Person.lastNameIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.lastNameIsDirty); err != nil {
 		return fmt.Errorf("error decoding Person.lastNameIsDirty: %w", err)
@@ -1847,8 +1879,8 @@ func (o *personBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.typesIsNull); err != nil {
 		return fmt.Errorf("error decoding Person.typesIsNull: %w", err)
 	}
-	if err = dec.Decode(&o.typesIsValid); err != nil {
-		return fmt.Errorf("error decoding Person.typesIsValid: %w", err)
+	if err = dec.Decode(&o.typesIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Person.typesIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.typesIsDirty); err != nil {
 		return fmt.Errorf("error decoding Person.typesIsDirty: %w", err)
@@ -1926,19 +1958,19 @@ func (o *personBase) MarshalJSON() (data []byte, err error) {
 func (o *personBase) MarshalStringMap() map[string]interface{} {
 	v := make(map[string]interface{})
 
-	if o.idIsValid {
+	if o.idIsLoaded {
 		v["id"] = o.id
 	}
 
-	if o.firstNameIsValid {
+	if o.firstNameIsLoaded {
 		v["firstName"] = o.firstName
 	}
 
-	if o.lastNameIsValid {
+	if o.lastNameIsLoaded {
 		v["lastName"] = o.lastName
 	}
 
-	if o.typesIsValid {
+	if o.typesIsLoaded {
 		if o.typesIsNull {
 			v["types"] = nil
 		} else {
@@ -2012,6 +2044,19 @@ func (o *personBase) UnmarshalJSON(data []byte) (err error) {
 func (o *personBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 	for k, v := range m {
 		switch k {
+
+		case "id":
+			{
+				if v == nil {
+					return fmt.Errorf("field %s cannot be null", k)
+				}
+
+				if s, ok := v.(string); !ok {
+					return fmt.Errorf("json field %s must be a string", k)
+				} else {
+					o.SetID(s)
+				}
+			}
 
 		case "firstName":
 			{

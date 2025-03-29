@@ -12,25 +12,25 @@ import (
 
 func main() {
 	var configFile string
-	var outFile string
+	var inFile string
 
 	flag.StringVar(&configFile, "c", "", "Path to database configuration file")
-	flag.StringVar(&outFile, "o", "", "Path to output file")
+	flag.StringVar(&inFile, "i", "", "Path to input file")
 
 	flag.Parse()
 
 	if configFile == "" {
 		_, _ = fmt.Fprintf(os.Stderr, "Path to database configuration file is required")
 		os.Exit(1)
-	} else if outFile == "" {
-		_, _ = fmt.Fprintf(os.Stderr, "Path to output file is required")
+	} else if inFile == "" {
+		_, _ = fmt.Fprintf(os.Stderr, "Path to input file is required")
 		os.Exit(1)
 	}
 
-	encode(configFile, outFile)
+	decode(configFile, inFile)
 }
 
-func encode(dbConfigFile, outFile string) {
+func decode(dbConfigFile, inFile string) {
 	if databaseConfigs, err := config.OpenConfigFile(dbConfigFile); err != nil {
 		panic(err)
 	} else if err := config.InitDatastore(databaseConfigs); err != nil {
@@ -38,12 +38,13 @@ func encode(dbConfigFile, outFile string) {
 	}
 	ctx := db.NewContext(nil)
 
-	f, err := os.Create(outFile)
+	f, err := os.Open(inFile)
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
-	err = goradd.JsonEncodeAll(ctx, f)
+	goradd.ClearAll(ctx)
+	err = goradd.JsonDecodeAll(ctx, f)
 	if err != nil {
 		panic(err)
 	}

@@ -3,12 +3,17 @@
 package goradd
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"os"
 	"testing"
 
+	"github.com/goradd/orm/_test/gen/orm/goradd/node"
+	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/test"
+	"github.com/stretchr/testify/assert"
 )
 
 // ClearAll deletes all the data in the database, except for data in Enum tables.
@@ -53,4 +58,81 @@ func setup(m *testing.M) {
 func teardown() {
 	// Cleanup logic here
 	fmt.Println("Cleaning up after tests...")
+}
+
+// TestDbJson will export the entire database as JSON into a memory buffer, clear the database, then
+// import the entire database from the buffer. It will then do some sanity checks.
+func TestDbJson(t *testing.T) {
+	return
+	ctx := db.NewContext(nil)
+
+	// get single comparison objects and data sizes
+	// database must be pre-populated for test
+
+	v_Gift := QueryGifts(ctx).OrderBy(node.Gift().PrimaryKey()).Get()                               // gets first record
+	v_Person := QueryPeople(ctx).OrderBy(node.Person().PrimaryKey()).Get()                          // gets first record
+	v_PersonWithLock := QueryPersonWithLocks(ctx).OrderBy(node.PersonWithLock().PrimaryKey()).Get() // gets first record
+	v_Project := QueryProjects(ctx).OrderBy(node.Project().PrimaryKey()).Get()                      // gets first record
+	v_Address := QueryAddresses(ctx).OrderBy(node.Address().PrimaryKey()).Get()                     // gets first record
+	v_EmployeeInfo := QueryEmployeeInfos(ctx).OrderBy(node.EmployeeInfo().PrimaryKey()).Get()       // gets first record
+	v_Login := QueryLogins(ctx).OrderBy(node.Login().PrimaryKey()).Get()                            // gets first record
+	v_Milestone := QueryMilestones(ctx).OrderBy(node.Milestone().PrimaryKey()).Get()                // gets first record
+	v_GiftCount := CountGifts(ctx)
+	v_PersonCount := CountPeople(ctx)
+	v_PersonWithLockCount := CountPersonWithLocks(ctx)
+	v_ProjectCount := CountProjects(ctx)
+	v_AddressCount := CountAddresses(ctx)
+	v_EmployeeInfoCount := CountEmployeeInfos(ctx)
+	v_LoginCount := CountLogins(ctx)
+	v_MilestoneCount := CountMilestones(ctx)
+
+	var b bytes.Buffer
+	w := bufio.NewWriter(&b)
+	assert.NoError(t, JsonEncodeAll(ctx, w))
+
+	ClearAll(ctx)
+	assert.Equal(t, 0, CountGifts(ctx))
+	assert.Equal(t, 0, CountPeople(ctx))
+	assert.Equal(t, 0, CountPersonWithLocks(ctx))
+	assert.Equal(t, 0, CountProjects(ctx))
+	assert.Equal(t, 0, CountAddresses(ctx))
+	assert.Equal(t, 0, CountEmployeeInfos(ctx))
+	assert.Equal(t, 0, CountLogins(ctx))
+	assert.Equal(t, 0, CountMilestones(ctx))
+
+	r := bufio.NewReader(&b)
+	assert.NoError(t, JsonDecodeAll(ctx, r))
+
+	if v_Gift != nil {
+		assertEqualFieldsGift(t, v_Gift, QueryGifts(ctx).OrderBy(node.Gift().PrimaryKey()).Get())
+	}
+	if v_Person != nil {
+		assertEqualFieldsPerson(t, v_Person, QueryPeople(ctx).OrderBy(node.Person().PrimaryKey()).Get())
+	}
+	if v_PersonWithLock != nil {
+		assertEqualFieldsPersonWithLock(t, v_PersonWithLock, QueryPersonWithLocks(ctx).OrderBy(node.PersonWithLock().PrimaryKey()).Get())
+	}
+	if v_Project != nil {
+		assertEqualFieldsProject(t, v_Project, QueryProjects(ctx).OrderBy(node.Project().PrimaryKey()).Get())
+	}
+	if v_Address != nil {
+		assertEqualFieldsAddress(t, v_Address, QueryAddresses(ctx).OrderBy(node.Address().PrimaryKey()).Get())
+	}
+	if v_EmployeeInfo != nil {
+		assertEqualFieldsEmployeeInfo(t, v_EmployeeInfo, QueryEmployeeInfos(ctx).OrderBy(node.EmployeeInfo().PrimaryKey()).Get())
+	}
+	if v_Login != nil {
+		assertEqualFieldsLogin(t, v_Login, QueryLogins(ctx).OrderBy(node.Login().PrimaryKey()).Get())
+	}
+	if v_Milestone != nil {
+		assertEqualFieldsMilestone(t, v_Milestone, QueryMilestones(ctx).OrderBy(node.Milestone().PrimaryKey()).Get())
+	}
+	assert.Equal(t, v_GiftCount, CountGifts(ctx))
+	assert.Equal(t, v_PersonCount, CountPeople(ctx))
+	assert.Equal(t, v_PersonWithLockCount, CountPersonWithLocks(ctx))
+	assert.Equal(t, v_ProjectCount, CountProjects(ctx))
+	assert.Equal(t, v_AddressCount, CountAddresses(ctx))
+	assert.Equal(t, v_EmployeeInfoCount, CountEmployeeInfos(ctx))
+	assert.Equal(t, v_LoginCount, CountLogins(ctx))
+	assert.Equal(t, v_MilestoneCount, CountMilestones(ctx))
 }

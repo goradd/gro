@@ -103,30 +103,56 @@ func deleteSampleProject(ctx context.Context, obj *Project) {
 
 // assertEqualFieldsProject compares two objects and asserts that the basic fields are equal.
 func assertEqualFieldsProject(t *testing.T, obj1, obj2 *Project) {
-	assert.EqualValues(t, obj1.ID(), obj2.ID())
-
-	assert.EqualValues(t, obj1.Num(), obj2.Num())
-
-	assert.EqualValues(t, obj1.Status(), obj2.Status())
-
-	assert.EqualValues(t, obj1.ManagerID(), obj2.ManagerID())
-
-	assert.EqualValues(t, obj1.Name(), obj2.Name())
-
-	assert.EqualValues(t, obj1.Description(), obj2.Description())
-
-	assert.EqualValues(t, obj1.StartDate(), obj2.StartDate())
-
-	assert.EqualValues(t, obj1.EndDate(), obj2.EndDate())
-
-	assert.True(t, test.EqualDecimals(obj1.Budget(), obj2.Budget()))
-
-	assert.True(t, test.EqualDecimals(obj1.Spent(), obj2.Spent()))
-
-	assert.EqualValues(t, obj1.ParentProjectID(), obj2.ParentProjectID())
+	if obj1.IDIsLoaded() && obj2.IDIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.ID(), obj2.ID())
+	}
+	if obj1.NumIsLoaded() && obj2.NumIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.Num(), obj2.Num())
+	}
+	if obj1.StatusIsLoaded() && obj2.StatusIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.Status(), obj2.Status())
+	}
+	if obj1.ManagerIDIsLoaded() && obj2.ManagerIDIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.ManagerID(), obj2.ManagerID())
+	}
+	if obj1.NameIsLoaded() && obj2.NameIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.Name(), obj2.Name())
+	}
+	if obj1.DescriptionIsLoaded() && obj2.DescriptionIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.Description(), obj2.Description())
+	}
+	if obj1.StartDateIsLoaded() && obj2.StartDateIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.StartDate(), obj2.StartDate())
+	}
+	if obj1.EndDateIsLoaded() && obj2.EndDateIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.EndDate(), obj2.EndDate())
+	}
+	if obj1.BudgetIsLoaded() && obj2.BudgetIsLoaded() { // only check loaded values
+		assert.True(t, test.EqualDecimals(obj1.Budget(), obj2.Budget()))
+	}
+	if obj1.SpentIsLoaded() && obj2.SpentIsLoaded() { // only check loaded values
+		assert.True(t, test.EqualDecimals(obj1.Spent(), obj2.Spent()))
+	}
+	if obj1.ParentProjectIDIsLoaded() && obj2.ParentProjectIDIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.ParentProjectID(), obj2.ParentProjectID())
+	}
 
 }
 
+func TestProject_SetID(t *testing.T) {
+
+	obj := NewProject()
+
+	assert.True(t, obj.IsNew())
+	val := test.RandomNumberString()
+	obj.SetID(val)
+	assert.Equal(t, val, obj.ID())
+
+	// test default
+	obj.SetID("")
+	assert.EqualValues(t, "", obj.ID(), "set default")
+
+}
 func TestProject_SetNum(t *testing.T) {
 
 	obj := NewProject()
@@ -359,30 +385,35 @@ func TestProject_BasicInsert(t *testing.T) {
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
-	assert.True(t, obj2.IDIsValid())
+	assert.True(t, obj2.IDIsLoaded())
 
-	assert.True(t, obj2.NumIsValid())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.idIsDirty)
+	obj2.SetID(obj2.ID())
+	assert.False(t, obj2.idIsDirty)
+
+	assert.True(t, obj2.NumIsLoaded())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.numIsDirty)
 	obj2.SetNum(obj2.Num())
 	assert.False(t, obj2.numIsDirty)
 
-	assert.True(t, obj2.StatusIsValid())
+	assert.True(t, obj2.StatusIsLoaded())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.statusIsDirty)
 	obj2.SetStatus(obj2.Status())
 	assert.False(t, obj2.statusIsDirty)
 
-	assert.True(t, obj2.NameIsValid())
+	assert.True(t, obj2.NameIsLoaded())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.nameIsDirty)
 	obj2.SetName(obj2.Name())
 	assert.False(t, obj2.nameIsDirty)
 
-	assert.True(t, obj2.DescriptionIsValid())
+	assert.True(t, obj2.DescriptionIsLoaded())
 	assert.False(t, obj2.DescriptionIsNull())
 
 	// test that setting it to the same value will not change the dirty bit
@@ -390,7 +421,7 @@ func TestProject_BasicInsert(t *testing.T) {
 	obj2.SetDescription(obj2.Description())
 	assert.False(t, obj2.descriptionIsDirty)
 
-	assert.True(t, obj2.StartDateIsValid())
+	assert.True(t, obj2.StartDateIsLoaded())
 	assert.False(t, obj2.StartDateIsNull())
 
 	// test that setting it to the same value will not change the dirty bit
@@ -398,7 +429,7 @@ func TestProject_BasicInsert(t *testing.T) {
 	obj2.SetStartDate(obj2.StartDate())
 	assert.False(t, obj2.startDateIsDirty)
 
-	assert.True(t, obj2.EndDateIsValid())
+	assert.True(t, obj2.EndDateIsLoaded())
 	assert.False(t, obj2.EndDateIsNull())
 
 	// test that setting it to the same value will not change the dirty bit
@@ -406,7 +437,7 @@ func TestProject_BasicInsert(t *testing.T) {
 	obj2.SetEndDate(obj2.EndDate())
 	assert.False(t, obj2.endDateIsDirty)
 
-	assert.True(t, obj2.BudgetIsValid())
+	assert.True(t, obj2.BudgetIsLoaded())
 	assert.False(t, obj2.BudgetIsNull())
 
 	assert.True(t, test.EqualDecimals(obj.Budget(), obj2.Budget()))
@@ -416,7 +447,7 @@ func TestProject_BasicInsert(t *testing.T) {
 	obj2.SetBudget(obj2.Budget())
 	assert.False(t, obj2.budgetIsDirty)
 
-	assert.True(t, obj2.SpentIsValid())
+	assert.True(t, obj2.SpentIsLoaded())
 	assert.False(t, obj2.SpentIsNull())
 
 	assert.True(t, test.EqualDecimals(obj.Spent(), obj2.Spent()))
@@ -432,17 +463,17 @@ func TestProject_InsertPanics(t *testing.T) {
 	obj := createMinimalSampleProject()
 	ctx := db.NewContext(nil)
 
-	obj.numIsValid = false
+	obj.numIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.numIsValid = true
+	obj.numIsLoaded = true
 
-	obj.statusIsValid = false
+	obj.statusIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.statusIsValid = true
+	obj.statusIsLoaded = true
 
-	obj.nameIsValid = false
+	obj.nameIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.nameIsValid = true
+	obj.nameIsLoaded = true
 
 }
 
@@ -458,14 +489,12 @@ func TestProject_BasicUpdate(t *testing.T) {
 	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
 	assert.Equal(t, obj2.Num(), obj.Num(), "Num did not update")
 	assert.Equal(t, obj2.Status(), obj.Status(), "Status did not update")
-	assert.Equal(t, obj2.ManagerID(), obj.ManagerID(), "ManagerID did not update")
 	assert.Equal(t, obj2.Name(), obj.Name(), "Name did not update")
 	assert.Equal(t, obj2.Description(), obj.Description(), "Description did not update")
 
 	assert.WithinDuration(t, obj2.StartDate(), obj.StartDate(), time.Second, "StartDate not within one second")
 
 	assert.WithinDuration(t, obj2.EndDate(), obj.EndDate(), time.Second, "EndDate not within one second")
-	assert.Equal(t, obj2.ParentProjectID(), obj.ParentProjectID(), "ParentProjectID did not update")
 }
 
 func TestProject_ReferenceLoad(t *testing.T) {
@@ -492,9 +521,9 @@ func TestProject_ReferenceLoad(t *testing.T) {
 	assert.NotNil(t, v_Manager)
 	assert.Equal(t, v_Manager.PrimaryKey(), obj2.Manager().PrimaryKey())
 	assert.Equal(t, obj.Manager().PrimaryKey(), obj2.Manager().PrimaryKey())
-	assert.True(t, obj2.ManagerIDIsValid())
+	assert.True(t, obj2.ManagerIDIsLoaded())
 
-	assert.False(t, objPkOnly.ManagerIDIsValid())
+	assert.False(t, objPkOnly.ManagerIDIsLoaded())
 	assert.Nil(t, objPkOnly.LoadManager(ctx))
 
 	assert.Nil(t, obj2.ParentProject(), "ParentProject is not loaded initially")
@@ -502,9 +531,9 @@ func TestProject_ReferenceLoad(t *testing.T) {
 	assert.NotNil(t, v_ParentProject)
 	assert.Equal(t, v_ParentProject.PrimaryKey(), obj2.ParentProject().PrimaryKey())
 	assert.Equal(t, obj.ParentProject().PrimaryKey(), obj2.ParentProject().PrimaryKey())
-	assert.True(t, obj2.ParentProjectIDIsValid())
+	assert.True(t, obj2.ParentProjectIDIsLoaded())
 
-	assert.False(t, objPkOnly.ParentProjectIDIsValid())
+	assert.False(t, objPkOnly.ParentProjectIDIsLoaded())
 	assert.Nil(t, objPkOnly.LoadParentProject(ctx))
 
 	assert.Nil(t, obj2.Milestones(), "Milestones is not loaded initially")
@@ -653,7 +682,6 @@ func TestProject_Getters(t *testing.T) {
 	assert.Equal(t, obj.Status(), obj.Get(node.Project().Status().Identifier))
 	assert.Panics(t, func() { obj2.Status() })
 	assert.Nil(t, obj2.Get(node.Project().Status().Identifier))
-	assert.Equal(t, obj.ManagerID(), obj.Get(node.Project().ManagerID().Identifier))
 	assert.Panics(t, func() { obj2.ManagerID() })
 	assert.Nil(t, obj2.Get(node.Project().ManagerID().Identifier))
 	assert.Equal(t, obj.Name(), obj.Get(node.Project().Name().Identifier))
@@ -674,7 +702,6 @@ func TestProject_Getters(t *testing.T) {
 	assert.Equal(t, obj.Spent(), obj.Get(node.Project().Spent().Identifier))
 	assert.Panics(t, func() { obj2.Spent() })
 	assert.Nil(t, obj2.Get(node.Project().Spent().Identifier))
-	assert.Equal(t, obj.ParentProjectID(), obj.Get(node.Project().ParentProjectID().Identifier))
 	assert.Panics(t, func() { obj2.ParentProjectID() })
 	assert.Nil(t, obj2.Get(node.Project().ParentProjectID().Identifier))
 }

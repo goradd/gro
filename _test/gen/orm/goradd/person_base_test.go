@@ -80,16 +80,35 @@ func deleteSamplePerson(ctx context.Context, obj *Person) {
 
 // assertEqualFieldsPerson compares two objects and asserts that the basic fields are equal.
 func assertEqualFieldsPerson(t *testing.T, obj1, obj2 *Person) {
-	assert.EqualValues(t, obj1.ID(), obj2.ID())
-
-	assert.EqualValues(t, obj1.FirstName(), obj2.FirstName())
-
-	assert.EqualValues(t, obj1.LastName(), obj2.LastName())
-
-	assert.True(t, obj1.Types().Equal(obj2.Types()))
+	if obj1.IDIsLoaded() && obj2.IDIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.ID(), obj2.ID())
+	}
+	if obj1.FirstNameIsLoaded() && obj2.FirstNameIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.FirstName(), obj2.FirstName())
+	}
+	if obj1.LastNameIsLoaded() && obj2.LastNameIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.LastName(), obj2.LastName())
+	}
+	if obj1.TypesIsLoaded() && obj2.TypesIsLoaded() { // only check loaded values
+		assert.True(t, obj1.Types().Equal(obj2.Types()))
+	}
 
 }
 
+func TestPerson_SetID(t *testing.T) {
+
+	obj := NewPerson()
+
+	assert.True(t, obj.IsNew())
+	val := test.RandomNumberString()
+	obj.SetID(val)
+	assert.Equal(t, val, obj.ID())
+
+	// test default
+	obj.SetID("")
+	assert.EqualValues(t, "", obj.ID(), "set default")
+
+}
 func TestPerson_SetFirstName(t *testing.T) {
 
 	obj := NewPerson()
@@ -175,23 +194,28 @@ func TestPerson_BasicInsert(t *testing.T) {
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
-	assert.True(t, obj2.IDIsValid())
+	assert.True(t, obj2.IDIsLoaded())
 
-	assert.True(t, obj2.FirstNameIsValid())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.idIsDirty)
+	obj2.SetID(obj2.ID())
+	assert.False(t, obj2.idIsDirty)
+
+	assert.True(t, obj2.FirstNameIsLoaded())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.firstNameIsDirty)
 	obj2.SetFirstName(obj2.FirstName())
 	assert.False(t, obj2.firstNameIsDirty)
 
-	assert.True(t, obj2.LastNameIsValid())
+	assert.True(t, obj2.LastNameIsLoaded())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.lastNameIsDirty)
 	obj2.SetLastName(obj2.LastName())
 	assert.False(t, obj2.lastNameIsDirty)
 
-	assert.True(t, obj2.TypesIsValid())
+	assert.True(t, obj2.TypesIsLoaded())
 	assert.False(t, obj2.TypesIsNull())
 	assert.True(t, obj.Types().Equal(obj2.Types()))
 	// test that setting it to the same value will not change the dirty bit
@@ -205,13 +229,13 @@ func TestPerson_InsertPanics(t *testing.T) {
 	obj := createMinimalSamplePerson()
 	ctx := db.NewContext(nil)
 
-	obj.firstNameIsValid = false
+	obj.firstNameIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.firstNameIsValid = true
+	obj.firstNameIsLoaded = true
 
-	obj.lastNameIsValid = false
+	obj.lastNameIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.lastNameIsValid = true
+	obj.lastNameIsLoaded = true
 
 }
 

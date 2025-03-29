@@ -555,6 +555,12 @@ func GenerateDelete(db DbI, table string, where map[string]any) (sql string, arg
 
 	sb.WriteString("DELETE FROM ")
 	sb.WriteString(db.QuoteIdentifier(table))
+	if where == nil {
+		return sb.String(), nil // delete everything
+	}
+	if len(where) == 0 {
+		panic("An empty where map cannot be provided") // Prevent a dangerous programming mistake that would wipe out an entire table.
+	}
 	sb.WriteString("\nWHERE ")
 
 	var s string

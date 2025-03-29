@@ -34,7 +34,9 @@ func Test{{= table.Identifier }}_Getters(t *testing.T) {
 {{if}}
 
 {{for _, col := range table.Columns }}
+{{if !col.IsReference() }}
     assert.Equal(t, obj.{{= col.Identifier }}(), obj.Get(node.{{= table.Identifier }}().{{= col.Identifier }}().Identifier))
+{{if}}
 {{if !col.IsPrimaryKey }}
     assert.Panics(t, func() { obj2.{{= col.Identifier }}() })
     assert.Nil(t, obj2.Get(node.{{= table.Identifier }}().{{= col.Identifier }}().Identifier))

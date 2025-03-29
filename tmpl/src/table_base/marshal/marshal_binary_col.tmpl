@@ -12,8 +12,8 @@
         return nil, fmt.Errorf("error encoding {{= table.Identifier }}.{{= col.VariableIdentifier() }}IsNull: %w", err)
     }
 {{if}}
-    if err := encoder.Encode(o.{{= col.VariableIdentifier() }}IsValid); err != nil {
-        return nil, fmt.Errorf("error encoding {{= table.Identifier }}.{{= col.VariableIdentifier() }}IsValid: %w", err)
+    if err := encoder.Encode(o.{{= col.VariableIdentifier() }}IsLoaded); err != nil {
+        return nil, fmt.Errorf("error encoding {{= table.Identifier }}.{{= col.VariableIdentifier() }}IsLoaded: %w", err)
     }
 {{if col.HasSetter() }}
     if err := encoder.Encode(o.{{= col.VariableIdentifier() }}IsDirty); err != nil {

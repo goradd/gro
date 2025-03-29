@@ -8,40 +8,34 @@
 // The member variables of the structure are private and should not normally be accessed by the {{= table.Identifier }} embedder.
 // Instead, use the accessor functions.
 type {{= table.DecapIdentifier}}Base struct {
-
 {{for _,col := range table.Columns}}
-{{if col.IsAutoId}}
-	{{= col.VariableIdentifier() }} string
-{{else}}
 	{{= col.VariableIdentifier() }} {{= col.GoType() }}
-{{if}}
 {{if col.IsNullable}}
 	{{= col.VariableIdentifier() }}IsNull bool
 {{if}}
-	{{= col.VariableIdentifier() }}IsValid bool
+	{{= col.VariableIdentifier() }}IsLoaded bool
 {{if col.HasSetter() }}
 	{{= col.VariableIdentifier() }}IsDirty bool
 {{if}}
 {{if col.IsReference() }}
 	{{= col.ReferenceVariableIdentifier() }} *{{= col.ReferenceType() }}
 {{if}}
-
 {{for}}
-
 {{if len(table.ReverseReferences) > 0 }}
-// Reverse reference objects.
+
+    // Reverse reference objects.
 {{for _,col := range table.ReverseReferences}}
-    {{if col.IsUnique}}
-        {{= col.ReverseVariableIdentifier() }} *{{= col.Table.Identifier }}
-        {{= col.ReverseVariableIdentifier() }}IsDirty bool // is a new one being associated
-    {{else}}
-        {{= col.ReverseVariableIdentifier() }} maps.SliceMap[{{= col.Table.PrimaryKeyGoType() }}, *{{= col.Table.Identifier }}]  // Objects in the order they were queried
-        {{= col.ReverseVariableIdentifier() }}IsDirty bool
-	{{if}}
+{{if col.IsUnique}}
+    {{= col.ReverseVariableIdentifier() }} *{{= col.Table.Identifier }}
+    {{= col.ReverseVariableIdentifier() }}IsDirty bool // is a new one being associated
+{{else}}
+    {{= col.ReverseVariableIdentifier() }} maps.SliceMap[{{= col.Table.PrimaryKeyGoType() }}, *{{= col.Table.Identifier }}]  // Objects in the order they were queried
+    {{= col.ReverseVariableIdentifier() }}IsDirty bool
+{{if}}
 {{for}}
 {{if}}
-
 {{if len(table.ManyManyReferences) > 0}}
+
 // Many-Many reference objects.
 {{for _,mm := range table.ManyManyReferences }}
     {{= mm.VariableIdentifier() }} maps.SliceMap[{{= mm.PrimaryKeyType() }}, *{{= mm.ObjectType() }}]

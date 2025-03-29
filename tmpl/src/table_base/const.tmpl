@@ -7,23 +7,19 @@
 // IDs used to access the {{= table.Identifier }} object fields by name using the Get function.
 // doc: type={{= table.Identifier }}
 const  (
-
 {{for _,col := range table.Columns}}
     {{= table.Identifier }}_{{= col.Identifier}} = `{{= col.Identifier }}`
 {{if col.IsReference()}}
     {{= table.Identifier }}_{{= col.ReferenceIdentifier() }} = `{{= col.ReferenceIdentifier() }}`
 {{if}}
 {{for}}
-
 {{for _,rev := range table.ReverseReferences}}
     {{= table.Identifier }}{{= rev.ReverseIdentifier() }} = `{{= rev.ReverseIdentifier() }}`
 {{for}}
-
 {{for _,mm := range table.ManyManyReferences}}
     {{= table.Identifier }}{{= mm.Identifier }} = `{{= mm.Identifier }}`
     {{= table.Identifier }}{{= mm.IdentifierPlural }} = `{{= mm.IdentifierPlural }}`
 {{for}}
-
 ) {{# const}}
 
 {{for _,col := range table.Columns}}

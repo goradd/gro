@@ -21,14 +21,14 @@ func createMinimalSample{{= table.Identifier }}() *{{= table.Identifier }} {
 
 // updateMinimalSample{{= table.Identifier }} sets the values of a minimal sample to new, random values.
 func updateMinimalSample{{= table.Identifier }}(obj *{{= table.Identifier }})  {
-{{for _,col := range table.Columns }}
+{{for _,col := range table.SettableColumns() }}
 {{g
     if col.ReceiverType == query.ColTypeUnknown {continue} // cannot know what the set of valid input characters are.
     if col.IsReference() {continue} // references must point to objects
+    if col.IsAutoId {continue} // not normally testing the ability to set an auto generated primary key
     testSize := min(col.Size, 100000)
 }}
 
-{{if col.HasSetter() }}
 {{if col.IsEnum() }}
 
 {{if col.IsEnumArray() }}
@@ -37,14 +37,12 @@ func updateMinimalSample{{= table.Identifier }}(obj *{{= table.Identifier }})  {
      obj.Set{{= col.Identifier }}(test.RandomEnum({{= col.Reference.EnumTable.IdentifierPlural}}()))
 {{if}}
 
-{{else}}
+{{else}} {{# IsEnum}}
 
 {{if col.IsDecimal() }}
     obj.Set{{= col.Identifier }}(test.RandomDecimal({{u col.DecimalPrecision()}}, {{u col.DecimalScale()}} ))
 {{else}}
     obj.Set{{= col.Identifier }}(test.RandomValue[{{= col.GoType() }}]({{u testSize}}))
-{{if}}
-
 {{if}}
 
 {{if}}
@@ -115,21 +113,21 @@ func deleteSample{{= table.Identifier }}(ctx context.Context, obj *{{= table.Ide
 // assertEqualFields{{= table.Identifier }} compares two objects and asserts that the basic fields are equal.
 func assertEqualFields{{= table.Identifier }}(t *testing.T, obj1, obj2 *{{= table.Identifier }})  {
 {{for _,col := range table.Columns }}
+    if obj1.{{= col.Identifier }}IsLoaded() && obj2.{{= col.Identifier }}IsLoaded() { // only check loaded values
 {{if col.IsEnum() }}
-
 {{if col.IsEnumArray() }}
-    assert.True(t, obj1.{{= col.Identifier }}().Equal(obj2.{{= col.Identifier }}()))
+        assert.True(t, obj1.{{= col.Identifier }}().Equal(obj2.{{= col.Identifier }}()))
 {{else}}
-    assert.EqualValues(t, obj1.{{= col.Identifier }}(), obj2.{{= col.Identifier }}())
+        assert.EqualValues(t, obj1.{{= col.Identifier }}(), obj2.{{= col.Identifier }}())
 {{if}}
-
 {{elseif col.IsDecimal() }}
-    assert.True(t, test.EqualDecimals(obj1.{{= col.Identifier }}(), obj2.{{= col.Identifier }}()))
+        assert.True(t, test.EqualDecimals(obj1.{{= col.Identifier }}(), obj2.{{= col.Identifier }}()))
 {{else}}
-    assert.EqualValues(t, obj1.{{= col.Identifier }}(), obj2.{{= col.Identifier }}())
+        assert.EqualValues(t, obj1.{{= col.Identifier }}(), obj2.{{= col.Identifier }}())
 {{if}}
-
+    }
 {{for}}
+
 }
 
 }}

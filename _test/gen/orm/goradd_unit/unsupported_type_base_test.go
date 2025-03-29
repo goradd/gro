@@ -73,40 +73,59 @@ func deleteSampleUnsupportedType(ctx context.Context, obj *UnsupportedType) {
 
 // assertEqualFieldsUnsupportedType compares two objects and asserts that the basic fields are equal.
 func assertEqualFieldsUnsupportedType(t *testing.T, obj1, obj2 *UnsupportedType) {
-	assert.EqualValues(t, obj1.TypeSerial(), obj2.TypeSerial())
-
-	assert.EqualValues(t, obj1.TypeSet(), obj2.TypeSet())
-
-	assert.EqualValues(t, obj1.TypeEnumerated(), obj2.TypeEnumerated())
-
-	assert.True(t, test.EqualDecimals(obj1.TypeDecimal(), obj2.TypeDecimal()))
-
-	assert.EqualValues(t, obj1.TypeDouble(), obj2.TypeDouble())
-
-	assert.EqualValues(t, obj1.TypeGeo(), obj2.TypeGeo())
-
-	assert.EqualValues(t, obj1.TypeTinyBlob(), obj2.TypeTinyBlob())
-
-	assert.EqualValues(t, obj1.TypeMediumBlob(), obj2.TypeMediumBlob())
-
-	assert.EqualValues(t, obj1.TypeVarbinary(), obj2.TypeVarbinary())
-
-	assert.EqualValues(t, obj1.TypeLongtext(), obj2.TypeLongtext())
-
-	assert.EqualValues(t, obj1.TypeBinary(), obj2.TypeBinary())
-
-	assert.EqualValues(t, obj1.TypeSmall(), obj2.TypeSmall())
-
-	assert.EqualValues(t, obj1.TypeMedium(), obj2.TypeMedium())
-
-	assert.EqualValues(t, obj1.TypeBig(), obj2.TypeBig())
-
-	assert.EqualValues(t, obj1.TypePolygon(), obj2.TypePolygon())
-
-	assert.EqualValues(t, obj1.TypeUnsigned(), obj2.TypeUnsigned())
-
-	assert.EqualValues(t, obj1.TypeMultfk1(), obj2.TypeMultfk1())
-
-	assert.EqualValues(t, obj1.TypeMultifk2(), obj2.TypeMultifk2())
+	if obj1.TypeSerialIsLoaded() && obj2.TypeSerialIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TypeSerial(), obj2.TypeSerial())
+	}
+	if obj1.TypeSetIsLoaded() && obj2.TypeSetIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TypeSet(), obj2.TypeSet())
+	}
+	if obj1.TypeEnumeratedIsLoaded() && obj2.TypeEnumeratedIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TypeEnumerated(), obj2.TypeEnumerated())
+	}
+	if obj1.TypeDecimalIsLoaded() && obj2.TypeDecimalIsLoaded() { // only check loaded values
+		assert.True(t, test.EqualDecimals(obj1.TypeDecimal(), obj2.TypeDecimal()))
+	}
+	if obj1.TypeDoubleIsLoaded() && obj2.TypeDoubleIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TypeDouble(), obj2.TypeDouble())
+	}
+	if obj1.TypeGeoIsLoaded() && obj2.TypeGeoIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TypeGeo(), obj2.TypeGeo())
+	}
+	if obj1.TypeTinyBlobIsLoaded() && obj2.TypeTinyBlobIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TypeTinyBlob(), obj2.TypeTinyBlob())
+	}
+	if obj1.TypeMediumBlobIsLoaded() && obj2.TypeMediumBlobIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TypeMediumBlob(), obj2.TypeMediumBlob())
+	}
+	if obj1.TypeVarbinaryIsLoaded() && obj2.TypeVarbinaryIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TypeVarbinary(), obj2.TypeVarbinary())
+	}
+	if obj1.TypeLongtextIsLoaded() && obj2.TypeLongtextIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TypeLongtext(), obj2.TypeLongtext())
+	}
+	if obj1.TypeBinaryIsLoaded() && obj2.TypeBinaryIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TypeBinary(), obj2.TypeBinary())
+	}
+	if obj1.TypeSmallIsLoaded() && obj2.TypeSmallIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TypeSmall(), obj2.TypeSmall())
+	}
+	if obj1.TypeMediumIsLoaded() && obj2.TypeMediumIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TypeMedium(), obj2.TypeMedium())
+	}
+	if obj1.TypeBigIsLoaded() && obj2.TypeBigIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TypeBig(), obj2.TypeBig())
+	}
+	if obj1.TypePolygonIsLoaded() && obj2.TypePolygonIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TypePolygon(), obj2.TypePolygon())
+	}
+	if obj1.TypeUnsignedIsLoaded() && obj2.TypeUnsignedIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TypeUnsigned(), obj2.TypeUnsigned())
+	}
+	if obj1.TypeMultfk1IsLoaded() && obj2.TypeMultfk1IsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TypeMultfk1(), obj2.TypeMultfk1())
+	}
+	if obj1.TypeMultifk2IsLoaded() && obj2.TypeMultifk2IsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TypeMultifk2(), obj2.TypeMultifk2())
+	}
 
 }

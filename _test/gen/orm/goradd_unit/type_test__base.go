@@ -25,60 +25,50 @@ import (
 // The member variables of the structure are private and should not normally be accessed by the TypeTest embedder.
 // Instead, use the accessor functions.
 type typeTestBase struct {
-	id        string
-	idIsValid bool
-
-	date        time.Time
-	dateIsNull  bool
-	dateIsValid bool
-	dateIsDirty bool
-
-	time        time.Time
-	timeIsNull  bool
-	timeIsValid bool
-	timeIsDirty bool
-
-	dateTime        time.Time
-	dateTimeIsNull  bool
-	dateTimeIsValid bool
-	dateTimeIsDirty bool
-
-	ts        time.Time
-	tsIsNull  bool
-	tsIsValid bool
-
-	testInt        int
-	testIntIsNull  bool
-	testIntIsValid bool
-	testIntIsDirty bool
-
-	testFloat        float32
-	testFloatIsNull  bool
-	testFloatIsValid bool
-	testFloatIsDirty bool
-
-	testDouble        float64
-	testDoubleIsValid bool
-	testDoubleIsDirty bool
-
-	testText        string
-	testTextIsNull  bool
-	testTextIsValid bool
-	testTextIsDirty bool
-
-	testBit        bool
-	testBitIsNull  bool
-	testBitIsValid bool
-	testBitIsDirty bool
-
-	testVarchar        string
-	testVarcharIsNull  bool
-	testVarcharIsValid bool
-	testVarcharIsDirty bool
-
-	testBlob        []byte
-	testBlobIsValid bool
-	testBlobIsDirty bool
+	id                  string
+	idIsLoaded          bool
+	idIsDirty           bool
+	date                time.Time
+	dateIsNull          bool
+	dateIsLoaded        bool
+	dateIsDirty         bool
+	time                time.Time
+	timeIsNull          bool
+	timeIsLoaded        bool
+	timeIsDirty         bool
+	dateTime            time.Time
+	dateTimeIsNull      bool
+	dateTimeIsLoaded    bool
+	dateTimeIsDirty     bool
+	ts                  time.Time
+	tsIsNull            bool
+	tsIsLoaded          bool
+	testInt             int
+	testIntIsNull       bool
+	testIntIsLoaded     bool
+	testIntIsDirty      bool
+	testFloat           float32
+	testFloatIsNull     bool
+	testFloatIsLoaded   bool
+	testFloatIsDirty    bool
+	testDouble          float64
+	testDoubleIsLoaded  bool
+	testDoubleIsDirty   bool
+	testText            string
+	testTextIsNull      bool
+	testTextIsLoaded    bool
+	testTextIsDirty     bool
+	testBit             bool
+	testBitIsNull       bool
+	testBitIsLoaded     bool
+	testBitIsDirty      bool
+	testVarchar         string
+	testVarcharIsNull   bool
+	testVarcharIsLoaded bool
+	testVarcharIsDirty  bool
+	testBlob            []byte
+	testBlobIsLoaded    bool
+	testBlobIsDirty     bool
 
 	// Custom aliases, if specified
 	_aliases map[string]any
@@ -116,76 +106,63 @@ const TypeTestTestBlobMaxLength = 65535 // The number of bytes the column can ho
 // The primary key will get a temporary negative number which will be replaced when the object is saved.
 // Multiple calls to Initialize are not guaranteed to create sequential values for the primary key.
 func (o *typeTestBase) Initialize() {
-
 	o.id = db.TemporaryPrimaryKey()
-
-	o.idIsValid = false
+	o.idIsLoaded = false
+	o.idIsDirty = false
 
 	o.date = time.Time{}
-
 	o.dateIsNull = true
-	o.dateIsValid = true
-	o.dateIsDirty = true
+	o.dateIsLoaded = false
+	o.dateIsDirty = false
 
 	o.time = time.Time{}
-
 	o.timeIsNull = true
-	o.timeIsValid = true
-	o.timeIsDirty = true
+	o.timeIsLoaded = false
+	o.timeIsDirty = false
 
 	o.dateTime = time.Time{}
-
 	o.dateTimeIsNull = true
-	o.dateTimeIsValid = true
-	o.dateTimeIsDirty = true
+	o.dateTimeIsLoaded = false
+	o.dateTimeIsDirty = false
 
 	o.ts = time.Time{}
-
 	o.tsIsNull = false
-	o.tsIsValid = true
+	o.tsIsLoaded = true
 
 	o.testInt = 5
-
 	o.testIntIsNull = false
-	o.testIntIsValid = true
-	o.testIntIsDirty = true
+	o.testIntIsLoaded = true
+	o.testIntIsDirty = false
 
 	o.testFloat = 0
-
 	o.testFloatIsNull = true
-	o.testFloatIsValid = true
-	o.testFloatIsDirty = true
+	o.testFloatIsLoaded = false
+	o.testFloatIsDirty = false
 
 	o.testDouble = 0
-
-	o.testDoubleIsValid = false
+	o.testDoubleIsLoaded = false
 	o.testDoubleIsDirty = false
 
 	o.testText = ""
-
 	o.testTextIsNull = true
-	o.testTextIsValid = true
-	o.testTextIsDirty = true
+	o.testTextIsLoaded = false
+	o.testTextIsDirty = false
 
 	o.testBit = false
-
 	o.testBitIsNull = true
-	o.testBitIsValid = true
-	o.testBitIsDirty = true
+	o.testBitIsLoaded = false
+	o.testBitIsDirty = false
 
 	o.testVarchar = ""
-
 	o.testVarcharIsNull = true
-	o.testVarcharIsValid = true
-	o.testVarcharIsDirty = true
+	o.testVarcharIsLoaded = false
+	o.testVarcharIsDirty = false
 
 	o.testBlob = []byte{}
-
-	o.testBlobIsValid = false
+	o.testBlobIsLoaded = false
 	o.testBlobIsDirty = false
 
 	o._aliases = nil
-
 	o._restored = false
 }
 
@@ -200,70 +177,95 @@ func (o *typeTestBase) OriginalPrimaryKey() string {
 	return o._originalPK
 }
 
-// Copy copies all valid fields to a new TypeTest object.
+// Copy copies most fields to a new TypeTest object.
 // Forward reference ids will be copied, but reverse and many-many references will not.
 // Attached objects will not be included in the copy.
+// Automatically generated fields will not be included in the copy.
+// The primary key field will not be copied, since it is normally auto-generated.
 // Call Save() on the new object to save it into the database.
 // Copy might panic if any fields in the database were set to a size larger than the
 // maximum size through a process that accessed the database outside of the ORM.
 func (o *typeTestBase) Copy() (newObject *TypeTest) {
 	newObject = NewTypeTest()
-	if o.dateIsValid {
+	if o.idIsLoaded {
+		newObject.SetID(o.id)
+	}
+	if o.dateIsLoaded {
 		newObject.SetDate(o.date)
 	}
-	if o.timeIsValid {
+	if o.timeIsLoaded {
 		newObject.SetTime(o.time)
 	}
-	if o.dateTimeIsValid {
+	if o.dateTimeIsLoaded {
 		newObject.SetDateTime(o.dateTime)
 	}
-	if o.testIntIsValid {
+	if o.testIntIsLoaded {
 		newObject.SetTestInt(o.testInt)
 	}
-	if o.testFloatIsValid {
+	if o.testFloatIsLoaded {
 		newObject.SetTestFloat(o.testFloat)
 	}
-	if o.testDoubleIsValid {
+	if o.testDoubleIsLoaded {
 		newObject.SetTestDouble(o.testDouble)
 	}
-	if o.testTextIsValid {
+	if o.testTextIsLoaded {
 		newObject.SetTestText(o.testText)
 	}
-	if o.testBitIsValid {
+	if o.testBitIsLoaded {
 		newObject.SetTestBit(o.testBit)
 	}
-	if o.testVarcharIsValid {
+	if o.testVarcharIsLoaded {
 		newObject.SetTestVarchar(o.testVarchar)
 	}
-	if o.testBlobIsValid {
+	if o.testBlobIsLoaded {
 		newObject.SetTestBlob(o.testBlob)
 	}
 	return
 }
 
-// ID returns the loaded value of ID or
-// the zero value if not loaded. Call IDIsValid() to determine
-// if it is loaded.
+// ID returns the value of ID.
 func (o *typeTestBase) ID() string {
-	return fmt.Sprint(o.id)
+	if o._restored && !o.idIsLoaded {
+		panic("ID was not selected in the last query and has not been set, and so is not valid")
+	}
+	return o.id
 }
 
-// IDIsValid returns true if the value was loaded from the database or has been set.
-func (o *typeTestBase) IDIsValid() bool {
-	return o._restored && o.idIsValid
+// IDIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *typeTestBase) IDIsLoaded() bool {
+	return o.idIsLoaded
 }
 
-// Date returns the loaded value of Date.
+// SetID sets the value of ID in the object, to be saved later in the database using the Save() function.
+// Normally you will not need to call this function, since the ID value is automatically generated by the
+// database driver. Exceptions might include importing data to a new datbase, or correcting primary key conflicts when
+// merging data. In these cases, related tables will NOT be automatically updated by the ORM, so you should do that manually.
+// Note that if the database is a SQL database and it is set up so that foreign keys CASCADE on UPDATE, the database will
+// handle the change.
+func (o *typeTestBase) SetID(v string) {
+	if o._restored &&
+		o.idIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.id == v {
+		// no change
+		return
+	}
+
+	o.idIsLoaded = true
+	o.id = v
+	o.idIsDirty = true
+}
+
+// Date returns the value of Date.
 func (o *typeTestBase) Date() time.Time {
-	if o._restored && !o.dateIsValid {
+	if o._restored && !o.dateIsLoaded {
 		panic("Date was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.date
 }
 
-// DateIsValid returns true if the value was loaded from the database or has been set.
-func (o *typeTestBase) DateIsValid() bool {
-	return o.dateIsValid
+// DateIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *typeTestBase) DateIsLoaded() bool {
+	return o.dateIsLoaded
 }
 
 // DateIsNull returns true if the related database value is null.
@@ -277,14 +279,14 @@ func (o *typeTestBase) DateIsNull() bool {
 // The time will also be zeroed. This may cause the date value to change. To prevent this, be sure that the date given is already in UTC time.
 func (o *typeTestBase) SetDate(v time.Time) {
 	if o._restored &&
-		o.dateIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.dateIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.dateIsNull && // if the db value is null, force a set of value
 		o.date.Equal(v) {
 		// no change
 		return
 	}
 
-	o.dateIsValid = true
+	o.dateIsLoaded = true
 	v = v.UTC()
 	v = time.Date(v.Year(), v.Month(), v.Day(), 0, 0, 0, 0, v.Location())
 	o.date = v
@@ -295,26 +297,26 @@ func (o *typeTestBase) SetDate(v time.Time) {
 // SetDateToNull() will set the date value in the database to NULL.
 // Date() will return the column's default value after this.
 func (o *typeTestBase) SetDateToNull() {
-	if !o.dateIsValid || !o.dateIsNull {
+	if !o.dateIsLoaded || !o.dateIsNull {
 		// If we know it is null in the database, don't save it
 		o.dateIsDirty = true
 	}
-	o.dateIsValid = true
+	o.dateIsLoaded = true
 	o.dateIsNull = true
 	o.date = time.Time{}
 }
 
-// Time returns the loaded value of Time.
+// Time returns the value of Time.
 func (o *typeTestBase) Time() time.Time {
-	if o._restored && !o.timeIsValid {
+	if o._restored && !o.timeIsLoaded {
 		panic("Time was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.time
 }
 
-// TimeIsValid returns true if the value was loaded from the database or has been set.
-func (o *typeTestBase) TimeIsValid() bool {
-	return o.timeIsValid
+// TimeIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *typeTestBase) TimeIsLoaded() bool {
+	return o.timeIsLoaded
 }
 
 // TimeIsNull returns true if the related database value is null.
@@ -328,14 +330,14 @@ func (o *typeTestBase) TimeIsNull() bool {
 // The date will also be zeroed. This process may cause the time value to change. To prevent this, be sure that the time given is already in UTC time.
 func (o *typeTestBase) SetTime(v time.Time) {
 	if o._restored &&
-		o.timeIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.timeIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.timeIsNull && // if the db value is null, force a set of value
 		o.time.Equal(v) {
 		// no change
 		return
 	}
 
-	o.timeIsValid = true
+	o.timeIsLoaded = true
 	v = v.UTC()
 	v = time.Date(1, 1, 1, v.Hour(), v.Minute(), v.Second(), v.Nanosecond(), time.UTC)
 	o.time = v
@@ -346,26 +348,26 @@ func (o *typeTestBase) SetTime(v time.Time) {
 // SetTimeToNull() will set the time value in the database to NULL.
 // Time() will return the column's default value after this.
 func (o *typeTestBase) SetTimeToNull() {
-	if !o.timeIsValid || !o.timeIsNull {
+	if !o.timeIsLoaded || !o.timeIsNull {
 		// If we know it is null in the database, don't save it
 		o.timeIsDirty = true
 	}
-	o.timeIsValid = true
+	o.timeIsLoaded = true
 	o.timeIsNull = true
 	o.time = time.Time{}
 }
 
-// DateTime returns the loaded value of DateTime.
+// DateTime returns the value of DateTime.
 func (o *typeTestBase) DateTime() time.Time {
-	if o._restored && !o.dateTimeIsValid {
+	if o._restored && !o.dateTimeIsLoaded {
 		panic("DateTime was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.dateTime
 }
 
-// DateTimeIsValid returns true if the value was loaded from the database or has been set.
-func (o *typeTestBase) DateTimeIsValid() bool {
-	return o.dateTimeIsValid
+// DateTimeIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *typeTestBase) DateTimeIsLoaded() bool {
+	return o.dateTimeIsLoaded
 }
 
 // DateTimeIsNull returns true if the related database value is null.
@@ -378,14 +380,14 @@ func (o *typeTestBase) DateTimeIsNull() bool {
 // The value v will be converted to UTC time.
 func (o *typeTestBase) SetDateTime(v time.Time) {
 	if o._restored &&
-		o.dateTimeIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.dateTimeIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.dateTimeIsNull && // if the db value is null, force a set of value
 		o.dateTime.Equal(v) {
 		// no change
 		return
 	}
 
-	o.dateTimeIsValid = true
+	o.dateTimeIsLoaded = true
 	v = v.UTC()
 	o.dateTime = v
 	o.dateTimeIsDirty = true
@@ -395,26 +397,26 @@ func (o *typeTestBase) SetDateTime(v time.Time) {
 // SetDateTimeToNull() will set the date_time value in the database to NULL.
 // DateTime() will return the column's default value after this.
 func (o *typeTestBase) SetDateTimeToNull() {
-	if !o.dateTimeIsValid || !o.dateTimeIsNull {
+	if !o.dateTimeIsLoaded || !o.dateTimeIsNull {
 		// If we know it is null in the database, don't save it
 		o.dateTimeIsDirty = true
 	}
-	o.dateTimeIsValid = true
+	o.dateTimeIsLoaded = true
 	o.dateTimeIsNull = true
 	o.dateTime = time.Time{}
 }
 
-// Ts returns the loaded value of Ts.
+// Ts returns the value of Ts.
 func (o *typeTestBase) Ts() time.Time {
-	if o._restored && !o.tsIsValid {
+	if o._restored && !o.tsIsLoaded {
 		panic("Ts was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.ts
 }
 
-// TsIsValid returns true if the value was loaded from the database or has been set.
-func (o *typeTestBase) TsIsValid() bool {
-	return o.tsIsValid
+// TsIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *typeTestBase) TsIsLoaded() bool {
+	return o.tsIsLoaded
 }
 
 // TsIsNull returns true if the related database value is null.
@@ -422,17 +424,17 @@ func (o *typeTestBase) TsIsNull() bool {
 	return o.tsIsNull
 }
 
-// TestInt returns the loaded value of TestInt.
+// TestInt returns the value of TestInt.
 func (o *typeTestBase) TestInt() int {
-	if o._restored && !o.testIntIsValid {
+	if o._restored && !o.testIntIsLoaded {
 		panic("TestInt was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.testInt
 }
 
-// TestIntIsValid returns true if the value was loaded from the database or has been set.
-func (o *typeTestBase) TestIntIsValid() bool {
-	return o.testIntIsValid
+// TestIntIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *typeTestBase) TestIntIsLoaded() bool {
+	return o.testIntIsLoaded
 }
 
 // TestIntIsNull returns true if the related database value is null.
@@ -443,14 +445,14 @@ func (o *typeTestBase) TestIntIsNull() bool {
 // SetTestInt sets the value of TestInt in the object, to be saved later in the database using the Save() function.
 func (o *typeTestBase) SetTestInt(v int) {
 	if o._restored &&
-		o.testIntIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.testIntIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.testIntIsNull && // if the db value is null, force a set of value
 		o.testInt == v {
 		// no change
 		return
 	}
 
-	o.testIntIsValid = true
+	o.testIntIsLoaded = true
 	o.testInt = v
 	o.testIntIsDirty = true
 	o.testIntIsNull = false
@@ -459,26 +461,26 @@ func (o *typeTestBase) SetTestInt(v int) {
 // SetTestIntToNull() will set the test_int value in the database to NULL.
 // TestInt() will return the column's default value after this.
 func (o *typeTestBase) SetTestIntToNull() {
-	if !o.testIntIsValid || !o.testIntIsNull {
+	if !o.testIntIsLoaded || !o.testIntIsNull {
 		// If we know it is null in the database, don't save it
 		o.testIntIsDirty = true
 	}
-	o.testIntIsValid = true
+	o.testIntIsLoaded = true
 	o.testIntIsNull = true
 	o.testInt = 5
 }
 
-// TestFloat returns the loaded value of TestFloat.
+// TestFloat returns the value of TestFloat.
 func (o *typeTestBase) TestFloat() float32 {
-	if o._restored && !o.testFloatIsValid {
+	if o._restored && !o.testFloatIsLoaded {
 		panic("TestFloat was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.testFloat
 }
 
-// TestFloatIsValid returns true if the value was loaded from the database or has been set.
-func (o *typeTestBase) TestFloatIsValid() bool {
-	return o.testFloatIsValid
+// TestFloatIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *typeTestBase) TestFloatIsLoaded() bool {
+	return o.testFloatIsLoaded
 }
 
 // TestFloatIsNull returns true if the related database value is null.
@@ -489,14 +491,14 @@ func (o *typeTestBase) TestFloatIsNull() bool {
 // SetTestFloat sets the value of TestFloat in the object, to be saved later in the database using the Save() function.
 func (o *typeTestBase) SetTestFloat(v float32) {
 	if o._restored &&
-		o.testFloatIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.testFloatIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.testFloatIsNull && // if the db value is null, force a set of value
 		o.testFloat == v {
 		// no change
 		return
 	}
 
-	o.testFloatIsValid = true
+	o.testFloatIsLoaded = true
 	o.testFloat = v
 	o.testFloatIsDirty = true
 	o.testFloatIsNull = false
@@ -505,53 +507,53 @@ func (o *typeTestBase) SetTestFloat(v float32) {
 // SetTestFloatToNull() will set the test_float value in the database to NULL.
 // TestFloat() will return the column's default value after this.
 func (o *typeTestBase) SetTestFloatToNull() {
-	if !o.testFloatIsValid || !o.testFloatIsNull {
+	if !o.testFloatIsLoaded || !o.testFloatIsNull {
 		// If we know it is null in the database, don't save it
 		o.testFloatIsDirty = true
 	}
-	o.testFloatIsValid = true
+	o.testFloatIsLoaded = true
 	o.testFloatIsNull = true
 	o.testFloat = 0
 }
 
-// TestDouble returns the loaded value of TestDouble.
+// TestDouble returns the value of TestDouble.
 func (o *typeTestBase) TestDouble() float64 {
-	if o._restored && !o.testDoubleIsValid {
+	if o._restored && !o.testDoubleIsLoaded {
 		panic("TestDouble was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.testDouble
 }
 
-// TestDoubleIsValid returns true if the value was loaded from the database or has been set.
-func (o *typeTestBase) TestDoubleIsValid() bool {
-	return o.testDoubleIsValid
+// TestDoubleIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *typeTestBase) TestDoubleIsLoaded() bool {
+	return o.testDoubleIsLoaded
 }
 
 // SetTestDouble sets the value of TestDouble in the object, to be saved later in the database using the Save() function.
 func (o *typeTestBase) SetTestDouble(v float64) {
 	if o._restored &&
-		o.testDoubleIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.testDoubleIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.testDouble == v {
 		// no change
 		return
 	}
 
-	o.testDoubleIsValid = true
+	o.testDoubleIsLoaded = true
 	o.testDouble = v
 	o.testDoubleIsDirty = true
 }
 
-// TestText returns the loaded value of TestText.
+// TestText returns the value of TestText.
 func (o *typeTestBase) TestText() string {
-	if o._restored && !o.testTextIsValid {
+	if o._restored && !o.testTextIsLoaded {
 		panic("TestText was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.testText
 }
 
-// TestTextIsValid returns true if the value was loaded from the database or has been set.
-func (o *typeTestBase) TestTextIsValid() bool {
-	return o.testTextIsValid
+// TestTextIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *typeTestBase) TestTextIsLoaded() bool {
+	return o.testTextIsLoaded
 }
 
 // TestTextIsNull returns true if the related database value is null.
@@ -565,14 +567,14 @@ func (o *typeTestBase) SetTestText(v string) {
 		panic("attempted to set TypeTest.TestText to a value larger than its maximum length in runes")
 	}
 	if o._restored &&
-		o.testTextIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.testTextIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.testTextIsNull && // if the db value is null, force a set of value
 		o.testText == v {
 		// no change
 		return
 	}
 
-	o.testTextIsValid = true
+	o.testTextIsLoaded = true
 	o.testText = v
 	o.testTextIsDirty = true
 	o.testTextIsNull = false
@@ -581,26 +583,26 @@ func (o *typeTestBase) SetTestText(v string) {
 // SetTestTextToNull() will set the test_text value in the database to NULL.
 // TestText() will return the column's default value after this.
 func (o *typeTestBase) SetTestTextToNull() {
-	if !o.testTextIsValid || !o.testTextIsNull {
+	if !o.testTextIsLoaded || !o.testTextIsNull {
 		// If we know it is null in the database, don't save it
 		o.testTextIsDirty = true
 	}
-	o.testTextIsValid = true
+	o.testTextIsLoaded = true
 	o.testTextIsNull = true
 	o.testText = ""
 }
 
-// TestBit returns the loaded value of TestBit.
+// TestBit returns the value of TestBit.
 func (o *typeTestBase) TestBit() bool {
-	if o._restored && !o.testBitIsValid {
+	if o._restored && !o.testBitIsLoaded {
 		panic("TestBit was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.testBit
 }
 
-// TestBitIsValid returns true if the value was loaded from the database or has been set.
-func (o *typeTestBase) TestBitIsValid() bool {
-	return o.testBitIsValid
+// TestBitIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *typeTestBase) TestBitIsLoaded() bool {
+	return o.testBitIsLoaded
 }
 
 // TestBitIsNull returns true if the related database value is null.
@@ -611,14 +613,14 @@ func (o *typeTestBase) TestBitIsNull() bool {
 // SetTestBit sets the value of TestBit in the object, to be saved later in the database using the Save() function.
 func (o *typeTestBase) SetTestBit(v bool) {
 	if o._restored &&
-		o.testBitIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.testBitIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.testBitIsNull && // if the db value is null, force a set of value
 		o.testBit == v {
 		// no change
 		return
 	}
 
-	o.testBitIsValid = true
+	o.testBitIsLoaded = true
 	o.testBit = v
 	o.testBitIsDirty = true
 	o.testBitIsNull = false
@@ -627,26 +629,26 @@ func (o *typeTestBase) SetTestBit(v bool) {
 // SetTestBitToNull() will set the test_bit value in the database to NULL.
 // TestBit() will return the column's default value after this.
 func (o *typeTestBase) SetTestBitToNull() {
-	if !o.testBitIsValid || !o.testBitIsNull {
+	if !o.testBitIsLoaded || !o.testBitIsNull {
 		// If we know it is null in the database, don't save it
 		o.testBitIsDirty = true
 	}
-	o.testBitIsValid = true
+	o.testBitIsLoaded = true
 	o.testBitIsNull = true
 	o.testBit = false
 }
 
-// TestVarchar returns the loaded value of TestVarchar.
+// TestVarchar returns the value of TestVarchar.
 func (o *typeTestBase) TestVarchar() string {
-	if o._restored && !o.testVarcharIsValid {
+	if o._restored && !o.testVarcharIsLoaded {
 		panic("TestVarchar was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.testVarchar
 }
 
-// TestVarcharIsValid returns true if the value was loaded from the database or has been set.
-func (o *typeTestBase) TestVarcharIsValid() bool {
-	return o.testVarcharIsValid
+// TestVarcharIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *typeTestBase) TestVarcharIsLoaded() bool {
+	return o.testVarcharIsLoaded
 }
 
 // TestVarcharIsNull returns true if the related database value is null.
@@ -660,14 +662,14 @@ func (o *typeTestBase) SetTestVarchar(v string) {
 		panic("attempted to set TypeTest.TestVarchar to a value larger than its maximum length in runes")
 	}
 	if o._restored &&
-		o.testVarcharIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.testVarcharIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.testVarcharIsNull && // if the db value is null, force a set of value
 		o.testVarchar == v {
 		// no change
 		return
 	}
 
-	o.testVarcharIsValid = true
+	o.testVarcharIsLoaded = true
 	o.testVarchar = v
 	o.testVarcharIsDirty = true
 	o.testVarcharIsNull = false
@@ -676,26 +678,26 @@ func (o *typeTestBase) SetTestVarchar(v string) {
 // SetTestVarcharToNull() will set the test_varchar value in the database to NULL.
 // TestVarchar() will return the column's default value after this.
 func (o *typeTestBase) SetTestVarcharToNull() {
-	if !o.testVarcharIsValid || !o.testVarcharIsNull {
+	if !o.testVarcharIsLoaded || !o.testVarcharIsNull {
 		// If we know it is null in the database, don't save it
 		o.testVarcharIsDirty = true
 	}
-	o.testVarcharIsValid = true
+	o.testVarcharIsLoaded = true
 	o.testVarcharIsNull = true
 	o.testVarchar = ""
 }
 
-// TestBlob returns the loaded value of TestBlob.
+// TestBlob returns the value of TestBlob.
 func (o *typeTestBase) TestBlob() []byte {
-	if o._restored && !o.testBlobIsValid {
+	if o._restored && !o.testBlobIsLoaded {
 		panic("TestBlob was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.testBlob
 }
 
-// TestBlobIsValid returns true if the value was loaded from the database or has been set.
-func (o *typeTestBase) TestBlobIsValid() bool {
-	return o.testBlobIsValid
+// TestBlobIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *typeTestBase) TestBlobIsLoaded() bool {
+	return o.testBlobIsLoaded
 }
 
 // SetTestBlob copies the value of TestBlob, to be saved later in the database using the Save() function.
@@ -707,13 +709,13 @@ func (o *typeTestBase) SetTestBlob(v []byte) {
 	}
 
 	if o._restored &&
-		o.testBlobIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.testBlobIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		bytes.Equal(o.testBlob, v) {
 		// no change
 		return
 	}
 
-	o.testBlobIsValid = true
+	o.testBlobIsLoaded = true
 	if v == nil {
 		o.testBlob = []byte{}
 	} else {
@@ -1141,7 +1143,8 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
-			o.idIsValid = true
+			o.idIsLoaded = true
+			o.idIsDirty = false
 
 			o._originalPK = o.id
 
@@ -1149,25 +1152,26 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 			panic("Wrong type found for id.")
 		}
 	} else {
-		o.idIsValid = false
+		o.idIsLoaded = false
 		o.id = ""
+		o.idIsDirty = false
 	}
 
 	if v, ok := m["date"]; ok {
 		if v == nil {
 			o.date = time.Time{}
 			o.dateIsNull = true
-			o.dateIsValid = true
+			o.dateIsLoaded = true
 			o.dateIsDirty = false
 		} else if o.date, ok = v.(time.Time); ok {
 			o.dateIsNull = false
-			o.dateIsValid = true
+			o.dateIsLoaded = true
 			o.dateIsDirty = false
 		} else {
 			panic("Wrong type found for date.")
 		}
 	} else {
-		o.dateIsValid = false
+		o.dateIsLoaded = false
 		o.dateIsNull = true
 		o.date = time.Time{}
 		o.dateIsDirty = false
@@ -1177,17 +1181,17 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 		if v == nil {
 			o.time = time.Time{}
 			o.timeIsNull = true
-			o.timeIsValid = true
+			o.timeIsLoaded = true
 			o.timeIsDirty = false
 		} else if o.time, ok = v.(time.Time); ok {
 			o.timeIsNull = false
-			o.timeIsValid = true
+			o.timeIsLoaded = true
 			o.timeIsDirty = false
 		} else {
 			panic("Wrong type found for time.")
 		}
 	} else {
-		o.timeIsValid = false
+		o.timeIsLoaded = false
 		o.timeIsNull = true
 		o.time = time.Time{}
 		o.timeIsDirty = false
@@ -1197,17 +1201,17 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 		if v == nil {
 			o.dateTime = time.Time{}
 			o.dateTimeIsNull = true
-			o.dateTimeIsValid = true
+			o.dateTimeIsLoaded = true
 			o.dateTimeIsDirty = false
 		} else if o.dateTime, ok = v.(time.Time); ok {
 			o.dateTimeIsNull = false
-			o.dateTimeIsValid = true
+			o.dateTimeIsLoaded = true
 			o.dateTimeIsDirty = false
 		} else {
 			panic("Wrong type found for date_time.")
 		}
 	} else {
-		o.dateTimeIsValid = false
+		o.dateTimeIsLoaded = false
 		o.dateTimeIsNull = true
 		o.dateTime = time.Time{}
 		o.dateTimeIsDirty = false
@@ -1217,15 +1221,15 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 		if v == nil {
 			o.ts = time.Time{}
 			o.tsIsNull = true
-			o.tsIsValid = true
+			o.tsIsLoaded = true
 		} else if o.ts, ok = v.(time.Time); ok {
 			o.tsIsNull = false
-			o.tsIsValid = true
+			o.tsIsLoaded = true
 		} else {
 			panic("Wrong type found for ts.")
 		}
 	} else {
-		o.tsIsValid = false
+		o.tsIsLoaded = false
 		o.tsIsNull = true
 		o.ts = time.Time{}
 	}
@@ -1234,17 +1238,17 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 		if v == nil {
 			o.testInt = 5
 			o.testIntIsNull = true
-			o.testIntIsValid = true
+			o.testIntIsLoaded = true
 			o.testIntIsDirty = false
 		} else if o.testInt, ok = v.(int); ok {
 			o.testIntIsNull = false
-			o.testIntIsValid = true
+			o.testIntIsLoaded = true
 			o.testIntIsDirty = false
 		} else {
 			panic("Wrong type found for test_int.")
 		}
 	} else {
-		o.testIntIsValid = false
+		o.testIntIsLoaded = false
 		o.testIntIsNull = true
 		o.testInt = 5
 		o.testIntIsDirty = false
@@ -1254,17 +1258,17 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 		if v == nil {
 			o.testFloat = 0
 			o.testFloatIsNull = true
-			o.testFloatIsValid = true
+			o.testFloatIsLoaded = true
 			o.testFloatIsDirty = false
 		} else if o.testFloat, ok = v.(float32); ok {
 			o.testFloatIsNull = false
-			o.testFloatIsValid = true
+			o.testFloatIsLoaded = true
 			o.testFloatIsDirty = false
 		} else {
 			panic("Wrong type found for test_float.")
 		}
 	} else {
-		o.testFloatIsValid = false
+		o.testFloatIsLoaded = false
 		o.testFloatIsNull = true
 		o.testFloat = 0
 		o.testFloatIsDirty = false
@@ -1272,14 +1276,14 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 
 	if v, ok := m["test_double"]; ok && v != nil {
 		if o.testDouble, ok = v.(float64); ok {
-			o.testDoubleIsValid = true
+			o.testDoubleIsLoaded = true
 			o.testDoubleIsDirty = false
 
 		} else {
 			panic("Wrong type found for test_double.")
 		}
 	} else {
-		o.testDoubleIsValid = false
+		o.testDoubleIsLoaded = false
 		o.testDouble = 0
 		o.testDoubleIsDirty = false
 	}
@@ -1288,17 +1292,17 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 		if v == nil {
 			o.testText = ""
 			o.testTextIsNull = true
-			o.testTextIsValid = true
+			o.testTextIsLoaded = true
 			o.testTextIsDirty = false
 		} else if o.testText, ok = v.(string); ok {
 			o.testTextIsNull = false
-			o.testTextIsValid = true
+			o.testTextIsLoaded = true
 			o.testTextIsDirty = false
 		} else {
 			panic("Wrong type found for test_text.")
 		}
 	} else {
-		o.testTextIsValid = false
+		o.testTextIsLoaded = false
 		o.testTextIsNull = true
 		o.testText = ""
 		o.testTextIsDirty = false
@@ -1308,17 +1312,17 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 		if v == nil {
 			o.testBit = false
 			o.testBitIsNull = true
-			o.testBitIsValid = true
+			o.testBitIsLoaded = true
 			o.testBitIsDirty = false
 		} else if o.testBit, ok = v.(bool); ok {
 			o.testBitIsNull = false
-			o.testBitIsValid = true
+			o.testBitIsLoaded = true
 			o.testBitIsDirty = false
 		} else {
 			panic("Wrong type found for test_bit.")
 		}
 	} else {
-		o.testBitIsValid = false
+		o.testBitIsLoaded = false
 		o.testBitIsNull = true
 		o.testBit = false
 		o.testBitIsDirty = false
@@ -1328,17 +1332,17 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 		if v == nil {
 			o.testVarchar = ""
 			o.testVarcharIsNull = true
-			o.testVarcharIsValid = true
+			o.testVarcharIsLoaded = true
 			o.testVarcharIsDirty = false
 		} else if o.testVarchar, ok = v.(string); ok {
 			o.testVarcharIsNull = false
-			o.testVarcharIsValid = true
+			o.testVarcharIsLoaded = true
 			o.testVarcharIsDirty = false
 		} else {
 			panic("Wrong type found for test_varchar.")
 		}
 	} else {
-		o.testVarcharIsValid = false
+		o.testVarcharIsLoaded = false
 		o.testVarcharIsNull = true
 		o.testVarchar = ""
 		o.testVarcharIsDirty = false
@@ -1346,14 +1350,14 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 
 	if v, ok := m["test_blob"]; ok && v != nil {
 		if o.testBlob, ok = v.([]byte); ok {
-			o.testBlobIsValid = true
+			o.testBlobIsLoaded = true
 			o.testBlobIsDirty = false
 
 		} else {
 			panic("Wrong type found for test_blob.")
 		}
 	} else {
-		o.testBlobIsValid = false
+		o.testBlobIsLoaded = false
 		o.testBlob = []byte{}
 		o.testBlobIsDirty = false
 	}
@@ -1367,11 +1371,12 @@ func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
 }
 
 // Save will update or insert the object, depending on the state of the object.
-// If it has any auto-generated ids, those will be updated.
-// Database errors generally will be handled by the logger and not returned here,
-// since those indicate a problem with database driver or configuration.
+// If it has an auto-generated primary key, it will be changed after an insert.
+// Database errors generally will be handled by a panic and not returned here,
+// since those indicate a problem with a database driver or configuration.
 // Save will return a db.OptimisticLockError if it detects a collision when two users
 // are attempting to change the same database record.
+// Updating a record that has not changed will have no effect on the database.
 func (o *typeTestBase) Save(ctx context.Context) error {
 	if o._restored {
 		return o.update(ctx)
@@ -1381,6 +1386,7 @@ func (o *typeTestBase) Save(ctx context.Context) error {
 }
 
 // update will update the values in the database, saving any changed values.
+// If the table has auto-generated values, those will be updated automatically.
 func (o *typeTestBase) update(ctx context.Context) error {
 	if !o._restored {
 		panic("cannot update a record that was not originally read from the database.")
@@ -1394,7 +1400,7 @@ func (o *typeTestBase) update(ctx context.Context) error {
 	d := Database()
 	err := db.ExecuteTransaction(ctx, d, func() error {
 
-		modifiedFields = o.getModifiedFields()
+		modifiedFields = o.getUpdateFields()
 		if len(modifiedFields) != 0 {
 			var err2 error
 
@@ -1420,25 +1426,23 @@ func (o *typeTestBase) update(ctx context.Context) error {
 
 // insert will insert the object into the database. Related items will be saved.
 func (o *typeTestBase) insert(ctx context.Context) (err error) {
+	var insertFields map[string]interface{}
 	d := Database()
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
-		if !o.testDoubleIsValid {
+		if !o.testDoubleIsLoaded {
 			panic("a value for TestDouble is required, and there is no default value. Call SetTestDouble() before inserting the record.")
 		}
-		if !o.testBlobIsValid {
+		if !o.testBlobIsLoaded {
 			panic("a value for TestBlob is required, and there is no default value. Call SetTestBlob() before inserting the record.")
 		}
 
-		o.ts = time.Now().UTC()
-		o.tsIsValid = true
+		insertFields = o.getInsertFields()
 
-		m := o.getValidFields()
-
-		newPk := d.Insert(ctx, "type_test", m)
+		newPk := d.Insert(ctx, "type_test", insertFields)
 		o.id = newPk
 		o._originalPK = newPk
-		o.idIsValid = true
+		o.idIsLoaded = true
 
 		return nil
 
@@ -1447,6 +1451,8 @@ func (o *typeTestBase) insert(ctx context.Context) (err error) {
 	if err != nil {
 		return
 	}
+	o.ts = insertFields["ts"].(time.Time)
+	o.tsIsLoaded = true
 
 	o.resetDirtyStatus()
 	o._restored = true
@@ -1454,10 +1460,13 @@ func (o *typeTestBase) insert(ctx context.Context) (err error) {
 	return
 }
 
-// getModifiedFields returns the database columns that have been modified. This
-// will determine which specific fields are sent to the database to be changed.
-func (o *typeTestBase) getModifiedFields() (fields map[string]interface{}) {
+// getUpdateFields returns the database columns that will be sent to the update process.
+// This will include timestamp fields only if some other column has changed.
+func (o *typeTestBase) getUpdateFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
+	if o.idIsDirty {
+		fields["id"] = o.id
+	}
 	if o.dateIsDirty {
 		if o.dateIsNull {
 			fields["date"] = nil
@@ -1523,78 +1532,62 @@ func (o *typeTestBase) getModifiedFields() (fields map[string]interface{}) {
 	return
 }
 
-// getValidFields returns the fields that have valid data in them in a form ready to send to the database.
-func (o *typeTestBase) getValidFields() (fields map[string]interface{}) {
+// getInsertFields returns the fields that will be specified in an insert operation.
+// Optional fields that have not been set and have no default will be returned as nil.
+// NoSql databases should interpret this as no value. Sql databases should interpret this as
+// explicitly setting a NULL value, which would override any database specific default value.
+// Auto-generated fields will be returned with their generated values, except AutoId fields, which are generated by the
+// database driver and updated after the insert.
+func (o *typeTestBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-	if o.dateIsValid {
-		if o.dateIsNull {
-			fields["date"] = nil
-		} else {
-			fields["date"] = o.date
-		}
+	if o.idIsDirty {
+		fields["id"] = o.id
 	}
-	if o.timeIsValid {
-		if o.timeIsNull {
-			fields["time"] = nil
-		} else {
-			fields["time"] = o.time
-		}
+	if o.dateIsNull {
+		fields["date"] = nil
+	} else {
+		fields["date"] = o.date
 	}
-	if o.dateTimeIsValid {
-		if o.dateTimeIsNull {
-			fields["date_time"] = nil
-		} else {
-			fields["date_time"] = o.dateTime
-		}
+	if o.timeIsNull {
+		fields["time"] = nil
+	} else {
+		fields["time"] = o.time
 	}
-	if o.tsIsValid {
-		if o.tsIsNull {
-			fields["ts"] = nil
-		} else {
-			fields["ts"] = o.ts
-		}
+	if o.dateTimeIsNull {
+		fields["date_time"] = nil
+	} else {
+		fields["date_time"] = o.dateTime
 	}
-	if o.testIntIsValid {
-		if o.testIntIsNull {
-			fields["test_int"] = nil
-		} else {
-			fields["test_int"] = o.testInt
-		}
+	fields["ts"] = time.Now().UTC()
+	if o.testIntIsNull {
+		fields["test_int"] = nil
+	} else {
+		fields["test_int"] = o.testInt
 	}
-	if o.testFloatIsValid {
-		if o.testFloatIsNull {
-			fields["test_float"] = nil
-		} else {
-			fields["test_float"] = o.testFloat
-		}
+	if o.testFloatIsNull {
+		fields["test_float"] = nil
+	} else {
+		fields["test_float"] = o.testFloat
 	}
-	if o.testDoubleIsValid {
-		fields["test_double"] = o.testDouble
+
+	fields["test_double"] = o.testDouble
+	if o.testTextIsNull {
+		fields["test_text"] = nil
+	} else {
+		fields["test_text"] = o.testText
 	}
-	if o.testTextIsValid {
-		if o.testTextIsNull {
-			fields["test_text"] = nil
-		} else {
-			fields["test_text"] = o.testText
-		}
+	if o.testBitIsNull {
+		fields["test_bit"] = nil
+	} else {
+		fields["test_bit"] = o.testBit
 	}
-	if o.testBitIsValid {
-		if o.testBitIsNull {
-			fields["test_bit"] = nil
-		} else {
-			fields["test_bit"] = o.testBit
-		}
+	if o.testVarcharIsNull {
+		fields["test_varchar"] = nil
+	} else {
+		fields["test_varchar"] = o.testVarchar
 	}
-	if o.testVarcharIsValid {
-		if o.testVarcharIsNull {
-			fields["test_varchar"] = nil
-		} else {
-			fields["test_varchar"] = o.testVarchar
-		}
-	}
-	if o.testBlobIsValid {
-		fields["test_blob"] = o.testBlob
-	}
+
+	fields["test_blob"] = o.testBlob
 	return
 }
 
@@ -1624,6 +1617,7 @@ func deleteTypeTest(ctx context.Context, pk string) error {
 
 // resetDirtyStatus resets the dirty status of every field in the object.
 func (o *typeTestBase) resetDirtyStatus() {
+	o.idIsDirty = false
 	o.dateIsDirty = false
 	o.timeIsDirty = false
 	o.dateTimeIsDirty = false
@@ -1640,7 +1634,8 @@ func (o *typeTestBase) resetDirtyStatus() {
 // IsDirty returns true if the object has been changed since it was read from the database or created.
 // However, a new object that has a column with a default value will be automatically marked as dirty upon creation.
 func (o *typeTestBase) IsDirty() (dirty bool) {
-	dirty = o.dateIsDirty ||
+	dirty = o.idIsDirty ||
+		o.dateIsDirty ||
 		o.timeIsDirty ||
 		o.dateTimeIsDirty ||
 		o.testIntIsDirty ||
@@ -1663,73 +1658,73 @@ func (o *typeTestBase) Get(key string) interface{} {
 	switch key {
 
 	case "ID":
-		if !o.idIsValid {
+		if !o.idIsLoaded {
 			return nil
 		}
 		return o.id
 
 	case "Date":
-		if !o.dateIsValid {
+		if !o.dateIsLoaded {
 			return nil
 		}
 		return o.date
 
 	case "Time":
-		if !o.timeIsValid {
+		if !o.timeIsLoaded {
 			return nil
 		}
 		return o.time
 
 	case "DateTime":
-		if !o.dateTimeIsValid {
+		if !o.dateTimeIsLoaded {
 			return nil
 		}
 		return o.dateTime
 
 	case "Ts":
-		if !o.tsIsValid {
+		if !o.tsIsLoaded {
 			return nil
 		}
 		return o.ts
 
 	case "TestInt":
-		if !o.testIntIsValid {
+		if !o.testIntIsLoaded {
 			return nil
 		}
 		return o.testInt
 
 	case "TestFloat":
-		if !o.testFloatIsValid {
+		if !o.testFloatIsLoaded {
 			return nil
 		}
 		return o.testFloat
 
 	case "TestDouble":
-		if !o.testDoubleIsValid {
+		if !o.testDoubleIsLoaded {
 			return nil
 		}
 		return o.testDouble
 
 	case "TestText":
-		if !o.testTextIsValid {
+		if !o.testTextIsLoaded {
 			return nil
 		}
 		return o.testText
 
 	case "TestBit":
-		if !o.testBitIsValid {
+		if !o.testBitIsLoaded {
 			return nil
 		}
 		return o.testBit
 
 	case "TestVarchar":
-		if !o.testVarcharIsValid {
+		if !o.testVarcharIsLoaded {
 			return nil
 		}
 		return o.testVarchar
 
 	case "TestBlob":
-		if !o.testBlobIsValid {
+		if !o.testBlobIsLoaded {
 			return nil
 		}
 		return o.testBlob
@@ -1749,8 +1744,11 @@ func (o *typeTestBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.id); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.id: %w", err)
 	}
-	if err := encoder.Encode(o.idIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.idIsValid: %w", err)
+	if err := encoder.Encode(o.idIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding TypeTest.idIsLoaded: %w", err)
+	}
+	if err := encoder.Encode(o.idIsDirty); err != nil {
+		return nil, fmt.Errorf("error encoding TypeTest.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.date); err != nil {
@@ -1759,8 +1757,8 @@ func (o *typeTestBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.dateIsNull); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.dateIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.dateIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.dateIsValid: %w", err)
+	if err := encoder.Encode(o.dateIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding TypeTest.dateIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.dateIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.dateIsDirty: %w", err)
@@ -1772,8 +1770,8 @@ func (o *typeTestBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.timeIsNull); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.timeIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.timeIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.timeIsValid: %w", err)
+	if err := encoder.Encode(o.timeIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding TypeTest.timeIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.timeIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.timeIsDirty: %w", err)
@@ -1785,8 +1783,8 @@ func (o *typeTestBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.dateTimeIsNull); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.dateTimeIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.dateTimeIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.dateTimeIsValid: %w", err)
+	if err := encoder.Encode(o.dateTimeIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding TypeTest.dateTimeIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.dateTimeIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.dateTimeIsDirty: %w", err)
@@ -1798,8 +1796,8 @@ func (o *typeTestBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.tsIsNull); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.tsIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.tsIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.tsIsValid: %w", err)
+	if err := encoder.Encode(o.tsIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding TypeTest.tsIsLoaded: %w", err)
 	}
 
 	if err := encoder.Encode(o.testInt); err != nil {
@@ -1808,8 +1806,8 @@ func (o *typeTestBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.testIntIsNull); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.testIntIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.testIntIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testIntIsValid: %w", err)
+	if err := encoder.Encode(o.testIntIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding TypeTest.testIntIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.testIntIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.testIntIsDirty: %w", err)
@@ -1821,8 +1819,8 @@ func (o *typeTestBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.testFloatIsNull); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.testFloatIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.testFloatIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testFloatIsValid: %w", err)
+	if err := encoder.Encode(o.testFloatIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding TypeTest.testFloatIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.testFloatIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.testFloatIsDirty: %w", err)
@@ -1831,8 +1829,8 @@ func (o *typeTestBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.testDouble); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.testDouble: %w", err)
 	}
-	if err := encoder.Encode(o.testDoubleIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testDoubleIsValid: %w", err)
+	if err := encoder.Encode(o.testDoubleIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding TypeTest.testDoubleIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.testDoubleIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.testDoubleIsDirty: %w", err)
@@ -1844,8 +1842,8 @@ func (o *typeTestBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.testTextIsNull); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.testTextIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.testTextIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testTextIsValid: %w", err)
+	if err := encoder.Encode(o.testTextIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding TypeTest.testTextIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.testTextIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.testTextIsDirty: %w", err)
@@ -1857,8 +1855,8 @@ func (o *typeTestBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.testBitIsNull); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.testBitIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.testBitIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testBitIsValid: %w", err)
+	if err := encoder.Encode(o.testBitIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding TypeTest.testBitIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.testBitIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.testBitIsDirty: %w", err)
@@ -1870,8 +1868,8 @@ func (o *typeTestBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.testVarcharIsNull); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.testVarcharIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.testVarcharIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testVarcharIsValid: %w", err)
+	if err := encoder.Encode(o.testVarcharIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding TypeTest.testVarcharIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.testVarcharIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.testVarcharIsDirty: %w", err)
@@ -1880,8 +1878,8 @@ func (o *typeTestBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.testBlob); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.testBlob: %w", err)
 	}
-	if err := encoder.Encode(o.testBlobIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testBlobIsValid: %w", err)
+	if err := encoder.Encode(o.testBlobIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding TypeTest.testBlobIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.testBlobIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding TypeTest.testBlobIsDirty: %w", err)
@@ -1923,8 +1921,11 @@ func (o *typeTestBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.id); err != nil {
 		return fmt.Errorf("error decoding TypeTest.id: %w", err)
 	}
-	if err = dec.Decode(&o.idIsValid); err != nil {
-		return fmt.Errorf("error decoding TypeTest.idIsValid: %w", err)
+	if err = dec.Decode(&o.idIsLoaded); err != nil {
+		return fmt.Errorf("error decoding TypeTest.idIsLoaded: %w", err)
+	}
+	if err = dec.Decode(&o.idIsDirty); err != nil {
+		return fmt.Errorf("error decoding TypeTest.idIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.date); err != nil {
@@ -1933,8 +1934,8 @@ func (o *typeTestBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.dateIsNull); err != nil {
 		return fmt.Errorf("error decoding TypeTest.dateIsNull: %w", err)
 	}
-	if err = dec.Decode(&o.dateIsValid); err != nil {
-		return fmt.Errorf("error decoding TypeTest.dateIsValid: %w", err)
+	if err = dec.Decode(&o.dateIsLoaded); err != nil {
+		return fmt.Errorf("error decoding TypeTest.dateIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.dateIsDirty); err != nil {
 		return fmt.Errorf("error decoding TypeTest.dateIsDirty: %w", err)
@@ -1946,8 +1947,8 @@ func (o *typeTestBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.timeIsNull); err != nil {
 		return fmt.Errorf("error decoding TypeTest.timeIsNull: %w", err)
 	}
-	if err = dec.Decode(&o.timeIsValid); err != nil {
-		return fmt.Errorf("error decoding TypeTest.timeIsValid: %w", err)
+	if err = dec.Decode(&o.timeIsLoaded); err != nil {
+		return fmt.Errorf("error decoding TypeTest.timeIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.timeIsDirty); err != nil {
 		return fmt.Errorf("error decoding TypeTest.timeIsDirty: %w", err)
@@ -1959,8 +1960,8 @@ func (o *typeTestBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.dateTimeIsNull); err != nil {
 		return fmt.Errorf("error decoding TypeTest.dateTimeIsNull: %w", err)
 	}
-	if err = dec.Decode(&o.dateTimeIsValid); err != nil {
-		return fmt.Errorf("error decoding TypeTest.dateTimeIsValid: %w", err)
+	if err = dec.Decode(&o.dateTimeIsLoaded); err != nil {
+		return fmt.Errorf("error decoding TypeTest.dateTimeIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.dateTimeIsDirty); err != nil {
 		return fmt.Errorf("error decoding TypeTest.dateTimeIsDirty: %w", err)
@@ -1972,8 +1973,8 @@ func (o *typeTestBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.tsIsNull); err != nil {
 		return fmt.Errorf("error decoding TypeTest.tsIsNull: %w", err)
 	}
-	if err = dec.Decode(&o.tsIsValid); err != nil {
-		return fmt.Errorf("error decoding TypeTest.tsIsValid: %w", err)
+	if err = dec.Decode(&o.tsIsLoaded); err != nil {
+		return fmt.Errorf("error decoding TypeTest.tsIsLoaded: %w", err)
 	}
 
 	if err = dec.Decode(&o.testInt); err != nil {
@@ -1982,8 +1983,8 @@ func (o *typeTestBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.testIntIsNull); err != nil {
 		return fmt.Errorf("error decoding TypeTest.testIntIsNull: %w", err)
 	}
-	if err = dec.Decode(&o.testIntIsValid); err != nil {
-		return fmt.Errorf("error decoding TypeTest.testIntIsValid: %w", err)
+	if err = dec.Decode(&o.testIntIsLoaded); err != nil {
+		return fmt.Errorf("error decoding TypeTest.testIntIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.testIntIsDirty); err != nil {
 		return fmt.Errorf("error decoding TypeTest.testIntIsDirty: %w", err)
@@ -1995,8 +1996,8 @@ func (o *typeTestBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.testFloatIsNull); err != nil {
 		return fmt.Errorf("error decoding TypeTest.testFloatIsNull: %w", err)
 	}
-	if err = dec.Decode(&o.testFloatIsValid); err != nil {
-		return fmt.Errorf("error decoding TypeTest.testFloatIsValid: %w", err)
+	if err = dec.Decode(&o.testFloatIsLoaded); err != nil {
+		return fmt.Errorf("error decoding TypeTest.testFloatIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.testFloatIsDirty); err != nil {
 		return fmt.Errorf("error decoding TypeTest.testFloatIsDirty: %w", err)
@@ -2005,8 +2006,8 @@ func (o *typeTestBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.testDouble); err != nil {
 		return fmt.Errorf("error decoding TypeTest.testDouble: %w", err)
 	}
-	if err = dec.Decode(&o.testDoubleIsValid); err != nil {
-		return fmt.Errorf("error decoding TypeTest.testDoubleIsValid: %w", err)
+	if err = dec.Decode(&o.testDoubleIsLoaded); err != nil {
+		return fmt.Errorf("error decoding TypeTest.testDoubleIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.testDoubleIsDirty); err != nil {
 		return fmt.Errorf("error decoding TypeTest.testDoubleIsDirty: %w", err)
@@ -2018,8 +2019,8 @@ func (o *typeTestBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.testTextIsNull); err != nil {
 		return fmt.Errorf("error decoding TypeTest.testTextIsNull: %w", err)
 	}
-	if err = dec.Decode(&o.testTextIsValid); err != nil {
-		return fmt.Errorf("error decoding TypeTest.testTextIsValid: %w", err)
+	if err = dec.Decode(&o.testTextIsLoaded); err != nil {
+		return fmt.Errorf("error decoding TypeTest.testTextIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.testTextIsDirty); err != nil {
 		return fmt.Errorf("error decoding TypeTest.testTextIsDirty: %w", err)
@@ -2031,8 +2032,8 @@ func (o *typeTestBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.testBitIsNull); err != nil {
 		return fmt.Errorf("error decoding TypeTest.testBitIsNull: %w", err)
 	}
-	if err = dec.Decode(&o.testBitIsValid); err != nil {
-		return fmt.Errorf("error decoding TypeTest.testBitIsValid: %w", err)
+	if err = dec.Decode(&o.testBitIsLoaded); err != nil {
+		return fmt.Errorf("error decoding TypeTest.testBitIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.testBitIsDirty); err != nil {
 		return fmt.Errorf("error decoding TypeTest.testBitIsDirty: %w", err)
@@ -2044,8 +2045,8 @@ func (o *typeTestBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.testVarcharIsNull); err != nil {
 		return fmt.Errorf("error decoding TypeTest.testVarcharIsNull: %w", err)
 	}
-	if err = dec.Decode(&o.testVarcharIsValid); err != nil {
-		return fmt.Errorf("error decoding TypeTest.testVarcharIsValid: %w", err)
+	if err = dec.Decode(&o.testVarcharIsLoaded); err != nil {
+		return fmt.Errorf("error decoding TypeTest.testVarcharIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.testVarcharIsDirty); err != nil {
 		return fmt.Errorf("error decoding TypeTest.testVarcharIsDirty: %w", err)
@@ -2054,8 +2055,8 @@ func (o *typeTestBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.testBlob); err != nil {
 		return fmt.Errorf("error decoding TypeTest.testBlob: %w", err)
 	}
-	if err = dec.Decode(&o.testBlobIsValid); err != nil {
-		return fmt.Errorf("error decoding TypeTest.testBlobIsValid: %w", err)
+	if err = dec.Decode(&o.testBlobIsLoaded); err != nil {
+		return fmt.Errorf("error decoding TypeTest.testBlobIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.testBlobIsDirty); err != nil {
 		return fmt.Errorf("error decoding TypeTest.testBlobIsDirty: %w", err)
@@ -2079,11 +2080,11 @@ func (o *typeTestBase) MarshalJSON() (data []byte, err error) {
 func (o *typeTestBase) MarshalStringMap() map[string]interface{} {
 	v := make(map[string]interface{})
 
-	if o.idIsValid {
+	if o.idIsLoaded {
 		v["id"] = o.id
 	}
 
-	if o.dateIsValid {
+	if o.dateIsLoaded {
 		if o.dateIsNull {
 			v["date"] = nil
 		} else {
@@ -2091,7 +2092,7 @@ func (o *typeTestBase) MarshalStringMap() map[string]interface{} {
 		}
 	}
 
-	if o.timeIsValid {
+	if o.timeIsLoaded {
 		if o.timeIsNull {
 			v["time"] = nil
 		} else {
@@ -2099,7 +2100,7 @@ func (o *typeTestBase) MarshalStringMap() map[string]interface{} {
 		}
 	}
 
-	if o.dateTimeIsValid {
+	if o.dateTimeIsLoaded {
 		if o.dateTimeIsNull {
 			v["dateTime"] = nil
 		} else {
@@ -2107,7 +2108,7 @@ func (o *typeTestBase) MarshalStringMap() map[string]interface{} {
 		}
 	}
 
-	if o.tsIsValid {
+	if o.tsIsLoaded {
 		if o.tsIsNull {
 			v["ts"] = nil
 		} else {
@@ -2115,7 +2116,7 @@ func (o *typeTestBase) MarshalStringMap() map[string]interface{} {
 		}
 	}
 
-	if o.testIntIsValid {
+	if o.testIntIsLoaded {
 		if o.testIntIsNull {
 			v["testInt"] = nil
 		} else {
@@ -2123,7 +2124,7 @@ func (o *typeTestBase) MarshalStringMap() map[string]interface{} {
 		}
 	}
 
-	if o.testFloatIsValid {
+	if o.testFloatIsLoaded {
 		if o.testFloatIsNull {
 			v["testFloat"] = nil
 		} else {
@@ -2131,11 +2132,11 @@ func (o *typeTestBase) MarshalStringMap() map[string]interface{} {
 		}
 	}
 
-	if o.testDoubleIsValid {
+	if o.testDoubleIsLoaded {
 		v["testDouble"] = o.testDouble
 	}
 
-	if o.testTextIsValid {
+	if o.testTextIsLoaded {
 		if o.testTextIsNull {
 			v["testText"] = nil
 		} else {
@@ -2143,7 +2144,7 @@ func (o *typeTestBase) MarshalStringMap() map[string]interface{} {
 		}
 	}
 
-	if o.testBitIsValid {
+	if o.testBitIsLoaded {
 		if o.testBitIsNull {
 			v["testBit"] = nil
 		} else {
@@ -2151,7 +2152,7 @@ func (o *typeTestBase) MarshalStringMap() map[string]interface{} {
 		}
 	}
 
-	if o.testVarcharIsValid {
+	if o.testVarcharIsLoaded {
 		if o.testVarcharIsNull {
 			v["testVarchar"] = nil
 		} else {
@@ -2159,7 +2160,7 @@ func (o *typeTestBase) MarshalStringMap() map[string]interface{} {
 		}
 	}
 
-	if o.testBlobIsValid {
+	if o.testBlobIsLoaded {
 		v["testBlob"] = o.testBlob
 	}
 
@@ -2210,6 +2211,19 @@ func (o *typeTestBase) UnmarshalJSON(data []byte) (err error) {
 func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 	for k, v := range m {
 		switch k {
+
+		case "id":
+			{
+				if v == nil {
+					return fmt.Errorf("field %s cannot be null", k)
+				}
+
+				if s, ok := v.(string); !ok {
+					return fmt.Errorf("json field %s must be a string", k)
+				} else {
+					o.SetID(s)
+				}
+			}
 
 		case "date":
 			{

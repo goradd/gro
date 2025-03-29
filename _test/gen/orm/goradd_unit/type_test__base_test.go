@@ -77,32 +77,59 @@ func deleteSampleTypeTest(ctx context.Context, obj *TypeTest) {
 
 // assertEqualFieldsTypeTest compares two objects and asserts that the basic fields are equal.
 func assertEqualFieldsTypeTest(t *testing.T, obj1, obj2 *TypeTest) {
-	assert.EqualValues(t, obj1.ID(), obj2.ID())
-
-	assert.EqualValues(t, obj1.Date(), obj2.Date())
-
-	assert.EqualValues(t, obj1.Time(), obj2.Time())
-
-	assert.EqualValues(t, obj1.DateTime(), obj2.DateTime())
-
-	assert.EqualValues(t, obj1.Ts(), obj2.Ts())
-
-	assert.EqualValues(t, obj1.TestInt(), obj2.TestInt())
-
-	assert.EqualValues(t, obj1.TestFloat(), obj2.TestFloat())
-
-	assert.EqualValues(t, obj1.TestDouble(), obj2.TestDouble())
-
-	assert.EqualValues(t, obj1.TestText(), obj2.TestText())
-
-	assert.EqualValues(t, obj1.TestBit(), obj2.TestBit())
-
-	assert.EqualValues(t, obj1.TestVarchar(), obj2.TestVarchar())
-
-	assert.EqualValues(t, obj1.TestBlob(), obj2.TestBlob())
+	if obj1.IDIsLoaded() && obj2.IDIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.ID(), obj2.ID())
+	}
+	if obj1.DateIsLoaded() && obj2.DateIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.Date(), obj2.Date())
+	}
+	if obj1.TimeIsLoaded() && obj2.TimeIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.Time(), obj2.Time())
+	}
+	if obj1.DateTimeIsLoaded() && obj2.DateTimeIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.DateTime(), obj2.DateTime())
+	}
+	if obj1.TsIsLoaded() && obj2.TsIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.Ts(), obj2.Ts())
+	}
+	if obj1.TestIntIsLoaded() && obj2.TestIntIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TestInt(), obj2.TestInt())
+	}
+	if obj1.TestFloatIsLoaded() && obj2.TestFloatIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TestFloat(), obj2.TestFloat())
+	}
+	if obj1.TestDoubleIsLoaded() && obj2.TestDoubleIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TestDouble(), obj2.TestDouble())
+	}
+	if obj1.TestTextIsLoaded() && obj2.TestTextIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TestText(), obj2.TestText())
+	}
+	if obj1.TestBitIsLoaded() && obj2.TestBitIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TestBit(), obj2.TestBit())
+	}
+	if obj1.TestVarcharIsLoaded() && obj2.TestVarcharIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TestVarchar(), obj2.TestVarchar())
+	}
+	if obj1.TestBlobIsLoaded() && obj2.TestBlobIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TestBlob(), obj2.TestBlob())
+	}
 
 }
 
+func TestTypeTest_SetID(t *testing.T) {
+
+	obj := NewTypeTest()
+
+	assert.True(t, obj.IsNew())
+	val := test.RandomNumberString()
+	obj.SetID(val)
+	assert.Equal(t, val, obj.ID())
+
+	// test default
+	obj.SetID("")
+	assert.EqualValues(t, "", obj.ID(), "set default")
+
+}
 func TestTypeTest_SetDate(t *testing.T) {
 
 	obj := NewTypeTest()
@@ -344,9 +371,14 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
-	assert.True(t, obj2.IDIsValid())
+	assert.True(t, obj2.IDIsLoaded())
 
-	assert.True(t, obj2.DateIsValid())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.idIsDirty)
+	obj2.SetID(obj2.ID())
+	assert.False(t, obj2.idIsDirty)
+
+	assert.True(t, obj2.DateIsLoaded())
 	assert.False(t, obj2.DateIsNull())
 
 	// test that setting it to the same value will not change the dirty bit
@@ -354,7 +386,7 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 	obj2.SetDate(obj2.Date())
 	assert.False(t, obj2.dateIsDirty)
 
-	assert.True(t, obj2.TimeIsValid())
+	assert.True(t, obj2.TimeIsLoaded())
 	assert.False(t, obj2.TimeIsNull())
 
 	// test that setting it to the same value will not change the dirty bit
@@ -362,7 +394,7 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 	obj2.SetTime(obj2.Time())
 	assert.False(t, obj2.timeIsDirty)
 
-	assert.True(t, obj2.DateTimeIsValid())
+	assert.True(t, obj2.DateTimeIsLoaded())
 	assert.False(t, obj2.DateTimeIsNull())
 
 	// test that setting it to the same value will not change the dirty bit
@@ -370,10 +402,10 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 	obj2.SetDateTime(obj2.DateTime())
 	assert.False(t, obj2.dateTimeIsDirty)
 
-	assert.True(t, obj2.TsIsValid())
+	assert.True(t, obj2.TsIsLoaded())
 	assert.False(t, obj2.TsIsNull())
 
-	assert.True(t, obj2.TestIntIsValid())
+	assert.True(t, obj2.TestIntIsLoaded())
 	assert.False(t, obj2.TestIntIsNull())
 
 	// test that setting it to the same value will not change the dirty bit
@@ -381,7 +413,7 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 	obj2.SetTestInt(obj2.TestInt())
 	assert.False(t, obj2.testIntIsDirty)
 
-	assert.True(t, obj2.TestFloatIsValid())
+	assert.True(t, obj2.TestFloatIsLoaded())
 	assert.False(t, obj2.TestFloatIsNull())
 
 	// test that setting it to the same value will not change the dirty bit
@@ -389,14 +421,14 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 	obj2.SetTestFloat(obj2.TestFloat())
 	assert.False(t, obj2.testFloatIsDirty)
 
-	assert.True(t, obj2.TestDoubleIsValid())
+	assert.True(t, obj2.TestDoubleIsLoaded())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.testDoubleIsDirty)
 	obj2.SetTestDouble(obj2.TestDouble())
 	assert.False(t, obj2.testDoubleIsDirty)
 
-	assert.True(t, obj2.TestTextIsValid())
+	assert.True(t, obj2.TestTextIsLoaded())
 	assert.False(t, obj2.TestTextIsNull())
 
 	// test that setting it to the same value will not change the dirty bit
@@ -404,7 +436,7 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 	obj2.SetTestText(obj2.TestText())
 	assert.False(t, obj2.testTextIsDirty)
 
-	assert.True(t, obj2.TestBitIsValid())
+	assert.True(t, obj2.TestBitIsLoaded())
 	assert.False(t, obj2.TestBitIsNull())
 
 	// test that setting it to the same value will not change the dirty bit
@@ -412,7 +444,7 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 	obj2.SetTestBit(obj2.TestBit())
 	assert.False(t, obj2.testBitIsDirty)
 
-	assert.True(t, obj2.TestVarcharIsValid())
+	assert.True(t, obj2.TestVarcharIsLoaded())
 	assert.False(t, obj2.TestVarcharIsNull())
 
 	// test that setting it to the same value will not change the dirty bit
@@ -420,7 +452,7 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 	obj2.SetTestVarchar(obj2.TestVarchar())
 	assert.False(t, obj2.testVarcharIsDirty)
 
-	assert.True(t, obj2.TestBlobIsValid())
+	assert.True(t, obj2.TestBlobIsLoaded())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.testBlobIsDirty)
@@ -433,13 +465,13 @@ func TestTypeTest_InsertPanics(t *testing.T) {
 	obj := createMinimalSampleTypeTest()
 	ctx := db.NewContext(nil)
 
-	obj.testDoubleIsValid = false
+	obj.testDoubleIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.testDoubleIsValid = true
+	obj.testDoubleIsLoaded = true
 
-	obj.testBlobIsValid = false
+	obj.testBlobIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.testBlobIsValid = true
+	obj.testBlobIsLoaded = true
 
 }
 

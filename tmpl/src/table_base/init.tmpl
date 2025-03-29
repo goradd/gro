@@ -9,42 +9,27 @@
 // Multiple calls to Initialize are not guaranteed to create sequential values for the primary key.
 {{if}}
 func (o *{{= table.DecapIdentifier}}Base) Initialize() {
-
 {{for _,col := range table.Columns}}
-
 {{if col.IsAutoId}}
     o.{{= col.VariableIdentifier() }} = db.TemporaryPrimaryKey()
 {{else}}
 	o.{{= col.VariableIdentifier() }} = {{= col.DefaultValueAsValue() }}
 {{if}}
-
 {{if col.IsNullable}}
-{{if col.DefaultValue == nil}}
-	o.{{= col.VariableIdentifier() }}IsNull = true
-{{else}}
+{{if col.HasDefaultValue() }}
 	o.{{= col.VariableIdentifier() }}IsNull = false
+{{else}}
+	o.{{= col.VariableIdentifier() }}IsNull = true
 {{if}}
-	o.{{= col.VariableIdentifier() }}IsValid = true
-{{if col.HasSetter() }}
-	o.{{= col.VariableIdentifier() }}IsDirty = true
-{{if}}
-{{else}} {{# not null }}
-{{if col.DefaultValue == nil}}
-	o.{{= col.VariableIdentifier() }}IsValid = false
+{{if}}{{# IsNullable}}
+	o.{{= col.VariableIdentifier() }}IsLoaded = {{if col.HasDefaultValue() }}true{{else}}false{{if}}
 {{if col.HasSetter() }}
 	o.{{= col.VariableIdentifier() }}IsDirty = false
 {{if}}
-{{else}}
-	o.{{= col.VariableIdentifier() }}IsValid = true
-{{if col.HasSetter() }}
-	o.{{= col.VariableIdentifier() }}IsDirty = true
-{{if}}
-{{if}}
-{{if}}
 
 {{for}}
-
 {{if len(table.ReverseReferences) > 0 }}
+
 // Reverse reference objects.
 {{for _,col := range table.ReverseReferences}}
     {{if col.IsUnique}}
@@ -56,8 +41,8 @@ func (o *{{= table.DecapIdentifier}}Base) Initialize() {
 	{{if}}
 {{for}}
 {{if}}
-
 {{if len(table.ManyManyReferences) > 0}}
+
 // Many-Many reference objects.
 {{for _,mm := range table.ManyManyReferences }}
     o.{{= mm.VariableIdentifier() }}.Clear()
@@ -67,7 +52,6 @@ func (o *{{= table.DecapIdentifier}}Base) Initialize() {
 {{if}}
 
 	o._aliases = nil
-
 	o._restored = false
 }
 

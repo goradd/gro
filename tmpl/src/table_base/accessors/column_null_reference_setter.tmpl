@@ -7,7 +7,7 @@
 // Set{{= col.ReferenceIdentifier() }} will set the reference to {{= col.Reference.DecapIdentifier }}. The referenced object
 // will be saved when {{= table.Identifier}} is saved. Pass nil to break the connection.
 func (o *{{= table.DecapIdentifier}}Base) Set{{= col.ReferenceIdentifier() }}({{= col.ReferenceVariableIdentifier() }} *{{= col.ReferenceType() }}) {
-	o.{{= col.DecapIdentifier }}IsValid = true
+	o.{{= col.DecapIdentifier }}IsLoaded = true
 	if {{= col.ReferenceVariableIdentifier() }} == nil {
 		if !o.{{= col.DecapIdentifier }}IsNull || !o._restored {
 			o.{{= col.DecapIdentifier }}IsNull = true

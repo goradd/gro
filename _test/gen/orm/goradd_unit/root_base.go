@@ -23,42 +23,36 @@ import (
 // The member variables of the structure are private and should not normally be accessed by the Root embedder.
 // Instead, use the accessor functions.
 type rootBase struct {
-	id        string
-	idIsValid bool
-
-	name        string
-	nameIsValid bool
-	nameIsDirty bool
-
-	optionalLeafID        string
-	optionalLeafIDIsNull  bool
-	optionalLeafIDIsValid bool
-	optionalLeafIDIsDirty bool
-	objOptionalLeaf       *Leaf
-
-	requiredLeafID        string
-	requiredLeafIDIsValid bool
-	requiredLeafIDIsDirty bool
-	objRequiredLeaf       *Leaf
-
-	optionalLeafUniqueID        string
-	optionalLeafUniqueIDIsValid bool
-	optionalLeafUniqueIDIsDirty bool
-	objOptionalLeafUnique       *Leaf
-
-	requiredLeafUniqueID        string
-	requiredLeafUniqueIDIsValid bool
-	requiredLeafUniqueIDIsDirty bool
-	objRequiredLeafUnique       *Leaf
-
-	parentID        string
-	parentIDIsNull  bool
-	parentIDIsValid bool
-	parentIDIsDirty bool
-	objParent       *Root
+	id                           string
+	idIsLoaded                   bool
+	idIsDirty                    bool
+	name                         string
+	nameIsLoaded                 bool
+	nameIsDirty                  bool
+	optionalLeafID               string
+	optionalLeafIDIsNull         bool
+	optionalLeafIDIsLoaded       bool
+	optionalLeafIDIsDirty        bool
+	objOptionalLeaf              *Leaf
+	requiredLeafID               string
+	requiredLeafIDIsLoaded       bool
+	requiredLeafIDIsDirty        bool
+	objRequiredLeaf              *Leaf
+	optionalLeafUniqueID         string
+	optionalLeafUniqueIDIsLoaded bool
+	optionalLeafUniqueIDIsDirty  bool
+	objOptionalLeafUnique        *Leaf
+	requiredLeafUniqueID         string
+	requiredLeafUniqueIDIsLoaded bool
+	requiredLeafUniqueIDIsDirty  bool
+	objRequiredLeafUnique        *Leaf
+	parentID                     string
+	parentIDIsNull               bool
+	parentIDIsLoaded             bool
+	parentIDIsDirty              bool
+	objParent                    *Root
 
 	// Reverse reference objects.
-
 	revParentRoots        maps.SliceMap[string, *Root] // Objects in the order they were queried
 	revParentRootsIsDirty bool
 
@@ -86,8 +80,7 @@ const (
 	Root_RequiredLeafUnique   = `RequiredLeafUnique`
 	Root_ParentID             = `ParentID`
 	Root_Parent               = `Parent`
-
-	RootParentRoots = `ParentRoots`
+	RootParentRoots           = `ParentRoots`
 )
 
 const RootNameMaxLength = 100 // The number of runes the column can hold
@@ -96,42 +89,35 @@ const RootNameMaxLength = 100 // The number of runes the column can hold
 // The primary key will get a temporary negative number which will be replaced when the object is saved.
 // Multiple calls to Initialize are not guaranteed to create sequential values for the primary key.
 func (o *rootBase) Initialize() {
-
 	o.id = db.TemporaryPrimaryKey()
-
-	o.idIsValid = false
+	o.idIsLoaded = false
+	o.idIsDirty = false
 
 	o.name = ""
-
-	o.nameIsValid = false
+	o.nameIsLoaded = false
 	o.nameIsDirty = false
 
 	o.optionalLeafID = ""
-
 	o.optionalLeafIDIsNull = true
-	o.optionalLeafIDIsValid = true
-	o.optionalLeafIDIsDirty = true
+	o.optionalLeafIDIsLoaded = false
+	o.optionalLeafIDIsDirty = false
 
 	o.requiredLeafID = ""
-
-	o.requiredLeafIDIsValid = false
+	o.requiredLeafIDIsLoaded = false
 	o.requiredLeafIDIsDirty = false
 
 	o.optionalLeafUniqueID = ""
-
-	o.optionalLeafUniqueIDIsValid = false
+	o.optionalLeafUniqueIDIsLoaded = false
 	o.optionalLeafUniqueIDIsDirty = false
 
 	o.requiredLeafUniqueID = ""
-
-	o.requiredLeafUniqueIDIsValid = false
+	o.requiredLeafUniqueIDIsLoaded = false
 	o.requiredLeafUniqueIDIsDirty = false
 
 	o.parentID = ""
-
 	o.parentIDIsNull = true
-	o.parentIDIsValid = true
-	o.parentIDIsDirty = true
+	o.parentIDIsLoaded = false
+	o.parentIDIsDirty = false
 
 	// Reverse reference objects.
 
@@ -139,7 +125,6 @@ func (o *rootBase) Initialize() {
 	o.revParentRootsIsDirty = false
 
 	o._aliases = nil
-
 	o._restored = false
 }
 
@@ -154,58 +139,83 @@ func (o *rootBase) OriginalPrimaryKey() string {
 	return o._originalPK
 }
 
-// Copy copies all valid fields to a new Root object.
+// Copy copies most fields to a new Root object.
 // Forward reference ids will be copied, but reverse and many-many references will not.
 // Attached objects will not be included in the copy.
+// Automatically generated fields will not be included in the copy.
+// The primary key field will not be copied, since it is normally auto-generated.
 // Call Save() on the new object to save it into the database.
 // Copy might panic if any fields in the database were set to a size larger than the
 // maximum size through a process that accessed the database outside of the ORM.
 func (o *rootBase) Copy() (newObject *Root) {
 	newObject = NewRoot()
-	if o.nameIsValid {
+	if o.idIsLoaded {
+		newObject.SetID(o.id)
+	}
+	if o.nameIsLoaded {
 		newObject.SetName(o.name)
 	}
-	if o.optionalLeafIDIsValid {
+	if o.optionalLeafIDIsLoaded {
 		newObject.SetOptionalLeafID(o.optionalLeafID)
 	}
-	if o.requiredLeafIDIsValid {
+	if o.requiredLeafIDIsLoaded {
 		newObject.SetRequiredLeafID(o.requiredLeafID)
 	}
-	if o.optionalLeafUniqueIDIsValid {
+	if o.optionalLeafUniqueIDIsLoaded {
 		newObject.SetOptionalLeafUniqueID(o.optionalLeafUniqueID)
 	}
-	if o.requiredLeafUniqueIDIsValid {
+	if o.requiredLeafUniqueIDIsLoaded {
 		newObject.SetRequiredLeafUniqueID(o.requiredLeafUniqueID)
 	}
-	if o.parentIDIsValid {
+	if o.parentIDIsLoaded {
 		newObject.SetParentID(o.parentID)
 	}
 	return
 }
 
-// ID returns the loaded value of ID or
-// the zero value if not loaded. Call IDIsValid() to determine
-// if it is loaded.
+// ID returns the value of ID.
 func (o *rootBase) ID() string {
-	return fmt.Sprint(o.id)
+	if o._restored && !o.idIsLoaded {
+		panic("ID was not selected in the last query and has not been set, and so is not valid")
+	}
+	return o.id
 }
 
-// IDIsValid returns true if the value was loaded from the database or has been set.
-func (o *rootBase) IDIsValid() bool {
-	return o._restored && o.idIsValid
+// IDIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *rootBase) IDIsLoaded() bool {
+	return o.idIsLoaded
 }
 
-// Name returns the loaded value of Name.
+// SetID sets the value of ID in the object, to be saved later in the database using the Save() function.
+// Normally you will not need to call this function, since the ID value is automatically generated by the
+// database driver. Exceptions might include importing data to a new datbase, or correcting primary key conflicts when
+// merging data. In these cases, related tables will NOT be automatically updated by the ORM, so you should do that manually.
+// Note that if the database is a SQL database and it is set up so that foreign keys CASCADE on UPDATE, the database will
+// handle the change.
+func (o *rootBase) SetID(v string) {
+	if o._restored &&
+		o.idIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.id == v {
+		// no change
+		return
+	}
+
+	o.idIsLoaded = true
+	o.id = v
+	o.idIsDirty = true
+}
+
+// Name returns the value of Name.
 func (o *rootBase) Name() string {
-	if o._restored && !o.nameIsValid {
+	if o._restored && !o.nameIsLoaded {
 		panic("Name was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.name
 }
 
-// NameIsValid returns true if the value was loaded from the database or has been set.
-func (o *rootBase) NameIsValid() bool {
-	return o.nameIsValid
+// NameIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *rootBase) NameIsLoaded() bool {
+	return o.nameIsLoaded
 }
 
 // SetName sets the value of Name in the object, to be saved later in the database using the Save() function.
@@ -214,28 +224,28 @@ func (o *rootBase) SetName(v string) {
 		panic("attempted to set Root.Name to a value larger than its maximum length in runes")
 	}
 	if o._restored &&
-		o.nameIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.nameIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.name == v {
 		// no change
 		return
 	}
 
-	o.nameIsValid = true
+	o.nameIsLoaded = true
 	o.name = v
 	o.nameIsDirty = true
 }
 
-// OptionalLeafID returns the loaded value of OptionalLeafID.
+// OptionalLeafID returns the value of OptionalLeafID.
 func (o *rootBase) OptionalLeafID() string {
-	if o._restored && !o.optionalLeafIDIsValid {
+	if o._restored && !o.optionalLeafIDIsLoaded {
 		panic("OptionalLeafID was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.optionalLeafID
 }
 
-// OptionalLeafIDIsValid returns true if the value was loaded from the database or has been set.
-func (o *rootBase) OptionalLeafIDIsValid() bool {
-	return o.optionalLeafIDIsValid
+// OptionalLeafIDIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *rootBase) OptionalLeafIDIsLoaded() bool {
+	return o.optionalLeafIDIsLoaded
 }
 
 // OptionalLeafIDIsNull returns true if the related database value is null.
@@ -246,14 +256,14 @@ func (o *rootBase) OptionalLeafIDIsNull() bool {
 // SetOptionalLeafID sets the value of OptionalLeafID in the object, to be saved later in the database using the Save() function.
 func (o *rootBase) SetOptionalLeafID(v string) {
 	if o._restored &&
-		o.optionalLeafIDIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.optionalLeafIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.optionalLeafIDIsNull && // if the db value is null, force a set of value
 		o.optionalLeafID == v {
 		// no change
 		return
 	}
 
-	o.optionalLeafIDIsValid = true
+	o.optionalLeafIDIsLoaded = true
 	o.optionalLeafID = v
 	o.optionalLeafIDIsDirty = true
 	o.optionalLeafIDIsNull = false
@@ -263,11 +273,11 @@ func (o *rootBase) SetOptionalLeafID(v string) {
 // SetOptionalLeafIDToNull() will set the optional_leaf_id value in the database to NULL.
 // OptionalLeafID() will return the column's default value after this.
 func (o *rootBase) SetOptionalLeafIDToNull() {
-	if !o.optionalLeafIDIsValid || !o.optionalLeafIDIsNull {
+	if !o.optionalLeafIDIsLoaded || !o.optionalLeafIDIsNull {
 		// If we know it is null in the database, don't save it
 		o.optionalLeafIDIsDirty = true
 	}
-	o.optionalLeafIDIsValid = true
+	o.optionalLeafIDIsLoaded = true
 	o.optionalLeafIDIsNull = true
 	o.optionalLeafID = ""
 	o.objOptionalLeaf = nil
@@ -281,7 +291,7 @@ func (o *rootBase) OptionalLeaf() *Leaf {
 // LoadOptionalLeaf returns the related OptionalLeaf. If it is not already loaded,
 // it will attempt to load it, provided the OptionalLeafID column has been loaded first.
 func (o *rootBase) LoadOptionalLeaf(ctx context.Context) *Leaf {
-	if !o.optionalLeafIDIsValid {
+	if !o.optionalLeafIDIsLoaded {
 		return nil
 	}
 
@@ -295,7 +305,7 @@ func (o *rootBase) LoadOptionalLeaf(ctx context.Context) *Leaf {
 // SetOptionalLeaf will set the reference to optionalLeaf. The referenced object
 // will be saved when Root is saved. Pass nil to break the connection.
 func (o *rootBase) SetOptionalLeaf(objOptionalLeaf *Leaf) {
-	o.optionalLeafIDIsValid = true
+	o.optionalLeafIDIsLoaded = true
 	if objOptionalLeaf == nil {
 		if !o.optionalLeafIDIsNull || !o._restored {
 			o.optionalLeafIDIsNull = true
@@ -313,29 +323,29 @@ func (o *rootBase) SetOptionalLeaf(objOptionalLeaf *Leaf) {
 	}
 }
 
-// RequiredLeafID returns the loaded value of RequiredLeafID.
+// RequiredLeafID returns the value of RequiredLeafID.
 func (o *rootBase) RequiredLeafID() string {
-	if o._restored && !o.requiredLeafIDIsValid {
+	if o._restored && !o.requiredLeafIDIsLoaded {
 		panic("RequiredLeafID was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.requiredLeafID
 }
 
-// RequiredLeafIDIsValid returns true if the value was loaded from the database or has been set.
-func (o *rootBase) RequiredLeafIDIsValid() bool {
-	return o.requiredLeafIDIsValid
+// RequiredLeafIDIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *rootBase) RequiredLeafIDIsLoaded() bool {
+	return o.requiredLeafIDIsLoaded
 }
 
 // SetRequiredLeafID sets the value of RequiredLeafID in the object, to be saved later in the database using the Save() function.
 func (o *rootBase) SetRequiredLeafID(v string) {
 	if o._restored &&
-		o.requiredLeafIDIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.requiredLeafIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.requiredLeafID == v {
 		// no change
 		return
 	}
 
-	o.requiredLeafIDIsValid = true
+	o.requiredLeafIDIsLoaded = true
 	o.requiredLeafID = v
 	o.requiredLeafIDIsDirty = true
 	o.objRequiredLeaf = nil
@@ -349,7 +359,7 @@ func (o *rootBase) RequiredLeaf() *Leaf {
 // LoadRequiredLeaf returns the related RequiredLeaf. If it is not already loaded,
 // it will attempt to load it, provided the RequiredLeafID column has been loaded first.
 func (o *rootBase) LoadRequiredLeaf(ctx context.Context) *Leaf {
-	if !o.requiredLeafIDIsValid {
+	if !o.requiredLeafIDIsLoaded {
 		return nil
 	}
 
@@ -366,7 +376,7 @@ func (o *rootBase) SetRequiredLeaf(objRequiredLeaf *Leaf) {
 		panic("Cannot set RequiredLeaf to a nil value since RequiredLeafID is not nullable.")
 	} else {
 		o.objRequiredLeaf = objRequiredLeaf
-		o.requiredLeafIDIsValid = true
+		o.requiredLeafIDIsLoaded = true
 		if o.requiredLeafID != objRequiredLeaf.PrimaryKey() {
 			o.requiredLeafID = objRequiredLeaf.PrimaryKey()
 			o.requiredLeafIDIsDirty = true
@@ -374,29 +384,29 @@ func (o *rootBase) SetRequiredLeaf(objRequiredLeaf *Leaf) {
 	}
 }
 
-// OptionalLeafUniqueID returns the loaded value of OptionalLeafUniqueID.
+// OptionalLeafUniqueID returns the value of OptionalLeafUniqueID.
 func (o *rootBase) OptionalLeafUniqueID() string {
-	if o._restored && !o.optionalLeafUniqueIDIsValid {
+	if o._restored && !o.optionalLeafUniqueIDIsLoaded {
 		panic("OptionalLeafUniqueID was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.optionalLeafUniqueID
 }
 
-// OptionalLeafUniqueIDIsValid returns true if the value was loaded from the database or has been set.
-func (o *rootBase) OptionalLeafUniqueIDIsValid() bool {
-	return o.optionalLeafUniqueIDIsValid
+// OptionalLeafUniqueIDIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *rootBase) OptionalLeafUniqueIDIsLoaded() bool {
+	return o.optionalLeafUniqueIDIsLoaded
 }
 
 // SetOptionalLeafUniqueID sets the value of OptionalLeafUniqueID in the object, to be saved later in the database using the Save() function.
 func (o *rootBase) SetOptionalLeafUniqueID(v string) {
 	if o._restored &&
-		o.optionalLeafUniqueIDIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.optionalLeafUniqueIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.optionalLeafUniqueID == v {
 		// no change
 		return
 	}
 
-	o.optionalLeafUniqueIDIsValid = true
+	o.optionalLeafUniqueIDIsLoaded = true
 	o.optionalLeafUniqueID = v
 	o.optionalLeafUniqueIDIsDirty = true
 	o.objOptionalLeafUnique = nil
@@ -410,7 +420,7 @@ func (o *rootBase) OptionalLeafUnique() *Leaf {
 // LoadOptionalLeafUnique returns the related OptionalLeafUnique. If it is not already loaded,
 // it will attempt to load it, provided the OptionalLeafUniqueID column has been loaded first.
 func (o *rootBase) LoadOptionalLeafUnique(ctx context.Context) *Leaf {
-	if !o.optionalLeafUniqueIDIsValid {
+	if !o.optionalLeafUniqueIDIsLoaded {
 		return nil
 	}
 
@@ -427,7 +437,7 @@ func (o *rootBase) SetOptionalLeafUnique(objOptionalLeafUnique *Leaf) {
 		panic("Cannot set OptionalLeafUnique to a nil value since OptionalLeafUniqueID is not nullable.")
 	} else {
 		o.objOptionalLeafUnique = objOptionalLeafUnique
-		o.optionalLeafUniqueIDIsValid = true
+		o.optionalLeafUniqueIDIsLoaded = true
 		if o.optionalLeafUniqueID != objOptionalLeafUnique.PrimaryKey() {
 			o.optionalLeafUniqueID = objOptionalLeafUnique.PrimaryKey()
 			o.optionalLeafUniqueIDIsDirty = true
@@ -435,29 +445,29 @@ func (o *rootBase) SetOptionalLeafUnique(objOptionalLeafUnique *Leaf) {
 	}
 }
 
-// RequiredLeafUniqueID returns the loaded value of RequiredLeafUniqueID.
+// RequiredLeafUniqueID returns the value of RequiredLeafUniqueID.
 func (o *rootBase) RequiredLeafUniqueID() string {
-	if o._restored && !o.requiredLeafUniqueIDIsValid {
+	if o._restored && !o.requiredLeafUniqueIDIsLoaded {
 		panic("RequiredLeafUniqueID was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.requiredLeafUniqueID
 }
 
-// RequiredLeafUniqueIDIsValid returns true if the value was loaded from the database or has been set.
-func (o *rootBase) RequiredLeafUniqueIDIsValid() bool {
-	return o.requiredLeafUniqueIDIsValid
+// RequiredLeafUniqueIDIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *rootBase) RequiredLeafUniqueIDIsLoaded() bool {
+	return o.requiredLeafUniqueIDIsLoaded
 }
 
 // SetRequiredLeafUniqueID sets the value of RequiredLeafUniqueID in the object, to be saved later in the database using the Save() function.
 func (o *rootBase) SetRequiredLeafUniqueID(v string) {
 	if o._restored &&
-		o.requiredLeafUniqueIDIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.requiredLeafUniqueIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.requiredLeafUniqueID == v {
 		// no change
 		return
 	}
 
-	o.requiredLeafUniqueIDIsValid = true
+	o.requiredLeafUniqueIDIsLoaded = true
 	o.requiredLeafUniqueID = v
 	o.requiredLeafUniqueIDIsDirty = true
 	o.objRequiredLeafUnique = nil
@@ -471,7 +481,7 @@ func (o *rootBase) RequiredLeafUnique() *Leaf {
 // LoadRequiredLeafUnique returns the related RequiredLeafUnique. If it is not already loaded,
 // it will attempt to load it, provided the RequiredLeafUniqueID column has been loaded first.
 func (o *rootBase) LoadRequiredLeafUnique(ctx context.Context) *Leaf {
-	if !o.requiredLeafUniqueIDIsValid {
+	if !o.requiredLeafUniqueIDIsLoaded {
 		return nil
 	}
 
@@ -488,7 +498,7 @@ func (o *rootBase) SetRequiredLeafUnique(objRequiredLeafUnique *Leaf) {
 		panic("Cannot set RequiredLeafUnique to a nil value since RequiredLeafUniqueID is not nullable.")
 	} else {
 		o.objRequiredLeafUnique = objRequiredLeafUnique
-		o.requiredLeafUniqueIDIsValid = true
+		o.requiredLeafUniqueIDIsLoaded = true
 		if o.requiredLeafUniqueID != objRequiredLeafUnique.PrimaryKey() {
 			o.requiredLeafUniqueID = objRequiredLeafUnique.PrimaryKey()
 			o.requiredLeafUniqueIDIsDirty = true
@@ -496,17 +506,17 @@ func (o *rootBase) SetRequiredLeafUnique(objRequiredLeafUnique *Leaf) {
 	}
 }
 
-// ParentID returns the loaded value of ParentID.
+// ParentID returns the value of ParentID.
 func (o *rootBase) ParentID() string {
-	if o._restored && !o.parentIDIsValid {
+	if o._restored && !o.parentIDIsLoaded {
 		panic("ParentID was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.parentID
 }
 
-// ParentIDIsValid returns true if the value was loaded from the database or has been set.
-func (o *rootBase) ParentIDIsValid() bool {
-	return o.parentIDIsValid
+// ParentIDIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *rootBase) ParentIDIsLoaded() bool {
+	return o.parentIDIsLoaded
 }
 
 // ParentIDIsNull returns true if the related database value is null.
@@ -517,14 +527,14 @@ func (o *rootBase) ParentIDIsNull() bool {
 // SetParentID sets the value of ParentID in the object, to be saved later in the database using the Save() function.
 func (o *rootBase) SetParentID(v string) {
 	if o._restored &&
-		o.parentIDIsValid && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.parentIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.parentIDIsNull && // if the db value is null, force a set of value
 		o.parentID == v {
 		// no change
 		return
 	}
 
-	o.parentIDIsValid = true
+	o.parentIDIsLoaded = true
 	o.parentID = v
 	o.parentIDIsDirty = true
 	o.parentIDIsNull = false
@@ -534,11 +544,11 @@ func (o *rootBase) SetParentID(v string) {
 // SetParentIDToNull() will set the parent_id value in the database to NULL.
 // ParentID() will return the column's default value after this.
 func (o *rootBase) SetParentIDToNull() {
-	if !o.parentIDIsValid || !o.parentIDIsNull {
+	if !o.parentIDIsLoaded || !o.parentIDIsNull {
 		// If we know it is null in the database, don't save it
 		o.parentIDIsDirty = true
 	}
-	o.parentIDIsValid = true
+	o.parentIDIsLoaded = true
 	o.parentIDIsNull = true
 	o.parentID = ""
 	o.objParent = nil
@@ -552,7 +562,7 @@ func (o *rootBase) Parent() *Root {
 // LoadParent returns the related Parent. If it is not already loaded,
 // it will attempt to load it, provided the ParentID column has been loaded first.
 func (o *rootBase) LoadParent(ctx context.Context) *Root {
-	if !o.parentIDIsValid {
+	if !o.parentIDIsLoaded {
 		return nil
 	}
 
@@ -566,7 +576,7 @@ func (o *rootBase) LoadParent(ctx context.Context) *Root {
 // SetParent will set the reference to parent. The referenced object
 // will be saved when Root is saved. Pass nil to break the connection.
 func (o *rootBase) SetParent(objParent *Root) {
-	o.parentIDIsValid = true
+	o.parentIDIsLoaded = true
 	if objParent == nil {
 		if !o.parentIDIsNull || !o._restored {
 			o.parentIDIsNull = true
@@ -1092,7 +1102,8 @@ func (o *rootBase) load(m map[string]interface{}, objThis *Root) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
-			o.idIsValid = true
+			o.idIsLoaded = true
+			o.idIsDirty = false
 
 			o._originalPK = o.id
 
@@ -1100,20 +1111,21 @@ func (o *rootBase) load(m map[string]interface{}, objThis *Root) {
 			panic("Wrong type found for id.")
 		}
 	} else {
-		o.idIsValid = false
+		o.idIsLoaded = false
 		o.id = ""
+		o.idIsDirty = false
 	}
 
 	if v, ok := m["name"]; ok && v != nil {
 		if o.name, ok = v.(string); ok {
-			o.nameIsValid = true
+			o.nameIsLoaded = true
 			o.nameIsDirty = false
 
 		} else {
 			panic("Wrong type found for name.")
 		}
 	} else {
-		o.nameIsValid = false
+		o.nameIsLoaded = false
 		o.name = ""
 		o.nameIsDirty = false
 	}
@@ -1122,17 +1134,17 @@ func (o *rootBase) load(m map[string]interface{}, objThis *Root) {
 		if v == nil {
 			o.optionalLeafID = ""
 			o.optionalLeafIDIsNull = true
-			o.optionalLeafIDIsValid = true
+			o.optionalLeafIDIsLoaded = true
 			o.optionalLeafIDIsDirty = false
 		} else if o.optionalLeafID, ok = v.(string); ok {
 			o.optionalLeafIDIsNull = false
-			o.optionalLeafIDIsValid = true
+			o.optionalLeafIDIsLoaded = true
 			o.optionalLeafIDIsDirty = false
 		} else {
 			panic("Wrong type found for optional_leaf_id.")
 		}
 	} else {
-		o.optionalLeafIDIsValid = false
+		o.optionalLeafIDIsLoaded = false
 		o.optionalLeafIDIsNull = true
 		o.optionalLeafID = ""
 		o.optionalLeafIDIsDirty = false
@@ -1142,7 +1154,7 @@ func (o *rootBase) load(m map[string]interface{}, objThis *Root) {
 		if objOptionalLeaf, ok2 := v.(map[string]any); ok2 {
 			o.objOptionalLeaf = new(Leaf)
 			o.objOptionalLeaf.load(objOptionalLeaf, o.objOptionalLeaf)
-			o.optionalLeafIDIsValid = true
+			o.optionalLeafIDIsLoaded = true
 			o.optionalLeafIDIsDirty = false
 		} else {
 			panic("Wrong type found for OptionalLeaf object.")
@@ -1153,14 +1165,14 @@ func (o *rootBase) load(m map[string]interface{}, objThis *Root) {
 
 	if v, ok := m["required_leaf_id"]; ok && v != nil {
 		if o.requiredLeafID, ok = v.(string); ok {
-			o.requiredLeafIDIsValid = true
+			o.requiredLeafIDIsLoaded = true
 			o.requiredLeafIDIsDirty = false
 
 		} else {
 			panic("Wrong type found for required_leaf_id.")
 		}
 	} else {
-		o.requiredLeafIDIsValid = false
+		o.requiredLeafIDIsLoaded = false
 		o.requiredLeafID = ""
 		o.requiredLeafIDIsDirty = false
 	}
@@ -1169,7 +1181,7 @@ func (o *rootBase) load(m map[string]interface{}, objThis *Root) {
 		if objRequiredLeaf, ok2 := v.(map[string]any); ok2 {
 			o.objRequiredLeaf = new(Leaf)
 			o.objRequiredLeaf.load(objRequiredLeaf, o.objRequiredLeaf)
-			o.requiredLeafIDIsValid = true
+			o.requiredLeafIDIsLoaded = true
 			o.requiredLeafIDIsDirty = false
 		} else {
 			panic("Wrong type found for RequiredLeaf object.")
@@ -1180,14 +1192,14 @@ func (o *rootBase) load(m map[string]interface{}, objThis *Root) {
 
 	if v, ok := m["optional_leaf_unique_id"]; ok && v != nil {
 		if o.optionalLeafUniqueID, ok = v.(string); ok {
-			o.optionalLeafUniqueIDIsValid = true
+			o.optionalLeafUniqueIDIsLoaded = true
 			o.optionalLeafUniqueIDIsDirty = false
 
 		} else {
 			panic("Wrong type found for optional_leaf_unique_id.")
 		}
 	} else {
-		o.optionalLeafUniqueIDIsValid = false
+		o.optionalLeafUniqueIDIsLoaded = false
 		o.optionalLeafUniqueID = ""
 		o.optionalLeafUniqueIDIsDirty = false
 	}
@@ -1196,7 +1208,7 @@ func (o *rootBase) load(m map[string]interface{}, objThis *Root) {
 		if objOptionalLeafUnique, ok2 := v.(map[string]any); ok2 {
 			o.objOptionalLeafUnique = new(Leaf)
 			o.objOptionalLeafUnique.load(objOptionalLeafUnique, o.objOptionalLeafUnique)
-			o.optionalLeafUniqueIDIsValid = true
+			o.optionalLeafUniqueIDIsLoaded = true
 			o.optionalLeafUniqueIDIsDirty = false
 		} else {
 			panic("Wrong type found for OptionalLeafUnique object.")
@@ -1207,14 +1219,14 @@ func (o *rootBase) load(m map[string]interface{}, objThis *Root) {
 
 	if v, ok := m["required_leaf_unique_id"]; ok && v != nil {
 		if o.requiredLeafUniqueID, ok = v.(string); ok {
-			o.requiredLeafUniqueIDIsValid = true
+			o.requiredLeafUniqueIDIsLoaded = true
 			o.requiredLeafUniqueIDIsDirty = false
 
 		} else {
 			panic("Wrong type found for required_leaf_unique_id.")
 		}
 	} else {
-		o.requiredLeafUniqueIDIsValid = false
+		o.requiredLeafUniqueIDIsLoaded = false
 		o.requiredLeafUniqueID = ""
 		o.requiredLeafUniqueIDIsDirty = false
 	}
@@ -1223,7 +1235,7 @@ func (o *rootBase) load(m map[string]interface{}, objThis *Root) {
 		if objRequiredLeafUnique, ok2 := v.(map[string]any); ok2 {
 			o.objRequiredLeafUnique = new(Leaf)
 			o.objRequiredLeafUnique.load(objRequiredLeafUnique, o.objRequiredLeafUnique)
-			o.requiredLeafUniqueIDIsValid = true
+			o.requiredLeafUniqueIDIsLoaded = true
 			o.requiredLeafUniqueIDIsDirty = false
 		} else {
 			panic("Wrong type found for RequiredLeafUnique object.")
@@ -1236,17 +1248,17 @@ func (o *rootBase) load(m map[string]interface{}, objThis *Root) {
 		if v == nil {
 			o.parentID = ""
 			o.parentIDIsNull = true
-			o.parentIDIsValid = true
+			o.parentIDIsLoaded = true
 			o.parentIDIsDirty = false
 		} else if o.parentID, ok = v.(string); ok {
 			o.parentIDIsNull = false
-			o.parentIDIsValid = true
+			o.parentIDIsLoaded = true
 			o.parentIDIsDirty = false
 		} else {
 			panic("Wrong type found for parent_id.")
 		}
 	} else {
-		o.parentIDIsValid = false
+		o.parentIDIsLoaded = false
 		o.parentIDIsNull = true
 		o.parentID = ""
 		o.parentIDIsDirty = false
@@ -1256,7 +1268,7 @@ func (o *rootBase) load(m map[string]interface{}, objThis *Root) {
 		if objParent, ok2 := v.(map[string]any); ok2 {
 			o.objParent = new(Root)
 			o.objParent.load(objParent, o.objParent)
-			o.parentIDIsValid = true
+			o.parentIDIsLoaded = true
 			o.parentIDIsDirty = false
 		} else {
 			panic("Wrong type found for Parent object.")
@@ -1294,11 +1306,12 @@ func (o *rootBase) load(m map[string]interface{}, objThis *Root) {
 }
 
 // Save will update or insert the object, depending on the state of the object.
-// If it has any auto-generated ids, those will be updated.
-// Database errors generally will be handled by the logger and not returned here,
-// since those indicate a problem with database driver or configuration.
+// If it has an auto-generated primary key, it will be changed after an insert.
+// Database errors generally will be handled by a panic and not returned here,
+// since those indicate a problem with a database driver or configuration.
 // Save will return a db.OptimisticLockError if it detects a collision when two users
 // are attempting to change the same database record.
+// Updating a record that has not changed will have no effect on the database.
 func (o *rootBase) Save(ctx context.Context) error {
 	if o._restored {
 		return o.update(ctx)
@@ -1308,6 +1321,7 @@ func (o *rootBase) Save(ctx context.Context) error {
 }
 
 // update will update the values in the database, saving any changed values.
+// If the table has auto-generated values, those will be updated automatically.
 func (o *rootBase) update(ctx context.Context) error {
 	if !o._restored {
 		panic("cannot update a record that was not originally read from the database.")
@@ -1361,7 +1375,7 @@ func (o *rootBase) update(ctx context.Context) error {
 			o.parentID = o.objParent.PrimaryKey()
 		}
 
-		modifiedFields = o.getModifiedFields()
+		modifiedFields = o.getUpdateFields()
 		if len(modifiedFields) != 0 {
 			var err2 error
 
@@ -1431,6 +1445,7 @@ func (o *rootBase) update(ctx context.Context) error {
 
 // insert will insert the object into the database. Related items will be saved.
 func (o *rootBase) insert(ctx context.Context) (err error) {
+	var insertFields map[string]interface{}
 	d := Database()
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
@@ -1469,25 +1484,25 @@ func (o *rootBase) insert(ctx context.Context) (err error) {
 			o.parentID = o.objParent.PrimaryKey()
 		}
 
-		if !o.nameIsValid {
+		if !o.nameIsLoaded {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
-		if !o.requiredLeafIDIsValid {
+		if !o.requiredLeafIDIsLoaded {
 			panic("a value for RequiredLeafID is required, and there is no default value. Call SetRequiredLeafID() before inserting the record.")
 		}
-		if !o.optionalLeafUniqueIDIsValid {
+		if !o.optionalLeafUniqueIDIsLoaded {
 			panic("a value for OptionalLeafUniqueID is required, and there is no default value. Call SetOptionalLeafUniqueID() before inserting the record.")
 		}
-		if !o.requiredLeafUniqueIDIsValid {
+		if !o.requiredLeafUniqueIDIsLoaded {
 			panic("a value for RequiredLeafUniqueID is required, and there is no default value. Call SetRequiredLeafUniqueID() before inserting the record.")
 		}
 
-		m := o.getValidFields()
+		insertFields = o.getInsertFields()
 
-		newPk := d.Insert(ctx, "root", m)
+		newPk := d.Insert(ctx, "root", insertFields)
 		o.id = newPk
 		o._originalPK = newPk
-		o.idIsValid = true
+		o.idIsLoaded = true
 
 		if o.revParentRoots.Len() > 0 {
 			keys := o.revParentRoots.Keys()
@@ -1518,10 +1533,13 @@ func (o *rootBase) insert(ctx context.Context) (err error) {
 	return
 }
 
-// getModifiedFields returns the database columns that have been modified. This
-// will determine which specific fields are sent to the database to be changed.
-func (o *rootBase) getModifiedFields() (fields map[string]interface{}) {
+// getUpdateFields returns the database columns that will be sent to the update process.
+// This will include timestamp fields only if some other column has changed.
+func (o *rootBase) getUpdateFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
+	if o.idIsDirty {
+		fields["id"] = o.id
+	}
 	if o.nameIsDirty {
 		fields["name"] = o.name
 	}
@@ -1551,34 +1569,34 @@ func (o *rootBase) getModifiedFields() (fields map[string]interface{}) {
 	return
 }
 
-// getValidFields returns the fields that have valid data in them in a form ready to send to the database.
-func (o *rootBase) getValidFields() (fields map[string]interface{}) {
+// getInsertFields returns the fields that will be specified in an insert operation.
+// Optional fields that have not been set and have no default will be returned as nil.
+// NoSql databases should interpret this as no value. Sql databases should interpret this as
+// explicitly setting a NULL value, which would override any database specific default value.
+// Auto-generated fields will be returned with their generated values, except AutoId fields, which are generated by the
+// database driver and updated after the insert.
+func (o *rootBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-	if o.nameIsValid {
-		fields["name"] = o.name
+	if o.idIsDirty {
+		fields["id"] = o.id
 	}
-	if o.optionalLeafIDIsValid {
-		if o.optionalLeafIDIsNull {
-			fields["optional_leaf_id"] = nil
-		} else {
-			fields["optional_leaf_id"] = o.optionalLeafID
-		}
+
+	fields["name"] = o.name
+	if o.optionalLeafIDIsNull {
+		fields["optional_leaf_id"] = nil
+	} else {
+		fields["optional_leaf_id"] = o.optionalLeafID
 	}
-	if o.requiredLeafIDIsValid {
-		fields["required_leaf_id"] = o.requiredLeafID
-	}
-	if o.optionalLeafUniqueIDIsValid {
-		fields["optional_leaf_unique_id"] = o.optionalLeafUniqueID
-	}
-	if o.requiredLeafUniqueIDIsValid {
-		fields["required_leaf_unique_id"] = o.requiredLeafUniqueID
-	}
-	if o.parentIDIsValid {
-		if o.parentIDIsNull {
-			fields["parent_id"] = nil
-		} else {
-			fields["parent_id"] = o.parentID
-		}
+
+	fields["required_leaf_id"] = o.requiredLeafID
+
+	fields["optional_leaf_unique_id"] = o.optionalLeafUniqueID
+
+	fields["required_leaf_unique_id"] = o.requiredLeafUniqueID
+	if o.parentIDIsNull {
+		fields["parent_id"] = nil
+	} else {
+		fields["parent_id"] = o.parentID
 	}
 	return
 }
@@ -1634,6 +1652,7 @@ func deleteRoot(ctx context.Context, pk string) error {
 
 // resetDirtyStatus resets the dirty status of every field in the object.
 func (o *rootBase) resetDirtyStatus() {
+	o.idIsDirty = false
 	o.nameIsDirty = false
 	o.optionalLeafIDIsDirty = false
 	o.requiredLeafIDIsDirty = false
@@ -1647,7 +1666,8 @@ func (o *rootBase) resetDirtyStatus() {
 // IsDirty returns true if the object has been changed since it was read from the database or created.
 // However, a new object that has a column with a default value will be automatically marked as dirty upon creation.
 func (o *rootBase) IsDirty() (dirty bool) {
-	dirty = o.nameIsDirty ||
+	dirty = o.idIsDirty ||
+		o.nameIsDirty ||
 		o.optionalLeafIDIsDirty ||
 		(o.objOptionalLeaf != nil && o.objOptionalLeaf.IsDirty()) ||
 		o.requiredLeafIDIsDirty ||
@@ -1678,19 +1698,19 @@ func (o *rootBase) Get(key string) interface{} {
 	switch key {
 
 	case "ID":
-		if !o.idIsValid {
+		if !o.idIsLoaded {
 			return nil
 		}
 		return o.id
 
 	case "Name":
-		if !o.nameIsValid {
+		if !o.nameIsLoaded {
 			return nil
 		}
 		return o.name
 
 	case "OptionalLeafID":
-		if !o.optionalLeafIDIsValid {
+		if !o.optionalLeafIDIsLoaded {
 			return nil
 		}
 		return o.optionalLeafID
@@ -1699,7 +1719,7 @@ func (o *rootBase) Get(key string) interface{} {
 		return o.OptionalLeaf()
 
 	case "RequiredLeafID":
-		if !o.requiredLeafIDIsValid {
+		if !o.requiredLeafIDIsLoaded {
 			return nil
 		}
 		return o.requiredLeafID
@@ -1708,7 +1728,7 @@ func (o *rootBase) Get(key string) interface{} {
 		return o.RequiredLeaf()
 
 	case "OptionalLeafUniqueID":
-		if !o.optionalLeafUniqueIDIsValid {
+		if !o.optionalLeafUniqueIDIsLoaded {
 			return nil
 		}
 		return o.optionalLeafUniqueID
@@ -1717,7 +1737,7 @@ func (o *rootBase) Get(key string) interface{} {
 		return o.OptionalLeafUnique()
 
 	case "RequiredLeafUniqueID":
-		if !o.requiredLeafUniqueIDIsValid {
+		if !o.requiredLeafUniqueIDIsLoaded {
 			return nil
 		}
 		return o.requiredLeafUniqueID
@@ -1726,7 +1746,7 @@ func (o *rootBase) Get(key string) interface{} {
 		return o.RequiredLeafUnique()
 
 	case "ParentID":
-		if !o.parentIDIsValid {
+		if !o.parentIDIsLoaded {
 			return nil
 		}
 		return o.parentID
@@ -1752,15 +1772,18 @@ func (o *rootBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.id); err != nil {
 		return nil, fmt.Errorf("error encoding Root.id: %w", err)
 	}
-	if err := encoder.Encode(o.idIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Root.idIsValid: %w", err)
+	if err := encoder.Encode(o.idIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Root.idIsLoaded: %w", err)
+	}
+	if err := encoder.Encode(o.idIsDirty); err != nil {
+		return nil, fmt.Errorf("error encoding Root.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.name); err != nil {
 		return nil, fmt.Errorf("error encoding Root.name: %w", err)
 	}
-	if err := encoder.Encode(o.nameIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Root.nameIsValid: %w", err)
+	if err := encoder.Encode(o.nameIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Root.nameIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.nameIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding Root.nameIsDirty: %w", err)
@@ -1772,8 +1795,8 @@ func (o *rootBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.optionalLeafIDIsNull); err != nil {
 		return nil, fmt.Errorf("error encoding Root.optionalLeafIDIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.optionalLeafIDIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Root.optionalLeafIDIsValid: %w", err)
+	if err := encoder.Encode(o.optionalLeafIDIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Root.optionalLeafIDIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.optionalLeafIDIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding Root.optionalLeafIDIsDirty: %w", err)
@@ -1795,8 +1818,8 @@ func (o *rootBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.requiredLeafID); err != nil {
 		return nil, fmt.Errorf("error encoding Root.requiredLeafID: %w", err)
 	}
-	if err := encoder.Encode(o.requiredLeafIDIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Root.requiredLeafIDIsValid: %w", err)
+	if err := encoder.Encode(o.requiredLeafIDIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Root.requiredLeafIDIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.requiredLeafIDIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding Root.requiredLeafIDIsDirty: %w", err)
@@ -1818,8 +1841,8 @@ func (o *rootBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.optionalLeafUniqueID); err != nil {
 		return nil, fmt.Errorf("error encoding Root.optionalLeafUniqueID: %w", err)
 	}
-	if err := encoder.Encode(o.optionalLeafUniqueIDIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Root.optionalLeafUniqueIDIsValid: %w", err)
+	if err := encoder.Encode(o.optionalLeafUniqueIDIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Root.optionalLeafUniqueIDIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.optionalLeafUniqueIDIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding Root.optionalLeafUniqueIDIsDirty: %w", err)
@@ -1841,8 +1864,8 @@ func (o *rootBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.requiredLeafUniqueID); err != nil {
 		return nil, fmt.Errorf("error encoding Root.requiredLeafUniqueID: %w", err)
 	}
-	if err := encoder.Encode(o.requiredLeafUniqueIDIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Root.requiredLeafUniqueIDIsValid: %w", err)
+	if err := encoder.Encode(o.requiredLeafUniqueIDIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Root.requiredLeafUniqueIDIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.requiredLeafUniqueIDIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding Root.requiredLeafUniqueIDIsDirty: %w", err)
@@ -1867,8 +1890,8 @@ func (o *rootBase) MarshalBinary() ([]byte, error) {
 	if err := encoder.Encode(o.parentIDIsNull); err != nil {
 		return nil, fmt.Errorf("error encoding Root.parentIDIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.parentIDIsValid); err != nil {
-		return nil, fmt.Errorf("error encoding Root.parentIDIsValid: %w", err)
+	if err := encoder.Encode(o.parentIDIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Root.parentIDIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.parentIDIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding Root.parentIDIsDirty: %w", err)
@@ -1931,15 +1954,18 @@ func (o *rootBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.id); err != nil {
 		return fmt.Errorf("error decoding Root.id: %w", err)
 	}
-	if err = dec.Decode(&o.idIsValid); err != nil {
-		return fmt.Errorf("error decoding Root.idIsValid: %w", err)
+	if err = dec.Decode(&o.idIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Root.idIsLoaded: %w", err)
+	}
+	if err = dec.Decode(&o.idIsDirty); err != nil {
+		return fmt.Errorf("error decoding Root.idIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.name); err != nil {
 		return fmt.Errorf("error decoding Root.name: %w", err)
 	}
-	if err = dec.Decode(&o.nameIsValid); err != nil {
-		return fmt.Errorf("error decoding Root.nameIsValid: %w", err)
+	if err = dec.Decode(&o.nameIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Root.nameIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.nameIsDirty); err != nil {
 		return fmt.Errorf("error decoding Root.nameIsDirty: %w", err)
@@ -1951,8 +1977,8 @@ func (o *rootBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.optionalLeafIDIsNull); err != nil {
 		return fmt.Errorf("error decoding Root.optionalLeafIDIsNull: %w", err)
 	}
-	if err = dec.Decode(&o.optionalLeafIDIsValid); err != nil {
-		return fmt.Errorf("error decoding Root.optionalLeafIDIsValid: %w", err)
+	if err = dec.Decode(&o.optionalLeafIDIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Root.optionalLeafIDIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.optionalLeafIDIsDirty); err != nil {
 		return fmt.Errorf("error decoding Root.optionalLeafIDIsDirty: %w", err)
@@ -1969,8 +1995,8 @@ func (o *rootBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.requiredLeafID); err != nil {
 		return fmt.Errorf("error decoding Root.requiredLeafID: %w", err)
 	}
-	if err = dec.Decode(&o.requiredLeafIDIsValid); err != nil {
-		return fmt.Errorf("error decoding Root.requiredLeafIDIsValid: %w", err)
+	if err = dec.Decode(&o.requiredLeafIDIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Root.requiredLeafIDIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.requiredLeafIDIsDirty); err != nil {
 		return fmt.Errorf("error decoding Root.requiredLeafIDIsDirty: %w", err)
@@ -1987,8 +2013,8 @@ func (o *rootBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.optionalLeafUniqueID); err != nil {
 		return fmt.Errorf("error decoding Root.optionalLeafUniqueID: %w", err)
 	}
-	if err = dec.Decode(&o.optionalLeafUniqueIDIsValid); err != nil {
-		return fmt.Errorf("error decoding Root.optionalLeafUniqueIDIsValid: %w", err)
+	if err = dec.Decode(&o.optionalLeafUniqueIDIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Root.optionalLeafUniqueIDIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.optionalLeafUniqueIDIsDirty); err != nil {
 		return fmt.Errorf("error decoding Root.optionalLeafUniqueIDIsDirty: %w", err)
@@ -2005,8 +2031,8 @@ func (o *rootBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.requiredLeafUniqueID); err != nil {
 		return fmt.Errorf("error decoding Root.requiredLeafUniqueID: %w", err)
 	}
-	if err = dec.Decode(&o.requiredLeafUniqueIDIsValid); err != nil {
-		return fmt.Errorf("error decoding Root.requiredLeafUniqueIDIsValid: %w", err)
+	if err = dec.Decode(&o.requiredLeafUniqueIDIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Root.requiredLeafUniqueIDIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.requiredLeafUniqueIDIsDirty); err != nil {
 		return fmt.Errorf("error decoding Root.requiredLeafUniqueIDIsDirty: %w", err)
@@ -2026,8 +2052,8 @@ func (o *rootBase) UnmarshalBinary(data []byte) (err error) {
 	if err = dec.Decode(&o.parentIDIsNull); err != nil {
 		return fmt.Errorf("error decoding Root.parentIDIsNull: %w", err)
 	}
-	if err = dec.Decode(&o.parentIDIsValid); err != nil {
-		return fmt.Errorf("error decoding Root.parentIDIsValid: %w", err)
+	if err = dec.Decode(&o.parentIDIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Root.parentIDIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.parentIDIsDirty); err != nil {
 		return fmt.Errorf("error decoding Root.parentIDIsDirty: %w", err)
@@ -2067,15 +2093,15 @@ func (o *rootBase) MarshalJSON() (data []byte, err error) {
 func (o *rootBase) MarshalStringMap() map[string]interface{} {
 	v := make(map[string]interface{})
 
-	if o.idIsValid {
+	if o.idIsLoaded {
 		v["id"] = o.id
 	}
 
-	if o.nameIsValid {
+	if o.nameIsLoaded {
 		v["name"] = o.name
 	}
 
-	if o.optionalLeafIDIsValid {
+	if o.optionalLeafIDIsLoaded {
 		if o.optionalLeafIDIsNull {
 			v["optionalLeafID"] = nil
 		} else {
@@ -2087,7 +2113,7 @@ func (o *rootBase) MarshalStringMap() map[string]interface{} {
 		v["optionalLeaf"] = val.MarshalStringMap()
 	}
 
-	if o.requiredLeafIDIsValid {
+	if o.requiredLeafIDIsLoaded {
 		v["requiredLeafID"] = o.requiredLeafID
 	}
 
@@ -2095,7 +2121,7 @@ func (o *rootBase) MarshalStringMap() map[string]interface{} {
 		v["requiredLeaf"] = val.MarshalStringMap()
 	}
 
-	if o.optionalLeafUniqueIDIsValid {
+	if o.optionalLeafUniqueIDIsLoaded {
 		v["optionalLeafUniqueID"] = o.optionalLeafUniqueID
 	}
 
@@ -2103,7 +2129,7 @@ func (o *rootBase) MarshalStringMap() map[string]interface{} {
 		v["optionalLeafUnique"] = val.MarshalStringMap()
 	}
 
-	if o.requiredLeafUniqueIDIsValid {
+	if o.requiredLeafUniqueIDIsLoaded {
 		v["requiredLeafUniqueID"] = o.requiredLeafUniqueID
 	}
 
@@ -2111,7 +2137,7 @@ func (o *rootBase) MarshalStringMap() map[string]interface{} {
 		v["requiredLeafUnique"] = val.MarshalStringMap()
 	}
 
-	if o.parentIDIsValid {
+	if o.parentIDIsLoaded {
 		if o.parentIDIsNull {
 			v["parentID"] = nil
 		} else {
@@ -2171,6 +2197,19 @@ func (o *rootBase) UnmarshalJSON(data []byte) (err error) {
 func (o *rootBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 	for k, v := range m {
 		switch k {
+
+		case "id":
+			{
+				if v == nil {
+					return fmt.Errorf("field %s cannot be null", k)
+				}
+
+				if s, ok := v.(string); !ok {
+					return fmt.Errorf("json field %s must be a string", k)
+				} else {
+					o.SetID(s)
+				}
+			}
 
 		case "name":
 			{

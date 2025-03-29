@@ -71,12 +71,29 @@ func deleteSampleLeaf(ctx context.Context, obj *Leaf) {
 
 // assertEqualFieldsLeaf compares two objects and asserts that the basic fields are equal.
 func assertEqualFieldsLeaf(t *testing.T, obj1, obj2 *Leaf) {
-	assert.EqualValues(t, obj1.ID(), obj2.ID())
-
-	assert.EqualValues(t, obj1.Name(), obj2.Name())
+	if obj1.IDIsLoaded() && obj2.IDIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.ID(), obj2.ID())
+	}
+	if obj1.NameIsLoaded() && obj2.NameIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.Name(), obj2.Name())
+	}
 
 }
 
+func TestLeaf_SetID(t *testing.T) {
+
+	obj := NewLeaf()
+
+	assert.True(t, obj.IsNew())
+	val := test.RandomNumberString()
+	obj.SetID(val)
+	assert.Equal(t, val, obj.ID())
+
+	// test default
+	obj.SetID("")
+	assert.EqualValues(t, "", obj.ID(), "set default")
+
+}
 func TestLeaf_SetName(t *testing.T) {
 
 	obj := NewLeaf()
@@ -119,9 +136,14 @@ func TestLeaf_BasicInsert(t *testing.T) {
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
-	assert.True(t, obj2.IDIsValid())
+	assert.True(t, obj2.IDIsLoaded())
 
-	assert.True(t, obj2.NameIsValid())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.idIsDirty)
+	obj2.SetID(obj2.ID())
+	assert.False(t, obj2.idIsDirty)
+
+	assert.True(t, obj2.NameIsLoaded())
 
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.nameIsDirty)
@@ -134,9 +156,9 @@ func TestLeaf_InsertPanics(t *testing.T) {
 	obj := createMinimalSampleLeaf()
 	ctx := db.NewContext(nil)
 
-	obj.nameIsValid = false
+	obj.nameIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.nameIsValid = true
+	obj.nameIsLoaded = true
 
 }
 

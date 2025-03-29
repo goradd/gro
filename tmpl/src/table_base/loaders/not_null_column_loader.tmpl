@@ -24,7 +24,7 @@
 {{else}}
     	if o.{{= col.VariableIdentifier() }}, ok = v.({{= col.GoType() }}); ok {
 {{if}}
-			o.{{= col.VariableIdentifier() }}IsValid = true
+			o.{{= col.VariableIdentifier() }}IsLoaded = true
 {{if col.HasSetter() }}
 			o.{{= col.VariableIdentifier() }}IsDirty = false
 {{if}}
@@ -35,7 +35,7 @@
 			panic("Wrong type found for {{= col.QueryName }}.")
 		}
 	} else {
-		o.{{= col.VariableIdentifier() }}IsValid = false
+		o.{{= col.VariableIdentifier() }}IsLoaded = false
 		o.{{= col.VariableIdentifier() }} = {{= col.DefaultValueAsValue() }}
 {{if col.HasSetter() }}
 		o.{{= col.VariableIdentifier() }}IsDirty = false

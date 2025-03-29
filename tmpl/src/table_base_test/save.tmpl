@@ -20,7 +20,7 @@ func Test{{= table.Identifier }}_BasicInsert(t *testing.T) {
     if col.IsReference() {continue} // forward references will be tested in the References test.
 }}
 
-    assert.True(t, obj2.{{= col.Identifier }}IsValid())
+    assert.True(t, obj2.{{= col.Identifier }}IsLoaded())
 {{if col.IsNullable}}
     assert.False(t, obj2.{{= col.Identifier }}IsNull())
 {{if}}
@@ -47,11 +47,11 @@ func Test{{= table.Identifier }}_InsertPanics(t *testing.T) {
     obj := createMinimalSample{{= table.Identifier }}()
     ctx := db.NewContext(nil)
 
- {{for _, col := range table.Columns }}
- {{if !col.IsNullable && col.HasSetter() && col.DefaultValue == nil }}
-    obj.{{= col.VariableIdentifier() }}IsValid = false
+ {{for _, col := range table.SettableColumns() }}
+ {{if !col.IsAutoId && !col.IsNullable }}
+    obj.{{= col.VariableIdentifier() }}IsLoaded = false
     assert.Panics(t, func() {obj.Save(ctx)})
-    obj.{{= col.VariableIdentifier() }}IsValid = true
+    obj.{{= col.VariableIdentifier() }}IsLoaded = true
 
  {{if}}
  {{for}}
@@ -69,7 +69,8 @@ func Test{{= table.Identifier }}_BasicUpdate(t *testing.T) {
 {{for _,col := range table.Columns}}
 {{if col.ReceiverType == query.ColTypeTime}} {{# In some situations, fractional times may be truncated by the database }}
     assert.WithinDuration(t, obj2.{{= col.Identifier }}(), obj.{{= col.Identifier }}(), time.Second, "{{= col.Identifier }} not within one second")
-{{elseif col.SchemaSubType != schema.ColSubTypeNumeric}}
+{{elseif col.SchemaSubType != schema.ColSubTypeNumeric &&
+        !col.IsReference() }}
     assert.Equal(t, obj2.{{= col.Identifier }}(), obj.{{= col.Identifier }}(), "{{= col.Identifier }} did not update")
 {{if}}
 {{for}}
@@ -107,9 +108,9 @@ func Test{{= table.Identifier }}_ReferenceLoad(t *testing.T) {
     assert.NotNil(t, v_{{= col.ReferenceIdentifier() }})
     assert.Equal(t, v_{{= col.ReferenceIdentifier() }}.PrimaryKey(), obj2.{{= col.ReferenceIdentifier() }}().PrimaryKey())
     assert.Equal(t, obj.{{= col.ReferenceIdentifier() }}().PrimaryKey(), obj2.{{= col.ReferenceIdentifier() }}().PrimaryKey())
-    assert.True(t, obj2.{{= col.Identifier }}IsValid())
+    assert.True(t, obj2.{{= col.Identifier }}IsLoaded())
 
-    assert.False(t, objPkOnly.{{= col.Identifier }}IsValid())
+    assert.False(t, objPkOnly.{{= col.Identifier }}IsLoaded())
     assert.Nil(t, objPkOnly.Load{{= col.ReferenceIdentifier() }}(ctx))
 
 {{if !col.IsNullable }}
