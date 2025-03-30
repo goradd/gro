@@ -4,7 +4,7 @@
 func Test{{= table.Identifier }}_EmptyPrimaryKeyGetter(t *testing.T) {
     obj := New{{= table.Identifier }}()
 
-{{if table.PrimaryKeyColumn().IsAutoId }}
+{{if table.PrimaryKeyColumn().IsAutoPK }}
     i,err := strconv.Atoi(obj.{{= table.PrimaryKeyColumn().Identifier }}())
     assert.NoError(t, err)
     assert.True(t, i < 0)
@@ -16,7 +16,7 @@ func Test{{= table.Identifier }}_EmptyPrimaryKeyGetter(t *testing.T) {
 func Test{{= table.Identifier }}_Getters(t *testing.T) {
     obj := createMinimalSample{{= table.Identifier }}()
 
-{{if table.PrimaryKeyColumn().IsAutoId }}
+{{if table.PrimaryKeyColumn().IsAutoPK }}
     i,err := strconv.Atoi(obj.{{= table.PrimaryKeyColumn().Identifier }}())
     assert.NoError(t, err)
     assert.True(t, i < 0)
@@ -29,7 +29,7 @@ func Test{{= table.Identifier }}_Getters(t *testing.T) {
     assert.True(t, Has{{= table.Identifier }}(ctx, obj.PrimaryKey()))
 
     obj2 := Load{{= table.Identifier }}(ctx, obj.PrimaryKey(), node.{{= table.Identifier }}().PrimaryKey())
-{{if !table.PrimaryKeyColumn().IsAutoId }}
+{{if !table.PrimaryKeyColumn().IsAutoPK }}
     assert.Equal(t, obj.{{= table.PrimaryKeyColumn().Identifier }}(), obj2.{{= table.PrimaryKeyColumn().Identifier }}())
 {{if}}
 

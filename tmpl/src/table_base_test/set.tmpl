@@ -17,7 +17,7 @@ func Test{{= table.Identifier }}_Set{{= col.Identifier }}(t *testing.T) {
     obj.Set{{= col.Identifier }}(val)
    {{if}}
 {{else}}
-{{if col.IsAutoId}}
+{{if col.IsAutoPK}}
     val := 	test.RandomNumberString()
 {{elseif col.SchemaSubType == schema.ColSubTypeNumeric }}
     val := 	test.RandomDecimal({{u col.DecimalPrecision()}}, {{u col.DecimalScale()}} )
@@ -85,7 +85,7 @@ func Test{{= table.Identifier }}_Copy(t *testing.T) {
     obj2 := obj.Copy()
 
 {{for _,col := range table.SettableColumns() }}
-{{if !col.IsAutoId }}
+{{if !col.IsAutoPK }}
     assert.Equal(t, obj.{{= col.Identifier }}(), obj2.{{= col.Identifier }}())
 {{if}}
 {{for}}

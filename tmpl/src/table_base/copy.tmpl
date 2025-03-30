@@ -7,7 +7,7 @@
 // Forward reference ids will be copied, but reverse and many-many references will not.
 // Attached objects will not be included in the copy.
 // Automatically generated fields will not be included in the copy.
-{{if table.HasAutoId() }}
+{{if table.HasAutoPK() }}
 // The primary key field will not be copied, since it is normally auto-generated.
 {{else}}
 // The primary key field will not be copied. You will need to manually set the primary key field before saving.

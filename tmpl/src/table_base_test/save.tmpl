@@ -30,7 +30,7 @@ func Test{{= table.Identifier }}_BasicInsert(t *testing.T) {
 {{elseif col.IsDecimal() }}
     assert.True(t, test.EqualDecimals(obj.{{= col.Identifier }}(), obj2.{{= col.Identifier }}()))
 {{if}}
-{{if col.IsAutoId}}
+{{if col.IsAutoPK}}
     assert.Panics(t, func() {
         obj2.Set{{= col.Identifier }}(obj2.{{= col.Identifier }}())
     })
@@ -50,7 +50,7 @@ func Test{{= table.Identifier }}_InsertPanics(t *testing.T) {
     ctx := db.NewContext(nil)
 
  {{for _, col := range table.SettableColumns() }}
- {{if !col.IsAutoId && !col.IsNullable }}
+ {{if !col.IsAutoPK && !col.IsNullable }}
     obj.{{= col.VariableIdentifier() }}IsLoaded = false
     assert.Panics(t, func() {obj.Save(ctx)})
     obj.{{= col.VariableIdentifier() }}IsLoaded = true
@@ -90,7 +90,7 @@ func Test{{= table.Identifier }}_ReferenceLoad(t *testing.T) {
 {{for _,col := range table.Columns }}
 {{if col.IsReference() }}
     assert.NotNil(t, obj.{{= col.ReferenceIdentifier() }}())
-{{if col.Reference.Table.PrimaryKeyColumn().IsAutoId }}
+{{if col.Reference.Table.PrimaryKeyColumn().IsAutoPK }}
     assert.NotEqual(t, '-', obj.{{= col.ReferenceIdentifier() }}().PrimaryKey()[0])
 {{if}}
 

@@ -206,7 +206,7 @@ func updateMinimalSample`); err != nil {
 		if col.IsReference() {
 			continue
 		} // references must point to objects
-		if col.IsAutoId {
+		if col.IsAutoPK {
 			continue
 		} // not normally testing the ability to set an auto generated primary key
 		testSize := min(col.Size, 100000)
@@ -1004,7 +1004,7 @@ func assertEqualFields`); err != nil {
 
 			} else {
 
-				if col.IsAutoId {
+				if col.IsAutoPK {
 
 					if _, err = io.WriteString(_w, `    val := 	test.RandomNumberString()
 `); err != nil {
@@ -1396,7 +1396,7 @@ func Test`); err != nil {
 
 		for _, col := range table.SettableColumns() {
 
-			if !col.IsAutoId {
+			if !col.IsAutoPK {
 
 				if _, err = io.WriteString(_w, `    assert.Equal(t, obj.`); err != nil {
 					return
@@ -1571,7 +1571,7 @@ func Test`); err != nil {
 
 				}
 
-				if col.IsAutoId {
+				if col.IsAutoPK {
 
 					if _, err = io.WriteString(_w, `    assert.Panics(t, func() {
         obj2.Set`); err != nil {
@@ -1678,7 +1678,7 @@ func Test`); err != nil {
 				return
 			}
 
-			if !col.IsAutoId && !col.IsNullable {
+			if !col.IsAutoPK && !col.IsNullable {
 
 				if _, err = io.WriteString(_w, `
     obj.`); err != nil {
@@ -1900,7 +1900,7 @@ func Test`); err != nil {
 					return
 				}
 
-				if col.Reference.Table.PrimaryKeyColumn().IsAutoId {
+				if col.Reference.Table.PrimaryKeyColumn().IsAutoPK {
 
 					if _, err = io.WriteString(_w, `    assert.NotEqual(t, '-', obj.`); err != nil {
 						return
@@ -3203,7 +3203,7 @@ func Test`); err != nil {
 			return
 		}
 
-		if table.PrimaryKeyColumn().IsAutoId {
+		if table.PrimaryKeyColumn().IsAutoPK {
 
 			if _, err = io.WriteString(_w, `    i,err := strconv.Atoi(obj.`); err != nil {
 				return
@@ -3262,7 +3262,7 @@ func Test`); err != nil {
 			return
 		}
 
-		if table.PrimaryKeyColumn().IsAutoId {
+		if table.PrimaryKeyColumn().IsAutoPK {
 
 			if _, err = io.WriteString(_w, `    i,err := strconv.Atoi(obj.`); err != nil {
 				return
@@ -3325,7 +3325,7 @@ func Test`); err != nil {
 			return
 		}
 
-		if !table.PrimaryKeyColumn().IsAutoId {
+		if !table.PrimaryKeyColumn().IsAutoPK {
 
 			if _, err = io.WriteString(_w, `    assert.Equal(t, obj.`); err != nil {
 				return

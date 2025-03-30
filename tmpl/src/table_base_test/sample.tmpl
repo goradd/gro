@@ -25,7 +25,7 @@ func updateMinimalSample{{= table.Identifier }}(obj *{{= table.Identifier }})  {
 {{g
     if col.ReceiverType == query.ColTypeUnknown {continue} // cannot know what the set of valid input characters are.
     if col.IsReference() {continue} // references must point to objects
-    if col.IsAutoId {continue} // not normally testing the ability to set an auto generated primary key
+    if col.IsAutoPK {continue} // not normally testing the ability to set an auto generated primary key
     testSize := min(col.Size, 100000)
 }}
 

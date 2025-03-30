@@ -105,9 +105,9 @@ func (t *Table) HasGetterName(name string) (hasName bool, desc string) {
 	return false, ""
 }
 
-// HasAutoId returns true if the table has an automatically generated primary key
-func (t *Table) HasAutoId() bool {
-	return t.PrimaryKeyColumn().IsAutoId
+// HasAutoPK returns true if the table has an automatically generated primary key
+func (t *Table) HasAutoPK() bool {
+	return t.PrimaryKeyColumn().IsAutoPK
 }
 
 // SettableColumns returns an array of columns that are settable
