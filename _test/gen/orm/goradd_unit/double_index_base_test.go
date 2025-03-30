@@ -147,21 +147,18 @@ func TestDoubleIndex_BasicInsert(t *testing.T) {
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
 	assert.True(t, obj2.IDIsLoaded())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.idIsDirty)
 	obj2.SetID(obj2.ID())
 	assert.False(t, obj2.idIsDirty)
 
 	assert.True(t, obj2.FieldIntIsLoaded())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.fieldIntIsDirty)
 	obj2.SetFieldInt(obj2.FieldInt())
 	assert.False(t, obj2.fieldIntIsDirty)
 
 	assert.True(t, obj2.FieldStringIsLoaded())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.fieldStringIsDirty)
 	obj2.SetFieldString(obj2.FieldString())

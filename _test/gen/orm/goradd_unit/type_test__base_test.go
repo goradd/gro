@@ -373,15 +373,12 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
 	assert.True(t, obj2.IDIsLoaded())
-
-	// test that setting it to the same value will not change the dirty bit
-	assert.False(t, obj2.idIsDirty)
-	obj2.SetID(obj2.ID())
-	assert.False(t, obj2.idIsDirty)
+	assert.Panics(t, func() {
+		obj2.SetID(obj2.ID())
+	})
 
 	assert.True(t, obj2.DateIsLoaded())
 	assert.False(t, obj2.DateIsNull())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.dateIsDirty)
 	obj2.SetDate(obj2.Date())
@@ -389,7 +386,6 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.TimeIsLoaded())
 	assert.False(t, obj2.TimeIsNull())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.timeIsDirty)
 	obj2.SetTime(obj2.Time())
@@ -397,7 +393,6 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.DateTimeIsLoaded())
 	assert.False(t, obj2.DateTimeIsNull())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.dateTimeIsDirty)
 	obj2.SetDateTime(obj2.DateTime())
@@ -408,7 +403,6 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.TestIntIsLoaded())
 	assert.False(t, obj2.TestIntIsNull())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.testIntIsDirty)
 	obj2.SetTestInt(obj2.TestInt())
@@ -416,14 +410,12 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.TestFloatIsLoaded())
 	assert.False(t, obj2.TestFloatIsNull())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.testFloatIsDirty)
 	obj2.SetTestFloat(obj2.TestFloat())
 	assert.False(t, obj2.testFloatIsDirty)
 
 	assert.True(t, obj2.TestDoubleIsLoaded())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.testDoubleIsDirty)
 	obj2.SetTestDouble(obj2.TestDouble())
@@ -431,7 +423,6 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.TestTextIsLoaded())
 	assert.False(t, obj2.TestTextIsNull())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.testTextIsDirty)
 	obj2.SetTestText(obj2.TestText())
@@ -439,7 +430,6 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.TestBitIsLoaded())
 	assert.False(t, obj2.TestBitIsNull())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.testBitIsDirty)
 	obj2.SetTestBit(obj2.TestBit())
@@ -447,14 +437,12 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.TestVarcharIsLoaded())
 	assert.False(t, obj2.TestVarcharIsNull())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.testVarcharIsDirty)
 	obj2.SetTestVarchar(obj2.TestVarchar())
 	assert.False(t, obj2.testVarcharIsDirty)
 
 	assert.True(t, obj2.TestBlobIsLoaded())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.testBlobIsDirty)
 	obj2.SetTestBlob(obj2.TestBlob())

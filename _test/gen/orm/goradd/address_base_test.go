@@ -183,14 +183,11 @@ func TestAddress_BasicInsert(t *testing.T) {
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
 	assert.True(t, obj2.IDIsLoaded())
-
-	// test that setting it to the same value will not change the dirty bit
-	assert.False(t, obj2.idIsDirty)
-	obj2.SetID(obj2.ID())
-	assert.False(t, obj2.idIsDirty)
+	assert.Panics(t, func() {
+		obj2.SetID(obj2.ID())
+	})
 
 	assert.True(t, obj2.StreetIsLoaded())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.streetIsDirty)
 	obj2.SetStreet(obj2.Street())
@@ -198,7 +195,6 @@ func TestAddress_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.CityIsLoaded())
 	assert.False(t, obj2.CityIsNull())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.cityIsDirty)
 	obj2.SetCity(obj2.City())

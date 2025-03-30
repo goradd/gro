@@ -1546,83 +1546,98 @@ func Test`); err != nil {
 						return
 					}
 
+				} else if col.IsDecimal() {
+
+					if _, err = io.WriteString(_w, `    assert.True(t, test.EqualDecimals(obj.`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `(), obj2.`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `()))
+`); err != nil {
+						return
+					}
+
+				}
+
+				if col.IsAutoId {
+
+					if _, err = io.WriteString(_w, `    assert.Panics(t, func() {
+        obj2.Set`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `(obj2.`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `())
+    })
+`); err != nil {
+						return
+					}
+
 				} else {
 
-					if _, err = io.WriteString(_w, `
-`); err != nil {
-						return
-					}
-
-					if col.IsDecimal() {
-
-						if _, err = io.WriteString(_w, `    assert.True(t, test.EqualDecimals(obj.`); err != nil {
-							return
-						}
-
-						if _, err = io.WriteString(_w, col.Identifier); err != nil {
-							return
-						}
-
-						if _, err = io.WriteString(_w, `(), obj2.`); err != nil {
-							return
-						}
-
-						if _, err = io.WriteString(_w, col.Identifier); err != nil {
-							return
-						}
-
-						if _, err = io.WriteString(_w, `()))
-`); err != nil {
-							return
-						}
-
-					}
-
-					if _, err = io.WriteString(_w, `
-`); err != nil {
-						return
-					}
-
-				}
-
-				if _, err = io.WriteString(_w, `    // test that setting it to the same value will not change the dirty bit
+					if _, err = io.WriteString(_w, `    // test that setting it to the same value will not change the dirty bit
     assert.False(t, obj2.`); err != nil {
-					return
-				}
+						return
+					}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-					return
-				}
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+						return
+					}
 
-				if _, err = io.WriteString(_w, `IsDirty)
+					if _, err = io.WriteString(_w, `IsDirty)
     obj2.Set`); err != nil {
-					return
-				}
+						return
+					}
 
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
+					if _, err = io.WriteString(_w, col.Identifier); err != nil {
+						return
+					}
 
-				if _, err = io.WriteString(_w, `(obj2.`); err != nil {
-					return
-				}
+					if _, err = io.WriteString(_w, `(obj2.`); err != nil {
+						return
+					}
 
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
+					if _, err = io.WriteString(_w, col.Identifier); err != nil {
+						return
+					}
 
-				if _, err = io.WriteString(_w, `())
+					if _, err = io.WriteString(_w, `())
     assert.False(t, obj2.`); err != nil {
-					return
-				}
+						return
+					}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-					return
-				}
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+						return
+					}
 
-				if _, err = io.WriteString(_w, `IsDirty)
+					if _, err = io.WriteString(_w, `IsDirty)
 `); err != nil {
-					return
+						return
+					}
+
 				}
 
 			}

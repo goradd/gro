@@ -27,18 +27,20 @@ func Test{{= table.Identifier }}_BasicInsert(t *testing.T) {
 {{if col.HasSetter()}}
 {{if col.IsEnumArray() }}
     assert.True(t, obj.{{= col.Identifier }}().Equal(obj2.{{= col.Identifier }}()))
-{{else}}
-
-{{if col.IsDecimal() }}
+{{elseif col.IsDecimal() }}
     assert.True(t, test.EqualDecimals(obj.{{= col.Identifier }}(), obj2.{{= col.Identifier }}()))
 {{if}}
-
-{{if}}
+{{if col.IsAutoId}}
+    assert.Panics(t, func() {
+        obj2.Set{{= col.Identifier }}(obj2.{{= col.Identifier }}())
+    })
+{{else}}
     // test that setting it to the same value will not change the dirty bit
     assert.False(t, obj2.{{= col.VariableIdentifier() }}IsDirty)
     obj2.Set{{= col.Identifier }}(obj2.{{= col.Identifier }}())
     assert.False(t, obj2.{{= col.VariableIdentifier() }}IsDirty)
 {{if}}
+{{if}}{{# HasSetter }}
 {{for}}
 
 }

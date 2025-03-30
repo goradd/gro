@@ -204,14 +204,11 @@ func TestLogin_BasicInsert(t *testing.T) {
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
 	assert.True(t, obj2.IDIsLoaded())
-
-	// test that setting it to the same value will not change the dirty bit
-	assert.False(t, obj2.idIsDirty)
-	obj2.SetID(obj2.ID())
-	assert.False(t, obj2.idIsDirty)
+	assert.Panics(t, func() {
+		obj2.SetID(obj2.ID())
+	})
 
 	assert.True(t, obj2.UsernameIsLoaded())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.usernameIsDirty)
 	obj2.SetUsername(obj2.Username())
@@ -219,14 +216,12 @@ func TestLogin_BasicInsert(t *testing.T) {
 
 	assert.True(t, obj2.PasswordIsLoaded())
 	assert.False(t, obj2.PasswordIsNull())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.passwordIsDirty)
 	obj2.SetPassword(obj2.Password())
 	assert.False(t, obj2.passwordIsDirty)
 
 	assert.True(t, obj2.IsEnabledIsLoaded())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.isEnabledIsDirty)
 	obj2.SetIsEnabled(obj2.IsEnabled())

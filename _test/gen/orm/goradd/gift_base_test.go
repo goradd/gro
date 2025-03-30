@@ -127,14 +127,12 @@ func TestGift_BasicInsert(t *testing.T) {
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
 	assert.True(t, obj2.NumberIsLoaded())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.numberIsDirty)
 	obj2.SetNumber(obj2.Number())
 	assert.False(t, obj2.numberIsDirty)
 
 	assert.True(t, obj2.NameIsLoaded())
-
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.nameIsDirty)
 	obj2.SetName(obj2.Name())
