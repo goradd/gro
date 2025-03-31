@@ -12617,11 +12617,7 @@ func (o *`); err != nil {
 
 				if _, err = io.WriteString(_w, `()
                 for _,i := range v2 {
-                    switch v3 := i.(type) {
-                    case json.Number:
-                        n,err := v3.Int64()
-                        if err != nil {return err}
-                        a.Add(`); err != nil {
+                    v3, err := `); err != nil {
 					return
 				}
 
@@ -12629,48 +12625,9 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `(n))
-                    case string:
-                        a.Add(`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `From`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Reference.EnumTable.FieldIdentifier(1)); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(v3))
-                    case int:
-                        a.Add(`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(v3))
-                    case float64:
-                        a.Add(`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(v3))
-                    default:
-                        return fmt.Errorf("field '%s' must be an array of numbers or strings", k)
-                    }
+				if _, err = io.WriteString(_w, `FromInterface(i)
+                    if err != nil {return err}
+                    a.Add(v3)
                 }
                 o.Set`); err != nil {
 					return
@@ -12690,11 +12647,17 @@ func (o *`); err != nil {
 
 			} else {
 
-				if _, err = io.WriteString(_w, `            switch n := v.(type) {
-            case json.Number:
-                n2,err := n.Int64()
-                if err != nil {return err}
-                o.Set`); err != nil {
+				if _, err = io.WriteString(_w, `            v2, err := `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.GoType()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `FromInterface(v)
+            if err != nil {return err}
+            o.Set`); err != nil {
 					return
 				}
 
@@ -12702,80 +12665,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `(`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(n2))
-            case int:
-                o.Set`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(n))
-            case float64:
-                o.Set`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(n))
-            case string:
-                o.Set`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `From`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Reference.EnumTable.FieldIdentifier(1)); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(n))
-            default:
-                return fmt.Errorf("field %s must be a number", k)
-            }
+				if _, err = io.WriteString(_w, `(v2)
 `); err != nil {
 					return
 				}

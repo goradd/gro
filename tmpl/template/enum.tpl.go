@@ -10,7 +10,6 @@ import (
 
 	"github.com/goradd/orm/pkg/codegen"
 	"github.com/goradd/orm/pkg/model"
-	strings2 "github.com/goradd/strings"
 )
 
 func init() {
@@ -45,13 +44,10 @@ func (tmpl *EnumTemplate) gen(table *model.Enum, _w io.Writer) (err error) {
 	if err = tmpl.genConstants(table, _w); err != nil {
 		return
 	}
-	if err = tmpl.genString(table, _w); err != nil {
+	if err = tmpl.genUtil(table, _w); err != nil {
 		return
 	}
-	if err = tmpl.genTitle(table, _w); err != nil {
-		return
-	}
-	if err = tmpl.genId(table, _w); err != nil {
+	if err = tmpl.genKey(table, _w); err != nil {
 		return
 	}
 	if err = tmpl.genPlurals(table, _w); err != nil {
@@ -61,6 +57,9 @@ func (tmpl *EnumTemplate) gen(table *model.Enum, _w io.Writer) (err error) {
 		return
 	}
 	if err = tmpl.genFields(table, _w); err != nil {
+		return
+	}
+	if err = tmpl.genMarshal(table, _w); err != nil {
 		return
 	}
 	if err = tmpl.genSet(table, _w); err != nil {
@@ -203,7 +202,7 @@ const `); err != nil {
 	return
 }
 
-func (tmpl *EnumTemplate) genString(table *model.Enum, _w io.Writer) (err error) {
+func (tmpl *EnumTemplate) genUtil(table *model.Enum, _w io.Writer) (err error) {
 
 	if _, err = io.WriteString(_w, `// String returns the name value of the type and satisfies the fmt.Stringer interface
 func (e `); err != nil {
@@ -219,12 +218,65 @@ func (e `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.Fields[1].Identifier); err != nil {
+	if _, err = io.WriteString(_w, table.Fields[2].Identifier); err != nil {
 		return
 	}
 
 	if _, err = io.WriteString(_w, `()
 }
+
+// IsValid`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` returns true if i can validly be converted to a `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `.
+func IsValid`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `(i int) bool {
+    switch i {
+`); err != nil {
+		return
+	}
+
+	for _, con := range table.Constants {
+
+		if _, err = io.WriteString(_w, `    case `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, strconv.Itoa(con.Value)); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `: return true
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `    default: return false
+    }
+}
+
 `); err != nil {
 		return
 	}
@@ -232,9 +284,9 @@ func (e `); err != nil {
 	return
 }
 
-func (tmpl *EnumTemplate) genId(table *model.Enum, _w io.Writer) (err error) {
+func (tmpl *EnumTemplate) genKey(table *model.Enum, _w io.Writer) (err error) {
 
-	if _, err = io.WriteString(_w, `// ID returns a string representation of the id and satisfies the IDer interface
+	if _, err = io.WriteString(_w, `// Key returns a string representation of the primary key and satisfies KeyLabeler interface
 func (e `); err != nil {
 		return
 	}
@@ -243,7 +295,7 @@ func (e `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `) ID() string {
+	if _, err = io.WriteString(_w, `) Key() string {
 	return strconv.Itoa(int(e))
 }
 
@@ -255,7 +307,7 @@ func (e `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `FromID converts a `); err != nil {
+	if _, err = io.WriteString(_w, `FromKey converts a `); err != nil {
 		return
 	}
 
@@ -263,7 +315,7 @@ func (e `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, ` ID to a `); err != nil {
+	if _, err = io.WriteString(_w, ` Key to a `); err != nil {
 		return
 	}
 
@@ -280,7 +332,7 @@ func `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `FromID (id string) `); err != nil {
+	if _, err = io.WriteString(_w, `FromKey (key string) `); err != nil {
 		return
 	}
 
@@ -289,7 +341,7 @@ func `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, ` {
-	switch id {
+	switch key {
 `); err != nil {
 		return
 	}
@@ -339,7 +391,7 @@ func `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `FromIDs converts a slice of `); err != nil {
+	if _, err = io.WriteString(_w, `FromKeys converts a slice of `); err != nil {
 		return
 	}
 
@@ -347,7 +399,7 @@ func `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, ` IDs to a slice of `); err != nil {
+	if _, err = io.WriteString(_w, ` Keys to a slice of `); err != nil {
 		return
 	}
 
@@ -364,7 +416,7 @@ func `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `FromIDs (ids []string) (values []`); err != nil {
+	if _, err = io.WriteString(_w, `FromKeys (keys []string) (values []`); err != nil {
 		return
 	}
 
@@ -381,8 +433,8 @@ func `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `, 0, len(ids))
-    for _,id := range ids {
+	if _, err = io.WriteString(_w, `, 0, len(keys))
+    for _,key := range keys {
         values = append(values, `); err != nil {
 		return
 	}
@@ -391,93 +443,9 @@ func `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `FromID(id))
+	if _, err = io.WriteString(_w, `FromKey(key))
     }
     return
-}
-
-// `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `FromName converts a `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, ` name to a `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `
-func `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `FromName (name string) `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, ` {
-	switch name {
-`); err != nil {
-		return
-	}
-
-	for _, con := range table.Constants {
-
-		if _, err = io.WriteString(_w, `	case `+"`"+``); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, fmt.Sprint(table.FieldValue(con.Value, 1))); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, ``+"`"+`: return `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, con.Const); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `
-`); err != nil {
-			return
-		}
-
-	}
-
-	if _, err = io.WriteString(_w, `	}
-	return `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `(0)
 }
 
 `); err != nil {
@@ -626,91 +594,7 @@ func `); err != nil {
 
 func (tmpl *EnumTemplate) genInterfaces(table *model.Enum, _w io.Writer) (err error) {
 
-	if _, err = io.WriteString(_w, `// Label returns the string that will be displayed to a user for this item and satsifies goradd's Labeler interface.
-func (e `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `) Label() string {
-	return e.Title()
-}
-
-// Value returns the value as an interface. It satisfies goradd's Valuer interface.
-func (e `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `) Value() any {
-	return e.ID()
-}
-
-`); err != nil {
-		return
-	}
-
-	return
-}
-
-func (tmpl *EnumTemplate) genTitle(table *model.Enum, _w io.Writer) (err error) {
-	for _, field := range table.Fields[1:] {
-		if field.QueryName == "title" {
-			return
-		}
-	}
-
-	if _, err = io.WriteString(_w, `// Title returns the publicly visible description of the value.
-func (e `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `) Title() string {
-	switch e {
-	case 0: return ""
-`); err != nil {
-		return
-	}
-
-	for _, con := range table.Constants {
-
-		if _, err = io.WriteString(_w, `	case `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, con.Const); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `: return `+"`"+``); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, fmt.Sprint(strings2.Title(table.FieldValue(con.Value, 1).(string)))); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, ``+"`"+`
-`); err != nil {
-			return
-		}
-
-	}
-
-	if _, err = io.WriteString(_w, `	default: panic("index out of range")
-	}
-	return "" // prevent warning
-}
+	if _, err = io.WriteString(_w, `
 `); err != nil {
 		return
 	}
@@ -789,15 +673,6 @@ func (tmpl *EnumTemplate) genFields(table *model.Enum, _w io.Writer) (err error)
 
 		if _, err = io.WriteString(_w, `	default: panic("Index out of range")
 	}
-	return `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, field.Type.DefaultValueString()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, ` // prevent warning
 }
 
 // `); err != nil {
@@ -816,11 +691,11 @@ func (tmpl *EnumTemplate) genFields(table *model.Enum, _w io.Writer) (err error)
 			return
 		}
 
-		if _, err = io.WriteString(_w, field.TitlePlural); err != nil {
+		if _, err = io.WriteString(_w, field.Identifier); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ` associated with `); err != nil {
+		if _, err = io.WriteString(_w, ` values associated with `); err != nil {
 			return
 		}
 
@@ -828,7 +703,7 @@ func (tmpl *EnumTemplate) genFields(table *model.Enum, _w io.Writer) (err error)
 			return
 		}
 
-		if _, err = io.WriteString(_w, ` values.
+		if _, err = io.WriteString(_w, `.
 // doc: type=`); err != nil {
 			return
 		}
@@ -868,16 +743,6 @@ func `); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, ` {
-	    // 0 item will be a zero value
-	    `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, field.Type.DefaultValueString()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `,
 `); err != nil {
 			return
 		}
@@ -907,6 +772,299 @@ func `); err != nil {
 		}
 
 	}
+	return
+}
+
+func (tmpl *EnumTemplate) genMarshal(table *model.Enum, _w io.Writer) (err error) {
+
+	if _, err = io.WriteString(_w, `// MarshalJSON converts the type to its identifier for JSON output.
+func (e `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `) MarshalJSON() (data []byte, err error) {
+	return json.Marshal(e.String()) // wraps it in quotes like "active"
+}
+
+// UnmarshalJSON converts a variety of possible JSON inputs to the enum type.
+func (e *`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `) UnmarshalJSON(data []byte) error {
+	var i any
+	var err error
+
+	// Use Decoder or json.Unmarshal directly
+	if err = json.Unmarshal(data, &i); err != nil {
+		return fmt.Errorf("error unmarshaling `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `: %w", err)
+	}
+	*e, err = `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `FromInterface(i)
+	return err
+}
+
+// `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `FromInterface converts a variety of data types to a `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `.
+func `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `FromInterface(i any) (`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `, error) {
+	switch v := i.(type) {
+	case float64:
+	    if IsValid`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `(int(v)) {
+	        return `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `(int(v)), nil
+	    }
+	case int:
+	    if IsValid`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `(v) {
+	        return `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `(v), nil
+	    }
+	case string:
+		// Try to parse as int
+		if v2, err := strconv.Atoi(v); err == nil {
+	        if IsValid`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `(v2) {
+    		    return `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `(v2), nil
+    		}
+		}
+		return `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `FromIdentifier(v)
+	case json.Number:
+		if v2, err := v.Int64(); err == nil {
+	        if IsValid`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `(int(v2)) {
+			    return `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `(int(v2)), nil
+			}
+		}
+	default:
+		return `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `(0), fmt.Errorf("unsupported type for `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `: %T", v)
+	}
+	return `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `(0), errors.New("invalid value for `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `")
+}
+
+func `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `FromIdentifier(i string) (e `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `, err error) {
+    switch i {
+`); err != nil {
+		return
+	}
+
+	for _, con := range table.Constants {
+
+		if _, err = io.WriteString(_w, `        case `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, fmt.Sprintf("%#v", table.FieldValue(con.Value, 2))); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `: return `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, con.Const); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `, nil
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `        default: return `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `(0), fmt.Errorf("`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `  for %s not found", i)
+    }
+}
+
+`); err != nil {
+		return
+	}
+
 	return
 }
 

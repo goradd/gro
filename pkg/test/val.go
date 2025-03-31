@@ -111,7 +111,7 @@ func RandomEnum[T ~int](valueList []T) T {
 func RandomEnumArray[T ~int](valueList []T) *maps.OrderedSet[T] {
 	values := maps.NewOrderedSet[T]()
 	values.Add(valueList[0]) // at least 1 item
-	for v := range valueList[1:] {
+	for _, v := range valueList[1:] {
 		if rng.Intn(2) == 0 {
 			values.Add(T(v))
 		}

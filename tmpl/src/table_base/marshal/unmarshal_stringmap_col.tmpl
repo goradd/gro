@@ -31,40 +31,18 @@
             if v2, ok := v.([]any); ok {
                 a := New{{= col.GoType() }}()
                 for _,i := range v2 {
-                    switch v3 := i.(type) {
-                    case json.Number:
-                        n,err := v3.Int64()
-                        if err != nil {return err}
-                        a.Add({{= col.ReferenceType() }}(n))
-                    case string:
-                        a.Add({{= col.ReferenceType() }}From{{= col.Reference.EnumTable.FieldIdentifier(1) }}(v3))
-                    case int:
-                        a.Add({{= col.ReferenceType() }}(v3))
-                    case float64:
-                        a.Add({{= col.ReferenceType() }}(v3))
-                    default:
-                        return fmt.Errorf("field '%s' must be an array of numbers or strings", k)
-                    }
+                    v3, err := {{= col.ReferenceType() }}FromInterface(i)
+                    if err != nil {return err}
+                    a.Add(v3)
                 }
                 o.Set{{= col.Identifier }}(a)
             } else {
                 return fmt.Errorf("field '%s' must be an array of numbers or strings", k)
             }
 {{else}}
-            switch n := v.(type) {
-            case json.Number:
-                n2,err := n.Int64()
-                if err != nil {return err}
-                o.Set{{= col.Identifier }}({{= col.ReferenceType() }}(n2))
-            case int:
-                o.Set{{= col.Identifier }}({{= col.ReferenceType() }}(n))
-            case float64:
-                o.Set{{= col.Identifier }}({{= col.ReferenceType() }}(n))
-            case string:
-                o.Set{{= col.Identifier }}({{= col.ReferenceType() }}From{{= col.Reference.EnumTable.FieldIdentifier(1) }}(n))
-            default:
-                return fmt.Errorf("field %s must be a number", k)
-            }
+            v2, err := {{= col.GoType() }}FromInterface(v)
+            if err != nil {return err}
+            o.Set{{= col.Identifier }}(v2)
 {{if}}
 {{else}}
 

@@ -300,93 +300,86 @@
     "enum_tables": [
       {
         "name": "person_type_enum",
-        "fields": [
+        "values": [
           {
-            "name": "id",
-            "type": "int"
+            "const": 1,
+            "identifier": "contractor"
           },
           {
-            "name": "name",
-            "type": "string"
+            "const": 2,
+            "identifier": "manager"
+          },
+          {
+            "const": 3,
+            "identifier": "inactive"
+          },
+          {
+            "const": 4,
+            "identifier": "company_car"
+          },
+          {
+            "const": 5,
+            "identifier": "works_from_home"
           }
         ],
-        "values": [
-          [
-            1,
-            "contractor"
-          ],
-          [
-            2,
-            "manager"
-          ],
-          [
-            3,
-            "inactive"
-          ],
-          [
-            4,
-            "company_car"
-          ],
-          [
-            5,
-            "works_from_home"
-          ]
-        ]
+        "fields": {
+          "const": {
+            "type": "int"
+          },
+          "identifier": {
+            "type": "string"
+          }
+        }
       },
       {
         "name": "project_status_enum",
-        "fields": [
+        "values": [
           {
-            "name": "id",
-            "type": "int"
+            "const": 1,
+            "description": "The project is currently active",
+            "guidelines": "All projects that we are working on should be in this state",
+            "is_active": true,
+            "label": "open"
           },
           {
-            "name": "name",
-            "type": "string"
+            "const": 2,
+            "description": "The project has been canned",
+            "guidelines": null,
+            "is_active": true,
+            "label": "cancelled"
           },
           {
-            "name": "description",
-            "type": "string"
+            "const": 3,
+            "description": "The project has been completed successfully",
+            "guidelines": "Celebrate successes!",
+            "is_active": true,
+            "label": "completed"
           },
           {
-            "name": "guidelines",
-            "type": "string"
-          },
-          {
-            "name": "is_active",
-            "type": "bool"
+            "const": 4,
+            "description": "Project is in the planning stages and has not been assigned a manager",
+            "guidelines": "Get ready",
+            "is_active": false,
+            "label": "planned"
           }
         ],
-        "values": [
-          [
-            1,
-            "open",
-            "The project is currently active",
-            "All projects that we are working on should be in this state",
-            true
-          ],
-          [
-            2,
-            "cancelled",
-            "The project has been canned",
-            null,
-            true
-          ],
-          [
-            3,
-            "completed",
-            "The project has been completed successfully",
-            "Celebrate successes!",
-            true
-          ],
-          [
-            4,
-            "planned",
-            "Project is in the planning stages and has not been assigned a manager",
-            "Get ready",
-            false
-          ]
-        ]
+        "fields": {
+          "const": {
+            "type": "int"
+          },
+          "description": {
+            "type": "string"
+          },
+          "guidelines": {
+            "type": "string"
+          },
+          "is_active": {
+            "type": "bool"
+          },
+          "label": {
+            "type": "string"
+          }
+        }
       }
     ],
     "association_tables": [

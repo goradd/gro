@@ -624,23 +624,25 @@ func (m *DB) getEnumTableSchema(t mysqlTable) (ed schema.EnumTable, err error) {
 	var columnNames []string
 	var receiverTypes []ReceiverType
 
-	if td.Columns[0].Type == schema.ColTypeAutoPrimaryKey ||
-		(td.Columns[0].IndexLevel == schema.IndexLevelManualPrimaryKey &&
-			(td.Columns[0].Type == schema.ColTypeInt || td.Columns[0].Type == schema.ColTypeUint)) {
-	} else {
-		err = fmt.Errorf("error: An enum table must have a single primary key that is an integer column")
-		return
-	}
-
-	if td.Columns[1].Type == schema.ColTypeAutoPrimaryKey ||
-		td.Columns[1].IndexLevel == schema.IndexLevelManualPrimaryKey {
-		err = fmt.Errorf("error: An enum table cannot have more than one primary key column")
+	if len(td.Columns) < 2 {
+		err = fmt.Errorf("error: An enum table must have at least 2 columns")
 		return
 	}
 
 	ed.Name = td.Name
+	ed.Fields = make(map[string]schema.EnumField)
 
-	for i, c := range td.Columns {
+	var hasConst bool
+	var hasLabelOrIdentifier bool
+
+	for _, c := range td.Columns {
+		if c.Name == schema.ConstKey {
+			hasConst = true
+		} else if c.Name == schema.LabelKey {
+			hasLabelOrIdentifier = true
+		} else if c.Name == schema.IdentifierKey {
+			hasLabelOrIdentifier = true
+		}
 		if c.Type == schema.ColTypeReference {
 			err = fmt.Errorf("cannot have a reference column in an enum table")
 			return
@@ -648,28 +650,28 @@ func (m *DB) getEnumTableSchema(t mysqlTable) (ed schema.EnumTable, err error) {
 		columnNames = append(columnNames, c.Name)
 		recType := ReceiverTypeFromSchema(c.Type, c.Size)
 		typ := c.Type
-		if i == 0 {
-			recType = ColTypeInteger // Force first value to be treated like an integer
+		if c.Name == schema.ConstKey && c.Type == schema.ColTypeAutoPrimaryKey {
+			recType = ColTypeInteger
 			typ = schema.ColTypeInt
-		}
-		if c.Type == schema.ColTypeUnknown {
+		} else if c.Type == schema.ColTypeUnknown {
 			recType = ColTypeBytes
 			typ = schema.ColTypeBytes
 		}
 
 		receiverTypes = append(receiverTypes, recType)
 		ft := schema.EnumField{
-			Name: c.Name,
 			Type: typ,
 		}
-		if ed.Name == "name" {
-			if len(ed.Fields) == 0 {
-				panic("1st field should be the id primary key field")
-			}
-			slices.Insert(ed.Fields, 1, &ft)
-		} else {
-			ed.Fields = append(ed.Fields, &ft)
-		}
+		ed.Fields[c.Name] = ft
+	}
+
+	if !hasConst {
+		err = fmt.Errorf(`error: An enum table must have a "const"" column`)
+		return
+	}
+	if !hasLabelOrIdentifier {
+		err = fmt.Errorf(`error: An enum table must have a "label" of "identifier" column`)
+		return
 	}
 
 	var result *sql.Rows
@@ -687,9 +689,9 @@ func (m *DB) getEnumTableSchema(t mysqlTable) (ed schema.EnumTable, err error) {
 
 	receiver := sql2.ReceiveRows(result, receiverTypes, columnNames, nil)
 	for _, row := range receiver {
-		var values []interface{}
-		for _, field := range ed.Fields {
-			values = append(values, row[field.Name])
+		values := make(map[string]any)
+		for k := range ed.Fields {
+			values[k] = row[k]
 		}
 		ed.Values = append(ed.Values, values)
 	}

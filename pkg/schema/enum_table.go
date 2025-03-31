@@ -1,30 +1,26 @@
 package schema
 
 import (
+	"encoding/json"
+	"github.com/goradd/goradd/pkg/stringmap"
 	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
+	"slices"
 	"strings"
 )
 
+const ConstKey = "const"
+const LabelKey = "label"
+const IdentifierKey = "identifier"
+
 type EnumField struct {
-	// Name is the name of the field in the database.
-	// The name of the first field is typically "id" by convention.
-	// The name of the second field must be "name", and should be a string field with lower_snake_case content.
-	// The name of the following fields is up to you, but should be lower_snake_case.
-	// A field with the name "title" will supersede the automatically created Title function generated.
-	Name string `json:"name"`
-	// Title is the title of the data stored in the field.
-	Title string `json:"title,omitempty"`
-	// TitlePlural is the plural of the Title.
-	TitlePlural string `json:"title_plural,omitempty"`
 	// Identifier is the name used in Go code to access the data.
 	Identifier string `json:"identifier,omitempty"`
 	// IdentifierPlural is the plural of the Identifier.
 	IdentifierPlural string `json:"identifier_plural,omitempty"`
 	// Type is the type of the column.
-	// The first column must be type ColTypeInt.
-	// The second column must be type ColTypeString.
-	// Other columns can be one of the other types, but not ColTypeReference.
+	// It is inferred from the data, but can be specifically identified if needed, like if integer data
+	// should be presented as floating point.
 	Type ColumnType `json:"type"`
 }
 
@@ -41,18 +37,20 @@ type EnumTable struct {
 	// Databases that do not support schemas will have this prepended to the name of the table.
 	Schema string `json:"schema,omitempty"`
 
-	// Fields describe the fields defined in the enum table.
-	// The first field name MUST be the id field, and 2nd MUST be the name field.
-	// The others are optional extra fields.
-	Fields []*EnumField `json:"fields"`
-
 	// Values are the enum values themselves.
-	// Each entry must have the same number of items as are in the Fields slice and correspond to those types.
-	// The first item in each entry should be an integer that will represent the value of the enumerated type, and the
-	// value that the database will store.
-	// The second item in each entry is a title string that will be the ToString result for that enumerated
-	// value, and will also be used to create the constant name for the value.
-	Values [][]interface{} `json:"values"`
+	// Each entry must have the same key-value pairs.
+	// Each entry must have a "const" key with an integer value. That will become the const value in Go code.
+	// Each entry must have either a "label" key, an "identifier" key, or both. The label is a human-readable
+	// description of the value, and identifier is a snake_case equivalent used as the JSON identifier for the value.
+	// If either is missing, it will be generated from the other.
+	// Additional entries will create accessor functions for those values.
+	// The first entry will determine what types are inferred for each value.
+	Values []map[string]any `json:"values"`
+
+	// Fields provides further descriptions for the accessor functions.
+	// If the entries are omitted, a default will be generated.
+	// Keys are the same as the keys in the Values entries.
+	Fields map[string]EnumField `json:"fields,omitempty"`
 
 	// Title is the name of the object when describing it to humans.
 	// If creating a multi-language app, your app would provide translation from this string to the language of choice.
@@ -93,18 +91,72 @@ func (t *EnumTable) FillDefaults(suffix string) {
 	if t.IdentifierPlural == "" {
 		t.IdentifierPlural = strings2.Plural(t.Identifier)
 	}
-	for _, f := range t.Fields {
-		if f.Title == "" {
-			f.Title = strings2.Title(f.Name)
+	if len(t.Values) == 0 {
+		return // this will not generate anything. Assume it is a placeholder to be filled in later by the developer.
+	}
+	// Sanity check the values
+	for _, v := range t.Values {
+		if _, ok := v[ConstKey]; !ok {
+			panic("const is required for every value entry")
 		}
-		if f.TitlePlural == "" {
-			f.TitlePlural = strings2.Plural(f.Title)
+		_, hasId := v[IdentifierKey].(string)
+		_, hasLabel := v[LabelKey].(string)
+		if !(hasId || hasLabel) {
+			panic("A label or identifier of type string is required for every value entry")
 		}
+		if !hasId {
+			v[IdentifierKey] = snaker.CamelToSnakeIdentifier(v[LabelKey].(string))
+		}
+		if !hasLabel {
+			v[LabelKey] = strings2.Title(v[IdentifierKey].(string))
+		}
+	}
+
+	for _, k := range t.FieldKeys() {
+		f, ok := t.Fields[k]
+		if !ok {
+			f = EnumField{}
+		}
+
 		if f.Identifier == "" {
-			f.Identifier = snaker.SnakeToCamelIdentifier(f.Name)
+			f.Identifier = snaker.SnakeToCamelIdentifier(k)
 		}
 		if f.IdentifierPlural == "" {
 			f.IdentifierPlural = strings2.Plural(f.Identifier)
 		}
+		if f.Type == ColTypeUnknown {
+			switch v := t.Values[0][k].(type) {
+			case string:
+				f.Type = ColTypeString
+			case int:
+			case int64:
+			case int32:
+				f.Type = ColTypeInt
+			case float64:
+			case float32:
+				f.Type = ColTypeFloat
+			case json.Number:
+				if _, err := v.Int64(); err == nil {
+					f.Type = ColTypeInt
+				} else {
+					f.Type = ColTypeFloat
+				}
+			}
+		}
+		t.Fields[k] = f
 	}
+}
+
+// FieldKeys returns the keys of the fields in deterministic order, with const, label and identifier first
+func (t *EnumTable) FieldKeys() (keys []string) {
+	keys = []string{"const", "label", "identifier"}
+	if len(t.Values) == 0 {
+		return
+	}
+	for _, k := range stringmap.SortedKeys(t.Values[0]) {
+		if !slices.Contains(keys, k) {
+			keys = append(keys, k)
+		}
+	}
+	return
 }

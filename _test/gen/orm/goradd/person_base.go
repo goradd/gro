@@ -2093,22 +2093,11 @@ func (o *personBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 				if v2, ok := v.([]any); ok {
 					a := NewPersonTypeSet()
 					for _, i := range v2 {
-						switch v3 := i.(type) {
-						case json.Number:
-							n, err := v3.Int64()
-							if err != nil {
-								return err
-							}
-							a.Add(PersonType(n))
-						case string:
-							a.Add(PersonTypeFromName(v3))
-						case int:
-							a.Add(PersonType(v3))
-						case float64:
-							a.Add(PersonType(v3))
-						default:
-							return fmt.Errorf("field '%s' must be an array of numbers or strings", k)
+						v3, err := PersonTypeFromInterface(i)
+						if err != nil {
+							return err
 						}
+						a.Add(v3)
 					}
 					o.SetTypes(a)
 				} else {

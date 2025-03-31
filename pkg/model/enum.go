@@ -35,7 +35,8 @@ type Enum struct {
 	IdentifierPlural string
 	// DecapIdentifier is the Identifier with the first letter lower case.
 	DecapIdentifier string
-	// Fields are the names of the fields defined in the table. The first field name MUST be the name of the id field, and 2nd MUST be the name of the name field, the others are optional extra fields.
+	// Fields are the names of the fields defined in the table. The first field name MUST be the const field,
+	// the 2nd the Label, and the third the Identifier. There may be additional fields.
 	Fields []EnumField
 	// Values are the go values that will be hardcoded and returned in accessor functions.
 	// The map is keyed by row id, and then by field query name
@@ -106,22 +107,14 @@ func newEnumTable(dbKey string, enumSchema *schema.EnumTable) *Enum {
 		return t
 	}
 
-	for _, field := range enumSchema.Fields {
+	keys := enumSchema.FieldKeys()
+
+	for _, k := range keys {
 		f := EnumField{
-			QueryName:        field.Name,
-			Title:            field.Title,
-			TitlePlural:      field.TitlePlural,
-			Identifier:       field.Identifier,
-			IdentifierPlural: field.IdentifierPlural,
-			Type:             ReceiverTypeFromSchema(field.Type, 0),
-		}
-		if len(t.Fields) == 0 && f.Type != ColTypeInteger {
-			slog.Error("Enum table " + t.QueryName + " must have an integer first column.")
-			return t
-		}
-		if len(t.Fields) == 1 && f.Type != ColTypeString {
-			slog.Error("Enum table " + t.QueryName + " must have an string second column.")
-			return t
+			QueryName:        k,
+			Identifier:       enumSchema.Fields[k].Identifier,
+			IdentifierPlural: enumSchema.Fields[k].IdentifierPlural,
+			Type:             ReceiverTypeFromSchema(enumSchema.Fields[k].Type, 0),
 		}
 		t.Fields = append(t.Fields, f)
 	}
@@ -133,27 +126,12 @@ func newEnumTable(dbKey string, enumSchema *schema.EnumTable) *Enum {
 			return t
 		}
 
-		valueMap := make(map[string]interface{})
-		key, ok := row[0].(int)
-
-		if !ok {
-			slog.Error(fmt.Sprintf("Enum table %s, Values row %d, does not have an integer first column.", t.QueryName, i))
-			clear(t.Values)
-			return t
+		valueMap := make(map[string]any)
+		for _, k := range keys {
+			valueMap[k] = row[k]
 		}
-		valueMap[t.Fields[0].QueryName] = key
-		value, ok := row[1].(string)
-		if !ok {
-			slog.Error(fmt.Sprintf("Enum table %s, Values row %d, does not have a string second column.", t.QueryName, i))
-			clear(t.Values)
-			return t
-		}
-		valueMap[t.Fields[1].QueryName] = value
-		t.Constants = append(t.Constants, ConstVal{key, enumValueToConstant(t.Identifier, value)})
-		for i, val := range row[2:] {
-			valueMap[t.Fields[i+2].QueryName] = val
-		}
-		t.Values[key] = valueMap
+		t.Constants = append(t.Constants, ConstVal{row[schema.ConstKey].(int), enumValueToConstant(t.Identifier, row[schema.IdentifierKey].(string))})
+		t.Values[row[schema.ConstKey].(int)] = valueMap
 	}
 	slices.SortFunc(t.Constants, func(a, b ConstVal) int {
 		return cmp.Compare(a.Value, b.Value)
@@ -168,22 +146,19 @@ func enumValueToConstant(prefix string, v string) string {
 
 type EnumField struct {
 	// QueryName is the name of the field in the database.
-	// The name of the first field is typically "id" by convention.
-	// The name of the second field must be "name".
-	// The name of the following fields is up to you, but should be lower_snake_case.
+	// The name of the first field is "const" by convention.
+	// The name of the second field is "label".
+	// The name of the third field is "identifier".
+	// Additional fields are optional.
+	// QueryNames should be lower_snake_case.
 	QueryName string
-	// Title is the title of the data stored in the field.
-	Title string
-	// TitlePlural is the plural form of the Title.
-	TitlePlural string
 	// Identifier is the name used in Go code to access the data.
 	Identifier string
 	// IdentifierPlural is the plural form of Identifier.
 	IdentifierPlural string
 	// Type is the type of the column.
-	// The first column must be type ColTypeInt.
-	// The second column must be type ColTypeString.
-	// Other columns can be one of the other types, but not ColTypeReference.
+	// The const column must be type ColTypeInt.
+	// The label and identifier columns must be type ColTypeString.
 	Type ReceiverType
 }
 

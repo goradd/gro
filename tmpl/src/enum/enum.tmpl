@@ -5,12 +5,12 @@
 func (tmpl *EnumTemplate)gen(table *model.Enum, _w io.Writer) (err error) {
     if err = tmpl.genHeader(table, _w); err != nil { return }
     if err = tmpl.genConstants(table, _w); err != nil { return }
-    if err = tmpl.genString(table, _w); err != nil { return }
-    if err = tmpl.genTitle(table, _w); err != nil { return }
-    if err = tmpl.genId(table, _w); err != nil { return }
+    if err = tmpl.genUtil(table, _w); err != nil { return }
+    if err = tmpl.genKey(table, _w); err != nil { return }
     if err = tmpl.genPlurals(table, _w); err != nil { return }
     if err = tmpl.genInterfaces(table, _w); err != nil { return }
     if err = tmpl.genFields(table, _w); err != nil { return }
+    if err = tmpl.genMarshal(table, _w); err != nil { return }
     if err = tmpl.genSet(table, _w); err != nil { return }
     return
 }
@@ -61,27 +61,38 @@ const {{= table.Identifier }}MaxValue = {{i maxKey }}
 }
 
 
-func (tmpl *EnumTemplate)genString(table *model.Enum, _w io.Writer) (err error) {
+func (tmpl *EnumTemplate)genUtil(table *model.Enum, _w io.Writer) (err error) {
 {{
 // String returns the name value of the type and satisfies the fmt.Stringer interface
 func (e {{= table.Identifier }}) String() string {
-    return e.{{= table.Fields[1].Identifier }}()
+    return e.{{= table.Fields[2].Identifier }}()
 }
+
+// IsValid{{= table.Identifier }} returns true if i can validly be converted to a {{= table.Identifier }}.
+func IsValid{{= table.Identifier }}(i int) bool {
+    switch i {
+{{for _, con := range table.Constants}}
+    case {{i con.Value}}: return true
+{{for}}
+    default: return false
+    }
+}
+
 }}
     return
 }
 
-func (tmpl *EnumTemplate)genId(table *model.Enum, _w io.Writer) (err error) {
+func (tmpl *EnumTemplate)genKey(table *model.Enum, _w io.Writer) (err error) {
 
 {{
-// ID returns a string representation of the id and satisfies the IDer interface
-func (e {{= table.Identifier }}) ID() string {
+// Key returns a string representation of the primary key and satisfies KeyLabeler interface
+func (e {{= table.Identifier }}) Key() string {
 	return strconv.Itoa(int(e))
 }
 
-// {{= table.Identifier }}FromID converts a {{= table.Identifier }} ID to a {{= table.Identifier }}
-func {{= table.Identifier }}FromID (id string) {{= table.Identifier }} {
-	switch id {
+// {{= table.Identifier }}FromKey converts a {{= table.Identifier }} Key to a {{= table.Identifier }}
+func {{= table.Identifier }}FromKey (key string) {{= table.Identifier }} {
+	switch key {
 {{for _,con := range table.Constants }}
     case `{{i con.Value }}`: return {{= con.Const }}
 {{for}}
@@ -89,23 +100,13 @@ func {{= table.Identifier }}FromID (id string) {{= table.Identifier }} {
 	return {{= table.Identifier }}(0)
 }
 
-// {{= table.IdentifierPlural }}FromIDs converts a slice of {{= table.Identifier }} IDs to a slice of {{= table.Identifier }}
-func {{= table.IdentifierPlural }}FromIDs (ids []string) (values []{{= table.Identifier }}) {
-    values = make([]{{= table.Identifier }}, 0, len(ids))
-    for _,id := range ids {
-        values = append(values, {{= table.Identifier }}FromID(id))
+// {{= table.IdentifierPlural }}FromKeys converts a slice of {{= table.Identifier }} Keys to a slice of {{= table.Identifier }}
+func {{= table.IdentifierPlural }}FromKeys (keys []string) (values []{{= table.Identifier }}) {
+    values = make([]{{= table.Identifier }}, 0, len(keys))
+    for _,key := range keys {
+        values = append(values, {{= table.Identifier }}FromKey(key))
     }
     return
-}
-
-// {{= table.Identifier }}FromName converts a {{= table.Identifier }} name to a {{= table.Identifier }}
-func {{= table.Identifier }}FromName (name string) {{= table.Identifier }} {
-	switch name {
-{{for _,con := range table.Constants }}
-	case `{{v table.FieldValue(con.Value, 1) }}`: return {{= con.Const }}
-{{for}}
-	}
-	return {{= table.Identifier }}(0)
 }
 
 }}
@@ -142,38 +143,7 @@ func {{= table.IdentifierPlural }}I() (values []any) {
 
 func (tmpl *EnumTemplate)genInterfaces(table *model.Enum, _w io.Writer) (err error) {
 {{
-// Label returns the string that will be displayed to a user for this item and satsifies goradd's Labeler interface.
-func (e {{= table.Identifier }}) Label() string {
-	return e.Title()
-}
 
-// Value returns the value as an interface. It satisfies goradd's Valuer interface.
-func (e {{= table.Identifier }}) Value() any {
-	return e.ID()
-}
-
-}}
-    return
-}
-
-func (tmpl *EnumTemplate)genTitle(table *model.Enum, _w io.Writer) (err error) {
-    for _,field := range table.Fields[1:] {
-        if field.QueryName == "title" {
-            return
-        }
-    }
-{{
-// Title returns the publicly visible description of the value.
-func (e {{= table.Identifier }}) Title() string {
-	switch e {
-	case 0: return ""
-{{for _,con := range table.Constants }}
-	case {{= con.Const }}: return `{{v strings2.Title(table.FieldValue(con.Value, 1).(string)) }}`
-{{for}}
-	default: panic("index out of range")
-	}
-	return "" // prevent warning
-}
 }}
     return
 }
@@ -191,17 +161,14 @@ func (e {{= table.Identifier }}) {{= field.Identifier }}() {{= field.GoType()}} 
 {{for}}
 	default: panic("Index out of range")
 	}
-	return {{= field.Type.DefaultValueString() }} // prevent warning
 }
 
-// {{= table.Identifier }}{{= field.IdentifierPlural }} returns a slice of all the {{= field.TitlePlural }} associated with {{= table.Identifier }} values.
+// {{= table.Identifier }}{{= field.IdentifierPlural }} returns a slice of all the {{= field.Identifier }} values associated with {{= table.Identifier }}.
 // doc: type={{= table.Identifier }}
 func {{= table.Identifier }}{{= field.IdentifierPlural }}() []{{= field.GoType()}} {
 	return []{{= field.GoType()
 
  }} {
-	    // 0 item will be a zero value
-	    {{= field.Type.DefaultValueString() }},
 {{for _,con := range table.Constants }}
 	    {{L table.FieldValue(con.Value, fieldNum) }},
 {{for}}
@@ -210,6 +177,71 @@ func {{= table.Identifier }}{{= field.IdentifierPlural }}() []{{= field.GoType()
 
 }}  
     }
+    return
+}
+
+func (tmpl *EnumTemplate)genMarshal(table *model.Enum, _w io.Writer) (err error) {
+{{
+// MarshalJSON converts the type to its identifier for JSON output.
+func (e {{= table.Identifier }}) MarshalJSON() (data []byte, err error) {
+	return json.Marshal(e.String()) // wraps it in quotes like "active"
+}
+
+// UnmarshalJSON converts a variety of possible JSON inputs to the enum type.
+func (e *{{= table.Identifier }}) UnmarshalJSON(data []byte) error {
+	var i any
+	var err error
+
+	// Use Decoder or json.Unmarshal directly
+	if err = json.Unmarshal(data, &i); err != nil {
+		return fmt.Errorf("error unmarshaling {{= table.Identifier }}: %w", err)
+	}
+	*e, err = {{= table.Identifier }}FromInterface(i)
+	return err
+}
+
+// {{= table.Identifier }}FromInterface converts a variety of data types to a {{= table.Identifier }}.
+func {{= table.Identifier }}FromInterface(i any) ({{= table.Identifier }}, error) {
+	switch v := i.(type) {
+	case float64:
+	    if IsValid{{= table.Identifier }}(int(v)) {
+	        return {{= table.Identifier }}(int(v)), nil
+	    }
+	case int:
+	    if IsValid{{= table.Identifier }}(v) {
+	        return {{= table.Identifier }}(v), nil
+	    }
+	case string:
+		// Try to parse as int
+		if v2, err := strconv.Atoi(v); err == nil {
+	        if IsValid{{= table.Identifier }}(v2) {
+    		    return {{= table.Identifier }}(v2), nil
+    		}
+		}
+		return {{= table.Identifier }}FromIdentifier(v)
+	case json.Number:
+		if v2, err := v.Int64(); err == nil {
+	        if IsValid{{= table.Identifier }}(int(v2)) {
+			    return {{= table.Identifier }}(int(v2)), nil
+			}
+		}
+	default:
+		return {{= table.Identifier }}(0), fmt.Errorf("unsupported type for {{= table.Identifier }}: %T", v)
+	}
+	return {{= table.Identifier }}(0), errors.New("invalid value for {{= table.Identifier }}")
+}
+
+func {{= table.Identifier }}FromIdentifier(i string) (e {{= table.Identifier }}, err error) {
+    switch i {
+{{for _,con := range table.Constants }}
+        case {{L table.FieldValue(con.Value, 2) }}: return {{= con.Const }}, nil
+{{for}}
+        default: return {{= table.Identifier }}(0), fmt.Errorf("{{= table.Identifier }}  for %s not found", i)
+    }
+}
+
+}}
+
     return
 }
 

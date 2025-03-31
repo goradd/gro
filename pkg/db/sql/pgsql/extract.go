@@ -612,23 +612,19 @@ func (m *DB) getEnumTableSchema(t pgTable) (ed schema.EnumTable, err error) {
 		return
 	}
 
-	if td.Columns[0].Type == schema.ColTypeAutoPrimaryKey ||
-		(td.Columns[0].IndexLevel == schema.IndexLevelManualPrimaryKey &&
-			(td.Columns[0].Type == schema.ColTypeInt || td.Columns[0].Type == schema.ColTypeUint)) {
-	} else {
-		err = fmt.Errorf("error: An enum table must have a single primary key that is an integer column")
-		return
-	}
-
-	if td.Columns[1].Type == schema.ColTypeAutoPrimaryKey ||
-		td.Columns[1].IndexLevel == schema.IndexLevelManualPrimaryKey {
-		err = fmt.Errorf("error: An enum table must cannot have more than one primary key column")
-		return
-	}
-
 	ed.Name = td.Name
 
-	for i, c := range td.Columns {
+	var hasConst bool
+	var hasLabelOrIdentifier bool
+
+	for _, c := range td.Columns {
+		if c.Name == schema.ConstKey {
+			hasConst = true
+		} else if c.Name == schema.LabelKey {
+			hasLabelOrIdentifier = true
+		} else if c.Name == schema.IdentifierKey {
+			hasLabelOrIdentifier = true
+		}
 		if c.Type == schema.ColTypeReference {
 			err = fmt.Errorf("cannot have a reference column in an enum table")
 			return
@@ -637,26 +633,25 @@ func (m *DB) getEnumTableSchema(t pgTable) (ed schema.EnumTable, err error) {
 		columnNames = append(columnNames, c.Name)
 		quotedNames = append(quotedNames, m.QuoteIdentifier(c.Name))
 		recType := ReceiverTypeFromSchema(c.Type, c.Size)
-		if i == 0 {
-			recType = ColTypeInteger // Force first value to be treated like an integer
-		}
-		if c.Type == schema.ColTypeUnknown {
+		if c.Name == schema.ConstKey && c.Type == schema.ColTypeAutoPrimaryKey {
+			recType = ColTypeInteger
+		} else if c.Type == schema.ColTypeUnknown {
 			recType = ColTypeBytes
 		}
 		receiverTypes = append(receiverTypes, recType)
 		ft := schema.EnumField{
-			Name: c.Name,
 			Type: c.Type,
 		}
+		ed.Fields[c.Name] = ft
+	}
 
-		if ed.Name == "name" {
-			if len(ed.Fields) == 0 {
-				panic("1st field should be the id primary key field")
-			}
-			slices.Insert(ed.Fields, 1, &ft)
-		} else {
-			ed.Fields = append(ed.Fields, &ft)
-		}
+	if !hasConst {
+		err = fmt.Errorf(`error: An enum table must have a "const"" column`)
+		return
+	}
+	if !hasLabelOrIdentifier {
+		err = fmt.Errorf(`error: An enum table must have a "label" of "identifier" column`)
+		return
 	}
 
 	stmt := fmt.Sprintf(`
@@ -679,9 +674,9 @@ ORDER BY
 
 	receiver := sql2.ReceiveRows(result, receiverTypes, columnNames, nil)
 	for _, row := range receiver {
-		var values []interface{}
-		for _, field := range ed.Fields {
-			values = append(values, row[field.Name])
+		values := make(map[string]any)
+		for k := range ed.Fields {
+			values[k] = row[k]
 		}
 		ed.Values = append(ed.Values, values)
 	}

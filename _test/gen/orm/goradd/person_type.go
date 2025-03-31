@@ -4,6 +4,9 @@ package goradd
 
 import (
 	"encoding/gob"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/goradd/maps"
@@ -25,38 +28,35 @@ const PersonTypeMaxValue = 5
 
 // String returns the name value of the type and satisfies the fmt.Stringer interface
 func (e PersonType) String() string {
-	return e.Name()
+	return e.Identifier()
 }
 
-// Title returns the publicly visible description of the value.
-func (e PersonType) Title() string {
-	switch e {
-	case 0:
-		return ""
-	case PersonTypeContractor:
-		return `Contractor`
-	case PersonTypeManager:
-		return `Manager`
-	case PersonTypeInactive:
-		return `Inactive`
-	case PersonTypeCompanyCar:
-		return `Company Car`
-	case PersonTypeWorksFromHome:
-		return `Works From Home`
+// IsValidPersonType returns true if i can validly be converted to a PersonType.
+func IsValidPersonType(i int) bool {
+	switch i {
+	case 1:
+		return true
+	case 2:
+		return true
+	case 3:
+		return true
+	case 4:
+		return true
+	case 5:
+		return true
 	default:
-		panic("index out of range")
+		return false
 	}
-	return "" // prevent warning
 }
 
-// ID returns a string representation of the id and satisfies the IDer interface
-func (e PersonType) ID() string {
+// Key returns a string representation of the primary key and satisfies KeyLabeler interface
+func (e PersonType) Key() string {
 	return strconv.Itoa(int(e))
 }
 
-// PersonTypeFromID converts a PersonType ID to a PersonType
-func PersonTypeFromID(id string) PersonType {
-	switch id {
+// PersonTypeFromKey converts a PersonType Key to a PersonType
+func PersonTypeFromKey(key string) PersonType {
+	switch key {
 	case `1`:
 		return PersonTypeContractor
 	case `2`:
@@ -71,30 +71,13 @@ func PersonTypeFromID(id string) PersonType {
 	return PersonType(0)
 }
 
-// PersonTypesFromIDs converts a slice of PersonType IDs to a slice of PersonType
-func PersonTypesFromIDs(ids []string) (values []PersonType) {
-	values = make([]PersonType, 0, len(ids))
-	for _, id := range ids {
-		values = append(values, PersonTypeFromID(id))
+// PersonTypesFromKeys converts a slice of PersonType Keys to a slice of PersonType
+func PersonTypesFromKeys(keys []string) (values []PersonType) {
+	values = make([]PersonType, 0, len(keys))
+	for _, key := range keys {
+		values = append(values, PersonTypeFromKey(key))
 	}
 	return
-}
-
-// PersonTypeFromName converts a PersonType name to a PersonType
-func PersonTypeFromName(name string) PersonType {
-	switch name {
-	case `contractor`:
-		return PersonTypeContractor
-	case `manager`:
-		return PersonTypeManager
-	case `inactive`:
-		return PersonTypeInactive
-	case `company_car`:
-		return PersonTypeCompanyCar
-	case `works_from_home`:
-		return PersonTypeWorksFromHome
-	}
-	return PersonType(0)
 }
 
 // PersonTypes returns a slice of all the PersonType values
@@ -121,17 +104,38 @@ func PersonTypesI() (values []any) {
 	}
 }
 
-// Label returns the string that will be displayed to a user for this item and satsifies goradd's Labeler interface.
 func (e PersonType) Label() string {
-	return e.Title()
+	switch e {
+	case 0:
+		return ""
+	case PersonTypeContractor:
+		return "Contractor"
+	case PersonTypeManager:
+		return "Manager"
+	case PersonTypeInactive:
+		return "Inactive"
+	case PersonTypeCompanyCar:
+		return "Company Car"
+	case PersonTypeWorksFromHome:
+		return "Works From Home"
+	default:
+		panic("Index out of range")
+	}
 }
 
-// Value returns the value as an interface. It satisfies goradd's Valuer interface.
-func (e PersonType) Value() any {
-	return e.ID()
+// PersonTypeLabels returns a slice of all the Label values associated with PersonType.
+// doc: type=PersonType
+func PersonTypeLabels() []string {
+	return []string{
+		"Contractor",
+		"Manager",
+		"Inactive",
+		"Company Car",
+		"Works From Home",
+	}
 }
 
-func (e PersonType) Name() string {
+func (e PersonType) Identifier() string {
 	switch e {
 	case 0:
 		return ""
@@ -148,20 +152,83 @@ func (e PersonType) Name() string {
 	default:
 		panic("Index out of range")
 	}
-	return "" // prevent warning
 }
 
-// PersonTypeNames returns a slice of all the Names associated with PersonType values.
+// PersonTypeIdentifiers returns a slice of all the Identifier values associated with PersonType.
 // doc: type=PersonType
-func PersonTypeNames() []string {
+func PersonTypeIdentifiers() []string {
 	return []string{
-		// 0 item will be a zero value
-		"",
 		"contractor",
 		"manager",
 		"inactive",
 		"company_car",
 		"works_from_home",
+	}
+}
+
+// MarshalJSON converts the type to its identifier for JSON output.
+func (e PersonType) MarshalJSON() (data []byte, err error) {
+	return json.Marshal(e.String()) // wraps it in quotes like "active"
+}
+
+// UnmarshalJSON converts a variety of possible JSON inputs to the enum type.
+func (e *PersonType) UnmarshalJSON(data []byte) error {
+	var i any
+	var err error
+
+	// Use Decoder or json.Unmarshal directly
+	if err = json.Unmarshal(data, &i); err != nil {
+		return fmt.Errorf("error unmarshaling PersonType: %w", err)
+	}
+	*e, err = PersonTypeFromInterface(i)
+	return err
+}
+
+// PersonTypeFromInterface converts a variety of data types to a PersonType.
+func PersonTypeFromInterface(i any) (PersonType, error) {
+	switch v := i.(type) {
+	case float64:
+		if IsValidPersonType(int(v)) {
+			return PersonType(int(v)), nil
+		}
+	case int:
+		if IsValidPersonType(v) {
+			return PersonType(v), nil
+		}
+	case string:
+		// Try to parse as int
+		if v2, err := strconv.Atoi(v); err == nil {
+			if IsValidPersonType(v2) {
+				return PersonType(v2), nil
+			}
+		}
+		return PersonTypeFromIdentifier(v)
+	case json.Number:
+		if v2, err := v.Int64(); err == nil {
+			if IsValidPersonType(int(v2)) {
+				return PersonType(int(v2)), nil
+			}
+		}
+	default:
+		return PersonType(0), fmt.Errorf("unsupported type for PersonType: %T", v)
+	}
+	return PersonType(0), errors.New("invalid value for PersonType")
+}
+
+func PersonTypeFromIdentifier(i string) (e PersonType, err error) {
+	switch i {
+	case "contractor":
+		return PersonTypeContractor, nil
+	case "manager":
+		return PersonTypeManager, nil
+	case "inactive":
+		return PersonTypeInactive, nil
+	case "company_car":
+		return PersonTypeCompanyCar, nil
+	case "works_from_home":
+		return PersonTypeWorksFromHome, nil
+	default:
+		return PersonType(0), fmt.Errorf("PersonType  for %s not found", i)
 	}
 }
 

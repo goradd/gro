@@ -3425,22 +3425,11 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				switch n := v.(type) {
-				case json.Number:
-					n2, err := n.Int64()
-					if err != nil {
-						return err
-					}
-					o.SetStatus(ProjectStatus(n2))
-				case int:
-					o.SetStatus(ProjectStatus(n))
-				case float64:
-					o.SetStatus(ProjectStatus(n))
-				case string:
-					o.SetStatus(ProjectStatusFromName(n))
-				default:
-					return fmt.Errorf("field %s must be a number", k)
+				v2, err := ProjectStatusFromInterface(v)
+				if err != nil {
+					return err
 				}
+				o.SetStatus(v2)
 			}
 
 		case "managerID":

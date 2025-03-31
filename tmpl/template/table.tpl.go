@@ -212,7 +212,7 @@ func (o *`); err != nil {
     return fmt.Sprintf("%v", o.PrimaryKey())
 }
 
-// Label returns a human readable label of the object.
+// Label returns a human-readable label of the object.
 // This would be what a user would see as a description of the object if choosing from a list.
 func (o *`); err != nil {
 		return
