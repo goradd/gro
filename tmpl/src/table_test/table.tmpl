@@ -51,7 +51,7 @@ func Test{{= table.Identifier }}_Label(t *testing.T) {
 {{if col := table.ColumnByName("name"); col != nil}}
     assert.Equal(t, "", s)
 {{else}}
-    assert.True(t, strings.HasPrefix(s, "{{= table.Title }}"))
+    assert.True(t, strings.HasPrefix(s, "{{= table.Label }}"))
 {{if}}
 }
 

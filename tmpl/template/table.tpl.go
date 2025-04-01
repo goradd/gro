@@ -251,7 +251,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.Title); err != nil {
+		if _, err = io.WriteString(_w, table.Label); err != nil {
 			return
 		}
 

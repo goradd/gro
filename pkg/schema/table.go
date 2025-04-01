@@ -25,15 +25,15 @@ type Table struct {
 	// Single-column indexes are defined in the Column structure.
 	MultiColumnIndexes []MultiColumnIndex `json:"multi_column_indexes,omitempty"`
 
-	// Title is the name of the object when describing it to humans.
+	// Label is the name of the object when describing it to humans.
 	// This is not used by the ORM, but may be used by UI generators.
 	// If creating a multi-language app, your app would provide translation from this string to the language of choice.
 	// Can be multiple words.
 	// If left blank, the app will base this on the Name of the table.
-	Title string `json:"title,omitempty"`
+	Label string `json:"label,omitempty"`
 
-	// TitlePlural is the plural form of the Title.
-	TitlePlural string `json:"title_plural,omitempty"`
+	// LabelPlural is the plural form of the Label.
+	LabelPlural string `json:"title_plural,omitempty"`
 
 	// Identifier is the corresponding Go object name. It must obey Go identifier labeling rules.
 	Identifier string `json:"identifier,omitempty"`
@@ -64,11 +64,11 @@ func (t *Table) QualifiedName() string {
 }
 
 func (t *Table) FillDefaults(db *Database) {
-	if t.Title == "" {
-		t.Title = strings2.Title(t.Name)
+	if t.Label == "" {
+		t.Label = strings2.Title(t.Name)
 	}
-	if t.TitlePlural == "" {
-		t.TitlePlural = strings2.Plural(t.Title)
+	if t.LabelPlural == "" {
+		t.LabelPlural = strings2.Plural(t.Label)
 	}
 	if t.Identifier == "" {
 		t.Identifier = snaker.SnakeToCamelIdentifier(t.QualifiedName())

@@ -124,9 +124,9 @@ func (m *Database) importReference(table *Table, schemaCol *schema.Column) {
 			Table:                   refTable,
 			EnumTable:               et,
 			Identifier:              schemaCol.Reference.Identifier,
-			Title:                   schemaCol.Reference.Title,
+			Label:                   schemaCol.Reference.Label,
 			ReverseTitle:            schemaCol.Reference.ReverseTitle,
-			ReverseTitlePlural:      schemaCol.Reference.ReverseTitlePlural,
+			ReverseLabelPlural:      schemaCol.Reference.ReverseLabelPlural,
 			ReverseIdentifier:       schemaCol.Reference.ReverseIdentifier,
 			ReverseIdentifierPlural: schemaCol.Reference.ReverseIdentifierPlural,
 		}

@@ -31,8 +31,8 @@ type Column struct {
 	// Enum references should NOT keep the "ID" value in this name.
 	Identifier string `json:"identifier,omitempty"`
 
-	// Title is the human-readable description of the item. Leave blank to base it on the Name.
-	Title string `json:"title,omitempty"`
+	// Label is the human-readable description of the item. Leave blank to base it on the Name.
+	Label string `json:"label,omitempty"`
 
 	// If a string column, Size is the maximum length of runes that the column can accommodate.
 	// If a []byte column, Size is the maximum number of bytes allowed in the column.
@@ -89,8 +89,8 @@ type Reference struct {
 	// Identifier is the Go name used for the referenced object.
 	Identifier string `json:"identifier,omitempty"`
 
-	// Title is the human-readable name for the referenced object.
-	Title string `json:"title,omitempty"`
+	// Label is the human-readable name for the referenced object.
+	Label string `json:"label,omitempty"`
 
 	// The singular description of this table's objects as referred to by the referenced table.
 	// If not specified, one will be created.
@@ -98,7 +98,7 @@ type Reference struct {
 
 	// The plural description of this table's objects as referred to by the reference object.
 	// If not specified, the ReverseTitle will be pluralized.
-	ReverseTitlePlural string `json:"reverse_title_plural,omitempty"`
+	ReverseLabelPlural string `json:"reverse_title_plural,omitempty"`
 
 	// The singular Go identifier that will be used for the reverse relationships.
 	// If not specified, the ReverseTitle will be used to create one.
@@ -131,18 +131,18 @@ func (c *Column) FillDefaults(db *Database, table *Table) {
 			}
 		}
 		objName := strings.TrimSuffix(c.Name, db.EnumTableSuffix)
-		if c.Title == "" {
-			c.Title = strings2.Title(objName)
+		if c.Label == "" {
+			c.Label = strings2.Title(objName)
 			if c.Type == ColTypeEnumArray {
-				c.Title = strings2.Plural(c.Title)
+				c.Label = strings2.Plural(c.Label)
 			}
 			if c.Identifier == "" {
-				c.Identifier = snaker.ForceCamelIdentifier(c.Title)
+				c.Identifier = snaker.ForceCamelIdentifier(c.Label)
 			}
 		}
 	}
-	if c.Title == "" {
-		c.Title = strings2.Title(c.Name)
+	if c.Label == "" {
+		c.Label = strings2.Title(c.Name)
 	}
 
 	if c.Reference != nil {
@@ -151,17 +151,17 @@ func (c *Column) FillDefaults(db *Database, table *Table) {
 		if c.Reference.Identifier == "" {
 			c.Reference.Identifier = snaker.ForceCamelIdentifier(objName)
 		}
-		if c.Reference.Title == "" {
-			c.Reference.Title = strings2.Title(c.Reference.Identifier)
+		if c.Reference.Label == "" {
+			c.Reference.Label = strings2.Title(c.Reference.Identifier)
 		}
 		if objName == c.Reference.Table {
 			objName = ""
 		}
 		if c.Reference.ReverseTitle == "" {
-			c.Reference.ReverseTitle = If(objName, snaker.ForceCamelIdentifier(objName)+" "+table.Title, table.Title)
+			c.Reference.ReverseTitle = If(objName, snaker.ForceCamelIdentifier(objName)+" "+table.Label, table.Label)
 		}
-		if c.Reference.ReverseTitlePlural == "" && c.IndexLevel != IndexLevelUnique {
-			c.Reference.ReverseTitlePlural = strings2.Plural(c.Reference.ReverseTitle)
+		if c.Reference.ReverseLabelPlural == "" && c.IndexLevel != IndexLevelUnique {
+			c.Reference.ReverseLabelPlural = strings2.Plural(c.Reference.ReverseTitle)
 		}
 		if c.Reference.ReverseIdentifier == "" {
 			c.Reference.ReverseIdentifier = snaker.ForceCamelIdentifier(c.Reference.ReverseTitle)

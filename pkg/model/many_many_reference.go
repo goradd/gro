@@ -21,10 +21,10 @@ type ManyManyReference struct {
 	// DestinationTable is the table being linked (the table that we are joining to)
 	DestinationTable *Table
 
-	// Title is the human-readable title of the objects pointed to.
-	Title string
-	// TitlePlural is the plural of Title
-	TitlePlural string
+	// Label is the human-readable title of the objects pointed to.
+	Label string
+	// LabelPlural is the plural of Label
+	LabelPlural string
 	// Identifier is the name used to refer to an object on the other end of the reference.
 	// It is not the same as the object type. For example TeamMember would refer to a Person type.
 	// This is derived from the AssnDestColumnName but can be overridden.
@@ -97,8 +97,8 @@ func makeManyManyRef(
 		AssnDestColumnName:   column2,
 		AssnDestColumnType:   type2,
 		DestinationTable:     t2,
-		Title:                title,
-		TitlePlural:          titles,
+		Label:                title,
+		LabelPlural:          titles,
 		Identifier:           id,
 		IdentifierPlural:     ids,
 	}

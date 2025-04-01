@@ -52,14 +52,14 @@ type EnumTable struct {
 	// Keys are the same as the keys in the Values entries.
 	Fields map[string]EnumField `json:"fields,omitempty"`
 
-	// Title is the name of the object when describing it to humans.
+	// Label is the name of the object when describing it to humans.
 	// If creating a multi-language app, your app would provide translation from this string to the language of choice.
 	// Can be multiple words. Should be lower-case. The app will use github.com/goradd/strings.ReverseTitle() to capitalize this if needed.
 	// If left blank, the app will base this on the Name of the table.
-	Title string `json:"title,omitempty"`
+	Label string `json:"label,omitempty"`
 
-	// TitlePlural is the plural form of the Title.
-	TitlePlural string `json:"title_plural,omitempty"`
+	// LabelPlural is the plural form of the Label.
+	LabelPlural string `json:"title_plural,omitempty"`
 
 	// Identifier is the corresponding Go object name. It must obey Go identifier labeling rules. Leave blank
 	// to base it on the Name.
@@ -79,11 +79,11 @@ func (t *EnumTable) QualifiedName() string {
 
 func (t *EnumTable) FillDefaults(suffix string) {
 	name := strings.TrimSuffix(t.QualifiedName(), suffix)
-	if t.Title == "" {
-		t.Title = strings2.Title(name)
+	if t.Label == "" {
+		t.Label = strings2.Title(name)
 	}
-	if t.TitlePlural == "" {
-		t.TitlePlural = strings2.Plural(t.Title)
+	if t.LabelPlural == "" {
+		t.LabelPlural = strings2.Plural(t.Label)
 	}
 	if t.Identifier == "" {
 		t.Identifier = snaker.SnakeToCamelIdentifier(name)

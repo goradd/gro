@@ -25,10 +25,10 @@ type Enum struct {
 	DbKey string
 	// QueryName is the name of the table to use in querying the database.
 	QueryName string
-	// Title is the english name of the object when describing it to the world.
-	Title string
-	// TitlePlural is the plural english name of the object.
-	TitlePlural string
+	// Label is the english name of the object when describing it to the world.
+	Label string
+	// LabelPlural is the plural english name of the object.
+	LabelPlural string
 	// Identifier is the name of the item as a go type name.
 	Identifier string
 	// IdentifierPlural is the plural of the go type name.
@@ -91,8 +91,8 @@ func newEnumTable(dbKey string, enumSchema *schema.EnumTable) *Enum {
 	t := &Enum{
 		DbKey:            dbKey,
 		QueryName:        enumSchema.QualifiedName(),
-		Title:            enumSchema.Title,
-		TitlePlural:      enumSchema.TitlePlural,
+		Label:            enumSchema.Label,
+		LabelPlural:      enumSchema.LabelPlural,
 		Identifier:       enumSchema.Identifier,
 		IdentifierPlural: enumSchema.IdentifierPlural,
 		DecapIdentifier:  strings2.Decap(enumSchema.Identifier),

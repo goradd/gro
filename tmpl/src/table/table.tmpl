@@ -57,7 +57,7 @@ func (o *{{= table.Identifier }}) Label() string  {
 {{if col := table.ColumnByName("name"); col != nil}}
     return o.{{= col.Identifier }}()
 {{else}}
-    return fmt.Sprintf("{{= table.Title }} %v", o.PrimaryKey())
+    return fmt.Sprintf("{{= table.Label }} %v", o.PrimaryKey())
 {{if}}
 }
 

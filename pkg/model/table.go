@@ -14,10 +14,10 @@ type Table struct {
 	DbKey string
 	// QueryName is the name of the database table or object in the database.
 	QueryName string
-	// Title is the name of the object when describing it to the world. Should be lower case.
-	Title string
-	// TitlePlural is the plural name of the object.
-	TitlePlural string
+	// Label is the name of the object when describing it to the world. Should be lower case.
+	Label string
+	// LabelPlural is the plural name of the object.
+	LabelPlural string
 	// Identifier is the name of the struct type when referring to it in go code.
 	Identifier string
 	// IdentifierPlural is the name of a collection of these objects when referring to them in go code.
@@ -133,8 +133,8 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 	t := &Table{
 		DbKey:            dbKey,
 		QueryName:        queryName,
-		Title:            tableSchema.Title,
-		TitlePlural:      tableSchema.TitlePlural,
+		Label:            tableSchema.Label,
+		LabelPlural:      tableSchema.LabelPlural,
 		Identifier:       tableSchema.Identifier,
 		IdentifierPlural: tableSchema.IdentifierPlural,
 		columnMap:        make(map[string]*Column),

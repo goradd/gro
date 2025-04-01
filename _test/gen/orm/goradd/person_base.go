@@ -78,7 +78,7 @@ const (
 
 const PersonFirstNameMaxLength = 50 // The number of runes the column can hold
 const PersonLastNameMaxLength = 50  // The number of runes the column can hold
-const PersonTypesMaxLength = 40     // The number of runes the column can hold
+const PersonTypesMaxLength = 400    // The number of runes the column can hold
 
 // Initialize or re-initialize a Person database object to default values.
 // The primary key will get a temporary negative number which will be replaced when the object is saved.
