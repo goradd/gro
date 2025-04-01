@@ -420,15 +420,17 @@ func TestLogin_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
+	// reread in case there are data limitations imposed by the database
+	obj2 := LoadLogin(ctx, obj.PrimaryKey())
 	defer deleteSampleLogin(ctx, obj)
 
 	assert.Less(t, 0, CountLogins(ctx))
 
-	assert.Less(t, 0, CountLoginsByID(ctx, obj.ID()))
-	assert.Less(t, 0, CountLoginsByPersonID(ctx, obj.PersonID()))
-	assert.Less(t, 0, CountLoginsByUsername(ctx, obj.Username()))
-	assert.Less(t, 0, CountLoginsByPassword(ctx, obj.Password()))
-	assert.Less(t, 0, CountLoginsByIsEnabled(ctx, obj.IsEnabled()))
+	assert.Less(t, 0, CountLoginsByID(ctx, obj2.ID()))
+	assert.Less(t, 0, CountLoginsByPersonID(ctx, obj2.PersonID()))
+	assert.Less(t, 0, CountLoginsByUsername(ctx, obj2.Username()))
+	assert.Less(t, 0, CountLoginsByPassword(ctx, obj2.Password()))
+	assert.Less(t, 0, CountLoginsByIsEnabled(ctx, obj2.IsEnabled()))
 
 }
 func TestLogin_MarshalJSON(t *testing.T) {

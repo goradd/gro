@@ -6,13 +6,15 @@ func Test{{= table.Identifier }}_Count(t *testing.T) {
     ctx := db.NewContext(nil)
     err := obj.Save(ctx)
 	assert.NoError(t, err)
+	// reread in case there are data limitations imposed by the database
+	obj2 := Load{{= table.Identifier }}(ctx, obj.PrimaryKey())
     defer deleteSample{{= table.Identifier }}(ctx, obj)
 
     assert.Less(t, 0, Count{{= table.IdentifierPlural}}(ctx))
 
 {{for _,col := range table.Columns }}
 {{if !col.IsEnum()}}
-    assert.Less(t, 0, Count{{= table.IdentifierPlural}}By{{= col.Identifier}}(ctx, obj.{{= col.Identifier}}()))
+    assert.Less(t, 0, Count{{= table.IdentifierPlural}}By{{= col.Identifier}}(ctx, obj2.{{= col.Identifier}}()))
 {{if}}
 {{for}}
 

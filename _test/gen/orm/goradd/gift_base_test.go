@@ -294,12 +294,14 @@ func TestGift_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
+	// reread in case there are data limitations imposed by the database
+	obj2 := LoadGift(ctx, obj.PrimaryKey())
 	defer deleteSampleGift(ctx, obj)
 
 	assert.Less(t, 0, CountGifts(ctx))
 
-	assert.Less(t, 0, CountGiftsByNumber(ctx, obj.Number()))
-	assert.Less(t, 0, CountGiftsByName(ctx, obj.Name()))
+	assert.Less(t, 0, CountGiftsByNumber(ctx, obj2.Number()))
+	assert.Less(t, 0, CountGiftsByName(ctx, obj2.Name()))
 
 }
 func TestGift_MarshalJSON(t *testing.T) {

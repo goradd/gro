@@ -28,7 +28,7 @@ func (tmpl *DbTestTemplate) FileName(dbKey string) string {
 	return filepath.Join("orm", dbKey, "db_test.go")
 }
 
-func (tmpl *DbTestTemplate) GenerateDatabase(database *model.Database, _w io.Writer) (err error) {
+func (tmpl *DbTestTemplate) GenerateDatabase(database *model.Database, _w io.Writer, importPath string) (err error) {
 	tmpl.Package = database.Key
 
 	//*** dbtest.tmpl
@@ -50,6 +50,15 @@ import (
 	"github.com/stretchr/testify/require"
 	strings2 "github.com/goradd/strings"
 	"github.com/goradd/orm/pkg/test"
+    "`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, importPath); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `/node"
 	"testing"
 )
 `); err != nil {

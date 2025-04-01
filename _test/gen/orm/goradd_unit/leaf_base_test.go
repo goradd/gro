@@ -358,12 +358,14 @@ func TestLeaf_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
+	// reread in case there are data limitations imposed by the database
+	obj2 := LoadLeaf(ctx, obj.PrimaryKey())
 	defer deleteSampleLeaf(ctx, obj)
 
 	assert.Less(t, 0, CountLeafs(ctx))
 
-	assert.Less(t, 0, CountLeafsByID(ctx, obj.ID()))
-	assert.Less(t, 0, CountLeafsByName(ctx, obj.Name()))
+	assert.Less(t, 0, CountLeafsByID(ctx, obj2.ID()))
+	assert.Less(t, 0, CountLeafsByName(ctx, obj2.Name()))
 
 }
 func TestLeaf_MarshalJSON(t *testing.T) {

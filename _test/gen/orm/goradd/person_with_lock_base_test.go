@@ -349,15 +349,17 @@ func TestPersonWithLock_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
+	// reread in case there are data limitations imposed by the database
+	obj2 := LoadPersonWithLock(ctx, obj.PrimaryKey())
 	defer deleteSamplePersonWithLock(ctx, obj)
 
 	assert.Less(t, 0, CountPersonWithLocks(ctx))
 
-	assert.Less(t, 0, CountPersonWithLocksByID(ctx, obj.ID()))
-	assert.Less(t, 0, CountPersonWithLocksByFirstName(ctx, obj.FirstName()))
-	assert.Less(t, 0, CountPersonWithLocksByLastName(ctx, obj.LastName()))
-	assert.Less(t, 0, CountPersonWithLocksByGroLock(ctx, obj.GroLock()))
-	assert.Less(t, 0, CountPersonWithLocksByGroTimestamp(ctx, obj.GroTimestamp()))
+	assert.Less(t, 0, CountPersonWithLocksByID(ctx, obj2.ID()))
+	assert.Less(t, 0, CountPersonWithLocksByFirstName(ctx, obj2.FirstName()))
+	assert.Less(t, 0, CountPersonWithLocksByLastName(ctx, obj2.LastName()))
+	assert.Less(t, 0, CountPersonWithLocksByGroLock(ctx, obj2.GroLock()))
+	assert.Less(t, 0, CountPersonWithLocksByGroTimestamp(ctx, obj2.GroTimestamp()))
 
 }
 func TestPersonWithLock_MarshalJSON(t *testing.T) {

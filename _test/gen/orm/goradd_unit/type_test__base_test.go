@@ -653,22 +653,24 @@ func TestTypeTest_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
+	// reread in case there are data limitations imposed by the database
+	obj2 := LoadTypeTest(ctx, obj.PrimaryKey())
 	defer deleteSampleTypeTest(ctx, obj)
 
 	assert.Less(t, 0, CountTypeTests(ctx))
 
-	assert.Less(t, 0, CountTypeTestsByID(ctx, obj.ID()))
-	assert.Less(t, 0, CountTypeTestsByDate(ctx, obj.Date()))
-	assert.Less(t, 0, CountTypeTestsByTime(ctx, obj.Time()))
-	assert.Less(t, 0, CountTypeTestsByDateTime(ctx, obj.DateTime()))
-	assert.Less(t, 0, CountTypeTestsByTs(ctx, obj.Ts()))
-	assert.Less(t, 0, CountTypeTestsByTestInt(ctx, obj.TestInt()))
-	assert.Less(t, 0, CountTypeTestsByTestFloat(ctx, obj.TestFloat()))
-	assert.Less(t, 0, CountTypeTestsByTestDouble(ctx, obj.TestDouble()))
-	assert.Less(t, 0, CountTypeTestsByTestText(ctx, obj.TestText()))
-	assert.Less(t, 0, CountTypeTestsByTestBit(ctx, obj.TestBit()))
-	assert.Less(t, 0, CountTypeTestsByTestVarchar(ctx, obj.TestVarchar()))
-	assert.Less(t, 0, CountTypeTestsByTestBlob(ctx, obj.TestBlob()))
+	assert.Less(t, 0, CountTypeTestsByID(ctx, obj2.ID()))
+	assert.Less(t, 0, CountTypeTestsByDate(ctx, obj2.Date()))
+	assert.Less(t, 0, CountTypeTestsByTime(ctx, obj2.Time()))
+	assert.Less(t, 0, CountTypeTestsByDateTime(ctx, obj2.DateTime()))
+	assert.Less(t, 0, CountTypeTestsByTs(ctx, obj2.Ts()))
+	assert.Less(t, 0, CountTypeTestsByTestInt(ctx, obj2.TestInt()))
+	assert.Less(t, 0, CountTypeTestsByTestFloat(ctx, obj2.TestFloat()))
+	assert.Less(t, 0, CountTypeTestsByTestDouble(ctx, obj2.TestDouble()))
+	assert.Less(t, 0, CountTypeTestsByTestText(ctx, obj2.TestText()))
+	assert.Less(t, 0, CountTypeTestsByTestBit(ctx, obj2.TestBit()))
+	assert.Less(t, 0, CountTypeTestsByTestVarchar(ctx, obj2.TestVarchar()))
+	assert.Less(t, 0, CountTypeTestsByTestBlob(ctx, obj2.TestBlob()))
 
 }
 func TestTypeTest_MarshalJSON(t *testing.T) {

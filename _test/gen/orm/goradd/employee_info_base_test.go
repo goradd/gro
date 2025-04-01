@@ -346,13 +346,15 @@ func TestEmployeeInfo_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
+	// reread in case there are data limitations imposed by the database
+	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey())
 	defer deleteSampleEmployeeInfo(ctx, obj)
 
 	assert.Less(t, 0, CountEmployeeInfos(ctx))
 
-	assert.Less(t, 0, CountEmployeeInfosByID(ctx, obj.ID()))
-	assert.Less(t, 0, CountEmployeeInfosByPersonID(ctx, obj.PersonID()))
-	assert.Less(t, 0, CountEmployeeInfosByEmployeeNumber(ctx, obj.EmployeeNumber()))
+	assert.Less(t, 0, CountEmployeeInfosByID(ctx, obj2.ID()))
+	assert.Less(t, 0, CountEmployeeInfosByPersonID(ctx, obj2.PersonID()))
+	assert.Less(t, 0, CountEmployeeInfosByEmployeeNumber(ctx, obj2.EmployeeNumber()))
 
 }
 func TestEmployeeInfo_MarshalJSON(t *testing.T) {

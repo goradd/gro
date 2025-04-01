@@ -592,17 +592,19 @@ func TestRoot_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
+	// reread in case there are data limitations imposed by the database
+	obj2 := LoadRoot(ctx, obj.PrimaryKey())
 	defer deleteSampleRoot(ctx, obj)
 
 	assert.Less(t, 0, CountRoots(ctx))
 
-	assert.Less(t, 0, CountRootsByID(ctx, obj.ID()))
-	assert.Less(t, 0, CountRootsByName(ctx, obj.Name()))
-	assert.Less(t, 0, CountRootsByOptionalLeafID(ctx, obj.OptionalLeafID()))
-	assert.Less(t, 0, CountRootsByRequiredLeafID(ctx, obj.RequiredLeafID()))
-	assert.Less(t, 0, CountRootsByOptionalLeafUniqueID(ctx, obj.OptionalLeafUniqueID()))
-	assert.Less(t, 0, CountRootsByRequiredLeafUniqueID(ctx, obj.RequiredLeafUniqueID()))
-	assert.Less(t, 0, CountRootsByParentID(ctx, obj.ParentID()))
+	assert.Less(t, 0, CountRootsByID(ctx, obj2.ID()))
+	assert.Less(t, 0, CountRootsByName(ctx, obj2.Name()))
+	assert.Less(t, 0, CountRootsByOptionalLeafID(ctx, obj2.OptionalLeafID()))
+	assert.Less(t, 0, CountRootsByRequiredLeafID(ctx, obj2.RequiredLeafID()))
+	assert.Less(t, 0, CountRootsByOptionalLeafUniqueID(ctx, obj2.OptionalLeafUniqueID()))
+	assert.Less(t, 0, CountRootsByRequiredLeafUniqueID(ctx, obj2.RequiredLeafUniqueID()))
+	assert.Less(t, 0, CountRootsByParentID(ctx, obj2.ParentID()))
 
 }
 func TestRoot_MarshalJSON(t *testing.T) {

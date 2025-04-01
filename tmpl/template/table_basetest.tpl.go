@@ -3663,6 +3663,16 @@ func Test`); err != nil {
     ctx := db.NewContext(nil)
     err := obj.Save(ctx)
 	assert.NoError(t, err)
+	// reread in case there are data limitations imposed by the database
+	obj2 := Load`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey())
     defer deleteSample`); err != nil {
 			return
 		}
@@ -3707,7 +3717,7 @@ func Test`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `(ctx, obj.`); err != nil {
+				if _, err = io.WriteString(_w, `(ctx, obj2.`); err != nil {
 					return
 				}
 

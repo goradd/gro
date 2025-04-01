@@ -393,14 +393,16 @@ func TestAddress_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
+	// reread in case there are data limitations imposed by the database
+	obj2 := LoadAddress(ctx, obj.PrimaryKey())
 	defer deleteSampleAddress(ctx, obj)
 
 	assert.Less(t, 0, CountAddresses(ctx))
 
-	assert.Less(t, 0, CountAddressesByID(ctx, obj.ID()))
-	assert.Less(t, 0, CountAddressesByPersonID(ctx, obj.PersonID()))
-	assert.Less(t, 0, CountAddressesByStreet(ctx, obj.Street()))
-	assert.Less(t, 0, CountAddressesByCity(ctx, obj.City()))
+	assert.Less(t, 0, CountAddressesByID(ctx, obj2.ID()))
+	assert.Less(t, 0, CountAddressesByPersonID(ctx, obj2.PersonID()))
+	assert.Less(t, 0, CountAddressesByStreet(ctx, obj2.Street()))
+	assert.Less(t, 0, CountAddressesByCity(ctx, obj2.City()))
 
 }
 func TestAddress_MarshalJSON(t *testing.T) {

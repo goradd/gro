@@ -58,7 +58,7 @@ func TestJsonMarshall2(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "John", m["firstName"])
 	assert.Equal(t, "Doe", m["lastName"])
-	assert.ElementsMatch(t, []float64{2, 3}, m["types"])
+	assert.ElementsMatch(t, []string{"manager", "inactive"}, m["types"])
 }
 
 func TestJsonUnmarshall2(t *testing.T) {

@@ -6348,40 +6348,88 @@ func Count`); err != nil {
 
 		}
 
-		if _, err = io.WriteString(_w, `	return Query`); err != nil {
-			return
+		if col.SchemaSubType == schema.ColSubTypeTimeOnly {
+
+			if _, err = io.WriteString(_w, `    t := `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.Format("15:04:05")
+	return Query`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(ctx).Where(op.Equal(node.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(), t)).Count()
+`); err != nil {
+				return
+			}
+
+		} else {
+
+			if _, err = io.WriteString(_w, `	return Query`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(ctx).Where(op.Equal(node.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(), `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `)).Count()
+`); err != nil {
+				return
+			}
+
 		}
 
-		if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `(ctx).Where(op.Equal(node.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `().`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `(), `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `)).Count()
-}
+		if _, err = io.WriteString(_w, `}
 
 `); err != nil {
 			return

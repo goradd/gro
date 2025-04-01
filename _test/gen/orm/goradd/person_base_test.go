@@ -455,13 +455,15 @@ func TestPerson_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
+	// reread in case there are data limitations imposed by the database
+	obj2 := LoadPerson(ctx, obj.PrimaryKey())
 	defer deleteSamplePerson(ctx, obj)
 
 	assert.Less(t, 0, CountPeople(ctx))
 
-	assert.Less(t, 0, CountPeopleByID(ctx, obj.ID()))
-	assert.Less(t, 0, CountPeopleByFirstName(ctx, obj.FirstName()))
-	assert.Less(t, 0, CountPeopleByLastName(ctx, obj.LastName()))
+	assert.Less(t, 0, CountPeopleByID(ctx, obj2.ID()))
+	assert.Less(t, 0, CountPeopleByFirstName(ctx, obj2.FirstName()))
+	assert.Less(t, 0, CountPeopleByLastName(ctx, obj2.LastName()))
 
 }
 func TestPerson_MarshalJSON(t *testing.T) {

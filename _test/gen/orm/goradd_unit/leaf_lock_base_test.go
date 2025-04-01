@@ -301,13 +301,15 @@ func TestLeafLock_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
+	// reread in case there are data limitations imposed by the database
+	obj2 := LoadLeafLock(ctx, obj.PrimaryKey())
 	defer deleteSampleLeafLock(ctx, obj)
 
 	assert.Less(t, 0, CountLeafLocks(ctx))
 
-	assert.Less(t, 0, CountLeafLocksByID(ctx, obj.ID()))
-	assert.Less(t, 0, CountLeafLocksByName(ctx, obj.Name()))
-	assert.Less(t, 0, CountLeafLocksByGroLock(ctx, obj.GroLock()))
+	assert.Less(t, 0, CountLeafLocksByID(ctx, obj2.ID()))
+	assert.Less(t, 0, CountLeafLocksByName(ctx, obj2.Name()))
+	assert.Less(t, 0, CountLeafLocksByGroLock(ctx, obj2.GroLock()))
 
 }
 func TestLeafLock_MarshalJSON(t *testing.T) {

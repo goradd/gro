@@ -45,8 +45,10 @@ func genDatabaseTemplate(g DatabaseGenerator, db *model.Database) {
 		return
 	}
 	defer f.Close()
+	var importPath string
+	importPath, err = sys.ImportPath(filename)
 
-	if err = g.GenerateDatabase(db, f); err != nil {
+	if err = g.GenerateDatabase(db, f, importPath); err != nil {
 		log.Print(err)
 		return
 	}

@@ -1067,7 +1067,8 @@ func CountTypeTestsByDate(ctx context.Context, date time.Time) int {
 // have time.
 // doc: type=TypeTest
 func CountTypeTestsByTime(ctx context.Context, time time.Time) int {
-	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().Time(), time)).Count()
+	t := time.Format("15:04:05")
+	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().Time(), t)).Count()
 }
 
 // CountTypeTestsByDateTime queries the database and returns the number of TypeTest objects that

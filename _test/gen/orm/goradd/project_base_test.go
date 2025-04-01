@@ -750,20 +750,22 @@ func TestProject_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
+	// reread in case there are data limitations imposed by the database
+	obj2 := LoadProject(ctx, obj.PrimaryKey())
 	defer deleteSampleProject(ctx, obj)
 
 	assert.Less(t, 0, CountProjects(ctx))
 
-	assert.Less(t, 0, CountProjectsByID(ctx, obj.ID()))
-	assert.Less(t, 0, CountProjectsByNum(ctx, obj.Num()))
-	assert.Less(t, 0, CountProjectsByManagerID(ctx, obj.ManagerID()))
-	assert.Less(t, 0, CountProjectsByName(ctx, obj.Name()))
-	assert.Less(t, 0, CountProjectsByDescription(ctx, obj.Description()))
-	assert.Less(t, 0, CountProjectsByStartDate(ctx, obj.StartDate()))
-	assert.Less(t, 0, CountProjectsByEndDate(ctx, obj.EndDate()))
-	assert.Less(t, 0, CountProjectsByBudget(ctx, obj.Budget()))
-	assert.Less(t, 0, CountProjectsBySpent(ctx, obj.Spent()))
-	assert.Less(t, 0, CountProjectsByParentProjectID(ctx, obj.ParentProjectID()))
+	assert.Less(t, 0, CountProjectsByID(ctx, obj2.ID()))
+	assert.Less(t, 0, CountProjectsByNum(ctx, obj2.Num()))
+	assert.Less(t, 0, CountProjectsByManagerID(ctx, obj2.ManagerID()))
+	assert.Less(t, 0, CountProjectsByName(ctx, obj2.Name()))
+	assert.Less(t, 0, CountProjectsByDescription(ctx, obj2.Description()))
+	assert.Less(t, 0, CountProjectsByStartDate(ctx, obj2.StartDate()))
+	assert.Less(t, 0, CountProjectsByEndDate(ctx, obj2.EndDate()))
+	assert.Less(t, 0, CountProjectsByBudget(ctx, obj2.Budget()))
+	assert.Less(t, 0, CountProjectsBySpent(ctx, obj2.Spent()))
+	assert.Less(t, 0, CountProjectsByParentProjectID(ctx, obj2.ParentProjectID()))
 
 }
 func TestProject_MarshalJSON(t *testing.T) {

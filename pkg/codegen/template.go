@@ -12,7 +12,7 @@ type Template interface {
 type DatabaseGenerator interface {
 	Template
 	FileName(string) string
-	GenerateDatabase(*model.Database, io.Writer) error
+	GenerateDatabase(db *model.Database, f io.Writer, importPath string) error
 }
 
 type TableGenerator interface {

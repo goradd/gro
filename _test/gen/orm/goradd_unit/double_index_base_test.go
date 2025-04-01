@@ -328,13 +328,15 @@ func TestDoubleIndex_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
+	// reread in case there are data limitations imposed by the database
+	obj2 := LoadDoubleIndex(ctx, obj.PrimaryKey())
 	defer deleteSampleDoubleIndex(ctx, obj)
 
 	assert.Less(t, 0, CountDoubleIndices(ctx))
 
-	assert.Less(t, 0, CountDoubleIndicesByID(ctx, obj.ID()))
-	assert.Less(t, 0, CountDoubleIndicesByFieldInt(ctx, obj.FieldInt()))
-	assert.Less(t, 0, CountDoubleIndicesByFieldString(ctx, obj.FieldString()))
+	assert.Less(t, 0, CountDoubleIndicesByID(ctx, obj2.ID()))
+	assert.Less(t, 0, CountDoubleIndicesByFieldInt(ctx, obj2.FieldInt()))
+	assert.Less(t, 0, CountDoubleIndicesByFieldString(ctx, obj2.FieldString()))
 
 }
 func TestDoubleIndex_MarshalJSON(t *testing.T) {

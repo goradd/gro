@@ -351,13 +351,15 @@ func TestMilestone_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
+	// reread in case there are data limitations imposed by the database
+	obj2 := LoadMilestone(ctx, obj.PrimaryKey())
 	defer deleteSampleMilestone(ctx, obj)
 
 	assert.Less(t, 0, CountMilestones(ctx))
 
-	assert.Less(t, 0, CountMilestonesByID(ctx, obj.ID()))
-	assert.Less(t, 0, CountMilestonesByProjectID(ctx, obj.ProjectID()))
-	assert.Less(t, 0, CountMilestonesByName(ctx, obj.Name()))
+	assert.Less(t, 0, CountMilestonesByID(ctx, obj2.ID()))
+	assert.Less(t, 0, CountMilestonesByProjectID(ctx, obj2.ProjectID()))
+	assert.Less(t, 0, CountMilestonesByName(ctx, obj2.Name()))
 
 }
 func TestMilestone_MarshalJSON(t *testing.T) {

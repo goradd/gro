@@ -25,7 +25,13 @@ func Count{{table.IdentifierPlural}}By{{col.Identifier}}(ctx context.Context, {{
         return 0
     }
 {{if}}
-	return Query{{= table.IdentifierPlural }}(ctx).Where(op.Equal(node.{{= table.Identifier }}().{{= col.Identifier }}(), {{= col.DecapIdentifier }})).Count()
+{{if col.SchemaSubType == schema.ColSubTypeTimeOnly}}
+{{# The Mysql driver cannot process time only time.Time values. This should work for other drivers too. }}
+    t := {{= col.VariableIdentifier() }}.Format("15:04:05")
+	return Query{{= table.IdentifierPlural }}(ctx).Where(op.Equal(node.{{= table.Identifier }}().{{= col.Identifier }}(), t)).Count()
+{{else}}
+	return Query{{= table.IdentifierPlural }}(ctx).Where(op.Equal(node.{{= table.Identifier }}().{{= col.Identifier }}(), {{= col.VariableIdentifier() }})).Count()
+{{if}}
 }
 
 {{for}}

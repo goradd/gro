@@ -28,7 +28,7 @@ func (tmpl *DbTemplate) FileName(dbKey string) string {
 	return filepath.Join("orm", dbKey, "db.go")
 }
 
-func (tmpl *DbTemplate) GenerateDatabase(database *model.Database, _w io.Writer) (err error) {
+func (tmpl *DbTemplate) GenerateDatabase(database *model.Database, _w io.Writer, importPath string) (err error) {
 	tmpl.Package = database.Key
 
 	//*** db.tmpl
