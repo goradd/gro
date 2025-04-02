@@ -38,17 +38,16 @@ func updateMinimalSampleLogin(obj *Login) {
 
 // createMaximalSampleLogin creates an unsaved version of a Login object
 // for testing that includes references to minimal objects.
-func createMaximalSampleLogin() *Login {
+func createMaximalSampleLogin(ctx context.Context) *Login {
 	obj := NewLogin()
-	updateMaximalSampleLogin(obj)
+	updateMaximalSampleLogin(ctx, obj)
 	return obj
 }
 
 // updateMaximalSampleLogin sets all the maximal sample values to new values.
 // This will set new values for references, so save the old values and delete them.
-func updateMaximalSampleLogin(obj *Login) {
+func updateMaximalSampleLogin(ctx context.Context, obj *Login) {
 	updateMinimalSampleLogin(obj)
-
 	obj.SetPerson(createMinimalSamplePerson())
 
 }
@@ -259,8 +258,8 @@ func TestLogin_BasicUpdate(t *testing.T) {
 }
 
 func TestLogin_ReferenceLoad(t *testing.T) {
-	obj := createMaximalSampleLogin()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleLogin(ctx)
 	obj.Save(ctx)
 	defer deleteSampleLogin(ctx, obj)
 
@@ -293,13 +292,13 @@ func TestLogin_ReferenceLoad(t *testing.T) {
 }
 
 func TestLogin_ReferenceUpdateNewObjects(t *testing.T) {
-	obj := createMaximalSampleLogin()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleLogin(ctx)
 	obj.Save(ctx)
 	defer deleteSampleLogin(ctx, obj)
 
 	obj2 := LoadLogin(ctx, obj.PrimaryKey())
-	updateMaximalSampleLogin(obj2)
+	updateMaximalSampleLogin(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleLogin(ctx, obj2)
 
@@ -311,8 +310,8 @@ func TestLogin_ReferenceUpdateNewObjects(t *testing.T) {
 }
 
 func TestLogin_ReferenceUpdateOldObjects(t *testing.T) {
-	obj := createMaximalSampleLogin()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleLogin(ctx)
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleLogin(ctx, obj)
 
@@ -376,9 +375,11 @@ func TestLogin_QueryLoad(t *testing.T) {
 		Where(op.Equal(node.Login().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.Login().PrimaryKey()). // exercise order by
 		Limit(1, 0).                        // exercise limit
+		Calculation(node.Login(), "IsTrue", op.Equal(1, 1)).
 		Load()
 
 	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+	assert.True(t, objs[0].GetAlias("IsTrue").Bool())
 }
 func TestLogin_QueryLoadI(t *testing.T) {
 	obj := createMinimalSampleLogin()
@@ -416,8 +417,8 @@ func TestLogin_QueryCursor(t *testing.T) {
 
 }
 func TestLogin_Count(t *testing.T) {
-	obj := createMaximalSampleLogin()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleLogin(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	// reread in case there are data limitations imposed by the database
@@ -457,4 +458,22 @@ func TestLogin_MarshalBinary(t *testing.T) {
 	assert.NoError(t, err)
 
 	assertEqualFieldsLogin(t, obj, obj2)
+}
+
+func TestLogin_Indexes(t *testing.T) {
+	ctx := db.NewContext(nil)
+	obj := createMaximalSampleLogin(ctx)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleLogin(ctx, obj)
+
+	var obj2 *Login
+	obj2 = LoadLoginByPersonID(ctx, obj.PersonID())
+	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
+	assert.True(t, HasLoginByPersonID(ctx, obj.PersonID()))
+
+	obj2 = LoadLoginByUsername(ctx, obj.Username())
+	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
+	assert.True(t, HasLoginByUsername(ctx, obj.Username()))
+
 }

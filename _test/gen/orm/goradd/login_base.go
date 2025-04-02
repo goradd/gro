@@ -380,7 +380,7 @@ func LoadLogin(ctx context.Context, id string, selectNodes ...query.Node) *Login
 		Get()
 }
 
-// HasLogin returns true if a Login with the given primaryKey exists in the database.
+// HasLogin returns true if a Login with the given primary key exists in the database.
 // doc: type=Login
 func HasLogin(ctx context.Context, id string) bool {
 	return queryLogins(ctx).
@@ -960,8 +960,12 @@ func (o *loginBase) insert(ctx context.Context) (err error) {
 		}
 
 		insertFields = o.getInsertFields()
+		var newPk string
 
-		newPk := d.Insert(ctx, "login", insertFields)
+		newPk, err = d.Insert(ctx, "login", "id", insertFields)
+		if err != nil {
+			return err
+		}
 		o.id = newPk
 		o._originalPK = newPk
 		o.idIsLoaded = true

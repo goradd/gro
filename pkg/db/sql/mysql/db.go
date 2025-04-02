@@ -1,12 +1,15 @@
 package mysql
 
 import (
+	"context"
 	sqldb "database/sql"
 	"fmt"
 	"github.com/go-sql-driver/mysql"
 	"github.com/goradd/all"
+	"github.com/goradd/orm/pkg/db"
 	sql2 "github.com/goradd/orm/pkg/db/sql"
 	. "github.com/goradd/orm/pkg/query"
+	"log"
 	"strings"
 	"time"
 )
@@ -179,4 +182,70 @@ func (m *DB) OperationSql(op Operator, operandStrings []string) (sql string) {
 
 func (m *DB) SupportsForUpdate() bool {
 	return true
+}
+
+// Insert inserts the given data as a new record in the database.
+// It returns the record id of the new record.
+func (m *DB) Insert(ctx context.Context, table string, pkName string, fields map[string]interface{}) (string, error) {
+	s, args := sql2.GenerateInsert(m, table, fields)
+	if r, err := m.SqlExec(ctx, s, args...); err != nil {
+		if me, ok := err.(*mysql.MySQLError); ok {
+			// expected error situation to report to developer
+			if me.Number == 1062 {
+				// Since its not possible to completely prevent a unique constraint error, except by implementing a seaprate
+				// service to track and lock unique values that are in use (which is beyond the scope of the ORM), we need
+				// to see if this is that kind of error and return it, rather than panicking.
+				return "", db.NewDuplicateValueError("error: duplicate value violates unique constraint")
+			}
+		}
+		// unexpected error, likely a sql error
+		log.Printf("Sql error for: %s, %v", s, args)
+		panic(err.Error())
+	} else {
+		if id, err2 := r.LastInsertId(); err2 != nil {
+			panic(err2.Error())
+		} else {
+			return fmt.Sprint(id), nil
+		}
+	}
+}
+
+// Update sets specific fields of a record that already exists in the database.
+// optLockFieldName is the name of a version field that will implement an optimistic locking check before executing the update.
+// Note that if the database is not currently in a transaction, then the optimistic lock
+// will be a cursory check, but will not be able to definitively prevent a prior write.
+// If optLockFieldName is provided, that field will be updated with a new version number value during the update process.
+func (m *DB) Update(ctx context.Context,
+	table string,
+	pkName string,
+	pkValue any,
+	fields map[string]any,
+	optLockFieldName string,
+	optLockFieldValue int64,
+) (newLock int64, err error) {
+	if len(fields) == 0 {
+		panic("fields must not be empty")
+	}
+	newLock, err = m.DbHelper.CheckLock(ctx, table, pkName, pkValue, optLockFieldName, optLockFieldValue)
+	if err != nil {
+		return
+	}
+	if newLock != 0 {
+		fields[optLockFieldName] = newLock
+	}
+	s, args := sql2.GenerateUpdate(m, table, fields, map[string]any{pkName: pkValue})
+	_, err = m.SqlExec(ctx, s, args...)
+	if err != nil {
+		if me, ok := err.(*mysql.MySQLError); ok {
+			// expected error situation to report to developer
+			if me.Number == 1062 {
+				// Since its not possible to completely prevent a unique constraint error, except by implementing a seaprate
+				// service to track and lock unique values that are in use (which is beyond the scope of the ORM), we need
+				// to see if this is that kind of error and return it, rather than panicking.
+				return 0, db.NewDuplicateValueError("error: duplicate value violates unique constraint")
+			}
+		}
+		log.Panic(err) // some kind of database error, should be notified immediately
+	}
+	return
 }

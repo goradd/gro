@@ -309,57 +309,7 @@ func (h *DbHelper) Delete(ctx context.Context, table string, where map[string]an
 	}
 }
 
-// Insert inserts the given data as a new record in the database.
-// It returns the record id of the new record.
-func (h *DbHelper) Insert(ctx context.Context, table string, fields map[string]interface{}) string {
-	s, args := GenerateInsert(h.dbi, table, fields)
-	if r, err := h.SqlExec(ctx, s, args...); err != nil {
-		log.Printf("Sql error for: %s, %v", s, args)
-		panic(err.Error())
-	} else {
-		// Not all database implementations support LastInsertId
-		// If yours does not, you will need to override this implementation
-		if id, err2 := r.LastInsertId(); err2 != nil {
-			panic(err2.Error())
-			return ""
-		} else {
-			return fmt.Sprint(id)
-		}
-	}
-}
-
-// Update sets specific fields of a record that already exists in the database.
-// optLockFieldName is the name of a version field that will implement an optimistic locking check before executing the update.
-// Note that if the database is not currently in a transaction, then the optimistic lock
-// will be a cursory check, but will not be able to definitively prevent a prior write.
-// If optLockFieldName is provided, that field will be updated with a new version number value during the update process.
-func (h *DbHelper) Update(ctx context.Context,
-	table string,
-	pkName string,
-	pkValue any,
-	fields map[string]any,
-	optLockFieldName string,
-	optLockFieldValue int64,
-) (newLock int64, err error) {
-	if len(fields) == 0 {
-		panic("fields must not be empty")
-	}
-	newLock, err = h.checkLock(ctx, table, pkName, pkValue, optLockFieldName, optLockFieldValue)
-	if err != nil {
-		return
-	}
-	if newLock != 0 {
-		fields[optLockFieldName] = newLock
-	}
-	s, args := GenerateUpdate(h.dbi, table, fields, map[string]any{pkName: pkValue})
-	_, err = h.SqlExec(ctx, s, args...)
-	if err != nil {
-		log.Panic(err) // some kind of database error, should be notified immediately
-	}
-	return
-}
-
-func (h *DbHelper) checkLock(ctx context.Context,
+func (h *DbHelper) CheckLock(ctx context.Context,
 	table string,
 	pkName string,
 	pkValue any,

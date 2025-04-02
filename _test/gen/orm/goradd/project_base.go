@@ -1183,7 +1183,7 @@ func LoadProject(ctx context.Context, id string, selectNodes ...query.Node) *Pro
 		Get()
 }
 
-// HasProject returns true if a Project with the given primaryKey exists in the database.
+// HasProject returns true if a Project with the given primary key exists in the database.
 // doc: type=Project
 func HasProject(ctx context.Context, id string) bool {
 	return queryProjects(ctx).
@@ -2187,7 +2187,6 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 			}
 			o.managerID = o.objManager.PrimaryKey()
 		}
-
 		if o.objParentProject != nil {
 			if err = o.objParentProject.Save(ctx); err != nil {
 				return err
@@ -2206,8 +2205,12 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 		}
 
 		insertFields = o.getInsertFields()
+		var newPk string
 
-		newPk := d.Insert(ctx, "project", insertFields)
+		newPk, err = d.Insert(ctx, "project", "id", insertFields)
+		if err != nil {
+			return err
+		}
 		o.id = newPk
 		o._originalPK = newPk
 		o.idIsLoaded = true

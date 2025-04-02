@@ -195,7 +195,7 @@ func LoadLeafLock(ctx context.Context, id string, selectNodes ...query.Node) *Le
 		Get()
 }
 
-// HasLeafLock returns true if a LeafLock with the given primaryKey exists in the database.
+// HasLeafLock returns true if a LeafLock with the given primary key exists in the database.
 // doc: type=LeafLock
 func HasLeafLock(ctx context.Context, id string) bool {
 	return queryLeafLocks(ctx).
@@ -647,8 +647,12 @@ func (o *leafLockBase) insert(ctx context.Context) (err error) {
 		}
 
 		insertFields = o.getInsertFields()
+		var newPk string
 
-		newPk := d.Insert(ctx, "leaf_lock", insertFields)
+		newPk, err = d.Insert(ctx, "leaf_lock", "id", insertFields)
+		if err != nil {
+			return err
+		}
 		o.id = newPk
 		o._originalPK = newPk
 		o.idIsLoaded = true

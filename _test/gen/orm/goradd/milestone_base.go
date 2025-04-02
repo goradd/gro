@@ -250,7 +250,7 @@ func LoadMilestone(ctx context.Context, id string, selectNodes ...query.Node) *M
 		Get()
 }
 
-// HasMilestone returns true if a Milestone with the given primaryKey exists in the database.
+// HasMilestone returns true if a Milestone with the given primary key exists in the database.
 // doc: type=Milestone
 func HasMilestone(ctx context.Context, id string) bool {
 	return queryMilestones(ctx).
@@ -730,8 +730,12 @@ func (o *milestoneBase) insert(ctx context.Context) (err error) {
 		}
 
 		insertFields = o.getInsertFields()
+		var newPk string
 
-		newPk := d.Insert(ctx, "milestone", insertFields)
+		newPk, err = d.Insert(ctx, "milestone", "id", insertFields)
+		if err != nil {
+			return err
+		}
 		o.id = newPk
 		o._originalPK = newPk
 		o.idIsLoaded = true

@@ -13,7 +13,7 @@ func Load{{= table.Identifier }}(ctx context.Context, {{= table.PrimaryKeyColumn
 	    Get()
 }
 
-// Has{{= table.Identifier }} returns true if a {{= table.Identifier }} with the given primaryKey exists in the database.
+// Has{{= table.Identifier }} returns true if a {{= table.Identifier }} with the given primary key exists in the database.
 // doc: type={{= table.Identifier }}
 func Has{{= table.Identifier }}(ctx context.Context, {{= table.PrimaryKeyColumn().VariableIdentifier() }} {{= table.PrimaryKeyGoType() }}) bool {
     return query{{= table.IdentifierPlural }}(ctx).

@@ -35,15 +35,15 @@ func updateMinimalSampleGift(obj *Gift) {
 
 // createMaximalSampleGift creates an unsaved version of a Gift object
 // for testing that includes references to minimal objects.
-func createMaximalSampleGift() *Gift {
+func createMaximalSampleGift(ctx context.Context) *Gift {
 	obj := NewGift()
-	updateMaximalSampleGift(obj)
+	updateMaximalSampleGift(ctx, obj)
 	return obj
 }
 
 // updateMaximalSampleGift sets all the maximal sample values to new values.
 // This will set new values for references, so save the old values and delete them.
-func updateMaximalSampleGift(obj *Gift) {
+func updateMaximalSampleGift(ctx context.Context, obj *Gift) {
 	updateMinimalSampleGift(obj)
 
 }
@@ -168,8 +168,8 @@ func TestGift_BasicUpdate(t *testing.T) {
 }
 
 func TestGift_ReferenceLoad(t *testing.T) {
-	obj := createMaximalSampleGift()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleGift(ctx)
 	obj.Save(ctx)
 	defer deleteSampleGift(ctx, obj)
 
@@ -188,13 +188,13 @@ func TestGift_ReferenceLoad(t *testing.T) {
 }
 
 func TestGift_ReferenceUpdateNewObjects(t *testing.T) {
-	obj := createMaximalSampleGift()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleGift(ctx)
 	obj.Save(ctx)
 	defer deleteSampleGift(ctx, obj)
 
 	obj2 := LoadGift(ctx, obj.PrimaryKey())
-	updateMaximalSampleGift(obj2)
+	updateMaximalSampleGift(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleGift(ctx, obj2)
 
@@ -204,8 +204,8 @@ func TestGift_ReferenceUpdateNewObjects(t *testing.T) {
 }
 
 func TestGift_ReferenceUpdateOldObjects(t *testing.T) {
-	obj := createMaximalSampleGift()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleGift(ctx)
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleGift(ctx, obj)
 
@@ -250,9 +250,11 @@ func TestGift_QueryLoad(t *testing.T) {
 		Where(op.Equal(node.Gift().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.Gift().PrimaryKey()). // exercise order by
 		Limit(1, 0).                       // exercise limit
+		Calculation(node.Gift(), "IsTrue", op.Equal(1, 1)).
 		Load()
 
 	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+	assert.True(t, objs[0].GetAlias("IsTrue").Bool())
 }
 func TestGift_QueryLoadI(t *testing.T) {
 	obj := createMinimalSampleGift()
@@ -290,8 +292,8 @@ func TestGift_QueryCursor(t *testing.T) {
 
 }
 func TestGift_Count(t *testing.T) {
-	obj := createMaximalSampleGift()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleGift(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	// reread in case there are data limitations imposed by the database
@@ -328,4 +330,18 @@ func TestGift_MarshalBinary(t *testing.T) {
 	assert.NoError(t, err)
 
 	assertEqualFieldsGift(t, obj, obj2)
+}
+
+func TestGift_Indexes(t *testing.T) {
+	ctx := db.NewContext(nil)
+	obj := createMaximalSampleGift(ctx)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleGift(ctx, obj)
+
+	var obj2 *Gift
+	obj2 = LoadGiftByNumber(ctx, obj.Number())
+	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
+	assert.True(t, HasGiftByNumber(ctx, obj.Number()))
+
 }

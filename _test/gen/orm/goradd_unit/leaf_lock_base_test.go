@@ -34,15 +34,15 @@ func updateMinimalSampleLeafLock(obj *LeafLock) {
 
 // createMaximalSampleLeafLock creates an unsaved version of a LeafLock object
 // for testing that includes references to minimal objects.
-func createMaximalSampleLeafLock() *LeafLock {
+func createMaximalSampleLeafLock(ctx context.Context) *LeafLock {
 	obj := NewLeafLock()
-	updateMaximalSampleLeafLock(obj)
+	updateMaximalSampleLeafLock(ctx, obj)
 	return obj
 }
 
 // updateMaximalSampleLeafLock sets all the maximal sample values to new values.
 // This will set new values for references, so save the old values and delete them.
-func updateMaximalSampleLeafLock(obj *LeafLock) {
+func updateMaximalSampleLeafLock(ctx context.Context, obj *LeafLock) {
 	updateMinimalSampleLeafLock(obj)
 
 }
@@ -167,8 +167,8 @@ func TestLeafLock_BasicUpdate(t *testing.T) {
 }
 
 func TestLeafLock_ReferenceLoad(t *testing.T) {
-	obj := createMaximalSampleLeafLock()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleLeafLock(ctx)
 	obj.Save(ctx)
 	defer deleteSampleLeafLock(ctx, obj)
 
@@ -187,13 +187,13 @@ func TestLeafLock_ReferenceLoad(t *testing.T) {
 }
 
 func TestLeafLock_ReferenceUpdateNewObjects(t *testing.T) {
-	obj := createMaximalSampleLeafLock()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleLeafLock(ctx)
 	obj.Save(ctx)
 	defer deleteSampleLeafLock(ctx, obj)
 
 	obj2 := LoadLeafLock(ctx, obj.PrimaryKey())
-	updateMaximalSampleLeafLock(obj2)
+	updateMaximalSampleLeafLock(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleLeafLock(ctx, obj2)
 
@@ -203,8 +203,8 @@ func TestLeafLock_ReferenceUpdateNewObjects(t *testing.T) {
 }
 
 func TestLeafLock_ReferenceUpdateOldObjects(t *testing.T) {
-	obj := createMaximalSampleLeafLock()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleLeafLock(ctx)
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleLeafLock(ctx, obj)
 
@@ -257,9 +257,11 @@ func TestLeafLock_QueryLoad(t *testing.T) {
 		Where(op.Equal(node.LeafLock().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.LeafLock().PrimaryKey()). // exercise order by
 		Limit(1, 0).                           // exercise limit
+		Calculation(node.LeafLock(), "IsTrue", op.Equal(1, 1)).
 		Load()
 
 	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+	assert.True(t, objs[0].GetAlias("IsTrue").Bool())
 }
 func TestLeafLock_QueryLoadI(t *testing.T) {
 	obj := createMinimalSampleLeafLock()
@@ -297,8 +299,8 @@ func TestLeafLock_QueryCursor(t *testing.T) {
 
 }
 func TestLeafLock_Count(t *testing.T) {
-	obj := createMaximalSampleLeafLock()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleLeafLock(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	// reread in case there are data limitations imposed by the database

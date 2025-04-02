@@ -686,7 +686,7 @@ func LoadRoot(ctx context.Context, id string, selectNodes ...query.Node) *Root {
 		Get()
 }
 
-// HasRoot returns true if a Root with the given primaryKey exists in the database.
+// HasRoot returns true if a Root with the given primary key exists in the database.
 // doc: type=Root
 func HasRoot(ctx context.Context, id string) bool {
 	return queryRoots(ctx).
@@ -1451,28 +1451,24 @@ func (o *rootBase) insert(ctx context.Context) (err error) {
 			}
 			o.optionalLeafID = o.objOptionalLeaf.PrimaryKey()
 		}
-
 		if o.objRequiredLeaf != nil {
 			if err = o.objRequiredLeaf.Save(ctx); err != nil {
 				return err
 			}
 			o.requiredLeafID = o.objRequiredLeaf.PrimaryKey()
 		}
-
 		if o.objOptionalLeafUnique != nil {
 			if err = o.objOptionalLeafUnique.Save(ctx); err != nil {
 				return err
 			}
 			o.optionalLeafUniqueID = o.objOptionalLeafUnique.PrimaryKey()
 		}
-
 		if o.objRequiredLeafUnique != nil {
 			if err = o.objRequiredLeafUnique.Save(ctx); err != nil {
 				return err
 			}
 			o.requiredLeafUniqueID = o.objRequiredLeafUnique.PrimaryKey()
 		}
-
 		if o.objParent != nil {
 			if err = o.objParent.Save(ctx); err != nil {
 				return err
@@ -1494,8 +1490,12 @@ func (o *rootBase) insert(ctx context.Context) (err error) {
 		}
 
 		insertFields = o.getInsertFields()
+		var newPk string
 
-		newPk := d.Insert(ctx, "root", insertFields)
+		newPk, err = d.Insert(ctx, "root", "id", insertFields)
+		if err != nil {
+			return err
+		}
 		o.id = newPk
 		o._originalPK = newPk
 		o.idIsLoaded = true

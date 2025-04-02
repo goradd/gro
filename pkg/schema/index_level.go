@@ -17,8 +17,9 @@ import (
 // IndexLevelUnique will result in a LoadByXXX function in the ORM that will return a single object with
 // the given value in the column's field. Uniqueness is up to the database or database driver to ensure.
 // Note that some databases (aka MongoDB) do not allow unique constraints on nullable fields to have more
-// than one null value in the database, in which case the application will need to enforce uniqueness, rather
-// than the database.
+// than one null value in the database, in which case the application will need custom logic to enforce
+// uniqueness, rather than relying on the database.
+// See also the comment on uniqueness in MultiColumnIndex.
 //
 // IndexLevelManualPrimaryKey and Unique are basically equivalent.
 // IndexLevelManualPrimaryKey gives a hint to the database to mark this field as the primary key for the table.

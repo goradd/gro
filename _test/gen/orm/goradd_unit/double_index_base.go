@@ -215,7 +215,7 @@ func LoadDoubleIndex(ctx context.Context, id int, selectNodes ...query.Node) *Do
 		Get()
 }
 
-// HasDoubleIndex returns true if a DoubleIndex with the given primaryKey exists in the database.
+// HasDoubleIndex returns true if a DoubleIndex with the given primary key exists in the database.
 // doc: type=DoubleIndex
 func HasDoubleIndex(ctx context.Context, id int) bool {
 	return queryDoubleIndices(ctx).
@@ -707,9 +707,13 @@ func (o *doubleIndexBase) insert(ctx context.Context) (err error) {
 		}
 
 		insertFields = o.getInsertFields()
+		var newPk int
 
-		d.Insert(ctx, "double_index", insertFields)
-		newPk := o.PrimaryKey()
+		_, err = d.Insert(ctx, "double_index", "id", insertFields)
+		if err != nil {
+			return err
+		}
+		newPk = o.PrimaryKey()
 		o._originalPK = newPk
 
 		return nil

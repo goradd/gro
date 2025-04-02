@@ -45,8 +45,10 @@ type DatabaseI interface {
 	// returns a new value of the lock if the update is successful.
 	Update(ctx context.Context, table string, pkName string, pkValue any, fields map[string]any, optLockFieldName string, optLockFieldValue int64) (int64, error)
 	// Insert will insert a new record into the database with the given values, and return the new record's primary key value.
+	// pkName is the query name of the primary key field.
 	// fields should include all the required values in the database at a minimum.
-	Insert(ctx context.Context, table string, fields map[string]any) string
+	// The primary key will be returned.
+	Insert(ctx context.Context, table string, pkName string, fields map[string]any) (string, error)
 	// Delete will delete records from the database that match the key value pairs in where.
 	// If where is nil, all the data will be deleted.
 	Delete(ctx context.Context, table string, where map[string]any)
@@ -132,7 +134,7 @@ func AssociateOnly[J, K any](ctx context.Context,
 	_ = ExecuteTransaction(ctx, d, func() error {
 		d.Delete(ctx, assnTable, map[string]interface{}{srcColumnName: pk})
 		for _, relatedPk := range relatedPks {
-			d.Insert(ctx, assnTable, map[string]any{srcColumnName: pk, relatedColumnName: relatedPk})
+			d.Insert(ctx, assnTable, "", map[string]any{srcColumnName: pk, relatedColumnName: relatedPk})
 		}
 		return nil
 	})
@@ -146,5 +148,5 @@ func Associate[J, K any](ctx context.Context,
 	pk J,
 	relatedColumnName string,
 	relatedPk K) {
-	d.Insert(ctx, assnTable, map[string]any{srcColumnName: pk, relatedColumnName: relatedPk})
+	d.Insert(ctx, assnTable, "", map[string]any{srcColumnName: pk, relatedColumnName: relatedPk})
 }

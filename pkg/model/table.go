@@ -126,6 +126,16 @@ func (t *Table) LockColumn() *Column {
 	return t.lockColumn
 }
 
+// HasUniqueIndexes returns true if the table has at least one unique index.
+func (t *Table) HasUniqueIndexes() bool {
+	for _, idx := range t.Indexes {
+		if idx.IsUnique {
+			return true
+		}
+	}
+	return false
+}
+
 // newTable will import the table provided by tableSchema.
 // If an error occurs, nil is returned.
 func newTable(dbKey string, tableSchema *schema.Table) *Table {

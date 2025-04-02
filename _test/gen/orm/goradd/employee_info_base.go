@@ -247,7 +247,7 @@ func LoadEmployeeInfo(ctx context.Context, id string, selectNodes ...query.Node)
 		Get()
 }
 
-// HasEmployeeInfo returns true if a EmployeeInfo with the given primaryKey exists in the database.
+// HasEmployeeInfo returns true if a EmployeeInfo with the given primary key exists in the database.
 // doc: type=EmployeeInfo
 func HasEmployeeInfo(ctx context.Context, id string) bool {
 	return queryEmployeeInfos(ctx).
@@ -746,8 +746,12 @@ func (o *employeeInfoBase) insert(ctx context.Context) (err error) {
 		}
 
 		insertFields = o.getInsertFields()
+		var newPk string
 
-		newPk := d.Insert(ctx, "employee_info", insertFields)
+		newPk, err = d.Insert(ctx, "employee_info", "id", insertFields)
+		if err != nil {
+			return err
+		}
 		o.id = newPk
 		o._originalPK = newPk
 		o.idIsLoaded = true

@@ -38,20 +38,26 @@ func updateMinimalSamplePerson(obj *Person) {
 
 // createMaximalSamplePerson creates an unsaved version of a Person object
 // for testing that includes references to minimal objects.
-func createMaximalSamplePerson() *Person {
+func createMaximalSamplePerson(ctx context.Context) *Person {
 	obj := NewPerson()
-	updateMaximalSamplePerson(obj)
+	updateMaximalSamplePerson(ctx, obj)
 	return obj
 }
 
 // updateMaximalSamplePerson sets all the maximal sample values to new values.
 // This will set new values for references, so save the old values and delete them.
-func updateMaximalSamplePerson(obj *Person) {
+func updateMaximalSamplePerson(ctx context.Context, obj *Person) {
 	updateMinimalSamplePerson(obj)
 
 	obj.SetAddresses(createMinimalSampleAddress())
-	obj.SetEmployeeInfo(createMinimalSampleEmployeeInfo())
-	obj.SetLogin(createMinimalSampleLogin())
+	// only update if not already set, since it can't be changed once set unless the reverse object is deleted first.
+	if obj.LoadEmployeeInfo(ctx) == nil {
+		obj.SetEmployeeInfo(createMinimalSampleEmployeeInfo())
+	}
+	// only update if not already set, since it can't be changed once set unless the reverse object is deleted first.
+	if obj.LoadLogin(ctx) == nil {
+		obj.SetLogin(createMinimalSampleLogin())
+	}
 	obj.SetManagerProjects(createMinimalSampleProject())
 	obj.SetProjects(createMinimalSampleProject())
 }
@@ -252,8 +258,8 @@ func TestPerson_BasicUpdate(t *testing.T) {
 }
 
 func TestPerson_ReferenceLoad(t *testing.T) {
-	obj := createMaximalSamplePerson()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSamplePerson(ctx)
 	obj.Save(ctx)
 	defer deleteSamplePerson(ctx, obj)
 
@@ -307,13 +313,13 @@ func TestPerson_ReferenceLoad(t *testing.T) {
 }
 
 func TestPerson_ReferenceUpdateNewObjects(t *testing.T) {
-	obj := createMaximalSamplePerson()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSamplePerson(ctx)
 	obj.Save(ctx)
 	defer deleteSamplePerson(ctx, obj)
 
 	obj2 := LoadPerson(ctx, obj.PrimaryKey())
-	updateMaximalSamplePerson(obj2)
+	updateMaximalSamplePerson(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSamplePerson(ctx, obj2)
 
@@ -335,8 +341,8 @@ func TestPerson_ReferenceUpdateNewObjects(t *testing.T) {
 }
 
 func TestPerson_ReferenceUpdateOldObjects(t *testing.T) {
-	obj := createMaximalSamplePerson()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSamplePerson(ctx)
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSamplePerson(ctx, obj)
 
@@ -411,9 +417,11 @@ func TestPerson_QueryLoad(t *testing.T) {
 		Where(op.Equal(node.Person().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.Person().PrimaryKey()). // exercise order by
 		Limit(1, 0).                         // exercise limit
+		Calculation(node.Person(), "IsTrue", op.Equal(1, 1)).
 		Load()
 
 	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+	assert.True(t, objs[0].GetAlias("IsTrue").Bool())
 }
 func TestPerson_QueryLoadI(t *testing.T) {
 	obj := createMinimalSamplePerson()
@@ -451,8 +459,8 @@ func TestPerson_QueryCursor(t *testing.T) {
 
 }
 func TestPerson_Count(t *testing.T) {
-	obj := createMaximalSamplePerson()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSamplePerson(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	// reread in case there are data limitations imposed by the database

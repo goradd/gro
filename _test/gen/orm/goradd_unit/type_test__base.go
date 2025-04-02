@@ -745,7 +745,7 @@ func LoadTypeTest(ctx context.Context, id string, selectNodes ...query.Node) *Ty
 		Get()
 }
 
-// HasTypeTest returns true if a TypeTest with the given primaryKey exists in the database.
+// HasTypeTest returns true if a TypeTest with the given primary key exists in the database.
 // doc: type=TypeTest
 func HasTypeTest(ctx context.Context, id string) bool {
 	return queryTypeTests(ctx).
@@ -1435,8 +1435,12 @@ func (o *typeTestBase) insert(ctx context.Context) (err error) {
 		}
 
 		insertFields = o.getInsertFields()
+		var newPk string
 
-		newPk := d.Insert(ctx, "type_test", insertFields)
+		newPk, err = d.Insert(ctx, "type_test", "id", insertFields)
+		if err != nil {
+			return err
+		}
 		o.id = newPk
 		o._originalPK = newPk
 		o.idIsLoaded = true

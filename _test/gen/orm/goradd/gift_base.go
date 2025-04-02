@@ -175,7 +175,7 @@ func LoadGift(ctx context.Context, number int, selectNodes ...query.Node) *Gift 
 		Get()
 }
 
-// HasGift returns true if a Gift with the given primaryKey exists in the database.
+// HasGift returns true if a Gift with the given primary key exists in the database.
 // doc: type=Gift
 func HasGift(ctx context.Context, number int) bool {
 	return queryGifts(ctx).
@@ -622,9 +622,13 @@ func (o *giftBase) insert(ctx context.Context) (err error) {
 		}
 
 		insertFields = o.getInsertFields()
+		var newPk int
 
-		d.Insert(ctx, "gift", insertFields)
-		newPk := o.PrimaryKey()
+		_, err = d.Insert(ctx, "gift", "number", insertFields)
+		if err != nil {
+			return err
+		}
+		newPk = o.PrimaryKey()
 		o._originalPK = newPk
 
 		return nil

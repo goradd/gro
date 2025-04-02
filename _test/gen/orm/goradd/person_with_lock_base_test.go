@@ -36,15 +36,15 @@ func updateMinimalSamplePersonWithLock(obj *PersonWithLock) {
 
 // createMaximalSamplePersonWithLock creates an unsaved version of a PersonWithLock object
 // for testing that includes references to minimal objects.
-func createMaximalSamplePersonWithLock() *PersonWithLock {
+func createMaximalSamplePersonWithLock(ctx context.Context) *PersonWithLock {
 	obj := NewPersonWithLock()
-	updateMaximalSamplePersonWithLock(obj)
+	updateMaximalSamplePersonWithLock(ctx, obj)
 	return obj
 }
 
 // updateMaximalSamplePersonWithLock sets all the maximal sample values to new values.
 // This will set new values for references, so save the old values and delete them.
-func updateMaximalSamplePersonWithLock(obj *PersonWithLock) {
+func updateMaximalSamplePersonWithLock(ctx context.Context, obj *PersonWithLock) {
 	updateMinimalSamplePersonWithLock(obj)
 
 }
@@ -209,8 +209,8 @@ func TestPersonWithLock_BasicUpdate(t *testing.T) {
 }
 
 func TestPersonWithLock_ReferenceLoad(t *testing.T) {
-	obj := createMaximalSamplePersonWithLock()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSamplePersonWithLock(ctx)
 	obj.Save(ctx)
 	defer deleteSamplePersonWithLock(ctx, obj)
 
@@ -229,13 +229,13 @@ func TestPersonWithLock_ReferenceLoad(t *testing.T) {
 }
 
 func TestPersonWithLock_ReferenceUpdateNewObjects(t *testing.T) {
-	obj := createMaximalSamplePersonWithLock()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSamplePersonWithLock(ctx)
 	obj.Save(ctx)
 	defer deleteSamplePersonWithLock(ctx, obj)
 
 	obj2 := LoadPersonWithLock(ctx, obj.PrimaryKey())
-	updateMaximalSamplePersonWithLock(obj2)
+	updateMaximalSamplePersonWithLock(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSamplePersonWithLock(ctx, obj2)
 
@@ -245,8 +245,8 @@ func TestPersonWithLock_ReferenceUpdateNewObjects(t *testing.T) {
 }
 
 func TestPersonWithLock_ReferenceUpdateOldObjects(t *testing.T) {
-	obj := createMaximalSamplePersonWithLock()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSamplePersonWithLock(ctx)
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSamplePersonWithLock(ctx, obj)
 
@@ -305,9 +305,11 @@ func TestPersonWithLock_QueryLoad(t *testing.T) {
 		Where(op.Equal(node.PersonWithLock().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.PersonWithLock().PrimaryKey()). // exercise order by
 		Limit(1, 0).                                 // exercise limit
+		Calculation(node.PersonWithLock(), "IsTrue", op.Equal(1, 1)).
 		Load()
 
 	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+	assert.True(t, objs[0].GetAlias("IsTrue").Bool())
 }
 func TestPersonWithLock_QueryLoadI(t *testing.T) {
 	obj := createMinimalSamplePersonWithLock()
@@ -345,8 +347,8 @@ func TestPersonWithLock_QueryCursor(t *testing.T) {
 
 }
 func TestPersonWithLock_Count(t *testing.T) {
-	obj := createMaximalSamplePersonWithLock()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSamplePersonWithLock(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	// reread in case there are data limitations imposed by the database

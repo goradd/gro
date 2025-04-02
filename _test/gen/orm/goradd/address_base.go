@@ -313,7 +313,7 @@ func LoadAddress(ctx context.Context, id string, selectNodes ...query.Node) *Add
 		Get()
 }
 
-// HasAddress returns true if a Address with the given primaryKey exists in the database.
+// HasAddress returns true if a Address with the given primary key exists in the database.
 // doc: type=Address
 func HasAddress(ctx context.Context, id string) bool {
 	return queryAddresses(ctx).
@@ -820,8 +820,12 @@ func (o *addressBase) insert(ctx context.Context) (err error) {
 		}
 
 		insertFields = o.getInsertFields()
+		var newPk string
 
-		newPk := d.Insert(ctx, "address", insertFields)
+		newPk, err = d.Insert(ctx, "address", "id", insertFields)
+		if err != nil {
+			return err
+		}
 		o.id = newPk
 		o._originalPK = newPk
 		o.idIsLoaded = true

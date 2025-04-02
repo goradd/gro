@@ -9,16 +9,16 @@ func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) (err error
     d := Database()
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
-{{# Here we save forward references, get the id, and then set the corresponding foreign key.}}
-{{for _,col := range table.Columns}}
-    {{if col.IsReference() }}
+{{for _,col := range table.SettableColumns()}}
+{{if col.IsReference() }}
+{{# Here we save forward references, get the new pk, and then set the corresponding foreign key.}}
     if o.{{= col.ReferenceVariableIdentifier() }} != nil {
         if err = o.{{= col.ReferenceVariableIdentifier() }}.Save(ctx); err != nil {
             return err
         }
         o.{{= col.VariableIdentifier() }} = o.{{= col.ReferenceVariableIdentifier() }}.PrimaryKey()
     }
-    {{if}}
+{{if}}
 {{for}}
 
 {{for _,col := range table.SettableColumns() }}
@@ -33,15 +33,22 @@ func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) (err error
 {{for}}
 
     insertFields = o.getInsertFields()
+    var newPk {{= table.PrimaryKeyGoType() }}
 
 {{if table.HasAutoPK() }}
-	newPk := d.Insert(ctx, "{{= table.QueryName }}", insertFields)
+	newPk, err = d.Insert(ctx, "{{= table.QueryName }}", "{{= table.PrimaryKeyColumn().QueryName }}", insertFields)
+    if err != nil {
+        return err
+    }
 	o.{{= table.PrimaryKeyColumn().VariableIdentifier() }} = newPk
 	o._originalPK = newPk
     o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}IsLoaded = true
 {{else}}
-	d.Insert(ctx, "{{= table.QueryName }}", insertFields)
-	newPk := o.PrimaryKey()
+	_, err = d.Insert(ctx, "{{= table.QueryName }}", "{{= table.PrimaryKeyColumn().QueryName }}", insertFields)
+    if err != nil {
+        return err
+    }
+	newPk = o.PrimaryKey()
 	o._originalPK = newPk
 {{if}}
 

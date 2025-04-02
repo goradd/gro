@@ -255,7 +255,7 @@ func TestSerializeReverseReferences`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, fmt.Sprint(rev.ReverseIdentifier())); err != nil {
+		if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
 			return
 		}
 
@@ -279,7 +279,61 @@ func TestSerializeReverseReferences`); err != nil {
         assert.Equal(t, n.TableName_(), cn2.TableName_())
         assert.Equal(t, query.ReverseNodeType, query.NodeParent(cn2).NodeType_())
     }
-}
+
+`); err != nil {
+			return
+		}
+
+		for _, col := range rev.Table.Columns {
+
+			if _, err = io.WriteString(_w, `	assert.True(t, query.NodesMatch(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(), n2.(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `Node).`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()))
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `}
 
 `); err != nil {
 			return

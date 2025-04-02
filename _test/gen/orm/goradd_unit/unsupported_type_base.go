@@ -872,7 +872,7 @@ func LoadUnsupportedType(ctx context.Context, typeSerial string, selectNodes ...
 		Get()
 }
 
-// HasUnsupportedType returns true if a UnsupportedType with the given primaryKey exists in the database.
+// HasUnsupportedType returns true if a UnsupportedType with the given primary key exists in the database.
 // doc: type=UnsupportedType
 func HasUnsupportedType(ctx context.Context, typeSerial string) bool {
 	return queryUnsupportedTypes(ctx).
@@ -1681,8 +1681,12 @@ func (o *unsupportedTypeBase) insert(ctx context.Context) (err error) {
 		}
 
 		insertFields = o.getInsertFields()
+		var newPk string
 
-		newPk := d.Insert(ctx, "unsupported_type", insertFields)
+		newPk, err = d.Insert(ctx, "unsupported_type", "type_serial", insertFields)
+		if err != nil {
+			return err
+		}
 		o.typeSerial = newPk
 		o._originalPK = newPk
 		o.typeSerialIsLoaded = true

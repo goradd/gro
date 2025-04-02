@@ -59,7 +59,7 @@ func TestSerializeReverseReferences{{= table.Identifier}}Table(t *testing.T) {
 {{for _, rev := range table.ReverseReferences}}
 
 {
-    n := {{= table.Identifier }}().{{rev.ReverseIdentifier() }}()
+    n := {{= table.Identifier }}().{{= rev.ReverseIdentifier() }}()
     n2 := serNode(t, n)
     parentNode := query.NodeParent(n2)
     assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
@@ -71,6 +71,10 @@ func TestSerializeReverseReferences{{= table.Identifier}}Table(t *testing.T) {
         assert.Equal(t, n.TableName_(), cn2.TableName_())
         assert.Equal(t, query.ReverseNodeType, query.NodeParent(cn2).NodeType_())
     }
+
+{{for _, col := range rev.Table.Columns}}
+	assert.True(t, query.NodesMatch({{= table.Identifier }}().{{= rev.ReverseIdentifier() }}().{{= col.Identifier }}(), n2.({{= rev.Table.Identifier }}Node).{{= col.Identifier }}()))
+{{for}}
 }
 
 {{for}}

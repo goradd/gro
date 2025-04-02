@@ -257,7 +257,7 @@ func LoadPersonWithLock(ctx context.Context, id string, selectNodes ...query.Nod
 		Get()
 }
 
-// HasPersonWithLock returns true if a PersonWithLock with the given primaryKey exists in the database.
+// HasPersonWithLock returns true if a PersonWithLock with the given primary key exists in the database.
 // doc: type=PersonWithLock
 func HasPersonWithLock(ctx context.Context, id string) bool {
 	return queryPersonWithLocks(ctx).
@@ -754,8 +754,12 @@ func (o *personWithLockBase) insert(ctx context.Context) (err error) {
 		}
 
 		insertFields = o.getInsertFields()
+		var newPk string
 
-		newPk := d.Insert(ctx, "person_with_lock", insertFields)
+		newPk, err = d.Insert(ctx, "person_with_lock", "id", insertFields)
+		if err != nil {
+			return err
+		}
 		o.id = newPk
 		o._originalPK = newPk
 		o.idIsLoaded = true

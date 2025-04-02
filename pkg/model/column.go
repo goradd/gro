@@ -48,6 +48,7 @@ type Column struct {
 	// IsNullable is true if the column can be given a NULL value.
 	IsNullable bool
 	// IsUnique is true if the column's table has a single unique index on the column.
+	// See the comment on uniqueness in schema.MultiColumnIndex.
 	IsUnique bool
 	// Reference is additional information describing a foreign key relationship or enum table
 	Reference *Reference

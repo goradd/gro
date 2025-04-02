@@ -53,15 +53,15 @@ func updateMinimalSampleTypeTest(obj *TypeTest) {
 
 // createMaximalSampleTypeTest creates an unsaved version of a TypeTest object
 // for testing that includes references to minimal objects.
-func createMaximalSampleTypeTest() *TypeTest {
+func createMaximalSampleTypeTest(ctx context.Context) *TypeTest {
 	obj := NewTypeTest()
-	updateMaximalSampleTypeTest(obj)
+	updateMaximalSampleTypeTest(ctx, obj)
 	return obj
 }
 
 // updateMaximalSampleTypeTest sets all the maximal sample values to new values.
 // This will set new values for references, so save the old values and delete them.
-func updateMaximalSampleTypeTest(obj *TypeTest) {
+func updateMaximalSampleTypeTest(ctx context.Context, obj *TypeTest) {
 	updateMinimalSampleTypeTest(obj)
 
 }
@@ -492,8 +492,8 @@ func TestTypeTest_BasicUpdate(t *testing.T) {
 }
 
 func TestTypeTest_ReferenceLoad(t *testing.T) {
-	obj := createMaximalSampleTypeTest()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleTypeTest(ctx)
 	obj.Save(ctx)
 	defer deleteSampleTypeTest(ctx, obj)
 
@@ -512,13 +512,13 @@ func TestTypeTest_ReferenceLoad(t *testing.T) {
 }
 
 func TestTypeTest_ReferenceUpdateNewObjects(t *testing.T) {
-	obj := createMaximalSampleTypeTest()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleTypeTest(ctx)
 	obj.Save(ctx)
 	defer deleteSampleTypeTest(ctx, obj)
 
 	obj2 := LoadTypeTest(ctx, obj.PrimaryKey())
-	updateMaximalSampleTypeTest(obj2)
+	updateMaximalSampleTypeTest(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleTypeTest(ctx, obj2)
 
@@ -528,8 +528,8 @@ func TestTypeTest_ReferenceUpdateNewObjects(t *testing.T) {
 }
 
 func TestTypeTest_ReferenceUpdateOldObjects(t *testing.T) {
-	obj := createMaximalSampleTypeTest()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleTypeTest(ctx)
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleTypeTest(ctx, obj)
 
@@ -609,9 +609,11 @@ func TestTypeTest_QueryLoad(t *testing.T) {
 		Where(op.Equal(node.TypeTest().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.TypeTest().PrimaryKey()). // exercise order by
 		Limit(1, 0).                           // exercise limit
+		Calculation(node.TypeTest(), "IsTrue", op.Equal(1, 1)).
 		Load()
 
 	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+	assert.True(t, objs[0].GetAlias("IsTrue").Bool())
 }
 func TestTypeTest_QueryLoadI(t *testing.T) {
 	obj := createMinimalSampleTypeTest()
@@ -649,8 +651,8 @@ func TestTypeTest_QueryCursor(t *testing.T) {
 
 }
 func TestTypeTest_Count(t *testing.T) {
-	obj := createMaximalSampleTypeTest()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleTypeTest(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	// reread in case there are data limitations imposed by the database

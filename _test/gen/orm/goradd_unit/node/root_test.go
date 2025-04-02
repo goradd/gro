@@ -122,6 +122,14 @@ func TestSerializeReverseReferencesRootTable(t *testing.T) {
 			assert.Equal(t, n.TableName_(), cn2.TableName_())
 			assert.Equal(t, query.ReverseNodeType, query.NodeParent(cn2).NodeType_())
 		}
+
+		assert.True(t, query.NodesMatch(Root().ParentRoots().ID(), n2.(RootNode).ID()))
+		assert.True(t, query.NodesMatch(Root().ParentRoots().Name(), n2.(RootNode).Name()))
+		assert.True(t, query.NodesMatch(Root().ParentRoots().OptionalLeafID(), n2.(RootNode).OptionalLeafID()))
+		assert.True(t, query.NodesMatch(Root().ParentRoots().RequiredLeafID(), n2.(RootNode).RequiredLeafID()))
+		assert.True(t, query.NodesMatch(Root().ParentRoots().OptionalLeafUniqueID(), n2.(RootNode).OptionalLeafUniqueID()))
+		assert.True(t, query.NodesMatch(Root().ParentRoots().RequiredLeafUniqueID(), n2.(RootNode).RequiredLeafUniqueID()))
+		assert.True(t, query.NodesMatch(Root().ParentRoots().ParentID(), n2.(RootNode).ParentID()))
 	}
 
 }

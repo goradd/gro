@@ -34,21 +34,27 @@ func updateMinimalSampleLeaf(obj *Leaf) {
 
 // createMaximalSampleLeaf creates an unsaved version of a Leaf object
 // for testing that includes references to minimal objects.
-func createMaximalSampleLeaf() *Leaf {
+func createMaximalSampleLeaf(ctx context.Context) *Leaf {
 	obj := NewLeaf()
-	updateMaximalSampleLeaf(obj)
+	updateMaximalSampleLeaf(ctx, obj)
 	return obj
 }
 
 // updateMaximalSampleLeaf sets all the maximal sample values to new values.
 // This will set new values for references, so save the old values and delete them.
-func updateMaximalSampleLeaf(obj *Leaf) {
+func updateMaximalSampleLeaf(ctx context.Context, obj *Leaf) {
 	updateMinimalSampleLeaf(obj)
 
 	obj.SetOptionalLeafRoots(createMinimalSampleRoot())
 	obj.SetRequiredLeafRoots(createMinimalSampleRoot())
-	obj.SetOptionalLeafUniqueRoot(createMinimalSampleRoot())
-	obj.SetRequiredLeafUniqueRoot(createMinimalSampleRoot())
+	// only update if not already set, since it can't be changed once set unless the reverse object is deleted first.
+	if obj.LoadOptionalLeafUniqueRoot(ctx) == nil {
+		obj.SetOptionalLeafUniqueRoot(createMinimalSampleRoot())
+	}
+	// only update if not already set, since it can't be changed once set unless the reverse object is deleted first.
+	if obj.LoadRequiredLeafUniqueRoot(ctx) == nil {
+		obj.SetRequiredLeafUniqueRoot(createMinimalSampleRoot())
+	}
 }
 
 // deleteSampleLeaf deletes an object created and saved by one of the sample creator functions.
@@ -174,8 +180,8 @@ func TestLeaf_BasicUpdate(t *testing.T) {
 }
 
 func TestLeaf_ReferenceLoad(t *testing.T) {
-	obj := createMaximalSampleLeaf()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleLeaf(ctx)
 	obj.Save(ctx)
 	defer deleteSampleLeaf(ctx, obj)
 
@@ -222,13 +228,13 @@ func TestLeaf_ReferenceLoad(t *testing.T) {
 }
 
 func TestLeaf_ReferenceUpdateNewObjects(t *testing.T) {
-	obj := createMaximalSampleLeaf()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleLeaf(ctx)
 	obj.Save(ctx)
 	defer deleteSampleLeaf(ctx, obj)
 
 	obj2 := LoadLeaf(ctx, obj.PrimaryKey())
-	updateMaximalSampleLeaf(obj2)
+	updateMaximalSampleLeaf(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleLeaf(ctx, obj2)
 
@@ -247,8 +253,8 @@ func TestLeaf_ReferenceUpdateNewObjects(t *testing.T) {
 }
 
 func TestLeaf_ReferenceUpdateOldObjects(t *testing.T) {
-	obj := createMaximalSampleLeaf()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleLeaf(ctx)
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleLeaf(ctx, obj)
 
@@ -314,9 +320,11 @@ func TestLeaf_QueryLoad(t *testing.T) {
 		Where(op.Equal(node.Leaf().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.Leaf().PrimaryKey()). // exercise order by
 		Limit(1, 0).                       // exercise limit
+		Calculation(node.Leaf(), "IsTrue", op.Equal(1, 1)).
 		Load()
 
 	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+	assert.True(t, objs[0].GetAlias("IsTrue").Bool())
 }
 func TestLeaf_QueryLoadI(t *testing.T) {
 	obj := createMinimalSampleLeaf()
@@ -354,8 +362,8 @@ func TestLeaf_QueryCursor(t *testing.T) {
 
 }
 func TestLeaf_Count(t *testing.T) {
-	obj := createMaximalSampleLeaf()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleLeaf(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	// reread in case there are data limitations imposed by the database

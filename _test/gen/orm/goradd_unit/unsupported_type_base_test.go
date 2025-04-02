@@ -48,15 +48,15 @@ func updateMinimalSampleUnsupportedType(obj *UnsupportedType) {
 
 // createMaximalSampleUnsupportedType creates an unsaved version of a UnsupportedType object
 // for testing that includes references to minimal objects.
-func createMaximalSampleUnsupportedType() *UnsupportedType {
+func createMaximalSampleUnsupportedType(ctx context.Context) *UnsupportedType {
 	obj := NewUnsupportedType()
-	updateMaximalSampleUnsupportedType(obj)
+	updateMaximalSampleUnsupportedType(ctx, obj)
 	return obj
 }
 
 // updateMaximalSampleUnsupportedType sets all the maximal sample values to new values.
 // This will set new values for references, so save the old values and delete them.
-func updateMaximalSampleUnsupportedType(obj *UnsupportedType) {
+func updateMaximalSampleUnsupportedType(ctx context.Context, obj *UnsupportedType) {
 	updateMinimalSampleUnsupportedType(obj)
 
 }

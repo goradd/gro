@@ -52,26 +52,33 @@ func updateMinimalSample{{= table.Identifier }}(obj *{{= table.Identifier }})  {
 
 // createMaximalSample{{= table.Identifier }} creates an unsaved version of a {{= table.Identifier }} object
 // for testing that includes references to minimal objects.
-func createMaximalSample{{= table.Identifier }}() *{{= table.Identifier }} {
+func createMaximalSample{{= table.Identifier }}(ctx context.Context) *{{= table.Identifier }} {
     obj := New{{= table.Identifier }}()
-    updateMaximalSample{{= table.Identifier }}(obj)
+    updateMaximalSample{{= table.Identifier }}(ctx, obj)
     return obj
 }
 
 // updateMaximalSample{{= table.Identifier }} sets all the maximal sample values to new values.
 // This will set new values for references, so save the old values and delete them.
-func updateMaximalSample{{= table.Identifier }}(obj *{{= table.Identifier }}) {
+func updateMaximalSample{{= table.Identifier }}(ctx context.Context, obj *{{= table.Identifier }}) {
     updateMinimalSample{{= table.Identifier }}(obj)
 {{for _,col := range table.Columns}}
 {{if col.HasSetter()}}
-    {{if col.IsReference()}}
+{{if col.IsReference()}}
     obj.Set{{= col.ReferenceIdentifier() }}(createMinimalSample{{= col.ReferenceType() }}())
-    {{if}}
+{{if}}
 {{if}}
 {{for}}
 
 {{for _,col := range table.ReverseReferences}}
+{{if col.IsUnique}}
+    // only update if not already set, since it can't be changed once set unless the reverse object is deleted first.
+    if obj.Load{{= col.ReverseIdentifier() }}(ctx) == nil {
+        obj.Set{{= col.ReverseIdentifier() }}(createMinimalSample{{= col.Table.Identifier }}())
+    }
+{{else}}
     obj.Set{{= col.ReverseIdentifier() }}(createMinimalSample{{= col.Table.Identifier }}())
+{{if}}
 {{for}}
 {{for _,mm := range table.ManyManyReferences}}
     obj.Set{{= mm.IdentifierPlural }}(createMinimalSample{{= mm.DestinationTable.Identifier }}())

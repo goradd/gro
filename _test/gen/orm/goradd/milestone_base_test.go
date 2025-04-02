@@ -39,17 +39,16 @@ func updateMinimalSampleMilestone(obj *Milestone) {
 
 // createMaximalSampleMilestone creates an unsaved version of a Milestone object
 // for testing that includes references to minimal objects.
-func createMaximalSampleMilestone() *Milestone {
+func createMaximalSampleMilestone(ctx context.Context) *Milestone {
 	obj := NewMilestone()
-	updateMaximalSampleMilestone(obj)
+	updateMaximalSampleMilestone(ctx, obj)
 	return obj
 }
 
 // updateMaximalSampleMilestone sets all the maximal sample values to new values.
 // This will set new values for references, so save the old values and delete them.
-func updateMaximalSampleMilestone(obj *Milestone) {
+func updateMaximalSampleMilestone(ctx context.Context, obj *Milestone) {
 	updateMinimalSampleMilestone(obj)
-
 	obj.SetProject(createMinimalSampleProject())
 
 }
@@ -192,8 +191,8 @@ func TestMilestone_BasicUpdate(t *testing.T) {
 }
 
 func TestMilestone_ReferenceLoad(t *testing.T) {
-	obj := createMaximalSampleMilestone()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleMilestone(ctx)
 	obj.Save(ctx)
 	defer deleteSampleMilestone(ctx, obj)
 
@@ -230,13 +229,13 @@ func TestMilestone_ReferenceLoad(t *testing.T) {
 }
 
 func TestMilestone_ReferenceUpdateNewObjects(t *testing.T) {
-	obj := createMaximalSampleMilestone()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleMilestone(ctx)
 	obj.Save(ctx)
 	defer deleteSampleMilestone(ctx, obj)
 
 	obj2 := LoadMilestone(ctx, obj.PrimaryKey())
-	updateMaximalSampleMilestone(obj2)
+	updateMaximalSampleMilestone(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleMilestone(ctx, obj2)
 
@@ -248,8 +247,8 @@ func TestMilestone_ReferenceUpdateNewObjects(t *testing.T) {
 }
 
 func TestMilestone_ReferenceUpdateOldObjects(t *testing.T) {
-	obj := createMaximalSampleMilestone()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleMilestone(ctx)
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleMilestone(ctx, obj)
 
@@ -307,9 +306,11 @@ func TestMilestone_QueryLoad(t *testing.T) {
 		Where(op.Equal(node.Milestone().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.Milestone().PrimaryKey()). // exercise order by
 		Limit(1, 0).                            // exercise limit
+		Calculation(node.Milestone(), "IsTrue", op.Equal(1, 1)).
 		Load()
 
 	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+	assert.True(t, objs[0].GetAlias("IsTrue").Bool())
 }
 func TestMilestone_QueryLoadI(t *testing.T) {
 	obj := createMinimalSampleMilestone()
@@ -347,8 +348,8 @@ func TestMilestone_QueryCursor(t *testing.T) {
 
 }
 func TestMilestone_Count(t *testing.T) {
-	obj := createMaximalSampleMilestone()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleMilestone(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	// reread in case there are data limitations imposed by the database

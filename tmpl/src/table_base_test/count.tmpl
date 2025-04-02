@@ -2,8 +2,8 @@
 
 {{
 func Test{{= table.Identifier }}_Count(t *testing.T) {
-    obj := createMaximalSample{{= table.Identifier }}()
     ctx := db.NewContext(nil)
+    obj := createMaximalSample{{= table.Identifier }}(ctx)
     err := obj.Save(ctx)
 	assert.NoError(t, err)
 	// reread in case there are data limitations imposed by the database

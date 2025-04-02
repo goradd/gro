@@ -418,7 +418,7 @@ func LoadLeaf(ctx context.Context, id string, selectNodes ...query.Node) *Leaf {
 		Get()
 }
 
-// HasLeaf returns true if a Leaf with the given primaryKey exists in the database.
+// HasLeaf returns true if a Leaf with the given primary key exists in the database.
 // doc: type=Leaf
 func HasLeaf(ctx context.Context, id string) bool {
 	return queryLeafs(ctx).
@@ -968,7 +968,7 @@ func (o *leafBase) update(ctx context.Context) error {
 			// relation connection changed
 
 			// Since the other side of the relationship cannot be null, if there is an object already attached
-			// that is different than the one we are trying to attach, we delete the old one.
+			// that is different than the one we are trying to attach, we will panic to warn the developer.
 			oldObj := QueryRoots(ctx).
 				Where(op.Equal(node.Root().OptionalLeafUniqueID(), o.PrimaryKey())).
 				Select(node.Root().OptionalLeafUniqueID()).
@@ -976,7 +976,7 @@ func (o *leafBase) update(ctx context.Context) error {
 
 			if oldObj != nil {
 				if o.revOptionalLeafUniqueRoot != nil && oldObj.PrimaryKey() != o.revOptionalLeafUniqueRoot.PrimaryKey() {
-					oldObj.Delete(ctx)
+					panic(fmt.Sprintf("error: %s is referencing the object being saved. Since this is a unique, non-null reference, you must delete the referencing object before saving the new object.", oldObj))
 				}
 			}
 			// we are moving the attachment from one place, to our object, or attaching an object that is already attached.
@@ -1000,7 +1000,7 @@ func (o *leafBase) update(ctx context.Context) error {
 			// relation connection changed
 
 			// Since the other side of the relationship cannot be null, if there is an object already attached
-			// that is different than the one we are trying to attach, we delete the old one.
+			// that is different than the one we are trying to attach, we will panic to warn the developer.
 			oldObj := QueryRoots(ctx).
 				Where(op.Equal(node.Root().RequiredLeafUniqueID(), o.PrimaryKey())).
 				Select(node.Root().RequiredLeafUniqueID()).
@@ -1008,7 +1008,7 @@ func (o *leafBase) update(ctx context.Context) error {
 
 			if oldObj != nil {
 				if o.revRequiredLeafUniqueRoot != nil && oldObj.PrimaryKey() != o.revRequiredLeafUniqueRoot.PrimaryKey() {
-					oldObj.Delete(ctx)
+					panic(fmt.Sprintf("error: %s is referencing the object being saved. Since this is a unique, non-null reference, you must delete the referencing object before saving the new object.", oldObj))
 				}
 			}
 			// we are moving the attachment from one place, to our object, or attaching an object that is already attached.
@@ -1054,8 +1054,12 @@ func (o *leafBase) insert(ctx context.Context) (err error) {
 		}
 
 		insertFields = o.getInsertFields()
+		var newPk string
 
-		newPk := d.Insert(ctx, "leaf", insertFields)
+		newPk, err = d.Insert(ctx, "leaf", "id", insertFields)
+		if err != nil {
+			return err
+		}
 		o.id = newPk
 		o._originalPK = newPk
 		o.idIsLoaded = true

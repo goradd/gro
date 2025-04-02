@@ -39,3 +39,19 @@ func (e RecordNotFoundError) Error() string {
 func NewRecordNotFoundError(msg string) error {
 	return RecordNotFoundError{message: msg}
 }
+
+// DuplicateValueError indicates a record failed to save because a value in that
+// record has a unique index and the value was found in another record.
+type DuplicateValueError struct {
+	message string
+}
+
+func (e DuplicateValueError) Error() string {
+	return e.message
+}
+
+// NewDuplicateValueError returns a new error stating that a record could not be saved
+// because a unique value in the new record was found in a different record.
+func NewDuplicateValueError(msg string) error {
+	return RecordNotFoundError{message: msg}
+}

@@ -4788,7 +4788,7 @@ func Load`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, ` with the given primaryKey exists in the database.
+	if _, err = io.WriteString(_w, ` with the given primary key exists in the database.
 // doc: type=`); err != nil {
 		return
 	}
@@ -8155,7 +8155,7 @@ func (o *`); err != nil {
 				//*** update_rev_not_null_unique.tmpl
 
 				if _, err = io.WriteString(_w, `                    // Since the other side of the relationship cannot be null, if there is an object already attached
-                    // that is different than the one we are trying to attach, we delete the old one.
+                    // that is different than the one we are trying to attach, we will panic to warn the developer.
                     oldObj := Query`); err != nil {
 					return
 				}
@@ -8219,7 +8219,7 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `.PrimaryKey() {
-                            oldObj.Delete(ctx)
+                            panic(fmt.Sprintf("error: %s is referencing the object being saved. Since this is a unique, non-null reference, you must delete the referencing object before saving the new object.", oldObj))
                         }
                     }
                     // we are moving the attachment from one place, to our object, or attaching an object that is already attached.
@@ -8815,16 +8815,11 @@ func (o *`); err != nil {
 		return
 	}
 
-	for _, col := range table.Columns {
-
-		if _, err = io.WriteString(_w, `    `); err != nil {
-			return
-		}
+	for _, col := range table.SettableColumns() {
 
 		if col.IsReference() {
 
-			if _, err = io.WriteString(_w, `
-    if o.`); err != nil {
+			if _, err = io.WriteString(_w, `    if o.`); err != nil {
 				return
 			}
 
@@ -8862,15 +8857,10 @@ func (o *`); err != nil {
 
 			if _, err = io.WriteString(_w, `.PrimaryKey()
     }
-    `); err != nil {
+`); err != nil {
 				return
 			}
 
-		}
-
-		if _, err = io.WriteString(_w, `
-`); err != nil {
-			return
 		}
 
 	}
@@ -8921,6 +8911,15 @@ func (o *`); err != nil {
 
 	if _, err = io.WriteString(_w, `
     insertFields = o.getInsertFields()
+    var newPk `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.PrimaryKeyGoType()); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `
 
 `); err != nil {
 		return
@@ -8928,7 +8927,7 @@ func (o *`); err != nil {
 
 	if table.HasAutoPK() {
 
-		if _, err = io.WriteString(_w, `	newPk := d.Insert(ctx, "`); err != nil {
+		if _, err = io.WriteString(_w, `	newPk, err = d.Insert(ctx, "`); err != nil {
 			return
 		}
 
@@ -8936,7 +8935,18 @@ func (o *`); err != nil {
 			return
 		}
 
+		if _, err = io.WriteString(_w, `", "`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().QueryName); err != nil {
+			return
+		}
+
 		if _, err = io.WriteString(_w, `", insertFields)
+    if err != nil {
+        return err
+    }
 	o.`); err != nil {
 			return
 		}
@@ -8962,7 +8972,7 @@ func (o *`); err != nil {
 
 	} else {
 
-		if _, err = io.WriteString(_w, `	d.Insert(ctx, "`); err != nil {
+		if _, err = io.WriteString(_w, `	_, err = d.Insert(ctx, "`); err != nil {
 			return
 		}
 
@@ -8970,8 +8980,19 @@ func (o *`); err != nil {
 			return
 		}
 
+		if _, err = io.WriteString(_w, `", "`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().QueryName); err != nil {
+			return
+		}
+
 		if _, err = io.WriteString(_w, `", insertFields)
-	newPk := o.PrimaryKey()
+    if err != nil {
+        return err
+    }
+	newPk = o.PrimaryKey()
 	o._originalPK = newPk
 `); err != nil {
 			return

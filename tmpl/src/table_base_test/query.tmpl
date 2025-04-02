@@ -12,9 +12,11 @@ func Test{{= table.Identifier }}_QueryLoad(t *testing.T) {
         Where(op.Equal(node.{{= table.Identifier }}().PrimaryKey(), obj.PrimaryKey())).
         OrderBy(node.{{= table.Identifier }}().PrimaryKey()). // exercise order by
         Limit(1,0). // exercise limit
+        Calculation(node.{{= table.Identifier }}(), "IsTrue", op.Equal(1,1)).
         Load()
 
     assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+	assert.True(t, objs[0].GetAlias("IsTrue").Bool())
 }
 }}
 

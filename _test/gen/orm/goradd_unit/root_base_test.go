@@ -49,25 +49,20 @@ func updateMinimalSampleRoot(obj *Root) {
 
 // createMaximalSampleRoot creates an unsaved version of a Root object
 // for testing that includes references to minimal objects.
-func createMaximalSampleRoot() *Root {
+func createMaximalSampleRoot(ctx context.Context) *Root {
 	obj := NewRoot()
-	updateMaximalSampleRoot(obj)
+	updateMaximalSampleRoot(ctx, obj)
 	return obj
 }
 
 // updateMaximalSampleRoot sets all the maximal sample values to new values.
 // This will set new values for references, so save the old values and delete them.
-func updateMaximalSampleRoot(obj *Root) {
+func updateMaximalSampleRoot(ctx context.Context, obj *Root) {
 	updateMinimalSampleRoot(obj)
-
 	obj.SetOptionalLeaf(createMinimalSampleLeaf())
-
 	obj.SetRequiredLeaf(createMinimalSampleLeaf())
-
 	obj.SetOptionalLeafUnique(createMinimalSampleLeaf())
-
 	obj.SetRequiredLeafUnique(createMinimalSampleLeaf())
-
 	obj.SetParent(createMinimalSampleRoot())
 
 	obj.SetParentRoots(createMinimalSampleRoot())
@@ -315,8 +310,8 @@ func TestRoot_BasicUpdate(t *testing.T) {
 }
 
 func TestRoot_ReferenceLoad(t *testing.T) {
-	obj := createMaximalSampleRoot()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleRoot(ctx)
 	obj.Save(ctx)
 	defer deleteSampleRoot(ctx, obj)
 
@@ -429,13 +424,13 @@ func TestRoot_ReferenceLoad(t *testing.T) {
 }
 
 func TestRoot_ReferenceUpdateNewObjects(t *testing.T) {
-	obj := createMaximalSampleRoot()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleRoot(ctx)
 	obj.Save(ctx)
 	defer deleteSampleRoot(ctx, obj)
 
 	obj2 := LoadRoot(ctx, obj.PrimaryKey())
-	updateMaximalSampleRoot(obj2)
+	updateMaximalSampleRoot(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleRoot(ctx, obj2)
 
@@ -459,8 +454,8 @@ func TestRoot_ReferenceUpdateNewObjects(t *testing.T) {
 }
 
 func TestRoot_ReferenceUpdateOldObjects(t *testing.T) {
-	obj := createMaximalSampleRoot()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleRoot(ctx)
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleRoot(ctx, obj)
 
@@ -548,9 +543,11 @@ func TestRoot_QueryLoad(t *testing.T) {
 		Where(op.Equal(node.Root().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.Root().PrimaryKey()). // exercise order by
 		Limit(1, 0).                       // exercise limit
+		Calculation(node.Root(), "IsTrue", op.Equal(1, 1)).
 		Load()
 
 	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+	assert.True(t, objs[0].GetAlias("IsTrue").Bool())
 }
 func TestRoot_QueryLoadI(t *testing.T) {
 	obj := createMinimalSampleRoot()
@@ -588,8 +585,8 @@ func TestRoot_QueryCursor(t *testing.T) {
 
 }
 func TestRoot_Count(t *testing.T) {
-	obj := createMaximalSampleRoot()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleRoot(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	// reread in case there are data limitations imposed by the database
@@ -631,4 +628,22 @@ func TestRoot_MarshalBinary(t *testing.T) {
 	assert.NoError(t, err)
 
 	assertEqualFieldsRoot(t, obj, obj2)
+}
+
+func TestRoot_Indexes(t *testing.T) {
+	ctx := db.NewContext(nil)
+	obj := createMaximalSampleRoot(ctx)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleRoot(ctx, obj)
+
+	var obj2 *Root
+	obj2 = LoadRootByOptionalLeafUniqueID(ctx, obj.OptionalLeafUniqueID())
+	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
+	assert.True(t, HasRootByOptionalLeafUniqueID(ctx, obj.OptionalLeafUniqueID()))
+
+	obj2 = LoadRootByRequiredLeafUniqueID(ctx, obj.RequiredLeafUniqueID())
+	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
+	assert.True(t, HasRootByRequiredLeafUniqueID(ctx, obj.RequiredLeafUniqueID()))
+
 }

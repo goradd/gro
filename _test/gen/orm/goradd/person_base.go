@@ -610,7 +610,7 @@ func LoadPerson(ctx context.Context, id string, selectNodes ...query.Node) *Pers
 		Get()
 }
 
-// HasPerson returns true if a Person with the given primaryKey exists in the database.
+// HasPerson returns true if a Person with the given primary key exists in the database.
 // doc: type=Person
 func HasPerson(ctx context.Context, id string) bool {
 	return queryPeople(ctx).
@@ -1186,7 +1186,7 @@ func (o *personBase) update(ctx context.Context) error {
 			// relation connection changed
 
 			// Since the other side of the relationship cannot be null, if there is an object already attached
-			// that is different than the one we are trying to attach, we delete the old one.
+			// that is different than the one we are trying to attach, we will panic to warn the developer.
 			oldObj := QueryEmployeeInfos(ctx).
 				Where(op.Equal(node.EmployeeInfo().PersonID(), o.PrimaryKey())).
 				Select(node.EmployeeInfo().PersonID()).
@@ -1194,7 +1194,7 @@ func (o *personBase) update(ctx context.Context) error {
 
 			if oldObj != nil {
 				if o.revEmployeeInfo != nil && oldObj.PrimaryKey() != o.revEmployeeInfo.PrimaryKey() {
-					oldObj.Delete(ctx)
+					panic(fmt.Sprintf("error: %s is referencing the object being saved. Since this is a unique, non-null reference, you must delete the referencing object before saving the new object.", oldObj))
 				}
 			}
 			// we are moving the attachment from one place, to our object, or attaching an object that is already attached.
@@ -1347,8 +1347,12 @@ func (o *personBase) insert(ctx context.Context) (err error) {
 		}
 
 		insertFields = o.getInsertFields()
+		var newPk string
 
-		newPk := d.Insert(ctx, "person", insertFields)
+		newPk, err = d.Insert(ctx, "person", "id", insertFields)
+		if err != nil {
+			return err
+		}
 		o.id = newPk
 		o._originalPK = newPk
 		o.idIsLoaded = true

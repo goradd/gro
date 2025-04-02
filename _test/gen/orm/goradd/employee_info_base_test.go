@@ -39,17 +39,16 @@ func updateMinimalSampleEmployeeInfo(obj *EmployeeInfo) {
 
 // createMaximalSampleEmployeeInfo creates an unsaved version of a EmployeeInfo object
 // for testing that includes references to minimal objects.
-func createMaximalSampleEmployeeInfo() *EmployeeInfo {
+func createMaximalSampleEmployeeInfo(ctx context.Context) *EmployeeInfo {
 	obj := NewEmployeeInfo()
-	updateMaximalSampleEmployeeInfo(obj)
+	updateMaximalSampleEmployeeInfo(ctx, obj)
 	return obj
 }
 
 // updateMaximalSampleEmployeeInfo sets all the maximal sample values to new values.
 // This will set new values for references, so save the old values and delete them.
-func updateMaximalSampleEmployeeInfo(obj *EmployeeInfo) {
+func updateMaximalSampleEmployeeInfo(ctx context.Context, obj *EmployeeInfo) {
 	updateMinimalSampleEmployeeInfo(obj)
-
 	obj.SetPerson(createMinimalSamplePerson())
 
 }
@@ -187,8 +186,8 @@ func TestEmployeeInfo_BasicUpdate(t *testing.T) {
 }
 
 func TestEmployeeInfo_ReferenceLoad(t *testing.T) {
-	obj := createMaximalSampleEmployeeInfo()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleEmployeeInfo(ctx)
 	obj.Save(ctx)
 	defer deleteSampleEmployeeInfo(ctx, obj)
 
@@ -225,13 +224,13 @@ func TestEmployeeInfo_ReferenceLoad(t *testing.T) {
 }
 
 func TestEmployeeInfo_ReferenceUpdateNewObjects(t *testing.T) {
-	obj := createMaximalSampleEmployeeInfo()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleEmployeeInfo(ctx)
 	obj.Save(ctx)
 	defer deleteSampleEmployeeInfo(ctx, obj)
 
 	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey())
-	updateMaximalSampleEmployeeInfo(obj2)
+	updateMaximalSampleEmployeeInfo(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleEmployeeInfo(ctx, obj2)
 
@@ -243,8 +242,8 @@ func TestEmployeeInfo_ReferenceUpdateNewObjects(t *testing.T) {
 }
 
 func TestEmployeeInfo_ReferenceUpdateOldObjects(t *testing.T) {
-	obj := createMaximalSampleEmployeeInfo()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleEmployeeInfo(ctx)
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleEmployeeInfo(ctx, obj)
 
@@ -302,9 +301,11 @@ func TestEmployeeInfo_QueryLoad(t *testing.T) {
 		Where(op.Equal(node.EmployeeInfo().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.EmployeeInfo().PrimaryKey()). // exercise order by
 		Limit(1, 0).                               // exercise limit
+		Calculation(node.EmployeeInfo(), "IsTrue", op.Equal(1, 1)).
 		Load()
 
 	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+	assert.True(t, objs[0].GetAlias("IsTrue").Bool())
 }
 func TestEmployeeInfo_QueryLoadI(t *testing.T) {
 	obj := createMinimalSampleEmployeeInfo()
@@ -342,8 +343,8 @@ func TestEmployeeInfo_QueryCursor(t *testing.T) {
 
 }
 func TestEmployeeInfo_Count(t *testing.T) {
-	obj := createMaximalSampleEmployeeInfo()
 	ctx := db.NewContext(nil)
+	obj := createMaximalSampleEmployeeInfo(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	// reread in case there are data limitations imposed by the database
@@ -381,4 +382,18 @@ func TestEmployeeInfo_MarshalBinary(t *testing.T) {
 	assert.NoError(t, err)
 
 	assertEqualFieldsEmployeeInfo(t, obj, obj2)
+}
+
+func TestEmployeeInfo_Indexes(t *testing.T) {
+	ctx := db.NewContext(nil)
+	obj := createMaximalSampleEmployeeInfo(ctx)
+	err := obj.Save(ctx)
+	assert.NoError(t, err)
+	defer deleteSampleEmployeeInfo(ctx, obj)
+
+	var obj2 *EmployeeInfo
+	obj2 = LoadEmployeeInfoByPersonID(ctx, obj.PersonID())
+	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
+	assert.True(t, HasEmployeeInfoByPersonID(ctx, obj.PersonID()))
+
 }
