@@ -43,6 +43,17 @@ func TestSerializeReferencesLoginTable(t *testing.T) {
 			assert.Equal(t, n.TableName_(), cn2.TableName_())
 			assert.Equal(t, query.ReferenceNodeType, query.NodeParent(cn2).NodeType_())
 		}
+
+		assert.True(t, query.NodesMatch(Login().Person().ID(), n2.(PersonNode).ID()))
+		assert.True(t, query.NodesMatch(Login().Person().FirstName(), n2.(PersonNode).FirstName()))
+		assert.True(t, query.NodesMatch(Login().Person().LastName(), n2.(PersonNode).LastName()))
+		assert.True(t, query.NodesMatch(Login().Person().Types(), n2.(PersonNode).Types()))
+		assert.True(t, query.NodesMatch(Login().Person().Addresses(), n2.(PersonNode).Addresses()))
+		assert.True(t, query.NodesMatch(Login().Person().EmployeeInfo(), n2.(PersonNode).EmployeeInfo()))
+		assert.True(t, query.NodesMatch(Login().Person().Login(), n2.(PersonNode).Login()))
+		assert.True(t, query.NodesMatch(Login().Person().ManagerProjects(), n2.(PersonNode).ManagerProjects()))
+		assert.True(t, query.NodesMatch(Login().Person().Projects(), n2.(PersonNode).Projects()))
+
 	}
 
 }

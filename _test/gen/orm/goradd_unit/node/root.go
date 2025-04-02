@@ -106,11 +106,6 @@ func (n *rootReverse) ColumnNodes_() (nodes []query.Node) {
 	return
 }
 
-// IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
-func (n rootTable) IsEnum_() bool {
-	return false
-}
-
 func (n *rootReference) NodeType_() query.NodeType {
 	return query.ReferenceNodeType
 }

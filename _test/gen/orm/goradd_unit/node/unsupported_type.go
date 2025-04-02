@@ -100,11 +100,6 @@ func (n unsupportedTypeTable) ColumnNodes_() (nodes []query.Node) {
 	return nodes
 }
 
-// IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
-func (n unsupportedTypeTable) IsEnum_() bool {
-	return false
-}
-
 // PrimaryKey returns a node that points to the primary key column.
 func (n unsupportedTypeTable) PrimaryKey() *query.ColumnNode {
 	return n.TypeSerial()

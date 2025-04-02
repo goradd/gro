@@ -60,11 +60,6 @@ func (n *{{= table.DecapIdentifier }}Association) ColumnNodes_() (nodes []query.
 {{if}}
 
 
-// IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
-func (n {{= table.DecapIdentifier }}Table) IsEnum_() bool {
-    return false
-}
-
 {{if hasReverse}}
 func (n *{{= table.DecapIdentifier }}Reference) NodeType_() query.NodeType {
     return query.ReferenceNodeType

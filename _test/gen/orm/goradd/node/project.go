@@ -133,11 +133,6 @@ func (n *projectAssociation) ColumnNodes_() (nodes []query.Node) {
 	return
 }
 
-// IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
-func (n projectTable) IsEnum_() bool {
-	return false
-}
-
 func (n *projectReference) NodeType_() query.NodeType {
 	return query.ReferenceNodeType
 }

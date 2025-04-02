@@ -768,19 +768,6 @@ func (n `); err != nil {
 
 	if _, err = io.WriteString(_w, `
 
-// IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
-func (n `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `Table) IsEnum_() bool {
-    return false
-}
-
 `); err != nil {
 		return
 	}

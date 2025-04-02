@@ -71,11 +71,6 @@ func (n *milestoneReverse) ColumnNodes_() (nodes []query.Node) {
 	return
 }
 
-// IsEnum_ is used internally by the framework to determine if the current table is an enumerated type.
-func (n milestoneTable) IsEnum_() bool {
-	return false
-}
-
 func (n *milestoneReverse) NodeType_() query.NodeType {
 	return query.ReverseNodeType
 }

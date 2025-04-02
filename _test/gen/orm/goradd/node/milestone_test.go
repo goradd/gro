@@ -43,6 +43,26 @@ func TestSerializeReferencesMilestoneTable(t *testing.T) {
 			assert.Equal(t, n.TableName_(), cn2.TableName_())
 			assert.Equal(t, query.ReferenceNodeType, query.NodeParent(cn2).NodeType_())
 		}
+
+		assert.True(t, query.NodesMatch(Milestone().Project().ID(), n2.(ProjectNode).ID()))
+		assert.True(t, query.NodesMatch(Milestone().Project().Num(), n2.(ProjectNode).Num()))
+		assert.True(t, query.NodesMatch(Milestone().Project().Status(), n2.(ProjectNode).Status()))
+		assert.True(t, query.NodesMatch(Milestone().Project().ManagerID(), n2.(ProjectNode).ManagerID()))
+		assert.True(t, query.NodesMatch(Milestone().Project().Manager(), n2.(ProjectNode).Manager()))
+		assert.True(t, query.NodesMatch(Milestone().Project().Name(), n2.(ProjectNode).Name()))
+		assert.True(t, query.NodesMatch(Milestone().Project().Description(), n2.(ProjectNode).Description()))
+		assert.True(t, query.NodesMatch(Milestone().Project().StartDate(), n2.(ProjectNode).StartDate()))
+		assert.True(t, query.NodesMatch(Milestone().Project().EndDate(), n2.(ProjectNode).EndDate()))
+		assert.True(t, query.NodesMatch(Milestone().Project().Budget(), n2.(ProjectNode).Budget()))
+		assert.True(t, query.NodesMatch(Milestone().Project().Spent(), n2.(ProjectNode).Spent()))
+		assert.True(t, query.NodesMatch(Milestone().Project().ParentProjectID(), n2.(ProjectNode).ParentProjectID()))
+		assert.True(t, query.NodesMatch(Milestone().Project().ParentProject(), n2.(ProjectNode).ParentProject()))
+		assert.True(t, query.NodesMatch(Milestone().Project().Milestones(), n2.(ProjectNode).Milestones()))
+		assert.True(t, query.NodesMatch(Milestone().Project().ParentProjectProjects(), n2.(ProjectNode).ParentProjectProjects()))
+		assert.True(t, query.NodesMatch(Milestone().Project().Children(), n2.(ProjectNode).Children()))
+		assert.True(t, query.NodesMatch(Milestone().Project().Parents(), n2.(ProjectNode).Parents()))
+		assert.True(t, query.NodesMatch(Milestone().Project().TeamMembers(), n2.(ProjectNode).TeamMembers()))
+
 	}
 
 }

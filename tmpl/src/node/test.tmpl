@@ -49,6 +49,20 @@ func TestSerializeReferences{{= table.Identifier}}Table(t *testing.T) {
         assert.Equal(t, n.TableName_(), cn2.TableName_())
         assert.Equal(t, query.ReferenceNodeType, query.NodeParent(cn2).NodeType_())
     }
+
+{{for _, col2 := range col.Reference.Table.Columns}}
+    assert.True(t, query.NodesMatch({{= table.Identifier }}().{{= col.ReferenceIdentifier() }}().{{= col2.Identifier }}(), n2.({{= col.ReferenceType() }}Node).{{= col2.Identifier }}()))
+{{if col2.IsReference() }}
+    assert.True(t, query.NodesMatch({{= table.Identifier }}().{{= col.ReferenceIdentifier() }}().{{= col2.ReferenceIdentifier() }}(), n2.({{= col.ReferenceType() }}Node).{{= col2.ReferenceIdentifier() }}()))
+{{if}}
+{{for}}
+{{for _, rev2 := range col.Reference.Table.ReverseReferences}}
+	assert.True(t, query.NodesMatch({{= table.Identifier }}().{{= col.ReferenceIdentifier() }}().{{= rev2.ReverseIdentifier() }}(), n2.({{= col.ReferenceType() }}Node).{{= rev2.ReverseIdentifier() }}()))
+{{for}}
+{{for _, mm2 := range col.Reference.Table.ManyManyReferences}}
+	assert.True(t, query.NodesMatch({{= table.Identifier }}().{{= col.ReferenceIdentifier() }}().{{= mm2.IdentifierPlural }}(), n2.({{= col.ReferenceType() }}Node).{{= mm2.IdentifierPlural }}()))
+{{for}}
+
 }
 
 {{if}}
@@ -74,7 +88,17 @@ func TestSerializeReverseReferences{{= table.Identifier}}Table(t *testing.T) {
 
 {{for _, col := range rev.Table.Columns}}
 	assert.True(t, query.NodesMatch({{= table.Identifier }}().{{= rev.ReverseIdentifier() }}().{{= col.Identifier }}(), n2.({{= rev.Table.Identifier }}Node).{{= col.Identifier }}()))
+{{if col.IsReference() }}
+    assert.True(t, query.NodesMatch({{= table.Identifier }}().{{= rev.ReverseIdentifier() }}().{{= col.ReferenceIdentifier() }}(), n2.({{= rev.Table.Identifier }}Node).{{= col.ReferenceIdentifier() }}()))
+{{if}}
 {{for}}
+{{for _, rev2 := range rev.Table.ReverseReferences}}
+	assert.True(t, query.NodesMatch({{= table.Identifier }}().{{= rev.ReverseIdentifier() }}().{{= rev2.ReverseIdentifier() }}(), n2.({{= rev.Table.Identifier }}Node).{{= rev2.ReverseIdentifier() }}()))
+{{for}}
+{{for _, mm2 := range rev.Table.ManyManyReferences}}
+	assert.True(t, query.NodesMatch({{= table.Identifier }}().{{= rev.ReverseIdentifier() }}().{{= mm2.IdentifierPlural }}(), n2.({{= rev.Table.Identifier }}Node).{{= mm2.IdentifierPlural }}()))
+{{for}}
+
 }
 
 {{for}}
@@ -98,6 +122,20 @@ func TestSerializeAssociations{{= table.Identifier}}Table(t *testing.T) {
         parentNode = query.NodeParent(cn2)
         assert.Equal(t, query.ManyManyNodeType, parentNode.NodeType_())
     }
+
+{{for _, col := range mm.DestinationTable.Columns }}
+    assert.True(t, query.NodesMatch({{= table.Identifier }}().{{= mm.IdentifierPlural }}().{{= col.Identifier }}(), n2.({{= mm.DestinationTable.Identifier }}Node).{{= col.Identifier }}()))
+{{if col.IsReference() }}
+    assert.True(t, query.NodesMatch({{= table.Identifier }}().{{= mm.IdentifierPlural }}().{{= col.ReferenceIdentifier() }}(), n2.({{= mm.DestinationTable.Identifier }}Node).{{= col.ReferenceIdentifier() }}()))
+{{if}}
+{{for}}
+{{for _, rev2 := range mm.DestinationTable.ReverseReferences}}
+	assert.True(t, query.NodesMatch({{= table.Identifier }}().{{= mm.IdentifierPlural }}().{{= rev2.ReverseIdentifier() }}(), n2.({{= mm.DestinationTable.Identifier }}Node).{{= rev2.ReverseIdentifier() }}()))
+{{for}}
+{{for _, mm2 := range mm.DestinationTable.ManyManyReferences}}
+	assert.True(t, query.NodesMatch({{= table.Identifier }}().{{= mm.IdentifierPlural }}().{{= mm2.IdentifierPlural }}(), n2.({{= mm.DestinationTable.Identifier }}Node).{{= mm2.IdentifierPlural }}()))
+{{for}}
+
 }
 
 {{for}}
