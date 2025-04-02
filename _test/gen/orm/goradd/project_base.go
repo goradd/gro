@@ -2204,6 +2204,11 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
 
+		if o.numIsDirty &&
+			LoadProjectByNum(ctx, o.num) != nil {
+			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for Num: %v", o.num))
+		}
+
 		insertFields = o.getInsertFields()
 		var newPk string
 

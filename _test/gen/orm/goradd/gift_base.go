@@ -621,6 +621,11 @@ func (o *giftBase) insert(ctx context.Context) (err error) {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
 
+		if o.numberIsDirty &&
+			LoadGiftByNumber(ctx, o.number) != nil {
+			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for Number: %v", o.number))
+		}
+
 		insertFields = o.getInsertFields()
 		var newPk int
 

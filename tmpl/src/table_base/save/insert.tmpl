@@ -32,6 +32,41 @@ func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) (err error
 {{if}}
 {{for}}
 
+{{# Since not all databases natively enforce uniqueness, we will attempt to do it manually here.
+    However, unless the database has its own built-in mechanism to support uniqueness, this can
+    still fail in a race condition. In such situations, the developer would have to implement a service that operates like
+    a channel that will lock a unique value during the update process and prevent another process from
+    obtaining a lock on that value. That could be placed in the Save() function in the wrapper to the base.
+    Note that even in a database that supports uniqueness, the following check could still get passed, but the
+    database driver will generate the NewDuplicateValueError if there is a collision. The check here is still
+    needed to allow for a locking service used with a database that does not support uniqueness.
+ }}
+{{for _,col := range table.SettableColumns()}}
+{{if col.IsUnique && !col.IsAutoPK }}
+    if o.{{= col.VariableIdentifier() }}IsDirty &&
+{{if col.IsNullable}}
+            !o.{{= col.VariableIdentifier() }}IsNull &&
+{{if}}
+            Load{{= table.Identifier }}By{{= col.Identifier}}(ctx, o.{{= col.VariableIdentifier() }}) != nil {
+        return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for {{= col.Identifier }}: %v", o.{{= col.VariableIdentifier() }}))
+    }
+{{if}}
+{{for}}
+
+{{for _,idx := range table.Indexes}}
+{{if idx.IsUnique && len(idx.Columns) > 1 }}
+    if ({{join idx.Columns, " || "}}o.{{= _j.VariableIdentifier() }}IsDirty{{join}}) &&
+{{for _,col := range idx.Columns}}
+{{if col.IsNullable}}
+            !o.{{= col.VariableIdentifier() }}IsNull &&
+{{if}}
+{{for}}
+            Load{{= table.Identifier }}By{{join idx.Columns, ""}}{{= _j.Identifier }}{{join}}(ctx, {{join idx.Columns, ", "}}o.{{= _j.VariableIdentifier() }}{{join}}) != nil {
+        return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value {{join idx.Columns, " & "}}{{= _j.Identifier }}=%v{{join}}", {{join idx.Columns, ", "}}o.{{= _j.VariableIdentifier() }}{{join}}))
+    }
+{{if}}
+{{for}}
+
     insertFields = o.getInsertFields()
     var newPk {{= table.PrimaryKeyGoType() }}
 

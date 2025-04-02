@@ -745,6 +745,11 @@ func (o *employeeInfoBase) insert(ctx context.Context) (err error) {
 			panic("a value for EmployeeNumber is required, and there is no default value. Call SetEmployeeNumber() before inserting the record.")
 		}
 
+		if o.personIDIsDirty &&
+			LoadEmployeeInfoByPersonID(ctx, o.personID) != nil {
+			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for PersonID: %v", o.personID))
+		}
+
 		insertFields = o.getInsertFields()
 		var newPk string
 

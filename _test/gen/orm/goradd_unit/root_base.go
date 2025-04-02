@@ -1489,6 +1489,15 @@ func (o *rootBase) insert(ctx context.Context) (err error) {
 			panic("a value for RequiredLeafUniqueID is required, and there is no default value. Call SetRequiredLeafUniqueID() before inserting the record.")
 		}
 
+		if o.optionalLeafUniqueIDIsDirty &&
+			LoadRootByOptionalLeafUniqueID(ctx, o.optionalLeafUniqueID) != nil {
+			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for OptionalLeafUniqueID: %v", o.optionalLeafUniqueID))
+		}
+		if o.requiredLeafUniqueIDIsDirty &&
+			LoadRootByRequiredLeafUniqueID(ctx, o.requiredLeafUniqueID) != nil {
+			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for RequiredLeafUniqueID: %v", o.requiredLeafUniqueID))
+		}
+
 		insertFields = o.getInsertFields()
 		var newPk string
 

@@ -706,6 +706,16 @@ func (o *doubleIndexBase) insert(ctx context.Context) (err error) {
 			panic("a value for FieldString is required, and there is no default value. Call SetFieldString() before inserting the record.")
 		}
 
+		if o.idIsDirty &&
+			LoadDoubleIndexByID(ctx, o.id) != nil {
+			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for ID: %v", o.id))
+		}
+
+		if (o.fieldIntIsDirty || o.fieldStringIsDirty) &&
+			LoadDoubleIndexByFieldIntFieldString(ctx, o.fieldInt, o.fieldString) != nil {
+			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value FieldInt=%v & FieldString=%v", o.fieldInt, o.fieldString))
+		}
+
 		insertFields = o.getInsertFields()
 		var newPk int
 
