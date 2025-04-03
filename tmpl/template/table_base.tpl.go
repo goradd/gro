@@ -7578,13 +7578,7 @@ func (tmpl *TableBaseTemplate) genSave(table *model.Table, _w io.Writer) (err er
 	// TODO: Make sure id field cannot be set or updated
 
 	if _, err = io.WriteString(_w, `
-// Save will update or insert the object, depending on the state of the object.
-// If it has an auto-generated primary key, it will be changed after an insert.
-// Database errors generally will be handled by a panic and not returned here,
-// since those indicate a problem with a database driver or configuration.
-// Save will return a db.OptimisticLockError if it detects a collision when two users
-// are attempting to change the same database record.
-// Updating a record that has not changed will have no effect on the database.
+// save will update or insert the object, depending on the state of the object.
 func (o *`); err != nil {
 		return
 	}
@@ -7593,7 +7587,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Base) Save(ctx context.Context) error {
+	if _, err = io.WriteString(_w, `Base) save(ctx context.Context) error {
 	if o._restored {
 		return o.update(ctx)
 	} else {

@@ -53,6 +53,22 @@ func (o *Milestone) Label() string {
 	return o.Name()
 }
 
+// Save will update or insert the object, depending on the state of the object.
+// If it has an auto-generated primary key, it will be changed after an insert.
+// Database errors generally will be handled by a panic and not returned here,
+// since those indicate a problem with a database driver or configuration.
+//
+// Save will return a db.OptimisticLockError if it detects a collision when two users
+// are attempting to change the same database record.
+//
+// It will return a db.NewDuplicateValueError if it detects a collision when an attempt
+// is made to add a record with a unique column that is given a value that is already in the database.
+//
+// Updating a record that has not changed will have no effect on the database.
+func (o *Milestone) Save(ctx context.Context) error {
+	return o.save(ctx)
+}
+
 // QueryMilestones returns a new query builder.
 func QueryMilestones(ctx context.Context) MilestoneBuilder {
 	return queryMilestones(ctx)
@@ -65,7 +81,7 @@ func queryMilestones(ctx context.Context) MilestoneBuilder {
 	return newMilestoneBuilder(ctx)
 }
 
-// DeleteMilestone deletes the milestone record wtih primary key pk from the database.
+// DeleteMilestone deletes the milestone record with primary key pk from the database.
 // Note that you can also delete loaded Milestone objects by calling Delete on them.
 // doc: type=Milestone
 func DeleteMilestone(ctx context.Context, pk string) {

@@ -53,6 +53,22 @@ func (o *Person) Label() string {
 	return fmt.Sprintf("Person %v", o.PrimaryKey())
 }
 
+// Save will update or insert the object, depending on the state of the object.
+// If it has an auto-generated primary key, it will be changed after an insert.
+// Database errors generally will be handled by a panic and not returned here,
+// since those indicate a problem with a database driver or configuration.
+//
+// Save will return a db.OptimisticLockError if it detects a collision when two users
+// are attempting to change the same database record.
+//
+// It will return a db.NewDuplicateValueError if it detects a collision when an attempt
+// is made to add a record with a unique column that is given a value that is already in the database.
+//
+// Updating a record that has not changed will have no effect on the database.
+func (o *Person) Save(ctx context.Context) error {
+	return o.save(ctx)
+}
+
 // QueryPeople returns a new query builder.
 func QueryPeople(ctx context.Context) PersonBuilder {
 	return queryPeople(ctx)
@@ -65,7 +81,7 @@ func queryPeople(ctx context.Context) PersonBuilder {
 	return newPersonBuilder(ctx)
 }
 
-// DeletePerson deletes the person record wtih primary key pk from the database.
+// DeletePerson deletes the person record with primary key pk from the database.
 // Note that you can also delete loaded Person objects by calling Delete on them.
 // doc: type=Person
 func DeletePerson(ctx context.Context, pk string) {
