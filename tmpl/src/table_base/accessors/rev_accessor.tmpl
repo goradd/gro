@@ -54,14 +54,14 @@ func (o *{{= table.DecapIdentifier}}Base) Count{{= rev.ReverseIdentifier() }}(ct
 
 // Set{{= rev.ReverseIdentifier() }} associates the objects in objs with the {{= table.Identifier }}.
 {{if rev.IsNullable }}
-// If it has items already associated with it that will not be associated after a save,
-// the foreign keys for those items will be set to null.
+// If it has {{= rev.ReverseIdentifier() }} already associated with it that will not be associated after a save,
+// the foreign keys for those {{= rev.ReverseIdentifier() }} will be set to null.
 // If you did not use a join to query the items in the first place, used a conditional join,
 // or joined with an expansion, be particularly careful, since you may be changing items
 // that are not currently attached to this {{= table.Identifier }}.
 {{else}}
-// WARNING! If it has items already associated with it that will not be associated after a save,
-// Save will panic. Be sure to delete those items or otherwise fix those pointers before calling save.
+// WARNING! If it has {{= rev.ReverseIdentifier() }} already associated with it that will not be associated after a save,
+// Save will panic. Be sure to delete those {{= rev.ReverseIdentifier() }} or otherwise fix those pointers before calling save.
 {{if}}
 func (o *{{= table.DecapIdentifier}}Base) Set{{= rev.ReverseIdentifier() }}(objs ...*{{= rev.Table.Identifier }}) {
     for obj := range o.{{= rev.ReverseVariableIdentifier() }}.ValuesIter() {

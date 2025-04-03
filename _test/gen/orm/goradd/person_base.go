@@ -482,8 +482,8 @@ func (o *personBase) CountAddresses(ctx context.Context) int {
 }
 
 // SetAddresses associates the objects in objs with the Person.
-// WARNING! If it has items already associated with it that will not be associated after a save,
-// Save will panic. Be sure to delete those items or otherwise fix those pointers before calling save.
+// WARNING! If it has Addresses already associated with it that will not be associated after a save,
+// Save will panic. Be sure to delete those Addresses or otherwise fix those pointers before calling save.
 func (o *personBase) SetAddresses(objs ...*Address) {
 	for obj := range o.revAddresses.ValuesIter() {
 		if obj.IsDirty() {
@@ -626,8 +626,8 @@ func (o *personBase) CountManagerProjects(ctx context.Context) int {
 }
 
 // SetManagerProjects associates the objects in objs with the Person.
-// If it has items already associated with it that will not be associated after a save,
-// the foreign keys for those items will be set to null.
+// If it has ManagerProjects already associated with it that will not be associated after a save,
+// the foreign keys for those ManagerProjects will be set to null.
 // If you did not use a join to query the items in the first place, used a conditional join,
 // or joined with an expansion, be particularly careful, since you may be changing items
 // that are not currently attached to this Person.
@@ -2269,6 +2269,71 @@ func (o *personBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 				}
 			}
 
+		case "addresses":
+			v2, ok := v.([]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be an array of maps", k)
+			}
+			var s []*Address
+			for _, i2 := range v2 {
+				m2, ok := i2.(map[string]any)
+				if !ok {
+					return fmt.Errorf("json field %s must be an array of maps", k)
+				}
+				v3 := NewAddress()
+				err = v3.UnmarshalStringMap(m2)
+				if err != nil {
+					return
+				}
+				s = append(s, v3)
+			}
+			o.SetAddresses(s...)
+
+		case "employeeInfo":
+			v2 := NewEmployeeInfo()
+			m2, ok := v.(map[string]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be a map", k)
+			}
+			err = v2.UnmarshalStringMap(m2)
+			if err != nil {
+				return
+			}
+			o.SetEmployeeInfo(v2)
+
+		case "login":
+			v2 := NewLogin()
+			m2, ok := v.(map[string]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be a map", k)
+			}
+			err = v2.UnmarshalStringMap(m2)
+			if err != nil {
+				return
+			}
+			o.SetLogin(v2)
+
+		case "managerProjects":
+			v2, ok := v.([]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be an array of maps", k)
+			}
+			var s []*Project
+			for _, i2 := range v2 {
+				m2, ok := i2.(map[string]any)
+				if !ok {
+					return fmt.Errorf("json field %s must be an array of maps", k)
+				}
+				v3 := NewProject()
+				err = v3.UnmarshalStringMap(m2)
+				if err != nil {
+					return
+				}
+				s = append(s, v3)
+			}
+			o.SetManagerProjects(s...)
+
+			// TODO: unmarshall groups of objects
 		}
 	}
 	return

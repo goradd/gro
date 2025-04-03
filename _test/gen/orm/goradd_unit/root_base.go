@@ -656,8 +656,8 @@ func (o *rootBase) CountParentRoots(ctx context.Context) int {
 }
 
 // SetParentRoots associates the objects in objs with the Root.
-// If it has items already associated with it that will not be associated after a save,
-// the foreign keys for those items will be set to null.
+// If it has ParentRoots already associated with it that will not be associated after a save,
+// the foreign keys for those ParentRoots will be set to null.
 // If you did not use a join to query the items in the first place, used a conditional join,
 // or joined with an expansion, be particularly careful, since you may be changing items
 // that are not currently attached to this Root.
@@ -2252,7 +2252,11 @@ func (o *rootBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 
 		case "optionalLeaf":
 			v2 := NewLeaf()
-			err = v2.UnmarshalStringMap(v.(map[string]any))
+			m2, ok := v.(map[string]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be a map", k)
+			}
+			err = v2.UnmarshalStringMap(m2)
 			if err != nil {
 				return
 			}
@@ -2277,7 +2281,11 @@ func (o *rootBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 
 		case "requiredLeaf":
 			v2 := NewLeaf()
-			err = v2.UnmarshalStringMap(v.(map[string]any))
+			m2, ok := v.(map[string]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be a map", k)
+			}
+			err = v2.UnmarshalStringMap(m2)
 			if err != nil {
 				return
 			}
@@ -2302,7 +2310,11 @@ func (o *rootBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 
 		case "optionalLeafUnique":
 			v2 := NewLeaf()
-			err = v2.UnmarshalStringMap(v.(map[string]any))
+			m2, ok := v.(map[string]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be a map", k)
+			}
+			err = v2.UnmarshalStringMap(m2)
 			if err != nil {
 				return
 			}
@@ -2327,7 +2339,11 @@ func (o *rootBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 
 		case "requiredLeafUnique":
 			v2 := NewLeaf()
-			err = v2.UnmarshalStringMap(v.(map[string]any))
+			m2, ok := v.(map[string]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be a map", k)
+			}
+			err = v2.UnmarshalStringMap(m2)
 			if err != nil {
 				return
 			}
@@ -2353,11 +2369,35 @@ func (o *rootBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 
 		case "parent":
 			v2 := NewRoot()
-			err = v2.UnmarshalStringMap(v.(map[string]any))
+			m2, ok := v.(map[string]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be a map", k)
+			}
+			err = v2.UnmarshalStringMap(m2)
 			if err != nil {
 				return
 			}
 			o.SetParent(v2)
+
+		case "parentRoots":
+			v2, ok := v.([]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be an array of maps", k)
+			}
+			var s []*Root
+			for _, i2 := range v2 {
+				m2, ok := i2.(map[string]any)
+				if !ok {
+					return fmt.Errorf("json field %s must be an array of maps", k)
+				}
+				v3 := NewRoot()
+				err = v3.UnmarshalStringMap(m2)
+				if err != nil {
+					return
+				}
+				s = append(s, v3)
+			}
+			o.SetParentRoots(s...)
 
 		}
 	}

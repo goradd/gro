@@ -4554,8 +4554,24 @@ func (o *`); err != nil {
 
 			if rev.IsNullable {
 
-				if _, err = io.WriteString(_w, `// If it has items already associated with it that will not be associated after a save,
-// the foreign keys for those items will be set to null.
+				if _, err = io.WriteString(_w, `// If it has `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ` already associated with it that will not be associated after a save,
+// the foreign keys for those `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ` will be set to null.
 // If you did not use a join to query the items in the first place, used a conditional join,
 // or joined with an expansion, be particularly careful, since you may be changing items
 // that are not currently attached to this `); err != nil {
@@ -4573,8 +4589,24 @@ func (o *`); err != nil {
 
 			} else {
 
-				if _, err = io.WriteString(_w, `// WARNING! If it has items already associated with it that will not be associated after a save,
-// Save will panic. Be sure to delete those items or otherwise fix those pointers before calling save.
+				if _, err = io.WriteString(_w, `// WARNING! If it has `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ` already associated with it that will not be associated after a save,
+// Save will panic. Be sure to delete those `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ` or otherwise fix those pointers before calling save.
 `); err != nil {
 					return
 				}
@@ -13724,7 +13756,11 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `()
-                err = v2.UnmarshalStringMap(v.(map[string]any))
+                m2,ok := v.(map[string]any)
+                if !ok {
+                    return fmt.Errorf("json field %s must be a map", k)
+                }
+                err = v2.UnmarshalStringMap(m2)
                 if err != nil {return}
                 o.Set`); err != nil {
 				return
@@ -13744,19 +13780,121 @@ func (o *`); err != nil {
 
 	}
 
-	/*
-	   for _,mm := range table.ManyManyReferences {
+	for _, rev := range table.ReverseReferences {
 
+		//*** unmarshal_stringmap_rev.tmpl
 
-	   //*** unmarshal_stringmap_mm.tmpl
+		if _, err = io.WriteString(_w, `        case "`); err != nil {
+			return
+		}
 
+		if _, err = io.WriteString(_w, rev.ReverseJsonKey()); err != nil {
+			return
+		}
 
-	   if _,err = io.WriteString(_w, `    // TODO: unmarshall groups of objects
-	   `); err != nil {return}
+		if _, err = io.WriteString(_w, `":
+`); err != nil {
+			return
+		}
 
+		if rev.IsUnique {
 
-	   }
-	*/
+			if _, err = io.WriteString(_w, `            v2 := New`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()
+            m2,ok := v.(map[string]any)
+            if !ok {
+                return fmt.Errorf("json field %s must be a map", k)
+            }
+            err = v2.UnmarshalStringMap(m2)
+            if err != nil {return}
+            o.Set`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(v2)
+`); err != nil {
+				return
+			}
+
+		} else {
+
+			if _, err = io.WriteString(_w, `            v2,ok := v.([]any)
+            if !ok {
+                return fmt.Errorf("json field %s must be an array of maps", k)
+            }
+            var s []*`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `
+            for _,i2 := range v2 {
+                m2,ok := i2.(map[string]any)
+                if !ok {
+                    return fmt.Errorf("json field %s must be an array of maps", k)
+                }
+                v3 := New`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()
+                err = v3.UnmarshalStringMap(m2)
+                if err != nil {return}
+                s = append(s, v3)
+            }
+            o.Set`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(s...)
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `
+
+`); err != nil {
+			return
+		}
+
+	}
+
+	for _, mm := range table.ManyManyReferences {
+
+		//*** unmarshal_stringmap_mm.tmpl
+
+		_ = mm
+
+		if _, err = io.WriteString(_w, `    // TODO: unmarshall groups of objects
+`); err != nil {
+			return
+		}
+
+	}
 
 	if _, err = io.WriteString(_w, `        }
     }

@@ -246,8 +246,8 @@ func (o *leafBase) CountOptionalLeafRoots(ctx context.Context) int {
 }
 
 // SetOptionalLeafRoots associates the objects in objs with the Leaf.
-// If it has items already associated with it that will not be associated after a save,
-// the foreign keys for those items will be set to null.
+// If it has OptionalLeafRoots already associated with it that will not be associated after a save,
+// the foreign keys for those OptionalLeafRoots will be set to null.
 // If you did not use a join to query the items in the first place, used a conditional join,
 // or joined with an expansion, be particularly careful, since you may be changing items
 // that are not currently attached to this Leaf.
@@ -317,8 +317,8 @@ func (o *leafBase) CountRequiredLeafRoots(ctx context.Context) int {
 }
 
 // SetRequiredLeafRoots associates the objects in objs with the Leaf.
-// WARNING! If it has items already associated with it that will not be associated after a save,
-// Save will panic. Be sure to delete those items or otherwise fix those pointers before calling save.
+// WARNING! If it has RequiredLeafRoots already associated with it that will not be associated after a save,
+// Save will panic. Be sure to delete those RequiredLeafRoots or otherwise fix those pointers before calling save.
 func (o *leafBase) SetRequiredLeafRoots(objs ...*Root) {
 	for obj := range o.revRequiredLeafRoots.ValuesIter() {
 		if obj.IsDirty() {
@@ -1582,6 +1582,70 @@ func (o *leafBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					o.SetName(s)
 				}
 			}
+
+		case "optionalLeafRoots":
+			v2, ok := v.([]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be an array of maps", k)
+			}
+			var s []*Root
+			for _, i2 := range v2 {
+				m2, ok := i2.(map[string]any)
+				if !ok {
+					return fmt.Errorf("json field %s must be an array of maps", k)
+				}
+				v3 := NewRoot()
+				err = v3.UnmarshalStringMap(m2)
+				if err != nil {
+					return
+				}
+				s = append(s, v3)
+			}
+			o.SetOptionalLeafRoots(s...)
+
+		case "requiredLeafRoots":
+			v2, ok := v.([]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be an array of maps", k)
+			}
+			var s []*Root
+			for _, i2 := range v2 {
+				m2, ok := i2.(map[string]any)
+				if !ok {
+					return fmt.Errorf("json field %s must be an array of maps", k)
+				}
+				v3 := NewRoot()
+				err = v3.UnmarshalStringMap(m2)
+				if err != nil {
+					return
+				}
+				s = append(s, v3)
+			}
+			o.SetRequiredLeafRoots(s...)
+
+		case "optionalLeafUniqueRoot":
+			v2 := NewRoot()
+			m2, ok := v.(map[string]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be a map", k)
+			}
+			err = v2.UnmarshalStringMap(m2)
+			if err != nil {
+				return
+			}
+			o.SetOptionalLeafUniqueRoot(v2)
+
+		case "requiredLeafUniqueRoot":
+			v2 := NewRoot()
+			m2, ok := v.(map[string]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be a map", k)
+			}
+			err = v2.UnmarshalStringMap(m2)
+			if err != nil {
+				return
+			}
+			o.SetRequiredLeafUniqueRoot(v2)
 
 		}
 	}

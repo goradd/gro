@@ -1229,7 +1229,11 @@ func (o *addressBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 
 		case "person":
 			v2 := NewPerson()
-			err = v2.UnmarshalStringMap(v.(map[string]any))
+			m2, ok := v.(map[string]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be a map", k)
+			}
+			err = v2.UnmarshalStringMap(m2)
 			if err != nil {
 				return
 			}

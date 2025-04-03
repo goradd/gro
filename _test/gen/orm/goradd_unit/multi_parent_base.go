@@ -461,8 +461,8 @@ func (o *multiParentBase) CountParent1MultiParents(ctx context.Context) int {
 }
 
 // SetParent1MultiParents associates the objects in objs with the MultiParent.
-// If it has items already associated with it that will not be associated after a save,
-// the foreign keys for those items will be set to null.
+// If it has Parent1MultiParents already associated with it that will not be associated after a save,
+// the foreign keys for those Parent1MultiParents will be set to null.
 // If you did not use a join to query the items in the first place, used a conditional join,
 // or joined with an expansion, be particularly careful, since you may be changing items
 // that are not currently attached to this MultiParent.
@@ -532,8 +532,8 @@ func (o *multiParentBase) CountParent2MultiParents(ctx context.Context) int {
 }
 
 // SetParent2MultiParents associates the objects in objs with the MultiParent.
-// If it has items already associated with it that will not be associated after a save,
-// the foreign keys for those items will be set to null.
+// If it has Parent2MultiParents already associated with it that will not be associated after a save,
+// the foreign keys for those Parent2MultiParents will be set to null.
 // If you did not use a join to query the items in the first place, used a conditional join,
 // or joined with an expansion, be particularly careful, since you may be changing items
 // that are not currently attached to this MultiParent.
@@ -1850,7 +1850,11 @@ func (o *multiParentBase) UnmarshalStringMap(m map[string]interface{}) (err erro
 
 		case "parent1":
 			v2 := NewMultiParent()
-			err = v2.UnmarshalStringMap(v.(map[string]any))
+			m2, ok := v.(map[string]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be a map", k)
+			}
+			err = v2.UnmarshalStringMap(m2)
 			if err != nil {
 				return
 			}
@@ -1876,11 +1880,55 @@ func (o *multiParentBase) UnmarshalStringMap(m map[string]interface{}) (err erro
 
 		case "parent2":
 			v2 := NewMultiParent()
-			err = v2.UnmarshalStringMap(v.(map[string]any))
+			m2, ok := v.(map[string]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be a map", k)
+			}
+			err = v2.UnmarshalStringMap(m2)
 			if err != nil {
 				return
 			}
 			o.SetParent2(v2)
+
+		case "parent1multiParents":
+			v2, ok := v.([]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be an array of maps", k)
+			}
+			var s []*MultiParent
+			for _, i2 := range v2 {
+				m2, ok := i2.(map[string]any)
+				if !ok {
+					return fmt.Errorf("json field %s must be an array of maps", k)
+				}
+				v3 := NewMultiParent()
+				err = v3.UnmarshalStringMap(m2)
+				if err != nil {
+					return
+				}
+				s = append(s, v3)
+			}
+			o.SetParent1MultiParents(s...)
+
+		case "parent2multiParents":
+			v2, ok := v.([]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be an array of maps", k)
+			}
+			var s []*MultiParent
+			for _, i2 := range v2 {
+				m2, ok := i2.(map[string]any)
+				if !ok {
+					return fmt.Errorf("json field %s must be an array of maps", k)
+				}
+				v3 := NewMultiParent()
+				err = v3.UnmarshalStringMap(m2)
+				if err != nil {
+					return
+				}
+				s = append(s, v3)
+			}
+			o.SetParent2MultiParents(s...)
 
 		}
 	}

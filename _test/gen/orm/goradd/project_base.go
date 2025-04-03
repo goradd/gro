@@ -1085,8 +1085,8 @@ func (o *projectBase) CountMilestones(ctx context.Context) int {
 }
 
 // SetMilestones associates the objects in objs with the Project.
-// WARNING! If it has items already associated with it that will not be associated after a save,
-// Save will panic. Be sure to delete those items or otherwise fix those pointers before calling save.
+// WARNING! If it has Milestones already associated with it that will not be associated after a save,
+// Save will panic. Be sure to delete those Milestones or otherwise fix those pointers before calling save.
 func (o *projectBase) SetMilestones(objs ...*Milestone) {
 	for obj := range o.revMilestones.ValuesIter() {
 		if obj.IsDirty() {
@@ -1153,8 +1153,8 @@ func (o *projectBase) CountParentProjectProjects(ctx context.Context) int {
 }
 
 // SetParentProjectProjects associates the objects in objs with the Project.
-// If it has items already associated with it that will not be associated after a save,
-// the foreign keys for those items will be set to null.
+// If it has ParentProjectProjects already associated with it that will not be associated after a save,
+// the foreign keys for those ParentProjectProjects will be set to null.
 // If you did not use a join to query the items in the first place, used a conditional join,
 // or joined with an expansion, be particularly careful, since you may be changing items
 // that are not currently attached to this Project.
@@ -3459,7 +3459,11 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 
 		case "manager":
 			v2 := NewPerson()
-			err = v2.UnmarshalStringMap(v.(map[string]any))
+			m2, ok := v.(map[string]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be a map", k)
+			}
+			err = v2.UnmarshalStringMap(m2)
 			if err != nil {
 				return
 			}
@@ -3604,12 +3608,59 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 
 		case "parentProject":
 			v2 := NewProject()
-			err = v2.UnmarshalStringMap(v.(map[string]any))
+			m2, ok := v.(map[string]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be a map", k)
+			}
+			err = v2.UnmarshalStringMap(m2)
 			if err != nil {
 				return
 			}
 			o.SetParentProject(v2)
 
+		case "milestones":
+			v2, ok := v.([]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be an array of maps", k)
+			}
+			var s []*Milestone
+			for _, i2 := range v2 {
+				m2, ok := i2.(map[string]any)
+				if !ok {
+					return fmt.Errorf("json field %s must be an array of maps", k)
+				}
+				v3 := NewMilestone()
+				err = v3.UnmarshalStringMap(m2)
+				if err != nil {
+					return
+				}
+				s = append(s, v3)
+			}
+			o.SetMilestones(s...)
+
+		case "parentProjectProjects":
+			v2, ok := v.([]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be an array of maps", k)
+			}
+			var s []*Project
+			for _, i2 := range v2 {
+				m2, ok := i2.(map[string]any)
+				if !ok {
+					return fmt.Errorf("json field %s must be an array of maps", k)
+				}
+				v3 := NewProject()
+				err = v3.UnmarshalStringMap(m2)
+				if err != nil {
+					return
+				}
+				s = append(s, v3)
+			}
+			o.SetParentProjectProjects(s...)
+
+			// TODO: unmarshall groups of objects
+			// TODO: unmarshall groups of objects
+			// TODO: unmarshall groups of objects
 		}
 	}
 	return
