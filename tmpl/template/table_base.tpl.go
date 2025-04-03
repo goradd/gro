@@ -12763,17 +12763,58 @@ func (o *`); err != nil {
 		//*** marshal_stringmap_col.tmpl
 
 		if _, err = io.WriteString(_w, `
-    if o.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `IsLoaded {
 `); err != nil {
 			return
+		}
+
+		if col.IsReference() {
+
+			if _, err = io.WriteString(_w, `    if val := o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `; val != nil {
+        v["`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.ReferenceJsonKey()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `"] = val.MarshalStringMap()
+    } else if o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsLoaded {
+`); err != nil {
+				return
+			}
+
+		} else {
+
+			if _, err = io.WriteString(_w, `    if o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsLoaded {
+`); err != nil {
+				return
+			}
+
 		}
 
 		if col.IsNullable {
@@ -12848,33 +12889,6 @@ func (o *`); err != nil {
 
 `); err != nil {
 			return
-		}
-
-		if col.IsReference() {
-
-			if _, err = io.WriteString(_w, `    if val := o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `(); val != nil {
-        v["`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.ReferenceJsonKey()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `"] = val.MarshalStringMap()
-    }
-`); err != nil {
-				return
-			}
-
 		}
 
 	}
@@ -13173,25 +13187,29 @@ func (o *`); err != nil {
 
 		if col.IsReference() {
 
-			if _, err = io.WriteString(_w, `            if s,ok := v.(string); !ok {
-                return fmt.Errorf("field %s must be a string", k)
-            } else {
-                o.Set`); err != nil {
+			if _, err = io.WriteString(_w, `            if _,ok := m["`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			if _, err = io.WriteString(_w, col.ReferenceJsonKey()); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `(s)
+			if _, err = io.WriteString(_w, `"]; ok {
+                continue // importing the foreign key will remove the object
             }
-
 `); err != nil {
 				return
 			}
 
-		} else if col.IsEnum() {
+		}
+
+		if _, err = io.WriteString(_w, `
+`); err != nil {
+			return
+		}
+
+		if col.IsEnum() {
 
 			if col.IsEnumArray() {
 
@@ -13680,10 +13698,48 @@ func (o *`); err != nil {
 
 		}
 
-		if _, err = io.WriteString(_w, `           }
+		if _, err = io.WriteString(_w, `            }
 
 `); err != nil {
 			return
+		}
+
+		if col.IsReference() {
+
+			if _, err = io.WriteString(_w, `            case "`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.ReferenceJsonKey()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `":
+                v2 := New`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()
+                err = v2.UnmarshalStringMap(v.(map[string]any))
+                if err != nil {return}
+                o.Set`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(v2)
+
+`); err != nil {
+				return
+			}
+
 		}
 
 	}

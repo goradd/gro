@@ -1345,16 +1345,14 @@ func (o *loginBase) MarshalStringMap() map[string]interface{} {
 		v["id"] = o.id
 	}
 
-	if o.personIDIsLoaded {
+	if val := o.objPerson; val != nil {
+		v["person"] = val.MarshalStringMap()
+	} else if o.personIDIsLoaded {
 		if o.personIDIsNull {
 			v["personID"] = nil
 		} else {
 			v["personID"] = o.personID
 		}
-	}
-
-	if val := o.Person(); val != nil {
-		v["person"] = val.MarshalStringMap()
 	}
 
 	if o.usernameIsLoaded {
@@ -1434,13 +1432,24 @@ func (o *loginBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					continue
 				}
 
+				if _, ok := m["person"]; ok {
+					continue // importing the foreign key will remove the object
+				}
+
 				if s, ok := v.(string); !ok {
-					return fmt.Errorf("field %s must be a string", k)
+					return fmt.Errorf("json field %s must be a string", k)
 				} else {
 					o.SetPersonID(s)
 				}
-
 			}
+
+		case "person":
+			v2 := NewPerson()
+			err = v2.UnmarshalStringMap(v.(map[string]any))
+			if err != nil {
+				return
+			}
+			o.SetPerson(v2)
 
 		case "username":
 			{

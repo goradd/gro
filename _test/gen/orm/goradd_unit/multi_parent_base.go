@@ -1729,7 +1729,9 @@ func (o *multiParentBase) MarshalStringMap() map[string]interface{} {
 		}
 	}
 
-	if o.parent1IDIsLoaded {
+	if val := o.objParent1; val != nil {
+		v["parent1"] = val.MarshalStringMap()
+	} else if o.parent1IDIsLoaded {
 		if o.parent1IDIsNull {
 			v["parent1ID"] = nil
 		} else {
@@ -1737,11 +1739,9 @@ func (o *multiParentBase) MarshalStringMap() map[string]interface{} {
 		}
 	}
 
-	if val := o.Parent1(); val != nil {
-		v["parent1"] = val.MarshalStringMap()
-	}
-
-	if o.parent2IDIsLoaded {
+	if val := o.objParent2; val != nil {
+		v["parent2"] = val.MarshalStringMap()
+	} else if o.parent2IDIsLoaded {
 		if o.parent2IDIsNull {
 			v["parent2ID"] = nil
 		} else {
@@ -1749,9 +1749,6 @@ func (o *multiParentBase) MarshalStringMap() map[string]interface{} {
 		}
 	}
 
-	if val := o.Parent2(); val != nil {
-		v["parent2"] = val.MarshalStringMap()
-	}
 	if o.revParent1MultiParents.Len() != 0 {
 		var vals []map[string]interface{}
 		for obj := range o.revParent1MultiParents.ValuesIter() {
@@ -1840,13 +1837,24 @@ func (o *multiParentBase) UnmarshalStringMap(m map[string]interface{}) (err erro
 					continue
 				}
 
+				if _, ok := m["parent1"]; ok {
+					continue // importing the foreign key will remove the object
+				}
+
 				if s, ok := v.(string); !ok {
-					return fmt.Errorf("field %s must be a string", k)
+					return fmt.Errorf("json field %s must be a string", k)
 				} else {
 					o.SetParent1ID(s)
 				}
-
 			}
+
+		case "parent1":
+			v2 := NewMultiParent()
+			err = v2.UnmarshalStringMap(v.(map[string]any))
+			if err != nil {
+				return
+			}
+			o.SetParent1(v2)
 
 		case "parent2ID":
 			{
@@ -1855,13 +1863,24 @@ func (o *multiParentBase) UnmarshalStringMap(m map[string]interface{}) (err erro
 					continue
 				}
 
+				if _, ok := m["parent2"]; ok {
+					continue // importing the foreign key will remove the object
+				}
+
 				if s, ok := v.(string); !ok {
-					return fmt.Errorf("field %s must be a string", k)
+					return fmt.Errorf("json field %s must be a string", k)
 				} else {
 					o.SetParent2ID(s)
 				}
-
 			}
+
+		case "parent2":
+			v2 := NewMultiParent()
+			err = v2.UnmarshalStringMap(v.(map[string]any))
+			if err != nil {
+				return
+			}
+			o.SetParent2(v2)
 
 		}
 	}

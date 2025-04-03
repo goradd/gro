@@ -3,7 +3,13 @@
 }}
 {{
 
+{{if col.IsReference() }}
+    if val := o.{{= col.ReferenceVariableIdentifier() }}; val != nil {
+        v["{{= col.ReferenceJsonKey() }}"] = val.MarshalStringMap()
+    } else if o.{{= col.VariableIdentifier() }}IsLoaded {
+{{else}}
     if o.{{= col.VariableIdentifier() }}IsLoaded {
+{{if}}
 {{if col.IsNullable}}
         if o.{{= col.VariableIdentifier() }}IsNull {
             v["{{= col.JsonKey() }}"] = nil
@@ -15,9 +21,4 @@
 {{if}}
     }
 
-{{if col.IsReference() }}
-    if val := o.{{= col.ReferenceIdentifier() }}(); val != nil {
-        v["{{= col.ReferenceJsonKey() }}"] = val.MarshalStringMap()
-    }
-{{if}}
 }}

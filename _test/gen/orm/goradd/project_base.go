@@ -3245,16 +3245,14 @@ func (o *projectBase) MarshalStringMap() map[string]interface{} {
 		v["status"] = o.status
 	}
 
-	if o.managerIDIsLoaded {
+	if val := o.objManager; val != nil {
+		v["manager"] = val.MarshalStringMap()
+	} else if o.managerIDIsLoaded {
 		if o.managerIDIsNull {
 			v["managerID"] = nil
 		} else {
 			v["managerID"] = o.managerID
 		}
-	}
-
-	if val := o.Manager(); val != nil {
-		v["manager"] = val.MarshalStringMap()
 	}
 
 	if o.nameIsLoaded {
@@ -3301,7 +3299,9 @@ func (o *projectBase) MarshalStringMap() map[string]interface{} {
 		}
 	}
 
-	if o.parentProjectIDIsLoaded {
+	if val := o.objParentProject; val != nil {
+		v["parentProject"] = val.MarshalStringMap()
+	} else if o.parentProjectIDIsLoaded {
 		if o.parentProjectIDIsNull {
 			v["parentProjectID"] = nil
 		} else {
@@ -3309,9 +3309,6 @@ func (o *projectBase) MarshalStringMap() map[string]interface{} {
 		}
 	}
 
-	if val := o.ParentProject(); val != nil {
-		v["parentProject"] = val.MarshalStringMap()
-	}
 	if o.revMilestones.Len() != 0 {
 		var vals []map[string]interface{}
 		for obj := range o.revMilestones.ValuesIter() {
@@ -3449,13 +3446,24 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					continue
 				}
 
+				if _, ok := m["manager"]; ok {
+					continue // importing the foreign key will remove the object
+				}
+
 				if s, ok := v.(string); !ok {
-					return fmt.Errorf("field %s must be a string", k)
+					return fmt.Errorf("json field %s must be a string", k)
 				} else {
 					o.SetManagerID(s)
 				}
-
 			}
+
+		case "manager":
+			v2 := NewPerson()
+			err = v2.UnmarshalStringMap(v.(map[string]any))
+			if err != nil {
+				return
+			}
+			o.SetManager(v2)
 
 		case "name":
 			{
@@ -3583,13 +3591,24 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					continue
 				}
 
+				if _, ok := m["parentProject"]; ok {
+					continue // importing the foreign key will remove the object
+				}
+
 				if s, ok := v.(string); !ok {
-					return fmt.Errorf("field %s must be a string", k)
+					return fmt.Errorf("json field %s must be a string", k)
 				} else {
 					o.SetParentProjectID(s)
 				}
-
 			}
+
+		case "parentProject":
+			v2 := NewProject()
+			err = v2.UnmarshalStringMap(v.(map[string]any))
+			if err != nil {
+				return
+			}
+			o.SetParentProject(v2)
 
 		}
 	}

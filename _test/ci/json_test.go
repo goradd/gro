@@ -91,3 +91,17 @@ func TestJsonMarshall3(t *testing.T) {
 	assert.Equal(t, r.TestInt(), r2.TestInt())
 	assert.Equal(t, string(r.TestBlob()), string(r2.TestBlob()))
 }
+
+func TestJsonMarshallReferences(t *testing.T) {
+	ctx := db.NewContext(nil)
+	project := goradd.LoadProject(ctx, "1", node.Project().Manager())
+
+	b, err := json.Marshal(project)
+	assert.NoError(t, err)
+
+	project2 := goradd.NewProject()
+	err = project2.UnmarshalJSON(b)
+	assert.NoError(t, err)
+	assert.Equal(t, project.ID(), project2.ID())
+	assert.Equal(t, project.Manager().ID(), project2.Manager().ID())
+}

@@ -1003,12 +1003,10 @@ func (o *milestoneBase) MarshalStringMap() map[string]interface{} {
 		v["id"] = o.id
 	}
 
-	if o.projectIDIsLoaded {
-		v["projectID"] = o.projectID
-	}
-
-	if val := o.Project(); val != nil {
+	if val := o.objProject; val != nil {
 		v["project"] = val.MarshalStringMap()
+	} else if o.projectIDIsLoaded {
+		v["projectID"] = o.projectID
 	}
 
 	if o.nameIsLoaded {
@@ -1073,13 +1071,24 @@ func (o *milestoneBase) UnmarshalStringMap(m map[string]interface{}) (err error)
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
+				if _, ok := m["project"]; ok {
+					continue // importing the foreign key will remove the object
+				}
+
 				if s, ok := v.(string); !ok {
-					return fmt.Errorf("field %s must be a string", k)
+					return fmt.Errorf("json field %s must be a string", k)
 				} else {
 					o.SetProjectID(s)
 				}
-
 			}
+
+		case "project":
+			v2 := NewProject()
+			err = v2.UnmarshalStringMap(v.(map[string]any))
+			if err != nil {
+				return
+			}
+			o.SetProject(v2)
 
 		case "name":
 			{

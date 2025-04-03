@@ -1029,12 +1029,10 @@ func (o *employeeInfoBase) MarshalStringMap() map[string]interface{} {
 		v["id"] = o.id
 	}
 
-	if o.personIDIsLoaded {
-		v["personID"] = o.personID
-	}
-
-	if val := o.Person(); val != nil {
+	if val := o.objPerson; val != nil {
 		v["person"] = val.MarshalStringMap()
+	} else if o.personIDIsLoaded {
+		v["personID"] = o.personID
 	}
 
 	if o.employeeNumberIsLoaded {
@@ -1099,13 +1097,24 @@ func (o *employeeInfoBase) UnmarshalStringMap(m map[string]interface{}) (err err
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
+				if _, ok := m["person"]; ok {
+					continue // importing the foreign key will remove the object
+				}
+
 				if s, ok := v.(string); !ok {
-					return fmt.Errorf("field %s must be a string", k)
+					return fmt.Errorf("json field %s must be a string", k)
 				} else {
 					o.SetPersonID(s)
 				}
-
 			}
+
+		case "person":
+			v2 := NewPerson()
+			err = v2.UnmarshalStringMap(v.(map[string]any))
+			if err != nil {
+				return
+			}
+			o.SetPerson(v2)
 
 		case "employeeNumber":
 			{

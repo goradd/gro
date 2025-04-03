@@ -2118,7 +2118,9 @@ func (o *rootBase) MarshalStringMap() map[string]interface{} {
 		v["name"] = o.name
 	}
 
-	if o.optionalLeafIDIsLoaded {
+	if val := o.objOptionalLeaf; val != nil {
+		v["optionalLeaf"] = val.MarshalStringMap()
+	} else if o.optionalLeafIDIsLoaded {
 		if o.optionalLeafIDIsNull {
 			v["optionalLeafID"] = nil
 		} else {
@@ -2126,35 +2128,27 @@ func (o *rootBase) MarshalStringMap() map[string]interface{} {
 		}
 	}
 
-	if val := o.OptionalLeaf(); val != nil {
-		v["optionalLeaf"] = val.MarshalStringMap()
-	}
-
-	if o.requiredLeafIDIsLoaded {
+	if val := o.objRequiredLeaf; val != nil {
+		v["requiredLeaf"] = val.MarshalStringMap()
+	} else if o.requiredLeafIDIsLoaded {
 		v["requiredLeafID"] = o.requiredLeafID
 	}
 
-	if val := o.RequiredLeaf(); val != nil {
-		v["requiredLeaf"] = val.MarshalStringMap()
-	}
-
-	if o.optionalLeafUniqueIDIsLoaded {
+	if val := o.objOptionalLeafUnique; val != nil {
+		v["optionalLeafUnique"] = val.MarshalStringMap()
+	} else if o.optionalLeafUniqueIDIsLoaded {
 		v["optionalLeafUniqueID"] = o.optionalLeafUniqueID
 	}
 
-	if val := o.OptionalLeafUnique(); val != nil {
-		v["optionalLeafUnique"] = val.MarshalStringMap()
-	}
-
-	if o.requiredLeafUniqueIDIsLoaded {
+	if val := o.objRequiredLeafUnique; val != nil {
+		v["requiredLeafUnique"] = val.MarshalStringMap()
+	} else if o.requiredLeafUniqueIDIsLoaded {
 		v["requiredLeafUniqueID"] = o.requiredLeafUniqueID
 	}
 
-	if val := o.RequiredLeafUnique(); val != nil {
-		v["requiredLeafUnique"] = val.MarshalStringMap()
-	}
-
-	if o.parentIDIsLoaded {
+	if val := o.objParent; val != nil {
+		v["parent"] = val.MarshalStringMap()
+	} else if o.parentIDIsLoaded {
 		if o.parentIDIsNull {
 			v["parentID"] = nil
 		} else {
@@ -2162,9 +2156,6 @@ func (o *rootBase) MarshalStringMap() map[string]interface{} {
 		}
 	}
 
-	if val := o.Parent(); val != nil {
-		v["parent"] = val.MarshalStringMap()
-	}
 	if o.revParentRoots.Len() != 0 {
 		var vals []map[string]interface{}
 		for obj := range o.revParentRoots.ValuesIter() {
@@ -2248,13 +2239,24 @@ func (o *rootBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					continue
 				}
 
+				if _, ok := m["optionalLeaf"]; ok {
+					continue // importing the foreign key will remove the object
+				}
+
 				if s, ok := v.(string); !ok {
-					return fmt.Errorf("field %s must be a string", k)
+					return fmt.Errorf("json field %s must be a string", k)
 				} else {
 					o.SetOptionalLeafID(s)
 				}
-
 			}
+
+		case "optionalLeaf":
+			v2 := NewLeaf()
+			err = v2.UnmarshalStringMap(v.(map[string]any))
+			if err != nil {
+				return
+			}
+			o.SetOptionalLeaf(v2)
 
 		case "requiredLeafID":
 			{
@@ -2262,13 +2264,24 @@ func (o *rootBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
+				if _, ok := m["requiredLeaf"]; ok {
+					continue // importing the foreign key will remove the object
+				}
+
 				if s, ok := v.(string); !ok {
-					return fmt.Errorf("field %s must be a string", k)
+					return fmt.Errorf("json field %s must be a string", k)
 				} else {
 					o.SetRequiredLeafID(s)
 				}
-
 			}
+
+		case "requiredLeaf":
+			v2 := NewLeaf()
+			err = v2.UnmarshalStringMap(v.(map[string]any))
+			if err != nil {
+				return
+			}
+			o.SetRequiredLeaf(v2)
 
 		case "optionalLeafUniqueID":
 			{
@@ -2276,13 +2289,24 @@ func (o *rootBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
+				if _, ok := m["optionalLeafUnique"]; ok {
+					continue // importing the foreign key will remove the object
+				}
+
 				if s, ok := v.(string); !ok {
-					return fmt.Errorf("field %s must be a string", k)
+					return fmt.Errorf("json field %s must be a string", k)
 				} else {
 					o.SetOptionalLeafUniqueID(s)
 				}
-
 			}
+
+		case "optionalLeafUnique":
+			v2 := NewLeaf()
+			err = v2.UnmarshalStringMap(v.(map[string]any))
+			if err != nil {
+				return
+			}
+			o.SetOptionalLeafUnique(v2)
 
 		case "requiredLeafUniqueID":
 			{
@@ -2290,13 +2314,24 @@ func (o *rootBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
+				if _, ok := m["requiredLeafUnique"]; ok {
+					continue // importing the foreign key will remove the object
+				}
+
 				if s, ok := v.(string); !ok {
-					return fmt.Errorf("field %s must be a string", k)
+					return fmt.Errorf("json field %s must be a string", k)
 				} else {
 					o.SetRequiredLeafUniqueID(s)
 				}
-
 			}
+
+		case "requiredLeafUnique":
+			v2 := NewLeaf()
+			err = v2.UnmarshalStringMap(v.(map[string]any))
+			if err != nil {
+				return
+			}
+			o.SetRequiredLeafUnique(v2)
 
 		case "parentID":
 			{
@@ -2305,13 +2340,24 @@ func (o *rootBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					continue
 				}
 
+				if _, ok := m["parent"]; ok {
+					continue // importing the foreign key will remove the object
+				}
+
 				if s, ok := v.(string); !ok {
-					return fmt.Errorf("field %s must be a string", k)
+					return fmt.Errorf("json field %s must be a string", k)
 				} else {
 					o.SetParentID(s)
 				}
-
 			}
+
+		case "parent":
+			v2 := NewRoot()
+			err = v2.UnmarshalStringMap(v.(map[string]any))
+			if err != nil {
+				return
+			}
+			o.SetParent(v2)
 
 		}
 	}

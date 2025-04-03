@@ -16,14 +16,13 @@
             }
 {{if}}
 
-{{if col.IsReference()}}
-            if s,ok := v.(string); !ok {
-                return fmt.Errorf("field %s must be a string", k)
-            } else {
-                o.Set{{= col.Identifier }}(s)
+{{if col.IsReference() }}
+            if _,ok := m["{{= col.ReferenceJsonKey() }}"]; ok {
+                continue // importing the foreign key will remove the object
             }
+{{if}}
 
-{{elseif col.IsEnum()}}
+{{if col.IsEnum()}}
 {{if col.IsEnumArray()}}
             if v == nil {
                 return fmt.Errorf("field %s cannot be null", k)
@@ -217,6 +216,14 @@ case query.ColTypeTime:
 }
 }}
 {{if}}
-           }
+            }
 
+{{if col.IsReference() }}
+            case "{{= col.ReferenceJsonKey() }}":
+                v2 := New{{= col.ReferenceType() }}()
+                err = v2.UnmarshalStringMap(v.(map[string]any))
+                if err != nil {return}
+                o.Set{{= col.ReferenceIdentifier() }}(v2)
+
+{{if}}
 }}
