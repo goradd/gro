@@ -8,6 +8,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"time"
 	"unicode/utf8"
 
 	"github.com/goradd/all"
@@ -36,6 +37,11 @@ type personBase struct {
 	typesIsNull       bool
 	typesIsLoaded     bool
 	typesIsDirty      bool
+	created           time.Time
+	createdIsLoaded   bool
+	modified          time.Time
+	modifiedIsNull    bool
+	modifiedIsLoaded  bool
 
 	// Reverse reference objects.
 	revAddresses              maps.SliceMap[string, *Address] // Objects in the order they were queried
@@ -68,6 +74,8 @@ const (
 	Person_FirstName      = `FirstName`
 	Person_LastName       = `LastName`
 	Person_Types          = `Types`
+	Person_Created        = `Created`
+	Person_Modified       = `Modified`
 	PersonAddresses       = `Addresses`
 	PersonEmployeeInfo    = `EmployeeInfo`
 	PersonLogin           = `Login`
@@ -100,6 +108,13 @@ func (o *personBase) Initialize() {
 	o.typesIsNull = true
 	o.typesIsLoaded = false
 	o.typesIsDirty = false
+
+	o.created = time.Time{}
+	o.createdIsLoaded = true
+
+	o.modified = time.Time{}
+	o.modifiedIsNull = false
+	o.modifiedIsLoaded = true
 
 	// Reverse reference objects.
 
@@ -295,6 +310,37 @@ func (o *personBase) SetTypesToNull() {
 	o.typesIsLoaded = true
 	o.typesIsNull = true
 	o.types = nil
+}
+
+// Created returns the value of Created.
+func (o *personBase) Created() time.Time {
+	if o._restored && !o.createdIsLoaded {
+		panic("Created was not selected in the last query and has not been set, and so is not valid")
+	}
+	return o.created
+}
+
+// CreatedIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *personBase) CreatedIsLoaded() bool {
+	return o.createdIsLoaded
+}
+
+// Modified returns the value of Modified.
+func (o *personBase) Modified() time.Time {
+	if o._restored && !o.modifiedIsLoaded {
+		panic("Modified was not selected in the last query and has not been set, and so is not valid")
+	}
+	return o.modified
+}
+
+// ModifiedIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *personBase) ModifiedIsLoaded() bool {
+	return o.modifiedIsLoaded
+}
+
+// ModifiedIsNull returns true if the related database value is null.
+func (o *personBase) ModifiedIsNull() bool {
+	return o.modifiedIsNull
 }
 
 // GetAlias returns the value for the Alias node aliasKey that was returned in the most
@@ -935,6 +981,20 @@ func CountPeopleByLastName(ctx context.Context, lastName string) int {
 	return QueryPeople(ctx).Where(op.Equal(node.Person().LastName(), lastName)).Count()
 }
 
+// CountPeopleByCreated queries the database and returns the number of Person objects that
+// have created.
+// doc: type=Person
+func CountPeopleByCreated(ctx context.Context, created time.Time) int {
+	return QueryPeople(ctx).Where(op.Equal(node.Person().Created(), created)).Count()
+}
+
+// CountPeopleByModified queries the database and returns the number of Person objects that
+// have modified.
+// doc: type=Person
+func CountPeopleByModified(ctx context.Context, modified time.Time) int {
+	return QueryPeople(ctx).Where(op.Equal(node.Person().Modified(), modified)).Count()
+}
+
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
 func (o *personBase) load(m map[string]interface{}, objThis *Person) {
@@ -1009,6 +1069,35 @@ func (o *personBase) load(m map[string]interface{}, objThis *Person) {
 		o.typesIsNull = true
 		o.types = nil
 		o.typesIsDirty = false
+	}
+
+	if v, ok := m["created"]; ok && v != nil {
+		if o.created, ok = v.(time.Time); ok {
+			o.createdIsLoaded = true
+
+		} else {
+			panic("Wrong type found for created.")
+		}
+	} else {
+		o.createdIsLoaded = false
+		o.created = time.Time{}
+	}
+
+	if v, ok := m["modified"]; ok {
+		if v == nil {
+			o.modified = time.Time{}
+			o.modifiedIsNull = true
+			o.modifiedIsLoaded = true
+		} else if o.modified, ok = v.(time.Time); ok {
+			o.modifiedIsNull = false
+			o.modifiedIsLoaded = true
+		} else {
+			panic("Wrong type found for modified.")
+		}
+	} else {
+		o.modifiedIsLoaded = false
+		o.modifiedIsNull = true
+		o.modified = time.Time{}
 	}
 
 	// Many-Many references
@@ -1324,6 +1413,8 @@ func (o *personBase) update(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	o.modified = modifiedFields["modified"].(time.Time)
+	o.modifiedIsLoaded = true
 
 	o.resetDirtyStatus()
 	if len(modifiedFields) != 0 {
@@ -1444,6 +1535,10 @@ func (o *personBase) insert(ctx context.Context) (err error) {
 	if err != nil {
 		return
 	}
+	o.created = insertFields["created"].(time.Time)
+	o.createdIsLoaded = true
+	o.modified = insertFields["modified"].(time.Time)
+	o.modifiedIsLoaded = true
 
 	o.resetDirtyStatus()
 	o._restored = true
@@ -1472,6 +1567,9 @@ func (o *personBase) getUpdateFields() (fields map[string]interface{}) {
 			fields["type_enum"] = string(b)
 		}
 	}
+	if len(fields) > 0 {
+		fields["modified"] = time.Now().UTC()
+	}
 	return
 }
 
@@ -1496,6 +1594,8 @@ func (o *personBase) getInsertFields() (fields map[string]interface{}) {
 		b, _ := json.Marshal(o.types)
 		fields["type_enum"] = string(b)
 	}
+	fields["created"] = time.Now().UTC()
+	fields["modified"] = time.Now().UTC()
 	return
 }
 
@@ -1680,6 +1780,18 @@ func (o *personBase) Get(key string) interface{} {
 		}
 		return o.types
 
+	case "Created":
+		if !o.createdIsLoaded {
+			return nil
+		}
+		return o.created
+
+	case "Modified":
+		if !o.modifiedIsLoaded {
+			return nil
+		}
+		return o.modified
+
 	case "Addresses":
 		return o.revAddresses.Values()
 	case "EmployeeInfo":
@@ -1745,6 +1857,23 @@ func (o *personBase) MarshalBinary() ([]byte, error) {
 	}
 	if err := encoder.Encode(o.typesIsDirty); err != nil {
 		return nil, fmt.Errorf("error encoding Person.typesIsDirty: %w", err)
+	}
+
+	if err := encoder.Encode(o.created); err != nil {
+		return nil, fmt.Errorf("error encoding Person.created: %w", err)
+	}
+	if err := encoder.Encode(o.createdIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Person.createdIsLoaded: %w", err)
+	}
+
+	if err := encoder.Encode(o.modified); err != nil {
+		return nil, fmt.Errorf("error encoding Person.modified: %w", err)
+	}
+	if err := encoder.Encode(o.modifiedIsNull); err != nil {
+		return nil, fmt.Errorf("error encoding Person.modifiedIsNull: %w", err)
+	}
+	if err := encoder.Encode(o.modifiedIsLoaded); err != nil {
+		return nil, fmt.Errorf("error encoding Person.modifiedIsLoaded: %w", err)
 	}
 
 	if err := encoder.Encode(&o.revAddresses); err != nil {
@@ -1886,6 +2015,23 @@ func (o *personBase) UnmarshalBinary(data []byte) (err error) {
 		return fmt.Errorf("error decoding Person.typesIsDirty: %w", err)
 	}
 
+	if err = dec.Decode(&o.created); err != nil {
+		return fmt.Errorf("error decoding Person.created: %w", err)
+	}
+	if err = dec.Decode(&o.createdIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Person.createdIsLoaded: %w", err)
+	}
+
+	if err = dec.Decode(&o.modified); err != nil {
+		return fmt.Errorf("error decoding Person.modified: %w", err)
+	}
+	if err = dec.Decode(&o.modifiedIsNull); err != nil {
+		return fmt.Errorf("error decoding Person.modifiedIsNull: %w", err)
+	}
+	if err = dec.Decode(&o.modifiedIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Person.modifiedIsLoaded: %w", err)
+	}
+
 	if err = dec.Decode(&o.revAddresses); err != nil {
 		return fmt.Errorf("error decoding Person.revAddresses: %w", err)
 	}
@@ -1978,6 +2124,18 @@ func (o *personBase) MarshalStringMap() map[string]interface{} {
 		}
 	}
 
+	if o.createdIsLoaded {
+		v["created"] = o.created
+	}
+
+	if o.modifiedIsLoaded {
+		if o.modifiedIsNull {
+			v["modified"] = nil
+		} else {
+			v["modified"] = o.modified
+		}
+	}
+
 	if o.revAddresses.Len() != 0 {
 		var vals []map[string]interface{}
 		for obj := range o.revAddresses.ValuesIter() {
@@ -2025,6 +2183,8 @@ func (o *personBase) MarshalStringMap() map[string]interface{} {
 //	"firstName" - string
 //	"lastName" - string
 //	"types" - PersonTypeSet, nullable
+//	"created" - time.Time
+//	"modified" - time.Time, nullable
 func (o *personBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
 	if len(data) == 0 {

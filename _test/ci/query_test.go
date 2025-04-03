@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"strconv"
 	"testing"
+	"time"
 )
 
 func TestBasic(t *testing.T) {
@@ -391,4 +392,21 @@ func TestMultiParent(t *testing.T) {
 
 	mom2 := goradd_unit.LoadMultiParent(ctx, mom.ID(), node2.MultiParent().Parent1MultiParents())
 	assert.Equal(t, mom2.Parent1MultiParents()[0].ID(), baby.ID())
+}
+
+func TestTimeDefaults(t *testing.T) {
+	ctx := db.NewContext(nil)
+	p := goradd.NewPerson()
+	defer p.Delete(ctx)
+	p.SetFirstName("Bob")
+	p.SetLastName("Dylan")
+	assert.NoError(t, p.Save(ctx))
+	now := time.Now()
+	assert.WithinDuration(t, now, p.Created(), time.Second)
+	assert.WithinDuration(t, p.Created(), p.Modified(), time.Second)
+	time.Sleep(2 * time.Second)
+	p.SetLastName("Hope")
+	assert.NoError(t, p.Save(ctx))
+	assert.WithinDuration(t, now, p.Created(), time.Second) // no change
+	assert.WithinDuration(t, time.Now(), p.Modified(), time.Second)
 }

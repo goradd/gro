@@ -21,6 +21,10 @@ type PersonNode interface {
 	LastName() *query.ColumnNode
 	// Types represents the type_enum column in the database.
 	Types() *query.ColumnNode
+	// Created represents the created column in the database.
+	Created() *query.ColumnNode
+	// Modified represents the modified column in the database.
+	Modified() *query.ColumnNode
 	// Projects represents the Projects reference to Project objects.
 	Projects() ProjectNode
 	// Addresses represents the Addresses reference to Address objects.
@@ -76,6 +80,8 @@ func (n personTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.FirstName())
 	nodes = append(nodes, n.LastName())
 	nodes = append(nodes, n.Types())
+	nodes = append(nodes, n.Created())
+	nodes = append(nodes, n.Modified())
 	return nodes
 }
 
@@ -206,6 +212,52 @@ func (n *personReference) Types() *query.ColumnNode {
 
 func (n *personAssociation) Types() *query.ColumnNode {
 	cn := n.personTable.Types()
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n personTable) Created() *query.ColumnNode {
+	cn := &query.ColumnNode{
+		QueryName:    "created",
+		Identifier:   "Created",
+		ReceiverType: query.ColTypeTime,
+		IsPrimaryKey: false,
+	}
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *personReference) Created() *query.ColumnNode {
+	cn := n.personTable.Created()
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *personAssociation) Created() *query.ColumnNode {
+	cn := n.personTable.Created()
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n personTable) Modified() *query.ColumnNode {
+	cn := &query.ColumnNode{
+		QueryName:    "modified",
+		Identifier:   "Modified",
+		ReceiverType: query.ColTypeTime,
+		IsPrimaryKey: false,
+	}
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *personReference) Modified() *query.ColumnNode {
+	cn := n.personTable.Modified()
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *personAssociation) Modified() *query.ColumnNode {
+	cn := n.personTable.Modified()
 	query.NodeSetParent(cn, n)
 	return cn
 }

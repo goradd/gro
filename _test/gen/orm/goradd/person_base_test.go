@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/goradd/orm/_test/gen/orm/goradd/node"
 	"github.com/goradd/orm/pkg/db"
@@ -98,6 +99,12 @@ func assertEqualFieldsPerson(t *testing.T, obj1, obj2 *Person) {
 	}
 	if obj1.TypesIsLoaded() && obj2.TypesIsLoaded() { // only check loaded values
 		assert.True(t, obj1.Types().Equal(obj2.Types()))
+	}
+	if obj1.CreatedIsLoaded() && obj2.CreatedIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.Created(), obj2.Created())
+	}
+	if obj1.ModifiedIsLoaded() && obj2.ModifiedIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.Modified(), obj2.Modified())
 	}
 
 }
@@ -226,6 +233,11 @@ func TestPerson_BasicInsert(t *testing.T) {
 	obj2.SetTypes(obj2.Types())
 	assert.False(t, obj2.typesIsDirty)
 
+	assert.True(t, obj2.CreatedIsLoaded())
+
+	assert.True(t, obj2.ModifiedIsLoaded())
+	assert.False(t, obj2.ModifiedIsNull())
+
 }
 
 func TestPerson_InsertPanics(t *testing.T) {
@@ -257,6 +269,10 @@ func TestPerson_BasicUpdate(t *testing.T) {
 	assert.Equal(t, obj2.FirstName(), obj.FirstName(), "FirstName did not update")
 	assert.Equal(t, obj2.LastName(), obj.LastName(), "LastName did not update")
 	assert.Equal(t, obj2.Types(), obj.Types(), "Types did not update")
+
+	assert.WithinDuration(t, obj2.Created(), obj.Created(), time.Second, "Created not within one second")
+
+	assert.WithinDuration(t, obj2.Modified(), obj.Modified(), time.Second, "Modified not within one second")
 }
 
 func TestPerson_ReferenceLoad(t *testing.T) {
@@ -406,6 +422,12 @@ func TestPerson_Getters(t *testing.T) {
 	assert.Equal(t, obj.Types(), obj.Get(node.Person().Types().Identifier))
 	assert.Panics(t, func() { obj2.Types() })
 	assert.Nil(t, obj2.Get(node.Person().Types().Identifier))
+	assert.Equal(t, obj.Created(), obj.Get(node.Person().Created().Identifier))
+	assert.Panics(t, func() { obj2.Created() })
+	assert.Nil(t, obj2.Get(node.Person().Created().Identifier))
+	assert.Equal(t, obj.Modified(), obj.Get(node.Person().Modified().Identifier))
+	assert.Panics(t, func() { obj2.Modified() })
+	assert.Nil(t, obj2.Get(node.Person().Modified().Identifier))
 }
 
 func TestPerson_QueryLoad(t *testing.T) {
@@ -474,6 +496,8 @@ func TestPerson_Count(t *testing.T) {
 	assert.Less(t, 0, CountPeopleByID(ctx, obj2.ID()))
 	assert.Less(t, 0, CountPeopleByFirstName(ctx, obj2.FirstName()))
 	assert.Less(t, 0, CountPeopleByLastName(ctx, obj2.LastName()))
+	assert.Less(t, 0, CountPeopleByCreated(ctx, obj2.Created()))
+	assert.Less(t, 0, CountPeopleByModified(ctx, obj2.Modified()))
 
 }
 func TestPerson_MarshalJSON(t *testing.T) {

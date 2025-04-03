@@ -166,6 +166,17 @@
             "size": 400,
             "is_nullable": true,
             "case_insensitive": true
+          },
+          {
+            "name": "created",
+            "type": "time",
+            "default_value": "now"
+          },
+          {
+            "name": "modified",
+            "type": "time",
+            "default_value": "update",
+            "is_nullable": true
           }
         ],
         "key": "person"

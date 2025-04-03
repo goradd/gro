@@ -48,6 +48,8 @@ func TestSerializeReferencesAddressTable(t *testing.T) {
 		assert.True(t, query.NodesMatch(Address().Person().FirstName(), n2.(PersonNode).FirstName()))
 		assert.True(t, query.NodesMatch(Address().Person().LastName(), n2.(PersonNode).LastName()))
 		assert.True(t, query.NodesMatch(Address().Person().Types(), n2.(PersonNode).Types()))
+		assert.True(t, query.NodesMatch(Address().Person().Created(), n2.(PersonNode).Created()))
+		assert.True(t, query.NodesMatch(Address().Person().Modified(), n2.(PersonNode).Modified()))
 		assert.True(t, query.NodesMatch(Address().Person().Addresses(), n2.(PersonNode).Addresses()))
 		assert.True(t, query.NodesMatch(Address().Person().EmployeeInfo(), n2.(PersonNode).EmployeeInfo()))
 		assert.True(t, query.NodesMatch(Address().Person().Login(), n2.(PersonNode).Login()))
