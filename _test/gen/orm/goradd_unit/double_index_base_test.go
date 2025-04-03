@@ -168,7 +168,9 @@ func TestDoubleIndex_BasicInsert(t *testing.T) {
 
 func TestDoubleIndex_InsertPanics(t *testing.T) {
 	obj := createMinimalSampleDoubleIndex()
+	_ = obj
 	ctx := db.NewContext(nil)
+	_ = ctx
 
 	obj.idIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })

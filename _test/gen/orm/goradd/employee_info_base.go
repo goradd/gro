@@ -701,6 +701,11 @@ func (o *employeeInfoBase) update(ctx context.Context) error {
 			o.personID = o.objPerson.PrimaryKey()
 		}
 
+		if o.personIDIsDirty &&
+			LoadEmployeeInfoByPersonID(ctx, o.personID) != nil {
+			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for PersonID: %v", o.personID))
+		}
+
 		modifiedFields = o.getUpdateFields()
 		if len(modifiedFields) != 0 {
 			var err2 error
@@ -731,8 +736,9 @@ func (o *employeeInfoBase) insert(ctx context.Context) (err error) {
 	d := Database()
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
+		// Save loaded Person object to get its new pk and update it here.
 		if o.objPerson != nil {
-			if err = o.objPerson.Save(ctx); err != nil {
+			if err := o.objPerson.Save(ctx); err != nil {
 				return err
 			}
 			o.personID = o.objPerson.PrimaryKey()

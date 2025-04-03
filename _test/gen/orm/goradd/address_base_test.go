@@ -203,7 +203,9 @@ func TestAddress_BasicInsert(t *testing.T) {
 
 func TestAddress_InsertPanics(t *testing.T) {
 	obj := createMinimalSampleAddress()
+	_ = obj
 	ctx := db.NewContext(nil)
+	_ = ctx
 
 	obj.personIDIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })

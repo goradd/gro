@@ -230,7 +230,9 @@ func TestLogin_BasicInsert(t *testing.T) {
 
 func TestLogin_InsertPanics(t *testing.T) {
 	obj := createMinimalSampleLogin()
+	_ = obj
 	ctx := db.NewContext(nil)
+	_ = ctx
 
 	obj.usernameIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })

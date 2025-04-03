@@ -276,7 +276,9 @@ func TestRoot_BasicInsert(t *testing.T) {
 
 func TestRoot_InsertPanics(t *testing.T) {
 	obj := createMinimalSampleRoot()
+	_ = obj
 	ctx := db.NewContext(nil)
+	_ = ctx
 
 	obj.nameIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })

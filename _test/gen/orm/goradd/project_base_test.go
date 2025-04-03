@@ -448,7 +448,9 @@ func TestProject_BasicInsert(t *testing.T) {
 
 func TestProject_InsertPanics(t *testing.T) {
 	obj := createMinimalSampleProject()
+	_ = obj
 	ctx := db.NewContext(nil)
+	_ = ctx
 
 	obj.numIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })

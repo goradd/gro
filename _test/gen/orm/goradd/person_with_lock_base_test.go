@@ -180,7 +180,9 @@ func TestPersonWithLock_BasicInsert(t *testing.T) {
 
 func TestPersonWithLock_InsertPanics(t *testing.T) {
 	obj := createMinimalSamplePersonWithLock()
+	_ = obj
 	ctx := db.NewContext(nil)
+	_ = ctx
 
 	obj.firstNameIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })

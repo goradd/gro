@@ -1966,6 +1966,11 @@ func (o *projectBase) update(ctx context.Context) error {
 			o.parentProjectID = o.objParentProject.PrimaryKey()
 		}
 
+		if o.numIsDirty &&
+			LoadProjectByNum(ctx, o.num) != nil {
+			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for Num: %v", o.num))
+		}
+
 		modifiedFields = o.getUpdateFields()
 		if len(modifiedFields) != 0 {
 			var err2 error
@@ -2181,14 +2186,17 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 	d := Database()
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
+		// Save loaded Manager object to get its new pk and update it here.
 		if o.objManager != nil {
-			if err = o.objManager.Save(ctx); err != nil {
+			if err := o.objManager.Save(ctx); err != nil {
 				return err
 			}
 			o.managerID = o.objManager.PrimaryKey()
 		}
+
+		// Save loaded ParentProject object to get its new pk and update it here.
 		if o.objParentProject != nil {
-			if err = o.objParentProject.Save(ctx); err != nil {
+			if err := o.objParentProject.Save(ctx); err != nil {
 				return err
 			}
 			o.parentProjectID = o.objParentProject.PrimaryKey()

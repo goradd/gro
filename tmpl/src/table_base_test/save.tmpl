@@ -47,7 +47,9 @@ func Test{{= table.Identifier }}_BasicInsert(t *testing.T) {
 
 func Test{{= table.Identifier }}_InsertPanics(t *testing.T) {
     obj := createMinimalSample{{= table.Identifier }}()
+    _ = obj
     ctx := db.NewContext(nil)
+    _ = ctx
 
  {{for _, col := range table.SettableColumns() }}
  {{if !col.IsAutoPK && !col.IsNullable }}

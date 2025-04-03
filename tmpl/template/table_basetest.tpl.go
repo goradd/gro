@@ -1693,7 +1693,9 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `()
+    _ = obj
     ctx := db.NewContext(nil)
+    _ = ctx
 
  `); err != nil {
 			return

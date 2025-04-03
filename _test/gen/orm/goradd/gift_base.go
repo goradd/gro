@@ -584,6 +584,11 @@ func (o *giftBase) update(ctx context.Context) error {
 	d := Database()
 	err := db.ExecuteTransaction(ctx, d, func() error {
 
+		if o.numberIsDirty &&
+			LoadGiftByNumber(ctx, o.number) != nil {
+			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for Number: %v", o.number))
+		}
+
 		modifiedFields = o.getUpdateFields()
 		if len(modifiedFields) != 0 {
 			var err2 error

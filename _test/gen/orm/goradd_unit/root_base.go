@@ -1371,6 +1371,15 @@ func (o *rootBase) update(ctx context.Context) error {
 			o.parentID = o.objParent.PrimaryKey()
 		}
 
+		if o.optionalLeafUniqueIDIsDirty &&
+			LoadRootByOptionalLeafUniqueID(ctx, o.optionalLeafUniqueID) != nil {
+			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for OptionalLeafUniqueID: %v", o.optionalLeafUniqueID))
+		}
+		if o.requiredLeafUniqueIDIsDirty &&
+			LoadRootByRequiredLeafUniqueID(ctx, o.requiredLeafUniqueID) != nil {
+			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for RequiredLeafUniqueID: %v", o.requiredLeafUniqueID))
+		}
+
 		modifiedFields = o.getUpdateFields()
 		if len(modifiedFields) != 0 {
 			var err2 error
@@ -1445,32 +1454,41 @@ func (o *rootBase) insert(ctx context.Context) (err error) {
 	d := Database()
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
+		// Save loaded OptionalLeaf object to get its new pk and update it here.
 		if o.objOptionalLeaf != nil {
-			if err = o.objOptionalLeaf.Save(ctx); err != nil {
+			if err := o.objOptionalLeaf.Save(ctx); err != nil {
 				return err
 			}
 			o.optionalLeafID = o.objOptionalLeaf.PrimaryKey()
 		}
+
+		// Save loaded RequiredLeaf object to get its new pk and update it here.
 		if o.objRequiredLeaf != nil {
-			if err = o.objRequiredLeaf.Save(ctx); err != nil {
+			if err := o.objRequiredLeaf.Save(ctx); err != nil {
 				return err
 			}
 			o.requiredLeafID = o.objRequiredLeaf.PrimaryKey()
 		}
+
+		// Save loaded OptionalLeafUnique object to get its new pk and update it here.
 		if o.objOptionalLeafUnique != nil {
-			if err = o.objOptionalLeafUnique.Save(ctx); err != nil {
+			if err := o.objOptionalLeafUnique.Save(ctx); err != nil {
 				return err
 			}
 			o.optionalLeafUniqueID = o.objOptionalLeafUnique.PrimaryKey()
 		}
+
+		// Save loaded RequiredLeafUnique object to get its new pk and update it here.
 		if o.objRequiredLeafUnique != nil {
-			if err = o.objRequiredLeafUnique.Save(ctx); err != nil {
+			if err := o.objRequiredLeafUnique.Save(ctx); err != nil {
 				return err
 			}
 			o.requiredLeafUniqueID = o.objRequiredLeafUnique.PrimaryKey()
 		}
+
+		// Save loaded Parent object to get its new pk and update it here.
 		if o.objParent != nil {
-			if err = o.objParent.Save(ctx); err != nil {
+			if err := o.objParent.Save(ctx); err != nil {
 				return err
 			}
 			o.parentID = o.objParent.PrimaryKey()

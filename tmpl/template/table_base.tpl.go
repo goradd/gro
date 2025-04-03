@@ -7722,7 +7722,257 @@ func (o *`); err != nil {
 
 	}
 
-	if _, err = io.WriteString(_w, `        modifiedFields = o.getUpdateFields()
+	if _, err = io.WriteString(_w, `
+`); err != nil {
+		return
+	}
+
+	for _, col := range table.SettableColumns() {
+
+		if col.IsUnique && !col.IsAutoPK {
+
+			if _, err = io.WriteString(_w, `    if o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsDirty &&
+`); err != nil {
+				return
+			}
+
+			if col.IsNullable {
+
+				if _, err = io.WriteString(_w, `            !o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `IsNull &&
+`); err != nil {
+					return
+				}
+
+			}
+
+			if _, err = io.WriteString(_w, `            Load`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `By`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(ctx, o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `) != nil {
+        return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `: %v", o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `))
+    }
+`); err != nil {
+				return
+			}
+
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
+`); err != nil {
+		return
+	}
+
+	for _, idx := range table.Indexes {
+
+		if idx.IsUnique && len(idx.Columns) > 1 {
+
+			if _, err = io.WriteString(_w, `    if (`); err != nil {
+				return
+			}
+
+			for _i, _j := range idx.Columns {
+				_ = _j
+
+				if _, err = io.WriteString(_w, `o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, _j.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `IsDirty`); err != nil {
+					return
+				}
+
+				if _i < len(idx.Columns)-1 {
+					if _, err = io.WriteString(_w, " || "); err != nil {
+						return
+					}
+				}
+			}
+			if _, err = io.WriteString(_w, `) &&
+`); err != nil {
+				return
+			}
+
+			for _, col := range idx.Columns {
+
+				if col.IsNullable {
+
+					if _, err = io.WriteString(_w, `            !o.`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `IsNull &&
+`); err != nil {
+						return
+					}
+
+				}
+
+			}
+
+			if _, err = io.WriteString(_w, `            Load`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `By`); err != nil {
+				return
+			}
+
+			for _i, _j := range idx.Columns {
+				_ = _j
+
+				if _, err = io.WriteString(_w, _j.Identifier); err != nil {
+					return
+				}
+
+				if _i < len(idx.Columns)-1 {
+					if _, err = io.WriteString(_w, ""); err != nil {
+						return
+					}
+				}
+			}
+			if _, err = io.WriteString(_w, `(ctx, `); err != nil {
+				return
+			}
+
+			for _i, _j := range idx.Columns {
+				_ = _j
+
+				if _, err = io.WriteString(_w, `o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, _j.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _i < len(idx.Columns)-1 {
+					if _, err = io.WriteString(_w, ", "); err != nil {
+						return
+					}
+				}
+			}
+			if _, err = io.WriteString(_w, `) != nil {
+        return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value `); err != nil {
+				return
+			}
+
+			for _i, _j := range idx.Columns {
+				_ = _j
+
+				if _, err = io.WriteString(_w, _j.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `=%v`); err != nil {
+					return
+				}
+
+				if _i < len(idx.Columns)-1 {
+					if _, err = io.WriteString(_w, " & "); err != nil {
+						return
+					}
+				}
+			}
+			if _, err = io.WriteString(_w, `", `); err != nil {
+				return
+			}
+
+			for _i, _j := range idx.Columns {
+				_ = _j
+
+				if _, err = io.WriteString(_w, `o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, _j.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _i < len(idx.Columns)-1 {
+					if _, err = io.WriteString(_w, ", "); err != nil {
+						return
+					}
+				}
+			}
+			if _, err = io.WriteString(_w, `))
+    }
+`); err != nil {
+				return
+			}
+
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
+        modifiedFields = o.getUpdateFields()
         if len(modifiedFields) != 0 {
             var err2 error
 
@@ -8815,11 +9065,32 @@ func (o *`); err != nil {
 		return
 	}
 
-	for _, col := range table.SettableColumns() {
+	//*** update_ref.tmpl
+
+	if _, err = io.WriteString(_w, `
+`); err != nil {
+		return
+	}
+
+	for _, col := range table.Columns {
+
+		if _, err = io.WriteString(_w, `    `); err != nil {
+			return
+		}
 
 		if col.IsReference() {
 
-			if _, err = io.WriteString(_w, `    if o.`); err != nil {
+			if _, err = io.WriteString(_w, `
+        // Save loaded `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` object to get its new pk and update it here.
+        if o.`); err != nil {
 				return
 			}
 
@@ -8828,7 +9099,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, ` != nil {
-        if err = o.`); err != nil {
+            if err := o.`); err != nil {
 				return
 			}
 
@@ -8837,9 +9108,9 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `.Save(ctx); err != nil {
-            return err
-        }
-        o.`); err != nil {
+                return err
+            }
+            o.`); err != nil {
 				return
 			}
 
@@ -8856,11 +9127,16 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `.PrimaryKey()
-    }
-`); err != nil {
+        }
+    `); err != nil {
 				return
 			}
 
+		}
+
+		if _, err = io.WriteString(_w, `
+`); err != nil {
+			return
 		}
 
 	}

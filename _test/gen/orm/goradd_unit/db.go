@@ -169,6 +169,46 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 			return err
 		}
 	}
+	{ // Write MultiParents
+		if _, err := io.WriteString(writer, "["); err != nil {
+			return err
+		}
+
+		if _, err := io.WriteString(writer, `"multi_parent"`); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(writer, ",\n["); err != nil {
+			return err
+		}
+
+		cursor := QueryMultiParents(ctx).LoadCursor()
+		defer cursor.Close()
+		if obj := cursor.Next(); obj != nil {
+			if err := encoder.Encode(obj); err != nil {
+				return err
+			}
+		}
+
+		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+			if _, err := io.WriteString(writer, ",\n"); err != nil {
+				return err
+			}
+			if err := encoder.Encode(obj); err != nil {
+				return err
+			}
+		}
+
+		if _, err := io.WriteString(writer, "]\n]"); err != nil {
+			return err
+		}
+
+		if _, err := io.WriteString(writer, ","); err != nil {
+			return err
+		}
+		if _, err := io.WriteString(writer, "\n"); err != nil {
+			return err
+		}
+	}
 	{ // Write Roots
 		if _, err := io.WriteString(writer, "["); err != nil {
 			return err
@@ -356,6 +396,8 @@ func jsonDecodeTable(ctx context.Context, decoder *json.Decoder) error {
 			err = jsonDecodeLeafs(ctx, decoder)
 		case "leaf_lock":
 			err = jsonDecodeLeafLocks(ctx, decoder)
+		case "multi_parent":
+			err = jsonDecodeMultiParents(ctx, decoder)
 		case "root":
 			err = jsonDecodeRoots(ctx, decoder)
 		case "type_test":
@@ -470,6 +512,42 @@ func jsonDecodeLeafLocks(ctx context.Context, decoder *json.Decoder) error {
 
 	for decoder.More() {
 		obj := NewLeafLock()
+		if err = decoder.Decode(&obj); err != nil {
+			return err
+		}
+		if err = obj.Save(ctx); err != nil {
+			return err
+		}
+	}
+
+	// Check if the last token is the end of the array
+	token, err = decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading the last token:", err)
+		return err
+	}
+
+	if delim, ok := token.(json.Delim); !ok || delim != ']' {
+		fmt.Println("Error: Expected the JSON to end with a closing array token")
+		return err
+	}
+
+	return nil
+}
+func jsonDecodeMultiParents(ctx context.Context, decoder *json.Decoder) error {
+	token, err := decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading opening token:", err)
+		return err
+	}
+	// Ensure the first token is a start of an array
+	if delim, ok := token.(json.Delim); !ok || delim != '[' {
+		fmt.Println("Error: Expected the MultiParent list to start with an array")
+		return err
+	}
+
+	for decoder.More() {
+		obj := NewMultiParent()
 		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}

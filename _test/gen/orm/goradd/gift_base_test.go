@@ -142,7 +142,9 @@ func TestGift_BasicInsert(t *testing.T) {
 
 func TestGift_InsertPanics(t *testing.T) {
 	obj := createMinimalSampleGift()
+	_ = obj
 	ctx := db.NewContext(nil)
+	_ = ctx
 
 	obj.numberIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })

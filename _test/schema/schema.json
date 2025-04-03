@@ -476,6 +476,40 @@
         "key": "leaf_lock"
       },
       {
+        "name": "multi_parent",
+        "columns": [
+          {
+            "name": "id",
+            "type": "auto_primary_key"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "size": 100,
+            "is_nullable": true
+          },
+          {
+            "name": "parent_1_id",
+            "type": "ref",
+            "is_nullable": true,
+            "index_level": "Indexed",
+            "reference": {
+              "table": "multi_parent"
+            }
+          },
+          {
+            "name": "parent_2_id",
+            "type": "ref",
+            "is_nullable": true,
+            "index_level": "Indexed",
+            "reference": {
+              "table": "multi_parent"
+            }
+          }
+        ],
+        "key": "multi_parent"
+      },
+      {
         "name": "root",
         "columns": [
           {

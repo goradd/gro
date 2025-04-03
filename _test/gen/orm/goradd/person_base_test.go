@@ -230,7 +230,9 @@ func TestPerson_BasicInsert(t *testing.T) {
 
 func TestPerson_InsertPanics(t *testing.T) {
 	obj := createMinimalSamplePerson()
+	_ = obj
 	ctx := db.NewContext(nil)
+	_ = ctx
 
 	obj.firstNameIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })

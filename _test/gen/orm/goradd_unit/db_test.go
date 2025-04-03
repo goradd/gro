@@ -23,6 +23,7 @@ func ClearAll(ctx context.Context) {
 	db.Delete(ctx, "unsupported_type", nil)
 	db.Delete(ctx, "type_test", nil)
 	db.Delete(ctx, "root", nil)
+	db.Delete(ctx, "multi_parent", nil)
 	db.Delete(ctx, "leaf_lock", nil)
 	db.Delete(ctx, "leaf", nil)
 	db.Delete(ctx, "double_index", nil)
@@ -67,12 +68,14 @@ func TestDbJson(t *testing.T) {
 	v_DoubleIndex := QueryDoubleIndices(ctx).OrderBy(node.DoubleIndex().PrimaryKey()).Get()            // gets first record
 	v_Leaf := QueryLeafs(ctx).OrderBy(node.Leaf().PrimaryKey()).Get()                                  // gets first record
 	v_LeafLock := QueryLeafLocks(ctx).OrderBy(node.LeafLock().PrimaryKey()).Get()                      // gets first record
+	v_MultiParent := QueryMultiParents(ctx).OrderBy(node.MultiParent().PrimaryKey()).Get()             // gets first record
 	v_Root := QueryRoots(ctx).OrderBy(node.Root().PrimaryKey()).Get()                                  // gets first record
 	v_TypeTest := QueryTypeTests(ctx).OrderBy(node.TypeTest().PrimaryKey()).Get()                      // gets first record
 	v_UnsupportedType := QueryUnsupportedTypes(ctx).OrderBy(node.UnsupportedType().PrimaryKey()).Get() // gets first record
 	v_DoubleIndexCount := CountDoubleIndices(ctx)
 	v_LeafCount := CountLeafs(ctx)
 	v_LeafLockCount := CountLeafLocks(ctx)
+	v_MultiParentCount := CountMultiParents(ctx)
 	v_RootCount := CountRoots(ctx)
 	v_TypeTestCount := CountTypeTests(ctx)
 	v_UnsupportedTypeCount := CountUnsupportedTypes(ctx)
@@ -85,6 +88,7 @@ func TestDbJson(t *testing.T) {
 	assert.Equal(t, 0, CountDoubleIndices(ctx))
 	assert.Equal(t, 0, CountLeafs(ctx))
 	assert.Equal(t, 0, CountLeafLocks(ctx))
+	assert.Equal(t, 0, CountMultiParents(ctx))
 	assert.Equal(t, 0, CountRoots(ctx))
 	assert.Equal(t, 0, CountTypeTests(ctx))
 	assert.Equal(t, 0, CountUnsupportedTypes(ctx))
@@ -101,6 +105,9 @@ func TestDbJson(t *testing.T) {
 	if v_LeafLock != nil {
 		assertEqualFieldsLeafLock(t, v_LeafLock, QueryLeafLocks(ctx).OrderBy(node.LeafLock().PrimaryKey()).Get())
 	}
+	if v_MultiParent != nil {
+		assertEqualFieldsMultiParent(t, v_MultiParent, QueryMultiParents(ctx).OrderBy(node.MultiParent().PrimaryKey()).Get())
+	}
 	if v_Root != nil {
 		assertEqualFieldsRoot(t, v_Root, QueryRoots(ctx).OrderBy(node.Root().PrimaryKey()).Get())
 	}
@@ -113,6 +120,7 @@ func TestDbJson(t *testing.T) {
 	assert.Equal(t, v_DoubleIndexCount, CountDoubleIndices(ctx))
 	assert.Equal(t, v_LeafCount, CountLeafs(ctx))
 	assert.Equal(t, v_LeafLockCount, CountLeafLocks(ctx))
+	assert.Equal(t, v_MultiParentCount, CountMultiParents(ctx))
 	assert.Equal(t, v_RootCount, CountRoots(ctx))
 	assert.Equal(t, v_TypeTestCount, CountTypeTests(ctx))
 	assert.Equal(t, v_UnsupportedTypeCount, CountUnsupportedTypes(ctx))

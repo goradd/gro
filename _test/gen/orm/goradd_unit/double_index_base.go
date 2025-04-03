@@ -666,6 +666,16 @@ func (o *doubleIndexBase) update(ctx context.Context) error {
 	d := Database()
 	err := db.ExecuteTransaction(ctx, d, func() error {
 
+		if o.idIsDirty &&
+			LoadDoubleIndexByID(ctx, o.id) != nil {
+			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for ID: %v", o.id))
+		}
+
+		if (o.fieldIntIsDirty || o.fieldStringIsDirty) &&
+			LoadDoubleIndexByFieldIntFieldString(ctx, o.fieldInt, o.fieldString) != nil {
+			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value FieldInt=%v & FieldString=%v", o.fieldInt, o.fieldString))
+		}
+
 		modifiedFields = o.getUpdateFields()
 		if len(modifiedFields) != 0 {
 			var err2 error

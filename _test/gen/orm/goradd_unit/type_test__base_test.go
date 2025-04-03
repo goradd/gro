@@ -452,7 +452,9 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 
 func TestTypeTest_InsertPanics(t *testing.T) {
 	obj := createMinimalSampleTypeTest()
+	_ = obj
 	ctx := db.NewContext(nil)
+	_ = ctx
 
 	obj.testDoubleIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })

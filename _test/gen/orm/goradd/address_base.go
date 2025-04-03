@@ -805,8 +805,9 @@ func (o *addressBase) insert(ctx context.Context) (err error) {
 	d := Database()
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
+		// Save loaded Person object to get its new pk and update it here.
 		if o.objPerson != nil {
-			if err = o.objPerson.Save(ctx); err != nil {
+			if err := o.objPerson.Save(ctx); err != nil {
 				return err
 			}
 			o.personID = o.objPerson.PrimaryKey()

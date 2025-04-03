@@ -715,8 +715,9 @@ func (o *milestoneBase) insert(ctx context.Context) (err error) {
 	d := Database()
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
+		// Save loaded Project object to get its new pk and update it here.
 		if o.objProject != nil {
-			if err = o.objProject.Save(ctx); err != nil {
+			if err := o.objProject.Save(ctx); err != nil {
 				return err
 			}
 			o.projectID = o.objProject.PrimaryKey()

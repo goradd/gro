@@ -144,7 +144,9 @@ func TestLeafLock_BasicInsert(t *testing.T) {
 
 func TestLeafLock_InsertPanics(t *testing.T) {
 	obj := createMinimalSampleLeafLock()
+	_ = obj
 	ctx := db.NewContext(nil)
+	_ = ctx
 
 	obj.nameIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })

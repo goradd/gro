@@ -165,7 +165,9 @@ func TestMilestone_BasicInsert(t *testing.T) {
 
 func TestMilestone_InsertPanics(t *testing.T) {
 	obj := createMinimalSampleMilestone()
+	_ = obj
 	ctx := db.NewContext(nil)
+	_ = ctx
 
 	obj.projectIDIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })

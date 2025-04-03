@@ -21,6 +21,9 @@ func (o *{{= table.DecapIdentifier}}Base) update(ctx context.Context) error {
     d := Database()
     err := db.ExecuteTransaction(ctx, d, func() error {
 {{: "update_ref.tmpl" }}
+
+{{: unique_check.tmpl }}
+
         modifiedFields = o.getUpdateFields()
         if len(modifiedFields) != 0 {
             var err2 error

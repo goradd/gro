@@ -3,6 +3,8 @@ package ci
 import (
 	"github.com/goradd/orm/_test/gen/orm/goradd"
 	"github.com/goradd/orm/_test/gen/orm/goradd/node"
+	"github.com/goradd/orm/_test/gen/orm/goradd_unit"
+	node2 "github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/op"
 	"github.com/stretchr/testify/assert"
@@ -368,4 +370,25 @@ func TestIntKey(t *testing.T) {
 
 	g := goradd.LoadGift(ctx, 2)
 	assert.Equal(t, "Turtle doves", g.Name())
+}
+
+func TestMultiParent(t *testing.T) {
+	ctx := db.NewContext(nil)
+
+	baby := goradd_unit.NewMultiParent()
+	baby.SetName("Baby")
+	mom := goradd_unit.NewMultiParent()
+	mom.SetName("Mom")
+	dad := goradd_unit.NewMultiParent()
+	dad.SetName("Dad")
+
+	baby.SetParent1(mom)
+	baby.SetParent2(dad)
+	baby.Save(ctx)
+	defer baby.Delete(ctx)
+	defer mom.Delete(ctx)
+	defer dad.Delete(ctx)
+
+	mom2 := goradd_unit.LoadMultiParent(ctx, mom.ID(), node2.MultiParent().Parent1MultiParents())
+	assert.Equal(t, mom2.Parent1MultiParents()[0].ID(), baby.ID())
 }

@@ -158,7 +158,9 @@ func TestLeaf_BasicInsert(t *testing.T) {
 
 func TestLeaf_InsertPanics(t *testing.T) {
 	obj := createMinimalSampleLeaf()
+	_ = obj
 	ctx := db.NewContext(nil)
+	_ = ctx
 
 	obj.nameIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
