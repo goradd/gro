@@ -889,6 +889,30 @@ func assertEqualFields`); err != nil {
 				return
 			}
 
+		} else if col.ReceiverType == query.ColTypeTime {
+
+			if _, err = io.WriteString(_w, `        // ignore fractional seconds since some types truncate to the second.
+        assert.WithinDuration(t, obj1.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(), obj2.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(), time.Second)
+`); err != nil {
+				return
+			}
+
 		} else {
 
 			if _, err = io.WriteString(_w, `        assert.EqualValues(t, obj1.`); err != nil {

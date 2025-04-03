@@ -63,8 +63,10 @@ func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) (err error
 {{if col.ReceiverType == query.ColTypeTime && (col.DefaultValue == model.CreatedTime || col.DefaultValue == model.ModifiedTime) ||
         col.SchemaSubType == schema.ColSubTypeTimestamp ||
         col.SchemaSubType == schema.ColSubTypeLock }}
-    o.{{= col.VariableIdentifier() }} = insertFields["{{= col.QueryName }}"].({{= col.GoType() }})
-    o.{{= col.VariableIdentifier() }}IsLoaded = true
+    if t,ok := insertFields["{{= col.QueryName }}"]; ok {
+        o.{{= col.VariableIdentifier() }} = t.({{= col.GoType() }})
+        o.{{= col.VariableIdentifier() }}IsLoaded = true
+    }
 {{if}}
 {{for}}
 

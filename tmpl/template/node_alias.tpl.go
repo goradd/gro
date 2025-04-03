@@ -21,7 +21,7 @@ func (n NodeDocTemplate) FileName(dbKey string) string {
 	return filepath.Join("orm", dbKey, "node", "alias_.go")
 }
 
-func (n NodeDocTemplate) GenerateDatabase(database *model.Database, _w io.Writer) (err error) {
+func (n NodeDocTemplate) GenerateDatabase(database *model.Database, _w io.Writer, importPath string) (err error) {
 
 	//*** alias.tmpl
 

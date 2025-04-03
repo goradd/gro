@@ -8937,15 +8937,7 @@ func (o *`); err != nil {
 		if col.SchemaSubType == schema.ColSubTypeTimestamp ||
 			col.ReceiverType == query.ColTypeTime && col.DefaultValue == model.ModifiedTime {
 
-			if _, err = io.WriteString(_w, `    o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` = modifiedFields["`); err != nil {
+			if _, err = io.WriteString(_w, `    if t, ok := modifiedFields["`); err != nil {
 				return
 			}
 
@@ -8953,7 +8945,16 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `"].(`); err != nil {
+			if _, err = io.WriteString(_w, `"]; ok {
+        o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` = t.(`); err != nil {
 				return
 			}
 
@@ -8962,7 +8963,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `)
-    o.`); err != nil {
+        o.`); err != nil {
 				return
 			}
 
@@ -8971,6 +8972,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `IsLoaded = true
+    }
 `); err != nil {
 				return
 			}
@@ -9848,15 +9850,7 @@ func (o *`); err != nil {
 			col.SchemaSubType == schema.ColSubTypeTimestamp ||
 			col.SchemaSubType == schema.ColSubTypeLock {
 
-			if _, err = io.WriteString(_w, `    o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` = insertFields["`); err != nil {
+			if _, err = io.WriteString(_w, `    if t,ok := insertFields["`); err != nil {
 				return
 			}
 
@@ -9864,7 +9858,16 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `"].(`); err != nil {
+			if _, err = io.WriteString(_w, `"]; ok {
+        o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` = t.(`); err != nil {
 				return
 			}
 
@@ -9873,7 +9876,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `)
-    o.`); err != nil {
+        o.`); err != nil {
 				return
 			}
 
@@ -9882,6 +9885,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `IsLoaded = true
+    }
 `); err != nil {
 				return
 			}

@@ -723,8 +723,10 @@ func (o *personWithLockBase) update(ctx context.Context) error {
 		o.groLock = newLock
 		o.groLockIsLoaded = true
 	}
-	o.groTimestamp = modifiedFields["gro_timestamp"].(int64)
-	o.groTimestampIsLoaded = true
+	if t, ok := modifiedFields["gro_timestamp"]; ok {
+		o.groTimestamp = t.(int64)
+		o.groTimestampIsLoaded = true
+	}
 
 	o.resetDirtyStatus()
 	if len(modifiedFields) != 0 {
@@ -765,10 +767,14 @@ func (o *personWithLockBase) insert(ctx context.Context) (err error) {
 	if err != nil {
 		return
 	}
-	o.groLock = insertFields["gro_lock"].(int64)
-	o.groLockIsLoaded = true
-	o.groTimestamp = insertFields["gro_timestamp"].(int64)
-	o.groTimestampIsLoaded = true
+	if t, ok := insertFields["gro_lock"]; ok {
+		o.groLock = t.(int64)
+		o.groLockIsLoaded = true
+	}
+	if t, ok := insertFields["gro_timestamp"]; ok {
+		o.groTimestamp = t.(int64)
+		o.groTimestampIsLoaded = true
+	}
 
 	o.resetDirtyStatus()
 	o._restored = true

@@ -1446,8 +1446,10 @@ func (o *typeTestBase) insert(ctx context.Context) (err error) {
 	if err != nil {
 		return
 	}
-	o.ts = insertFields["ts"].(time.Time)
-	o.tsIsLoaded = true
+	if t, ok := insertFields["ts"]; ok {
+		o.ts = t.(time.Time)
+		o.tsIsLoaded = true
+	}
 
 	o.resetDirtyStatus()
 	o._restored = true

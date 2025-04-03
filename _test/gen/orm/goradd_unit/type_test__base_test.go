@@ -82,16 +82,20 @@ func assertEqualFieldsTypeTest(t *testing.T, obj1, obj2 *TypeTest) {
 		assert.EqualValues(t, obj1.ID(), obj2.ID())
 	}
 	if obj1.DateIsLoaded() && obj2.DateIsLoaded() { // only check loaded values
-		assert.EqualValues(t, obj1.Date(), obj2.Date())
+		// ignore fractional seconds since some types truncate to the second.
+		assert.WithinDuration(t, obj1.Date(), obj2.Date(), time.Second)
 	}
 	if obj1.TimeIsLoaded() && obj2.TimeIsLoaded() { // only check loaded values
-		assert.EqualValues(t, obj1.Time(), obj2.Time())
+		// ignore fractional seconds since some types truncate to the second.
+		assert.WithinDuration(t, obj1.Time(), obj2.Time(), time.Second)
 	}
 	if obj1.DateTimeIsLoaded() && obj2.DateTimeIsLoaded() { // only check loaded values
-		assert.EqualValues(t, obj1.DateTime(), obj2.DateTime())
+		// ignore fractional seconds since some types truncate to the second.
+		assert.WithinDuration(t, obj1.DateTime(), obj2.DateTime(), time.Second)
 	}
 	if obj1.TsIsLoaded() && obj2.TsIsLoaded() { // only check loaded values
-		assert.EqualValues(t, obj1.Ts(), obj2.Ts())
+		// ignore fractional seconds since some types truncate to the second.
+		assert.WithinDuration(t, obj1.Ts(), obj2.Ts(), time.Second)
 	}
 	if obj1.TestIntIsLoaded() && obj2.TestIntIsLoaded() { // only check loaded values
 		assert.EqualValues(t, obj1.TestInt(), obj2.TestInt())

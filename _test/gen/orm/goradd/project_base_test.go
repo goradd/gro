@@ -121,10 +121,12 @@ func assertEqualFieldsProject(t *testing.T, obj1, obj2 *Project) {
 		assert.EqualValues(t, obj1.Description(), obj2.Description())
 	}
 	if obj1.StartDateIsLoaded() && obj2.StartDateIsLoaded() { // only check loaded values
-		assert.EqualValues(t, obj1.StartDate(), obj2.StartDate())
+		// ignore fractional seconds since some types truncate to the second.
+		assert.WithinDuration(t, obj1.StartDate(), obj2.StartDate(), time.Second)
 	}
 	if obj1.EndDateIsLoaded() && obj2.EndDateIsLoaded() { // only check loaded values
-		assert.EqualValues(t, obj1.EndDate(), obj2.EndDate())
+		// ignore fractional seconds since some types truncate to the second.
+		assert.WithinDuration(t, obj1.EndDate(), obj2.EndDate(), time.Second)
 	}
 	if obj1.BudgetIsLoaded() && obj2.BudgetIsLoaded() { // only check loaded values
 		assert.True(t, test.EqualDecimals(obj1.Budget(), obj2.Budget()))

@@ -658,8 +658,10 @@ func (o *leafLockBase) insert(ctx context.Context) (err error) {
 	if err != nil {
 		return
 	}
-	o.groLock = insertFields["gro_lock"].(int64)
-	o.groLockIsLoaded = true
+	if t, ok := insertFields["gro_lock"]; ok {
+		o.groLock = t.(int64)
+		o.groLockIsLoaded = true
+	}
 
 	o.resetDirtyStatus()
 	o._restored = true

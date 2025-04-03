@@ -1407,8 +1407,10 @@ func (o *personBase) update(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	o.modified = modifiedFields["modified"].(time.Time)
-	o.modifiedIsLoaded = true
+	if t, ok := modifiedFields["modified"]; ok {
+		o.modified = t.(time.Time)
+		o.modifiedIsLoaded = true
+	}
 
 	o.resetDirtyStatus()
 	if len(modifiedFields) != 0 {
@@ -1529,10 +1531,14 @@ func (o *personBase) insert(ctx context.Context) (err error) {
 	if err != nil {
 		return
 	}
-	o.created = insertFields["created"].(time.Time)
-	o.createdIsLoaded = true
-	o.modified = insertFields["modified"].(time.Time)
-	o.modifiedIsLoaded = true
+	if t, ok := insertFields["created"]; ok {
+		o.created = t.(time.Time)
+		o.createdIsLoaded = true
+	}
+	if t, ok := insertFields["modified"]; ok {
+		o.modified = t.(time.Time)
+		o.modifiedIsLoaded = true
+	}
 
 	o.resetDirtyStatus()
 	o._restored = true

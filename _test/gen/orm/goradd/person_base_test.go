@@ -101,10 +101,12 @@ func assertEqualFieldsPerson(t *testing.T, obj1, obj2 *Person) {
 		assert.True(t, obj1.Types().Equal(obj2.Types()))
 	}
 	if obj1.CreatedIsLoaded() && obj2.CreatedIsLoaded() { // only check loaded values
-		assert.EqualValues(t, obj1.Created(), obj2.Created())
+		// ignore fractional seconds since some types truncate to the second.
+		assert.WithinDuration(t, obj1.Created(), obj2.Created(), time.Second)
 	}
 	if obj1.ModifiedIsLoaded() && obj2.ModifiedIsLoaded() { // only check loaded values
-		assert.EqualValues(t, obj1.Modified(), obj2.Modified())
+		// ignore fractional seconds since some types truncate to the second.
+		assert.WithinDuration(t, obj1.Modified(), obj2.Modified(), time.Second)
 	}
 
 }

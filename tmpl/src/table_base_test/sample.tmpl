@@ -129,6 +129,9 @@ func assertEqualFields{{= table.Identifier }}(t *testing.T, obj1, obj2 *{{= tabl
 {{if}}
 {{elseif col.IsDecimal() }}
         assert.True(t, test.EqualDecimals(obj1.{{= col.Identifier }}(), obj2.{{= col.Identifier }}()))
+{{elseif col.ReceiverType == query.ColTypeTime }}
+        // ignore fractional seconds since some types truncate to the second.
+        assert.WithinDuration(t, obj1.{{= col.Identifier }}(), obj2.{{= col.Identifier }}(), time.Second)
 {{else}}
         assert.EqualValues(t, obj1.{{= col.Identifier }}(), obj2.{{= col.Identifier }}())
 {{if}}

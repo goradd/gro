@@ -54,8 +54,10 @@ func (o *{{= table.DecapIdentifier}}Base) update(ctx context.Context) error {
 {{for _,col := range table.Columns }}
 {{if col.SchemaSubType == schema.ColSubTypeTimestamp ||
         col.ReceiverType == query.ColTypeTime && col.DefaultValue == model.ModifiedTime }}
-    o.{{= col.VariableIdentifier() }} = modifiedFields["{{= col.QueryName }}"].({{= col.GoType() }})
-    o.{{= col.VariableIdentifier() }}IsLoaded = true
+    if t, ok := modifiedFields["{{= col.QueryName }}"]; ok {
+        o.{{= col.VariableIdentifier() }} = t.({{= col.GoType() }})
+        o.{{= col.VariableIdentifier() }}IsLoaded = true
+    }
 {{elseif col.SchemaSubType == schema.ColSubTypeLock}}
     if newLock != 0 {
         o.{{= col.VariableIdentifier() }} = newLock
