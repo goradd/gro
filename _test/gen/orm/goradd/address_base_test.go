@@ -433,3 +433,21 @@ func TestAddress_MarshalBinary(t *testing.T) {
 
 	assertEqualFieldsAddress(t, obj, obj2)
 }
+
+func TestAddress_FailingMarshalBinary(t *testing.T) {
+	obj := createMinimalSampleAddress()
+	var err error
+	for i := 0; i < 15; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+	// do it again with aliases
+	obj._aliases = make(map[string]any)
+	for i := 0; i < 16; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+
+}

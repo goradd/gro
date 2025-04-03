@@ -11744,7 +11744,22 @@ func (o *`); err != nil {
 
 	if _, err = io.WriteString(_w, `Base) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	encoder := gob.NewEncoder(buf)
+	if err := o.encodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (o *`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Base) encodeTo(w io.Writer) error {
+	encoder := gob.NewEncoder(w)
 `); err != nil {
 		return
 	}
@@ -11763,7 +11778,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `); err != nil {
-        return nil, fmt.Errorf("error encoding `); err != nil {
+        return fmt.Errorf("error encoding `); err != nil {
 			return
 		}
 
@@ -11796,7 +11811,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `IsNull); err != nil {
-        return nil, fmt.Errorf("error encoding `); err != nil {
+        return fmt.Errorf("error encoding `); err != nil {
 				return
 			}
 
@@ -11829,7 +11844,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `IsLoaded); err != nil {
-        return nil, fmt.Errorf("error encoding `); err != nil {
+        return fmt.Errorf("error encoding `); err != nil {
 			return
 		}
 
@@ -11862,7 +11877,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `IsDirty); err != nil {
-        return nil, fmt.Errorf("error encoding `); err != nil {
+        return fmt.Errorf("error encoding `); err != nil {
 				return
 			}
 
@@ -11903,11 +11918,11 @@ func (o *`); err != nil {
 
 			if _, err = io.WriteString(_w, ` == nil {
         if err := encoder.Encode(false); err != nil {
-            return nil, err
+            return err
         }
     } else {
         if err := encoder.Encode(true); err != nil {
-            return nil, err
+            return err
         }
         if err := encoder.Encode(o.`); err != nil {
 				return
@@ -11918,7 +11933,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `); err != nil {
-            return nil, fmt.Errorf("error encoding `); err != nil {
+            return fmt.Errorf("error encoding `); err != nil {
 				return
 			}
 
@@ -11965,11 +11980,11 @@ func (o *`); err != nil {
 
 			if _, err = io.WriteString(_w, ` == nil {
         if err := encoder.Encode(false); err != nil {
-            return nil, err
+            return err
         }
     } else {
         if err := encoder.Encode(true); err != nil {
-            return nil, err
+            return err
         }
         if err := encoder.Encode(o.`); err != nil {
 				return
@@ -11980,7 +11995,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `); err != nil {
-            return nil, fmt.Errorf("error encoding `); err != nil {
+            return fmt.Errorf("error encoding `); err != nil {
 				return
 			}
 
@@ -12009,7 +12024,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `IsDirty); err != nil {
-        return nil, fmt.Errorf("error encoding `); err != nil {
+        return fmt.Errorf("error encoding `); err != nil {
 				return
 			}
 
@@ -12044,7 +12059,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, ` ); err != nil {
-        return nil, err
+        return err
     }
 
     if err := encoder.Encode(o.`); err != nil {
@@ -12056,7 +12071,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `IsDirty); err != nil {
-        return nil, err
+        return err
     }
 
     `); err != nil {
@@ -12084,7 +12099,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `); err != nil {
-        return nil, fmt.Errorf("error encoding `); err != nil {
+        return fmt.Errorf("error encoding `); err != nil {
 			return
 		}
 
@@ -12111,7 +12126,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `IsDirty); err != nil {
-        return nil, fmt.Errorf("error encoding `); err != nil {
+        return fmt.Errorf("error encoding `); err != nil {
 			return
 		}
 
@@ -12138,7 +12153,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, ` != nil); err != nil {
-        return nil, err
+        return err
     }
     if o.`); err != nil {
 			return
@@ -12158,7 +12173,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `); err != nil {
-            return nil, fmt.Errorf("error encoding `); err != nil {
+            return fmt.Errorf("error encoding `); err != nil {
 			return
 		}
 
@@ -12189,14 +12204,14 @@ func (o *`); err != nil {
 	if _, err = io.WriteString(_w, `
     if o._aliases == nil {
         if err := encoder.Encode(false); err != nil {
-            return nil, err
+            return err
         }
     } else {
         if err := encoder.Encode(true); err != nil {
-            return nil, err
+            return err
         }
         if err := encoder.Encode(o._aliases); err != nil {
-            return nil, fmt.Errorf("error encoding `); err != nil {
+            return fmt.Errorf("error encoding `); err != nil {
 		return
 	}
 
@@ -12209,7 +12224,7 @@ func (o *`); err != nil {
     }
 
     if err := encoder.Encode(o._restored); err != nil {
-        return nil, fmt.Errorf("error encoding `); err != nil {
+        return fmt.Errorf("error encoding `); err != nil {
 		return
 	}
 
@@ -12220,7 +12235,7 @@ func (o *`); err != nil {
 	if _, err = io.WriteString(_w, `._restored: %w", err)
     }
     if err := encoder.Encode(o._originalPK); err != nil {
-        return nil, fmt.Errorf("error encoding `); err != nil {
+        return fmt.Errorf("error encoding `); err != nil {
 		return
 	}
 
@@ -12230,14 +12245,11 @@ func (o *`); err != nil {
 
 	if _, err = io.WriteString(_w, `._originalPK: %w", err)
     }
-
-    return buf.Bytes(), nil
-
 `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `    return buf.Bytes(), nil
+	if _, err = io.WriteString(_w, `    return nil
 }
 `); err != nil {
 		return

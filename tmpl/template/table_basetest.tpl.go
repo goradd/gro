@@ -3900,6 +3900,69 @@ func Test`); err != nil {
 			return
 		}
 
+		totalLines := len(table.Columns)*3 +
+			len(table.ReverseReferences)*2 +
+			len(table.ManyManyReferences)*2 +
+			3
+		// reduce by columns that have no dirty variable
+		totalLines -= len(table.Columns) - len(table.SettableColumns())
+
+		if _, err = io.WriteString(_w, `
+func Test`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `_FailingMarshalBinary(t *testing.T) {
+    obj := createMinimalSample`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+	var err error
+	for i := 0; i < `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, strconv.Itoa(totalLines)); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+	// do it again with aliases
+	obj._aliases = make(map[string]any)
+    for i := 0; i < `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, strconv.Itoa(totalLines+1)); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `; i++ {
+        w := &test.FailingWriter{Count: i}
+        err = obj.encodeTo(w)
+        assert.Error(t, err)
+    }
+
+}
+
+
+`); err != nil {
+			return
+		}
+
 		//*** index.tmpl
 
 		if table.HasUniqueIndexes() {

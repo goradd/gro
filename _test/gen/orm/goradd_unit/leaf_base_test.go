@@ -403,3 +403,21 @@ func TestLeaf_MarshalBinary(t *testing.T) {
 
 	assertEqualFieldsLeaf(t, obj, obj2)
 }
+
+func TestLeaf_FailingMarshalBinary(t *testing.T) {
+	obj := createMinimalSampleLeaf()
+	var err error
+	for i := 0; i < 17; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+	// do it again with aliases
+	obj._aliases = make(map[string]any)
+	for i := 0; i < 18; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+
+}

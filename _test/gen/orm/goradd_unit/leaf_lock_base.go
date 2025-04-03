@@ -8,6 +8,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"io"
 	"unicode/utf8"
 
 	"github.com/goradd/all"
@@ -775,58 +776,62 @@ func (o *leafLockBase) Get(key string) interface{} {
 // The framework uses this to serialize the object when it is stored in a control.
 func (o *leafLockBase) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	encoder := gob.NewEncoder(buf)
+	if err := o.encodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (o *leafLockBase) encodeTo(w io.Writer) error {
+	encoder := gob.NewEncoder(w)
 
 	if err := encoder.Encode(o.id); err != nil {
-		return nil, fmt.Errorf("error encoding LeafLock.id: %w", err)
+		return fmt.Errorf("error encoding LeafLock.id: %w", err)
 	}
 	if err := encoder.Encode(o.idIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding LeafLock.idIsLoaded: %w", err)
+		return fmt.Errorf("error encoding LeafLock.idIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.idIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding LeafLock.idIsDirty: %w", err)
+		return fmt.Errorf("error encoding LeafLock.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.name); err != nil {
-		return nil, fmt.Errorf("error encoding LeafLock.name: %w", err)
+		return fmt.Errorf("error encoding LeafLock.name: %w", err)
 	}
 	if err := encoder.Encode(o.nameIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding LeafLock.nameIsLoaded: %w", err)
+		return fmt.Errorf("error encoding LeafLock.nameIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.nameIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding LeafLock.nameIsDirty: %w", err)
+		return fmt.Errorf("error encoding LeafLock.nameIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.groLock); err != nil {
-		return nil, fmt.Errorf("error encoding LeafLock.groLock: %w", err)
+		return fmt.Errorf("error encoding LeafLock.groLock: %w", err)
 	}
 	if err := encoder.Encode(o.groLockIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding LeafLock.groLockIsLoaded: %w", err)
+		return fmt.Errorf("error encoding LeafLock.groLockIsLoaded: %w", err)
 	}
 
 	if o._aliases == nil {
 		if err := encoder.Encode(false); err != nil {
-			return nil, err
+			return err
 		}
 	} else {
 		if err := encoder.Encode(true); err != nil {
-			return nil, err
+			return err
 		}
 		if err := encoder.Encode(o._aliases); err != nil {
-			return nil, fmt.Errorf("error encoding LeafLock._aliases: %w", err)
+			return fmt.Errorf("error encoding LeafLock._aliases: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o._restored); err != nil {
-		return nil, fmt.Errorf("error encoding LeafLock._restored: %w", err)
+		return fmt.Errorf("error encoding LeafLock._restored: %w", err)
 	}
 	if err := encoder.Encode(o._originalPK); err != nil {
-		return nil, fmt.Errorf("error encoding LeafLock._originalPK: %w", err)
+		return fmt.Errorf("error encoding LeafLock._originalPK: %w", err)
 	}
-
-	return buf.Bytes(), nil
-
-	return buf.Bytes(), nil
+	return nil
 }
 
 // UnmarshalBinary converts a structure that was created with MarshalBinary into a LeafLock object.

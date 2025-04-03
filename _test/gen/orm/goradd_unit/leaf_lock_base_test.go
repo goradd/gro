@@ -341,3 +341,21 @@ func TestLeafLock_MarshalBinary(t *testing.T) {
 
 	assertEqualFieldsLeafLock(t, obj, obj2)
 }
+
+func TestLeafLock_FailingMarshalBinary(t *testing.T) {
+	obj := createMinimalSampleLeafLock()
+	var err error
+	for i := 0; i < 11; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+	// do it again with aliases
+	obj._aliases = make(map[string]any)
+	for i := 0; i < 12; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+
+}

@@ -4,11 +4,11 @@
 }}
 {{
     if err := encoder.Encode(&o.{{= rev.ReverseVariableIdentifier() }} ); err != nil {
-        return nil, err
+        return err
     }
 
     if err := encoder.Encode(o.{{= rev.ReverseVariableIdentifier() }}IsDirty); err != nil {
-        return nil, err
+        return err
     }
 
     {{# We will need to rebuild the map based on the object decoded, since they are pointers to the same objects}}

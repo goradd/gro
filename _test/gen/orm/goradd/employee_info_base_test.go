@@ -386,6 +386,24 @@ func TestEmployeeInfo_MarshalBinary(t *testing.T) {
 	assertEqualFieldsEmployeeInfo(t, obj, obj2)
 }
 
+func TestEmployeeInfo_FailingMarshalBinary(t *testing.T) {
+	obj := createMinimalSampleEmployeeInfo()
+	var err error
+	for i := 0; i < 12; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+	// do it again with aliases
+	obj._aliases = make(map[string]any)
+	for i := 0; i < 13; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+
+}
+
 func TestEmployeeInfo_Indexes(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleEmployeeInfo(ctx)

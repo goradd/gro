@@ -391,3 +391,21 @@ func TestPersonWithLock_MarshalBinary(t *testing.T) {
 
 	assertEqualFieldsPersonWithLock(t, obj, obj2)
 }
+
+func TestPersonWithLock_FailingMarshalBinary(t *testing.T) {
+	obj := createMinimalSamplePersonWithLock()
+	var err error
+	for i := 0; i < 16; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+	// do it again with aliases
+	obj._aliases = make(map[string]any)
+	for i := 0; i < 17; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+
+}

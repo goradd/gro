@@ -8,6 +8,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"io"
 	"unicode/utf8"
 
 	"github.com/goradd/all"
@@ -1309,100 +1310,104 @@ func (o *leafBase) Get(key string) interface{} {
 // The framework uses this to serialize the object when it is stored in a control.
 func (o *leafBase) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	encoder := gob.NewEncoder(buf)
+	if err := o.encodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (o *leafBase) encodeTo(w io.Writer) error {
+	encoder := gob.NewEncoder(w)
 
 	if err := encoder.Encode(o.id); err != nil {
-		return nil, fmt.Errorf("error encoding Leaf.id: %w", err)
+		return fmt.Errorf("error encoding Leaf.id: %w", err)
 	}
 	if err := encoder.Encode(o.idIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding Leaf.idIsLoaded: %w", err)
+		return fmt.Errorf("error encoding Leaf.idIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.idIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding Leaf.idIsDirty: %w", err)
+		return fmt.Errorf("error encoding Leaf.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.name); err != nil {
-		return nil, fmt.Errorf("error encoding Leaf.name: %w", err)
+		return fmt.Errorf("error encoding Leaf.name: %w", err)
 	}
 	if err := encoder.Encode(o.nameIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding Leaf.nameIsLoaded: %w", err)
+		return fmt.Errorf("error encoding Leaf.nameIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.nameIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding Leaf.nameIsDirty: %w", err)
+		return fmt.Errorf("error encoding Leaf.nameIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(&o.revOptionalLeafRoots); err != nil {
-		return nil, err
+		return err
 	}
 
 	if err := encoder.Encode(o.revOptionalLeafRootsIsDirty); err != nil {
-		return nil, err
+		return err
 	}
 
 	if err := encoder.Encode(&o.revRequiredLeafRoots); err != nil {
-		return nil, err
+		return err
 	}
 
 	if err := encoder.Encode(o.revRequiredLeafRootsIsDirty); err != nil {
-		return nil, err
+		return err
 	}
 
 	if o.revOptionalLeafUniqueRoot == nil {
 		if err := encoder.Encode(false); err != nil {
-			return nil, err
+			return err
 		}
 	} else {
 		if err := encoder.Encode(true); err != nil {
-			return nil, err
+			return err
 		}
 		if err := encoder.Encode(o.revOptionalLeafUniqueRoot); err != nil {
-			return nil, fmt.Errorf("error encoding Leaf.revOptionalLeafUniqueRoot: %w", err)
+			return fmt.Errorf("error encoding Leaf.revOptionalLeafUniqueRoot: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o.revOptionalLeafUniqueRootIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding Leaf.revOptionalLeafUniqueRootIsDirty: %w", err)
+		return fmt.Errorf("error encoding Leaf.revOptionalLeafUniqueRootIsDirty: %w", err)
 	}
 	if o.revRequiredLeafUniqueRoot == nil {
 		if err := encoder.Encode(false); err != nil {
-			return nil, err
+			return err
 		}
 	} else {
 		if err := encoder.Encode(true); err != nil {
-			return nil, err
+			return err
 		}
 		if err := encoder.Encode(o.revRequiredLeafUniqueRoot); err != nil {
-			return nil, fmt.Errorf("error encoding Leaf.revRequiredLeafUniqueRoot: %w", err)
+			return fmt.Errorf("error encoding Leaf.revRequiredLeafUniqueRoot: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o.revRequiredLeafUniqueRootIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding Leaf.revRequiredLeafUniqueRootIsDirty: %w", err)
+		return fmt.Errorf("error encoding Leaf.revRequiredLeafUniqueRootIsDirty: %w", err)
 	}
 
 	if o._aliases == nil {
 		if err := encoder.Encode(false); err != nil {
-			return nil, err
+			return err
 		}
 	} else {
 		if err := encoder.Encode(true); err != nil {
-			return nil, err
+			return err
 		}
 		if err := encoder.Encode(o._aliases); err != nil {
-			return nil, fmt.Errorf("error encoding Leaf._aliases: %w", err)
+			return fmt.Errorf("error encoding Leaf._aliases: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o._restored); err != nil {
-		return nil, fmt.Errorf("error encoding Leaf._restored: %w", err)
+		return fmt.Errorf("error encoding Leaf._restored: %w", err)
 	}
 	if err := encoder.Encode(o._originalPK); err != nil {
-		return nil, fmt.Errorf("error encoding Leaf._originalPK: %w", err)
+		return fmt.Errorf("error encoding Leaf._originalPK: %w", err)
 	}
-
-	return buf.Bytes(), nil
-
-	return buf.Bytes(), nil
+	return nil
 }
 
 // UnmarshalBinary converts a structure that was created with MarshalBinary into a Leaf object.

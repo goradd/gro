@@ -632,6 +632,24 @@ func TestRoot_MarshalBinary(t *testing.T) {
 	assertEqualFieldsRoot(t, obj, obj2)
 }
 
+func TestRoot_FailingMarshalBinary(t *testing.T) {
+	obj := createMinimalSampleRoot()
+	var err error
+	for i := 0; i < 26; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+	// do it again with aliases
+	obj._aliases = make(map[string]any)
+	for i := 0; i < 27; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+
+}
+
 func TestRoot_Indexes(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleRoot(ctx)

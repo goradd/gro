@@ -4,17 +4,17 @@
 }}
 {{
     if err := encoder.Encode(&o.{{= mm.VariableIdentifier() }}); err != nil {
-        return nil, fmt.Errorf("error encoding {{= table.Identifier }}.{{= mm.VariableIdentifier() }}: %w", err)
+        return fmt.Errorf("error encoding {{= table.Identifier }}.{{= mm.VariableIdentifier() }}: %w", err)
     }
     if err := encoder.Encode(o.{{= mm.VariableIdentifier() }}IsDirty); err != nil {
-        return nil, fmt.Errorf("error encoding {{= table.Identifier }}.{{= mm.VariableIdentifier() }}IsDirty: %w", err)
+        return fmt.Errorf("error encoding {{= table.Identifier }}.{{= mm.VariableIdentifier() }}IsDirty: %w", err)
     }
     if err := encoder.Encode(o.{{= mm.PkIdentifier() }} != nil); err != nil {
-        return nil, err
+        return err
     }
     if o.{{= mm.PkIdentifier() }} != nil {
         if err := encoder.Encode(o.{{= mm.PkIdentifier() }}); err != nil {
-            return nil, fmt.Errorf("error encoding {{= table.Identifier }}.{{= mm.PkIdentifier() }}: %w", err)
+            return fmt.Errorf("error encoding {{= table.Identifier }}.{{= mm.PkIdentifier() }}: %w", err)
         }
     }
 

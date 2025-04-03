@@ -706,3 +706,21 @@ func TestTypeTest_MarshalBinary(t *testing.T) {
 
 	assertEqualFieldsTypeTest(t, obj, obj2)
 }
+
+func TestTypeTest_FailingMarshalBinary(t *testing.T) {
+	obj := createMinimalSampleTypeTest()
+	var err error
+	for i := 0; i < 38; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+	// do it again with aliases
+	obj._aliases = make(map[string]any)
+	for i := 0; i < 39; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+
+}

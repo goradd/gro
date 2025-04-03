@@ -9,6 +9,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"io"
 	"slices"
 	"unicode/utf8"
 
@@ -2006,211 +2007,215 @@ func (o *unsupportedTypeBase) Get(key string) interface{} {
 // The framework uses this to serialize the object when it is stored in a control.
 func (o *unsupportedTypeBase) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	encoder := gob.NewEncoder(buf)
+	if err := o.encodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (o *unsupportedTypeBase) encodeTo(w io.Writer) error {
+	encoder := gob.NewEncoder(w)
 
 	if err := encoder.Encode(o.typeSerial); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeSerial: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeSerial: %w", err)
 	}
 	if err := encoder.Encode(o.typeSerialIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeSerialIsLoaded: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeSerialIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeSerialIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeSerialIsDirty: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeSerialIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.typeSet); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeSet: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeSet: %w", err)
 	}
 	if err := encoder.Encode(o.typeSetIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeSetIsLoaded: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeSetIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeSetIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeSetIsDirty: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeSetIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.typeEnumerated); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeEnumerated: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeEnumerated: %w", err)
 	}
 	if err := encoder.Encode(o.typeEnumeratedIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeEnumeratedIsLoaded: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeEnumeratedIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeEnumeratedIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeEnumeratedIsDirty: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeEnumeratedIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.typeDecimal); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeDecimal: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeDecimal: %w", err)
 	}
 	if err := encoder.Encode(o.typeDecimalIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeDecimalIsLoaded: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeDecimalIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeDecimalIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeDecimalIsDirty: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeDecimalIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.typeDouble); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeDouble: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeDouble: %w", err)
 	}
 	if err := encoder.Encode(o.typeDoubleIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeDoubleIsLoaded: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeDoubleIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeDoubleIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeDoubleIsDirty: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeDoubleIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.typeGeo); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeGeo: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeGeo: %w", err)
 	}
 	if err := encoder.Encode(o.typeGeoIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeGeoIsLoaded: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeGeoIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeGeoIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeGeoIsDirty: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeGeoIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.typeTinyBlob); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeTinyBlob: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeTinyBlob: %w", err)
 	}
 	if err := encoder.Encode(o.typeTinyBlobIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeTinyBlobIsLoaded: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeTinyBlobIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeTinyBlobIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeTinyBlobIsDirty: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeTinyBlobIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.typeMediumBlob); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeMediumBlob: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeMediumBlob: %w", err)
 	}
 	if err := encoder.Encode(o.typeMediumBlobIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeMediumBlobIsLoaded: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeMediumBlobIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeMediumBlobIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeMediumBlobIsDirty: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeMediumBlobIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.typeVarbinary); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeVarbinary: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeVarbinary: %w", err)
 	}
 	if err := encoder.Encode(o.typeVarbinaryIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeVarbinaryIsLoaded: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeVarbinaryIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeVarbinaryIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeVarbinaryIsDirty: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeVarbinaryIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.typeLongtext); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeLongtext: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeLongtext: %w", err)
 	}
 	if err := encoder.Encode(o.typeLongtextIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeLongtextIsLoaded: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeLongtextIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeLongtextIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeLongtextIsDirty: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeLongtextIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.typeBinary); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeBinary: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeBinary: %w", err)
 	}
 	if err := encoder.Encode(o.typeBinaryIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeBinaryIsLoaded: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeBinaryIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeBinaryIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeBinaryIsDirty: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeBinaryIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.typeSmall); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeSmall: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeSmall: %w", err)
 	}
 	if err := encoder.Encode(o.typeSmallIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeSmallIsLoaded: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeSmallIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeSmallIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeSmallIsDirty: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeSmallIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.typeMedium); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeMedium: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeMedium: %w", err)
 	}
 	if err := encoder.Encode(o.typeMediumIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeMediumIsLoaded: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeMediumIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeMediumIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeMediumIsDirty: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeMediumIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.typeBig); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeBig: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeBig: %w", err)
 	}
 	if err := encoder.Encode(o.typeBigIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeBigIsLoaded: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeBigIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeBigIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeBigIsDirty: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeBigIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.typePolygon); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typePolygon: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typePolygon: %w", err)
 	}
 	if err := encoder.Encode(o.typePolygonIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typePolygonIsLoaded: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typePolygonIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typePolygonIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typePolygonIsDirty: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typePolygonIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.typeUnsigned); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeUnsigned: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeUnsigned: %w", err)
 	}
 	if err := encoder.Encode(o.typeUnsignedIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeUnsignedIsLoaded: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeUnsignedIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeUnsignedIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeUnsignedIsDirty: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeUnsignedIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.typeMultfk1); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeMultfk1: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeMultfk1: %w", err)
 	}
 	if err := encoder.Encode(o.typeMultfk1IsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeMultfk1IsLoaded: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeMultfk1IsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeMultfk1IsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeMultfk1IsDirty: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeMultfk1IsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.typeMultifk2); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeMultifk2: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeMultifk2: %w", err)
 	}
 	if err := encoder.Encode(o.typeMultifk2IsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeMultifk2IsLoaded: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeMultifk2IsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.typeMultifk2IsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType.typeMultifk2IsDirty: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType.typeMultifk2IsDirty: %w", err)
 	}
 
 	if o._aliases == nil {
 		if err := encoder.Encode(false); err != nil {
-			return nil, err
+			return err
 		}
 	} else {
 		if err := encoder.Encode(true); err != nil {
-			return nil, err
+			return err
 		}
 		if err := encoder.Encode(o._aliases); err != nil {
-			return nil, fmt.Errorf("error encoding UnsupportedType._aliases: %w", err)
+			return fmt.Errorf("error encoding UnsupportedType._aliases: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o._restored); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType._restored: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType._restored: %w", err)
 	}
 	if err := encoder.Encode(o._originalPK); err != nil {
-		return nil, fmt.Errorf("error encoding UnsupportedType._originalPK: %w", err)
+		return fmt.Errorf("error encoding UnsupportedType._originalPK: %w", err)
 	}
-
-	return buf.Bytes(), nil
-
-	return buf.Bytes(), nil
+	return nil
 }
 
 // UnmarshalBinary converts a structure that was created with MarshalBinary into a UnsupportedType object.

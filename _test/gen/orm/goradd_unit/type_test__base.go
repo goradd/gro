@@ -9,6 +9,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"io"
 	"slices"
 	"time"
 	"unicode/utf8"
@@ -1736,175 +1737,179 @@ func (o *typeTestBase) Get(key string) interface{} {
 // The framework uses this to serialize the object when it is stored in a control.
 func (o *typeTestBase) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	encoder := gob.NewEncoder(buf)
+	if err := o.encodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (o *typeTestBase) encodeTo(w io.Writer) error {
+	encoder := gob.NewEncoder(w)
 
 	if err := encoder.Encode(o.id); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.id: %w", err)
+		return fmt.Errorf("error encoding TypeTest.id: %w", err)
 	}
 	if err := encoder.Encode(o.idIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.idIsLoaded: %w", err)
+		return fmt.Errorf("error encoding TypeTest.idIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.idIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.idIsDirty: %w", err)
+		return fmt.Errorf("error encoding TypeTest.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.date); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.date: %w", err)
+		return fmt.Errorf("error encoding TypeTest.date: %w", err)
 	}
 	if err := encoder.Encode(o.dateIsNull); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.dateIsNull: %w", err)
+		return fmt.Errorf("error encoding TypeTest.dateIsNull: %w", err)
 	}
 	if err := encoder.Encode(o.dateIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.dateIsLoaded: %w", err)
+		return fmt.Errorf("error encoding TypeTest.dateIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.dateIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.dateIsDirty: %w", err)
+		return fmt.Errorf("error encoding TypeTest.dateIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.time); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.time: %w", err)
+		return fmt.Errorf("error encoding TypeTest.time: %w", err)
 	}
 	if err := encoder.Encode(o.timeIsNull); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.timeIsNull: %w", err)
+		return fmt.Errorf("error encoding TypeTest.timeIsNull: %w", err)
 	}
 	if err := encoder.Encode(o.timeIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.timeIsLoaded: %w", err)
+		return fmt.Errorf("error encoding TypeTest.timeIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.timeIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.timeIsDirty: %w", err)
+		return fmt.Errorf("error encoding TypeTest.timeIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.dateTime); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.dateTime: %w", err)
+		return fmt.Errorf("error encoding TypeTest.dateTime: %w", err)
 	}
 	if err := encoder.Encode(o.dateTimeIsNull); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.dateTimeIsNull: %w", err)
+		return fmt.Errorf("error encoding TypeTest.dateTimeIsNull: %w", err)
 	}
 	if err := encoder.Encode(o.dateTimeIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.dateTimeIsLoaded: %w", err)
+		return fmt.Errorf("error encoding TypeTest.dateTimeIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.dateTimeIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.dateTimeIsDirty: %w", err)
+		return fmt.Errorf("error encoding TypeTest.dateTimeIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.ts); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.ts: %w", err)
+		return fmt.Errorf("error encoding TypeTest.ts: %w", err)
 	}
 	if err := encoder.Encode(o.tsIsNull); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.tsIsNull: %w", err)
+		return fmt.Errorf("error encoding TypeTest.tsIsNull: %w", err)
 	}
 	if err := encoder.Encode(o.tsIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.tsIsLoaded: %w", err)
+		return fmt.Errorf("error encoding TypeTest.tsIsLoaded: %w", err)
 	}
 
 	if err := encoder.Encode(o.testInt); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testInt: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testInt: %w", err)
 	}
 	if err := encoder.Encode(o.testIntIsNull); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testIntIsNull: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testIntIsNull: %w", err)
 	}
 	if err := encoder.Encode(o.testIntIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testIntIsLoaded: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testIntIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.testIntIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testIntIsDirty: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testIntIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.testFloat); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testFloat: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testFloat: %w", err)
 	}
 	if err := encoder.Encode(o.testFloatIsNull); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testFloatIsNull: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testFloatIsNull: %w", err)
 	}
 	if err := encoder.Encode(o.testFloatIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testFloatIsLoaded: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testFloatIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.testFloatIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testFloatIsDirty: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testFloatIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.testDouble); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testDouble: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testDouble: %w", err)
 	}
 	if err := encoder.Encode(o.testDoubleIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testDoubleIsLoaded: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testDoubleIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.testDoubleIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testDoubleIsDirty: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testDoubleIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.testText); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testText: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testText: %w", err)
 	}
 	if err := encoder.Encode(o.testTextIsNull); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testTextIsNull: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testTextIsNull: %w", err)
 	}
 	if err := encoder.Encode(o.testTextIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testTextIsLoaded: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testTextIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.testTextIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testTextIsDirty: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testTextIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.testBit); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testBit: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testBit: %w", err)
 	}
 	if err := encoder.Encode(o.testBitIsNull); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testBitIsNull: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testBitIsNull: %w", err)
 	}
 	if err := encoder.Encode(o.testBitIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testBitIsLoaded: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testBitIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.testBitIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testBitIsDirty: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testBitIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.testVarchar); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testVarchar: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testVarchar: %w", err)
 	}
 	if err := encoder.Encode(o.testVarcharIsNull); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testVarcharIsNull: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testVarcharIsNull: %w", err)
 	}
 	if err := encoder.Encode(o.testVarcharIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testVarcharIsLoaded: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testVarcharIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.testVarcharIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testVarcharIsDirty: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testVarcharIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.testBlob); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testBlob: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testBlob: %w", err)
 	}
 	if err := encoder.Encode(o.testBlobIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testBlobIsLoaded: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testBlobIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.testBlobIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest.testBlobIsDirty: %w", err)
+		return fmt.Errorf("error encoding TypeTest.testBlobIsDirty: %w", err)
 	}
 
 	if o._aliases == nil {
 		if err := encoder.Encode(false); err != nil {
-			return nil, err
+			return err
 		}
 	} else {
 		if err := encoder.Encode(true); err != nil {
-			return nil, err
+			return err
 		}
 		if err := encoder.Encode(o._aliases); err != nil {
-			return nil, fmt.Errorf("error encoding TypeTest._aliases: %w", err)
+			return fmt.Errorf("error encoding TypeTest._aliases: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o._restored); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest._restored: %w", err)
+		return fmt.Errorf("error encoding TypeTest._restored: %w", err)
 	}
 	if err := encoder.Encode(o._originalPK); err != nil {
-		return nil, fmt.Errorf("error encoding TypeTest._originalPK: %w", err)
+		return fmt.Errorf("error encoding TypeTest._originalPK: %w", err)
 	}
-
-	return buf.Bytes(), nil
-
-	return buf.Bytes(), nil
+	return nil
 }
 
 // UnmarshalBinary converts a structure that was created with MarshalBinary into a TypeTest object.

@@ -527,3 +527,21 @@ func TestPerson_MarshalBinary(t *testing.T) {
 
 	assertEqualFieldsPerson(t, obj, obj2)
 }
+
+func TestPerson_FailingMarshalBinary(t *testing.T) {
+	obj := createMinimalSamplePerson()
+	var err error
+	for i := 0; i < 29; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+	// do it again with aliases
+	obj._aliases = make(map[string]any)
+	for i := 0; i < 30; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+
+}

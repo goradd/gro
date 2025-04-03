@@ -475,3 +475,21 @@ func TestMultiParent_MarshalBinary(t *testing.T) {
 
 	assertEqualFieldsMultiParent(t, obj, obj2)
 }
+
+func TestMultiParent_FailingMarshalBinary(t *testing.T) {
+	obj := createMinimalSampleMultiParent()
+	var err error
+	for i := 0; i < 19; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+	// do it again with aliases
+	obj._aliases = make(map[string]any)
+	for i := 0; i < 20; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+
+}

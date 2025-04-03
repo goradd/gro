@@ -798,6 +798,24 @@ func TestProject_MarshalBinary(t *testing.T) {
 	assertEqualFieldsProject(t, obj, obj2)
 }
 
+func TestProject_FailingMarshalBinary(t *testing.T) {
+	obj := createMinimalSampleProject()
+	var err error
+	for i := 0; i < 46; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+	// do it again with aliases
+	obj._aliases = make(map[string]any)
+	for i := 0; i < 47; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+
+}
+
 func TestProject_Indexes(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleProject(ctx)

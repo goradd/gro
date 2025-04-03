@@ -9,9 +9,15 @@
 // The framework uses this to serialize the object when it is stored in a control.
 func (o *{{= table.DecapIdentifier}}Base) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	encoder := gob.NewEncoder(buf)
-}}
+	if err := o.encodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
 
+func (o *{{= table.DecapIdentifier}}Base) encodeTo(w io.Writer) error {
+	encoder := gob.NewEncoder(w)
+}}
 
 for _,col := range table.Columns {
     {{: "marshal/marshal_binary_col.tmpl" }}
@@ -32,6 +38,6 @@ for _,mm := range table.ManyManyReferences {
 {{: "marshal/marshal_binary_extra.tmpl" }}
 
 {{
-    return buf.Bytes(), nil
+    return nil
 }
 }}

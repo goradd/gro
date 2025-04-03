@@ -334,6 +334,24 @@ func TestGift_MarshalBinary(t *testing.T) {
 	assertEqualFieldsGift(t, obj, obj2)
 }
 
+func TestGift_FailingMarshalBinary(t *testing.T) {
+	obj := createMinimalSampleGift()
+	var err error
+	for i := 0; i < 9; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+	// do it again with aliases
+	obj._aliases = make(map[string]any)
+	for i := 0; i < 10; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+
+}
+
 func TestGift_Indexes(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleGift(ctx)

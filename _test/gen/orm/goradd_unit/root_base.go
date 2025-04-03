@@ -8,6 +8,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"io"
 	"unicode/utf8"
 
 	"github.com/goradd/all"
@@ -1784,180 +1785,184 @@ func (o *rootBase) Get(key string) interface{} {
 // The framework uses this to serialize the object when it is stored in a control.
 func (o *rootBase) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	encoder := gob.NewEncoder(buf)
+	if err := o.encodeTo(buf); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (o *rootBase) encodeTo(w io.Writer) error {
+	encoder := gob.NewEncoder(w)
 
 	if err := encoder.Encode(o.id); err != nil {
-		return nil, fmt.Errorf("error encoding Root.id: %w", err)
+		return fmt.Errorf("error encoding Root.id: %w", err)
 	}
 	if err := encoder.Encode(o.idIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding Root.idIsLoaded: %w", err)
+		return fmt.Errorf("error encoding Root.idIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.idIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding Root.idIsDirty: %w", err)
+		return fmt.Errorf("error encoding Root.idIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.name); err != nil {
-		return nil, fmt.Errorf("error encoding Root.name: %w", err)
+		return fmt.Errorf("error encoding Root.name: %w", err)
 	}
 	if err := encoder.Encode(o.nameIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding Root.nameIsLoaded: %w", err)
+		return fmt.Errorf("error encoding Root.nameIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.nameIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding Root.nameIsDirty: %w", err)
+		return fmt.Errorf("error encoding Root.nameIsDirty: %w", err)
 	}
 
 	if err := encoder.Encode(o.optionalLeafID); err != nil {
-		return nil, fmt.Errorf("error encoding Root.optionalLeafID: %w", err)
+		return fmt.Errorf("error encoding Root.optionalLeafID: %w", err)
 	}
 	if err := encoder.Encode(o.optionalLeafIDIsNull); err != nil {
-		return nil, fmt.Errorf("error encoding Root.optionalLeafIDIsNull: %w", err)
+		return fmt.Errorf("error encoding Root.optionalLeafIDIsNull: %w", err)
 	}
 	if err := encoder.Encode(o.optionalLeafIDIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding Root.optionalLeafIDIsLoaded: %w", err)
+		return fmt.Errorf("error encoding Root.optionalLeafIDIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.optionalLeafIDIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding Root.optionalLeafIDIsDirty: %w", err)
+		return fmt.Errorf("error encoding Root.optionalLeafIDIsDirty: %w", err)
 	}
 
 	if o.objOptionalLeaf == nil {
 		if err := encoder.Encode(false); err != nil {
-			return nil, err
+			return err
 		}
 	} else {
 		if err := encoder.Encode(true); err != nil {
-			return nil, err
+			return err
 		}
 		if err := encoder.Encode(o.objOptionalLeaf); err != nil {
-			return nil, fmt.Errorf("error encoding Root.objOptionalLeaf: %w", err)
+			return fmt.Errorf("error encoding Root.objOptionalLeaf: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o.requiredLeafID); err != nil {
-		return nil, fmt.Errorf("error encoding Root.requiredLeafID: %w", err)
+		return fmt.Errorf("error encoding Root.requiredLeafID: %w", err)
 	}
 	if err := encoder.Encode(o.requiredLeafIDIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding Root.requiredLeafIDIsLoaded: %w", err)
+		return fmt.Errorf("error encoding Root.requiredLeafIDIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.requiredLeafIDIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding Root.requiredLeafIDIsDirty: %w", err)
+		return fmt.Errorf("error encoding Root.requiredLeafIDIsDirty: %w", err)
 	}
 
 	if o.objRequiredLeaf == nil {
 		if err := encoder.Encode(false); err != nil {
-			return nil, err
+			return err
 		}
 	} else {
 		if err := encoder.Encode(true); err != nil {
-			return nil, err
+			return err
 		}
 		if err := encoder.Encode(o.objRequiredLeaf); err != nil {
-			return nil, fmt.Errorf("error encoding Root.objRequiredLeaf: %w", err)
+			return fmt.Errorf("error encoding Root.objRequiredLeaf: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o.optionalLeafUniqueID); err != nil {
-		return nil, fmt.Errorf("error encoding Root.optionalLeafUniqueID: %w", err)
+		return fmt.Errorf("error encoding Root.optionalLeafUniqueID: %w", err)
 	}
 	if err := encoder.Encode(o.optionalLeafUniqueIDIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding Root.optionalLeafUniqueIDIsLoaded: %w", err)
+		return fmt.Errorf("error encoding Root.optionalLeafUniqueIDIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.optionalLeafUniqueIDIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding Root.optionalLeafUniqueIDIsDirty: %w", err)
+		return fmt.Errorf("error encoding Root.optionalLeafUniqueIDIsDirty: %w", err)
 	}
 
 	if o.objOptionalLeafUnique == nil {
 		if err := encoder.Encode(false); err != nil {
-			return nil, err
+			return err
 		}
 	} else {
 		if err := encoder.Encode(true); err != nil {
-			return nil, err
+			return err
 		}
 		if err := encoder.Encode(o.objOptionalLeafUnique); err != nil {
-			return nil, fmt.Errorf("error encoding Root.objOptionalLeafUnique: %w", err)
+			return fmt.Errorf("error encoding Root.objOptionalLeafUnique: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o.requiredLeafUniqueID); err != nil {
-		return nil, fmt.Errorf("error encoding Root.requiredLeafUniqueID: %w", err)
+		return fmt.Errorf("error encoding Root.requiredLeafUniqueID: %w", err)
 	}
 	if err := encoder.Encode(o.requiredLeafUniqueIDIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding Root.requiredLeafUniqueIDIsLoaded: %w", err)
+		return fmt.Errorf("error encoding Root.requiredLeafUniqueIDIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.requiredLeafUniqueIDIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding Root.requiredLeafUniqueIDIsDirty: %w", err)
+		return fmt.Errorf("error encoding Root.requiredLeafUniqueIDIsDirty: %w", err)
 	}
 
 	if o.objRequiredLeafUnique == nil {
 		if err := encoder.Encode(false); err != nil {
-			return nil, err
+			return err
 		}
 	} else {
 		if err := encoder.Encode(true); err != nil {
-			return nil, err
+			return err
 		}
 		if err := encoder.Encode(o.objRequiredLeafUnique); err != nil {
-			return nil, fmt.Errorf("error encoding Root.objRequiredLeafUnique: %w", err)
+			return fmt.Errorf("error encoding Root.objRequiredLeafUnique: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o.parentID); err != nil {
-		return nil, fmt.Errorf("error encoding Root.parentID: %w", err)
+		return fmt.Errorf("error encoding Root.parentID: %w", err)
 	}
 	if err := encoder.Encode(o.parentIDIsNull); err != nil {
-		return nil, fmt.Errorf("error encoding Root.parentIDIsNull: %w", err)
+		return fmt.Errorf("error encoding Root.parentIDIsNull: %w", err)
 	}
 	if err := encoder.Encode(o.parentIDIsLoaded); err != nil {
-		return nil, fmt.Errorf("error encoding Root.parentIDIsLoaded: %w", err)
+		return fmt.Errorf("error encoding Root.parentIDIsLoaded: %w", err)
 	}
 	if err := encoder.Encode(o.parentIDIsDirty); err != nil {
-		return nil, fmt.Errorf("error encoding Root.parentIDIsDirty: %w", err)
+		return fmt.Errorf("error encoding Root.parentIDIsDirty: %w", err)
 	}
 
 	if o.objParent == nil {
 		if err := encoder.Encode(false); err != nil {
-			return nil, err
+			return err
 		}
 	} else {
 		if err := encoder.Encode(true); err != nil {
-			return nil, err
+			return err
 		}
 		if err := encoder.Encode(o.objParent); err != nil {
-			return nil, fmt.Errorf("error encoding Root.objParent: %w", err)
+			return fmt.Errorf("error encoding Root.objParent: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(&o.revParentRoots); err != nil {
-		return nil, err
+		return err
 	}
 
 	if err := encoder.Encode(o.revParentRootsIsDirty); err != nil {
-		return nil, err
+		return err
 	}
 
 	if o._aliases == nil {
 		if err := encoder.Encode(false); err != nil {
-			return nil, err
+			return err
 		}
 	} else {
 		if err := encoder.Encode(true); err != nil {
-			return nil, err
+			return err
 		}
 		if err := encoder.Encode(o._aliases); err != nil {
-			return nil, fmt.Errorf("error encoding Root._aliases: %w", err)
+			return fmt.Errorf("error encoding Root._aliases: %w", err)
 		}
 	}
 
 	if err := encoder.Encode(o._restored); err != nil {
-		return nil, fmt.Errorf("error encoding Root._restored: %w", err)
+		return fmt.Errorf("error encoding Root._restored: %w", err)
 	}
 	if err := encoder.Encode(o._originalPK); err != nil {
-		return nil, fmt.Errorf("error encoding Root._originalPK: %w", err)
+		return fmt.Errorf("error encoding Root._originalPK: %w", err)
 	}
-
-	return buf.Bytes(), nil
-
-	return buf.Bytes(), nil
+	return nil
 }
 
 // UnmarshalBinary converts a structure that was created with MarshalBinary into a Root object.

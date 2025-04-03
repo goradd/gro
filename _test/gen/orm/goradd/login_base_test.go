@@ -462,6 +462,24 @@ func TestLogin_MarshalBinary(t *testing.T) {
 	assertEqualFieldsLogin(t, obj, obj2)
 }
 
+func TestLogin_FailingMarshalBinary(t *testing.T) {
+	obj := createMinimalSampleLogin()
+	var err error
+	for i := 0; i < 18; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+	// do it again with aliases
+	obj._aliases = make(map[string]any)
+	for i := 0; i < 19; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+
+}
+
 func TestLogin_Indexes(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleLogin(ctx)

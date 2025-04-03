@@ -390,3 +390,21 @@ func TestMilestone_MarshalBinary(t *testing.T) {
 
 	assertEqualFieldsMilestone(t, obj, obj2)
 }
+
+func TestMilestone_FailingMarshalBinary(t *testing.T) {
+	obj := createMinimalSampleMilestone()
+	var err error
+	for i := 0; i < 12; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+	// do it again with aliases
+	obj._aliases = make(map[string]any)
+	for i := 0; i < 13; i++ {
+		w := &test.FailingWriter{Count: i}
+		err = obj.encodeTo(w)
+		assert.Error(t, err)
+	}
+
+}

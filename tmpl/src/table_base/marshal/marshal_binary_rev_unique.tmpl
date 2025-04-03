@@ -5,18 +5,18 @@
 {{
     if o.{{= rev.ReverseVariableIdentifier() }} == nil {
         if err := encoder.Encode(false); err != nil {
-            return nil, err
+            return err
         }
     } else {
         if err := encoder.Encode(true); err != nil {
-            return nil, err
+            return err
         }
         if err := encoder.Encode(o.{{= rev.ReverseVariableIdentifier() }}); err != nil {
-            return nil, fmt.Errorf("error encoding {{= table.Identifier }}.{{= rev.ReverseVariableIdentifier() }}: %w", err)
+            return fmt.Errorf("error encoding {{= table.Identifier }}.{{= rev.ReverseVariableIdentifier() }}: %w", err)
         }
     }
 
     if err := encoder.Encode(o.{{= rev.ReverseVariableIdentifier() }}IsDirty); err != nil {
-        return nil, fmt.Errorf("error encoding {{= table.Identifier }}.{{= rev.ReverseVariableIdentifier() }}IsDirty: %w", err)
+        return fmt.Errorf("error encoding {{= table.Identifier }}.{{= rev.ReverseVariableIdentifier() }}IsDirty: %w", err)
     }
 }}
