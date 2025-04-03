@@ -13887,9 +13887,57 @@ func (o *`); err != nil {
 
 		//*** unmarshal_stringmap_mm.tmpl
 
-		_ = mm
+		if _, err = io.WriteString(_w, `
+        case "`); err != nil {
+			return
+		}
 
-		if _, err = io.WriteString(_w, `    // TODO: unmarshall groups of objects
+		if _, err = io.WriteString(_w, mm.JsonKey()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `":
+            v2,ok := v.([]any)
+            if !ok {
+                return fmt.Errorf("json field %s must be an array of maps", k)
+            }
+            var s []*`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `
+            for _,i2 := range v2 {
+                m2,ok := i2.(map[string]any)
+                if !ok {
+                    return fmt.Errorf("json field %s must be an array of maps", k)
+                }
+                v3 := New`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+                err = v3.UnmarshalStringMap(m2)
+                if err != nil {return}
+                s = append(s, v3)
+            }
+            o.Set`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(s...)
+
 `); err != nil {
 			return
 		}

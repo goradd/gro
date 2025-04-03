@@ -121,3 +121,18 @@ func TestJsonMarshallReverse(t *testing.T) {
 	assert.Equal(t, person.ManagerProjects()[0].ID(), person2.ManagerProjects()[0].ID())
 	assert.Equal(t, 123, person.EmployeeInfo().EmployeeNumber())
 }
+
+func TestJsonMarshallManyManyReferences(t *testing.T) {
+	ctx := db.NewContext(nil)
+	project := goradd.LoadProject(ctx, "1", node.Project().TeamMembers())
+
+	b, err := json.Marshal(project)
+	assert.NoError(t, err)
+
+	project2 := goradd.NewProject()
+	err = project2.UnmarshalJSON(b)
+	assert.NoError(t, err)
+	assert.Equal(t, project.ID(), project2.ID())
+	assert.Equal(t, len(project.TeamMembers()), len(project2.TeamMembers()))
+	assert.Equal(t, project.TeamMembers()[0].ID(), project2.TeamMembers()[0].ID())
+}

@@ -1,10 +1,25 @@
 
 {{g
 //*** {{includeName}}
-
-    _ = mm
-
 }}
 {{
-    // TODO: unmarshall groups of objects
+
+        case "{{= mm.JsonKey() }}":
+            v2,ok := v.([]any)
+            if !ok {
+                return fmt.Errorf("json field %s must be an array of maps", k)
+            }
+            var s []*{{= mm.ObjectType() }}
+            for _,i2 := range v2 {
+                m2,ok := i2.(map[string]any)
+                if !ok {
+                    return fmt.Errorf("json field %s must be an array of maps", k)
+                }
+                v3 := New{{= mm.ObjectType() }}()
+                err = v3.UnmarshalStringMap(m2)
+                if err != nil {return}
+                s = append(s, v3)
+            }
+            o.Set{{= mm.IdentifierPlural }}(s...)
+
 }}
