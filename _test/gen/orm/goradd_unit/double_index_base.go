@@ -8,7 +8,6 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
-	"io"
 	"unicode/utf8"
 
 	"github.com/goradd/all"
@@ -856,62 +855,62 @@ func (o *doubleIndexBase) Get(key string) interface{} {
 // The framework uses this to serialize the object when it is stored in a control.
 func (o *doubleIndexBase) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	if err := o.encodeTo(buf); err != nil {
+	enc := gob.NewEncoder(buf)
+	if err := o.encodeTo(enc); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
 
-func (o *doubleIndexBase) encodeTo(w io.Writer) error {
-	encoder := gob.NewEncoder(w)
+func (o *doubleIndexBase) encodeTo(enc db.Encoder) error {
 
-	if err := encoder.Encode(o.id); err != nil {
+	if err := enc.Encode(o.id); err != nil {
 		return fmt.Errorf("error encoding DoubleIndex.id: %w", err)
 	}
-	if err := encoder.Encode(o.idIsLoaded); err != nil {
+	if err := enc.Encode(o.idIsLoaded); err != nil {
 		return fmt.Errorf("error encoding DoubleIndex.idIsLoaded: %w", err)
 	}
-	if err := encoder.Encode(o.idIsDirty); err != nil {
+	if err := enc.Encode(o.idIsDirty); err != nil {
 		return fmt.Errorf("error encoding DoubleIndex.idIsDirty: %w", err)
 	}
 
-	if err := encoder.Encode(o.fieldInt); err != nil {
+	if err := enc.Encode(o.fieldInt); err != nil {
 		return fmt.Errorf("error encoding DoubleIndex.fieldInt: %w", err)
 	}
-	if err := encoder.Encode(o.fieldIntIsLoaded); err != nil {
+	if err := enc.Encode(o.fieldIntIsLoaded); err != nil {
 		return fmt.Errorf("error encoding DoubleIndex.fieldIntIsLoaded: %w", err)
 	}
-	if err := encoder.Encode(o.fieldIntIsDirty); err != nil {
+	if err := enc.Encode(o.fieldIntIsDirty); err != nil {
 		return fmt.Errorf("error encoding DoubleIndex.fieldIntIsDirty: %w", err)
 	}
 
-	if err := encoder.Encode(o.fieldString); err != nil {
+	if err := enc.Encode(o.fieldString); err != nil {
 		return fmt.Errorf("error encoding DoubleIndex.fieldString: %w", err)
 	}
-	if err := encoder.Encode(o.fieldStringIsLoaded); err != nil {
+	if err := enc.Encode(o.fieldStringIsLoaded); err != nil {
 		return fmt.Errorf("error encoding DoubleIndex.fieldStringIsLoaded: %w", err)
 	}
-	if err := encoder.Encode(o.fieldStringIsDirty); err != nil {
+	if err := enc.Encode(o.fieldStringIsDirty); err != nil {
 		return fmt.Errorf("error encoding DoubleIndex.fieldStringIsDirty: %w", err)
 	}
 
 	if o._aliases == nil {
-		if err := encoder.Encode(false); err != nil {
+		if err := enc.Encode(false); err != nil {
 			return err
 		}
 	} else {
-		if err := encoder.Encode(true); err != nil {
+		if err := enc.Encode(true); err != nil {
 			return err
 		}
-		if err := encoder.Encode(o._aliases); err != nil {
+		if err := enc.Encode(o._aliases); err != nil {
 			return fmt.Errorf("error encoding DoubleIndex._aliases: %w", err)
 		}
 	}
 
-	if err := encoder.Encode(o._restored); err != nil {
+	if err := enc.Encode(o._restored); err != nil {
 		return fmt.Errorf("error encoding DoubleIndex._restored: %w", err)
 	}
-	if err := encoder.Encode(o._originalPK); err != nil {
+	if err := enc.Encode(o._originalPK); err != nil {
 		return fmt.Errorf("error encoding DoubleIndex._originalPK: %w", err)
 	}
 	return nil
@@ -919,9 +918,12 @@ func (o *doubleIndexBase) encodeTo(w io.Writer) error {
 
 // UnmarshalBinary converts a structure that was created with MarshalBinary into a DoubleIndex object.
 func (o *doubleIndexBase) UnmarshalBinary(data []byte) (err error) {
-
-	buf := bytes.NewBuffer(data)
+	buf := bytes.NewReader(data)
 	dec := gob.NewDecoder(buf)
+	return o.decodeFrom(dec)
+}
+
+func (o *doubleIndexBase) decodeFrom(dec db.Decoder) (err error) {
 	var isPtr bool
 
 	_ = isPtr
@@ -955,6 +957,21 @@ func (o *doubleIndexBase) UnmarshalBinary(data []byte) (err error) {
 		return fmt.Errorf("error decoding DoubleIndex.fieldStringIsDirty: %w", err)
 	}
 
+	if err = dec.Decode(&isPtr); err != nil {
+		return fmt.Errorf("error decoding DoubleIndex._aliases isPtr: %w", err)
+	}
+	if isPtr {
+		if err = dec.Decode(&o._aliases); err != nil {
+			return fmt.Errorf("error decoding DoubleIndex._aliases: %w", err)
+		}
+	}
+
+	if err = dec.Decode(&o._restored); err != nil {
+		return fmt.Errorf("error decoding DoubleIndex._restored: %w", err)
+	}
+	if err = dec.Decode(&o._originalPK); err != nil {
+		return fmt.Errorf("error decoding DoubleIndex._originalPK: %w", err)
+	}
 	return
 }
 

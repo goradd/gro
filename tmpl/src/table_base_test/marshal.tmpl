@@ -28,30 +28,64 @@ func Test{{= table.Identifier }}_MarshalBinary(t *testing.T) {
 }
 
 {{g
-    totalLines := len(table.Columns) * 3 +
-        len(table.ReverseReferences) * 2 +
+    var totalLines int
+    for _, col := range table.Columns {
+        totalLines += 2
+        if col.HasSetter() {
+            totalLines ++
+        }
+        if col.IsNullable {
+            totalLines ++
+        }
+    }
+    totalLines += len(table.ReverseReferences) * 2 +
         len(table.ManyManyReferences) * 2 +
         3
-    // reduce by columns that have no dirty variable
-    totalLines -= len(table.Columns) - len(table.SettableColumns())
 }}
 
 func Test{{= table.Identifier }}_FailingMarshalBinary(t *testing.T) {
     obj := createMinimalSample{{= table.Identifier }}()
 	var err error
+
 	for i := 0; i < {{i totalLines }}; i++ {
-		w := &test.FailingWriter{Count: i}
-		err = obj.encodeTo(w)
+		enc := &test.GobEncoder{Count: i}
+		err = obj.encodeTo(enc)
 		assert.Error(t, err)
 	}
 	// do it again with aliases
 	obj._aliases = make(map[string]any)
     for i := 0; i < {{i totalLines + 1 }}; i++ {
-        w := &test.FailingWriter{Count: i}
-        err = obj.encodeTo(w)
+		enc := &test.GobEncoder{Count: i}
+        err = obj.encodeTo(enc)
         assert.Error(t, err)
     }
+}
 
+func Test{{= table.Identifier }}_FailingUnmarshalBinary(t *testing.T) {
+    obj := createMinimalSample{{= table.Identifier }}()
+    b,err := obj.MarshalBinary()
+    assert.NoError(t, err)
+	obj2 := New{{= table.Identifier }}()
+	for i := 0; i < {{i totalLines }}; i++ {
+	    buf := bytes.NewReader(b)
+        dec := &test.GobDecoder{Decoder: gob.NewDecoder(buf), Count: i}
+        err = obj2.decodeFrom(dec)
+		assert.Error(t, err)
+	}
+
+	// do it again with aliases
+    obj = createMinimalSample{{= table.Identifier }}()
+    obj._aliases = map[string]any{"a":1}
+    b,err = obj.MarshalBinary()
+    assert.NoError(t, err)
+
+	obj2 = New{{= table.Identifier }}()
+	for i := 0; i < {{i totalLines + 1 }}; i++ {
+	    buf := bytes.NewReader(b)
+        dec := &test.GobDecoder{Decoder: gob.NewDecoder(buf), Count: i}
+        err = obj2.decodeFrom(dec)
+		assert.Error(t, err)
+	}
 }
 
 

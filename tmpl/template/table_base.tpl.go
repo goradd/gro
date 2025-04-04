@@ -11744,9 +11744,10 @@ func (o *`); err != nil {
 
 	if _, err = io.WriteString(_w, `Base) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	if err := o.encodeTo(buf); err != nil {
-		return nil, err
-	}
+    enc := gob.NewEncoder(buf)
+    if err := o.encodeTo(enc); err != nil {
+        return nil, err
+    }
 	return buf.Bytes(), nil
 }
 
@@ -11758,8 +11759,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Base) encodeTo(w io.Writer) error {
-	encoder := gob.NewEncoder(w)
+	if _, err = io.WriteString(_w, `Base) encodeTo(enc db.Encoder) error {
 `); err != nil {
 		return
 	}
@@ -11769,7 +11769,7 @@ func (o *`); err != nil {
 		//*** marshal_binary_col.tmpl
 
 		if _, err = io.WriteString(_w, `
-    if err := encoder.Encode(o.`); err != nil {
+    if err := enc.Encode(o.`); err != nil {
 			return
 		}
 
@@ -11802,7 +11802,7 @@ func (o *`); err != nil {
 
 		if col.IsNullable {
 
-			if _, err = io.WriteString(_w, `    if err := encoder.Encode(o.`); err != nil {
+			if _, err = io.WriteString(_w, `    if err := enc.Encode(o.`); err != nil {
 				return
 			}
 
@@ -11835,7 +11835,7 @@ func (o *`); err != nil {
 
 		}
 
-		if _, err = io.WriteString(_w, `    if err := encoder.Encode(o.`); err != nil {
+		if _, err = io.WriteString(_w, `    if err := enc.Encode(o.`); err != nil {
 			return
 		}
 
@@ -11868,7 +11868,7 @@ func (o *`); err != nil {
 
 		if col.HasSetter() {
 
-			if _, err = io.WriteString(_w, `    if err := encoder.Encode(o.`); err != nil {
+			if _, err = io.WriteString(_w, `    if err := enc.Encode(o.`); err != nil {
 				return
 			}
 
@@ -11917,14 +11917,14 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, ` == nil {
-        if err := encoder.Encode(false); err != nil {
+        if err := enc.Encode(false); err != nil {
             return err
         }
     } else {
-        if err := encoder.Encode(true); err != nil {
+        if err := enc.Encode(true); err != nil {
             return err
         }
-        if err := encoder.Encode(o.`); err != nil {
+        if err := enc.Encode(o.`); err != nil {
 				return
 			}
 
@@ -11979,14 +11979,14 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, ` == nil {
-        if err := encoder.Encode(false); err != nil {
+        if err := enc.Encode(false); err != nil {
             return err
         }
     } else {
-        if err := encoder.Encode(true); err != nil {
+        if err := enc.Encode(true); err != nil {
             return err
         }
-        if err := encoder.Encode(o.`); err != nil {
+        if err := enc.Encode(o.`); err != nil {
 				return
 			}
 
@@ -12015,7 +12015,7 @@ func (o *`); err != nil {
         }
     }
 
-    if err := encoder.Encode(o.`); err != nil {
+    if err := enc.Encode(o.`); err != nil {
 				return
 			}
 
@@ -12050,7 +12050,7 @@ func (o *`); err != nil {
 
 			//*** marshal_binary_rev.tmpl
 
-			if _, err = io.WriteString(_w, `    if err := encoder.Encode(&o.`); err != nil {
+			if _, err = io.WriteString(_w, `    if err := enc.Encode(&o.`); err != nil {
 				return
 			}
 
@@ -12062,7 +12062,7 @@ func (o *`); err != nil {
         return err
     }
 
-    if err := encoder.Encode(o.`); err != nil {
+    if err := enc.Encode(o.`); err != nil {
 				return
 			}
 
@@ -12090,7 +12090,7 @@ func (o *`); err != nil {
 
 		//*** marshal_binary_mm.tmpl
 
-		if _, err = io.WriteString(_w, `    if err := encoder.Encode(&o.`); err != nil {
+		if _, err = io.WriteString(_w, `    if err := enc.Encode(&o.`); err != nil {
 			return
 		}
 
@@ -12117,7 +12117,7 @@ func (o *`); err != nil {
 
 		if _, err = io.WriteString(_w, `: %w", err)
     }
-    if err := encoder.Encode(o.`); err != nil {
+    if err := enc.Encode(o.`); err != nil {
 			return
 		}
 
@@ -12144,7 +12144,7 @@ func (o *`); err != nil {
 
 		if _, err = io.WriteString(_w, `IsDirty: %w", err)
     }
-    if err := encoder.Encode(o.`); err != nil {
+    if err := enc.Encode(o.`); err != nil {
 			return
 		}
 
@@ -12164,7 +12164,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, ` != nil {
-        if err := encoder.Encode(o.`); err != nil {
+        if err := enc.Encode(o.`); err != nil {
 			return
 		}
 
@@ -12203,14 +12203,14 @@ func (o *`); err != nil {
 
 	if _, err = io.WriteString(_w, `
     if o._aliases == nil {
-        if err := encoder.Encode(false); err != nil {
+        if err := enc.Encode(false); err != nil {
             return err
         }
     } else {
-        if err := encoder.Encode(true); err != nil {
+        if err := enc.Encode(true); err != nil {
             return err
         }
-        if err := encoder.Encode(o._aliases); err != nil {
+        if err := enc.Encode(o._aliases); err != nil {
             return fmt.Errorf("error encoding `); err != nil {
 		return
 	}
@@ -12223,7 +12223,7 @@ func (o *`); err != nil {
         }
     }
 
-    if err := encoder.Encode(o._restored); err != nil {
+    if err := enc.Encode(o._restored); err != nil {
         return fmt.Errorf("error encoding `); err != nil {
 		return
 	}
@@ -12234,7 +12234,7 @@ func (o *`); err != nil {
 
 	if _, err = io.WriteString(_w, `._restored: %w", err)
     }
-    if err := encoder.Encode(o._originalPK); err != nil {
+    if err := enc.Encode(o._originalPK); err != nil {
         return fmt.Errorf("error encoding `); err != nil {
 		return
 	}
@@ -12257,8 +12257,7 @@ func (o *`); err != nil {
 
 	//*** unmarshal_binary.tmpl
 
-	if _, err = io.WriteString(_w, `
-// UnmarshalBinary converts a structure that was created with MarshalBinary into a `); err != nil {
+	if _, err = io.WriteString(_w, `// UnmarshalBinary converts a structure that was created with MarshalBinary into a `); err != nil {
 		return
 	}
 
@@ -12276,9 +12275,20 @@ func (o *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `Base) UnmarshalBinary(data []byte) (err error) {
-
-	buf := bytes.NewBuffer(data)
+	buf := bytes.NewReader(data)
 	dec := gob.NewDecoder(buf)
+	return o.decodeFrom(dec)
+}
+
+func (o *`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Base) decodeFrom(dec db.Decoder) (err error) {
 	var isPtr bool
 
 	_ = isPtr
@@ -12753,6 +12763,59 @@ func (o *`); err != nil {
 			return
 		}
 
+	}
+
+	//*** unmarshal_binary_extra.tmpl
+
+	if _, err = io.WriteString(_w, `    if err = dec.Decode(&isPtr); err != nil {
+        return fmt.Errorf("error decoding `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `._aliases isPtr: %w", err)
+    }
+    if isPtr {
+        if err = dec.Decode(&o._aliases); err != nil {
+            return fmt.Errorf("error decoding `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `._aliases: %w", err)
+        }
+    }
+
+    if err = dec.Decode(&o._restored); err != nil {
+        return fmt.Errorf("error decoding `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `._restored: %w", err)
+    }
+    if err = dec.Decode(&o._originalPK); err != nil {
+        return fmt.Errorf("error decoding `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `._originalPK: %w", err)
+    }
+`); err != nil {
+		return
 	}
 
 	if _, err = io.WriteString(_w, `	return

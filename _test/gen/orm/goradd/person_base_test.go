@@ -3,7 +3,9 @@
 package goradd
 
 import (
+	"bytes"
 	"context"
+	"encoding/gob"
 	"encoding/json"
 	"strconv"
 	"testing"
@@ -531,17 +533,44 @@ func TestPerson_MarshalBinary(t *testing.T) {
 func TestPerson_FailingMarshalBinary(t *testing.T) {
 	obj := createMinimalSamplePerson()
 	var err error
-	for i := 0; i < 29; i++ {
-		w := &test.FailingWriter{Count: i}
-		err = obj.encodeTo(w)
+
+	for i := 0; i < 31; i++ {
+		enc := &test.GobEncoder{Count: i}
+		err = obj.encodeTo(enc)
 		assert.Error(t, err)
 	}
 	// do it again with aliases
 	obj._aliases = make(map[string]any)
-	for i := 0; i < 30; i++ {
-		w := &test.FailingWriter{Count: i}
-		err = obj.encodeTo(w)
+	for i := 0; i < 32; i++ {
+		enc := &test.GobEncoder{Count: i}
+		err = obj.encodeTo(enc)
+		assert.Error(t, err)
+	}
+}
+
+func TestPerson_FailingUnmarshalBinary(t *testing.T) {
+	obj := createMinimalSamplePerson()
+	b, err := obj.MarshalBinary()
+	assert.NoError(t, err)
+	obj2 := NewPerson()
+	for i := 0; i < 31; i++ {
+		buf := bytes.NewReader(b)
+		dec := &test.GobDecoder{Decoder: gob.NewDecoder(buf), Count: i}
+		err = obj2.decodeFrom(dec)
 		assert.Error(t, err)
 	}
 
+	// do it again with aliases
+	obj = createMinimalSamplePerson()
+	obj._aliases = map[string]any{"a": 1}
+	b, err = obj.MarshalBinary()
+	assert.NoError(t, err)
+
+	obj2 = NewPerson()
+	for i := 0; i < 32; i++ {
+		buf := bytes.NewReader(b)
+		dec := &test.GobDecoder{Decoder: gob.NewDecoder(buf), Count: i}
+		err = obj2.decodeFrom(dec)
+		assert.Error(t, err)
+	}
 }

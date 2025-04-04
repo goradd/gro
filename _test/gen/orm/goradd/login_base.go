@@ -8,7 +8,6 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
-	"io"
 	"unicode/utf8"
 
 	"github.com/goradd/all"
@@ -1156,101 +1155,101 @@ func (o *loginBase) Get(key string) interface{} {
 // The framework uses this to serialize the object when it is stored in a control.
 func (o *loginBase) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	if err := o.encodeTo(buf); err != nil {
+	enc := gob.NewEncoder(buf)
+	if err := o.encodeTo(enc); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
 
-func (o *loginBase) encodeTo(w io.Writer) error {
-	encoder := gob.NewEncoder(w)
+func (o *loginBase) encodeTo(enc db.Encoder) error {
 
-	if err := encoder.Encode(o.id); err != nil {
+	if err := enc.Encode(o.id); err != nil {
 		return fmt.Errorf("error encoding Login.id: %w", err)
 	}
-	if err := encoder.Encode(o.idIsLoaded); err != nil {
+	if err := enc.Encode(o.idIsLoaded); err != nil {
 		return fmt.Errorf("error encoding Login.idIsLoaded: %w", err)
 	}
-	if err := encoder.Encode(o.idIsDirty); err != nil {
+	if err := enc.Encode(o.idIsDirty); err != nil {
 		return fmt.Errorf("error encoding Login.idIsDirty: %w", err)
 	}
 
-	if err := encoder.Encode(o.personID); err != nil {
+	if err := enc.Encode(o.personID); err != nil {
 		return fmt.Errorf("error encoding Login.personID: %w", err)
 	}
-	if err := encoder.Encode(o.personIDIsNull); err != nil {
+	if err := enc.Encode(o.personIDIsNull); err != nil {
 		return fmt.Errorf("error encoding Login.personIDIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.personIDIsLoaded); err != nil {
+	if err := enc.Encode(o.personIDIsLoaded); err != nil {
 		return fmt.Errorf("error encoding Login.personIDIsLoaded: %w", err)
 	}
-	if err := encoder.Encode(o.personIDIsDirty); err != nil {
+	if err := enc.Encode(o.personIDIsDirty); err != nil {
 		return fmt.Errorf("error encoding Login.personIDIsDirty: %w", err)
 	}
 
 	if o.objPerson == nil {
-		if err := encoder.Encode(false); err != nil {
+		if err := enc.Encode(false); err != nil {
 			return err
 		}
 	} else {
-		if err := encoder.Encode(true); err != nil {
+		if err := enc.Encode(true); err != nil {
 			return err
 		}
-		if err := encoder.Encode(o.objPerson); err != nil {
+		if err := enc.Encode(o.objPerson); err != nil {
 			return fmt.Errorf("error encoding Login.objPerson: %w", err)
 		}
 	}
 
-	if err := encoder.Encode(o.username); err != nil {
+	if err := enc.Encode(o.username); err != nil {
 		return fmt.Errorf("error encoding Login.username: %w", err)
 	}
-	if err := encoder.Encode(o.usernameIsLoaded); err != nil {
+	if err := enc.Encode(o.usernameIsLoaded); err != nil {
 		return fmt.Errorf("error encoding Login.usernameIsLoaded: %w", err)
 	}
-	if err := encoder.Encode(o.usernameIsDirty); err != nil {
+	if err := enc.Encode(o.usernameIsDirty); err != nil {
 		return fmt.Errorf("error encoding Login.usernameIsDirty: %w", err)
 	}
 
-	if err := encoder.Encode(o.password); err != nil {
+	if err := enc.Encode(o.password); err != nil {
 		return fmt.Errorf("error encoding Login.password: %w", err)
 	}
-	if err := encoder.Encode(o.passwordIsNull); err != nil {
+	if err := enc.Encode(o.passwordIsNull); err != nil {
 		return fmt.Errorf("error encoding Login.passwordIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.passwordIsLoaded); err != nil {
+	if err := enc.Encode(o.passwordIsLoaded); err != nil {
 		return fmt.Errorf("error encoding Login.passwordIsLoaded: %w", err)
 	}
-	if err := encoder.Encode(o.passwordIsDirty); err != nil {
+	if err := enc.Encode(o.passwordIsDirty); err != nil {
 		return fmt.Errorf("error encoding Login.passwordIsDirty: %w", err)
 	}
 
-	if err := encoder.Encode(o.isEnabled); err != nil {
+	if err := enc.Encode(o.isEnabled); err != nil {
 		return fmt.Errorf("error encoding Login.isEnabled: %w", err)
 	}
-	if err := encoder.Encode(o.isEnabledIsLoaded); err != nil {
+	if err := enc.Encode(o.isEnabledIsLoaded); err != nil {
 		return fmt.Errorf("error encoding Login.isEnabledIsLoaded: %w", err)
 	}
-	if err := encoder.Encode(o.isEnabledIsDirty); err != nil {
+	if err := enc.Encode(o.isEnabledIsDirty); err != nil {
 		return fmt.Errorf("error encoding Login.isEnabledIsDirty: %w", err)
 	}
 
 	if o._aliases == nil {
-		if err := encoder.Encode(false); err != nil {
+		if err := enc.Encode(false); err != nil {
 			return err
 		}
 	} else {
-		if err := encoder.Encode(true); err != nil {
+		if err := enc.Encode(true); err != nil {
 			return err
 		}
-		if err := encoder.Encode(o._aliases); err != nil {
+		if err := enc.Encode(o._aliases); err != nil {
 			return fmt.Errorf("error encoding Login._aliases: %w", err)
 		}
 	}
 
-	if err := encoder.Encode(o._restored); err != nil {
+	if err := enc.Encode(o._restored); err != nil {
 		return fmt.Errorf("error encoding Login._restored: %w", err)
 	}
-	if err := encoder.Encode(o._originalPK); err != nil {
+	if err := enc.Encode(o._originalPK); err != nil {
 		return fmt.Errorf("error encoding Login._originalPK: %w", err)
 	}
 	return nil
@@ -1258,9 +1257,12 @@ func (o *loginBase) encodeTo(w io.Writer) error {
 
 // UnmarshalBinary converts a structure that was created with MarshalBinary into a Login object.
 func (o *loginBase) UnmarshalBinary(data []byte) (err error) {
-
-	buf := bytes.NewBuffer(data)
+	buf := bytes.NewReader(data)
 	dec := gob.NewDecoder(buf)
+	return o.decodeFrom(dec)
+}
+
+func (o *loginBase) decodeFrom(dec db.Decoder) (err error) {
 	var isPtr bool
 
 	_ = isPtr
@@ -1328,6 +1330,21 @@ func (o *loginBase) UnmarshalBinary(data []byte) (err error) {
 		return fmt.Errorf("error decoding Login.isEnabledIsDirty: %w", err)
 	}
 
+	if err = dec.Decode(&isPtr); err != nil {
+		return fmt.Errorf("error decoding Login._aliases isPtr: %w", err)
+	}
+	if isPtr {
+		if err = dec.Decode(&o._aliases); err != nil {
+			return fmt.Errorf("error decoding Login._aliases: %w", err)
+		}
+	}
+
+	if err = dec.Decode(&o._restored); err != nil {
+		return fmt.Errorf("error decoding Login._restored: %w", err)
+	}
+	if err = dec.Decode(&o._originalPK); err != nil {
+		return fmt.Errorf("error decoding Login._originalPK: %w", err)
+	}
 	return
 }
 

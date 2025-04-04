@@ -8,7 +8,6 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
-	"io"
 	"unicode/utf8"
 
 	"github.com/goradd/all"
@@ -976,88 +975,88 @@ func (o *addressBase) Get(key string) interface{} {
 // The framework uses this to serialize the object when it is stored in a control.
 func (o *addressBase) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	if err := o.encodeTo(buf); err != nil {
+	enc := gob.NewEncoder(buf)
+	if err := o.encodeTo(enc); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
 
-func (o *addressBase) encodeTo(w io.Writer) error {
-	encoder := gob.NewEncoder(w)
+func (o *addressBase) encodeTo(enc db.Encoder) error {
 
-	if err := encoder.Encode(o.id); err != nil {
+	if err := enc.Encode(o.id); err != nil {
 		return fmt.Errorf("error encoding Address.id: %w", err)
 	}
-	if err := encoder.Encode(o.idIsLoaded); err != nil {
+	if err := enc.Encode(o.idIsLoaded); err != nil {
 		return fmt.Errorf("error encoding Address.idIsLoaded: %w", err)
 	}
-	if err := encoder.Encode(o.idIsDirty); err != nil {
+	if err := enc.Encode(o.idIsDirty); err != nil {
 		return fmt.Errorf("error encoding Address.idIsDirty: %w", err)
 	}
 
-	if err := encoder.Encode(o.personID); err != nil {
+	if err := enc.Encode(o.personID); err != nil {
 		return fmt.Errorf("error encoding Address.personID: %w", err)
 	}
-	if err := encoder.Encode(o.personIDIsLoaded); err != nil {
+	if err := enc.Encode(o.personIDIsLoaded); err != nil {
 		return fmt.Errorf("error encoding Address.personIDIsLoaded: %w", err)
 	}
-	if err := encoder.Encode(o.personIDIsDirty); err != nil {
+	if err := enc.Encode(o.personIDIsDirty); err != nil {
 		return fmt.Errorf("error encoding Address.personIDIsDirty: %w", err)
 	}
 
 	if o.objPerson == nil {
-		if err := encoder.Encode(false); err != nil {
+		if err := enc.Encode(false); err != nil {
 			return err
 		}
 	} else {
-		if err := encoder.Encode(true); err != nil {
+		if err := enc.Encode(true); err != nil {
 			return err
 		}
-		if err := encoder.Encode(o.objPerson); err != nil {
+		if err := enc.Encode(o.objPerson); err != nil {
 			return fmt.Errorf("error encoding Address.objPerson: %w", err)
 		}
 	}
 
-	if err := encoder.Encode(o.street); err != nil {
+	if err := enc.Encode(o.street); err != nil {
 		return fmt.Errorf("error encoding Address.street: %w", err)
 	}
-	if err := encoder.Encode(o.streetIsLoaded); err != nil {
+	if err := enc.Encode(o.streetIsLoaded); err != nil {
 		return fmt.Errorf("error encoding Address.streetIsLoaded: %w", err)
 	}
-	if err := encoder.Encode(o.streetIsDirty); err != nil {
+	if err := enc.Encode(o.streetIsDirty); err != nil {
 		return fmt.Errorf("error encoding Address.streetIsDirty: %w", err)
 	}
 
-	if err := encoder.Encode(o.city); err != nil {
+	if err := enc.Encode(o.city); err != nil {
 		return fmt.Errorf("error encoding Address.city: %w", err)
 	}
-	if err := encoder.Encode(o.cityIsNull); err != nil {
+	if err := enc.Encode(o.cityIsNull); err != nil {
 		return fmt.Errorf("error encoding Address.cityIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.cityIsLoaded); err != nil {
+	if err := enc.Encode(o.cityIsLoaded); err != nil {
 		return fmt.Errorf("error encoding Address.cityIsLoaded: %w", err)
 	}
-	if err := encoder.Encode(o.cityIsDirty); err != nil {
+	if err := enc.Encode(o.cityIsDirty); err != nil {
 		return fmt.Errorf("error encoding Address.cityIsDirty: %w", err)
 	}
 
 	if o._aliases == nil {
-		if err := encoder.Encode(false); err != nil {
+		if err := enc.Encode(false); err != nil {
 			return err
 		}
 	} else {
-		if err := encoder.Encode(true); err != nil {
+		if err := enc.Encode(true); err != nil {
 			return err
 		}
-		if err := encoder.Encode(o._aliases); err != nil {
+		if err := enc.Encode(o._aliases); err != nil {
 			return fmt.Errorf("error encoding Address._aliases: %w", err)
 		}
 	}
 
-	if err := encoder.Encode(o._restored); err != nil {
+	if err := enc.Encode(o._restored); err != nil {
 		return fmt.Errorf("error encoding Address._restored: %w", err)
 	}
-	if err := encoder.Encode(o._originalPK); err != nil {
+	if err := enc.Encode(o._originalPK); err != nil {
 		return fmt.Errorf("error encoding Address._originalPK: %w", err)
 	}
 	return nil
@@ -1065,9 +1064,12 @@ func (o *addressBase) encodeTo(w io.Writer) error {
 
 // UnmarshalBinary converts a structure that was created with MarshalBinary into a Address object.
 func (o *addressBase) UnmarshalBinary(data []byte) (err error) {
-
-	buf := bytes.NewBuffer(data)
+	buf := bytes.NewReader(data)
 	dec := gob.NewDecoder(buf)
+	return o.decodeFrom(dec)
+}
+
+func (o *addressBase) decodeFrom(dec db.Decoder) (err error) {
 	var isPtr bool
 
 	_ = isPtr
@@ -1122,6 +1124,21 @@ func (o *addressBase) UnmarshalBinary(data []byte) (err error) {
 		return fmt.Errorf("error decoding Address.cityIsDirty: %w", err)
 	}
 
+	if err = dec.Decode(&isPtr); err != nil {
+		return fmt.Errorf("error decoding Address._aliases isPtr: %w", err)
+	}
+	if isPtr {
+		if err = dec.Decode(&o._aliases); err != nil {
+			return fmt.Errorf("error decoding Address._aliases: %w", err)
+		}
+	}
+
+	if err = dec.Decode(&o._restored); err != nil {
+		return fmt.Errorf("error decoding Address._restored: %w", err)
+	}
+	if err = dec.Decode(&o._originalPK); err != nil {
+		return fmt.Errorf("error decoding Address._originalPK: %w", err)
+	}
 	return
 }
 

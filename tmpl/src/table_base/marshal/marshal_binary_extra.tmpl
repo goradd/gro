@@ -6,22 +6,22 @@
 {{
 
     if o._aliases == nil {
-        if err := encoder.Encode(false); err != nil {
+        if err := enc.Encode(false); err != nil {
             return err
         }
     } else {
-        if err := encoder.Encode(true); err != nil {
+        if err := enc.Encode(true); err != nil {
             return err
         }
-        if err := encoder.Encode(o._aliases); err != nil {
+        if err := enc.Encode(o._aliases); err != nil {
             return fmt.Errorf("error encoding {{= table.Identifier }}._aliases: %w", err)
         }
     }
 
-    if err := encoder.Encode(o._restored); err != nil {
+    if err := enc.Encode(o._restored); err != nil {
         return fmt.Errorf("error encoding {{= table.Identifier }}._restored: %w", err)
     }
-    if err := encoder.Encode(o._originalPK); err != nil {
+    if err := enc.Encode(o._originalPK); err != nil {
         return fmt.Errorf("error encoding {{= table.Identifier }}._originalPK: %w", err)
     }
 }}

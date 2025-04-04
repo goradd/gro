@@ -8,7 +8,6 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
-	"io"
 	"unicode/utf8"
 
 	"github.com/goradd/all"
@@ -1493,123 +1492,123 @@ func (o *multiParentBase) Get(key string) interface{} {
 // The framework uses this to serialize the object when it is stored in a control.
 func (o *multiParentBase) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	if err := o.encodeTo(buf); err != nil {
+	enc := gob.NewEncoder(buf)
+	if err := o.encodeTo(enc); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
 
-func (o *multiParentBase) encodeTo(w io.Writer) error {
-	encoder := gob.NewEncoder(w)
+func (o *multiParentBase) encodeTo(enc db.Encoder) error {
 
-	if err := encoder.Encode(o.id); err != nil {
+	if err := enc.Encode(o.id); err != nil {
 		return fmt.Errorf("error encoding MultiParent.id: %w", err)
 	}
-	if err := encoder.Encode(o.idIsLoaded); err != nil {
+	if err := enc.Encode(o.idIsLoaded); err != nil {
 		return fmt.Errorf("error encoding MultiParent.idIsLoaded: %w", err)
 	}
-	if err := encoder.Encode(o.idIsDirty); err != nil {
+	if err := enc.Encode(o.idIsDirty); err != nil {
 		return fmt.Errorf("error encoding MultiParent.idIsDirty: %w", err)
 	}
 
-	if err := encoder.Encode(o.name); err != nil {
+	if err := enc.Encode(o.name); err != nil {
 		return fmt.Errorf("error encoding MultiParent.name: %w", err)
 	}
-	if err := encoder.Encode(o.nameIsNull); err != nil {
+	if err := enc.Encode(o.nameIsNull); err != nil {
 		return fmt.Errorf("error encoding MultiParent.nameIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.nameIsLoaded); err != nil {
+	if err := enc.Encode(o.nameIsLoaded); err != nil {
 		return fmt.Errorf("error encoding MultiParent.nameIsLoaded: %w", err)
 	}
-	if err := encoder.Encode(o.nameIsDirty); err != nil {
+	if err := enc.Encode(o.nameIsDirty); err != nil {
 		return fmt.Errorf("error encoding MultiParent.nameIsDirty: %w", err)
 	}
 
-	if err := encoder.Encode(o.parent1ID); err != nil {
+	if err := enc.Encode(o.parent1ID); err != nil {
 		return fmt.Errorf("error encoding MultiParent.parent1ID: %w", err)
 	}
-	if err := encoder.Encode(o.parent1IDIsNull); err != nil {
+	if err := enc.Encode(o.parent1IDIsNull); err != nil {
 		return fmt.Errorf("error encoding MultiParent.parent1IDIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.parent1IDIsLoaded); err != nil {
+	if err := enc.Encode(o.parent1IDIsLoaded); err != nil {
 		return fmt.Errorf("error encoding MultiParent.parent1IDIsLoaded: %w", err)
 	}
-	if err := encoder.Encode(o.parent1IDIsDirty); err != nil {
+	if err := enc.Encode(o.parent1IDIsDirty); err != nil {
 		return fmt.Errorf("error encoding MultiParent.parent1IDIsDirty: %w", err)
 	}
 
 	if o.objParent1 == nil {
-		if err := encoder.Encode(false); err != nil {
+		if err := enc.Encode(false); err != nil {
 			return err
 		}
 	} else {
-		if err := encoder.Encode(true); err != nil {
+		if err := enc.Encode(true); err != nil {
 			return err
 		}
-		if err := encoder.Encode(o.objParent1); err != nil {
+		if err := enc.Encode(o.objParent1); err != nil {
 			return fmt.Errorf("error encoding MultiParent.objParent1: %w", err)
 		}
 	}
 
-	if err := encoder.Encode(o.parent2ID); err != nil {
+	if err := enc.Encode(o.parent2ID); err != nil {
 		return fmt.Errorf("error encoding MultiParent.parent2ID: %w", err)
 	}
-	if err := encoder.Encode(o.parent2IDIsNull); err != nil {
+	if err := enc.Encode(o.parent2IDIsNull); err != nil {
 		return fmt.Errorf("error encoding MultiParent.parent2IDIsNull: %w", err)
 	}
-	if err := encoder.Encode(o.parent2IDIsLoaded); err != nil {
+	if err := enc.Encode(o.parent2IDIsLoaded); err != nil {
 		return fmt.Errorf("error encoding MultiParent.parent2IDIsLoaded: %w", err)
 	}
-	if err := encoder.Encode(o.parent2IDIsDirty); err != nil {
+	if err := enc.Encode(o.parent2IDIsDirty); err != nil {
 		return fmt.Errorf("error encoding MultiParent.parent2IDIsDirty: %w", err)
 	}
 
 	if o.objParent2 == nil {
-		if err := encoder.Encode(false); err != nil {
+		if err := enc.Encode(false); err != nil {
 			return err
 		}
 	} else {
-		if err := encoder.Encode(true); err != nil {
+		if err := enc.Encode(true); err != nil {
 			return err
 		}
-		if err := encoder.Encode(o.objParent2); err != nil {
+		if err := enc.Encode(o.objParent2); err != nil {
 			return fmt.Errorf("error encoding MultiParent.objParent2: %w", err)
 		}
 	}
 
-	if err := encoder.Encode(&o.revParent1MultiParents); err != nil {
+	if err := enc.Encode(&o.revParent1MultiParents); err != nil {
 		return err
 	}
 
-	if err := encoder.Encode(o.revParent1MultiParentsIsDirty); err != nil {
+	if err := enc.Encode(o.revParent1MultiParentsIsDirty); err != nil {
 		return err
 	}
 
-	if err := encoder.Encode(&o.revParent2MultiParents); err != nil {
+	if err := enc.Encode(&o.revParent2MultiParents); err != nil {
 		return err
 	}
 
-	if err := encoder.Encode(o.revParent2MultiParentsIsDirty); err != nil {
+	if err := enc.Encode(o.revParent2MultiParentsIsDirty); err != nil {
 		return err
 	}
 
 	if o._aliases == nil {
-		if err := encoder.Encode(false); err != nil {
+		if err := enc.Encode(false); err != nil {
 			return err
 		}
 	} else {
-		if err := encoder.Encode(true); err != nil {
+		if err := enc.Encode(true); err != nil {
 			return err
 		}
-		if err := encoder.Encode(o._aliases); err != nil {
+		if err := enc.Encode(o._aliases); err != nil {
 			return fmt.Errorf("error encoding MultiParent._aliases: %w", err)
 		}
 	}
 
-	if err := encoder.Encode(o._restored); err != nil {
+	if err := enc.Encode(o._restored); err != nil {
 		return fmt.Errorf("error encoding MultiParent._restored: %w", err)
 	}
-	if err := encoder.Encode(o._originalPK); err != nil {
+	if err := enc.Encode(o._originalPK); err != nil {
 		return fmt.Errorf("error encoding MultiParent._originalPK: %w", err)
 	}
 	return nil
@@ -1617,9 +1616,12 @@ func (o *multiParentBase) encodeTo(w io.Writer) error {
 
 // UnmarshalBinary converts a structure that was created with MarshalBinary into a MultiParent object.
 func (o *multiParentBase) UnmarshalBinary(data []byte) (err error) {
-
-	buf := bytes.NewBuffer(data)
+	buf := bytes.NewReader(data)
 	dec := gob.NewDecoder(buf)
+	return o.decodeFrom(dec)
+}
+
+func (o *multiParentBase) decodeFrom(dec db.Decoder) (err error) {
 	var isPtr bool
 
 	_ = isPtr
@@ -1704,6 +1706,21 @@ func (o *multiParentBase) UnmarshalBinary(data []byte) (err error) {
 		return fmt.Errorf("error decoding MultiParent.revParent2MultiParentsIsDirty: %w", err)
 	}
 
+	if err = dec.Decode(&isPtr); err != nil {
+		return fmt.Errorf("error decoding MultiParent._aliases isPtr: %w", err)
+	}
+	if isPtr {
+		if err = dec.Decode(&o._aliases); err != nil {
+			return fmt.Errorf("error decoding MultiParent._aliases: %w", err)
+		}
+	}
+
+	if err = dec.Decode(&o._restored); err != nil {
+		return fmt.Errorf("error decoding MultiParent._restored: %w", err)
+	}
+	if err = dec.Decode(&o._originalPK); err != nil {
+		return fmt.Errorf("error decoding MultiParent._originalPK: %w", err)
+	}
 	return
 }
 

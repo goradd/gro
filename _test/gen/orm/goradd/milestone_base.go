@@ -8,7 +8,6 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
-	"io"
 	"unicode/utf8"
 
 	"github.com/goradd/all"
@@ -866,75 +865,75 @@ func (o *milestoneBase) Get(key string) interface{} {
 // The framework uses this to serialize the object when it is stored in a control.
 func (o *milestoneBase) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	if err := o.encodeTo(buf); err != nil {
+	enc := gob.NewEncoder(buf)
+	if err := o.encodeTo(enc); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
 
-func (o *milestoneBase) encodeTo(w io.Writer) error {
-	encoder := gob.NewEncoder(w)
+func (o *milestoneBase) encodeTo(enc db.Encoder) error {
 
-	if err := encoder.Encode(o.id); err != nil {
+	if err := enc.Encode(o.id); err != nil {
 		return fmt.Errorf("error encoding Milestone.id: %w", err)
 	}
-	if err := encoder.Encode(o.idIsLoaded); err != nil {
+	if err := enc.Encode(o.idIsLoaded); err != nil {
 		return fmt.Errorf("error encoding Milestone.idIsLoaded: %w", err)
 	}
-	if err := encoder.Encode(o.idIsDirty); err != nil {
+	if err := enc.Encode(o.idIsDirty); err != nil {
 		return fmt.Errorf("error encoding Milestone.idIsDirty: %w", err)
 	}
 
-	if err := encoder.Encode(o.projectID); err != nil {
+	if err := enc.Encode(o.projectID); err != nil {
 		return fmt.Errorf("error encoding Milestone.projectID: %w", err)
 	}
-	if err := encoder.Encode(o.projectIDIsLoaded); err != nil {
+	if err := enc.Encode(o.projectIDIsLoaded); err != nil {
 		return fmt.Errorf("error encoding Milestone.projectIDIsLoaded: %w", err)
 	}
-	if err := encoder.Encode(o.projectIDIsDirty); err != nil {
+	if err := enc.Encode(o.projectIDIsDirty); err != nil {
 		return fmt.Errorf("error encoding Milestone.projectIDIsDirty: %w", err)
 	}
 
 	if o.objProject == nil {
-		if err := encoder.Encode(false); err != nil {
+		if err := enc.Encode(false); err != nil {
 			return err
 		}
 	} else {
-		if err := encoder.Encode(true); err != nil {
+		if err := enc.Encode(true); err != nil {
 			return err
 		}
-		if err := encoder.Encode(o.objProject); err != nil {
+		if err := enc.Encode(o.objProject); err != nil {
 			return fmt.Errorf("error encoding Milestone.objProject: %w", err)
 		}
 	}
 
-	if err := encoder.Encode(o.name); err != nil {
+	if err := enc.Encode(o.name); err != nil {
 		return fmt.Errorf("error encoding Milestone.name: %w", err)
 	}
-	if err := encoder.Encode(o.nameIsLoaded); err != nil {
+	if err := enc.Encode(o.nameIsLoaded); err != nil {
 		return fmt.Errorf("error encoding Milestone.nameIsLoaded: %w", err)
 	}
-	if err := encoder.Encode(o.nameIsDirty); err != nil {
+	if err := enc.Encode(o.nameIsDirty); err != nil {
 		return fmt.Errorf("error encoding Milestone.nameIsDirty: %w", err)
 	}
 
 	if o._aliases == nil {
-		if err := encoder.Encode(false); err != nil {
+		if err := enc.Encode(false); err != nil {
 			return err
 		}
 	} else {
-		if err := encoder.Encode(true); err != nil {
+		if err := enc.Encode(true); err != nil {
 			return err
 		}
-		if err := encoder.Encode(o._aliases); err != nil {
+		if err := enc.Encode(o._aliases); err != nil {
 			return fmt.Errorf("error encoding Milestone._aliases: %w", err)
 		}
 	}
 
-	if err := encoder.Encode(o._restored); err != nil {
+	if err := enc.Encode(o._restored); err != nil {
 		return fmt.Errorf("error encoding Milestone._restored: %w", err)
 	}
-	if err := encoder.Encode(o._originalPK); err != nil {
+	if err := enc.Encode(o._originalPK); err != nil {
 		return fmt.Errorf("error encoding Milestone._originalPK: %w", err)
 	}
 	return nil
@@ -942,9 +941,12 @@ func (o *milestoneBase) encodeTo(w io.Writer) error {
 
 // UnmarshalBinary converts a structure that was created with MarshalBinary into a Milestone object.
 func (o *milestoneBase) UnmarshalBinary(data []byte) (err error) {
-
-	buf := bytes.NewBuffer(data)
+	buf := bytes.NewReader(data)
 	dec := gob.NewDecoder(buf)
+	return o.decodeFrom(dec)
+}
+
+func (o *milestoneBase) decodeFrom(dec db.Decoder) (err error) {
 	var isPtr bool
 
 	_ = isPtr
@@ -986,6 +988,21 @@ func (o *milestoneBase) UnmarshalBinary(data []byte) (err error) {
 		return fmt.Errorf("error decoding Milestone.nameIsDirty: %w", err)
 	}
 
+	if err = dec.Decode(&isPtr); err != nil {
+		return fmt.Errorf("error decoding Milestone._aliases isPtr: %w", err)
+	}
+	if isPtr {
+		if err = dec.Decode(&o._aliases); err != nil {
+			return fmt.Errorf("error decoding Milestone._aliases: %w", err)
+		}
+	}
+
+	if err = dec.Decode(&o._restored); err != nil {
+		return fmt.Errorf("error decoding Milestone._restored: %w", err)
+	}
+	if err = dec.Decode(&o._originalPK); err != nil {
+		return fmt.Errorf("error decoding Milestone._originalPK: %w", err)
+	}
 	return
 }
 

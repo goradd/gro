@@ -3,7 +3,9 @@
 package goradd_unit
 
 import (
+	"bytes"
 	"context"
+	"encoding/gob"
 	"encoding/json"
 	"strconv"
 	"testing"
@@ -407,17 +409,44 @@ func TestLeaf_MarshalBinary(t *testing.T) {
 func TestLeaf_FailingMarshalBinary(t *testing.T) {
 	obj := createMinimalSampleLeaf()
 	var err error
+
 	for i := 0; i < 17; i++ {
-		w := &test.FailingWriter{Count: i}
-		err = obj.encodeTo(w)
+		enc := &test.GobEncoder{Count: i}
+		err = obj.encodeTo(enc)
 		assert.Error(t, err)
 	}
 	// do it again with aliases
 	obj._aliases = make(map[string]any)
 	for i := 0; i < 18; i++ {
-		w := &test.FailingWriter{Count: i}
-		err = obj.encodeTo(w)
+		enc := &test.GobEncoder{Count: i}
+		err = obj.encodeTo(enc)
+		assert.Error(t, err)
+	}
+}
+
+func TestLeaf_FailingUnmarshalBinary(t *testing.T) {
+	obj := createMinimalSampleLeaf()
+	b, err := obj.MarshalBinary()
+	assert.NoError(t, err)
+	obj2 := NewLeaf()
+	for i := 0; i < 17; i++ {
+		buf := bytes.NewReader(b)
+		dec := &test.GobDecoder{Decoder: gob.NewDecoder(buf), Count: i}
+		err = obj2.decodeFrom(dec)
 		assert.Error(t, err)
 	}
 
+	// do it again with aliases
+	obj = createMinimalSampleLeaf()
+	obj._aliases = map[string]any{"a": 1}
+	b, err = obj.MarshalBinary()
+	assert.NoError(t, err)
+
+	obj2 = NewLeaf()
+	for i := 0; i < 18; i++ {
+		buf := bytes.NewReader(b)
+		dec := &test.GobDecoder{Decoder: gob.NewDecoder(buf), Count: i}
+		err = obj2.decodeFrom(dec)
+		assert.Error(t, err)
+	}
 }

@@ -8,7 +8,6 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
-	"io"
 	"unicode/utf8"
 
 	"github.com/goradd/all"
@@ -748,52 +747,52 @@ func (o *giftBase) Get(key string) interface{} {
 // The framework uses this to serialize the object when it is stored in a control.
 func (o *giftBase) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	if err := o.encodeTo(buf); err != nil {
+	enc := gob.NewEncoder(buf)
+	if err := o.encodeTo(enc); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
 
-func (o *giftBase) encodeTo(w io.Writer) error {
-	encoder := gob.NewEncoder(w)
+func (o *giftBase) encodeTo(enc db.Encoder) error {
 
-	if err := encoder.Encode(o.number); err != nil {
+	if err := enc.Encode(o.number); err != nil {
 		return fmt.Errorf("error encoding Gift.number: %w", err)
 	}
-	if err := encoder.Encode(o.numberIsLoaded); err != nil {
+	if err := enc.Encode(o.numberIsLoaded); err != nil {
 		return fmt.Errorf("error encoding Gift.numberIsLoaded: %w", err)
 	}
-	if err := encoder.Encode(o.numberIsDirty); err != nil {
+	if err := enc.Encode(o.numberIsDirty); err != nil {
 		return fmt.Errorf("error encoding Gift.numberIsDirty: %w", err)
 	}
 
-	if err := encoder.Encode(o.name); err != nil {
+	if err := enc.Encode(o.name); err != nil {
 		return fmt.Errorf("error encoding Gift.name: %w", err)
 	}
-	if err := encoder.Encode(o.nameIsLoaded); err != nil {
+	if err := enc.Encode(o.nameIsLoaded); err != nil {
 		return fmt.Errorf("error encoding Gift.nameIsLoaded: %w", err)
 	}
-	if err := encoder.Encode(o.nameIsDirty); err != nil {
+	if err := enc.Encode(o.nameIsDirty); err != nil {
 		return fmt.Errorf("error encoding Gift.nameIsDirty: %w", err)
 	}
 
 	if o._aliases == nil {
-		if err := encoder.Encode(false); err != nil {
+		if err := enc.Encode(false); err != nil {
 			return err
 		}
 	} else {
-		if err := encoder.Encode(true); err != nil {
+		if err := enc.Encode(true); err != nil {
 			return err
 		}
-		if err := encoder.Encode(o._aliases); err != nil {
+		if err := enc.Encode(o._aliases); err != nil {
 			return fmt.Errorf("error encoding Gift._aliases: %w", err)
 		}
 	}
 
-	if err := encoder.Encode(o._restored); err != nil {
+	if err := enc.Encode(o._restored); err != nil {
 		return fmt.Errorf("error encoding Gift._restored: %w", err)
 	}
-	if err := encoder.Encode(o._originalPK); err != nil {
+	if err := enc.Encode(o._originalPK); err != nil {
 		return fmt.Errorf("error encoding Gift._originalPK: %w", err)
 	}
 	return nil
@@ -801,9 +800,12 @@ func (o *giftBase) encodeTo(w io.Writer) error {
 
 // UnmarshalBinary converts a structure that was created with MarshalBinary into a Gift object.
 func (o *giftBase) UnmarshalBinary(data []byte) (err error) {
-
-	buf := bytes.NewBuffer(data)
+	buf := bytes.NewReader(data)
 	dec := gob.NewDecoder(buf)
+	return o.decodeFrom(dec)
+}
+
+func (o *giftBase) decodeFrom(dec db.Decoder) (err error) {
 	var isPtr bool
 
 	_ = isPtr
@@ -827,6 +829,21 @@ func (o *giftBase) UnmarshalBinary(data []byte) (err error) {
 		return fmt.Errorf("error decoding Gift.nameIsDirty: %w", err)
 	}
 
+	if err = dec.Decode(&isPtr); err != nil {
+		return fmt.Errorf("error decoding Gift._aliases isPtr: %w", err)
+	}
+	if isPtr {
+		if err = dec.Decode(&o._aliases); err != nil {
+			return fmt.Errorf("error decoding Gift._aliases: %w", err)
+		}
+	}
+
+	if err = dec.Decode(&o._restored); err != nil {
+		return fmt.Errorf("error decoding Gift._restored: %w", err)
+	}
+	if err = dec.Decode(&o._originalPK); err != nil {
+		return fmt.Errorf("error decoding Gift._originalPK: %w", err)
+	}
 	return
 }
 

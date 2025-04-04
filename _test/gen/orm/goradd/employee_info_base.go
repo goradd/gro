@@ -8,7 +8,6 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
-	"io"
 
 	"github.com/goradd/all"
 	"github.com/goradd/orm/_test/gen/orm/goradd/node"
@@ -892,75 +891,75 @@ func (o *employeeInfoBase) Get(key string) interface{} {
 // The framework uses this to serialize the object when it is stored in a control.
 func (o *employeeInfoBase) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	if err := o.encodeTo(buf); err != nil {
+	enc := gob.NewEncoder(buf)
+	if err := o.encodeTo(enc); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil
 }
 
-func (o *employeeInfoBase) encodeTo(w io.Writer) error {
-	encoder := gob.NewEncoder(w)
+func (o *employeeInfoBase) encodeTo(enc db.Encoder) error {
 
-	if err := encoder.Encode(o.id); err != nil {
+	if err := enc.Encode(o.id); err != nil {
 		return fmt.Errorf("error encoding EmployeeInfo.id: %w", err)
 	}
-	if err := encoder.Encode(o.idIsLoaded); err != nil {
+	if err := enc.Encode(o.idIsLoaded); err != nil {
 		return fmt.Errorf("error encoding EmployeeInfo.idIsLoaded: %w", err)
 	}
-	if err := encoder.Encode(o.idIsDirty); err != nil {
+	if err := enc.Encode(o.idIsDirty); err != nil {
 		return fmt.Errorf("error encoding EmployeeInfo.idIsDirty: %w", err)
 	}
 
-	if err := encoder.Encode(o.personID); err != nil {
+	if err := enc.Encode(o.personID); err != nil {
 		return fmt.Errorf("error encoding EmployeeInfo.personID: %w", err)
 	}
-	if err := encoder.Encode(o.personIDIsLoaded); err != nil {
+	if err := enc.Encode(o.personIDIsLoaded); err != nil {
 		return fmt.Errorf("error encoding EmployeeInfo.personIDIsLoaded: %w", err)
 	}
-	if err := encoder.Encode(o.personIDIsDirty); err != nil {
+	if err := enc.Encode(o.personIDIsDirty); err != nil {
 		return fmt.Errorf("error encoding EmployeeInfo.personIDIsDirty: %w", err)
 	}
 
 	if o.objPerson == nil {
-		if err := encoder.Encode(false); err != nil {
+		if err := enc.Encode(false); err != nil {
 			return err
 		}
 	} else {
-		if err := encoder.Encode(true); err != nil {
+		if err := enc.Encode(true); err != nil {
 			return err
 		}
-		if err := encoder.Encode(o.objPerson); err != nil {
+		if err := enc.Encode(o.objPerson); err != nil {
 			return fmt.Errorf("error encoding EmployeeInfo.objPerson: %w", err)
 		}
 	}
 
-	if err := encoder.Encode(o.employeeNumber); err != nil {
+	if err := enc.Encode(o.employeeNumber); err != nil {
 		return fmt.Errorf("error encoding EmployeeInfo.employeeNumber: %w", err)
 	}
-	if err := encoder.Encode(o.employeeNumberIsLoaded); err != nil {
+	if err := enc.Encode(o.employeeNumberIsLoaded); err != nil {
 		return fmt.Errorf("error encoding EmployeeInfo.employeeNumberIsLoaded: %w", err)
 	}
-	if err := encoder.Encode(o.employeeNumberIsDirty); err != nil {
+	if err := enc.Encode(o.employeeNumberIsDirty); err != nil {
 		return fmt.Errorf("error encoding EmployeeInfo.employeeNumberIsDirty: %w", err)
 	}
 
 	if o._aliases == nil {
-		if err := encoder.Encode(false); err != nil {
+		if err := enc.Encode(false); err != nil {
 			return err
 		}
 	} else {
-		if err := encoder.Encode(true); err != nil {
+		if err := enc.Encode(true); err != nil {
 			return err
 		}
-		if err := encoder.Encode(o._aliases); err != nil {
+		if err := enc.Encode(o._aliases); err != nil {
 			return fmt.Errorf("error encoding EmployeeInfo._aliases: %w", err)
 		}
 	}
 
-	if err := encoder.Encode(o._restored); err != nil {
+	if err := enc.Encode(o._restored); err != nil {
 		return fmt.Errorf("error encoding EmployeeInfo._restored: %w", err)
 	}
-	if err := encoder.Encode(o._originalPK); err != nil {
+	if err := enc.Encode(o._originalPK); err != nil {
 		return fmt.Errorf("error encoding EmployeeInfo._originalPK: %w", err)
 	}
 	return nil
@@ -968,9 +967,12 @@ func (o *employeeInfoBase) encodeTo(w io.Writer) error {
 
 // UnmarshalBinary converts a structure that was created with MarshalBinary into a EmployeeInfo object.
 func (o *employeeInfoBase) UnmarshalBinary(data []byte) (err error) {
-
-	buf := bytes.NewBuffer(data)
+	buf := bytes.NewReader(data)
 	dec := gob.NewDecoder(buf)
+	return o.decodeFrom(dec)
+}
+
+func (o *employeeInfoBase) decodeFrom(dec db.Decoder) (err error) {
 	var isPtr bool
 
 	_ = isPtr
@@ -1012,6 +1014,21 @@ func (o *employeeInfoBase) UnmarshalBinary(data []byte) (err error) {
 		return fmt.Errorf("error decoding EmployeeInfo.employeeNumberIsDirty: %w", err)
 	}
 
+	if err = dec.Decode(&isPtr); err != nil {
+		return fmt.Errorf("error decoding EmployeeInfo._aliases isPtr: %w", err)
+	}
+	if isPtr {
+		if err = dec.Decode(&o._aliases); err != nil {
+			return fmt.Errorf("error decoding EmployeeInfo._aliases: %w", err)
+		}
+	}
+
+	if err = dec.Decode(&o._restored); err != nil {
+		return fmt.Errorf("error decoding EmployeeInfo._restored: %w", err)
+	}
+	if err = dec.Decode(&o._originalPK); err != nil {
+		return fmt.Errorf("error decoding EmployeeInfo._originalPK: %w", err)
+	}
 	return
 }
 

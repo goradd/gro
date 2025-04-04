@@ -3,12 +3,14 @@
 //*** {{includeName}}
 }}
 {{
-
 // UnmarshalBinary converts a structure that was created with MarshalBinary into a {{= table.Identifier }} object.
 func (o *{{= table.DecapIdentifier}}Base) UnmarshalBinary(data []byte) (err error) {
-
-	buf := bytes.NewBuffer(data)
+	buf := bytes.NewReader(data)
 	dec := gob.NewDecoder(buf)
+	return o.decodeFrom(dec)
+}
+
+func (o *{{= table.DecapIdentifier}}Base) decodeFrom(dec db.Decoder) (err error) {
 	var isPtr bool
 
 	_ = isPtr
@@ -29,6 +31,8 @@ for _,rev := range table.ReverseReferences {
 for _,mm := range table.ManyManyReferences {
     {{: "marshal/unmarshal_binary_mm.tmpl" }}
 }
+
+{{: "marshal/unmarshal_binary_extra.tmpl" }}
 
 {{
 	return

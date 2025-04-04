@@ -3,7 +3,9 @@
 package goradd_unit
 
 import (
+	"bytes"
 	"context"
+	"encoding/gob"
 	"encoding/json"
 	"strconv"
 	"testing"
@@ -479,17 +481,44 @@ func TestMultiParent_MarshalBinary(t *testing.T) {
 func TestMultiParent_FailingMarshalBinary(t *testing.T) {
 	obj := createMinimalSampleMultiParent()
 	var err error
-	for i := 0; i < 19; i++ {
-		w := &test.FailingWriter{Count: i}
-		err = obj.encodeTo(w)
+
+	for i := 0; i < 22; i++ {
+		enc := &test.GobEncoder{Count: i}
+		err = obj.encodeTo(enc)
 		assert.Error(t, err)
 	}
 	// do it again with aliases
 	obj._aliases = make(map[string]any)
-	for i := 0; i < 20; i++ {
-		w := &test.FailingWriter{Count: i}
-		err = obj.encodeTo(w)
+	for i := 0; i < 23; i++ {
+		enc := &test.GobEncoder{Count: i}
+		err = obj.encodeTo(enc)
+		assert.Error(t, err)
+	}
+}
+
+func TestMultiParent_FailingUnmarshalBinary(t *testing.T) {
+	obj := createMinimalSampleMultiParent()
+	b, err := obj.MarshalBinary()
+	assert.NoError(t, err)
+	obj2 := NewMultiParent()
+	for i := 0; i < 22; i++ {
+		buf := bytes.NewReader(b)
+		dec := &test.GobDecoder{Decoder: gob.NewDecoder(buf), Count: i}
+		err = obj2.decodeFrom(dec)
 		assert.Error(t, err)
 	}
 
+	// do it again with aliases
+	obj = createMinimalSampleMultiParent()
+	obj._aliases = map[string]any{"a": 1}
+	b, err = obj.MarshalBinary()
+	assert.NoError(t, err)
+
+	obj2 = NewMultiParent()
+	for i := 0; i < 23; i++ {
+		buf := bytes.NewReader(b)
+		dec := &test.GobDecoder{Decoder: gob.NewDecoder(buf), Count: i}
+		err = obj2.decodeFrom(dec)
+		assert.Error(t, err)
+	}
 }

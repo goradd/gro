@@ -3,7 +3,9 @@
 package goradd
 
 import (
+	"bytes"
 	"context"
+	"encoding/gob"
 	"encoding/json"
 	"strconv"
 	"testing"
@@ -437,17 +439,44 @@ func TestAddress_MarshalBinary(t *testing.T) {
 func TestAddress_FailingMarshalBinary(t *testing.T) {
 	obj := createMinimalSampleAddress()
 	var err error
-	for i := 0; i < 15; i++ {
-		w := &test.FailingWriter{Count: i}
-		err = obj.encodeTo(w)
+
+	for i := 0; i < 16; i++ {
+		enc := &test.GobEncoder{Count: i}
+		err = obj.encodeTo(enc)
 		assert.Error(t, err)
 	}
 	// do it again with aliases
 	obj._aliases = make(map[string]any)
+	for i := 0; i < 17; i++ {
+		enc := &test.GobEncoder{Count: i}
+		err = obj.encodeTo(enc)
+		assert.Error(t, err)
+	}
+}
+
+func TestAddress_FailingUnmarshalBinary(t *testing.T) {
+	obj := createMinimalSampleAddress()
+	b, err := obj.MarshalBinary()
+	assert.NoError(t, err)
+	obj2 := NewAddress()
 	for i := 0; i < 16; i++ {
-		w := &test.FailingWriter{Count: i}
-		err = obj.encodeTo(w)
+		buf := bytes.NewReader(b)
+		dec := &test.GobDecoder{Decoder: gob.NewDecoder(buf), Count: i}
+		err = obj2.decodeFrom(dec)
 		assert.Error(t, err)
 	}
 
+	// do it again with aliases
+	obj = createMinimalSampleAddress()
+	obj._aliases = map[string]any{"a": 1}
+	b, err = obj.MarshalBinary()
+	assert.NoError(t, err)
+
+	obj2 = NewAddress()
+	for i := 0; i < 17; i++ {
+		buf := bytes.NewReader(b)
+		dec := &test.GobDecoder{Decoder: gob.NewDecoder(buf), Count: i}
+		err = obj2.decodeFrom(dec)
+		assert.Error(t, err)
+	}
 }

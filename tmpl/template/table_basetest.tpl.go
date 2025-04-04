@@ -3900,12 +3900,19 @@ func Test`); err != nil {
 			return
 		}
 
-		totalLines := len(table.Columns)*3 +
-			len(table.ReverseReferences)*2 +
+		var totalLines int
+		for _, col := range table.Columns {
+			totalLines += 2
+			if col.HasSetter() {
+				totalLines++
+			}
+			if col.IsNullable {
+				totalLines++
+			}
+		}
+		totalLines += len(table.ReverseReferences)*2 +
 			len(table.ManyManyReferences)*2 +
 			3
-		// reduce by columns that have no dirty variable
-		totalLines -= len(table.Columns) - len(table.SettableColumns())
 
 		if _, err = io.WriteString(_w, `
 func Test`); err != nil {
@@ -3927,6 +3934,7 @@ func Test`); err != nil {
 
 		if _, err = io.WriteString(_w, `()
 	var err error
+
 	for i := 0; i < `); err != nil {
 			return
 		}
@@ -3936,8 +3944,8 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `; i++ {
-		w := &test.FailingWriter{Count: i}
-		err = obj.encodeTo(w)
+		enc := &test.GobEncoder{Count: i}
+		err = obj.encodeTo(enc)
 		assert.Error(t, err)
 	}
 	// do it again with aliases
@@ -3951,11 +3959,93 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `; i++ {
-        w := &test.FailingWriter{Count: i}
-        err = obj.encodeTo(w)
+		enc := &test.GobEncoder{Count: i}
+        err = obj.encodeTo(enc)
         assert.Error(t, err)
     }
+}
 
+func Test`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `_FailingUnmarshalBinary(t *testing.T) {
+    obj := createMinimalSample`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+    b,err := obj.MarshalBinary()
+    assert.NoError(t, err)
+	obj2 := New`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+	for i := 0; i < `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, strconv.Itoa(totalLines)); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `; i++ {
+	    buf := bytes.NewReader(b)
+        dec := &test.GobDecoder{Decoder: gob.NewDecoder(buf), Count: i}
+        err = obj2.decodeFrom(dec)
+		assert.Error(t, err)
+	}
+
+	// do it again with aliases
+    obj = createMinimalSample`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+    obj._aliases = map[string]any{"a":1}
+    b,err = obj.MarshalBinary()
+    assert.NoError(t, err)
+
+	obj2 = New`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+	for i := 0; i < `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, strconv.Itoa(totalLines+1)); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `; i++ {
+	    buf := bytes.NewReader(b)
+        dec := &test.GobDecoder{Decoder: gob.NewDecoder(buf), Count: i}
+        err = obj2.decodeFrom(dec)
+		assert.Error(t, err)
+	}
 }
 
 

@@ -3,7 +3,9 @@
 package goradd_unit
 
 import (
+	"bytes"
 	"context"
+	"encoding/gob"
 	"encoding/json"
 	"strconv"
 	"testing"
@@ -635,19 +637,46 @@ func TestRoot_MarshalBinary(t *testing.T) {
 func TestRoot_FailingMarshalBinary(t *testing.T) {
 	obj := createMinimalSampleRoot()
 	var err error
-	for i := 0; i < 26; i++ {
-		w := &test.FailingWriter{Count: i}
-		err = obj.encodeTo(w)
+
+	for i := 0; i < 28; i++ {
+		enc := &test.GobEncoder{Count: i}
+		err = obj.encodeTo(enc)
 		assert.Error(t, err)
 	}
 	// do it again with aliases
 	obj._aliases = make(map[string]any)
-	for i := 0; i < 27; i++ {
-		w := &test.FailingWriter{Count: i}
-		err = obj.encodeTo(w)
+	for i := 0; i < 29; i++ {
+		enc := &test.GobEncoder{Count: i}
+		err = obj.encodeTo(enc)
+		assert.Error(t, err)
+	}
+}
+
+func TestRoot_FailingUnmarshalBinary(t *testing.T) {
+	obj := createMinimalSampleRoot()
+	b, err := obj.MarshalBinary()
+	assert.NoError(t, err)
+	obj2 := NewRoot()
+	for i := 0; i < 28; i++ {
+		buf := bytes.NewReader(b)
+		dec := &test.GobDecoder{Decoder: gob.NewDecoder(buf), Count: i}
+		err = obj2.decodeFrom(dec)
 		assert.Error(t, err)
 	}
 
+	// do it again with aliases
+	obj = createMinimalSampleRoot()
+	obj._aliases = map[string]any{"a": 1}
+	b, err = obj.MarshalBinary()
+	assert.NoError(t, err)
+
+	obj2 = NewRoot()
+	for i := 0; i < 29; i++ {
+		buf := bytes.NewReader(b)
+		dec := &test.GobDecoder{Decoder: gob.NewDecoder(buf), Count: i}
+		err = obj2.decodeFrom(dec)
+		assert.Error(t, err)
+	}
 }
 
 func TestRoot_Indexes(t *testing.T) {

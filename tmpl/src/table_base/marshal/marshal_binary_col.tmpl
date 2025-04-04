@@ -4,33 +4,33 @@
 }}
 {{
 
-    if err := encoder.Encode(o.{{= col.VariableIdentifier() }}); err != nil {
+    if err := enc.Encode(o.{{= col.VariableIdentifier() }}); err != nil {
         return fmt.Errorf("error encoding {{= table.Identifier }}.{{= col.VariableIdentifier() }}: %w", err)
     }
 {{if col.IsNullable}}
-    if err := encoder.Encode(o.{{= col.VariableIdentifier() }}IsNull); err != nil {
+    if err := enc.Encode(o.{{= col.VariableIdentifier() }}IsNull); err != nil {
         return fmt.Errorf("error encoding {{= table.Identifier }}.{{= col.VariableIdentifier() }}IsNull: %w", err)
     }
 {{if}}
-    if err := encoder.Encode(o.{{= col.VariableIdentifier() }}IsLoaded); err != nil {
+    if err := enc.Encode(o.{{= col.VariableIdentifier() }}IsLoaded); err != nil {
         return fmt.Errorf("error encoding {{= table.Identifier }}.{{= col.VariableIdentifier() }}IsLoaded: %w", err)
     }
 {{if col.HasSetter() }}
-    if err := encoder.Encode(o.{{= col.VariableIdentifier() }}IsDirty); err != nil {
+    if err := enc.Encode(o.{{= col.VariableIdentifier() }}IsDirty); err != nil {
         return fmt.Errorf("error encoding {{= table.Identifier }}.{{= col.VariableIdentifier() }}IsDirty: %w", err)
     }
 {{if}}
 
 {{if col.IsReference() }}
     if o.{{= col.ReferenceVariableIdentifier() }} == nil {
-        if err := encoder.Encode(false); err != nil {
+        if err := enc.Encode(false); err != nil {
             return err
         }
     } else {
-        if err := encoder.Encode(true); err != nil {
+        if err := enc.Encode(true); err != nil {
             return err
         }
-        if err := encoder.Encode(o.{{= col.ReferenceVariableIdentifier() }}); err != nil {
+        if err := enc.Encode(o.{{= col.ReferenceVariableIdentifier() }}); err != nil {
             return fmt.Errorf("error encoding {{= table.Identifier }}.{{= col.ReferenceVariableIdentifier() }}: %w", err)
         }
     }

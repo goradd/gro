@@ -4,19 +4,19 @@
 }}
 {{
     if o.{{= rev.ReverseVariableIdentifier() }} == nil {
-        if err := encoder.Encode(false); err != nil {
+        if err := enc.Encode(false); err != nil {
             return err
         }
     } else {
-        if err := encoder.Encode(true); err != nil {
+        if err := enc.Encode(true); err != nil {
             return err
         }
-        if err := encoder.Encode(o.{{= rev.ReverseVariableIdentifier() }}); err != nil {
+        if err := enc.Encode(o.{{= rev.ReverseVariableIdentifier() }}); err != nil {
             return fmt.Errorf("error encoding {{= table.Identifier }}.{{= rev.ReverseVariableIdentifier() }}: %w", err)
         }
     }
 
-    if err := encoder.Encode(o.{{= rev.ReverseVariableIdentifier() }}IsDirty); err != nil {
+    if err := enc.Encode(o.{{= rev.ReverseVariableIdentifier() }}IsDirty); err != nil {
         return fmt.Errorf("error encoding {{= table.Identifier }}.{{= rev.ReverseVariableIdentifier() }}IsDirty: %w", err)
     }
 }}

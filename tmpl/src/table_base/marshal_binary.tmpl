@@ -9,14 +9,14 @@
 // The framework uses this to serialize the object when it is stored in a control.
 func (o *{{= table.DecapIdentifier}}Base) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	if err := o.encodeTo(buf); err != nil {
-		return nil, err
-	}
+    enc := gob.NewEncoder(buf)
+    if err := o.encodeTo(enc); err != nil {
+        return nil, err
+    }
 	return buf.Bytes(), nil
 }
 
-func (o *{{= table.DecapIdentifier}}Base) encodeTo(w io.Writer) error {
-	encoder := gob.NewEncoder(w)
+func (o *{{= table.DecapIdentifier}}Base) encodeTo(enc db.Encoder) error {
 }}
 
 for _,col := range table.Columns {
