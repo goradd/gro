@@ -120,12 +120,11 @@ func (o *doubleIndexBase) IDIsLoaded() bool {
 }
 
 // SetID sets the value of ID in the object, to be saved later in the database using the Save() function.
+// You cannot change a primary key for a record that has been written to the database. While SQL databases will
+// allow it, NoSql databases will not. Save a copy and delete this one instead.
 func (o *doubleIndexBase) SetID(v int) {
-	if o._restored &&
-		o.idIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
-		o.id == v {
-		// no change
-		return
+	if o._restored {
+		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
 	}
 
 	o.idIsLoaded = true

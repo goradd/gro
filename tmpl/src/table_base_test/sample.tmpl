@@ -8,12 +8,15 @@ func createMinimalSample{{= table.Identifier }}() *{{= table.Identifier }} {
     updateMinimalSample{{= table.Identifier }}(obj)
 
 {{for _,col := range table.Columns }}
-    {{if col.IsReference() && !col.IsNullable }}
+{{if col.IsPrimaryKey && !col.IsAutoPK }}
+    obj.Set{{= col.Identifier }}(test.RandomValue[{{= col.GoType() }}]({{u min(col.Size, 100000)}}))
+{{if}}
+{{if col.IsReference() && !col.IsNullable }}
         // A required forward reference will need to be fulfilled just to save the minimal version of this object
         // If the database is configured so that the referenced object points back here, either directly or through multiple
         // forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
         obj.Set{{= col.ReferenceIdentifier() }}(createMinimalSample{{= col.ReferenceType() }}())
-    {{if}}
+{{if}}
 {{for}}
 
     return obj
@@ -25,7 +28,7 @@ func updateMinimalSample{{= table.Identifier }}(obj *{{= table.Identifier }})  {
 {{g
     if col.ReceiverType == query.ColTypeUnknown {continue} // cannot know what the set of valid input characters are.
     if col.IsReference() {continue} // references must point to objects
-    if col.IsAutoPK {continue} // not normally testing the ability to set an auto generated primary key
+    if col.IsPrimaryKey {continue} // cannot change a primary key
     testSize := min(col.Size, 100000)
 }}
 
@@ -54,6 +57,11 @@ func updateMinimalSample{{= table.Identifier }}(obj *{{= table.Identifier }})  {
 // for testing that includes references to minimal objects.
 func createMaximalSample{{= table.Identifier }}(ctx context.Context) *{{= table.Identifier }} {
     obj := New{{= table.Identifier }}()
+{{for _,col := range table.Columns }}
+{{if col.IsPrimaryKey && !col.IsAutoPK }}
+    obj.Set{{= col.Identifier }}(test.RandomValue[{{= col.GoType() }}]({{u min(col.Size, 100000)}}))
+{{if}}
+{{for}}
     updateMaximalSample{{= table.Identifier }}(ctx, obj)
     return obj
 }

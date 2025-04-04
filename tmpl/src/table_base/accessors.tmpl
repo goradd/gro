@@ -45,6 +45,10 @@ func (tmpl *TableBaseTemplate)genColSetter(table *model.Table, col *model.Column
     if !col.HasSetter() {
         return
     }
+    if col.IsPrimaryKey {
+{{: "accessors/column_setter_pk.tmpl" }}
+        return
+    }
     switch col.ReceiverType {
     case query.ColTypeUnknown: fallthrough
     case query.ColTypeBytes:

@@ -124,14 +124,42 @@ func createMinimalSample`); err != nil {
 
 	for _, col := range table.Columns {
 
-		if _, err = io.WriteString(_w, `    `); err != nil {
-			return
+		if col.IsPrimaryKey && !col.IsAutoPK {
+
+			if _, err = io.WriteString(_w, `    obj.Set`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(test.RandomValue[`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.GoType()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `](`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, strconv.FormatUint(uint64(min(col.Size, 100000)), 10)); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `))
+`); err != nil {
+				return
+			}
+
 		}
 
 		if col.IsReference() && !col.IsNullable {
 
-			if _, err = io.WriteString(_w, `
-        // A required forward reference will need to be fulfilled just to save the minimal version of this object
+			if _, err = io.WriteString(_w, `        // A required forward reference will need to be fulfilled just to save the minimal version of this object
         // If the database is configured so that the referenced object points back here, either directly or through multiple
         // forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
         obj.Set`); err != nil {
@@ -151,15 +179,10 @@ func createMinimalSample`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `())
-    `); err != nil {
+`); err != nil {
 				return
 			}
 
-		}
-
-		if _, err = io.WriteString(_w, `
-`); err != nil {
-			return
 		}
 
 	}
@@ -206,9 +229,9 @@ func updateMinimalSample`); err != nil {
 		if col.IsReference() {
 			continue
 		} // references must point to objects
-		if col.IsAutoPK {
+		if col.IsPrimaryKey {
 			continue
-		} // not normally testing the ability to set an auto generated primary key
+		} // cannot change a primary key
 		testSize := min(col.Size, 100000)
 
 		if _, err = io.WriteString(_w, `
@@ -412,7 +435,48 @@ func createMaximalSample`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `()
-    updateMaximalSample`); err != nil {
+`); err != nil {
+		return
+	}
+
+	for _, col := range table.Columns {
+
+		if col.IsPrimaryKey && !col.IsAutoPK {
+
+			if _, err = io.WriteString(_w, `    obj.Set`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(test.RandomValue[`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.GoType()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `](`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, strconv.FormatUint(uint64(min(col.Size, 100000)), 10)); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `))
+`); err != nil {
+				return
+			}
+
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `    updateMaximalSample`); err != nil {
 		return
 	}
 
@@ -1623,7 +1687,7 @@ func Test`); err != nil {
 
 				}
 
-				if col.IsAutoPK {
+				if col.IsPrimaryKey {
 
 					if _, err = io.WriteString(_w, `    assert.Panics(t, func() {
         obj2.Set`); err != nil {

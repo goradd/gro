@@ -30,7 +30,7 @@ func Test{{= table.Identifier }}_BasicInsert(t *testing.T) {
 {{elseif col.IsDecimal() }}
     assert.True(t, test.EqualDecimals(obj.{{= col.Identifier }}(), obj2.{{= col.Identifier }}()))
 {{if}}
-{{if col.IsAutoPK}}
+{{if col.IsPrimaryKey}}
     assert.Panics(t, func() {
         obj2.Set{{= col.Identifier }}(obj2.{{= col.Identifier }}())
     })

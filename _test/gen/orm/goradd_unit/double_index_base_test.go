@@ -23,13 +23,13 @@ func createMinimalSampleDoubleIndex() *DoubleIndex {
 	obj := NewDoubleIndex()
 	updateMinimalSampleDoubleIndex(obj)
 
+	obj.SetID(test.RandomValue[int](32))
+
 	return obj
 }
 
 // updateMinimalSampleDoubleIndex sets the values of a minimal sample to new, random values.
 func updateMinimalSampleDoubleIndex(obj *DoubleIndex) {
-
-	obj.SetID(test.RandomValue[int](32))
 
 	obj.SetFieldInt(test.RandomValue[int](32))
 
@@ -41,6 +41,7 @@ func updateMinimalSampleDoubleIndex(obj *DoubleIndex) {
 // for testing that includes references to minimal objects.
 func createMaximalSampleDoubleIndex(ctx context.Context) *DoubleIndex {
 	obj := NewDoubleIndex()
+	obj.SetID(test.RandomValue[int](32))
 	updateMaximalSampleDoubleIndex(ctx, obj)
 	return obj
 }
@@ -149,10 +150,9 @@ func TestDoubleIndex_BasicInsert(t *testing.T) {
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
 	assert.True(t, obj2.IDIsLoaded())
-	// test that setting it to the same value will not change the dirty bit
-	assert.False(t, obj2.idIsDirty)
-	obj2.SetID(obj2.ID())
-	assert.False(t, obj2.idIsDirty)
+	assert.Panics(t, func() {
+		obj2.SetID(obj2.ID())
+	})
 
 	assert.True(t, obj2.FieldIntIsLoaded())
 	// test that setting it to the same value will not change the dirty bit

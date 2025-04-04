@@ -28,12 +28,10 @@ func createMinimalSampleRoot() *Root {
 	// If the database is configured so that the referenced object points back here, either directly or through multiple
 	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
 	obj.SetRequiredLeaf(createMinimalSampleLeaf())
-
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
 	// If the database is configured so that the referenced object points back here, either directly or through multiple
 	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
 	obj.SetOptionalLeafUnique(createMinimalSampleLeaf())
-
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
 	// If the database is configured so that the referenced object points back here, either directly or through multiple
 	// forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.

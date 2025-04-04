@@ -23,13 +23,13 @@ func createMinimalSampleGift() *Gift {
 	obj := NewGift()
 	updateMinimalSampleGift(obj)
 
+	obj.SetNumber(test.RandomValue[int](32))
+
 	return obj
 }
 
 // updateMinimalSampleGift sets the values of a minimal sample to new, random values.
 func updateMinimalSampleGift(obj *Gift) {
-
-	obj.SetNumber(test.RandomValue[int](32))
 
 	obj.SetName(test.RandomValue[string](50))
 
@@ -39,6 +39,7 @@ func updateMinimalSampleGift(obj *Gift) {
 // for testing that includes references to minimal objects.
 func createMaximalSampleGift(ctx context.Context) *Gift {
 	obj := NewGift()
+	obj.SetNumber(test.RandomValue[int](32))
 	updateMaximalSampleGift(ctx, obj)
 	return obj
 }
@@ -129,10 +130,9 @@ func TestGift_BasicInsert(t *testing.T) {
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
 	assert.True(t, obj2.NumberIsLoaded())
-	// test that setting it to the same value will not change the dirty bit
-	assert.False(t, obj2.numberIsDirty)
-	obj2.SetNumber(obj2.Number())
-	assert.False(t, obj2.numberIsDirty)
+	assert.Panics(t, func() {
+		obj2.SetNumber(obj2.Number())
+	})
 
 	assert.True(t, obj2.NameIsLoaded())
 	// test that setting it to the same value will not change the dirty bit

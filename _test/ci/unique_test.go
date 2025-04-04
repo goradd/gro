@@ -15,11 +15,6 @@ func TestUniquePrimaryKey(t *testing.T) {
 	gift.SetName("Conflict")
 	err := gift.Save(ctx)
 	assert.Error(t, err)
-
-	gift = goradd.LoadGift(ctx, 1)
-	gift.SetNumber(2)
-	err = gift.Save(ctx)
-	assert.Error(t, err)
 }
 
 func TestUniqueValue(t *testing.T) {
@@ -49,12 +44,8 @@ func TestUnique2Value(t *testing.T) {
 	err = i2.Save(ctx)
 	assert.Error(t, err, "error on collision of insert with unique index on 2 columns")
 
-	i.SetID(2)
-	err = i.Save(ctx)
-	assert.NoError(t, err, "changing manual pk does not cause collision")
-
 	i3 := goradd_unit.NewDoubleIndex()
-	i3.SetID(1)
+	i3.SetID(2)
 	i3.SetFieldInt(2)
 	i3.SetFieldString("blah2")
 	err = i3.Save(ctx)
