@@ -5,7 +5,6 @@ package goradd_unit
 import (
 	"bufio"
 	"bytes"
-	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -15,20 +14,6 @@ import (
 	"github.com/goradd/orm/pkg/test"
 	"github.com/stretchr/testify/assert"
 )
-
-// ClearAll deletes all the data in the database, except for data in Enum tables.
-func ClearAll(ctx context.Context) {
-	db := Database()
-
-	db.Delete(ctx, "unsupported_type", nil)
-	db.Delete(ctx, "type_test", nil)
-	db.Delete(ctx, "root", nil)
-	db.Delete(ctx, "multi_parent", nil)
-	db.Delete(ctx, "leaf_lock", nil)
-	db.Delete(ctx, "leaf", nil)
-	db.Delete(ctx, "double_index", nil)
-
-}
 
 func TestMain(m *testing.M) {
 	os.Exit(runTests(m))

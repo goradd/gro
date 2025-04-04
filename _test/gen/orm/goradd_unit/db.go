@@ -40,6 +40,20 @@ func Database() db.DatabaseI {
 	return db.GetDatabase("goradd_unit")
 }
 
+// ClearAll deletes all the data in the database, except for data in Enum tables.
+func ClearAll(ctx context.Context) {
+	db := Database()
+
+	db.Delete(ctx, "unsupported_type", nil)
+	db.Delete(ctx, "type_test", nil)
+	db.Delete(ctx, "root", nil)
+	db.Delete(ctx, "multi_parent", nil)
+	db.Delete(ctx, "leaf_lock", nil)
+	db.Delete(ctx, "leaf", nil)
+	db.Delete(ctx, "double_index", nil)
+
+}
+
 // JsonEncodeAll sends the entire database to writer as JSON.
 func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)

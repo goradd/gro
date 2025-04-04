@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"slices"
 
 	"github.com/goradd/maps"
 	"github.com/goradd/orm/pkg/codegen"
@@ -114,6 +115,73 @@ func Database() db.DatabaseI {
 	if _, err = io.WriteString(_w, `")
 }
 
+`); err != nil {
+		return
+	}
+
+	//*** clear_all.tmpl
+
+	if _, err = io.WriteString(_w, `
+`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `
+// ClearAll deletes all the data in the database, except for data in Enum tables.
+func ClearAll(ctx context.Context) {
+    db := Database()
+
+`); err != nil {
+		return
+	}
+
+	for _, mm := range database.UniqueManyManyReferences() {
+
+		if _, err = io.WriteString(_w, `    db.Delete(ctx, `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnTableName)); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `, nil)
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
+`); err != nil {
+		return
+	}
+
+	for _, table := range slices.Backward(database.MarshalOrder()) {
+
+		if _, err = io.WriteString(_w, `    db.Delete(ctx, `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, fmt.Sprintf("%#v", table.QueryName)); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `, nil)
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
+}
+
+`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `
 `); err != nil {
 		return
 	}

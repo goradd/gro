@@ -20,7 +20,7 @@ func (n NodeTestUtilsTemplate) FileName(dbKey string) string {
 	return filepath.Join("orm", dbKey, "node","utils_test.go")
 }
 
-func (n NodeTestUtilsTemplate) GenerateDatabase(database *model.Database, _w io.Writer) (err error) {
+func (n NodeTestUtilsTemplate) GenerateDatabase(database *model.Database, _w io.Writer, importPath string) (err error) {
 	{{: "node/testutils.tmpl" }}
 	return
 }

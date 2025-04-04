@@ -5,10 +5,8 @@ package template
 // This template generates a got template for the db.go file in the orm directory
 
 import (
-	"fmt"
 	"io"
 	"path/filepath"
-	"slices"
 
 	"github.com/goradd/orm/pkg/codegen"
 	"github.com/goradd/orm/pkg/model"
@@ -61,63 +59,6 @@ import (
 	if _, err = io.WriteString(_w, `/node"
 	"testing"
 )
-`); err != nil {
-		return
-	}
-
-	//*** clear_all.tmpl
-
-	if _, err = io.WriteString(_w, `
-// ClearAll deletes all the data in the database, except for data in Enum tables.
-func ClearAll(ctx context.Context) {
-    db := Database()
-
-`); err != nil {
-		return
-	}
-
-	for _, mm := range database.UniqueManyManyReferences() {
-
-		if _, err = io.WriteString(_w, `    db.Delete(ctx, `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnTableName)); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `, nil)
-`); err != nil {
-			return
-		}
-
-	}
-
-	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
-	}
-
-	for _, table := range slices.Backward(database.MarshalOrder()) {
-
-		if _, err = io.WriteString(_w, `    db.Delete(ctx, `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, fmt.Sprintf("%#v", table.QueryName)); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `, nil)
-`); err != nil {
-			return
-		}
-
-	}
-
-	if _, err = io.WriteString(_w, `
-}
-
 `); err != nil {
 		return
 	}

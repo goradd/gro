@@ -43,6 +43,8 @@ func Database() db.DatabaseI {
     return db.GetDatabase("{{= database.Key}}")
 }
 
+{{: "clear_all.tmpl" }}
+
 {{: "json_encode.tmpl" }}
 
 {{: "json_decode.tmpl" }}
