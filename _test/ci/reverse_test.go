@@ -10,6 +10,23 @@ import (
 	"testing"
 )
 
+func TestReverseReference(t *testing.T) {
+	ctx := db.NewContext(nil)
+	people := goradd.QueryPeople(ctx).
+		Select(node.Person().ManagerProjects()).
+		OrderBy(node.Person().ID()).
+		Load()
+
+	if people[0].FirstName() != "John" {
+		t.Error("Did not find person 0.")
+	}
+
+	if len(people[6].ManagerProjects()) != 2 {
+		t.Error("Did not find 2 ManagerProjects.")
+	}
+
+}
+
 func TestReverseConditionalSelect(t *testing.T) {
 	ctx := db.NewContext(nil)
 	people := goradd.QueryPeople(ctx).

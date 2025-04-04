@@ -2218,7 +2218,33 @@ func (tmpl *TableBaseTemplate) genColSetter(table *model.Table, col *model.Colum
 
 		if col.IsReference() {
 
-			if _, err = io.WriteString(_w, `	o.`); err != nil {
+			if _, err = io.WriteString(_w, `	if o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` != nil &&
+	        o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` != o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.PrimaryKey() {
+	    o.`); err != nil {
 				return
 			}
 
@@ -2227,6 +2253,7 @@ func (tmpl *TableBaseTemplate) genColSetter(table *model.Table, col *model.Colum
 			}
 
 			if _, err = io.WriteString(_w, ` = nil
+	}
 `); err != nil {
 				return
 			}
@@ -7717,15 +7744,15 @@ func (o *`); err != nil {
 			if _, err = io.WriteString(_w, `.Save(ctx); err != nil {
                 return err
             }
-            o.`); err != nil {
+            o.Set`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` = o.`); err != nil {
+			if _, err = io.WriteString(_w, `(o.`); err != nil {
 				return
 			}
 
@@ -7733,7 +7760,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `.PrimaryKey()
+			if _, err = io.WriteString(_w, `.PrimaryKey())
         }
     `); err != nil {
 				return
@@ -9138,15 +9165,15 @@ func (o *`); err != nil {
 			if _, err = io.WriteString(_w, `.Save(ctx); err != nil {
                 return err
             }
-            o.`); err != nil {
+            o.Set`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` = o.`); err != nil {
+			if _, err = io.WriteString(_w, `(o.`); err != nil {
 				return
 			}
 
@@ -9154,7 +9181,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `.PrimaryKey()
+			if _, err = io.WriteString(_w, `.PrimaryKey())
         }
     `); err != nil {
 				return

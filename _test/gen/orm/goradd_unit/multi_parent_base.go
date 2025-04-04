@@ -251,7 +251,10 @@ func (o *multiParentBase) SetParent1ID(v string) {
 	o.parent1ID = v
 	o.parent1IDIsDirty = true
 	o.parent1IDIsNull = false
-	o.objParent1 = nil
+	if o.objParent1 != nil &&
+		o.parent1ID != o.objParent1.PrimaryKey() {
+		o.objParent1 = nil
+	}
 }
 
 // SetParent1IDToNull() will set the parent_1_id value in the database to NULL.
@@ -339,7 +342,10 @@ func (o *multiParentBase) SetParent2ID(v string) {
 	o.parent2ID = v
 	o.parent2IDIsDirty = true
 	o.parent2IDIsNull = false
-	o.objParent2 = nil
+	if o.objParent2 != nil &&
+		o.parent2ID != o.objParent2.PrimaryKey() {
+		o.objParent2 = nil
+	}
 }
 
 // SetParent2IDToNull() will set the parent_2_id value in the database to NULL.
@@ -1081,7 +1087,7 @@ func (o *multiParentBase) update(ctx context.Context) error {
 			if err := o.objParent1.Save(ctx); err != nil {
 				return err
 			}
-			o.parent1ID = o.objParent1.PrimaryKey()
+			o.SetParent1ID(o.objParent1.PrimaryKey())
 		}
 
 		// Save loaded Parent2 object to get its new pk and update it here.
@@ -1089,7 +1095,7 @@ func (o *multiParentBase) update(ctx context.Context) error {
 			if err := o.objParent2.Save(ctx); err != nil {
 				return err
 			}
-			o.parent2ID = o.objParent2.PrimaryKey()
+			o.SetParent2ID(o.objParent2.PrimaryKey())
 		}
 
 		modifiedFields = o.getUpdateFields()
@@ -1214,7 +1220,7 @@ func (o *multiParentBase) insert(ctx context.Context) (err error) {
 			if err := o.objParent1.Save(ctx); err != nil {
 				return err
 			}
-			o.parent1ID = o.objParent1.PrimaryKey()
+			o.SetParent1ID(o.objParent1.PrimaryKey())
 		}
 
 		// Save loaded Parent2 object to get its new pk and update it here.
@@ -1222,7 +1228,7 @@ func (o *multiParentBase) insert(ctx context.Context) (err error) {
 			if err := o.objParent2.Save(ctx); err != nil {
 				return err
 			}
-			o.parent2ID = o.objParent2.PrimaryKey()
+			o.SetParent2ID(o.objParent2.PrimaryKey())
 		}
 
 		insertFields = o.getInsertFields()

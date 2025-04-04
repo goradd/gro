@@ -377,7 +377,10 @@ func (o *projectBase) SetManagerID(v string) {
 	o.managerID = v
 	o.managerIDIsDirty = true
 	o.managerIDIsNull = false
-	o.objManager = nil
+	if o.objManager != nil &&
+		o.managerID != o.objManager.PrimaryKey() {
+		o.objManager = nil
+	}
 }
 
 // SetManagerIDToNull() will set the manager_id value in the database to NULL.
@@ -744,7 +747,10 @@ func (o *projectBase) SetParentProjectID(v string) {
 	o.parentProjectID = v
 	o.parentProjectIDIsDirty = true
 	o.parentProjectIDIsNull = false
-	o.objParentProject = nil
+	if o.objParentProject != nil &&
+		o.parentProjectID != o.objParentProject.PrimaryKey() {
+		o.objParentProject = nil
+	}
 }
 
 // SetParentProjectIDToNull() will set the parent_project_id value in the database to NULL.
@@ -1949,7 +1955,7 @@ func (o *projectBase) update(ctx context.Context) error {
 			if err := o.objManager.Save(ctx); err != nil {
 				return err
 			}
-			o.managerID = o.objManager.PrimaryKey()
+			o.SetManagerID(o.objManager.PrimaryKey())
 		}
 
 		// Save loaded ParentProject object to get its new pk and update it here.
@@ -1957,7 +1963,7 @@ func (o *projectBase) update(ctx context.Context) error {
 			if err := o.objParentProject.Save(ctx); err != nil {
 				return err
 			}
-			o.parentProjectID = o.objParentProject.PrimaryKey()
+			o.SetParentProjectID(o.objParentProject.PrimaryKey())
 		}
 
 		if o.numIsDirty &&
@@ -2185,7 +2191,7 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 			if err := o.objManager.Save(ctx); err != nil {
 				return err
 			}
-			o.managerID = o.objManager.PrimaryKey()
+			o.SetManagerID(o.objManager.PrimaryKey())
 		}
 
 		// Save loaded ParentProject object to get its new pk and update it here.
@@ -2193,7 +2199,7 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 			if err := o.objParentProject.Save(ctx); err != nil {
 				return err
 			}
-			o.parentProjectID = o.objParentProject.PrimaryKey()
+			o.SetParentProjectID(o.objParentProject.PrimaryKey())
 		}
 
 		if !o.numIsLoaded {

@@ -1721,30 +1721,47 @@ func Test`); err != nil {
     ctx := db.NewContext(nil)
     _ = ctx
 
- `); err != nil {
+`); err != nil {
 			return
 		}
 
 		for _, col := range table.SettableColumns() {
 
-			if _, err = io.WriteString(_w, `
- `); err != nil {
-				return
-			}
-
 			if !col.IsAutoPK && !col.IsNullable {
 
-				if _, err = io.WriteString(_w, `
-    obj.`); err != nil {
-					return
+				if col.IsReference() {
+
+					if _, err = io.WriteString(_w, `    obj.`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, ` = nil
+`); err != nil {
+						return
+					}
+
+				} else {
+
+					if _, err = io.WriteString(_w, `    obj.`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `IsLoaded = false
+`); err != nil {
+						return
+					}
+
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `IsLoaded = false
-    assert.Panics(t, func() {obj.Save(ctx)})
+				if _, err = io.WriteString(_w, `    assert.Panics(t, func() {obj.Save(ctx)})
     obj.`); err != nil {
 					return
 				}
@@ -1755,21 +1772,15 @@ func Test`); err != nil {
 
 				if _, err = io.WriteString(_w, `IsLoaded = true
 
- `); err != nil {
+`); err != nil {
 					return
 				}
 
 			}
 
-			if _, err = io.WriteString(_w, `
- `); err != nil {
-				return
-			}
-
 		}
 
-		if _, err = io.WriteString(_w, `
-}
+		if _, err = io.WriteString(_w, `}
 
 func Test`); err != nil {
 			return

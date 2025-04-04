@@ -263,7 +263,10 @@ func (o *rootBase) SetOptionalLeafID(v string) {
 	o.optionalLeafID = v
 	o.optionalLeafIDIsDirty = true
 	o.optionalLeafIDIsNull = false
-	o.objOptionalLeaf = nil
+	if o.objOptionalLeaf != nil &&
+		o.optionalLeafID != o.objOptionalLeaf.PrimaryKey() {
+		o.objOptionalLeaf = nil
+	}
 }
 
 // SetOptionalLeafIDToNull() will set the optional_leaf_id value in the database to NULL.
@@ -344,7 +347,10 @@ func (o *rootBase) SetRequiredLeafID(v string) {
 	o.requiredLeafIDIsLoaded = true
 	o.requiredLeafID = v
 	o.requiredLeafIDIsDirty = true
-	o.objRequiredLeaf = nil
+	if o.objRequiredLeaf != nil &&
+		o.requiredLeafID != o.objRequiredLeaf.PrimaryKey() {
+		o.objRequiredLeaf = nil
+	}
 }
 
 // RequiredLeaf returns the current value of the loaded RequiredLeaf, and nil if its not loaded.
@@ -405,7 +411,10 @@ func (o *rootBase) SetOptionalLeafUniqueID(v string) {
 	o.optionalLeafUniqueIDIsLoaded = true
 	o.optionalLeafUniqueID = v
 	o.optionalLeafUniqueIDIsDirty = true
-	o.objOptionalLeafUnique = nil
+	if o.objOptionalLeafUnique != nil &&
+		o.optionalLeafUniqueID != o.objOptionalLeafUnique.PrimaryKey() {
+		o.objOptionalLeafUnique = nil
+	}
 }
 
 // OptionalLeafUnique returns the current value of the loaded OptionalLeafUnique, and nil if its not loaded.
@@ -466,7 +475,10 @@ func (o *rootBase) SetRequiredLeafUniqueID(v string) {
 	o.requiredLeafUniqueIDIsLoaded = true
 	o.requiredLeafUniqueID = v
 	o.requiredLeafUniqueIDIsDirty = true
-	o.objRequiredLeafUnique = nil
+	if o.objRequiredLeafUnique != nil &&
+		o.requiredLeafUniqueID != o.objRequiredLeafUnique.PrimaryKey() {
+		o.objRequiredLeafUnique = nil
+	}
 }
 
 // RequiredLeafUnique returns the current value of the loaded RequiredLeafUnique, and nil if its not loaded.
@@ -534,7 +546,10 @@ func (o *rootBase) SetParentID(v string) {
 	o.parentID = v
 	o.parentIDIsDirty = true
 	o.parentIDIsNull = false
-	o.objParent = nil
+	if o.objParent != nil &&
+		o.parentID != o.objParent.PrimaryKey() {
+		o.objParent = nil
+	}
 }
 
 // SetParentIDToNull() will set the parent_id value in the database to NULL.
@@ -1330,7 +1345,7 @@ func (o *rootBase) update(ctx context.Context) error {
 			if err := o.objOptionalLeaf.Save(ctx); err != nil {
 				return err
 			}
-			o.optionalLeafID = o.objOptionalLeaf.PrimaryKey()
+			o.SetOptionalLeafID(o.objOptionalLeaf.PrimaryKey())
 		}
 
 		// Save loaded RequiredLeaf object to get its new pk and update it here.
@@ -1338,7 +1353,7 @@ func (o *rootBase) update(ctx context.Context) error {
 			if err := o.objRequiredLeaf.Save(ctx); err != nil {
 				return err
 			}
-			o.requiredLeafID = o.objRequiredLeaf.PrimaryKey()
+			o.SetRequiredLeafID(o.objRequiredLeaf.PrimaryKey())
 		}
 
 		// Save loaded OptionalLeafUnique object to get its new pk and update it here.
@@ -1346,7 +1361,7 @@ func (o *rootBase) update(ctx context.Context) error {
 			if err := o.objOptionalLeafUnique.Save(ctx); err != nil {
 				return err
 			}
-			o.optionalLeafUniqueID = o.objOptionalLeafUnique.PrimaryKey()
+			o.SetOptionalLeafUniqueID(o.objOptionalLeafUnique.PrimaryKey())
 		}
 
 		// Save loaded RequiredLeafUnique object to get its new pk and update it here.
@@ -1354,7 +1369,7 @@ func (o *rootBase) update(ctx context.Context) error {
 			if err := o.objRequiredLeafUnique.Save(ctx); err != nil {
 				return err
 			}
-			o.requiredLeafUniqueID = o.objRequiredLeafUnique.PrimaryKey()
+			o.SetRequiredLeafUniqueID(o.objRequiredLeafUnique.PrimaryKey())
 		}
 
 		// Save loaded Parent object to get its new pk and update it here.
@@ -1362,7 +1377,7 @@ func (o *rootBase) update(ctx context.Context) error {
 			if err := o.objParent.Save(ctx); err != nil {
 				return err
 			}
-			o.parentID = o.objParent.PrimaryKey()
+			o.SetParentID(o.objParent.PrimaryKey())
 		}
 
 		if o.optionalLeafUniqueIDIsDirty &&
@@ -1453,7 +1468,7 @@ func (o *rootBase) insert(ctx context.Context) (err error) {
 			if err := o.objOptionalLeaf.Save(ctx); err != nil {
 				return err
 			}
-			o.optionalLeafID = o.objOptionalLeaf.PrimaryKey()
+			o.SetOptionalLeafID(o.objOptionalLeaf.PrimaryKey())
 		}
 
 		// Save loaded RequiredLeaf object to get its new pk and update it here.
@@ -1461,7 +1476,7 @@ func (o *rootBase) insert(ctx context.Context) (err error) {
 			if err := o.objRequiredLeaf.Save(ctx); err != nil {
 				return err
 			}
-			o.requiredLeafID = o.objRequiredLeaf.PrimaryKey()
+			o.SetRequiredLeafID(o.objRequiredLeaf.PrimaryKey())
 		}
 
 		// Save loaded OptionalLeafUnique object to get its new pk and update it here.
@@ -1469,7 +1484,7 @@ func (o *rootBase) insert(ctx context.Context) (err error) {
 			if err := o.objOptionalLeafUnique.Save(ctx); err != nil {
 				return err
 			}
-			o.optionalLeafUniqueID = o.objOptionalLeafUnique.PrimaryKey()
+			o.SetOptionalLeafUniqueID(o.objOptionalLeafUnique.PrimaryKey())
 		}
 
 		// Save loaded RequiredLeafUnique object to get its new pk and update it here.
@@ -1477,7 +1492,7 @@ func (o *rootBase) insert(ctx context.Context) (err error) {
 			if err := o.objRequiredLeafUnique.Save(ctx); err != nil {
 				return err
 			}
-			o.requiredLeafUniqueID = o.objRequiredLeafUnique.PrimaryKey()
+			o.SetRequiredLeafUniqueID(o.objRequiredLeafUnique.PrimaryKey())
 		}
 
 		// Save loaded Parent object to get its new pk and update it here.
@@ -1485,7 +1500,7 @@ func (o *rootBase) insert(ctx context.Context) (err error) {
 			if err := o.objParent.Save(ctx); err != nil {
 				return err
 			}
-			o.parentID = o.objParent.PrimaryKey()
+			o.SetParentID(o.objParent.PrimaryKey())
 		}
 
 		if !o.nameIsLoaded {

@@ -159,7 +159,10 @@ func (o *milestoneBase) SetProjectID(v string) {
 	o.projectIDIsLoaded = true
 	o.projectID = v
 	o.projectIDIsDirty = true
-	o.objProject = nil
+	if o.objProject != nil &&
+		o.projectID != o.objProject.PrimaryKey() {
+		o.objProject = nil
+	}
 }
 
 // Project returns the current value of the loaded Project, and nil if its not loaded.
@@ -676,7 +679,7 @@ func (o *milestoneBase) update(ctx context.Context) error {
 			if err := o.objProject.Save(ctx); err != nil {
 				return err
 			}
-			o.projectID = o.objProject.PrimaryKey()
+			o.SetProjectID(o.objProject.PrimaryKey())
 		}
 
 		modifiedFields = o.getUpdateFields()
@@ -714,7 +717,7 @@ func (o *milestoneBase) insert(ctx context.Context) (err error) {
 			if err := o.objProject.Save(ctx); err != nil {
 				return err
 			}
-			o.projectID = o.objProject.PrimaryKey()
+			o.SetProjectID(o.objProject.PrimaryKey())
 		}
 
 		if !o.projectIDIsLoaded {

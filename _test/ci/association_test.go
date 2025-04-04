@@ -6,8 +6,22 @@ import (
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/op"
 	"github.com/stretchr/testify/assert"
+	"strconv"
 	"testing"
 )
+
+func TestManyMany(t *testing.T) {
+	ctx := db.NewContext(nil)
+	projects := goradd.QueryProjects(ctx).
+		Select(node.Project().TeamMembers()).
+		OrderBy(node.Project().ID()).
+		Load()
+
+	if len(projects[0].TeamMembers()) != 5 {
+		t.Error("Did not find 5 team members in project 1. Found: " + strconv.Itoa(len(projects[0].TeamMembers())))
+	}
+
+}
 
 func TestMany2(t *testing.T) {
 

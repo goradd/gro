@@ -193,7 +193,10 @@ func (o *loginBase) SetPersonID(v string) {
 	o.personID = v
 	o.personIDIsDirty = true
 	o.personIDIsNull = false
-	o.objPerson = nil
+	if o.objPerson != nil &&
+		o.personID != o.objPerson.PrimaryKey() {
+		o.objPerson = nil
+	}
 }
 
 // SetPersonIDToNull() will set the person_id value in the database to NULL.
@@ -906,7 +909,7 @@ func (o *loginBase) update(ctx context.Context) error {
 			if err := o.objPerson.Save(ctx); err != nil {
 				return err
 			}
-			o.personID = o.objPerson.PrimaryKey()
+			o.SetPersonID(o.objPerson.PrimaryKey())
 		}
 
 		if o.personIDIsDirty &&
@@ -954,7 +957,7 @@ func (o *loginBase) insert(ctx context.Context) (err error) {
 			if err := o.objPerson.Save(ctx); err != nil {
 				return err
 			}
-			o.personID = o.objPerson.PrimaryKey()
+			o.SetPersonID(o.objPerson.PrimaryKey())
 		}
 
 		if !o.usernameIsLoaded {

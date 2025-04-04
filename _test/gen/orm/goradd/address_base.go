@@ -173,7 +173,10 @@ func (o *addressBase) SetPersonID(v string) {
 	o.personIDIsLoaded = true
 	o.personID = v
 	o.personIDIsDirty = true
-	o.objPerson = nil
+	if o.objPerson != nil &&
+		o.personID != o.objPerson.PrimaryKey() {
+		o.objPerson = nil
+	}
 }
 
 // Person returns the current value of the loaded Person, and nil if its not loaded.
@@ -766,7 +769,7 @@ func (o *addressBase) update(ctx context.Context) error {
 			if err := o.objPerson.Save(ctx); err != nil {
 				return err
 			}
-			o.personID = o.objPerson.PrimaryKey()
+			o.SetPersonID(o.objPerson.PrimaryKey())
 		}
 
 		modifiedFields = o.getUpdateFields()
@@ -804,7 +807,7 @@ func (o *addressBase) insert(ctx context.Context) (err error) {
 			if err := o.objPerson.Save(ctx); err != nil {
 				return err
 			}
-			o.personID = o.objPerson.PrimaryKey()
+			o.SetPersonID(o.objPerson.PrimaryKey())
 		}
 
 		if !o.personIDIsLoaded {

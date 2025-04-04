@@ -286,15 +286,15 @@ func TestRoot_InsertPanics(t *testing.T) {
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.nameIsLoaded = true
 
-	obj.requiredLeafIDIsLoaded = false
+	obj.objRequiredLeaf = nil
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.requiredLeafIDIsLoaded = true
 
-	obj.optionalLeafUniqueIDIsLoaded = false
+	obj.objOptionalLeafUnique = nil
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.optionalLeafUniqueIDIsLoaded = true
 
-	obj.requiredLeafUniqueIDIsLoaded = false
+	obj.objRequiredLeafUnique = nil
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.requiredLeafUniqueIDIsLoaded = true
 

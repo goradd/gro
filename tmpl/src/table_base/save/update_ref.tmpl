@@ -10,7 +10,7 @@
             if err := o.{{= col.ReferenceVariableIdentifier() }}.Save(ctx); err != nil {
                 return err
             }
-            o.{{= col.VariableIdentifier() }} = o.{{= col.ReferenceVariableIdentifier() }}.PrimaryKey()
+            o.Set{{= col.Identifier }}(o.{{= col.ReferenceVariableIdentifier() }}.PrimaryKey())
         }
     {{if}}
 {{for}}

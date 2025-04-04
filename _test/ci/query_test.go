@@ -8,7 +8,6 @@ import (
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/op"
 	"github.com/stretchr/testify/assert"
-	"strconv"
 	"testing"
 	"time"
 )
@@ -94,86 +93,6 @@ func TestWhere(t *testing.T) {
 
 	if people[0].FirstName() != "Wendy" {
 		t.Error("Person found not Wendy, found " + people[0].FirstName())
-	}
-}
-
-func TestReference(t *testing.T) {
-	ctx := db.NewContext(nil)
-	projects := goradd.QueryProjects(ctx).
-		Select(node.Project().Manager()).
-		OrderBy(node.Project().ID()).
-		Load()
-
-	if projects[0].Manager().FirstName() != "Karen" {
-		t.Error("Person found not Karen, found " + projects[0].Manager().FirstName())
-	}
-
-}
-
-func TestManyMany(t *testing.T) {
-	ctx := db.NewContext(nil)
-	projects := goradd.QueryProjects(ctx).
-		Select(node.Project().TeamMembers()).
-		OrderBy(node.Project().ID()).
-		Load()
-
-	if len(projects[0].TeamMembers()) != 5 {
-		t.Error("Did not find 5 team members in project 1. Found: " + strconv.Itoa(len(projects[0].TeamMembers())))
-	}
-
-}
-
-func TestReverseReference(t *testing.T) {
-	ctx := db.NewContext(nil)
-	people := goradd.QueryPeople(ctx).
-		Select(node.Person().ManagerProjects()).
-		OrderBy(node.Person().ID()).
-		Load()
-
-	if people[0].FirstName() != "John" {
-		t.Error("Did not find person 0.")
-	}
-
-	if len(people[6].ManagerProjects()) != 2 {
-		t.Error("Did not find 2 ManagerProjects.")
-	}
-
-}
-
-func TestBasicEnum(t *testing.T) {
-	ctx := db.NewContext(nil)
-	projects := goradd.QueryProjects(ctx).
-		OrderBy(node.Project().ID()).
-		Load()
-
-	if projects[0].Status() != goradd.ProjectStatusCompleted {
-		t.Error("Did not find correct project type.")
-	}
-}
-
-func TestManyEnum(t *testing.T) {
-	ctx := db.NewContext(nil)
-	people := goradd.QueryPeople(ctx).
-		OrderBy(node.Person().ID()).
-		Load()
-
-	if people[0].Types().Len() != 2 {
-		t.Error("Did not expand to 2 person types.")
-	}
-
-	if !people[0].Types().Has(goradd.PersonTypeInactive) {
-		t.Error("Did not find correct person type.")
-	}
-}
-
-func TestManyEnumSingles(t *testing.T) {
-	ctx := db.NewContext(nil)
-	people := goradd.QueryPeople(ctx).
-		OrderBy(node.Person().ID()).
-		Load()
-
-	if !people[4].Types().Has(goradd.PersonTypeWorksFromHome) {
-		t.Error("Did not find correct person type.")
 	}
 }
 

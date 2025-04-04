@@ -51,14 +51,18 @@ func Test{{= table.Identifier }}_InsertPanics(t *testing.T) {
     ctx := db.NewContext(nil)
     _ = ctx
 
- {{for _, col := range table.SettableColumns() }}
- {{if !col.IsAutoPK && !col.IsNullable }}
+{{for _, col := range table.SettableColumns() }}
+{{if !col.IsAutoPK && !col.IsNullable }}
+{{if col.IsReference() }}
+    obj.{{= col.ReferenceVariableIdentifier() }} = nil
+{{else}}
     obj.{{= col.VariableIdentifier() }}IsLoaded = false
+{{if}}
     assert.Panics(t, func() {obj.Save(ctx)})
     obj.{{= col.VariableIdentifier() }}IsLoaded = true
 
- {{if}}
- {{for}}
+{{if}}
+{{for}}
 }
 
 func Test{{= table.Identifier }}_BasicUpdate(t *testing.T) {

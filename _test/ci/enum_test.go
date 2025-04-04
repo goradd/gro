@@ -9,6 +9,43 @@ import (
 	"testing"
 )
 
+func TestBasicEnum(t *testing.T) {
+	ctx := db.NewContext(nil)
+	projects := goradd.QueryProjects(ctx).
+		OrderBy(node.Project().ID()).
+		Load()
+
+	if projects[0].Status() != goradd.ProjectStatusCompleted {
+		t.Error("Did not find correct project type.")
+	}
+}
+
+func TestManyEnum(t *testing.T) {
+	ctx := db.NewContext(nil)
+	people := goradd.QueryPeople(ctx).
+		OrderBy(node.Person().ID()).
+		Load()
+
+	if people[0].Types().Len() != 2 {
+		t.Error("Did not expand to 2 person types.")
+	}
+
+	if !people[0].Types().Has(goradd.PersonTypeInactive) {
+		t.Error("Did not find correct person type.")
+	}
+}
+
+func TestManyEnumSingles(t *testing.T) {
+	ctx := db.NewContext(nil)
+	people := goradd.QueryPeople(ctx).
+		OrderBy(node.Person().ID()).
+		Load()
+
+	if !people[4].Types().Has(goradd.PersonTypeWorksFromHome) {
+		t.Error("Did not find correct person type.")
+	}
+}
+
 func TestManyEnums(t *testing.T) {
 	ctx := db.NewContext(nil)
 

@@ -171,7 +171,7 @@ func TestMilestone_InsertPanics(t *testing.T) {
 	ctx := db.NewContext(nil)
 	_ = ctx
 
-	obj.projectIDIsLoaded = false
+	obj.objProject = nil
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.projectIDIsLoaded = true
 

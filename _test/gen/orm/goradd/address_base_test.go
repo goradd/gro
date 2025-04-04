@@ -209,7 +209,7 @@ func TestAddress_InsertPanics(t *testing.T) {
 	ctx := db.NewContext(nil)
 	_ = ctx
 
-	obj.personIDIsLoaded = false
+	obj.objPerson = nil
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.personIDIsLoaded = true
 
