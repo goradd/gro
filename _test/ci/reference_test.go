@@ -35,4 +35,20 @@ func TestReferenceUpdate(t *testing.T) {
 	assert.Equal(t, "abcd", p.FirstName())
 	p.SetFirstName(fn)
 	p.Save(ctx)
+
+	// Create a newly linked object
+	addr := goradd.NewAddress()
+	addr.SetCity("Panama City")
+	addr.SetStreet("1 El Camino")
+	addr.SetPersonID("1")
+	addr.Save(ctx)
+	defer addr.Delete(ctx)
+	person := goradd.NewPerson()
+	person.SetFirstName("Jorge")
+	person.SetLastName("Gonzales")
+	addr.SetPerson(person)
+	addr.Save(ctx)
+	defer person.Delete(ctx)
+	assert.NotEqual(t, "", addr.PersonID())
+	assert.Equal(t, person.ID(), addr.PersonID())
 }
