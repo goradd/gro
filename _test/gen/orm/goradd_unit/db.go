@@ -35,7 +35,9 @@ import (
 	"github.com/goradd/orm/pkg/db"
 )
 
-// Database returns the database object corresponding to goradd_unit in the global database cluster.
+// Database returns the database object corresponding to "goradd_unit" in the global database cluster.
+// Use this to call directly into the database through the DatabaseI interface, or if you want to call functions
+// specific to the database, cast the interface to the driver.
 func Database() db.DatabaseI {
 	return db.GetDatabase("goradd_unit")
 }

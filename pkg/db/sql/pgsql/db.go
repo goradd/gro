@@ -53,7 +53,7 @@ func NewDB(dbKey string,
 	}
 
 	m := new(DB)
-	m.DbHelper = sql2.NewSqlDb(dbKey, db3, m)
+	m.DbHelper = sql2.NewSqlHelper(dbKey, db3, m)
 	return m
 }
 

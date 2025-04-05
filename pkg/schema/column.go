@@ -38,7 +38,7 @@ type Column struct {
 	// If a []byte column, Size is the maximum number of bytes allowed in the column.
 	// If an int, unsigned int, or float, Size is the number of bits allowed in the number and will also
 	// determine the Go number type that will represent the column. This can be a zero in order to use the default,
-	// (int, uint or float64).
+	// which will be 32-bits for ints (the SQL default), or 64-bits for floats.
 	Size uint64 `json:"size,omitempty"`
 
 	// DefaultValue is the value that this field will be initialized to when a new object is created.
@@ -178,6 +178,14 @@ func (c *Column) FillDefaults(db *Database, table *Table) {
 
 	if c.Identifier == "" {
 		c.Identifier = snaker.SnakeToCamelIdentifier(c.Name)
+	}
+
+	if c.Size == 0 {
+		if c.Type == ColTypeInt {
+			c.Size = 32
+		} else if c.Type == ColTypeFloat {
+			c.Size = 64
+		}
 	}
 
 }

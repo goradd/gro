@@ -35,7 +35,6 @@ func (l LimitParams) AreSet() bool {
 // BuilderI is the interface to the builder structure. Since the builder is directly interacted with by the developer,
 // passing this interface instead of the Builder object makes it more clear what the developer should use to build queries.
 type BuilderI interface {
-	//Join(n Node, condition Node)
 	Where(c Node)
 	Having(c Node)
 	OrderBy(nodes ...Sorter)
@@ -44,8 +43,6 @@ type BuilderI interface {
 	Select(nodes ...Node)
 	Distinct()
 	Calculation(base TableNodeI, alias string, n OperationNodeI)
-	//Subquery() *SubqueryNode
-	//Context() context.Context
 }
 
 type calc struct {
@@ -58,7 +55,7 @@ type calc struct {
 // processes the query into a join tree that can be used by database drivers to generate
 // the database specific query.
 type Builder struct {
-	Ctx     context.Context // The context that will be used in all the queries
+	ctx     context.Context // The context that will be used in all the queries
 	Command BuilderCommand
 	Root    TableNodeI
 	//Joins      []Node
@@ -79,12 +76,12 @@ func NewBuilder(ctx context.Context, rootNode TableNodeI) *Builder {
 		panic("root node must be a top level node")
 	}
 
-	return &Builder{Ctx: ctx, Root: rootNode}
+	return &Builder{ctx: ctx, Root: rootNode}
 }
 
 // Context returns the context.
 func (b *Builder) Context() context.Context {
-	return b.Ctx
+	return b.ctx
 }
 
 /*

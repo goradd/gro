@@ -94,7 +94,7 @@ import (
 	"encoding/json"
 )
 
-// Database returns the database object corresponding to `); err != nil {
+// Database returns the database object corresponding to "`); err != nil {
 		return
 	}
 
@@ -102,7 +102,9 @@ import (
 		return
 	}
 
-	if _, err = io.WriteString(_w, ` in the global database cluster.
+	if _, err = io.WriteString(_w, `" in the global database cluster.
+// Use this to call directly into the database through the DatabaseI interface, or if you want to call functions
+// specific to the database, cast the interface to the driver.
 func Database() db.DatabaseI {
     return db.GetDatabase("`); err != nil {
 		return

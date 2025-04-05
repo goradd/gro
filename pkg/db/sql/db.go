@@ -69,8 +69,8 @@ type DbHelper struct {
 	profiling bool
 }
 
-// NewSqlDb creates a default DbHelper mixin.
-func NewSqlDb(dbKey string, db *sql.DB, dbi DbI) DbHelper {
+// NewSqlHelper creates a default DbHelper mixin.
+func NewSqlHelper(dbKey string, db *sql.DB, dbi DbI) DbHelper {
 	s := DbHelper{
 		dbKey: dbKey,
 		db:    db,
@@ -353,11 +353,11 @@ func (h *DbHelper) BuilderQuery(builder *Builder) (ret any) {
 	joinTree := jointree.NewJoinTree(builder)
 	switch joinTree.Command {
 	case BuilderCommandLoad:
-		ret = h.joinTreeLoad(builder.Ctx, joinTree)
+		ret = h.joinTreeLoad(builder.Context(), joinTree)
 	case BuilderCommandLoadCursor:
-		ret = h.joinTreeLoadCursor(builder.Ctx, joinTree)
+		ret = h.joinTreeLoadCursor(builder.Context(), joinTree)
 	case BuilderCommandCount:
-		ret = h.joinTreeCount(builder.Ctx, joinTree)
+		ret = h.joinTreeCount(builder.Context(), joinTree)
 	}
 	return
 }
