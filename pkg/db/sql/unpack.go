@@ -19,66 +19,37 @@ func ReceiveRows(rows *sql.Rows,
 	columnTypes []query.ReceiverType,
 	columnNames []string,
 	joinTree *jointree.JoinTree,
-) []map[string]any {
-	var values []map[string]any
+	sql string,
+	args []any,
+) (values []map[string]any, err error) {
+	var cursor query.CursorI
 
-	cursor := NewSqlCursor(rows, columnTypes, columnNames, nil)
-	defer cursor.Close()
-	for v := cursor.Next(); v != nil; v = cursor.Next() {
+	cursor = NewSqlCursor(rows, columnTypes, columnNames, nil, sql, args)
+	defer func() {
+		cerr := cursor.Close()
+		if err != nil {
+			err = cerr
+		}
+	}()
+
+	var v map[string]any
+	for v, err = cursor.Next(); v != nil; v, err = cursor.Next() {
+		if err != nil {
+			return nil, err
+		}
 		values = append(values, v)
 	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
 	if joinTree != nil {
 		values = unpack(joinTree, values)
 	}
 
-	return values
+	return values, nil
 }
-
-/*
-// sqlReceiveRows2 gets data from a sql result set and returns it as a slice of maps. Each column is mapped to its column name.
-// If you provide column names, those will be used in the map. Otherwise it will get the column names out of the
-// result set provided
-// This unused code is here in case we need to jetison the cursor method above.
-func sqlReceiveRows2(rows *sql.Rows, columnTypes []query.ReceiverType, columnNames []string) (values []map[string]interface{}) {
-	var err error
-
-	values = []map[string]interface{}{}
-
-	columnReceivers := make([]SqlReceiver, len(columnTypes))
-	columnValueReceivers := make([]interface{}, len(columnTypes))
-
-	if columnNames == nil {
-		columnNames, err = rows.Columns()
-		if err != nil {
-			log.Panic(err)
-		}
-	}
-
-	for i, _ := range columnReceivers {
-		columnValueReceivers[i] = &(columnReceivers[i].R)
-	}
-
-	for rows.Next() {
-		err = rows.Scan(columnValueReceivers...)
-
-		if err != nil {
-			log.Panic(err)
-		}
-
-		v1 := make(map[string]interface{}, len(columnReceivers))
-		for j, vr := range columnReceivers {
-			v1[columnNames[j]] = vr.Unpack(columnTypes[j])
-		}
-		values = append(values, v1)
-
-	}
-	err = rows.Err()
-	if err != nil {
-		log.Panic(err)
-	}
-	return
-}
-*/
 
 /*
 Notes on the unpacking process:
@@ -195,7 +166,7 @@ func (u *unpacker) unpackLeaf(j *jointree.Element, row db.ValueMap, obj db.Value
 		fieldName := node.QueryName
 		obj[fieldName] = row[key]
 	} else {
-		panic("Unexpected node type.")
+		panic("Unexpected node type.") // this is a framework error, should not happen
 	}
 }
 
@@ -208,7 +179,7 @@ func (u *unpacker) makeObjectKey(tableElement *jointree.Element, row db.ValueMap
 	if pk == nil || pk.Alias == "" {
 		// We are not identifying the row by a PK because of one of the following:
 		// 1) This is a distinct select, and we are not selecting pks to avoid affecting the results of the query
-		// 2) This is a groupby clause, which forces us to select only the groupby items and we cannot add a PK to the row
+		// 2) This is a groupby clause, which forces us to select only the groupby items and means we cannot add a PK to the row
 		// We will therefore make up a unique key to identify the row such that none of the rows are grouped.
 		u.rowId++
 		return strconv.Itoa(u.rowId)
@@ -225,7 +196,7 @@ func (u *unpacker) makeObjectKey(tableElement *jointree.Element, row db.ValueMap
 func (u *unpacker) unpackCalculationAliases(calcNodes map[string]query.Node, row db.ValueMap, result db.ValueMap) {
 	var aliasMap map[string]any // using map[string]any instead of db.ValueMap serves two purposes:
 	// 1) allows us just to pass it through and
-	// 2) signals to later unpacking operations that its not an object
+	// 2) signals to later unpacking operations that it is not an object
 
 	if i := result[query.AliasResults]; i == nil {
 		aliasMap = make(map[string]any)

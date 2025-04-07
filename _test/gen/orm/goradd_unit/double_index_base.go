@@ -661,12 +661,12 @@ func (o *doubleIndexBase) update(ctx context.Context) error {
 
 		if o.idIsDirty &&
 			LoadDoubleIndexByID(ctx, o.id) != nil {
-			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for ID: %v", o.id))
+			return db.NewUniqueValueError(fmt.Sprintf("error: duplicate value found for ID: %v", o.id))
 		}
 
 		if (o.fieldIntIsDirty || o.fieldStringIsDirty) &&
 			LoadDoubleIndexByFieldIntFieldString(ctx, o.fieldInt, o.fieldString) != nil {
-			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value FieldInt=%v & FieldString=%v", o.fieldInt, o.fieldString))
+			return db.NewUniqueValueError(fmt.Sprintf("error: duplicate value FieldInt=%v & FieldString=%v", o.fieldInt, o.fieldString))
 		}
 
 		modifiedFields = o.getUpdateFields()
@@ -711,12 +711,12 @@ func (o *doubleIndexBase) insert(ctx context.Context) (err error) {
 
 		if o.idIsDirty &&
 			LoadDoubleIndexByID(ctx, o.id) != nil {
-			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for ID: %v", o.id))
+			return db.NewUniqueValueError(fmt.Sprintf("error: duplicate value found for ID: %v", o.id))
 		}
 
 		if (o.fieldIntIsDirty || o.fieldStringIsDirty) &&
 			LoadDoubleIndexByFieldIntFieldString(ctx, o.fieldInt, o.fieldString) != nil {
-			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value FieldInt=%v & FieldString=%v", o.fieldInt, o.fieldString))
+			return db.NewUniqueValueError(fmt.Sprintf("error: duplicate value FieldInt=%v & FieldString=%v", o.fieldInt, o.fieldString))
 		}
 
 		insertFields = o.getInsertFields()

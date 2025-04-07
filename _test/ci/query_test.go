@@ -1,6 +1,7 @@
 package ci
 
 import (
+	"encoding/json"
 	"github.com/goradd/orm/_test/gen/orm/goradd"
 	"github.com/goradd/orm/_test/gen/orm/goradd/node"
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit"
@@ -311,6 +312,16 @@ func TestMultiParent(t *testing.T) {
 
 	mom2 := goradd_unit.LoadMultiParent(ctx, mom.ID(), node2.MultiParent().Parent1MultiParents())
 	assert.Equal(t, mom2.Parent1MultiParents()[0].ID(), baby.ID())
+
+	b, err := json.Marshal(baby)
+	assert.NoError(t, err)
+
+	baby2 := goradd_unit.NewMultiParent()
+	err = baby2.UnmarshalJSON(b)
+	assert.NoError(t, err)
+	assert.Equal(t, baby.ID(), baby2.ID())
+	assert.Equal(t, baby.Parent1().ID(), baby2.Parent1().ID())
+	assert.Equal(t, baby.Parent2().ID(), baby2.Parent2().ID())
 }
 
 func TestTimeDefaults(t *testing.T) {

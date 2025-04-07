@@ -44,7 +44,7 @@ func ReadJsonFile(infile string) (schemas []*Database, err error) {
 	decoder.UseNumber()
 
 	if err := decoder.Decode(&schemas); err != nil {
-		panic(err)
+		return
 	}
 
 	// Fix up interfaces

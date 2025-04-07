@@ -8,8 +8,6 @@ import (
 	"iter"
 )
 
-var DriverType string
-
 // List of supported database drivers
 const (
 	DriverTypeMysql    = "mysql"
@@ -51,25 +49,25 @@ type DatabaseI interface {
 	Insert(ctx context.Context, table string, pkName string, fields map[string]any) (string, error)
 	// Delete will delete records from the database that match the key value pairs in where.
 	// If where is nil, all the data will be deleted.
-	Delete(ctx context.Context, table string, where map[string]any)
+	Delete(ctx context.Context, table string, where map[string]any) error
 	// Query executes a simple query on a single table using fields, where the keys of fields are the names of database fields to select,
 	// and the values are the types of data to return for each field.
 	// If orderBy is not nil, it specifies field names to sort the data on, in ascending order.
 	// If the database supports transactions and row locking, and a transaction is active, it will lock the rows read, and
 	// depending on the setting in the transaction, it will be either a read or a write lock.
-	Query(ctx context.Context, table string, fields map[string]ReceiverType, where map[string]any, orderBy []string) CursorI
+	Query(ctx context.Context, table string, fields map[string]ReceiverType, where map[string]any, orderBy []string) (CursorI, error)
 	// BuilderQuery performs a complex query using a query builder.
 	// The data returned will depend on the command inside the builder.
-	BuilderQuery(builder *Builder) any
+	BuilderQuery(builder *Builder) (any, error)
 	// Begin will begin a transaction in the database and return the transaction id
 	// Instead of calling Begin directly, use the ExecuteTransaction wrapper.
-	Begin(ctx context.Context) TransactionID
+	Begin(ctx context.Context) (TransactionID, error)
 	// Commit will commit the given transaction
-	Commit(ctx context.Context, txid TransactionID)
+	Commit(ctx context.Context, txid TransactionID) error
 	// Rollback will roll back the given transaction PROVIDED it has not been committed. If it has been
 	// committed, it will do nothing. Rollback can therefore be used in a defer statement as a safeguard in case
 	// a transaction fails.
-	Rollback(ctx context.Context, txid TransactionID)
+	Rollback(ctx context.Context, txid TransactionID) error
 	// NewContext is called early in the processing of a response to insert an empty context that the database can use if needed.
 	NewContext(ctx context.Context) context.Context
 }
@@ -105,14 +103,23 @@ func NewContext(ctx context.Context) context.Context {
 }
 
 // ExecuteTransaction wraps the function f in a database transaction.
-// forWrite indicates that the transaction is a write transaction and should write lock any row locks.
 func ExecuteTransaction(ctx context.Context, d DatabaseI, f func() error) error {
-	txid := d.Begin(ctx)
-	defer d.Rollback(ctx, txid)
-	err := f()
-	if err == nil {
-		d.Commit(ctx, txid)
+	txid, err := d.Begin(ctx)
+	if err != nil {
+		return err
 	}
+	defer func() {
+		rerr := d.Rollback(ctx, txid)
+		if err == nil {
+			err = rerr
+		}
+	}()
+	err = f()
+	if err != nil {
+		return err
+	}
+
+	err = d.Commit(ctx, txid)
 	return err
 }
 
@@ -130,14 +137,19 @@ func AssociateOnly[J, K any](ctx context.Context,
 	srcColumnName string,
 	pk J,
 	relatedColumnName string,
-	relatedPks []K) {
-	_ = ExecuteTransaction(ctx, d, func() error {
-		d.Delete(ctx, assnTable, map[string]interface{}{srcColumnName: pk})
+	relatedPks []K) error {
+	err := ExecuteTransaction(ctx, d, func() error {
+		if err := d.Delete(ctx, assnTable, map[string]interface{}{srcColumnName: pk}); err != nil {
+			return err
+		}
 		for _, relatedPk := range relatedPks {
-			d.Insert(ctx, assnTable, "", map[string]any{srcColumnName: pk, relatedColumnName: relatedPk})
+			if _, err := d.Insert(ctx, assnTable, "", map[string]any{srcColumnName: pk, relatedColumnName: relatedPk}); err != nil {
+				return err
+			}
 		}
 		return nil
 	})
+	return err
 }
 
 // Associate adds a record to the assnTable table.
@@ -147,6 +159,7 @@ func Associate[J, K any](ctx context.Context,
 	srcColumnName string,
 	pk J,
 	relatedColumnName string,
-	relatedPk K) {
-	d.Insert(ctx, assnTable, "", map[string]any{srcColumnName: pk, relatedColumnName: relatedPk})
+	relatedPk K) error {
+	_, err := d.Insert(ctx, assnTable, "", map[string]any{srcColumnName: pk, relatedColumnName: relatedPk})
+	return err
 }

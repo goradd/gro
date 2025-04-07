@@ -9,7 +9,6 @@ import (
 	"github.com/goradd/orm/pkg/db"
 	sql2 "github.com/goradd/orm/pkg/db/sql"
 	. "github.com/goradd/orm/pkg/query"
-	"log"
 	"strings"
 	"time"
 )
@@ -57,9 +56,10 @@ type DB struct {
 // NewDB returns a new DB database object that you can add to the datastore.
 // If connectionString is set, it will be used to create the configuration. Otherwise,
 // use a config setting.
-func NewDB(dbKey string, connectionString string, config *mysql.Config) *DB {
+func NewDB(dbKey string, connectionString string, config *mysql.Config) (*DB, error) {
 	if connectionString == "" && config == nil {
-		panic("must specify how to connect to the database")
+		return nil, fmt.Errorf("must specify how to connect to the database")
+
 	}
 	if connectionString == "" {
 		connectionString = config.FormatDSN()
@@ -67,17 +67,17 @@ func NewDB(dbKey string, connectionString string, config *mysql.Config) *DB {
 
 	db3, err := sqldb.Open("mysql", connectionString)
 	if err != nil {
-		panic("Could not open database: " + err.Error())
+		return nil, fmt.Errorf("could not open database: %w", err)
 	}
 	err = db3.Ping()
 	if err != nil {
-		panic("Could not ping database " + dbKey + ":" + err.Error())
+		return nil, fmt.Errorf("could not ping database: %w", err)
 	}
 
 	m := new(DB)
 	m.DbHelper = sql2.NewSqlHelper(dbKey, db3, m)
 	m.databaseName = config.DBName // save off the database name for later use
-	return m
+	return m, nil
 }
 
 // OverrideConfigSettings will use a map read in from a json file to modify
@@ -140,7 +140,7 @@ func (m *DB) QuoteIdentifier(v string) string {
 
 // FormatArgument formats the given argument number for embedding in a SQL statement.
 // Mysql just uses a question mark as a placeholder.
-func (m *DB) FormatArgument(n int) string {
+func (m *DB) FormatArgument(_ int) string {
 	return "?"
 }
 
@@ -172,24 +172,22 @@ func (m *DB) SupportsForUpdate() bool {
 
 // Insert inserts the given data as a new record in the database.
 // It returns the record id of the new record.
-func (m *DB) Insert(ctx context.Context, table string, pkName string, fields map[string]interface{}) (string, error) {
+func (m *DB) Insert(ctx context.Context, table string, _ string, fields map[string]interface{}) (string, error) {
 	s, args := sql2.GenerateInsert(m, table, fields)
 	if r, err := m.SqlExec(ctx, s, args...); err != nil {
-		if me, ok := err.(*mysql.MySQLError); ok {
+		if me, ok := all.As[*mysql.MySQLError](err); ok {
 			// expected error situation to report to developer
 			if me.Number == 1062 {
-				// Since its not possible to completely prevent a unique constraint error, except by implementing a seaprate
+				// Since it is not possible to completely prevent a unique constraint error, except by implementing a separate
 				// service to track and lock unique values that are in use (which is beyond the scope of the ORM), we need
-				// to see if this is that kind of error and return it, rather than panicking.
-				return "", db.NewDuplicateValueError("error: duplicate value violates unique constraint")
+				// to see if this is that kind of error and return it.
+				return "", db.NewUniqueValueError(table, "", "", err)
 			}
 		}
-		// unexpected error, likely a sql error
-		log.Printf("Sql error for: %s, %v", s, args)
-		panic(err.Error())
+		return "", db.NewQueryError("SqlExec", s, args, err)
 	} else {
 		if id, err2 := r.LastInsertId(); err2 != nil {
-			panic(err2.Error())
+			return "", db.NewQueryError("LastInsertId", s, args, err2)
 		} else {
 			return fmt.Sprint(id), nil
 		}
@@ -222,16 +220,16 @@ func (m *DB) Update(ctx context.Context,
 	s, args := sql2.GenerateUpdate(m, table, fields, map[string]any{pkName: pkValue})
 	_, err = m.SqlExec(ctx, s, args...)
 	if err != nil {
-		if me, ok := err.(*mysql.MySQLError); ok {
+		if me, ok := all.As[*mysql.MySQLError](err); ok {
 			// expected error situation to report to developer
 			if me.Number == 1062 {
-				// Since its not possible to completely prevent a unique constraint error, except by implementing a seaprate
+				// Since it is not possible to completely prevent a unique constraint error, except by implementing a separate
 				// service to track and lock unique values that are in use (which is beyond the scope of the ORM), we need
 				// to see if this is that kind of error and return it, rather than panicking.
-				return 0, db.NewDuplicateValueError("error: duplicate value violates unique constraint")
+				return 0, db.NewUniqueValueError(table, "", "", err)
 			}
 		}
-		log.Panic(err) // some kind of database error, should be notified immediately
+		return 0, db.NewQueryError("SqlExec", s, args, err)
 	}
 	return
 }

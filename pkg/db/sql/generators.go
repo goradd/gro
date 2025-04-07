@@ -254,15 +254,6 @@ func (g *sqlGenerator) generateAlias(alias string) (sql string) {
 	return g.iq(alias)
 }
 
-func (g *sqlGenerator) generateSubquerySql(node *SubqueryNode) (sql string) {
-	// The copy below intentionally reuses the argList and db items
-	g2 := *g
-	//g2.b = SubqueryBuilder(node).(*jointree.Builder)
-	sql, _ = g2.generateSelectSql()
-	sql = "(" + sql + ")"
-	return
-}
-
 func (g *sqlGenerator) generateCountSql() (sql string, args []any) {
 	if g.jt.HasSelects() || g.jt.HasCalcs() {
 		// Use a subquery to get the rows, then just count the rows

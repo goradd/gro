@@ -17,7 +17,7 @@ const (
 const AliasResults = "aliases_"
 
 type CursorI interface {
-	Next() map[string]interface{}
+	Next() (map[string]interface{}, error)
 	Close() error
 }
 

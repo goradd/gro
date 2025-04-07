@@ -8,12 +8,11 @@ package sql
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/db/jointree"
 	. "github.com/goradd/orm/pkg/query"
-	"log"
+	"io"
 	"log/slog"
 	"strings"
 	"time"
@@ -34,7 +33,7 @@ type DbI interface {
 	// in a sql string. Some sqls just use "?" while others identify an argument
 	// by location, like Postgres's $1, $2, etc.
 	FormatArgument(n int) string
-	// The driver should return true if it supports SELECT ... FOR UPDATE clauses for row level locking in a transaction
+	// SupportsForUpdate will return true if it supports SELECT ... FOR UPDATE clauses for row level locking in a transaction
 	SupportsForUpdate() bool
 }
 
@@ -81,9 +80,7 @@ func NewSqlHelper(dbKey string, db *sql.DB, dbi DbI) DbHelper {
 
 // Begin starts a transaction. You should immediately defer a Rollback using the returned transaction id.
 // If you Commit before the Rollback happens, no Rollback will occur. The Begin-Commit-Rollback pattern is nestable.
-// Pass true to forWrite if this is a transaction that will insert or update data. This will cause row locks to be
-// write locks.
-func (h *DbHelper) Begin(ctx context.Context) (txid db.TransactionID) {
+func (h *DbHelper) Begin(ctx context.Context) (txid db.TransactionID, err error) {
 	c := h.getContext(ctx)
 	if c == nil {
 		panic("Can't use transactions without pre-loading a context")
@@ -91,47 +88,46 @@ func (h *DbHelper) Begin(ctx context.Context) (txid db.TransactionID) {
 	c.txCount++
 
 	if c.txCount == 1 {
-		var err error
-
-		c.tx, err = h.db.Begin()
+		c.tx, err = h.db.BeginTx(ctx, nil)
 		if err != nil {
-			_ = c.tx.Rollback()
 			c.txCount-- // transaction did not begin
-			panic(err.Error())
+			return db.TransactionID(-1), db.NewQueryError("Begin", "", nil, err)
 		}
 	}
-	return db.TransactionID(c.txCount)
+	return db.TransactionID(c.txCount), nil
 }
 
 // Commit commits the transaction, and if an error occurs, will panic with the error.
-func (h *DbHelper) Commit(ctx context.Context, txid db.TransactionID) {
+func (h *DbHelper) Commit(ctx context.Context, txid db.TransactionID) error {
 	c := h.getContext(ctx)
 	if c == nil {
 		panic("Can't use transactions without pre-loading a context")
 	}
 
 	if c.txCount != int(txid) {
-		panic("Missing Rollback after previous Begin")
+		panic("Invalid transaction ID. Probably did not call Rollback after calling Begin in a previous wrapper")
 	}
 
 	if c.txCount == 0 {
 		panic("Called Commit without a matching Begin")
 	}
+
 	if c.txCount == 1 {
 		err := c.tx.Commit()
 		if err != nil {
-			panic(err.Error())
+			return db.NewQueryError("Commit", "", nil, err)
 		}
 		c.tx = nil
 	}
 	c.txCount--
+	return nil
 }
 
 // Rollback will rollback the transaction if the transaction is still pointing to the given txid. This gives the effect
 // that if you call Rollback on a transaction that has already been committed, no Rollback will happen. This makes it easier
 // to implement a transaction management scheme, because you simply always defer a Rollback after a Begin. Pass the txid
-// that you got from the Begin to the Rollback. To trigger a Rollback, simply panic.
-func (h *DbHelper) Rollback(ctx context.Context, txid db.TransactionID) {
+// that you got from the Begin to the Rollback. To trigger a Rollback, simply panic or exit the function.
+func (h *DbHelper) Rollback(ctx context.Context, txid db.TransactionID) error {
 	c := h.getContext(ctx)
 	if c == nil {
 		panic("Can't use transactions without pre-loading a context")
@@ -142,15 +138,18 @@ func (h *DbHelper) Rollback(ctx context.Context, txid db.TransactionID) {
 		c.txCount = 0
 		c.tx = nil
 		if err != nil {
-			log.Panic(err.Error())
+			return db.NewQueryError("Rollback", "", nil, err)
 		}
 	}
+	return nil
 }
 
 // SqlExec executes the given SQL code, without returning any result rows.
 func (h *DbHelper) SqlExec(ctx context.Context, sql string, args ...interface{}) (r sql.Result, err error) {
 	c := h.getContext(ctx)
-	slog.Debug("SqlExec: ", sql, args)
+	slog.Debug("SqlExec: ",
+		slog.String(db.LogSql, sql),
+		slog.Any(db.LogArgs, args))
 
 	var beginTime = time.Now()
 
@@ -200,7 +199,9 @@ func (s *DbHelper) Prepare(ctx context.Context, sql string) (r *sql.Stmt, err er
 // SqlQuery executes the given sql, and returns a row result set.
 func (h *DbHelper) SqlQuery(ctx context.Context, sql string, args ...interface{}) (r *sql.Rows, err error) {
 	c := h.getContext(ctx)
-	slog.Debug("SqlQuery: ", sql, args)
+	slog.Debug("SqlExec: ",
+		slog.String(db.LogSql, sql),
+		slog.Any(db.LogArgs, args))
 
 	var beginTime = time.Now()
 	if c != nil && c.tx != nil {
@@ -282,7 +283,8 @@ func (h *DbHelper) GetProfiles(ctx context.Context) []ProfileEntry {
 // Query queries table for fields and returns a cursor that can be used to scan the result set.
 // If where is provided, it will limit the result set to rows with fields that match the where values.
 // If orderBy is provided, the result set will be sorted in ascending order by the fields indicated there.
-func (h *DbHelper) Query(ctx context.Context, table string, fields map[string]ReceiverType, where map[string]any, orderBy []string) CursorI {
+// The returned cursor must eventually be closed.
+func (h *DbHelper) Query(ctx context.Context, table string, fields map[string]ReceiverType, where map[string]any, orderBy []string) (CursorI, error) {
 	var fieldNames []string
 	var receivers []ReceiverType
 	for k, v := range fields {
@@ -291,22 +293,22 @@ func (h *DbHelper) Query(ctx context.Context, table string, fields map[string]Re
 	}
 	s, args := GenerateSelect(h.dbi, table, fieldNames, where, orderBy)
 	if rows, err := h.SqlQuery(ctx, s, args...); err != nil {
-		panic(err.Error())
+		return nil, db.NewQueryError("SqlQuery", s, args, err)
 	} else {
-		return NewSqlCursor(rows, receivers, fieldNames, nil)
+		return NewSqlCursor(rows, receivers, fieldNames, nil, s, args), nil
 	}
 }
 
 // Delete deletes the indicated record from the database.
 // Care should be exercised when calling this directly, since related records are not modified in any way.
 // If this record has related records, the database structure may be corrupted.
-func (h *DbHelper) Delete(ctx context.Context, table string, where map[string]any) {
+func (h *DbHelper) Delete(ctx context.Context, table string, where map[string]any) error {
 	s, args := GenerateDelete(h.dbi, table, where)
 	_, e := h.SqlExec(ctx, s, args...)
 	if e != nil {
-		log.Printf("Sql error for: %s, %v", s, args)
-		panic(e.Error())
+		return db.NewQueryError("SqlExec", s, args, e)
 	}
+	return nil
 }
 
 func (h *DbHelper) CheckLock(ctx context.Context,
@@ -320,21 +322,20 @@ func (h *DbHelper) CheckLock(ctx context.Context,
 		s, args := GenerateVersionLock(h.dbi, table, pkName, pkValue, optLockFieldName, h.IsInTransaction(ctx))
 		var rows *sql.Rows
 		if rows, err = h.SqlQuery(ctx, s, args...); err != nil {
-			return
+			return 0, db.NewQueryError("SqlQuery", s, args, err)
 		} else {
 			var version int64
-			defer rows.Close()
+			defer RowClose(rows)
 			if !rows.Next() {
 				// The record was deleted prior to an update completing.
-				err = db.NewRecordNotFoundError(fmt.Sprintf("Record not found, table: %s, pk: %s", table, pkValue))
-				return
+				return 0, db.NewRecordNotFoundError(table, pkValue)
 			}
 			if err = rows.Scan(&version); err != nil {
-				panic(err) // a database error, perhaps the version field does not exist in the database?
+				return 0, db.NewQueryError("Scan", s, args, err)
 			}
 			if version != optLockFieldValue {
 				// The record was changed prior to an update completing.
-				err = db.NewOptimisticLockError(fmt.Sprintf("Optimistic lock error, table: %s, pk: %s", table, pkValue), nil)
+				err = db.NewOptimisticLockError(table, pkValue, nil)
 				return
 			}
 			// If we get here, and we are in a transaction, the record has been locked until the end of the transaction and optimistic locking is valid.
@@ -349,34 +350,35 @@ func (h *DbHelper) CheckLock(ctx context.Context,
 
 // BuilderQuery performs a complex query using a query builder.
 // The data returned will depend on the command inside the builder.
-func (h *DbHelper) BuilderQuery(builder *Builder) (ret any) {
+// Be sure when using BuilderCommandLoadCursor you close the returned cursor, probably with a defer command.
+func (h *DbHelper) BuilderQuery(builder *Builder) (ret any, err error) {
 	joinTree := jointree.NewJoinTree(builder)
 	switch joinTree.Command {
 	case BuilderCommandLoad:
-		ret = h.joinTreeLoad(builder.Context(), joinTree)
+		ret, err = h.joinTreeLoad(builder.Context(), joinTree)
 	case BuilderCommandLoadCursor:
-		ret = h.joinTreeLoadCursor(builder.Context(), joinTree)
+		ret, err = h.joinTreeLoadCursor(builder.Context(), joinTree)
 	case BuilderCommandCount:
-		ret = h.joinTreeCount(builder.Context(), joinTree)
+		ret, err = h.joinTreeCount(builder.Context(), joinTree)
 	}
 	return
 }
 
-func (h *DbHelper) joinTreeLoad(ctx context.Context, joinTree *jointree.JoinTree) []map[string]any {
+func (h *DbHelper) joinTreeLoad(ctx context.Context, joinTree *jointree.JoinTree) ([]map[string]any, error) {
 	g := newSqlGenerator(joinTree, h.dbi)
 	s, args := g.generateSelectSql()
 
 	rows, err := h.dbi.SqlQuery(ctx, s, args...)
-
 	if err != nil {
-		// This is possibly generating an error related to the sql itself, so put the sql in the error message.
-		s := err.Error()
-		s += "\nSql: " + s
-
-		panic(errors.New(s))
+		return nil, db.NewQueryError("SqlQuery", s, args, err)
 	}
+	defer RowClose(rows)
 
-	names, _ := rows.Columns()
+	var names []string
+	names, err = rows.Columns()
+	if err != nil {
+		return nil, db.NewQueryError("Columns", s, args, err)
+	}
 
 	// prepare the selected columns for unpacking
 	columnTypes := make([]ReceiverType, 0, len(names))
@@ -389,22 +391,16 @@ func (h *DbHelper) joinTreeLoad(ctx context.Context, joinTree *jointree.JoinTree
 		columnTypes = append(columnTypes, ColTypeBytes) // These will be unpacked when they are retrieved
 	}
 
-	result := ReceiveRows(rows, columnTypes, names, joinTree)
-
-	return result
+	return ReceiveRows(rows, columnTypes, names, joinTree, s, args)
 }
 
-func (h *DbHelper) joinTreeLoadCursor(ctx context.Context, joinTree *jointree.JoinTree) any {
+// The cursor returned must be closed by the caller.
+func (h *DbHelper) joinTreeLoadCursor(ctx context.Context, joinTree *jointree.JoinTree) (any, error) {
 	g := newSqlGenerator(joinTree, h.dbi)
 	s, args := g.generateSelectSql()
 	rows, err := h.dbi.SqlQuery(ctx, s, args...)
-
 	if err != nil {
-		// This is possibly generating an error related to the sql itself, so put the sql in the error message.
-		s := err.Error()
-		s += "\nSql: " + s
-
-		panic(errors.New(s))
+		return nil, db.NewQueryError("SqlQuery", s, args, err)
 	}
 
 	names, _ := rows.Columns()
@@ -417,26 +413,31 @@ func (h *DbHelper) joinTreeLoadCursor(ctx context.Context, joinTree *jointree.Jo
 	for i := len(columnTypes); i < len(names); i++ {
 		columnTypes = append(columnTypes, ColTypeBytes) // These will be unpacked when they are retrieved
 	}
-	return NewSqlCursor(rows, columnTypes, nil, joinTree)
+	return NewSqlCursor(rows, columnTypes, nil, joinTree, s, args), nil
 }
 
-func (h *DbHelper) joinTreeCount(ctx context.Context, joinTree *jointree.JoinTree) int {
+func (h *DbHelper) joinTreeCount(ctx context.Context, joinTree *jointree.JoinTree) (int, error) {
 	g := newSqlGenerator(joinTree, h.dbi)
 	s, args := g.generateCountSql()
 	rows, err := h.dbi.SqlQuery(ctx, s, args...)
-
 	if err != nil {
-		// This is possibly generating an error related to the sql itself, so put the sql in the error message.
-		s := err.Error()
-		s += "\nSql: " + s
-
-		panic(errors.New(s))
+		return 0, db.NewQueryError("SqlQuery", s, args, err)
 	}
+	defer RowClose(rows)
 
 	names, _ := rows.Columns()
 	columnTypes := []ReceiverType{ColTypeInteger}
-	result := ReceiveRows(rows, columnTypes, names, nil)
+	var result []map[string]any
+	result, err = ReceiveRows(rows, columnTypes, names, nil, s, args)
+	if err != nil {
+		return 0, err
+	}
 	ret := result[0][names[0]].(int)
-	return ret
+	return ret, nil
+}
 
+func RowClose(c io.Closer) {
+	if err := c.Close(); err != nil {
+		slog.Warn("Error closing sql row cursor", slog.Any(db.LogError, err))
+	}
 }

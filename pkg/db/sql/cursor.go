@@ -2,9 +2,10 @@ package sql
 
 import (
 	"database/sql"
+	"fmt"
+	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/db/jointree"
 	"github.com/goradd/orm/pkg/query"
-	"log"
 )
 
 type sqlCursor struct {
@@ -12,8 +13,10 @@ type sqlCursor struct {
 	columnTypes          []query.ReceiverType
 	columnNames          []string
 	joinTree             *jointree.JoinTree
-	columnReceivers      []SqlReceiver
+	columnReceivers      []Receiver
 	columnValueReceivers []interface{}
+	query                string
+	args                 []any
 }
 
 // NewSqlCursor is a new cursor created from the result of a sql query.
@@ -24,13 +27,22 @@ func NewSqlCursor(rows *sql.Rows,
 	columnTypes []query.ReceiverType,
 	columnNames []string,
 	joinTree *jointree.JoinTree,
-) *sqlCursor {
+	sql string,
+	args []any,
+) query.CursorI {
 	var err error
 
 	if columnNames == nil {
 		columnNames, err = rows.Columns()
 		if err != nil {
-			log.Panic(err)
+			panic(fmt.Errorf("error getting column names from sql result: %w", err)) // a framework error, rows were closed before we got here
+		}
+		if len(columnNames) < len(columnTypes) {
+			panic(fmt.Errorf("column names length mismatch, expected at least %d, got %d", len(columnTypes), len(columnNames)))
+		}
+	} else {
+		if len(columnNames) < len(columnTypes) {
+			panic(fmt.Errorf("column names length mismatch, expected at least %d, got %d", len(columnTypes), len(columnNames)))
 		}
 	}
 
@@ -39,8 +51,10 @@ func NewSqlCursor(rows *sql.Rows,
 		columnTypes:          columnTypes,
 		columnNames:          columnNames,
 		joinTree:             joinTree,
-		columnReceivers:      make([]SqlReceiver, len(columnTypes)),
+		columnReceivers:      make([]Receiver, len(columnTypes)),
 		columnValueReceivers: make([]interface{}, len(columnTypes)),
+		query:                sql,
+		args:                 args,
 	}
 
 	for i := range cursor.columnReceivers {
@@ -56,15 +70,15 @@ func NewSqlCursor(rows *sql.Rows,
 // when the cursor was created, or taken from the database itself.
 //
 // If an error occurs, will panic with the error.
-func (r *sqlCursor) Next() map[string]interface{} {
+func (r *sqlCursor) Next() (map[string]interface{}, error) {
 	var err error
 
 	if r == nil || r.rows == nil {
-		return nil
+		return nil, nil
 	}
 	if r.rows.Next() {
 		if err = r.rows.Scan(r.columnValueReceivers...); err != nil {
-			log.Panic(err)
+			return nil, db.NewQueryError("Scan", r.query, r.args, err)
 		}
 
 		values := make(map[string]interface{}, len(r.columnReceivers))
@@ -73,26 +87,29 @@ func (r *sqlCursor) Next() map[string]interface{} {
 		}
 		if r.joinTree != nil {
 			v2 := unpack(r.joinTree, []map[string]interface{}{values})
-			return v2[0]
+			return v2[0], nil
 		} else {
-			return values
+			return values, nil
 		}
 	} else {
 		if err = r.rows.Err(); err != nil {
-			log.Panic(err)
+			return nil, db.NewQueryError("rows.Err", r.query, r.args, err)
 		}
-		return nil
+		return nil, nil
 	}
 }
 
 // Close closes the cursor.
 //
-// Once you are done with the cursor, you MUST call Close, so its
+// Once you are done with the cursor, you MUST call Close, so it is
 // probably best to put a defer Close statement ahead of using Next.
 func (r *sqlCursor) Close() error {
 	if r == nil || r.rows == nil {
 		return nil
 	}
 
-	return r.rows.Close()
+	if err := r.rows.Close(); err != nil {
+		return db.NewQueryError("Cursor Close", r.query, r.args, err)
+	}
+	return nil
 }

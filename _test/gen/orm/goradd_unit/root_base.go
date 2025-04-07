@@ -1383,11 +1383,11 @@ func (o *rootBase) update(ctx context.Context) error {
 
 		if o.optionalLeafUniqueIDIsDirty &&
 			LoadRootByOptionalLeafUniqueID(ctx, o.optionalLeafUniqueID) != nil {
-			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for OptionalLeafUniqueID: %v", o.optionalLeafUniqueID))
+			return db.NewUniqueValueError(fmt.Sprintf("error: duplicate value found for OptionalLeafUniqueID: %v", o.optionalLeafUniqueID))
 		}
 		if o.requiredLeafUniqueIDIsDirty &&
 			LoadRootByRequiredLeafUniqueID(ctx, o.requiredLeafUniqueID) != nil {
-			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for RequiredLeafUniqueID: %v", o.requiredLeafUniqueID))
+			return db.NewUniqueValueError(fmt.Sprintf("error: duplicate value found for RequiredLeafUniqueID: %v", o.requiredLeafUniqueID))
 		}
 
 		modifiedFields = o.getUpdateFields()
@@ -1519,11 +1519,11 @@ func (o *rootBase) insert(ctx context.Context) (err error) {
 
 		if o.optionalLeafUniqueIDIsDirty &&
 			LoadRootByOptionalLeafUniqueID(ctx, o.optionalLeafUniqueID) != nil {
-			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for OptionalLeafUniqueID: %v", o.optionalLeafUniqueID))
+			return db.NewUniqueValueError(fmt.Sprintf("error: duplicate value found for OptionalLeafUniqueID: %v", o.optionalLeafUniqueID))
 		}
 		if o.requiredLeafUniqueIDIsDirty &&
 			LoadRootByRequiredLeafUniqueID(ctx, o.requiredLeafUniqueID) != nil {
-			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for RequiredLeafUniqueID: %v", o.requiredLeafUniqueID))
+			return db.NewUniqueValueError(fmt.Sprintf("error: duplicate value found for RequiredLeafUniqueID: %v", o.requiredLeafUniqueID))
 		}
 
 		insertFields = o.getInsertFields()

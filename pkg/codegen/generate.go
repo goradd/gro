@@ -1,10 +1,12 @@
 package codegen
 
 import (
+	"errors"
 	"github.com/goradd/gofile/pkg/sys"
+	db2 "github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/model"
 	"github.com/goradd/orm/pkg/schema"
-	"log"
+	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -41,7 +43,9 @@ func genDatabaseTemplate(g DatabaseGenerator, db *model.Database) {
 	}
 	f, err := openFile(filename)
 	if err != nil {
-		log.Print(err)
+		slog.Error("Error opening file",
+			slog.String(db2.LogFilename, filename),
+			slog.Any(db2.LogError, err))
 		return
 	}
 	defer f.Close()
@@ -49,7 +53,10 @@ func genDatabaseTemplate(g DatabaseGenerator, db *model.Database) {
 	importPath, err = sys.ImportPath(filename)
 
 	if err = g.GenerateDatabase(db, f, importPath); err != nil {
-		log.Print(err)
+		slog.Error("Error generating database template file",
+			slog.String(db2.LogFilename, filename),
+			slog.String(db2.LogComponent, "codegen"),
+			slog.Any(db2.LogError, err))
 		return
 	}
 	runGoImports(filename)
@@ -63,7 +70,9 @@ func genTableTemplate(g TableGenerator, table *model.Table) {
 
 	f, err := openFile(filename)
 	if err != nil {
-		log.Print(err)
+		slog.Error("Error opening file",
+			slog.String(db2.LogFilename, filename),
+			slog.Any(db2.LogError, err))
 		return
 	}
 	defer f.Close()
@@ -71,7 +80,10 @@ func genTableTemplate(g TableGenerator, table *model.Table) {
 	importPath, err = sys.ImportPath(filename)
 
 	if err = g.GenerateTable(table, f, importPath); err != nil {
-		log.Print(err)
+		slog.Error("Error generating table template file",
+			slog.String(db2.LogFilename, filename),
+			slog.String(db2.LogComponent, "codegen"),
+			slog.Any(db2.LogError, err))
 		return
 	}
 	runGoImports(filename)
@@ -83,14 +95,19 @@ func genEnumTemplate(g EnumGenerator, table *model.Enum) {
 		return
 	}
 	if g.Overwrite() && len(table.Values) == 0 {
-		// an error occurred with the schema
+		slog.Error("The enum type has no values in the schema",
+			slog.String(db2.LogFilename, filename),
+			slog.String(db2.LogComponent, "codegen"),
+			slog.Any(db2.LogTable, table.QueryName))
 		deleteFile(filename)
 		return
 	}
 
 	f, err := openFile(filename)
 	if err != nil {
-		log.Print(err)
+		slog.Error("Error opening file",
+			slog.String(db2.LogFilename, filename),
+			slog.Any(db2.LogError, err))
 		return
 	}
 	defer f.Close()
@@ -98,7 +115,10 @@ func genEnumTemplate(g EnumGenerator, table *model.Enum) {
 	importPath, err = sys.ImportPath(filename)
 
 	if err = g.GenerateEnum(table, f, importPath); err != nil {
-		log.Print(err)
+		slog.Error("Error generating enum template file",
+			slog.String(db2.LogFilename, filename),
+			slog.String(db2.LogComponent, "codegen"),
+			slog.Any(db2.LogError, err))
 		return
 	}
 	runGoImports(filename)
@@ -132,18 +152,18 @@ func runGoImports(fileName string) {
 	if strings.HasSuffix(fileName, ".go") {
 		curDir, err := os.Getwd()
 		if err != nil {
-			log.Print(err)
+			slog.Error("Error getting current directory for running goimports",
+				slog.Any(db2.LogError, err))
 			return
 		}
 		_ = os.Chdir(filepath.Dir(fileName)) // run it from the file's directory to pick up the correct go.mod file if there is one
 		_, err = sys.ExecuteShellCommand("goimports -w " + filepath.Base(fileName))
 		_ = os.Chdir(curDir)
 		if err != nil {
-			if e, ok := err.(*exec.Error); ok {
-				panic("error running goimports: " + e.Error()) // perhaps goimports is not installed?
-			} else if e2, ok2 := err.(*exec.ExitError); ok2 {
-				// Likely a syntax error in the resulting file
-				log.Print(string(e2.Stderr))
+			var e *exec.Error
+			if errors.As(err, &e) {
+				slog.Error("Error running goimports",
+					slog.Any(db2.LogError, err))
 			}
 		}
 	}

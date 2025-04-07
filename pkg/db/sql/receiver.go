@@ -2,16 +2,18 @@ package sql
 
 import (
 	"fmt"
+	"github.com/goradd/orm/pkg/db"
 	. "github.com/goradd/orm/pkg/query"
 	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
 	"log"
+	"log/slog"
 	"strconv"
 	"strings"
 	"time"
 )
 
-// SqlReceiver is an encapsulation of a way of receiving data from sql queries as interface{} pointers. This allows you
+// Receiver is an encapsulation of a way of receiving data from sql queries as interface{} pointers. This allows you
 // to get data without knowing the type of data you are asking for ahead of time, and is easier for dealing with NULL fields.
 // Some database drivers (MySql for one) return different results in fields depending on how you call the query (using
 // a prepared statement can return different results than without one), or if the data does not quite fit (UInt64 in particular
@@ -20,12 +22,12 @@ import (
 // Pass the address of the R member to the sql.Scan method when using an object of this type,
 // because there are some idiosyncrasies with
 // how Go treats return values that prevents returning an address of R from a function
-type SqlReceiver struct {
+type Receiver struct {
 	R interface{}
 }
 
 // IntI returns the receiver as an interface to an int.
-func (r SqlReceiver) IntI() interface{} {
+func (r Receiver) IntI() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -48,12 +50,16 @@ func (r SqlReceiver) IntI() interface{} {
 		} // MariaDB does this for default values
 		i, err := strconv.Atoi(v2)
 		if err != nil {
-			log.Panic(err)
+			slog.Error("Attempting to scan a non-integer column into an integer",
+				slog.String(db.LogComponent, "SQL receiver"),
+				slog.Any(db.LogError, err))
+			panic(err)
 		}
 		return i
 
 	default:
-		log.Panicln("Unknown type returned from sql driver")
+		slog.Error("Unknown type returned from sql driver",
+			slog.String(db.LogComponent, "SQL receiver"))
 		return nil
 	}
 }
@@ -62,7 +68,7 @@ func (r SqlReceiver) IntI() interface{} {
 //
 // Some drivers (like MySQL) return all integers as Int64. Its up to you to make sure
 // you only use this on 32-bit uints or smaller.
-func (r SqlReceiver) UintI() interface{} {
+func (r Receiver) UintI() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -87,17 +93,20 @@ func (r SqlReceiver) UintI() interface{} {
 		} // MariaDB does this for default values
 		i, err := strconv.ParseUint(v, 10, 32)
 		if err != nil {
-			log.Panic(err)
+			slog.Error("Attempting to scan a non-integer column into an unisgned integer",
+				slog.String(db.LogComponent, "SQL receiver"),
+				slog.Any(db.LogError, err))
 		}
 		return uint(i)
 	default:
-		log.Panicln("Unknown type returned from sql driver")
+		slog.Error("Unknown type returned from sql driver",
+			slog.String(db.LogComponent, "SQL receiver"))
 		return nil
 	}
 }
 
 // Int64I returns the given value as an interface to an Int64
-func (r SqlReceiver) Int64I() interface{} {
+func (r Receiver) Int64I() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -120,11 +129,14 @@ func (r SqlReceiver) Int64I() interface{} {
 		} // MariaDB does this for default values
 		i, err := strconv.ParseInt(v, 10, 64)
 		if err != nil {
-			log.Panic(err)
+			slog.Error("Attempting to scan a non-integer column into an int64",
+				slog.String(db.LogComponent, "SQL receiver"),
+				slog.Any(db.LogError, err))
 		}
 		return i
 	default:
-		log.Panicln("Unknown type returned from sql driver")
+		slog.Error("Unknown type returned from sql driver",
+			slog.String(db.LogComponent, "SQL receiver"))
 		return nil
 	}
 }
@@ -133,7 +145,7 @@ func (r SqlReceiver) Int64I() interface{} {
 //
 // Some drivers (like MySQL) return all integers as Int64. This converts to uint64. Its up to you to make sure
 // you only use this on 64-bit uints or smaller.
-func (r SqlReceiver) Uint64I() interface{} {
+func (r Receiver) Uint64I() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -158,17 +170,20 @@ func (r SqlReceiver) Uint64I() interface{} {
 		} // MariaDB does this for default values
 		i, err := strconv.ParseUint(v, 10, 64)
 		if err != nil {
-			log.Panic(err)
+			slog.Error("Attempting to scan a non-integer column into a uint64",
+				slog.String(db.LogComponent, "SQL receiver"),
+				slog.Any(db.LogError, err))
 		}
 		return i
 	default:
-		log.Panicln("Unknown type returned from sql driver")
+		slog.Error("Unknown type returned from sql driver",
+			slog.String(db.LogComponent, "SQL receiver"))
 		return nil
 	}
 }
 
 // BoolI returns the value as an interface to a boolean
-func (r SqlReceiver) BoolI() interface{} {
+func (r Receiver) BoolI() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -198,18 +213,21 @@ func (r SqlReceiver) BoolI() interface{} {
 		} // MariaDB does this for default values
 		b, err := strconv.ParseBool(v2)
 		if err != nil {
-			log.Panic(err)
+			slog.Error("Attempting to scan a non-boolean into a bool",
+				slog.String(db.LogComponent, "SQL receiver"),
+				slog.Any(db.LogError, err))
 		}
 		return b
 
 	default:
-		log.Panicln("Unknown type returned from sql driver")
+		slog.Error("Unknown type returned from sql driver",
+			slog.String(db.LogComponent, "SQL receiver"))
 		return nil
 	}
 }
 
 // StringI returns the value as an interface to a string
-func (r SqlReceiver) StringI() interface{} {
+func (r Receiver) StringI() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -225,7 +243,7 @@ func (r SqlReceiver) StringI() interface{} {
 }
 
 // ByteI returns the value as an interface to a byte array
-func (r SqlReceiver) ByteI() interface{} {
+func (r Receiver) ByteI() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -240,7 +258,7 @@ func (r SqlReceiver) ByteI() interface{} {
 }
 
 // FloatI returns the value as an interface to a float32 value.
-func (r SqlReceiver) FloatI() interface{} {
+func (r Receiver) FloatI() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -252,7 +270,9 @@ func (r SqlReceiver) FloatI() interface{} {
 	case string:
 		f, err := strconv.ParseFloat(r.R.(string), 32)
 		if err != nil {
-			log.Panic(err)
+			slog.Error("Attempting to scan a non-float into a float",
+				slog.String(db.LogComponent, "SQL receiver"),
+				slog.Any(db.LogError, err))
 		}
 		return f
 	case []byte:
@@ -262,17 +282,20 @@ func (r SqlReceiver) FloatI() interface{} {
 		} // MariaDB does this for default values
 		f, err := strconv.ParseFloat(v, 32)
 		if err != nil {
-			log.Panic(err)
+			slog.Error("Attempting to scan a non-float into a float",
+				slog.String(db.LogComponent, "SQL receiver"),
+				slog.Any(db.LogError, err))
 		}
 		return float32(f)
 	default:
-		log.Panicln("Unknown type returned from sql driver")
+		slog.Error("Unknown type returned from sql driver",
+			slog.String(db.LogComponent, "SQL receiver"))
 		return nil
 	}
 }
 
 // DoubleI returns the value as a float64 interface
-func (r SqlReceiver) DoubleI() interface{} {
+func (r Receiver) DoubleI() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -294,17 +317,20 @@ func (r SqlReceiver) DoubleI() interface{} {
 		} // MariaDB does this for default values
 		f, err := strconv.ParseFloat(v, 64)
 		if err != nil {
-			log.Panic(err)
+			slog.Error("Attempting to scan a non-float into a float",
+				slog.String(db.LogComponent, "SQL receiver"),
+				slog.Any(db.LogError, err))
 		}
 		return f
 	default:
-		log.Panicln("Unknown type returned from sql driver")
+		slog.Error("Unknown type returned from sql driver",
+			slog.String(db.LogComponent, "SQL receiver"))
 		return nil
 	}
 }
 
 // TimeI returns the value as a time.Time value in UTC, or in the case of CURRENT_TIME, a string "now".
-func (r SqlReceiver) TimeI() interface{} {
+func (r Receiver) TimeI() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -318,7 +344,8 @@ func (r SqlReceiver) TimeI() interface{} {
 		return parseTime(string(v))
 		// TODO: SQL Lite, may return an int or float. Not sure we can support these.
 	default:
-		log.Panicln("Unknown type returned from sql driver")
+		slog.Error("Unknown type returned from sql driver",
+			slog.String(db.LogComponent, "SQL receiver"))
 		return nil
 	}
 }
@@ -338,8 +365,8 @@ func parseTime(s string) interface{} {
 	return t.UTC()
 }
 
-// Unpack converts a SqlReceiver to a type corresponding to the given ReceiverType
-func (r SqlReceiver) Unpack(typ ReceiverType) interface{} {
+// Unpack converts a Receiver to a type corresponding to the given ReceiverType
+func (r Receiver) Unpack(typ ReceiverType) interface{} {
 	switch typ {
 	case ColTypeBytes:
 		return r.R
@@ -366,9 +393,9 @@ func (r SqlReceiver) Unpack(typ ReceiverType) interface{} {
 	}
 }
 
-// UnpackDefaultValue converts a SqlReceiver used to get the default value
+// UnpackDefaultValue converts a Receiver used to get the default value
 // to a type corresponding to typ.
-func (r SqlReceiver) UnpackDefaultValue(typ schema.ColumnType, size int) interface{} {
+func (r Receiver) UnpackDefaultValue(typ schema.ColumnType, size int) interface{} {
 	switch typ {
 	case schema.ColTypeBytes:
 		fallthrough

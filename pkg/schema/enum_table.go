@@ -69,6 +69,7 @@ type EnumTable struct {
 	IdentifierPlural string `json:"identifier_plural,omitempty"`
 }
 
+// QualifiedName returns the name of the table in the database, including its schema if applicable.
 func (t *EnumTable) QualifiedName() string {
 	if t.Schema == "" {
 		return t.Name
@@ -77,6 +78,7 @@ func (t *EnumTable) QualifiedName() string {
 	}
 }
 
+// FillDefaults will fill in empty values in the EnumTable struct based on the values provided.
 func (t *EnumTable) FillDefaults(suffix string) {
 	name := strings.TrimSuffix(t.QualifiedName(), suffix)
 	if t.Label == "" {

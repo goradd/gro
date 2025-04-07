@@ -11,7 +11,7 @@ import (
 	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
 	"log"
-	log2 "log/slog"
+	"log/slog"
 	"math"
 	"slices"
 	"sort"
@@ -35,7 +35,7 @@ type mysqlTable struct {
 
 type mysqlColumn struct {
 	name            string
-	defaultValue    sql2.SqlReceiver
+	defaultValue    sql2.Receiver
 	isNullable      string
 	dataType        string
 	dataLen         int
@@ -90,7 +90,10 @@ func (m *DB) getRawTables() map[string]mysqlTable {
 		for _, fk := range foreignKeys[table.name] {
 			if fk.referencedColumnName.Valid && fk.referencedTableName.Valid {
 				if _, ok := table.fkMap[fk.columnName]; ok {
-					log2.Warn(fmt.Sprintf("Column %s:%s multi-column foreign keys are not supported.", table.name, fk.columnName))
+					slog.Warn("Multi-column foreign keys are not supported.",
+						slog.String(db.LogTable, table.name),
+						slog.String(db.LogColumn, fk.columnName),
+						slog.String(db.LogComponent, "extract"))
 					delete(table.fkMap, fk.columnName)
 				} else {
 					table.fkMap[fk.columnName] = fk
@@ -134,19 +137,21 @@ func (m *DB) getTables() []mysqlTable {
 	`, dbName))
 
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
-	defer rows.Close()
+	defer sql2.RowClose(rows)
 	for rows.Next() {
-		err = rows.Scan(&tableName, &tableComment, &tableEngine)
 		var supportsForeignKeys bool
+
+		err = rows.Scan(&tableName, &tableComment, &tableEngine)
+		if err != nil {
+			panic(err)
+		}
 		if tableEngine == "InnoDB" {
 			supportsForeignKeys = true
 		}
-		if err != nil {
-			log.Fatal(err)
-		}
-		log2.Info("Importing schema for table " + tableName)
+		slog.Info("Importing schema",
+			slog.String(db.LogTable, tableName))
 		table := mysqlTable{
 			name:                tableName,
 			comment:             tableComment,
@@ -156,14 +161,16 @@ func (m *DB) getTables() []mysqlTable {
 			supportsForeignKeys: supportsForeignKeys,
 		}
 		if table.options, table.comment, err = sql2.ExtractOptions(table.comment); err != nil {
-			log2.Warn("Error in comment options for table " + table.name + " - " + err.Error())
+			slog.Warn("Error in comment options for table "+table.name,
+				slog.String(db.LogTable, table.name),
+				slog.Any(db.LogError, err))
 		}
 
 		tables = append(tables, table)
 	}
 	err = rows.Err()
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	return tables
@@ -194,27 +201,30 @@ func (m *DB) getColumns(table string) (columns []mysqlColumn, err error) {
 	`, table, dbName))
 
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
-	defer rows.Close()
+	defer sql2.RowClose(rows)
 	var col mysqlColumn
 
 	for rows.Next() {
 		col = mysqlColumn{}
 		err = rows.Scan(&col.name, &col.defaultValue.R, &col.isNullable, &col.dataType, &col.characterMaxLen, &col.columnType, &col.key, &col.extra, &col.comment, &col.collation)
 		if err != nil {
-			log.Fatal(err)
-			return nil, err
+			panic(err)
 		}
 
 		if col.options, col.comment, err = sql2.ExtractOptions(col.comment); err != nil {
-			log2.Warn("Error in table comment options for table " + table + ":" + col.name + " - " + err.Error())
+			slog.Warn("Error in table comment options for table "+table+":"+col.name+" - "+err.Error(),
+				slog.String(db.LogComponent, "extract"),
+				slog.Any(db.LogError, err),
+				slog.String(db.LogTable, table),
+				slog.String(db.LogColumn, col.name))
 		}
 		columns = append(columns, col)
 	}
 	err = rows.Err()
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	return columns, err
@@ -238,17 +248,16 @@ func (m *DB) getIndexes() (indexes map[string][]mysqlIndex, err error) {
 	`, dbName))
 
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
-	defer rows.Close()
+	defer sql2.RowClose(rows)
 	var index mysqlIndex
 
 	for rows.Next() {
 		index = mysqlIndex{}
 		err = rows.Scan(&index.name, &index.nonUnique, &index.tableName, &index.columnName)
 		if err != nil {
-			log.Fatal(err)
-			return nil, err
+			panic(err)
 		}
 		tableIndexes := indexes[index.tableName]
 		tableIndexes = append(tableIndexes, index)
@@ -256,7 +265,7 @@ func (m *DB) getIndexes() (indexes map[string][]mysqlIndex, err error) {
 	}
 	err = rows.Err()
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	return indexes, err
@@ -289,24 +298,27 @@ ORDER BY
     t1.ordinal_position
 `, dbName))
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
-	defer rows.Close()
+	func() {
+		defer sql2.RowClose(rows)
 
-	for rows.Next() {
-		fk := mysqlForeignKey{}
-		err = rows.Scan(&fk.constraintName, &fk.tableName, &fk.columnName, &fk.referencedTableName, &fk.referencedColumnName, &fk.referencedColumnIndexName)
+		for rows.Next() {
+			fk := mysqlForeignKey{}
+			err = rows.Scan(&fk.constraintName, &fk.tableName, &fk.columnName, &fk.referencedTableName, &fk.referencedColumnName, &fk.referencedColumnIndexName)
+			if err != nil {
+				panic(err)
+			}
+			if fk.referencedColumnName.Valid {
+				fkMap[fk.constraintName] = fk
+			}
+		}
+		err = rows.Err()
 		if err != nil {
-			log.Fatal(err)
-			return nil, err
+			panic(err)
 		}
-		if fk.referencedColumnName.Valid {
-			fkMap[fk.constraintName] = fk
-		}
-	}
-
-	rows.Close()
+	}()
 
 	rows, err = m.SqlDb().Query(fmt.Sprintf(`
 	SELECT
@@ -319,9 +331,10 @@ ORDER BY
 	constraint_schema = '%s';
 	`, dbName))
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
+	defer sql2.RowClose(rows)
 	for rows.Next() {
 		var constraintName string
 		var updateRule, deleteRule sql.NullString
@@ -337,7 +350,7 @@ ORDER BY
 	}
 	err = rows.Err()
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	foreignKeys = make(map[string][]mysqlForeignKey)
@@ -509,13 +522,17 @@ func (m *DB) schemaFromRawTables(rawTables map[string]mysqlTable, options map[st
 
 		if strings2.EndsWith(tableName, dd.EnumTableSuffix) {
 			if t, err := m.getEnumTableSchema(rawTable); err != nil {
-				log2.Error("Enum rawTable " + tableName + " skipped: " + err.Error())
+				slog.Error("Enum rawTable skipped",
+					slog.String(db.LogTable, tableName),
+					slog.Any(db.LogError, err))
 			} else {
 				dd.EnumTables = append(dd.EnumTables, &t)
 			}
 		} else if strings2.EndsWith(tableName, dd.AssnTableSuffix) {
 			if mm, err := m.getAssociationSchema(rawTable, dd.EnumTableSuffix); err != nil {
-				log2.Error("Association rawTable " + tableName + " skipped: " + err.Error())
+				slog.Error("Association rawTable skipped",
+					slog.String(db.LogTable, tableName),
+					slog.Any(db.LogError, err))
 			} else {
 				dd.AssociationTables = append(dd.AssociationTables, &mm)
 			}
@@ -675,19 +692,23 @@ func (m *DB) getEnumTableSchema(t mysqlTable) (ed schema.EnumTable, err error) {
 	}
 
 	var result *sql.Rows
-	result, err = m.SqlDb().Query(`
+	s := `
 	SELECT ` +
 		"`" + strings.Join(columnNames, "`,`") + "`" +
 		`
 	FROM ` +
 		"`" + td.Name + "`" +
-		` ORDER BY ` + "`" + columnNames[0] + "`")
-
+		` ORDER BY ` + "`" + columnNames[0] + "`"
+	result, err = m.SqlDb().Query(s)
 	if err != nil {
-		return
+		panic(err)
 	}
 
-	receiver := sql2.ReceiveRows(result, receiverTypes, columnNames, nil)
+	var receiver []map[string]any
+	receiver, err = sql2.ReceiveRows(result, receiverTypes, columnNames, nil, s, nil)
+	if err != nil {
+		panic(err)
+	}
 	for _, row := range receiver {
 		values := make(map[string]any)
 		for k := range ed.Fields {
@@ -712,7 +733,11 @@ func (m *DB) getColumnSchema(table mysqlTable,
 	var extra map[string]any
 	cd.Type, cd.SubType, cd.Size, cd.DefaultValue, extra, err = processTypeInfo(column)
 	if err != nil {
-		log2.Warn(err.Error() + ". Table = " + table.name + "; Column = " + column.name)
+		slog.Warn(err.Error(),
+			slog.String(db.LogComponent, "extract"),
+			slog.String(db.LogTable, table.name),
+			slog.String(db.LogColumn, column.name),
+			slog.Any(db.LogError, err))
 	}
 	if extra != nil {
 		if cd.DatabaseColumnInfo == nil {
@@ -764,7 +789,11 @@ func (m *DB) getColumnSchema(table mysqlTable,
 		}
 	} else if fk, ok2 := table.fkMap[column.name]; ok2 { // handle forward reference
 		if fk.referencedColumnIndexName.String != "PRIMARY" {
-			log2.Warn(fmt.Sprintf("Foregin key for %s:%s appears to not be pointing to a primary key. Only primary key foreign keys are supported.", table.name, column.name))
+			slog.Warn("Foregin key appears to not be pointing to a primary key. Only primary key foreign keys are supported.",
+				slog.String(db.LogComponent, "extract"),
+				slog.String(db.LogTable, table.name),
+				slog.String(db.LogColumn, column.name),
+				slog.Any(db.LogError, err))
 		}
 		cd.Reference = &schema.Reference{
 			Table: fk.referencedTableName.String,

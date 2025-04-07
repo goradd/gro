@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/goradd/all"
 	"github.com/goradd/maps"
+	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
@@ -117,8 +118,15 @@ func (m *Database) importReference(table *Table, schemaCol *schema.Column) {
 		refTable := m.Table(schemaCol.Reference.Table)
 		et := m.Enum(schemaCol.Reference.Table)
 		if refTable == nil && et == nil {
-			slog.Error(fmt.Sprintf("Reference skipped, table not found. From %s:%s", table.QueryName, schemaCol.Name))
+			slog.Error("Reference skipped, table not found.",
+				slog.String(db.LogTable, table.QueryName),
+				slog.String(db.LogColumn, schemaCol.Name))
 			return
+		}
+		if !strings.HasSuffix(schemaCol.Name, m.ReferenceSuffix) {
+			slog.Warn("Reference column name is missing ReferenceSuffix.",
+				slog.String(db.LogTable, table.QueryName),
+				slog.String(db.LogColumn, schemaCol.Name))
 		}
 		f := &Reference{
 			Table:                   refTable,
@@ -136,7 +144,9 @@ func (m *Database) importReference(table *Table, schemaCol *schema.Column) {
 		thisCol = table.ColumnByName(schemaCol.Name)
 		if thisCol == nil {
 			// This should not happen
-			slog.Error(fmt.Sprintf("Reference skipped, column not found. From %s:%s", refTable.QueryName, schemaCol.Name))
+			slog.Error("Reference skipped, column not found.",
+				slog.String(db.LogTable, refTable.QueryName),
+				slog.String(db.LogColumn, schemaCol.Name))
 			return
 		}
 		thisCol.Reference = f

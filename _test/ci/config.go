@@ -33,11 +33,18 @@ func initMysql() {
 	cfg.User = defaultUser
 	cfg.Passwd = defaultPassword
 
-	database := mysql2.NewDB(goraddKey, "", cfg)
+	database, err := mysql2.NewDB(goraddKey, "", cfg)
+	if err != nil {
+		panic(err)
+	}
+
 	db.AddDatabase(database, goraddKey)
 
 	cfg.DBName = goraddUnitDatabaseName
-	database = mysql2.NewDB(goraddUnitKey, "", cfg)
+	database, err = mysql2.NewDB(goraddUnitKey, "", cfg)
+	if err != nil {
+		panic(err)
+	}
 	db.AddDatabase(database, goraddUnitKey)
 }
 
@@ -64,7 +71,7 @@ func InitDB() {
 	var configFile string
 	flag.StringVar(&configFile, "c", "", "Path to database configuration file")
 	flag.Parse()
-	
+
 	// If a config file is provided, use it instead
 	if configFile != "" {
 		if databaseConfigs, err := config.OpenConfigFile(configFile); err != nil {

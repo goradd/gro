@@ -5,11 +5,12 @@ import (
 	sqldb "database/sql"
 	"fmt"
 	"github.com/goradd/all"
+	"github.com/goradd/orm/pkg/db"
 	sql2 "github.com/goradd/orm/pkg/db/sql"
 	. "github.com/goradd/orm/pkg/query"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/stdlib"
-	"log"
 	"strings"
 )
 
@@ -34,9 +35,9 @@ type DB struct {
 //	db := pgsql.NewDB(key, "", config)
 func NewDB(dbKey string,
 	connectionString string,
-	config *pgx.ConnConfig) *DB {
+	config *pgx.ConnConfig) (*DB, error) {
 	if connectionString == "" && config == nil {
-		panic("must specify how to connect to the database")
+		return nil, fmt.Errorf("must specify how to connect to the database")
 	}
 
 	if connectionString == "" {
@@ -45,16 +46,16 @@ func NewDB(dbKey string,
 
 	db3, err := sqldb.Open("pgx", connectionString)
 	if err != nil {
-		panic("Could not open database: " + err.Error())
+		return nil, fmt.Errorf("could not open database: %w", err)
 	}
 	err = db3.Ping()
 	if err != nil {
-		panic("Could not ping database " + dbKey + ":" + err.Error())
+		return nil, fmt.Errorf("could not ping database: %w", err)
 	}
 
 	m := new(DB)
 	m.DbHelper = sql2.NewSqlHelper(dbKey, db3, m)
-	return m
+	return m, nil
 }
 
 // OverrideConfigSettings will use a map read in from a json file to modify
@@ -119,7 +120,7 @@ func (m *DB) OperationSql(op Operator, operandStrings []string) (sql string) {
 }
 
 // Insert inserts the given data as a new record in the database.
-// It returns the record id of the new record.
+// It returns the record id of the new record, and possibly an error if an error occurred.
 func (m *DB) Insert(ctx context.Context, table string, pkName string, fields map[string]interface{}) (string, error) {
 	sql, args := sql2.GenerateInsert(m, table, fields)
 	if pkName != "" {
@@ -127,15 +128,21 @@ func (m *DB) Insert(ctx context.Context, table string, pkName string, fields map
 		sql += pkName
 	}
 	if rows, err := m.SqlQuery(ctx, sql, args...); err != nil {
-		panic(err.Error())
+		if pgErr, ok := all.As[*pgconn.PgError](err); ok {
+			if pgErr.Code == "23505" {
+				return "", db.NewUniqueValueError(table, "", "", err)
+			}
+		}
+		return "", db.NewQueryError("SqlQuery", sql, args, err)
 	} else {
 		var id string
-		defer rows.Close()
+		defer sql2.RowClose(rows)
 		for rows.Next() {
 			err = rows.Scan(&id)
+			return "", db.NewQueryError("Scan", sql, args, err)
 		}
-		if err != nil {
-			panic(err.Error())
+		if err = rows.Err(); err != nil {
+			return "", db.NewQueryError("rows.Err", sql, args, err)
 		} else {
 			return id, nil
 		}
@@ -168,17 +175,12 @@ func (m *DB) Update(ctx context.Context,
 	s, args := sql2.GenerateUpdate(m, table, fields, map[string]any{pkName: pkValue})
 	_, err = m.SqlExec(ctx, s, args...)
 	if err != nil {
-		/*
-			if me, ok := err; ok {
-				// expected error situation to report to developer
-				if me.Number == 1062 {
-					// Since its not possible to completely prevent a unique constraint error, except by implementing a seaprate
-					// service to track and lock unique values that are in use (which is beyond the scope of the ORM), we need
-					// to see if this is that kind of error and return it, rather than panicking.
-					return 0, db.NewDuplicateValueError("error: duplicate value violates unique constraint")
-				}
-			}*/
-		log.Panic(err) // some kind of database error, should be notified immediately
+		if pgErr, ok := all.As[*pgconn.PgError](err); ok {
+			if pgErr.Code == "23505" {
+				return 0, db.NewUniqueValueError(table, "", "", err)
+			}
+		}
+		return 0, db.NewQueryError("SqlExec", s, args, err)
 	}
 	return
 }

@@ -5,12 +5,13 @@ import (
 	"fmt"
 	iter2 "github.com/goradd/iter"
 	"github.com/goradd/maps"
+	"github.com/goradd/orm/pkg/db"
 	sql2 "github.com/goradd/orm/pkg/db/sql"
 	. "github.com/goradd/orm/pkg/query"
 	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
 	"log"
-	log2 "log/slog"
+	"log/slog"
 	"slices"
 	"sort"
 	"strings"
@@ -33,7 +34,7 @@ type pgTable struct {
 
 type pgColumn struct {
 	name            string
-	defaultValue    sql2.SqlReceiver
+	defaultValue    sql2.Receiver
 	isNullable      bool
 	dataType        string
 	charLen         int
@@ -81,15 +82,9 @@ func (m *DB) getRawTables(options map[string]any) map[string]pgTable {
 	schemas, _ := options["schemas"].([]string)
 	tables, schemas2 := m.getTables(schemas, defaultSchemaName)
 
-	indexes, err := m.getIndexes(schemas2, defaultSchemaName)
-	if err != nil {
-		return nil
-	}
+	indexes := m.getIndexes(schemas2, defaultSchemaName)
 
-	foreignKeys, err := m.getForeignKeys(schemas2, defaultSchemaName)
-	if err != nil {
-		return nil
-	}
+	foreignKeys := m.getForeignKeys(schemas2, defaultSchemaName)
 
 	for _, table := range tables {
 		tableIndex := table.name
@@ -101,7 +96,9 @@ func (m *DB) getRawTables(options map[string]any) map[string]pgTable {
 		for _, fk := range foreignKeys[tableIndex] {
 			if fk.referencedColumnName.Valid && fk.referencedTableName != "" {
 				if _, ok := table.fkMap[fk.columnName]; ok {
-					log2.Warn(fmt.Sprintf("Column %s:%s multi-table foreign keys are not supported.", table.name, fk.columnName))
+					slog.Warn("Multi-table foreign keys are not supported.",
+						slog.String(db.LogTable, table.name),
+						slog.String(db.LogColumn, fk.columnName))
 					delete(table.fkMap, fk.columnName)
 				} else {
 					table.fkMap[fk.columnName] = fk
@@ -109,10 +106,7 @@ func (m *DB) getRawTables(options map[string]any) map[string]pgTable {
 			}
 		}
 
-		columns, err2 := m.getColumns(table.name, table.schema)
-		if err2 != nil {
-			return nil
-		}
+		columns := m.getColumns(table.name, table.schema)
 
 		table.indexes = indexes[tableIndex]
 		table.columns = columns
@@ -146,17 +140,17 @@ func (m *DB) getTables(schemas []string, defaultSchemaName string) ([]pgTable, [
 	}
 
 	rows, err := m.SqlDb().Query(stmt)
-
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
-	defer rows.Close()
+	defer sql2.RowClose(rows)
 	for rows.Next() {
 		err = rows.Scan(&tableName, &tableSchema, &tableComment)
 		if err != nil {
 			log.Fatal(err)
 		}
-		log2.Info("Importing schema for table " + tableSchema + "." + tableName)
+		slog.Info("Importing schema for table "+tableSchema+"."+tableName,
+			slog.String(db.LogTable, tableName))
 		schemaMap.Add(tableSchema)
 		table := pgTable{
 			name:    tableName,
@@ -171,13 +165,13 @@ func (m *DB) getTables(schemas []string, defaultSchemaName string) ([]pgTable, [
 	}
 	err = rows.Err()
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	return tables, schemaMap.Values()
 }
 
-func (m *DB) getColumns(table string, schema string) (columns []pgColumn, err error) {
+func (m *DB) getColumns(table string, schema string) (columns []pgColumn) {
 
 	s := fmt.Sprintf(`
 	SELECT
@@ -208,28 +202,30 @@ ORDER BY
 	rows, err := m.SqlDb().Query(s)
 
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
-	defer rows.Close()
+	defer sql2.RowClose(rows)
 	var col pgColumn
 
 	for rows.Next() {
 		col = pgColumn{}
 		var descr sql.NullString
-		var nullable sql2.SqlReceiver
-		var ident sql2.SqlReceiver
+		var nullable sql2.Receiver
+		var ident sql2.Receiver
 
 		err = rows.Scan(&col.name, &(col.defaultValue.R), &(nullable.R), &col.dataType, &col.characterMaxLen, &(ident.R), &descr, &col.collationName)
 		if err != nil {
-			log.Fatal(err)
-			return nil, err
+			panic(err)
 		}
 		col.isNullable = nullable.BoolI().(bool)
 		col.isIdentity = ident.BoolI().(bool)
 
 		if descr.Valid {
 			if col.options, col.comment, err = sql2.ExtractOptions(descr.String); err != nil {
-				log2.Warn("Error in table comment options for table " + table + ":" + col.name + " - " + err.Error())
+				slog.Warn("Error in table comment options",
+					slog.String(db.LogTable, table),
+					slog.String(db.LogColumn, col.name),
+					slog.Any(db.LogError, err))
 			}
 		}
 
@@ -240,17 +236,17 @@ ORDER BY
 	}
 	err = rows.Err()
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
-	return columns, err
+	return columns
 }
 
-func (m *DB) getIndexes(schemas []string, defaultSchemaName string) (indexes map[string][]pgIndex, err2 error) {
+func (m *DB) getIndexes(schemas []string, defaultSchemaName string) (indexes map[string][]pgIndex) {
 
 	indexes = make(map[string][]pgIndex)
 
-	sql := fmt.Sprintf(`
+	s := fmt.Sprintf(`
 	select idx.relname as index_name, 
        insp.nspname as index_schema,
        tbl.relname as table_name,
@@ -268,20 +264,19 @@ where
   tnsp.nspname IN ('%s')
 	`, strings.Join(schemas, "','"))
 
-	rows, err := m.SqlDb().Query(sql)
+	rows, err := m.SqlDb().Query(s)
 
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
-	defer rows.Close()
+	defer sql2.RowClose(rows)
 	var index pgIndex
 
 	for rows.Next() {
 		index = pgIndex{}
 		err = rows.Scan(&index.name, &index.schema, &index.tableName, &index.tableSchema, &index.unique, &index.primary, &index.columnName)
 		if err != nil {
-			log.Fatal(err)
-			return nil, err
+			panic(err)
 		}
 		indexKey := index.tableName
 		if index.schema != defaultSchemaName && index.schema != "" {
@@ -293,16 +288,16 @@ where
 	}
 	err = rows.Err()
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
-	return indexes, err
+	return indexes
 }
 
 // getForeignKeys gets information on the foreign keys.
 //
 // Note that querying the information_schema database is SLOW, so we want to do it as few times as possible.
-func (m *DB) getForeignKeys(schemas []string, defaultSchemaName string) (foreignKeys map[string][]pgForeignKey, err error) {
+func (m *DB) getForeignKeys(schemas []string, defaultSchemaName string) (foreignKeys map[string][]pgForeignKey) {
 	fkMap := make(map[string]pgForeignKey)
 
 	stmt := fmt.Sprintf(`
@@ -351,10 +346,10 @@ WHERE
 
 	rows, err := m.SqlDb().Query(stmt)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
-	defer rows.Close()
+	defer sql2.RowClose(rows)
 
 	var tableSchema string
 	var referencedSchema sql.NullString
@@ -374,8 +369,7 @@ WHERE
 			&fk.referencedColumnKeyType)
 
 		if err != nil {
-			log.Fatal(err)
-			return nil, err
+			panic(err)
 		}
 		fk.referencedTableName = referencedTable.String
 		if tableSchema != "" && tableSchema != defaultSchemaName {
@@ -389,8 +383,6 @@ WHERE
 		}
 	}
 
-	rows.Close()
-
 	foreignKeys = make(map[string][]pgForeignKey)
 	for _, fk := range iter2.KeySort(fkMap) {
 		i := fk.tableName
@@ -398,15 +390,14 @@ WHERE
 		tableKeys = append(tableKeys, fk)
 		foreignKeys[i] = tableKeys
 	}
-	return foreignKeys, err
+	return foreignKeys
 }
 
 // Convert the database native type to a more generic sql type, and a go table type.
 func processTypeInfo(column pgColumn) (
 	typ schema.ColumnType,
 	maxLength uint64,
-	defaultValue interface{},
-	err error) {
+	defaultValue interface{}) {
 
 	switch column.dataType {
 	case "time without time zone":
@@ -485,23 +476,29 @@ func (m *DB) schemaFromRawTables(rawTables map[string]pgTable, options map[strin
 
 	for tableName, rawTable := range rawTables {
 		if strings.Contains(rawTable.name, ".") {
-			log2.Warn("table " + rawTable.name + " cannot contain a period in its name. Skipping.")
+			slog.Warn("Table name "+rawTable.name+"cannot contain a period in its name. Skipping.",
+				slog.String(db.LogTable, tableName))
 			continue
 		}
 		if strings.Contains(rawTable.schema, ".") {
-			log2.Warn("schema " + tableName + " cannot contain a period in its schema name. Skipping.")
+			slog.Warn("schema "+rawTable.schema+" cannot contain a period in its schema name. Skipping.",
+				slog.String(db.LogTable, tableName))
 			continue
 		}
 
 		if strings2.EndsWith(tableName, dd.EnumTableSuffix) {
 			if t, err := m.getEnumTableSchema(rawTable); err != nil {
-				log2.Error("Enum rawTable " + tableName + " skipped: " + err.Error())
+				slog.Warn("Error in enum rawTable. Skipping.",
+					slog.String(db.LogTable, tableName),
+					slog.Any(db.LogTable, err.Error()))
 			} else {
 				dd.EnumTables = append(dd.EnumTables, &t)
 			}
 		} else if strings2.EndsWith(tableName, dd.AssnTableSuffix) {
 			if mm, err := m.getAssociationSchema(rawTable, dd.EnumTableSuffix); err != nil {
-				log2.Error("Association rawTable " + tableName + " skipped: " + err.Error())
+				slog.Warn("Error in association rawTable. Skipping.",
+					slog.String(db.LogTable, tableName),
+					slog.Any(db.LogError, err))
 			} else {
 				dd.AssociationTables = append(dd.AssociationTables, &mm)
 			}
@@ -553,7 +550,9 @@ func (m *DB) getTableSchema(t pgTable, enumTableSuffix string) schema.Table {
 	var pkCount int
 	for _, col := range t.columns {
 		if strings.Contains(col.name, ".") {
-			log2.Warn(`column "` + col.name + `" cannot contain a period in its name. Skipping.`)
+			slog.Warn("Column cannot contain a period in its name. Skipping.",
+				slog.String(db.LogTable, t.name),
+				slog.String(db.LogColumn, col.name))
 			continue
 		}
 
@@ -646,11 +645,11 @@ func (m *DB) getEnumTableSchema(t pgTable) (ed schema.EnumTable, err error) {
 	}
 
 	if !hasConst {
-		err = fmt.Errorf(`error: An enum table must have a "const"" column`)
+		err = fmt.Errorf(`an enum table must have a "const"" column`)
 		return
 	}
 	if !hasLabelOrIdentifier {
-		err = fmt.Errorf(`error: An enum table must have a "label" of "identifier" column`)
+		err = fmt.Errorf(`an enum table must have a "label" of "identifier" column`)
 		return
 	}
 
@@ -667,12 +666,15 @@ ORDER BY
 		quotedNames[0])
 
 	result, err := m.SqlDb().Query(stmt)
-
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
+	defer sql2.RowClose(result)
 
-	receiver := sql2.ReceiveRows(result, receiverTypes, columnNames, nil)
+	receiver, err2 := sql2.ReceiveRows(result, receiverTypes, columnNames, nil, stmt, nil)
+	if err2 != nil {
+		panic(err2)
+	}
 	for _, row := range receiver {
 		values := make(map[string]any)
 		for k := range ed.Fields {
@@ -687,11 +689,7 @@ func (m *DB) getColumnSchema(table pgTable, column pgColumn, isIndexed bool, isP
 	cd := schema.Column{
 		Name: column.name,
 	}
-	var err error
-	cd.Type, cd.Size, cd.DefaultValue, err = processTypeInfo(column)
-	if err != nil {
-		log2.Warn(err.Error() + ". Table = " + table.name + "; Column = " + column.name)
-	}
+	cd.Type, cd.Size, cd.DefaultValue = processTypeInfo(column)
 
 	isAuto := strings.Contains(column.dataType, "serial")
 	// treat auto incrementing values as id values
@@ -711,9 +709,10 @@ func (m *DB) getColumnSchema(table pgTable, column pgColumn, isIndexed bool, isP
 	if fk, ok2 := table.fkMap[cd.Name]; ok2 {
 		tableName := fk.referencedTableName
 		if fk.referencedColumnKeyType.String != "p" {
-			log2.Warn(fmt.Sprintf("Foregin key for %s:%s appears to not be pointing to a primary key. Only primary key foreign keys are supported.", table.name, column.name))
+			slog.Warn("Foreign key appears to not be pointing to a primary key. Only primary key foreign keys are supported.",
+				slog.String(db.LogTable, table.name),
+				slog.String(db.LogColumn, column.name))
 		}
-
 		cd.Reference = &schema.Reference{
 			Table: tableName,
 		}
