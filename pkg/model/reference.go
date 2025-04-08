@@ -12,11 +12,11 @@ type Reference struct {
 	Identifier string
 	// The local name used to refer to the referenced object
 	DecapIdentifier string
-	// The title of the object referred to.
+	// The label of the object referred to.
 	Label string
-	// ReverseTitle is the human-readable title of the object of the reverse relationship.
-	ReverseTitle string
-	// ReverseLabelPlural is the plural of ReverseTitle.
+	// ReverseLabel is the human-readable label of the object of the reverse relationship.
+	ReverseLabel string
+	// ReverseLabelPlural is the plural of ReverseLabel.
 	ReverseLabelPlural string
 	// ReverseIdentifier is the name we should use to refer to the related object.
 	ReverseIdentifier string

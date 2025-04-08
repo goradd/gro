@@ -21,7 +21,7 @@ type ManyManyReference struct {
 	// DestinationTable is the table being linked (the table that we are joining to)
 	DestinationTable *Table
 
-	// Label is the human-readable title of the objects pointed to.
+	// Label is the human-readable label of the objects pointed to.
 	Label string
 	// LabelPlural is the plural of Label
 	LabelPlural string
@@ -86,7 +86,7 @@ func (m *ManyManyReference) PkIdentifier() string {
 func makeManyManyRef(
 	assnTable, column1, column2 string,
 	t1, t2 *Table,
-	title, titles, id, ids string,
+	label, labels, id, ids string,
 ) *ManyManyReference {
 	type1 := t1.PrimaryKeyColumn().ReceiverType
 	type2 := t2.PrimaryKeyColumn().ReceiverType
@@ -97,8 +97,8 @@ func makeManyManyRef(
 		AssnDestColumnName:   column2,
 		AssnDestColumnType:   type2,
 		DestinationTable:     t2,
-		Label:                title,
-		LabelPlural:          titles,
+		Label:                label,
+		LabelPlural:          labels,
 		Identifier:           id,
 		IdentifierPlural:     ids,
 	}

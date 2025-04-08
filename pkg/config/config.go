@@ -29,30 +29,30 @@ func NewDatabase(config map[string]any) (database db.DatabaseI, err error) {
 
 	switch typ {
 	case db.DriverTypeMysql:
-		database = initMysql(config)
+		database, err = initMysql(config)
 	case db.DriverTypePostgres:
-		database = initPgsql(config)
+		database, err = initPgsql(config)
 	}
 	return
 }
 
-func initMysql(overrides map[string]any) db.DatabaseI {
+func initMysql(overrides map[string]any) (db1 db.DatabaseI, err error) {
 	cfg := mysql.NewConfig()
 	cfg.ParseTime = true
 	mysql2.OverrideConfigSettings(cfg, overrides)
 	key := overrides["key"].(string)
 
-	db1 := mysql2.NewDB(key, "", cfg)
-	return db1
+	db1, err = mysql2.NewDB(key, "", cfg)
+	return db1, err
 }
 
-func initPgsql(overrides map[string]any) db.DatabaseI {
+func initPgsql(overrides map[string]any) (db1 db.DatabaseI, err error) {
 	cfg, _ := pgx.ParseConfig("")
 	pgsql.OverrideConfigSettings(cfg, overrides)
 	key := overrides["key"].(string)
 
-	db1 := pgsql.NewDB(key, "", cfg)
-	return db1
+	db1, err = pgsql.NewDB(key, "", cfg)
+	return db1, err
 }
 
 func OpenConfigFile(path string) (databaseConfigs []map[string]any, err error) {

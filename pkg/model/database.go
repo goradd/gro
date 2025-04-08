@@ -97,8 +97,8 @@ func (m *Database) importAssociation(schemaAssn *schema.AssociationTable) {
 	t2 := m.Table(schemaAssn.Table2)
 
 	if t1 != nil && t2 != nil {
-		ref1 := makeManyManyRef(schemaAssn.Name, schemaAssn.Column1, schemaAssn.Column2, t1, t2, schemaAssn.Title2, schemaAssn.Title2Plural, schemaAssn.Identifier2, schemaAssn.Identifier2Plural)
-		ref2 := makeManyManyRef(schemaAssn.Name, schemaAssn.Column2, schemaAssn.Column1, t2, t1, schemaAssn.Table1, schemaAssn.Title1Plural, schemaAssn.Identifier1, schemaAssn.Identifier1Plural)
+		ref1 := makeManyManyRef(schemaAssn.Name, schemaAssn.Column1, schemaAssn.Column2, t1, t2, schemaAssn.Label2, schemaAssn.Label2Plural, schemaAssn.Identifier2, schemaAssn.Identifier2Plural)
+		ref2 := makeManyManyRef(schemaAssn.Name, schemaAssn.Column2, schemaAssn.Column1, t2, t1, schemaAssn.Table1, schemaAssn.Label1Plural, schemaAssn.Identifier1, schemaAssn.Identifier1Plural)
 		ref1.MM = ref2
 		ref2.MM = ref1
 	} else {
@@ -123,7 +123,7 @@ func (m *Database) importReference(table *Table, schemaCol *schema.Column) {
 				slog.String(db.LogColumn, schemaCol.Name))
 			return
 		}
-		if !strings.HasSuffix(schemaCol.Name, m.ReferenceSuffix) {
+		if refTable != nil && !strings.HasSuffix(schemaCol.Name, m.ReferenceSuffix) {
 			slog.Warn("Reference column name is missing ReferenceSuffix.",
 				slog.String(db.LogTable, table.QueryName),
 				slog.String(db.LogColumn, schemaCol.Name))
@@ -133,7 +133,7 @@ func (m *Database) importReference(table *Table, schemaCol *schema.Column) {
 			EnumTable:               et,
 			Identifier:              schemaCol.Reference.Identifier,
 			Label:                   schemaCol.Reference.Label,
-			ReverseTitle:            schemaCol.Reference.ReverseTitle,
+			ReverseLabel:            schemaCol.Reference.ReverseLabel,
 			ReverseLabelPlural:      schemaCol.Reference.ReverseLabelPlural,
 			ReverseIdentifier:       schemaCol.Reference.ReverseIdentifier,
 			ReverseIdentifierPlural: schemaCol.Reference.ReverseIdentifierPlural,

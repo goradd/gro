@@ -56,11 +56,17 @@ func initPostgres() {
 	cfg.Password = defaultPassword
 	cfg.Database = goraddDatabaseName
 
-	database := pgsql.NewDB(goraddKey, "", cfg)
+	database, err := pgsql.NewDB(goraddKey, "", cfg)
+	if err != nil {
+		panic(err)
+	}
 	db.AddDatabase(database, goraddKey)
 
 	cfg.Database = goraddUnitDatabaseName
-	database = pgsql.NewDB(goraddUnitKey, "", cfg)
+	database, err = pgsql.NewDB(goraddUnitKey, "", cfg)
+	if err != nil {
+		panic(err)
+	}
 	db.AddDatabase(database, goraddUnitKey)
 }
 

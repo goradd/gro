@@ -35,7 +35,7 @@ type mysqlTable struct {
 
 type mysqlColumn struct {
 	name            string
-	defaultValue    sql2.Receiver
+	defaultValue    sql2.SqlReceiver
 	isNullable      string
 	dataType        string
 	dataLen         int

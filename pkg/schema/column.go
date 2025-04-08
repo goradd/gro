@@ -94,14 +94,14 @@ type Reference struct {
 
 	// The singular description of this table's objects as referred to by the referenced table.
 	// If not specified, one will be created.
-	ReverseTitle string `json:"reverse_title,omitempty"`
+	ReverseLabel string `json:"reverse_label,omitempty"`
 
 	// The plural description of this table's objects as referred to by the reference object.
-	// If not specified, the ReverseTitle will be pluralized.
-	ReverseLabelPlural string `json:"reverse_title_plural,omitempty"`
+	// If not specified, the ReverseLabel will be pluralized.
+	ReverseLabelPlural string `json:"reverse_label_plural,omitempty"`
 
 	// The singular Go identifier that will be used for the reverse relationships.
-	// If not specified, the ReverseTitle will be used to create one.
+	// If not specified, the ReverseLabel will be used to create one.
 	ReverseIdentifier string `json:"reverse_identifier,omitempty"`
 
 	// The plural Go identifier that will be used for the reverse relationships.
@@ -157,14 +157,14 @@ func (c *Column) FillDefaults(db *Database, table *Table) {
 		if objName == c.Reference.Table {
 			objName = ""
 		}
-		if c.Reference.ReverseTitle == "" {
-			c.Reference.ReverseTitle = If(objName, snaker.ForceCamelIdentifier(objName)+" "+table.Label, table.Label)
+		if c.Reference.ReverseLabel == "" {
+			c.Reference.ReverseLabel = If(objName, strings2.Title(objName)+" "+table.Label, table.Label)
 		}
 		if c.Reference.ReverseLabelPlural == "" && c.IndexLevel != IndexLevelUnique {
-			c.Reference.ReverseLabelPlural = strings2.Plural(c.Reference.ReverseTitle)
+			c.Reference.ReverseLabelPlural = strings2.Plural(c.Reference.ReverseLabel)
 		}
 		if c.Reference.ReverseIdentifier == "" {
-			c.Reference.ReverseIdentifier = snaker.ForceCamelIdentifier(c.Reference.ReverseTitle)
+			c.Reference.ReverseIdentifier = snaker.ForceCamelIdentifier(c.Reference.ReverseLabel)
 		}
 		if c.Reference.ReverseIdentifierPlural == "" && c.IndexLevel != IndexLevelUnique {
 			c.Reference.ReverseIdentifierPlural = strings2.Plural(c.Reference.ReverseIdentifier)

@@ -1,7 +1,7 @@
 package model
 
 import (
-	"fmt"
+	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
@@ -137,7 +137,7 @@ func (t *Table) HasUniqueIndexes() bool {
 }
 
 // newTable will import the table provided by tableSchema.
-// If an error occurs, nil is returned.
+// If an error occurs, it is logged and nil is returned.
 func newTable(dbKey string, tableSchema *schema.Table) *Table {
 	queryName := strings2.If(tableSchema.Schema == "", tableSchema.Name, tableSchema.Schema+"."+tableSchema.Name)
 	t := &Table{
@@ -153,12 +153,14 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 	t.DecapIdentifier = strings2.Decap(tableSchema.Identifier)
 
 	if t.Identifier == t.IdentifierPlural {
-		slog.Error("Table " + t.QueryName + " is using a plural name.")
+		slog.Error("Table is using a plural name",
+			slog.String(db.LogTable, t.QueryName))
 		return nil
 	}
 
 	if len(tableSchema.Columns) == 0 {
-		slog.Error("Table " + t.QueryName + " has no columns.")
+		slog.Error("Table has no columns",
+			slog.String(db.LogTable, t.QueryName))
 		return nil
 	}
 
@@ -168,14 +170,17 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 		newCol.Table = t
 		if (newCol.SchemaSubType == schema.ColSubTypeTimestamp ||
 			newCol.SchemaSubType == schema.ColSubTypeLock) && newCol.IsNullable {
-			slog.Warn(fmt.Sprintf("Column %s:%s should not be nullable. Nullable status will be ignored.", t.QueryName, newCol.QueryName))
+			slog.Warn("Column should not be nullable. Nullable status will be ignored.",
+				slog.String(db.LogTable, t.QueryName),
+				slog.String(db.LogColumn, newCol.QueryName))
 			newCol.IsNullable = false
 		}
 
 		if newCol.IsPrimaryKey {
 			pkCount++
 			if pkCount > 1 {
-				slog.Error("Table " + t.QueryName + " has a multi-column primary key. Instead combine a multi-column unique index with a single column auto-generated primary key.")
+				slog.Error("Table cannot have a multi-column primary key. Instead combine a multi-column unique index with a single column auto-generated primary key.",
+					slog.String(db.LogTable, t.QueryName))
 				return nil
 			}
 			t.Columns = slices.Insert(t.Columns, 0, newCol)
@@ -198,7 +203,9 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 		for _, name := range idx.Columns {
 			col := t.ColumnByName(name)
 			if col == nil {
-				slog.Error("Cannot find column " + name + " of table " + t.QueryName + " in multi-column index")
+				slog.Error("Cannot find column in multi-column index",
+					slog.String(db.LogTable, t.QueryName),
+					slog.String(db.LogColumn, name))
 				return nil
 			}
 			columns = append(columns, col)

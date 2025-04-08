@@ -54,12 +54,12 @@ type EnumTable struct {
 
 	// Label is the name of the object when describing it to humans.
 	// If creating a multi-language app, your app would provide translation from this string to the language of choice.
-	// Can be multiple words. Should be lower-case. The app will use github.com/goradd/strings.ReverseTitle() to capitalize this if needed.
+	// Can be multiple words. Should be lower-case. The app will use github.com/goradd/strings.ReverseLabel() to capitalize this if needed.
 	// If left blank, the app will base this on the Name of the table.
 	Label string `json:"label,omitempty"`
 
 	// LabelPlural is the plural form of the Label.
-	LabelPlural string `json:"title_plural,omitempty"`
+	LabelPlural string `json:"label_plural,omitempty"`
 
 	// Identifier is the corresponding Go object name. It must obey Go identifier labeling rules. Leave blank
 	// to base it on the Name.

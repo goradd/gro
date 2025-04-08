@@ -43,7 +43,7 @@ func ReadJsonFile(infile string) (schemas []*Database, err error) {
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.UseNumber()
 
-	if err := decoder.Decode(&schemas); err != nil {
+	if err = decoder.Decode(&schemas); err != nil {
 		return
 	}
 

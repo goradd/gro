@@ -13,7 +13,7 @@ type sqlCursor struct {
 	columnTypes          []query.ReceiverType
 	columnNames          []string
 	joinTree             *jointree.JoinTree
-	columnReceivers      []Receiver
+	columnReceivers      []SqlReceiver
 	columnValueReceivers []interface{}
 	query                string
 	args                 []any
@@ -51,7 +51,7 @@ func NewSqlCursor(rows *sql.Rows,
 		columnTypes:          columnTypes,
 		columnNames:          columnNames,
 		joinTree:             joinTree,
-		columnReceivers:      make([]Receiver, len(columnTypes)),
+		columnReceivers:      make([]SqlReceiver, len(columnTypes)),
 		columnValueReceivers: make([]interface{}, len(columnTypes)),
 		query:                sql,
 		args:                 args,

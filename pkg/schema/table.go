@@ -33,7 +33,7 @@ type Table struct {
 	Label string `json:"label,omitempty"`
 
 	// LabelPlural is the plural form of the Label.
-	LabelPlural string `json:"title_plural,omitempty"`
+	LabelPlural string `json:"label_plural,omitempty"`
 
 	// Identifier is the corresponding Go object name. It must obey Go identifier labeling rules.
 	Identifier string `json:"identifier,omitempty"`

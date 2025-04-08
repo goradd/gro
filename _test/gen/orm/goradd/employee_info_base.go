@@ -701,7 +701,7 @@ func (o *employeeInfoBase) update(ctx context.Context) error {
 
 		if o.personIDIsDirty &&
 			LoadEmployeeInfoByPersonID(ctx, o.personID) != nil {
-			return db.NewUniqueValueError(fmt.Sprintf("error: duplicate value found for PersonID: %v", o.personID))
+			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for PersonID: %v", o.personID))
 		}
 
 		modifiedFields = o.getUpdateFields()
@@ -751,7 +751,7 @@ func (o *employeeInfoBase) insert(ctx context.Context) (err error) {
 
 		if o.personIDIsDirty &&
 			LoadEmployeeInfoByPersonID(ctx, o.personID) != nil {
-			return db.NewUniqueValueError(fmt.Sprintf("error: duplicate value found for PersonID: %v", o.personID))
+			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for PersonID: %v", o.personID))
 		}
 
 		insertFields = o.getInsertFields()

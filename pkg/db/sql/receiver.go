@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-// Receiver is an encapsulation of a way of receiving data from sql queries as interface{} pointers. This allows you
+// SqlReceiver is an encapsulation of a way of receiving data from sql queries as interface{} pointers. This allows you
 // to get data without knowing the type of data you are asking for ahead of time, and is easier for dealing with NULL fields.
 // Some database drivers (MySql for one) return different results in fields depending on how you call the query (using
 // a prepared statement can return different results than without one), or if the data does not quite fit (UInt64 in particular
@@ -22,12 +22,12 @@ import (
 // Pass the address of the R member to the sql.Scan method when using an object of this type,
 // because there are some idiosyncrasies with
 // how Go treats return values that prevents returning an address of R from a function
-type Receiver struct {
+type SqlReceiver struct {
 	R interface{}
 }
 
 // IntI returns the receiver as an interface to an int.
-func (r Receiver) IntI() interface{} {
+func (r SqlReceiver) IntI() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -68,7 +68,7 @@ func (r Receiver) IntI() interface{} {
 //
 // Some drivers (like MySQL) return all integers as Int64. Its up to you to make sure
 // you only use this on 32-bit uints or smaller.
-func (r Receiver) UintI() interface{} {
+func (r SqlReceiver) UintI() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -106,7 +106,7 @@ func (r Receiver) UintI() interface{} {
 }
 
 // Int64I returns the given value as an interface to an Int64
-func (r Receiver) Int64I() interface{} {
+func (r SqlReceiver) Int64I() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -145,7 +145,7 @@ func (r Receiver) Int64I() interface{} {
 //
 // Some drivers (like MySQL) return all integers as Int64. This converts to uint64. Its up to you to make sure
 // you only use this on 64-bit uints or smaller.
-func (r Receiver) Uint64I() interface{} {
+func (r SqlReceiver) Uint64I() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -183,7 +183,7 @@ func (r Receiver) Uint64I() interface{} {
 }
 
 // BoolI returns the value as an interface to a boolean
-func (r Receiver) BoolI() interface{} {
+func (r SqlReceiver) BoolI() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -227,7 +227,7 @@ func (r Receiver) BoolI() interface{} {
 }
 
 // StringI returns the value as an interface to a string
-func (r Receiver) StringI() interface{} {
+func (r SqlReceiver) StringI() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -243,7 +243,7 @@ func (r Receiver) StringI() interface{} {
 }
 
 // ByteI returns the value as an interface to a byte array
-func (r Receiver) ByteI() interface{} {
+func (r SqlReceiver) ByteI() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -258,7 +258,7 @@ func (r Receiver) ByteI() interface{} {
 }
 
 // FloatI returns the value as an interface to a float32 value.
-func (r Receiver) FloatI() interface{} {
+func (r SqlReceiver) FloatI() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -295,7 +295,7 @@ func (r Receiver) FloatI() interface{} {
 }
 
 // DoubleI returns the value as a float64 interface
-func (r Receiver) DoubleI() interface{} {
+func (r SqlReceiver) DoubleI() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -330,7 +330,7 @@ func (r Receiver) DoubleI() interface{} {
 }
 
 // TimeI returns the value as a time.Time value in UTC, or in the case of CURRENT_TIME, a string "now".
-func (r Receiver) TimeI() interface{} {
+func (r SqlReceiver) TimeI() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -365,8 +365,8 @@ func parseTime(s string) interface{} {
 	return t.UTC()
 }
 
-// Unpack converts a Receiver to a type corresponding to the given ReceiverType
-func (r Receiver) Unpack(typ ReceiverType) interface{} {
+// Unpack converts a SqlReceiver to a type corresponding to the given ReceiverType
+func (r SqlReceiver) Unpack(typ ReceiverType) interface{} {
 	switch typ {
 	case ColTypeBytes:
 		return r.R
@@ -393,9 +393,9 @@ func (r Receiver) Unpack(typ ReceiverType) interface{} {
 	}
 }
 
-// UnpackDefaultValue converts a Receiver used to get the default value
+// UnpackDefaultValue converts a SqlReceiver used to get the default value
 // to a type corresponding to typ.
-func (r Receiver) UnpackDefaultValue(typ schema.ColumnType, size int) interface{} {
+func (r SqlReceiver) UnpackDefaultValue(typ schema.ColumnType, size int) interface{} {
 	switch typ {
 	case schema.ColTypeBytes:
 		fallthrough

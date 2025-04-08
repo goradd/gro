@@ -916,11 +916,11 @@ func (o *loginBase) update(ctx context.Context) error {
 		if o.personIDIsDirty &&
 			!o.personIDIsNull &&
 			LoadLoginByPersonID(ctx, o.personID) != nil {
-			return db.NewUniqueValueError(fmt.Sprintf("error: duplicate value found for PersonID: %v", o.personID))
+			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for PersonID: %v", o.personID))
 		}
 		if o.usernameIsDirty &&
 			LoadLoginByUsername(ctx, o.username) != nil {
-			return db.NewUniqueValueError(fmt.Sprintf("error: duplicate value found for Username: %v", o.username))
+			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for Username: %v", o.username))
 		}
 
 		modifiedFields = o.getUpdateFields()
@@ -971,11 +971,11 @@ func (o *loginBase) insert(ctx context.Context) (err error) {
 		if o.personIDIsDirty &&
 			!o.personIDIsNull &&
 			LoadLoginByPersonID(ctx, o.personID) != nil {
-			return db.NewUniqueValueError(fmt.Sprintf("error: duplicate value found for PersonID: %v", o.personID))
+			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for PersonID: %v", o.personID))
 		}
 		if o.usernameIsDirty &&
 			LoadLoginByUsername(ctx, o.username) != nil {
-			return db.NewUniqueValueError(fmt.Sprintf("error: duplicate value found for Username: %v", o.username))
+			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for Username: %v", o.username))
 		}
 
 		insertFields = o.getInsertFields()

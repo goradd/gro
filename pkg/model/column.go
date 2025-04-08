@@ -58,8 +58,7 @@ type Column struct {
 
 // DefaultConstantName returns the name of the default value constant that will be used to refer to the default value
 func (cd *Column) DefaultConstantName() string {
-	title := cd.Table.Identifier + cd.Identifier + "Default"
-	return title
+	return cd.Table.Identifier + cd.Identifier + "Default"
 }
 
 func (cd *Column) VariableIdentifier() string {

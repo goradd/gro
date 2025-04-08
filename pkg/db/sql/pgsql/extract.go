@@ -34,7 +34,7 @@ type pgTable struct {
 
 type pgColumn struct {
 	name            string
-	defaultValue    sql2.Receiver
+	defaultValue    sql2.SqlReceiver
 	isNullable      bool
 	dataType        string
 	charLen         int
@@ -210,8 +210,8 @@ ORDER BY
 	for rows.Next() {
 		col = pgColumn{}
 		var descr sql.NullString
-		var nullable sql2.Receiver
-		var ident sql2.Receiver
+		var nullable sql2.SqlReceiver
+		var ident sql2.SqlReceiver
 
 		err = rows.Scan(&col.name, &(col.defaultValue.R), &(nullable.R), &col.dataType, &col.characterMaxLen, &(ident.R), &descr, &col.collationName)
 		if err != nil {

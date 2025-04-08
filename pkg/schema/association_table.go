@@ -24,15 +24,15 @@ type AssociationTable struct {
 	// The name of the column in the association table that will be used to point to table 1.
 	Column1 string `json:"column1"`
 
-	// Title1 is the singular description that will be used to describe the objects to human readers.
+	// Label1 is the singular description that will be used to describe the objects to human readers.
 	// This will be used to create the corresponding reference field name in the database and Go identifier.
 	// Note that this isn't necessarily the table name. For example a "person" table might be used in a relationship
-	// to describe members of a group. The title in that case could be "Member".
-	Title1 string `json:"title1,omitempty"`
+	// to describe members of a group. The label in that case could be "Member".
+	Label1 string `json:"label1,omitempty"`
 
-	// Title1Plural is the plural description that will be used to describe the objects to human readers.
+	// Label1Plural is the plural description that will be used to describe the objects to human readers.
 	// This will be used to create the corresponding Go identifier.
-	Title1Plural string `json:"title1_plural,omitempty"`
+	Label1Plural string `json:"label1_plural,omitempty"`
 
 	// Identifier1 is the singular Go name that will be used for one object pointed at.
 	Identifier1 string `json:"identifier1,omitempty"`
@@ -48,13 +48,13 @@ type AssociationTable struct {
 	// The name of the column in the association table that will be used to point to table 2.
 	Column2 string `json:"column2"`
 
-	// Title2 is the singular description that will be used to describe the objects to human readers.
+	// Label2 is the singular description that will be used to describe the objects to human readers.
 	// This will be used to create the corresponding reference field name in the database and Go identifier.
-	Title2 string `json:"title2,omitempty"`
+	Label2 string `json:"label2,omitempty"`
 
-	// Title2Plural is the plural description that will be used to describe the objects to human readers.
+	// Label2Plural is the plural description that will be used to describe the objects to human readers.
 	// This will be used to create the corresponding Go identifier.
-	Title2Plural string `json:"title2_plural,omitempty"`
+	Label2Plural string `json:"label2_plural,omitempty"`
 
 	// Identifier2 is the singular Go name that will be used for one object pointed at.
 	Identifier2 string `json:"identifier2,omitempty"`
@@ -74,11 +74,11 @@ func (t *AssociationTable) QualifiedName() string {
 // FillDefaults will fill default values where none have been set.
 func (t *AssociationTable) FillDefaults(referenceSuffix string) {
 	col1 := strings.TrimSuffix(t.Column1, referenceSuffix)
-	if t.Title1 == "" {
-		t.Title1 = strings2.Title(col1)
+	if t.Label1 == "" {
+		t.Label1 = strings2.Title(col1)
 	}
-	if t.Title1Plural == "" {
-		t.Title1Plural = strings2.Plural(t.Title1)
+	if t.Label1Plural == "" {
+		t.Label1Plural = strings2.Plural(t.Label1)
 	}
 	if t.Identifier1 == "" {
 		t.Identifier1 = snaker.SnakeToCamelIdentifier(col1)
@@ -88,11 +88,11 @@ func (t *AssociationTable) FillDefaults(referenceSuffix string) {
 	}
 
 	col2 := strings.TrimSuffix(t.Column2, referenceSuffix)
-	if t.Title2 == "" {
-		t.Title2 = strings2.Title(col2)
+	if t.Label2 == "" {
+		t.Label2 = strings2.Title(col2)
 	}
-	if t.Title2Plural == "" {
-		t.Title2Plural = strings2.Plural(t.Title2)
+	if t.Label2Plural == "" {
+		t.Label2Plural = strings2.Plural(t.Label2)
 	}
 	if t.Identifier2 == "" {
 		t.Identifier2 = snaker.SnakeToCamelIdentifier(col2)

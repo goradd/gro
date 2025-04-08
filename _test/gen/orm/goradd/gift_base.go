@@ -579,7 +579,7 @@ func (o *giftBase) update(ctx context.Context) error {
 
 		if o.numberIsDirty &&
 			LoadGiftByNumber(ctx, o.number) != nil {
-			return db.NewUniqueValueError(fmt.Sprintf("error: duplicate value found for Number: %v", o.number))
+			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for Number: %v", o.number))
 		}
 
 		modifiedFields = o.getUpdateFields()
@@ -621,7 +621,7 @@ func (o *giftBase) insert(ctx context.Context) (err error) {
 
 		if o.numberIsDirty &&
 			LoadGiftByNumber(ctx, o.number) != nil {
-			return db.NewUniqueValueError(fmt.Sprintf("error: duplicate value found for Number: %v", o.number))
+			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for Number: %v", o.number))
 		}
 
 		insertFields = o.getInsertFields()

@@ -1969,7 +1969,7 @@ func (o *projectBase) update(ctx context.Context) error {
 
 		if o.numIsDirty &&
 			LoadProjectByNum(ctx, o.num) != nil {
-			return db.NewUniqueValueError(fmt.Sprintf("error: duplicate value found for Num: %v", o.num))
+			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for Num: %v", o.num))
 		}
 
 		modifiedFields = o.getUpdateFields()
@@ -2215,7 +2215,7 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 
 		if o.numIsDirty &&
 			LoadProjectByNum(ctx, o.num) != nil {
-			return db.NewUniqueValueError(fmt.Sprintf("error: duplicate value found for Num: %v", o.num))
+			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for Num: %v", o.num))
 		}
 
 		insertFields = o.getInsertFields()
