@@ -220,16 +220,17 @@ func (o *loginBase) Person() *Person {
 
 // LoadPerson returns the related Person. If it is not already loaded,
 // it will attempt to load it, provided the PersonID column has been loaded first.
-func (o *loginBase) LoadPerson(ctx context.Context) *Person {
-	if !o.personIDIsLoaded {
-		return nil
-	}
+func (o *loginBase) LoadPerson(ctx context.Context) (*Person, error) {
+	var err error
 
 	if o.objPerson == nil {
+		if !o.personIDIsLoaded {
+			panic("PersonID must be selected in the previous query")
+		}
 		// Load and cache
-		o.objPerson = LoadPerson(ctx, o.personID)
+		o.objPerson, err = LoadPerson(ctx, o.personID)
 	}
-	return o.objPerson
+	return o.objPerson, err
 }
 
 // SetPerson will set the reference to person. The referenced object
@@ -377,7 +378,7 @@ func (o *loginBase) IsNew() bool {
 // LoadLogin returns a Login from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [LoginsBuilder.Select] for more info.
-func LoadLogin(ctx context.Context, id string, selectNodes ...query.Node) *Login {
+func LoadLogin(ctx context.Context, id string, selectNodes ...query.Node) (*Login, error) {
 	return queryLogins(ctx).
 		Where(op.Equal(node.Login().ID(), id)).
 		Select(selectNodes...).
@@ -386,17 +387,18 @@ func LoadLogin(ctx context.Context, id string, selectNodes ...query.Node) *Login
 
 // HasLogin returns true if a Login with the given primary key exists in the database.
 // doc: type=Login
-func HasLogin(ctx context.Context, id string) bool {
-	return queryLogins(ctx).
+func HasLogin(ctx context.Context, id string) (bool, error) {
+	v, err := queryLogins(ctx).
 		Where(op.Equal(node.Login().ID(), id)).
-		Count() == 1
+		Count()
+	return v > 0, err
 }
 
 // LoadLoginByPersonID queries for a single Login object by the given unique index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [LoginsBuilder.Select].
 // If you need a more elaborate query, use QueryLogins() to start a query builder.
-func LoadLoginByPersonID(ctx context.Context, personID interface{}, selectNodes ...query.Node) *Login {
+func LoadLoginByPersonID(ctx context.Context, personID interface{}, selectNodes ...query.Node) (*Login, error) {
 	q := queryLogins(ctx)
 	if personID == nil {
 		q = q.Where(op.IsNull(node.Login().PersonID()))
@@ -409,21 +411,22 @@ func LoadLoginByPersonID(ctx context.Context, personID interface{}, selectNodes 
 // HasLoginByPersonID returns true if the
 // given unique index values exist in the database.
 // doc: type=Login
-func HasLoginByPersonID(ctx context.Context, personID interface{}) bool {
+func HasLoginByPersonID(ctx context.Context, personID interface{}) (bool, error) {
 	q := queryLogins(ctx)
 	if personID == nil {
 		q = q.Where(op.IsNull(node.Login().PersonID()))
 	} else {
 		q = q.Where(op.Equal(node.Login().PersonID(), personID))
 	}
-	return q.Count() == 1
+	v, err := q.Count()
+	return v > 0, err
 }
 
 // LoadLoginByUsername queries for a single Login object by the given unique index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [LoginsBuilder.Select].
 // If you need a more elaborate query, use QueryLogins() to start a query builder.
-func LoadLoginByUsername(ctx context.Context, username string, selectNodes ...query.Node) *Login {
+func LoadLoginByUsername(ctx context.Context, username string, selectNodes ...query.Node) (*Login, error) {
 	q := queryLogins(ctx)
 	q = q.Where(op.Equal(node.Login().Username(), username))
 	return q.Select(selectNodes...).Get()
@@ -432,10 +435,11 @@ func LoadLoginByUsername(ctx context.Context, username string, selectNodes ...qu
 // HasLoginByUsername returns true if the
 // given unique index values exist in the database.
 // doc: type=Login
-func HasLoginByUsername(ctx context.Context, username string) bool {
+func HasLoginByUsername(ctx context.Context, username string) (bool, error) {
 	q := queryLogins(ctx)
 	q = q.Where(op.Equal(node.Login().Username(), username))
-	return q.Count() == 1
+	v, err := q.Count()
+	return v > 0, err
 }
 
 // The LoginBuilder uses the query.BuilderI interface to build a query.
@@ -482,14 +486,14 @@ type LoginBuilder interface {
 	Having(node query.Node) LoginBuilder
 
 	// Load terminates the query builder, performs the query, and returns a slice of Login objects.
-	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If there are any errors, nil is returned along with the error.
 	// If no results come back from the query, it will return a non-nil empty slice.
-	Load() []*Login
+	Load() ([]*Login, error)
 	// Load terminates the query builder, performs the query, and returns a slice of interfaces.
 	// This can then satisfy a general interface that loads arrays of objects.
-	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If there are any errors, nil is returned along with the error.
 	// If no results come back from the query, it will return a non-nil empty slice.
-	LoadI() []query.OrmObj
+	LoadI() ([]query.OrmObj, error)
 
 	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
 	//
@@ -501,27 +505,19 @@ type LoginBuilder interface {
 	// on the cursor object when you are done. You should use
 	//   defer cursor.Close()
 	// to make sure the cursor gets closed.
-	LoadCursor() loginsCursor
+	LoadCursor() (loginsCursor, error)
 
 	// Get is a convenience method to return only the first item found in a query.
 	// The entire query is performed, so you should generally use this only if you know
 	// you are selecting on one or very few items.
-	//
 	// If an error occurs, or no results are found, a nil is returned.
-	// In the case of an error, the error is returned in the context.
-	Get() *Login
+	Get() (*Login, error)
 
 	// Count terminates a query and returns just the number of items in the result.
 	// If you have Select or Calculation columns in the query, it will count NULL results as well.
 	// To not count NULL values, use Where in the builder with a NotNull operation.
 	// To count distinct combinations of items, call Distinct() on the builder.
-	Count() int
-
-	// Subquery terminates the query builder and tags it as a subquery within a larger query.
-	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-	// Subquery() *query.SubqueryNode
-
+	Count() (int, error)
 }
 
 type loginQueryBuilder struct {
@@ -538,11 +534,12 @@ func newLoginBuilder(ctx context.Context) LoginBuilder {
 // Load terminates the query builder, performs the query, and returns a slice of Login objects.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *loginQueryBuilder) Load() (logins []*Login) {
+func (b *loginQueryBuilder) Load() (logins []*Login, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
@@ -557,11 +554,12 @@ func (b *loginQueryBuilder) Load() (logins []*Login) {
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *loginQueryBuilder) LoadI() (logins []query.OrmObj) {
+func (b *loginQueryBuilder) LoadI() (logins []query.OrmObj, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
@@ -584,13 +582,13 @@ func (b *loginQueryBuilder) LoadI() (logins []query.OrmObj) {
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *loginQueryBuilder) LoadCursor() loginsCursor {
+func (b *loginQueryBuilder) LoadCursor() (loginsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
-	result := database.BuilderQuery(b.builder)
+	result, err := database.BuilderQuery(b.builder)
 	cursor := result.(query.CursorI)
 
-	return loginsCursor{cursor}
+	return loginsCursor{cursor}, err
 }
 
 type loginsCursor struct {
@@ -600,50 +598,31 @@ type loginsCursor struct {
 // Next returns the current Login object and moves the cursor to the next one.
 //
 // If there are no more records, it returns nil.
-func (c loginsCursor) Next() *Login {
+func (c loginsCursor) Next() (*Login, error) {
 	if c.CursorI == nil {
-		return nil
+		return nil, nil
 	}
 
-	row := c.CursorI.Next()
-	if row == nil {
-		return nil
+	row, err := c.CursorI.Next()
+	if row == nil || err != nil {
+		return nil, err
 	}
 	o := new(Login)
 	o.load(row, o)
-	return o
+	return o, nil
 }
 
 // Get is a convenience method to return only the first item found in a query.
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
-//
 // If an error occurs, or no results are found, a nil is returned.
-// In the case of an error, the error is returned in the context.
-func (b *loginQueryBuilder) Get() *Login {
-	results := b.Load()
-	if results != nil && len(results) > 0 {
-		obj := results[0]
-		return obj
-	} else {
-		return nil
+func (b *loginQueryBuilder) Get() (*Login, error) {
+	results, err := b.Load()
+	if err != nil || len(results) == 0 {
+		return nil, err
 	}
+	return results[0], nil
 }
-
-/*
-// Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
-// by condition.
-// The joinedTable node will be modified by this process so that you can use it in subsequent builder operations.
-// Call GetAlias to return the resulting object from the query result.
-func (b *loginQueryBuilder) Join(alias string, joinedTable query.Node, condition query.Node) LoginBuilder {
-    if query.RootNode(n).TableName_() != "login" {
-        panic("you can only join a node that is rooted at node.Login()")
-    }
-    // TODO: make sure joinedTable is a table node
-	b.builder.Join(alias, joinedTable, condition)
-	return b
-}
-*/
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
@@ -711,42 +690,34 @@ func (b *loginQueryBuilder) Having(node query.Node) LoginBuilder {
 // If you have Select or Calculation columns in the query, it will count NULL results as well.
 // To not count NULL values, use Where in the builder with a NotNull operation.
 // To count distinct combinations of items, call Distinct() on the builder.
-func (b *loginQueryBuilder) Count() int {
+func (b *loginQueryBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
-		return 0
+	results, err := database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
+		return 0, err
 	}
-	return results.(int)
+	return results.(int), nil
 }
 
-/*
-// Subquery terminates the query builder and tags it as a subquery within a larger query.
-// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-func (b *loginQueryBuilder)  Subquery() *query.SubqueryNode {
-	 return b.builder.Subquery()
-}
-*/
-
-func CountLogins(ctx context.Context) int {
+// CountLogins returns the total number of items in the login table.
+func CountLogins(ctx context.Context) (int, error) {
 	return QueryLogins(ctx).Count()
 }
 
 // CountLoginsByID queries the database and returns the number of Login objects that
 // have id.
 // doc: type=Login
-func CountLoginsByID(ctx context.Context, id string) int {
+func CountLoginsByID(ctx context.Context, id string) (int, error) {
 	return QueryLogins(ctx).Where(op.Equal(node.Login().ID(), id)).Count()
 }
 
 // CountLoginsByPersonID queries the database and returns the number of Login objects that
 // have personID.
 // doc: type=Login
-func CountLoginsByPersonID(ctx context.Context, personID string) int {
+func CountLoginsByPersonID(ctx context.Context, personID string) (int, error) {
 	if personID == "" {
-		return 0
+		return 0, nil
 	}
 	return QueryLogins(ctx).Where(op.Equal(node.Login().PersonID(), personID)).Count()
 }
@@ -754,21 +725,21 @@ func CountLoginsByPersonID(ctx context.Context, personID string) int {
 // CountLoginsByUsername queries the database and returns the number of Login objects that
 // have username.
 // doc: type=Login
-func CountLoginsByUsername(ctx context.Context, username string) int {
+func CountLoginsByUsername(ctx context.Context, username string) (int, error) {
 	return QueryLogins(ctx).Where(op.Equal(node.Login().Username(), username)).Count()
 }
 
 // CountLoginsByPassword queries the database and returns the number of Login objects that
 // have password.
 // doc: type=Login
-func CountLoginsByPassword(ctx context.Context, password string) int {
+func CountLoginsByPassword(ctx context.Context, password string) (int, error) {
 	return QueryLogins(ctx).Where(op.Equal(node.Login().Password(), password)).Count()
 }
 
 // CountLoginsByIsEnabled queries the database and returns the number of Login objects that
 // have isEnabled.
 // doc: type=Login
-func CountLoginsByIsEnabled(ctx context.Context, isEnabled bool) int {
+func CountLoginsByIsEnabled(ctx context.Context, isEnabled bool) (int, error) {
 	return QueryLogins(ctx).Where(op.Equal(node.Login().IsEnabled(), isEnabled)).Count()
 }
 
@@ -914,13 +885,19 @@ func (o *loginBase) update(ctx context.Context) error {
 		}
 
 		if o.personIDIsDirty &&
-			!o.personIDIsNull &&
-			LoadLoginByPersonID(ctx, o.personID) != nil {
-			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for PersonID: %v", o.personID))
+			!o.personIDIsNull {
+			if obj, err := LoadLoginByPersonID(ctx, o.personID); err != nil {
+				return err
+			} else if obj != nil {
+				return db.NewUniqueValueError("login", map[string]any{"person_id": o.personID}, nil)
+			}
 		}
-		if o.usernameIsDirty &&
-			LoadLoginByUsername(ctx, o.username) != nil {
-			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for Username: %v", o.username))
+		if o.usernameIsDirty {
+			if obj, err := LoadLoginByUsername(ctx, o.username); err != nil {
+				return err
+			} else if obj != nil {
+				return db.NewUniqueValueError("login", map[string]any{"username": o.username}, nil)
+			}
 		}
 
 		modifiedFields = o.getUpdateFields()
@@ -969,13 +946,19 @@ func (o *loginBase) insert(ctx context.Context) (err error) {
 		}
 
 		if o.personIDIsDirty &&
-			!o.personIDIsNull &&
-			LoadLoginByPersonID(ctx, o.personID) != nil {
-			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for PersonID: %v", o.personID))
+			!o.personIDIsNull {
+			if obj, err := LoadLoginByPersonID(ctx, o.personID); err != nil {
+				return err
+			} else if obj != nil {
+				return db.NewUniqueValueError("login", map[string]any{"person_id": o.personID}, nil)
+			}
 		}
-		if o.usernameIsDirty &&
-			LoadLoginByUsername(ctx, o.username) != nil {
-			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for Username: %v", o.username))
+		if o.usernameIsDirty {
+			if obj, err := LoadLoginByUsername(ctx, o.username); err != nil {
+				return err
+			} else if obj != nil {
+				return db.NewUniqueValueError("login", map[string]any{"username": o.username}, nil)
+			}
 		}
 
 		insertFields = o.getInsertFields()
@@ -1070,8 +1053,7 @@ func (o *loginBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	d.Delete(ctx, "login", map[string]any{"ID": o.id})
-	return nil
+	return d.Delete(ctx, "login", map[string]any{"ID": o.id})
 	broadcast.Delete(ctx, "goradd", "login", fmt.Sprint(o.id))
 	return
 }
@@ -1080,7 +1062,10 @@ func (o *loginBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteLogin(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd")
-	d.Delete(ctx, "login", map[string]any{"ID": pk})
+	err := d.Delete(ctx, "login", map[string]any{"ID": pk})
+	if err != nil {
+		return err
+	}
 	broadcast.Delete(ctx, "goradd", "login", fmt.Sprint(pk))
 	return nil
 }

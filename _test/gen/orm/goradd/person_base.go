@@ -397,35 +397,39 @@ func (o *personBase) SetProjectsByID(ids ...string) {
 }
 
 // LoadProjects loads the Project objects associated through the Project-TeamMember relationship.
-func (o *personBase) LoadProjects(ctx context.Context) []*Project {
+func (o *personBase) LoadProjects(ctx context.Context) ([]*Project, error) {
 	if o.mmProjectsIsDirty && o.mmProjectsPks == nil {
 		panic("dirty many-many relationships cannot be loaded; call Save() first")
 	}
 
 	var objs []*Project
+	var err error
 
 	if o.mmProjectsPks != nil {
 		// Load the objects that will be associated after a Save
-		objs = QueryProjects(ctx).
+		objs, err = QueryProjects(ctx).
 			Where(op.In(node.Project().PrimaryKey(), o.mmProjectsPks...)).
 			Load()
 	} else {
-		objs = QueryProjects(ctx).
+		objs, err = QueryProjects(ctx).
 			Where(op.Equal(node.Project().TeamMembers(), o.PrimaryKey())).
 			Load()
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	o.mmProjects.Clear()
 	for _, obj := range objs {
 		o.mmProjects.Set(obj.PrimaryKey(), obj)
 	}
-	return o.mmProjects.Values()
+	return o.mmProjects.Values(), err
 }
 
 // CountProjects counts the number of associated mmProjects objects in the database.
 // Note that this returns what is reflected by the database at that instant, and not what
 // is the count of the loaded objects.
-func (o *personBase) CountProjects(ctx context.Context) int {
+func (o *personBase) CountProjects(ctx context.Context) (int, error) {
 	return QueryProjects(ctx).
 		Where(op.Equal(node.Project().TeamMembers(), o.PrimaryKey())).
 		Count()
@@ -445,9 +449,9 @@ func (o *personBase) Addresses() []*Address {
 }
 
 // LoadAddresses loads a new slice of Address objects and returns it.
-func (o *personBase) LoadAddresses(ctx context.Context, conditions ...interface{}) []*Address {
+func (o *personBase) LoadAddresses(ctx context.Context, conditions ...interface{}) ([]*Address, error) {
 	if o.IsNew() {
-		return nil
+		return nil, nil
 	}
 	for obj := range o.revAddresses.ValuesIter() {
 		if obj.IsDirty() {
@@ -462,7 +466,10 @@ func (o *personBase) LoadAddresses(ctx context.Context, conditions ...interface{
 		cond = op.And(conditions...)
 	}
 
-	objs := qb.Where(cond).Load()
+	objs, err := qb.Where(cond).Load()
+	if err != nil {
+		return nil, err
+	}
 	o.revAddresses.Clear()
 
 	for _, obj := range objs {
@@ -471,14 +478,14 @@ func (o *personBase) LoadAddresses(ctx context.Context, conditions ...interface{
 	}
 
 	if o.revAddresses.Len() == 0 {
-		return nil
+		return nil, nil
 	}
-	return o.revAddresses.Values()
+	return o.revAddresses.Values(), nil
 }
 
 // CountAddresses does a database query and returns the number of Address
 // objects currently in the database connected to this object.
-func (o *personBase) CountAddresses(ctx context.Context) int {
+func (o *personBase) CountAddresses(ctx context.Context) (int, error) {
 	return CountAddressesByPersonID(ctx, o.PrimaryKey())
 }
 
@@ -511,15 +518,16 @@ func (o *personBase) EmployeeInfo() *EmployeeInfo {
 
 // LoadEmployeeInfo returns the connected EmployeeInfo object, if one was loaded.
 // Otherwise, it will load a new one and return it.
-func (o *personBase) LoadEmployeeInfo(ctx context.Context) *EmployeeInfo {
+func (o *personBase) LoadEmployeeInfo(ctx context.Context) (*EmployeeInfo, error) {
 	if o.revEmployeeInfo != nil && o.revEmployeeInfo.IsDirty() {
 		panic("The EmployeeInfo has changed. You must save it first before changing to a different one.")
 	}
+	var err error
 	if o.revEmployeeInfo == nil {
 		pk := o.ID()
-		o.revEmployeeInfo = LoadEmployeeInfoByPersonID(ctx, pk)
+		o.revEmployeeInfo, err = LoadEmployeeInfoByPersonID(ctx, pk)
 	}
-	return o.revEmployeeInfo
+	return o.revEmployeeInfo, err
 }
 
 // SetEmployeeInfo associates obj with this Person
@@ -548,15 +556,16 @@ func (o *personBase) Login() *Login {
 
 // LoadLogin returns the connected Login object, if one was loaded.
 // Otherwise, it will load a new one and return it.
-func (o *personBase) LoadLogin(ctx context.Context) *Login {
+func (o *personBase) LoadLogin(ctx context.Context) (*Login, error) {
 	if o.revLogin != nil && o.revLogin.IsDirty() {
 		panic("The Login has changed. You must save it first before changing to a different one.")
 	}
+	var err error
 	if o.revLogin == nil {
 		pk := o.ID()
-		o.revLogin = LoadLoginByPersonID(ctx, pk)
+		o.revLogin, err = LoadLoginByPersonID(ctx, pk)
 	}
-	return o.revLogin
+	return o.revLogin, err
 }
 
 // SetLogin associates obj with this Person
@@ -589,9 +598,9 @@ func (o *personBase) ManagerProjects() []*Project {
 }
 
 // LoadManagerProjects loads a new slice of Project objects and returns it.
-func (o *personBase) LoadManagerProjects(ctx context.Context, conditions ...interface{}) []*Project {
+func (o *personBase) LoadManagerProjects(ctx context.Context, conditions ...interface{}) ([]*Project, error) {
 	if o.IsNew() {
-		return nil
+		return nil, nil
 	}
 	for obj := range o.revManagerProjects.ValuesIter() {
 		if obj.IsDirty() {
@@ -606,7 +615,10 @@ func (o *personBase) LoadManagerProjects(ctx context.Context, conditions ...inte
 		cond = op.And(conditions...)
 	}
 
-	objs := qb.Where(cond).Load()
+	objs, err := qb.Where(cond).Load()
+	if err != nil {
+		return nil, err
+	}
 	o.revManagerProjects.Clear()
 
 	for _, obj := range objs {
@@ -615,14 +627,14 @@ func (o *personBase) LoadManagerProjects(ctx context.Context, conditions ...inte
 	}
 
 	if o.revManagerProjects.Len() == 0 {
-		return nil
+		return nil, nil
 	}
-	return o.revManagerProjects.Values()
+	return o.revManagerProjects.Values(), nil
 }
 
 // CountManagerProjects does a database query and returns the number of Project
 // objects currently in the database connected to this object.
-func (o *personBase) CountManagerProjects(ctx context.Context) int {
+func (o *personBase) CountManagerProjects(ctx context.Context) (int, error) {
 	return CountProjectsByManagerID(ctx, o.PrimaryKey())
 }
 
@@ -650,7 +662,7 @@ func (o *personBase) SetManagerProjects(objs ...*Project) {
 // LoadPerson returns a Person from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [PeopleBuilder.Select] for more info.
-func LoadPerson(ctx context.Context, id string, selectNodes ...query.Node) *Person {
+func LoadPerson(ctx context.Context, id string, selectNodes ...query.Node) (*Person, error) {
 	return queryPeople(ctx).
 		Where(op.Equal(node.Person().ID(), id)).
 		Select(selectNodes...).
@@ -659,10 +671,11 @@ func LoadPerson(ctx context.Context, id string, selectNodes ...query.Node) *Pers
 
 // HasPerson returns true if a Person with the given primary key exists in the database.
 // doc: type=Person
-func HasPerson(ctx context.Context, id string) bool {
-	return queryPeople(ctx).
+func HasPerson(ctx context.Context, id string) (bool, error) {
+	v, err := queryPeople(ctx).
 		Where(op.Equal(node.Person().ID(), id)).
-		Count() == 1
+		Count()
+	return v > 0, err
 }
 
 // The PersonBuilder uses the query.BuilderI interface to build a query.
@@ -709,14 +722,14 @@ type PersonBuilder interface {
 	Having(node query.Node) PersonBuilder
 
 	// Load terminates the query builder, performs the query, and returns a slice of Person objects.
-	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If there are any errors, nil is returned along with the error.
 	// If no results come back from the query, it will return a non-nil empty slice.
-	Load() []*Person
+	Load() ([]*Person, error)
 	// Load terminates the query builder, performs the query, and returns a slice of interfaces.
 	// This can then satisfy a general interface that loads arrays of objects.
-	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If there are any errors, nil is returned along with the error.
 	// If no results come back from the query, it will return a non-nil empty slice.
-	LoadI() []query.OrmObj
+	LoadI() ([]query.OrmObj, error)
 
 	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
 	//
@@ -728,27 +741,19 @@ type PersonBuilder interface {
 	// on the cursor object when you are done. You should use
 	//   defer cursor.Close()
 	// to make sure the cursor gets closed.
-	LoadCursor() peopleCursor
+	LoadCursor() (peopleCursor, error)
 
 	// Get is a convenience method to return only the first item found in a query.
 	// The entire query is performed, so you should generally use this only if you know
 	// you are selecting on one or very few items.
-	//
 	// If an error occurs, or no results are found, a nil is returned.
-	// In the case of an error, the error is returned in the context.
-	Get() *Person
+	Get() (*Person, error)
 
 	// Count terminates a query and returns just the number of items in the result.
 	// If you have Select or Calculation columns in the query, it will count NULL results as well.
 	// To not count NULL values, use Where in the builder with a NotNull operation.
 	// To count distinct combinations of items, call Distinct() on the builder.
-	Count() int
-
-	// Subquery terminates the query builder and tags it as a subquery within a larger query.
-	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-	// Subquery() *query.SubqueryNode
-
+	Count() (int, error)
 }
 
 type personQueryBuilder struct {
@@ -765,11 +770,12 @@ func newPersonBuilder(ctx context.Context) PersonBuilder {
 // Load terminates the query builder, performs the query, and returns a slice of Person objects.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *personQueryBuilder) Load() (people []*Person) {
+func (b *personQueryBuilder) Load() (people []*Person, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
@@ -784,11 +790,12 @@ func (b *personQueryBuilder) Load() (people []*Person) {
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *personQueryBuilder) LoadI() (people []query.OrmObj) {
+func (b *personQueryBuilder) LoadI() (people []query.OrmObj, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
@@ -811,13 +818,13 @@ func (b *personQueryBuilder) LoadI() (people []query.OrmObj) {
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *personQueryBuilder) LoadCursor() peopleCursor {
+func (b *personQueryBuilder) LoadCursor() (peopleCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
-	result := database.BuilderQuery(b.builder)
+	result, err := database.BuilderQuery(b.builder)
 	cursor := result.(query.CursorI)
 
-	return peopleCursor{cursor}
+	return peopleCursor{cursor}, err
 }
 
 type peopleCursor struct {
@@ -827,50 +834,31 @@ type peopleCursor struct {
 // Next returns the current Person object and moves the cursor to the next one.
 //
 // If there are no more records, it returns nil.
-func (c peopleCursor) Next() *Person {
+func (c peopleCursor) Next() (*Person, error) {
 	if c.CursorI == nil {
-		return nil
+		return nil, nil
 	}
 
-	row := c.CursorI.Next()
-	if row == nil {
-		return nil
+	row, err := c.CursorI.Next()
+	if row == nil || err != nil {
+		return nil, err
 	}
 	o := new(Person)
 	o.load(row, o)
-	return o
+	return o, nil
 }
 
 // Get is a convenience method to return only the first item found in a query.
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
-//
 // If an error occurs, or no results are found, a nil is returned.
-// In the case of an error, the error is returned in the context.
-func (b *personQueryBuilder) Get() *Person {
-	results := b.Load()
-	if results != nil && len(results) > 0 {
-		obj := results[0]
-		return obj
-	} else {
-		return nil
+func (b *personQueryBuilder) Get() (*Person, error) {
+	results, err := b.Load()
+	if err != nil || len(results) == 0 {
+		return nil, err
 	}
+	return results[0], nil
 }
-
-/*
-// Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
-// by condition.
-// The joinedTable node will be modified by this process so that you can use it in subsequent builder operations.
-// Call GetAlias to return the resulting object from the query result.
-func (b *personQueryBuilder) Join(alias string, joinedTable query.Node, condition query.Node) PersonBuilder {
-    if query.RootNode(n).TableName_() != "person" {
-        panic("you can only join a node that is rooted at node.Person()")
-    }
-    // TODO: make sure joinedTable is a table node
-	b.builder.Join(alias, joinedTable, condition)
-	return b
-}
-*/
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
@@ -938,61 +926,53 @@ func (b *personQueryBuilder) Having(node query.Node) PersonBuilder {
 // If you have Select or Calculation columns in the query, it will count NULL results as well.
 // To not count NULL values, use Where in the builder with a NotNull operation.
 // To count distinct combinations of items, call Distinct() on the builder.
-func (b *personQueryBuilder) Count() int {
+func (b *personQueryBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
-		return 0
+	results, err := database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
+		return 0, err
 	}
-	return results.(int)
+	return results.(int), nil
 }
 
-/*
-// Subquery terminates the query builder and tags it as a subquery within a larger query.
-// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-func (b *personQueryBuilder)  Subquery() *query.SubqueryNode {
-	 return b.builder.Subquery()
-}
-*/
-
-func CountPeople(ctx context.Context) int {
+// CountPeople returns the total number of items in the person table.
+func CountPeople(ctx context.Context) (int, error) {
 	return QueryPeople(ctx).Count()
 }
 
 // CountPeopleByID queries the database and returns the number of Person objects that
 // have id.
 // doc: type=Person
-func CountPeopleByID(ctx context.Context, id string) int {
+func CountPeopleByID(ctx context.Context, id string) (int, error) {
 	return QueryPeople(ctx).Where(op.Equal(node.Person().ID(), id)).Count()
 }
 
 // CountPeopleByFirstName queries the database and returns the number of Person objects that
 // have firstName.
 // doc: type=Person
-func CountPeopleByFirstName(ctx context.Context, firstName string) int {
+func CountPeopleByFirstName(ctx context.Context, firstName string) (int, error) {
 	return QueryPeople(ctx).Where(op.Equal(node.Person().FirstName(), firstName)).Count()
 }
 
 // CountPeopleByLastName queries the database and returns the number of Person objects that
 // have lastName.
 // doc: type=Person
-func CountPeopleByLastName(ctx context.Context, lastName string) int {
+func CountPeopleByLastName(ctx context.Context, lastName string) (int, error) {
 	return QueryPeople(ctx).Where(op.Equal(node.Person().LastName(), lastName)).Count()
 }
 
 // CountPeopleByCreated queries the database and returns the number of Person objects that
 // have created.
 // doc: type=Person
-func CountPeopleByCreated(ctx context.Context, created time.Time) int {
+func CountPeopleByCreated(ctx context.Context, created time.Time) (int, error) {
 	return QueryPeople(ctx).Where(op.Equal(node.Person().Created(), created)).Count()
 }
 
 // CountPeopleByModified queries the database and returns the number of Person objects that
 // have modified.
 // doc: type=Person
-func CountPeopleByModified(ctx context.Context, modified time.Time) int {
+func CountPeopleByModified(ctx context.Context, modified time.Time) (int, error) {
 	return QueryPeople(ctx).Where(op.Equal(node.Person().Modified(), modified)).Count()
 }
 
@@ -1231,22 +1211,30 @@ func (o *personBase) update(ctx context.Context) error {
 			// relation connection changed
 
 			// Since the other side of the relationship cannot be null, there cannot be objects that will be detached.
-			oldObjs := QueryAddresses(ctx).
+			if oldObjs, err := QueryAddresses(ctx).
 				Where(op.Equal(node.Address().PersonID(), o.PrimaryKey())).
 				Select(node.Address().PersonID()).
-				Load()
-			for _, obj := range oldObjs {
-				if !o.revAddresses.Has(obj.PrimaryKey()) {
-					obj.Delete(ctx) // old object is not in group of new objects, so delete it since it has a non-null reference to o.
+				Load(); err != nil {
+				return err
+			} else {
+				for _, obj := range oldObjs {
+					if o.revAddresses.Has(obj.PrimaryKey()) {
+						err = obj.Delete(ctx) // old object is not in group of new objects, so delete it since it has a non-null reference to o.
+						if err != nil {
+							return err
+						}
+					}
 				}
-			}
-			{
 				keys := o.revAddresses.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
 				for i, k := range keys {
 					obj := o.revAddresses.Get(k)
+					if obj == nil {
+						// object was deleted during save?
+						continue
+					}
 					obj.SetPersonID(o.PrimaryKey())
 					obj.personIDIsDirty = true // force a change in case data is stale
-					if err := obj.Save(ctx); err != nil {
+					if err = obj.Save(ctx); err != nil {
 						return err
 					}
 					if obj.PrimaryKey() != k {
@@ -1271,12 +1259,12 @@ func (o *personBase) update(ctx context.Context) error {
 
 			// Since the other side of the relationship cannot be null, if there is an object already attached
 			// that is different than the one we are trying to attach, we will panic to warn the developer.
-			oldObj := QueryEmployeeInfos(ctx).
+			if oldObj, err := QueryEmployeeInfos(ctx).
 				Where(op.Equal(node.EmployeeInfo().PersonID(), o.PrimaryKey())).
 				Select(node.EmployeeInfo().PersonID()).
-				Get()
-
-			if oldObj != nil {
+				Get(); err != nil {
+				return err
+			} else if oldObj != nil {
 				if o.revEmployeeInfo != nil && oldObj.PrimaryKey() != o.revEmployeeInfo.PrimaryKey() {
 					panic(fmt.Sprintf("error: %s is referencing the object being saved. Since this is a unique, non-null reference, you must delete the referencing object before saving the new object.", oldObj))
 				}
@@ -1301,12 +1289,13 @@ func (o *personBase) update(ctx context.Context) error {
 		if o.revLoginIsDirty {
 			// relation connection changed
 
-			obj := QueryLogins(ctx).
+			if obj, err := QueryLogins(ctx).
 				Where(op.Equal(node.Login().PersonID(), o.PrimaryKey())).
-				Get()
-			if obj != nil && obj.PrimaryKey() != o.revLogin.PrimaryKey() {
+				Get(); err != nil {
+				return err
+			} else if obj != nil && obj.PrimaryKey() != o.revLogin.PrimaryKey() {
 				obj.SetPersonIDToNull()
-				if err := obj.Save(ctx); err != nil {
+				if err = obj.Save(ctx); err != nil {
 					return err
 				}
 			}
@@ -1328,27 +1317,27 @@ func (o *personBase) update(ctx context.Context) error {
 		if o.revManagerProjectsIsDirty {
 			// relation connection changed
 
-			currentObjs := QueryProjects(ctx).
+			if currentObjs, err := QueryProjects(ctx).
 				Where(op.Equal(node.Project().ManagerID(), o.PrimaryKey())).
 				Select(node.Project().ManagerID()).
-				Load()
-
-			for _, obj := range currentObjs {
-				if !o.revManagerProjects.Has(obj.PrimaryKey()) {
-					// The old object is not in the group of new objects
-					obj.SetManagerIDToNull()
-					if err := obj.Save(ctx); err != nil {
-						return err
+				Load(); err != nil {
+				return err
+			} else {
+				for _, obj := range currentObjs {
+					if !o.revManagerProjects.Has(obj.PrimaryKey()) {
+						// The old object is not in the group of new objects
+						obj.SetManagerIDToNull()
+						if err = obj.Save(ctx); err != nil {
+							return err
+						}
 					}
 				}
-			}
-			{
 				keys := o.revManagerProjects.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
 				for i, k := range keys {
 					obj := o.revManagerProjects.Get(k)
 					obj.SetManagerID(o.PrimaryKey())
 					obj.managerIDIsDirty = true // force a change in case data is stale
-					if err := obj.Save(ctx); err != nil {
+					if err = obj.Save(ctx); err != nil {
 						return err
 					}
 					if obj.PrimaryKey() != k {
@@ -1384,21 +1373,25 @@ func (o *personBase) update(ctx context.Context) error {
 			}
 			if o.mmProjectsIsDirty {
 				if len(o.mmProjectsPks) != 0 {
-					db.AssociateOnly(ctx,
+					if err := db.AssociateOnly(ctx,
 						d,
 						"team_member_project_assn",
 						"team_member_id",
 						o.PrimaryKey(),
 						"project_id",
-						o.mmProjectsPks)
+						o.mmProjectsPks); err != nil {
+						return err
+					}
 				} else {
-					db.AssociateOnly(ctx,
+					if err := db.AssociateOnly(ctx,
 						d,
 						"team_member_project_assn",
 						"team_member_id",
 						o.PrimaryKey(),
 						"project_id",
-						o.mmProjects.Keys())
+						o.mmProjects.Keys()); err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -1511,7 +1504,10 @@ func (o *personBase) insert(ctx context.Context) (err error) {
 			}
 		} else if len(o.mmProjectsPks) > 0 {
 			for _, k := range o.mmProjectsPks {
-				obj := LoadProject(ctx, k)
+				obj, err2 := LoadProject(ctx, k)
+				if err2 != nil {
+					return err2
+				}
 				if obj != nil {
 					db.Associate(ctx,
 						d,
@@ -1617,9 +1613,12 @@ func (o *personBase) Delete(ctx context.Context) (err error) {
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
 		{
-			objs := QueryAddresses(ctx).
+			objs, err := QueryAddresses(ctx).
 				Where(op.Equal(node.Address().PersonID(), o.id)).
 				Load()
+			if err != nil {
+				return err
+			}
 			for _, obj := range objs {
 				if err = obj.Delete(ctx); err != nil {
 					return err
@@ -1629,10 +1628,11 @@ func (o *personBase) Delete(ctx context.Context) (err error) {
 		}
 
 		{
-			obj := QueryEmployeeInfos(ctx).
+			if obj, err := QueryEmployeeInfos(ctx).
 				Where(op.Equal(node.EmployeeInfo().PersonID(), o.id)).
-				Get()
-			if obj != nil {
+				Get(); err != nil {
+				return err
+			} else if obj != nil {
 				if err = obj.Delete(ctx); err != nil {
 					return err
 				}
@@ -1643,10 +1643,13 @@ func (o *personBase) Delete(ctx context.Context) (err error) {
 
 		{
 			// Set the related objects pointer to us to NULL in the database
-			obj := QueryLogins(ctx).
+			obj, err := QueryLogins(ctx).
 				Where(op.Equal(node.Login().PersonID(), o.id)).
 				Select(node.Login().PersonID()).
 				Get()
+			if err != nil {
+				return err
+			}
 			if obj != nil {
 				obj.SetPersonIDToNull()
 				if err = obj.Save(ctx); err != nil {
@@ -1658,10 +1661,13 @@ func (o *personBase) Delete(ctx context.Context) (err error) {
 		}
 
 		{
-			objs := QueryProjects(ctx).
+			objs, err := QueryProjects(ctx).
 				Where(op.Equal(node.Project().ManagerID(), o.id)).
 				Select(node.Project().ManagerID()).
 				Load()
+			if err != nil {
+				return err
+			}
 			for _, obj := range objs {
 				obj.SetManagerIDToNull()
 				if err = obj.Save(ctx); err != nil {
@@ -1671,16 +1677,17 @@ func (o *personBase) Delete(ctx context.Context) (err error) {
 			o.revManagerProjects.Clear()
 		}
 
-		db.AssociateOnly(ctx,
+		if err := db.AssociateOnly(ctx,
 			d,
 			"team_member_project_assn",
 			"team_member_id",
 			o.PrimaryKey(),
 			"id",
-			[]Project(nil))
+			[]Project(nil)); err != nil {
+			return err
+		}
 
-		d.Delete(ctx, "person", map[string]any{"ID": o.id})
-		return nil
+		return d.Delete(ctx, "person", map[string]any{"ID": o.id})
 	})
 
 	if err != nil {
@@ -1693,7 +1700,9 @@ func (o *personBase) Delete(ctx context.Context) (err error) {
 // deletePerson deletes the Person with primary key pk from the database
 // and handles associated records.
 func deletePerson(ctx context.Context, pk string) error {
-	if obj := LoadPerson(ctx, pk, node.Person().PrimaryKey()); obj != nil {
+	if obj, err := LoadPerson(ctx, pk, node.Person().PrimaryKey()); err != nil {
+		return err
+	} else if obj != nil {
 		if err := obj.Delete(ctx); err != nil {
 			return err
 		}

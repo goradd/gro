@@ -130,7 +130,7 @@ func (m *DB) Insert(ctx context.Context, table string, pkName string, fields map
 	if rows, err := m.SqlQuery(ctx, sql, args...); err != nil {
 		if pgErr, ok := all.As[*pgconn.PgError](err); ok {
 			if pgErr.Code == "23505" {
-				return "", db.NewUniqueValueError(table, "", "", err)
+				return "", db.NewUniqueValueError(table, nil, err)
 			}
 		}
 		return "", db.NewQueryError("SqlQuery", sql, args, err)
@@ -177,7 +177,7 @@ func (m *DB) Update(ctx context.Context,
 	if err != nil {
 		if pgErr, ok := all.As[*pgconn.PgError](err); ok {
 			if pgErr.Code == "23505" {
-				return 0, db.NewUniqueValueError(table, "", "", err)
+				return 0, db.NewUniqueValueError(table, nil, err)
 			}
 		}
 		return 0, db.NewQueryError("SqlExec", s, args, err)

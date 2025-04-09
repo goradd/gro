@@ -251,7 +251,7 @@ func (o *personWithLockBase) IsNew() bool {
 // LoadPersonWithLock returns a PersonWithLock from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [PersonWithLocksBuilder.Select] for more info.
-func LoadPersonWithLock(ctx context.Context, id string, selectNodes ...query.Node) *PersonWithLock {
+func LoadPersonWithLock(ctx context.Context, id string, selectNodes ...query.Node) (*PersonWithLock, error) {
 	return queryPersonWithLocks(ctx).
 		Where(op.Equal(node.PersonWithLock().ID(), id)).
 		Select(selectNodes...).
@@ -260,10 +260,11 @@ func LoadPersonWithLock(ctx context.Context, id string, selectNodes ...query.Nod
 
 // HasPersonWithLock returns true if a PersonWithLock with the given primary key exists in the database.
 // doc: type=PersonWithLock
-func HasPersonWithLock(ctx context.Context, id string) bool {
-	return queryPersonWithLocks(ctx).
+func HasPersonWithLock(ctx context.Context, id string) (bool, error) {
+	v, err := queryPersonWithLocks(ctx).
 		Where(op.Equal(node.PersonWithLock().ID(), id)).
-		Count() == 1
+		Count()
+	return v > 0, err
 }
 
 // The PersonWithLockBuilder uses the query.BuilderI interface to build a query.
@@ -312,14 +313,14 @@ type PersonWithLockBuilder interface {
 	Having(node query.Node) PersonWithLockBuilder
 
 	// Load terminates the query builder, performs the query, and returns a slice of PersonWithLock objects.
-	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If there are any errors, nil is returned along with the error.
 	// If no results come back from the query, it will return a non-nil empty slice.
-	Load() []*PersonWithLock
+	Load() ([]*PersonWithLock, error)
 	// Load terminates the query builder, performs the query, and returns a slice of interfaces.
 	// This can then satisfy a general interface that loads arrays of objects.
-	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If there are any errors, nil is returned along with the error.
 	// If no results come back from the query, it will return a non-nil empty slice.
-	LoadI() []query.OrmObj
+	LoadI() ([]query.OrmObj, error)
 
 	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
 	//
@@ -331,27 +332,19 @@ type PersonWithLockBuilder interface {
 	// on the cursor object when you are done. You should use
 	//   defer cursor.Close()
 	// to make sure the cursor gets closed.
-	LoadCursor() personWithLocksCursor
+	LoadCursor() (personWithLocksCursor, error)
 
 	// Get is a convenience method to return only the first item found in a query.
 	// The entire query is performed, so you should generally use this only if you know
 	// you are selecting on one or very few items.
-	//
 	// If an error occurs, or no results are found, a nil is returned.
-	// In the case of an error, the error is returned in the context.
-	Get() *PersonWithLock
+	Get() (*PersonWithLock, error)
 
 	// Count terminates a query and returns just the number of items in the result.
 	// If you have Select or Calculation columns in the query, it will count NULL results as well.
 	// To not count NULL values, use Where in the builder with a NotNull operation.
 	// To count distinct combinations of items, call Distinct() on the builder.
-	Count() int
-
-	// Subquery terminates the query builder and tags it as a subquery within a larger query.
-	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-	// Subquery() *query.SubqueryNode
-
+	Count() (int, error)
 }
 
 type personWithLockQueryBuilder struct {
@@ -368,11 +361,12 @@ func newPersonWithLockBuilder(ctx context.Context) PersonWithLockBuilder {
 // Load terminates the query builder, performs the query, and returns a slice of PersonWithLock objects.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *personWithLockQueryBuilder) Load() (personWithLocks []*PersonWithLock) {
+func (b *personWithLockQueryBuilder) Load() (personWithLocks []*PersonWithLock, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
@@ -387,11 +381,12 @@ func (b *personWithLockQueryBuilder) Load() (personWithLocks []*PersonWithLock) 
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *personWithLockQueryBuilder) LoadI() (personWithLocks []query.OrmObj) {
+func (b *personWithLockQueryBuilder) LoadI() (personWithLocks []query.OrmObj, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
@@ -414,13 +409,13 @@ func (b *personWithLockQueryBuilder) LoadI() (personWithLocks []query.OrmObj) {
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *personWithLockQueryBuilder) LoadCursor() personWithLocksCursor {
+func (b *personWithLockQueryBuilder) LoadCursor() (personWithLocksCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
-	result := database.BuilderQuery(b.builder)
+	result, err := database.BuilderQuery(b.builder)
 	cursor := result.(query.CursorI)
 
-	return personWithLocksCursor{cursor}
+	return personWithLocksCursor{cursor}, err
 }
 
 type personWithLocksCursor struct {
@@ -430,50 +425,31 @@ type personWithLocksCursor struct {
 // Next returns the current PersonWithLock object and moves the cursor to the next one.
 //
 // If there are no more records, it returns nil.
-func (c personWithLocksCursor) Next() *PersonWithLock {
+func (c personWithLocksCursor) Next() (*PersonWithLock, error) {
 	if c.CursorI == nil {
-		return nil
+		return nil, nil
 	}
 
-	row := c.CursorI.Next()
-	if row == nil {
-		return nil
+	row, err := c.CursorI.Next()
+	if row == nil || err != nil {
+		return nil, err
 	}
 	o := new(PersonWithLock)
 	o.load(row, o)
-	return o
+	return o, nil
 }
 
 // Get is a convenience method to return only the first item found in a query.
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
-//
 // If an error occurs, or no results are found, a nil is returned.
-// In the case of an error, the error is returned in the context.
-func (b *personWithLockQueryBuilder) Get() *PersonWithLock {
-	results := b.Load()
-	if results != nil && len(results) > 0 {
-		obj := results[0]
-		return obj
-	} else {
-		return nil
+func (b *personWithLockQueryBuilder) Get() (*PersonWithLock, error) {
+	results, err := b.Load()
+	if err != nil || len(results) == 0 {
+		return nil, err
 	}
+	return results[0], nil
 }
-
-/*
-// Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
-// by condition.
-// The joinedTable node will be modified by this process so that you can use it in subsequent builder operations.
-// Call GetAlias to return the resulting object from the query result.
-func (b *personWithLockQueryBuilder) Join(alias string, joinedTable query.Node, condition query.Node) PersonWithLockBuilder {
-    if query.RootNode(n).TableName_() != "person_with_lock" {
-        panic("you can only join a node that is rooted at node.PersonWithLock()")
-    }
-    // TODO: make sure joinedTable is a table node
-	b.builder.Join(alias, joinedTable, condition)
-	return b
-}
-*/
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
@@ -541,61 +517,53 @@ func (b *personWithLockQueryBuilder) Having(node query.Node) PersonWithLockBuild
 // If you have Select or Calculation columns in the query, it will count NULL results as well.
 // To not count NULL values, use Where in the builder with a NotNull operation.
 // To count distinct combinations of items, call Distinct() on the builder.
-func (b *personWithLockQueryBuilder) Count() int {
+func (b *personWithLockQueryBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
-		return 0
+	results, err := database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
+		return 0, err
 	}
-	return results.(int)
+	return results.(int), nil
 }
 
-/*
-// Subquery terminates the query builder and tags it as a subquery within a larger query.
-// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-func (b *personWithLockQueryBuilder)  Subquery() *query.SubqueryNode {
-	 return b.builder.Subquery()
-}
-*/
-
-func CountPersonWithLocks(ctx context.Context) int {
+// CountPersonWithLocks returns the total number of items in the person_with_lock table.
+func CountPersonWithLocks(ctx context.Context) (int, error) {
 	return QueryPersonWithLocks(ctx).Count()
 }
 
 // CountPersonWithLocksByID queries the database and returns the number of PersonWithLock objects that
 // have id.
 // doc: type=PersonWithLock
-func CountPersonWithLocksByID(ctx context.Context, id string) int {
+func CountPersonWithLocksByID(ctx context.Context, id string) (int, error) {
 	return QueryPersonWithLocks(ctx).Where(op.Equal(node.PersonWithLock().ID(), id)).Count()
 }
 
 // CountPersonWithLocksByFirstName queries the database and returns the number of PersonWithLock objects that
 // have firstName.
 // doc: type=PersonWithLock
-func CountPersonWithLocksByFirstName(ctx context.Context, firstName string) int {
+func CountPersonWithLocksByFirstName(ctx context.Context, firstName string) (int, error) {
 	return QueryPersonWithLocks(ctx).Where(op.Equal(node.PersonWithLock().FirstName(), firstName)).Count()
 }
 
 // CountPersonWithLocksByLastName queries the database and returns the number of PersonWithLock objects that
 // have lastName.
 // doc: type=PersonWithLock
-func CountPersonWithLocksByLastName(ctx context.Context, lastName string) int {
+func CountPersonWithLocksByLastName(ctx context.Context, lastName string) (int, error) {
 	return QueryPersonWithLocks(ctx).Where(op.Equal(node.PersonWithLock().LastName(), lastName)).Count()
 }
 
 // CountPersonWithLocksByGroLock queries the database and returns the number of PersonWithLock objects that
 // have groLock.
 // doc: type=PersonWithLock
-func CountPersonWithLocksByGroLock(ctx context.Context, groLock int64) int {
+func CountPersonWithLocksByGroLock(ctx context.Context, groLock int64) (int, error) {
 	return QueryPersonWithLocks(ctx).Where(op.Equal(node.PersonWithLock().GroLock(), groLock)).Count()
 }
 
 // CountPersonWithLocksByGroTimestamp queries the database and returns the number of PersonWithLock objects that
 // have groTimestamp.
 // doc: type=PersonWithLock
-func CountPersonWithLocksByGroTimestamp(ctx context.Context, groTimestamp int64) int {
+func CountPersonWithLocksByGroTimestamp(ctx context.Context, groTimestamp int64) (int, error) {
 	return QueryPersonWithLocks(ctx).Where(op.Equal(node.PersonWithLock().GroTimestamp(), groTimestamp)).Count()
 }
 
@@ -831,8 +799,7 @@ func (o *personWithLockBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	d.Delete(ctx, "person_with_lock", map[string]any{"ID": o.id})
-	return nil
+	return d.Delete(ctx, "person_with_lock", map[string]any{"ID": o.id})
 	broadcast.Delete(ctx, "goradd", "person_with_lock", fmt.Sprint(o.id))
 	return
 }
@@ -841,7 +808,10 @@ func (o *personWithLockBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deletePersonWithLock(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd")
-	d.Delete(ctx, "person_with_lock", map[string]any{"ID": pk})
+	err := d.Delete(ctx, "person_with_lock", map[string]any{"ID": pk})
+	if err != nil {
+		return err
+	}
 	broadcast.Delete(ctx, "goradd", "person_with_lock", fmt.Sprint(pk))
 	return nil
 }

@@ -739,7 +739,7 @@ func (o *typeTestBase) IsNew() bool {
 // LoadTypeTest returns a TypeTest from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [TypeTestsBuilder.Select] for more info.
-func LoadTypeTest(ctx context.Context, id string, selectNodes ...query.Node) *TypeTest {
+func LoadTypeTest(ctx context.Context, id string, selectNodes ...query.Node) (*TypeTest, error) {
 	return queryTypeTests(ctx).
 		Where(op.Equal(node.TypeTest().ID(), id)).
 		Select(selectNodes...).
@@ -748,10 +748,11 @@ func LoadTypeTest(ctx context.Context, id string, selectNodes ...query.Node) *Ty
 
 // HasTypeTest returns true if a TypeTest with the given primary key exists in the database.
 // doc: type=TypeTest
-func HasTypeTest(ctx context.Context, id string) bool {
-	return queryTypeTests(ctx).
+func HasTypeTest(ctx context.Context, id string) (bool, error) {
+	v, err := queryTypeTests(ctx).
 		Where(op.Equal(node.TypeTest().ID(), id)).
-		Count() == 1
+		Count()
+	return v > 0, err
 }
 
 // The TypeTestBuilder uses the query.BuilderI interface to build a query.
@@ -798,14 +799,14 @@ type TypeTestBuilder interface {
 	Having(node query.Node) TypeTestBuilder
 
 	// Load terminates the query builder, performs the query, and returns a slice of TypeTest objects.
-	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If there are any errors, nil is returned along with the error.
 	// If no results come back from the query, it will return a non-nil empty slice.
-	Load() []*TypeTest
+	Load() ([]*TypeTest, error)
 	// Load terminates the query builder, performs the query, and returns a slice of interfaces.
 	// This can then satisfy a general interface that loads arrays of objects.
-	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If there are any errors, nil is returned along with the error.
 	// If no results come back from the query, it will return a non-nil empty slice.
-	LoadI() []query.OrmObj
+	LoadI() ([]query.OrmObj, error)
 
 	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
 	//
@@ -817,27 +818,19 @@ type TypeTestBuilder interface {
 	// on the cursor object when you are done. You should use
 	//   defer cursor.Close()
 	// to make sure the cursor gets closed.
-	LoadCursor() typeTestsCursor
+	LoadCursor() (typeTestsCursor, error)
 
 	// Get is a convenience method to return only the first item found in a query.
 	// The entire query is performed, so you should generally use this only if you know
 	// you are selecting on one or very few items.
-	//
 	// If an error occurs, or no results are found, a nil is returned.
-	// In the case of an error, the error is returned in the context.
-	Get() *TypeTest
+	Get() (*TypeTest, error)
 
 	// Count terminates a query and returns just the number of items in the result.
 	// If you have Select or Calculation columns in the query, it will count NULL results as well.
 	// To not count NULL values, use Where in the builder with a NotNull operation.
 	// To count distinct combinations of items, call Distinct() on the builder.
-	Count() int
-
-	// Subquery terminates the query builder and tags it as a subquery within a larger query.
-	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-	// Subquery() *query.SubqueryNode
-
+	Count() (int, error)
 }
 
 type typeTestQueryBuilder struct {
@@ -854,11 +847,12 @@ func newTypeTestBuilder(ctx context.Context) TypeTestBuilder {
 // Load terminates the query builder, performs the query, and returns a slice of TypeTest objects.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *typeTestQueryBuilder) Load() (typeTests []*TypeTest) {
+func (b *typeTestQueryBuilder) Load() (typeTests []*TypeTest, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
@@ -873,11 +867,12 @@ func (b *typeTestQueryBuilder) Load() (typeTests []*TypeTest) {
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *typeTestQueryBuilder) LoadI() (typeTests []query.OrmObj) {
+func (b *typeTestQueryBuilder) LoadI() (typeTests []query.OrmObj, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
@@ -900,13 +895,13 @@ func (b *typeTestQueryBuilder) LoadI() (typeTests []query.OrmObj) {
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *typeTestQueryBuilder) LoadCursor() typeTestsCursor {
+func (b *typeTestQueryBuilder) LoadCursor() (typeTestsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
-	result := database.BuilderQuery(b.builder)
+	result, err := database.BuilderQuery(b.builder)
 	cursor := result.(query.CursorI)
 
-	return typeTestsCursor{cursor}
+	return typeTestsCursor{cursor}, err
 }
 
 type typeTestsCursor struct {
@@ -916,50 +911,31 @@ type typeTestsCursor struct {
 // Next returns the current TypeTest object and moves the cursor to the next one.
 //
 // If there are no more records, it returns nil.
-func (c typeTestsCursor) Next() *TypeTest {
+func (c typeTestsCursor) Next() (*TypeTest, error) {
 	if c.CursorI == nil {
-		return nil
+		return nil, nil
 	}
 
-	row := c.CursorI.Next()
-	if row == nil {
-		return nil
+	row, err := c.CursorI.Next()
+	if row == nil || err != nil {
+		return nil, err
 	}
 	o := new(TypeTest)
 	o.load(row, o)
-	return o
+	return o, nil
 }
 
 // Get is a convenience method to return only the first item found in a query.
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
-//
 // If an error occurs, or no results are found, a nil is returned.
-// In the case of an error, the error is returned in the context.
-func (b *typeTestQueryBuilder) Get() *TypeTest {
-	results := b.Load()
-	if results != nil && len(results) > 0 {
-		obj := results[0]
-		return obj
-	} else {
-		return nil
+func (b *typeTestQueryBuilder) Get() (*TypeTest, error) {
+	results, err := b.Load()
+	if err != nil || len(results) == 0 {
+		return nil, err
 	}
+	return results[0], nil
 }
-
-/*
-// Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
-// by condition.
-// The joinedTable node will be modified by this process so that you can use it in subsequent builder operations.
-// Call GetAlias to return the resulting object from the query result.
-func (b *typeTestQueryBuilder) Join(alias string, joinedTable query.Node, condition query.Node) TypeTestBuilder {
-    if query.RootNode(n).TableName_() != "type_test" {
-        panic("you can only join a node that is rooted at node.TypeTest()")
-    }
-    // TODO: make sure joinedTable is a table node
-	b.builder.Join(alias, joinedTable, condition)
-	return b
-}
-*/
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
@@ -1027,47 +1003,39 @@ func (b *typeTestQueryBuilder) Having(node query.Node) TypeTestBuilder {
 // If you have Select or Calculation columns in the query, it will count NULL results as well.
 // To not count NULL values, use Where in the builder with a NotNull operation.
 // To count distinct combinations of items, call Distinct() on the builder.
-func (b *typeTestQueryBuilder) Count() int {
+func (b *typeTestQueryBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
-		return 0
+	results, err := database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
+		return 0, err
 	}
-	return results.(int)
+	return results.(int), nil
 }
 
-/*
-// Subquery terminates the query builder and tags it as a subquery within a larger query.
-// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-func (b *typeTestQueryBuilder)  Subquery() *query.SubqueryNode {
-	 return b.builder.Subquery()
-}
-*/
-
-func CountTypeTests(ctx context.Context) int {
+// CountTypeTests returns the total number of items in the type_test table.
+func CountTypeTests(ctx context.Context) (int, error) {
 	return QueryTypeTests(ctx).Count()
 }
 
 // CountTypeTestsByID queries the database and returns the number of TypeTest objects that
 // have id.
 // doc: type=TypeTest
-func CountTypeTestsByID(ctx context.Context, id string) int {
+func CountTypeTestsByID(ctx context.Context, id string) (int, error) {
 	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().ID(), id)).Count()
 }
 
 // CountTypeTestsByDate queries the database and returns the number of TypeTest objects that
 // have date.
 // doc: type=TypeTest
-func CountTypeTestsByDate(ctx context.Context, date time.Time) int {
+func CountTypeTestsByDate(ctx context.Context, date time.Time) (int, error) {
 	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().Date(), date)).Count()
 }
 
 // CountTypeTestsByTime queries the database and returns the number of TypeTest objects that
 // have time.
 // doc: type=TypeTest
-func CountTypeTestsByTime(ctx context.Context, time time.Time) int {
+func CountTypeTestsByTime(ctx context.Context, time time.Time) (int, error) {
 	t := time.Format("15:04:05")
 	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().Time(), t)).Count()
 }
@@ -1075,63 +1043,63 @@ func CountTypeTestsByTime(ctx context.Context, time time.Time) int {
 // CountTypeTestsByDateTime queries the database and returns the number of TypeTest objects that
 // have dateTime.
 // doc: type=TypeTest
-func CountTypeTestsByDateTime(ctx context.Context, dateTime time.Time) int {
+func CountTypeTestsByDateTime(ctx context.Context, dateTime time.Time) (int, error) {
 	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().DateTime(), dateTime)).Count()
 }
 
 // CountTypeTestsByTs queries the database and returns the number of TypeTest objects that
 // have ts.
 // doc: type=TypeTest
-func CountTypeTestsByTs(ctx context.Context, ts time.Time) int {
+func CountTypeTestsByTs(ctx context.Context, ts time.Time) (int, error) {
 	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().Ts(), ts)).Count()
 }
 
 // CountTypeTestsByTestInt queries the database and returns the number of TypeTest objects that
 // have testInt.
 // doc: type=TypeTest
-func CountTypeTestsByTestInt(ctx context.Context, testInt int) int {
+func CountTypeTestsByTestInt(ctx context.Context, testInt int) (int, error) {
 	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestInt(), testInt)).Count()
 }
 
 // CountTypeTestsByTestFloat queries the database and returns the number of TypeTest objects that
 // have testFloat.
 // doc: type=TypeTest
-func CountTypeTestsByTestFloat(ctx context.Context, testFloat float32) int {
+func CountTypeTestsByTestFloat(ctx context.Context, testFloat float32) (int, error) {
 	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestFloat(), testFloat)).Count()
 }
 
 // CountTypeTestsByTestDouble queries the database and returns the number of TypeTest objects that
 // have testDouble.
 // doc: type=TypeTest
-func CountTypeTestsByTestDouble(ctx context.Context, testDouble float64) int {
+func CountTypeTestsByTestDouble(ctx context.Context, testDouble float64) (int, error) {
 	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestDouble(), testDouble)).Count()
 }
 
 // CountTypeTestsByTestText queries the database and returns the number of TypeTest objects that
 // have testText.
 // doc: type=TypeTest
-func CountTypeTestsByTestText(ctx context.Context, testText string) int {
+func CountTypeTestsByTestText(ctx context.Context, testText string) (int, error) {
 	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestText(), testText)).Count()
 }
 
 // CountTypeTestsByTestBit queries the database and returns the number of TypeTest objects that
 // have testBit.
 // doc: type=TypeTest
-func CountTypeTestsByTestBit(ctx context.Context, testBit bool) int {
+func CountTypeTestsByTestBit(ctx context.Context, testBit bool) (int, error) {
 	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestBit(), testBit)).Count()
 }
 
 // CountTypeTestsByTestVarchar queries the database and returns the number of TypeTest objects that
 // have testVarchar.
 // doc: type=TypeTest
-func CountTypeTestsByTestVarchar(ctx context.Context, testVarchar string) int {
+func CountTypeTestsByTestVarchar(ctx context.Context, testVarchar string) (int, error) {
 	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestVarchar(), testVarchar)).Count()
 }
 
 // CountTypeTestsByTestBlob queries the database and returns the number of TypeTest objects that
 // have testBlob.
 // doc: type=TypeTest
-func CountTypeTestsByTestBlob(ctx context.Context, testBlob []byte) int {
+func CountTypeTestsByTestBlob(ctx context.Context, testBlob []byte) (int, error) {
 	return QueryTypeTests(ctx).Where(op.Equal(node.TypeTest().TestBlob(), testBlob)).Count()
 }
 
@@ -1598,8 +1566,7 @@ func (o *typeTestBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	d.Delete(ctx, "type_test", map[string]any{"ID": o.id})
-	return nil
+	return d.Delete(ctx, "type_test", map[string]any{"ID": o.id})
 	broadcast.Delete(ctx, "goradd_unit", "type_test", fmt.Sprint(o.id))
 	return
 }
@@ -1608,7 +1575,10 @@ func (o *typeTestBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteTypeTest(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd_unit")
-	d.Delete(ctx, "type_test", map[string]any{"ID": pk})
+	err := d.Delete(ctx, "type_test", map[string]any{"ID": pk})
+	if err != nil {
+		return err
+	}
 	broadcast.Delete(ctx, "goradd_unit", "type_test", fmt.Sprint(pk))
 	return nil
 }

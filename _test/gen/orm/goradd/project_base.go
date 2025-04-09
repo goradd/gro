@@ -404,16 +404,17 @@ func (o *projectBase) Manager() *Person {
 
 // LoadManager returns the related Manager. If it is not already loaded,
 // it will attempt to load it, provided the ManagerID column has been loaded first.
-func (o *projectBase) LoadManager(ctx context.Context) *Person {
-	if !o.managerIDIsLoaded {
-		return nil
-	}
+func (o *projectBase) LoadManager(ctx context.Context) (*Person, error) {
+	var err error
 
 	if o.objManager == nil {
+		if !o.managerIDIsLoaded {
+			panic("ManagerID must be selected in the previous query")
+		}
 		// Load and cache
-		o.objManager = LoadPerson(ctx, o.managerID)
+		o.objManager, err = LoadPerson(ctx, o.managerID)
 	}
-	return o.objManager
+	return o.objManager, err
 }
 
 // SetManager will set the reference to manager. The referenced object
@@ -774,16 +775,17 @@ func (o *projectBase) ParentProject() *Project {
 
 // LoadParentProject returns the related ParentProject. If it is not already loaded,
 // it will attempt to load it, provided the ParentProjectID column has been loaded first.
-func (o *projectBase) LoadParentProject(ctx context.Context) *Project {
-	if !o.parentProjectIDIsLoaded {
-		return nil
-	}
+func (o *projectBase) LoadParentProject(ctx context.Context) (*Project, error) {
+	var err error
 
 	if o.objParentProject == nil {
+		if !o.parentProjectIDIsLoaded {
+			panic("ParentProjectID must be selected in the previous query")
+		}
 		// Load and cache
-		o.objParentProject = LoadProject(ctx, o.parentProjectID)
+		o.objParentProject, err = LoadProject(ctx, o.parentProjectID)
 	}
-	return o.objParentProject
+	return o.objParentProject, err
 }
 
 // SetParentProject will set the reference to parentProject. The referenced object
@@ -860,35 +862,39 @@ func (o *projectBase) SetChildrenByID(ids ...string) {
 }
 
 // LoadChildren loads the Project objects associated through the Child-Parent relationship.
-func (o *projectBase) LoadChildren(ctx context.Context) []*Project {
+func (o *projectBase) LoadChildren(ctx context.Context) ([]*Project, error) {
 	if o.mmChildrenIsDirty && o.mmChildrenPks == nil {
 		panic("dirty many-many relationships cannot be loaded; call Save() first")
 	}
 
 	var objs []*Project
+	var err error
 
 	if o.mmChildrenPks != nil {
 		// Load the objects that will be associated after a Save
-		objs = QueryProjects(ctx).
+		objs, err = QueryProjects(ctx).
 			Where(op.In(node.Project().PrimaryKey(), o.mmChildrenPks...)).
 			Load()
 	} else {
-		objs = QueryProjects(ctx).
+		objs, err = QueryProjects(ctx).
 			Where(op.Equal(node.Project().Parents(), o.PrimaryKey())).
 			Load()
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	o.mmChildren.Clear()
 	for _, obj := range objs {
 		o.mmChildren.Set(obj.PrimaryKey(), obj)
 	}
-	return o.mmChildren.Values()
+	return o.mmChildren.Values(), err
 }
 
 // CountChildren counts the number of associated mmChildren objects in the database.
 // Note that this returns what is reflected by the database at that instant, and not what
 // is the count of the loaded objects.
-func (o *projectBase) CountChildren(ctx context.Context) int {
+func (o *projectBase) CountChildren(ctx context.Context) (int, error) {
 	return QueryProjects(ctx).
 		Where(op.Equal(node.Project().Parents(), o.PrimaryKey())).
 		Count()
@@ -933,35 +939,39 @@ func (o *projectBase) SetParentsByID(ids ...string) {
 }
 
 // LoadParents loads the Project objects associated through the Parent-Child relationship.
-func (o *projectBase) LoadParents(ctx context.Context) []*Project {
+func (o *projectBase) LoadParents(ctx context.Context) ([]*Project, error) {
 	if o.mmParentsIsDirty && o.mmParentsPks == nil {
 		panic("dirty many-many relationships cannot be loaded; call Save() first")
 	}
 
 	var objs []*Project
+	var err error
 
 	if o.mmParentsPks != nil {
 		// Load the objects that will be associated after a Save
-		objs = QueryProjects(ctx).
+		objs, err = QueryProjects(ctx).
 			Where(op.In(node.Project().PrimaryKey(), o.mmParentsPks...)).
 			Load()
 	} else {
-		objs = QueryProjects(ctx).
+		objs, err = QueryProjects(ctx).
 			Where(op.Equal(node.Project().Children(), o.PrimaryKey())).
 			Load()
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	o.mmParents.Clear()
 	for _, obj := range objs {
 		o.mmParents.Set(obj.PrimaryKey(), obj)
 	}
-	return o.mmParents.Values()
+	return o.mmParents.Values(), err
 }
 
 // CountParents counts the number of associated mmParents objects in the database.
 // Note that this returns what is reflected by the database at that instant, and not what
 // is the count of the loaded objects.
-func (o *projectBase) CountParents(ctx context.Context) int {
+func (o *projectBase) CountParents(ctx context.Context) (int, error) {
 	return QueryProjects(ctx).
 		Where(op.Equal(node.Project().Children(), o.PrimaryKey())).
 		Count()
@@ -1006,35 +1016,39 @@ func (o *projectBase) SetTeamMembersByID(ids ...string) {
 }
 
 // LoadTeamMembers loads the Person objects associated through the TeamMember-Project relationship.
-func (o *projectBase) LoadTeamMembers(ctx context.Context) []*Person {
+func (o *projectBase) LoadTeamMembers(ctx context.Context) ([]*Person, error) {
 	if o.mmTeamMembersIsDirty && o.mmTeamMembersPks == nil {
 		panic("dirty many-many relationships cannot be loaded; call Save() first")
 	}
 
 	var objs []*Person
+	var err error
 
 	if o.mmTeamMembersPks != nil {
 		// Load the objects that will be associated after a Save
-		objs = QueryPeople(ctx).
+		objs, err = QueryPeople(ctx).
 			Where(op.In(node.Person().PrimaryKey(), o.mmTeamMembersPks...)).
 			Load()
 	} else {
-		objs = QueryPeople(ctx).
+		objs, err = QueryPeople(ctx).
 			Where(op.Equal(node.Person().Projects(), o.PrimaryKey())).
 			Load()
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	o.mmTeamMembers.Clear()
 	for _, obj := range objs {
 		o.mmTeamMembers.Set(obj.PrimaryKey(), obj)
 	}
-	return o.mmTeamMembers.Values()
+	return o.mmTeamMembers.Values(), err
 }
 
 // CountTeamMembers counts the number of associated mmTeamMembers objects in the database.
 // Note that this returns what is reflected by the database at that instant, and not what
 // is the count of the loaded objects.
-func (o *projectBase) CountTeamMembers(ctx context.Context) int {
+func (o *projectBase) CountTeamMembers(ctx context.Context) (int, error) {
 	return QueryPeople(ctx).
 		Where(op.Equal(node.Person().Projects(), o.PrimaryKey())).
 		Count()
@@ -1054,9 +1068,9 @@ func (o *projectBase) Milestones() []*Milestone {
 }
 
 // LoadMilestones loads a new slice of Milestone objects and returns it.
-func (o *projectBase) LoadMilestones(ctx context.Context, conditions ...interface{}) []*Milestone {
+func (o *projectBase) LoadMilestones(ctx context.Context, conditions ...interface{}) ([]*Milestone, error) {
 	if o.IsNew() {
-		return nil
+		return nil, nil
 	}
 	for obj := range o.revMilestones.ValuesIter() {
 		if obj.IsDirty() {
@@ -1071,7 +1085,10 @@ func (o *projectBase) LoadMilestones(ctx context.Context, conditions ...interfac
 		cond = op.And(conditions...)
 	}
 
-	objs := qb.Where(cond).Load()
+	objs, err := qb.Where(cond).Load()
+	if err != nil {
+		return nil, err
+	}
 	o.revMilestones.Clear()
 
 	for _, obj := range objs {
@@ -1080,14 +1097,14 @@ func (o *projectBase) LoadMilestones(ctx context.Context, conditions ...interfac
 	}
 
 	if o.revMilestones.Len() == 0 {
-		return nil
+		return nil, nil
 	}
-	return o.revMilestones.Values()
+	return o.revMilestones.Values(), nil
 }
 
 // CountMilestones does a database query and returns the number of Milestone
 // objects currently in the database connected to this object.
-func (o *projectBase) CountMilestones(ctx context.Context) int {
+func (o *projectBase) CountMilestones(ctx context.Context) (int, error) {
 	return CountMilestonesByProjectID(ctx, o.PrimaryKey())
 }
 
@@ -1122,9 +1139,9 @@ func (o *projectBase) ParentProjectProjects() []*Project {
 }
 
 // LoadParentProjectProjects loads a new slice of Project objects and returns it.
-func (o *projectBase) LoadParentProjectProjects(ctx context.Context, conditions ...interface{}) []*Project {
+func (o *projectBase) LoadParentProjectProjects(ctx context.Context, conditions ...interface{}) ([]*Project, error) {
 	if o.IsNew() {
-		return nil
+		return nil, nil
 	}
 	for obj := range o.revParentProjectProjects.ValuesIter() {
 		if obj.IsDirty() {
@@ -1139,7 +1156,10 @@ func (o *projectBase) LoadParentProjectProjects(ctx context.Context, conditions 
 		cond = op.And(conditions...)
 	}
 
-	objs := qb.Where(cond).Load()
+	objs, err := qb.Where(cond).Load()
+	if err != nil {
+		return nil, err
+	}
 	o.revParentProjectProjects.Clear()
 
 	for _, obj := range objs {
@@ -1148,14 +1168,14 @@ func (o *projectBase) LoadParentProjectProjects(ctx context.Context, conditions 
 	}
 
 	if o.revParentProjectProjects.Len() == 0 {
-		return nil
+		return nil, nil
 	}
-	return o.revParentProjectProjects.Values()
+	return o.revParentProjectProjects.Values(), nil
 }
 
 // CountParentProjectProjects does a database query and returns the number of Project
 // objects currently in the database connected to this object.
-func (o *projectBase) CountParentProjectProjects(ctx context.Context) int {
+func (o *projectBase) CountParentProjectProjects(ctx context.Context) (int, error) {
 	return CountProjectsByParentProjectID(ctx, o.PrimaryKey())
 }
 
@@ -1183,7 +1203,7 @@ func (o *projectBase) SetParentProjectProjects(objs ...*Project) {
 // LoadProject returns a Project from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [ProjectsBuilder.Select] for more info.
-func LoadProject(ctx context.Context, id string, selectNodes ...query.Node) *Project {
+func LoadProject(ctx context.Context, id string, selectNodes ...query.Node) (*Project, error) {
 	return queryProjects(ctx).
 		Where(op.Equal(node.Project().ID(), id)).
 		Select(selectNodes...).
@@ -1192,17 +1212,18 @@ func LoadProject(ctx context.Context, id string, selectNodes ...query.Node) *Pro
 
 // HasProject returns true if a Project with the given primary key exists in the database.
 // doc: type=Project
-func HasProject(ctx context.Context, id string) bool {
-	return queryProjects(ctx).
+func HasProject(ctx context.Context, id string) (bool, error) {
+	v, err := queryProjects(ctx).
 		Where(op.Equal(node.Project().ID(), id)).
-		Count() == 1
+		Count()
+	return v > 0, err
 }
 
 // LoadProjectByNum queries for a single Project object by the given unique index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [ProjectsBuilder.Select].
 // If you need a more elaborate query, use QueryProjects() to start a query builder.
-func LoadProjectByNum(ctx context.Context, num int, selectNodes ...query.Node) *Project {
+func LoadProjectByNum(ctx context.Context, num int, selectNodes ...query.Node) (*Project, error) {
 	q := queryProjects(ctx)
 	q = q.Where(op.Equal(node.Project().Num(), num))
 	return q.Select(selectNodes...).Get()
@@ -1211,10 +1232,11 @@ func LoadProjectByNum(ctx context.Context, num int, selectNodes ...query.Node) *
 // HasProjectByNum returns true if the
 // given unique index values exist in the database.
 // doc: type=Project
-func HasProjectByNum(ctx context.Context, num int) bool {
+func HasProjectByNum(ctx context.Context, num int) (bool, error) {
 	q := queryProjects(ctx)
 	q = q.Where(op.Equal(node.Project().Num(), num))
-	return q.Count() == 1
+	v, err := q.Count()
+	return v > 0, err
 }
 
 // The ProjectBuilder uses the query.BuilderI interface to build a query.
@@ -1261,14 +1283,14 @@ type ProjectBuilder interface {
 	Having(node query.Node) ProjectBuilder
 
 	// Load terminates the query builder, performs the query, and returns a slice of Project objects.
-	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If there are any errors, nil is returned along with the error.
 	// If no results come back from the query, it will return a non-nil empty slice.
-	Load() []*Project
+	Load() ([]*Project, error)
 	// Load terminates the query builder, performs the query, and returns a slice of interfaces.
 	// This can then satisfy a general interface that loads arrays of objects.
-	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If there are any errors, nil is returned along with the error.
 	// If no results come back from the query, it will return a non-nil empty slice.
-	LoadI() []query.OrmObj
+	LoadI() ([]query.OrmObj, error)
 
 	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
 	//
@@ -1280,27 +1302,19 @@ type ProjectBuilder interface {
 	// on the cursor object when you are done. You should use
 	//   defer cursor.Close()
 	// to make sure the cursor gets closed.
-	LoadCursor() projectsCursor
+	LoadCursor() (projectsCursor, error)
 
 	// Get is a convenience method to return only the first item found in a query.
 	// The entire query is performed, so you should generally use this only if you know
 	// you are selecting on one or very few items.
-	//
 	// If an error occurs, or no results are found, a nil is returned.
-	// In the case of an error, the error is returned in the context.
-	Get() *Project
+	Get() (*Project, error)
 
 	// Count terminates a query and returns just the number of items in the result.
 	// If you have Select or Calculation columns in the query, it will count NULL results as well.
 	// To not count NULL values, use Where in the builder with a NotNull operation.
 	// To count distinct combinations of items, call Distinct() on the builder.
-	Count() int
-
-	// Subquery terminates the query builder and tags it as a subquery within a larger query.
-	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-	// Subquery() *query.SubqueryNode
-
+	Count() (int, error)
 }
 
 type projectQueryBuilder struct {
@@ -1317,11 +1331,12 @@ func newProjectBuilder(ctx context.Context) ProjectBuilder {
 // Load terminates the query builder, performs the query, and returns a slice of Project objects.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *projectQueryBuilder) Load() (projects []*Project) {
+func (b *projectQueryBuilder) Load() (projects []*Project, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
@@ -1336,11 +1351,12 @@ func (b *projectQueryBuilder) Load() (projects []*Project) {
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *projectQueryBuilder) LoadI() (projects []query.OrmObj) {
+func (b *projectQueryBuilder) LoadI() (projects []query.OrmObj, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
@@ -1363,13 +1379,13 @@ func (b *projectQueryBuilder) LoadI() (projects []query.OrmObj) {
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *projectQueryBuilder) LoadCursor() projectsCursor {
+func (b *projectQueryBuilder) LoadCursor() (projectsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
-	result := database.BuilderQuery(b.builder)
+	result, err := database.BuilderQuery(b.builder)
 	cursor := result.(query.CursorI)
 
-	return projectsCursor{cursor}
+	return projectsCursor{cursor}, err
 }
 
 type projectsCursor struct {
@@ -1379,50 +1395,31 @@ type projectsCursor struct {
 // Next returns the current Project object and moves the cursor to the next one.
 //
 // If there are no more records, it returns nil.
-func (c projectsCursor) Next() *Project {
+func (c projectsCursor) Next() (*Project, error) {
 	if c.CursorI == nil {
-		return nil
+		return nil, nil
 	}
 
-	row := c.CursorI.Next()
-	if row == nil {
-		return nil
+	row, err := c.CursorI.Next()
+	if row == nil || err != nil {
+		return nil, err
 	}
 	o := new(Project)
 	o.load(row, o)
-	return o
+	return o, nil
 }
 
 // Get is a convenience method to return only the first item found in a query.
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
-//
 // If an error occurs, or no results are found, a nil is returned.
-// In the case of an error, the error is returned in the context.
-func (b *projectQueryBuilder) Get() *Project {
-	results := b.Load()
-	if results != nil && len(results) > 0 {
-		obj := results[0]
-		return obj
-	} else {
-		return nil
+func (b *projectQueryBuilder) Get() (*Project, error) {
+	results, err := b.Load()
+	if err != nil || len(results) == 0 {
+		return nil, err
 	}
+	return results[0], nil
 }
-
-/*
-// Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
-// by condition.
-// The joinedTable node will be modified by this process so that you can use it in subsequent builder operations.
-// Call GetAlias to return the resulting object from the query result.
-func (b *projectQueryBuilder) Join(alias string, joinedTable query.Node, condition query.Node) ProjectBuilder {
-    if query.RootNode(n).TableName_() != "project" {
-        panic("you can only join a node that is rooted at node.Project()")
-    }
-    // TODO: make sure joinedTable is a table node
-	b.builder.Join(alias, joinedTable, condition)
-	return b
-}
-*/
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
@@ -1490,56 +1487,48 @@ func (b *projectQueryBuilder) Having(node query.Node) ProjectBuilder {
 // If you have Select or Calculation columns in the query, it will count NULL results as well.
 // To not count NULL values, use Where in the builder with a NotNull operation.
 // To count distinct combinations of items, call Distinct() on the builder.
-func (b *projectQueryBuilder) Count() int {
+func (b *projectQueryBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
-		return 0
+	results, err := database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
+		return 0, err
 	}
-	return results.(int)
+	return results.(int), nil
 }
 
-/*
-// Subquery terminates the query builder and tags it as a subquery within a larger query.
-// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-func (b *projectQueryBuilder)  Subquery() *query.SubqueryNode {
-	 return b.builder.Subquery()
-}
-*/
-
-func CountProjects(ctx context.Context) int {
+// CountProjects returns the total number of items in the project table.
+func CountProjects(ctx context.Context) (int, error) {
 	return QueryProjects(ctx).Count()
 }
 
 // CountProjectsByID queries the database and returns the number of Project objects that
 // have id.
 // doc: type=Project
-func CountProjectsByID(ctx context.Context, id string) int {
+func CountProjectsByID(ctx context.Context, id string) (int, error) {
 	return QueryProjects(ctx).Where(op.Equal(node.Project().ID(), id)).Count()
 }
 
 // CountProjectsByNum queries the database and returns the number of Project objects that
 // have num.
 // doc: type=Project
-func CountProjectsByNum(ctx context.Context, num int) int {
+func CountProjectsByNum(ctx context.Context, num int) (int, error) {
 	return QueryProjects(ctx).Where(op.Equal(node.Project().Num(), num)).Count()
 }
 
 // CountProjectsByStatus queries the database and returns the number of Project objects that
 // have status.
 // doc: type=Project
-func CountProjectsByStatus(ctx context.Context, status ProjectStatus) int {
+func CountProjectsByStatus(ctx context.Context, status ProjectStatus) (int, error) {
 	return QueryProjects(ctx).Where(op.Equal(node.Project().Status(), status)).Count()
 }
 
 // CountProjectsByManagerID queries the database and returns the number of Project objects that
 // have managerID.
 // doc: type=Project
-func CountProjectsByManagerID(ctx context.Context, managerID string) int {
+func CountProjectsByManagerID(ctx context.Context, managerID string) (int, error) {
 	if managerID == "" {
-		return 0
+		return 0, nil
 	}
 	return QueryProjects(ctx).Where(op.Equal(node.Project().ManagerID(), managerID)).Count()
 }
@@ -1547,51 +1536,51 @@ func CountProjectsByManagerID(ctx context.Context, managerID string) int {
 // CountProjectsByName queries the database and returns the number of Project objects that
 // have name.
 // doc: type=Project
-func CountProjectsByName(ctx context.Context, name string) int {
+func CountProjectsByName(ctx context.Context, name string) (int, error) {
 	return QueryProjects(ctx).Where(op.Equal(node.Project().Name(), name)).Count()
 }
 
 // CountProjectsByDescription queries the database and returns the number of Project objects that
 // have description.
 // doc: type=Project
-func CountProjectsByDescription(ctx context.Context, description string) int {
+func CountProjectsByDescription(ctx context.Context, description string) (int, error) {
 	return QueryProjects(ctx).Where(op.Equal(node.Project().Description(), description)).Count()
 }
 
 // CountProjectsByStartDate queries the database and returns the number of Project objects that
 // have startDate.
 // doc: type=Project
-func CountProjectsByStartDate(ctx context.Context, startDate time.Time) int {
+func CountProjectsByStartDate(ctx context.Context, startDate time.Time) (int, error) {
 	return QueryProjects(ctx).Where(op.Equal(node.Project().StartDate(), startDate)).Count()
 }
 
 // CountProjectsByEndDate queries the database and returns the number of Project objects that
 // have endDate.
 // doc: type=Project
-func CountProjectsByEndDate(ctx context.Context, endDate time.Time) int {
+func CountProjectsByEndDate(ctx context.Context, endDate time.Time) (int, error) {
 	return QueryProjects(ctx).Where(op.Equal(node.Project().EndDate(), endDate)).Count()
 }
 
 // CountProjectsByBudget queries the database and returns the number of Project objects that
 // have budget.
 // doc: type=Project
-func CountProjectsByBudget(ctx context.Context, budget string) int {
+func CountProjectsByBudget(ctx context.Context, budget string) (int, error) {
 	return QueryProjects(ctx).Where(op.Equal(node.Project().Budget(), budget)).Count()
 }
 
 // CountProjectsBySpent queries the database and returns the number of Project objects that
 // have spent.
 // doc: type=Project
-func CountProjectsBySpent(ctx context.Context, spent string) int {
+func CountProjectsBySpent(ctx context.Context, spent string) (int, error) {
 	return QueryProjects(ctx).Where(op.Equal(node.Project().Spent(), spent)).Count()
 }
 
 // CountProjectsByParentProjectID queries the database and returns the number of Project objects that
 // have parentProjectID.
 // doc: type=Project
-func CountProjectsByParentProjectID(ctx context.Context, parentProjectID string) int {
+func CountProjectsByParentProjectID(ctx context.Context, parentProjectID string) (int, error) {
 	if parentProjectID == "" {
-		return 0
+		return 0, nil
 	}
 	return QueryProjects(ctx).Where(op.Equal(node.Project().ParentProjectID(), parentProjectID)).Count()
 }
@@ -1967,9 +1956,12 @@ func (o *projectBase) update(ctx context.Context) error {
 			o.SetParentProjectID(o.objParentProject.PrimaryKey())
 		}
 
-		if o.numIsDirty &&
-			LoadProjectByNum(ctx, o.num) != nil {
-			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for Num: %v", o.num))
+		if o.numIsDirty {
+			if obj, err := LoadProjectByNum(ctx, o.num); err != nil {
+				return err
+			} else if obj != nil {
+				return db.NewUniqueValueError("project", map[string]any{"num": o.num}, nil)
+			}
 		}
 
 		modifiedFields = o.getUpdateFields()
@@ -1986,22 +1978,30 @@ func (o *projectBase) update(ctx context.Context) error {
 			// relation connection changed
 
 			// Since the other side of the relationship cannot be null, there cannot be objects that will be detached.
-			oldObjs := QueryMilestones(ctx).
+			if oldObjs, err := QueryMilestones(ctx).
 				Where(op.Equal(node.Milestone().ProjectID(), o.PrimaryKey())).
 				Select(node.Milestone().ProjectID()).
-				Load()
-			for _, obj := range oldObjs {
-				if !o.revMilestones.Has(obj.PrimaryKey()) {
-					obj.Delete(ctx) // old object is not in group of new objects, so delete it since it has a non-null reference to o.
+				Load(); err != nil {
+				return err
+			} else {
+				for _, obj := range oldObjs {
+					if o.revMilestones.Has(obj.PrimaryKey()) {
+						err = obj.Delete(ctx) // old object is not in group of new objects, so delete it since it has a non-null reference to o.
+						if err != nil {
+							return err
+						}
+					}
 				}
-			}
-			{
 				keys := o.revMilestones.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
 				for i, k := range keys {
 					obj := o.revMilestones.Get(k)
+					if obj == nil {
+						// object was deleted during save?
+						continue
+					}
 					obj.SetProjectID(o.PrimaryKey())
 					obj.projectIDIsDirty = true // force a change in case data is stale
-					if err := obj.Save(ctx); err != nil {
+					if err = obj.Save(ctx); err != nil {
 						return err
 					}
 					if obj.PrimaryKey() != k {
@@ -2024,27 +2024,27 @@ func (o *projectBase) update(ctx context.Context) error {
 		if o.revParentProjectProjectsIsDirty {
 			// relation connection changed
 
-			currentObjs := QueryProjects(ctx).
+			if currentObjs, err := QueryProjects(ctx).
 				Where(op.Equal(node.Project().ParentProjectID(), o.PrimaryKey())).
 				Select(node.Project().ParentProjectID()).
-				Load()
-
-			for _, obj := range currentObjs {
-				if !o.revParentProjectProjects.Has(obj.PrimaryKey()) {
-					// The old object is not in the group of new objects
-					obj.SetParentProjectIDToNull()
-					if err := obj.Save(ctx); err != nil {
-						return err
+				Load(); err != nil {
+				return err
+			} else {
+				for _, obj := range currentObjs {
+					if !o.revParentProjectProjects.Has(obj.PrimaryKey()) {
+						// The old object is not in the group of new objects
+						obj.SetParentProjectIDToNull()
+						if err = obj.Save(ctx); err != nil {
+							return err
+						}
 					}
 				}
-			}
-			{
 				keys := o.revParentProjectProjects.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
 				for i, k := range keys {
 					obj := o.revParentProjectProjects.Get(k)
 					obj.SetParentProjectID(o.PrimaryKey())
 					obj.parentProjectIDIsDirty = true // force a change in case data is stale
-					if err := obj.Save(ctx); err != nil {
+					if err = obj.Save(ctx); err != nil {
 						return err
 					}
 					if obj.PrimaryKey() != k {
@@ -2080,21 +2080,25 @@ func (o *projectBase) update(ctx context.Context) error {
 			}
 			if o.mmChildrenIsDirty {
 				if len(o.mmChildrenPks) != 0 {
-					db.AssociateOnly(ctx,
+					if err := db.AssociateOnly(ctx,
 						d,
 						"related_project_assn",
 						"parent_id",
 						o.PrimaryKey(),
 						"child_id",
-						o.mmChildrenPks)
+						o.mmChildrenPks); err != nil {
+						return err
+					}
 				} else {
-					db.AssociateOnly(ctx,
+					if err := db.AssociateOnly(ctx,
 						d,
 						"related_project_assn",
 						"parent_id",
 						o.PrimaryKey(),
 						"child_id",
-						o.mmChildren.Keys())
+						o.mmChildren.Keys()); err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -2114,21 +2118,25 @@ func (o *projectBase) update(ctx context.Context) error {
 			}
 			if o.mmParentsIsDirty {
 				if len(o.mmParentsPks) != 0 {
-					db.AssociateOnly(ctx,
+					if err := db.AssociateOnly(ctx,
 						d,
 						"related_project_assn",
 						"child_id",
 						o.PrimaryKey(),
 						"parent_id",
-						o.mmParentsPks)
+						o.mmParentsPks); err != nil {
+						return err
+					}
 				} else {
-					db.AssociateOnly(ctx,
+					if err := db.AssociateOnly(ctx,
 						d,
 						"related_project_assn",
 						"child_id",
 						o.PrimaryKey(),
 						"parent_id",
-						o.mmParents.Keys())
+						o.mmParents.Keys()); err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -2148,21 +2156,25 @@ func (o *projectBase) update(ctx context.Context) error {
 			}
 			if o.mmTeamMembersIsDirty {
 				if len(o.mmTeamMembersPks) != 0 {
-					db.AssociateOnly(ctx,
+					if err := db.AssociateOnly(ctx,
 						d,
 						"team_member_project_assn",
 						"project_id",
 						o.PrimaryKey(),
 						"team_member_id",
-						o.mmTeamMembersPks)
+						o.mmTeamMembersPks); err != nil {
+						return err
+					}
 				} else {
-					db.AssociateOnly(ctx,
+					if err := db.AssociateOnly(ctx,
 						d,
 						"team_member_project_assn",
 						"project_id",
 						o.PrimaryKey(),
 						"team_member_id",
-						o.mmTeamMembers.Keys())
+						o.mmTeamMembers.Keys()); err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -2213,9 +2225,12 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
 
-		if o.numIsDirty &&
-			LoadProjectByNum(ctx, o.num) != nil {
-			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for Num: %v", o.num))
+		if o.numIsDirty {
+			if obj, err := LoadProjectByNum(ctx, o.num); err != nil {
+				return err
+			} else if obj != nil {
+				return db.NewUniqueValueError("project", map[string]any{"num": o.num}, nil)
+			}
 		}
 
 		insertFields = o.getInsertFields()
@@ -2281,7 +2296,10 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 			}
 		} else if len(o.mmChildrenPks) > 0 {
 			for _, k := range o.mmChildrenPks {
-				obj := LoadProject(ctx, k)
+				obj, err2 := LoadProject(ctx, k)
+				if err2 != nil {
+					return err2
+				}
 				if obj != nil {
 					db.Associate(ctx,
 						d,
@@ -2316,7 +2334,10 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 			}
 		} else if len(o.mmParentsPks) > 0 {
 			for _, k := range o.mmParentsPks {
-				obj := LoadProject(ctx, k)
+				obj, err2 := LoadProject(ctx, k)
+				if err2 != nil {
+					return err2
+				}
 				if obj != nil {
 					db.Associate(ctx,
 						d,
@@ -2351,7 +2372,10 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 			}
 		} else if len(o.mmTeamMembersPks) > 0 {
 			for _, k := range o.mmTeamMembersPks {
-				obj := LoadPerson(ctx, k)
+				obj, err2 := LoadPerson(ctx, k)
+				if err2 != nil {
+					return err2
+				}
 				if obj != nil {
 					db.Associate(ctx,
 						d,
@@ -2517,9 +2541,12 @@ func (o *projectBase) Delete(ctx context.Context) (err error) {
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
 		{
-			objs := QueryMilestones(ctx).
+			objs, err := QueryMilestones(ctx).
 				Where(op.Equal(node.Milestone().ProjectID(), o.id)).
 				Load()
+			if err != nil {
+				return err
+			}
 			for _, obj := range objs {
 				if err = obj.Delete(ctx); err != nil {
 					return err
@@ -2529,10 +2556,13 @@ func (o *projectBase) Delete(ctx context.Context) (err error) {
 		}
 
 		{
-			objs := QueryProjects(ctx).
+			objs, err := QueryProjects(ctx).
 				Where(op.Equal(node.Project().ParentProjectID(), o.id)).
 				Select(node.Project().ParentProjectID()).
 				Load()
+			if err != nil {
+				return err
+			}
 			for _, obj := range objs {
 				obj.SetParentProjectIDToNull()
 				if err = obj.Save(ctx); err != nil {
@@ -2542,32 +2572,37 @@ func (o *projectBase) Delete(ctx context.Context) (err error) {
 			o.revParentProjectProjects.Clear()
 		}
 
-		db.AssociateOnly(ctx,
+		if err := db.AssociateOnly(ctx,
 			d,
 			"related_project_assn",
 			"parent_id",
 			o.PrimaryKey(),
 			"id",
-			[]Project(nil))
+			[]Project(nil)); err != nil {
+			return err
+		}
 
-		db.AssociateOnly(ctx,
+		if err := db.AssociateOnly(ctx,
 			d,
 			"related_project_assn",
 			"child_id",
 			o.PrimaryKey(),
 			"id",
-			[]Project(nil))
+			[]Project(nil)); err != nil {
+			return err
+		}
 
-		db.AssociateOnly(ctx,
+		if err := db.AssociateOnly(ctx,
 			d,
 			"team_member_project_assn",
 			"project_id",
 			o.PrimaryKey(),
 			"id",
-			[]Person(nil))
+			[]Person(nil)); err != nil {
+			return err
+		}
 
-		d.Delete(ctx, "project", map[string]any{"ID": o.id})
-		return nil
+		return d.Delete(ctx, "project", map[string]any{"ID": o.id})
 	})
 
 	if err != nil {
@@ -2580,7 +2615,9 @@ func (o *projectBase) Delete(ctx context.Context) (err error) {
 // deleteProject deletes the Project with primary key pk from the database
 // and handles associated records.
 func deleteProject(ctx context.Context, pk string) error {
-	if obj := LoadProject(ctx, pk, node.Project().PrimaryKey()); obj != nil {
+	if obj, err := LoadProject(ctx, pk, node.Project().PrimaryKey()); err != nil {
+		return err
+	} else if obj != nil {
 		if err := obj.Delete(ctx); err != nil {
 			return err
 		}

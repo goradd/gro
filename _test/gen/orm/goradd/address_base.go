@@ -187,16 +187,17 @@ func (o *addressBase) Person() *Person {
 
 // LoadPerson returns the related Person. If it is not already loaded,
 // it will attempt to load it, provided the PersonID column has been loaded first.
-func (o *addressBase) LoadPerson(ctx context.Context) *Person {
-	if !o.personIDIsLoaded {
-		return nil
-	}
+func (o *addressBase) LoadPerson(ctx context.Context) (*Person, error) {
+	var err error
 
 	if o.objPerson == nil {
+		if !o.personIDIsLoaded {
+			panic("PersonID must be selected in the previous query")
+		}
 		// Load and cache
-		o.objPerson = LoadPerson(ctx, o.personID)
+		o.objPerson, err = LoadPerson(ctx, o.personID)
 	}
-	return o.objPerson
+	return o.objPerson, err
 }
 
 // SetPerson sets the value of Person in the object, to be saved later using the Save() function.
@@ -310,7 +311,7 @@ func (o *addressBase) IsNew() bool {
 // LoadAddress returns a Address from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [AddressesBuilder.Select] for more info.
-func LoadAddress(ctx context.Context, id string, selectNodes ...query.Node) *Address {
+func LoadAddress(ctx context.Context, id string, selectNodes ...query.Node) (*Address, error) {
 	return queryAddresses(ctx).
 		Where(op.Equal(node.Address().ID(), id)).
 		Select(selectNodes...).
@@ -319,10 +320,11 @@ func LoadAddress(ctx context.Context, id string, selectNodes ...query.Node) *Add
 
 // HasAddress returns true if a Address with the given primary key exists in the database.
 // doc: type=Address
-func HasAddress(ctx context.Context, id string) bool {
-	return queryAddresses(ctx).
+func HasAddress(ctx context.Context, id string) (bool, error) {
+	v, err := queryAddresses(ctx).
 		Where(op.Equal(node.Address().ID(), id)).
-		Count() == 1
+		Count()
+	return v > 0, err
 }
 
 // The AddressBuilder uses the query.BuilderI interface to build a query.
@@ -369,14 +371,14 @@ type AddressBuilder interface {
 	Having(node query.Node) AddressBuilder
 
 	// Load terminates the query builder, performs the query, and returns a slice of Address objects.
-	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If there are any errors, nil is returned along with the error.
 	// If no results come back from the query, it will return a non-nil empty slice.
-	Load() []*Address
+	Load() ([]*Address, error)
 	// Load terminates the query builder, performs the query, and returns a slice of interfaces.
 	// This can then satisfy a general interface that loads arrays of objects.
-	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If there are any errors, nil is returned along with the error.
 	// If no results come back from the query, it will return a non-nil empty slice.
-	LoadI() []query.OrmObj
+	LoadI() ([]query.OrmObj, error)
 
 	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
 	//
@@ -388,27 +390,19 @@ type AddressBuilder interface {
 	// on the cursor object when you are done. You should use
 	//   defer cursor.Close()
 	// to make sure the cursor gets closed.
-	LoadCursor() addressesCursor
+	LoadCursor() (addressesCursor, error)
 
 	// Get is a convenience method to return only the first item found in a query.
 	// The entire query is performed, so you should generally use this only if you know
 	// you are selecting on one or very few items.
-	//
 	// If an error occurs, or no results are found, a nil is returned.
-	// In the case of an error, the error is returned in the context.
-	Get() *Address
+	Get() (*Address, error)
 
 	// Count terminates a query and returns just the number of items in the result.
 	// If you have Select or Calculation columns in the query, it will count NULL results as well.
 	// To not count NULL values, use Where in the builder with a NotNull operation.
 	// To count distinct combinations of items, call Distinct() on the builder.
-	Count() int
-
-	// Subquery terminates the query builder and tags it as a subquery within a larger query.
-	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-	// Subquery() *query.SubqueryNode
-
+	Count() (int, error)
 }
 
 type addressQueryBuilder struct {
@@ -425,11 +419,12 @@ func newAddressBuilder(ctx context.Context) AddressBuilder {
 // Load terminates the query builder, performs the query, and returns a slice of Address objects.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *addressQueryBuilder) Load() (addresses []*Address) {
+func (b *addressQueryBuilder) Load() (addresses []*Address, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
@@ -444,11 +439,12 @@ func (b *addressQueryBuilder) Load() (addresses []*Address) {
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *addressQueryBuilder) LoadI() (addresses []query.OrmObj) {
+func (b *addressQueryBuilder) LoadI() (addresses []query.OrmObj, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
@@ -471,13 +467,13 @@ func (b *addressQueryBuilder) LoadI() (addresses []query.OrmObj) {
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *addressQueryBuilder) LoadCursor() addressesCursor {
+func (b *addressQueryBuilder) LoadCursor() (addressesCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
-	result := database.BuilderQuery(b.builder)
+	result, err := database.BuilderQuery(b.builder)
 	cursor := result.(query.CursorI)
 
-	return addressesCursor{cursor}
+	return addressesCursor{cursor}, err
 }
 
 type addressesCursor struct {
@@ -487,50 +483,31 @@ type addressesCursor struct {
 // Next returns the current Address object and moves the cursor to the next one.
 //
 // If there are no more records, it returns nil.
-func (c addressesCursor) Next() *Address {
+func (c addressesCursor) Next() (*Address, error) {
 	if c.CursorI == nil {
-		return nil
+		return nil, nil
 	}
 
-	row := c.CursorI.Next()
-	if row == nil {
-		return nil
+	row, err := c.CursorI.Next()
+	if row == nil || err != nil {
+		return nil, err
 	}
 	o := new(Address)
 	o.load(row, o)
-	return o
+	return o, nil
 }
 
 // Get is a convenience method to return only the first item found in a query.
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
-//
 // If an error occurs, or no results are found, a nil is returned.
-// In the case of an error, the error is returned in the context.
-func (b *addressQueryBuilder) Get() *Address {
-	results := b.Load()
-	if results != nil && len(results) > 0 {
-		obj := results[0]
-		return obj
-	} else {
-		return nil
+func (b *addressQueryBuilder) Get() (*Address, error) {
+	results, err := b.Load()
+	if err != nil || len(results) == 0 {
+		return nil, err
 	}
+	return results[0], nil
 }
-
-/*
-// Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
-// by condition.
-// The joinedTable node will be modified by this process so that you can use it in subsequent builder operations.
-// Call GetAlias to return the resulting object from the query result.
-func (b *addressQueryBuilder) Join(alias string, joinedTable query.Node, condition query.Node) AddressBuilder {
-    if query.RootNode(n).TableName_() != "address" {
-        panic("you can only join a node that is rooted at node.Address()")
-    }
-    // TODO: make sure joinedTable is a table node
-	b.builder.Join(alias, joinedTable, condition)
-	return b
-}
-*/
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
@@ -598,42 +575,34 @@ func (b *addressQueryBuilder) Having(node query.Node) AddressBuilder {
 // If you have Select or Calculation columns in the query, it will count NULL results as well.
 // To not count NULL values, use Where in the builder with a NotNull operation.
 // To count distinct combinations of items, call Distinct() on the builder.
-func (b *addressQueryBuilder) Count() int {
+func (b *addressQueryBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
-		return 0
+	results, err := database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
+		return 0, err
 	}
-	return results.(int)
+	return results.(int), nil
 }
 
-/*
-// Subquery terminates the query builder and tags it as a subquery within a larger query.
-// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-func (b *addressQueryBuilder)  Subquery() *query.SubqueryNode {
-	 return b.builder.Subquery()
-}
-*/
-
-func CountAddresses(ctx context.Context) int {
+// CountAddresses returns the total number of items in the address table.
+func CountAddresses(ctx context.Context) (int, error) {
 	return QueryAddresses(ctx).Count()
 }
 
 // CountAddressesByID queries the database and returns the number of Address objects that
 // have id.
 // doc: type=Address
-func CountAddressesByID(ctx context.Context, id string) int {
+func CountAddressesByID(ctx context.Context, id string) (int, error) {
 	return QueryAddresses(ctx).Where(op.Equal(node.Address().ID(), id)).Count()
 }
 
 // CountAddressesByPersonID queries the database and returns the number of Address objects that
 // have personID.
 // doc: type=Address
-func CountAddressesByPersonID(ctx context.Context, personID string) int {
+func CountAddressesByPersonID(ctx context.Context, personID string) (int, error) {
 	if personID == "" {
-		return 0
+		return 0, nil
 	}
 	return QueryAddresses(ctx).Where(op.Equal(node.Address().PersonID(), personID)).Count()
 }
@@ -641,14 +610,14 @@ func CountAddressesByPersonID(ctx context.Context, personID string) int {
 // CountAddressesByStreet queries the database and returns the number of Address objects that
 // have street.
 // doc: type=Address
-func CountAddressesByStreet(ctx context.Context, street string) int {
+func CountAddressesByStreet(ctx context.Context, street string) (int, error) {
 	return QueryAddresses(ctx).Where(op.Equal(node.Address().Street(), street)).Count()
 }
 
 // CountAddressesByCity queries the database and returns the number of Address objects that
 // have city.
 // doc: type=Address
-func CountAddressesByCity(ctx context.Context, city string) int {
+func CountAddressesByCity(ctx context.Context, city string) (int, error) {
 	return QueryAddresses(ctx).Where(op.Equal(node.Address().City(), city)).Count()
 }
 
@@ -898,8 +867,7 @@ func (o *addressBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	d.Delete(ctx, "address", map[string]any{"ID": o.id})
-	return nil
+	return d.Delete(ctx, "address", map[string]any{"ID": o.id})
 	broadcast.Delete(ctx, "goradd", "address", fmt.Sprint(o.id))
 	return
 }
@@ -908,7 +876,10 @@ func (o *addressBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteAddress(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd")
-	d.Delete(ctx, "address", map[string]any{"ID": pk})
+	err := d.Delete(ctx, "address", map[string]any{"ID": pk})
+	if err != nil {
+		return err
+	}
 	broadcast.Delete(ctx, "goradd", "address", fmt.Sprint(pk))
 	return nil
 }

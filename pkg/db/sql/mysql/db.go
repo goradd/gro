@@ -181,7 +181,7 @@ func (m *DB) Insert(ctx context.Context, table string, _ string, fields map[stri
 				// Since it is not possible to completely prevent a unique constraint error, except by implementing a separate
 				// service to track and lock unique values that are in use (which is beyond the scope of the ORM), we need
 				// to see if this is that kind of error and return it.
-				return "", db.NewUniqueValueError(table, "", "", err)
+				return "", db.NewUniqueValueError(table, nil, err)
 			}
 		}
 		return "", db.NewQueryError("SqlExec", s, args, err)
@@ -226,7 +226,7 @@ func (m *DB) Update(ctx context.Context,
 				// Since it is not possible to completely prevent a unique constraint error, except by implementing a separate
 				// service to track and lock unique values that are in use (which is beyond the scope of the ORM), we need
 				// to see if this is that kind of error and return it, rather than panicking.
-				return 0, db.NewUniqueValueError(table, "", "", err)
+				return 0, db.NewUniqueValueError(table, nil, err)
 			}
 		}
 		return 0, db.NewQueryError("SqlExec", s, args, err)

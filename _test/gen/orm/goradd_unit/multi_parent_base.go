@@ -278,16 +278,17 @@ func (o *multiParentBase) Parent1() *MultiParent {
 
 // LoadParent1 returns the related Parent1. If it is not already loaded,
 // it will attempt to load it, provided the Parent1ID column has been loaded first.
-func (o *multiParentBase) LoadParent1(ctx context.Context) *MultiParent {
-	if !o.parent1IDIsLoaded {
-		return nil
-	}
+func (o *multiParentBase) LoadParent1(ctx context.Context) (*MultiParent, error) {
+	var err error
 
 	if o.objParent1 == nil {
+		if !o.parent1IDIsLoaded {
+			panic("Parent1ID must be selected in the previous query")
+		}
 		// Load and cache
-		o.objParent1 = LoadMultiParent(ctx, o.parent1ID)
+		o.objParent1, err = LoadMultiParent(ctx, o.parent1ID)
 	}
-	return o.objParent1
+	return o.objParent1, err
 }
 
 // SetParent1 will set the reference to parent1. The referenced object
@@ -369,16 +370,17 @@ func (o *multiParentBase) Parent2() *MultiParent {
 
 // LoadParent2 returns the related Parent2. If it is not already loaded,
 // it will attempt to load it, provided the Parent2ID column has been loaded first.
-func (o *multiParentBase) LoadParent2(ctx context.Context) *MultiParent {
-	if !o.parent2IDIsLoaded {
-		return nil
-	}
+func (o *multiParentBase) LoadParent2(ctx context.Context) (*MultiParent, error) {
+	var err error
 
 	if o.objParent2 == nil {
+		if !o.parent2IDIsLoaded {
+			panic("Parent2ID must be selected in the previous query")
+		}
 		// Load and cache
-		o.objParent2 = LoadMultiParent(ctx, o.parent2ID)
+		o.objParent2, err = LoadMultiParent(ctx, o.parent2ID)
 	}
-	return o.objParent2
+	return o.objParent2, err
 }
 
 // SetParent2 will set the reference to parent2. The referenced object
@@ -430,9 +432,9 @@ func (o *multiParentBase) Parent1MultiParents() []*MultiParent {
 }
 
 // LoadParent1MultiParents loads a new slice of MultiParent objects and returns it.
-func (o *multiParentBase) LoadParent1MultiParents(ctx context.Context, conditions ...interface{}) []*MultiParent {
+func (o *multiParentBase) LoadParent1MultiParents(ctx context.Context, conditions ...interface{}) ([]*MultiParent, error) {
 	if o.IsNew() {
-		return nil
+		return nil, nil
 	}
 	for obj := range o.revParent1MultiParents.ValuesIter() {
 		if obj.IsDirty() {
@@ -447,7 +449,10 @@ func (o *multiParentBase) LoadParent1MultiParents(ctx context.Context, condition
 		cond = op.And(conditions...)
 	}
 
-	objs := qb.Where(cond).Load()
+	objs, err := qb.Where(cond).Load()
+	if err != nil {
+		return nil, err
+	}
 	o.revParent1MultiParents.Clear()
 
 	for _, obj := range objs {
@@ -456,14 +461,14 @@ func (o *multiParentBase) LoadParent1MultiParents(ctx context.Context, condition
 	}
 
 	if o.revParent1MultiParents.Len() == 0 {
-		return nil
+		return nil, nil
 	}
-	return o.revParent1MultiParents.Values()
+	return o.revParent1MultiParents.Values(), nil
 }
 
 // CountParent1MultiParents does a database query and returns the number of MultiParent
 // objects currently in the database connected to this object.
-func (o *multiParentBase) CountParent1MultiParents(ctx context.Context) int {
+func (o *multiParentBase) CountParent1MultiParents(ctx context.Context) (int, error) {
 	return CountMultiParentsByParent1ID(ctx, o.PrimaryKey())
 }
 
@@ -501,9 +506,9 @@ func (o *multiParentBase) Parent2MultiParents() []*MultiParent {
 }
 
 // LoadParent2MultiParents loads a new slice of MultiParent objects and returns it.
-func (o *multiParentBase) LoadParent2MultiParents(ctx context.Context, conditions ...interface{}) []*MultiParent {
+func (o *multiParentBase) LoadParent2MultiParents(ctx context.Context, conditions ...interface{}) ([]*MultiParent, error) {
 	if o.IsNew() {
-		return nil
+		return nil, nil
 	}
 	for obj := range o.revParent2MultiParents.ValuesIter() {
 		if obj.IsDirty() {
@@ -518,7 +523,10 @@ func (o *multiParentBase) LoadParent2MultiParents(ctx context.Context, condition
 		cond = op.And(conditions...)
 	}
 
-	objs := qb.Where(cond).Load()
+	objs, err := qb.Where(cond).Load()
+	if err != nil {
+		return nil, err
+	}
 	o.revParent2MultiParents.Clear()
 
 	for _, obj := range objs {
@@ -527,14 +535,14 @@ func (o *multiParentBase) LoadParent2MultiParents(ctx context.Context, condition
 	}
 
 	if o.revParent2MultiParents.Len() == 0 {
-		return nil
+		return nil, nil
 	}
-	return o.revParent2MultiParents.Values()
+	return o.revParent2MultiParents.Values(), nil
 }
 
 // CountParent2MultiParents does a database query and returns the number of MultiParent
 // objects currently in the database connected to this object.
-func (o *multiParentBase) CountParent2MultiParents(ctx context.Context) int {
+func (o *multiParentBase) CountParent2MultiParents(ctx context.Context) (int, error) {
 	return CountMultiParentsByParent2ID(ctx, o.PrimaryKey())
 }
 
@@ -562,7 +570,7 @@ func (o *multiParentBase) SetParent2MultiParents(objs ...*MultiParent) {
 // LoadMultiParent returns a MultiParent from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [MultiParentsBuilder.Select] for more info.
-func LoadMultiParent(ctx context.Context, id string, selectNodes ...query.Node) *MultiParent {
+func LoadMultiParent(ctx context.Context, id string, selectNodes ...query.Node) (*MultiParent, error) {
 	return queryMultiParents(ctx).
 		Where(op.Equal(node.MultiParent().ID(), id)).
 		Select(selectNodes...).
@@ -571,10 +579,11 @@ func LoadMultiParent(ctx context.Context, id string, selectNodes ...query.Node) 
 
 // HasMultiParent returns true if a MultiParent with the given primary key exists in the database.
 // doc: type=MultiParent
-func HasMultiParent(ctx context.Context, id string) bool {
-	return queryMultiParents(ctx).
+func HasMultiParent(ctx context.Context, id string) (bool, error) {
+	v, err := queryMultiParents(ctx).
 		Where(op.Equal(node.MultiParent().ID(), id)).
-		Count() == 1
+		Count()
+	return v > 0, err
 }
 
 // The MultiParentBuilder uses the query.BuilderI interface to build a query.
@@ -621,14 +630,14 @@ type MultiParentBuilder interface {
 	Having(node query.Node) MultiParentBuilder
 
 	// Load terminates the query builder, performs the query, and returns a slice of MultiParent objects.
-	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If there are any errors, nil is returned along with the error.
 	// If no results come back from the query, it will return a non-nil empty slice.
-	Load() []*MultiParent
+	Load() ([]*MultiParent, error)
 	// Load terminates the query builder, performs the query, and returns a slice of interfaces.
 	// This can then satisfy a general interface that loads arrays of objects.
-	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If there are any errors, nil is returned along with the error.
 	// If no results come back from the query, it will return a non-nil empty slice.
-	LoadI() []query.OrmObj
+	LoadI() ([]query.OrmObj, error)
 
 	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
 	//
@@ -640,27 +649,19 @@ type MultiParentBuilder interface {
 	// on the cursor object when you are done. You should use
 	//   defer cursor.Close()
 	// to make sure the cursor gets closed.
-	LoadCursor() multiParentsCursor
+	LoadCursor() (multiParentsCursor, error)
 
 	// Get is a convenience method to return only the first item found in a query.
 	// The entire query is performed, so you should generally use this only if you know
 	// you are selecting on one or very few items.
-	//
 	// If an error occurs, or no results are found, a nil is returned.
-	// In the case of an error, the error is returned in the context.
-	Get() *MultiParent
+	Get() (*MultiParent, error)
 
 	// Count terminates a query and returns just the number of items in the result.
 	// If you have Select or Calculation columns in the query, it will count NULL results as well.
 	// To not count NULL values, use Where in the builder with a NotNull operation.
 	// To count distinct combinations of items, call Distinct() on the builder.
-	Count() int
-
-	// Subquery terminates the query builder and tags it as a subquery within a larger query.
-	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-	// Subquery() *query.SubqueryNode
-
+	Count() (int, error)
 }
 
 type multiParentQueryBuilder struct {
@@ -677,11 +678,12 @@ func newMultiParentBuilder(ctx context.Context) MultiParentBuilder {
 // Load terminates the query builder, performs the query, and returns a slice of MultiParent objects.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *multiParentQueryBuilder) Load() (multiParents []*MultiParent) {
+func (b *multiParentQueryBuilder) Load() (multiParents []*MultiParent, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
@@ -696,11 +698,12 @@ func (b *multiParentQueryBuilder) Load() (multiParents []*MultiParent) {
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *multiParentQueryBuilder) LoadI() (multiParents []query.OrmObj) {
+func (b *multiParentQueryBuilder) LoadI() (multiParents []query.OrmObj, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
@@ -723,13 +726,13 @@ func (b *multiParentQueryBuilder) LoadI() (multiParents []query.OrmObj) {
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *multiParentQueryBuilder) LoadCursor() multiParentsCursor {
+func (b *multiParentQueryBuilder) LoadCursor() (multiParentsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
-	result := database.BuilderQuery(b.builder)
+	result, err := database.BuilderQuery(b.builder)
 	cursor := result.(query.CursorI)
 
-	return multiParentsCursor{cursor}
+	return multiParentsCursor{cursor}, err
 }
 
 type multiParentsCursor struct {
@@ -739,50 +742,31 @@ type multiParentsCursor struct {
 // Next returns the current MultiParent object and moves the cursor to the next one.
 //
 // If there are no more records, it returns nil.
-func (c multiParentsCursor) Next() *MultiParent {
+func (c multiParentsCursor) Next() (*MultiParent, error) {
 	if c.CursorI == nil {
-		return nil
+		return nil, nil
 	}
 
-	row := c.CursorI.Next()
-	if row == nil {
-		return nil
+	row, err := c.CursorI.Next()
+	if row == nil || err != nil {
+		return nil, err
 	}
 	o := new(MultiParent)
 	o.load(row, o)
-	return o
+	return o, nil
 }
 
 // Get is a convenience method to return only the first item found in a query.
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
-//
 // If an error occurs, or no results are found, a nil is returned.
-// In the case of an error, the error is returned in the context.
-func (b *multiParentQueryBuilder) Get() *MultiParent {
-	results := b.Load()
-	if results != nil && len(results) > 0 {
-		obj := results[0]
-		return obj
-	} else {
-		return nil
+func (b *multiParentQueryBuilder) Get() (*MultiParent, error) {
+	results, err := b.Load()
+	if err != nil || len(results) == 0 {
+		return nil, err
 	}
+	return results[0], nil
 }
-
-/*
-// Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
-// by condition.
-// The joinedTable node will be modified by this process so that you can use it in subsequent builder operations.
-// Call GetAlias to return the resulting object from the query result.
-func (b *multiParentQueryBuilder) Join(alias string, joinedTable query.Node, condition query.Node) MultiParentBuilder {
-    if query.RootNode(n).TableName_() != "multi_parent" {
-        panic("you can only join a node that is rooted at node.MultiParent()")
-    }
-    // TODO: make sure joinedTable is a table node
-	b.builder.Join(alias, joinedTable, condition)
-	return b
-}
-*/
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
@@ -850,49 +834,41 @@ func (b *multiParentQueryBuilder) Having(node query.Node) MultiParentBuilder {
 // If you have Select or Calculation columns in the query, it will count NULL results as well.
 // To not count NULL values, use Where in the builder with a NotNull operation.
 // To count distinct combinations of items, call Distinct() on the builder.
-func (b *multiParentQueryBuilder) Count() int {
+func (b *multiParentQueryBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
-		return 0
+	results, err := database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
+		return 0, err
 	}
-	return results.(int)
+	return results.(int), nil
 }
 
-/*
-// Subquery terminates the query builder and tags it as a subquery within a larger query.
-// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-func (b *multiParentQueryBuilder)  Subquery() *query.SubqueryNode {
-	 return b.builder.Subquery()
-}
-*/
-
-func CountMultiParents(ctx context.Context) int {
+// CountMultiParents returns the total number of items in the multi_parent table.
+func CountMultiParents(ctx context.Context) (int, error) {
 	return QueryMultiParents(ctx).Count()
 }
 
 // CountMultiParentsByID queries the database and returns the number of MultiParent objects that
 // have id.
 // doc: type=MultiParent
-func CountMultiParentsByID(ctx context.Context, id string) int {
+func CountMultiParentsByID(ctx context.Context, id string) (int, error) {
 	return QueryMultiParents(ctx).Where(op.Equal(node.MultiParent().ID(), id)).Count()
 }
 
 // CountMultiParentsByName queries the database and returns the number of MultiParent objects that
 // have name.
 // doc: type=MultiParent
-func CountMultiParentsByName(ctx context.Context, name string) int {
+func CountMultiParentsByName(ctx context.Context, name string) (int, error) {
 	return QueryMultiParents(ctx).Where(op.Equal(node.MultiParent().Name(), name)).Count()
 }
 
 // CountMultiParentsByParent1ID queries the database and returns the number of MultiParent objects that
 // have parent1ID.
 // doc: type=MultiParent
-func CountMultiParentsByParent1ID(ctx context.Context, parent1ID string) int {
+func CountMultiParentsByParent1ID(ctx context.Context, parent1ID string) (int, error) {
 	if parent1ID == "" {
-		return 0
+		return 0, nil
 	}
 	return QueryMultiParents(ctx).Where(op.Equal(node.MultiParent().Parent1ID(), parent1ID)).Count()
 }
@@ -900,9 +876,9 @@ func CountMultiParentsByParent1ID(ctx context.Context, parent1ID string) int {
 // CountMultiParentsByParent2ID queries the database and returns the number of MultiParent objects that
 // have parent2ID.
 // doc: type=MultiParent
-func CountMultiParentsByParent2ID(ctx context.Context, parent2ID string) int {
+func CountMultiParentsByParent2ID(ctx context.Context, parent2ID string) (int, error) {
 	if parent2ID == "" {
-		return 0
+		return 0, nil
 	}
 	return QueryMultiParents(ctx).Where(op.Equal(node.MultiParent().Parent2ID(), parent2ID)).Count()
 }
@@ -1112,27 +1088,27 @@ func (o *multiParentBase) update(ctx context.Context) error {
 		if o.revParent1MultiParentsIsDirty {
 			// relation connection changed
 
-			currentObjs := QueryMultiParents(ctx).
+			if currentObjs, err := QueryMultiParents(ctx).
 				Where(op.Equal(node.MultiParent().Parent1ID(), o.PrimaryKey())).
 				Select(node.MultiParent().Parent1ID()).
-				Load()
-
-			for _, obj := range currentObjs {
-				if !o.revParent1MultiParents.Has(obj.PrimaryKey()) {
-					// The old object is not in the group of new objects
-					obj.SetParent1IDToNull()
-					if err := obj.Save(ctx); err != nil {
-						return err
+				Load(); err != nil {
+				return err
+			} else {
+				for _, obj := range currentObjs {
+					if !o.revParent1MultiParents.Has(obj.PrimaryKey()) {
+						// The old object is not in the group of new objects
+						obj.SetParent1IDToNull()
+						if err = obj.Save(ctx); err != nil {
+							return err
+						}
 					}
 				}
-			}
-			{
 				keys := o.revParent1MultiParents.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
 				for i, k := range keys {
 					obj := o.revParent1MultiParents.Get(k)
 					obj.SetParent1ID(o.PrimaryKey())
 					obj.parent1IDIsDirty = true // force a change in case data is stale
-					if err := obj.Save(ctx); err != nil {
+					if err = obj.Save(ctx); err != nil {
 						return err
 					}
 					if obj.PrimaryKey() != k {
@@ -1155,27 +1131,27 @@ func (o *multiParentBase) update(ctx context.Context) error {
 		if o.revParent2MultiParentsIsDirty {
 			// relation connection changed
 
-			currentObjs := QueryMultiParents(ctx).
+			if currentObjs, err := QueryMultiParents(ctx).
 				Where(op.Equal(node.MultiParent().Parent2ID(), o.PrimaryKey())).
 				Select(node.MultiParent().Parent2ID()).
-				Load()
-
-			for _, obj := range currentObjs {
-				if !o.revParent2MultiParents.Has(obj.PrimaryKey()) {
-					// The old object is not in the group of new objects
-					obj.SetParent2IDToNull()
-					if err := obj.Save(ctx); err != nil {
-						return err
+				Load(); err != nil {
+				return err
+			} else {
+				for _, obj := range currentObjs {
+					if !o.revParent2MultiParents.Has(obj.PrimaryKey()) {
+						// The old object is not in the group of new objects
+						obj.SetParent2IDToNull()
+						if err = obj.Save(ctx); err != nil {
+							return err
+						}
 					}
 				}
-			}
-			{
 				keys := o.revParent2MultiParents.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
 				for i, k := range keys {
 					obj := o.revParent2MultiParents.Get(k)
 					obj.SetParent2ID(o.PrimaryKey())
 					obj.parent2IDIsDirty = true // force a change in case data is stale
-					if err := obj.Save(ctx); err != nil {
+					if err = obj.Save(ctx); err != nil {
 						return err
 					}
 					if obj.PrimaryKey() != k {
@@ -1362,10 +1338,13 @@ func (o *multiParentBase) Delete(ctx context.Context) (err error) {
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
 		{
-			objs := QueryMultiParents(ctx).
+			objs, err := QueryMultiParents(ctx).
 				Where(op.Equal(node.MultiParent().Parent1ID(), o.id)).
 				Select(node.MultiParent().Parent1ID()).
 				Load()
+			if err != nil {
+				return err
+			}
 			for _, obj := range objs {
 				obj.SetParent1IDToNull()
 				if err = obj.Save(ctx); err != nil {
@@ -1376,10 +1355,13 @@ func (o *multiParentBase) Delete(ctx context.Context) (err error) {
 		}
 
 		{
-			objs := QueryMultiParents(ctx).
+			objs, err := QueryMultiParents(ctx).
 				Where(op.Equal(node.MultiParent().Parent2ID(), o.id)).
 				Select(node.MultiParent().Parent2ID()).
 				Load()
+			if err != nil {
+				return err
+			}
 			for _, obj := range objs {
 				obj.SetParent2IDToNull()
 				if err = obj.Save(ctx); err != nil {
@@ -1389,8 +1371,7 @@ func (o *multiParentBase) Delete(ctx context.Context) (err error) {
 			o.revParent2MultiParents.Clear()
 		}
 
-		d.Delete(ctx, "multi_parent", map[string]any{"ID": o.id})
-		return nil
+		return d.Delete(ctx, "multi_parent", map[string]any{"ID": o.id})
 	})
 
 	if err != nil {
@@ -1403,7 +1384,9 @@ func (o *multiParentBase) Delete(ctx context.Context) (err error) {
 // deleteMultiParent deletes the MultiParent with primary key pk from the database
 // and handles associated records.
 func deleteMultiParent(ctx context.Context, pk string) error {
-	if obj := LoadMultiParent(ctx, pk, node.MultiParent().PrimaryKey()); obj != nil {
+	if obj, err := LoadMultiParent(ctx, pk, node.MultiParent().PrimaryKey()); err != nil {
+		return err
+	} else if obj != nil {
 		if err := obj.Delete(ctx); err != nil {
 			return err
 		}

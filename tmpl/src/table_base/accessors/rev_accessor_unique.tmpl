@@ -14,15 +14,16 @@ func (o *{{= table.DecapIdentifier}}Base) {{= rev.ReverseIdentifier() }}() *{{= 
 
 // Load{{= rev.ReverseIdentifier() }} returns the connected {{= rev.Table.Identifier }} object, if one was loaded.
 // Otherwise, it will load a new one and return it.
-func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.ReverseIdentifier() }}(ctx context.Context) *{{= rev.Table.Identifier }} {
+func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.ReverseIdentifier() }}(ctx context.Context) (*{{= rev.Table.Identifier }}, error) {
     if o.{{= rev.ReverseVariableIdentifier() }} != nil && o.{{= rev.ReverseVariableIdentifier() }}.IsDirty() {
         panic("The {{= rev.ReverseIdentifier() }} has changed. You must save it first before changing to a different one.")
     }
+    var err error
 	if o.{{= rev.ReverseVariableIdentifier() }} == nil {
 	    pk := o.{{= rev.Table.PrimaryKeyColumn().Identifier }}()
-		o.{{= rev.ReverseVariableIdentifier() }} = Load{{= rev.Table.Identifier }}By{{= rev.Identifier }}(ctx, pk)
+		o.{{= rev.ReverseVariableIdentifier() }}, err = Load{{= rev.Table.Identifier }}By{{= rev.Identifier }}(ctx, pk)
 	}
-	return o.{{= rev.ReverseVariableIdentifier() }}
+	return o.{{= rev.ReverseVariableIdentifier() }}, err
 }
 
 // Set{{= rev.ReverseIdentifier() }} associates obj with this {{= table.Identifier }}

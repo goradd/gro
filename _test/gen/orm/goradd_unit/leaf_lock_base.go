@@ -189,7 +189,7 @@ func (o *leafLockBase) IsNew() bool {
 // LoadLeafLock returns a LeafLock from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [LeafLocksBuilder.Select] for more info.
-func LoadLeafLock(ctx context.Context, id string, selectNodes ...query.Node) *LeafLock {
+func LoadLeafLock(ctx context.Context, id string, selectNodes ...query.Node) (*LeafLock, error) {
 	return queryLeafLocks(ctx).
 		Where(op.Equal(node.LeafLock().ID(), id)).
 		Select(selectNodes...).
@@ -198,10 +198,11 @@ func LoadLeafLock(ctx context.Context, id string, selectNodes ...query.Node) *Le
 
 // HasLeafLock returns true if a LeafLock with the given primary key exists in the database.
 // doc: type=LeafLock
-func HasLeafLock(ctx context.Context, id string) bool {
-	return queryLeafLocks(ctx).
+func HasLeafLock(ctx context.Context, id string) (bool, error) {
+	v, err := queryLeafLocks(ctx).
 		Where(op.Equal(node.LeafLock().ID(), id)).
-		Count() == 1
+		Count()
+	return v > 0, err
 }
 
 // The LeafLockBuilder uses the query.BuilderI interface to build a query.
@@ -250,14 +251,14 @@ type LeafLockBuilder interface {
 	Having(node query.Node) LeafLockBuilder
 
 	// Load terminates the query builder, performs the query, and returns a slice of LeafLock objects.
-	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If there are any errors, nil is returned along with the error.
 	// If no results come back from the query, it will return a non-nil empty slice.
-	Load() []*LeafLock
+	Load() ([]*LeafLock, error)
 	// Load terminates the query builder, performs the query, and returns a slice of interfaces.
 	// This can then satisfy a general interface that loads arrays of objects.
-	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If there are any errors, nil is returned along with the error.
 	// If no results come back from the query, it will return a non-nil empty slice.
-	LoadI() []query.OrmObj
+	LoadI() ([]query.OrmObj, error)
 
 	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
 	//
@@ -269,27 +270,19 @@ type LeafLockBuilder interface {
 	// on the cursor object when you are done. You should use
 	//   defer cursor.Close()
 	// to make sure the cursor gets closed.
-	LoadCursor() leafLocksCursor
+	LoadCursor() (leafLocksCursor, error)
 
 	// Get is a convenience method to return only the first item found in a query.
 	// The entire query is performed, so you should generally use this only if you know
 	// you are selecting on one or very few items.
-	//
 	// If an error occurs, or no results are found, a nil is returned.
-	// In the case of an error, the error is returned in the context.
-	Get() *LeafLock
+	Get() (*LeafLock, error)
 
 	// Count terminates a query and returns just the number of items in the result.
 	// If you have Select or Calculation columns in the query, it will count NULL results as well.
 	// To not count NULL values, use Where in the builder with a NotNull operation.
 	// To count distinct combinations of items, call Distinct() on the builder.
-	Count() int
-
-	// Subquery terminates the query builder and tags it as a subquery within a larger query.
-	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-	// Subquery() *query.SubqueryNode
-
+	Count() (int, error)
 }
 
 type leafLockQueryBuilder struct {
@@ -306,11 +299,12 @@ func newLeafLockBuilder(ctx context.Context) LeafLockBuilder {
 // Load terminates the query builder, performs the query, and returns a slice of LeafLock objects.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *leafLockQueryBuilder) Load() (leafLocks []*LeafLock) {
+func (b *leafLockQueryBuilder) Load() (leafLocks []*LeafLock, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
@@ -325,11 +319,12 @@ func (b *leafLockQueryBuilder) Load() (leafLocks []*LeafLock) {
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *leafLockQueryBuilder) LoadI() (leafLocks []query.OrmObj) {
+func (b *leafLockQueryBuilder) LoadI() (leafLocks []query.OrmObj, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
@@ -352,13 +347,13 @@ func (b *leafLockQueryBuilder) LoadI() (leafLocks []query.OrmObj) {
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *leafLockQueryBuilder) LoadCursor() leafLocksCursor {
+func (b *leafLockQueryBuilder) LoadCursor() (leafLocksCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
-	result := database.BuilderQuery(b.builder)
+	result, err := database.BuilderQuery(b.builder)
 	cursor := result.(query.CursorI)
 
-	return leafLocksCursor{cursor}
+	return leafLocksCursor{cursor}, err
 }
 
 type leafLocksCursor struct {
@@ -368,50 +363,31 @@ type leafLocksCursor struct {
 // Next returns the current LeafLock object and moves the cursor to the next one.
 //
 // If there are no more records, it returns nil.
-func (c leafLocksCursor) Next() *LeafLock {
+func (c leafLocksCursor) Next() (*LeafLock, error) {
 	if c.CursorI == nil {
-		return nil
+		return nil, nil
 	}
 
-	row := c.CursorI.Next()
-	if row == nil {
-		return nil
+	row, err := c.CursorI.Next()
+	if row == nil || err != nil {
+		return nil, err
 	}
 	o := new(LeafLock)
 	o.load(row, o)
-	return o
+	return o, nil
 }
 
 // Get is a convenience method to return only the first item found in a query.
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
-//
 // If an error occurs, or no results are found, a nil is returned.
-// In the case of an error, the error is returned in the context.
-func (b *leafLockQueryBuilder) Get() *LeafLock {
-	results := b.Load()
-	if results != nil && len(results) > 0 {
-		obj := results[0]
-		return obj
-	} else {
-		return nil
+func (b *leafLockQueryBuilder) Get() (*LeafLock, error) {
+	results, err := b.Load()
+	if err != nil || len(results) == 0 {
+		return nil, err
 	}
+	return results[0], nil
 }
-
-/*
-// Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
-// by condition.
-// The joinedTable node will be modified by this process so that you can use it in subsequent builder operations.
-// Call GetAlias to return the resulting object from the query result.
-func (b *leafLockQueryBuilder) Join(alias string, joinedTable query.Node, condition query.Node) LeafLockBuilder {
-    if query.RootNode(n).TableName_() != "leaf_lock" {
-        panic("you can only join a node that is rooted at node.LeafLock()")
-    }
-    // TODO: make sure joinedTable is a table node
-	b.builder.Join(alias, joinedTable, condition)
-	return b
-}
-*/
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
@@ -479,47 +455,39 @@ func (b *leafLockQueryBuilder) Having(node query.Node) LeafLockBuilder {
 // If you have Select or Calculation columns in the query, it will count NULL results as well.
 // To not count NULL values, use Where in the builder with a NotNull operation.
 // To count distinct combinations of items, call Distinct() on the builder.
-func (b *leafLockQueryBuilder) Count() int {
+func (b *leafLockQueryBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
-		return 0
+	results, err := database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
+		return 0, err
 	}
-	return results.(int)
+	return results.(int), nil
 }
 
-/*
-// Subquery terminates the query builder and tags it as a subquery within a larger query.
-// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-func (b *leafLockQueryBuilder)  Subquery() *query.SubqueryNode {
-	 return b.builder.Subquery()
-}
-*/
-
-func CountLeafLocks(ctx context.Context) int {
+// CountLeafLocks returns the total number of items in the leaf_lock table.
+func CountLeafLocks(ctx context.Context) (int, error) {
 	return QueryLeafLocks(ctx).Count()
 }
 
 // CountLeafLocksByID queries the database and returns the number of LeafLock objects that
 // have id.
 // doc: type=LeafLock
-func CountLeafLocksByID(ctx context.Context, id string) int {
+func CountLeafLocksByID(ctx context.Context, id string) (int, error) {
 	return QueryLeafLocks(ctx).Where(op.Equal(node.LeafLock().ID(), id)).Count()
 }
 
 // CountLeafLocksByName queries the database and returns the number of LeafLock objects that
 // have name.
 // doc: type=LeafLock
-func CountLeafLocksByName(ctx context.Context, name string) int {
+func CountLeafLocksByName(ctx context.Context, name string) (int, error) {
 	return QueryLeafLocks(ctx).Where(op.Equal(node.LeafLock().Name(), name)).Count()
 }
 
 // CountLeafLocksByGroLock queries the database and returns the number of LeafLock objects that
 // have groLock.
 // doc: type=LeafLock
-func CountLeafLocksByGroLock(ctx context.Context, groLock int64) int {
+func CountLeafLocksByGroLock(ctx context.Context, groLock int64) (int, error) {
 	return QueryLeafLocks(ctx).Where(op.Equal(node.LeafLock().GroLock(), groLock)).Count()
 }
 
@@ -709,8 +677,7 @@ func (o *leafLockBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	d.Delete(ctx, "leaf_lock", map[string]any{"ID": o.id})
-	return nil
+	return d.Delete(ctx, "leaf_lock", map[string]any{"ID": o.id})
 	broadcast.Delete(ctx, "goradd_unit", "leaf_lock", fmt.Sprint(o.id))
 	return
 }
@@ -719,7 +686,10 @@ func (o *leafLockBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteLeafLock(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd_unit")
-	d.Delete(ctx, "leaf_lock", map[string]any{"ID": pk})
+	err := d.Delete(ctx, "leaf_lock", map[string]any{"ID": pk})
+	if err != nil {
+		return err
+	}
 	broadcast.Delete(ctx, "goradd_unit", "leaf_lock", fmt.Sprint(pk))
 	return nil
 }

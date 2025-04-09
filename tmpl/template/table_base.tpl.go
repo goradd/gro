@@ -2875,7 +2875,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `(ctx context.Context) *`); err != nil {
+	if _, err = io.WriteString(_w, `(ctx context.Context) (*`); err != nil {
 		return
 	}
 
@@ -2883,18 +2883,8 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, ` {
-	if !o.`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `IsLoaded  {
-		return nil
-	}
+	if _, err = io.WriteString(_w, `, error) {
+	var err error
 
 	if o.`); err != nil {
 		return
@@ -2905,6 +2895,25 @@ func (o *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, ` == nil {
+	    if !o.`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `IsLoaded  {
+    		panic("`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, col.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` must be selected in the previous query")
+    	}
 		// Load and cache
 		o.`); err != nil {
 		return
@@ -2914,7 +2923,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, ` = Load`); err != nil {
+	if _, err = io.WriteString(_w, `, err = Load`); err != nil {
 		return
 	}
 
@@ -2931,7 +2940,7 @@ func (o *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `)
-	}
+    }
 	return o.`); err != nil {
 		return
 	}
@@ -2940,7 +2949,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `
+	if _, err = io.WriteString(_w, `, err
 }
 
 `); err != nil {
@@ -3775,7 +3784,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `(ctx context.Context) []*`); err != nil {
+		if _, err = io.WriteString(_w, `(ctx context.Context) ([]*`); err != nil {
 			return
 		}
 
@@ -3783,7 +3792,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ` {
+		if _, err = io.WriteString(_w, `, error) {
     if o.`); err != nil {
 			return
 		}
@@ -3813,6 +3822,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `
+    var err error
 
     if o.`); err != nil {
 			return
@@ -3824,7 +3834,7 @@ func (o *`); err != nil {
 
 		if _, err = io.WriteString(_w, ` != nil {
         // Load the objects that will be associated after a Save
-        objs = Query`); err != nil {
+        objs, err = Query`); err != nil {
 			return
 		}
 
@@ -3852,7 +3862,7 @@ func (o *`); err != nil {
 		if _, err = io.WriteString(_w, `...)).
             Load()
     } else {
-        objs = Query`); err != nil {
+        objs, err = Query`); err != nil {
 			return
 		}
 
@@ -3879,6 +3889,9 @@ func (o *`); err != nil {
 
 		if _, err = io.WriteString(_w, `(), o.PrimaryKey())).
             Load()
+    }
+    if err != nil {
+        return nil, err
     }
 
     o.`); err != nil {
@@ -3909,7 +3922,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `.Values()
+		if _, err = io.WriteString(_w, `.Values(), err
 }
 
 // Count`); err != nil {
@@ -3947,7 +3960,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `(ctx context.Context) int {
+		if _, err = io.WriteString(_w, `(ctx context.Context) (int, error) {
 	return Query`); err != nil {
 			return
 		}
@@ -4101,7 +4114,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `(ctx context.Context) *`); err != nil {
+			if _, err = io.WriteString(_w, `(ctx context.Context) (*`); err != nil {
 				return
 			}
 
@@ -4109,7 +4122,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` {
+			if _, err = io.WriteString(_w, `, error) {
     if o.`); err != nil {
 				return
 			}
@@ -4137,6 +4150,7 @@ func (o *`); err != nil {
 
 			if _, err = io.WriteString(_w, ` has changed. You must save it first before changing to a different one.")
     }
+    var err error
 	if o.`); err != nil {
 				return
 			}
@@ -4163,7 +4177,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` = Load`); err != nil {
+			if _, err = io.WriteString(_w, `, err = Load`); err != nil {
 				return
 			}
 
@@ -4189,7 +4203,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `
+			if _, err = io.WriteString(_w, `, err
 }
 
 // Set`); err != nil {
@@ -4555,7 +4569,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `(ctx context.Context, conditions ...interface{}) []*`); err != nil {
+			if _, err = io.WriteString(_w, `(ctx context.Context, conditions ...interface{}) ([]*`); err != nil {
 				return
 			}
 
@@ -4563,9 +4577,9 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` {
+			if _, err = io.WriteString(_w, `, error) {
 	if o.IsNew() {
-		return nil
+		return nil, nil
 	}
 	for obj := range o.`); err != nil {
 				return
@@ -4612,7 +4626,10 @@ func (o *`); err != nil {
         cond = op.And(conditions...)
     }
 
-    objs := qb.Where(cond).Load()
+    objs, err := qb.Where(cond).Load()
+    if err != nil {
+        return nil, err
+    }
     o.`); err != nil {
 				return
 			}
@@ -4653,7 +4670,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `.Len() == 0 {
-        return nil
+        return nil, nil
     }
 	return o.`); err != nil {
 				return
@@ -4663,7 +4680,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `.Values()
+			if _, err = io.WriteString(_w, `.Values(), nil
 }
 
 // Count`); err != nil {
@@ -4700,7 +4717,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `(ctx context.Context) int {
+			if _, err = io.WriteString(_w, `(ctx context.Context) (int, error) {
     return Count`); err != nil {
 				return
 			}
@@ -4946,7 +4963,7 @@ func Load`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `, selectNodes ...query.Node) *`); err != nil {
+	if _, err = io.WriteString(_w, `, selectNodes ...query.Node) (*`); err != nil {
 		return
 	}
 
@@ -4954,7 +4971,7 @@ func Load`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, ` {
+	if _, err = io.WriteString(_w, `, error) {
 	return query`); err != nil {
 		return
 	}
@@ -5043,8 +5060,8 @@ func Has`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `) bool {
-    return query`); err != nil {
+	if _, err = io.WriteString(_w, `) (bool, error) {
+    v, err := query`); err != nil {
 		return
 	}
 
@@ -5078,7 +5095,8 @@ func Has`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `)).
-         Count() == 1
+         Count()
+    return v > 0, err
 }
 
 `); err != nil {
@@ -5195,7 +5213,7 @@ func Load`); err != nil {
 
 			}
 
-			if _, err = io.WriteString(_w, `, selectNodes ...query.Node) *`); err != nil {
+			if _, err = io.WriteString(_w, `, selectNodes ...query.Node) (*`); err != nil {
 				return
 			}
 
@@ -5203,7 +5221,7 @@ func Load`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` {
+			if _, err = io.WriteString(_w, `, error) {
     q := query`); err != nil {
 				return
 			}
@@ -5405,7 +5423,7 @@ func Has`); err != nil {
 
 			}
 
-			if _, err = io.WriteString(_w, `) bool {
+			if _, err = io.WriteString(_w, `) (bool, error) {
     q := query`); err != nil {
 				return
 			}
@@ -5515,7 +5533,8 @@ func Has`); err != nil {
 
 			}
 
-			if _, err = io.WriteString(_w, `    return q.Count() == 1
+			if _, err = io.WriteString(_w, `    v, err := q.Count()
+    return v > 0, err
 }
 `); err != nil {
 				return
@@ -5707,9 +5726,9 @@ type `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, ` objects.
-    // If there are any errors, nil is returned and the specific error is stored in the context.
+    // If there are any errors, nil is returned along with the error.
     // If no results come back from the query, it will return a non-nil empty slice.
-	Load() []*`); err != nil {
+	Load() ([]*`); err != nil {
 		return
 	}
 
@@ -5717,12 +5736,12 @@ type `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `
+	if _, err = io.WriteString(_w, `, error)
     // Load terminates the query builder, performs the query, and returns a slice of interfaces.
     // This can then satisfy a general interface that loads arrays of objects.
-    // If there are any errors, nil is returned and the specific error is stored in the context.
+    // If there are any errors, nil is returned along with the error.
     // If no results come back from the query, it will return a non-nil empty slice.
-	LoadI() []query.OrmObj
+	LoadI() ([]query.OrmObj, error)
 
     // LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
     //
@@ -5734,7 +5753,7 @@ type `); err != nil {
     // on the cursor object when you are done. You should use
     //   defer cursor.Close()
     // to make sure the cursor gets closed.
-	LoadCursor() `); err != nil {
+	LoadCursor() (`); err != nil {
 		return
 	}
 
@@ -5742,15 +5761,13 @@ type `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Cursor
+	if _, err = io.WriteString(_w, `Cursor, error)
 
 	// Get is a convenience method to return only the first item found in a query.
     // The entire query is performed, so you should generally use this only if you know
     // you are selecting on one or very few items.
-    //
     // If an error occurs, or no results are found, a nil is returned.
-    // In the case of an error, the error is returned in the context.
-	Get() *`); err != nil {
+	Get() (*`); err != nil {
 		return
 	}
 
@@ -5758,19 +5775,13 @@ type `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `
+	if _, err = io.WriteString(_w, `, error)
 
     // Count terminates a query and returns just the number of items in the result.
     // If you have Select or Calculation columns in the query, it will count NULL results as well.
     // To not count NULL values, use Where in the builder with a NotNull operation.
     // To count distinct combinations of items, call Distinct() on the builder.
-	Count() int
-
-	// Subquery terminates the query builder and tags it as a subquery within a larger query.
-    // You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-    // Generally you would use this as a node to a Calculation function on the surrounding query builder.
-   // Subquery() *query.SubqueryNode
-
+	Count() (int, error)
 }
 
 type `); err != nil {
@@ -5860,7 +5871,7 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `) {
+	if _, err = io.WriteString(_w, `, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("`); err != nil {
 		return
@@ -5871,8 +5882,9 @@ func (b *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _,item := range results.([]map[string]any) {
@@ -5927,7 +5939,7 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, ` []query.OrmObj) {
+	if _, err = io.WriteString(_w, ` []query.OrmObj, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("`); err != nil {
 		return
@@ -5938,8 +5950,9 @@ func (b *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _,item := range results.([]map[string]any) {
@@ -5993,7 +6006,7 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `) LoadCursor() `); err != nil {
+	if _, err = io.WriteString(_w, `) LoadCursor() (`); err != nil {
 		return
 	}
 
@@ -6001,7 +6014,7 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Cursor {
+	if _, err = io.WriteString(_w, `Cursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("`); err != nil {
 		return
@@ -6012,7 +6025,7 @@ func (b *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `")
-	result := database.BuilderQuery(b.builder)
+	result, err := database.BuilderQuery(b.builder)
 	cursor := result.(query.CursorI)
 
 	return `); err != nil {
@@ -6023,7 +6036,7 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Cursor{cursor}
+	if _, err = io.WriteString(_w, `Cursor{cursor}, err
 }
 
 type `); err != nil {
@@ -6057,7 +6070,7 @@ func (c `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Cursor) Next() *`); err != nil {
+	if _, err = io.WriteString(_w, `Cursor) Next() (*`); err != nil {
 		return
 	}
 
@@ -6065,14 +6078,14 @@ func (c `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, ` {
+	if _, err = io.WriteString(_w, `, error) {
     if c.CursorI == nil {
-        return nil
+        return nil, nil
     }
 
-	row := c.CursorI.Next()
-	if row == nil {
-		return nil
+	row, err := c.CursorI.Next()
+	if row == nil || err != nil {
+		return nil, err
 	}
 	o := new(`); err != nil {
 		return
@@ -6084,15 +6097,13 @@ func (c `); err != nil {
 
 	if _, err = io.WriteString(_w, `)
 	o.load(row, o)
-	return o
+	return o, nil
 }
 
 // Get is a convenience method to return only the first item found in a query.
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
-//
 // If an error occurs, or no results are found, a nil is returned.
-// In the case of an error, the error is returned in the context.
 func (b *`); err != nil {
 		return
 	}
@@ -6101,7 +6112,7 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `) Get() *`); err != nil {
+	if _, err = io.WriteString(_w, `) Get() (*`); err != nil {
 		return
 	}
 
@@ -6109,62 +6120,13 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, ` {
-	results := b.Load()
-	if results != nil && len(results) > 0 {
-	    obj := results[0]
-		return obj
-	} else {
-		return nil
-	}
-}
-
-/*
-// Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
-// by condition.
-// The joinedTable node will be modified by this process so that you can use it in subsequent builder operations.
-// Call GetAlias to return the resulting object from the query result.
-func (b *`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, builderStruct); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `) Join(alias string, joinedTable query.Node, condition query.Node) `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, builderInterface); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, ` {
-    if query.RootNode(n).TableName_() != `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, fmt.Sprintf("%#v", table.QueryName)); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, ` {
-        panic("you can only join a node that is rooted at node.`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `()")
+	if _, err = io.WriteString(_w, `, error) {
+    results, err := b.Load()
+    if err != nil || len(results) == 0 {
+        return nil, err
     }
-    // TODO: make sure joinedTable is a table node
-	b.builder.Join(alias, joinedTable, condition)
-	return b
+    return results[0], nil
 }
-*/
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
@@ -6384,7 +6346,7 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `)  Count() int {
+	if _, err = io.WriteString(_w, `)  Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("`); err != nil {
 		return
@@ -6395,29 +6357,12 @@ func (b *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `")
-	results := database.BuilderQuery(b.builder)
-    if results == nil {
-        return 0
+	results, err := database.BuilderQuery(b.builder)
+    if results == nil || err != nil {
+        return 0, err
     }
-	return results.(int)
+	return results.(int), nil
 }
-
-/*
-// Subquery terminates the query builder and tags it as a subquery within a larger query.
-// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-func (b *`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, builderStruct); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `)  Subquery() *query.SubqueryNode {
-	 return b.builder.Subquery()
-}
-*/
 
 `); err != nil {
 		return
@@ -6431,6 +6376,23 @@ func (tmpl *TableBaseTemplate) genCount(table *model.Table, _w io.Writer) (err e
 	//*** count.tmpl
 
 	if _, err = io.WriteString(_w, `
+// Count`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` returns the total number of items in the `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.QueryName); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` table.
 func Count`); err != nil {
 		return
 	}
@@ -6439,7 +6401,7 @@ func Count`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `(ctx context.Context) int {
+	if _, err = io.WriteString(_w, `(ctx context.Context) (int, error) {
 	return Query`); err != nil {
 		return
 	}
@@ -6537,7 +6499,7 @@ func Count`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `) int {
+		if _, err = io.WriteString(_w, `) (int, error) {
 `); err != nil {
 			return
 		}
@@ -6561,7 +6523,7 @@ func Count`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, ` {
-        return 0
+        return 0, nil
     }
 `); err != nil {
 				return
@@ -7954,14 +7916,14 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `IsDirty &&
-`); err != nil {
+			if _, err = io.WriteString(_w, `IsDirty `); err != nil {
 				return
 			}
 
 			if col.IsNullable {
 
-				if _, err = io.WriteString(_w, `            !o.`); err != nil {
+				if _, err = io.WriteString(_w, ` &&
+            !o.`); err != nil {
 					return
 				}
 
@@ -7969,14 +7931,14 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `IsNull &&
-`); err != nil {
+				if _, err = io.WriteString(_w, `IsNull`); err != nil {
 					return
 				}
 
 			}
 
-			if _, err = io.WriteString(_w, `            Load`); err != nil {
+			if _, err = io.WriteString(_w, ` {
+        if obj,err := Load`); err != nil {
 				return
 			}
 
@@ -8000,16 +7962,26 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `) != nil {
-        return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for `); err != nil {
+			if _, err = io.WriteString(_w, `); err != nil {
+            return err
+        } else if obj != nil {
+            return db.NewUniqueValueError("`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			if _, err = io.WriteString(_w, table.QueryName); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `: %v", o.`); err != nil {
+			if _, err = io.WriteString(_w, `", map[string]any{"`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.QueryName); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `":o.`); err != nil {
 				return
 			}
 
@@ -8017,7 +7989,8 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `))
+			if _, err = io.WriteString(_w, ` }, nil)
+        }
     }
 `); err != nil {
 				return
@@ -8061,7 +8034,7 @@ func (o *`); err != nil {
 					}
 				}
 			}
-			if _, err = io.WriteString(_w, `) &&
+			if _, err = io.WriteString(_w, `)
 `); err != nil {
 				return
 			}
@@ -8070,7 +8043,7 @@ func (o *`); err != nil {
 
 				if col.IsNullable {
 
-					if _, err = io.WriteString(_w, `            !o.`); err != nil {
+					if _, err = io.WriteString(_w, `            && !o.`); err != nil {
 						return
 					}
 
@@ -8078,7 +8051,7 @@ func (o *`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, `IsNull &&
+					if _, err = io.WriteString(_w, `IsNull
 `); err != nil {
 						return
 					}
@@ -8087,7 +8060,8 @@ func (o *`); err != nil {
 
 			}
 
-			if _, err = io.WriteString(_w, `            Load`); err != nil {
+			if _, err = io.WriteString(_w, ` {
+        if obj, err := Load`); err != nil {
 				return
 			}
 
@@ -8133,36 +8107,33 @@ func (o *`); err != nil {
 					}
 				}
 			}
-			if _, err = io.WriteString(_w, `) != nil {
-        return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value `); err != nil {
+			if _, err = io.WriteString(_w, `); err != nil {
+            return err
+        } else if obj != nil {
+            return db.NewUniqueValueError("`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.QueryName); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `", map[string]any{ `); err != nil {
 				return
 			}
 
 			for _i, _j := range idx.Columns {
 				_ = _j
+
+				if _, err = io.WriteString(_w, `"`); err != nil {
+					return
+				}
 
 				if _, err = io.WriteString(_w, _j.Identifier); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `=%v`); err != nil {
-					return
-				}
-
-				if _i < len(idx.Columns)-1 {
-					if _, err = io.WriteString(_w, " & "); err != nil {
-						return
-					}
-				}
-			}
-			if _, err = io.WriteString(_w, `", `); err != nil {
-				return
-			}
-
-			for _i, _j := range idx.Columns {
-				_ = _j
-
-				if _, err = io.WriteString(_w, `o.`); err != nil {
+				if _, err = io.WriteString(_w, `":o.`); err != nil {
 					return
 				}
 
@@ -8171,12 +8142,13 @@ func (o *`); err != nil {
 				}
 
 				if _i < len(idx.Columns)-1 {
-					if _, err = io.WriteString(_w, ", "); err != nil {
+					if _, err = io.WriteString(_w, ","); err != nil {
 						return
 					}
 				}
 			}
-			if _, err = io.WriteString(_w, `))
+			if _, err = io.WriteString(_w, ` }, nil)
+        }
     }
 `); err != nil {
 				return
@@ -8327,7 +8299,7 @@ func (o *`); err != nil {
 
 				//*** update_rev_null_unique.tmpl
 
-				if _, err = io.WriteString(_w, `                obj := Query`); err != nil {
+				if _, err = io.WriteString(_w, `                if obj, err := Query`); err != nil {
 					return
 				}
 
@@ -8353,8 +8325,9 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `(), o.PrimaryKey())).
-                        Get()
-                if obj != nil  && obj.PrimaryKey() != o.`); err != nil {
+                        Get(); err != nil {
+                    return err
+                } else if obj != nil && obj.PrimaryKey() != o.`); err != nil {
 					return
 				}
 
@@ -8372,7 +8345,7 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `ToNull()
-                    if err := obj.Save(ctx); err != nil {
+                    if err = obj.Save(ctx); err != nil {
                         return err
                     }
                 }
@@ -8444,7 +8417,7 @@ func (o *`); err != nil {
 
 				//*** update_rev_null.tmpl
 
-				if _, err = io.WriteString(_w, `                currentObjs := Query`); err != nil {
+				if _, err = io.WriteString(_w, `                if currentObjs, err := Query`); err != nil {
 					return
 				}
 
@@ -8487,10 +8460,11 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `()).
-                          Load()
-
-                for _,obj := range currentObjs {
-                    if !o.`); err != nil {
+                          Load(); err != nil {
+                    return err
+                } else {
+                    for _,obj := range currentObjs {
+                        if !o.`); err != nil {
 					return
 				}
 
@@ -8499,8 +8473,8 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `.Has(obj.PrimaryKey()) {
-                        // The old object is not in the group of new objects
-                        obj.Set`); err != nil {
+                            // The old object is not in the group of new objects
+                            obj.Set`); err != nil {
 					return
 				}
 
@@ -8509,12 +8483,11 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `ToNull()
-                        if err := obj.Save(ctx); err != nil {
-                            return err
+                            if err = obj.Save(ctx); err != nil {
+                                return err
+                            }
                         }
                     }
-                }
-                {
                     keys := o.`); err != nil {
 					return
 				}
@@ -8552,7 +8525,7 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `IsDirty = true // force a change in case data is stale
-                        if err := obj.Save(ctx); err != nil {
+                        if err = obj.Save(ctx); err != nil {
                             return err
                         }
                         if obj.PrimaryKey() != k {
@@ -8621,7 +8594,7 @@ func (o *`); err != nil {
 
 				if _, err = io.WriteString(_w, `                    // Since the other side of the relationship cannot be null, if there is an object already attached
                     // that is different than the one we are trying to attach, we will panic to warn the developer.
-                    oldObj := Query`); err != nil {
+                    if oldObj, err := Query`); err != nil {
 					return
 				}
 
@@ -8664,9 +8637,9 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `()).
-                          Get()
-
-                    if oldObj != nil {
+                          Get(); err != nil {
+                        return err
+                    } else if oldObj != nil {
                         if o.`); err != nil {
 					return
 				}
@@ -8749,7 +8722,7 @@ func (o *`); err != nil {
 				//*** update_rev_not_null.tmpl
 
 				if _, err = io.WriteString(_w, `                    // Since the other side of the relationship cannot be null, there cannot be objects that will be detached.
-                    oldObjs := Query`); err != nil {
+                    if oldObjs, err := Query`); err != nil {
 					return
 				}
 
@@ -8792,9 +8765,11 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `()).
-                               Load()
-                    for _,obj := range oldObjs {
-                        if !o.`); err != nil {
+                               Load(); err != nil {
+                        return err
+                    } else {
+                        for _,obj := range oldObjs {
+                            if o.`); err != nil {
 					return
 				}
 
@@ -8803,10 +8778,12 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `.Has(obj.PrimaryKey()) {
-                            obj.Delete(ctx) // old object is not in group of new objects, so delete it since it has a non-null reference to o.
+                                err = obj.Delete(ctx) // old object is not in group of new objects, so delete it since it has a non-null reference to o.
+                                if err != nil {
+                                    return err
+                                }
+                            }
                         }
-                    }
-                    {
                         keys := o.`); err != nil {
 					return
 				}
@@ -8826,6 +8803,10 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `.Get(k)
+                            if obj == nil {
+                                // object was deleted during save?
+                                continue
+                            }
                             obj.Set`); err != nil {
 					return
 				}
@@ -8844,7 +8825,7 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `IsDirty = true // force a change in case data is stale
-                            if err := obj.Save(ctx); err != nil {
+                            if err = obj.Save(ctx); err != nil {
                                 return err
                             }
                             if obj.PrimaryKey() != k {
@@ -9055,9 +9036,9 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `) != 0) {
-                db.AssociateOnly(ctx,
-                    d,
-                    "`); err != nil {
+                if err := db.AssociateOnly(ctx,
+                        d,
+                        "`); err != nil {
 			return
 		}
 
@@ -9066,7 +9047,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `",
-                    "`); err != nil {
+                        "`); err != nil {
 			return
 		}
 
@@ -9075,8 +9056,8 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `",
-                    o.PrimaryKey(),
-                    "`); err != nil {
+                        o.PrimaryKey(),
+                        "`); err != nil {
 			return
 		}
 
@@ -9085,7 +9066,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `",
-                    o.`); err != nil {
+                        o.`); err != nil {
 			return
 		}
 
@@ -9093,11 +9074,13 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `)
+		if _, err = io.WriteString(_w, `); err != nil {
+                    return err
+                }
             } else {
-                db.AssociateOnly(ctx,
-                    d,
-                    "`); err != nil {
+                if err := db.AssociateOnly(ctx,
+                        d,
+                        "`); err != nil {
 			return
 		}
 
@@ -9106,7 +9089,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `",
-                    "`); err != nil {
+                        "`); err != nil {
 			return
 		}
 
@@ -9115,8 +9098,8 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `",
-                    o.PrimaryKey(),
-                    "`); err != nil {
+                        o.PrimaryKey(),
+                        "`); err != nil {
 			return
 		}
 
@@ -9125,7 +9108,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `",
-                    o.`); err != nil {
+                        o.`); err != nil {
 			return
 		}
 
@@ -9133,7 +9116,9 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `.Keys())
+		if _, err = io.WriteString(_w, `.Keys()); err != nil {
+                    return err
+                }
             }
         }
     }
@@ -9419,14 +9404,14 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `IsDirty &&
-`); err != nil {
+			if _, err = io.WriteString(_w, `IsDirty `); err != nil {
 				return
 			}
 
 			if col.IsNullable {
 
-				if _, err = io.WriteString(_w, `            !o.`); err != nil {
+				if _, err = io.WriteString(_w, ` &&
+            !o.`); err != nil {
 					return
 				}
 
@@ -9434,14 +9419,14 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `IsNull &&
-`); err != nil {
+				if _, err = io.WriteString(_w, `IsNull`); err != nil {
 					return
 				}
 
 			}
 
-			if _, err = io.WriteString(_w, `            Load`); err != nil {
+			if _, err = io.WriteString(_w, ` {
+        if obj,err := Load`); err != nil {
 				return
 			}
 
@@ -9465,16 +9450,26 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `) != nil {
-        return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for `); err != nil {
+			if _, err = io.WriteString(_w, `); err != nil {
+            return err
+        } else if obj != nil {
+            return db.NewUniqueValueError("`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			if _, err = io.WriteString(_w, table.QueryName); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `: %v", o.`); err != nil {
+			if _, err = io.WriteString(_w, `", map[string]any{"`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.QueryName); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `":o.`); err != nil {
 				return
 			}
 
@@ -9482,7 +9477,8 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `))
+			if _, err = io.WriteString(_w, ` }, nil)
+        }
     }
 `); err != nil {
 				return
@@ -9526,7 +9522,7 @@ func (o *`); err != nil {
 					}
 				}
 			}
-			if _, err = io.WriteString(_w, `) &&
+			if _, err = io.WriteString(_w, `)
 `); err != nil {
 				return
 			}
@@ -9535,7 +9531,7 @@ func (o *`); err != nil {
 
 				if col.IsNullable {
 
-					if _, err = io.WriteString(_w, `            !o.`); err != nil {
+					if _, err = io.WriteString(_w, `            && !o.`); err != nil {
 						return
 					}
 
@@ -9543,7 +9539,7 @@ func (o *`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, `IsNull &&
+					if _, err = io.WriteString(_w, `IsNull
 `); err != nil {
 						return
 					}
@@ -9552,7 +9548,8 @@ func (o *`); err != nil {
 
 			}
 
-			if _, err = io.WriteString(_w, `            Load`); err != nil {
+			if _, err = io.WriteString(_w, ` {
+        if obj, err := Load`); err != nil {
 				return
 			}
 
@@ -9598,36 +9595,33 @@ func (o *`); err != nil {
 					}
 				}
 			}
-			if _, err = io.WriteString(_w, `) != nil {
-        return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value `); err != nil {
+			if _, err = io.WriteString(_w, `); err != nil {
+            return err
+        } else if obj != nil {
+            return db.NewUniqueValueError("`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.QueryName); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `", map[string]any{ `); err != nil {
 				return
 			}
 
 			for _i, _j := range idx.Columns {
 				_ = _j
+
+				if _, err = io.WriteString(_w, `"`); err != nil {
+					return
+				}
 
 				if _, err = io.WriteString(_w, _j.Identifier); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `=%v`); err != nil {
-					return
-				}
-
-				if _i < len(idx.Columns)-1 {
-					if _, err = io.WriteString(_w, " & "); err != nil {
-						return
-					}
-				}
-			}
-			if _, err = io.WriteString(_w, `", `); err != nil {
-				return
-			}
-
-			for _i, _j := range idx.Columns {
-				_ = _j
-
-				if _, err = io.WriteString(_w, `o.`); err != nil {
+				if _, err = io.WriteString(_w, `":o.`); err != nil {
 					return
 				}
 
@@ -9636,12 +9630,13 @@ func (o *`); err != nil {
 				}
 
 				if _i < len(idx.Columns)-1 {
-					if _, err = io.WriteString(_w, ", "); err != nil {
+					if _, err = io.WriteString(_w, ","); err != nil {
 						return
 					}
 				}
 			}
-			if _, err = io.WriteString(_w, `))
+			if _, err = io.WriteString(_w, ` }, nil)
+        }
     }
 `); err != nil {
 				return
@@ -10002,7 +9997,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `Pks {
-            obj := Load`); err != nil {
+            obj, err2 := Load`); err != nil {
 			return
 		}
 
@@ -10011,6 +10006,9 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `(ctx, k)
+            if err2 != nil {
+                return err2
+            }
             if (obj != nil) {
                 db.Associate(ctx,
                     d,
@@ -10796,7 +10794,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 
 	if len(table.ReverseReferences) == 0 && len(table.ManyManyReferences) == 0 {
 
-		if _, err = io.WriteString(_w, `	d.Delete(ctx, "`); err != nil {
+		if _, err = io.WriteString(_w, `	return d.Delete(ctx, "`); err != nil {
 			return
 		}
 
@@ -10821,7 +10819,6 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 		}
 
 		if _, err = io.WriteString(_w, ` })
-    return nil
 `); err != nil {
 			return
 		}
@@ -10852,7 +10849,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 					if _, err = io.WriteString(_w, `
             {
                 // Set the related objects pointer to us to NULL in the database
-                obj := Query`); err != nil {
+                obj, err := Query`); err != nil {
 						return
 					}
 
@@ -10904,6 +10901,9 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 
 					if _, err = io.WriteString(_w, `()).
                           Get()
+                if err != nil {
+                    return err
+                }
                 if obj != nil {
                     obj.Set`); err != nil {
 						return
@@ -10937,7 +10937,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 
 					if _, err = io.WriteString(_w, `
             {
-                 obj := Query`); err != nil {
+                 if obj, err := Query`); err != nil {
 						return
 					}
 
@@ -10946,7 +10946,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 					}
 
 					if _, err = io.WriteString(_w, `(ctx).
-                           Where(op.Equal(node.`); err != nil {
+                         Where(op.Equal(node.`); err != nil {
 						return
 					}
 
@@ -10971,8 +10971,9 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 					}
 
 					if _, err = io.WriteString(_w, `)).
-                           Get()
-                 if obj != nil {
+                         Get(); err != nil {
+                     return err
+                 } else if obj != nil {
                      if err = obj.Delete(ctx); err != nil {
                          return err
                      }
@@ -11014,7 +11015,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 
 					if _, err = io.WriteString(_w, `
             {
-                objs := Query`); err != nil {
+                objs, err := Query`); err != nil {
 						return
 					}
 
@@ -11066,6 +11067,9 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 
 					if _, err = io.WriteString(_w, `()).
                           Load()
+                if err != nil {
+                    return err
+                }
                 for _,obj := range objs {
                     obj.Set`); err != nil {
 						return
@@ -11098,7 +11102,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 
 					if _, err = io.WriteString(_w, `
             {
-                objs := Query`); err != nil {
+                objs, err := Query`); err != nil {
 						return
 					}
 
@@ -11133,6 +11137,9 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 
 					if _, err = io.WriteString(_w, `)).
                           Load()
+                if err != nil {
+                    return err
+                }
                 for _,obj := range objs {
                     if err = obj.Delete(ctx); err != nil {
                         return err
@@ -11177,7 +11184,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 		for _, mm := range table.ManyManyReferences {
 
 			if _, err = io.WriteString(_w, `
-        db.AssociateOnly(ctx,
+        if err := db.AssociateOnly(ctx,
             d,
             "`); err != nil {
 				return
@@ -11215,7 +11222,9 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 				return
 			}
 
-			if _, err = io.WriteString(_w, `(nil))
+			if _, err = io.WriteString(_w, `(nil)); err != nil {
+                return err
+            }
 
     `); err != nil {
 				return
@@ -11225,7 +11234,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 
 		if _, err = io.WriteString(_w, `
 
-	    d.Delete(ctx, "`); err != nil {
+	    return d.Delete(ctx, "`); err != nil {
 			return
 		}
 
@@ -11250,7 +11259,6 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 		}
 
 		if _, err = io.WriteString(_w, ` })
-        return nil
 	})
 
 	if err != nil {
@@ -11340,7 +11348,7 @@ func delete`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `")
-	d.Delete(ctx, "`); err != nil {
+	err := d.Delete(ctx, "`); err != nil {
 			return
 		}
 
@@ -11357,6 +11365,9 @@ func delete`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `": pk} )
+	if err != nil {
+	    return err
+	}
 	broadcast.Delete(ctx, "`); err != nil {
 			return
 		}
@@ -11380,7 +11391,7 @@ func delete`); err != nil {
 
 	} else {
 
-		if _, err = io.WriteString(_w, `    if obj := Load`); err != nil {
+		if _, err = io.WriteString(_w, `    if obj, err := Load`); err != nil {
 			return
 		}
 
@@ -11396,7 +11407,9 @@ func delete`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `().PrimaryKey()); obj != nil {
+		if _, err = io.WriteString(_w, `().PrimaryKey()); err != nil {
+        return err
+    } else if obj != nil {
         if err := obj.Delete(ctx); err != nil {
             return err
         }

@@ -173,16 +173,17 @@ func (o *milestoneBase) Project() *Project {
 
 // LoadProject returns the related Project. If it is not already loaded,
 // it will attempt to load it, provided the ProjectID column has been loaded first.
-func (o *milestoneBase) LoadProject(ctx context.Context) *Project {
-	if !o.projectIDIsLoaded {
-		return nil
-	}
+func (o *milestoneBase) LoadProject(ctx context.Context) (*Project, error) {
+	var err error
 
 	if o.objProject == nil {
+		if !o.projectIDIsLoaded {
+			panic("ProjectID must be selected in the previous query")
+		}
 		// Load and cache
-		o.objProject = LoadProject(ctx, o.projectID)
+		o.objProject, err = LoadProject(ctx, o.projectID)
 	}
-	return o.objProject
+	return o.objProject, err
 }
 
 // SetProject sets the value of Project in the object, to be saved later using the Save() function.
@@ -247,7 +248,7 @@ func (o *milestoneBase) IsNew() bool {
 // LoadMilestone returns a Milestone from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [MilestonesBuilder.Select] for more info.
-func LoadMilestone(ctx context.Context, id string, selectNodes ...query.Node) *Milestone {
+func LoadMilestone(ctx context.Context, id string, selectNodes ...query.Node) (*Milestone, error) {
 	return queryMilestones(ctx).
 		Where(op.Equal(node.Milestone().ID(), id)).
 		Select(selectNodes...).
@@ -256,10 +257,11 @@ func LoadMilestone(ctx context.Context, id string, selectNodes ...query.Node) *M
 
 // HasMilestone returns true if a Milestone with the given primary key exists in the database.
 // doc: type=Milestone
-func HasMilestone(ctx context.Context, id string) bool {
-	return queryMilestones(ctx).
+func HasMilestone(ctx context.Context, id string) (bool, error) {
+	v, err := queryMilestones(ctx).
 		Where(op.Equal(node.Milestone().ID(), id)).
-		Count() == 1
+		Count()
+	return v > 0, err
 }
 
 // The MilestoneBuilder uses the query.BuilderI interface to build a query.
@@ -306,14 +308,14 @@ type MilestoneBuilder interface {
 	Having(node query.Node) MilestoneBuilder
 
 	// Load terminates the query builder, performs the query, and returns a slice of Milestone objects.
-	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If there are any errors, nil is returned along with the error.
 	// If no results come back from the query, it will return a non-nil empty slice.
-	Load() []*Milestone
+	Load() ([]*Milestone, error)
 	// Load terminates the query builder, performs the query, and returns a slice of interfaces.
 	// This can then satisfy a general interface that loads arrays of objects.
-	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If there are any errors, nil is returned along with the error.
 	// If no results come back from the query, it will return a non-nil empty slice.
-	LoadI() []query.OrmObj
+	LoadI() ([]query.OrmObj, error)
 
 	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
 	//
@@ -325,27 +327,19 @@ type MilestoneBuilder interface {
 	// on the cursor object when you are done. You should use
 	//   defer cursor.Close()
 	// to make sure the cursor gets closed.
-	LoadCursor() milestonesCursor
+	LoadCursor() (milestonesCursor, error)
 
 	// Get is a convenience method to return only the first item found in a query.
 	// The entire query is performed, so you should generally use this only if you know
 	// you are selecting on one or very few items.
-	//
 	// If an error occurs, or no results are found, a nil is returned.
-	// In the case of an error, the error is returned in the context.
-	Get() *Milestone
+	Get() (*Milestone, error)
 
 	// Count terminates a query and returns just the number of items in the result.
 	// If you have Select or Calculation columns in the query, it will count NULL results as well.
 	// To not count NULL values, use Where in the builder with a NotNull operation.
 	// To count distinct combinations of items, call Distinct() on the builder.
-	Count() int
-
-	// Subquery terminates the query builder and tags it as a subquery within a larger query.
-	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-	// Subquery() *query.SubqueryNode
-
+	Count() (int, error)
 }
 
 type milestoneQueryBuilder struct {
@@ -362,11 +356,12 @@ func newMilestoneBuilder(ctx context.Context) MilestoneBuilder {
 // Load terminates the query builder, performs the query, and returns a slice of Milestone objects.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *milestoneQueryBuilder) Load() (milestones []*Milestone) {
+func (b *milestoneQueryBuilder) Load() (milestones []*Milestone, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
@@ -381,11 +376,12 @@ func (b *milestoneQueryBuilder) Load() (milestones []*Milestone) {
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *milestoneQueryBuilder) LoadI() (milestones []query.OrmObj) {
+func (b *milestoneQueryBuilder) LoadI() (milestones []query.OrmObj, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
@@ -408,13 +404,13 @@ func (b *milestoneQueryBuilder) LoadI() (milestones []query.OrmObj) {
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *milestoneQueryBuilder) LoadCursor() milestonesCursor {
+func (b *milestoneQueryBuilder) LoadCursor() (milestonesCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
-	result := database.BuilderQuery(b.builder)
+	result, err := database.BuilderQuery(b.builder)
 	cursor := result.(query.CursorI)
 
-	return milestonesCursor{cursor}
+	return milestonesCursor{cursor}, err
 }
 
 type milestonesCursor struct {
@@ -424,50 +420,31 @@ type milestonesCursor struct {
 // Next returns the current Milestone object and moves the cursor to the next one.
 //
 // If there are no more records, it returns nil.
-func (c milestonesCursor) Next() *Milestone {
+func (c milestonesCursor) Next() (*Milestone, error) {
 	if c.CursorI == nil {
-		return nil
+		return nil, nil
 	}
 
-	row := c.CursorI.Next()
-	if row == nil {
-		return nil
+	row, err := c.CursorI.Next()
+	if row == nil || err != nil {
+		return nil, err
 	}
 	o := new(Milestone)
 	o.load(row, o)
-	return o
+	return o, nil
 }
 
 // Get is a convenience method to return only the first item found in a query.
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
-//
 // If an error occurs, or no results are found, a nil is returned.
-// In the case of an error, the error is returned in the context.
-func (b *milestoneQueryBuilder) Get() *Milestone {
-	results := b.Load()
-	if results != nil && len(results) > 0 {
-		obj := results[0]
-		return obj
-	} else {
-		return nil
+func (b *milestoneQueryBuilder) Get() (*Milestone, error) {
+	results, err := b.Load()
+	if err != nil || len(results) == 0 {
+		return nil, err
 	}
+	return results[0], nil
 }
-
-/*
-// Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
-// by condition.
-// The joinedTable node will be modified by this process so that you can use it in subsequent builder operations.
-// Call GetAlias to return the resulting object from the query result.
-func (b *milestoneQueryBuilder) Join(alias string, joinedTable query.Node, condition query.Node) MilestoneBuilder {
-    if query.RootNode(n).TableName_() != "milestone" {
-        panic("you can only join a node that is rooted at node.Milestone()")
-    }
-    // TODO: make sure joinedTable is a table node
-	b.builder.Join(alias, joinedTable, condition)
-	return b
-}
-*/
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
@@ -535,42 +512,34 @@ func (b *milestoneQueryBuilder) Having(node query.Node) MilestoneBuilder {
 // If you have Select or Calculation columns in the query, it will count NULL results as well.
 // To not count NULL values, use Where in the builder with a NotNull operation.
 // To count distinct combinations of items, call Distinct() on the builder.
-func (b *milestoneQueryBuilder) Count() int {
+func (b *milestoneQueryBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
-		return 0
+	results, err := database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
+		return 0, err
 	}
-	return results.(int)
+	return results.(int), nil
 }
 
-/*
-// Subquery terminates the query builder and tags it as a subquery within a larger query.
-// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-func (b *milestoneQueryBuilder)  Subquery() *query.SubqueryNode {
-	 return b.builder.Subquery()
-}
-*/
-
-func CountMilestones(ctx context.Context) int {
+// CountMilestones returns the total number of items in the milestone table.
+func CountMilestones(ctx context.Context) (int, error) {
 	return QueryMilestones(ctx).Count()
 }
 
 // CountMilestonesByID queries the database and returns the number of Milestone objects that
 // have id.
 // doc: type=Milestone
-func CountMilestonesByID(ctx context.Context, id string) int {
+func CountMilestonesByID(ctx context.Context, id string) (int, error) {
 	return QueryMilestones(ctx).Where(op.Equal(node.Milestone().ID(), id)).Count()
 }
 
 // CountMilestonesByProjectID queries the database and returns the number of Milestone objects that
 // have projectID.
 // doc: type=Milestone
-func CountMilestonesByProjectID(ctx context.Context, projectID string) int {
+func CountMilestonesByProjectID(ctx context.Context, projectID string) (int, error) {
 	if projectID == "" {
-		return 0
+		return 0, nil
 	}
 	return QueryMilestones(ctx).Where(op.Equal(node.Milestone().ProjectID(), projectID)).Count()
 }
@@ -578,7 +547,7 @@ func CountMilestonesByProjectID(ctx context.Context, projectID string) int {
 // CountMilestonesByName queries the database and returns the number of Milestone objects that
 // have name.
 // doc: type=Milestone
-func CountMilestonesByName(ctx context.Context, name string) int {
+func CountMilestonesByName(ctx context.Context, name string) (int, error) {
 	return QueryMilestones(ctx).Where(op.Equal(node.Milestone().Name(), name)).Count()
 }
 
@@ -796,8 +765,7 @@ func (o *milestoneBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	d.Delete(ctx, "milestone", map[string]any{"ID": o.id})
-	return nil
+	return d.Delete(ctx, "milestone", map[string]any{"ID": o.id})
 	broadcast.Delete(ctx, "goradd", "milestone", fmt.Sprint(o.id))
 	return
 }
@@ -806,7 +774,10 @@ func (o *milestoneBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteMilestone(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd")
-	d.Delete(ctx, "milestone", map[string]any{"ID": pk})
+	err := d.Delete(ctx, "milestone", map[string]any{"ID": pk})
+	if err != nil {
+		return err
+	}
 	broadcast.Delete(ctx, "goradd", "milestone", fmt.Sprint(pk))
 	return nil
 }

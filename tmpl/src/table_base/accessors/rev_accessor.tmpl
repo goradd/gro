@@ -15,9 +15,9 @@ func (o *{{= table.DecapIdentifier}}Base) {{= rev.ReverseIdentifier() }}() []*{{
 }
 
 // Load{{= rev.ReverseIdentifier() }} loads a new slice of {{= rev.Table.Identifier }} objects and returns it.
-func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.ReverseIdentifier() }}(ctx context.Context, conditions ...interface{}) []*{{= rev.Table.Identifier }} {
+func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.ReverseIdentifier() }}(ctx context.Context, conditions ...interface{}) ([]*{{= rev.Table.Identifier }}, error) {
 	if o.IsNew() {
-		return nil
+		return nil, nil
 	}
 	for obj := range o.{{= rev.ReverseVariableIdentifier() }}.ValuesIter() {
         if obj.IsDirty() {
@@ -32,7 +32,10 @@ func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.ReverseIdentifier() }}(ctx
         cond = op.And(conditions...)
     }
 
-    objs := qb.Where(cond).Load()
+    objs, err := qb.Where(cond).Load()
+    if err != nil {
+        return nil, err
+    }
     o.{{= rev.ReverseVariableIdentifier() }}.Clear()
 
     for _,obj := range objs {
@@ -41,14 +44,14 @@ func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.ReverseIdentifier() }}(ctx
     }
 
     if o.{{= rev.ReverseVariableIdentifier() }}.Len() == 0 {
-        return nil
+        return nil, nil
     }
-	return o.{{= rev.ReverseVariableIdentifier() }}.Values()
+	return o.{{= rev.ReverseVariableIdentifier() }}.Values(), nil
 }
 
 // Count{{= rev.ReverseIdentifier() }} does a database query and returns the number of {{= rev.Table.Identifier }}
 // objects currently in the database connected to this object.
-func (o *{{= table.DecapIdentifier}}Base) Count{{= rev.ReverseIdentifier() }}(ctx context.Context) int {
+func (o *{{= table.DecapIdentifier}}Base) Count{{= rev.ReverseIdentifier() }}(ctx context.Context) (int, error) {
     return Count{{= rev.Table.IdentifierPlural }}By{{= rev.Identifier }}(ctx, o.PrimaryKey())
 }
 

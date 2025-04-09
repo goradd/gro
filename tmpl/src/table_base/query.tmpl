@@ -6,7 +6,7 @@
 // Load{{= table.Identifier }} returns a {{= table.Identifier}} from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [{{= table.IdentifierPlural }}Builder.Select] for more info.
-func Load{{= table.Identifier }}(ctx context.Context, {{= table.PrimaryKeyColumn().VariableIdentifier() }} {{= table.PrimaryKeyGoType() }}, selectNodes ...query.Node) *{{= table.Identifier}} {
+func Load{{= table.Identifier }}(ctx context.Context, {{= table.PrimaryKeyColumn().VariableIdentifier() }} {{= table.PrimaryKeyGoType() }}, selectNodes ...query.Node) (*{{= table.Identifier}}, error) {
 	return query{{= table.IdentifierPlural }}(ctx).
 	    Where(op.Equal(node.{{= table.Identifier }}().{{= table.PrimaryKeyColumn().Identifier }}(), {{= table.PrimaryKeyColumn().VariableIdentifier() }})).
 	    Select(selectNodes...).
@@ -15,10 +15,11 @@ func Load{{= table.Identifier }}(ctx context.Context, {{= table.PrimaryKeyColumn
 
 // Has{{= table.Identifier }} returns true if a {{= table.Identifier }} with the given primary key exists in the database.
 // doc: type={{= table.Identifier }}
-func Has{{= table.Identifier }}(ctx context.Context, {{= table.PrimaryKeyColumn().VariableIdentifier() }} {{= table.PrimaryKeyGoType() }}) bool {
-    return query{{= table.IdentifierPlural }}(ctx).
+func Has{{= table.Identifier }}(ctx context.Context, {{= table.PrimaryKeyColumn().VariableIdentifier() }} {{= table.PrimaryKeyGoType() }}) (bool, error) {
+    v, err := query{{= table.IdentifierPlural }}(ctx).
 	     Where(op.Equal(node.{{= table.Identifier }}().{{= table.PrimaryKeyColumn().Identifier }}(), {{= table.PrimaryKeyColumn().VariableIdentifier() }})).
-         Count() == 1
+         Count()
+    return v > 0, err
 }
 
 {{for _,idx := range table.Indexes}}
@@ -27,7 +28,7 @@ func Has{{= table.Identifier }}(ctx context.Context, {{= table.PrimaryKeyColumn(
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [{{= table.IdentifierPlural }}Builder.Select].
 // If you need a more elaborate query, use Query{{= table.IdentifierPlural }}() to start a query builder.
-func Load{{= table.Identifier }}By{{for _,col := range idx.Columns}}{{= col.Identifier }}{{for}} (ctx context.Context{{for _,col := range idx.Columns}}, {{= col.DecapIdentifier }} {{if col.IsNullable}}interface{}{{else}}{{= col.GoType() }}{{if}} {{for}}, selectNodes ...query.Node) *{{= table.Identifier}} {
+func Load{{= table.Identifier }}By{{for _,col := range idx.Columns}}{{= col.Identifier }}{{for}} (ctx context.Context{{for _,col := range idx.Columns}}, {{= col.DecapIdentifier }} {{if col.IsNullable}}interface{}{{else}}{{= col.GoType() }}{{if}} {{for}}, selectNodes ...query.Node) (*{{= table.Identifier}}, error) {
     q := query{{= table.IdentifierPlural }}(ctx)
 {{for _,col := range idx.Columns}}
 {{if col.IsNullable}}
@@ -46,7 +47,7 @@ func Load{{= table.Identifier }}By{{for _,col := range idx.Columns}}{{= col.Iden
 // Has{{= table.Identifier}}By{{for _,col := range idx.Columns}}{{= col.Identifier }}{{for}} returns true if the
 // given unique index values exist in the database.
 // doc: type={{= table.Identifier}}
-func Has{{= table.Identifier }}By{{for _,col := range idx.Columns}}{{= col.Identifier }}{{for}} (ctx context.Context{{for _,col := range idx.Columns}}, {{= col.DecapIdentifier }} {{if col.IsNullable}}interface{}{{else}}{{= col.GoType()}}{{if}} {{for}}) bool {
+func Has{{= table.Identifier }}By{{for _,col := range idx.Columns}}{{= col.Identifier }}{{for}} (ctx context.Context{{for _,col := range idx.Columns}}, {{= col.DecapIdentifier }} {{if col.IsNullable}}interface{}{{else}}{{= col.GoType()}}{{if}} {{for}}) (bool, error) {
     q := query{{= table.IdentifierPlural }}(ctx)
 {{for _,col := range idx.Columns}}
 {{if col.IsNullable}}
@@ -59,7 +60,8 @@ func Has{{= table.Identifier }}By{{for _,col := range idx.Columns}}{{= col.Ident
     q = q.Where(op.Equal(node.{{= table.Identifier}}().{{= col.Identifier }}(), {{= col.DecapIdentifier }}))
 {{if}}
 {{for}}
-    return q.Count() == 1
+    v, err := q.Count()
+    return v > 0, err
 }
 {{if}} {{# unique}}
 {{for}}

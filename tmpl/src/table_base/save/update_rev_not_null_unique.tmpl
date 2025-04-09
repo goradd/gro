@@ -5,12 +5,12 @@
 {{
                     // Since the other side of the relationship cannot be null, if there is an object already attached
                     // that is different than the one we are trying to attach, we will panic to warn the developer.
-                    oldObj := Query{{= col.Table.IdentifierPlural }}(ctx).
+                    if oldObj, err := Query{{= col.Table.IdentifierPlural }}(ctx).
                           Where(op.Equal(node.{{= col.Table.Identifier}}().{{= col.Identifier }}(), o.PrimaryKey())).
                           Select(node.{{= col.Table.Identifier }}().{{= col.Identifier }}()).
-                          Get()
-
-                    if oldObj != nil {
+                          Get(); err != nil {
+                        return err
+                    } else if oldObj != nil {
                         if o.{{= col.ReverseVariableIdentifier() }} != nil && oldObj.PrimaryKey() != o.{{= col.ReverseVariableIdentifier() }}.PrimaryKey() {
                             panic(fmt.Sprintf("error: %s is referencing the object being saved. Since this is a unique, non-null reference, you must delete the referencing object before saving the new object.", oldObj))
                         }

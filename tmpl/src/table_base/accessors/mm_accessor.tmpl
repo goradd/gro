@@ -42,35 +42,39 @@ func (o *{{= table.DecapIdentifier}}Base) Set{{= mm.IdentifierPlural }}By{{= mm.
 }
 
 // Load{{= mm.IdentifierPlural }} loads the {{= mm.ObjectType() }} objects associated through the {{= mm.Identifier }}-{{= mm.MM.Identifier }} relationship.
-func (o *{{= table.DecapIdentifier}}Base) Load{{= mm.IdentifierPlural }}(ctx context.Context) []*{{= mm.ObjectType() }} {
+func (o *{{= table.DecapIdentifier}}Base) Load{{= mm.IdentifierPlural }}(ctx context.Context) ([]*{{= mm.ObjectType() }}, error) {
     if o.{{= mm.VariableIdentifier() }}IsDirty && o.{{= mm.PkIdentifier() }} == nil {
         panic("dirty many-many relationships cannot be loaded; call Save() first")
     }
     
     var objs []*{{= mm.ObjectType() }}
+    var err error
 
     if o.{{= mm.PkIdentifier() }} != nil {
         // Load the objects that will be associated after a Save
-        objs = Query{{= mm.ObjectTypePlural() }}(ctx).
+        objs, err = Query{{= mm.ObjectTypePlural() }}(ctx).
             Where(op.In(node.{{= mm.ObjectType() }}().PrimaryKey(), o.{{= mm.PkIdentifier() }}...)).
             Load()
     } else {
-        objs = Query{{= mm.ObjectTypePlural() }}(ctx).
+        objs, err = Query{{= mm.ObjectTypePlural() }}(ctx).
             Where(op.Equal(node.{{= mm.ObjectType() }}().{{= mm.MM.IdentifierPlural}}(), o.PrimaryKey())).
             Load()
+    }
+    if err != nil {
+        return nil, err
     }
 
     o.{{= mm.VariableIdentifier() }}.Clear()
 	for _,obj := range objs {
 	    o.{{= mm.VariableIdentifier() }}.Set(obj.PrimaryKey(), obj)
 	}
-	return o.{{= mm.VariableIdentifier() }}.Values()
+	return o.{{= mm.VariableIdentifier() }}.Values(), err
 }
 
 // Count{{= mm.IdentifierPlural }} counts the number of associated {{= mm.VariableIdentifier() }} objects in the database.
 // Note that this returns what is reflected by the database at that instant, and not what
 // is the count of the loaded objects.
-func (o *{{= table.DecapIdentifier }}Base) Count{{= mm.IdentifierPlural }}(ctx context.Context) int {
+func (o *{{= table.DecapIdentifier }}Base) Count{{= mm.IdentifierPlural }}(ctx context.Context) (int, error) {
 	return Query{{= mm.ObjectTypePlural() }}(ctx).
 		Where(op.Equal(node.{{= mm.ObjectType() }}().{{= mm.MM.IdentifierPlural }}(), o.PrimaryKey())).
 		Count()

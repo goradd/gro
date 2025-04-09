@@ -173,16 +173,17 @@ func (o *employeeInfoBase) Person() *Person {
 
 // LoadPerson returns the related Person. If it is not already loaded,
 // it will attempt to load it, provided the PersonID column has been loaded first.
-func (o *employeeInfoBase) LoadPerson(ctx context.Context) *Person {
-	if !o.personIDIsLoaded {
-		return nil
-	}
+func (o *employeeInfoBase) LoadPerson(ctx context.Context) (*Person, error) {
+	var err error
 
 	if o.objPerson == nil {
+		if !o.personIDIsLoaded {
+			panic("PersonID must be selected in the previous query")
+		}
 		// Load and cache
-		o.objPerson = LoadPerson(ctx, o.personID)
+		o.objPerson, err = LoadPerson(ctx, o.personID)
 	}
-	return o.objPerson
+	return o.objPerson, err
 }
 
 // SetPerson sets the value of Person in the object, to be saved later using the Save() function.
@@ -244,7 +245,7 @@ func (o *employeeInfoBase) IsNew() bool {
 // LoadEmployeeInfo returns a EmployeeInfo from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [EmployeeInfosBuilder.Select] for more info.
-func LoadEmployeeInfo(ctx context.Context, id string, selectNodes ...query.Node) *EmployeeInfo {
+func LoadEmployeeInfo(ctx context.Context, id string, selectNodes ...query.Node) (*EmployeeInfo, error) {
 	return queryEmployeeInfos(ctx).
 		Where(op.Equal(node.EmployeeInfo().ID(), id)).
 		Select(selectNodes...).
@@ -253,17 +254,18 @@ func LoadEmployeeInfo(ctx context.Context, id string, selectNodes ...query.Node)
 
 // HasEmployeeInfo returns true if a EmployeeInfo with the given primary key exists in the database.
 // doc: type=EmployeeInfo
-func HasEmployeeInfo(ctx context.Context, id string) bool {
-	return queryEmployeeInfos(ctx).
+func HasEmployeeInfo(ctx context.Context, id string) (bool, error) {
+	v, err := queryEmployeeInfos(ctx).
 		Where(op.Equal(node.EmployeeInfo().ID(), id)).
-		Count() == 1
+		Count()
+	return v > 0, err
 }
 
 // LoadEmployeeInfoByPersonID queries for a single EmployeeInfo object by the given unique index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [EmployeeInfosBuilder.Select].
 // If you need a more elaborate query, use QueryEmployeeInfos() to start a query builder.
-func LoadEmployeeInfoByPersonID(ctx context.Context, personID string, selectNodes ...query.Node) *EmployeeInfo {
+func LoadEmployeeInfoByPersonID(ctx context.Context, personID string, selectNodes ...query.Node) (*EmployeeInfo, error) {
 	q := queryEmployeeInfos(ctx)
 	q = q.Where(op.Equal(node.EmployeeInfo().PersonID(), personID))
 	return q.Select(selectNodes...).Get()
@@ -272,10 +274,11 @@ func LoadEmployeeInfoByPersonID(ctx context.Context, personID string, selectNode
 // HasEmployeeInfoByPersonID returns true if the
 // given unique index values exist in the database.
 // doc: type=EmployeeInfo
-func HasEmployeeInfoByPersonID(ctx context.Context, personID string) bool {
+func HasEmployeeInfoByPersonID(ctx context.Context, personID string) (bool, error) {
 	q := queryEmployeeInfos(ctx)
 	q = q.Where(op.Equal(node.EmployeeInfo().PersonID(), personID))
-	return q.Count() == 1
+	v, err := q.Count()
+	return v > 0, err
 }
 
 // The EmployeeInfoBuilder uses the query.BuilderI interface to build a query.
@@ -322,14 +325,14 @@ type EmployeeInfoBuilder interface {
 	Having(node query.Node) EmployeeInfoBuilder
 
 	// Load terminates the query builder, performs the query, and returns a slice of EmployeeInfo objects.
-	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If there are any errors, nil is returned along with the error.
 	// If no results come back from the query, it will return a non-nil empty slice.
-	Load() []*EmployeeInfo
+	Load() ([]*EmployeeInfo, error)
 	// Load terminates the query builder, performs the query, and returns a slice of interfaces.
 	// This can then satisfy a general interface that loads arrays of objects.
-	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If there are any errors, nil is returned along with the error.
 	// If no results come back from the query, it will return a non-nil empty slice.
-	LoadI() []query.OrmObj
+	LoadI() ([]query.OrmObj, error)
 
 	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
 	//
@@ -341,27 +344,19 @@ type EmployeeInfoBuilder interface {
 	// on the cursor object when you are done. You should use
 	//   defer cursor.Close()
 	// to make sure the cursor gets closed.
-	LoadCursor() employeeInfosCursor
+	LoadCursor() (employeeInfosCursor, error)
 
 	// Get is a convenience method to return only the first item found in a query.
 	// The entire query is performed, so you should generally use this only if you know
 	// you are selecting on one or very few items.
-	//
 	// If an error occurs, or no results are found, a nil is returned.
-	// In the case of an error, the error is returned in the context.
-	Get() *EmployeeInfo
+	Get() (*EmployeeInfo, error)
 
 	// Count terminates a query and returns just the number of items in the result.
 	// If you have Select or Calculation columns in the query, it will count NULL results as well.
 	// To not count NULL values, use Where in the builder with a NotNull operation.
 	// To count distinct combinations of items, call Distinct() on the builder.
-	Count() int
-
-	// Subquery terminates the query builder and tags it as a subquery within a larger query.
-	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-	// Subquery() *query.SubqueryNode
-
+	Count() (int, error)
 }
 
 type employeeInfoQueryBuilder struct {
@@ -378,11 +373,12 @@ func newEmployeeInfoBuilder(ctx context.Context) EmployeeInfoBuilder {
 // Load terminates the query builder, performs the query, and returns a slice of EmployeeInfo objects.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *employeeInfoQueryBuilder) Load() (employeeInfos []*EmployeeInfo) {
+func (b *employeeInfoQueryBuilder) Load() (employeeInfos []*EmployeeInfo, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
@@ -397,11 +393,12 @@ func (b *employeeInfoQueryBuilder) Load() (employeeInfos []*EmployeeInfo) {
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *employeeInfoQueryBuilder) LoadI() (employeeInfos []query.OrmObj) {
+func (b *employeeInfoQueryBuilder) LoadI() (employeeInfos []query.OrmObj, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
@@ -424,13 +421,13 @@ func (b *employeeInfoQueryBuilder) LoadI() (employeeInfos []query.OrmObj) {
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *employeeInfoQueryBuilder) LoadCursor() employeeInfosCursor {
+func (b *employeeInfoQueryBuilder) LoadCursor() (employeeInfosCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
-	result := database.BuilderQuery(b.builder)
+	result, err := database.BuilderQuery(b.builder)
 	cursor := result.(query.CursorI)
 
-	return employeeInfosCursor{cursor}
+	return employeeInfosCursor{cursor}, err
 }
 
 type employeeInfosCursor struct {
@@ -440,50 +437,31 @@ type employeeInfosCursor struct {
 // Next returns the current EmployeeInfo object and moves the cursor to the next one.
 //
 // If there are no more records, it returns nil.
-func (c employeeInfosCursor) Next() *EmployeeInfo {
+func (c employeeInfosCursor) Next() (*EmployeeInfo, error) {
 	if c.CursorI == nil {
-		return nil
+		return nil, nil
 	}
 
-	row := c.CursorI.Next()
-	if row == nil {
-		return nil
+	row, err := c.CursorI.Next()
+	if row == nil || err != nil {
+		return nil, err
 	}
 	o := new(EmployeeInfo)
 	o.load(row, o)
-	return o
+	return o, nil
 }
 
 // Get is a convenience method to return only the first item found in a query.
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
-//
 // If an error occurs, or no results are found, a nil is returned.
-// In the case of an error, the error is returned in the context.
-func (b *employeeInfoQueryBuilder) Get() *EmployeeInfo {
-	results := b.Load()
-	if results != nil && len(results) > 0 {
-		obj := results[0]
-		return obj
-	} else {
-		return nil
+func (b *employeeInfoQueryBuilder) Get() (*EmployeeInfo, error) {
+	results, err := b.Load()
+	if err != nil || len(results) == 0 {
+		return nil, err
 	}
+	return results[0], nil
 }
-
-/*
-// Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
-// by condition.
-// The joinedTable node will be modified by this process so that you can use it in subsequent builder operations.
-// Call GetAlias to return the resulting object from the query result.
-func (b *employeeInfoQueryBuilder) Join(alias string, joinedTable query.Node, condition query.Node) EmployeeInfoBuilder {
-    if query.RootNode(n).TableName_() != "employee_info" {
-        panic("you can only join a node that is rooted at node.EmployeeInfo()")
-    }
-    // TODO: make sure joinedTable is a table node
-	b.builder.Join(alias, joinedTable, condition)
-	return b
-}
-*/
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
@@ -551,42 +529,34 @@ func (b *employeeInfoQueryBuilder) Having(node query.Node) EmployeeInfoBuilder {
 // If you have Select or Calculation columns in the query, it will count NULL results as well.
 // To not count NULL values, use Where in the builder with a NotNull operation.
 // To count distinct combinations of items, call Distinct() on the builder.
-func (b *employeeInfoQueryBuilder) Count() int {
+func (b *employeeInfoQueryBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
-		return 0
+	results, err := database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
+		return 0, err
 	}
-	return results.(int)
+	return results.(int), nil
 }
 
-/*
-// Subquery terminates the query builder and tags it as a subquery within a larger query.
-// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-func (b *employeeInfoQueryBuilder)  Subquery() *query.SubqueryNode {
-	 return b.builder.Subquery()
-}
-*/
-
-func CountEmployeeInfos(ctx context.Context) int {
+// CountEmployeeInfos returns the total number of items in the employee_info table.
+func CountEmployeeInfos(ctx context.Context) (int, error) {
 	return QueryEmployeeInfos(ctx).Count()
 }
 
 // CountEmployeeInfosByID queries the database and returns the number of EmployeeInfo objects that
 // have id.
 // doc: type=EmployeeInfo
-func CountEmployeeInfosByID(ctx context.Context, id string) int {
+func CountEmployeeInfosByID(ctx context.Context, id string) (int, error) {
 	return QueryEmployeeInfos(ctx).Where(op.Equal(node.EmployeeInfo().ID(), id)).Count()
 }
 
 // CountEmployeeInfosByPersonID queries the database and returns the number of EmployeeInfo objects that
 // have personID.
 // doc: type=EmployeeInfo
-func CountEmployeeInfosByPersonID(ctx context.Context, personID string) int {
+func CountEmployeeInfosByPersonID(ctx context.Context, personID string) (int, error) {
 	if personID == "" {
-		return 0
+		return 0, nil
 	}
 	return QueryEmployeeInfos(ctx).Where(op.Equal(node.EmployeeInfo().PersonID(), personID)).Count()
 }
@@ -594,7 +564,7 @@ func CountEmployeeInfosByPersonID(ctx context.Context, personID string) int {
 // CountEmployeeInfosByEmployeeNumber queries the database and returns the number of EmployeeInfo objects that
 // have employeeNumber.
 // doc: type=EmployeeInfo
-func CountEmployeeInfosByEmployeeNumber(ctx context.Context, employeeNumber int) int {
+func CountEmployeeInfosByEmployeeNumber(ctx context.Context, employeeNumber int) (int, error) {
 	return QueryEmployeeInfos(ctx).Where(op.Equal(node.EmployeeInfo().EmployeeNumber(), employeeNumber)).Count()
 }
 
@@ -699,9 +669,12 @@ func (o *employeeInfoBase) update(ctx context.Context) error {
 			o.SetPersonID(o.objPerson.PrimaryKey())
 		}
 
-		if o.personIDIsDirty &&
-			LoadEmployeeInfoByPersonID(ctx, o.personID) != nil {
-			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for PersonID: %v", o.personID))
+		if o.personIDIsDirty {
+			if obj, err := LoadEmployeeInfoByPersonID(ctx, o.personID); err != nil {
+				return err
+			} else if obj != nil {
+				return db.NewUniqueValueError("employee_info", map[string]any{"person_id": o.personID}, nil)
+			}
 		}
 
 		modifiedFields = o.getUpdateFields()
@@ -749,9 +722,12 @@ func (o *employeeInfoBase) insert(ctx context.Context) (err error) {
 			panic("a value for EmployeeNumber is required, and there is no default value. Call SetEmployeeNumber() before inserting the record.")
 		}
 
-		if o.personIDIsDirty &&
-			LoadEmployeeInfoByPersonID(ctx, o.personID) != nil {
-			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for PersonID: %v", o.personID))
+		if o.personIDIsDirty {
+			if obj, err := LoadEmployeeInfoByPersonID(ctx, o.personID); err != nil {
+				return err
+			} else if obj != nil {
+				return db.NewUniqueValueError("employee_info", map[string]any{"person_id": o.personID}, nil)
+			}
 		}
 
 		insertFields = o.getInsertFields()
@@ -822,8 +798,7 @@ func (o *employeeInfoBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	d.Delete(ctx, "employee_info", map[string]any{"ID": o.id})
-	return nil
+	return d.Delete(ctx, "employee_info", map[string]any{"ID": o.id})
 	broadcast.Delete(ctx, "goradd", "employee_info", fmt.Sprint(o.id))
 	return
 }
@@ -832,7 +807,10 @@ func (o *employeeInfoBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteEmployeeInfo(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd")
-	d.Delete(ctx, "employee_info", map[string]any{"ID": pk})
+	err := d.Delete(ctx, "employee_info", map[string]any{"ID": pk})
+	if err != nil {
+		return err
+	}
 	broadcast.Delete(ctx, "goradd", "employee_info", fmt.Sprint(pk))
 	return nil
 }

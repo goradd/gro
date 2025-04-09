@@ -5,7 +5,8 @@
 
 {{
 
-func Count{{= table.IdentifierPlural }}(ctx context.Context) int {
+// Count{{= table.IdentifierPlural }} returns the total number of items in the {{= table.QueryName }} table.
+func Count{{= table.IdentifierPlural }}(ctx context.Context) (int, error) {
 	return Query{{= table.IdentifierPlural }}(ctx).Count()
 }
 
@@ -19,10 +20,10 @@ func Count{{= table.IdentifierPlural }}(ctx context.Context) int {
 // Count{{table.IdentifierPlural}}By{{col.Identifier}} queries the database and returns the number of {{table.Identifier}} objects that
 // have {{= col.DecapIdentifier }}.
 // doc: type={{table.Identifier}}
-func Count{{table.IdentifierPlural}}By{{col.Identifier}}(ctx context.Context, {{= col.VariableIdentifier() }} {{= col.GoType()}}) int {
+func Count{{table.IdentifierPlural}}By{{col.Identifier}}(ctx context.Context, {{= col.VariableIdentifier() }} {{= col.GoType()}}) (int, error) {
 {{if col.IsReference() }}
     if {{= col.VariableIdentifier() }} == {{= col.DefaultValueAsValue() }} {
-        return 0
+        return 0, nil
     }
 {{if}}
 {{if col.SchemaSubType == schema.ColSubTypeTimeOnly}}

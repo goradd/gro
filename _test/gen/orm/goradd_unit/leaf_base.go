@@ -209,9 +209,9 @@ func (o *leafBase) OptionalLeafRoots() []*Root {
 }
 
 // LoadOptionalLeafRoots loads a new slice of Root objects and returns it.
-func (o *leafBase) LoadOptionalLeafRoots(ctx context.Context, conditions ...interface{}) []*Root {
+func (o *leafBase) LoadOptionalLeafRoots(ctx context.Context, conditions ...interface{}) ([]*Root, error) {
 	if o.IsNew() {
-		return nil
+		return nil, nil
 	}
 	for obj := range o.revOptionalLeafRoots.ValuesIter() {
 		if obj.IsDirty() {
@@ -226,7 +226,10 @@ func (o *leafBase) LoadOptionalLeafRoots(ctx context.Context, conditions ...inte
 		cond = op.And(conditions...)
 	}
 
-	objs := qb.Where(cond).Load()
+	objs, err := qb.Where(cond).Load()
+	if err != nil {
+		return nil, err
+	}
 	o.revOptionalLeafRoots.Clear()
 
 	for _, obj := range objs {
@@ -235,14 +238,14 @@ func (o *leafBase) LoadOptionalLeafRoots(ctx context.Context, conditions ...inte
 	}
 
 	if o.revOptionalLeafRoots.Len() == 0 {
-		return nil
+		return nil, nil
 	}
-	return o.revOptionalLeafRoots.Values()
+	return o.revOptionalLeafRoots.Values(), nil
 }
 
 // CountOptionalLeafRoots does a database query and returns the number of Root
 // objects currently in the database connected to this object.
-func (o *leafBase) CountOptionalLeafRoots(ctx context.Context) int {
+func (o *leafBase) CountOptionalLeafRoots(ctx context.Context) (int, error) {
 	return CountRootsByOptionalLeafID(ctx, o.PrimaryKey())
 }
 
@@ -280,9 +283,9 @@ func (o *leafBase) RequiredLeafRoots() []*Root {
 }
 
 // LoadRequiredLeafRoots loads a new slice of Root objects and returns it.
-func (o *leafBase) LoadRequiredLeafRoots(ctx context.Context, conditions ...interface{}) []*Root {
+func (o *leafBase) LoadRequiredLeafRoots(ctx context.Context, conditions ...interface{}) ([]*Root, error) {
 	if o.IsNew() {
-		return nil
+		return nil, nil
 	}
 	for obj := range o.revRequiredLeafRoots.ValuesIter() {
 		if obj.IsDirty() {
@@ -297,7 +300,10 @@ func (o *leafBase) LoadRequiredLeafRoots(ctx context.Context, conditions ...inte
 		cond = op.And(conditions...)
 	}
 
-	objs := qb.Where(cond).Load()
+	objs, err := qb.Where(cond).Load()
+	if err != nil {
+		return nil, err
+	}
 	o.revRequiredLeafRoots.Clear()
 
 	for _, obj := range objs {
@@ -306,14 +312,14 @@ func (o *leafBase) LoadRequiredLeafRoots(ctx context.Context, conditions ...inte
 	}
 
 	if o.revRequiredLeafRoots.Len() == 0 {
-		return nil
+		return nil, nil
 	}
-	return o.revRequiredLeafRoots.Values()
+	return o.revRequiredLeafRoots.Values(), nil
 }
 
 // CountRequiredLeafRoots does a database query and returns the number of Root
 // objects currently in the database connected to this object.
-func (o *leafBase) CountRequiredLeafRoots(ctx context.Context) int {
+func (o *leafBase) CountRequiredLeafRoots(ctx context.Context) (int, error) {
 	return CountRootsByRequiredLeafID(ctx, o.PrimaryKey())
 }
 
@@ -346,15 +352,16 @@ func (o *leafBase) OptionalLeafUniqueRoot() *Root {
 
 // LoadOptionalLeafUniqueRoot returns the connected Root object, if one was loaded.
 // Otherwise, it will load a new one and return it.
-func (o *leafBase) LoadOptionalLeafUniqueRoot(ctx context.Context) *Root {
+func (o *leafBase) LoadOptionalLeafUniqueRoot(ctx context.Context) (*Root, error) {
 	if o.revOptionalLeafUniqueRoot != nil && o.revOptionalLeafUniqueRoot.IsDirty() {
 		panic("The OptionalLeafUniqueRoot has changed. You must save it first before changing to a different one.")
 	}
+	var err error
 	if o.revOptionalLeafUniqueRoot == nil {
 		pk := o.ID()
-		o.revOptionalLeafUniqueRoot = LoadRootByOptionalLeafUniqueID(ctx, pk)
+		o.revOptionalLeafUniqueRoot, err = LoadRootByOptionalLeafUniqueID(ctx, pk)
 	}
-	return o.revOptionalLeafUniqueRoot
+	return o.revOptionalLeafUniqueRoot, err
 }
 
 // SetOptionalLeafUniqueRoot associates obj with this Leaf
@@ -383,15 +390,16 @@ func (o *leafBase) RequiredLeafUniqueRoot() *Root {
 
 // LoadRequiredLeafUniqueRoot returns the connected Root object, if one was loaded.
 // Otherwise, it will load a new one and return it.
-func (o *leafBase) LoadRequiredLeafUniqueRoot(ctx context.Context) *Root {
+func (o *leafBase) LoadRequiredLeafUniqueRoot(ctx context.Context) (*Root, error) {
 	if o.revRequiredLeafUniqueRoot != nil && o.revRequiredLeafUniqueRoot.IsDirty() {
 		panic("The RequiredLeafUniqueRoot has changed. You must save it first before changing to a different one.")
 	}
+	var err error
 	if o.revRequiredLeafUniqueRoot == nil {
 		pk := o.ID()
-		o.revRequiredLeafUniqueRoot = LoadRootByRequiredLeafUniqueID(ctx, pk)
+		o.revRequiredLeafUniqueRoot, err = LoadRootByRequiredLeafUniqueID(ctx, pk)
 	}
-	return o.revRequiredLeafUniqueRoot
+	return o.revRequiredLeafUniqueRoot, err
 }
 
 // SetRequiredLeafUniqueRoot associates obj with this Leaf
@@ -412,7 +420,7 @@ func (o *leafBase) SetRequiredLeafUniqueRoot(obj *Root) {
 // LoadLeaf returns a Leaf from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [LeafsBuilder.Select] for more info.
-func LoadLeaf(ctx context.Context, id string, selectNodes ...query.Node) *Leaf {
+func LoadLeaf(ctx context.Context, id string, selectNodes ...query.Node) (*Leaf, error) {
 	return queryLeafs(ctx).
 		Where(op.Equal(node.Leaf().ID(), id)).
 		Select(selectNodes...).
@@ -421,10 +429,11 @@ func LoadLeaf(ctx context.Context, id string, selectNodes ...query.Node) *Leaf {
 
 // HasLeaf returns true if a Leaf with the given primary key exists in the database.
 // doc: type=Leaf
-func HasLeaf(ctx context.Context, id string) bool {
-	return queryLeafs(ctx).
+func HasLeaf(ctx context.Context, id string) (bool, error) {
+	v, err := queryLeafs(ctx).
 		Where(op.Equal(node.Leaf().ID(), id)).
-		Count() == 1
+		Count()
+	return v > 0, err
 }
 
 // The LeafBuilder uses the query.BuilderI interface to build a query.
@@ -471,14 +480,14 @@ type LeafBuilder interface {
 	Having(node query.Node) LeafBuilder
 
 	// Load terminates the query builder, performs the query, and returns a slice of Leaf objects.
-	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If there are any errors, nil is returned along with the error.
 	// If no results come back from the query, it will return a non-nil empty slice.
-	Load() []*Leaf
+	Load() ([]*Leaf, error)
 	// Load terminates the query builder, performs the query, and returns a slice of interfaces.
 	// This can then satisfy a general interface that loads arrays of objects.
-	// If there are any errors, nil is returned and the specific error is stored in the context.
+	// If there are any errors, nil is returned along with the error.
 	// If no results come back from the query, it will return a non-nil empty slice.
-	LoadI() []query.OrmObj
+	LoadI() ([]query.OrmObj, error)
 
 	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
 	//
@@ -490,27 +499,19 @@ type LeafBuilder interface {
 	// on the cursor object when you are done. You should use
 	//   defer cursor.Close()
 	// to make sure the cursor gets closed.
-	LoadCursor() leafsCursor
+	LoadCursor() (leafsCursor, error)
 
 	// Get is a convenience method to return only the first item found in a query.
 	// The entire query is performed, so you should generally use this only if you know
 	// you are selecting on one or very few items.
-	//
 	// If an error occurs, or no results are found, a nil is returned.
-	// In the case of an error, the error is returned in the context.
-	Get() *Leaf
+	Get() (*Leaf, error)
 
 	// Count terminates a query and returns just the number of items in the result.
 	// If you have Select or Calculation columns in the query, it will count NULL results as well.
 	// To not count NULL values, use Where in the builder with a NotNull operation.
 	// To count distinct combinations of items, call Distinct() on the builder.
-	Count() int
-
-	// Subquery terminates the query builder and tags it as a subquery within a larger query.
-	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-	// Subquery() *query.SubqueryNode
-
+	Count() (int, error)
 }
 
 type leafQueryBuilder struct {
@@ -527,11 +528,12 @@ func newLeafBuilder(ctx context.Context) LeafBuilder {
 // Load terminates the query builder, performs the query, and returns a slice of Leaf objects.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *leafQueryBuilder) Load() (leafs []*Leaf) {
+func (b *leafQueryBuilder) Load() (leafs []*Leaf, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
@@ -546,11 +548,12 @@ func (b *leafQueryBuilder) Load() (leafs []*Leaf) {
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *leafQueryBuilder) LoadI() (leafs []query.OrmObj) {
+func (b *leafQueryBuilder) LoadI() (leafs []query.OrmObj, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
@@ -573,13 +576,13 @@ func (b *leafQueryBuilder) LoadI() (leafs []query.OrmObj) {
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *leafQueryBuilder) LoadCursor() leafsCursor {
+func (b *leafQueryBuilder) LoadCursor() (leafsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
-	result := database.BuilderQuery(b.builder)
+	result, err := database.BuilderQuery(b.builder)
 	cursor := result.(query.CursorI)
 
-	return leafsCursor{cursor}
+	return leafsCursor{cursor}, err
 }
 
 type leafsCursor struct {
@@ -589,50 +592,31 @@ type leafsCursor struct {
 // Next returns the current Leaf object and moves the cursor to the next one.
 //
 // If there are no more records, it returns nil.
-func (c leafsCursor) Next() *Leaf {
+func (c leafsCursor) Next() (*Leaf, error) {
 	if c.CursorI == nil {
-		return nil
+		return nil, nil
 	}
 
-	row := c.CursorI.Next()
-	if row == nil {
-		return nil
+	row, err := c.CursorI.Next()
+	if row == nil || err != nil {
+		return nil, err
 	}
 	o := new(Leaf)
 	o.load(row, o)
-	return o
+	return o, nil
 }
 
 // Get is a convenience method to return only the first item found in a query.
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
-//
 // If an error occurs, or no results are found, a nil is returned.
-// In the case of an error, the error is returned in the context.
-func (b *leafQueryBuilder) Get() *Leaf {
-	results := b.Load()
-	if results != nil && len(results) > 0 {
-		obj := results[0]
-		return obj
-	} else {
-		return nil
+func (b *leafQueryBuilder) Get() (*Leaf, error) {
+	results, err := b.Load()
+	if err != nil || len(results) == 0 {
+		return nil, err
 	}
+	return results[0], nil
 }
-
-/*
-// Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
-// by condition.
-// The joinedTable node will be modified by this process so that you can use it in subsequent builder operations.
-// Call GetAlias to return the resulting object from the query result.
-func (b *leafQueryBuilder) Join(alias string, joinedTable query.Node, condition query.Node) LeafBuilder {
-    if query.RootNode(n).TableName_() != "leaf" {
-        panic("you can only join a node that is rooted at node.Leaf()")
-    }
-    // TODO: make sure joinedTable is a table node
-	b.builder.Join(alias, joinedTable, condition)
-	return b
-}
-*/
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
@@ -700,40 +684,32 @@ func (b *leafQueryBuilder) Having(node query.Node) LeafBuilder {
 // If you have Select or Calculation columns in the query, it will count NULL results as well.
 // To not count NULL values, use Where in the builder with a NotNull operation.
 // To count distinct combinations of items, call Distinct() on the builder.
-func (b *leafQueryBuilder) Count() int {
+func (b *leafQueryBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
-		return 0
+	results, err := database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
+		return 0, err
 	}
-	return results.(int)
+	return results.(int), nil
 }
 
-/*
-// Subquery terminates the query builder and tags it as a subquery within a larger query.
-// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-func (b *leafQueryBuilder)  Subquery() *query.SubqueryNode {
-	 return b.builder.Subquery()
-}
-*/
-
-func CountLeafs(ctx context.Context) int {
+// CountLeafs returns the total number of items in the leaf table.
+func CountLeafs(ctx context.Context) (int, error) {
 	return QueryLeafs(ctx).Count()
 }
 
 // CountLeafsByID queries the database and returns the number of Leaf objects that
 // have id.
 // doc: type=Leaf
-func CountLeafsByID(ctx context.Context, id string) int {
+func CountLeafsByID(ctx context.Context, id string) (int, error) {
 	return QueryLeafs(ctx).Where(op.Equal(node.Leaf().ID(), id)).Count()
 }
 
 // CountLeafsByName queries the database and returns the number of Leaf objects that
 // have name.
 // doc: type=Leaf
-func CountLeafsByName(ctx context.Context, name string) int {
+func CountLeafsByName(ctx context.Context, name string) (int, error) {
 	return QueryLeafs(ctx).Where(op.Equal(node.Leaf().Name(), name)).Count()
 }
 
@@ -880,27 +856,27 @@ func (o *leafBase) update(ctx context.Context) error {
 		if o.revOptionalLeafRootsIsDirty {
 			// relation connection changed
 
-			currentObjs := QueryRoots(ctx).
+			if currentObjs, err := QueryRoots(ctx).
 				Where(op.Equal(node.Root().OptionalLeafID(), o.PrimaryKey())).
 				Select(node.Root().OptionalLeafID()).
-				Load()
-
-			for _, obj := range currentObjs {
-				if !o.revOptionalLeafRoots.Has(obj.PrimaryKey()) {
-					// The old object is not in the group of new objects
-					obj.SetOptionalLeafIDToNull()
-					if err := obj.Save(ctx); err != nil {
-						return err
+				Load(); err != nil {
+				return err
+			} else {
+				for _, obj := range currentObjs {
+					if !o.revOptionalLeafRoots.Has(obj.PrimaryKey()) {
+						// The old object is not in the group of new objects
+						obj.SetOptionalLeafIDToNull()
+						if err = obj.Save(ctx); err != nil {
+							return err
+						}
 					}
 				}
-			}
-			{
 				keys := o.revOptionalLeafRoots.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
 				for i, k := range keys {
 					obj := o.revOptionalLeafRoots.Get(k)
 					obj.SetOptionalLeafID(o.PrimaryKey())
 					obj.optionalLeafIDIsDirty = true // force a change in case data is stale
-					if err := obj.Save(ctx); err != nil {
+					if err = obj.Save(ctx); err != nil {
 						return err
 					}
 					if obj.PrimaryKey() != k {
@@ -924,22 +900,30 @@ func (o *leafBase) update(ctx context.Context) error {
 			// relation connection changed
 
 			// Since the other side of the relationship cannot be null, there cannot be objects that will be detached.
-			oldObjs := QueryRoots(ctx).
+			if oldObjs, err := QueryRoots(ctx).
 				Where(op.Equal(node.Root().RequiredLeafID(), o.PrimaryKey())).
 				Select(node.Root().RequiredLeafID()).
-				Load()
-			for _, obj := range oldObjs {
-				if !o.revRequiredLeafRoots.Has(obj.PrimaryKey()) {
-					obj.Delete(ctx) // old object is not in group of new objects, so delete it since it has a non-null reference to o.
+				Load(); err != nil {
+				return err
+			} else {
+				for _, obj := range oldObjs {
+					if o.revRequiredLeafRoots.Has(obj.PrimaryKey()) {
+						err = obj.Delete(ctx) // old object is not in group of new objects, so delete it since it has a non-null reference to o.
+						if err != nil {
+							return err
+						}
+					}
 				}
-			}
-			{
 				keys := o.revRequiredLeafRoots.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
 				for i, k := range keys {
 					obj := o.revRequiredLeafRoots.Get(k)
+					if obj == nil {
+						// object was deleted during save?
+						continue
+					}
 					obj.SetRequiredLeafID(o.PrimaryKey())
 					obj.requiredLeafIDIsDirty = true // force a change in case data is stale
-					if err := obj.Save(ctx); err != nil {
+					if err = obj.Save(ctx); err != nil {
 						return err
 					}
 					if obj.PrimaryKey() != k {
@@ -964,12 +948,12 @@ func (o *leafBase) update(ctx context.Context) error {
 
 			// Since the other side of the relationship cannot be null, if there is an object already attached
 			// that is different than the one we are trying to attach, we will panic to warn the developer.
-			oldObj := QueryRoots(ctx).
+			if oldObj, err := QueryRoots(ctx).
 				Where(op.Equal(node.Root().OptionalLeafUniqueID(), o.PrimaryKey())).
 				Select(node.Root().OptionalLeafUniqueID()).
-				Get()
-
-			if oldObj != nil {
+				Get(); err != nil {
+				return err
+			} else if oldObj != nil {
 				if o.revOptionalLeafUniqueRoot != nil && oldObj.PrimaryKey() != o.revOptionalLeafUniqueRoot.PrimaryKey() {
 					panic(fmt.Sprintf("error: %s is referencing the object being saved. Since this is a unique, non-null reference, you must delete the referencing object before saving the new object.", oldObj))
 				}
@@ -996,12 +980,12 @@ func (o *leafBase) update(ctx context.Context) error {
 
 			// Since the other side of the relationship cannot be null, if there is an object already attached
 			// that is different than the one we are trying to attach, we will panic to warn the developer.
-			oldObj := QueryRoots(ctx).
+			if oldObj, err := QueryRoots(ctx).
 				Where(op.Equal(node.Root().RequiredLeafUniqueID(), o.PrimaryKey())).
 				Select(node.Root().RequiredLeafUniqueID()).
-				Get()
-
-			if oldObj != nil {
+				Get(); err != nil {
+				return err
+			} else if oldObj != nil {
 				if o.revRequiredLeafUniqueRoot != nil && oldObj.PrimaryKey() != o.revRequiredLeafUniqueRoot.PrimaryKey() {
 					panic(fmt.Sprintf("error: %s is referencing the object being saved. Since this is a unique, non-null reference, you must delete the referencing object before saving the new object.", oldObj))
 				}
@@ -1163,10 +1147,13 @@ func (o *leafBase) Delete(ctx context.Context) (err error) {
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
 		{
-			objs := QueryRoots(ctx).
+			objs, err := QueryRoots(ctx).
 				Where(op.Equal(node.Root().OptionalLeafID(), o.id)).
 				Select(node.Root().OptionalLeafID()).
 				Load()
+			if err != nil {
+				return err
+			}
 			for _, obj := range objs {
 				obj.SetOptionalLeafIDToNull()
 				if err = obj.Save(ctx); err != nil {
@@ -1177,9 +1164,12 @@ func (o *leafBase) Delete(ctx context.Context) (err error) {
 		}
 
 		{
-			objs := QueryRoots(ctx).
+			objs, err := QueryRoots(ctx).
 				Where(op.Equal(node.Root().RequiredLeafID(), o.id)).
 				Load()
+			if err != nil {
+				return err
+			}
 			for _, obj := range objs {
 				if err = obj.Delete(ctx); err != nil {
 					return err
@@ -1189,10 +1179,11 @@ func (o *leafBase) Delete(ctx context.Context) (err error) {
 		}
 
 		{
-			obj := QueryRoots(ctx).
+			if obj, err := QueryRoots(ctx).
 				Where(op.Equal(node.Root().OptionalLeafUniqueID(), o.id)).
-				Get()
-			if obj != nil {
+				Get(); err != nil {
+				return err
+			} else if obj != nil {
 				if err = obj.Delete(ctx); err != nil {
 					return err
 				}
@@ -1202,10 +1193,11 @@ func (o *leafBase) Delete(ctx context.Context) (err error) {
 		}
 
 		{
-			obj := QueryRoots(ctx).
+			if obj, err := QueryRoots(ctx).
 				Where(op.Equal(node.Root().RequiredLeafUniqueID(), o.id)).
-				Get()
-			if obj != nil {
+				Get(); err != nil {
+				return err
+			} else if obj != nil {
 				if err = obj.Delete(ctx); err != nil {
 					return err
 				}
@@ -1214,8 +1206,7 @@ func (o *leafBase) Delete(ctx context.Context) (err error) {
 			o.revRequiredLeafUniqueRoot = nil
 		}
 
-		d.Delete(ctx, "leaf", map[string]any{"ID": o.id})
-		return nil
+		return d.Delete(ctx, "leaf", map[string]any{"ID": o.id})
 	})
 
 	if err != nil {
@@ -1228,7 +1219,9 @@ func (o *leafBase) Delete(ctx context.Context) (err error) {
 // deleteLeaf deletes the Leaf with primary key pk from the database
 // and handles associated records.
 func deleteLeaf(ctx context.Context, pk string) error {
-	if obj := LoadLeaf(ctx, pk, node.Leaf().PrimaryKey()); obj != nil {
+	if obj, err := LoadLeaf(ctx, pk, node.Leaf().PrimaryKey()); err != nil {
+		return err
+	} else if obj != nil {
 		if err := obj.Delete(ctx); err != nil {
 			return err
 		}

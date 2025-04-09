@@ -11,16 +11,17 @@ func (o *{{= table.DecapIdentifier}}Base) {{= col.ReferenceIdentifier() }}() *{{
 
 // Load{{= col.ReferenceIdentifier() }} returns the related {{= col.ReferenceIdentifier() }}. If it is not already loaded,
 // it will attempt to load it, provided the {{= col.Identifier }} column has been loaded first.
-func (o *{{= table.DecapIdentifier}}Base) Load{{= col.ReferenceIdentifier() }}(ctx context.Context) *{{= col.ReferenceType() }} {
-	if !o.{{= col.VariableIdentifier() }}IsLoaded  {
-		return nil
-	}
+func (o *{{= table.DecapIdentifier}}Base) Load{{= col.ReferenceIdentifier() }}(ctx context.Context) (*{{= col.ReferenceType() }}, error) {
+	var err error
 
 	if o.{{= col.ReferenceVariableIdentifier() }} == nil {
+	    if !o.{{= col.VariableIdentifier() }}IsLoaded  {
+    		panic("{{= col.Identifier }} must be selected in the previous query")
+    	}
 		// Load and cache
-		o.{{= col.ReferenceVariableIdentifier() }} = Load{{= col.ReferenceType() }}(ctx, o.{{= col.VariableIdentifier() }})
-	}
-	return o.{{= col.ReferenceVariableIdentifier() }}
+		o.{{= col.ReferenceVariableIdentifier() }}, err = Load{{= col.ReferenceType() }}(ctx, o.{{= col.VariableIdentifier() }})
+    }
+	return o.{{= col.ReferenceVariableIdentifier() }}, err
 }
 
 }}

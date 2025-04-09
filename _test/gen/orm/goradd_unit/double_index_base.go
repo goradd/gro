@@ -3,34 +3,34 @@
 package goradd_unit
 
 import (
-	"bytes"
+	"github.com/goradd/orm/pkg/db"
+	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/broadcast"
 	"context"
+	"fmt"
+	"github.com/goradd/orm/pkg/op"
+	"github.com/goradd/all"
+	"bytes"
 	"encoding/gob"
 	"encoding/json"
-	"fmt"
-	"unicode/utf8"
-
-	"github.com/goradd/all"
-	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
-	"github.com/goradd/orm/pkg/broadcast"
-	"github.com/goradd/orm/pkg/db"
-	"github.com/goradd/orm/pkg/op"
-	"github.com/goradd/orm/pkg/query"
+    "github.com/goradd/maps"
+    "github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
 )
+
 
 // DoubleIndexBase is embedded in a DoubleIndex object and provides the ORM access to the database.
 // The member variables of the structure are private and should not normally be accessed by the DoubleIndex embedder.
 // Instead, use the accessor functions.
 type doubleIndexBase struct {
-	id                  int
-	idIsLoaded          bool
-	idIsDirty           bool
-	fieldInt            int
-	fieldIntIsLoaded    bool
-	fieldIntIsDirty     bool
-	fieldString         string
+	id int
+	idIsLoaded bool
+	idIsDirty bool
+	fieldInt int
+	fieldIntIsLoaded bool
+	fieldIntIsDirty bool
+	fieldString string
 	fieldStringIsLoaded bool
-	fieldStringIsDirty  bool
+	fieldStringIsDirty bool
 
 	// Custom aliases, if specified
 	_aliases map[string]any
@@ -38,22 +38,23 @@ type doubleIndexBase struct {
 	// Indicates whether this is a new object, or one loaded from the database. Used by Save to know whether to Insert or Update.
 	_restored bool
 
-	_originalPK int
+    _originalPK int
 }
+
 
 // IDs used to access the DoubleIndex object fields by name using the Get function.
 // doc: type=DoubleIndex
-const (
-	DoubleIndex_ID          = `ID`
-	DoubleIndex_FieldInt    = `FieldInt`
-	DoubleIndex_FieldString = `FieldString`
-)
+const  (
+    DoubleIndex_ID = `ID`
+    DoubleIndex_FieldInt = `FieldInt`
+    DoubleIndex_FieldString = `FieldString`
+) 
 
-const DoubleIndexIDMax = 2147483647
-const DoubleIndexIDMin = -2147483648
-const DoubleIndexFieldIntMax = 2147483647
-const DoubleIndexFieldIntMin = -2147483648
-const DoubleIndexFieldStringMaxLength = 50 // The number of runes the column can hold
+    const DoubleIndexIDMax = 2147483647
+    const DoubleIndexIDMin = -2147483648
+    const DoubleIndexFieldIntMax = 2147483647
+    const DoubleIndexFieldIntMin = -2147483648
+    const DoubleIndexFieldStringMaxLength = 50 // The number of runes the column can hold
 
 // Initialize or re-initialize a DoubleIndex database object to default values.
 func (o *doubleIndexBase) Initialize() {
@@ -69,9 +70,11 @@ func (o *doubleIndexBase) Initialize() {
 	o.fieldStringIsLoaded = false
 	o.fieldStringIsDirty = false
 
+
 	o._aliases = nil
 	o._restored = false
 }
+
 
 // PrimaryKey returns the current value of the primary key field.
 func (o *doubleIndexBase) PrimaryKey() int {
@@ -84,6 +87,7 @@ func (o *doubleIndexBase) OriginalPrimaryKey() int {
 	return o._originalPK
 }
 
+
 // Copy copies most fields to a new DoubleIndex object.
 // Forward reference ids will be copied, but reverse and many-many references will not.
 // Attached objects will not be included in the copy.
@@ -93,23 +97,22 @@ func (o *doubleIndexBase) OriginalPrimaryKey() int {
 // Copy might panic if any fields in the database were set to a size larger than the
 // maximum size through a process that accessed the database outside of the ORM.
 func (o *doubleIndexBase) Copy() (newObject *DoubleIndex) {
-	newObject = NewDoubleIndex()
-	if o.idIsLoaded {
-		newObject.SetID(o.id)
-	}
-	if o.fieldIntIsLoaded {
-		newObject.SetFieldInt(o.fieldInt)
-	}
-	if o.fieldStringIsLoaded {
-		newObject.SetFieldString(o.fieldString)
-	}
-	return
+    newObject = NewDoubleIndex()
+    if o.idIsLoaded {
+        newObject.SetID(o.id)
+    }
+    if o.fieldIntIsLoaded {
+        newObject.SetFieldInt(o.fieldInt)
+    }
+    if o.fieldStringIsLoaded {
+        newObject.SetFieldString(o.fieldString)
+    }
+    return
 }
-
 // ID returns the value of ID.
 func (o *doubleIndexBase) ID() int {
 	if o._restored && !o.idIsLoaded {
-		panic("ID was not selected in the last query and has not been set, and so is not valid")
+		panic ("ID was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.id
 }
@@ -123,9 +126,9 @@ func (o *doubleIndexBase) IDIsLoaded() bool {
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
 func (o *doubleIndexBase) SetID(v int) {
-	if o._restored {
-		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-	}
+    if o._restored {
+        panic ("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+    }
 
 	o.idIsLoaded = true
 	o.id = v
@@ -135,7 +138,7 @@ func (o *doubleIndexBase) SetID(v int) {
 // FieldInt returns the value of FieldInt.
 func (o *doubleIndexBase) FieldInt() int {
 	if o._restored && !o.fieldIntIsLoaded {
-		panic("FieldInt was not selected in the last query and has not been set, and so is not valid")
+		panic ("FieldInt was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.fieldInt
 }
@@ -148,11 +151,11 @@ func (o *doubleIndexBase) FieldIntIsLoaded() bool {
 // SetFieldInt sets the value of FieldInt in the object, to be saved later in the database using the Save() function.
 func (o *doubleIndexBase) SetFieldInt(v int) {
 	if o._restored &&
-		o.fieldIntIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
-		o.fieldInt == v {
-		// no change
-		return
-	}
+	    o.fieldIntIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+        o.fieldInt == v {
+        // no change
+        return
+    }
 
 	o.fieldIntIsLoaded = true
 	o.fieldInt = v
@@ -162,7 +165,7 @@ func (o *doubleIndexBase) SetFieldInt(v int) {
 // FieldString returns the value of FieldString.
 func (o *doubleIndexBase) FieldString() string {
 	if o._restored && !o.fieldStringIsLoaded {
-		panic("FieldString was not selected in the last query and has not been set, and so is not valid")
+		panic ("FieldString was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.fieldString
 }
@@ -174,93 +177,100 @@ func (o *doubleIndexBase) FieldStringIsLoaded() bool {
 
 // SetFieldString sets the value of FieldString in the object, to be saved later in the database using the Save() function.
 func (o *doubleIndexBase) SetFieldString(v string) {
-	if utf8.RuneCountInString(v) > DoubleIndexFieldStringMaxLength {
-		panic("attempted to set DoubleIndex.FieldString to a value larger than its maximum length in runes")
-	}
+    if utf8.RuneCountInString(v) > DoubleIndexFieldStringMaxLength {
+        panic("attempted to set DoubleIndex.FieldString to a value larger than its maximum length in runes")
+    }
 	if o._restored &&
-		o.fieldStringIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
-		o.fieldString == v {
-		// no change
-		return
-	}
+	    o.fieldStringIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+        o.fieldString == v {
+        // no change
+        return
+    }
 
 	o.fieldStringIsLoaded = true
 	o.fieldString = v
 	o.fieldStringIsDirty = true
 }
 
+
 // GetAlias returns the value for the Alias node aliasKey that was returned in the most
 // recent query.
 func (o *doubleIndexBase) GetAlias(aliasKey string) query.AliasValue {
-	if a, ok := o._aliases[aliasKey]; ok {
+	if a,ok := o._aliases[aliasKey]; ok {
 		return query.NewAliasValue(a)
 	} else {
-		panic("Alias " + aliasKey + " not found.")
+		panic ("Alias " + aliasKey + " not found.")
 	}
 }
+
 
 // IsNew returns true if the object will create a new record when saved.
 func (o *doubleIndexBase) IsNew() bool {
 	return !o._restored
 }
 
+
 // LoadDoubleIndex returns a DoubleIndex from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [DoubleIndicesBuilder.Select] for more info.
-func LoadDoubleIndex(ctx context.Context, id int, selectNodes ...query.Node) *DoubleIndex {
+func LoadDoubleIndex(ctx context.Context, id int, selectNodes ...query.Node) (*DoubleIndex, error) {
 	return queryDoubleIndices(ctx).
-		Where(op.Equal(node.DoubleIndex().ID(), id)).
-		Select(selectNodes...).
-		Get()
+	    Where(op.Equal(node.DoubleIndex().ID(), id)).
+	    Select(selectNodes...).
+	    Get()
 }
 
 // HasDoubleIndex returns true if a DoubleIndex with the given primary key exists in the database.
 // doc: type=DoubleIndex
-func HasDoubleIndex(ctx context.Context, id int) bool {
-	return queryDoubleIndices(ctx).
-		Where(op.Equal(node.DoubleIndex().ID(), id)).
-		Count() == 1
+func HasDoubleIndex(ctx context.Context, id int) (bool, error) {
+    v, err := queryDoubleIndices(ctx).
+	     Where(op.Equal(node.DoubleIndex().ID(), id)).
+         Count()
+    return v > 0, err
 }
 
 // LoadDoubleIndexByID queries for a single DoubleIndex object by the given unique index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [DoubleIndicesBuilder.Select].
 // If you need a more elaborate query, use QueryDoubleIndices() to start a query builder.
-func LoadDoubleIndexByID(ctx context.Context, id int, selectNodes ...query.Node) *DoubleIndex {
-	q := queryDoubleIndices(ctx)
-	q = q.Where(op.Equal(node.DoubleIndex().ID(), id))
-	return q.Select(selectNodes...).Get()
+func LoadDoubleIndexByID (ctx context.Context, id int , selectNodes ...query.Node) (*DoubleIndex, error) {
+    q := queryDoubleIndices(ctx)
+    q = q.Where(op.Equal(node.DoubleIndex().ID(), id))
+    return q.Select(selectNodes...).Get()
 }
 
 // HasDoubleIndexByID returns true if the
 // given unique index values exist in the database.
 // doc: type=DoubleIndex
-func HasDoubleIndexByID(ctx context.Context, id int) bool {
-	q := queryDoubleIndices(ctx)
-	q = q.Where(op.Equal(node.DoubleIndex().ID(), id))
-	return q.Count() == 1
+func HasDoubleIndexByID (ctx context.Context, id int ) (bool, error) {
+    q := queryDoubleIndices(ctx)
+    q = q.Where(op.Equal(node.DoubleIndex().ID(), id))
+    v, err := q.Count()
+    return v > 0, err
 }
-
+ 
 // LoadDoubleIndexByFieldIntFieldString queries for a single DoubleIndex object by the given unique index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [DoubleIndicesBuilder.Select].
 // If you need a more elaborate query, use QueryDoubleIndices() to start a query builder.
-func LoadDoubleIndexByFieldIntFieldString(ctx context.Context, fieldInt int, fieldString string, selectNodes ...query.Node) *DoubleIndex {
-	q := queryDoubleIndices(ctx)
-	q = q.Where(op.Equal(node.DoubleIndex().FieldInt(), fieldInt))
-	q = q.Where(op.Equal(node.DoubleIndex().FieldString(), fieldString))
-	return q.Select(selectNodes...).Get()
+func LoadDoubleIndexByFieldIntFieldString (ctx context.Context, fieldInt int , fieldString string , selectNodes ...query.Node) (*DoubleIndex, error) {
+    q := queryDoubleIndices(ctx)
+    q = q.Where(op.Equal(node.DoubleIndex().FieldInt(), fieldInt))
+    q = q.Where(op.Equal(node.DoubleIndex().FieldString(), fieldString))
+    return q.Select(selectNodes...).Get()
 }
 
 // HasDoubleIndexByFieldIntFieldString returns true if the
 // given unique index values exist in the database.
 // doc: type=DoubleIndex
-func HasDoubleIndexByFieldIntFieldString(ctx context.Context, fieldInt int, fieldString string) bool {
-	q := queryDoubleIndices(ctx)
-	q = q.Where(op.Equal(node.DoubleIndex().FieldInt(), fieldInt))
-	q = q.Where(op.Equal(node.DoubleIndex().FieldString(), fieldString))
-	return q.Count() == 1
+func HasDoubleIndexByFieldIntFieldString (ctx context.Context, fieldInt int , fieldString string ) (bool, error) {
+    q := queryDoubleIndices(ctx)
+    q = q.Where(op.Equal(node.DoubleIndex().FieldInt(), fieldInt))
+    q = q.Where(op.Equal(node.DoubleIndex().FieldString(), fieldString))
+    v, err := q.Count()
+    return v > 0, err
 }
+ 
 
 // The DoubleIndexBuilder uses the query.BuilderI interface to build a query.
 // All query operations go through this query builder.
@@ -269,88 +279,81 @@ type DoubleIndexBuilder interface {
 	// Join(alias string, joinedTable query.Node, condition query.Node) DoubleIndexBuilder
 
 	// Where adds a condition to filter what gets selected.
-	// Calling Where multiple times will AND the conditions together.
+    // Calling Where multiple times will AND the conditions together.
 	Where(c query.Node) DoubleIndexBuilder
 
 	// OrderBy specifies how the resulting data should be sorted.
-	// By default, the given nodes are sorted in ascending order.
-	// Add Descending() to the node to specify that it should be sorted in descending order.
-	OrderBy(nodes ...query.Sorter) DoubleIndexBuilder
+    // By default, the given nodes are sorted in ascending order.
+    // Add Descending() to the node to specify that it should be sorted in descending order.
+	OrderBy(nodes... query.Sorter) DoubleIndexBuilder
 
 	// Limit will return a subset of the data, limited to the offset and number of rows specified.
-	// For large data sets and specific types of queries, this can be slow, because it will perform
-	// the entire query before computing the limit.
-	// You cannot limit a query that has selected a "many" relationship".
+    // For large data sets and specific types of queries, this can be slow, because it will perform
+    // the entire query before computing the limit.
+    // You cannot limit a query that has selected a "many" relationship".
 	Limit(maxRowCount int, offset int) DoubleIndexBuilder
 
 	// Select performs two functions:
 	//  - Passing a table type node will join the object or objects from that table to this object.
 	//  - Passing a column node will optimize the query to only return the specified fields.
-	// Once you select at least one column, you must select all the columns that you want in the result.
-	// Some fields, like primary keys, are always selected.
-	// If you are using a GroupBy, you must select the fields in the GroupBy.
-	Select(nodes ...query.Node) DoubleIndexBuilder
+    // Once you select at least one column, you must select all the columns that you want in the result.
+    // Some fields, like primary keys, are always selected.
+    // If you are using a GroupBy, you must select the fields in the GroupBy.
+	Select(nodes... query.Node) DoubleIndexBuilder
 
 	// Calculation adds a calculation described by operation with the name alias.
-	// After the query, you can read the data using GetAlias() on the object identified by base.
+    // After the query, you can read the data using GetAlias() on the object identified by base.
 	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) DoubleIndexBuilder
 
 	// Distinct removes duplicates from the results of the query.
-	// Adding a Select() is required.
+    // Adding a Select() is required.
 	Distinct() DoubleIndexBuilder
 
 	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
-	GroupBy(nodes ...query.Node) DoubleIndexBuilder
+	GroupBy(nodes... query.Node) DoubleIndexBuilder
 
 	// Having does additional filtering on the results of the query after the query is performed.
-	Having(node query.Node) DoubleIndexBuilder
+	Having(node query.Node)  DoubleIndexBuilder
 
-	// Load terminates the query builder, performs the query, and returns a slice of DoubleIndex objects.
-	// If there are any errors, nil is returned and the specific error is stored in the context.
-	// If no results come back from the query, it will return a non-nil empty slice.
-	Load() []*DoubleIndex
-	// Load terminates the query builder, performs the query, and returns a slice of interfaces.
-	// This can then satisfy a general interface that loads arrays of objects.
-	// If there are any errors, nil is returned and the specific error is stored in the context.
-	// If no results come back from the query, it will return a non-nil empty slice.
-	LoadI() []query.OrmObj
+    // Load terminates the query builder, performs the query, and returns a slice of DoubleIndex objects.
+    // If there are any errors, nil is returned along with the error.
+    // If no results come back from the query, it will return a non-nil empty slice.
+	Load() ([]*DoubleIndex, error)
+    // Load terminates the query builder, performs the query, and returns a slice of interfaces.
+    // This can then satisfy a general interface that loads arrays of objects.
+    // If there are any errors, nil is returned along with the error.
+    // If no results come back from the query, it will return a non-nil empty slice.
+	LoadI() ([]query.OrmObj, error)
 
-	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
-	//
-	// A query cursor is useful for dealing with large amounts of query results. However, there are some
-	// limitations to its use. When working with SQL databases, you cannot use a cursor while querying
-	// many-to-many or reverse relationships that will create an array of values.
-	//
-	// Call Next() on the returned cursor object to step through the results. Make sure you call Close
-	// on the cursor object when you are done. You should use
-	//   defer cursor.Close()
-	// to make sure the cursor gets closed.
-	LoadCursor() doubleIndicesCursor
+    // LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
+    //
+    // A query cursor is useful for dealing with large amounts of query results. However, there are some
+    // limitations to its use. When working with SQL databases, you cannot use a cursor while querying
+    // many-to-many or reverse relationships that will create an array of values.
+    //
+    // Call Next() on the returned cursor object to step through the results. Make sure you call Close
+    // on the cursor object when you are done. You should use
+    //   defer cursor.Close()
+    // to make sure the cursor gets closed.
+	LoadCursor() (doubleIndicesCursor, error)
 
 	// Get is a convenience method to return only the first item found in a query.
-	// The entire query is performed, so you should generally use this only if you know
-	// you are selecting on one or very few items.
-	//
-	// If an error occurs, or no results are found, a nil is returned.
-	// In the case of an error, the error is returned in the context.
-	Get() *DoubleIndex
+    // The entire query is performed, so you should generally use this only if you know
+    // you are selecting on one or very few items.
+    // If an error occurs, or no results are found, a nil is returned.
+	Get() (*DoubleIndex, error)
 
-	// Count terminates a query and returns just the number of items in the result.
-	// If you have Select or Calculation columns in the query, it will count NULL results as well.
-	// To not count NULL values, use Where in the builder with a NotNull operation.
-	// To count distinct combinations of items, call Distinct() on the builder.
-	Count() int
-
-	// Subquery terminates the query builder and tags it as a subquery within a larger query.
-	// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-	// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-	// Subquery() *query.SubqueryNode
-
+    // Count terminates a query and returns just the number of items in the result.
+    // If you have Select or Calculation columns in the query, it will count NULL results as well.
+    // To not count NULL values, use Where in the builder with a NotNull operation.
+    // To count distinct combinations of items, call Distinct() on the builder.
+	Count() (int, error)
 }
 
 type doubleIndexQueryBuilder struct {
 	builder *query.Builder
 }
+
 
 func newDoubleIndexBuilder(ctx context.Context) DoubleIndexBuilder {
 	b := doubleIndexQueryBuilder{
@@ -362,14 +365,15 @@ func newDoubleIndexBuilder(ctx context.Context) DoubleIndexBuilder {
 // Load terminates the query builder, performs the query, and returns a slice of DoubleIndex objects.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *doubleIndexQueryBuilder) Load() (doubleIndices []*DoubleIndex) {
+func (b *doubleIndexQueryBuilder) Load() (doubleIndices []*DoubleIndex, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
-	for _, item := range results.([]map[string]any) {
+	for _,item := range results.([]map[string]any) {
 		o := new(DoubleIndex)
 		o.load(item, o)
 		doubleIndices = append(doubleIndices, o)
@@ -381,20 +385,22 @@ func (b *doubleIndexQueryBuilder) Load() (doubleIndices []*DoubleIndex) {
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *doubleIndexQueryBuilder) LoadI() (doubleIndices []query.OrmObj) {
+func (b *doubleIndexQueryBuilder) LoadI() (doubleIndices []query.OrmObj, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
-	for _, item := range results.([]map[string]any) {
+	for _,item := range results.([]map[string]any) {
 		o := new(DoubleIndex)
 		o.load(item, o)
 		doubleIndices = append(doubleIndices, o)
 	}
 	return
 }
+
 
 // LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
 //
@@ -404,17 +410,15 @@ func (b *doubleIndexQueryBuilder) LoadI() (doubleIndices []query.OrmObj) {
 //
 // Call Next() on the returned cursor object to step through the results. Make sure you call Close
 // on the cursor object when you are done. You should use
-//
-//	defer cursor.Close()
-//
+//   defer cursor.Close()
 // to make sure the cursor gets closed.
-func (b *doubleIndexQueryBuilder) LoadCursor() doubleIndicesCursor {
+func (b *doubleIndexQueryBuilder) LoadCursor() (doubleIndicesCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
-	result := database.BuilderQuery(b.builder)
+	result, err := database.BuilderQuery(b.builder)
 	cursor := result.(query.CursorI)
 
-	return doubleIndicesCursor{cursor}
+	return doubleIndicesCursor{cursor}, err
 }
 
 type doubleIndicesCursor struct {
@@ -424,54 +428,35 @@ type doubleIndicesCursor struct {
 // Next returns the current DoubleIndex object and moves the cursor to the next one.
 //
 // If there are no more records, it returns nil.
-func (c doubleIndicesCursor) Next() *DoubleIndex {
-	if c.CursorI == nil {
-		return nil
-	}
+func (c doubleIndicesCursor) Next() (*DoubleIndex, error) {
+    if c.CursorI == nil {
+        return nil, nil
+    }
 
-	row := c.CursorI.Next()
-	if row == nil {
-		return nil
+	row, err := c.CursorI.Next()
+	if row == nil || err != nil {
+		return nil, err
 	}
 	o := new(DoubleIndex)
 	o.load(row, o)
-	return o
+	return o, nil
 }
 
 // Get is a convenience method to return only the first item found in a query.
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
-//
 // If an error occurs, or no results are found, a nil is returned.
-// In the case of an error, the error is returned in the context.
-func (b *doubleIndexQueryBuilder) Get() *DoubleIndex {
-	results := b.Load()
-	if results != nil && len(results) > 0 {
-		obj := results[0]
-		return obj
-	} else {
-		return nil
-	}
-}
-
-/*
-// Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
-// by condition.
-// The joinedTable node will be modified by this process so that you can use it in subsequent builder operations.
-// Call GetAlias to return the resulting object from the query result.
-func (b *doubleIndexQueryBuilder) Join(alias string, joinedTable query.Node, condition query.Node) DoubleIndexBuilder {
-    if query.RootNode(n).TableName_() != "double_index" {
-        panic("you can only join a node that is rooted at node.DoubleIndex()")
+func (b *doubleIndexQueryBuilder) Get() (*DoubleIndex, error) {
+    results, err := b.Load()
+    if err != nil || len(results) == 0 {
+        return nil, err
     }
-    // TODO: make sure joinedTable is a table node
-	b.builder.Join(alias, joinedTable, condition)
-	return b
+    return results[0], nil
 }
-*/
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
-func (b *doubleIndexQueryBuilder) Where(c query.Node) DoubleIndexBuilder {
+func (b *doubleIndexQueryBuilder)  Where(c query.Node) DoubleIndexBuilder {
 	b.builder.Where(c)
 	return b
 }
@@ -479,7 +464,7 @@ func (b *doubleIndexQueryBuilder) Where(c query.Node) DoubleIndexBuilder {
 // OrderBy specifies how the resulting data should be sorted.
 // By default, the given nodes are sorted in ascending order.
 // Add Descending() to the node to specify that it should be sorted in descending order.
-func (b *doubleIndexQueryBuilder) OrderBy(nodes ...query.Sorter) DoubleIndexBuilder {
+func (b *doubleIndexQueryBuilder)  OrderBy(nodes... query.Sorter) DoubleIndexBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
@@ -488,7 +473,7 @@ func (b *doubleIndexQueryBuilder) OrderBy(nodes ...query.Sorter) DoubleIndexBuil
 // For large data sets and specific types of queries, this can be slow, because it will perform
 // the entire query before computing the limit.
 // You cannot limit a query that has embedded arrays.
-func (b *doubleIndexQueryBuilder) Limit(maxRowCount int, offset int) DoubleIndexBuilder {
+func (b *doubleIndexQueryBuilder)  Limit(maxRowCount int, offset int) DoubleIndexBuilder {
 	b.builder.Limit(maxRowCount, offset)
 	return b
 }
@@ -500,7 +485,7 @@ func (b *doubleIndexQueryBuilder) Limit(maxRowCount int, offset int) DoubleIndex
 // If columns in related tables are specified, then only those columns will be queried and loaded.
 // Depending on the query, additional columns may automatically be added to the query. In particular, primary key columns
 // will be added in most situations. The exception to this would be in distinct queries, group by queries, or subqueries.
-func (b *doubleIndexQueryBuilder) Select(nodes ...query.Node) DoubleIndexBuilder {
+func (b *doubleIndexQueryBuilder)  Select(nodes... query.Node) DoubleIndexBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
@@ -514,82 +499,82 @@ func (b *doubleIndexQueryBuilder) Calculation(base query.TableNodeI, alias strin
 
 // Distinct removes duplicates from the results of the query.
 // Adding a Select() is usually required.
-func (b *doubleIndexQueryBuilder) Distinct() DoubleIndexBuilder {
+func (b *doubleIndexQueryBuilder)  Distinct() DoubleIndexBuilder {
 	b.builder.Distinct()
 	return b
 }
 
 // GroupBy controls how results are grouped when using aggregate functions with Calculation.
-func (b *doubleIndexQueryBuilder) GroupBy(nodes ...query.Node) DoubleIndexBuilder {
+func (b *doubleIndexQueryBuilder)  GroupBy(nodes... query.Node) DoubleIndexBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
 // Having does additional filtering on the results of the query after the query is performed.
-func (b *doubleIndexQueryBuilder) Having(node query.Node) DoubleIndexBuilder {
-	b.builder.Having(node)
-	return b
+func (b *doubleIndexQueryBuilder)  Having(node query.Node)  DoubleIndexBuilder {
+	 b.builder.Having(node)
+	 return b
 }
 
 // Count terminates a query and returns just the number of items in the result.
 // If you have Select or Calculation columns in the query, it will count NULL results as well.
 // To not count NULL values, use Where in the builder with a NotNull operation.
 // To count distinct combinations of items, call Distinct() on the builder.
-func (b *doubleIndexQueryBuilder) Count() int {
+func (b *doubleIndexQueryBuilder)  Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd_unit")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
-		return 0
-	}
-	return results.(int)
+	results, err := database.BuilderQuery(b.builder)
+    if results == nil || err != nil {
+        return 0, err
+    }
+	return results.(int), nil
 }
 
-/*
-// Subquery terminates the query builder and tags it as a subquery within a larger query.
-// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-func (b *doubleIndexQueryBuilder)  Subquery() *query.SubqueryNode {
-	 return b.builder.Subquery()
-}
-*/
 
-func CountDoubleIndices(ctx context.Context) int {
+// CountDoubleIndices returns the total number of items in the double_index table.
+func CountDoubleIndices(ctx context.Context) (int, error) {
 	return QueryDoubleIndices(ctx).Count()
 }
+
 
 // CountDoubleIndicesByID queries the database and returns the number of DoubleIndex objects that
 // have id.
 // doc: type=DoubleIndex
-func CountDoubleIndicesByID(ctx context.Context, id int) int {
+func CountDoubleIndicesByID(ctx context.Context, id int) (int, error) {
 	return QueryDoubleIndices(ctx).Where(op.Equal(node.DoubleIndex().ID(), id)).Count()
 }
+
 
 // CountDoubleIndicesByFieldInt queries the database and returns the number of DoubleIndex objects that
 // have fieldInt.
 // doc: type=DoubleIndex
-func CountDoubleIndicesByFieldInt(ctx context.Context, fieldInt int) int {
+func CountDoubleIndicesByFieldInt(ctx context.Context, fieldInt int) (int, error) {
 	return QueryDoubleIndices(ctx).Where(op.Equal(node.DoubleIndex().FieldInt(), fieldInt)).Count()
 }
+
 
 // CountDoubleIndicesByFieldString queries the database and returns the number of DoubleIndex objects that
 // have fieldString.
 // doc: type=DoubleIndex
-func CountDoubleIndicesByFieldString(ctx context.Context, fieldString string) int {
+func CountDoubleIndicesByFieldString(ctx context.Context, fieldString string) (int, error) {
 	return QueryDoubleIndices(ctx).Where(op.Equal(node.DoubleIndex().FieldString(), fieldString)).Count()
 }
 
+
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
-func (o *doubleIndexBase) load(m map[string]interface{}, objThis *DoubleIndex) {
+func (o *doubleIndexBase) load (m map[string]interface{}, objThis *DoubleIndex) {
+
+	
+        
 
 	if v, ok := m["id"]; ok && v != nil {
-		if o.id, ok = v.(int); ok {
+    	if o.id, ok = v.(int); ok {
 			o.idIsLoaded = true
 			o.idIsDirty = false
-
-			o._originalPK = o.id
-
+        
+            o._originalPK = o.id
+        
 		} else {
 			panic("Wrong type found for id.")
 		}
@@ -599,11 +584,17 @@ func (o *doubleIndexBase) load(m map[string]interface{}, objThis *DoubleIndex) {
 		o.idIsDirty = false
 	}
 
+    
+
+	
+	
+        
+
 	if v, ok := m["field_int"]; ok && v != nil {
-		if o.fieldInt, ok = v.(int); ok {
+    	if o.fieldInt, ok = v.(int); ok {
 			o.fieldIntIsLoaded = true
 			o.fieldIntIsDirty = false
-
+        
 		} else {
 			panic("Wrong type found for field_int.")
 		}
@@ -613,11 +604,17 @@ func (o *doubleIndexBase) load(m map[string]interface{}, objThis *DoubleIndex) {
 		o.fieldIntIsDirty = false
 	}
 
+    
+
+	
+	
+        
+
 	if v, ok := m["field_string"]; ok && v != nil {
-		if o.fieldString, ok = v.(string); ok {
+    	if o.fieldString, ok = v.(string); ok {
 			o.fieldStringIsLoaded = true
 			o.fieldStringIsDirty = false
-
+        
 		} else {
 			panic("Wrong type found for field_string.")
 		}
@@ -627,6 +624,12 @@ func (o *doubleIndexBase) load(m map[string]interface{}, objThis *DoubleIndex) {
 		o.fieldStringIsDirty = false
 	}
 
+    
+
+	
+
+
+
 	if v, ok := m["aliases_"]; ok {
 		o._aliases = v.(map[string]any)
 	}
@@ -634,6 +637,7 @@ func (o *doubleIndexBase) load(m map[string]interface{}, objThis *DoubleIndex) {
 	o._restored = true
 
 }
+
 
 // save will update or insert the object, depending on the state of the object.
 func (o *doubleIndexBase) save(ctx context.Context) error {
@@ -647,95 +651,125 @@ func (o *doubleIndexBase) save(ctx context.Context) error {
 // update will update the values in the database, saving any changed values.
 // If the table has auto-generated values, those will be updated automatically.
 func (o *doubleIndexBase) update(ctx context.Context) error {
-	if !o._restored {
-		panic("cannot update a record that was not originally read from the database.")
-	}
-	if !o.IsDirty() {
-		return nil // nothing to save
-	}
+    if !o._restored {
+        panic ("cannot update a record that was not originally read from the database.")
+    }
+    if !o.IsDirty() {
+        return nil // nothing to save
+    }
 
-	var modifiedFields map[string]interface{}
+    var modifiedFields map[string]interface{}
 
-	d := Database()
-	err := db.ExecuteTransaction(ctx, d, func() error {
+    d := Database()
+    err := db.ExecuteTransaction(ctx, d, func() error {
 
-		if o.idIsDirty &&
-			LoadDoubleIndexByID(ctx, o.id) != nil {
-			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for ID: %v", o.id))
-		}
+    
+    
+    
 
-		if (o.fieldIntIsDirty || o.fieldStringIsDirty) &&
-			LoadDoubleIndexByFieldIntFieldString(ctx, o.fieldInt, o.fieldString) != nil {
-			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value FieldInt=%v & FieldString=%v", o.fieldInt, o.fieldString))
-		}
+    if o.idIsDirty  {
+        if obj,err := LoadDoubleIndexByID(ctx, o.id); err != nil {
+            return err
+        } else if obj != nil {
+            return db.NewUniqueValueError("double_index", map[string]any{"id":o.id }, nil)
+        }
+    }
 
-		modifiedFields = o.getUpdateFields()
-		if len(modifiedFields) != 0 {
-			var err2 error
+    if (o.fieldIntIsDirty || o.fieldStringIsDirty)
+ {
+        if obj, err := LoadDoubleIndexByFieldIntFieldString(ctx, o.fieldInt, o.fieldString); err != nil {
+            return err
+        } else if obj != nil {
+            return db.NewUniqueValueError("double_index", map[string]any{ "FieldInt":o.fieldInt,"FieldString":o.fieldString }, nil)
+        }
+    }
 
-			_, err2 = d.Update(ctx, "double_index", "id", o._originalPK, modifiedFields, "", 0)
-			if err2 != nil {
-				return err2
-			}
-		}
+        modifiedFields = o.getUpdateFields()
+        if len(modifiedFields) != 0 {
+            var err2 error
 
-		return nil
-	}) // transaction
-	if err != nil {
-		return err
-	}
+            _, err2 = d.Update(ctx, "double_index", "id", o._originalPK, modifiedFields, "", 0)
+            if err2 != nil {
+                return err2
+            }
+        }
+
+ 
+
+
+        return nil
+    }) // transaction
+    if err != nil {
+        return err
+    }
 
 	o.resetDirtyStatus()
 	if len(modifiedFields) != 0 {
-		broadcast.Update(ctx, "goradd_unit", "double_index", o._originalPK, all.SortedKeys(modifiedFields)...)
+        broadcast.Update(ctx, "goradd_unit", "double_index", o._originalPK, all.SortedKeys(modifiedFields)...)
 	}
 
 	return nil
 }
 
+
 // insert will insert the object into the database. Related items will be saved.
 func (o *doubleIndexBase) insert(ctx context.Context) (err error) {
-	var insertFields map[string]interface{}
-	d := Database()
+    var insertFields map[string]interface{}
+    d := Database()
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
-		if !o.idIsLoaded {
-			panic("a value for ID is required, and there is no default value. Call SetID() before inserting the record.")
-		}
-		if !o.fieldIntIsLoaded {
-			panic("a value for FieldInt is required, and there is no default value. Call SetFieldInt() before inserting the record.")
-		}
-		if !o.fieldStringIsLoaded {
-			panic("a value for FieldString is required, and there is no default value. Call SetFieldString() before inserting the record.")
-		}
 
-		if o.idIsDirty &&
-			LoadDoubleIndexByID(ctx, o.id) != nil {
-			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value found for ID: %v", o.id))
-		}
+    
+    
+    
 
-		if (o.fieldIntIsDirty || o.fieldStringIsDirty) &&
-			LoadDoubleIndexByFieldIntFieldString(ctx, o.fieldInt, o.fieldString) != nil {
-			return db.NewDuplicateValueError(fmt.Sprintf("error: duplicate value FieldInt=%v & FieldString=%v", o.fieldInt, o.fieldString))
-		}
+    if !o.idIsLoaded {
+        panic("a value for ID is required, and there is no default value. Call SetID() before inserting the record.")
+    }
+    if !o.fieldIntIsLoaded {
+        panic("a value for FieldInt is required, and there is no default value. Call SetFieldInt() before inserting the record.")
+    }
+    if !o.fieldStringIsLoaded {
+        panic("a value for FieldString is required, and there is no default value. Call SetFieldString() before inserting the record.")
+    }
 
-		insertFields = o.getInsertFields()
-		var newPk int
+    if o.idIsDirty  {
+        if obj,err := LoadDoubleIndexByID(ctx, o.id); err != nil {
+            return err
+        } else if obj != nil {
+            return db.NewUniqueValueError("double_index", map[string]any{"id":o.id }, nil)
+        }
+    }
 
-		_, err = d.Insert(ctx, "double_index", "id", insertFields)
-		if err != nil {
-			return err
-		}
-		newPk = o.PrimaryKey()
-		o._originalPK = newPk
+    if (o.fieldIntIsDirty || o.fieldStringIsDirty)
+ {
+        if obj, err := LoadDoubleIndexByFieldIntFieldString(ctx, o.fieldInt, o.fieldString); err != nil {
+            return err
+        } else if obj != nil {
+            return db.NewUniqueValueError("double_index", map[string]any{ "FieldInt":o.fieldInt,"FieldString":o.fieldString }, nil)
+        }
+    }
 
-		return nil
+    insertFields = o.getInsertFields()
+    var newPk int
 
-	}) // transaction
+	_, err = d.Insert(ctx, "double_index", "id", insertFields)
+    if err != nil {
+        return err
+    }
+	newPk = o.PrimaryKey()
+	o._originalPK = newPk
 
-	if err != nil {
-		return
-	}
+
+
+
+        return nil
+
+    }) // transaction
+
+    if err != nil {
+        return
+    }
 
 	o.resetDirtyStatus()
 	o._restored = true
@@ -743,18 +777,20 @@ func (o *doubleIndexBase) insert(ctx context.Context) (err error) {
 	return
 }
 
+
+
 // getUpdateFields returns the database columns that will be sent to the update process.
 // This will include timestamp fields only if some other column has changed.
 func (o *doubleIndexBase) getUpdateFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.idIsDirty {
-		fields["id"] = o.id
+        fields["id"] = o.id
 	}
 	if o.fieldIntIsDirty {
-		fields["field_int"] = o.fieldInt
+        fields["field_int"] = o.fieldInt
 	}
 	if o.fieldStringIsDirty {
-		fields["field_string"] = o.fieldString
+        fields["field_string"] = o.fieldString
 	}
 	return
 }
@@ -767,26 +803,26 @@ func (o *doubleIndexBase) getUpdateFields() (fields map[string]interface{}) {
 // database driver and updated after the insert.
 func (o *doubleIndexBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-
-	fields["id"] = o.id
-
-	fields["field_int"] = o.fieldInt
-
-	fields["field_string"] = o.fieldString
+ 
+    fields["id"] = o.id
+ 
+    fields["field_int"] = o.fieldInt
+ 
+    fields["field_string"] = o.fieldString
 	return
 }
 
+
 // Delete deletes the record from the database.
 func (o *doubleIndexBase) Delete(ctx context.Context) (err error) {
-	if o == nil {
-		return // allow deleting of a nil object to be a noop
-	}
+    if o == nil {
+        return // allow deleting of a nil object to be a noop
+    }
 	if !o._restored {
-		panic("Cannot delete a record that has no primary key value.")
+		panic ("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	d.Delete(ctx, "double_index", map[string]any{"ID": o.id})
-	return nil
+	return d.Delete(ctx, "double_index", map[string]any{"ID":o.id })
 	broadcast.Delete(ctx, "goradd_unit", "double_index", fmt.Sprint(o.id))
 	return
 }
@@ -795,11 +831,13 @@ func (o *doubleIndexBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteDoubleIndex(ctx context.Context, pk int) error {
 	d := db.GetDatabase("goradd_unit")
-	d.Delete(ctx, "double_index", map[string]any{"ID": pk})
+	err := d.Delete(ctx, "double_index", map[string]any{"ID": pk} )
+	if err != nil {
+	    return err
+	}
 	broadcast.Delete(ctx, "goradd_unit", "double_index", fmt.Sprint(pk))
-	return nil
+    return nil
 }
-
 // resetDirtyStatus resets the dirty status of every field in the object.
 func (o *doubleIndexBase) resetDirtyStatus() {
 	o.idIsDirty = false
@@ -811,11 +849,13 @@ func (o *doubleIndexBase) resetDirtyStatus() {
 // IsDirty returns true if the object has been changed since it was read from the database or created.
 // However, a new object that has a column with a default value will be automatically marked as dirty upon creation.
 func (o *doubleIndexBase) IsDirty() (dirty bool) {
-	dirty = o.idIsDirty ||
-		o.fieldIntIsDirty ||
-		o.fieldStringIsDirty
+    dirty = o.idIsDirty || 
+o.fieldIntIsDirty || 
+o.fieldStringIsDirty 
 
-	return
+
+
+    return
 }
 
 // Get returns the value of a field in the object based on the field's name.
@@ -824,97 +864,110 @@ func (o *doubleIndexBase) IsDirty() (dirty bool) {
 // Get can be used to retrieve a value by using the Identifier of a node.
 func (o *doubleIndexBase) Get(key string) interface{} {
 
-	switch key {
+    switch key {
 
-	case "ID":
-		if !o.idIsLoaded {
-			return nil
-		}
-		return o.id
+    case "ID":
+        if !o.idIsLoaded {
+            return nil
+        }
+        return o.id
 
-	case "FieldInt":
-		if !o.fieldIntIsLoaded {
-			return nil
-		}
-		return o.fieldInt
+	
 
-	case "FieldString":
-		if !o.fieldStringIsLoaded {
-			return nil
-		}
-		return o.fieldString
+    case "FieldInt":
+        if !o.fieldIntIsLoaded {
+            return nil
+        }
+        return o.fieldInt
 
-	}
-	return nil
+	
+
+    case "FieldString":
+        if !o.fieldStringIsLoaded {
+            return nil
+        }
+        return o.fieldString
+
+	
+
+
+
+
+    }
+    return nil
 }
-
 // MarshalBinary serializes the object into a buffer that is deserializable using UnmarshalBinary.
 // It should be used for transmitting database objects over the wire, or for temporary storage. It does not send
 // a version number, so if the data format changes, its up to you to invalidate the old stored objects.
 // The framework uses this to serialize the object when it is stored in a control.
 func (o *doubleIndexBase) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	enc := gob.NewEncoder(buf)
-	if err := o.encodeTo(enc); err != nil {
-		return nil, err
-	}
+    enc := gob.NewEncoder(buf)
+    if err := o.encodeTo(enc); err != nil {
+        return nil, err
+    }
 	return buf.Bytes(), nil
 }
 
 func (o *doubleIndexBase) encodeTo(enc db.Encoder) error {
 
-	if err := enc.Encode(o.id); err != nil {
-		return fmt.Errorf("error encoding DoubleIndex.id: %w", err)
-	}
-	if err := enc.Encode(o.idIsLoaded); err != nil {
-		return fmt.Errorf("error encoding DoubleIndex.idIsLoaded: %w", err)
-	}
-	if err := enc.Encode(o.idIsDirty); err != nil {
-		return fmt.Errorf("error encoding DoubleIndex.idIsDirty: %w", err)
-	}
+    if err := enc.Encode(o.id); err != nil {
+        return fmt.Errorf("error encoding DoubleIndex.id: %w", err)
+    }
+    if err := enc.Encode(o.idIsLoaded); err != nil {
+        return fmt.Errorf("error encoding DoubleIndex.idIsLoaded: %w", err)
+    }
+    if err := enc.Encode(o.idIsDirty); err != nil {
+        return fmt.Errorf("error encoding DoubleIndex.idIsDirty: %w", err)
+    }
 
-	if err := enc.Encode(o.fieldInt); err != nil {
-		return fmt.Errorf("error encoding DoubleIndex.fieldInt: %w", err)
-	}
-	if err := enc.Encode(o.fieldIntIsLoaded); err != nil {
-		return fmt.Errorf("error encoding DoubleIndex.fieldIntIsLoaded: %w", err)
-	}
-	if err := enc.Encode(o.fieldIntIsDirty); err != nil {
-		return fmt.Errorf("error encoding DoubleIndex.fieldIntIsDirty: %w", err)
-	}
 
-	if err := enc.Encode(o.fieldString); err != nil {
-		return fmt.Errorf("error encoding DoubleIndex.fieldString: %w", err)
-	}
-	if err := enc.Encode(o.fieldStringIsLoaded); err != nil {
-		return fmt.Errorf("error encoding DoubleIndex.fieldStringIsLoaded: %w", err)
-	}
-	if err := enc.Encode(o.fieldStringIsDirty); err != nil {
-		return fmt.Errorf("error encoding DoubleIndex.fieldStringIsDirty: %w", err)
-	}
 
-	if o._aliases == nil {
-		if err := enc.Encode(false); err != nil {
-			return err
-		}
-	} else {
-		if err := enc.Encode(true); err != nil {
-			return err
-		}
-		if err := enc.Encode(o._aliases); err != nil {
-			return fmt.Errorf("error encoding DoubleIndex._aliases: %w", err)
-		}
-	}
+    if err := enc.Encode(o.fieldInt); err != nil {
+        return fmt.Errorf("error encoding DoubleIndex.fieldInt: %w", err)
+    }
+    if err := enc.Encode(o.fieldIntIsLoaded); err != nil {
+        return fmt.Errorf("error encoding DoubleIndex.fieldIntIsLoaded: %w", err)
+    }
+    if err := enc.Encode(o.fieldIntIsDirty); err != nil {
+        return fmt.Errorf("error encoding DoubleIndex.fieldIntIsDirty: %w", err)
+    }
 
-	if err := enc.Encode(o._restored); err != nil {
-		return fmt.Errorf("error encoding DoubleIndex._restored: %w", err)
-	}
-	if err := enc.Encode(o._originalPK); err != nil {
-		return fmt.Errorf("error encoding DoubleIndex._originalPK: %w", err)
-	}
-	return nil
+
+
+    if err := enc.Encode(o.fieldString); err != nil {
+        return fmt.Errorf("error encoding DoubleIndex.fieldString: %w", err)
+    }
+    if err := enc.Encode(o.fieldStringIsLoaded); err != nil {
+        return fmt.Errorf("error encoding DoubleIndex.fieldStringIsLoaded: %w", err)
+    }
+    if err := enc.Encode(o.fieldStringIsDirty); err != nil {
+        return fmt.Errorf("error encoding DoubleIndex.fieldStringIsDirty: %w", err)
+    }
+
+
+
+    if o._aliases == nil {
+        if err := enc.Encode(false); err != nil {
+            return err
+        }
+    } else {
+        if err := enc.Encode(true); err != nil {
+            return err
+        }
+        if err := enc.Encode(o._aliases); err != nil {
+            return fmt.Errorf("error encoding DoubleIndex._aliases: %w", err)
+        }
+    }
+
+    if err := enc.Encode(o._restored); err != nil {
+        return fmt.Errorf("error encoding DoubleIndex._restored: %w", err)
+    }
+    if err := enc.Encode(o._originalPK); err != nil {
+        return fmt.Errorf("error encoding DoubleIndex._originalPK: %w", err)
+    }
+    return nil
 }
-
 // UnmarshalBinary converts a structure that was created with MarshalBinary into a DoubleIndex object.
 func (o *doubleIndexBase) UnmarshalBinary(data []byte) (err error) {
 	buf := bytes.NewReader(data)
@@ -926,86 +979,88 @@ func (o *doubleIndexBase) decodeFrom(dec db.Decoder) (err error) {
 	var isPtr bool
 
 	_ = isPtr
-	if err = dec.Decode(&o.id); err != nil {
-		return fmt.Errorf("error decoding DoubleIndex.id: %w", err)
-	}
-	if err = dec.Decode(&o.idIsLoaded); err != nil {
-		return fmt.Errorf("error decoding DoubleIndex.idIsLoaded: %w", err)
-	}
-	if err = dec.Decode(&o.idIsDirty); err != nil {
-		return fmt.Errorf("error decoding DoubleIndex.idIsDirty: %w", err)
-	}
+    if err = dec.Decode(&o.id); err != nil {
+        return fmt.Errorf("error decoding DoubleIndex.id: %w", err)
+    }
+    if err = dec.Decode(&o.idIsLoaded); err != nil {
+        return fmt.Errorf("error decoding DoubleIndex.idIsLoaded: %w", err)
+    }
+    if err = dec.Decode(&o.idIsDirty); err != nil {
+        return fmt.Errorf("error decoding DoubleIndex.idIsDirty: %w", err)
+    }
 
-	if err = dec.Decode(&o.fieldInt); err != nil {
-		return fmt.Errorf("error decoding DoubleIndex.fieldInt: %w", err)
-	}
-	if err = dec.Decode(&o.fieldIntIsLoaded); err != nil {
-		return fmt.Errorf("error decoding DoubleIndex.fieldIntIsLoaded: %w", err)
-	}
-	if err = dec.Decode(&o.fieldIntIsDirty); err != nil {
-		return fmt.Errorf("error decoding DoubleIndex.fieldIntIsDirty: %w", err)
-	}
+    if err = dec.Decode(&o.fieldInt); err != nil {
+        return fmt.Errorf("error decoding DoubleIndex.fieldInt: %w", err)
+    }
+    if err = dec.Decode(&o.fieldIntIsLoaded); err != nil {
+        return fmt.Errorf("error decoding DoubleIndex.fieldIntIsLoaded: %w", err)
+    }
+    if err = dec.Decode(&o.fieldIntIsDirty); err != nil {
+        return fmt.Errorf("error decoding DoubleIndex.fieldIntIsDirty: %w", err)
+    }
 
-	if err = dec.Decode(&o.fieldString); err != nil {
-		return fmt.Errorf("error decoding DoubleIndex.fieldString: %w", err)
-	}
-	if err = dec.Decode(&o.fieldStringIsLoaded); err != nil {
-		return fmt.Errorf("error decoding DoubleIndex.fieldStringIsLoaded: %w", err)
-	}
-	if err = dec.Decode(&o.fieldStringIsDirty); err != nil {
-		return fmt.Errorf("error decoding DoubleIndex.fieldStringIsDirty: %w", err)
-	}
+    if err = dec.Decode(&o.fieldString); err != nil {
+        return fmt.Errorf("error decoding DoubleIndex.fieldString: %w", err)
+    }
+    if err = dec.Decode(&o.fieldStringIsLoaded); err != nil {
+        return fmt.Errorf("error decoding DoubleIndex.fieldStringIsLoaded: %w", err)
+    }
+    if err = dec.Decode(&o.fieldStringIsDirty); err != nil {
+        return fmt.Errorf("error decoding DoubleIndex.fieldStringIsDirty: %w", err)
+    }
 
-	if err = dec.Decode(&isPtr); err != nil {
-		return fmt.Errorf("error decoding DoubleIndex._aliases isPtr: %w", err)
-	}
-	if isPtr {
-		if err = dec.Decode(&o._aliases); err != nil {
-			return fmt.Errorf("error decoding DoubleIndex._aliases: %w", err)
-		}
-	}
+    if err = dec.Decode(&isPtr); err != nil {
+        return fmt.Errorf("error decoding DoubleIndex._aliases isPtr: %w", err)
+    }
+    if isPtr {
+        if err = dec.Decode(&o._aliases); err != nil {
+            return fmt.Errorf("error decoding DoubleIndex._aliases: %w", err)
+        }
+    }
 
-	if err = dec.Decode(&o._restored); err != nil {
-		return fmt.Errorf("error decoding DoubleIndex._restored: %w", err)
-	}
-	if err = dec.Decode(&o._originalPK); err != nil {
-		return fmt.Errorf("error decoding DoubleIndex._originalPK: %w", err)
-	}
+    if err = dec.Decode(&o._restored); err != nil {
+        return fmt.Errorf("error decoding DoubleIndex._restored: %w", err)
+    }
+    if err = dec.Decode(&o._originalPK); err != nil {
+        return fmt.Errorf("error decoding DoubleIndex._originalPK: %w", err)
+    }
 	return
 }
-
 // MarshalJSON serializes the object into a JSON object.
 // Only valid data will be serialized, meaning, you can control what gets serialized by using Select to
 // select only the fields you want when you query for the object. Another way to control the output
 // is to call MarshalStringMap, modify the map, then encode the map.
 func (o *doubleIndexBase) MarshalJSON() (data []byte, err error) {
-	v := o.MarshalStringMap()
-	return json.Marshal(v)
+    v := o.MarshalStringMap()
+    return json.Marshal(v)
 }
 
 // MarshalStringMap serializes the object into a string map of interfaces.
 // Only valid data will be serialized, meaning, you can control what gets serialized by using Select to
 // select only the fields you want when you query for the object. The keys are the same as the json keys.
-func (o *doubleIndexBase) MarshalStringMap() map[string]interface{} {
-	v := make(map[string]interface{})
+func (o *doubleIndexBase) MarshalStringMap() (map[string]interface{}) {
+    v := make(map[string]interface{})
 
-	if o.idIsLoaded {
-		v["id"] = o.id
-	}
+    if o.idIsLoaded {
+        v["id"] = o.id
+    }
 
-	if o.fieldIntIsLoaded {
-		v["fieldInt"] = o.fieldInt
-	}
 
-	if o.fieldStringIsLoaded {
-		v["fieldString"] = o.fieldString
-	}
+    if o.fieldIntIsLoaded {
+        v["fieldInt"] = o.fieldInt
+    }
 
-	for _k, _v := range o._aliases {
-		v[_k] = _v
-	}
-	return v
+
+    if o.fieldStringIsLoaded {
+        v["fieldString"] = o.fieldString
+    }
+
+    for _k,_v := range o._aliases {
+        v[_k] = _v
+    }
+    return v
 }
+
 
 // UnmarshalJSON unmarshalls the given json data into the DoubleIndex. The DoubleIndex can be a
 // newly created object, or one loaded from the database.
@@ -1016,11 +1071,10 @@ func (o *doubleIndexBase) MarshalStringMap() map[string]interface{} {
 // Unmarshalling of sub-objects, as in objects linked via foreign keys, is not currently supported.
 //
 // The fields it expects are:
-//
-//	"id" - int
-//	"fieldInt" - int
-//	"fieldString" - string
-func (o *doubleIndexBase) UnmarshalJSON(data []byte) (err error) {
+//   "id" - int
+//   "fieldInt" - int
+//   "fieldString" - string
+func (o *doubleIndexBase) UnmarshalJSON (data []byte) (err error) {
 	var v map[string]interface{}
 	if len(data) == 0 {
 		return
@@ -1037,67 +1091,73 @@ func (o *doubleIndexBase) UnmarshalJSON(data []byte) (err error) {
 //
 // Override this in DoubleIndex to modify the json before sending it here.
 func (o *doubleIndexBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
-	for k, v := range m {
-		switch k {
+    for k,v := range m {
+        switch k {
 
-		case "id":
-			{
-				if v == nil {
-					return fmt.Errorf("field %s cannot be null", k)
-				}
+        case "id":
+        {
+            if v == nil {
+                return fmt.Errorf("field %s cannot be null", k)
+            }
 
-				switch n := v.(type) {
-				case json.Number:
-					n2, err := n.Int64()
-					if err != nil {
-						return err
-					}
-					o.SetID(int(n2))
-				case int:
-					o.SetID(n)
-				case float64:
-					o.SetID(int(n))
-				default:
-					return fmt.Errorf("field %s must be a number", k)
-				}
-			}
 
-		case "fieldInt":
-			{
-				if v == nil {
-					return fmt.Errorf("field %s cannot be null", k)
-				}
 
-				switch n := v.(type) {
-				case json.Number:
-					n2, err := n.Int64()
-					if err != nil {
-						return err
-					}
-					o.SetFieldInt(int(n2))
-				case int:
-					o.SetFieldInt(n)
-				case float64:
-					o.SetFieldInt(int(n))
-				default:
-					return fmt.Errorf("field %s must be a number", k)
-				}
-			}
 
-		case "fieldString":
-			{
-				if v == nil {
-					return fmt.Errorf("field %s cannot be null", k)
-				}
+            switch n := v.(type) {
+            case json.Number:
+                n2,err := n.Int64()
+                if err != nil {return err}
+                o.SetID(int(n2))
+            case int:
+                o.SetID(n)
+            case float64:
+                o.SetID(int(n))
+            default:
+                return fmt.Errorf("field %s must be a number", k)
+            }
+            }
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetFieldString(s)
-				}
-			}
+        case "fieldInt":
+        {
+            if v == nil {
+                return fmt.Errorf("field %s cannot be null", k)
+            }
 
-		}
-	}
-	return
+
+
+
+            switch n := v.(type) {
+            case json.Number:
+                n2,err := n.Int64()
+                if err != nil {return err}
+                o.SetFieldInt(int(n2))
+            case int:
+                o.SetFieldInt(n)
+            case float64:
+                o.SetFieldInt(int(n))
+            default:
+                return fmt.Errorf("field %s must be a number", k)
+            }
+            }
+
+        case "fieldString":
+        {
+            if v == nil {
+                return fmt.Errorf("field %s cannot be null", k)
+            }
+
+
+
+
+            if s,ok := v.(string); !ok {
+                return fmt.Errorf("json field %s must be a string", k)
+            } else {
+                o.SetFieldString(s)
+            }
+            }
+
+        }
+    }
+    return
 }
+

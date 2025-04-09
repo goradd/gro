@@ -54,14 +54,14 @@ type {{= builderInterface }} interface {
 	Having(node query.Node)  {{= builderInterface }}
 
     // Load terminates the query builder, performs the query, and returns a slice of {{= table.Identifier }} objects.
-    // If there are any errors, nil is returned and the specific error is stored in the context.
+    // If there are any errors, nil is returned along with the error.
     // If no results come back from the query, it will return a non-nil empty slice.
-	Load() []*{{= table.Identifier }}
+	Load() ([]*{{= table.Identifier }}, error)
     // Load terminates the query builder, performs the query, and returns a slice of interfaces.
     // This can then satisfy a general interface that loads arrays of objects.
-    // If there are any errors, nil is returned and the specific error is stored in the context.
+    // If there are any errors, nil is returned along with the error.
     // If no results come back from the query, it will return a non-nil empty slice.
-	LoadI() []query.OrmObj
+	LoadI() ([]query.OrmObj, error)
 
     // LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
     //
@@ -73,27 +73,19 @@ type {{= builderInterface }} interface {
     // on the cursor object when you are done. You should use
     //   defer cursor.Close()
     // to make sure the cursor gets closed.
-	LoadCursor() {{= table.VariableNamePlural() }}Cursor
+	LoadCursor() ({{= table.VariableNamePlural() }}Cursor, error)
 
 	// Get is a convenience method to return only the first item found in a query.
     // The entire query is performed, so you should generally use this only if you know
     // you are selecting on one or very few items.
-    //
     // If an error occurs, or no results are found, a nil is returned.
-    // In the case of an error, the error is returned in the context.
-	Get() *{{= table.Identifier }}
+	Get() (*{{= table.Identifier }}, error)
 
     // Count terminates a query and returns just the number of items in the result.
     // If you have Select or Calculation columns in the query, it will count NULL results as well.
     // To not count NULL values, use Where in the builder with a NotNull operation.
     // To count distinct combinations of items, call Distinct() on the builder.
-	Count() int
-
-	// Subquery terminates the query builder and tags it as a subquery within a larger query.
-    // You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-    // Generally you would use this as a node to a Calculation function on the surrounding query builder.
-   // Subquery() *query.SubqueryNode
-
+	Count() (int, error)
 }
 
 type {{= builderStruct }} struct {
@@ -111,11 +103,12 @@ func new{{= table.Identifier }}Builder(ctx context.Context) {{= builderInterface
 // Load terminates the query builder, performs the query, and returns a slice of {{= table.Identifier }} objects.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *{{= builderStruct }}) Load() ({{= table.VariableNamePlural() }} []*{{= table.Identifier }}) {
+func (b *{{= builderStruct }}) Load() ({{= table.VariableNamePlural() }} []*{{= table.Identifier }}, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("{{= table.DbKey }}")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _,item := range results.([]map[string]any) {
@@ -130,11 +123,12 @@ func (b *{{= builderStruct }}) Load() ({{= table.VariableNamePlural() }} []*{{= 
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *{{= builderStruct }}) LoadI() ({{= table.VariableNamePlural() }} []query.OrmObj) {
+func (b *{{= builderStruct }}) LoadI() ({{= table.VariableNamePlural() }} []query.OrmObj, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("{{= table.DbKey }}")
-	results := database.BuilderQuery(b.builder)
-	if results == nil {
+	var results any
+	results, err = database.BuilderQuery(b.builder)
+	if results == nil || err != nil {
 		return
 	}
 	for _,item := range results.([]map[string]any) {
@@ -156,13 +150,13 @@ func (b *{{= builderStruct }}) LoadI() ({{= table.VariableNamePlural() }} []quer
 // on the cursor object when you are done. You should use
 //   defer cursor.Close()
 // to make sure the cursor gets closed.
-func (b *{{= builderStruct }}) LoadCursor() {{= table.VariableNamePlural() }}Cursor {
+func (b *{{= builderStruct }}) LoadCursor() ({{= table.VariableNamePlural() }}Cursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("{{= table.DbKey }}")
-	result := database.BuilderQuery(b.builder)
+	result, err := database.BuilderQuery(b.builder)
 	cursor := result.(query.CursorI)
 
-	return {{= table.VariableNamePlural() }}Cursor{cursor}
+	return {{= table.VariableNamePlural() }}Cursor{cursor}, err
 }
 
 type {{= table.VariableNamePlural() }}Cursor struct {
@@ -172,50 +166,31 @@ type {{= table.VariableNamePlural() }}Cursor struct {
 // Next returns the current {{= table.Identifier }} object and moves the cursor to the next one.
 //
 // If there are no more records, it returns nil.
-func (c {{= table.VariableNamePlural() }}Cursor) Next() *{{= table.Identifier }} {
+func (c {{= table.VariableNamePlural() }}Cursor) Next() (*{{= table.Identifier }}, error) {
     if c.CursorI == nil {
-        return nil
+        return nil, nil
     }
 
-	row := c.CursorI.Next()
-	if row == nil {
-		return nil
+	row, err := c.CursorI.Next()
+	if row == nil || err != nil {
+		return nil, err
 	}
 	o := new({{= table.Identifier }})
 	o.load(row, o)
-	return o
+	return o, nil
 }
 
 // Get is a convenience method to return only the first item found in a query.
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
-//
 // If an error occurs, or no results are found, a nil is returned.
-// In the case of an error, the error is returned in the context.
-func (b *{{= builderStruct }}) Get() *{{= table.Identifier }} {
-	results := b.Load()
-	if results != nil && len(results) > 0 {
-	    obj := results[0]
-		return obj
-	} else {
-		return nil
-	}
-}
-
-/*
-// Join attaches the table referred to by joinedTable, filtering the join process using the operation node specified
-// by condition.
-// The joinedTable node will be modified by this process so that you can use it in subsequent builder operations.
-// Call GetAlias to return the resulting object from the query result.
-func (b *{{= builderStruct }}) Join(alias string, joinedTable query.Node, condition query.Node) {{= builderInterface }} {
-    if query.RootNode(n).TableName_() != {{L table.QueryName }} {
-        panic("you can only join a node that is rooted at node.{{= table.Identifier }}()")
+func (b *{{= builderStruct }}) Get() (*{{= table.Identifier }}, error) {
+    results, err := b.Load()
+    if err != nil || len(results) == 0 {
+        return nil, err
     }
-    // TODO: make sure joinedTable is a table node
-	b.builder.Join(alias, joinedTable, condition)
-	return b
+    return results[0], nil
 }
-*/
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
@@ -283,24 +258,15 @@ func (b *{{= builderStruct }})  Having(node query.Node)  {{= builderInterface }}
 // If you have Select or Calculation columns in the query, it will count NULL results as well.
 // To not count NULL values, use Where in the builder with a NotNull operation.
 // To count distinct combinations of items, call Distinct() on the builder.
-func (b *{{= builderStruct }})  Count() int {
+func (b *{{= builderStruct }})  Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("{{= table.DbKey }}")
-	results := database.BuilderQuery(b.builder)
-    if results == nil {
-        return 0
+	results, err := database.BuilderQuery(b.builder)
+    if results == nil || err != nil {
+        return 0, err
     }
-	return results.(int)
+	return results.(int), nil
 }
-
-/*
-// Subquery terminates the query builder and tags it as a subquery within a larger query.
-// You MUST include what you are selecting by adding Calculation or Select functions on the subquery builder.
-// Generally you would use this as a node to a Calculation function on the surrounding query builder.
-func (b *{{= builderStruct }})  Subquery() *query.SubqueryNode {
-	 return b.builder.Subquery()
-}
-*/
 
 }}
 

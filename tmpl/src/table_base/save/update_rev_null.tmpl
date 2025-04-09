@@ -3,27 +3,27 @@
 //*** {{includeName}}
 }}
 {{
-                currentObjs := Query{{= col.Table.IdentifierPlural }}(ctx).
+                if currentObjs, err := Query{{= col.Table.IdentifierPlural }}(ctx).
                           Where(op.Equal(node.{{= col.Table.Identifier }}().{{= col.Identifier }}(), o.PrimaryKey())).
                           Select(node.{{= col.Table.Identifier }}().{{= col.Identifier }}()).
-                          Load()
-
-                for _,obj := range currentObjs {
-                    if !o.{{= col.ReverseVariableIdentifier() }}.Has(obj.PrimaryKey()) {
-                        // The old object is not in the group of new objects
-                        obj.Set{{= col.Identifier }}ToNull()
-                        if err := obj.Save(ctx); err != nil {
-                            return err
+                          Load(); err != nil {
+                    return err
+                } else {
+                    for _,obj := range currentObjs {
+                        if !o.{{= col.ReverseVariableIdentifier() }}.Has(obj.PrimaryKey()) {
+                            // The old object is not in the group of new objects
+                            obj.Set{{= col.Identifier }}ToNull()
+                            if err = obj.Save(ctx); err != nil {
+                                return err
+                            }
                         }
                     }
-                }
-                {
                     keys := o.{{= col.ReverseVariableIdentifier() }}.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
                     for i, k := range keys {
                         obj := o.{{= col.ReverseVariableIdentifier() }}.Get(k)
                         obj.Set{{= col.Identifier }}(o.PrimaryKey())
                         obj.{{= col.VariableIdentifier() }}IsDirty = true // force a change in case data is stale
-                        if err := obj.Save(ctx); err != nil {
+                        if err = obj.Save(ctx); err != nil {
                             return err
                         }
                         if obj.PrimaryKey() != k {

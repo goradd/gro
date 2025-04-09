@@ -3,12 +3,13 @@
 //*** {{includeName}}
 }}
 {{
-                obj := Query{{= col.Table.IdentifierPlural }}(ctx).
+                if obj, err := Query{{= col.Table.IdentifierPlural }}(ctx).
                         Where(op.Equal(node.{{= col.Table.Identifier }}().{{= col.Identifier }}(), o.PrimaryKey())).
-                        Get()
-                if obj != nil  && obj.PrimaryKey() != o.{{= col.ReverseVariableIdentifier() }}.PrimaryKey() {
+                        Get(); err != nil {
+                    return err
+                } else if obj != nil && obj.PrimaryKey() != o.{{= col.ReverseVariableIdentifier() }}.PrimaryKey() {
                     obj.Set{{= col.Identifier }}ToNull()
-                    if err := obj.Save(ctx); err != nil {
+                    if err = obj.Save(ctx); err != nil {
                         return err
                     }
                 }

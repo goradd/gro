@@ -4,22 +4,30 @@
 }}
 {{
                     // Since the other side of the relationship cannot be null, there cannot be objects that will be detached.
-                    oldObjs := Query{{= col.Table.IdentifierPlural }}(ctx).
+                    if oldObjs, err := Query{{= col.Table.IdentifierPlural }}(ctx).
                                Where(op.Equal(node.{{= col.Table.Identifier }}().{{= col.Identifier }}(), o.PrimaryKey())).
                                Select(node.{{= col.Table.Identifier }}().{{= col.Identifier }}()).
-                               Load()
-                    for _,obj := range oldObjs {
-                        if !o.{{= col.ReverseVariableIdentifier() }}.Has(obj.PrimaryKey()) {
-                            obj.Delete(ctx) // old object is not in group of new objects, so delete it since it has a non-null reference to o.
+                               Load(); err != nil {
+                        return err
+                    } else {
+                        for _,obj := range oldObjs {
+                            if o.{{= col.ReverseVariableIdentifier() }}.Has(obj.PrimaryKey()) {
+                                err = obj.Delete(ctx) // old object is not in group of new objects, so delete it since it has a non-null reference to o.
+                                if err != nil {
+                                    return err
+                                }
+                            }
                         }
-                    }
-                    {
                         keys := o.{{= col.ReverseVariableIdentifier() }}.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
                         for i, k := range keys {
                             obj := o.{{= col.ReverseVariableIdentifier() }}.Get(k)
+                            if obj == nil {
+                                // object was deleted during save?
+                                continue
+                            }
                             obj.Set{{= col.Identifier }}(o.PrimaryKey())
                             obj.{{= col.VariableIdentifier() }}IsDirty = true // force a change in case data is stale
-                            if err := obj.Save(ctx); err != nil {
+                            if err = obj.Save(ctx); err != nil {
                                 return err
                             }
                             if obj.PrimaryKey() != k {
