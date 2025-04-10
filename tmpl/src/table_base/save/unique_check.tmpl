@@ -19,19 +19,14 @@
     }
 {{if}}
 {{for}}
-
 {{for _,idx := range table.Indexes}}
-{{if idx.IsUnique && len(idx.Columns) > 1 }}{{# check multi-column unique indexes}}
-    if ({{join idx.Columns, " || "}}o.{{= _j.VariableIdentifier() }}IsDirty{{join}})
-{{for _,col := range idx.Columns}}
-{{if col.IsNullable}}
-            && !o.{{= col.VariableIdentifier() }}IsNull
-{{if}}
-{{for}} {
+{{if idx.IsUnique && len(idx.Columns) > 1 }}
+    // Check mult-column unique index
+    if ({{join idx.Columns, " || "}}o.{{= _j.VariableIdentifier() }}IsDirty{{join}}) {{for _,col := range idx.Columns}}{{if col.IsNullable}} && !o.{{= col.VariableIdentifier() }}IsNull{{if}}{{for}} {
         if obj, err := Load{{= table.Identifier }}By{{join idx.Columns, ""}}{{= _j.Identifier }}{{join}}(ctx, {{join idx.Columns, ", "}}o.{{= _j.VariableIdentifier() }}{{join}}); err != nil {
             return err
         } else if obj != nil {
-            return db.NewUniqueValueError("{{= table.QueryName }}", map[string]any{ {{join idx.Columns, ","}}"{{= _j.Identifier }}":o.{{= _j.VariableIdentifier() }}{{join}} }, nil)
+            return db.NewUniqueValueError("{{= table.QueryName }}", map[string]any{ {{join idx.Columns, ","}}"{{= _j.QueryName }}":o.{{= _j.VariableIdentifier() }}{{join}} }, nil)
         }
     }
 {{if}}

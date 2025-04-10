@@ -435,9 +435,29 @@
             "type": "string",
             "size": 50,
             "case_insensitive": true
+          },
+          {
+            "name": "field2_int",
+            "type": "int",
+            "size": 32,
+            "is_nullable": true
+          },
+          {
+            "name": "field2_string",
+            "type": "string",
+            "size": 100,
+            "is_nullable": true,
+            "case_insensitive": true
           }
         ],
         "multi_column_indexes": [
+          {
+            "columns": [
+              "field2_int",
+              "field2_string"
+            ],
+            "is_unique": true
+          },
           {
             "columns": [
               "field_int",

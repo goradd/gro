@@ -8000,16 +8000,12 @@ func (o *`); err != nil {
 
 	}
 
-	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
-	}
-
 	for _, idx := range table.Indexes {
 
 		if idx.IsUnique && len(idx.Columns) > 1 {
 
-			if _, err = io.WriteString(_w, `    if (`); err != nil {
+			if _, err = io.WriteString(_w, `    // Check mult-column unique index
+    if (`); err != nil {
 				return
 			}
 
@@ -8034,8 +8030,7 @@ func (o *`); err != nil {
 					}
 				}
 			}
-			if _, err = io.WriteString(_w, `)
-`); err != nil {
+			if _, err = io.WriteString(_w, `) `); err != nil {
 				return
 			}
 
@@ -8043,7 +8038,7 @@ func (o *`); err != nil {
 
 				if col.IsNullable {
 
-					if _, err = io.WriteString(_w, `            && !o.`); err != nil {
+					if _, err = io.WriteString(_w, ` && !o.`); err != nil {
 						return
 					}
 
@@ -8051,8 +8046,7 @@ func (o *`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, `IsNull
-`); err != nil {
+					if _, err = io.WriteString(_w, `IsNull`); err != nil {
 						return
 					}
 
@@ -8129,7 +8123,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, _j.Identifier); err != nil {
+				if _, err = io.WriteString(_w, _j.QueryName); err != nil {
 					return
 				}
 
@@ -9488,16 +9482,12 @@ func (o *`); err != nil {
 
 	}
 
-	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
-	}
-
 	for _, idx := range table.Indexes {
 
 		if idx.IsUnique && len(idx.Columns) > 1 {
 
-			if _, err = io.WriteString(_w, `    if (`); err != nil {
+			if _, err = io.WriteString(_w, `    // Check mult-column unique index
+    if (`); err != nil {
 				return
 			}
 
@@ -9522,8 +9512,7 @@ func (o *`); err != nil {
 					}
 				}
 			}
-			if _, err = io.WriteString(_w, `)
-`); err != nil {
+			if _, err = io.WriteString(_w, `) `); err != nil {
 				return
 			}
 
@@ -9531,7 +9520,7 @@ func (o *`); err != nil {
 
 				if col.IsNullable {
 
-					if _, err = io.WriteString(_w, `            && !o.`); err != nil {
+					if _, err = io.WriteString(_w, ` && !o.`); err != nil {
 						return
 					}
 
@@ -9539,8 +9528,7 @@ func (o *`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, `IsNull
-`); err != nil {
+					if _, err = io.WriteString(_w, `IsNull`); err != nil {
 						return
 					}
 
@@ -9617,7 +9605,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, _j.Identifier); err != nil {
+				if _, err = io.WriteString(_w, _j.QueryName); err != nil {
 					return
 				}
 

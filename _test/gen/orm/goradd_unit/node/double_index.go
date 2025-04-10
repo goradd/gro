@@ -18,6 +18,10 @@ type DoubleIndexNode interface {
 	FieldInt() *query.ColumnNode
 	// FieldString represents the field_string column in the database.
 	FieldString() *query.ColumnNode
+	// Field2Int represents the field2_int column in the database.
+	Field2Int() *query.ColumnNode
+	// Field2String represents the field2_string column in the database.
+	Field2String() *query.ColumnNode
 }
 
 // doubleIndexTable represents the double_index table in a query. It uses a builder pattern to chain
@@ -52,6 +56,8 @@ func (n doubleIndexTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.FieldInt())
 	nodes = append(nodes, n.FieldString())
+	nodes = append(nodes, n.Field2Int())
+	nodes = append(nodes, n.Field2String())
 	return nodes
 }
 
@@ -86,6 +92,28 @@ func (n doubleIndexTable) FieldString() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:    "field_string",
 		Identifier:   "FieldString",
+		ReceiverType: query.ColTypeString,
+		IsPrimaryKey: false,
+	}
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n doubleIndexTable) Field2Int() *query.ColumnNode {
+	cn := &query.ColumnNode{
+		QueryName:    "field2_int",
+		Identifier:   "Field2Int",
+		ReceiverType: query.ColTypeInteger,
+		IsPrimaryKey: false,
+	}
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n doubleIndexTable) Field2String() *query.ColumnNode {
+	cn := &query.ColumnNode{
+		QueryName:    "field2_string",
+		Identifier:   "Field2String",
 		ReceiverType: query.ColTypeString,
 		IsPrimaryKey: false,
 	}

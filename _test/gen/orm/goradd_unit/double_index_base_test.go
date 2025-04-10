@@ -35,6 +35,10 @@ func updateMinimalSampleDoubleIndex(obj *DoubleIndex) {
 
 	obj.SetFieldString(test.RandomValue[string](50))
 
+	obj.SetField2Int(test.RandomValue[int](32))
+
+	obj.SetField2String(test.RandomValue[string](100))
+
 }
 
 // createMaximalSampleDoubleIndex creates an unsaved version of a DoubleIndex object
@@ -73,6 +77,12 @@ func assertEqualFieldsDoubleIndex(t *testing.T, obj1, obj2 *DoubleIndex) {
 	}
 	if obj1.FieldStringIsLoaded() && obj2.FieldStringIsLoaded() { // only check loaded values
 		assert.EqualValues(t, obj1.FieldString(), obj2.FieldString())
+	}
+	if obj1.Field2IntIsLoaded() && obj2.Field2IntIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.Field2Int(), obj2.Field2Int())
+	}
+	if obj1.Field2StringIsLoaded() && obj2.Field2StringIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.Field2String(), obj2.Field2String())
 	}
 
 }
@@ -124,6 +134,51 @@ func TestDoubleIndex_SetFieldString(t *testing.T) {
 		obj.SetFieldString(val)
 	})
 }
+func TestDoubleIndex_SetField2Int(t *testing.T) {
+
+	obj := NewDoubleIndex()
+
+	assert.True(t, obj.IsNew())
+	val := test.RandomValue[int](32)
+	obj.SetField2Int(val)
+	assert.Equal(t, val, obj.Field2Int())
+	assert.False(t, obj.Field2IntIsNull())
+
+	// Test NULL
+	obj.SetField2IntToNull()
+	assert.EqualValues(t, 0, obj.Field2Int())
+	assert.True(t, obj.Field2IntIsNull())
+
+	// test default
+	obj.SetField2Int(0)
+	assert.EqualValues(t, 0, obj.Field2Int(), "set default")
+
+}
+func TestDoubleIndex_SetField2String(t *testing.T) {
+
+	obj := NewDoubleIndex()
+
+	assert.True(t, obj.IsNew())
+	val := test.RandomValue[string](100)
+	obj.SetField2String(val)
+	assert.Equal(t, val, obj.Field2String())
+	assert.False(t, obj.Field2StringIsNull())
+
+	// Test NULL
+	obj.SetField2StringToNull()
+	assert.EqualValues(t, "", obj.Field2String())
+	assert.True(t, obj.Field2StringIsNull())
+
+	// test default
+	obj.SetField2String("")
+	assert.EqualValues(t, "", obj.Field2String(), "set default")
+
+	// test panic on setting value larger than maximum size allowed
+	val = test.RandomValue[string](101)
+	assert.Panics(t, func() {
+		obj.SetField2String(val)
+	})
+}
 
 func TestDoubleIndex_Copy(t *testing.T) {
 	obj := createMinimalSampleDoubleIndex()
@@ -133,6 +188,8 @@ func TestDoubleIndex_Copy(t *testing.T) {
 	assert.Equal(t, obj.ID(), obj2.ID())
 	assert.Equal(t, obj.FieldInt(), obj2.FieldInt())
 	assert.Equal(t, obj.FieldString(), obj2.FieldString())
+	assert.Equal(t, obj.Field2Int(), obj2.Field2Int())
+	assert.Equal(t, obj.Field2String(), obj2.Field2String())
 
 }
 
@@ -165,6 +222,20 @@ func TestDoubleIndex_BasicInsert(t *testing.T) {
 	assert.False(t, obj2.fieldStringIsDirty)
 	obj2.SetFieldString(obj2.FieldString())
 	assert.False(t, obj2.fieldStringIsDirty)
+
+	assert.True(t, obj2.Field2IntIsLoaded())
+	assert.False(t, obj2.Field2IntIsNull())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.field2IntIsDirty)
+	obj2.SetField2Int(obj2.Field2Int())
+	assert.False(t, obj2.field2IntIsDirty)
+
+	assert.True(t, obj2.Field2StringIsLoaded())
+	assert.False(t, obj2.Field2StringIsNull())
+	// test that setting it to the same value will not change the dirty bit
+	assert.False(t, obj2.field2StringIsDirty)
+	obj2.SetField2String(obj2.Field2String())
+	assert.False(t, obj2.field2StringIsDirty)
 
 }
 
@@ -201,6 +272,8 @@ func TestDoubleIndex_BasicUpdate(t *testing.T) {
 	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
 	assert.Equal(t, obj2.FieldInt(), obj.FieldInt(), "FieldInt did not update")
 	assert.Equal(t, obj2.FieldString(), obj.FieldString(), "FieldString did not update")
+	assert.Equal(t, obj2.Field2Int(), obj.Field2Int(), "Field2Int did not update")
+	assert.Equal(t, obj2.Field2String(), obj.Field2String(), "Field2String did not update")
 }
 
 func TestDoubleIndex_ReferenceLoad(t *testing.T) {
@@ -279,6 +352,12 @@ func TestDoubleIndex_Getters(t *testing.T) {
 	assert.Equal(t, obj.FieldString(), obj.Get(node.DoubleIndex().FieldString().Identifier))
 	assert.Panics(t, func() { obj2.FieldString() })
 	assert.Nil(t, obj2.Get(node.DoubleIndex().FieldString().Identifier))
+	assert.Equal(t, obj.Field2Int(), obj.Get(node.DoubleIndex().Field2Int().Identifier))
+	assert.Panics(t, func() { obj2.Field2Int() })
+	assert.Nil(t, obj2.Get(node.DoubleIndex().Field2Int().Identifier))
+	assert.Equal(t, obj.Field2String(), obj.Get(node.DoubleIndex().Field2String().Identifier))
+	assert.Panics(t, func() { obj2.Field2String() })
+	assert.Nil(t, obj2.Get(node.DoubleIndex().Field2String().Identifier))
 }
 
 func TestDoubleIndex_QueryLoad(t *testing.T) {
@@ -352,6 +431,8 @@ func TestDoubleIndex_Count(t *testing.T) {
 	assert.Positive(t, func() int { i, _ := CountDoubleIndicesByID(ctx, obj2.ID()); return i }())
 	assert.Positive(t, func() int { i, _ := CountDoubleIndicesByFieldInt(ctx, obj2.FieldInt()); return i }())
 	assert.Positive(t, func() int { i, _ := CountDoubleIndicesByFieldString(ctx, obj2.FieldString()); return i }())
+	assert.Positive(t, func() int { i, _ := CountDoubleIndicesByField2Int(ctx, obj2.Field2Int()); return i }())
+	assert.Positive(t, func() int { i, _ := CountDoubleIndicesByField2String(ctx, obj2.Field2String()); return i }())
 
 }
 
@@ -385,14 +466,14 @@ func TestDoubleIndex_FailingMarshalBinary(t *testing.T) {
 	obj := createMinimalSampleDoubleIndex()
 	var err error
 
-	for i := 0; i < 12; i++ {
+	for i := 0; i < 20; i++ {
 		enc := &test.GobEncoder{Count: i}
 		err = obj.encodeTo(enc)
 		assert.Error(t, err)
 	}
 	// do it again with aliases
 	obj._aliases = make(map[string]any)
-	for i := 0; i < 13; i++ {
+	for i := 0; i < 21; i++ {
 		enc := &test.GobEncoder{Count: i}
 		err = obj.encodeTo(enc)
 		assert.Error(t, err)
@@ -404,7 +485,7 @@ func TestDoubleIndex_FailingUnmarshalBinary(t *testing.T) {
 	b, err := obj.MarshalBinary()
 	assert.NoError(t, err)
 	obj2 := NewDoubleIndex()
-	for i := 0; i < 12; i++ {
+	for i := 0; i < 20; i++ {
 		buf := bytes.NewReader(b)
 		dec := &test.GobDecoder{Decoder: gob.NewDecoder(buf), Count: i}
 		err = obj2.decodeFrom(dec)
@@ -418,7 +499,7 @@ func TestDoubleIndex_FailingUnmarshalBinary(t *testing.T) {
 	assert.NoError(t, err)
 
 	obj2 = NewDoubleIndex()
-	for i := 0; i < 13; i++ {
+	for i := 0; i < 21; i++ {
 		buf := bytes.NewReader(b)
 		dec := &test.GobDecoder{Decoder: gob.NewDecoder(buf), Count: i}
 		err = obj2.decodeFrom(dec)
@@ -437,6 +518,13 @@ func TestDoubleIndex_Indexes(t *testing.T) {
 	obj2, _ = LoadDoubleIndexByID(ctx, obj.ID())
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
 	assert.True(t, func() bool { h, _ := HasDoubleIndexByID(ctx, obj.ID()); return h }())
+
+	obj2, _ = LoadDoubleIndexByField2IntField2String(ctx, obj.Field2Int(), obj.Field2String())
+	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
+	assert.True(t, func() bool {
+		h, _ := HasDoubleIndexByField2IntField2String(ctx, obj.Field2Int(), obj.Field2String())
+		return h
+	}())
 
 	obj2, _ = LoadDoubleIndexByFieldIntFieldString(ctx, obj.FieldInt(), obj.FieldString())
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
