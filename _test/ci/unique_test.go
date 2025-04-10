@@ -24,7 +24,8 @@ func TestUniqueValue(t *testing.T) {
 	err := login.Save(ctx)
 	assert.Error(t, err)
 
-	login = goradd.LoadLoginByUsername(ctx, "system")
+	login, err = goradd.LoadLoginByUsername(ctx, "system")
+	assert.NoError(t, err)
 	login.SetUsername("jdoe")
 	err = login.Save(ctx)
 	assert.Error(t, err)

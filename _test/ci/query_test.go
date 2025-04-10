@@ -16,9 +16,10 @@ import (
 func TestBasic(t *testing.T) {
 	ctx := db.NewContext(nil)
 
-	people := goradd.QueryPeople(ctx).
+	people, err := goradd.QueryPeople(ctx).
 		OrderBy(node.Person().ID()).
 		Load()
+	assert.NoError(t, err)
 	if len(people) != 12 {
 		t.Error("12 people not found")
 	}
@@ -30,7 +31,7 @@ func TestBasic(t *testing.T) {
 func TestLoad(t *testing.T) {
 	ctx := db.NewContext(nil)
 
-	people := goradd.QueryPeople(ctx).
+	people, err := goradd.QueryPeople(ctx).
 		Where(op.Equal(node.Person().ID(), "7")).
 		Select(
 			node.Person().Projects(),        // many many
@@ -38,7 +39,7 @@ func TestLoad(t *testing.T) {
 			node.Person().Login(),
 		).
 		Load()
-
+	assert.NoError(t, err)
 	person := people[0]
 	assert.Equal(t, "Wolfe", person.LastName(), "Last name was not selected by default")
 	assert.Len(t, person.Projects(), 2)
@@ -46,12 +47,12 @@ func TestLoad(t *testing.T) {
 	assert.Equal(t, person.Types().Len(), 2)
 	assert.Equal(t, "kwolfe", person.Login().Username())
 
-	person = goradd.LoadPerson(ctx, "7",
+	person, err = goradd.LoadPerson(ctx, "7",
 		node.Person().Projects(),        // many many
 		node.Person().ManagerProjects(), // reverse
 		node.Person().Login(),           // reverse unique
 	)
-
+	assert.NoError(t, err)
 	// Serialize and deserialize
 	assert.Len(t, person.Projects(), 2)
 	assert.Len(t, person.ManagerProjects(), 2)
@@ -61,25 +62,27 @@ func TestLoad(t *testing.T) {
 
 func TestSort(t *testing.T) {
 	ctx := db.NewContext(nil)
-	people := goradd.QueryPeople(ctx).
+	people, err := goradd.QueryPeople(ctx).
 		OrderBy(node.Person().LastName()).
 		Load()
-
+	assert.NoError(t, err)
 	if people[0].LastName() != "Brady" {
 		t.Error("Person found not Brady, found " + people[0].LastName())
 	}
 
-	people = goradd.QueryPeople(ctx).
+	people, err = goradd.QueryPeople(ctx).
 		OrderBy(node.Person().FirstName()).
 		Load()
+	assert.NoError(t, err)
 	if people[0].FirstName() != "Alex" {
 		t.Error("Person found not Alex, found " + people[0].FirstName())
 	}
 
 	// Testing for regression bug with multiple sorts
-	people = goradd.QueryPeople(ctx).
+	people, err = goradd.QueryPeople(ctx).
 		OrderBy(node.Person().LastName().Descending(), node.Person().FirstName().Ascending()).
 		Load()
+	assert.NoError(t, err)
 	if people[0].FirstName() != "Karen" || people[0].LastName() != "Wolfe" {
 		t.Error("Person found not Karen Wolfe, found " + people[0].FirstName() + " " + people[0].LastName())
 	}
@@ -87,11 +90,11 @@ func TestSort(t *testing.T) {
 
 func TestWhere(t *testing.T) {
 	ctx := db.NewContext(nil)
-	people := goradd.QueryPeople(ctx).
+	people, err := goradd.QueryPeople(ctx).
 		Where(op.Equal(node.Person().LastName(), "Smith")).
 		OrderBy(node.Person().FirstName().Descending(), node.Person().LastName()).
 		Load()
-
+	assert.NoError(t, err)
 	if people[0].FirstName() != "Wendy" {
 		t.Error("Person found not Wendy, found " + people[0].FirstName())
 	}
@@ -99,22 +102,27 @@ func TestWhere(t *testing.T) {
 
 func TestAlias(t *testing.T) {
 	ctx := db.NewContext(nil)
-	projects := goradd.QueryProjects(ctx).
+	projects, err := goradd.QueryProjects(ctx).
 		Where(op.Equal(node.Project().ID(), 1)).
 		Calculation(node.Project(), "Difference", op.Subtract(node.Project().Budget(), node.Project().Spent())).
 		Load()
-
+	assert.NoError(t, err)
 	v := projects[0].GetAlias("Difference").Float()
 	assert.EqualValues(t, -690.5, v)
 }
 
 func TestCursor(t *testing.T) {
 	ctx := db.NewContext(nil)
-	projectCursor := goradd.QueryProjects(ctx).
+	projectCursor, err := goradd.QueryProjects(ctx).
 		LoadCursor()
-
+	assert.NoError(t, err)
 	var projects []*goradd.Project
-	for project := projectCursor.Next(); project != nil; project = projectCursor.Next() {
+	for {
+		project, err := projectCursor.Next()
+		assert.NoError(t, err)
+		if project == nil {
+			break
+		}
 		projects = append(projects, project)
 	}
 
@@ -147,31 +155,31 @@ func TestCursor(t *testing.T) {
 func TestCount(t *testing.T) {
 	ctx := db.NewContext(nil)
 
-	count := goradd.QueryProjects(ctx).
+	count, err := goradd.QueryProjects(ctx).
 		Count()
-
+	assert.NoError(t, err)
 	assert.EqualValues(t, 4, count)
 }
 
 func TestGroupBy(t *testing.T) {
 	ctx := db.NewContext(nil)
 
-	projects := goradd.QueryProjects(ctx).
+	projects, err := goradd.QueryProjects(ctx).
 		Calculation(node.Project(), "teamMemberCount", op.Count(node.Project().TeamMembers())).
 		GroupBy(node.Project()).
 		OrderBy(node.Project().ID()).
 		Load()
-
+	assert.NoError(t, err)
 	assert.EqualValues(t, 5, projects[0].GetAlias("teamMemberCount").Int())
 }
 
 func TestSelect(t *testing.T) {
 	ctx := db.NewContext(nil)
 
-	projects := goradd.QueryProjects(ctx).
+	projects, err := goradd.QueryProjects(ctx).
 		Select(node.Project().Name()).
 		Load()
-
+	assert.NoError(t, err)
 	project := projects[0]
 	assert.True(t, project.NameIsLoaded())
 	assert.False(t, project.ManagerIDIsLoaded())
@@ -181,11 +189,11 @@ func TestSelect(t *testing.T) {
 func TestLimit(t *testing.T) {
 	ctx := db.NewContext(nil)
 
-	people := goradd.QueryPeople(ctx).
+	people, err := goradd.QueryPeople(ctx).
 		OrderBy(node.Person().ID()).
 		Limit(2, 3).
 		Load()
-
+	assert.NoError(t, err)
 	assert.EqualValues(t, "Mike", people[0].FirstName())
 	assert.Len(t, people, 2)
 }
@@ -198,7 +206,7 @@ func TestSaveAndDelete(t *testing.T) {
 	person.SetLastName("Last1")
 	person.Save(ctx)
 
-	people := goradd.QueryPeople(ctx).
+	people, err := goradd.QueryPeople(ctx).
 		Where(
 			op.And(
 				op.Equal(
@@ -206,12 +214,12 @@ func TestSaveAndDelete(t *testing.T) {
 				op.Equal(
 					node.Person().LastName(), "Last1"))).
 		Load()
-
+	assert.NoError(t, err)
 	assert.EqualValues(t, person.ID(), people[0].ID())
 
-	people[0].Delete(ctx)
+	assert.NoError(t, people[0].Delete(ctx))
 
-	people = goradd.QueryPeople(ctx).
+	people, err = goradd.QueryPeople(ctx).
 		Where(
 			op.And(
 				op.Equal(
@@ -219,17 +227,17 @@ func TestSaveAndDelete(t *testing.T) {
 				op.Equal(
 					node.Person().LastName(), "Last1"))).
 		Load()
-
+	assert.NoError(t, err)
 	assert.Len(t, people, 0, "Deleted the person")
 }
 
 func TestSingleEmpty(t *testing.T) {
 	ctx := db.NewContext(nil)
 
-	people := goradd.QueryPeople(ctx).
+	people, err := goradd.QueryPeople(ctx).
 		Where(op.Equal(node.Person().ID(), 12345)).
 		Load()
-
+	assert.NoError(t, err)
 	assert.Len(t, people, 0)
 
 }
@@ -237,14 +245,15 @@ func TestSingleEmpty(t *testing.T) {
 func TestLazyLoad(t *testing.T) {
 	ctx := db.NewContext(nil)
 
-	projects := goradd.QueryProjects(ctx).
+	projects, err := goradd.QueryProjects(ctx).
 		Where(op.Equal(node.Project().ID(), 1)).
 		Load()
-
+	assert.NoError(t, err)
 	var mId string = projects[0].ID() // foreign keys are treated as strings for cross-database compatibility
 	assert.Equal(t, "1", mId)
 
-	manager := projects[0].LoadManager(ctx)
+	manager, err2 := projects[0].LoadManager(ctx)
+	assert.NoError(t, err2)
 	assert.Equal(t, "7", manager.ID())
 }
 
@@ -256,13 +265,13 @@ func TestHaving(t *testing.T) {
 	// Sooo, when we see a GroupBy, we automatically also select the same nodes.
 	ctx := db.NewContext(nil)
 
-	projects := goradd.QueryProjects(ctx).
+	projects, err := goradd.QueryProjects(ctx).
 		GroupBy(node.Project().ID(), node.Project().Name()).
 		OrderBy(node.Project().ID()).
 		Calculation(node.Project(), "team_member_count", op.Count(node.Project().TeamMembers())).
 		Having(op.GreaterThan(node.Alias("team_member_count"), 5)).
 		Load()
-
+	assert.NoError(t, err)
 	assert.Len(t, projects, 2)
 	assert.Equal(t, "State College HR System", projects[0].Name())
 	assert.Equal(t, 6, projects[0].GetAlias("team_member_count").Int())
@@ -289,7 +298,8 @@ func TestFailedGroupBy(t *testing.T) {
 func TestIntKey(t *testing.T) {
 	ctx := db.NewContext(nil)
 
-	g := goradd.LoadGift(ctx, 2)
+	g, err := goradd.LoadGift(ctx, 2)
+	assert.NoError(t, err)
 	assert.Equal(t, "Turtle doves", g.Name())
 }
 
@@ -310,11 +320,12 @@ func TestMultiParent(t *testing.T) {
 	defer mom.Delete(ctx)
 	defer dad.Delete(ctx)
 
-	mom2 := goradd_unit.LoadMultiParent(ctx, mom.ID(), node2.MultiParent().Parent1MultiParents())
+	mom2, err := goradd_unit.LoadMultiParent(ctx, mom.ID(), node2.MultiParent().Parent1MultiParents())
+	assert.NoError(t, err)
 	assert.Equal(t, mom2.Parent1MultiParents()[0].ID(), baby.ID())
 
-	b, err := json.Marshal(baby)
-	assert.NoError(t, err)
+	b, errw := json.Marshal(baby)
+	assert.NoError(t, errw)
 
 	baby2 := goradd_unit.NewMultiParent()
 	err = baby2.UnmarshalJSON(b)

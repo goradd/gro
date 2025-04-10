@@ -13,22 +13,22 @@ import (
 
 func TestEqualBasic(t *testing.T) {
 	ctx := db.NewContext(nil)
-	projects := goradd.QueryProjects(ctx).
+	projects, err := goradd.QueryProjects(ctx).
 		Where(op.Equal(node.Project().Num(), 2)).
 		OrderBy(node.Project().Num()).
 		Load()
-
+	assert.NoError(t, err)
 	assert.EqualValues(t, 2, projects[0].Num(), "Did not find correct project.")
 
 }
 
 func TestMultiWhere(t *testing.T) {
 	ctx := db.NewContext(nil)
-	projects := goradd.QueryPeople(ctx).
+	projects, err := goradd.QueryPeople(ctx).
 		Where(op.Equal(node.Person().LastName(), "Smith")).
 		Where(op.Equal(node.Person().FirstName(), "Alex")).
 		Load()
-
+	assert.NoError(t, err)
 	assert.Len(t, projects, 1)
 }
 
@@ -61,13 +61,11 @@ func TestLogical(t *testing.T) {
 
 	for i, c := range tests {
 		t.Run(c.desc, func(t *testing.T) {
-			var projects []*goradd.Project
-
-			projects = goradd.QueryProjects(ctx).
+			projects, err := goradd.QueryProjects(ctx).
 				Where(c.testNode).
 				OrderBy(node.Project().Num()).
 				Load()
-
+			assert.NoError(t, err)
 			if len(projects) <= c.objectNum {
 				t.Errorf("Test case produced out of range error. Test case #: %d", i)
 			} else {
@@ -80,11 +78,11 @@ func TestLogical(t *testing.T) {
 
 func TestCount2(t *testing.T) {
 	ctx := db.NewContext(nil)
-	count := goradd.QueryPeople(ctx).
+	count, err := goradd.QueryPeople(ctx).
 		Select(node.Person().LastName()).
 		Distinct().
 		Count()
-
+	assert.NoError(t, err)
 	assert.EqualValues(t, 10, count)
 
 }
@@ -109,22 +107,21 @@ func TestCalculations(t *testing.T) {
 
 	ctx := db.NewContext(nil)
 
-	var projects []*goradd.Project
 	for _, c := range intTests {
-		projects = goradd.QueryProjects(ctx).
+		projects, err := goradd.QueryProjects(ctx).
 			Calculation(node.Project(), "Value", c.testNode).
 			OrderBy(node.Project().Num()).
 			Load()
-
+		assert.NoError(t, err)
 		assert.EqualValues(t, c.expectedValue, projects[c.objectNum].GetAlias("Value").Int(), c.desc)
 	}
 
 	for _, c := range floatTests {
-		projects = goradd.QueryProjects(ctx).
+		projects, err := goradd.QueryProjects(ctx).
 			Calculation(node.Project(), "Value", c.testNode).
 			OrderBy(node.Project().Num()).
 			Load()
-
+		assert.NoError(t, err)
 		assert.EqualValues(t, c.expectedValue, projects[c.objectNum].GetAlias("Value").Float(), c.desc)
 	}
 
@@ -132,27 +129,27 @@ func TestCalculations(t *testing.T) {
 
 func TestAggregates(t *testing.T) {
 	ctx := db.NewContext(nil)
-	projects := goradd.QueryProjects(ctx).
+	projects, err := goradd.QueryProjects(ctx).
 		Calculation(node.Project(), "sum", op.Sum(node.Project().Spent())).
 		OrderBy(node.Project().Status()).
 		GroupBy(node.Project().Status()).
 		Load()
-
+	assert.NoError(t, err)
 	assert.EqualValues(t, 77400.5, projects[0].GetAlias("sum").Float())
 
-	projects2 := goradd.QueryProjects(ctx).
+	projects2, err2 := goradd.QueryProjects(ctx).
 		Calculation(node.Project(), "min", op.Min(node.Project().Spent())).
 		OrderBy(node.Project().Status()).
 		GroupBy(node.Project().Status()).
 		Load()
-
+	assert.NoError(t, err2)
 	assert.EqualValues(t, 4200.50, projects2[0].GetAlias("min").Float())
 
 	// test aggregate over all items
-	projects3 := goradd.QueryProjects(ctx).
+	projects3, err3 := goradd.QueryProjects(ctx).
 		Calculation(node.Project(), "max", op.Max(node.Project().Spent())).
 		Load()
-
+	assert.NoError(t, err3)
 	assert.False(t, projects3[0].NameIsLoaded(), "aggregate functions should not select fields automatically")
 	assert.EqualValues(t, 73200.0, projects3[0].GetAlias("max").Float())
 }

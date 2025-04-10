@@ -31,13 +31,15 @@ func TestNodeSerializeReference(t *testing.T) {
 	ctx := db.NewContext(nil)
 
 	var n query.Node = node.Project().Manager()
-	proj := goradd.LoadProject(ctx, "1", n)
+	proj, err := goradd.LoadProject(ctx, "1", n)
+	assert.NoError(t, err)
 	assert.Equal(t, proj.Manager().LastName(), "Wolfe")
 
 	n2 := serNode(t, n)
 
 	// can we still select a manager with the new node
-	proj = goradd.LoadProject(ctx, "1", n2)
+	proj, err = goradd.LoadProject(ctx, "1", n2)
+	assert.NoError(t, err)
 	assert.Equal(t, proj.Manager().LastName(), "Wolfe")
 }
 
@@ -48,7 +50,8 @@ func TestNodeSerializeReverseReference(t *testing.T) {
 	n2 := serNode(t, n)
 
 	// can we still select a manager with the new node
-	person := goradd.LoadPerson(ctx, "1", n2)
+	person, err := goradd.LoadPerson(ctx, "1", n2)
+	assert.NoError(t, err)
 	assert.Len(t, person.ManagerProjects(), 1)
 	assert.Equal(t, "3", person.ManagerProjects()[0].ID())
 }
@@ -60,7 +63,8 @@ func TestNodeSerializeManyMany(t *testing.T) {
 	n2 := serNode(t, n)
 
 	// can we still select project as team member
-	person := goradd.LoadPerson(ctx, "1", n2)
+	person, err := goradd.LoadPerson(ctx, "1", n2)
+	assert.NoError(t, err)
 	assert.Len(t, person.Projects(), 2)
 }
 
@@ -80,12 +84,13 @@ func serObject(t *testing.T, n interface{}) interface{} {
 
 func TestRecordSerializeComplex1(t *testing.T) {
 	ctx := db.NewContext(nil)
-	person := goradd.LoadPerson(ctx, "7",
+	person, err := goradd.LoadPerson(ctx, "7",
 		node.Person().Projects(),        // many many
 		node.Person().ManagerProjects(), // reverse
 		node.Person().Types(),           // many many type
 		node.Person().Login(),           // reverse unique
 	)
+	assert.NoError(t, err)
 
 	// Serialize and deserialize
 	person2 := serObject(t, person).(*goradd.Person)
@@ -97,12 +102,13 @@ func TestRecordSerializeComplex1(t *testing.T) {
 
 func TestRecordSerializeComplex2(t *testing.T) {
 	ctx := db.NewContext(nil)
-	login := goradd.LoadLogin(ctx, "4",
+	login, err := goradd.LoadLogin(ctx, "4",
 		node.Login().Person().Projects(),        // many many
 		node.Login().Person().ManagerProjects(), // reverse
 		node.Login().Person().Types(),           // many many type
 		node.Login().Person().Login(),           // reverse unique
 	)
+	assert.NoError(t, err)
 
 	// Serialize and deserialize
 	login2 := serObject(t, login).(*goradd.Login)

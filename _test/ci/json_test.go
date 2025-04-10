@@ -13,12 +13,13 @@ import (
 func TestJsonMarshall1(t *testing.T) {
 	ctx := db.NewContext(nil)
 
-	p := goradd.LoadProject(ctx, "1",
+	p, err := goradd.LoadProject(ctx, "1",
 		node.Project().Name(),
 		node.Project().Status(),
 		node.Project().Manager().FirstName())
-	j, err := json.Marshal(p)
 	assert.NoError(t, err)
+	j, err2 := json.Marshal(p)
+	assert.NoError(t, err2)
 	m := make(map[string]interface{})
 	err = json.Unmarshal(j, &m)
 	assert.NoError(t, err)
@@ -47,12 +48,13 @@ func TestJsonUnmarshall1(t *testing.T) {
 func TestJsonMarshall2(t *testing.T) {
 	ctx := db.NewContext(nil)
 
-	p := goradd.LoadPerson(ctx, "1",
+	p, err := goradd.LoadPerson(ctx, "1",
 		node.Person().FirstName(),
 		node.Person().LastName(),
 		node.Person().Types())
-	j, err := json.Marshal(p)
 	assert.NoError(t, err)
+	j, err2 := json.Marshal(p)
+	assert.NoError(t, err2)
 	m := make(map[string]interface{})
 	err = json.Unmarshal(j, &m)
 	assert.NoError(t, err)
@@ -80,9 +82,10 @@ func TestJsonUnmarshall2(t *testing.T) {
 func TestJsonMarshall3(t *testing.T) {
 	ctx := db.NewContext(nil)
 
-	r := goradd_unit.LoadTypeTest(ctx, "1")
-	j, err := json.Marshal(r)
+	r, err := goradd_unit.LoadTypeTest(ctx, "1")
 	assert.NoError(t, err)
+	j, err2 := json.Marshal(r)
+	assert.NoError(t, err2)
 
 	r2 := goradd_unit.NewTypeTest()
 	err = r2.UnmarshalJSON(j)
@@ -94,10 +97,11 @@ func TestJsonMarshall3(t *testing.T) {
 
 func TestJsonMarshallReferences(t *testing.T) {
 	ctx := db.NewContext(nil)
-	project := goradd.LoadProject(ctx, "1", node.Project().Manager())
-
-	b, err := json.Marshal(project)
+	project, err := goradd.LoadProject(ctx, "1", node.Project().Manager())
 	assert.NoError(t, err)
+
+	b, err2 := json.Marshal(project)
+	assert.NoError(t, err2)
 
 	project2 := goradd.NewProject()
 	err = project2.UnmarshalJSON(b)
@@ -108,10 +112,10 @@ func TestJsonMarshallReferences(t *testing.T) {
 
 func TestJsonMarshallReverse(t *testing.T) {
 	ctx := db.NewContext(nil)
-	person := goradd.LoadPerson(ctx, "7", node.Person().ManagerProjects(), node.Person().EmployeeInfo())
-
-	b, err := json.Marshal(person)
+	person, err := goradd.LoadPerson(ctx, "7", node.Person().ManagerProjects(), node.Person().EmployeeInfo())
 	assert.NoError(t, err)
+	b, err2 := json.Marshal(person)
+	assert.NoError(t, err2)
 
 	person2 := goradd.NewPerson()
 	err = person2.UnmarshalJSON(b)
@@ -124,7 +128,7 @@ func TestJsonMarshallReverse(t *testing.T) {
 
 func TestJsonMarshallManyManyReferences(t *testing.T) {
 	ctx := db.NewContext(nil)
-	project := goradd.LoadProject(ctx, "1", node.Project().TeamMembers())
+	project, err := goradd.LoadProject(ctx, "1", node.Project().TeamMembers())
 
 	b, err := json.Marshal(project)
 	assert.NoError(t, err)

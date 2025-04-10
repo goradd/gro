@@ -12,11 +12,11 @@ import (
 
 func TestReverseReference(t *testing.T) {
 	ctx := db.NewContext(nil)
-	people := goradd.QueryPeople(ctx).
+	people, err := goradd.QueryPeople(ctx).
 		Select(node.Person().ManagerProjects()).
 		OrderBy(node.Person().ID()).
 		Load()
-
+	assert.NoError(t, err)
 	if people[0].FirstName() != "John" {
 		t.Error("Did not find person 0.")
 	}
@@ -29,12 +29,12 @@ func TestReverseReference(t *testing.T) {
 
 func TestReverseConditionalSelect(t *testing.T) {
 	ctx := db.NewContext(nil)
-	people := goradd.QueryPeople(ctx).
+	people, err := goradd.QueryPeople(ctx).
 		OrderBy(node.Person().ID(), node.Person().ManagerProjects().Name()).
 		Where(op.IsNotNull(node.Person().ManagerProjects().ID())). // Filter out people who are not managers
 		Select(node.Person().ManagerProjects().Name()).
 		Load()
-
+	assert.NoError(t, err)
 	if len(people[2].ManagerProjects()) != 2 {
 		t.Error("Did not find 2 ManagerProjects.")
 	}
@@ -48,11 +48,11 @@ func TestReverseConditionalSelect(t *testing.T) {
 // Complex test finding all the team members of all the projects a person is managing, ordering by last name
 func TestReverseManyLoad(t *testing.T) {
 	ctx := db.NewContext(nil)
-	people := goradd.QueryPeople(ctx).
+	people, err := goradd.QueryPeople(ctx).
 		OrderBy(node.Person().ID(), node.Person().ManagerProjects().TeamMembers().LastName(), node.Person().ManagerProjects().TeamMembers().FirstName()).
 		Select(node.Person().ManagerProjects().TeamMembers().FirstName(), node.Person().ManagerProjects().TeamMembers().LastName()).
 		Load()
-
+	assert.NoError(t, err)
 	var names []string
 	for _, p := range people[0].ManagerProjects()[0].TeamMembers() {
 		names = append(names, p.FirstName()+" "+p.LastName())
@@ -81,30 +81,36 @@ func TestReverseManyLoad(t *testing.T) {
 	people[6].ManagerProjects()[0].TeamMembers()[0].SetFirstName("A")
 	assert.True(t, people[6].IsDirty())
 	assert.NoError(t, people[6].Save(ctx))
-	p := goradd.LoadPerson(ctx, id)
+	p, err2 := goradd.LoadPerson(ctx, id)
+	assert.NoError(t, err2)
 	assert.Equal(t, "A", p.FirstName())
 	assert.False(t, people[6].IsDirty())
 	// restore
 	p.SetFirstName(fn)
-	p.Save(ctx)
+	assert.NoError(t, p.Save(ctx))
 }
 
 func TestUniqueReverseLoad(t *testing.T) {
 	ctx := db.NewContext(nil)
-	person := goradd.QueryPeople(ctx).
+	person, err := goradd.QueryPeople(ctx).
 		Where(op.Equal(node.Person().LastName(), "Doe")).
 		Get()
+	assert.NoError(t, err)
 	assert.Nil(t, person.Login())
 
-	person = goradd.QueryPeople(ctx).
+	people, err2 := goradd.QueryPeople(ctx).
 		Where(op.Equal(node.Person().LastName(), "Doe")).
 		Select(node.Person().Login()).
-		Load()[0]
+		Load()
+	assert.NoError(t, err2)
+	person = people[0]
 	assert.Equal(t, "jdoe", person.Login().Username())
 }
 
 func TestReverseUniqueInsert(t *testing.T) {
 	ctx := db.NewContext(nil)
+	var err error
+
 	// Test insert
 	person := goradd.NewPerson()
 	person.SetFirstName("Sam")
@@ -120,17 +126,19 @@ func TestReverseUniqueInsert(t *testing.T) {
 	login.SetUsername("sammy")
 	person.SetLogin(login)
 
-	person.Save(ctx)
+	assert.NoError(t, person.Save(ctx))
 
 	assert.NotZero(t, person.Login().PersonID())
 	assert.Equal(t, person.ID(), person.Login().PersonID())
 	assert.NotZero(t, person.EmployeeInfo().PersonID())
 	assert.Equal(t, person.ID(), person.EmployeeInfo().PersonID())
 
-	empInfo = goradd.LoadEmployeeInfo(ctx, person.EmployeeInfo().ID())
+	empInfo, err = goradd.LoadEmployeeInfo(ctx, person.EmployeeInfo().ID())
+	assert.NoError(t, err)
 	assert.Equal(t, person.ID(), empInfo.PersonID())
 
-	login = goradd.LoadLogin(ctx, person.Login().ID())
+	login, err = goradd.LoadLogin(ctx, person.Login().ID())
+	assert.NoError(t, err)
 	assert.Equal(t, person.ID(), login.PersonID())
 
 	person2 := goradd.NewPerson()
@@ -138,24 +146,30 @@ func TestReverseUniqueInsert(t *testing.T) {
 	person2.SetLastName("The Turtle")
 	person2.SetLogin(person.Login())
 	person2.SetEmployeeInfo(person.EmployeeInfo())
-	person2.Save(ctx)
+	assert.NoError(t, person2.Save(ctx))
 
-	person2 = goradd.LoadPerson(ctx, person2.ID(), node.Person().EmployeeInfo(), node.Person().Login())
+	person2, err = goradd.LoadPerson(ctx, person2.ID(), node.Person().EmployeeInfo(), node.Person().Login())
+	assert.NoError(t, err)
 	assert.Equal(t, person2.ID(), person2.EmployeeInfo().PersonID())
 	assert.Equal(t, person.EmployeeInfo().ID(), person2.EmployeeInfo().ID())
 	assert.Equal(t, person2.ID(), person2.Login().PersonID())
 	assert.Equal(t, person.Login().ID(), person2.Login().ID())
 
-	person2.Delete(ctx)
-	empInfo = goradd.LoadEmployeeInfo(ctx, person.EmployeeInfo().ID())
+	assert.NoError(t, person2.Delete(ctx))
+	empInfo, err = goradd.LoadEmployeeInfo(ctx, person.EmployeeInfo().ID())
+	assert.NoError(t, err)
 	assert.Nil(t, empInfo)
-	login = goradd.LoadLogin(ctx, person.Login().ID())
+	login, err = goradd.LoadLogin(ctx, person.Login().ID())
+	assert.NoError(t, err)
 	assert.Zero(t, login.PersonID())
-	login.Delete(ctx)
-	login = goradd.LoadLogin(ctx, person.Login().ID())
+	assert.NoError(t, login.Delete(ctx))
+	login, err = goradd.LoadLogin(ctx, person.Login().ID())
+	assert.NoError(t, err)
 	assert.Nil(t, login)
-	person.Delete(ctx)
-	assert.Nil(t, goradd.LoadPerson(ctx, person.ID()))
+	assert.NoError(t, person.Delete(ctx))
+	person, err = goradd.LoadPerson(ctx, person.ID())
+	assert.NoError(t, err)
+	assert.Nil(t, person)
 }
 
 func TestReverseManyNotNullInsert(t *testing.T) {
@@ -176,7 +190,7 @@ func TestReverseManyNotNullInsert(t *testing.T) {
 	person.SetAddresses(
 		addr1, addr2,
 	)
-	person.Save(ctx)
+	assert.NoError(t, person.Save(ctx))
 
 	id := person.ID()
 
@@ -186,17 +200,20 @@ func TestReverseManyNotNullInsert(t *testing.T) {
 	addr3 := person.Address(addr1Id)
 	assert.Equal(t, "There", addr3.Street(), "Successfully attached the new addresses onto the person object.")
 
-	person2 := goradd.LoadPerson(ctx, id, node.Person().Addresses())
+	person2, err := goradd.LoadPerson(ctx, id, node.Person().Addresses())
+	assert.NoError(t, err)
 
 	assert.Equal(t, "Sam", person2.FirstName(), "Retrieved the correct person")
 	assert.Equal(t, 2, len(person2.Addresses()), "Retrieved the addresses attached to the person")
 
-	person2.Delete(ctx)
+	assert.NoError(t, person2.Delete(ctx))
 
-	person3 := goradd.LoadPerson(ctx, id, node.Person().Addresses())
+	person3, err2 := goradd.LoadPerson(ctx, id, node.Person().Addresses())
+	assert.NoError(t, err2)
 	assert.Nil(t, person3, "Successfully deleted the new person")
 
-	addr4 := goradd.LoadAddress(ctx, addr1Id)
+	addr4, err3 := goradd.LoadAddress(ctx, addr1Id)
+	assert.NoError(t, err3)
 	assert.Nil(t, addr4, "Successfully deleted the address attached to the person")
 }
 
@@ -213,35 +230,41 @@ func TestReverseManyNullInsertNewObject(t *testing.T) {
 	person.SetLastName("In the Hat")
 
 	project.SetManager(person)
-	project.Save(ctx)
+	assert.NoError(t, project.Save(ctx))
 
-	project2 := goradd.LoadProject(ctx, project.ID(), node.Project().Manager())
+	project2, err := goradd.LoadProject(ctx, project.ID(), node.Project().Manager())
+	assert.NoError(t, err)
 	assert.Equal(t, "Big project", project2.Name())
 	assert.Equal(t, "Cat", project2.Manager().FirstName())
 
 	// Delete manager and see that projects get set to null manager
-	person.Delete(ctx)
-	project2 = goradd.LoadProject(ctx, project.ID(), node.Project().Manager())
+	assert.NoError(t, person.Delete(ctx))
+	project2, err = goradd.LoadProject(ctx, project.ID(), node.Project().Manager())
+	assert.NoError(t, err)
 	assert.True(t, project2.ManagerIDIsNull())
 
 	// Set pre-existing manager via pk
 	project2.SetManagerID("1")
-	project2.Save(ctx)
+	assert.NoError(t, project2.Save(ctx))
 
-	project2 = goradd.LoadProject(ctx, project.ID(), node.Project().Manager())
+	project2, err = goradd.LoadProject(ctx, project.ID(), node.Project().Manager())
+	assert.NoError(t, err)
 	assert.Equal(t, "Doe", project2.Manager().LastName())
 
 	// Delete project and see manager still exists
-	project2.Delete(ctx)
-	person = goradd.LoadPerson(ctx, "1")
+	assert.NoError(t, project2.Delete(ctx))
+	person, err = goradd.LoadPerson(ctx, "1")
+	assert.NoError(t, err)
 	assert.NotNil(t, person)
 }
 
 func TestReverseReferenceCount(t *testing.T) {
 	ctx := db.NewContext(nil)
 
-	person := goradd.LoadPerson(ctx, "3")
-	ct := person.CountAddresses(ctx)
+	person, err := goradd.LoadPerson(ctx, "3")
+	assert.NoError(t, err)
+	ct, err2 := person.CountAddresses(ctx)
+	assert.NoError(t, err2)
 	assert.Equal(t, 2, ct)
 
 }
@@ -249,8 +272,10 @@ func TestReverseReferenceCount(t *testing.T) {
 func TestReverseLoad(t *testing.T) {
 	ctx := db.NewContext(nil)
 
-	project := goradd.LoadProject(ctx, "1")
-	project.LoadMilestones(ctx)
+	project, err := goradd.LoadProject(ctx, "1")
+	assert.NoError(t, err)
+	_, err = project.LoadMilestones(ctx)
+	assert.NoError(t, err)
 	milestone := project.Milestone("3")
 	assert.NotNil(t, milestone)
 	assert.Equal(t, "3", milestone.ID())
@@ -259,30 +284,34 @@ func TestReverseLoad(t *testing.T) {
 func TestReverseLoadUnsaved(t *testing.T) {
 	ctx := db.NewContext(nil)
 
-	project := goradd.LoadProject(ctx, "1")
-	project.LoadMilestones(ctx)
+	project, err := goradd.LoadProject(ctx, "1")
+	assert.NoError(t, err)
+	_, err = project.LoadMilestones(ctx)
+	assert.NoError(t, err)
 	milestone := project.Milestone("3")
 	milestone.SetName("A new name")
 	assert.Panics(t, func() {
-		project.LoadMilestones(ctx)
+		_, _ = project.LoadMilestones(ctx)
 	})
 }
 
 func TestReverseSelectByID(t *testing.T) {
 	ctx := db.NewContext(nil)
 
-	projects := goradd.QueryProjects(ctx).
+	projects, err := goradd.QueryProjects(ctx).
 		OrderBy(node.Project().Name().Descending()).
 		Load()
+	assert.NoError(t, err)
 
 	require.Len(t, projects, 4)
 	id := projects[3].ID()
 
 	// Reverse references
-	people := goradd.QueryPeople(ctx).
+	people, err2 := goradd.QueryPeople(ctx).
 		Select(node.Person().ManagerProjects()).
 		Where(op.Equal(node.Person().LastName(), "Wolfe")).
 		Load()
+	assert.NoError(t, err2)
 
 	p := people[0]
 	require.NotNil(t, p)
@@ -294,27 +323,30 @@ func TestReverseSelectByID(t *testing.T) {
 func TestReverseSet(t *testing.T) {
 	ctx := db.NewContext(nil)
 
-	person := goradd.QueryPeople(ctx).
+	person, err := goradd.QueryPeople(ctx).
 		Where(op.Equal(node.Person().ID(), "7")).
 		Select(node.Person().ManagerProjects()).
 		OrderBy(node.Person().ManagerProjects().ID()).
 		Get()
+	assert.NoError(t, err)
 	projects := person.ManagerProjects()
 	assert.Len(t, projects, 2)
 	assert.Equal(t, "1", projects[0].ID())
 	assert.Equal(t, "4", projects[1].ID())
 
-	newProjects := goradd.QueryProjects(ctx).
+	newProjects, err2 := goradd.QueryProjects(ctx).
 		Where(op.In(node.Project().ID(), "1", "2")).
 		Load()
+	assert.NoError(t, err2)
 	person.SetManagerProjects(newProjects...)
 	require.NoError(t, person.Save(ctx))
 
-	personTest := goradd.QueryPeople(ctx).
+	personTest, err3 := goradd.QueryPeople(ctx).
 		Where(op.Equal(node.Person().ID(), "7")).
 		Select(node.Person().ManagerProjects()).
 		OrderBy(node.Person().ManagerProjects().ID()).
 		Get()
+	assert.NoError(t, err3)
 	projectsTest := personTest.ManagerProjects()
 	assert.Len(t, projectsTest, 2)
 	assert.Equal(t, "1", projectsTest[0].ID())
@@ -323,17 +355,20 @@ func TestReverseSet(t *testing.T) {
 	// Set none
 	person.SetManagerProjects()
 	require.NoError(t, person.Save(ctx))
-	assert.Equal(t, 0, goradd.CountProjectsByManagerID(ctx, person.ID()))
+	c, err4 := goradd.CountProjectsByManagerID(ctx, person.ID())
+	assert.NoError(t, err4)
+	assert.Equal(t, 0, c)
 
 	// restore
 	person.SetManagerProjects(projects...)
 	require.NoError(t, person.Save(ctx))
 
-	person = goradd.QueryPeople(ctx).
+	person, err = goradd.QueryPeople(ctx).
 		Where(op.Equal(node.Person().ID(), "7")).
 		Select(node.Person().ManagerProjects()).
 		OrderBy(node.Person().ManagerProjects().ID()).
 		Get()
+	assert.NoError(t, err)
 	projects = person.ManagerProjects()
 	assert.Len(t, projects, 2)
 	assert.Equal(t, "1", projects[0].ID())
@@ -341,6 +376,6 @@ func TestReverseSet(t *testing.T) {
 
 	// Fix nil value caused by removal of project
 	projectsTest[1].SetManagerID("4")
-	projectsTest[1].Save(ctx)
+	assert.NoError(t, projectsTest[1].Save(ctx))
 
 }

@@ -12,11 +12,12 @@ import (
 
 func TestManyMany(t *testing.T) {
 	ctx := db.NewContext(nil)
-	projects := goradd.QueryProjects(ctx).
+	projects, err := goradd.QueryProjects(ctx).
 		Select(node.Project().TeamMembers()).
 		OrderBy(node.Project().ID()).
 		Load()
 
+	assert.NoError(t, err)
 	if len(projects[0].TeamMembers()) != 5 {
 		t.Error("Did not find 5 team members in project 1. Found: " + strconv.Itoa(len(projects[0].TeamMembers())))
 	}
@@ -28,13 +29,13 @@ func TestMany2(t *testing.T) {
 	ctx := db.NewContext(nil)
 
 	// All People Who Are on a Project Managed by Karen Wolfe (Person ID #7)
-	people := goradd.QueryPeople(ctx).
+	people, err := goradd.QueryPeople(ctx).
 		OrderBy(node.Person().LastName(), node.Person().FirstName()).
 		Where(op.Equal(node.Person().Projects().Manager().LastName(), "Wolfe")).
 		Distinct().
 		Select(node.Person().LastName(), node.Person().FirstName()).
 		Load()
-
+	assert.NoError(t, err)
 	names := []string{}
 	for _, p := range people {
 		names = append(names, p.FirstName()+" "+p.LastName())
@@ -57,12 +58,12 @@ func TestMany2(t *testing.T) {
 func TestManySelect(t *testing.T) {
 	ctx := db.NewContext(nil)
 
-	people := goradd.QueryPeople(ctx).
+	people, err := goradd.QueryPeople(ctx).
 		OrderBy(node.Person().LastName(), node.Person().FirstName(), node.Person().Projects().Name()).
 		Where(op.Equal(node.Person().Projects().Manager().LastName(), "Wolfe")).
 		Select(node.Person().LastName(), node.Person().FirstName(), node.Person().Projects().Name()).
 		Load()
-
+	assert.NoError(t, err)
 	person := people[0]
 	projects := person.Projects()
 	name := projects[0].Name()
@@ -72,11 +73,11 @@ func TestManySelect(t *testing.T) {
 
 func Test2Nodes(t *testing.T) {
 	ctx := db.NewContext(nil)
-	milestones := goradd.QueryMilestones(ctx).
+	milestones, err := goradd.QueryMilestones(ctx).
 		Select(node.Milestone().Project().Manager()).
 		Where(op.Equal(node.Milestone().ID(), 1)). // Filter out people who are not managers
 		Load()
-
+	assert.NoError(t, err)
 	assert.True(t, milestones[0].NameIsLoaded(), "Milestone 1 has a name")
 	assert.Equal(t, "Milestone A", milestones[0].Name(), "Milestone 1 has name of Milestone A")
 	assert.False(t, milestones[0].Project().NameIsLoaded(), "Project 1 should not have a loaded name")
@@ -86,12 +87,12 @@ func Test2Nodes(t *testing.T) {
 
 func TestForwardMany(t *testing.T) {
 	ctx := db.NewContext(nil)
-	milestones := goradd.QueryMilestones(ctx).
+	milestones, err := goradd.QueryMilestones(ctx).
 		Select(node.Milestone().Project().TeamMembers()).
 		OrderBy(node.Milestone().Project().TeamMembers().LastName(), node.Milestone().Project().TeamMembers().FirstName()).
 		Where(op.Equal(node.Milestone().ID(), 1)). // Filter out people who are not managers
 		Load()
-
+	assert.NoError(t, err)
 	names := []string{}
 	for _, p := range milestones[0].Project().TeamMembers() {
 		names = append(names, p.FirstName()+" "+p.LastName())
@@ -109,11 +110,11 @@ func TestForwardMany(t *testing.T) {
 
 func TestManyForward(t *testing.T) {
 	ctx := db.NewContext(nil)
-	people := goradd.QueryPeople(ctx).
+	people, err := goradd.QueryPeople(ctx).
 		OrderBy(node.Person().ID(), node.Person().Projects().Name()).
 		Select(node.Person().Projects().Manager().FirstName(), node.Person().Projects().Manager().LastName()).
 		Load()
-
+	assert.NoError(t, err)
 	names := []string{}
 	var p *goradd.Project
 	for _, p = range people[0].Projects() {
@@ -175,22 +176,24 @@ func TestConditionalJoin(t *testing.T) {
 
 func Test2ndLoad(t *testing.T) {
 	ctx := db.NewContext(nil)
-	projects := goradd.QueryProjects(ctx).
+	projects, err := goradd.QueryProjects(ctx).
 		OrderBy(node.Project().Manager().FirstName()).
 		Load()
-
-	mgr := projects[0].LoadManager(ctx)
+	assert.NoError(t, err)
+	mgr, err2 := projects[0].LoadManager(ctx)
+	assert.NoError(t, err2)
 	// 2nd level objects must be specifically selected
 	assert.False(t, mgr.LastNameIsLoaded())
 }
 
 func TestAssociationCalculation(t *testing.T) {
 	ctx := db.NewContext(nil)
-	projects := goradd.QueryProjects(ctx).
+	projects, err := goradd.QueryProjects(ctx).
 		Calculation(node.Project(), "count", op.Count(node.Project().TeamMembers())).
 		GroupBy(node.Project()).
 		OrderBy(node.Project().ID()).
 		Load()
+	assert.NoError(t, err)
 	assert.Equal(t, 5, projects[0].GetAlias("count").Int())
 }
 
@@ -200,12 +203,14 @@ func TestAssociationByPrimaryKeys(t *testing.T) {
 	person.SetFirstName("Fox")
 	person.SetLastName("In Box")
 	person.SetProjectsByID("1", "2", "3")
-	person.Save(ctx)
+	assert.NoError(t, person.Save(ctx))
 
-	person2 := goradd.LoadPerson(ctx, person.ID(), node.Person().Projects())
+	person2, err := goradd.LoadPerson(ctx, person.ID(), node.Person().Projects())
+	assert.NoError(t, err)
 	assert.Len(t, person2.Projects(), 3)
 
-	person2.Delete(ctx)
-	project := goradd.LoadProject(ctx, "1")
+	assert.NoError(t, person2.Delete(ctx))
+	project, err2 := goradd.LoadProject(ctx, "1")
+	assert.NoError(t, err2)
 	assert.NotNil(t, project)
 }
