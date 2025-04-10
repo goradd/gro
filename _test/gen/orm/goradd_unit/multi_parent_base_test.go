@@ -66,7 +66,7 @@ func deleteSampleMultiParent(ctx context.Context, obj *MultiParent) {
 		deleteSampleMultiParent(ctx, item)
 	}
 
-	obj.Delete(ctx)
+	_ = obj.Delete(ctx)
 
 	deleteSampleMultiParent(ctx, obj.Parent1())
 
@@ -185,13 +185,13 @@ func TestMultiParent_Copy(t *testing.T) {
 func TestMultiParent_BasicInsert(t *testing.T) {
 	obj := createMinimalSampleMultiParent()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleMultiParent(ctx, obj)
 
 	// Test retrieval
-	obj2 := LoadMultiParent(ctx, obj.PrimaryKey())
+	obj2, err := LoadMultiParent(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj2)
+	assert.NoError(t, err)
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
@@ -224,7 +224,8 @@ func TestMultiParent_BasicUpdate(t *testing.T) {
 	defer deleteSampleMultiParent(ctx, obj)
 	updateMinimalSampleMultiParent(obj)
 	assert.NoError(t, obj.Save(ctx))
-	obj2 := LoadMultiParent(ctx, obj.PrimaryKey())
+	obj2, err := LoadMultiParent(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 
 	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
 	assert.Equal(t, obj2.Name(), obj.Name(), "Name did not update")
@@ -233,7 +234,7 @@ func TestMultiParent_BasicUpdate(t *testing.T) {
 func TestMultiParent_ReferenceLoad(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleMultiParent(ctx)
-	obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleMultiParent(ctx, obj)
 
 	// Test that referenced objects were saved and assigned ids
@@ -244,42 +245,44 @@ func TestMultiParent_ReferenceLoad(t *testing.T) {
 	assert.NotEqual(t, '-', obj.Parent2().PrimaryKey()[0])
 
 	// Test lazy loading
-	obj2 := LoadMultiParent(ctx, obj.PrimaryKey())
-	objPkOnly := LoadMultiParent(ctx, obj.PrimaryKey(), node.MultiParent().PrimaryKey())
+	obj2, err := LoadMultiParent(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
+	objPkOnly, err2 := LoadMultiParent(ctx, obj.PrimaryKey(), node.MultiParent().PrimaryKey())
+	assert.NoError(t, err2)
 	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
 
 	assert.Nil(t, obj2.Parent1(), "Parent1 is not loaded initially")
-	v_Parent1 := obj2.LoadParent1(ctx)
+	v_Parent1, _ := obj2.LoadParent1(ctx)
 	assert.NotNil(t, v_Parent1)
 	assert.Equal(t, v_Parent1.PrimaryKey(), obj2.Parent1().PrimaryKey())
 	assert.Equal(t, obj.Parent1().PrimaryKey(), obj2.Parent1().PrimaryKey())
 	assert.True(t, obj2.Parent1IDIsLoaded())
 
 	assert.False(t, objPkOnly.Parent1IDIsLoaded())
-	assert.Nil(t, objPkOnly.LoadParent1(ctx))
+	assert.Panics(t, func() { _, _ = objPkOnly.LoadParent1(ctx) })
 
 	assert.Nil(t, obj2.Parent2(), "Parent2 is not loaded initially")
-	v_Parent2 := obj2.LoadParent2(ctx)
+	v_Parent2, _ := obj2.LoadParent2(ctx)
 	assert.NotNil(t, v_Parent2)
 	assert.Equal(t, v_Parent2.PrimaryKey(), obj2.Parent2().PrimaryKey())
 	assert.Equal(t, obj.Parent2().PrimaryKey(), obj2.Parent2().PrimaryKey())
 	assert.True(t, obj2.Parent2IDIsLoaded())
 
 	assert.False(t, objPkOnly.Parent2IDIsLoaded())
-	assert.Nil(t, objPkOnly.LoadParent2(ctx))
+	assert.Panics(t, func() { _, _ = objPkOnly.LoadParent2(ctx) })
 
 	assert.Nil(t, obj2.Parent1MultiParents(), "Parent1MultiParents is not loaded initially")
-	v_Parent1MultiParents := obj2.LoadParent1MultiParents(ctx)
+	v_Parent1MultiParents, _ := obj2.LoadParent1MultiParents(ctx)
 	assert.NotNil(t, v_Parent1MultiParents)
 	assert.Len(t, v_Parent1MultiParents, 1)
 	assert.Nil(t, obj2.Parent2MultiParents(), "Parent2MultiParents is not loaded initially")
-	v_Parent2MultiParents := obj2.LoadParent2MultiParents(ctx)
+	v_Parent2MultiParents, _ := obj2.LoadParent2MultiParents(ctx)
 	assert.NotNil(t, v_Parent2MultiParents)
 	assert.Len(t, v_Parent2MultiParents, 1)
 
 	// test eager loading
-	obj3 := LoadMultiParent(ctx, obj.PrimaryKey(), node.MultiParent().Parent1(),
+	obj3, _ := LoadMultiParent(ctx, obj.PrimaryKey(), node.MultiParent().Parent1(),
 		node.MultiParent().Parent2(),
 		node.MultiParent().Parent1MultiParents(),
 		node.MultiParent().Parent2MultiParents(),
@@ -296,15 +299,15 @@ func TestMultiParent_ReferenceLoad(t *testing.T) {
 func TestMultiParent_ReferenceUpdateNewObjects(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleMultiParent(ctx)
-	obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleMultiParent(ctx, obj)
 
-	obj2 := LoadMultiParent(ctx, obj.PrimaryKey())
+	obj2, _ := LoadMultiParent(ctx, obj.PrimaryKey())
 	updateMaximalSampleMultiParent(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleMultiParent(ctx, obj2)
 
-	obj3 := LoadMultiParent(ctx, obj2.PrimaryKey(), node.MultiParent().Parent1(),
+	obj3, _ := LoadMultiParent(ctx, obj2.PrimaryKey(), node.MultiParent().Parent1(),
 		node.MultiParent().Parent2(),
 		node.MultiParent().Parent1MultiParents(),
 		node.MultiParent().Parent2MultiParents(),
@@ -332,7 +335,7 @@ func TestMultiParent_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2 := LoadMultiParent(ctx, obj.PrimaryKey(),
+	obj2, _ := LoadMultiParent(ctx, obj.PrimaryKey(),
 
 		node.MultiParent().Parent1(),
 
@@ -369,9 +372,10 @@ func TestMultiParent_Getters(t *testing.T) {
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSampleMultiParent(ctx, obj)
 
-	assert.True(t, HasMultiParent(ctx, obj.PrimaryKey()))
+	has, _ := HasMultiParent(ctx, obj.PrimaryKey())
+	assert.True(t, has)
 
-	obj2 := LoadMultiParent(ctx, obj.PrimaryKey(), node.MultiParent().PrimaryKey())
+	obj2, _ := LoadMultiParent(ctx, obj.PrimaryKey(), node.MultiParent().PrimaryKey())
 
 	assert.Equal(t, obj.ID(), obj.Get(node.MultiParent().ID().Identifier))
 	assert.Equal(t, obj.Name(), obj.Get(node.MultiParent().Name().Identifier))
@@ -390,7 +394,7 @@ func TestMultiParent_QueryLoad(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleMultiParent(ctx, obj)
 
-	objs := QueryMultiParents(ctx).
+	objs, _ := QueryMultiParents(ctx).
 		Where(op.Equal(node.MultiParent().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.MultiParent().PrimaryKey()). // exercise order by
 		Limit(1, 0).                              // exercise limit
@@ -407,7 +411,7 @@ func TestMultiParent_QueryLoadI(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleMultiParent(ctx, obj)
 
-	objs := QueryMultiParents(ctx).
+	objs, _ := QueryMultiParents(ctx).
 		Where(op.Equal(node.MultiParent().PrimaryKey(), obj.PrimaryKey())).
 		LoadI()
 
@@ -420,38 +424,44 @@ func TestMultiParent_QueryCursor(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleMultiParent(ctx, obj)
 
-	cursor := QueryMultiParents(ctx).
+	cursor, _ := QueryMultiParents(ctx).
 		Where(op.Equal(node.MultiParent().PrimaryKey(), obj.PrimaryKey())).
 		LoadCursor()
 
-	obj2 := cursor.Next()
+	obj2, err2 := cursor.Next()
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.Nil(t, cursor.Next())
+	assert.NoError(t, err2)
+	obj2, err2 = cursor.Next()
+	assert.Nil(t, obj2)
+	assert.NoError(t, err2)
+	assert.NoError(t, cursor.Close())
 
 	// test empty cursor result
-	cursor = QueryMultiParents(ctx).
+	cursor, err = QueryMultiParents(ctx).
 		Where(op.Equal(1, 0)).
 		LoadCursor()
-	assert.Nil(t, cursor.Next())
-
+	obj2, err = cursor.Next()
+	assert.Nil(t, obj2)
+	assert.NoError(t, err)
+	assert.NoError(t, cursor.Close())
 }
 func TestMultiParent_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleMultiParent(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
-	// reread in case there are data limitations imposed by the database
-	obj2 := LoadMultiParent(ctx, obj.PrimaryKey())
 	defer deleteSampleMultiParent(ctx, obj)
+	// reread in case there are data limitations imposed by the database
+	obj2, _ := LoadMultiParent(ctx, obj.PrimaryKey())
 
-	assert.Less(t, 0, CountMultiParents(ctx))
-
-	assert.Less(t, 0, CountMultiParentsByID(ctx, obj2.ID()))
-	assert.Less(t, 0, CountMultiParentsByName(ctx, obj2.Name()))
-	assert.Less(t, 0, CountMultiParentsByParent1ID(ctx, obj2.Parent1ID()))
-	assert.Less(t, 0, CountMultiParentsByParent2ID(ctx, obj2.Parent2ID()))
+	assert.Positive(t, func() int { i, _ := CountMultiParents(ctx); return i }())
+	assert.Positive(t, func() int { i, _ := CountMultiParentsByID(ctx, obj2.ID()); return i }())
+	assert.Positive(t, func() int { i, _ := CountMultiParentsByName(ctx, obj2.Name()); return i }())
+	assert.Positive(t, func() int { i, _ := CountMultiParentsByParent1ID(ctx, obj2.Parent1ID()); return i }())
+	assert.Positive(t, func() int { i, _ := CountMultiParentsByParent2ID(ctx, obj2.Parent2ID()); return i }())
 
 }
+
 func TestMultiParent_MarshalJSON(t *testing.T) {
 	obj := createMinimalSampleMultiParent()
 

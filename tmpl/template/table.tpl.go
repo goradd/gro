@@ -398,6 +398,8 @@ func query`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, ` objects by calling Delete on them.
+// Returns an error only if there was a problem with the database during the delete.
+// If the record was not found, no error will be returned.
 // doc: type=`); err != nil {
 			return
 		}
@@ -423,8 +425,8 @@ func Delete`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `) {
-	delete`); err != nil {
+		if _, err = io.WriteString(_w, `) error {
+	return delete`); err != nil {
 			return
 		}
 

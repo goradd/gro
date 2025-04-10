@@ -43,9 +43,9 @@ func TestLeaf_Label(t *testing.T) {
 func TestLeaf_Delete(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMinimalSampleLeaf()
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
-	DeleteLeaf(ctx, obj.PrimaryKey())
-	obj2 := LoadLeaf(ctx, obj.PrimaryKey())
+	assert.NoError(t, obj.Save(ctx))
+	assert.NoError(t, DeleteLeaf(ctx, obj.PrimaryKey()))
+	obj2, err := LoadLeaf(ctx, obj.PrimaryKey())
 	assert.Nil(t, obj2)
+	assert.NoError(t, err)
 }

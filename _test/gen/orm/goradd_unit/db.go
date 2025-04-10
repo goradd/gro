@@ -46,13 +46,13 @@ func Database() db.DatabaseI {
 func ClearAll(ctx context.Context) {
 	db := Database()
 
-	db.Delete(ctx, "unsupported_type", nil)
-	db.Delete(ctx, "type_test", nil)
-	db.Delete(ctx, "root", nil)
-	db.Delete(ctx, "multi_parent", nil)
-	db.Delete(ctx, "leaf_lock", nil)
-	db.Delete(ctx, "leaf", nil)
-	db.Delete(ctx, "double_index", nil)
+	_ = db.Delete(ctx, "unsupported_type", nil)
+	_ = db.Delete(ctx, "type_test", nil)
+	_ = db.Delete(ctx, "root", nil)
+	_ = db.Delete(ctx, "multi_parent", nil)
+	_ = db.Delete(ctx, "leaf_lock", nil)
+	_ = db.Delete(ctx, "leaf", nil)
+	_ = db.Delete(ctx, "double_index", nil)
 
 }
 
@@ -62,289 +62,361 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 	encoder.SetIndent("", "  ")
 
 	if _, err := io.WriteString(writer, "[\n"); err != nil {
-		return err
+		return fmt.Errorf("writer error: %w", err)
 	}
 
 	{ // Write DoubleIndices
 		if _, err := io.WriteString(writer, "["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, `"double_index"`); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-		cursor := QueryDoubleIndices(ctx).LoadCursor()
+		cursor, err := QueryDoubleIndices(ctx).LoadCursor()
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
 		defer cursor.Close()
-		if obj := cursor.Next(); obj != nil {
+		obj, err2 := cursor.Next()
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+		if obj != nil {
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 
-		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
 			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
+				return fmt.Errorf("writer error: %w", err)
 			}
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
+		}
+		if err != nil {
+			return fmt.Errorf("database cursor error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, "]\n]"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, ","); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, "\n"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 	}
 	{ // Write Leafs
 		if _, err := io.WriteString(writer, "["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, `"leaf"`); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-		cursor := QueryLeafs(ctx).LoadCursor()
+		cursor, err := QueryLeafs(ctx).LoadCursor()
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
 		defer cursor.Close()
-		if obj := cursor.Next(); obj != nil {
+		obj, err2 := cursor.Next()
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+		if obj != nil {
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 
-		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
 			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
+				return fmt.Errorf("writer error: %w", err)
 			}
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
+		}
+		if err != nil {
+			return fmt.Errorf("database cursor error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, "]\n]"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, ","); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, "\n"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 	}
 	{ // Write LeafLocks
 		if _, err := io.WriteString(writer, "["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, `"leaf_lock"`); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-		cursor := QueryLeafLocks(ctx).LoadCursor()
+		cursor, err := QueryLeafLocks(ctx).LoadCursor()
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
 		defer cursor.Close()
-		if obj := cursor.Next(); obj != nil {
+		obj, err2 := cursor.Next()
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+		if obj != nil {
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 
-		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
 			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
+				return fmt.Errorf("writer error: %w", err)
 			}
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
+		}
+		if err != nil {
+			return fmt.Errorf("database cursor error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, "]\n]"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, ","); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, "\n"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 	}
 	{ // Write MultiParents
 		if _, err := io.WriteString(writer, "["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, `"multi_parent"`); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-		cursor := QueryMultiParents(ctx).LoadCursor()
+		cursor, err := QueryMultiParents(ctx).LoadCursor()
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
 		defer cursor.Close()
-		if obj := cursor.Next(); obj != nil {
+		obj, err2 := cursor.Next()
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+		if obj != nil {
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 
-		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
 			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
+				return fmt.Errorf("writer error: %w", err)
 			}
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
+		}
+		if err != nil {
+			return fmt.Errorf("database cursor error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, "]\n]"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, ","); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, "\n"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 	}
 	{ // Write Roots
 		if _, err := io.WriteString(writer, "["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, `"root"`); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-		cursor := QueryRoots(ctx).LoadCursor()
+		cursor, err := QueryRoots(ctx).LoadCursor()
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
 		defer cursor.Close()
-		if obj := cursor.Next(); obj != nil {
+		obj, err2 := cursor.Next()
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+		if obj != nil {
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 
-		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
 			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
+				return fmt.Errorf("writer error: %w", err)
 			}
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
+		}
+		if err != nil {
+			return fmt.Errorf("database cursor error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, "]\n]"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, ","); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, "\n"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 	}
 	{ // Write TypeTests
 		if _, err := io.WriteString(writer, "["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, `"type_test"`); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-		cursor := QueryTypeTests(ctx).LoadCursor()
+		cursor, err := QueryTypeTests(ctx).LoadCursor()
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
 		defer cursor.Close()
-		if obj := cursor.Next(); obj != nil {
+		obj, err2 := cursor.Next()
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+		if obj != nil {
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 
-		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
 			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
+				return fmt.Errorf("writer error: %w", err)
 			}
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
+		}
+		if err != nil {
+			return fmt.Errorf("database cursor error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, "]\n]"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, ","); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, "\n"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 	}
 	{ // Write UnsupportedTypes
 		if _, err := io.WriteString(writer, "["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, `"unsupported_type"`); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-		cursor := QueryUnsupportedTypes(ctx).LoadCursor()
+		cursor, err := QueryUnsupportedTypes(ctx).LoadCursor()
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
 		defer cursor.Close()
-		if obj := cursor.Next(); obj != nil {
+		obj, err2 := cursor.Next()
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+		if obj != nil {
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 
-		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
 			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
+				return fmt.Errorf("writer error: %w", err)
 			}
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
+		}
+		if err != nil {
+			return fmt.Errorf("database cursor error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, "]\n]"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, "\n"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 	}
 
-	_, err := io.WriteString(writer, "]")
-	return err
+	if _, err := io.WriteString(writer, "]"); err != nil {
+		return fmt.Errorf("writer error: %w", err)
+	}
+	return nil
 }
 
 // JsonDecodeAll imports the entire database from JSON that was created using JsonEncodeAll.

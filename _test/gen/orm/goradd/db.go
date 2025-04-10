@@ -47,17 +47,17 @@ func Database() db.DatabaseI {
 func ClearAll(ctx context.Context) {
 	db := Database()
 
-	db.Delete(ctx, "related_project_assn", nil)
-	db.Delete(ctx, "team_member_project_assn", nil)
+	_ = db.Delete(ctx, "related_project_assn", nil)
+	_ = db.Delete(ctx, "team_member_project_assn", nil)
 
-	db.Delete(ctx, "milestone", nil)
-	db.Delete(ctx, "login", nil)
-	db.Delete(ctx, "employee_info", nil)
-	db.Delete(ctx, "address", nil)
-	db.Delete(ctx, "project", nil)
-	db.Delete(ctx, "person_with_lock", nil)
-	db.Delete(ctx, "person", nil)
-	db.Delete(ctx, "gift", nil)
+	_ = db.Delete(ctx, "milestone", nil)
+	_ = db.Delete(ctx, "login", nil)
+	_ = db.Delete(ctx, "employee_info", nil)
+	_ = db.Delete(ctx, "address", nil)
+	_ = db.Delete(ctx, "project", nil)
+	_ = db.Delete(ctx, "person_with_lock", nil)
+	_ = db.Delete(ctx, "person", nil)
+	_ = db.Delete(ctx, "gift", nil)
 
 }
 
@@ -67,395 +67,503 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 	encoder.SetIndent("", "  ")
 
 	if _, err := io.WriteString(writer, "[\n"); err != nil {
-		return err
+		return fmt.Errorf("writer error: %w", err)
 	}
 
 	{ // Write Gifts
 		if _, err := io.WriteString(writer, "["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, `"gift"`); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-		cursor := QueryGifts(ctx).LoadCursor()
+		cursor, err := QueryGifts(ctx).LoadCursor()
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
 		defer cursor.Close()
-		if obj := cursor.Next(); obj != nil {
+		obj, err2 := cursor.Next()
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+		if obj != nil {
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 
-		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
 			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
+				return fmt.Errorf("writer error: %w", err)
 			}
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
+		}
+		if err != nil {
+			return fmt.Errorf("database cursor error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, "]\n]"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, ","); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, "\n"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 	}
 	{ // Write People
 		if _, err := io.WriteString(writer, "["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, `"person"`); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-		cursor := QueryPeople(ctx).LoadCursor()
+		cursor, err := QueryPeople(ctx).LoadCursor()
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
 		defer cursor.Close()
-		if obj := cursor.Next(); obj != nil {
+		obj, err2 := cursor.Next()
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+		if obj != nil {
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 
-		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
 			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
+				return fmt.Errorf("writer error: %w", err)
 			}
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
+		}
+		if err != nil {
+			return fmt.Errorf("database cursor error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, "]\n]"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, ","); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, "\n"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 	}
 	{ // Write PersonWithLocks
 		if _, err := io.WriteString(writer, "["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, `"person_with_lock"`); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-		cursor := QueryPersonWithLocks(ctx).LoadCursor()
+		cursor, err := QueryPersonWithLocks(ctx).LoadCursor()
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
 		defer cursor.Close()
-		if obj := cursor.Next(); obj != nil {
+		obj, err2 := cursor.Next()
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+		if obj != nil {
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 
-		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
 			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
+				return fmt.Errorf("writer error: %w", err)
 			}
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
+		}
+		if err != nil {
+			return fmt.Errorf("database cursor error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, "]\n]"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, ","); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, "\n"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 	}
 	{ // Write Projects
 		if _, err := io.WriteString(writer, "["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, `"project"`); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-		cursor := QueryProjects(ctx).LoadCursor()
+		cursor, err := QueryProjects(ctx).LoadCursor()
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
 		defer cursor.Close()
-		if obj := cursor.Next(); obj != nil {
+		obj, err2 := cursor.Next()
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+		if obj != nil {
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 
-		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
 			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
+				return fmt.Errorf("writer error: %w", err)
 			}
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
+		}
+		if err != nil {
+			return fmt.Errorf("database cursor error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, "]\n]"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, ","); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, "\n"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 	}
 	{ // Write Addresses
 		if _, err := io.WriteString(writer, "["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, `"address"`); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-		cursor := QueryAddresses(ctx).LoadCursor()
+		cursor, err := QueryAddresses(ctx).LoadCursor()
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
 		defer cursor.Close()
-		if obj := cursor.Next(); obj != nil {
+		obj, err2 := cursor.Next()
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+		if obj != nil {
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 
-		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
 			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
+				return fmt.Errorf("writer error: %w", err)
 			}
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
+		}
+		if err != nil {
+			return fmt.Errorf("database cursor error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, "]\n]"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, ","); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, "\n"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 	}
 	{ // Write EmployeeInfos
 		if _, err := io.WriteString(writer, "["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, `"employee_info"`); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-		cursor := QueryEmployeeInfos(ctx).LoadCursor()
+		cursor, err := QueryEmployeeInfos(ctx).LoadCursor()
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
 		defer cursor.Close()
-		if obj := cursor.Next(); obj != nil {
+		obj, err2 := cursor.Next()
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+		if obj != nil {
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 
-		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
 			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
+				return fmt.Errorf("writer error: %w", err)
 			}
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
+		}
+		if err != nil {
+			return fmt.Errorf("database cursor error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, "]\n]"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, ","); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, "\n"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 	}
 	{ // Write Logins
 		if _, err := io.WriteString(writer, "["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, `"login"`); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-		cursor := QueryLogins(ctx).LoadCursor()
+		cursor, err := QueryLogins(ctx).LoadCursor()
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
 		defer cursor.Close()
-		if obj := cursor.Next(); obj != nil {
+		obj, err2 := cursor.Next()
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+		if obj != nil {
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 
-		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
 			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
+				return fmt.Errorf("writer error: %w", err)
 			}
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
+		}
+		if err != nil {
+			return fmt.Errorf("database cursor error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, "]\n]"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, ","); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, "\n"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 	}
 	{ // Write Milestones
 		if _, err := io.WriteString(writer, "["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, `"milestone"`); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-		cursor := QueryMilestones(ctx).LoadCursor()
+		cursor, err := QueryMilestones(ctx).LoadCursor()
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
 		defer cursor.Close()
-		if obj := cursor.Next(); obj != nil {
+		obj, err2 := cursor.Next()
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+		if obj != nil {
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 
-		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
 			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
+				return fmt.Errorf("writer error: %w", err)
 			}
 			if err := encoder.Encode(obj); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
+		}
+		if err != nil {
+			return fmt.Errorf("database cursor error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, "]\n]"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _, err := io.WriteString(writer, "\n"); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 	}
 
 	db := Database()
 	{
 		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, `"related_project_assn",[`); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-		cursor := db.Query(ctx, "related_project_assn",
+		cursor, err := db.Query(ctx, "related_project_assn",
 			map[string]query.ReceiverType{
 				"child_id":  query.ColTypeString,
 				"parent_id": query.ColTypeString,
 			},
 			nil,
 			nil)
-		if rec := cursor.Next(); rec != nil {
-			if err := encoder.Encode(rec); err != nil {
-				return err
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
+		if rec, err2 := cursor.Next(); err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err2)
+		} else if rec != nil {
+			if err = encoder.Encode(rec); err != nil {
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
-		for rec := cursor.Next(); rec != nil; rec = cursor.Next() {
+		for {
+			rec, err2 := cursor.Next()
+			if err2 != nil {
+				return fmt.Errorf("database cursor error: %w", err2)
+			}
+			if rec == nil {
+				break
+			}
+
 			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
+				return fmt.Errorf("writer error: %w", err)
 			}
 			if err := encoder.Encode(rec); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 		if _, err := io.WriteString(writer, `]]`); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 	}
 	{
 		if _, err := io.WriteString(writer, ",\n["); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 		if _, err := io.WriteString(writer, `"team_member_project_assn",[`); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-		cursor := db.Query(ctx, "team_member_project_assn",
+		cursor, err := db.Query(ctx, "team_member_project_assn",
 			map[string]query.ReceiverType{
 				"project_id":     query.ColTypeString,
 				"team_member_id": query.ColTypeString,
 			},
 			nil,
 			nil)
-		if rec := cursor.Next(); rec != nil {
-			if err := encoder.Encode(rec); err != nil {
-				return err
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
+		if rec, err2 := cursor.Next(); err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err2)
+		} else if rec != nil {
+			if err = encoder.Encode(rec); err != nil {
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
-		for rec := cursor.Next(); rec != nil; rec = cursor.Next() {
+		for {
+			rec, err2 := cursor.Next()
+			if err2 != nil {
+				return fmt.Errorf("database cursor error: %w", err2)
+			}
+			if rec == nil {
+				break
+			}
+
 			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
+				return fmt.Errorf("writer error: %w", err)
 			}
 			if err := encoder.Encode(rec); err != nil {
-				return err
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 		if _, err := io.WriteString(writer, `]]`); err != nil {
-			return err
+			return fmt.Errorf("writer error: %w", err)
 		}
 	}
 
-	_, err := io.WriteString(writer, "]")
-	return err
+	if _, err := io.WriteString(writer, "]"); err != nil {
+		return fmt.Errorf("writer error: %w", err)
+	}
+	return nil
 }
 
 // JsonDecodeAll imports the entire database from JSON that was created using JsonEncodeAll.

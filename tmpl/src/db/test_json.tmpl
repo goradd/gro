@@ -18,10 +18,10 @@ return
     // database must be pre-populated for test
 
 {{for _,table := range orderedTables}}
-    v_{{= table.Identifier}} := Query{{= table.IdentifierPlural }}(ctx).OrderBy(node.{{= table.Identifier }}().PrimaryKey()).Get() // gets first record
+    v_{{= table.Identifier}}, _ := Query{{= table.IdentifierPlural }}(ctx).OrderBy(node.{{= table.Identifier }}().PrimaryKey()).Get() // gets first record
 {{for}}
 {{for _,table := range orderedTables}}
-    v_{{= table.Identifier}}Count := Count{{= table.IdentifierPlural}}(ctx)
+    v_{{= table.Identifier}}Count, _ := Count{{= table.IdentifierPlural}}(ctx)
 {{for}}
 
     var b bytes.Buffer
@@ -30,7 +30,7 @@ return
 
     ClearAll(ctx)
 {{for _,table := range orderedTables}}
-    assert.Equal(t, 0, Count{{= table.IdentifierPlural}}(ctx))
+    assert.Equal(t, 0, func() int {i,_ := Count{{= table.IdentifierPlural}}(ctx); return i}() )
 {{for}}
 
     r := bufio.NewReader(&b)
@@ -38,11 +38,12 @@ return
 
 {{for _,table := range orderedTables}}
     if v_{{= table.Identifier}} != nil {
-        assertEqualFields{{= table.Identifier}}(t, v_{{= table.Identifier}}, Query{{= table.IdentifierPlural }}(ctx).OrderBy(node.{{= table.Identifier }}().PrimaryKey()).Get())
+        obj, _ := Query{{= table.IdentifierPlural }}(ctx).OrderBy(node.{{= table.Identifier }}().PrimaryKey()).Get()
+        assertEqualFields{{= table.Identifier}}(t, v_{{= table.Identifier}}, obj)
     }
 {{for}}
 {{for _,table := range orderedTables}}
-    assert.Equal(t, v_{{= table.Identifier}}Count, Count{{= table.IdentifierPlural}}(ctx))
+    assert.Equal(t, v_{{= table.Identifier}}Count, func() int {i,_ := Count{{= table.IdentifierPlural}}(ctx); return i}() )
 {{for}}
 }
 

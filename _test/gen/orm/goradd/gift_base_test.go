@@ -57,7 +57,7 @@ func deleteSampleGift(ctx context.Context, obj *Gift) {
 		return
 	}
 
-	obj.Delete(ctx)
+	_ = obj.Delete(ctx)
 
 }
 
@@ -119,13 +119,13 @@ func TestGift_Copy(t *testing.T) {
 func TestGift_BasicInsert(t *testing.T) {
 	obj := createMinimalSampleGift()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleGift(ctx, obj)
 
 	// Test retrieval
-	obj2 := LoadGift(ctx, obj.PrimaryKey())
+	obj2, err := LoadGift(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj2)
+	assert.NoError(t, err)
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
@@ -165,7 +165,8 @@ func TestGift_BasicUpdate(t *testing.T) {
 	defer deleteSampleGift(ctx, obj)
 	updateMinimalSampleGift(obj)
 	assert.NoError(t, obj.Save(ctx))
-	obj2 := LoadGift(ctx, obj.PrimaryKey())
+	obj2, err := LoadGift(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 
 	assert.Equal(t, obj2.Number(), obj.Number(), "Number did not update")
 	assert.Equal(t, obj2.Name(), obj.Name(), "Name did not update")
@@ -174,19 +175,21 @@ func TestGift_BasicUpdate(t *testing.T) {
 func TestGift_ReferenceLoad(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleGift(ctx)
-	obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleGift(ctx, obj)
 
 	// Test that referenced objects were saved and assigned ids
 
 	// Test lazy loading
-	obj2 := LoadGift(ctx, obj.PrimaryKey())
-	objPkOnly := LoadGift(ctx, obj.PrimaryKey(), node.Gift().PrimaryKey())
+	obj2, err := LoadGift(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
+	objPkOnly, err2 := LoadGift(ctx, obj.PrimaryKey(), node.Gift().PrimaryKey())
+	assert.NoError(t, err2)
 	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
 
 	// test eager loading
-	obj3 := LoadGift(ctx, obj.PrimaryKey())
+	obj3, _ := LoadGift(ctx, obj.PrimaryKey())
 	_ = obj3 // avoid error if there are no references
 
 }
@@ -194,15 +197,15 @@ func TestGift_ReferenceLoad(t *testing.T) {
 func TestGift_ReferenceUpdateNewObjects(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleGift(ctx)
-	obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleGift(ctx, obj)
 
-	obj2 := LoadGift(ctx, obj.PrimaryKey())
+	obj2, _ := LoadGift(ctx, obj.PrimaryKey())
 	updateMaximalSampleGift(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleGift(ctx, obj2)
 
-	obj3 := LoadGift(ctx, obj2.PrimaryKey())
+	obj3, _ := LoadGift(ctx, obj2.PrimaryKey())
 	_ = obj3 // avoid error if there are no references
 
 }
@@ -215,7 +218,7 @@ func TestGift_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2 := LoadGift(ctx, obj.PrimaryKey())
+	obj2, _ := LoadGift(ctx, obj.PrimaryKey())
 	_ = obj2 // avoid error if there are no references
 
 }
@@ -232,9 +235,10 @@ func TestGift_Getters(t *testing.T) {
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSampleGift(ctx, obj)
 
-	assert.True(t, HasGift(ctx, obj.PrimaryKey()))
+	has, _ := HasGift(ctx, obj.PrimaryKey())
+	assert.True(t, has)
 
-	obj2 := LoadGift(ctx, obj.PrimaryKey(), node.Gift().PrimaryKey())
+	obj2, _ := LoadGift(ctx, obj.PrimaryKey(), node.Gift().PrimaryKey())
 	assert.Equal(t, obj.Number(), obj2.Number())
 
 	assert.Equal(t, obj.Number(), obj.Get(node.Gift().Number().Identifier))
@@ -250,7 +254,7 @@ func TestGift_QueryLoad(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleGift(ctx, obj)
 
-	objs := QueryGifts(ctx).
+	objs, _ := QueryGifts(ctx).
 		Where(op.Equal(node.Gift().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.Gift().PrimaryKey()). // exercise order by
 		Limit(1, 0).                       // exercise limit
@@ -267,7 +271,7 @@ func TestGift_QueryLoadI(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleGift(ctx, obj)
 
-	objs := QueryGifts(ctx).
+	objs, _ := QueryGifts(ctx).
 		Where(op.Equal(node.Gift().PrimaryKey(), obj.PrimaryKey())).
 		LoadI()
 
@@ -280,36 +284,42 @@ func TestGift_QueryCursor(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleGift(ctx, obj)
 
-	cursor := QueryGifts(ctx).
+	cursor, _ := QueryGifts(ctx).
 		Where(op.Equal(node.Gift().PrimaryKey(), obj.PrimaryKey())).
 		LoadCursor()
 
-	obj2 := cursor.Next()
+	obj2, err2 := cursor.Next()
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.Nil(t, cursor.Next())
+	assert.NoError(t, err2)
+	obj2, err2 = cursor.Next()
+	assert.Nil(t, obj2)
+	assert.NoError(t, err2)
+	assert.NoError(t, cursor.Close())
 
 	// test empty cursor result
-	cursor = QueryGifts(ctx).
+	cursor, err = QueryGifts(ctx).
 		Where(op.Equal(1, 0)).
 		LoadCursor()
-	assert.Nil(t, cursor.Next())
-
+	obj2, err = cursor.Next()
+	assert.Nil(t, obj2)
+	assert.NoError(t, err)
+	assert.NoError(t, cursor.Close())
 }
 func TestGift_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleGift(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
-	// reread in case there are data limitations imposed by the database
-	obj2 := LoadGift(ctx, obj.PrimaryKey())
 	defer deleteSampleGift(ctx, obj)
+	// reread in case there are data limitations imposed by the database
+	obj2, _ := LoadGift(ctx, obj.PrimaryKey())
 
-	assert.Less(t, 0, CountGifts(ctx))
-
-	assert.Less(t, 0, CountGiftsByNumber(ctx, obj2.Number()))
-	assert.Less(t, 0, CountGiftsByName(ctx, obj2.Name()))
+	assert.Positive(t, func() int { i, _ := CountGifts(ctx); return i }())
+	assert.Positive(t, func() int { i, _ := CountGiftsByNumber(ctx, obj2.Number()); return i }())
+	assert.Positive(t, func() int { i, _ := CountGiftsByName(ctx, obj2.Name()); return i }())
 
 }
+
 func TestGift_MarshalJSON(t *testing.T) {
 	obj := createMinimalSampleGift()
 
@@ -389,8 +399,8 @@ func TestGift_Indexes(t *testing.T) {
 	defer deleteSampleGift(ctx, obj)
 
 	var obj2 *Gift
-	obj2 = LoadGiftByNumber(ctx, obj.Number())
+	obj2, _ = LoadGiftByNumber(ctx, obj.Number())
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.True(t, HasGiftByNumber(ctx, obj.Number()))
+	assert.True(t, func() bool { h, _ := HasGiftByNumber(ctx, obj.Number()); return h }())
 
 }

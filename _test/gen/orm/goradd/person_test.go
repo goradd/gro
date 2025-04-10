@@ -43,9 +43,9 @@ func TestPerson_Label(t *testing.T) {
 func TestPerson_Delete(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMinimalSamplePerson()
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
-	DeletePerson(ctx, obj.PrimaryKey())
-	obj2 := LoadPerson(ctx, obj.PrimaryKey())
+	assert.NoError(t, obj.Save(ctx))
+	assert.NoError(t, DeletePerson(ctx, obj.PrimaryKey()))
+	obj2, err := LoadPerson(ctx, obj.PrimaryKey())
 	assert.Nil(t, obj2)
+	assert.NoError(t, err)
 }

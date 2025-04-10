@@ -43,9 +43,9 @@ func TestLogin_Label(t *testing.T) {
 func TestLogin_Delete(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMinimalSampleLogin()
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
-	DeleteLogin(ctx, obj.PrimaryKey())
-	obj2 := LoadLogin(ctx, obj.PrimaryKey())
+	assert.NoError(t, obj.Save(ctx))
+	assert.NoError(t, DeleteLogin(ctx, obj.PrimaryKey()))
+	obj2, err := LoadLogin(ctx, obj.PrimaryKey())
 	assert.Nil(t, obj2)
+	assert.NoError(t, err)
 }

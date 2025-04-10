@@ -43,12 +43,12 @@ func TestRoot_Label(t *testing.T) {
 func TestRoot_Delete(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMinimalSampleRoot()
-	err := obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer obj.RequiredLeaf().Delete(ctx)
 	defer obj.OptionalLeafUnique().Delete(ctx)
 	defer obj.RequiredLeafUnique().Delete(ctx)
-	assert.NoError(t, err)
-	DeleteRoot(ctx, obj.PrimaryKey())
-	obj2 := LoadRoot(ctx, obj.PrimaryKey())
+	assert.NoError(t, DeleteRoot(ctx, obj.PrimaryKey()))
+	obj2, err := LoadRoot(ctx, obj.PrimaryKey())
 	assert.Nil(t, obj2)
+	assert.NoError(t, err)
 }

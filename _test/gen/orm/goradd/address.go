@@ -61,7 +61,7 @@ func (o *Address) Label() string {
 // Save will return a db.OptimisticLockError if it detects a collision when two users
 // are attempting to change the same database record.
 //
-// It will return a db.NewDuplicateValueError if it detects a collision when an attempt
+// It will return a db.UniqueValueError if it detects a collision when an attempt
 // is made to add a record with a unique column that is given a value that is already in the database.
 //
 // Updating a record that has not changed will have no effect on the database.
@@ -83,9 +83,11 @@ func queryAddresses(ctx context.Context) AddressBuilder {
 
 // DeleteAddress deletes the address record with primary key pk from the database.
 // Note that you can also delete loaded Address objects by calling Delete on them.
+// Returns an error only if there was a problem with the database during the delete.
+// If the record was not found, no error will be returned.
 // doc: type=Address
-func DeleteAddress(ctx context.Context, pk string) {
-	deleteAddress(ctx, pk)
+func DeleteAddress(ctx context.Context, pk string) error {
+	return deleteAddress(ctx, pk)
 }
 
 func init() {

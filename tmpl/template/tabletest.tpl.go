@@ -230,7 +230,7 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `()
-    err := obj.Save(ctx)
+    assert.NoError(t, obj.Save(ctx))
 `); err != nil {
 			return
 		}
@@ -256,8 +256,7 @@ func Test`); err != nil {
 
 		}
 
-		if _, err = io.WriteString(_w, `    assert.NoError(t, err)
-    Delete`); err != nil {
+		if _, err = io.WriteString(_w, `    assert.NoError(t, Delete`); err != nil {
 			return
 		}
 
@@ -265,8 +264,8 @@ func Test`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey())
-    obj2 := Load`); err != nil {
+		if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey()))
+    obj2, err := Load`); err != nil {
 			return
 		}
 
@@ -276,6 +275,7 @@ func Test`); err != nil {
 
 		if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey())
     assert.Nil(t, obj2)
+    assert.NoError(t, err)
 `); err != nil {
 			return
 		}

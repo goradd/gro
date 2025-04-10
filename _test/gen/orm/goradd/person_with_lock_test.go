@@ -43,9 +43,9 @@ func TestPersonWithLock_Label(t *testing.T) {
 func TestPersonWithLock_Delete(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMinimalSamplePersonWithLock()
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
-	DeletePersonWithLock(ctx, obj.PrimaryKey())
-	obj2 := LoadPersonWithLock(ctx, obj.PrimaryKey())
+	assert.NoError(t, obj.Save(ctx))
+	assert.NoError(t, DeletePersonWithLock(ctx, obj.PrimaryKey()))
+	obj2, err := LoadPersonWithLock(ctx, obj.PrimaryKey())
 	assert.Nil(t, obj2)
+	assert.NoError(t, err)
 }

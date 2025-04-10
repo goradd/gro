@@ -43,9 +43,9 @@ func TestMultiParent_Label(t *testing.T) {
 func TestMultiParent_Delete(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMinimalSampleMultiParent()
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
-	DeleteMultiParent(ctx, obj.PrimaryKey())
-	obj2 := LoadMultiParent(ctx, obj.PrimaryKey())
+	assert.NoError(t, obj.Save(ctx))
+	assert.NoError(t, DeleteMultiParent(ctx, obj.PrimaryKey()))
+	obj2, err := LoadMultiParent(ctx, obj.PrimaryKey())
 	assert.Nil(t, obj2)
+	assert.NoError(t, err)
 }

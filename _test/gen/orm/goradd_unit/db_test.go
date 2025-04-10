@@ -50,63 +50,70 @@ func TestDbJson(t *testing.T) {
 	// get single comparison objects and data sizes
 	// database must be pre-populated for test
 
-	v_DoubleIndex := QueryDoubleIndices(ctx).OrderBy(node.DoubleIndex().PrimaryKey()).Get()            // gets first record
-	v_Leaf := QueryLeafs(ctx).OrderBy(node.Leaf().PrimaryKey()).Get()                                  // gets first record
-	v_LeafLock := QueryLeafLocks(ctx).OrderBy(node.LeafLock().PrimaryKey()).Get()                      // gets first record
-	v_MultiParent := QueryMultiParents(ctx).OrderBy(node.MultiParent().PrimaryKey()).Get()             // gets first record
-	v_Root := QueryRoots(ctx).OrderBy(node.Root().PrimaryKey()).Get()                                  // gets first record
-	v_TypeTest := QueryTypeTests(ctx).OrderBy(node.TypeTest().PrimaryKey()).Get()                      // gets first record
-	v_UnsupportedType := QueryUnsupportedTypes(ctx).OrderBy(node.UnsupportedType().PrimaryKey()).Get() // gets first record
-	v_DoubleIndexCount := CountDoubleIndices(ctx)
-	v_LeafCount := CountLeafs(ctx)
-	v_LeafLockCount := CountLeafLocks(ctx)
-	v_MultiParentCount := CountMultiParents(ctx)
-	v_RootCount := CountRoots(ctx)
-	v_TypeTestCount := CountTypeTests(ctx)
-	v_UnsupportedTypeCount := CountUnsupportedTypes(ctx)
+	v_DoubleIndex, _ := QueryDoubleIndices(ctx).OrderBy(node.DoubleIndex().PrimaryKey()).Get()            // gets first record
+	v_Leaf, _ := QueryLeafs(ctx).OrderBy(node.Leaf().PrimaryKey()).Get()                                  // gets first record
+	v_LeafLock, _ := QueryLeafLocks(ctx).OrderBy(node.LeafLock().PrimaryKey()).Get()                      // gets first record
+	v_MultiParent, _ := QueryMultiParents(ctx).OrderBy(node.MultiParent().PrimaryKey()).Get()             // gets first record
+	v_Root, _ := QueryRoots(ctx).OrderBy(node.Root().PrimaryKey()).Get()                                  // gets first record
+	v_TypeTest, _ := QueryTypeTests(ctx).OrderBy(node.TypeTest().PrimaryKey()).Get()                      // gets first record
+	v_UnsupportedType, _ := QueryUnsupportedTypes(ctx).OrderBy(node.UnsupportedType().PrimaryKey()).Get() // gets first record
+	v_DoubleIndexCount, _ := CountDoubleIndices(ctx)
+	v_LeafCount, _ := CountLeafs(ctx)
+	v_LeafLockCount, _ := CountLeafLocks(ctx)
+	v_MultiParentCount, _ := CountMultiParents(ctx)
+	v_RootCount, _ := CountRoots(ctx)
+	v_TypeTestCount, _ := CountTypeTests(ctx)
+	v_UnsupportedTypeCount, _ := CountUnsupportedTypes(ctx)
 
 	var b bytes.Buffer
 	w := bufio.NewWriter(&b)
 	assert.NoError(t, JsonEncodeAll(ctx, w))
 
 	ClearAll(ctx)
-	assert.Equal(t, 0, CountDoubleIndices(ctx))
-	assert.Equal(t, 0, CountLeafs(ctx))
-	assert.Equal(t, 0, CountLeafLocks(ctx))
-	assert.Equal(t, 0, CountMultiParents(ctx))
-	assert.Equal(t, 0, CountRoots(ctx))
-	assert.Equal(t, 0, CountTypeTests(ctx))
-	assert.Equal(t, 0, CountUnsupportedTypes(ctx))
+	assert.Equal(t, 0, func() int { i, _ := CountDoubleIndices(ctx); return i }())
+	assert.Equal(t, 0, func() int { i, _ := CountLeafs(ctx); return i }())
+	assert.Equal(t, 0, func() int { i, _ := CountLeafLocks(ctx); return i }())
+	assert.Equal(t, 0, func() int { i, _ := CountMultiParents(ctx); return i }())
+	assert.Equal(t, 0, func() int { i, _ := CountRoots(ctx); return i }())
+	assert.Equal(t, 0, func() int { i, _ := CountTypeTests(ctx); return i }())
+	assert.Equal(t, 0, func() int { i, _ := CountUnsupportedTypes(ctx); return i }())
 
 	r := bufio.NewReader(&b)
 	assert.NoError(t, JsonDecodeAll(ctx, r))
 
 	if v_DoubleIndex != nil {
-		assertEqualFieldsDoubleIndex(t, v_DoubleIndex, QueryDoubleIndices(ctx).OrderBy(node.DoubleIndex().PrimaryKey()).Get())
+		obj, _ := QueryDoubleIndices(ctx).OrderBy(node.DoubleIndex().PrimaryKey()).Get()
+		assertEqualFieldsDoubleIndex(t, v_DoubleIndex, obj)
 	}
 	if v_Leaf != nil {
-		assertEqualFieldsLeaf(t, v_Leaf, QueryLeafs(ctx).OrderBy(node.Leaf().PrimaryKey()).Get())
+		obj, _ := QueryLeafs(ctx).OrderBy(node.Leaf().PrimaryKey()).Get()
+		assertEqualFieldsLeaf(t, v_Leaf, obj)
 	}
 	if v_LeafLock != nil {
-		assertEqualFieldsLeafLock(t, v_LeafLock, QueryLeafLocks(ctx).OrderBy(node.LeafLock().PrimaryKey()).Get())
+		obj, _ := QueryLeafLocks(ctx).OrderBy(node.LeafLock().PrimaryKey()).Get()
+		assertEqualFieldsLeafLock(t, v_LeafLock, obj)
 	}
 	if v_MultiParent != nil {
-		assertEqualFieldsMultiParent(t, v_MultiParent, QueryMultiParents(ctx).OrderBy(node.MultiParent().PrimaryKey()).Get())
+		obj, _ := QueryMultiParents(ctx).OrderBy(node.MultiParent().PrimaryKey()).Get()
+		assertEqualFieldsMultiParent(t, v_MultiParent, obj)
 	}
 	if v_Root != nil {
-		assertEqualFieldsRoot(t, v_Root, QueryRoots(ctx).OrderBy(node.Root().PrimaryKey()).Get())
+		obj, _ := QueryRoots(ctx).OrderBy(node.Root().PrimaryKey()).Get()
+		assertEqualFieldsRoot(t, v_Root, obj)
 	}
 	if v_TypeTest != nil {
-		assertEqualFieldsTypeTest(t, v_TypeTest, QueryTypeTests(ctx).OrderBy(node.TypeTest().PrimaryKey()).Get())
+		obj, _ := QueryTypeTests(ctx).OrderBy(node.TypeTest().PrimaryKey()).Get()
+		assertEqualFieldsTypeTest(t, v_TypeTest, obj)
 	}
 	if v_UnsupportedType != nil {
-		assertEqualFieldsUnsupportedType(t, v_UnsupportedType, QueryUnsupportedTypes(ctx).OrderBy(node.UnsupportedType().PrimaryKey()).Get())
+		obj, _ := QueryUnsupportedTypes(ctx).OrderBy(node.UnsupportedType().PrimaryKey()).Get()
+		assertEqualFieldsUnsupportedType(t, v_UnsupportedType, obj)
 	}
-	assert.Equal(t, v_DoubleIndexCount, CountDoubleIndices(ctx))
-	assert.Equal(t, v_LeafCount, CountLeafs(ctx))
-	assert.Equal(t, v_LeafLockCount, CountLeafLocks(ctx))
-	assert.Equal(t, v_MultiParentCount, CountMultiParents(ctx))
-	assert.Equal(t, v_RootCount, CountRoots(ctx))
-	assert.Equal(t, v_TypeTestCount, CountTypeTests(ctx))
-	assert.Equal(t, v_UnsupportedTypeCount, CountUnsupportedTypes(ctx))
+	assert.Equal(t, v_DoubleIndexCount, func() int { i, _ := CountDoubleIndices(ctx); return i }())
+	assert.Equal(t, v_LeafCount, func() int { i, _ := CountLeafs(ctx); return i }())
+	assert.Equal(t, v_LeafLockCount, func() int { i, _ := CountLeafLocks(ctx); return i }())
+	assert.Equal(t, v_MultiParentCount, func() int { i, _ := CountMultiParents(ctx); return i }())
+	assert.Equal(t, v_RootCount, func() int { i, _ := CountRoots(ctx); return i }())
+	assert.Equal(t, v_TypeTestCount, func() int { i, _ := CountTypeTests(ctx); return i }())
+	assert.Equal(t, v_UnsupportedTypeCount, func() int { i, _ := CountUnsupportedTypes(ctx); return i }())
 }

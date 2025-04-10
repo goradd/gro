@@ -125,7 +125,7 @@ return
 			return
 		}
 
-		if _, err = io.WriteString(_w, ` := Query`); err != nil {
+		if _, err = io.WriteString(_w, `, _ := Query`); err != nil {
 			return
 		}
 
@@ -158,7 +158,7 @@ return
 			return
 		}
 
-		if _, err = io.WriteString(_w, `Count := Count`); err != nil {
+		if _, err = io.WriteString(_w, `Count, _ := Count`); err != nil {
 			return
 		}
 
@@ -185,7 +185,7 @@ return
 
 	for _, table := range orderedTables {
 
-		if _, err = io.WriteString(_w, `    assert.Equal(t, 0, Count`); err != nil {
+		if _, err = io.WriteString(_w, `    assert.Equal(t, 0, func() int {i,_ := Count`); err != nil {
 			return
 		}
 
@@ -193,7 +193,7 @@ return
 			return
 		}
 
-		if _, err = io.WriteString(_w, `(ctx))
+		if _, err = io.WriteString(_w, `(ctx); return i}() )
 `); err != nil {
 			return
 		}
@@ -219,6 +219,23 @@ return
 		}
 
 		if _, err = io.WriteString(_w, ` != nil {
+        obj, _ := Query`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx).OrderBy(node.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().PrimaryKey()).Get()
         assertEqualFields`); err != nil {
 			return
 		}
@@ -235,23 +252,7 @@ return
 			return
 		}
 
-		if _, err = io.WriteString(_w, `, Query`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `(ctx).OrderBy(node.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `().PrimaryKey()).Get())
+		if _, err = io.WriteString(_w, `, obj)
     }
 `); err != nil {
 			return
@@ -269,7 +270,7 @@ return
 			return
 		}
 
-		if _, err = io.WriteString(_w, `Count, Count`); err != nil {
+		if _, err = io.WriteString(_w, `Count, func() int {i,_ := Count`); err != nil {
 			return
 		}
 
@@ -277,7 +278,7 @@ return
 			return
 		}
 
-		if _, err = io.WriteString(_w, `(ctx))
+		if _, err = io.WriteString(_w, `(ctx); return i}() )
 `); err != nil {
 			return
 		}

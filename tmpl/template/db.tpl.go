@@ -139,7 +139,7 @@ func ClearAll(ctx context.Context) {
 
 	for _, mm := range database.UniqueManyManyReferences() {
 
-		if _, err = io.WriteString(_w, `    db.Delete(ctx, `); err != nil {
+		if _, err = io.WriteString(_w, `    _ = db.Delete(ctx, `); err != nil {
 			return
 		}
 
@@ -161,7 +161,7 @@ func ClearAll(ctx context.Context) {
 
 	for _, table := range slices.Backward(database.MarshalOrder()) {
 
-		if _, err = io.WriteString(_w, `    db.Delete(ctx, `); err != nil {
+		if _, err = io.WriteString(_w, `    _ = db.Delete(ctx, `); err != nil {
 			return
 		}
 
@@ -208,7 +208,7 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 	encoder.SetIndent("", "  ")
 
 	if _,err := io.WriteString(writer, "[\n"); err != nil {
-		return err
+        return fmt.Errorf("writer error: %w", err)
 	}
 
 `); err != nil {
@@ -229,7 +229,7 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 
 			if _, err = io.WriteString(_w, `
 		if _,err := io.WriteString(writer, "["); err != nil {
-			return err
+            return fmt.Errorf("writer error: %w", err)
 		}
 
 		if _,err := io.WriteString(writer, `+"`"+`"`); err != nil {
@@ -241,13 +241,13 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 			}
 
 			if _, err = io.WriteString(_w, `"`+"`"+`); err != nil {
-			return err
+            return fmt.Errorf("writer error: %w", err)
 		}
         if _,err := io.WriteString(writer, ",\n["); err != nil {
-            return err
+            return fmt.Errorf("writer error: %w", err)
         }
 
-		cursor := Query`); err != nil {
+		cursor, err := Query`); err != nil {
 				return
 			}
 
@@ -256,24 +256,34 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 			}
 
 			if _, err = io.WriteString(_w, `(ctx).LoadCursor()
+		if err != nil {
+            return fmt.Errorf("query error: %w", err)
+		}
 		defer cursor.Close()
-		if obj := cursor.Next(); obj != nil {
+		obj, err2 := cursor.Next()
+        if err2 != nil {
+            return fmt.Errorf("database cursor error: %w", err)
+        }
+		if obj != nil {
 			if err := encoder.Encode(obj); err != nil {
-				return err
+                return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 
-		for obj := cursor.Next(); obj != nil; obj = cursor.Next() {
+		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
 			if _, err := io.WriteString(writer, ",\n"); err != nil {
-				return err
+                return fmt.Errorf("writer error: %w", err)
 			}
 			if err := encoder.Encode(obj); err != nil {
-				return err
+                return fmt.Errorf("encoding error: %w", err)
 			}
+		}
+		if err != nil {
+            return fmt.Errorf("database cursor error: %w", err)
 		}
 
 		if _,err := io.WriteString(writer, "]\n]"); err != nil {
-			return err
+            return fmt.Errorf("writer error: %w", err)
 		}
 
 `); err != nil {
@@ -283,7 +293,7 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 			if tableNum < len(orderedTables)-1 {
 
 				if _, err = io.WriteString(_w, `        if _,err := io.WriteString(writer, ","); err != nil {
-            return err
+            return fmt.Errorf("writer error: %w", err)
         }
 `); err != nil {
 					return
@@ -292,7 +302,7 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 			}
 
 			if _, err = io.WriteString(_w, `		if _,err := io.WriteString(writer, "\n"); err != nil {
-			return err
+            return fmt.Errorf("writer error: %w", err)
 		}
 	}
 `); err != nil {
@@ -322,7 +332,7 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 
 				if _, err = io.WriteString(_w, `    {
         if _,err := io.WriteString(writer, ",\n["); err != nil {
-            return err
+            return fmt.Errorf("writer error: %w", err)
         }
         if _,err := io.WriteString(writer, `+"`"+``); err != nil {
 					return
@@ -333,11 +343,11 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 				}
 
 				if _, err = io.WriteString(_w, `,[`+"`"+`); err != nil {
-            return err
+            return fmt.Errorf("writer error: %w", err)
         }
 
 
-        cursor := db.Query(ctx, `); err != nil {
+        cursor, err := db.Query(ctx, `); err != nil {
 					return
 				}
 
@@ -384,21 +394,34 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
             },
             nil,
             nil)
-        if rec := cursor.Next(); rec != nil {
-            if err := encoder.Encode(rec); err != nil {
-                return err
+        if err != nil {
+            return fmt.Errorf("query error: %w", err)
+        }
+        if rec, err2 := cursor.Next(); err2 != nil {
+            return fmt.Errorf("database cursor error: %w", err2)
+        } else if rec != nil {
+            if err = encoder.Encode(rec); err != nil {
+                return fmt.Errorf("encoding error: %w", err)
             }
         }
-        for rec := cursor.Next(); rec != nil; rec = cursor.Next() {
-            if _,err := io.WriteString(writer, ",\n"); err != nil {
-                return err
+        for {
+            rec, err2 := cursor.Next()
+            if err2 != nil {
+                return fmt.Errorf("database cursor error: %w", err2)
+            }
+            if rec == nil {
+                break
+            }
+
+            if _, err := io.WriteString(writer, ",\n"); err != nil {
+                return fmt.Errorf("writer error: %w", err)
             }
             if err := encoder.Encode(rec); err != nil {
-                return err
+                return fmt.Errorf("encoding error: %w", err)
             }
         }
         if _,err := io.WriteString(writer, `+"`"+`]]`+"`"+`); err != nil {
-            return err
+            return fmt.Errorf("writer error: %w", err)
         }
     }
 `); err != nil {
@@ -410,8 +433,10 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 		}
 
 		if _, err = io.WriteString(_w, `
-	_, err := io.WriteString(writer, "]")
-	return err
+	if _, err := io.WriteString(writer, "]"); err != nil {
+        return fmt.Errorf("writer error: %w", err)
+	}
+	return nil
 }
 
 `); err != nil {

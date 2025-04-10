@@ -63,7 +63,7 @@ func deleteSampleAddress(ctx context.Context, obj *Address) {
 		return
 	}
 
-	obj.Delete(ctx)
+	_ = obj.Delete(ctx)
 
 	deleteSamplePerson(ctx, obj.Person())
 
@@ -173,13 +173,13 @@ func TestAddress_Copy(t *testing.T) {
 func TestAddress_BasicInsert(t *testing.T) {
 	obj := createMinimalSampleAddress()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleAddress(ctx, obj)
 
 	// Test retrieval
-	obj2 := LoadAddress(ctx, obj.PrimaryKey())
+	obj2, err := LoadAddress(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj2)
+	assert.NoError(t, err)
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
@@ -210,6 +210,7 @@ func TestAddress_InsertPanics(t *testing.T) {
 	_ = ctx
 
 	obj.objPerson = nil
+	obj.personIDIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.personIDIsLoaded = true
 
@@ -226,7 +227,8 @@ func TestAddress_BasicUpdate(t *testing.T) {
 	defer deleteSampleAddress(ctx, obj)
 	updateMinimalSampleAddress(obj)
 	assert.NoError(t, obj.Save(ctx))
-	obj2 := LoadAddress(ctx, obj.PrimaryKey())
+	obj2, err := LoadAddress(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 
 	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
 	assert.Equal(t, obj2.Street(), obj.Street(), "Street did not update")
@@ -236,7 +238,7 @@ func TestAddress_BasicUpdate(t *testing.T) {
 func TestAddress_ReferenceLoad(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleAddress(ctx)
-	obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleAddress(ctx, obj)
 
 	// Test that referenced objects were saved and assigned ids
@@ -244,27 +246,29 @@ func TestAddress_ReferenceLoad(t *testing.T) {
 	assert.NotEqual(t, '-', obj.Person().PrimaryKey()[0])
 
 	// Test lazy loading
-	obj2 := LoadAddress(ctx, obj.PrimaryKey())
-	objPkOnly := LoadAddress(ctx, obj.PrimaryKey(), node.Address().PrimaryKey())
+	obj2, err := LoadAddress(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
+	objPkOnly, err2 := LoadAddress(ctx, obj.PrimaryKey(), node.Address().PrimaryKey())
+	assert.NoError(t, err2)
 	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
 
 	assert.Nil(t, obj2.Person(), "Person is not loaded initially")
-	v_Person := obj2.LoadPerson(ctx)
+	v_Person, _ := obj2.LoadPerson(ctx)
 	assert.NotNil(t, v_Person)
 	assert.Equal(t, v_Person.PrimaryKey(), obj2.Person().PrimaryKey())
 	assert.Equal(t, obj.Person().PrimaryKey(), obj2.Person().PrimaryKey())
 	assert.True(t, obj2.PersonIDIsLoaded())
 
 	assert.False(t, objPkOnly.PersonIDIsLoaded())
-	assert.Nil(t, objPkOnly.LoadPerson(ctx))
+	assert.Panics(t, func() { _, _ = objPkOnly.LoadPerson(ctx) })
 
 	assert.Panics(t, func() {
 		objPkOnly.SetPerson(nil)
 	})
 
 	// test eager loading
-	obj3 := LoadAddress(ctx, obj.PrimaryKey(), node.Address().Person())
+	obj3, _ := LoadAddress(ctx, obj.PrimaryKey(), node.Address().Person())
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())
@@ -274,15 +278,15 @@ func TestAddress_ReferenceLoad(t *testing.T) {
 func TestAddress_ReferenceUpdateNewObjects(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleAddress(ctx)
-	obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleAddress(ctx, obj)
 
-	obj2 := LoadAddress(ctx, obj.PrimaryKey())
+	obj2, _ := LoadAddress(ctx, obj.PrimaryKey())
 	updateMaximalSampleAddress(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleAddress(ctx, obj2)
 
-	obj3 := LoadAddress(ctx, obj2.PrimaryKey(), node.Address().Person())
+	obj3, _ := LoadAddress(ctx, obj2.PrimaryKey(), node.Address().Person())
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())
@@ -299,7 +303,7 @@ func TestAddress_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2 := LoadAddress(ctx, obj.PrimaryKey(),
+	obj2, _ := LoadAddress(ctx, obj.PrimaryKey(),
 		node.Address().Person(),
 	)
 	_ = obj2 // avoid error if there are no references
@@ -326,9 +330,10 @@ func TestAddress_Getters(t *testing.T) {
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSampleAddress(ctx, obj)
 
-	assert.True(t, HasAddress(ctx, obj.PrimaryKey()))
+	has, _ := HasAddress(ctx, obj.PrimaryKey())
+	assert.True(t, has)
 
-	obj2 := LoadAddress(ctx, obj.PrimaryKey(), node.Address().PrimaryKey())
+	obj2, _ := LoadAddress(ctx, obj.PrimaryKey(), node.Address().PrimaryKey())
 
 	assert.Equal(t, obj.ID(), obj.Get(node.Address().ID().Identifier))
 	assert.Panics(t, func() { obj2.PersonID() })
@@ -348,7 +353,7 @@ func TestAddress_QueryLoad(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleAddress(ctx, obj)
 
-	objs := QueryAddresses(ctx).
+	objs, _ := QueryAddresses(ctx).
 		Where(op.Equal(node.Address().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.Address().PrimaryKey()). // exercise order by
 		Limit(1, 0).                          // exercise limit
@@ -365,7 +370,7 @@ func TestAddress_QueryLoadI(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleAddress(ctx, obj)
 
-	objs := QueryAddresses(ctx).
+	objs, _ := QueryAddresses(ctx).
 		Where(op.Equal(node.Address().PrimaryKey(), obj.PrimaryKey())).
 		LoadI()
 
@@ -378,38 +383,44 @@ func TestAddress_QueryCursor(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleAddress(ctx, obj)
 
-	cursor := QueryAddresses(ctx).
+	cursor, _ := QueryAddresses(ctx).
 		Where(op.Equal(node.Address().PrimaryKey(), obj.PrimaryKey())).
 		LoadCursor()
 
-	obj2 := cursor.Next()
+	obj2, err2 := cursor.Next()
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.Nil(t, cursor.Next())
+	assert.NoError(t, err2)
+	obj2, err2 = cursor.Next()
+	assert.Nil(t, obj2)
+	assert.NoError(t, err2)
+	assert.NoError(t, cursor.Close())
 
 	// test empty cursor result
-	cursor = QueryAddresses(ctx).
+	cursor, err = QueryAddresses(ctx).
 		Where(op.Equal(1, 0)).
 		LoadCursor()
-	assert.Nil(t, cursor.Next())
-
+	obj2, err = cursor.Next()
+	assert.Nil(t, obj2)
+	assert.NoError(t, err)
+	assert.NoError(t, cursor.Close())
 }
 func TestAddress_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleAddress(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
-	// reread in case there are data limitations imposed by the database
-	obj2 := LoadAddress(ctx, obj.PrimaryKey())
 	defer deleteSampleAddress(ctx, obj)
+	// reread in case there are data limitations imposed by the database
+	obj2, _ := LoadAddress(ctx, obj.PrimaryKey())
 
-	assert.Less(t, 0, CountAddresses(ctx))
-
-	assert.Less(t, 0, CountAddressesByID(ctx, obj2.ID()))
-	assert.Less(t, 0, CountAddressesByPersonID(ctx, obj2.PersonID()))
-	assert.Less(t, 0, CountAddressesByStreet(ctx, obj2.Street()))
-	assert.Less(t, 0, CountAddressesByCity(ctx, obj2.City()))
+	assert.Positive(t, func() int { i, _ := CountAddresses(ctx); return i }())
+	assert.Positive(t, func() int { i, _ := CountAddressesByID(ctx, obj2.ID()); return i }())
+	assert.Positive(t, func() int { i, _ := CountAddressesByPersonID(ctx, obj2.PersonID()); return i }())
+	assert.Positive(t, func() int { i, _ := CountAddressesByStreet(ctx, obj2.Street()); return i }())
+	assert.Positive(t, func() int { i, _ := CountAddressesByCity(ctx, obj2.City()); return i }())
 
 }
+
 func TestAddress_MarshalJSON(t *testing.T) {
 	obj := createMinimalSampleAddress()
 

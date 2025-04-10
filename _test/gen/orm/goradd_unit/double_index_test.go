@@ -43,9 +43,9 @@ func TestDoubleIndex_Label(t *testing.T) {
 func TestDoubleIndex_Delete(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMinimalSampleDoubleIndex()
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
-	DeleteDoubleIndex(ctx, obj.PrimaryKey())
-	obj2 := LoadDoubleIndex(ctx, obj.PrimaryKey())
+	assert.NoError(t, obj.Save(ctx))
+	assert.NoError(t, DeleteDoubleIndex(ctx, obj.PrimaryKey()))
+	obj2, err := LoadDoubleIndex(ctx, obj.PrimaryKey())
 	assert.Nil(t, obj2)
+	assert.NoError(t, err)
 }

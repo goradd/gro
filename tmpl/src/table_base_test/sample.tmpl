@@ -80,9 +80,12 @@ func updateMaximalSample{{= table.Identifier }}(ctx context.Context, obj *{{= ta
 
 {{for _,col := range table.ReverseReferences}}
 {{if col.IsUnique}}
-    // only update if not already set, since it can't be changed once set unless the reverse object is deleted first.
-    if obj.Load{{= col.ReverseIdentifier() }}(ctx) == nil {
-        obj.Set{{= col.ReverseIdentifier() }}(createMinimalSample{{= col.Table.Identifier }}())
+    {
+        obj2, _ := obj.Load{{= col.ReverseIdentifier() }}(ctx)
+        // only update if not already set, since it can't be changed once set unless the reverse object is deleted first.
+        if obj2 == nil {
+            obj.Set{{= col.ReverseIdentifier() }}(createMinimalSample{{= col.Table.Identifier }}())
+        }
     }
 {{else}}
     obj.Set{{= col.ReverseIdentifier() }}(createMinimalSample{{= col.Table.Identifier }}())
@@ -115,7 +118,7 @@ func deleteSample{{= table.Identifier }}(ctx context.Context, obj *{{= table.Ide
     }
 {{for}}
 
-    obj.Delete(ctx)
+    _ = obj.Delete(ctx)
 {{for _,col := range table.Columns}}
 {{if col.HasSetter()}}
     {{if col.IsReference()}}

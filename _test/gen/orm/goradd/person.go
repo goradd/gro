@@ -83,9 +83,11 @@ func queryPeople(ctx context.Context) PersonBuilder {
 
 // DeletePerson deletes the person record with primary key pk from the database.
 // Note that you can also delete loaded Person objects by calling Delete on them.
+// Returns an error only if there was a problem with the database during the delete.
+// If the record was not found, no error will be returned.
 // doc: type=Person
-func DeletePerson(ctx context.Context, pk string) {
-	deletePerson(ctx, pk)
+func DeletePerson(ctx context.Context, pk string) error {
+	return deletePerson(ctx, pk)
 }
 
 func init() {

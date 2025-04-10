@@ -94,7 +94,7 @@ func deleteSampleProject(ctx context.Context, obj *Project) {
 		deleteSamplePerson(ctx, item)
 	}
 
-	obj.Delete(ctx)
+	_ = obj.Delete(ctx)
 
 	deleteSamplePerson(ctx, obj.Manager())
 
@@ -378,13 +378,13 @@ func TestProject_Copy(t *testing.T) {
 func TestProject_BasicInsert(t *testing.T) {
 	obj := createMinimalSampleProject()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleProject(ctx, obj)
 
 	// Test retrieval
-	obj2 := LoadProject(ctx, obj.PrimaryKey())
+	obj2, err := LoadProject(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj2)
+	assert.NoError(t, err)
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
@@ -477,7 +477,8 @@ func TestProject_BasicUpdate(t *testing.T) {
 	defer deleteSampleProject(ctx, obj)
 	updateMinimalSampleProject(obj)
 	assert.NoError(t, obj.Save(ctx))
-	obj2 := LoadProject(ctx, obj.PrimaryKey())
+	obj2, err := LoadProject(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 
 	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
 	assert.Equal(t, obj2.Num(), obj.Num(), "Num did not update")
@@ -493,7 +494,7 @@ func TestProject_BasicUpdate(t *testing.T) {
 func TestProject_ReferenceLoad(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleProject(ctx)
-	obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleProject(ctx, obj)
 
 	// Test that referenced objects were saved and assigned ids
@@ -504,55 +505,57 @@ func TestProject_ReferenceLoad(t *testing.T) {
 	assert.NotEqual(t, '-', obj.ParentProject().PrimaryKey()[0])
 
 	// Test lazy loading
-	obj2 := LoadProject(ctx, obj.PrimaryKey())
-	objPkOnly := LoadProject(ctx, obj.PrimaryKey(), node.Project().PrimaryKey())
+	obj2, err := LoadProject(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
+	objPkOnly, err2 := LoadProject(ctx, obj.PrimaryKey(), node.Project().PrimaryKey())
+	assert.NoError(t, err2)
 	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
 
 	assert.Nil(t, obj2.Manager(), "Manager is not loaded initially")
-	v_Manager := obj2.LoadManager(ctx)
+	v_Manager, _ := obj2.LoadManager(ctx)
 	assert.NotNil(t, v_Manager)
 	assert.Equal(t, v_Manager.PrimaryKey(), obj2.Manager().PrimaryKey())
 	assert.Equal(t, obj.Manager().PrimaryKey(), obj2.Manager().PrimaryKey())
 	assert.True(t, obj2.ManagerIDIsLoaded())
 
 	assert.False(t, objPkOnly.ManagerIDIsLoaded())
-	assert.Nil(t, objPkOnly.LoadManager(ctx))
+	assert.Panics(t, func() { _, _ = objPkOnly.LoadManager(ctx) })
 
 	assert.Nil(t, obj2.ParentProject(), "ParentProject is not loaded initially")
-	v_ParentProject := obj2.LoadParentProject(ctx)
+	v_ParentProject, _ := obj2.LoadParentProject(ctx)
 	assert.NotNil(t, v_ParentProject)
 	assert.Equal(t, v_ParentProject.PrimaryKey(), obj2.ParentProject().PrimaryKey())
 	assert.Equal(t, obj.ParentProject().PrimaryKey(), obj2.ParentProject().PrimaryKey())
 	assert.True(t, obj2.ParentProjectIDIsLoaded())
 
 	assert.False(t, objPkOnly.ParentProjectIDIsLoaded())
-	assert.Nil(t, objPkOnly.LoadParentProject(ctx))
+	assert.Panics(t, func() { _, _ = objPkOnly.LoadParentProject(ctx) })
 
 	assert.Nil(t, obj2.Milestones(), "Milestones is not loaded initially")
-	v_Milestones := obj2.LoadMilestones(ctx)
+	v_Milestones, _ := obj2.LoadMilestones(ctx)
 	assert.NotNil(t, v_Milestones)
 	assert.Len(t, v_Milestones, 1)
 	assert.Nil(t, obj2.ParentProjectProjects(), "ParentProjectProjects is not loaded initially")
-	v_ParentProjectProjects := obj2.LoadParentProjectProjects(ctx)
+	v_ParentProjectProjects, _ := obj2.LoadParentProjectProjects(ctx)
 	assert.NotNil(t, v_ParentProjectProjects)
 	assert.Len(t, v_ParentProjectProjects, 1)
 
 	assert.Nil(t, obj2.Children(), "Children is not loaded initially")
-	v_Children := obj2.LoadChildren(ctx)
+	v_Children, _ := obj2.LoadChildren(ctx)
 	assert.NotNil(t, v_Children)
 	assert.Len(t, v_Children, 1)
 	assert.Nil(t, obj2.Parents(), "Parents is not loaded initially")
-	v_Parents := obj2.LoadParents(ctx)
+	v_Parents, _ := obj2.LoadParents(ctx)
 	assert.NotNil(t, v_Parents)
 	assert.Len(t, v_Parents, 1)
 	assert.Nil(t, obj2.TeamMembers(), "TeamMembers is not loaded initially")
-	v_TeamMembers := obj2.LoadTeamMembers(ctx)
+	v_TeamMembers, _ := obj2.LoadTeamMembers(ctx)
 	assert.NotNil(t, v_TeamMembers)
 	assert.Len(t, v_TeamMembers, 1)
 
 	// test eager loading
-	obj3 := LoadProject(ctx, obj.PrimaryKey(), node.Project().Manager(),
+	obj3, _ := LoadProject(ctx, obj.PrimaryKey(), node.Project().Manager(),
 		node.Project().ParentProject(),
 		node.Project().Milestones(),
 		node.Project().ParentProjectProjects(),
@@ -575,15 +578,15 @@ func TestProject_ReferenceLoad(t *testing.T) {
 func TestProject_ReferenceUpdateNewObjects(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleProject(ctx)
-	obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleProject(ctx, obj)
 
-	obj2 := LoadProject(ctx, obj.PrimaryKey())
+	obj2, _ := LoadProject(ctx, obj.PrimaryKey())
 	updateMaximalSampleProject(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleProject(ctx, obj2)
 
-	obj3 := LoadProject(ctx, obj2.PrimaryKey(), node.Project().Manager(),
+	obj3, _ := LoadProject(ctx, obj2.PrimaryKey(), node.Project().Manager(),
 		node.Project().ParentProject(),
 		node.Project().Milestones(),
 		node.Project().ParentProjectProjects(),
@@ -621,7 +624,7 @@ func TestProject_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2 := LoadProject(ctx, obj.PrimaryKey(),
+	obj2, _ := LoadProject(ctx, obj.PrimaryKey(),
 
 		node.Project().Manager(),
 
@@ -664,9 +667,10 @@ func TestProject_Getters(t *testing.T) {
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSampleProject(ctx, obj)
 
-	assert.True(t, HasProject(ctx, obj.PrimaryKey()))
+	has, _ := HasProject(ctx, obj.PrimaryKey())
+	assert.True(t, has)
 
-	obj2 := LoadProject(ctx, obj.PrimaryKey(), node.Project().PrimaryKey())
+	obj2, _ := LoadProject(ctx, obj.PrimaryKey(), node.Project().PrimaryKey())
 
 	assert.Equal(t, obj.ID(), obj.Get(node.Project().ID().Identifier))
 	assert.Equal(t, obj.Num(), obj.Get(node.Project().Num().Identifier))
@@ -706,7 +710,7 @@ func TestProject_QueryLoad(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleProject(ctx, obj)
 
-	objs := QueryProjects(ctx).
+	objs, _ := QueryProjects(ctx).
 		Where(op.Equal(node.Project().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.Project().PrimaryKey()). // exercise order by
 		Limit(1, 0).                          // exercise limit
@@ -723,7 +727,7 @@ func TestProject_QueryLoadI(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleProject(ctx, obj)
 
-	objs := QueryProjects(ctx).
+	objs, _ := QueryProjects(ctx).
 		Where(op.Equal(node.Project().PrimaryKey(), obj.PrimaryKey())).
 		LoadI()
 
@@ -736,44 +740,50 @@ func TestProject_QueryCursor(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleProject(ctx, obj)
 
-	cursor := QueryProjects(ctx).
+	cursor, _ := QueryProjects(ctx).
 		Where(op.Equal(node.Project().PrimaryKey(), obj.PrimaryKey())).
 		LoadCursor()
 
-	obj2 := cursor.Next()
+	obj2, err2 := cursor.Next()
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.Nil(t, cursor.Next())
+	assert.NoError(t, err2)
+	obj2, err2 = cursor.Next()
+	assert.Nil(t, obj2)
+	assert.NoError(t, err2)
+	assert.NoError(t, cursor.Close())
 
 	// test empty cursor result
-	cursor = QueryProjects(ctx).
+	cursor, err = QueryProjects(ctx).
 		Where(op.Equal(1, 0)).
 		LoadCursor()
-	assert.Nil(t, cursor.Next())
-
+	obj2, err = cursor.Next()
+	assert.Nil(t, obj2)
+	assert.NoError(t, err)
+	assert.NoError(t, cursor.Close())
 }
 func TestProject_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleProject(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
-	// reread in case there are data limitations imposed by the database
-	obj2 := LoadProject(ctx, obj.PrimaryKey())
 	defer deleteSampleProject(ctx, obj)
+	// reread in case there are data limitations imposed by the database
+	obj2, _ := LoadProject(ctx, obj.PrimaryKey())
 
-	assert.Less(t, 0, CountProjects(ctx))
-
-	assert.Less(t, 0, CountProjectsByID(ctx, obj2.ID()))
-	assert.Less(t, 0, CountProjectsByNum(ctx, obj2.Num()))
-	assert.Less(t, 0, CountProjectsByManagerID(ctx, obj2.ManagerID()))
-	assert.Less(t, 0, CountProjectsByName(ctx, obj2.Name()))
-	assert.Less(t, 0, CountProjectsByDescription(ctx, obj2.Description()))
-	assert.Less(t, 0, CountProjectsByStartDate(ctx, obj2.StartDate()))
-	assert.Less(t, 0, CountProjectsByEndDate(ctx, obj2.EndDate()))
-	assert.Less(t, 0, CountProjectsByBudget(ctx, obj2.Budget()))
-	assert.Less(t, 0, CountProjectsBySpent(ctx, obj2.Spent()))
-	assert.Less(t, 0, CountProjectsByParentProjectID(ctx, obj2.ParentProjectID()))
+	assert.Positive(t, func() int { i, _ := CountProjects(ctx); return i }())
+	assert.Positive(t, func() int { i, _ := CountProjectsByID(ctx, obj2.ID()); return i }())
+	assert.Positive(t, func() int { i, _ := CountProjectsByNum(ctx, obj2.Num()); return i }())
+	assert.Positive(t, func() int { i, _ := CountProjectsByManagerID(ctx, obj2.ManagerID()); return i }())
+	assert.Positive(t, func() int { i, _ := CountProjectsByName(ctx, obj2.Name()); return i }())
+	assert.Positive(t, func() int { i, _ := CountProjectsByDescription(ctx, obj2.Description()); return i }())
+	assert.Positive(t, func() int { i, _ := CountProjectsByStartDate(ctx, obj2.StartDate()); return i }())
+	assert.Positive(t, func() int { i, _ := CountProjectsByEndDate(ctx, obj2.EndDate()); return i }())
+	assert.Positive(t, func() int { i, _ := CountProjectsByBudget(ctx, obj2.Budget()); return i }())
+	assert.Positive(t, func() int { i, _ := CountProjectsBySpent(ctx, obj2.Spent()); return i }())
+	assert.Positive(t, func() int { i, _ := CountProjectsByParentProjectID(ctx, obj2.ParentProjectID()); return i }())
 
 }
+
 func TestProject_MarshalJSON(t *testing.T) {
 	obj := createMinimalSampleProject()
 
@@ -853,8 +863,8 @@ func TestProject_Indexes(t *testing.T) {
 	defer deleteSampleProject(ctx, obj)
 
 	var obj2 *Project
-	obj2 = LoadProjectByNum(ctx, obj.Num())
+	obj2, _ = LoadProjectByNum(ctx, obj.Num())
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.True(t, HasProjectByNum(ctx, obj.Num()))
+	assert.True(t, func() bool { h, _ := HasProjectByNum(ctx, obj.Num()); return h }())
 
 }

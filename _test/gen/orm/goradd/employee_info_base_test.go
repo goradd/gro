@@ -61,7 +61,7 @@ func deleteSampleEmployeeInfo(ctx context.Context, obj *EmployeeInfo) {
 		return
 	}
 
-	obj.Delete(ctx)
+	_ = obj.Delete(ctx)
 
 	deleteSamplePerson(ctx, obj.Person())
 
@@ -137,13 +137,13 @@ func TestEmployeeInfo_Copy(t *testing.T) {
 func TestEmployeeInfo_BasicInsert(t *testing.T) {
 	obj := createMinimalSampleEmployeeInfo()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleEmployeeInfo(ctx, obj)
 
 	// Test retrieval
-	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey())
+	obj2, err := LoadEmployeeInfo(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj2)
+	assert.NoError(t, err)
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
@@ -167,6 +167,7 @@ func TestEmployeeInfo_InsertPanics(t *testing.T) {
 	_ = ctx
 
 	obj.objPerson = nil
+	obj.personIDIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.personIDIsLoaded = true
 
@@ -183,7 +184,8 @@ func TestEmployeeInfo_BasicUpdate(t *testing.T) {
 	defer deleteSampleEmployeeInfo(ctx, obj)
 	updateMinimalSampleEmployeeInfo(obj)
 	assert.NoError(t, obj.Save(ctx))
-	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey())
+	obj2, err := LoadEmployeeInfo(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 
 	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
 	assert.Equal(t, obj2.EmployeeNumber(), obj.EmployeeNumber(), "EmployeeNumber did not update")
@@ -192,7 +194,7 @@ func TestEmployeeInfo_BasicUpdate(t *testing.T) {
 func TestEmployeeInfo_ReferenceLoad(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleEmployeeInfo(ctx)
-	obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleEmployeeInfo(ctx, obj)
 
 	// Test that referenced objects were saved and assigned ids
@@ -200,27 +202,29 @@ func TestEmployeeInfo_ReferenceLoad(t *testing.T) {
 	assert.NotEqual(t, '-', obj.Person().PrimaryKey()[0])
 
 	// Test lazy loading
-	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey())
-	objPkOnly := LoadEmployeeInfo(ctx, obj.PrimaryKey(), node.EmployeeInfo().PrimaryKey())
+	obj2, err := LoadEmployeeInfo(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
+	objPkOnly, err2 := LoadEmployeeInfo(ctx, obj.PrimaryKey(), node.EmployeeInfo().PrimaryKey())
+	assert.NoError(t, err2)
 	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
 
 	assert.Nil(t, obj2.Person(), "Person is not loaded initially")
-	v_Person := obj2.LoadPerson(ctx)
+	v_Person, _ := obj2.LoadPerson(ctx)
 	assert.NotNil(t, v_Person)
 	assert.Equal(t, v_Person.PrimaryKey(), obj2.Person().PrimaryKey())
 	assert.Equal(t, obj.Person().PrimaryKey(), obj2.Person().PrimaryKey())
 	assert.True(t, obj2.PersonIDIsLoaded())
 
 	assert.False(t, objPkOnly.PersonIDIsLoaded())
-	assert.Nil(t, objPkOnly.LoadPerson(ctx))
+	assert.Panics(t, func() { _, _ = objPkOnly.LoadPerson(ctx) })
 
 	assert.Panics(t, func() {
 		objPkOnly.SetPerson(nil)
 	})
 
 	// test eager loading
-	obj3 := LoadEmployeeInfo(ctx, obj.PrimaryKey(), node.EmployeeInfo().Person())
+	obj3, _ := LoadEmployeeInfo(ctx, obj.PrimaryKey(), node.EmployeeInfo().Person())
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())
@@ -230,15 +234,15 @@ func TestEmployeeInfo_ReferenceLoad(t *testing.T) {
 func TestEmployeeInfo_ReferenceUpdateNewObjects(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleEmployeeInfo(ctx)
-	obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleEmployeeInfo(ctx, obj)
 
-	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey())
+	obj2, _ := LoadEmployeeInfo(ctx, obj.PrimaryKey())
 	updateMaximalSampleEmployeeInfo(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleEmployeeInfo(ctx, obj2)
 
-	obj3 := LoadEmployeeInfo(ctx, obj2.PrimaryKey(), node.EmployeeInfo().Person())
+	obj3, _ := LoadEmployeeInfo(ctx, obj2.PrimaryKey(), node.EmployeeInfo().Person())
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())
@@ -255,7 +259,7 @@ func TestEmployeeInfo_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey(),
+	obj2, _ := LoadEmployeeInfo(ctx, obj.PrimaryKey(),
 		node.EmployeeInfo().Person(),
 	)
 	_ = obj2 // avoid error if there are no references
@@ -282,9 +286,10 @@ func TestEmployeeInfo_Getters(t *testing.T) {
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSampleEmployeeInfo(ctx, obj)
 
-	assert.True(t, HasEmployeeInfo(ctx, obj.PrimaryKey()))
+	has, _ := HasEmployeeInfo(ctx, obj.PrimaryKey())
+	assert.True(t, has)
 
-	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey(), node.EmployeeInfo().PrimaryKey())
+	obj2, _ := LoadEmployeeInfo(ctx, obj.PrimaryKey(), node.EmployeeInfo().PrimaryKey())
 
 	assert.Equal(t, obj.ID(), obj.Get(node.EmployeeInfo().ID().Identifier))
 	assert.Panics(t, func() { obj2.PersonID() })
@@ -301,7 +306,7 @@ func TestEmployeeInfo_QueryLoad(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleEmployeeInfo(ctx, obj)
 
-	objs := QueryEmployeeInfos(ctx).
+	objs, _ := QueryEmployeeInfos(ctx).
 		Where(op.Equal(node.EmployeeInfo().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.EmployeeInfo().PrimaryKey()). // exercise order by
 		Limit(1, 0).                               // exercise limit
@@ -318,7 +323,7 @@ func TestEmployeeInfo_QueryLoadI(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleEmployeeInfo(ctx, obj)
 
-	objs := QueryEmployeeInfos(ctx).
+	objs, _ := QueryEmployeeInfos(ctx).
 		Where(op.Equal(node.EmployeeInfo().PrimaryKey(), obj.PrimaryKey())).
 		LoadI()
 
@@ -331,37 +336,43 @@ func TestEmployeeInfo_QueryCursor(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleEmployeeInfo(ctx, obj)
 
-	cursor := QueryEmployeeInfos(ctx).
+	cursor, _ := QueryEmployeeInfos(ctx).
 		Where(op.Equal(node.EmployeeInfo().PrimaryKey(), obj.PrimaryKey())).
 		LoadCursor()
 
-	obj2 := cursor.Next()
+	obj2, err2 := cursor.Next()
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.Nil(t, cursor.Next())
+	assert.NoError(t, err2)
+	obj2, err2 = cursor.Next()
+	assert.Nil(t, obj2)
+	assert.NoError(t, err2)
+	assert.NoError(t, cursor.Close())
 
 	// test empty cursor result
-	cursor = QueryEmployeeInfos(ctx).
+	cursor, err = QueryEmployeeInfos(ctx).
 		Where(op.Equal(1, 0)).
 		LoadCursor()
-	assert.Nil(t, cursor.Next())
-
+	obj2, err = cursor.Next()
+	assert.Nil(t, obj2)
+	assert.NoError(t, err)
+	assert.NoError(t, cursor.Close())
 }
 func TestEmployeeInfo_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleEmployeeInfo(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
-	// reread in case there are data limitations imposed by the database
-	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey())
 	defer deleteSampleEmployeeInfo(ctx, obj)
+	// reread in case there are data limitations imposed by the database
+	obj2, _ := LoadEmployeeInfo(ctx, obj.PrimaryKey())
 
-	assert.Less(t, 0, CountEmployeeInfos(ctx))
-
-	assert.Less(t, 0, CountEmployeeInfosByID(ctx, obj2.ID()))
-	assert.Less(t, 0, CountEmployeeInfosByPersonID(ctx, obj2.PersonID()))
-	assert.Less(t, 0, CountEmployeeInfosByEmployeeNumber(ctx, obj2.EmployeeNumber()))
+	assert.Positive(t, func() int { i, _ := CountEmployeeInfos(ctx); return i }())
+	assert.Positive(t, func() int { i, _ := CountEmployeeInfosByID(ctx, obj2.ID()); return i }())
+	assert.Positive(t, func() int { i, _ := CountEmployeeInfosByPersonID(ctx, obj2.PersonID()); return i }())
+	assert.Positive(t, func() int { i, _ := CountEmployeeInfosByEmployeeNumber(ctx, obj2.EmployeeNumber()); return i }())
 
 }
+
 func TestEmployeeInfo_MarshalJSON(t *testing.T) {
 	obj := createMinimalSampleEmployeeInfo()
 
@@ -441,8 +452,8 @@ func TestEmployeeInfo_Indexes(t *testing.T) {
 	defer deleteSampleEmployeeInfo(ctx, obj)
 
 	var obj2 *EmployeeInfo
-	obj2 = LoadEmployeeInfoByPersonID(ctx, obj.PersonID())
+	obj2, _ = LoadEmployeeInfoByPersonID(ctx, obj.PersonID())
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.True(t, HasEmployeeInfoByPersonID(ctx, obj.PersonID()))
+	assert.True(t, func() bool { h, _ := HasEmployeeInfoByPersonID(ctx, obj.PersonID()); return h }())
 
 }

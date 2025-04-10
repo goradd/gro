@@ -61,7 +61,7 @@ func deleteSampleMilestone(ctx context.Context, obj *Milestone) {
 		return
 	}
 
-	obj.Delete(ctx)
+	_ = obj.Delete(ctx)
 
 	deleteSampleProject(ctx, obj.Project())
 
@@ -142,13 +142,13 @@ func TestMilestone_Copy(t *testing.T) {
 func TestMilestone_BasicInsert(t *testing.T) {
 	obj := createMinimalSampleMilestone()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleMilestone(ctx, obj)
 
 	// Test retrieval
-	obj2 := LoadMilestone(ctx, obj.PrimaryKey())
+	obj2, err := LoadMilestone(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj2)
+	assert.NoError(t, err)
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
@@ -172,6 +172,7 @@ func TestMilestone_InsertPanics(t *testing.T) {
 	_ = ctx
 
 	obj.objProject = nil
+	obj.projectIDIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.projectIDIsLoaded = true
 
@@ -188,7 +189,8 @@ func TestMilestone_BasicUpdate(t *testing.T) {
 	defer deleteSampleMilestone(ctx, obj)
 	updateMinimalSampleMilestone(obj)
 	assert.NoError(t, obj.Save(ctx))
-	obj2 := LoadMilestone(ctx, obj.PrimaryKey())
+	obj2, err := LoadMilestone(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 
 	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
 	assert.Equal(t, obj2.Name(), obj.Name(), "Name did not update")
@@ -197,7 +199,7 @@ func TestMilestone_BasicUpdate(t *testing.T) {
 func TestMilestone_ReferenceLoad(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleMilestone(ctx)
-	obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleMilestone(ctx, obj)
 
 	// Test that referenced objects were saved and assigned ids
@@ -205,27 +207,29 @@ func TestMilestone_ReferenceLoad(t *testing.T) {
 	assert.NotEqual(t, '-', obj.Project().PrimaryKey()[0])
 
 	// Test lazy loading
-	obj2 := LoadMilestone(ctx, obj.PrimaryKey())
-	objPkOnly := LoadMilestone(ctx, obj.PrimaryKey(), node.Milestone().PrimaryKey())
+	obj2, err := LoadMilestone(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
+	objPkOnly, err2 := LoadMilestone(ctx, obj.PrimaryKey(), node.Milestone().PrimaryKey())
+	assert.NoError(t, err2)
 	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
 
 	assert.Nil(t, obj2.Project(), "Project is not loaded initially")
-	v_Project := obj2.LoadProject(ctx)
+	v_Project, _ := obj2.LoadProject(ctx)
 	assert.NotNil(t, v_Project)
 	assert.Equal(t, v_Project.PrimaryKey(), obj2.Project().PrimaryKey())
 	assert.Equal(t, obj.Project().PrimaryKey(), obj2.Project().PrimaryKey())
 	assert.True(t, obj2.ProjectIDIsLoaded())
 
 	assert.False(t, objPkOnly.ProjectIDIsLoaded())
-	assert.Nil(t, objPkOnly.LoadProject(ctx))
+	assert.Panics(t, func() { _, _ = objPkOnly.LoadProject(ctx) })
 
 	assert.Panics(t, func() {
 		objPkOnly.SetProject(nil)
 	})
 
 	// test eager loading
-	obj3 := LoadMilestone(ctx, obj.PrimaryKey(), node.Milestone().Project())
+	obj3, _ := LoadMilestone(ctx, obj.PrimaryKey(), node.Milestone().Project())
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Project().PrimaryKey(), obj3.Project().PrimaryKey())
@@ -235,15 +239,15 @@ func TestMilestone_ReferenceLoad(t *testing.T) {
 func TestMilestone_ReferenceUpdateNewObjects(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleMilestone(ctx)
-	obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleMilestone(ctx, obj)
 
-	obj2 := LoadMilestone(ctx, obj.PrimaryKey())
+	obj2, _ := LoadMilestone(ctx, obj.PrimaryKey())
 	updateMaximalSampleMilestone(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleMilestone(ctx, obj2)
 
-	obj3 := LoadMilestone(ctx, obj2.PrimaryKey(), node.Milestone().Project())
+	obj3, _ := LoadMilestone(ctx, obj2.PrimaryKey(), node.Milestone().Project())
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Project().PrimaryKey(), obj3.Project().PrimaryKey())
@@ -260,7 +264,7 @@ func TestMilestone_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2 := LoadMilestone(ctx, obj.PrimaryKey(),
+	obj2, _ := LoadMilestone(ctx, obj.PrimaryKey(),
 		node.Milestone().Project(),
 	)
 	_ = obj2 // avoid error if there are no references
@@ -287,9 +291,10 @@ func TestMilestone_Getters(t *testing.T) {
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSampleMilestone(ctx, obj)
 
-	assert.True(t, HasMilestone(ctx, obj.PrimaryKey()))
+	has, _ := HasMilestone(ctx, obj.PrimaryKey())
+	assert.True(t, has)
 
-	obj2 := LoadMilestone(ctx, obj.PrimaryKey(), node.Milestone().PrimaryKey())
+	obj2, _ := LoadMilestone(ctx, obj.PrimaryKey(), node.Milestone().PrimaryKey())
 
 	assert.Equal(t, obj.ID(), obj.Get(node.Milestone().ID().Identifier))
 	assert.Panics(t, func() { obj2.ProjectID() })
@@ -306,7 +311,7 @@ func TestMilestone_QueryLoad(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleMilestone(ctx, obj)
 
-	objs := QueryMilestones(ctx).
+	objs, _ := QueryMilestones(ctx).
 		Where(op.Equal(node.Milestone().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.Milestone().PrimaryKey()). // exercise order by
 		Limit(1, 0).                            // exercise limit
@@ -323,7 +328,7 @@ func TestMilestone_QueryLoadI(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleMilestone(ctx, obj)
 
-	objs := QueryMilestones(ctx).
+	objs, _ := QueryMilestones(ctx).
 		Where(op.Equal(node.Milestone().PrimaryKey(), obj.PrimaryKey())).
 		LoadI()
 
@@ -336,37 +341,43 @@ func TestMilestone_QueryCursor(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleMilestone(ctx, obj)
 
-	cursor := QueryMilestones(ctx).
+	cursor, _ := QueryMilestones(ctx).
 		Where(op.Equal(node.Milestone().PrimaryKey(), obj.PrimaryKey())).
 		LoadCursor()
 
-	obj2 := cursor.Next()
+	obj2, err2 := cursor.Next()
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.Nil(t, cursor.Next())
+	assert.NoError(t, err2)
+	obj2, err2 = cursor.Next()
+	assert.Nil(t, obj2)
+	assert.NoError(t, err2)
+	assert.NoError(t, cursor.Close())
 
 	// test empty cursor result
-	cursor = QueryMilestones(ctx).
+	cursor, err = QueryMilestones(ctx).
 		Where(op.Equal(1, 0)).
 		LoadCursor()
-	assert.Nil(t, cursor.Next())
-
+	obj2, err = cursor.Next()
+	assert.Nil(t, obj2)
+	assert.NoError(t, err)
+	assert.NoError(t, cursor.Close())
 }
 func TestMilestone_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleMilestone(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
-	// reread in case there are data limitations imposed by the database
-	obj2 := LoadMilestone(ctx, obj.PrimaryKey())
 	defer deleteSampleMilestone(ctx, obj)
+	// reread in case there are data limitations imposed by the database
+	obj2, _ := LoadMilestone(ctx, obj.PrimaryKey())
 
-	assert.Less(t, 0, CountMilestones(ctx))
-
-	assert.Less(t, 0, CountMilestonesByID(ctx, obj2.ID()))
-	assert.Less(t, 0, CountMilestonesByProjectID(ctx, obj2.ProjectID()))
-	assert.Less(t, 0, CountMilestonesByName(ctx, obj2.Name()))
+	assert.Positive(t, func() int { i, _ := CountMilestones(ctx); return i }())
+	assert.Positive(t, func() int { i, _ := CountMilestonesByID(ctx, obj2.ID()); return i }())
+	assert.Positive(t, func() int { i, _ := CountMilestonesByProjectID(ctx, obj2.ProjectID()); return i }())
+	assert.Positive(t, func() int { i, _ := CountMilestonesByName(ctx, obj2.Name()); return i }())
 
 }
+
 func TestMilestone_MarshalJSON(t *testing.T) {
 	obj := createMinimalSampleMilestone()
 

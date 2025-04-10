@@ -12,9 +12,9 @@ func Test{{= table.Identifier }}_Indexes(t *testing.T) {
     var obj2 *{{= table.Identifier }}
 {{for _,idx := range table.Indexes}}
 {{if idx.IsUnique}}
-    obj2 = Load{{= table.Identifier }}By{{for _,col := range idx.Columns}}{{= col.Identifier }}{{for}} (ctx {{for _,col := range idx.Columns}}, obj.{{= col.Identifier }}(){{for}})
+    obj2, _ = Load{{= table.Identifier }}By{{for _,col := range idx.Columns}}{{= col.Identifier }}{{for}} (ctx {{for _,col := range idx.Columns}}, obj.{{= col.Identifier }}(){{for}})
     assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-    assert.True(t, Has{{= table.Identifier }}By{{for _,col := range idx.Columns}}{{= col.Identifier }}{{for}} (ctx {{for _,col := range idx.Columns}}, obj.{{= col.Identifier }}(){{for}}))
+    assert.True(t, func() bool { h,_ := Has{{= table.Identifier }}By{{for _,col := range idx.Columns}}{{= col.Identifier }}{{for}} (ctx {{for _,col := range idx.Columns}}, obj.{{= col.Identifier }}(){{for}}); return h}() )
 
 {{if}}
 {{for}}

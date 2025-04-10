@@ -89,7 +89,10 @@ func initMysql(overrides map[string]any) {
 	cfg.Passwd = defaultPassword
 	mysql2.OverrideConfigSettings(cfg, overrides)
 
-	database := mysql2.NewDB(key, "", cfg)
+	database, err := mysql2.NewDB(key, "", cfg)
+	if err != nil {
+	    panic(err)
+	}
 	db.AddDatabase(database, key)
 }
 
@@ -102,7 +105,10 @@ func initPostgres(overrides map[string]any) {
 	cfg.Database = databaseName
 
 	pgsql.OverrideConfigSettings(cfg, overrides)
-	database := pgsql.NewDB(key, "", cfg)
+	database, err := pgsql.NewDB(key, "", cfg)
+	if err != nil {
+	    panic(err)
+	}
 	db.AddDatabase(database, key)
 }
 

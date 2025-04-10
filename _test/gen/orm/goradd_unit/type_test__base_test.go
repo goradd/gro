@@ -74,7 +74,7 @@ func deleteSampleTypeTest(ctx context.Context, obj *TypeTest) {
 		return
 	}
 
-	obj.Delete(ctx)
+	_ = obj.Delete(ctx)
 
 }
 
@@ -368,13 +368,13 @@ func TestTypeTest_Copy(t *testing.T) {
 func TestTypeTest_BasicInsert(t *testing.T) {
 	obj := createMinimalSampleTypeTest()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleTypeTest(ctx, obj)
 
 	// Test retrieval
-	obj2 := LoadTypeTest(ctx, obj.PrimaryKey())
+	obj2, err := LoadTypeTest(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj2)
+	assert.NoError(t, err)
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
@@ -479,7 +479,8 @@ func TestTypeTest_BasicUpdate(t *testing.T) {
 	defer deleteSampleTypeTest(ctx, obj)
 	updateMinimalSampleTypeTest(obj)
 	assert.NoError(t, obj.Save(ctx))
-	obj2 := LoadTypeTest(ctx, obj.PrimaryKey())
+	obj2, err := LoadTypeTest(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 
 	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
 
@@ -502,19 +503,21 @@ func TestTypeTest_BasicUpdate(t *testing.T) {
 func TestTypeTest_ReferenceLoad(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleTypeTest(ctx)
-	obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleTypeTest(ctx, obj)
 
 	// Test that referenced objects were saved and assigned ids
 
 	// Test lazy loading
-	obj2 := LoadTypeTest(ctx, obj.PrimaryKey())
-	objPkOnly := LoadTypeTest(ctx, obj.PrimaryKey(), node.TypeTest().PrimaryKey())
+	obj2, err := LoadTypeTest(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
+	objPkOnly, err2 := LoadTypeTest(ctx, obj.PrimaryKey(), node.TypeTest().PrimaryKey())
+	assert.NoError(t, err2)
 	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
 
 	// test eager loading
-	obj3 := LoadTypeTest(ctx, obj.PrimaryKey())
+	obj3, _ := LoadTypeTest(ctx, obj.PrimaryKey())
 	_ = obj3 // avoid error if there are no references
 
 }
@@ -522,15 +525,15 @@ func TestTypeTest_ReferenceLoad(t *testing.T) {
 func TestTypeTest_ReferenceUpdateNewObjects(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleTypeTest(ctx)
-	obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleTypeTest(ctx, obj)
 
-	obj2 := LoadTypeTest(ctx, obj.PrimaryKey())
+	obj2, _ := LoadTypeTest(ctx, obj.PrimaryKey())
 	updateMaximalSampleTypeTest(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleTypeTest(ctx, obj2)
 
-	obj3 := LoadTypeTest(ctx, obj2.PrimaryKey())
+	obj3, _ := LoadTypeTest(ctx, obj2.PrimaryKey())
 	_ = obj3 // avoid error if there are no references
 
 }
@@ -543,7 +546,7 @@ func TestTypeTest_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2 := LoadTypeTest(ctx, obj.PrimaryKey())
+	obj2, _ := LoadTypeTest(ctx, obj.PrimaryKey())
 	_ = obj2 // avoid error if there are no references
 
 }
@@ -566,9 +569,10 @@ func TestTypeTest_Getters(t *testing.T) {
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSampleTypeTest(ctx, obj)
 
-	assert.True(t, HasTypeTest(ctx, obj.PrimaryKey()))
+	has, _ := HasTypeTest(ctx, obj.PrimaryKey())
+	assert.True(t, has)
 
-	obj2 := LoadTypeTest(ctx, obj.PrimaryKey(), node.TypeTest().PrimaryKey())
+	obj2, _ := LoadTypeTest(ctx, obj.PrimaryKey(), node.TypeTest().PrimaryKey())
 
 	assert.Equal(t, obj.ID(), obj.Get(node.TypeTest().ID().Identifier))
 	assert.Equal(t, obj.Date(), obj.Get(node.TypeTest().Date().Identifier))
@@ -613,7 +617,7 @@ func TestTypeTest_QueryLoad(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleTypeTest(ctx, obj)
 
-	objs := QueryTypeTests(ctx).
+	objs, _ := QueryTypeTests(ctx).
 		Where(op.Equal(node.TypeTest().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.TypeTest().PrimaryKey()). // exercise order by
 		Limit(1, 0).                           // exercise limit
@@ -630,7 +634,7 @@ func TestTypeTest_QueryLoadI(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleTypeTest(ctx, obj)
 
-	objs := QueryTypeTests(ctx).
+	objs, _ := QueryTypeTests(ctx).
 		Where(op.Equal(node.TypeTest().PrimaryKey(), obj.PrimaryKey())).
 		LoadI()
 
@@ -643,46 +647,52 @@ func TestTypeTest_QueryCursor(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleTypeTest(ctx, obj)
 
-	cursor := QueryTypeTests(ctx).
+	cursor, _ := QueryTypeTests(ctx).
 		Where(op.Equal(node.TypeTest().PrimaryKey(), obj.PrimaryKey())).
 		LoadCursor()
 
-	obj2 := cursor.Next()
+	obj2, err2 := cursor.Next()
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.Nil(t, cursor.Next())
+	assert.NoError(t, err2)
+	obj2, err2 = cursor.Next()
+	assert.Nil(t, obj2)
+	assert.NoError(t, err2)
+	assert.NoError(t, cursor.Close())
 
 	// test empty cursor result
-	cursor = QueryTypeTests(ctx).
+	cursor, err = QueryTypeTests(ctx).
 		Where(op.Equal(1, 0)).
 		LoadCursor()
-	assert.Nil(t, cursor.Next())
-
+	obj2, err = cursor.Next()
+	assert.Nil(t, obj2)
+	assert.NoError(t, err)
+	assert.NoError(t, cursor.Close())
 }
 func TestTypeTest_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleTypeTest(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
-	// reread in case there are data limitations imposed by the database
-	obj2 := LoadTypeTest(ctx, obj.PrimaryKey())
 	defer deleteSampleTypeTest(ctx, obj)
+	// reread in case there are data limitations imposed by the database
+	obj2, _ := LoadTypeTest(ctx, obj.PrimaryKey())
 
-	assert.Less(t, 0, CountTypeTests(ctx))
-
-	assert.Less(t, 0, CountTypeTestsByID(ctx, obj2.ID()))
-	assert.Less(t, 0, CountTypeTestsByDate(ctx, obj2.Date()))
-	assert.Less(t, 0, CountTypeTestsByTime(ctx, obj2.Time()))
-	assert.Less(t, 0, CountTypeTestsByDateTime(ctx, obj2.DateTime()))
-	assert.Less(t, 0, CountTypeTestsByTs(ctx, obj2.Ts()))
-	assert.Less(t, 0, CountTypeTestsByTestInt(ctx, obj2.TestInt()))
-	assert.Less(t, 0, CountTypeTestsByTestFloat(ctx, obj2.TestFloat()))
-	assert.Less(t, 0, CountTypeTestsByTestDouble(ctx, obj2.TestDouble()))
-	assert.Less(t, 0, CountTypeTestsByTestText(ctx, obj2.TestText()))
-	assert.Less(t, 0, CountTypeTestsByTestBit(ctx, obj2.TestBit()))
-	assert.Less(t, 0, CountTypeTestsByTestVarchar(ctx, obj2.TestVarchar()))
-	assert.Less(t, 0, CountTypeTestsByTestBlob(ctx, obj2.TestBlob()))
+	assert.Positive(t, func() int { i, _ := CountTypeTests(ctx); return i }())
+	assert.Positive(t, func() int { i, _ := CountTypeTestsByID(ctx, obj2.ID()); return i }())
+	assert.Positive(t, func() int { i, _ := CountTypeTestsByDate(ctx, obj2.Date()); return i }())
+	assert.Positive(t, func() int { i, _ := CountTypeTestsByTime(ctx, obj2.Time()); return i }())
+	assert.Positive(t, func() int { i, _ := CountTypeTestsByDateTime(ctx, obj2.DateTime()); return i }())
+	assert.Positive(t, func() int { i, _ := CountTypeTestsByTs(ctx, obj2.Ts()); return i }())
+	assert.Positive(t, func() int { i, _ := CountTypeTestsByTestInt(ctx, obj2.TestInt()); return i }())
+	assert.Positive(t, func() int { i, _ := CountTypeTestsByTestFloat(ctx, obj2.TestFloat()); return i }())
+	assert.Positive(t, func() int { i, _ := CountTypeTestsByTestDouble(ctx, obj2.TestDouble()); return i }())
+	assert.Positive(t, func() int { i, _ := CountTypeTestsByTestText(ctx, obj2.TestText()); return i }())
+	assert.Positive(t, func() int { i, _ := CountTypeTestsByTestBit(ctx, obj2.TestBit()); return i }())
+	assert.Positive(t, func() int { i, _ := CountTypeTestsByTestVarchar(ctx, obj2.TestVarchar()); return i }())
+	assert.Positive(t, func() int { i, _ := CountTypeTestsByTestBlob(ctx, obj2.TestBlob()); return i }())
 
 }
+
 func TestTypeTest_MarshalJSON(t *testing.T) {
 	obj := createMinimalSampleTypeTest()
 

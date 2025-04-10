@@ -570,8 +570,8 @@ func updateMaximalSample`); err != nil {
 
 		if col.IsUnique {
 
-			if _, err = io.WriteString(_w, `    // only update if not already set, since it can't be changed once set unless the reverse object is deleted first.
-    if obj.Load`); err != nil {
+			if _, err = io.WriteString(_w, `    {
+        obj2, _ := obj.Load`); err != nil {
 				return
 			}
 
@@ -579,8 +579,10 @@ func updateMaximalSample`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `(ctx) == nil {
-        obj.Set`); err != nil {
+			if _, err = io.WriteString(_w, `(ctx)
+        // only update if not already set, since it can't be changed once set unless the reverse object is deleted first.
+        if obj2 == nil {
+            obj.Set`); err != nil {
 				return
 			}
 
@@ -597,6 +599,7 @@ func updateMaximalSample`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `())
+        }
     }
 `); err != nil {
 				return
@@ -777,7 +780,7 @@ func deleteSample`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `
-    obj.Delete(ctx)
+    _ = obj.Delete(ctx)
 `); err != nil {
 		return
 	}
@@ -1567,8 +1570,7 @@ func Test`); err != nil {
 
 		if _, err = io.WriteString(_w, `()
     ctx := db.NewContext(nil)
-    err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
     defer deleteSample`); err != nil {
 			return
 		}
@@ -1580,7 +1582,7 @@ func Test`); err != nil {
 		if _, err = io.WriteString(_w, `(ctx, obj)
 
     // Test retrieval
-    obj2 := Load`); err != nil {
+    obj2,err := Load`); err != nil {
 			return
 		}
 
@@ -1590,6 +1592,7 @@ func Test`); err != nil {
 
 		if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey())
     require.NotNil(t, obj2)
+    assert.NoError(t, err)
 
     assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
@@ -1808,24 +1811,18 @@ func Test`); err != nil {
 						return
 					}
 
-				} else {
-
-					if _, err = io.WriteString(_w, `    obj.`); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, `IsLoaded = false
-`); err != nil {
-						return
-					}
-
 				}
 
-				if _, err = io.WriteString(_w, `    assert.Panics(t, func() {obj.Save(ctx)})
+				if _, err = io.WriteString(_w, `    obj.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `IsLoaded = false
+    assert.Panics(t, func() {obj.Save(ctx)})
     obj.`); err != nil {
 					return
 				}
@@ -1885,7 +1882,7 @@ func Test`); err != nil {
 
 		if _, err = io.WriteString(_w, `(obj)
     assert.NoError(t, obj.Save(ctx))
-    obj2 := Load`); err != nil {
+    obj2, err := Load`); err != nil {
 			return
 		}
 
@@ -1894,6 +1891,7 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey())
+    assert.NoError(t, err)
 
 `); err != nil {
 			return
@@ -1996,7 +1994,7 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `(ctx)
-    obj.Save(ctx)
+    assert.NoError(t, obj.Save(ctx))
     defer deleteSample`); err != nil {
 			return
 		}
@@ -2057,7 +2055,7 @@ func Test`); err != nil {
 
 		if _, err = io.WriteString(_w, `
     // Test lazy loading
-    obj2 := Load`); err != nil {
+    obj2, err := Load`); err != nil {
 			return
 		}
 
@@ -2066,7 +2064,8 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey())
-    objPkOnly := Load`); err != nil {
+    assert.NoError(t, err)
+    objPkOnly, err2 := Load`); err != nil {
 			return
 		}
 
@@ -2083,8 +2082,10 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `().PrimaryKey())
+    assert.NoError(t, err2)
     _ = obj2 // avoid error if there are no references
     _ = objPkOnly
+
 
 `); err != nil {
 			return
@@ -2119,7 +2120,7 @@ func Test`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, ` := obj2.Load`); err != nil {
+				if _, err = io.WriteString(_w, `, _ := obj2.Load`); err != nil {
 					return
 				}
 
@@ -2190,7 +2191,7 @@ func Test`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `IsLoaded())
-    assert.Nil(t, objPkOnly.Load`); err != nil {
+    assert.Panics(t, func() {_,_ = objPkOnly.Load`); err != nil {
 					return
 				}
 
@@ -2198,7 +2199,7 @@ func Test`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `(ctx))
+				if _, err = io.WriteString(_w, `(ctx)} )
 
 `); err != nil {
 					return
@@ -2264,7 +2265,7 @@ func Test`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` := obj2.Load`); err != nil {
+			if _, err = io.WriteString(_w, `, _ := obj2.Load`); err != nil {
 				return
 			}
 
@@ -2377,7 +2378,7 @@ func Test`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` := obj2.Load`); err != nil {
+			if _, err = io.WriteString(_w, `, _ := obj2.Load`); err != nil {
 				return
 			}
 
@@ -2412,7 +2413,7 @@ func Test`); err != nil {
 
 		if _, err = io.WriteString(_w, `
     // test eager loading
-    obj3 := Load`); err != nil {
+    obj3, _ := Load`); err != nil {
 			return
 		}
 
@@ -2642,7 +2643,7 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `(ctx)
-    obj.Save(ctx)
+    assert.NoError(t, obj.Save(ctx))
     defer deleteSample`); err != nil {
 			return
 		}
@@ -2653,7 +2654,7 @@ func Test`); err != nil {
 
 		if _, err = io.WriteString(_w, `(ctx, obj)
 
-    obj2 := Load`); err != nil {
+    obj2, _ := Load`); err != nil {
 			return
 		}
 
@@ -2682,7 +2683,7 @@ func Test`); err != nil {
 
 		if _, err = io.WriteString(_w, `(ctx, obj2)
 
-    obj3 := Load`); err != nil {
+    obj3, _ := Load`); err != nil {
 			return
 		}
 
@@ -3046,7 +3047,7 @@ func Test`); err != nil {
 		if _, err = io.WriteString(_w, `
     assert.NoError(t, obj.Save(ctx))
 
-    obj2 := Load`); err != nil {
+    obj2, _ := Load`); err != nil {
 			return
 		}
 
@@ -3423,7 +3424,7 @@ func Test`); err != nil {
 
 		if _, err = io.WriteString(_w, `(ctx, obj)
 
-    assert.True(t, Has`); err != nil {
+    has,_ := Has`); err != nil {
 			return
 		}
 
@@ -3431,9 +3432,10 @@ func Test`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey()))
+		if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey())
+    assert.True(t, has)
 
-    obj2 := Load`); err != nil {
+    obj2, _ := Load`); err != nil {
 			return
 		}
 
@@ -3594,7 +3596,7 @@ func Test`); err != nil {
 
 		if _, err = io.WriteString(_w, `(ctx, obj)
 
-    objs := Query`); err != nil {
+    objs, _ := Query`); err != nil {
 			return
 		}
 
@@ -3671,7 +3673,7 @@ func Test`); err != nil {
 
 		if _, err = io.WriteString(_w, `(ctx, obj)
 
-    objs := Query`); err != nil {
+    objs, _ := Query`); err != nil {
 			return
 		}
 
@@ -3736,7 +3738,7 @@ func Test`); err != nil {
 
 		if _, err = io.WriteString(_w, `(ctx, obj)
 
-    cursor := Query`); err != nil {
+    cursor, _ := Query`); err != nil {
 			return
 		}
 
@@ -3756,12 +3758,16 @@ func Test`); err != nil {
 		if _, err = io.WriteString(_w, `().PrimaryKey(), obj.PrimaryKey())).
         LoadCursor()
 
-    obj2 := cursor.Next()
+    obj2, err2 := cursor.Next()
     assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-    assert.Nil(t, cursor.Next())
+    assert.NoError(t, err2)
+    obj2, err2 = cursor.Next()
+    assert.Nil(t, obj2)
+    assert.NoError(t, err2)
+    assert.NoError(t, cursor.Close())
 
     // test empty cursor result
-    cursor = Query`); err != nil {
+    cursor, err = Query`); err != nil {
 			return
 		}
 
@@ -3772,8 +3778,10 @@ func Test`); err != nil {
 		if _, err = io.WriteString(_w, `(ctx).
         Where(op.Equal(1, 0)).
         LoadCursor()
-    assert.Nil(t, cursor.Next())
-
+    obj2, err = cursor.Next()
+    assert.Nil(t, obj2)
+    assert.NoError(t, err)
+    assert.NoError(t, cursor.Close())
 }
 `); err != nil {
 			return
@@ -3802,16 +3810,6 @@ func Test`); err != nil {
 		if _, err = io.WriteString(_w, `(ctx)
     err := obj.Save(ctx)
 	assert.NoError(t, err)
-	// reread in case there are data limitations imposed by the database
-	obj2 := Load`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey())
     defer deleteSample`); err != nil {
 			return
 		}
@@ -3821,8 +3819,18 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `(ctx, obj)
+	// reread in case there are data limitations imposed by the database
+	obj2, _ := Load`); err != nil {
+			return
+		}
 
-    assert.Less(t, 0, Count`); err != nil {
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey())
+
+	assert.Positive(t, func() int { i,_ := Count`); err != nil {
 			return
 		}
 
@@ -3830,8 +3838,7 @@ func Test`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `(ctx))
-
+		if _, err = io.WriteString(_w, `(ctx); return i }() )
 `); err != nil {
 			return
 		}
@@ -3840,7 +3847,7 @@ func Test`); err != nil {
 
 			if !col.IsEnum() {
 
-				if _, err = io.WriteString(_w, `    assert.Less(t, 0, Count`); err != nil {
+				if _, err = io.WriteString(_w, `	assert.Positive(t, func() int { i,_ := Count`); err != nil {
 					return
 				}
 
@@ -3864,7 +3871,7 @@ func Test`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `()))
+				if _, err = io.WriteString(_w, `()); return i }() )
 `); err != nil {
 					return
 				}
@@ -3875,6 +3882,7 @@ func Test`); err != nil {
 
 		if _, err = io.WriteString(_w, `
 }
+
 `); err != nil {
 			return
 		}
@@ -4180,7 +4188,7 @@ func Test`); err != nil {
 
 				if idx.IsUnique {
 
-					if _, err = io.WriteString(_w, `    obj2 = Load`); err != nil {
+					if _, err = io.WriteString(_w, `    obj2, _ = Load`); err != nil {
 						return
 					}
 
@@ -4222,7 +4230,7 @@ func Test`); err != nil {
 
 					if _, err = io.WriteString(_w, `)
     assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-    assert.True(t, Has`); err != nil {
+    assert.True(t, func() bool { h,_ := Has`); err != nil {
 						return
 					}
 
@@ -4262,7 +4270,7 @@ func Test`); err != nil {
 
 					}
 
-					if _, err = io.WriteString(_w, `))
+					if _, err = io.WriteString(_w, `); return h}() )
 
 `); err != nil {
 						return

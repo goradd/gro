@@ -43,9 +43,9 @@ func TestGift_Label(t *testing.T) {
 func TestGift_Delete(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMinimalSampleGift()
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
-	DeleteGift(ctx, obj.PrimaryKey())
-	obj2 := LoadGift(ctx, obj.PrimaryKey())
+	assert.NoError(t, obj.Save(ctx))
+	assert.NoError(t, DeleteGift(ctx, obj.PrimaryKey()))
+	obj2, err := LoadGift(ctx, obj.PrimaryKey())
 	assert.Nil(t, obj2)
+	assert.NoError(t, err)
 }

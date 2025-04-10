@@ -78,7 +78,7 @@ func deleteSampleRoot(ctx context.Context, obj *Root) {
 		deleteSampleRoot(ctx, item)
 	}
 
-	obj.Delete(ctx)
+	_ = obj.Delete(ctx)
 
 	deleteSampleLeaf(ctx, obj.OptionalLeaf())
 
@@ -251,13 +251,13 @@ func TestRoot_Copy(t *testing.T) {
 func TestRoot_BasicInsert(t *testing.T) {
 	obj := createMinimalSampleRoot()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleRoot(ctx, obj)
 
 	// Test retrieval
-	obj2 := LoadRoot(ctx, obj.PrimaryKey())
+	obj2, err := LoadRoot(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj2)
+	assert.NoError(t, err)
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
@@ -285,14 +285,17 @@ func TestRoot_InsertPanics(t *testing.T) {
 	obj.nameIsLoaded = true
 
 	obj.objRequiredLeaf = nil
+	obj.requiredLeafIDIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.requiredLeafIDIsLoaded = true
 
 	obj.objOptionalLeafUnique = nil
+	obj.optionalLeafUniqueIDIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.optionalLeafUniqueIDIsLoaded = true
 
 	obj.objRequiredLeafUnique = nil
+	obj.requiredLeafUniqueIDIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.requiredLeafUniqueIDIsLoaded = true
 
@@ -305,7 +308,8 @@ func TestRoot_BasicUpdate(t *testing.T) {
 	defer deleteSampleRoot(ctx, obj)
 	updateMinimalSampleRoot(obj)
 	assert.NoError(t, obj.Save(ctx))
-	obj2 := LoadRoot(ctx, obj.PrimaryKey())
+	obj2, err := LoadRoot(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 
 	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
 	assert.Equal(t, obj2.Name(), obj.Name(), "Name did not update")
@@ -314,7 +318,7 @@ func TestRoot_BasicUpdate(t *testing.T) {
 func TestRoot_ReferenceLoad(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleRoot(ctx)
-	obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleRoot(ctx, obj)
 
 	// Test that referenced objects were saved and assigned ids
@@ -334,80 +338,82 @@ func TestRoot_ReferenceLoad(t *testing.T) {
 	assert.NotEqual(t, '-', obj.Parent().PrimaryKey()[0])
 
 	// Test lazy loading
-	obj2 := LoadRoot(ctx, obj.PrimaryKey())
-	objPkOnly := LoadRoot(ctx, obj.PrimaryKey(), node.Root().PrimaryKey())
+	obj2, err := LoadRoot(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
+	objPkOnly, err2 := LoadRoot(ctx, obj.PrimaryKey(), node.Root().PrimaryKey())
+	assert.NoError(t, err2)
 	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
 
 	assert.Nil(t, obj2.OptionalLeaf(), "OptionalLeaf is not loaded initially")
-	v_OptionalLeaf := obj2.LoadOptionalLeaf(ctx)
+	v_OptionalLeaf, _ := obj2.LoadOptionalLeaf(ctx)
 	assert.NotNil(t, v_OptionalLeaf)
 	assert.Equal(t, v_OptionalLeaf.PrimaryKey(), obj2.OptionalLeaf().PrimaryKey())
 	assert.Equal(t, obj.OptionalLeaf().PrimaryKey(), obj2.OptionalLeaf().PrimaryKey())
 	assert.True(t, obj2.OptionalLeafIDIsLoaded())
 
 	assert.False(t, objPkOnly.OptionalLeafIDIsLoaded())
-	assert.Nil(t, objPkOnly.LoadOptionalLeaf(ctx))
+	assert.Panics(t, func() { _, _ = objPkOnly.LoadOptionalLeaf(ctx) })
 
 	assert.Nil(t, obj2.RequiredLeaf(), "RequiredLeaf is not loaded initially")
-	v_RequiredLeaf := obj2.LoadRequiredLeaf(ctx)
+	v_RequiredLeaf, _ := obj2.LoadRequiredLeaf(ctx)
 	assert.NotNil(t, v_RequiredLeaf)
 	assert.Equal(t, v_RequiredLeaf.PrimaryKey(), obj2.RequiredLeaf().PrimaryKey())
 	assert.Equal(t, obj.RequiredLeaf().PrimaryKey(), obj2.RequiredLeaf().PrimaryKey())
 	assert.True(t, obj2.RequiredLeafIDIsLoaded())
 
 	assert.False(t, objPkOnly.RequiredLeafIDIsLoaded())
-	assert.Nil(t, objPkOnly.LoadRequiredLeaf(ctx))
+	assert.Panics(t, func() { _, _ = objPkOnly.LoadRequiredLeaf(ctx) })
 
 	assert.Panics(t, func() {
 		objPkOnly.SetRequiredLeaf(nil)
 	})
 
 	assert.Nil(t, obj2.OptionalLeafUnique(), "OptionalLeafUnique is not loaded initially")
-	v_OptionalLeafUnique := obj2.LoadOptionalLeafUnique(ctx)
+	v_OptionalLeafUnique, _ := obj2.LoadOptionalLeafUnique(ctx)
 	assert.NotNil(t, v_OptionalLeafUnique)
 	assert.Equal(t, v_OptionalLeafUnique.PrimaryKey(), obj2.OptionalLeafUnique().PrimaryKey())
 	assert.Equal(t, obj.OptionalLeafUnique().PrimaryKey(), obj2.OptionalLeafUnique().PrimaryKey())
 	assert.True(t, obj2.OptionalLeafUniqueIDIsLoaded())
 
 	assert.False(t, objPkOnly.OptionalLeafUniqueIDIsLoaded())
-	assert.Nil(t, objPkOnly.LoadOptionalLeafUnique(ctx))
+	assert.Panics(t, func() { _, _ = objPkOnly.LoadOptionalLeafUnique(ctx) })
 
 	assert.Panics(t, func() {
 		objPkOnly.SetOptionalLeafUnique(nil)
 	})
 
 	assert.Nil(t, obj2.RequiredLeafUnique(), "RequiredLeafUnique is not loaded initially")
-	v_RequiredLeafUnique := obj2.LoadRequiredLeafUnique(ctx)
+	v_RequiredLeafUnique, _ := obj2.LoadRequiredLeafUnique(ctx)
 	assert.NotNil(t, v_RequiredLeafUnique)
 	assert.Equal(t, v_RequiredLeafUnique.PrimaryKey(), obj2.RequiredLeafUnique().PrimaryKey())
 	assert.Equal(t, obj.RequiredLeafUnique().PrimaryKey(), obj2.RequiredLeafUnique().PrimaryKey())
 	assert.True(t, obj2.RequiredLeafUniqueIDIsLoaded())
 
 	assert.False(t, objPkOnly.RequiredLeafUniqueIDIsLoaded())
-	assert.Nil(t, objPkOnly.LoadRequiredLeafUnique(ctx))
+	assert.Panics(t, func() { _, _ = objPkOnly.LoadRequiredLeafUnique(ctx) })
 
 	assert.Panics(t, func() {
 		objPkOnly.SetRequiredLeafUnique(nil)
 	})
 
 	assert.Nil(t, obj2.Parent(), "Parent is not loaded initially")
-	v_Parent := obj2.LoadParent(ctx)
+	v_Parent, _ := obj2.LoadParent(ctx)
 	assert.NotNil(t, v_Parent)
 	assert.Equal(t, v_Parent.PrimaryKey(), obj2.Parent().PrimaryKey())
 	assert.Equal(t, obj.Parent().PrimaryKey(), obj2.Parent().PrimaryKey())
 	assert.True(t, obj2.ParentIDIsLoaded())
 
 	assert.False(t, objPkOnly.ParentIDIsLoaded())
-	assert.Nil(t, objPkOnly.LoadParent(ctx))
+	assert.Panics(t, func() { _, _ = objPkOnly.LoadParent(ctx) })
 
 	assert.Nil(t, obj2.ParentRoots(), "ParentRoots is not loaded initially")
-	v_ParentRoots := obj2.LoadParentRoots(ctx)
+	v_ParentRoots, _ := obj2.LoadParentRoots(ctx)
 	assert.NotNil(t, v_ParentRoots)
 	assert.Len(t, v_ParentRoots, 1)
 
 	// test eager loading
-	obj3 := LoadRoot(ctx, obj.PrimaryKey(), node.Root().OptionalLeaf(),
+	obj3, _ := LoadRoot(ctx, obj.PrimaryKey(), node.Root().OptionalLeaf(),
 		node.Root().RequiredLeaf(),
 		node.Root().OptionalLeafUnique(),
 		node.Root().RequiredLeafUnique(),
@@ -428,15 +434,15 @@ func TestRoot_ReferenceLoad(t *testing.T) {
 func TestRoot_ReferenceUpdateNewObjects(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleRoot(ctx)
-	obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleRoot(ctx, obj)
 
-	obj2 := LoadRoot(ctx, obj.PrimaryKey())
+	obj2, _ := LoadRoot(ctx, obj.PrimaryKey())
 	updateMaximalSampleRoot(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleRoot(ctx, obj2)
 
-	obj3 := LoadRoot(ctx, obj2.PrimaryKey(), node.Root().OptionalLeaf(),
+	obj3, _ := LoadRoot(ctx, obj2.PrimaryKey(), node.Root().OptionalLeaf(),
 		node.Root().RequiredLeaf(),
 		node.Root().OptionalLeafUnique(),
 		node.Root().RequiredLeafUnique(),
@@ -470,7 +476,7 @@ func TestRoot_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2 := LoadRoot(ctx, obj.PrimaryKey(),
+	obj2, _ := LoadRoot(ctx, obj.PrimaryKey(),
 
 		node.Root().OptionalLeaf(),
 
@@ -514,9 +520,10 @@ func TestRoot_Getters(t *testing.T) {
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSampleRoot(ctx, obj)
 
-	assert.True(t, HasRoot(ctx, obj.PrimaryKey()))
+	has, _ := HasRoot(ctx, obj.PrimaryKey())
+	assert.True(t, has)
 
-	obj2 := LoadRoot(ctx, obj.PrimaryKey(), node.Root().PrimaryKey())
+	obj2, _ := LoadRoot(ctx, obj.PrimaryKey(), node.Root().PrimaryKey())
 
 	assert.Equal(t, obj.ID(), obj.Get(node.Root().ID().Identifier))
 	assert.Equal(t, obj.Name(), obj.Get(node.Root().Name().Identifier))
@@ -541,7 +548,7 @@ func TestRoot_QueryLoad(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleRoot(ctx, obj)
 
-	objs := QueryRoots(ctx).
+	objs, _ := QueryRoots(ctx).
 		Where(op.Equal(node.Root().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.Root().PrimaryKey()). // exercise order by
 		Limit(1, 0).                       // exercise limit
@@ -558,7 +565,7 @@ func TestRoot_QueryLoadI(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleRoot(ctx, obj)
 
-	objs := QueryRoots(ctx).
+	objs, _ := QueryRoots(ctx).
 		Where(op.Equal(node.Root().PrimaryKey(), obj.PrimaryKey())).
 		LoadI()
 
@@ -571,41 +578,47 @@ func TestRoot_QueryCursor(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleRoot(ctx, obj)
 
-	cursor := QueryRoots(ctx).
+	cursor, _ := QueryRoots(ctx).
 		Where(op.Equal(node.Root().PrimaryKey(), obj.PrimaryKey())).
 		LoadCursor()
 
-	obj2 := cursor.Next()
+	obj2, err2 := cursor.Next()
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.Nil(t, cursor.Next())
+	assert.NoError(t, err2)
+	obj2, err2 = cursor.Next()
+	assert.Nil(t, obj2)
+	assert.NoError(t, err2)
+	assert.NoError(t, cursor.Close())
 
 	// test empty cursor result
-	cursor = QueryRoots(ctx).
+	cursor, err = QueryRoots(ctx).
 		Where(op.Equal(1, 0)).
 		LoadCursor()
-	assert.Nil(t, cursor.Next())
-
+	obj2, err = cursor.Next()
+	assert.Nil(t, obj2)
+	assert.NoError(t, err)
+	assert.NoError(t, cursor.Close())
 }
 func TestRoot_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleRoot(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
-	// reread in case there are data limitations imposed by the database
-	obj2 := LoadRoot(ctx, obj.PrimaryKey())
 	defer deleteSampleRoot(ctx, obj)
+	// reread in case there are data limitations imposed by the database
+	obj2, _ := LoadRoot(ctx, obj.PrimaryKey())
 
-	assert.Less(t, 0, CountRoots(ctx))
-
-	assert.Less(t, 0, CountRootsByID(ctx, obj2.ID()))
-	assert.Less(t, 0, CountRootsByName(ctx, obj2.Name()))
-	assert.Less(t, 0, CountRootsByOptionalLeafID(ctx, obj2.OptionalLeafID()))
-	assert.Less(t, 0, CountRootsByRequiredLeafID(ctx, obj2.RequiredLeafID()))
-	assert.Less(t, 0, CountRootsByOptionalLeafUniqueID(ctx, obj2.OptionalLeafUniqueID()))
-	assert.Less(t, 0, CountRootsByRequiredLeafUniqueID(ctx, obj2.RequiredLeafUniqueID()))
-	assert.Less(t, 0, CountRootsByParentID(ctx, obj2.ParentID()))
+	assert.Positive(t, func() int { i, _ := CountRoots(ctx); return i }())
+	assert.Positive(t, func() int { i, _ := CountRootsByID(ctx, obj2.ID()); return i }())
+	assert.Positive(t, func() int { i, _ := CountRootsByName(ctx, obj2.Name()); return i }())
+	assert.Positive(t, func() int { i, _ := CountRootsByOptionalLeafID(ctx, obj2.OptionalLeafID()); return i }())
+	assert.Positive(t, func() int { i, _ := CountRootsByRequiredLeafID(ctx, obj2.RequiredLeafID()); return i }())
+	assert.Positive(t, func() int { i, _ := CountRootsByOptionalLeafUniqueID(ctx, obj2.OptionalLeafUniqueID()); return i }())
+	assert.Positive(t, func() int { i, _ := CountRootsByRequiredLeafUniqueID(ctx, obj2.RequiredLeafUniqueID()); return i }())
+	assert.Positive(t, func() int { i, _ := CountRootsByParentID(ctx, obj2.ParentID()); return i }())
 
 }
+
 func TestRoot_MarshalJSON(t *testing.T) {
 	obj := createMinimalSampleRoot()
 
@@ -685,12 +698,12 @@ func TestRoot_Indexes(t *testing.T) {
 	defer deleteSampleRoot(ctx, obj)
 
 	var obj2 *Root
-	obj2 = LoadRootByOptionalLeafUniqueID(ctx, obj.OptionalLeafUniqueID())
+	obj2, _ = LoadRootByOptionalLeafUniqueID(ctx, obj.OptionalLeafUniqueID())
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.True(t, HasRootByOptionalLeafUniqueID(ctx, obj.OptionalLeafUniqueID()))
+	assert.True(t, func() bool { h, _ := HasRootByOptionalLeafUniqueID(ctx, obj.OptionalLeafUniqueID()); return h }())
 
-	obj2 = LoadRootByRequiredLeafUniqueID(ctx, obj.RequiredLeafUniqueID())
+	obj2, _ = LoadRootByRequiredLeafUniqueID(ctx, obj.RequiredLeafUniqueID())
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.True(t, HasRootByRequiredLeafUniqueID(ctx, obj.RequiredLeafUniqueID()))
+	assert.True(t, func() bool { h, _ := HasRootByRequiredLeafUniqueID(ctx, obj.RequiredLeafUniqueID()); return h }())
 
 }

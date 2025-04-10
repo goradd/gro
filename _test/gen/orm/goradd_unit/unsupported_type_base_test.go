@@ -67,7 +67,7 @@ func deleteSampleUnsupportedType(ctx context.Context, obj *UnsupportedType) {
 		return
 	}
 
-	obj.Delete(ctx)
+	_ = obj.Delete(ctx)
 
 }
 

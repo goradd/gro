@@ -55,7 +55,7 @@ func deleteSampleLeafLock(ctx context.Context, obj *LeafLock) {
 		return
 	}
 
-	obj.Delete(ctx)
+	_ = obj.Delete(ctx)
 
 }
 
@@ -119,13 +119,13 @@ func TestLeafLock_Copy(t *testing.T) {
 func TestLeafLock_BasicInsert(t *testing.T) {
 	obj := createMinimalSampleLeafLock()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleLeafLock(ctx, obj)
 
 	// Test retrieval
-	obj2 := LoadLeafLock(ctx, obj.PrimaryKey())
+	obj2, err := LoadLeafLock(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj2)
+	assert.NoError(t, err)
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
@@ -163,7 +163,8 @@ func TestLeafLock_BasicUpdate(t *testing.T) {
 	defer deleteSampleLeafLock(ctx, obj)
 	updateMinimalSampleLeafLock(obj)
 	assert.NoError(t, obj.Save(ctx))
-	obj2 := LoadLeafLock(ctx, obj.PrimaryKey())
+	obj2, err := LoadLeafLock(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 
 	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
 	assert.Equal(t, obj2.Name(), obj.Name(), "Name did not update")
@@ -173,19 +174,21 @@ func TestLeafLock_BasicUpdate(t *testing.T) {
 func TestLeafLock_ReferenceLoad(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleLeafLock(ctx)
-	obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleLeafLock(ctx, obj)
 
 	// Test that referenced objects were saved and assigned ids
 
 	// Test lazy loading
-	obj2 := LoadLeafLock(ctx, obj.PrimaryKey())
-	objPkOnly := LoadLeafLock(ctx, obj.PrimaryKey(), node.LeafLock().PrimaryKey())
+	obj2, err := LoadLeafLock(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
+	objPkOnly, err2 := LoadLeafLock(ctx, obj.PrimaryKey(), node.LeafLock().PrimaryKey())
+	assert.NoError(t, err2)
 	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
 
 	// test eager loading
-	obj3 := LoadLeafLock(ctx, obj.PrimaryKey())
+	obj3, _ := LoadLeafLock(ctx, obj.PrimaryKey())
 	_ = obj3 // avoid error if there are no references
 
 }
@@ -193,15 +196,15 @@ func TestLeafLock_ReferenceLoad(t *testing.T) {
 func TestLeafLock_ReferenceUpdateNewObjects(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleLeafLock(ctx)
-	obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleLeafLock(ctx, obj)
 
-	obj2 := LoadLeafLock(ctx, obj.PrimaryKey())
+	obj2, _ := LoadLeafLock(ctx, obj.PrimaryKey())
 	updateMaximalSampleLeafLock(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleLeafLock(ctx, obj2)
 
-	obj3 := LoadLeafLock(ctx, obj2.PrimaryKey())
+	obj3, _ := LoadLeafLock(ctx, obj2.PrimaryKey())
 	_ = obj3 // avoid error if there are no references
 
 }
@@ -214,7 +217,7 @@ func TestLeafLock_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2 := LoadLeafLock(ctx, obj.PrimaryKey())
+	obj2, _ := LoadLeafLock(ctx, obj.PrimaryKey())
 	_ = obj2 // avoid error if there are no references
 
 }
@@ -237,9 +240,10 @@ func TestLeafLock_Getters(t *testing.T) {
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSampleLeafLock(ctx, obj)
 
-	assert.True(t, HasLeafLock(ctx, obj.PrimaryKey()))
+	has, _ := HasLeafLock(ctx, obj.PrimaryKey())
+	assert.True(t, has)
 
-	obj2 := LoadLeafLock(ctx, obj.PrimaryKey(), node.LeafLock().PrimaryKey())
+	obj2, _ := LoadLeafLock(ctx, obj.PrimaryKey(), node.LeafLock().PrimaryKey())
 
 	assert.Equal(t, obj.ID(), obj.Get(node.LeafLock().ID().Identifier))
 	assert.Equal(t, obj.Name(), obj.Get(node.LeafLock().Name().Identifier))
@@ -257,7 +261,7 @@ func TestLeafLock_QueryLoad(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleLeafLock(ctx, obj)
 
-	objs := QueryLeafLocks(ctx).
+	objs, _ := QueryLeafLocks(ctx).
 		Where(op.Equal(node.LeafLock().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.LeafLock().PrimaryKey()). // exercise order by
 		Limit(1, 0).                           // exercise limit
@@ -274,7 +278,7 @@ func TestLeafLock_QueryLoadI(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleLeafLock(ctx, obj)
 
-	objs := QueryLeafLocks(ctx).
+	objs, _ := QueryLeafLocks(ctx).
 		Where(op.Equal(node.LeafLock().PrimaryKey(), obj.PrimaryKey())).
 		LoadI()
 
@@ -287,37 +291,43 @@ func TestLeafLock_QueryCursor(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleLeafLock(ctx, obj)
 
-	cursor := QueryLeafLocks(ctx).
+	cursor, _ := QueryLeafLocks(ctx).
 		Where(op.Equal(node.LeafLock().PrimaryKey(), obj.PrimaryKey())).
 		LoadCursor()
 
-	obj2 := cursor.Next()
+	obj2, err2 := cursor.Next()
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.Nil(t, cursor.Next())
+	assert.NoError(t, err2)
+	obj2, err2 = cursor.Next()
+	assert.Nil(t, obj2)
+	assert.NoError(t, err2)
+	assert.NoError(t, cursor.Close())
 
 	// test empty cursor result
-	cursor = QueryLeafLocks(ctx).
+	cursor, err = QueryLeafLocks(ctx).
 		Where(op.Equal(1, 0)).
 		LoadCursor()
-	assert.Nil(t, cursor.Next())
-
+	obj2, err = cursor.Next()
+	assert.Nil(t, obj2)
+	assert.NoError(t, err)
+	assert.NoError(t, cursor.Close())
 }
 func TestLeafLock_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleLeafLock(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
-	// reread in case there are data limitations imposed by the database
-	obj2 := LoadLeafLock(ctx, obj.PrimaryKey())
 	defer deleteSampleLeafLock(ctx, obj)
+	// reread in case there are data limitations imposed by the database
+	obj2, _ := LoadLeafLock(ctx, obj.PrimaryKey())
 
-	assert.Less(t, 0, CountLeafLocks(ctx))
-
-	assert.Less(t, 0, CountLeafLocksByID(ctx, obj2.ID()))
-	assert.Less(t, 0, CountLeafLocksByName(ctx, obj2.Name()))
-	assert.Less(t, 0, CountLeafLocksByGroLock(ctx, obj2.GroLock()))
+	assert.Positive(t, func() int { i, _ := CountLeafLocks(ctx); return i }())
+	assert.Positive(t, func() int { i, _ := CountLeafLocksByID(ctx, obj2.ID()); return i }())
+	assert.Positive(t, func() int { i, _ := CountLeafLocksByName(ctx, obj2.Name()); return i }())
+	assert.Positive(t, func() int { i, _ := CountLeafLocksByGroLock(ctx, obj2.GroLock()); return i }())
 
 }
+
 func TestLeafLock_MarshalJSON(t *testing.T) {
 	obj := createMinimalSampleLeafLock()
 

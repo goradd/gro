@@ -43,10 +43,10 @@ func TestEmployeeInfo_Label(t *testing.T) {
 func TestEmployeeInfo_Delete(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMinimalSampleEmployeeInfo()
-	err := obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer obj.Person().Delete(ctx)
-	assert.NoError(t, err)
-	DeleteEmployeeInfo(ctx, obj.PrimaryKey())
-	obj2 := LoadEmployeeInfo(ctx, obj.PrimaryKey())
+	assert.NoError(t, DeleteEmployeeInfo(ctx, obj.PrimaryKey()))
+	obj2, err := LoadEmployeeInfo(ctx, obj.PrimaryKey())
 	assert.Nil(t, obj2)
+	assert.NoError(t, err)
 }

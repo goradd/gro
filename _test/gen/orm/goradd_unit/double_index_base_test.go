@@ -59,7 +59,7 @@ func deleteSampleDoubleIndex(ctx context.Context, obj *DoubleIndex) {
 		return
 	}
 
-	obj.Delete(ctx)
+	_ = obj.Delete(ctx)
 
 }
 
@@ -139,13 +139,13 @@ func TestDoubleIndex_Copy(t *testing.T) {
 func TestDoubleIndex_BasicInsert(t *testing.T) {
 	obj := createMinimalSampleDoubleIndex()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleDoubleIndex(ctx, obj)
 
 	// Test retrieval
-	obj2 := LoadDoubleIndex(ctx, obj.PrimaryKey())
+	obj2, err := LoadDoubleIndex(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj2)
+	assert.NoError(t, err)
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
@@ -195,7 +195,8 @@ func TestDoubleIndex_BasicUpdate(t *testing.T) {
 	defer deleteSampleDoubleIndex(ctx, obj)
 	updateMinimalSampleDoubleIndex(obj)
 	assert.NoError(t, obj.Save(ctx))
-	obj2 := LoadDoubleIndex(ctx, obj.PrimaryKey())
+	obj2, err := LoadDoubleIndex(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 
 	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
 	assert.Equal(t, obj2.FieldInt(), obj.FieldInt(), "FieldInt did not update")
@@ -205,19 +206,21 @@ func TestDoubleIndex_BasicUpdate(t *testing.T) {
 func TestDoubleIndex_ReferenceLoad(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleDoubleIndex(ctx)
-	obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleDoubleIndex(ctx, obj)
 
 	// Test that referenced objects were saved and assigned ids
 
 	// Test lazy loading
-	obj2 := LoadDoubleIndex(ctx, obj.PrimaryKey())
-	objPkOnly := LoadDoubleIndex(ctx, obj.PrimaryKey(), node.DoubleIndex().PrimaryKey())
+	obj2, err := LoadDoubleIndex(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
+	objPkOnly, err2 := LoadDoubleIndex(ctx, obj.PrimaryKey(), node.DoubleIndex().PrimaryKey())
+	assert.NoError(t, err2)
 	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
 
 	// test eager loading
-	obj3 := LoadDoubleIndex(ctx, obj.PrimaryKey())
+	obj3, _ := LoadDoubleIndex(ctx, obj.PrimaryKey())
 	_ = obj3 // avoid error if there are no references
 
 }
@@ -225,15 +228,15 @@ func TestDoubleIndex_ReferenceLoad(t *testing.T) {
 func TestDoubleIndex_ReferenceUpdateNewObjects(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleDoubleIndex(ctx)
-	obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleDoubleIndex(ctx, obj)
 
-	obj2 := LoadDoubleIndex(ctx, obj.PrimaryKey())
+	obj2, _ := LoadDoubleIndex(ctx, obj.PrimaryKey())
 	updateMaximalSampleDoubleIndex(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleDoubleIndex(ctx, obj2)
 
-	obj3 := LoadDoubleIndex(ctx, obj2.PrimaryKey())
+	obj3, _ := LoadDoubleIndex(ctx, obj2.PrimaryKey())
 	_ = obj3 // avoid error if there are no references
 
 }
@@ -246,7 +249,7 @@ func TestDoubleIndex_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2 := LoadDoubleIndex(ctx, obj.PrimaryKey())
+	obj2, _ := LoadDoubleIndex(ctx, obj.PrimaryKey())
 	_ = obj2 // avoid error if there are no references
 
 }
@@ -263,9 +266,10 @@ func TestDoubleIndex_Getters(t *testing.T) {
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSampleDoubleIndex(ctx, obj)
 
-	assert.True(t, HasDoubleIndex(ctx, obj.PrimaryKey()))
+	has, _ := HasDoubleIndex(ctx, obj.PrimaryKey())
+	assert.True(t, has)
 
-	obj2 := LoadDoubleIndex(ctx, obj.PrimaryKey(), node.DoubleIndex().PrimaryKey())
+	obj2, _ := LoadDoubleIndex(ctx, obj.PrimaryKey(), node.DoubleIndex().PrimaryKey())
 	assert.Equal(t, obj.ID(), obj2.ID())
 
 	assert.Equal(t, obj.ID(), obj.Get(node.DoubleIndex().ID().Identifier))
@@ -284,7 +288,7 @@ func TestDoubleIndex_QueryLoad(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleDoubleIndex(ctx, obj)
 
-	objs := QueryDoubleIndices(ctx).
+	objs, _ := QueryDoubleIndices(ctx).
 		Where(op.Equal(node.DoubleIndex().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.DoubleIndex().PrimaryKey()). // exercise order by
 		Limit(1, 0).                              // exercise limit
@@ -301,7 +305,7 @@ func TestDoubleIndex_QueryLoadI(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleDoubleIndex(ctx, obj)
 
-	objs := QueryDoubleIndices(ctx).
+	objs, _ := QueryDoubleIndices(ctx).
 		Where(op.Equal(node.DoubleIndex().PrimaryKey(), obj.PrimaryKey())).
 		LoadI()
 
@@ -314,37 +318,43 @@ func TestDoubleIndex_QueryCursor(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleDoubleIndex(ctx, obj)
 
-	cursor := QueryDoubleIndices(ctx).
+	cursor, _ := QueryDoubleIndices(ctx).
 		Where(op.Equal(node.DoubleIndex().PrimaryKey(), obj.PrimaryKey())).
 		LoadCursor()
 
-	obj2 := cursor.Next()
+	obj2, err2 := cursor.Next()
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.Nil(t, cursor.Next())
+	assert.NoError(t, err2)
+	obj2, err2 = cursor.Next()
+	assert.Nil(t, obj2)
+	assert.NoError(t, err2)
+	assert.NoError(t, cursor.Close())
 
 	// test empty cursor result
-	cursor = QueryDoubleIndices(ctx).
+	cursor, err = QueryDoubleIndices(ctx).
 		Where(op.Equal(1, 0)).
 		LoadCursor()
-	assert.Nil(t, cursor.Next())
-
+	obj2, err = cursor.Next()
+	assert.Nil(t, obj2)
+	assert.NoError(t, err)
+	assert.NoError(t, cursor.Close())
 }
 func TestDoubleIndex_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleDoubleIndex(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
-	// reread in case there are data limitations imposed by the database
-	obj2 := LoadDoubleIndex(ctx, obj.PrimaryKey())
 	defer deleteSampleDoubleIndex(ctx, obj)
+	// reread in case there are data limitations imposed by the database
+	obj2, _ := LoadDoubleIndex(ctx, obj.PrimaryKey())
 
-	assert.Less(t, 0, CountDoubleIndices(ctx))
-
-	assert.Less(t, 0, CountDoubleIndicesByID(ctx, obj2.ID()))
-	assert.Less(t, 0, CountDoubleIndicesByFieldInt(ctx, obj2.FieldInt()))
-	assert.Less(t, 0, CountDoubleIndicesByFieldString(ctx, obj2.FieldString()))
+	assert.Positive(t, func() int { i, _ := CountDoubleIndices(ctx); return i }())
+	assert.Positive(t, func() int { i, _ := CountDoubleIndicesByID(ctx, obj2.ID()); return i }())
+	assert.Positive(t, func() int { i, _ := CountDoubleIndicesByFieldInt(ctx, obj2.FieldInt()); return i }())
+	assert.Positive(t, func() int { i, _ := CountDoubleIndicesByFieldString(ctx, obj2.FieldString()); return i }())
 
 }
+
 func TestDoubleIndex_MarshalJSON(t *testing.T) {
 	obj := createMinimalSampleDoubleIndex()
 
@@ -424,12 +434,15 @@ func TestDoubleIndex_Indexes(t *testing.T) {
 	defer deleteSampleDoubleIndex(ctx, obj)
 
 	var obj2 *DoubleIndex
-	obj2 = LoadDoubleIndexByID(ctx, obj.ID())
+	obj2, _ = LoadDoubleIndexByID(ctx, obj.ID())
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.True(t, HasDoubleIndexByID(ctx, obj.ID()))
+	assert.True(t, func() bool { h, _ := HasDoubleIndexByID(ctx, obj.ID()); return h }())
 
-	obj2 = LoadDoubleIndexByFieldIntFieldString(ctx, obj.FieldInt(), obj.FieldString())
+	obj2, _ = LoadDoubleIndexByFieldIntFieldString(ctx, obj.FieldInt(), obj.FieldString())
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.True(t, HasDoubleIndexByFieldIntFieldString(ctx, obj.FieldInt(), obj.FieldString()))
+	assert.True(t, func() bool {
+		h, _ := HasDoubleIndexByFieldIntFieldString(ctx, obj.FieldInt(), obj.FieldString())
+		return h
+	}())
 
 }

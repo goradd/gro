@@ -49,13 +49,19 @@ func updateMaximalSampleLeaf(ctx context.Context, obj *Leaf) {
 
 	obj.SetOptionalLeafRoots(createMinimalSampleRoot())
 	obj.SetRequiredLeafRoots(createMinimalSampleRoot())
-	// only update if not already set, since it can't be changed once set unless the reverse object is deleted first.
-	if obj.LoadOptionalLeafUniqueRoot(ctx) == nil {
-		obj.SetOptionalLeafUniqueRoot(createMinimalSampleRoot())
+	{
+		obj2, _ := obj.LoadOptionalLeafUniqueRoot(ctx)
+		// only update if not already set, since it can't be changed once set unless the reverse object is deleted first.
+		if obj2 == nil {
+			obj.SetOptionalLeafUniqueRoot(createMinimalSampleRoot())
+		}
 	}
-	// only update if not already set, since it can't be changed once set unless the reverse object is deleted first.
-	if obj.LoadRequiredLeafUniqueRoot(ctx) == nil {
-		obj.SetRequiredLeafUniqueRoot(createMinimalSampleRoot())
+	{
+		obj2, _ := obj.LoadRequiredLeafUniqueRoot(ctx)
+		// only update if not already set, since it can't be changed once set unless the reverse object is deleted first.
+		if obj2 == nil {
+			obj.SetRequiredLeafUniqueRoot(createMinimalSampleRoot())
+		}
 	}
 }
 
@@ -74,7 +80,7 @@ func deleteSampleLeaf(ctx context.Context, obj *Leaf) {
 	deleteSampleRoot(ctx, obj.OptionalLeafUniqueRoot())
 	deleteSampleRoot(ctx, obj.RequiredLeafUniqueRoot())
 
-	obj.Delete(ctx)
+	_ = obj.Delete(ctx)
 
 }
 
@@ -135,13 +141,13 @@ func TestLeaf_Copy(t *testing.T) {
 func TestLeaf_BasicInsert(t *testing.T) {
 	obj := createMinimalSampleLeaf()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleLeaf(ctx, obj)
 
 	// Test retrieval
-	obj2 := LoadLeaf(ctx, obj.PrimaryKey())
+	obj2, err := LoadLeaf(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj2)
+	assert.NoError(t, err)
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
@@ -177,7 +183,8 @@ func TestLeaf_BasicUpdate(t *testing.T) {
 	defer deleteSampleLeaf(ctx, obj)
 	updateMinimalSampleLeaf(obj)
 	assert.NoError(t, obj.Save(ctx))
-	obj2 := LoadLeaf(ctx, obj.PrimaryKey())
+	obj2, err := LoadLeaf(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 
 	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
 	assert.Equal(t, obj2.Name(), obj.Name(), "Name did not update")
@@ -186,38 +193,40 @@ func TestLeaf_BasicUpdate(t *testing.T) {
 func TestLeaf_ReferenceLoad(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleLeaf(ctx)
-	obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleLeaf(ctx, obj)
 
 	// Test that referenced objects were saved and assigned ids
 
 	// Test lazy loading
-	obj2 := LoadLeaf(ctx, obj.PrimaryKey())
-	objPkOnly := LoadLeaf(ctx, obj.PrimaryKey(), node.Leaf().PrimaryKey())
+	obj2, err := LoadLeaf(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
+	objPkOnly, err2 := LoadLeaf(ctx, obj.PrimaryKey(), node.Leaf().PrimaryKey())
+	assert.NoError(t, err2)
 	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
 
 	assert.Nil(t, obj2.OptionalLeafRoots(), "OptionalLeafRoots is not loaded initially")
-	v_OptionalLeafRoots := obj2.LoadOptionalLeafRoots(ctx)
+	v_OptionalLeafRoots, _ := obj2.LoadOptionalLeafRoots(ctx)
 	assert.NotNil(t, v_OptionalLeafRoots)
 	assert.Len(t, v_OptionalLeafRoots, 1)
 	assert.Nil(t, obj2.RequiredLeafRoots(), "RequiredLeafRoots is not loaded initially")
-	v_RequiredLeafRoots := obj2.LoadRequiredLeafRoots(ctx)
+	v_RequiredLeafRoots, _ := obj2.LoadRequiredLeafRoots(ctx)
 	assert.NotNil(t, v_RequiredLeafRoots)
 	assert.Len(t, v_RequiredLeafRoots, 1)
 	assert.Nil(t, obj2.OptionalLeafUniqueRoot(), "OptionalLeafUniqueRoot is not loaded initially")
-	v_OptionalLeafUniqueRoot := obj2.LoadOptionalLeafUniqueRoot(ctx)
+	v_OptionalLeafUniqueRoot, _ := obj2.LoadOptionalLeafUniqueRoot(ctx)
 	assert.NotNil(t, v_OptionalLeafUniqueRoot)
 	assert.Equal(t, v_OptionalLeafUniqueRoot.PrimaryKey(), obj2.OptionalLeafUniqueRoot().PrimaryKey())
 	assert.Equal(t, obj.OptionalLeafUniqueRoot().PrimaryKey(), obj2.OptionalLeafUniqueRoot().PrimaryKey())
 	assert.Nil(t, obj2.RequiredLeafUniqueRoot(), "RequiredLeafUniqueRoot is not loaded initially")
-	v_RequiredLeafUniqueRoot := obj2.LoadRequiredLeafUniqueRoot(ctx)
+	v_RequiredLeafUniqueRoot, _ := obj2.LoadRequiredLeafUniqueRoot(ctx)
 	assert.NotNil(t, v_RequiredLeafUniqueRoot)
 	assert.Equal(t, v_RequiredLeafUniqueRoot.PrimaryKey(), obj2.RequiredLeafUniqueRoot().PrimaryKey())
 	assert.Equal(t, obj.RequiredLeafUniqueRoot().PrimaryKey(), obj2.RequiredLeafUniqueRoot().PrimaryKey())
 
 	// test eager loading
-	obj3 := LoadLeaf(ctx, obj.PrimaryKey(), node.Leaf().OptionalLeafRoots(),
+	obj3, _ := LoadLeaf(ctx, obj.PrimaryKey(), node.Leaf().OptionalLeafRoots(),
 		node.Leaf().RequiredLeafRoots(),
 		node.Leaf().OptionalLeafUniqueRoot(),
 		node.Leaf().RequiredLeafUniqueRoot(),
@@ -234,15 +243,15 @@ func TestLeaf_ReferenceLoad(t *testing.T) {
 func TestLeaf_ReferenceUpdateNewObjects(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleLeaf(ctx)
-	obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleLeaf(ctx, obj)
 
-	obj2 := LoadLeaf(ctx, obj.PrimaryKey())
+	obj2, _ := LoadLeaf(ctx, obj.PrimaryKey())
 	updateMaximalSampleLeaf(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleLeaf(ctx, obj2)
 
-	obj3 := LoadLeaf(ctx, obj2.PrimaryKey(), node.Leaf().OptionalLeafRoots(),
+	obj3, _ := LoadLeaf(ctx, obj2.PrimaryKey(), node.Leaf().OptionalLeafRoots(),
 		node.Leaf().RequiredLeafRoots(),
 		node.Leaf().OptionalLeafUniqueRoot(),
 		node.Leaf().RequiredLeafUniqueRoot(),
@@ -269,7 +278,7 @@ func TestLeaf_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2 := LoadLeaf(ctx, obj.PrimaryKey(),
+	obj2, _ := LoadLeaf(ctx, obj.PrimaryKey(),
 
 		node.Leaf().OptionalLeafRoots(),
 		node.Leaf().RequiredLeafRoots(),
@@ -303,9 +312,10 @@ func TestLeaf_Getters(t *testing.T) {
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSampleLeaf(ctx, obj)
 
-	assert.True(t, HasLeaf(ctx, obj.PrimaryKey()))
+	has, _ := HasLeaf(ctx, obj.PrimaryKey())
+	assert.True(t, has)
 
-	obj2 := LoadLeaf(ctx, obj.PrimaryKey(), node.Leaf().PrimaryKey())
+	obj2, _ := LoadLeaf(ctx, obj.PrimaryKey(), node.Leaf().PrimaryKey())
 
 	assert.Equal(t, obj.ID(), obj.Get(node.Leaf().ID().Identifier))
 	assert.Equal(t, obj.Name(), obj.Get(node.Leaf().Name().Identifier))
@@ -320,7 +330,7 @@ func TestLeaf_QueryLoad(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleLeaf(ctx, obj)
 
-	objs := QueryLeafs(ctx).
+	objs, _ := QueryLeafs(ctx).
 		Where(op.Equal(node.Leaf().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.Leaf().PrimaryKey()). // exercise order by
 		Limit(1, 0).                       // exercise limit
@@ -337,7 +347,7 @@ func TestLeaf_QueryLoadI(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleLeaf(ctx, obj)
 
-	objs := QueryLeafs(ctx).
+	objs, _ := QueryLeafs(ctx).
 		Where(op.Equal(node.Leaf().PrimaryKey(), obj.PrimaryKey())).
 		LoadI()
 
@@ -350,36 +360,42 @@ func TestLeaf_QueryCursor(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSampleLeaf(ctx, obj)
 
-	cursor := QueryLeafs(ctx).
+	cursor, _ := QueryLeafs(ctx).
 		Where(op.Equal(node.Leaf().PrimaryKey(), obj.PrimaryKey())).
 		LoadCursor()
 
-	obj2 := cursor.Next()
+	obj2, err2 := cursor.Next()
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.Nil(t, cursor.Next())
+	assert.NoError(t, err2)
+	obj2, err2 = cursor.Next()
+	assert.Nil(t, obj2)
+	assert.NoError(t, err2)
+	assert.NoError(t, cursor.Close())
 
 	// test empty cursor result
-	cursor = QueryLeafs(ctx).
+	cursor, err = QueryLeafs(ctx).
 		Where(op.Equal(1, 0)).
 		LoadCursor()
-	assert.Nil(t, cursor.Next())
-
+	obj2, err = cursor.Next()
+	assert.Nil(t, obj2)
+	assert.NoError(t, err)
+	assert.NoError(t, cursor.Close())
 }
 func TestLeaf_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSampleLeaf(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
-	// reread in case there are data limitations imposed by the database
-	obj2 := LoadLeaf(ctx, obj.PrimaryKey())
 	defer deleteSampleLeaf(ctx, obj)
+	// reread in case there are data limitations imposed by the database
+	obj2, _ := LoadLeaf(ctx, obj.PrimaryKey())
 
-	assert.Less(t, 0, CountLeafs(ctx))
-
-	assert.Less(t, 0, CountLeafsByID(ctx, obj2.ID()))
-	assert.Less(t, 0, CountLeafsByName(ctx, obj2.Name()))
+	assert.Positive(t, func() int { i, _ := CountLeafs(ctx); return i }())
+	assert.Positive(t, func() int { i, _ := CountLeafsByID(ctx, obj2.ID()); return i }())
+	assert.Positive(t, func() int { i, _ := CountLeafsByName(ctx, obj2.Name()); return i }())
 
 }
+
 func TestLeaf_MarshalJSON(t *testing.T) {
 	obj := createMinimalSampleLeaf()
 

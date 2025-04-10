@@ -8,7 +8,7 @@ func Test{{= table.Identifier }}_QueryLoad(t *testing.T) {
 	assert.NoError(t, err)
     defer deleteSample{{= table.Identifier }}(ctx, obj)
 
-    objs := Query{{= table.IdentifierPlural }}(ctx).
+    objs, _ := Query{{= table.IdentifierPlural }}(ctx).
         Where(op.Equal(node.{{= table.Identifier }}().PrimaryKey(), obj.PrimaryKey())).
         OrderBy(node.{{= table.Identifier }}().PrimaryKey()). // exercise order by
         Limit(1,0). // exercise limit
@@ -28,7 +28,7 @@ func Test{{= table.Identifier }}_QueryLoadI(t *testing.T) {
 	assert.NoError(t, err)
     defer deleteSample{{= table.Identifier }}(ctx, obj)
 
-    objs := Query{{= table.IdentifierPlural }}(ctx).
+    objs, _ := Query{{= table.IdentifierPlural }}(ctx).
         Where(op.Equal(node.{{= table.Identifier }}().PrimaryKey(), obj.PrimaryKey())).
         LoadI()
 
@@ -44,19 +44,25 @@ func Test{{= table.Identifier }}_QueryCursor(t *testing.T) {
 	assert.NoError(t, err)
     defer deleteSample{{= table.Identifier }}(ctx, obj)
 
-    cursor := Query{{= table.IdentifierPlural }}(ctx).
+    cursor, _ := Query{{= table.IdentifierPlural }}(ctx).
         Where(op.Equal(node.{{= table.Identifier }}().PrimaryKey(), obj.PrimaryKey())).
         LoadCursor()
 
-    obj2 := cursor.Next()
+    obj2, err2 := cursor.Next()
     assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-    assert.Nil(t, cursor.Next())
+    assert.NoError(t, err2)
+    obj2, err2 = cursor.Next()
+    assert.Nil(t, obj2)
+    assert.NoError(t, err2)
+    assert.NoError(t, cursor.Close())
 
     // test empty cursor result
-    cursor = Query{{= table.IdentifierPlural }}(ctx).
+    cursor, err = Query{{= table.IdentifierPlural }}(ctx).
         Where(op.Equal(1, 0)).
         LoadCursor()
-    assert.Nil(t, cursor.Next())
-
+    obj2, err = cursor.Next()
+    assert.Nil(t, obj2)
+    assert.NoError(t, err)
+    assert.NoError(t, cursor.Close())
 }
 }}

@@ -57,7 +57,7 @@ func deleteSamplePersonWithLock(ctx context.Context, obj *PersonWithLock) {
 		return
 	}
 
-	obj.Delete(ctx)
+	_ = obj.Delete(ctx)
 
 }
 
@@ -147,13 +147,13 @@ func TestPersonWithLock_Copy(t *testing.T) {
 func TestPersonWithLock_BasicInsert(t *testing.T) {
 	obj := createMinimalSamplePersonWithLock()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSamplePersonWithLock(ctx, obj)
 
 	// Test retrieval
-	obj2 := LoadPersonWithLock(ctx, obj.PrimaryKey())
+	obj2, err := LoadPersonWithLock(ctx, obj.PrimaryKey())
 	require.NotNil(t, obj2)
+	assert.NoError(t, err)
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
@@ -203,7 +203,8 @@ func TestPersonWithLock_BasicUpdate(t *testing.T) {
 	defer deleteSamplePersonWithLock(ctx, obj)
 	updateMinimalSamplePersonWithLock(obj)
 	assert.NoError(t, obj.Save(ctx))
-	obj2 := LoadPersonWithLock(ctx, obj.PrimaryKey())
+	obj2, err := LoadPersonWithLock(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 
 	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
 	assert.Equal(t, obj2.FirstName(), obj.FirstName(), "FirstName did not update")
@@ -215,19 +216,21 @@ func TestPersonWithLock_BasicUpdate(t *testing.T) {
 func TestPersonWithLock_ReferenceLoad(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSamplePersonWithLock(ctx)
-	obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSamplePersonWithLock(ctx, obj)
 
 	// Test that referenced objects were saved and assigned ids
 
 	// Test lazy loading
-	obj2 := LoadPersonWithLock(ctx, obj.PrimaryKey())
-	objPkOnly := LoadPersonWithLock(ctx, obj.PrimaryKey(), node.PersonWithLock().PrimaryKey())
+	obj2, err := LoadPersonWithLock(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
+	objPkOnly, err2 := LoadPersonWithLock(ctx, obj.PrimaryKey(), node.PersonWithLock().PrimaryKey())
+	assert.NoError(t, err2)
 	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
 
 	// test eager loading
-	obj3 := LoadPersonWithLock(ctx, obj.PrimaryKey())
+	obj3, _ := LoadPersonWithLock(ctx, obj.PrimaryKey())
 	_ = obj3 // avoid error if there are no references
 
 }
@@ -235,15 +238,15 @@ func TestPersonWithLock_ReferenceLoad(t *testing.T) {
 func TestPersonWithLock_ReferenceUpdateNewObjects(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSamplePersonWithLock(ctx)
-	obj.Save(ctx)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSamplePersonWithLock(ctx, obj)
 
-	obj2 := LoadPersonWithLock(ctx, obj.PrimaryKey())
+	obj2, _ := LoadPersonWithLock(ctx, obj.PrimaryKey())
 	updateMaximalSamplePersonWithLock(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSamplePersonWithLock(ctx, obj2)
 
-	obj3 := LoadPersonWithLock(ctx, obj2.PrimaryKey())
+	obj3, _ := LoadPersonWithLock(ctx, obj2.PrimaryKey())
 	_ = obj3 // avoid error if there are no references
 
 }
@@ -256,7 +259,7 @@ func TestPersonWithLock_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2 := LoadPersonWithLock(ctx, obj.PrimaryKey())
+	obj2, _ := LoadPersonWithLock(ctx, obj.PrimaryKey())
 	_ = obj2 // avoid error if there are no references
 
 }
@@ -279,9 +282,10 @@ func TestPersonWithLock_Getters(t *testing.T) {
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSamplePersonWithLock(ctx, obj)
 
-	assert.True(t, HasPersonWithLock(ctx, obj.PrimaryKey()))
+	has, _ := HasPersonWithLock(ctx, obj.PrimaryKey())
+	assert.True(t, has)
 
-	obj2 := LoadPersonWithLock(ctx, obj.PrimaryKey(), node.PersonWithLock().PrimaryKey())
+	obj2, _ := LoadPersonWithLock(ctx, obj.PrimaryKey(), node.PersonWithLock().PrimaryKey())
 
 	assert.Equal(t, obj.ID(), obj.Get(node.PersonWithLock().ID().Identifier))
 	assert.Equal(t, obj.FirstName(), obj.Get(node.PersonWithLock().FirstName().Identifier))
@@ -305,7 +309,7 @@ func TestPersonWithLock_QueryLoad(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSamplePersonWithLock(ctx, obj)
 
-	objs := QueryPersonWithLocks(ctx).
+	objs, _ := QueryPersonWithLocks(ctx).
 		Where(op.Equal(node.PersonWithLock().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.PersonWithLock().PrimaryKey()). // exercise order by
 		Limit(1, 0).                                 // exercise limit
@@ -322,7 +326,7 @@ func TestPersonWithLock_QueryLoadI(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSamplePersonWithLock(ctx, obj)
 
-	objs := QueryPersonWithLocks(ctx).
+	objs, _ := QueryPersonWithLocks(ctx).
 		Where(op.Equal(node.PersonWithLock().PrimaryKey(), obj.PrimaryKey())).
 		LoadI()
 
@@ -335,39 +339,45 @@ func TestPersonWithLock_QueryCursor(t *testing.T) {
 	assert.NoError(t, err)
 	defer deleteSamplePersonWithLock(ctx, obj)
 
-	cursor := QueryPersonWithLocks(ctx).
+	cursor, _ := QueryPersonWithLocks(ctx).
 		Where(op.Equal(node.PersonWithLock().PrimaryKey(), obj.PrimaryKey())).
 		LoadCursor()
 
-	obj2 := cursor.Next()
+	obj2, err2 := cursor.Next()
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.Nil(t, cursor.Next())
+	assert.NoError(t, err2)
+	obj2, err2 = cursor.Next()
+	assert.Nil(t, obj2)
+	assert.NoError(t, err2)
+	assert.NoError(t, cursor.Close())
 
 	// test empty cursor result
-	cursor = QueryPersonWithLocks(ctx).
+	cursor, err = QueryPersonWithLocks(ctx).
 		Where(op.Equal(1, 0)).
 		LoadCursor()
-	assert.Nil(t, cursor.Next())
-
+	obj2, err = cursor.Next()
+	assert.Nil(t, obj2)
+	assert.NoError(t, err)
+	assert.NoError(t, cursor.Close())
 }
 func TestPersonWithLock_Count(t *testing.T) {
 	ctx := db.NewContext(nil)
 	obj := createMaximalSamplePersonWithLock(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
-	// reread in case there are data limitations imposed by the database
-	obj2 := LoadPersonWithLock(ctx, obj.PrimaryKey())
 	defer deleteSamplePersonWithLock(ctx, obj)
+	// reread in case there are data limitations imposed by the database
+	obj2, _ := LoadPersonWithLock(ctx, obj.PrimaryKey())
 
-	assert.Less(t, 0, CountPersonWithLocks(ctx))
-
-	assert.Less(t, 0, CountPersonWithLocksByID(ctx, obj2.ID()))
-	assert.Less(t, 0, CountPersonWithLocksByFirstName(ctx, obj2.FirstName()))
-	assert.Less(t, 0, CountPersonWithLocksByLastName(ctx, obj2.LastName()))
-	assert.Less(t, 0, CountPersonWithLocksByGroLock(ctx, obj2.GroLock()))
-	assert.Less(t, 0, CountPersonWithLocksByGroTimestamp(ctx, obj2.GroTimestamp()))
+	assert.Positive(t, func() int { i, _ := CountPersonWithLocks(ctx); return i }())
+	assert.Positive(t, func() int { i, _ := CountPersonWithLocksByID(ctx, obj2.ID()); return i }())
+	assert.Positive(t, func() int { i, _ := CountPersonWithLocksByFirstName(ctx, obj2.FirstName()); return i }())
+	assert.Positive(t, func() int { i, _ := CountPersonWithLocksByLastName(ctx, obj2.LastName()); return i }())
+	assert.Positive(t, func() int { i, _ := CountPersonWithLocksByGroLock(ctx, obj2.GroLock()); return i }())
+	assert.Positive(t, func() int { i, _ := CountPersonWithLocksByGroTimestamp(ctx, obj2.GroTimestamp()); return i }())
 
 }
+
 func TestPersonWithLock_MarshalJSON(t *testing.T) {
 	obj := createMinimalSamplePersonWithLock()
 
