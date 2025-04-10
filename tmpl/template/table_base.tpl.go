@@ -8769,7 +8769,7 @@ func (o *`); err != nil {
                         return err
                     } else {
                         for _,obj := range oldObjs {
-                            if o.`); err != nil {
+                            if !o.`); err != nil {
 					return
 				}
 

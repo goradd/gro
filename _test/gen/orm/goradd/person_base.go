@@ -1218,7 +1218,7 @@ func (o *personBase) update(ctx context.Context) error {
 				return err
 			} else {
 				for _, obj := range oldObjs {
-					if o.revAddresses.Has(obj.PrimaryKey()) {
+					if !o.revAddresses.Has(obj.PrimaryKey()) {
 						err = obj.Delete(ctx) // old object is not in group of new objects, so delete it since it has a non-null reference to o.
 						if err != nil {
 							return err
