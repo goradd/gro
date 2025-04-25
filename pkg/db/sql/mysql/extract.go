@@ -29,7 +29,6 @@ type mysqlTable struct {
 	indexes             []mysqlIndex
 	fkMap               map[string]mysqlForeignKey
 	comment             string
-	options             map[string]interface{}
 	supportsForeignKeys bool
 }
 
@@ -45,7 +44,6 @@ type mysqlColumn struct {
 	key             string
 	extra           string
 	comment         string
-	options         map[string]any
 }
 
 type mysqlIndex struct {
@@ -160,12 +158,6 @@ func (m *DB) getTables() []mysqlTable {
 			indexes:             []mysqlIndex{},
 			supportsForeignKeys: supportsForeignKeys,
 		}
-		if table.options, table.comment, err = sql2.ExtractOptions(table.comment); err != nil {
-			slog.Warn("Error in comment options for table "+table.name,
-				slog.String(db.LogTable, table.name),
-				slog.Any(db.LogError, err))
-		}
-
 		tables = append(tables, table)
 	}
 	err = rows.Err()
@@ -213,13 +205,6 @@ func (m *DB) getColumns(table string) (columns []mysqlColumn, err error) {
 			panic(err)
 		}
 
-		if col.options, col.comment, err = sql2.ExtractOptions(col.comment); err != nil {
-			slog.Warn("Error in table comment options for table "+table+":"+col.name+" - "+err.Error(),
-				slog.String(db.LogComponent, "extract"),
-				slog.Any(db.LogError, err),
-				slog.String(db.LogTable, table),
-				slog.String(db.LogColumn, col.name))
-		}
 		columns = append(columns, col)
 	}
 	err = rows.Err()
@@ -441,10 +426,14 @@ func processTypeInfo(column mysqlColumn) (
 		maxLength = 64
 
 	case "varchar":
-		fallthrough
+		typ = schema.ColTypeString
+		maxLength = uint64(dataLen)
+		extra = map[string]interface{}{"collation": column.collation.String} // this is the default string type
+
 	case "char":
 		typ = schema.ColTypeString
 		maxLength = uint64(dataLen)
+		extra = map[string]interface{}{"type": column.columnType, "collation": column.collation.String}
 
 	case "blob":
 		typ = schema.ColTypeBytes
@@ -462,15 +451,22 @@ func processTypeInfo(column mysqlColumn) (
 	case "text":
 		typ = schema.ColTypeString
 		maxLength = 65535
+		extra = map[string]interface{}{"type": column.columnType, "collation": column.collation.String}
+
 	case "tinytext":
 		typ = schema.ColTypeString
 		maxLength = 255
+		extra = map[string]interface{}{"type": column.columnType, "collation": column.collation.String}
+
 	case "mediumtext":
 		typ = schema.ColTypeString
 		maxLength = 16777215
+		extra = map[string]interface{}{"type": column.columnType, "collation": column.collation.String}
+
 	case "longtext":
 		typ = schema.ColTypeString
 		maxLength = math.MaxUint32
+		extra = map[string]interface{}{"type": column.columnType, "collation": column.collation.String}
 
 	case "decimal":
 		// No native equivalent in Go.
@@ -487,12 +483,12 @@ func processTypeInfo(column mysqlColumn) (
 	case "set":
 		typ = schema.ColTypeUnknown
 		maxLength = uint64(column.characterMaxLen.Int64)
-		extra = map[string]interface{}{"type": column.columnType}
+		extra = map[string]interface{}{"type": column.columnType, "collation": column.collation.String}
 
 	case "enum":
 		typ = schema.ColTypeUnknown
 		maxLength = uint64(column.characterMaxLen.Int64)
-		extra = map[string]interface{}{"type": column.columnType}
+		extra = map[string]interface{}{"type": column.columnType, "collation": column.collation.String}
 
 	default:
 		typ = schema.ColTypeUnknown
@@ -516,9 +512,6 @@ func (m *DB) schemaFromRawTables(rawTables map[string]mysqlTable, options map[st
 	}
 
 	for tableName, rawTable := range iter.KeySort(rawTables) {
-		if rawTable.options["skip"] != nil {
-			continue
-		}
 
 		if strings2.EndsWith(tableName, dd.EnumTableSuffix) {
 			if t, err := m.getEnumTableSchema(rawTable); err != nil {
@@ -608,8 +601,8 @@ func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema.Table {
 		Name:    tableName,
 		Schema:  schem,
 		Columns: columnSchemas,
-		Key:     t.name,
 	}
+	sql2.FillTableCommentFields(&td, t.comment)
 
 	// Create the multi-column index array
 	for _, idx := range indexes {
@@ -652,6 +645,11 @@ func (m *DB) getEnumTableSchema(t mysqlTable) (ed schema.EnumTable, err error) {
 	var hasConst bool
 	var hasLabelOrIdentifier bool
 
+	var rawColumns = make(map[string]mysqlColumn)
+	for _, c := range t.columns {
+		rawColumns[c.name] = c
+	}
+
 	for _, c := range td.Columns {
 		if c.Name == schema.ConstKey {
 			hasConst = true
@@ -679,6 +677,7 @@ func (m *DB) getEnumTableSchema(t mysqlTable) (ed schema.EnumTable, err error) {
 		ft := schema.EnumField{
 			Type: typ,
 		}
+		sql2.FillEnumFieldCommentFields(&ft, rawColumns[c.Name].comment)
 		ed.Fields[c.Name] = ft
 	}
 
@@ -716,6 +715,8 @@ func (m *DB) getEnumTableSchema(t mysqlTable) (ed schema.EnumTable, err error) {
 		}
 		ed.Values = append(ed.Values, values)
 	}
+	sql2.FillEnumCommentFields(&ed, t.comment)
+
 	return
 }
 
@@ -740,10 +741,10 @@ func (m *DB) getColumnSchema(table mysqlTable,
 			slog.Any(db.LogError, err))
 	}
 	if extra != nil {
-		if cd.DatabaseColumnInfo == nil {
-			cd.DatabaseColumnInfo = make(map[string]map[string]interface{})
+		if cd.DatabaseDefinition == nil {
+			cd.DatabaseDefinition = make(map[string]map[string]interface{})
 		}
-		cd.DatabaseColumnInfo[db.DriverTypeMysql] = extra
+		cd.DatabaseDefinition[db.DriverTypeMysql] = extra
 	}
 
 	isAuto := strings.Contains(column.extra, "auto_increment")
@@ -761,31 +762,21 @@ func (m *DB) getColumnSchema(table mysqlTable,
 	cd.IsNullable = column.isNullable == "YES"
 
 	if enumTableSuffix != "" && strings.HasSuffix(column.name, enumTableSuffix) { // handle enum type
-		var refTable string
-		if v, ok := column.options["enum_table"]; ok {
-			if s, ok2 := v.(string); ok2 {
-				refTable = s
-			}
-		} // otherwise we will infer the reftable from the name of the column later
-
 		if cd.Type == schema.ColTypeInt || cd.Type == schema.ColTypeUint {
 			cd.Type = schema.ColTypeEnum
 			if fk, ok := table.fkMap[column.name]; ok { // if it is a foreign key to the enum table, use that
 				cd.Reference = &schema.Reference{
 					Table: fk.referencedTableName.String,
 				}
-			} else if refTable != "" {
-				cd.Reference = &schema.Reference{
-					Table: refTable,
-				}
+			} else {
+				slog.Warn("Could not find foreign key to enum table.",
+					slog.String(db.LogComponent, "extract"),
+					slog.String(db.LogTable, table.name),
+					slog.String(db.LogColumn, column.name),
+					slog.Any(db.LogError, err))
 			}
 		} else if cd.Type == schema.ColTypeString {
 			cd.Type = schema.ColTypeEnumArray
-			if refTable != "" {
-				cd.Reference = &schema.Reference{
-					Table: refTable,
-				}
-			}
 		}
 	} else if fk, ok2 := table.fkMap[column.name]; ok2 { // handle forward reference
 		if fk.referencedColumnIndexName.String != "PRIMARY" {
@@ -802,9 +793,7 @@ func (m *DB) getColumnSchema(table mysqlTable,
 		cd.Size = 0
 	}
 
-	if strings.HasSuffix(column.collation.String, "_ci") {
-		cd.CaseInsensitive = true
-	}
+	sql2.FillColumnCommentFields(&cd, column.comment)
 
 	return cd
 }
@@ -844,5 +833,7 @@ func (m *DB) getAssociationSchema(t mysqlTable, enumTableSuffix string) (mm sche
 	mm.Column1 = td.Columns[0].Name
 	mm.Table2 = td.Columns[1].Reference.Table
 	mm.Column2 = td.Columns[1].Name
+
+	sql2.FillAssociationCommentFields(&mm, t.comment)
 	return
 }

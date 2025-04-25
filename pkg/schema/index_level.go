@@ -23,9 +23,7 @@ import (
 //
 // IndexLevelManualPrimaryKey and Unique are basically equivalent.
 // IndexLevelManualPrimaryKey gives a hint to the database to mark this field as the primary key for the table.
-// Multiple columns can be marked this way to create a multi-column primary key. Note that some databases do
-// not support multi-column primary keys, so the database driver would have to handle this in whatever way is
-// best.
+// Only one column should be marked this way.
 type IndexLevel int
 
 const (

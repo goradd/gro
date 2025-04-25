@@ -43,14 +43,12 @@ type Table struct {
 
 	// Key is a value that helps synchronize changes to the table description.
 	// It is assigned by the analyzer and should not be changed.
-	Key string `json:"key"`
+	Key string `json:"key,omitempty"`
 
 	// NoOrm will prevent the table from generating code or being used by the ORM.
 	// You will still be able to access the table through direct calls to the database.
 	// Not recommended for tables that are involved in any reference or association relationships between tables.
 	NoOrm bool `json:"no_orm,omitempty"`
-
-	// TODO: initial values
 }
 
 // QualifiedName returns the name to use to refer to the table
@@ -80,4 +78,14 @@ func (t *Table) FillDefaults(db *Database) {
 	for _, c := range t.Columns {
 		c.FillDefaults(db, t)
 	}
+}
+
+// PrimaryKeyColumn returns the primary key column of the table, or nil if not found.
+func (t *Table) PrimaryKeyColumn() *Column {
+	for _, c := range t.Columns {
+		if c.IsPrimaryKey() {
+			return c
+		}
+	}
+	return nil
 }

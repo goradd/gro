@@ -61,6 +61,9 @@ type AssociationTable struct {
 
 	// Identifier2Plural is the plural Go name that will be used for the objects pointed at.
 	Identifier2Plural string `json:"identifier2_plural,omitempty"`
+
+	// Key is used internally to aid in database schema synchronization.
+	Key string `json:"key,omitempty"`
 }
 
 func (t *AssociationTable) QualifiedName() string {

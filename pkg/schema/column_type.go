@@ -20,7 +20,7 @@ import "encoding/json"
 // type in Go, and then create accessor functions that translate between the database representation
 // and your custom type.
 //
-// See Column.DatabaseColumnInfo for a way to specify the database specific type info for this column.
+// See Column.DatabaseDefinition for a way to specify the database specific type info for this column.
 //
 // # ColTypeBytes
 //

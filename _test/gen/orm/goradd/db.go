@@ -86,9 +86,6 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 		if err != nil {
 			return fmt.Errorf("query error: %w", err)
 		}
-		db.WalkCursor(cursor, func(i int, item *Gift) error {
-			
-		})
 		defer cursor.Close()
 		obj, err2 := cursor.Next()
 		if err2 != nil {

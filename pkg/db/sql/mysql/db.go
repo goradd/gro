@@ -76,7 +76,15 @@ func NewDB(dbKey string, connectionString string, config *mysql.Config) (*DB, er
 
 	m := new(DB)
 	m.DbHelper = sql2.NewSqlHelper(dbKey, db3, m)
-	m.databaseName = config.DBName // save off the database name for later use
+	if config != nil {
+		m.databaseName = config.DBName // save off the database name for later use
+	} else {
+		cfg, err := mysql.ParseDSN(connectionString)
+		if err != nil {
+			return nil, fmt.Errorf("could not parse database DSN: %w", err)
+		}
+		m.databaseName = cfg.DBName
+	}
 	return m, nil
 }
 

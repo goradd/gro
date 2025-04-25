@@ -3,29 +3,9 @@ package sql
 // Helper utilities for extracting a description out of a database
 
 import (
-	"encoding/json"
 	"strconv"
 	"strings"
 )
-
-// ExtractOptions finds the json encoded list of options in the given string
-func ExtractOptions(comment string) (options map[string]interface{}, remainingComment string, err error) {
-	var optionString string
-	firstIndex := strings.Index(comment, "{")
-	lastIndex := strings.LastIndex(comment, "}")
-	options = make(map[string]interface{})
-
-	if firstIndex != -1 &&
-		lastIndex != -1 &&
-		lastIndex > firstIndex {
-
-		optionString = comment[firstIndex : lastIndex+1]
-		remainingComment = strings.TrimSpace(comment[:firstIndex] + comment[lastIndex+1:])
-
-		err = json.Unmarshal([]byte(optionString), &options)
-	}
-	return
-}
 
 // GetDataDefLength will extract the length from the definition given a data definition description of the table.
 // Example:

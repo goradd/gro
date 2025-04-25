@@ -2,7 +2,6 @@ package model
 
 import (
 	"cmp"
-	"fmt"
 	"github.com/goradd/all"
 	"github.com/goradd/maps"
 	"github.com/goradd/orm/pkg/db"
@@ -102,7 +101,8 @@ func (m *Database) importAssociation(schemaAssn *schema.AssociationTable) {
 		ref1.MM = ref2
 		ref2.MM = ref1
 	} else {
-		slog.Warn(fmt.Sprintf("Skipped association table %s: missing associated table.", schemaAssn.Name))
+		slog.Warn("Skipped association table. Missing associated table.",
+			slog.String(db.LogTable, schemaAssn.Name))
 		return
 	}
 }

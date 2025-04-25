@@ -25,15 +25,6 @@ type Column struct {
 	// SubType further describes how the database treats the type.
 	SubType ColumnSubType `json:"sub_type,omitempty"`
 
-	// Identifier is the name of the column in Go code. Leave blank to base it on the Name.
-	// References should keep the "ID" at the name to differentiate between the value of the
-	// foreign key and the loaded object.
-	// Enum references should NOT keep the "ID" value in this name.
-	Identifier string `json:"identifier,omitempty"`
-
-	// Label is the human-readable description of the item. Leave blank to base it on the Name.
-	Label string `json:"label,omitempty"`
-
 	// If a string column, Size is the maximum length of runes that the column can accommodate.
 	// If a []byte column, Size is the maximum number of bytes allowed in the column.
 	// If an int, unsigned int, or float, Size is the number of bits allowed in the number and will also
@@ -57,22 +48,28 @@ type Column struct {
 	// ColTypeAutoPrimaryKey columns are automatically indexed uniquely, so this can be left blank for those columns.
 	IndexLevel IndexLevel `json:"index_level,omitempty"`
 
-	// For string columns that have an index, this will cause the
-	// index on the column to be sorted in a case-insensitive way and OrderBy and Unique tests to likewise be
-	// case-insensitive.
-	CaseInsensitive bool `json:"case_insensitive,omitempty"`
-
 	// Reference is set when the column is a pointer to another table.
 	// This is required for ColTypeReference, ColTypeEnum and ColTypeEnumArray tables.
 	Reference *Reference `json:"reference,omitempty"`
 
-	// DatabaseColumnInfo contains database specific extra information on the column that helps the database driver
+	// Identifier is the name of the column in Go code. Leave blank to base it on the Name.
+	// References should keep the "ID" at the name to differentiate between the value of the
+	// foreign key and the loaded object.
+	Identifier string `json:"identifier,omitempty"`
+
+	// Label is the human-readable description of the item. Leave blank to base it on the Name.
+	Label string `json:"label,omitempty"`
+
+	// DatabaseDefinition contains database specific extra information on the column that helps the database driver
 	// recreate the column in the database if needed. The top key is a db.DriverType constant, and the secondary key is the
 	// type of information. For example, a DECIMAL field might look like this:
 	//  {"mysql":{"type":"decimal(5,2)"},"sqllite":{"type":"string"}}
 	// This would indicate that in Mysql, the column is defined as DECIMAL(5,2), but in Sqllite, as a string.
 	// The information recognized is specific to the database driver.
-	DatabaseColumnInfo map[string]map[string]interface{} `json:"database_column_info,omitempty"`
+	DatabaseDefinition map[string]map[string]interface{} `json:"database_def,omitempty"`
+
+	// Key is used internally to aid in synchronizing database structure changes. Do not set or change it.
+	Key string `json:"key,omitempty"`
 }
 
 // Reference is the additional information needed for reference type  and enum columns.
