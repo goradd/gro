@@ -72,6 +72,7 @@ type columnCommentItems struct {
 	ReverseIdentifier       string `json:"rev_id,omitempty"`
 	ReverseIdentifierPlural string `json:"rev_id_plural,omitempty"`
 	EnumTable               string `json:"enum_table,omitempty"`
+	Type                    string `json:"type,omitempty"` // override calculated type, for special situations
 }
 
 // ColumnComment returns extra schema fields to be stored as a JSON object in the column comment.
@@ -91,6 +92,10 @@ func ColumnComment(c *schema.Column) string {
 		if c.Type == schema.ColTypeEnumArray {
 			ti.EnumTable = c.Reference.Table
 		}
+	}
+
+	if c.Type == schema.ColTypeJSON {
+		ti.Type = "JSON" // for MariadB, since it changes JSON into LONGTEXT
 	}
 
 	data, _ := json.Marshal(ti)
@@ -137,6 +142,13 @@ func FillColumnCommentFields(c *schema.Column, comment string) {
 			c.Reference = &schema.Reference{
 				Table: ci.EnumTable,
 			}
+		}
+	}
+
+	if ci.Type != "" {
+		if ci.Type == "JSON" {
+			c.Type = schema.ColTypeJSON
+			c.Size = 0
 		}
 	}
 }

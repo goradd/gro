@@ -85,6 +85,14 @@ func tableSql(s *schema.Database, table *schema.Table) string {
 	var foreignKeys []string
 
 	for _, col := range table.Columns {
+		if (col.Type == schema.ColTypeReference ||
+			col.Type == schema.ColTypeEnum ||
+			col.Type == schema.ColTypeEnumArray) &&
+			(col.Reference == nil || col.Reference.Table == "") {
+			slog.Error("Column skipped, Reference with a Table value is required",
+				slog.String("column", col.Name))
+			continue
+		}
 		colDef := buildColumnDef(col)
 		columnDefs = append(columnDefs, "  "+colDef)
 
@@ -95,7 +103,7 @@ func tableSql(s *schema.Database, table *schema.Table) string {
 		}
 
 		// Foreign Key
-		if col.Type == schema.ColTypeReference && col.Reference != nil {
+		if col.Type == schema.ColTypeReference {
 			refParts := strings.Split(col.Reference.Table, ".")
 			refTable := col.Reference.Table
 			if len(refParts) == 2 {
@@ -105,18 +113,36 @@ func tableSql(s *schema.Database, table *schema.Table) string {
 			}
 			t := s.FindTable(col.Reference.Table)
 			if t == nil {
-				slog.Error("Table skipped, reference table not found",
+				slog.Error("Column skipped, reference table not found",
 					slog.String("table", refTable))
-				return ""
+				continue
 			}
 			pk := t.PrimaryKeyColumn()
 			if pk == nil {
-				slog.Error("Table skipped, pk column not found",
+				slog.Error("Column skipped, reference pk column not found",
 					slog.String("table", refTable))
-				return ""
+				continue
 			}
 			foreignKeys = append(foreignKeys,
 				fmt.Sprintf("  FOREIGN KEY (`%s`) REFERENCES %s(`%s`)", col.Name, refTable, pk.Name),
+			)
+		} else if col.Type == schema.ColTypeEnum {
+			refParts := strings.Split(col.Reference.Table, ".")
+			refTable := col.Reference.Table
+			if len(refParts) == 2 {
+				refTable = fmt.Sprintf("`%s`.`%s`", refParts[0], refParts[1])
+			} else {
+				refTable = fmt.Sprintf("`%s`", refParts[0])
+			}
+			t := s.FindEnumTable(col.Reference.Table)
+			if t == nil {
+				slog.Error("Column skipped, reference table not found",
+					slog.String("table", refTable))
+				continue
+			}
+			pk := t.FieldKeys()[0]
+			foreignKeys = append(foreignKeys,
+				fmt.Sprintf("  FOREIGN KEY (`%s`) REFERENCES %s(`%s`)", col.Name, refTable, pk),
 			)
 		}
 
@@ -346,15 +372,25 @@ func sqlType(colType schema.ColumnType, size uint64) string {
 	case schema.ColTypeAutoPrimaryKey:
 		return "INT AUTO_INCREMENT"
 	case schema.ColTypeString:
-		if size > 0 {
+		if size == 0 {
+			return "TEXT"
+		} else if size < 16383 {
 			return fmt.Sprintf("VARCHAR(%d)", size)
+		} else if size < 4194303 {
+			return "MEDIUMTEXT"
+		} else {
+			return "LONGTEXT"
 		}
-		return "TEXT"
 	case schema.ColTypeBytes:
-		if size > 0 {
+		if size == 0 {
+			return "BLOB"
+		} else if size < 65532 {
 			return fmt.Sprintf("VARBINARY(%d)", size)
+		} else if size < 16777215 {
+			return "MEDIUMBLOB"
+		} else {
+			return "LONGBLOB"
 		}
-		return "BLOB"
 	case schema.ColTypeInt:
 		return intType(size, false)
 	case schema.ColTypeUint:
@@ -368,10 +404,14 @@ func sqlType(colType schema.ColumnType, size uint64) string {
 		return "BOOLEAN"
 	case schema.ColTypeTime:
 		return "DATETIME"
-	case schema.ColTypeJSON:
-		return "JSON"
 	case schema.ColTypeReference:
 		return "INT"
+	case schema.ColTypeEnum:
+		return "INT"
+	case schema.ColTypeJSON:
+		fallthrough
+	case schema.ColTypeEnumArray:
+		return "JSON" // In MariaDB, this becomes a LONGTEXT, but MariaDB will store in like a varchar if its <8KB.
 	default:
 		return "TEXT"
 	}

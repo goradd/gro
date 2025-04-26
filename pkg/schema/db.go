@@ -92,6 +92,17 @@ func (db *Database) FindTable(name string) *Table {
 	return nil
 }
 
+// FindEnumTable finds the enum table by name. Returns nil if not found.
+// name should be schema.table if the table has a schema specified.
+func (db *Database) FindEnumTable(name string) *EnumTable {
+	for _, t := range db.EnumTables {
+		if t.QualifiedName() == name {
+			return t
+		}
+	}
+	return nil
+}
+
 // Clean modifies the structure to prepare it for creating a schema in a database.
 // A cleaned structure should be saved so that it can be synchronized with the database as it changes.
 func (db *Database) Clean() {

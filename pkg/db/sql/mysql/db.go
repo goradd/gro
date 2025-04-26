@@ -51,6 +51,7 @@ import (
 type DB struct {
 	sql2.DbHelper
 	databaseName string
+	isMariaDB    bool
 }
 
 // NewDB returns a new DB database object that you can add to the datastore.
@@ -84,6 +85,14 @@ func NewDB(dbKey string, connectionString string, config *mysql.Config) (*DB, er
 			return nil, fmt.Errorf("could not parse database DSN: %w", err)
 		}
 		m.databaseName = cfg.DBName
+	}
+
+	var version string
+
+	if err = db3.QueryRow("SELECT VERSION()").Scan(&version); err != nil {
+		return nil, err
+	} else if strings.Contains(strings.ToLower(version), "mariadb") {
+		m.isMariaDB = true
 	}
 	return m, nil
 }

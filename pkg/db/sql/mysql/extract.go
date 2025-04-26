@@ -435,6 +435,9 @@ func processTypeInfo(column mysqlColumn) (
 		maxLength = uint64(dataLen)
 		extra = map[string]interface{}{"type": column.columnType, "collation": column.collation.String}
 
+	case "varbinary":
+		typ = schema.ColTypeBytes
+		maxLength = uint64(dataLen)
 	case "blob":
 		typ = schema.ColTypeBytes
 		maxLength = 65535
