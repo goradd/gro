@@ -781,6 +781,7 @@ func (m *DB) getColumnSchema(table mysqlTable,
 		} else if cd.Type == schema.ColTypeString {
 			cd.Type = schema.ColTypeEnumArray
 		}
+		cd.Size = 0 // use default size
 	} else if fk, ok2 := table.fkMap[column.name]; ok2 { // handle forward reference
 		if fk.referencedColumnIndexName.String != "PRIMARY" {
 			slog.Warn("Foregin key appears to not be pointing to a primary key. Only primary key foreign keys are supported.",

@@ -12,13 +12,13 @@ import (
 
 // BuildSchema builds the database schema from s.
 func (m *DB) BuildSchema(ctx context.Context, s schema.Database) error {
-	for _, table := range s.Tables {
-		if err := m.buildTable(ctx, &s, table); err != nil {
+	for _, table := range s.EnumTables {
+		if err := m.buildEnum(ctx, table); err != nil {
 			return err
 		}
 	}
-	for _, table := range s.EnumTables {
-		if err := m.buildEnum(ctx, table); err != nil {
+	for _, table := range s.Tables {
+		if err := m.buildTable(ctx, &s, table); err != nil {
 			return err
 		}
 	}
