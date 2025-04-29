@@ -24,7 +24,11 @@
             "name": "street",
             "type": "string",
             "size": 100,
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "latin1_swedish_ci"
+              }
+            }
           },
           {
             "name": "city",
@@ -32,10 +36,13 @@
             "size": 100,
             "default_value": "BOB",
             "is_nullable": true,
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "latin1_swedish_ci"
+              }
+            }
           }
-        ],
-        "key": "address"
+        ]
       },
       {
         "name": "employee_info",
@@ -57,8 +64,7 @@
             "type": "int",
             "size": 32
           }
-        ],
-        "key": "employee_info"
+        ]
       },
       {
         "name": "gift",
@@ -73,10 +79,13 @@
             "name": "name",
             "type": "string",
             "size": 50,
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "latin1_swedish_ci"
+              }
+            }
           }
-        ],
-        "key": "gift"
+        ]
       },
       {
         "name": "login",
@@ -99,22 +108,29 @@
             "type": "string",
             "size": 20,
             "index_level": "Unique",
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "latin1_swedish_ci"
+              }
+            }
           },
           {
             "name": "password",
             "type": "string",
             "size": 20,
             "is_nullable": true,
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "latin1_swedish_ci"
+              }
+            }
           },
           {
             "name": "is_enabled",
             "type": "bool",
             "default_value": true
           }
-        ],
-        "key": "login"
+        ]
       },
       {
         "name": "milestone",
@@ -135,10 +151,13 @@
             "name": "name",
             "type": "string",
             "size": 50,
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "latin1_swedish_ci"
+              }
+            }
           }
-        ],
-        "key": "milestone"
+        ]
       },
       {
         "name": "person",
@@ -151,21 +170,32 @@
             "name": "first_name",
             "type": "string",
             "size": 50,
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "latin1_swedish_ci"
+              }
+            }
           },
           {
             "name": "last_name",
             "type": "string",
             "size": 50,
             "index_level": "Indexed",
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "latin1_swedish_ci"
+              }
+            }
           },
           {
             "name": "type_enum",
             "type": "enum_array",
-            "size": 400,
             "is_nullable": true,
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "latin1_swedish_ci"
+              }
+            }
           },
           {
             "name": "created",
@@ -178,8 +208,7 @@
             "default_value": "update",
             "is_nullable": true
           }
-        ],
-        "key": "person"
+        ]
       },
       {
         "name": "person_with_lock",
@@ -192,13 +221,21 @@
             "name": "first_name",
             "type": "string",
             "size": 50,
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "latin1_swedish_ci"
+              }
+            }
           },
           {
             "name": "last_name",
             "type": "string",
             "size": 50,
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "latin1_swedish_ci"
+              }
+            }
           },
           {
             "name": "gro_lock",
@@ -212,8 +249,7 @@
             "sub_type": "gro_timestamp",
             "size": 64
           }
-        ],
-        "key": "person_with_lock"
+        ]
       },
       {
         "name": "project",
@@ -231,7 +267,6 @@
           {
             "name": "status_enum",
             "type": "enum",
-            "size": 32,
             "index_level": "Indexed",
             "reference": {
               "table": "project_status_enum"
@@ -250,14 +285,23 @@
             "name": "name",
             "type": "string",
             "size": 100,
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "latin1_swedish_ci"
+              }
+            }
           },
           {
             "name": "description",
             "type": "string",
             "size": 65535,
             "is_nullable": true,
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "latin1_swedish_ci",
+                "type": "text"
+              }
+            }
           },
           {
             "name": "start_date",
@@ -277,7 +321,7 @@
             "sub_type": "numeric",
             "size": 131084,
             "is_nullable": true,
-            "database_column_info": {
+            "database_def": {
               "mysql": {
                 "type": "decimal(12,2)"
               }
@@ -289,7 +333,7 @@
             "sub_type": "numeric",
             "size": 131084,
             "is_nullable": true,
-            "database_column_info": {
+            "database_def": {
               "mysql": {
                 "type": "decimal(12,2)"
               }
@@ -304,8 +348,7 @@
               "table": "project"
             }
           }
-        ],
-        "key": "project"
+        ]
       }
     ],
     "enum_tables": [
@@ -434,7 +477,11 @@
             "name": "field_string",
             "type": "string",
             "size": 50,
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "latin1_swedish_ci"
+              }
+            }
           },
           {
             "name": "field2_int",
@@ -447,7 +494,11 @@
             "type": "string",
             "size": 100,
             "is_nullable": true,
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "latin1_swedish_ci"
+              }
+            }
           }
         ],
         "multi_column_indexes": [
@@ -465,8 +516,7 @@
             ],
             "is_unique": true
           }
-        ],
-        "key": "double_index"
+        ]
       },
       {
         "name": "leaf",
@@ -479,10 +529,21 @@
             "name": "name",
             "type": "string",
             "size": 100,
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "utf8mb4_general_ci"
+              }
+            }
+          },
+          {
+            "name": "root_id",
+            "type": "ref",
+            "index_level": "Indexed",
+            "reference": {
+              "table": "root"
+            }
           }
-        ],
-        "key": "leaf"
+        ]
       },
       {
         "name": "leaf_lock",
@@ -495,7 +556,11 @@
             "name": "name",
             "type": "string",
             "size": 100,
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "latin1_swedish_ci"
+              }
+            }
           },
           {
             "name": "gro_lock",
@@ -503,8 +568,35 @@
             "sub_type": "gro_lock",
             "size": 64
           }
-        ],
-        "key": "leaf_lock"
+        ]
+      },
+      {
+        "name": "leaf_n",
+        "columns": [
+          {
+            "name": "id",
+            "type": "auto_primary_key"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "size": 100,
+            "database_def": {
+              "mysql": {
+                "collation": "utf8mb4_general_ci"
+              }
+            }
+          },
+          {
+            "name": "root_n_id",
+            "type": "ref",
+            "is_nullable": true,
+            "index_level": "Indexed",
+            "reference": {
+              "table": "root_n"
+            }
+          }
+        ]
       },
       {
         "name": "multi_parent",
@@ -517,7 +609,12 @@
             "name": "name",
             "type": "string",
             "size": 100,
-            "is_nullable": true
+            "is_nullable": true,
+            "database_def": {
+              "mysql": {
+                "collation": "utf8_bin"
+              }
+            }
           },
           {
             "name": "parent_1_id",
@@ -537,8 +634,7 @@
               "table": "multi_parent"
             }
           }
-        ],
-        "key": "multi_parent"
+        ]
       },
       {
         "name": "root",
@@ -551,52 +647,32 @@
             "name": "name",
             "type": "string",
             "size": 100,
-            "case_insensitive": true
-          },
-          {
-            "name": "optional_leaf_id",
-            "type": "ref",
-            "is_nullable": true,
-            "index_level": "Indexed",
-            "reference": {
-              "table": "leaf"
-            }
-          },
-          {
-            "name": "required_leaf_id",
-            "type": "ref",
-            "index_level": "Indexed",
-            "reference": {
-              "table": "leaf"
-            }
-          },
-          {
-            "name": "optional_leaf_unique_id",
-            "type": "ref",
-            "index_level": "Unique",
-            "reference": {
-              "table": "leaf"
-            }
-          },
-          {
-            "name": "required_leaf_unique_id",
-            "type": "ref",
-            "index_level": "Unique",
-            "reference": {
-              "table": "leaf"
-            }
-          },
-          {
-            "name": "parent_id",
-            "type": "ref",
-            "is_nullable": true,
-            "index_level": "Indexed",
-            "reference": {
-              "table": "root"
+            "database_def": {
+              "mysql": {
+                "collation": "utf8mb4_general_ci"
+              }
             }
           }
-        ],
-        "key": "root"
+        ]
+      },
+      {
+        "name": "root_n",
+        "columns": [
+          {
+            "name": "id",
+            "type": "auto_primary_key"
+          },
+          {
+            "name": "name",
+            "type": "string",
+            "size": 100,
+            "database_def": {
+              "mysql": {
+                "collation": "utf8mb4_general_ci"
+              }
+            }
+          }
+        ]
       },
       {
         "name": "two_key",
@@ -606,20 +682,32 @@
             "type": "string",
             "size": 50,
             "index_level": "Primary",
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "latin1_swedish_ci"
+              }
+            }
           },
           {
             "name": "directory",
             "type": "string",
             "size": 50,
             "index_level": "Primary",
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "latin1_swedish_ci"
+              }
+            }
           },
           {
             "name": "file_name",
             "type": "string",
             "size": 50,
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "latin1_swedish_ci"
+              }
+            }
           }
         ],
         "multi_column_indexes": [
@@ -630,8 +718,7 @@
             ],
             "is_unique": true
           }
-        ],
-        "key": "two_key"
+        ]
       },
       {
         "name": "type_test",
@@ -686,7 +773,12 @@
             "type": "string",
             "size": 65535,
             "is_nullable": true,
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "latin1_swedish_ci",
+                "type": "text"
+              }
+            }
           },
           {
             "name": "test_bit",
@@ -698,15 +790,18 @@
             "type": "string",
             "size": 10,
             "is_nullable": true,
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "latin1_swedish_ci"
+              }
+            }
           },
           {
             "name": "test_blob",
             "type": "bytes",
             "size": 65535
           }
-        ],
-        "key": "type_test"
+        ]
       },
       {
         "name": "unsupported_type",
@@ -719,9 +814,9 @@
             "name": "type_set",
             "type": "unknown",
             "size": 5,
-            "case_insensitive": true,
-            "database_column_info": {
+            "database_def": {
               "mysql": {
+                "collation": "latin1_swedish_ci",
                 "type": "set('a','b','c')"
               }
             }
@@ -730,9 +825,9 @@
             "name": "type_enumerated",
             "type": "unknown",
             "size": 1,
-            "case_insensitive": true,
-            "database_column_info": {
+            "database_def": {
               "mysql": {
+                "collation": "latin1_swedish_ci",
                 "type": "enum('a','b','c')"
               }
             }
@@ -742,7 +837,7 @@
             "type": "string",
             "sub_type": "numeric",
             "size": 262154,
-            "database_column_info": {
+            "database_def": {
               "mysql": {
                 "type": "decimal(10,4)"
               }
@@ -756,7 +851,7 @@
           {
             "name": "type_geo",
             "type": "unknown",
-            "database_column_info": {
+            "database_def": {
               "mysql": {
                 "type": "geometry"
               }
@@ -774,23 +869,24 @@
           },
           {
             "name": "type_varbinary",
-            "type": "unknown",
-            "database_column_info": {
-              "mysql": {
-                "type": "varbinary(10)"
-              }
-            }
+            "type": "bytes",
+            "size": 10
           },
           {
             "name": "type_longtext",
             "type": "string",
             "size": 4294967295,
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "latin1_swedish_ci",
+                "type": "longtext"
+              }
+            }
           },
           {
             "name": "type_binary",
             "type": "unknown",
-            "database_column_info": {
+            "database_def": {
               "mysql": {
                 "type": "binary(10)"
               }
@@ -814,7 +910,7 @@
           {
             "name": "type_polygon",
             "type": "unknown",
-            "database_column_info": {
+            "database_def": {
               "mysql": {
                 "type": "polygon"
               }
@@ -829,13 +925,21 @@
             "name": "type_multFk1",
             "type": "string",
             "size": 50,
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "latin1_swedish_ci"
+              }
+            }
           },
           {
             "name": "type_multiFk2",
             "type": "string",
             "size": 50,
-            "case_insensitive": true
+            "database_def": {
+              "mysql": {
+                "collation": "latin1_swedish_ci"
+              }
+            }
           }
         ],
         "multi_column_indexes": [
@@ -846,8 +950,7 @@
             ],
             "is_unique": false
           }
-        ],
-        "key": "unsupported_type"
+        ]
       }
     ],
     "enum_tables": null,

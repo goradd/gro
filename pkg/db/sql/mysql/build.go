@@ -37,6 +37,11 @@ func (m *DB) buildTable(ctx context.Context, s *schema.Database, table *schema.T
 		return fmt.Errorf("error in table `%s`", table.Name)
 	}
 	_, err = m.SqlExec(ctx, sql)
+	if err != nil {
+		slog.Error("SQL error",
+			slog.String("sql", sql),
+			slog.Any("error", err))
+	}
 	return err
 }
 
@@ -47,6 +52,10 @@ func (m *DB) buildEnum(ctx context.Context, table *schema.EnumTable) (err error)
 		return fmt.Errorf("error in table `%s`", table.Name)
 	}
 	if _, err = m.SqlExec(ctx, sql); err != nil {
+		slog.Error("SQL error",
+			slog.String("sql", sql),
+			slog.Any("error", err))
+
 		return
 	}
 
@@ -54,6 +63,11 @@ func (m *DB) buildEnum(ctx context.Context, table *schema.EnumTable) (err error)
 	for _, v := range table.Values {
 		sql, args = enumValueSql(table.Name, fieldKeys, table.Fields, v)
 		if _, err = m.SqlExec(ctx, sql, args...); err != nil {
+			slog.Error("SQL error",
+				slog.String("sql", sql),
+				slog.Any("error", err),
+				slog.Any("args", args))
+
 			return
 		}
 	}
@@ -66,6 +80,12 @@ func (m *DB) buildAssociation(ctx context.Context, s *schema.Database, table *sc
 		return fmt.Errorf("error in table `%s`", table.Name)
 	}
 	_, err = m.SqlExec(ctx, sql)
+	if err != nil {
+		slog.Error("SQL error",
+			slog.String("sql", sql),
+			slog.Any("error", err),
+		)
+	}
 	return err
 }
 
@@ -350,10 +370,22 @@ func buildColumnDef(col *schema.Column) string {
 	}
 
 	var defaultStr string
+	var extraStr string
 	if col.DefaultValue != nil {
 		switch val := col.DefaultValue.(type) {
 		case string:
-			defaultStr = fmt.Sprintf("DEFAULT '%s'", val)
+			if col.Type == schema.ColTypeTime {
+				if val == "now" {
+					defaultStr = " DEFAULT CURRENT_TIMESTAMP"
+				} else if val == "update" {
+					defaultStr = " DEFAULT CURRENT_TIMESTAMP"
+					extraStr = " ON UPDATE CURRENT_TIMESTAMP"
+				} else {
+					defaultStr = fmt.Sprintf("DEFAULT '%s'", val)
+				}
+			} else {
+				defaultStr = fmt.Sprintf("DEFAULT '%s'", val)
+			}
 		default:
 			defaultStr = fmt.Sprintf("DEFAULT %v", val)
 		}
@@ -364,7 +396,7 @@ func buildColumnDef(col *schema.Column) string {
 		commentStr = fmt.Sprintf("COMMENT '%s'", commentStr)
 	}
 
-	return fmt.Sprintf("`%s` %s %s %s %s %s", col.Name, colType, nullStr, defaultStr, collation, commentStr)
+	return fmt.Sprintf("`%s` %s %s %s %s %s %s", col.Name, colType, nullStr, defaultStr, extraStr, collation, commentStr)
 }
 
 func sqlType(colType schema.ColumnType, size uint64) string {

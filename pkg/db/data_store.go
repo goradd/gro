@@ -23,6 +23,11 @@ type SchemaExtractor interface {
 	ExtractSchema(options map[string]any) schema.Database
 }
 
+type SchemaBuilder interface {
+	DestroySchema(ctx context.Context) error
+	BuildSchema(ctx context.Context, s schema.Database) error
+}
+
 // DatabaseI is the interface that describes the behaviors required for a database implementation.
 //
 // Time values are converted to whatever time format the database prefers.

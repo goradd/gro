@@ -8,9 +8,9 @@ import (
 	"os"
 )
 
-func WriteJsonFile(schemas []*Database, outFile string) {
+func WriteJsonFile(schema *Database, outFile string) {
 	// Serialize the struct to JSON with indentation for readability
-	jsonData, err := json.MarshalIndent(schemas, "", "  ")
+	jsonData, err := json.MarshalIndent(schema, "", "  ")
 	if err != nil {
 		log.Fatal("Error marshaling JSON:", err)
 		return
@@ -32,7 +32,7 @@ func WriteJsonFile(schemas []*Database, outFile string) {
 	}
 }
 
-func ReadJsonFile(infile string) (schemas []*Database, err error) {
+func ReadJsonFile(infile string) (schema *Database, err error) {
 	// Read the file's content
 	var data []byte
 	data, err = os.ReadFile(infile)
@@ -43,22 +43,20 @@ func ReadJsonFile(infile string) (schemas []*Database, err error) {
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.UseNumber()
 
-	if err = decoder.Decode(&schemas); err != nil {
+	if err = decoder.Decode(&schema); err != nil {
 		return
 	}
 
 	// Fix up interfaces
-	for _, s := range schemas {
-		for _, t := range s.Tables {
-			for _, c := range t.Columns {
-				c.DefaultValue = fixVal(c.DefaultValue, c.Type, c.Size)
-			}
+	for _, t := range schema.Tables {
+		for _, c := range t.Columns {
+			c.DefaultValue = fixVal(c.DefaultValue, c.Type, c.Size)
 		}
-		for _, t := range s.EnumTables {
-			for rowidx, row := range t.Values {
-				for idx, f := range row {
-					t.Values[rowidx][idx] = fixVal(f, t.Fields[idx].Type, 32)
-				}
+	}
+	for _, t := range schema.EnumTables {
+		for rowidx, row := range t.Values {
+			for idx, f := range row {
+				t.Values[rowidx][idx] = fixVal(f, t.Fields[idx].Type, 32)
 			}
 		}
 	}

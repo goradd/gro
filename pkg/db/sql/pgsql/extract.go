@@ -42,7 +42,6 @@ type pgColumn struct {
 	collationName   sql.NullString
 	isIdentity      bool
 	comment         string
-	options         map[string]interface{}
 }
 
 type pgIndex struct {
@@ -219,14 +218,8 @@ ORDER BY
 		}
 		col.isNullable = nullable.BoolI().(bool)
 		col.isIdentity = ident.BoolI().(bool)
-
 		if descr.Valid {
-			if col.options, col.comment, err = sql2.ExtractOptions(descr.String); err != nil {
-				slog.Warn("Error in table comment options",
-					slog.String(db.LogTable, table),
-					slog.String(db.LogColumn, col.name),
-					slog.Any(db.LogError, err))
-			}
+			col.comment = descr.String
 		}
 
 		if s, _ := col.defaultValue.StringI().(string); strings.Contains(s, "nextval") {
@@ -709,7 +702,7 @@ func (m *DB) getColumnSchema(table pgTable, column pgColumn, isIndexed bool, isP
 	if fk, ok2 := table.fkMap[cd.Name]; ok2 {
 		tableName := fk.referencedTableName
 		if fk.referencedColumnKeyType.String != "p" {
-			slog.Warn("Foreign key appears to not be pointing to a primary key. Only primary key foreign keys are supported.",
+			slog.Warn("Foreign key appears to NOT be pointing to a primary key. Only primary key foreign keys are supported.",
 				slog.String(db.LogTable, table.name),
 				slog.String(db.LogColumn, column.name))
 		}
@@ -721,10 +714,6 @@ func (m *DB) getColumnSchema(table pgTable, column pgColumn, isIndexed bool, isP
 		} else {
 			cd.Type = schema.ColTypeReference
 		}
-	}
-
-	if strings.HasSuffix(column.collationName.String, "ks") {
-		cd.CaseInsensitive = true
 	}
 
 	return cd
