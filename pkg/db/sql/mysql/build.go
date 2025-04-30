@@ -310,7 +310,7 @@ func associationSql(s *schema.Database, table *schema.AssociationTable) string {
 	if typ1 == schema.ColTypeAutoPrimaryKey {
 		typ1 = schema.ColTypeInt
 	}
-	colType1 := sqlType(typ1, pk1.Size)
+	colType1 := sqlType(typ1, pk1.Size, schema.ColSubTypeNone)
 	columnDefs = append(columnDefs, fmt.Sprintf("`%s` %s NOT NULL", table.Column1, colType1))
 
 	table2 := s.FindTable(table.Table1)
@@ -329,7 +329,7 @@ func associationSql(s *schema.Database, table *schema.AssociationTable) string {
 	if typ2 == schema.ColTypeAutoPrimaryKey {
 		typ2 = schema.ColTypeInt
 	}
-	colType2 := sqlType(typ2, pk2.Size)
+	colType2 := sqlType(typ2, pk2.Size, schema.ColSubTypeNone)
 	columnDefs = append(columnDefs, fmt.Sprintf(" `%s` %s NOT NULL", table.Column2, colType2))
 
 	columnDefs = append(columnDefs, fmt.Sprintf("  FOREIGN KEY (`%s`) REFERENCES %s(`%s`)", table.Column1, table.Table1, pk1.Name))
@@ -362,7 +362,7 @@ func buildColumnDef(col *schema.Column) string {
 		}
 	}
 	if colType == "" {
-		colType = sqlType(col.Type, col.Size)
+		colType = sqlType(col.Type, col.Size, col.SubType)
 	}
 	nullStr := "NOT NULL"
 	if col.IsNullable {
@@ -399,10 +399,10 @@ func buildColumnDef(col *schema.Column) string {
 	return fmt.Sprintf("`%s` %s %s %s %s %s %s", col.Name, colType, nullStr, defaultStr, extraStr, collation, commentStr)
 }
 
-func sqlType(colType schema.ColumnType, size uint64) string {
+func sqlType(colType schema.ColumnType, size uint64, subType schema.ColumnSubType) string {
 	switch colType {
 	case schema.ColTypeAutoPrimaryKey:
-		return "INT AUTO_INCREMENT"
+		return intType(size, false) + " AUTO_INCREMENT"
 	case schema.ColTypeString:
 		if size == 0 {
 			return "TEXT"
@@ -435,9 +435,18 @@ func sqlType(colType schema.ColumnType, size uint64) string {
 	case schema.ColTypeBool:
 		return "BOOLEAN"
 	case schema.ColTypeTime:
+		switch subType {
+		case schema.ColSubTypeDateOnly:
+			return "DATE"
+		case schema.ColSubTypeTimeOnly:
+			return "TIME"
+		default:
+			slog.Warn("Wrong subtype for time column",
+				slog.String("subtype", subType.String()))
+		}
 		return "DATETIME"
 	case schema.ColTypeReference:
-		return "INT"
+		return intType(size, false)
 	case schema.ColTypeEnum:
 		return "INT"
 	case schema.ColTypeJSON:
@@ -470,6 +479,6 @@ func intType(size uint64, unsigned bool) string {
 }
 
 func buildEnumFieldDef(typ schema.ColumnType, size uint64, name string, comment string) string {
-	colType := sqlType(typ, size)
+	colType := sqlType(typ, size, schema.ColSubTypeNone)
 	return fmt.Sprintf("`%s` %s NOT NULL %s", name, colType, comment)
 }

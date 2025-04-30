@@ -440,7 +440,7 @@ func processTypeInfo(column mysqlColumn) (
 		maxLength = uint64(dataLen)
 	case "blob":
 		typ = schema.ColTypeBytes
-		maxLength = 65535
+		maxLength = 0 // default
 	case "tinyblob":
 		typ = schema.ColTypeBytes
 		maxLength = 255

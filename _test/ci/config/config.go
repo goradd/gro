@@ -4,7 +4,7 @@
 //
 // During the automated testing process, the database will be selected using a configuration file
 // pointed to by a command line argument.
-package ci
+package config
 
 import (
 	"flag"
