@@ -64,8 +64,8 @@ func updateMaximalSampleProject(ctx context.Context, obj *Project) {
 	obj.SetManager(createMinimalSamplePerson())
 	obj.SetParentProject(createMinimalSampleProject())
 
-	obj.SetMilestones(createMinimalSampleMilestone())
 	obj.SetParentProjectProjects(createMinimalSampleProject())
+	obj.SetMilestones(createMinimalSampleMilestone())
 	obj.SetChildren(createMinimalSampleProject())
 	obj.SetParents(createMinimalSampleProject())
 	obj.SetTeamMembers(createMinimalSamplePerson())
@@ -77,11 +77,11 @@ func deleteSampleProject(ctx context.Context, obj *Project) {
 		return
 	}
 
-	for _, item := range obj.Milestones() {
-		deleteSampleMilestone(ctx, item)
-	}
 	for _, item := range obj.ParentProjectProjects() {
 		deleteSampleProject(ctx, item)
+	}
+	for _, item := range obj.Milestones() {
+		deleteSampleMilestone(ctx, item)
 	}
 
 	for _, item := range obj.Children() {
@@ -155,6 +155,11 @@ func TestProject_SetID(t *testing.T) {
 	obj.SetID("")
 	assert.EqualValues(t, "", obj.ID(), "set default")
 
+	// test panic on setting value larger than maximum size allowed
+	val = test.RandomValue[string](33)
+	assert.Panics(t, func() {
+		obj.SetID(val)
+	})
 }
 func TestProject_SetNum(t *testing.T) {
 
@@ -532,14 +537,14 @@ func TestProject_ReferenceLoad(t *testing.T) {
 	assert.False(t, objPkOnly.ParentProjectIDIsLoaded())
 	assert.Panics(t, func() { _, _ = objPkOnly.LoadParentProject(ctx) })
 
-	assert.Nil(t, obj2.Milestones(), "Milestones is not loaded initially")
-	v_Milestones, _ := obj2.LoadMilestones(ctx)
-	assert.NotNil(t, v_Milestones)
-	assert.Len(t, v_Milestones, 1)
 	assert.Nil(t, obj2.ParentProjectProjects(), "ParentProjectProjects is not loaded initially")
 	v_ParentProjectProjects, _ := obj2.LoadParentProjectProjects(ctx)
 	assert.NotNil(t, v_ParentProjectProjects)
 	assert.Len(t, v_ParentProjectProjects, 1)
+	assert.Nil(t, obj2.Milestones(), "Milestones is not loaded initially")
+	v_Milestones, _ := obj2.LoadMilestones(ctx)
+	assert.NotNil(t, v_Milestones)
+	assert.Len(t, v_Milestones, 1)
 
 	assert.Nil(t, obj2.Children(), "Children is not loaded initially")
 	v_Children, _ := obj2.LoadChildren(ctx)
@@ -557,8 +562,8 @@ func TestProject_ReferenceLoad(t *testing.T) {
 	// test eager loading
 	obj3, _ := LoadProject(ctx, obj.PrimaryKey(), node.Project().Manager(),
 		node.Project().ParentProject(),
-		node.Project().Milestones(),
 		node.Project().ParentProjectProjects(),
+		node.Project().Milestones(),
 		node.Project().Children(),
 		node.Project().Parents(),
 		node.Project().TeamMembers(),
@@ -567,8 +572,8 @@ func TestProject_ReferenceLoad(t *testing.T) {
 
 	assert.Equal(t, obj2.Manager().PrimaryKey(), obj3.Manager().PrimaryKey())
 	assert.Equal(t, obj2.ParentProject().PrimaryKey(), obj3.ParentProject().PrimaryKey())
-	assert.Equal(t, len(obj2.Milestones()), len(obj3.Milestones()))
 	assert.Equal(t, len(obj2.ParentProjectProjects()), len(obj3.ParentProjectProjects()))
+	assert.Equal(t, len(obj2.Milestones()), len(obj3.Milestones()))
 	assert.Equal(t, len(obj2.Children()), len(obj3.Children()))
 	assert.Equal(t, len(obj2.Parents()), len(obj3.Parents()))
 	assert.Equal(t, len(obj2.TeamMembers()), len(obj3.TeamMembers()))
@@ -588,8 +593,8 @@ func TestProject_ReferenceUpdateNewObjects(t *testing.T) {
 
 	obj3, _ := LoadProject(ctx, obj2.PrimaryKey(), node.Project().Manager(),
 		node.Project().ParentProject(),
-		node.Project().Milestones(),
 		node.Project().ParentProjectProjects(),
+		node.Project().Milestones(),
 		node.Project().Children(),
 		node.Project().Parents(),
 		node.Project().TeamMembers(),
@@ -599,8 +604,8 @@ func TestProject_ReferenceUpdateNewObjects(t *testing.T) {
 	assert.Equal(t, obj2.Manager().PrimaryKey(), obj3.Manager().PrimaryKey())
 	assert.Equal(t, obj2.ParentProject().PrimaryKey(), obj3.ParentProject().PrimaryKey())
 
-	assert.Equal(t, len(obj2.Milestones()), len(obj3.Milestones()))
 	assert.Equal(t, len(obj2.ParentProjectProjects()), len(obj3.ParentProjectProjects()))
+	assert.Equal(t, len(obj2.Milestones()), len(obj3.Milestones()))
 
 	assert.Equal(t, len(obj2.Children()), len(obj3.Children()))
 	assert.Equal(t, len(obj2.Parents()), len(obj3.Parents()))
@@ -616,8 +621,8 @@ func TestProject_ReferenceUpdateOldObjects(t *testing.T) {
 
 	updateMinimalSamplePerson(obj.Manager())
 	updateMinimalSampleProject(obj.ParentProject())
-	updateMinimalSampleMilestone(obj.Milestones()[0])
 	updateMinimalSampleProject(obj.ParentProjectProjects()[0])
+	updateMinimalSampleMilestone(obj.Milestones()[0])
 	updateMinimalSampleProject(obj.Children()[0])
 	updateMinimalSampleProject(obj.Parents()[0])
 	updateMinimalSamplePerson(obj.TeamMembers()[0])
@@ -630,8 +635,8 @@ func TestProject_ReferenceUpdateOldObjects(t *testing.T) {
 
 		node.Project().ParentProject(),
 
-		node.Project().Milestones(),
 		node.Project().ParentProjectProjects(),
+		node.Project().Milestones(),
 		node.Project().Children(),
 		node.Project().Parents(),
 		node.Project().TeamMembers(),
@@ -641,8 +646,8 @@ func TestProject_ReferenceUpdateOldObjects(t *testing.T) {
 	assertEqualFieldsPerson(t, obj2.Manager(), obj.Manager())
 	assertEqualFieldsProject(t, obj2.ParentProject(), obj.ParentProject())
 
-	assertEqualFieldsMilestone(t, obj2.Milestones()[0], obj.Milestones()[0])
 	assertEqualFieldsProject(t, obj2.ParentProjectProjects()[0], obj.ParentProjectProjects()[0])
+	assertEqualFieldsMilestone(t, obj2.Milestones()[0], obj.Milestones()[0])
 
 	assertEqualFieldsProject(t, obj2.Children()[0], obj.Children()[0])
 	assertEqualFieldsProject(t, obj2.Parents()[0], obj.Parents()[0])

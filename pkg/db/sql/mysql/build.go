@@ -353,6 +353,8 @@ func associationSql(s *schema.Database, table *schema.AssociationTable) string {
 func buildColumnDef(col *schema.Column) string {
 	var colType string
 	var collation string
+	var defaultStr string
+
 	if m := col.DatabaseDefinition[db.DriverTypeMysql]; m != nil {
 		if t, ok := m["type"].(string); ok {
 			colType = t
@@ -360,6 +362,10 @@ func buildColumnDef(col *schema.Column) string {
 		if c, ok := m["collation"].(string); ok && c != "" {
 			collation = " COLLATE '" + c + "'"
 		}
+		if d, ok := m["default"].(string); ok && d != "" {
+			defaultStr = " DEFAULT " + d
+		}
+
 	}
 	if colType == "" {
 		colType = sqlType(col.Type, col.Size, col.SubType)
@@ -369,9 +375,8 @@ func buildColumnDef(col *schema.Column) string {
 		nullStr = "NULL"
 	}
 
-	var defaultStr string
 	var extraStr string
-	if col.DefaultValue != nil {
+	if col.DefaultValue != nil && defaultStr == "" {
 		switch val := col.DefaultValue.(type) {
 		case string:
 			if col.Type == schema.ColTypeTime {
@@ -440,6 +445,8 @@ func sqlType(colType schema.ColumnType, size uint64, subType schema.ColumnSubTyp
 			return "DATE"
 		case schema.ColSubTypeTimeOnly:
 			return "TIME"
+		case schema.ColSubTypeNone:
+			return "DATETIME"
 		default:
 			slog.Warn("Wrong subtype for time column",
 				slog.String("subtype", subType.String()))

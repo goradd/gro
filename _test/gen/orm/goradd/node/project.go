@@ -45,10 +45,10 @@ type ProjectNode interface {
 	Parents() ProjectNode
 	// TeamMembers represents the TeamMembers reference to Person objects.
 	TeamMembers() PersonNode
-	// Milestones represents the Milestones reference to Milestone objects.
-	Milestones() MilestoneNode
 	// ParentProjectProjects represents the ParentProjectProjects reference to Project objects.
 	ParentProjectProjects() ProjectNode
+	// Milestones represents the Milestones reference to Milestone objects.
+	Milestones() MilestoneNode
 }
 
 // projectTable represents the project table in a query. It uses a builder pattern to chain
@@ -648,39 +648,6 @@ func (n *projectAssociation) TeamMembers() PersonNode {
 	return cn
 }
 
-// Milestones represents the many-to-one relationship formed by the reverse reference from the
-// project_id column in the milestone table.
-func (n projectTable) Milestones() MilestoneNode {
-	cn := &milestoneReverse{
-		ReverseNode: query.ReverseNode{
-			ColumnQueryName: "project_id",
-			Identifier:      "Milestones",
-			ReceiverType:    query.ColTypeString,
-			IsUnique:        false,
-		},
-	}
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
-func (n *projectReference) Milestones() MilestoneNode {
-	cn := n.projectTable.Milestones().(*milestoneReverse)
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
-func (n *projectReverse) Milestones() MilestoneNode {
-	cn := n.projectTable.Milestones().(*milestoneReverse)
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
-func (n *projectAssociation) Milestones() MilestoneNode {
-	cn := n.projectTable.Milestones().(*milestoneReverse)
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
 // ParentProjectProjects represents the many-to-one relationship formed by the reverse reference from the
 // parent_project_id column in the project table.
 func (n projectTable) ParentProjectProjects() ProjectNode {
@@ -710,6 +677,39 @@ func (n *projectReverse) ParentProjectProjects() ProjectNode {
 
 func (n *projectAssociation) ParentProjectProjects() ProjectNode {
 	cn := n.projectTable.ParentProjectProjects().(*projectReverse)
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+// Milestones represents the many-to-one relationship formed by the reverse reference from the
+// project_id column in the milestone table.
+func (n projectTable) Milestones() MilestoneNode {
+	cn := &milestoneReverse{
+		ReverseNode: query.ReverseNode{
+			ColumnQueryName: "project_id",
+			Identifier:      "Milestones",
+			ReceiverType:    query.ColTypeString,
+			IsUnique:        false,
+		},
+	}
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *projectReference) Milestones() MilestoneNode {
+	cn := n.projectTable.Milestones().(*milestoneReverse)
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *projectReverse) Milestones() MilestoneNode {
+	cn := n.projectTable.Milestones().(*milestoneReverse)
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *projectAssociation) Milestones() MilestoneNode {
+	cn := n.projectTable.Milestones().(*milestoneReverse)
 	query.NodeSetParent(cn, n)
 	return cn
 }

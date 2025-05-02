@@ -81,6 +81,20 @@ func queryProjects(ctx context.Context) ProjectBuilder {
 	return newProjectBuilder(ctx)
 }
 
+// getProjectInsertFields returns fields and values that will be used for a new record in the database.
+// You can add or modify the fields here before they are sent to the database. If you set a primary key, it will be
+// used instead of a generated primary key.
+func getProjectInsertFields(o *projectBase) (fields map[string]interface{}) {
+	return o.getInsertFields()
+}
+
+// getProjectUpdateFields returns fields and values that will be used to update a current record in
+// the database.
+// You can add or modify the fields here before they are sent to the database.
+func getProjectUpdateFields(o *projectBase) (fields map[string]interface{}) {
+	return o.getUpdateFields()
+}
+
 // DeleteProject deletes the project record with primary key pk from the database.
 // Note that you can also delete loaded Project objects by calling Delete on them.
 // Returns an error only if there was a problem with the database during the delete.

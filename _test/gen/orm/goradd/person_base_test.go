@@ -52,6 +52,7 @@ func createMaximalSamplePerson(ctx context.Context) *Person {
 func updateMaximalSamplePerson(ctx context.Context, obj *Person) {
 	updateMinimalSamplePerson(obj)
 
+	obj.SetManagerProjects(createMinimalSampleProject())
 	obj.SetAddresses(createMinimalSampleAddress())
 	{
 		obj2, _ := obj.LoadEmployeeInfo(ctx)
@@ -67,7 +68,6 @@ func updateMaximalSamplePerson(ctx context.Context, obj *Person) {
 			obj.SetLogin(createMinimalSampleLogin())
 		}
 	}
-	obj.SetManagerProjects(createMinimalSampleProject())
 	obj.SetProjects(createMinimalSampleProject())
 }
 
@@ -77,14 +77,14 @@ func deleteSamplePerson(ctx context.Context, obj *Person) {
 		return
 	}
 
+	for _, item := range obj.ManagerProjects() {
+		deleteSampleProject(ctx, item)
+	}
 	for _, item := range obj.Addresses() {
 		deleteSampleAddress(ctx, item)
 	}
 	deleteSampleEmployeeInfo(ctx, obj.EmployeeInfo())
 	deleteSampleLogin(ctx, obj.Login())
-	for _, item := range obj.ManagerProjects() {
-		deleteSampleProject(ctx, item)
-	}
 
 	for _, item := range obj.Projects() {
 		deleteSampleProject(ctx, item)
@@ -132,6 +132,11 @@ func TestPerson_SetID(t *testing.T) {
 	obj.SetID("")
 	assert.EqualValues(t, "", obj.ID(), "set default")
 
+	// test panic on setting value larger than maximum size allowed
+	val = test.RandomValue[string](33)
+	assert.Panics(t, func() {
+		obj.SetID(val)
+	})
 }
 func TestPerson_SetFirstName(t *testing.T) {
 
@@ -302,6 +307,10 @@ func TestPerson_ReferenceLoad(t *testing.T) {
 	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
 
+	assert.Nil(t, obj2.ManagerProjects(), "ManagerProjects is not loaded initially")
+	v_ManagerProjects, _ := obj2.LoadManagerProjects(ctx)
+	assert.NotNil(t, v_ManagerProjects)
+	assert.Len(t, v_ManagerProjects, 1)
 	assert.Nil(t, obj2.Addresses(), "Addresses is not loaded initially")
 	v_Addresses, _ := obj2.LoadAddresses(ctx)
 	assert.NotNil(t, v_Addresses)
@@ -316,10 +325,6 @@ func TestPerson_ReferenceLoad(t *testing.T) {
 	assert.NotNil(t, v_Login)
 	assert.Equal(t, v_Login.PrimaryKey(), obj2.Login().PrimaryKey())
 	assert.Equal(t, obj.Login().PrimaryKey(), obj2.Login().PrimaryKey())
-	assert.Nil(t, obj2.ManagerProjects(), "ManagerProjects is not loaded initially")
-	v_ManagerProjects, _ := obj2.LoadManagerProjects(ctx)
-	assert.NotNil(t, v_ManagerProjects)
-	assert.Len(t, v_ManagerProjects, 1)
 
 	assert.Nil(t, obj2.Projects(), "Projects is not loaded initially")
 	v_Projects, _ := obj2.LoadProjects(ctx)
@@ -327,18 +332,18 @@ func TestPerson_ReferenceLoad(t *testing.T) {
 	assert.Len(t, v_Projects, 1)
 
 	// test eager loading
-	obj3, _ := LoadPerson(ctx, obj.PrimaryKey(), node.Person().Addresses(),
+	obj3, _ := LoadPerson(ctx, obj.PrimaryKey(), node.Person().ManagerProjects(),
+		node.Person().Addresses(),
 		node.Person().EmployeeInfo(),
 		node.Person().Login(),
-		node.Person().ManagerProjects(),
 		node.Person().Projects(),
 	)
 	_ = obj3 // avoid error if there are no references
 
+	assert.Equal(t, len(obj2.ManagerProjects()), len(obj3.ManagerProjects()))
 	assert.Equal(t, len(obj2.Addresses()), len(obj3.Addresses()))
 	assert.Equal(t, obj2.EmployeeInfo().PrimaryKey(), obj3.EmployeeInfo().PrimaryKey())
 	assert.Equal(t, obj2.Login().PrimaryKey(), obj3.Login().PrimaryKey())
-	assert.Equal(t, len(obj2.ManagerProjects()), len(obj3.ManagerProjects()))
 	assert.Equal(t, len(obj2.Projects()), len(obj3.Projects()))
 
 }
@@ -354,18 +359,18 @@ func TestPerson_ReferenceUpdateNewObjects(t *testing.T) {
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSamplePerson(ctx, obj2)
 
-	obj3, _ := LoadPerson(ctx, obj2.PrimaryKey(), node.Person().Addresses(),
+	obj3, _ := LoadPerson(ctx, obj2.PrimaryKey(), node.Person().ManagerProjects(),
+		node.Person().Addresses(),
 		node.Person().EmployeeInfo(),
 		node.Person().Login(),
-		node.Person().ManagerProjects(),
 		node.Person().Projects(),
 	)
 	_ = obj3 // avoid error if there are no references
 
+	assert.Equal(t, len(obj2.ManagerProjects()), len(obj3.ManagerProjects()))
 	assert.Equal(t, len(obj2.Addresses()), len(obj3.Addresses()))
 	assert.Equal(t, obj2.EmployeeInfo().PrimaryKey(), obj3.EmployeeInfo().PrimaryKey())
 	assert.Equal(t, obj2.Login().PrimaryKey(), obj3.Login().PrimaryKey())
-	assert.Equal(t, len(obj2.ManagerProjects()), len(obj3.ManagerProjects()))
 
 	assert.Equal(t, len(obj2.Projects()), len(obj3.Projects()))
 
@@ -377,28 +382,28 @@ func TestPerson_ReferenceUpdateOldObjects(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSamplePerson(ctx, obj)
 
+	updateMinimalSampleProject(obj.ManagerProjects()[0])
 	updateMinimalSampleAddress(obj.Addresses()[0])
 	updateMinimalSampleEmployeeInfo(obj.EmployeeInfo())
 	updateMinimalSampleLogin(obj.Login())
-	updateMinimalSampleProject(obj.ManagerProjects()[0])
 	updateMinimalSampleProject(obj.Projects()[0])
 
 	assert.NoError(t, obj.Save(ctx))
 
 	obj2, _ := LoadPerson(ctx, obj.PrimaryKey(),
 
+		node.Person().ManagerProjects(),
 		node.Person().Addresses(),
 		node.Person().EmployeeInfo(),
 		node.Person().Login(),
-		node.Person().ManagerProjects(),
 		node.Person().Projects(),
 	)
 	_ = obj2 // avoid error if there are no references
 
+	assertEqualFieldsProject(t, obj2.ManagerProjects()[0], obj.ManagerProjects()[0])
 	assertEqualFieldsAddress(t, obj2.Addresses()[0], obj.Addresses()[0])
 	assertEqualFieldsEmployeeInfo(t, obj2.EmployeeInfo(), obj.EmployeeInfo())
 	assertEqualFieldsLogin(t, obj2.Login(), obj.Login())
-	assertEqualFieldsProject(t, obj2.ManagerProjects()[0], obj.ManagerProjects()[0])
 
 	assertEqualFieldsProject(t, obj2.Projects()[0], obj.Projects()[0])
 }

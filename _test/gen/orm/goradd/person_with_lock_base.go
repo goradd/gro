@@ -56,6 +56,7 @@ const (
 	PersonWithLock_GroTimestamp = `GroTimestamp`
 )
 
+const PersonWithLockIDMaxLength = 32        // The number of runes the column can hold
 const PersonWithLockFirstNameMaxLength = 50 // The number of runes the column can hold
 const PersonWithLockLastNameMaxLength = 50  // The number of runes the column can hold
 
@@ -140,6 +141,9 @@ func (o *personWithLockBase) IDIsLoaded() bool {
 func (o *personWithLockBase) SetID(v string) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+	}
+	if utf8.RuneCountInString(v) > PersonWithLockIDMaxLength {
+		panic("attempted to set PersonWithLock.ID to a value larger than its maximum length in runes")
 	}
 
 	o.idIsLoaded = true
@@ -672,7 +676,7 @@ func (o *personWithLockBase) update(ctx context.Context) error {
 	d := Database()
 	err := db.ExecuteTransaction(ctx, d, func() error {
 
-		modifiedFields = o.getUpdateFields()
+		modifiedFields = getPersonWithLockUpdateFields(o)
 		if len(modifiedFields) != 0 {
 			var err2 error
 
@@ -718,7 +722,7 @@ func (o *personWithLockBase) insert(ctx context.Context) (err error) {
 			panic("a value for LastName is required, and there is no default value. Call SetLastName() before inserting the record.")
 		}
 
-		insertFields = o.getInsertFields()
+		insertFields = getPersonWithLockInsertFields(o)
 		var newPk string
 
 		newPk, err = d.Insert(ctx, "person_with_lock", "id", insertFields)

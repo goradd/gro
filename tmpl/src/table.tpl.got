@@ -16,7 +16,7 @@ type TableTemplate struct {
 }
 
 func (tmpl *TableTemplate) FileName(table *model.Table) string {
-    return filepath.Join("orm", table.DbKey, table.FileName() + ".go")
+    return table.FileName() + ".go"
 }
 
 func (tmpl *TableTemplate) GenerateTable(table *model.Table, _w io.Writer, importPath string) (err error) {

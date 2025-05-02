@@ -27,14 +27,14 @@ type PersonNode interface {
 	Modified() *query.ColumnNode
 	// Projects represents the Projects reference to Project objects.
 	Projects() ProjectNode
+	// ManagerProjects represents the ManagerProjects reference to Project objects.
+	ManagerProjects() ProjectNode
 	// Addresses represents the Addresses reference to Address objects.
 	Addresses() AddressNode
 	// EmployeeInfo represents the EmployeeInfo reference to a EmployeeInfo object.
 	EmployeeInfo() EmployeeInfoNode
 	// Login represents the Login reference to a Login object.
 	Login() LoginNode
-	// ManagerProjects represents the ManagerProjects reference to Project objects.
-	ManagerProjects() ProjectNode
 }
 
 // personTable represents the person table in a query. It uses a builder pattern to chain
@@ -290,6 +290,33 @@ func (n *personAssociation) Projects() ProjectNode {
 	return cn
 }
 
+// ManagerProjects represents the many-to-one relationship formed by the reverse reference from the
+// manager_id column in the project table.
+func (n personTable) ManagerProjects() ProjectNode {
+	cn := &projectReverse{
+		ReverseNode: query.ReverseNode{
+			ColumnQueryName: "manager_id",
+			Identifier:      "ManagerProjects",
+			ReceiverType:    query.ColTypeString,
+			IsUnique:        false,
+		},
+	}
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *personReference) ManagerProjects() ProjectNode {
+	cn := n.personTable.ManagerProjects().(*projectReverse)
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *personAssociation) ManagerProjects() ProjectNode {
+	cn := n.personTable.ManagerProjects().(*projectReverse)
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
 // Addresses represents the many-to-one relationship formed by the reverse reference from the
 // person_id column in the address table.
 func (n personTable) Addresses() AddressNode {
@@ -367,33 +394,6 @@ func (n *personReference) Login() LoginNode {
 
 func (n *personAssociation) Login() LoginNode {
 	cn := n.personTable.Login().(*loginReverse)
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
-// ManagerProjects represents the many-to-one relationship formed by the reverse reference from the
-// manager_id column in the project table.
-func (n personTable) ManagerProjects() ProjectNode {
-	cn := &projectReverse{
-		ReverseNode: query.ReverseNode{
-			ColumnQueryName: "manager_id",
-			Identifier:      "ManagerProjects",
-			ReceiverType:    query.ColTypeString,
-			IsUnique:        false,
-		},
-	}
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
-func (n *personReference) ManagerProjects() ProjectNode {
-	cn := n.personTable.ManagerProjects().(*projectReverse)
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
-func (n *personAssociation) ManagerProjects() ProjectNode {
-	cn := n.personTable.ManagerProjects().(*projectReverse)
 	query.NodeSetParent(cn, n)
 	return cn
 }

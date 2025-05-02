@@ -5,7 +5,6 @@ package template
 import (
 	"fmt"
 	"io"
-	"path/filepath"
 	"strconv"
 
 	"github.com/goradd/orm/pkg/codegen"
@@ -23,7 +22,7 @@ type EnumTemplate struct {
 }
 
 func (tmpl *EnumTemplate) FileName(table *model.Enum) string {
-	return filepath.Join("orm", table.DbKey, table.FileName()+".go")
+	return table.FileName() + ".go"
 }
 
 func (tmpl *EnumTemplate) GenerateEnum(table *model.Enum, _w io.Writer, importPath string) (err error) {

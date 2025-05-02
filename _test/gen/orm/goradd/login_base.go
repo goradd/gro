@@ -61,6 +61,7 @@ const (
 	Login_IsEnabled = `IsEnabled`
 )
 
+const LoginIDMaxLength = 32       // The number of runes the column can hold
 const LoginUsernameMaxLength = 20 // The number of runes the column can hold
 const LoginPasswordMaxLength = 20 // The number of runes the column can hold
 
@@ -155,6 +156,9 @@ func (o *loginBase) IDIsLoaded() bool {
 func (o *loginBase) SetID(v string) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+	}
+	if utf8.RuneCountInString(v) > LoginIDMaxLength {
+		panic("attempted to set Login.ID to a value larger than its maximum length in runes")
 	}
 
 	o.idIsLoaded = true
@@ -900,7 +904,7 @@ func (o *loginBase) update(ctx context.Context) error {
 			}
 		}
 
-		modifiedFields = o.getUpdateFields()
+		modifiedFields = getLoginUpdateFields(o)
 		if len(modifiedFields) != 0 {
 			var err2 error
 
@@ -961,7 +965,7 @@ func (o *loginBase) insert(ctx context.Context) (err error) {
 			}
 		}
 
-		insertFields = o.getInsertFields()
+		insertFields = getLoginInsertFields(o)
 		var newPk string
 
 		newPk, err = d.Insert(ctx, "login", "id", insertFields)

@@ -81,6 +81,20 @@ func queryAddresses(ctx context.Context) AddressBuilder {
 	return newAddressBuilder(ctx)
 }
 
+// getAddressInsertFields returns fields and values that will be used for a new record in the database.
+// You can add or modify the fields here before they are sent to the database. If you set a primary key, it will be
+// used instead of a generated primary key.
+func getAddressInsertFields(o *addressBase) (fields map[string]interface{}) {
+	return o.getInsertFields()
+}
+
+// getAddressUpdateFields returns fields and values that will be used to update a current record in
+// the database.
+// You can add or modify the fields here before they are sent to the database.
+func getAddressUpdateFields(o *addressBase) (fields map[string]interface{}) {
+	return o.getUpdateFields()
+}
+
 // DeleteAddress deletes the address record with primary key pk from the database.
 // Note that you can also delete loaded Address objects by calling Delete on them.
 // Returns an error only if there was a problem with the database during the delete.

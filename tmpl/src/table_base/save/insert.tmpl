@@ -24,7 +24,7 @@ func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) (err error
 
 {{: unique_check.tmpl }}
 
-    insertFields = o.getInsertFields()
+    insertFields = get{{= table.Identifier }}InsertFields(o)
     var newPk {{= table.PrimaryKeyGoType() }}
 
 {{if table.HasAutoPK() }}

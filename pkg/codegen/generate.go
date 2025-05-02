@@ -13,11 +13,9 @@ import (
 	"strings"
 )
 
-func Generate(schemas []*schema.Database) {
-	m := model.FromSchemas(schemas)
-	for _, db := range m {
-		gen(db)
-	}
+func Generate(schemaDB *schema.Database) {
+	m := model.FromSchema(schemaDB)
+	gen(m)
 }
 
 func gen(db *model.Database) {

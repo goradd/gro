@@ -1,0 +1,11 @@
+[
+    {
+      "type": "mysql",
+      "database": "goradd_unit",
+      "key": "goradd_unit",
+      "user": "root",
+      "password": "12345",
+      "net": "tcp",
+      "address": "127.0.0.1:3307"
+    }
+]

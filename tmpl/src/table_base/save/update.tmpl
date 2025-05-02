@@ -24,7 +24,7 @@ func (o *{{= table.DecapIdentifier}}Base) update(ctx context.Context) error {
 
 {{: unique_check.tmpl }}
 
-        modifiedFields = o.getUpdateFields()
+        modifiedFields = get{{= table.Identifier }}UpdateFields(o)
         if len(modifiedFields) != 0 {
             var err2 error
 

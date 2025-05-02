@@ -8,6 +8,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"unicode/utf8"
 
 	"github.com/goradd/all"
 	"github.com/goradd/orm/_test/gen/orm/goradd/node"
@@ -50,6 +51,7 @@ const (
 	EmployeeInfo_EmployeeNumber = `EmployeeNumber`
 )
 
+const EmployeeInfoIDMaxLength = 32 // The number of runes the column can hold
 const EmployeeInfoEmployeeNumberMax = 2147483647
 const EmployeeInfoEmployeeNumberMin = -2147483648
 
@@ -128,6 +130,9 @@ func (o *employeeInfoBase) IDIsLoaded() bool {
 func (o *employeeInfoBase) SetID(v string) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+	}
+	if utf8.RuneCountInString(v) > EmployeeInfoIDMaxLength {
+		panic("attempted to set EmployeeInfo.ID to a value larger than its maximum length in runes")
 	}
 
 	o.idIsLoaded = true
@@ -677,7 +682,7 @@ func (o *employeeInfoBase) update(ctx context.Context) error {
 			}
 		}
 
-		modifiedFields = o.getUpdateFields()
+		modifiedFields = getEmployeeInfoUpdateFields(o)
 		if len(modifiedFields) != 0 {
 			var err2 error
 
@@ -730,7 +735,7 @@ func (o *employeeInfoBase) insert(ctx context.Context) (err error) {
 			}
 		}
 
-		insertFields = o.getInsertFields()
+		insertFields = getEmployeeInfoInsertFields(o)
 		var newPk string
 
 		newPk, err = d.Insert(ctx, "employee_info", "id", insertFields)

@@ -5,7 +5,6 @@ package template
 import (
 	"fmt"
 	"io"
-	"path/filepath"
 	"strconv"
 
 	"github.com/goradd/orm/pkg/codegen"
@@ -25,7 +24,7 @@ type TableBaseTemplate struct {
 }
 
 func (tmpl *TableBaseTemplate) FileName(table *model.Table) string {
-	return filepath.Join("orm", table.DbKey, table.FileName()+"_base.go")
+	return table.FileName() + "_base.go"
 }
 
 func (tmpl *TableBaseTemplate) GenerateTable(table *model.Table, _w io.Writer, importPath string) (err error) {
@@ -8153,7 +8152,15 @@ func (o *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `
-        modifiedFields = o.getUpdateFields()
+        modifiedFields = get`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `UpdateFields(o)
         if len(modifiedFields) != 0 {
             var err2 error
 
@@ -9635,7 +9642,15 @@ func (o *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `
-    insertFields = o.getInsertFields()
+    insertFields = get`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `InsertFields(o)
     var newPk `); err != nil {
 		return
 	}

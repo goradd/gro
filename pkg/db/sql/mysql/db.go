@@ -17,6 +17,12 @@ import (
 // to supply functionality above go's built in driver. To use it, call NewDB, but afterward,
 // work through the DB parent interface so that the underlying database can be swapped out later if needed.
 //
+// # Primary Keys
+//
+// Historically, Mysql uses auto generated integers as primary keys. Newer versions of Mysql are able to generate
+// UUIDs, but the implementation is v1 only, and is not the most secure, nor the best for balancing storage needs.
+// To use UUIDs, instead override the getXXXinsertFields function and manually set your own UUID.
+//
 // # Timezones
 //
 // Mysql has some interesting quirks:

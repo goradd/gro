@@ -7,7 +7,6 @@ package template
 import (
 	"fmt"
 	"io"
-	"path/filepath"
 
 	"github.com/goradd/orm/pkg/codegen"
 	"github.com/goradd/orm/pkg/model"
@@ -24,7 +23,7 @@ type ConfigTemplate struct {
 }
 
 func (tmpl *ConfigTemplate) FileName(dbKey string) string {
-	return filepath.Join("orm", dbKey, "config.go")
+	return "config.go"
 }
 
 func (tmpl *ConfigTemplate) GenerateDatabase(database *model.Database, _w io.Writer, importPath string) (err error) {

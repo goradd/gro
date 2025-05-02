@@ -99,6 +99,11 @@ func TestAddress_SetID(t *testing.T) {
 	obj.SetID("")
 	assert.EqualValues(t, "", obj.ID(), "set default")
 
+	// test panic on setting value larger than maximum size allowed
+	val = test.RandomValue[string](33)
+	assert.Panics(t, func() {
+		obj.SetID(val)
+	})
 }
 func TestAddress_SetPersonID(t *testing.T) {
 

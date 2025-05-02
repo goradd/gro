@@ -81,6 +81,20 @@ func queryMilestones(ctx context.Context) MilestoneBuilder {
 	return newMilestoneBuilder(ctx)
 }
 
+// getMilestoneInsertFields returns fields and values that will be used for a new record in the database.
+// You can add or modify the fields here before they are sent to the database. If you set a primary key, it will be
+// used instead of a generated primary key.
+func getMilestoneInsertFields(o *milestoneBase) (fields map[string]interface{}) {
+	return o.getInsertFields()
+}
+
+// getMilestoneUpdateFields returns fields and values that will be used to update a current record in
+// the database.
+// You can add or modify the fields here before they are sent to the database.
+func getMilestoneUpdateFields(o *milestoneBase) (fields map[string]interface{}) {
+	return o.getUpdateFields()
+}
+
 // DeleteMilestone deletes the milestone record with primary key pk from the database.
 // Note that you can also delete loaded Milestone objects by calling Delete on them.
 // Returns an error only if there was a problem with the database during the delete.

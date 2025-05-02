@@ -51,6 +51,7 @@ const (
 	Milestone_Name      = `Name`
 )
 
+const MilestoneIDMaxLength = 32   // The number of runes the column can hold
 const MilestoneNameMaxLength = 50 // The number of runes the column can hold
 
 // Initialize or re-initialize a Milestone database object to default values.
@@ -128,6 +129,9 @@ func (o *milestoneBase) IDIsLoaded() bool {
 func (o *milestoneBase) SetID(v string) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+	}
+	if utf8.RuneCountInString(v) > MilestoneIDMaxLength {
+		panic("attempted to set Milestone.ID to a value larger than its maximum length in runes")
 	}
 
 	o.idIsLoaded = true
@@ -652,7 +656,7 @@ func (o *milestoneBase) update(ctx context.Context) error {
 			o.SetProjectID(o.objProject.PrimaryKey())
 		}
 
-		modifiedFields = o.getUpdateFields()
+		modifiedFields = getMilestoneUpdateFields(o)
 		if len(modifiedFields) != 0 {
 			var err2 error
 
@@ -697,7 +701,7 @@ func (o *milestoneBase) insert(ctx context.Context) (err error) {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
 
-		insertFields = o.getInsertFields()
+		insertFields = getMilestoneInsertFields(o)
 		var newPk string
 
 		newPk, err = d.Insert(ctx, "milestone", "id", insertFields)

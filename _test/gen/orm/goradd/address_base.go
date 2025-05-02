@@ -56,6 +56,7 @@ const (
 	Address_City     = `City`
 )
 
+const AddressIDMaxLength = 32      // The number of runes the column can hold
 const AddressStreetMaxLength = 100 // The number of runes the column can hold
 const AddressCityMaxLength = 100   // The number of runes the column can hold
 
@@ -142,6 +143,9 @@ func (o *addressBase) IDIsLoaded() bool {
 func (o *addressBase) SetID(v string) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+	}
+	if utf8.RuneCountInString(v) > AddressIDMaxLength {
+		panic("attempted to set Address.ID to a value larger than its maximum length in runes")
 	}
 
 	o.idIsLoaded = true
@@ -742,7 +746,7 @@ func (o *addressBase) update(ctx context.Context) error {
 			o.SetPersonID(o.objPerson.PrimaryKey())
 		}
 
-		modifiedFields = o.getUpdateFields()
+		modifiedFields = getAddressUpdateFields(o)
 		if len(modifiedFields) != 0 {
 			var err2 error
 
@@ -787,7 +791,7 @@ func (o *addressBase) insert(ctx context.Context) (err error) {
 			panic("a value for Street is required, and there is no default value. Call SetStreet() before inserting the record.")
 		}
 
-		insertFields = o.getInsertFields()
+		insertFields = getAddressInsertFields(o)
 		var newPk string
 
 		newPk, err = d.Insert(ctx, "address", "id", insertFields)

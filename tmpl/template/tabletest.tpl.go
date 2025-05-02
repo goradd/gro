@@ -4,7 +4,6 @@ package template
 
 import (
 	"io"
-	"path/filepath"
 
 	"github.com/goradd/orm/pkg/codegen"
 	"github.com/goradd/orm/pkg/model"
@@ -23,7 +22,7 @@ type TableTestTemplate struct {
 }
 
 func (tmpl *TableTestTemplate) FileName(table *model.Table) string {
-	return filepath.Join("orm", table.DbKey, table.FileName()+"_test.go")
+	return table.FileName() + "_test.go"
 }
 
 func (tmpl *TableTestTemplate) GenerateTable(table *model.Table, _w io.Writer, importPath string) (err error) {

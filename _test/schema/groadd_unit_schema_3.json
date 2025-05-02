@@ -12,12 +12,22 @@
           "type": "int",
           "size": 32,
           "index_level": "Primary",
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
           "key": "Pk3iBodz16"
         },
         {
           "name": "field_int",
           "type": "int",
           "size": 32,
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
           "key": "T3c3NTvb33"
         },
         {
@@ -36,6 +46,11 @@
           "type": "int",
           "size": 32,
           "is_nullable": true,
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
           "key": "GyBNizXKIQ"
         },
         {
@@ -75,6 +90,12 @@
         {
           "name": "id",
           "type": "auto_primary_key",
+          "size": 32,
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
           "key": "2jUCzAEbPn"
         },
         {
@@ -84,7 +105,7 @@
           "is_nullable": true,
           "database_def": {
             "mysql": {
-              "collation": "utf8_bin"
+              "collation": "utf8mb3_bin"
             }
           },
           "key": "LaRuuutnbE"
@@ -97,6 +118,11 @@
           "reference": {
             "table": "multi_parent"
           },
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
           "key": "1h73Kzw0kg"
         },
         {
@@ -106,6 +132,11 @@
           "index_level": "Indexed",
           "reference": {
             "table": "multi_parent"
+          },
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
           },
           "key": "YXFG2rrRsB"
         }
@@ -118,6 +149,12 @@
         {
           "name": "id",
           "type": "auto_primary_key",
+          "size": 32,
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
           "key": "oJhzl71PY2"
         },
         {
@@ -140,6 +177,12 @@
         {
           "name": "id",
           "type": "auto_primary_key",
+          "size": 32,
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
           "key": "4DibfUuovh"
         },
         {
@@ -158,6 +201,11 @@
           "type": "int",
           "sub_type": "gro_lock",
           "size": 64,
+          "database_def": {
+            "mysql": {
+              "type": "bigint"
+            }
+          },
           "key": "aXfVqAAzpz"
         }
       ],
@@ -169,6 +217,12 @@
         {
           "name": "id",
           "type": "auto_primary_key",
+          "size": 32,
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
           "key": "4iWv87emZc"
         },
         {
@@ -184,6 +238,182 @@
         }
       ],
       "key": "mzXe87bPzY"
+    },
+    {
+      "name": "root_nl",
+      "columns": [
+        {
+          "name": "id",
+          "type": "auto_primary_key",
+          "size": 32,
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
+          "key": "DIkapKYRMF"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "size": 100,
+          "database_def": {
+            "mysql": {
+              "collation": "utf8mb4_general_ci"
+            }
+          },
+          "key": "f83MG1l4rX"
+        },
+        {
+          "name": "gro_lock",
+          "type": "int",
+          "sub_type": "gro_lock",
+          "size": 64,
+          "database_def": {
+            "mysql": {
+              "type": "bigint"
+            }
+          },
+          "key": "Y7uISHhEKk"
+        }
+      ],
+      "key": "wnLlJBrDzr"
+    },
+    {
+      "name": "root_u",
+      "columns": [
+        {
+          "name": "id",
+          "type": "auto_primary_key",
+          "size": 32,
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
+          "key": "hnVvCRDh8s"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "size": 100,
+          "database_def": {
+            "mysql": {
+              "collation": "utf8mb4_general_ci"
+            }
+          },
+          "key": "q4m5wX41Fz"
+        }
+      ],
+      "key": "0VPiEuabAa"
+    },
+    {
+      "name": "root_ul",
+      "columns": [
+        {
+          "name": "id",
+          "type": "auto_primary_key",
+          "size": 32,
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
+          "key": "XiQr1CQqZc"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "size": 100,
+          "database_def": {
+            "mysql": {
+              "collation": "utf8mb4_general_ci"
+            }
+          },
+          "key": "EDlsuE4UFJ"
+        },
+        {
+          "name": "gro_lock",
+          "type": "int",
+          "sub_type": "gro_lock",
+          "size": 64,
+          "database_def": {
+            "mysql": {
+              "type": "bigint"
+            }
+          },
+          "key": "PeVebYEkdT"
+        }
+      ],
+      "key": "CZsnJoccAy"
+    },
+    {
+      "name": "root_un",
+      "columns": [
+        {
+          "name": "id",
+          "type": "auto_primary_key",
+          "size": 32,
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
+          "key": "oCkJ0Eh93i"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "size": 100,
+          "database_def": {
+            "mysql": {
+              "collation": "utf8mb4_general_ci"
+            }
+          },
+          "key": "ce0J9WVtda"
+        }
+      ],
+      "key": "vwuvh1d7XE"
+    },
+    {
+      "name": "root_unl",
+      "columns": [
+        {
+          "name": "id",
+          "type": "auto_primary_key",
+          "size": 32,
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
+          "key": "Waf9EZO2c0"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "size": 100,
+          "database_def": {
+            "mysql": {
+              "collation": "utf8mb4_general_ci"
+            }
+          },
+          "key": "6JjlE902j1"
+        },
+        {
+          "name": "gro_lock",
+          "type": "int",
+          "sub_type": "gro_lock",
+          "size": 64,
+          "database_def": {
+            "mysql": {
+              "type": "bigint"
+            }
+          },
+          "key": "5J1KeN0i9e"
+        }
+      ],
+      "key": "5rBqLucLVE"
     },
     {
       "name": "two_key",
@@ -231,6 +461,13 @@
             "server"
           ],
           "is_unique": true
+        },
+        {
+          "columns": [
+            "directory",
+            "server"
+          ],
+          "is_unique": true
         }
       ],
       "key": "wOm0YwY1sB"
@@ -242,6 +479,11 @@
           "name": "id",
           "type": "auto_primary_key",
           "size": 64,
+          "database_def": {
+            "mysql": {
+              "type": "bigint"
+            }
+          },
           "key": "q7aeJfaMW7"
         },
         {
@@ -262,7 +504,6 @@
           "name": "date_time",
           "type": "time",
           "is_nullable": true,
-          "default_value": "update",
           "key": "TS0WranxVD"
         },
         {
@@ -270,11 +511,6 @@
           "type": "time",
           "default_value": "now",
           "is_nullable": true,
-          "database_def": {
-            "mysql": {
-              "type": "timestamp"
-            }
-          },
           "key": "EZjiqBFIcc"
         },
         {
@@ -283,6 +519,11 @@
           "size": 32,
           "default_value": 5,
           "is_nullable": true,
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
           "key": "ET9WW1Zccu"
         },
         {
@@ -332,7 +573,6 @@
         {
           "name": "test_blob",
           "type": "bytes",
-          "size": 0,
           "key": "ahwQN9vKOk"
         }
       ],
@@ -343,11 +583,12 @@
       "columns": [
         {
           "name": "type_serial",
-          "type": "auto_primary_key",
+          "type": "uint",
           "size": 64,
+          "index_level": "Primary",
           "database_def": {
             "mysql": {
-              "type": "bigint(20) unsigned"
+              "type": "bigint unsigned"
             }
           },
           "key": "AL6wkZ19tC"
@@ -413,7 +654,7 @@
         {
           "name": "type_medium_blob",
           "type": "bytes",
-          "size": 16777215,
+          "size": 4294967295,
           "key": "8pUApqL6LF"
         },
         {
@@ -448,6 +689,11 @@
           "name": "type_small",
           "type": "int",
           "size": 16,
+          "database_def": {
+            "mysql": {
+              "type": "smallint"
+            }
+          },
           "key": "DaGrM7bX5i"
         },
         {
@@ -456,7 +702,7 @@
           "size": 24,
           "database_def": {
             "mysql": {
-              "type": "mediumint(9)"
+              "type": "mediumint"
             }
           },
           "key": "aCGH1Czc3L"
@@ -465,6 +711,11 @@
           "name": "type_big",
           "type": "int",
           "size": 64,
+          "database_def": {
+            "mysql": {
+              "type": "bigint"
+            }
+          },
           "key": "b2Zef4SlTy"
         },
         {
@@ -481,6 +732,11 @@
           "name": "type_unsigned",
           "type": "uint",
           "size": 32,
+          "database_def": {
+            "mysql": {
+              "type": "int unsigned"
+            }
+          },
           "key": "TvQAF5dOlb"
         },
         {
@@ -518,11 +774,37 @@
       "key": "y7fdJs1Y0K"
     },
     {
+      "name": "user",
+      "columns": [
+        {
+          "name": "id",
+          "type": "string",
+          "size": 36,
+          "default_value": "uuid()",
+          "index_level": "Primary",
+          "database_def": {
+            "mysql": {
+              "collation": "utf8mb4_0900_ai_ci",
+              "type": "char(36)"
+            }
+          },
+          "key": "VPtCDlbvS8"
+        }
+      ],
+      "key": "4f8IqVxf4o"
+    },
+    {
       "name": "leaf",
       "columns": [
         {
           "name": "id",
           "type": "auto_primary_key",
+          "size": 32,
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
           "key": "Bn7nPqbRQ4"
         },
         {
@@ -543,6 +825,11 @@
           "reference": {
             "table": "root"
           },
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
           "key": "HC7pHJP8WE"
         }
       ],
@@ -554,6 +841,12 @@
         {
           "name": "id",
           "type": "auto_primary_key",
+          "size": 32,
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
           "key": "mjNAe9bF24"
         },
         {
@@ -572,6 +865,11 @@
           "type": "int",
           "sub_type": "gro_lock",
           "size": 64,
+          "database_def": {
+            "mysql": {
+              "type": "bigint"
+            }
+          },
           "key": "UcUTkpRBBR"
         },
         {
@@ -580,6 +878,11 @@
           "index_level": "Indexed",
           "reference": {
             "table": "root_l"
+          },
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
           },
           "key": "jL0hssTJ63"
         }
@@ -592,6 +895,12 @@
         {
           "name": "id",
           "type": "auto_primary_key",
+          "size": 32,
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
           "key": "sly8Q9DNFy"
         },
         {
@@ -613,17 +922,29 @@
           "reference": {
             "table": "root_n"
           },
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
           "key": "E99jN7XUgR"
         }
       ],
       "key": "zP9xBIYvJI"
     },
     {
-      "name": "root_u",
+      "name": "leaf_nl",
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key"
+          "type": "auto_primary_key",
+          "size": 32,
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
+          "key": "XJH3Qm5i2s"
         },
         {
           "name": "name",
@@ -633,16 +954,52 @@
             "mysql": {
               "collation": "utf8mb4_general_ci"
             }
-          }
+          },
+          "key": "MEXDdugDIh"
+        },
+        {
+          "name": "root_nl_id",
+          "type": "ref",
+          "is_nullable": true,
+          "index_level": "Indexed",
+          "reference": {
+            "table": "root_nl"
+          },
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
+          "key": "TYKQmBQYIj"
+        },
+        {
+          "name": "gro_lock",
+          "type": "int",
+          "sub_type": "gro_lock",
+          "size": 64,
+          "database_def": {
+            "mysql": {
+              "type": "bigint"
+            }
+          },
+          "key": "m7PFi33W3l"
         }
-      ]
+      ],
+      "key": "3hXJvGK6U4"
     },
     {
       "name": "leaf_u",
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key"
+          "type": "auto_primary_key",
+          "size": 32,
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
+          "key": "uIXkGEf4Nt"
         },
         {
           "name": "name",
@@ -652,7 +1009,8 @@
             "mysql": {
               "collation": "utf8mb4_general_ci"
             }
-          }
+          },
+          "key": "URGe4nmpag"
         },
         {
           "name": "root_u_id",
@@ -660,88 +1018,30 @@
           "index_level": "Unique",
           "reference": {
             "table": "root_u"
-          }
-        }
-      ]
-    },
-    {
-      "name": "root_un",
-      "columns": [
-        {
-          "name": "id",
-          "type": "auto_primary_key"
-        },
-        {
-          "name": "name",
-          "type": "string",
-          "size": 100,
+          },
           "database_def": {
             "mysql": {
-              "collation": "utf8mb4_general_ci"
+              "type": "int"
             }
-          }
+          },
+          "key": "q4g54qCe0J"
         }
-      ]
-    },
-    {
-      "name": "leaf_un",
-      "columns": [
-        {
-          "name": "id",
-          "type": "auto_primary_key"
-        },
-        {
-          "name": "name",
-          "type": "string",
-          "size": 100,
-          "database_def": {
-            "mysql": {
-              "collation": "utf8mb4_general_ci"
-            }
-          }
-        },
-        {
-          "name": "root_un_id",
-          "type": "ref",
-          "index_level": "Unique",
-          "is_nullable": true,
-          "reference": {
-            "table": "root_un"
-          }
-        }
-      ]
-    },
-    {
-      "name": "root_ul",
-      "columns": [
-        {
-          "name": "id",
-          "type": "auto_primary_key"
-        },
-        {
-          "name": "name",
-          "type": "string",
-          "size": 100,
-          "database_def": {
-            "mysql": {
-              "collation": "utf8mb4_general_ci"
-            }
-          }
-        },
-        {
-          "name": "gro_lock",
-          "type": "int",
-          "sub_type": "gro_lock",
-          "size": 64
-        }
-      ]
+      ],
+      "key": "xuTGUTJDtG"
     },
     {
       "name": "leaf_ul",
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key"
+          "type": "auto_primary_key",
+          "size": 32,
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
+          "key": "1SzexwxVRa"
         },
         {
           "name": "name",
@@ -751,7 +1051,8 @@
             "mysql": {
               "collation": "utf8mb4_general_ci"
             }
-          }
+          },
+          "key": "vym9swIi7m"
         },
         {
           "name": "root_ul_id",
@@ -759,22 +1060,42 @@
           "index_level": "Unique",
           "reference": {
             "table": "root_ul"
-          }
+          },
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
+          "key": "Wh7nWwzVh1"
         },
         {
           "name": "gro_lock",
           "type": "int",
           "sub_type": "gro_lock",
-          "size": 64
+          "size": 64,
+          "database_def": {
+            "mysql": {
+              "type": "bigint"
+            }
+          },
+          "key": "jwMwNYHlrG"
         }
-      ]
+      ],
+      "key": "l2UUyyFR0R"
     },
     {
-      "name": "root_nl",
+      "name": "leaf_un",
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key"
+          "type": "auto_primary_key",
+          "size": 32,
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
+          "key": "xAxmVt2RWo"
         },
         {
           "name": "name",
@@ -784,80 +1105,40 @@
             "mysql": {
               "collation": "utf8mb4_general_ci"
             }
-          }
+          },
+          "key": "d5hR9bCFZe"
         },
         {
-          "name": "gro_lock",
-          "type": "int",
-          "sub_type": "gro_lock",
-          "size": 64
-        }
-      ]
-    },
-    {
-      "name": "leaf_nl",
-      "columns": [
-        {
-          "name": "id",
-          "type": "auto_primary_key"
-        },
-        {
-          "name": "name",
-          "type": "string",
-          "size": 100,
-          "database_def": {
-            "mysql": {
-              "collation": "utf8mb4_general_ci"
-            }
-          }
-        },
-        {
-          "name": "root_nl_id",
+          "name": "root_un_id",
           "type": "ref",
           "is_nullable": true,
+          "index_level": "Unique",
           "reference": {
-            "table": "root_nl"
-          }
-        },
-        {
-          "name": "gro_lock",
-          "type": "int",
-          "sub_type": "gro_lock",
-          "size": 64
-        }
-      ]
-    },
-    {
-      "name": "root_unl",
-      "columns": [
-        {
-          "name": "id",
-          "type": "auto_primary_key"
-        },
-        {
-          "name": "name",
-          "type": "string",
-          "size": 100,
+            "table": "root_un"
+          },
           "database_def": {
             "mysql": {
-              "collation": "utf8mb4_general_ci"
+              "type": "int"
             }
-          }
-        },
-        {
-          "name": "gro_lock",
-          "type": "int",
-          "sub_type": "gro_lock",
-          "size": 64
+          },
+          "key": "srAkqjuZmg"
         }
-      ]
+      ],
+      "key": "cK9cI8Pcsa"
     },
     {
       "name": "leaf_unl",
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key"
+          "type": "auto_primary_key",
+          "size": 32,
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
+          "key": "8xmj91BB0L"
         },
         {
           "name": "name",
@@ -867,7 +1148,8 @@
             "mysql": {
               "collation": "utf8mb4_general_ci"
             }
-          }
+          },
+          "key": "unX032SDly"
         },
         {
           "name": "root_unl_id",
@@ -876,15 +1158,28 @@
           "index_level": "Unique",
           "reference": {
             "table": "root_unl"
-          }
+          },
+          "database_def": {
+            "mysql": {
+              "type": "int"
+            }
+          },
+          "key": "d8rGV8FKgK"
         },
         {
           "name": "gro_lock",
           "type": "int",
           "sub_type": "gro_lock",
-          "size": 64
+          "size": 64,
+          "database_def": {
+            "mysql": {
+              "type": "bigint"
+            }
+          },
+          "key": "EzgHvVWXzn"
         }
-      ]
+      ],
+      "key": "CtKDYbe4rA"
     }
   ],
   "enum_tables": null,
@@ -894,7 +1189,8 @@
       "table1": "leaf_nl",
       "column1": "leaf_1_id",
       "table2": "leaf_nl",
-      "column2": "leaf_2_id"
+      "column2": "leaf_2_id",
+      "key": "UjG2akf9K8"
     }
   ]
 }

@@ -4,7 +4,6 @@ package template
 
 import (
 	"io"
-	"path/filepath"
 
 	"github.com/goradd/orm/pkg/codegen"
 	"github.com/goradd/orm/pkg/model"
@@ -22,7 +21,7 @@ type TableTemplate struct {
 }
 
 func (tmpl *TableTemplate) FileName(table *model.Table) string {
-	return filepath.Join("orm", table.DbKey, table.FileName()+".go")
+	return table.FileName() + ".go"
 }
 
 func (tmpl *TableTemplate) GenerateTable(table *model.Table, _w io.Writer, importPath string) (err error) {
@@ -363,6 +362,68 @@ func query`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `Builder(ctx)
+}
+
+// get`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `InsertFields returns fields and values that will be used for a new record in the database.
+// You can add or modify the fields here before they are sent to the database. If you set a primary key, it will be
+// used instead of a generated primary key.
+func get`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `InsertFields(o *`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Base) (fields map[string]interface{}) {
+    return o.getInsertFields()
+}
+
+// get`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `UpdateFields returns fields and values that will be used to update a current record in
+// the database.
+// You can add or modify the fields here before they are sent to the database.
+func get`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `UpdateFields(o *`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Base) (fields map[string]interface{}) {
+    return o.getUpdateFields()
 }
 
 

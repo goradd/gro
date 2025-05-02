@@ -49,8 +49,8 @@ func main() {
 	}
 	defer func() { _ = os.Chdir(cwd) }()
 
-	var schemas []*schema.Database
-	schemas, err = schema.ReadJsonFile(schemaFile)
+	var schemaDB *schema.Database
+	schemaDB, err = schema.ReadJsonFile(schemaFile)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "error opening or reading schema file %s: %s", schemaFile, err)
 		os.Exit(1)
@@ -63,5 +63,7 @@ func main() {
 	logger := slog.New(handler)
 	slog.SetDefault(logger)
 
-	codegen.Generate(schemas)
+	base := filepath.Base(outdir)
+	schemaDB.Package = base
+	codegen.Generate(schemaDB)
 }

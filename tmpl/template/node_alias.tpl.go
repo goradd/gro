@@ -18,7 +18,7 @@ func init() {
 type NodeDocTemplate struct{}
 
 func (n NodeDocTemplate) FileName(dbKey string) string {
-	return filepath.Join("orm", dbKey, "node", "alias_.go")
+	return filepath.Join("node", "alias_.go")
 }
 
 func (n NodeDocTemplate) GenerateDatabase(database *model.Database, _w io.Writer, importPath string) (err error) {

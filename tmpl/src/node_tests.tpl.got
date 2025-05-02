@@ -17,7 +17,7 @@ func init() {
 type NodeTestUtilsTemplate struct {}
 
 func (n NodeTestUtilsTemplate) FileName(dbKey string) string {
-	return filepath.Join("orm", dbKey, "node","utils_test.go")
+	return filepath.Join("node", "utils_test.go")
 }
 
 func (n NodeTestUtilsTemplate) GenerateDatabase(database *model.Database, _w io.Writer, importPath string) (err error) {
@@ -35,7 +35,7 @@ type NodeTestTemplate struct {
 }
 
 func (n *NodeTestTemplate) FileName(table *model.Table) string {
-    return filepath.Join( "orm", table.DbKey, "node",table.FileName()+ "_test.go")
+    return filepath.Join("node",table.FileName()+ "_test.go")
 }
 
 func (n *NodeTestTemplate) GenerateTable(table *model.Table, _w io.Writer, importPath string) (err error) {

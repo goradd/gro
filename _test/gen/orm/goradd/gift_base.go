@@ -554,7 +554,7 @@ func (o *giftBase) update(ctx context.Context) error {
 			}
 		}
 
-		modifiedFields = o.getUpdateFields()
+		modifiedFields = getGiftUpdateFields(o)
 		if len(modifiedFields) != 0 {
 			var err2 error
 
@@ -599,7 +599,7 @@ func (o *giftBase) insert(ctx context.Context) (err error) {
 			}
 		}
 
-		insertFields = o.getInsertFields()
+		insertFields = getGiftInsertFields(o)
 		var newPk int
 
 		_, err = d.Insert(ctx, "gift", "number", insertFields)

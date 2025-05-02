@@ -12,13 +12,23 @@
           "type": "int",
           "size": 32,
           "index_level": "Primary",
-          "key": "49VXLEGkRC"
+          "database_def": {
+            "mysql": {
+              "type": "int(11)"
+            }
+          },
+          "key": "Y8rZHtR5Kh"
         },
         {
           "name": "field_int",
           "type": "int",
           "size": 32,
-          "key": "WgkhbTScVl"
+          "database_def": {
+            "mysql": {
+              "type": "int(11)"
+            }
+          },
+          "key": "qfRHP0gIV3"
         },
         {
           "name": "field_string",
@@ -29,14 +39,20 @@
               "collation": "latin1_swedish_ci"
             }
           },
-          "key": "QanqgzujGP"
+          "key": "D7yQ7JPfXX"
         },
         {
           "name": "field2_int",
           "type": "int",
           "size": 32,
           "is_nullable": true,
-          "key": "6ZugmRZEja"
+          "database_def": {
+            "mysql": {
+              "default": "NULL",
+              "type": "int(11)"
+            }
+          },
+          "key": "dZboE4Rhn0"
         },
         {
           "name": "field2_string",
@@ -45,10 +61,11 @@
           "is_nullable": true,
           "database_def": {
             "mysql": {
-              "collation": "latin1_swedish_ci"
+              "collation": "latin1_swedish_ci",
+              "default": "NULL"
             }
           },
-          "key": "h5W6q3QCPf"
+          "key": "1GrD9njOPj"
         }
       ],
       "multi_column_indexes": [
@@ -67,15 +84,22 @@
           "is_unique": true
         }
       ],
-      "key": "ABUv0t12Uu"
+      "key": "r0oiRjUDEW"
     },
     {
       "name": "multi_parent",
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key",
-          "key": "qjvAfEpeVB"
+          "type": "int",
+          "size": 32,
+          "index_level": "Primary",
+          "database_def": {
+            "mysql": {
+              "type": "int(11)"
+            }
+          },
+          "key": "mThOFl9bRO"
         },
         {
           "name": "name",
@@ -84,10 +108,11 @@
           "is_nullable": true,
           "database_def": {
             "mysql": {
-              "collation": "utf8_bin"
+              "collation": "utf8mb3_bin",
+              "default": "NULL"
             }
           },
-          "key": "KCYz7RNy4M"
+          "key": "cvv8880S0d"
         },
         {
           "name": "parent_1_id",
@@ -97,7 +122,13 @@
           "reference": {
             "table": "multi_parent"
           },
-          "key": "L3UOe2w6M0"
+          "database_def": {
+            "mysql": {
+              "default": "NULL",
+              "type": "int(11)"
+            }
+          },
+          "key": "edyBj14cCh"
         },
         {
           "name": "parent_2_id",
@@ -107,18 +138,31 @@
           "reference": {
             "table": "multi_parent"
           },
-          "key": "KkCNAJJyiu"
+          "database_def": {
+            "mysql": {
+              "default": "NULL",
+              "type": "int(11)"
+            }
+          },
+          "key": "9ouJFhh70j"
         }
       ],
-      "key": "lr1ktuHbv6"
+      "key": "H7SLLbP5l6"
     },
     {
       "name": "root",
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key",
-          "key": "CWlbqm62Tz"
+          "type": "int",
+          "size": 32,
+          "index_level": "Primary",
+          "database_def": {
+            "mysql": {
+              "type": "int(11)"
+            }
+          },
+          "key": "8MUzSYqfO5"
         },
         {
           "name": "name",
@@ -129,18 +173,25 @@
               "collation": "utf8mb4_general_ci"
             }
           },
-          "key": "6sDeOhb8Yt"
+          "key": "e9qv2XMaag"
         }
       ],
-      "key": "wn9nHhwBut"
+      "key": "XaBxuunfe5"
     },
     {
       "name": "root_l",
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key",
-          "key": "G78ZU6eREa"
+          "type": "int",
+          "size": 32,
+          "index_level": "Primary",
+          "database_def": {
+            "mysql": {
+              "type": "int(11)"
+            }
+          },
+          "key": "4545Q7v94M"
         },
         {
           "name": "name",
@@ -151,25 +202,37 @@
               "collation": "utf8mb4_general_ci"
             }
           },
-          "key": "j8vySbtony"
+          "key": "RmUBMmEJuE"
         },
         {
           "name": "gro_lock",
           "type": "int",
           "sub_type": "gro_lock",
           "size": 64,
-          "key": "2hXfbJosaW"
+          "database_def": {
+            "mysql": {
+              "type": "bigint(20)"
+            }
+          },
+          "key": "6DyendDVRT"
         }
       ],
-      "key": "T2BWWr313s"
+      "key": "EK6myZbRRo"
     },
     {
       "name": "root_n",
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key",
-          "key": "dOhxmDpPIq"
+          "type": "int",
+          "size": 32,
+          "index_level": "Primary",
+          "database_def": {
+            "mysql": {
+              "type": "int(11)"
+            }
+          },
+          "key": "CI14VGLfZ1"
         },
         {
           "name": "name",
@@ -180,10 +243,10 @@
               "collation": "utf8mb4_general_ci"
             }
           },
-          "key": "4RGsRIPF17"
+          "key": "pNEx4ZJGss"
         }
       ],
-      "key": "GA4iK6CmPG"
+      "key": "AlvSCzr8WX"
     },
     {
       "name": "two_key",
@@ -198,7 +261,7 @@
               "collation": "latin1_swedish_ci"
             }
           },
-          "key": "QGVOk9oazD"
+          "key": "FwZjkDwCqI"
         },
         {
           "name": "directory",
@@ -210,7 +273,7 @@
               "collation": "latin1_swedish_ci"
             }
           },
-          "key": "uO8AwJAkqa"
+          "key": "9kxXVywTKO"
         },
         {
           "name": "file_name",
@@ -221,7 +284,7 @@
               "collation": "latin1_swedish_ci"
             }
           },
-          "key": "nY25aGlQvq"
+          "key": "TUFw0XB8Lg"
         }
       ],
       "multi_column_indexes": [
@@ -231,44 +294,79 @@
             "server"
           ],
           "is_unique": true
+        },
+        {
+          "columns": [
+            "directory",
+            "server"
+          ],
+          "is_unique": true
         }
       ],
-      "key": "CeA9HczKzI"
+      "key": "dadKfkfFSZ"
     },
     {
       "name": "type_test",
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key",
-          "key": "2BTGILirAs"
+          "type": "int",
+          "size": 64,
+          "index_level": "Primary",
+          "database_def": {
+            "mysql": {
+              "type": "bigint(20)"
+            }
+          },
+          "key": "BcFr4o1tIU"
         },
         {
           "name": "date",
           "type": "time",
           "sub_type": "date_only",
           "is_nullable": true,
-          "key": "oQtyE09I7B"
+          "database_def": {
+            "mysql": {
+              "default": "NULL"
+            }
+          },
+          "key": "MCWso5U2JN"
         },
         {
           "name": "time",
           "type": "time",
           "sub_type": "time_only",
           "is_nullable": true,
-          "key": "ILNv44cQru"
+          "database_def": {
+            "mysql": {
+              "default": "NULL"
+            }
+          },
+          "key": "YMyMZnLoGt"
         },
         {
           "name": "date_time",
           "type": "time",
+          "default_value": "update",
           "is_nullable": true,
-          "key": "kvD5vfErkp"
+          "database_def": {
+            "mysql": {
+              "default": "NULL"
+            }
+          },
+          "key": "hDkijYj8JV"
         },
         {
           "name": "ts",
           "type": "time",
           "default_value": "now",
           "is_nullable": true,
-          "key": "BDgBKXIPsq"
+          "database_def": {
+            "mysql": {
+              "default": "current_timestamp()"
+            }
+          },
+          "key": "3SraISDA4f"
         },
         {
           "name": "test_int",
@@ -276,20 +374,31 @@
           "size": 32,
           "default_value": 5,
           "is_nullable": true,
-          "key": "9iw7PdztJl"
+          "database_def": {
+            "mysql": {
+              "default": "5",
+              "type": "int(11)"
+            }
+          },
+          "key": "KqDVNqP1iQ"
         },
         {
           "name": "test_float",
           "type": "float",
           "size": 32,
           "is_nullable": true,
-          "key": "pEer17Ejbc"
+          "database_def": {
+            "mysql": {
+              "default": "NULL"
+            }
+          },
+          "key": "ElxZVuYBVT"
         },
         {
           "name": "test_double",
           "type": "float",
           "size": 64,
-          "key": "FXn0Aomh30"
+          "key": "Dpt0BpXOWt"
         },
         {
           "name": "test_text",
@@ -299,16 +408,22 @@
           "database_def": {
             "mysql": {
               "collation": "latin1_swedish_ci",
+              "default": "NULL",
               "type": "text"
             }
           },
-          "key": "mcmJgUqQJp"
+          "key": "yBYFl3oDl1"
         },
         {
           "name": "test_bit",
           "type": "bool",
           "is_nullable": true,
-          "key": "95V8F4fL7l"
+          "database_def": {
+            "mysql": {
+              "default": "NULL"
+            }
+          },
+          "key": "TR7F1L7IRx"
         },
         {
           "name": "test_varchar",
@@ -317,27 +432,34 @@
           "is_nullable": true,
           "database_def": {
             "mysql": {
-              "collation": "latin1_swedish_ci"
+              "collation": "latin1_swedish_ci",
+              "default": "NULL"
             }
           },
-          "key": "OT4IwL3ugE"
+          "key": "em2V6K68h6"
         },
         {
           "name": "test_blob",
           "type": "bytes",
-          "size": 65535,
-          "key": "pXewKUi9zl"
+          "key": "m7fV1Ge1CM"
         }
       ],
-      "key": "6kXjpZpWFT"
+      "key": "9Q75oBbbea"
     },
     {
       "name": "unsupported_type",
       "columns": [
         {
           "name": "type_serial",
-          "type": "auto_primary_key",
-          "key": "shRKo8Fixu"
+          "type": "uint",
+          "size": 64,
+          "index_level": "Primary",
+          "database_def": {
+            "mysql": {
+              "type": "bigint(20) unsigned"
+            }
+          },
+          "key": "LA9StVwNOr"
         },
         {
           "name": "type_set",
@@ -349,7 +471,7 @@
               "type": "set('a','b','c')"
             }
           },
-          "key": "GHAcHUGCCx"
+          "key": "taUPHRelXD"
         },
         {
           "name": "type_enumerated",
@@ -361,7 +483,7 @@
               "type": "enum('a','b','c')"
             }
           },
-          "key": "6SaESc5O62"
+          "key": "lbfLHetYgQ"
         },
         {
           "name": "type_decimal",
@@ -373,13 +495,13 @@
               "type": "decimal(10,4)"
             }
           },
-          "key": "uN2gxlln8U"
+          "key": "UhdmH82cmP"
         },
         {
           "name": "type_double",
           "type": "float",
           "size": 64,
-          "key": "6lxDhYpMKL"
+          "key": "k2vYWy971J"
         },
         {
           "name": "type_geo",
@@ -389,25 +511,25 @@
               "type": "geometry"
             }
           },
-          "key": "xyR18Py8FG"
+          "key": "wqF6Bhoont"
         },
         {
           "name": "type_tiny_blob",
           "type": "bytes",
           "size": 255,
-          "key": "OihjDP3E1c"
+          "key": "q6MWln8rXd"
         },
         {
           "name": "type_medium_blob",
           "type": "bytes",
-          "size": 16777215,
-          "key": "4GOQb3H7T5"
+          "size": 4294967295,
+          "key": "zOBjuGTTL1"
         },
         {
           "name": "type_varbinary",
           "type": "bytes",
           "size": 10,
-          "key": "6G1J2DTEhq"
+          "key": "3SluCeRF0I"
         },
         {
           "name": "type_longtext",
@@ -419,7 +541,7 @@
               "type": "longtext"
             }
           },
-          "key": "PJJOq5hOmq"
+          "key": "7ZsyBIKBvo"
         },
         {
           "name": "type_binary",
@@ -429,25 +551,40 @@
               "type": "binary(10)"
             }
           },
-          "key": "31r7V460YH"
+          "key": "dnKrPi1TXv"
         },
         {
           "name": "type_small",
           "type": "int",
           "size": 16,
-          "key": "KgWfxHGPH1"
+          "database_def": {
+            "mysql": {
+              "type": "smallint(6)"
+            }
+          },
+          "key": "D7PzR3ses6"
         },
         {
           "name": "type_medium",
           "type": "int",
           "size": 24,
-          "key": "rLLWmNHIXB"
+          "database_def": {
+            "mysql": {
+              "type": "mediumint(9)"
+            }
+          },
+          "key": "uV4liqPddQ"
         },
         {
           "name": "type_big",
           "type": "int",
           "size": 64,
-          "key": "8UraBqyKo5"
+          "database_def": {
+            "mysql": {
+              "type": "bigint(20)"
+            }
+          },
+          "key": "smwdjVZ0ei"
         },
         {
           "name": "type_polygon",
@@ -457,13 +594,18 @@
               "type": "polygon"
             }
           },
-          "key": "C3867nNWcY"
+          "key": "2snOs0LI44"
         },
         {
           "name": "type_unsigned",
           "type": "uint",
           "size": 32,
-          "key": "MzCeYK6YXu"
+          "database_def": {
+            "mysql": {
+              "type": "int(10) unsigned"
+            }
+          },
+          "key": "EkFJkKCdTZ"
         },
         {
           "name": "type_multFk1",
@@ -474,7 +616,7 @@
               "collation": "latin1_swedish_ci"
             }
           },
-          "key": "7Bm4aHQtYm"
+          "key": "YUAnTyz9DR"
         },
         {
           "name": "type_multiFk2",
@@ -485,7 +627,7 @@
               "collation": "latin1_swedish_ci"
             }
           },
-          "key": "LPpkbuQWhS"
+          "key": "e3eIZLN8mz"
         }
       ],
       "multi_column_indexes": [
@@ -497,15 +639,22 @@
           "is_unique": false
         }
       ],
-      "key": "NcNmlhEpWs"
+      "key": "ijlUklaCLI"
     },
     {
       "name": "leaf",
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key",
-          "key": "7l4KftRMiO"
+          "type": "int",
+          "size": 32,
+          "index_level": "Primary",
+          "database_def": {
+            "mysql": {
+              "type": "int(11)"
+            }
+          },
+          "key": "xbGsNwUQQw"
         },
         {
           "name": "name",
@@ -516,7 +665,7 @@
               "collation": "utf8mb4_general_ci"
             }
           },
-          "key": "Yek4oSahi0"
+          "key": "u1klI39A4m"
         },
         {
           "name": "root_id",
@@ -525,18 +674,30 @@
           "reference": {
             "table": "root"
           },
-          "key": "CGx6noZv5d"
+          "database_def": {
+            "mysql": {
+              "type": "int(11)"
+            }
+          },
+          "key": "hrTcQhlHwQ"
         }
       ],
-      "key": "BjPXASTx4c"
+      "key": "S9Fc5lWTPs"
     },
     {
       "name": "leaf_l",
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key",
-          "key": "mNiB8iRW9R"
+          "type": "int",
+          "size": 32,
+          "index_level": "Primary",
+          "database_def": {
+            "mysql": {
+              "type": "int(11)"
+            }
+          },
+          "key": "TkG0lIf9VM"
         },
         {
           "name": "name",
@@ -547,14 +708,19 @@
               "collation": "latin1_swedish_ci"
             }
           },
-          "key": "iccvYmf0If"
+          "key": "3pq9L3Q1DU"
         },
         {
           "name": "gro_lock",
           "type": "int",
           "sub_type": "gro_lock",
           "size": 64,
-          "key": "YaMyAYNs1R"
+          "database_def": {
+            "mysql": {
+              "type": "bigint(20)"
+            }
+          },
+          "key": "CabNBYrjZp"
         },
         {
           "name": "root_l_id",
@@ -563,18 +729,30 @@
           "reference": {
             "table": "root_l"
           },
-          "key": "vtppVKV61d"
+          "database_def": {
+            "mysql": {
+              "type": "int(11)"
+            }
+          },
+          "key": "rmIpwD86cy"
         }
       ],
-      "key": "szvrz43h6u"
+      "key": "S0d5LGMcSy"
     },
     {
       "name": "leaf_n",
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key",
-          "key": "5ytFhIisg7"
+          "type": "int",
+          "size": 32,
+          "index_level": "Primary",
+          "database_def": {
+            "mysql": {
+              "type": "int(11)"
+            }
+          },
+          "key": "n1fslJdYZp"
         },
         {
           "name": "name",
@@ -585,7 +763,7 @@
               "collation": "utf8mb4_general_ci"
             }
           },
-          "key": "O94RhLZzOh"
+          "key": "Gbl5994NDa"
         },
         {
           "name": "root_n_id",
@@ -595,10 +773,16 @@
           "reference": {
             "table": "root_n"
           },
-          "key": "GHlsnFt5DV"
+          "database_def": {
+            "mysql": {
+              "default": "NULL",
+              "type": "int(11)"
+            }
+          },
+          "key": "hhzx4zy94A"
         }
       ],
-      "key": "YXO8MB71p7"
+      "key": "wJgZI4tqOF"
     }
   ],
   "enum_tables": null,

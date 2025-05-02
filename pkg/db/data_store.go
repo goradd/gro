@@ -51,6 +51,7 @@ type DatabaseI interface {
 	// pkName is the query name of the primary key field.
 	// fields should include all the required values in the database at a minimum.
 	// The primary key will be returned.
+	// If the primary key is set in fields, it will be used instead of a generated value.
 	Insert(ctx context.Context, table string, pkName string, fields map[string]any) (string, error)
 	// Delete will delete records from the database that match the key value pairs in where.
 	// If where is nil, all the data will be deleted.

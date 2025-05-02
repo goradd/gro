@@ -4,9 +4,8 @@ import (
 	"github.com/goradd/all"
 	"github.com/goradd/maps"
 	strings2 "github.com/goradd/strings"
+	"log/slog"
 	"slices"
-	"strings"
-	"unicode"
 )
 
 const Version = 1
@@ -47,14 +46,16 @@ type Database struct {
 // FillDefaults will fill all the undeclared values in the database structure with default values.
 func (db *Database) FillDefaults() {
 	if db.Package == "" {
-		db.Package = strings.ToLower(db.Key)
-		// remove anything not a letter or number
-		db.Package = strings.Map(func(r rune) rune {
-			if unicode.IsLetter(r) || unicode.IsNumber(r) {
-				return r
-			}
-			return -1
-		}, db.Package)
+		db.Package = db.Key
+	}
+	// remove invalid characters
+	s := SanitizePackageName(db.Package)
+	if s != db.Package {
+		slog.Warn("Package name was modified",
+			slog.String("original name", db.Package),
+			slog.String("new name", s),
+		)
+		db.Package = s
 	}
 
 	if db.ReferenceSuffix == "" {

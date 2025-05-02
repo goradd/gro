@@ -68,10 +68,10 @@ type projectBase struct {
 	objParentProject        *Project
 
 	// Reverse reference objects.
-	revMilestones                   maps.SliceMap[string, *Milestone] // Objects in the order they were queried
-	revMilestonesIsDirty            bool
 	revParentProjectProjects        maps.SliceMap[string, *Project] // Objects in the order they were queried
 	revParentProjectProjectsIsDirty bool
+	revMilestones                   maps.SliceMap[string, *Milestone] // Objects in the order they were queried
+	revMilestonesIsDirty            bool
 
 	// Many-Many reference objects.
 	mmChildren           maps.SliceMap[string, *Project]
@@ -109,8 +109,8 @@ const (
 	Project_Spent                = `Spent`
 	Project_ParentProjectID      = `ParentProjectID`
 	Project_ParentProject        = `ParentProject`
-	ProjectMilestones            = `Milestones`
 	ProjectParentProjectProjects = `ParentProjectProjects`
+	ProjectMilestones            = `Milestones`
 	ProjectChild                 = `Child`
 	ProjectChildren              = `Children`
 	ProjectParent                = `Parent`
@@ -119,10 +119,9 @@ const (
 	ProjectTeamMembers           = `TeamMembers`
 )
 
+const ProjectIDMaxLength = 32 // The number of runes the column can hold
 const ProjectNumMax = 2147483647
 const ProjectNumMin = -2147483648
-const ProjectStatusMax = 2147483647
-const ProjectStatusMin = -2147483648
 const ProjectNameMaxLength = 100          // The number of runes the column can hold
 const ProjectDescriptionMaxLength = 65535 // The number of runes the column can hold
 const ProjectBudgetMaxLength = 14         // The number of runes the column can hold
@@ -185,11 +184,11 @@ func (o *projectBase) Initialize() {
 
 	// Reverse reference objects.
 
-	o.revMilestones.Clear()
-	o.revMilestonesIsDirty = false
-
 	o.revParentProjectProjects.Clear()
 	o.revParentProjectProjectsIsDirty = false
+
+	o.revMilestones.Clear()
+	o.revMilestonesIsDirty = false
 
 	// Many-Many reference objects.
 	o.mmChildren.Clear()
@@ -285,6 +284,9 @@ func (o *projectBase) IDIsLoaded() bool {
 func (o *projectBase) SetID(v string) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+	}
+	if utf8.RuneCountInString(v) > ProjectIDMaxLength {
+		panic("attempted to set Project.ID to a value larger than its maximum length in runes")
 	}
 
 	o.idIsLoaded = true
@@ -1055,77 +1057,6 @@ func (o *projectBase) CountTeamMembers(ctx context.Context) (int, error) {
 
 }
 
-// Milestone returns a single Milestone object by primary key, if one was loaded.
-// Otherwise, it will return nil. It will not return Milestone objects that are not saved.
-func (o *projectBase) Milestone(pk string) *Milestone {
-	v := o.revMilestones.Get(pk)
-	return v
-}
-
-// Milestones returns a slice of Milestone objects if loaded.
-func (o *projectBase) Milestones() []*Milestone {
-	return o.revMilestones.Values()
-}
-
-// LoadMilestones loads a new slice of Milestone objects and returns it.
-func (o *projectBase) LoadMilestones(ctx context.Context, conditions ...interface{}) ([]*Milestone, error) {
-	if o.IsNew() {
-		return nil, nil
-	}
-	for obj := range o.revMilestones.ValuesIter() {
-		if obj.IsDirty() {
-			panic("You cannot load over items that have changed but have not been saved.")
-		}
-	}
-
-	qb := queryMilestones(ctx)
-	cond := op.Equal(node.Milestone().ProjectID(), o.PrimaryKey())
-	if conditions != nil {
-		conditions = append(conditions, cond)
-		cond = op.And(conditions...)
-	}
-
-	objs, err := qb.Where(cond).Load()
-	if err != nil {
-		return nil, err
-	}
-	o.revMilestones.Clear()
-
-	for _, obj := range objs {
-		pk := obj.ID()
-		o.revMilestones.Set(pk, obj)
-	}
-
-	if o.revMilestones.Len() == 0 {
-		return nil, nil
-	}
-	return o.revMilestones.Values(), nil
-}
-
-// CountMilestones does a database query and returns the number of Milestone
-// objects currently in the database connected to this object.
-func (o *projectBase) CountMilestones(ctx context.Context) (int, error) {
-	return CountMilestonesByProjectID(ctx, o.PrimaryKey())
-}
-
-// SetMilestones associates the objects in objs with the Project.
-// WARNING! If it has Milestones already associated with it that will not be associated after a save,
-// Save will panic. Be sure to delete those Milestones or otherwise fix those pointers before calling save.
-func (o *projectBase) SetMilestones(objs ...*Milestone) {
-	for obj := range o.revMilestones.ValuesIter() {
-		if obj.IsDirty() {
-			panic("You cannot overwrite items that have changed but have not been saved.")
-		}
-	}
-
-	o.revMilestones.Clear()
-	for _, obj := range objs {
-		pk := obj.ID()
-		o.revMilestones.Set(pk, obj)
-	}
-	o.revMilestonesIsDirty = true
-}
-
 // ParentProjectProject returns a single Project object by primary key, if one was loaded.
 // Otherwise, it will return nil. It will not return Project objects that are not saved.
 func (o *projectBase) ParentProjectProject(pk string) *Project {
@@ -1198,6 +1129,77 @@ func (o *projectBase) SetParentProjectProjects(objs ...*Project) {
 		o.revParentProjectProjects.Set(pk, obj)
 	}
 	o.revParentProjectProjectsIsDirty = true
+}
+
+// Milestone returns a single Milestone object by primary key, if one was loaded.
+// Otherwise, it will return nil. It will not return Milestone objects that are not saved.
+func (o *projectBase) Milestone(pk string) *Milestone {
+	v := o.revMilestones.Get(pk)
+	return v
+}
+
+// Milestones returns a slice of Milestone objects if loaded.
+func (o *projectBase) Milestones() []*Milestone {
+	return o.revMilestones.Values()
+}
+
+// LoadMilestones loads a new slice of Milestone objects and returns it.
+func (o *projectBase) LoadMilestones(ctx context.Context, conditions ...interface{}) ([]*Milestone, error) {
+	if o.IsNew() {
+		return nil, nil
+	}
+	for obj := range o.revMilestones.ValuesIter() {
+		if obj.IsDirty() {
+			panic("You cannot load over items that have changed but have not been saved.")
+		}
+	}
+
+	qb := queryMilestones(ctx)
+	cond := op.Equal(node.Milestone().ProjectID(), o.PrimaryKey())
+	if conditions != nil {
+		conditions = append(conditions, cond)
+		cond = op.And(conditions...)
+	}
+
+	objs, err := qb.Where(cond).Load()
+	if err != nil {
+		return nil, err
+	}
+	o.revMilestones.Clear()
+
+	for _, obj := range objs {
+		pk := obj.ID()
+		o.revMilestones.Set(pk, obj)
+	}
+
+	if o.revMilestones.Len() == 0 {
+		return nil, nil
+	}
+	return o.revMilestones.Values(), nil
+}
+
+// CountMilestones does a database query and returns the number of Milestone
+// objects currently in the database connected to this object.
+func (o *projectBase) CountMilestones(ctx context.Context) (int, error) {
+	return CountMilestonesByProjectID(ctx, o.PrimaryKey())
+}
+
+// SetMilestones associates the objects in objs with the Project.
+// WARNING! If it has Milestones already associated with it that will not be associated after a save,
+// Save will panic. Be sure to delete those Milestones or otherwise fix those pointers before calling save.
+func (o *projectBase) SetMilestones(objs ...*Milestone) {
+	for obj := range o.revMilestones.ValuesIter() {
+		if obj.IsDirty() {
+			panic("You cannot overwrite items that have changed but have not been saved.")
+		}
+	}
+
+	o.revMilestones.Clear()
+	for _, obj := range objs {
+		pk := obj.ID()
+		o.revMilestones.Set(pk, obj)
+	}
+	o.revMilestonesIsDirty = true
 }
 
 // LoadProject returns a Project from the database.
@@ -1872,24 +1874,6 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 
 	// Reverse references
 
-	if v, ok := m["Milestones"]; ok {
-		switch v2 := v.(type) {
-		case []map[string]any: // array expansion
-			o.revMilestones.Clear()
-			o.revMilestonesIsDirty = false
-			for _, v3 := range v2 {
-				obj := new(Milestone)
-				obj.load(v3, obj)
-				o.revMilestones.Set(obj.PrimaryKey(), obj)
-			}
-		default:
-			panic("Wrong type found for revMilestones object.")
-		}
-	} else {
-		o.revMilestones.Clear()
-		o.revMilestonesIsDirty = false
-	}
-
 	if v, ok := m["ParentProjectProjects"]; ok {
 		switch v2 := v.(type) {
 		case []map[string]any: // array expansion
@@ -1906,6 +1890,24 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 	} else {
 		o.revParentProjectProjects.Clear()
 		o.revParentProjectProjectsIsDirty = false
+	}
+
+	if v, ok := m["Milestones"]; ok {
+		switch v2 := v.(type) {
+		case []map[string]any: // array expansion
+			o.revMilestones.Clear()
+			o.revMilestonesIsDirty = false
+			for _, v3 := range v2 {
+				obj := new(Milestone)
+				obj.load(v3, obj)
+				o.revMilestones.Set(obj.PrimaryKey(), obj)
+			}
+		default:
+			panic("Wrong type found for revMilestones object.")
+		}
+	} else {
+		o.revMilestones.Clear()
+		o.revMilestonesIsDirty = false
 	}
 
 	if v, ok := m["aliases_"]; ok {
@@ -1964,7 +1966,7 @@ func (o *projectBase) update(ctx context.Context) error {
 			}
 		}
 
-		modifiedFields = o.getUpdateFields()
+		modifiedFields = getProjectUpdateFields(o)
 		if len(modifiedFields) != 0 {
 			var err2 error
 
@@ -1974,6 +1976,49 @@ func (o *projectBase) update(ctx context.Context) error {
 			}
 		}
 
+		if o.revParentProjectProjectsIsDirty {
+			// relation connection changed
+
+			if currentObjs, err := QueryProjects(ctx).
+				Where(op.Equal(node.Project().ParentProjectID(), o.PrimaryKey())).
+				Select(node.Project().ParentProjectID()).
+				Load(); err != nil {
+				return err
+			} else {
+				for _, obj := range currentObjs {
+					if !o.revParentProjectProjects.Has(obj.PrimaryKey()) {
+						// The old object is not in the group of new objects
+						obj.SetParentProjectIDToNull()
+						if err = obj.Save(ctx); err != nil {
+							return err
+						}
+					}
+				}
+				keys := o.revParentProjectProjects.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
+				for i, k := range keys {
+					obj := o.revParentProjectProjects.Get(k)
+					obj.SetParentProjectID(o.PrimaryKey())
+					obj.parentProjectIDIsDirty = true // force a change in case data is stale
+					if err = obj.Save(ctx); err != nil {
+						return err
+					}
+					if obj.PrimaryKey() != k {
+						// update slice map key without changing order
+						o.revParentProjectProjects.Delete(k)
+						o.revParentProjectProjects.SetAt(i, obj.PrimaryKey(), obj)
+					}
+				}
+			}
+
+		} else {
+
+			// save related objects
+			for obj := range o.revParentProjectProjects.ValuesIter() {
+				if err := obj.Save(ctx); err != nil {
+					return err
+				}
+			}
+		}
 		if o.revMilestonesIsDirty {
 			// relation connection changed
 
@@ -2016,49 +2061,6 @@ func (o *projectBase) update(ctx context.Context) error {
 
 			// save related objects
 			for obj := range o.revMilestones.ValuesIter() {
-				if err := obj.Save(ctx); err != nil {
-					return err
-				}
-			}
-		}
-		if o.revParentProjectProjectsIsDirty {
-			// relation connection changed
-
-			if currentObjs, err := QueryProjects(ctx).
-				Where(op.Equal(node.Project().ParentProjectID(), o.PrimaryKey())).
-				Select(node.Project().ParentProjectID()).
-				Load(); err != nil {
-				return err
-			} else {
-				for _, obj := range currentObjs {
-					if !o.revParentProjectProjects.Has(obj.PrimaryKey()) {
-						// The old object is not in the group of new objects
-						obj.SetParentProjectIDToNull()
-						if err = obj.Save(ctx); err != nil {
-							return err
-						}
-					}
-				}
-				keys := o.revParentProjectProjects.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
-				for i, k := range keys {
-					obj := o.revParentProjectProjects.Get(k)
-					obj.SetParentProjectID(o.PrimaryKey())
-					obj.parentProjectIDIsDirty = true // force a change in case data is stale
-					if err = obj.Save(ctx); err != nil {
-						return err
-					}
-					if obj.PrimaryKey() != k {
-						// update slice map key without changing order
-						o.revParentProjectProjects.Delete(k)
-						o.revParentProjectProjects.SetAt(i, obj.PrimaryKey(), obj)
-					}
-				}
-			}
-
-		} else {
-
-			// save related objects
-			for obj := range o.revParentProjectProjects.ValuesIter() {
 				if err := obj.Save(ctx); err != nil {
 					return err
 				}
@@ -2233,7 +2235,7 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 			}
 		}
 
-		insertFields = o.getInsertFields()
+		insertFields = getProjectInsertFields(o)
 		var newPk string
 
 		newPk, err = d.Insert(ctx, "project", "id", insertFields)
@@ -2243,21 +2245,6 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 		o.id = newPk
 		o._originalPK = newPk
 		o.idIsLoaded = true
-
-		if o.revMilestones.Len() > 0 {
-			keys := o.revMilestones.Keys()
-			for i, k := range keys {
-				obj := o.revMilestones.Get(k)
-				obj.SetProjectID(newPk)
-				if err = obj.Save(ctx); err != nil {
-					return err
-				}
-				if obj.PrimaryKey() != k {
-					o.revMilestones.Delete(k)
-					o.revMilestones.SetAt(i, obj.PrimaryKey(), obj)
-				}
-			}
-		}
 
 		if o.revParentProjectProjects.Len() > 0 {
 			keys := o.revParentProjectProjects.Keys()
@@ -2270,6 +2257,21 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 				if obj.PrimaryKey() != k {
 					o.revParentProjectProjects.Delete(k)
 					o.revParentProjectProjects.SetAt(i, obj.PrimaryKey(), obj)
+				}
+			}
+		}
+
+		if o.revMilestones.Len() > 0 {
+			keys := o.revMilestones.Keys()
+			for i, k := range keys {
+				obj := o.revMilestones.Get(k)
+				obj.SetProjectID(newPk)
+				if err = obj.Save(ctx); err != nil {
+					return err
+				}
+				if obj.PrimaryKey() != k {
+					o.revMilestones.Delete(k)
+					o.revMilestones.SetAt(i, obj.PrimaryKey(), obj)
 				}
 			}
 		}
@@ -2528,8 +2530,8 @@ func (o *projectBase) getInsertFields() (fields map[string]interface{}) {
 
 // Delete deletes the record from the database.
 //
-// Associated Milestones will also be deleted since their ProjectID fields are not nullable.
 // Associated ParentProjectProjects will have their ParentProjectID field set to NULL.
+// Associated Milestones will also be deleted since their ProjectID fields are not nullable.
 func (o *projectBase) Delete(ctx context.Context) (err error) {
 	if o == nil {
 		return // allow deleting of a nil object to be a noop
@@ -2539,21 +2541,6 @@ func (o *projectBase) Delete(ctx context.Context) (err error) {
 	}
 	d := Database()
 	err = db.ExecuteTransaction(ctx, d, func() error {
-
-		{
-			objs, err := QueryMilestones(ctx).
-				Where(op.Equal(node.Milestone().ProjectID(), o.id)).
-				Load()
-			if err != nil {
-				return err
-			}
-			for _, obj := range objs {
-				if err = obj.Delete(ctx); err != nil {
-					return err
-				}
-			}
-			o.revMilestones.Clear()
-		}
 
 		{
 			objs, err := QueryProjects(ctx).
@@ -2570,6 +2557,21 @@ func (o *projectBase) Delete(ctx context.Context) (err error) {
 				}
 			}
 			o.revParentProjectProjects.Clear()
+		}
+
+		{
+			objs, err := QueryMilestones(ctx).
+				Where(op.Equal(node.Milestone().ProjectID(), o.id)).
+				Load()
+			if err != nil {
+				return err
+			}
+			for _, obj := range objs {
+				if err = obj.Delete(ctx); err != nil {
+					return err
+				}
+			}
+			o.revMilestones.Clear()
 		}
 
 		if err := db.AssociateOnly(ctx,
@@ -2638,8 +2640,8 @@ func (o *projectBase) resetDirtyStatus() {
 	o.budgetIsDirty = false
 	o.spentIsDirty = false
 	o.parentProjectIDIsDirty = false
-	o.revMilestonesIsDirty = false
 	o.revParentProjectProjectsIsDirty = false
+	o.revMilestonesIsDirty = false
 	o.mmChildrenIsDirty = false
 	o.mmChildrenPks = nil
 	o.mmParentsIsDirty = false
@@ -2667,13 +2669,13 @@ func (o *projectBase) IsDirty() (dirty bool) {
 		(o.objParentProject != nil && o.objParentProject.IsDirty())
 
 	dirty = dirty ||
-		o.revMilestonesIsDirty ||
-		o.revParentProjectProjectsIsDirty
+		o.revParentProjectProjectsIsDirty ||
+		o.revMilestonesIsDirty
 
-	for obj := range o.revMilestones.ValuesIter() {
+	for obj := range o.revParentProjectProjects.ValuesIter() {
 		dirty = dirty || obj.IsDirty()
 	}
-	for obj := range o.revParentProjectProjects.ValuesIter() {
+	for obj := range o.revMilestones.ValuesIter() {
 		dirty = dirty || obj.IsDirty()
 	}
 
@@ -2777,10 +2779,10 @@ func (o *projectBase) Get(key string) interface{} {
 	case "ParentProject":
 		return o.ParentProject()
 
-	case "Milestones":
-		return o.revMilestones.Values()
 	case "ParentProjectProjects":
 		return o.revParentProjectProjects.Values()
+	case "Milestones":
+		return o.revMilestones.Values()
 
 	case "Children":
 		return o.mmChildren.Values()
@@ -2965,19 +2967,19 @@ func (o *projectBase) encodeTo(enc db.Encoder) error {
 		}
 	}
 
-	if err := enc.Encode(&o.revMilestones); err != nil {
-		return err
-	}
-
-	if err := enc.Encode(o.revMilestonesIsDirty); err != nil {
-		return err
-	}
-
 	if err := enc.Encode(&o.revParentProjectProjects); err != nil {
 		return err
 	}
 
 	if err := enc.Encode(o.revParentProjectProjectsIsDirty); err != nil {
+		return err
+	}
+
+	if err := enc.Encode(&o.revMilestones); err != nil {
+		return err
+	}
+
+	if err := enc.Encode(o.revMilestonesIsDirty); err != nil {
 		return err
 	}
 
@@ -3206,20 +3208,20 @@ func (o *projectBase) decodeFrom(dec db.Decoder) (err error) {
 			return fmt.Errorf("error decoding Project.objParentProject: %w", err)
 		}
 	}
-	if err = dec.Decode(&o.revMilestones); err != nil {
-		return fmt.Errorf("error decoding Project.revMilestones: %w", err)
-	}
-
-	if err = dec.Decode(&o.revMilestonesIsDirty); err != nil {
-		return fmt.Errorf("error decoding Project.revMilestonesIsDirty: %w", err)
-	}
-
 	if err = dec.Decode(&o.revParentProjectProjects); err != nil {
 		return fmt.Errorf("error decoding Project.revParentProjectProjects: %w", err)
 	}
 
 	if err = dec.Decode(&o.revParentProjectProjectsIsDirty); err != nil {
 		return fmt.Errorf("error decoding Project.revParentProjectProjectsIsDirty: %w", err)
+	}
+
+	if err = dec.Decode(&o.revMilestones); err != nil {
+		return fmt.Errorf("error decoding Project.revMilestones: %w", err)
+	}
+
+	if err = dec.Decode(&o.revMilestonesIsDirty); err != nil {
+		return fmt.Errorf("error decoding Project.revMilestonesIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.mmChildren); err != nil {
@@ -3375,19 +3377,19 @@ func (o *projectBase) MarshalStringMap() map[string]interface{} {
 		}
 	}
 
-	if o.revMilestones.Len() != 0 {
-		var vals []map[string]interface{}
-		for obj := range o.revMilestones.ValuesIter() {
-			vals = append(vals, obj.MarshalStringMap())
-		}
-		v["milestones"] = vals
-	}
 	if o.revParentProjectProjects.Len() != 0 {
 		var vals []map[string]interface{}
 		for obj := range o.revParentProjectProjects.ValuesIter() {
 			vals = append(vals, obj.MarshalStringMap())
 		}
 		v["parentProjectProjects"] = vals
+	}
+	if o.revMilestones.Len() != 0 {
+		var vals []map[string]interface{}
+		for obj := range o.revMilestones.ValuesIter() {
+			vals = append(vals, obj.MarshalStringMap())
+		}
+		v["milestones"] = vals
 	}
 	if o.mmChildren.Len() != 0 {
 		var vals []map[string]interface{}
@@ -3684,26 +3686,6 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 			}
 			o.SetParentProject(v2)
 
-		case "milestones":
-			v2, ok := v.([]any)
-			if !ok {
-				return fmt.Errorf("json field %s must be an array of maps", k)
-			}
-			var s []*Milestone
-			for _, i2 := range v2 {
-				m2, ok := i2.(map[string]any)
-				if !ok {
-					return fmt.Errorf("json field %s must be an array of maps", k)
-				}
-				v3 := NewMilestone()
-				err = v3.UnmarshalStringMap(m2)
-				if err != nil {
-					return
-				}
-				s = append(s, v3)
-			}
-			o.SetMilestones(s...)
-
 		case "parentProjectProjects":
 			v2, ok := v.([]any)
 			if !ok {
@@ -3723,6 +3705,26 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 				s = append(s, v3)
 			}
 			o.SetParentProjectProjects(s...)
+
+		case "milestones":
+			v2, ok := v.([]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be an array of maps", k)
+			}
+			var s []*Milestone
+			for _, i2 := range v2 {
+				m2, ok := i2.(map[string]any)
+				if !ok {
+					return fmt.Errorf("json field %s must be an array of maps", k)
+				}
+				v3 := NewMilestone()
+				err = v3.UnmarshalStringMap(m2)
+				if err != nil {
+					return
+				}
+				s = append(s, v3)
+			}
+			o.SetMilestones(s...)
 
 		case "children":
 			v2, ok := v.([]any)

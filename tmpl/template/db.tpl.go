@@ -7,7 +7,6 @@ package template
 import (
 	"fmt"
 	"io"
-	"path/filepath"
 	"slices"
 
 	"github.com/goradd/maps"
@@ -26,7 +25,7 @@ type DbTemplate struct {
 }
 
 func (tmpl *DbTemplate) FileName(dbKey string) string {
-	return filepath.Join("orm", dbKey, "db.go")
+	return "db.go"
 }
 
 func (tmpl *DbTemplate) GenerateDatabase(database *model.Database, _w io.Writer, importPath string) (err error) {
