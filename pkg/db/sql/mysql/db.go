@@ -56,8 +56,9 @@ import (
 // Be aware that when you view the data in SQL, it will appear in whatever timezone the MYSQL server is set to.
 type DB struct {
 	sql2.DbHelper
-	databaseName string
-	isMariaDB    bool
+	databaseName     string
+	isMariaDB        bool
+	defaultCollation string
 }
 
 // NewDB returns a new DB database object that you can add to the datastore.
@@ -100,6 +101,11 @@ func NewDB(dbKey string, connectionString string, config *mysql.Config) (*DB, er
 	} else if strings.Contains(strings.ToLower(version), "mariadb") {
 		m.isMariaDB = true
 	}
+
+	if err = db3.QueryRow("SELECT DEFAULT_COLLATION_NAME FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = ?", m.databaseName).Scan(&m.defaultCollation); err != nil {
+		return nil, err
+	}
+
 	return m, nil
 }
 

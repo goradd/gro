@@ -12,26 +12,16 @@
           "type": "int",
           "size": 32,
           "index_level": "Primary",
-          "database_def": {
-            "mysql": {
-              "type": "int(11)"
-            }
-          },
-          "key": "TT7pIJHBks"
+          "key": "vySiuHVOxK"
         },
         {
           "name": "name",
           "type": "string",
           "size": 50,
-          "database_def": {
-            "mysql": {
-              "collation": "latin1_swedish_ci"
-            }
-          },
-          "key": "aHqY63yKXB"
+          "key": "fho9HYOZv6"
         }
       ],
-      "key": "Y0k35KVkEZ"
+      "key": "TRnF1nyCm2"
     },
     {
       "name": "person",
@@ -40,73 +30,42 @@
           "name": "id",
           "type": "auto_primary_key",
           "size": 32,
-          "database_def": {
-            "mysql": {
-              "type": "int(11) unsigned"
-            }
-          },
-          "key": "oAVS2CSBVj"
+          "key": "V4CtKH7zLl"
         },
         {
           "name": "first_name",
           "type": "string",
           "size": 50,
-          "database_def": {
-            "mysql": {
-              "collation": "latin1_swedish_ci"
-            }
-          },
-          "key": "F0bt17CMMr"
+          "key": "AsKVAmjon5"
         },
         {
           "name": "last_name",
           "type": "string",
           "size": 50,
           "index_level": "Indexed",
-          "database_def": {
-            "mysql": {
-              "collation": "latin1_swedish_ci"
-            }
-          },
-          "key": "50jXtOGHoQ"
+          "key": "gie3lNDtCN"
         },
         {
           "name": "type_enum",
           "type": "enum_array",
           "is_nullable": true,
-          "database_def": {
-            "mysql": {
-              "collation": "latin1_swedish_ci",
-              "default": "NULL"
-            }
-          },
-          "key": "q9NfMy8JDU"
+          "key": "sRronlgzxv"
         },
         {
           "name": "created",
           "type": "time",
           "default_value": "now",
-          "database_def": {
-            "mysql": {
-              "default": "current_timestamp()"
-            }
-          },
-          "key": "7TVdRo2dWl"
+          "key": "na4LBaCBni"
         },
         {
           "name": "modified",
           "type": "time",
           "default_value": "update",
           "is_nullable": true,
-          "database_def": {
-            "mysql": {
-              "default": "NULL"
-            }
-          },
-          "key": "0PXTbFgA4t"
+          "key": "eB3suX5Rik"
         }
       ],
-      "key": "OsEQLnB78T"
+      "key": "GkqTaGDwrL"
     },
     {
       "name": "person_with_lock",
@@ -115,61 +74,36 @@
           "name": "id",
           "type": "auto_primary_key",
           "size": 32,
-          "database_def": {
-            "mysql": {
-              "type": "int(11) unsigned"
-            }
-          },
-          "key": "VdtmjGZFzg"
+          "key": "yC1V2q6gOb"
         },
         {
           "name": "first_name",
           "type": "string",
           "size": 50,
-          "database_def": {
-            "mysql": {
-              "collation": "latin1_swedish_ci"
-            }
-          },
-          "key": "F7KsDTjKDS"
+          "key": "QCy3yb7Zd3"
         },
         {
           "name": "last_name",
           "type": "string",
           "size": 50,
-          "database_def": {
-            "mysql": {
-              "collation": "latin1_swedish_ci"
-            }
-          },
-          "key": "wEKpmirsWT"
+          "key": "h4TsVBeRvM"
         },
         {
           "name": "gro_lock",
           "type": "int",
           "sub_type": "gro_lock",
           "size": 64,
-          "database_def": {
-            "mysql": {
-              "type": "bigint(20)"
-            }
-          },
-          "key": "3Wt0eCQBqb"
+          "key": "wxOsCVdPY3"
         },
         {
           "name": "gro_timestamp",
           "type": "int",
           "sub_type": "gro_timestamp",
           "size": 64,
-          "database_def": {
-            "mysql": {
-              "type": "bigint(20)"
-            }
-          },
-          "key": "jdJ1xfIdQm"
+          "key": "8sss0Wmgzk"
         }
       ],
-      "key": "VpJ0CGPIng"
+      "key": "vejmMGqtLI"
     },
     {
       "name": "project",
@@ -178,24 +112,14 @@
           "name": "id",
           "type": "auto_primary_key",
           "size": 32,
-          "database_def": {
-            "mysql": {
-              "type": "int(11) unsigned"
-            }
-          },
-          "key": "PwGjm0PCdI"
+          "key": "6jKbieNPNL"
         },
         {
           "name": "num",
           "type": "int",
           "size": 32,
           "index_level": "Unique",
-          "database_def": {
-            "mysql": {
-              "type": "int(11)"
-            }
-          },
-          "key": "4A8KHFkNy6"
+          "key": "ItGs08PAvO"
         },
         {
           "name": "status_enum",
@@ -204,12 +128,7 @@
           "reference": {
             "table": "project_status_enum"
           },
-          "database_def": {
-            "mysql": {
-              "type": "int(11) unsigned"
-            }
-          },
-          "key": "bDbwV9xsRM"
+          "key": "3CE3R66r24"
         },
         {
           "name": "manager_id",
@@ -219,24 +138,13 @@
           "reference": {
             "table": "person"
           },
-          "database_def": {
-            "mysql": {
-              "default": "NULL",
-              "type": "int(11) unsigned"
-            }
-          },
-          "key": "leavyJIHoz"
+          "key": "VGlUsoQ1zD"
         },
         {
           "name": "name",
           "type": "string",
           "size": 100,
-          "database_def": {
-            "mysql": {
-              "collation": "latin1_swedish_ci"
-            }
-          },
-          "key": "ygJw4rrCHn"
+          "key": "UnmnBof7uq"
         },
         {
           "name": "description",
@@ -245,36 +153,24 @@
           "is_nullable": true,
           "database_def": {
             "mysql": {
-              "collation": "latin1_swedish_ci",
-              "default": "NULL",
               "type": "text"
             }
           },
-          "key": "IB5TMYAMW3"
+          "key": "36OvuY8ImP"
         },
         {
           "name": "start_date",
           "type": "time",
           "sub_type": "date_only",
           "is_nullable": true,
-          "database_def": {
-            "mysql": {
-              "default": "NULL"
-            }
-          },
-          "key": "p02S5SIoyt"
+          "key": "sCExmcW3EE"
         },
         {
           "name": "end_date",
           "type": "time",
           "sub_type": "date_only",
           "is_nullable": true,
-          "database_def": {
-            "mysql": {
-              "default": "NULL"
-            }
-          },
-          "key": "h8Oa0lVrXc"
+          "key": "dCJyVpDx11"
         },
         {
           "name": "budget",
@@ -284,11 +180,10 @@
           "is_nullable": true,
           "database_def": {
             "mysql": {
-              "default": "NULL",
               "type": "decimal(12,2)"
             }
           },
-          "key": "px5PEIVfJW"
+          "key": "ImXVhFaVfQ"
         },
         {
           "name": "spent",
@@ -298,11 +193,10 @@
           "is_nullable": true,
           "database_def": {
             "mysql": {
-              "default": "NULL",
               "type": "decimal(12,2)"
             }
           },
-          "key": "f0uZEDrwuq"
+          "key": "z3WNOyMUTr"
         },
         {
           "name": "parent_project_id",
@@ -312,16 +206,10 @@
           "reference": {
             "table": "project"
           },
-          "database_def": {
-            "mysql": {
-              "default": "NULL",
-              "type": "int(10) unsigned"
-            }
-          },
-          "key": "fKPHrCCjl0"
+          "key": "xmxo3LWUH8"
         }
       ],
-      "key": "pSdaHTfFEF"
+      "key": "c2EUYLXer8"
     },
     {
       "name": "address",
@@ -330,12 +218,7 @@
           "name": "id",
           "type": "auto_primary_key",
           "size": 32,
-          "database_def": {
-            "mysql": {
-              "type": "int(11) unsigned"
-            }
-          },
-          "key": "89UKH7hVEe"
+          "key": "jwW1d9Zzln"
         },
         {
           "name": "person_id",
@@ -344,23 +227,13 @@
           "reference": {
             "table": "person"
           },
-          "database_def": {
-            "mysql": {
-              "type": "int(11) unsigned"
-            }
-          },
-          "key": "HSxNcAJtjF"
+          "key": "w0wC8nYZwA"
         },
         {
           "name": "street",
           "type": "string",
           "size": 100,
-          "database_def": {
-            "mysql": {
-              "collation": "latin1_swedish_ci"
-            }
-          },
-          "key": "5soXn5dwIF"
+          "key": "KWPv9aSoey"
         },
         {
           "name": "city",
@@ -370,14 +243,13 @@
           "is_nullable": true,
           "database_def": {
             "mysql": {
-              "collation": "latin1_swedish_ci",
               "default": "'BOB'"
             }
           },
-          "key": "XL9VnzI72T"
+          "key": "vMFKBRFXgm"
         }
       ],
-      "key": "3MPj7c6kzb"
+      "key": "3xNaey67MP"
     },
     {
       "name": "employee_info",
@@ -386,12 +258,7 @@
           "name": "id",
           "type": "auto_primary_key",
           "size": 32,
-          "database_def": {
-            "mysql": {
-              "type": "int(11)"
-            }
-          },
-          "key": "mCY9HfeuoN"
+          "key": "vosxwQrD6V"
         },
         {
           "name": "person_id",
@@ -400,26 +267,16 @@
           "reference": {
             "table": "person"
           },
-          "database_def": {
-            "mysql": {
-              "type": "int(11) unsigned"
-            }
-          },
-          "key": "0xiMjAY2rL"
+          "key": "OHfYO9vBcc"
         },
         {
           "name": "employee_number",
           "type": "int",
           "size": 32,
-          "database_def": {
-            "mysql": {
-              "type": "int(11)"
-            }
-          },
-          "key": "03ZH7B23xC"
+          "key": "P4Y2aLKM5A"
         }
       ],
-      "key": "fe8MK41sFQ"
+      "key": "9lB2xYneaJ"
     },
     {
       "name": "login",
@@ -428,12 +285,7 @@
           "name": "id",
           "type": "auto_primary_key",
           "size": 32,
-          "database_def": {
-            "mysql": {
-              "type": "int(11) unsigned"
-            }
-          },
-          "key": "SvWop2sHFc"
+          "key": "VGyZLXryjg"
         },
         {
           "name": "person_id",
@@ -443,38 +295,21 @@
           "reference": {
             "table": "person"
           },
-          "database_def": {
-            "mysql": {
-              "default": "NULL",
-              "type": "int(11) unsigned"
-            }
-          },
-          "key": "jQb2E0ZNAk"
+          "key": "EZwO7ciJw2"
         },
         {
           "name": "username",
           "type": "string",
           "size": 20,
           "index_level": "Unique",
-          "database_def": {
-            "mysql": {
-              "collation": "latin1_swedish_ci"
-            }
-          },
-          "key": "ZS2a21V4kV"
+          "key": "ZYTvEZxwXg"
         },
         {
           "name": "password",
           "type": "string",
           "size": 20,
           "is_nullable": true,
-          "database_def": {
-            "mysql": {
-              "collation": "latin1_swedish_ci",
-              "default": "NULL"
-            }
-          },
-          "key": "xGf6ECNbO0"
+          "key": "WB00KfiS0F"
         },
         {
           "name": "is_enabled",
@@ -485,10 +320,10 @@
               "default": "1"
             }
           },
-          "key": "LZs9lp2N43"
+          "key": "SGra1y2ect"
         }
       ],
-      "key": "ZvfEHXX26U"
+      "key": "aGwwzfRYnO"
     },
     {
       "name": "milestone",
@@ -497,12 +332,7 @@
           "name": "id",
           "type": "auto_primary_key",
           "size": 32,
-          "database_def": {
-            "mysql": {
-              "type": "int(10) unsigned"
-            }
-          },
-          "key": "IeTcWNceCk"
+          "key": "pq0ViZnc91"
         },
         {
           "name": "project_id",
@@ -511,26 +341,16 @@
           "reference": {
             "table": "project"
           },
-          "database_def": {
-            "mysql": {
-              "type": "int(10) unsigned"
-            }
-          },
-          "key": "mW9hKsGCgf"
+          "key": "q4J9l45X5I"
         },
         {
           "name": "name",
           "type": "string",
           "size": 50,
-          "database_def": {
-            "mysql": {
-              "collation": "latin1_swedish_ci"
-            }
-          },
-          "key": "we5jNZKolK"
+          "key": "QPRyBwBR3z"
         }
       ],
-      "key": "ZVa42X6MiY"
+      "key": "xx6dOcjKaT"
     }
   ],
   "enum_tables": [
@@ -566,7 +386,7 @@
           "type": "string"
         }
       },
-      "key": "YGLasunaJX"
+      "key": "Fsajn7gZJa"
     },
     {
       "name": "project_status_enum",
@@ -617,7 +437,7 @@
           "type": "string"
         }
       },
-      "key": "PXbdnmBqkP"
+      "key": "yiwoBmx29q"
     }
   ],
   "association_tables": [
@@ -627,7 +447,7 @@
       "column1": "parent_id",
       "table2": "project",
       "column2": "child_id",
-      "key": "1Ipoa2r7le"
+      "key": "afkxZnCeCA"
     },
     {
       "name": "team_member_project_assn",
@@ -635,7 +455,7 @@
       "column1": "team_member_id",
       "table2": "project",
       "column2": "project_id",
-      "key": "sS84IyWlwr"
+      "key": "0AUo0oHrUn"
     }
   ]
 }

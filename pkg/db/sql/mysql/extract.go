@@ -348,7 +348,7 @@ ORDER BY
 }
 
 // Convert the database native type to a more generic sql type, and a go table type.
-func processTypeInfo(column mysqlColumn) (
+func (m *DB) processTypeInfo(column mysqlColumn) (
 	typ schema.ColumnType,
 	subType schema.ColumnSubType,
 	maxLength uint64,
@@ -388,7 +388,6 @@ func processTypeInfo(column mysqlColumn) (
 		} else {
 			typ = schema.ColTypeInt
 		}
-		extra = map[string]interface{}{"type": column.columnType}
 
 	case "smallint":
 		maxLength = 16
@@ -420,7 +419,6 @@ func processTypeInfo(column mysqlColumn) (
 				subType = schema.ColSubTypeLock
 			}
 		}
-		extra = map[string]interface{}{"type": column.columnType}
 
 	case "float":
 		typ = schema.ColTypeFloat
@@ -432,12 +430,18 @@ func processTypeInfo(column mysqlColumn) (
 	case "varchar":
 		typ = schema.ColTypeString
 		maxLength = uint64(dataLen)
-		extra = map[string]interface{}{"collation": column.collation.String} // this is the default string type
+		if column.collation.String != m.defaultCollation {
+			extra = map[string]interface{}{"collation": column.collation.String}
+		}
 
 	case "char":
 		typ = schema.ColTypeString
 		maxLength = uint64(dataLen)
-		extra = map[string]interface{}{"type": column.columnType, "collation": column.collation.String}
+		// default is a varchar, so capture the type to preserve the mysql type
+		extra = map[string]interface{}{"type": column.columnType}
+		if column.collation.String != m.defaultCollation {
+			extra["collation"] = column.collation.String
+		}
 
 	case "varbinary":
 		typ = schema.ColTypeBytes
@@ -458,27 +462,41 @@ func processTypeInfo(column mysqlColumn) (
 	case "text":
 		typ = schema.ColTypeString
 		maxLength = 65535
-		extra = map[string]interface{}{"type": column.columnType, "collation": column.collation.String}
+		// default is varchar, so capture the type for reproduction in mysql
+		extra = map[string]interface{}{"type": column.columnType}
+		if column.collation.String != m.defaultCollation {
+			extra = map[string]interface{}{"collation": column.collation.String}
+		}
 
 	case "tinytext":
 		typ = schema.ColTypeString
 		maxLength = 255
-		extra = map[string]interface{}{"type": column.columnType, "collation": column.collation.String}
+		extra = map[string]interface{}{"type": column.columnType}
+		if column.collation.String != m.defaultCollation {
+			extra = map[string]interface{}{"collation": column.collation.String}
+		}
 
 	case "mediumtext":
 		typ = schema.ColTypeString
 		maxLength = 16777215
-		extra = map[string]interface{}{"type": column.columnType, "collation": column.collation.String}
+		extra = map[string]interface{}{"type": column.columnType}
+		if column.collation.String != m.defaultCollation {
+			extra = map[string]interface{}{"collation": column.collation.String}
+		}
 
 	case "longtext":
 		typ = schema.ColTypeString
 		maxLength = math.MaxUint32
-		extra = map[string]interface{}{"type": column.columnType, "collation": column.collation.String}
+		extra = map[string]interface{}{"type": column.columnType}
+		if column.collation.String != m.defaultCollation {
+			extra = map[string]interface{}{"collation": column.collation.String}
+		}
 
 	case "decimal":
 		// No native equivalent in Go.
 		// See the shopspring/decimal or math/big packages for possible support.
 		typ = schema.ColTypeString
+		// pack the two length values to be unpacked in Go
 		maxLength = uint64(dataLen) + uint64(dataSubLen<<16)
 		extra = map[string]interface{}{"type": column.columnType}
 		subType = schema.ColSubTypeNumeric
@@ -490,34 +508,39 @@ func processTypeInfo(column mysqlColumn) (
 	case "set":
 		typ = schema.ColTypeUnknown
 		maxLength = uint64(column.characterMaxLen.Int64)
-		extra = map[string]interface{}{"type": column.columnType, "collation": column.collation.String}
+		extra = map[string]interface{}{"type": column.columnType}
+		if column.collation.String != m.defaultCollation {
+			extra = map[string]interface{}{"collation": column.collation.String}
+		}
 
 	case "enum":
 		typ = schema.ColTypeUnknown
 		maxLength = uint64(column.characterMaxLen.Int64)
-		extra = map[string]interface{}{"type": column.columnType, "collation": column.collation.String}
+		extra = map[string]interface{}{"type": column.columnType}
+		if column.collation.String != m.defaultCollation {
+			extra = map[string]interface{}{"collation": column.collation.String}
+		}
 
 	default:
 		typ = schema.ColTypeUnknown
 		extra = map[string]interface{}{"type": column.columnType}
 	}
 
-	var def string
 	si := column.defaultValue.StringI()
-	if si != nil && si.(string) != "" {
-		def = si.(string)
-		if extra == nil {
-			extra = make(map[string]interface{})
-		}
-		extra["default"] = def
-	}
 
 	if typ == schema.ColTypeTime {
 		if strings.Contains(strings.ToUpper(column.extra), "ON UPDATE") {
 			defaultValue = "update"
-		} else if strings.Contains(strings.ToUpper(def), "CURRENT_TIMESTAMP") {
+		} else if strings.Contains(strings.ToUpper(si.(string)), "CURRENT_TIMESTAMP") {
 			defaultValue = "now"
 		}
+	} else if si != nil &&
+		si.(string) != "" &&
+		si.(string) != "NULL" { // null is automatically assigned as a default for null columns, and cannot be assigned as a default for non-null columns
+		if extra == nil {
+			extra = make(map[string]interface{})
+		}
+		extra["default"] = si.(string)
 	}
 
 	if strings.Contains(strings.ToUpper(column.extra), "DEFAULT_GENERATED") {
@@ -762,7 +785,7 @@ func (m *DB) getColumnSchema(table mysqlTable,
 	}
 	var err error
 	var extra map[string]any
-	cd.Type, cd.SubType, cd.Size, cd.DefaultValue, extra, err = processTypeInfo(column)
+	cd.Type, cd.SubType, cd.Size, cd.DefaultValue, extra, err = m.processTypeInfo(column)
 	if err != nil {
 		slog.Warn(err.Error(),
 			slog.String(db.LogComponent, "extract"),
