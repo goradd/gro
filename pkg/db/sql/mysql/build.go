@@ -3,6 +3,7 @@ package mysql
 import (
 	"context"
 	"fmt"
+	"github.com/goradd/all"
 	"github.com/goradd/orm/pkg/db"
 	sql2 "github.com/goradd/orm/pkg/db/sql"
 	"github.com/goradd/orm/pkg/schema"
@@ -110,7 +111,8 @@ func tableSql(s *schema.Database, table *schema.Table) string {
 			col.Type == schema.ColTypeEnumArray) &&
 			(col.Reference == nil || col.Reference.Table == "") {
 			slog.Error("Column skipped, Reference with a Table value is required",
-				slog.String("column", col.Name))
+				slog.String(db.LogTable, tableName),
+				slog.String(db.LogColumn, col.Name))
 			continue
 		}
 		colDef := buildColumnDef(col)
@@ -146,7 +148,9 @@ func tableSql(s *schema.Database, table *schema.Table) string {
 			foreignKeys = append(foreignKeys,
 				fmt.Sprintf("  FOREIGN KEY (`%s`) REFERENCES %s(`%s`)", col.Name, refTable, pk.Name),
 			)
-		} else if col.Type == schema.ColTypeEnum {
+		} else if col.Type == schema.ColTypeEnum ||
+			col.Type == schema.ColTypeEnumArray {
+
 			refParts := strings.Split(col.Reference.Table, ".")
 			refTable := col.Reference.Table
 			if len(refParts) == 2 {
@@ -156,14 +160,18 @@ func tableSql(s *schema.Database, table *schema.Table) string {
 			}
 			t := s.FindEnumTable(col.Reference.Table)
 			if t == nil {
-				slog.Error("Column skipped, reference table not found",
-					slog.String("table", refTable))
+				slog.Error("Column skipped, reference to enum table not found",
+					slog.String(db.LogTable, tableName),
+					slog.String(db.LogColumn, col.Name),
+					slog.String("reference", col.Reference.Table))
 				continue
 			}
-			pk := t.FieldKeys()[0]
-			foreignKeys = append(foreignKeys,
-				fmt.Sprintf("  FOREIGN KEY (`%s`) REFERENCES %s(`%s`)", col.Name, refTable, pk),
-			)
+			if col.Type == schema.ColTypeEnum {
+				pk := t.FieldKeys()[0]
+				foreignKeys = append(foreignKeys,
+					fmt.Sprintf("  FOREIGN KEY (`%s`) REFERENCES %s(`%s`)", col.Name, refTable, pk),
+				)
+			}
 		}
 
 		// Indexes
@@ -266,11 +274,35 @@ func enumValueSql(tableName string, fieldKeys []string, fields map[string]schema
 
 		switch fieldType {
 		case schema.ColTypeString:
-			args = append(args, value.(string))
+			if s, ok := value.(string); ok {
+				args = append(args, s)
+			} else {
+				slog.Error("wrong type for enum value",
+					slog.String(db.LogTable, tableName),
+					slog.String(db.LogColumn, k))
+				args = append(args, "")
+			}
+
 		case schema.ColTypeInt:
-			args = append(args, value)
+			if all.IsInteger(value) {
+				args = append(args, value)
+			} else {
+				slog.Error("wrong type for enum value",
+					slog.String(db.LogTable, tableName),
+					slog.String(db.LogColumn, k))
+				args = append(args, 0)
+			}
+
 		case schema.ColTypeFloat:
-			args = append(args, value)
+			if all.IsFloat(value) {
+				args = append(args, value)
+			} else {
+				slog.Error("wrong type for enum value",
+					slog.String(db.LogTable, tableName),
+					slog.String(db.LogColumn, k))
+				args = append(args, 0.0)
+			}
+
 		default:
 			args = append(args, value)
 		}
@@ -409,7 +441,15 @@ func sqlType(colType schema.ColumnType, size uint64, subType schema.ColumnSubTyp
 	case schema.ColTypeAutoPrimaryKey:
 		return intType(size, false) + " AUTO_INCREMENT"
 	case schema.ColTypeString:
-		if size == 0 {
+		if subType == schema.ColSubTypeNumeric {
+			precision := size & 0x0000FFFF
+			scale := size >> 16
+			if precision != 0 && scale != 0 {
+				return fmt.Sprintf("DECIMAL(%d, %d)", precision, scale)
+			} else {
+				return "DECIMAL(65, 30)" // max precision available in mysql
+			}
+		} else if size == 0 {
 			return "TEXT"
 		} else if size < 16383 {
 			return fmt.Sprintf("VARCHAR(%d)", size)

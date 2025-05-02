@@ -150,24 +150,14 @@
           "type": "string",
           "sub_type": "numeric",
           "size": 131084,
-          "is_nullable": true,
-          "database_def": {
-            "mysql": {
-              "type": "decimal(12,2)"
-            }
-          }
+          "is_nullable": true
         },
         {
           "name": "spent",
           "type": "string",
           "sub_type": "numeric",
           "size": 131084,
-          "is_nullable": true,
-          "database_def": {
-            "mysql": {
-              "type": "decimal(12,2)"
-            }
-          }
+          "is_nullable": true
         },
         {
           "name": "parent_project_id",
@@ -206,7 +196,12 @@
           "type": "string",
           "size": 100,
           "default_value": "BOB",
-          "is_nullable": true
+          "is_nullable": true,
+          "database_def": {
+            "mysql": {
+              "default": "'BOB'"
+            }
+          }
         }
       ]
     },
@@ -265,7 +260,12 @@
         {
           "name": "is_enabled",
           "type": "bool",
-          "default_value": true
+          "default_value": true,
+          "database_def": {
+            "mysql": {
+              "default": "1"
+            }
+          }
         }
       ]
     },
@@ -299,36 +299,28 @@
       "values": [
         {
           "const": 1,
-          "identifier": "contractor",
-          "label": "Contractor"
+          "identifier": "contractor"
         },
         {
           "const": 2,
-          "identifier": "manager",
-          "label": "Manager"
+          "identifier": "manager"
         },
         {
           "const": 3,
-          "identifier": "inactive",
-          "label": "Inactive"
+          "identifier": "inactive"
         },
         {
           "const": 4,
-          "identifier": "company_car",
-          "label": "Company Car"
+          "identifier": "company_car"
         },
         {
           "const": 5,
-          "identifier": "works_from_home",
-          "label": "Works From Home"
+          "identifier": "works_from_home"
         }
       ],
       "fields": {
         "const": {
           "type": "int"
-        },
-        "label": {
-          "type": "string"
         },
         "identifier": {
           "type": "string"
@@ -343,32 +335,28 @@
           "description": "The project is currently active",
           "guidelines": "All projects that we are working on should be in this state",
           "is_active": true,
-          "label": "Open",
-          "identifier": "open"
+          "label": "open"
         },
         {
           "const": 2,
           "description": "The project has been canned",
-          "guidelines": "",
+          "guidelines": null,
           "is_active": true,
-          "label": "Cancelled",
-          "identifier": "cancelled"
+          "label": "cancelled"
         },
         {
           "const": 3,
           "description": "The project has been completed successfully",
           "guidelines": "Celebrate successes!",
           "is_active": true,
-          "label": "Completed",
-          "identifier": "completed"
+          "label": "completed"
         },
         {
           "const": 4,
           "description": "Project is in the planning stages and has not been assigned a manager",
           "guidelines": "Get ready",
           "is_active": false,
-          "label": "Planned",
-          "identifier": "planned"
+          "label": "planned"
         }
       ],
       "fields": {
@@ -385,9 +373,6 @@
           "type": "bool"
         },
         "label": {
-          "type": "string"
-        },
-        "identifier": {
           "type": "string"
         }
       }

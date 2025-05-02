@@ -461,9 +461,7 @@ func (m *DB) processTypeInfo(column mysqlColumn) (
 
 	case "text":
 		typ = schema.ColTypeString
-		maxLength = 65535
-		// default is varchar, so capture the type for reproduction in mysql
-		extra = map[string]interface{}{"type": column.columnType}
+		maxLength = 0 // text type is unsized. The limit is 65535 bytes (not characters) and so the limit on chars depends on the charset and what is actually being stored.
 		if column.collation.String != m.defaultCollation {
 			extra = map[string]interface{}{"collation": column.collation.String}
 		}
@@ -498,7 +496,6 @@ func (m *DB) processTypeInfo(column mysqlColumn) (
 		typ = schema.ColTypeString
 		// pack the two length values to be unpacked in Go
 		maxLength = uint64(dataLen) + uint64(dataSubLen<<16)
-		extra = map[string]interface{}{"type": column.columnType}
 		subType = schema.ColSubTypeNumeric
 
 	case "year":

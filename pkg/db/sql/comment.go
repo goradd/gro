@@ -64,7 +64,7 @@ func FillTableCommentFields(t *schema.Table, comment string) {
 type columnCommentItems struct {
 	Label                   string `json:"label,omitempty"`
 	Identifier              string `json:"id,omitempty"`
-	Key                     string `json:"key"`
+	Key                     string `json:"key,omitempty"`
 	ReferenceIdentifier     string `json:"ref_id,omitempty"`
 	ReferenceLabel          string `json:"ref_label,omitempty"`
 	ReverseLabel            string `json:"rev_label,omitempty"`
@@ -99,7 +99,11 @@ func ColumnComment(c *schema.Column) string {
 	}
 
 	data, _ := json.Marshal(ti)
-	return string(data)
+	s := string(data)
+	if s == "{}" {
+		s = ""
+	}
+	return s
 }
 
 // FillColumnCommentFields extracts and decodes the JSON metadata in a column comment.

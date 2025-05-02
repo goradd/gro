@@ -108,9 +108,9 @@ func (db *Database) FindEnumTable(name string) *EnumTable {
 // A cleaned structure should be saved so that it can be synchronized with the database as it changes.
 func (db *Database) Clean() {
 	db.sort()
-	db.FillKeys()
 }
 
+// FillKeys assigns keys to all parts of the schema as an aid in synchronization when the schema changes.
 func (db *Database) FillKeys() {
 	for _, t := range db.Tables {
 		if t.Key == "" {
