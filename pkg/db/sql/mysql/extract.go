@@ -518,6 +518,14 @@ func (m *DB) processTypeInfo(column mysqlColumn) (
 			extra = map[string]interface{}{"collation": column.collation.String}
 		}
 
+	case "json":
+		// this might be an enum array field
+		if strings.Contains(column.comment, `"enum_table"`) {
+			typ = schema.ColTypeEnumArray
+		} else {
+			typ = schema.ColTypeJSON
+		}
+
 	default:
 		typ = schema.ColTypeUnknown
 		extra = map[string]interface{}{"type": column.columnType}
@@ -528,16 +536,17 @@ func (m *DB) processTypeInfo(column mysqlColumn) (
 	if typ == schema.ColTypeTime {
 		if strings.Contains(strings.ToUpper(column.extra), "ON UPDATE") {
 			defaultValue = "update"
-		} else if strings.Contains(strings.ToUpper(si.(string)), "CURRENT_TIMESTAMP") {
+		} else if si != nil && strings.Contains(strings.ToUpper(si.(string)), "CURRENT_TIMESTAMP") {
 			defaultValue = "now"
 		}
 	} else if si != nil &&
 		si.(string) != "" &&
-		si.(string) != "NULL" { // null is automatically assigned as a default for null columns, and cannot be assigned as a default for non-null columns
+		si.(string) != "NULL" && // null is automatically assigned as a default for null columns, and cannot be assigned as a default for non-null columns
+		strings.Contains(strings.ToUpper(column.extra), "DEFAULT_GENERATED") {
 		if extra == nil {
 			extra = make(map[string]interface{})
 		}
-		extra["default"] = si.(string)
+		extra["default"] = si.(string) // some kind of generated value that we should remember for recreating the column
 	}
 
 	if strings.Contains(strings.ToUpper(column.extra), "DEFAULT_GENERATED") {
