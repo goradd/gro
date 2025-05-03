@@ -1,4 +1,5 @@
 {
+  "key": "goradd_unit",
   "reference_suffix": "_id",
   "enum_table_suffix": "_enum",
   "assn_table_suffix": "_assn",
@@ -255,22 +256,6 @@
           "type": "string",
           "size": 50
         }
-      ],
-      "multi_column_indexes": [
-        {
-          "columns": [
-            "directory",
-            "server"
-          ],
-          "is_unique": true
-        },
-        {
-          "columns": [
-            "directory",
-            "server"
-          ],
-          "is_unique": true
-        }
       ]
     },
     {
@@ -350,7 +335,7 @@
         {
           "name": "test_bool",
           "type": "bool",
-          "default": true
+          "default_value": true
         },
         {
           "name": "test_unlimited_string",
@@ -362,9 +347,9 @@
           "size": 10
         },
         {
-          "name": "type_longstring",
+          "name": "test_longstring",
           "type": "string",
-          "size": 4294967295
+          "size": 1000000000
         },
         {
           "name": "test_unlimited_bytes",
@@ -440,7 +425,7 @@
           "size": 16,
           "database_def": {
             "mysql": {
-              "type": "smallint(6)"
+              "type": "smallint"
             }
           }
         },
@@ -450,7 +435,7 @@
           "size": 24,
           "database_def": {
             "mysql": {
-              "type": "mediumint(9)"
+              "type": "mediumint"
             }
           }
         },

@@ -463,7 +463,7 @@ func (m *DB) processTypeInfo(column mysqlColumn) (
 		typ = schema.ColTypeString
 		maxLength = 0 // text type is unsized. The limit is 65535 bytes (not characters) and so the limit on chars depends on the charset and what is actually being stored.
 		if column.collation.String != m.defaultCollation {
-			extra = map[string]interface{}{"collation": column.collation.String}
+			extra["collation"] = column.collation.String
 		}
 
 	case "tinytext":
@@ -471,7 +471,7 @@ func (m *DB) processTypeInfo(column mysqlColumn) (
 		maxLength = 255
 		extra = map[string]interface{}{"type": column.columnType}
 		if column.collation.String != m.defaultCollation {
-			extra = map[string]interface{}{"collation": column.collation.String}
+			extra["collation"] = column.collation.String
 		}
 
 	case "mediumtext":
@@ -479,13 +479,12 @@ func (m *DB) processTypeInfo(column mysqlColumn) (
 		maxLength = 16777215
 		extra = map[string]interface{}{"type": column.columnType}
 		if column.collation.String != m.defaultCollation {
-			extra = map[string]interface{}{"collation": column.collation.String}
+			extra["collation"] = column.collation.String
 		}
 
 	case "longtext":
 		typ = schema.ColTypeString
-		maxLength = math.MaxUint32
-		extra = map[string]interface{}{"type": column.columnType}
+		maxLength = 1073741823
 		if column.collation.String != m.defaultCollation {
 			extra = map[string]interface{}{"collation": column.collation.String}
 		}
@@ -507,7 +506,7 @@ func (m *DB) processTypeInfo(column mysqlColumn) (
 		maxLength = uint64(column.characterMaxLen.Int64)
 		extra = map[string]interface{}{"type": column.columnType}
 		if column.collation.String != m.defaultCollation {
-			extra = map[string]interface{}{"collation": column.collation.String}
+			extra["collation"] = column.collation.String
 		}
 
 	case "enum":
@@ -515,7 +514,7 @@ func (m *DB) processTypeInfo(column mysqlColumn) (
 		maxLength = uint64(column.characterMaxLen.Int64)
 		extra = map[string]interface{}{"type": column.columnType}
 		if column.collation.String != m.defaultCollation {
-			extra = map[string]interface{}{"collation": column.collation.String}
+			extra["collation"] = column.collation.String
 		}
 
 	case "json":
@@ -670,14 +669,15 @@ func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema.Table {
 			td.MultiColumnIndexes = append(td.MultiColumnIndexes, *idx)
 		}
 	}
-	if pkColumns.Len() == 2 {
-		mc := schema.MultiColumnIndex{
-			IsUnique: true,
-			Columns:  pkColumns.Values(),
-		}
-		slices.Sort(mc.Columns)
-		td.MultiColumnIndexes = append(td.MultiColumnIndexes, mc)
-	}
+	/*
+		if pkColumns.Len() == 2 {
+			mc := schema.MultiColumnIndex{
+				IsUnique: true,
+				Columns:  pkColumns.Values(),
+			}
+			slices.Sort(mc.Columns)
+			td.MultiColumnIndexes = append(td.MultiColumnIndexes, mc)
+		}*/
 
 	// Keep the MultiColumnIndexes in a predictable order
 	slices.SortFunc(td.MultiColumnIndexes, func(m1 schema.MultiColumnIndex, m2 schema.MultiColumnIndex) int {

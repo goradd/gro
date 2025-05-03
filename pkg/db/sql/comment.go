@@ -14,7 +14,7 @@ type tableCommentItems struct {
 	LabelPlural      string `json:"label_plural,omitempty"`
 	Identifier       string `json:"id,omitempty"`
 	IdentifierPlural string `json:"id_plural,omitempty"`
-	Key              string `json:"key"`
+	Key              string `json:"key,omitempty"`
 	NoOrm            bool   `json:"no_orm,omitempty"`
 }
 
@@ -30,7 +30,11 @@ func TableComment(t *schema.Table) string {
 	}
 
 	data, _ := json.Marshal(ti)
-	return string(data)
+	s := string(data)
+	if s == "{}" {
+		s = ""
+	}
+	return s
 }
 
 // FillTableCommentFields extracts and parses a JSON object from the comment string
@@ -65,6 +69,7 @@ type columnCommentItems struct {
 	Label                   string `json:"label,omitempty"`
 	Identifier              string `json:"id,omitempty"`
 	Key                     string `json:"key,omitempty"`
+	Size                    uint64 `json:"size,omitempty"`
 	ReferenceIdentifier     string `json:"ref_id,omitempty"`
 	ReferenceLabel          string `json:"ref_label,omitempty"`
 	ReverseLabel            string `json:"rev_label,omitempty"`
@@ -81,6 +86,9 @@ func ColumnComment(c *schema.Column) string {
 		Label:      c.Label,
 		Identifier: c.Identifier,
 		Key:        c.Key,
+	}
+	if c.Type == schema.ColTypeString {
+		ti.Size = c.Size
 	}
 	if c.Reference != nil {
 		ti.ReferenceIdentifier = c.Reference.Identifier
@@ -155,6 +163,10 @@ func FillColumnCommentFields(c *schema.Column, comment string) {
 			c.Size = 0
 		}
 	}
+
+	if ci.Size != 0 {
+		c.Size = ci.Size
+	}
 }
 
 // enumTableCommentItems holds fields that will be included in the enum table comment.
@@ -163,7 +175,7 @@ type enumTableCommentItems struct {
 	LabelPlural      string `json:"label_plural,omitempty"`
 	Identifier       string `json:"id,omitempty"`
 	IdentifierPlural string `json:"id_plural,omitempty"`
-	Key              string `json:"key"`
+	Key              string `json:"key,omitempty"`
 }
 
 // EnumTableComment returns extra schema fields to be stored as a JSON object in the table comment.
@@ -177,7 +189,11 @@ func EnumTableComment(t *schema.EnumTable) string {
 	}
 
 	data, _ := json.Marshal(ti)
-	return string(data)
+	s := string(data)
+	if s == "{}" {
+		s = ""
+	}
+	return s
 }
 
 // FillEnumCommentFields extracts and fills fields from a JSON object embedded in a comment.
@@ -218,7 +234,11 @@ func EnumFieldComment(t schema.EnumField) string {
 	}
 
 	data, _ := json.Marshal(ti)
-	return string(data)
+	s := string(data)
+	if s == "{}" {
+		s = ""
+	}
+	return s
 }
 
 // FillEnumFieldCommentFields extracts and fills fields from a JSON object embedded in a comment.
@@ -256,7 +276,7 @@ type associationTableCommentItems struct {
 	Label2Plural      string `json:"label2_plural,omitempty"`
 	Identifier2       string `json:"id2,omitempty"`
 	Identifier2Plural string `json:"id2_plural,omitempty"`
-	Key               string `json:"key"`
+	Key               string `json:"key,omitempty"`
 }
 
 // AssociationTableComment returns extra schema fields to be stored as a JSON object in the table comment.
@@ -274,7 +294,11 @@ func AssociationTableComment(t *schema.AssociationTable) string {
 	}
 
 	data, _ := json.Marshal(ti)
-	return string(data)
+	s := string(data)
+	if s == "{}" {
+		s = ""
+	}
+	return s
 }
 
 // FillAssociationCommentFields extracts and sets fields on the AssociationTable from JSON in the comment.
