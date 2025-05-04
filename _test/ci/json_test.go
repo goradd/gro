@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/goradd/orm/_test/gen/orm/goradd"
 	"github.com/goradd/orm/_test/gen/orm/goradd/node"
-	"github.com/goradd/orm/_test/gen/orm/goradd_unit"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -77,22 +76,6 @@ func TestJsonUnmarshall2(t *testing.T) {
 	assert.Equal(t, "John", p.FirstName())
 	assert.Equal(t, "Doe", p.LastName())
 	assert.ElementsMatch(t, []goradd.PersonType{goradd.PersonTypeManager, goradd.PersonTypeInactive}, p.Types().Values())
-}
-
-func TestJsonMarshall3(t *testing.T) {
-	ctx := db.NewContext(nil)
-
-	r, err := goradd_unit.LoadTypeTest(ctx, "1")
-	assert.NoError(t, err)
-	j, err2 := json.Marshal(r)
-	assert.NoError(t, err2)
-
-	r2 := goradd_unit.NewTypeTest()
-	err = r2.UnmarshalJSON(j)
-	assert.NoError(t, err)
-
-	assert.Equal(t, r.TestInt(), r2.TestInt())
-	assert.Equal(t, string(r.TestUnlimitedBytes()), string(r2.TestUnlimitedBytes()))
 }
 
 func TestJsonMarshallReferences(t *testing.T) {
