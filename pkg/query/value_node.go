@@ -24,11 +24,6 @@ func Value(i interface{}) Node {
 
 // NewValueNode returns a new ValueNode that wraps the given value.
 func NewValueNode(i interface{}) Node {
-
-	if id, ok := i.(Identifierer); ok {
-		return &ValueNode{value: id.Identifier()} // This targets enum tables in particular, but any object could work
-	}
-
 	n := &ValueNode{
 		value: i,
 	}

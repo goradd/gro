@@ -7,6 +7,7 @@ import (
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
 )
 
 // MultiParentNode is the builder interface to the MultiParent nodes.
@@ -118,10 +119,12 @@ func (n *multiParentReverse) PrimaryKey() *query.ColumnNode {
 
 func (n multiParentTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "id",
-		Identifier:   "ID",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: true,
+		QueryName:     "id",
+		Identifier:    "ID",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeAutoPrimaryKey,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  true,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -141,10 +144,12 @@ func (n *multiParentReverse) ID() *query.ColumnNode {
 
 func (n multiParentTable) Name() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "name",
-		Identifier:   "Name",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "name",
+		Identifier:    "Name",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeString,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -164,10 +169,12 @@ func (n *multiParentReverse) Name() *query.ColumnNode {
 
 func (n multiParentTable) Parent1ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "parent_1_id",
-		Identifier:   "Parent1ID",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "parent_1_id",
+		Identifier:    "Parent1ID",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeReference,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -212,10 +219,12 @@ func (n *multiParentReverse) Parent1() MultiParentNode {
 
 func (n multiParentTable) Parent2ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "parent_2_id",
-		Identifier:   "Parent2ID",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "parent_2_id",
+		Identifier:    "Parent2ID",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeReference,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn

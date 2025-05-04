@@ -10,7 +10,7 @@ import (
 )
 
 type operationSqler interface {
-	OperationSql(op Operator, operandStrings []string) string
+	OperationSql(op Operator, operands []Node, operandStrings []string) string
 }
 
 type deleteUsesAliaser interface {
@@ -101,6 +101,7 @@ func (g *sqlGenerator) generateColumnNodeSql(parentAlias string, node Node) (sql
 	return sb.String()
 }
 
+// generateNodeSql will create the sql for a node. If the node is a collection of nodes, it will generate it for the collection.
 func (g *sqlGenerator) generateNodeSql(n Node, useAlias bool) (sql string) {
 	switch node := n.(type) {
 	case *ValueNode:
@@ -149,17 +150,19 @@ func (g *sqlGenerator) generateNodeSql(n Node, useAlias bool) (sql string) {
 // useAlias specifies whether the operands can be aliased or not.
 func (g *sqlGenerator) generateOperationSql(n *OperationNode, useAlias bool) (sql string) {
 	var sb strings.Builder
-	var operands []string
-	operator := OperationNodeOperator(n)
+	var operandStrings []string
+	var operands []Node
 
-	for _, o := range OperationNodeOperands(n) {
-		operands = append(operands, g.generateNodeSql(o, useAlias))
+	operator := OperationNodeOperator(n)
+	operands = OperationNodeOperands(n)
+
+	for _, o := range operands {
+		operandStrings = append(operandStrings, g.generateNodeSql(o, useAlias))
 	}
 
 	if o, ok := g.dbi.(operationSqler); ok {
-		sql = o.OperationSql(operator, operands)
-		if sql != "" {
-			return sql
+		if sql = o.OperationSql(operator, operands, operandStrings); sql != "" {
+			return
 		}
 	}
 
@@ -171,15 +174,15 @@ func (g *sqlGenerator) generateOperationSql(n *OperationNode, useAlias bool) (sq
 			sb.WriteString("DISTINCT ")
 		}
 
-		if len(operands) > 0 {
-			sb.WriteString(strings.Join(operands, ","))
+		if len(operandStrings) > 0 {
+			sb.WriteString(strings.Join(operandStrings, ","))
 		} else if OperationNodeFunction(n) == "COUNT" {
 			sb.WriteString("*")
 		}
 		sb.WriteString(") ")
 
 	case OpNull, OpNotNull:
-		s := operands[0]
+		s := operandStrings[0]
 		sb.WriteString("(")
 		sb.WriteString(s)
 		sb.WriteString(" IS ")
@@ -187,7 +190,7 @@ func (g *sqlGenerator) generateOperationSql(n *OperationNode, useAlias bool) (sq
 		sb.WriteString(") ")
 
 	case OpNot:
-		s := operands[0]
+		s := operandStrings[0]
 		sb.WriteString("(")
 		sb.WriteString(operator.String())
 		sb.WriteString(" ")
@@ -195,12 +198,12 @@ func (g *sqlGenerator) generateOperationSql(n *OperationNode, useAlias bool) (sq
 		sb.WriteString(") ")
 
 	case OpIn, OpNotIn:
-		s := operands[0]
+		s := operandStrings[0]
 		sb.WriteString(s)
 		sb.WriteString(" ")
 		sb.WriteString(operator.String())
 		sb.WriteString(" (")
-		sb.WriteString(operands[1])
+		sb.WriteString(operandStrings[1])
 		sb.WriteString(") ")
 
 	case OpAll, OpNone:
@@ -213,7 +216,7 @@ func (g *sqlGenerator) generateOperationSql(n *OperationNode, useAlias bool) (sq
 		s += "%"
 		g.argList[len(g.argList)-1] = s
 		sb.WriteString("(")
-		sb.WriteString(fmt.Sprintf(`%s LIKE %s`, operands[0], operands[1]))
+		sb.WriteString(fmt.Sprintf(`%s LIKE %s`, operandStrings[0], operandStrings[1]))
 		sb.WriteString(")")
 
 	case OpEndsWith:
@@ -221,7 +224,7 @@ func (g *sqlGenerator) generateOperationSql(n *OperationNode, useAlias bool) (sq
 		s = "%" + s
 		g.argList[len(g.argList)-1] = s
 		sb.WriteString("(")
-		sb.WriteString(fmt.Sprintf(`%s LIKE %s`, operands[0], operands[1]))
+		sb.WriteString(fmt.Sprintf(`%s LIKE %s`, operandStrings[0], operandStrings[1]))
 		sb.WriteString(")")
 
 	case OpContains:
@@ -229,21 +232,21 @@ func (g *sqlGenerator) generateOperationSql(n *OperationNode, useAlias bool) (sq
 		s = "%" + s + "%"
 		g.argList[len(g.argList)-1] = s
 		sb.WriteString("(")
-		sb.WriteString(fmt.Sprintf(`%s LIKE %s`, operands[0], operands[1]))
+		sb.WriteString(fmt.Sprintf(`%s LIKE %s`, operandStrings[0], operandStrings[1]))
 		sb.WriteString(")")
 
 	case OpDateAddSeconds:
 		panic("DateAddSeconds is not implemented in this database")
 
 	case OpXor:
-		s := operands[0]
-		s2 := operands[1]
+		s := operandStrings[0]
+		s2 := operandStrings[1]
 		sb.WriteString(fmt.Sprintf(`(((%[1]s) AND NOT (%[2]s)) OR (NOT (%[1]s) AND (%[2]s)))`, s, s2))
 
 	default:
 		sOp := " " + operator.String() + " "
 		sb.WriteString(" (")
-		sb.WriteString(strings.Join(operands, sOp))
+		sb.WriteString(strings.Join(operandStrings, sOp))
 		sb.WriteString(") ")
 	}
 

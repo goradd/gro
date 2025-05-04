@@ -924,6 +924,7 @@ func `); err != nil {
 	if _, err = io.WriteString(_w, `(v2), nil
     		}
 		}
+		// Otherwise convert from the identifier
 		return `); err != nil {
 		return
 	}

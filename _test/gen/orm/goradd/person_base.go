@@ -1563,7 +1563,11 @@ func (o *personBase) getUpdateFields() (fields map[string]interface{}) {
 		if o.typesIsNull {
 			fields["type_enum"] = nil
 		} else {
-			b, _ := json.Marshal(o.types)
+			var a []int
+			for _, v := range o.types.Values() {
+				a = append(a, int(v))
+			}
+			b, _ := json.Marshal(a)
 			fields["type_enum"] = string(b)
 		}
 	}
@@ -1591,7 +1595,11 @@ func (o *personBase) getInsertFields() (fields map[string]interface{}) {
 	if o.typesIsNull {
 		fields["type_enum"] = nil
 	} else {
-		b, _ := json.Marshal(o.types)
+		var a []int
+		for _, v := range o.types.Values() {
+			a = append(a, int(v))
+		}
+		b, _ := json.Marshal(a)
 		fields["type_enum"] = string(b)
 	}
 	fields["created"] = time.Now().UTC()

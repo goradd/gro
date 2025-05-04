@@ -273,6 +273,7 @@ func ProjectStatusFromInterface(i any) (ProjectStatus, error) {
 				return ProjectStatus(v2), nil
 			}
 		}
+		// Otherwise convert from the identifier
 		return ProjectStatusFromIdentifier(v)
 	case json.Number:
 		if v2, err := v.Int64(); err == nil {

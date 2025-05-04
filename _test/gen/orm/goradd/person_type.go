@@ -202,6 +202,7 @@ func PersonTypeFromInterface(i any) (PersonType, error) {
 				return PersonType(v2), nil
 			}
 		}
+		// Otherwise convert from the identifier
 		return PersonTypeFromIdentifier(v)
 	case json.Number:
 		if v2, err := v.Int64(); err == nil {

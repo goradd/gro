@@ -6,6 +6,7 @@ import (
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
 )
 
 // PersonWithLockNode is the builder interface to the PersonWithLock nodes.
@@ -68,10 +69,12 @@ func (n personWithLockTable) PrimaryKey() *query.ColumnNode {
 
 func (n personWithLockTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "id",
-		Identifier:   "ID",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: true,
+		QueryName:     "id",
+		Identifier:    "ID",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeAutoPrimaryKey,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  true,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -79,10 +82,12 @@ func (n personWithLockTable) ID() *query.ColumnNode {
 
 func (n personWithLockTable) FirstName() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "first_name",
-		Identifier:   "FirstName",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "first_name",
+		Identifier:    "FirstName",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeString,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -90,10 +95,12 @@ func (n personWithLockTable) FirstName() *query.ColumnNode {
 
 func (n personWithLockTable) LastName() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "last_name",
-		Identifier:   "LastName",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "last_name",
+		Identifier:    "LastName",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeString,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -101,10 +108,12 @@ func (n personWithLockTable) LastName() *query.ColumnNode {
 
 func (n personWithLockTable) GroLock() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "gro_lock",
-		Identifier:   "GroLock",
-		ReceiverType: query.ColTypeInteger64,
-		IsPrimaryKey: false,
+		QueryName:     "gro_lock",
+		Identifier:    "GroLock",
+		ReceiverType:  query.ColTypeInteger64,
+		SchemaType:    schema.ColTypeInt,
+		SchemaSubType: schema.ColSubTypeLock,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -112,10 +121,12 @@ func (n personWithLockTable) GroLock() *query.ColumnNode {
 
 func (n personWithLockTable) GroTimestamp() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "gro_timestamp",
-		Identifier:   "GroTimestamp",
-		ReceiverType: query.ColTypeInteger64,
-		IsPrimaryKey: false,
+		QueryName:     "gro_timestamp",
+		Identifier:    "GroTimestamp",
+		ReceiverType:  query.ColTypeInteger64,
+		SchemaType:    schema.ColTypeInt,
+		SchemaSubType: schema.ColSubTypeTimestamp,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn

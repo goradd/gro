@@ -7,6 +7,7 @@ import (
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
 )
 
 // AddressNode is the builder interface to the Address nodes.
@@ -90,10 +91,12 @@ func (n *addressReverse) PrimaryKey() *query.ColumnNode {
 
 func (n addressTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "id",
-		Identifier:   "ID",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: true,
+		QueryName:     "id",
+		Identifier:    "ID",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeAutoPrimaryKey,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  true,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -107,10 +110,12 @@ func (n *addressReverse) ID() *query.ColumnNode {
 
 func (n addressTable) PersonID() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "person_id",
-		Identifier:   "PersonID",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "person_id",
+		Identifier:    "PersonID",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeReference,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -143,10 +148,12 @@ func (n *addressReverse) Person() PersonNode {
 
 func (n addressTable) Street() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "street",
-		Identifier:   "Street",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "street",
+		Identifier:    "Street",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeString,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -160,10 +167,12 @@ func (n *addressReverse) Street() *query.ColumnNode {
 
 func (n addressTable) City() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "city",
-		Identifier:   "City",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "city",
+		Identifier:    "City",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeString,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn

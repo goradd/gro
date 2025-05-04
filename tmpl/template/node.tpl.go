@@ -94,6 +94,7 @@ import (
     "bytes"
     "encoding/gob"
 	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
 )
 `); err != nil {
 		return
@@ -1293,6 +1294,24 @@ func (n *NodeTemplate) genColumnNode(table *model.Table, col *model.Column, _w i
 	}
 
 	if _, err = io.WriteString(_w, col.ReceiverType.String()); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `,
+		SchemaType: schema.`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, col.SchemaType.String()); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `,
+		SchemaSubType: schema.`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, col.SchemaSubType.String()); err != nil {
 		return
 	}
 

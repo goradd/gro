@@ -8,6 +8,7 @@ import (
 	"github.com/goradd/orm/pkg/db"
 	sql2 "github.com/goradd/orm/pkg/db/sql"
 	. "github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/stdlib"
@@ -107,14 +108,28 @@ func (m *DB) FormatArgument(n int) string {
 }
 
 // OperationSql provides Postgres specific SQL for certain operators.
-func (m *DB) OperationSql(op Operator, operandStrings []string) (sql string) {
+func (m *DB) OperationSql(op Operator, operands []Node, operandStrings []string) (sql string) {
 	switch op {
+	case OpContains:
+		// handle enum fields
+		if o := operands[0]; o.NodeType_() == ColumnNodeType {
+			cn := o.(*ColumnNode)
+			if cn.SchemaType == schema.ColTypeEnumArray {
+				s := operandStrings[0]
+				s2 := operandStrings[1]
+				// stored as a json array in the field
+				return fmt.Sprintf(`%s @> '%s'`, s, s2)
+			}
+		}
+
+		// TBD Json fields
+
 	case OpDateAddSeconds:
 		// Modifying a datetime in the query
 		// Only works on date, datetime and timestamps. Not times.
 		s := operandStrings[0]
 		s2 := operandStrings[1]
-		return fmt.Sprintf(`(%s + make_interval(seconds => %s))`, s, s2)
+		return fmt.Sprintf(`(%s + MAKE_INTERVAL(SECONDS => %s))`, s, s2)
 	}
 	return
 }

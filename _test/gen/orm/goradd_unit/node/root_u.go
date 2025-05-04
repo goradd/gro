@@ -7,6 +7,7 @@ import (
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
 )
 
 // RootUNode is the builder interface to the RootU nodes.
@@ -84,10 +85,12 @@ func (n *rootUReference) PrimaryKey() *query.ColumnNode {
 
 func (n rootUTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "id",
-		Identifier:   "ID",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: true,
+		QueryName:     "id",
+		Identifier:    "ID",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeAutoPrimaryKey,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  true,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -101,10 +104,12 @@ func (n *rootUReference) ID() *query.ColumnNode {
 
 func (n rootUTable) Name() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "name",
-		Identifier:   "Name",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "name",
+		Identifier:    "Name",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeString,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn

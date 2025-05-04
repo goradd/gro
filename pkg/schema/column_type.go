@@ -149,6 +149,42 @@ const GroLockColumnName = "gro_lock"
 func (ct ColumnType) String() string {
 	switch ct {
 	case ColTypeBytes:
+		return "ColTypeBytes"
+	case ColTypeString:
+		return "ColTypeString"
+	case ColTypeInt:
+		return "ColTypeInt"
+	case ColTypeUint:
+		return "ColTypeUint"
+	case ColTypeTime:
+		return "ColTypeTime"
+	case ColTypeFloat:
+		return "ColTypeFloat"
+	case ColTypeBool:
+		return "ColTypeBool"
+	case ColTypeAutoPrimaryKey:
+		return "ColTypeAutoPrimaryKey"
+	case ColTypeJSON:
+		return "ColTypeJSON"
+	case ColTypeReference:
+		return "ColTypeReference"
+	case ColTypeEnum:
+		return "ColTypeEnum"
+	case ColTypeEnumArray:
+		return "ColTypeEnumArray"
+	default:
+		return "ColTypeUnknown"
+	}
+}
+
+// MarshalJSON customizes how ColumnType is serialized to JSON.
+func (ct ColumnType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(ct.jsonRep())
+}
+
+func (ct ColumnType) jsonRep() string {
+	switch ct {
+	case ColTypeBytes:
 		return "bytes"
 	case ColTypeString:
 		return "string"
@@ -175,12 +211,6 @@ func (ct ColumnType) String() string {
 	default:
 		return "unknown"
 	}
-}
-
-// MarshalJSON customizes how ColumnType is serialized to JSON.
-func (ct ColumnType) MarshalJSON() ([]byte, error) {
-	// Return the string representation of the ReceiverType
-	return json.Marshal(ct.String())
 }
 
 // UnmarshalJSON customizes how ColumnType is deserialized from JSON.
@@ -255,6 +285,31 @@ const (
 func (ct ColumnSubType) String() string {
 	switch ct {
 	case ColSubTypeNone:
+		return "ColSubTypeNone"
+	case ColSubTypeDateOnly:
+		return "ColSubTypeDateOnly"
+	case ColSubTypeTimeOnly:
+		return "ColSubTypeTimeOnly"
+	case ColSubTypeTimestamp:
+		return "ColSubTypeTimestamp"
+	case ColSubTypeLock:
+		return "ColSubTypeLock"
+	case ColSubTypeNumeric:
+		return "ColSubTypeNumeric"
+	default:
+		return "ColSubTypeNone"
+	}
+}
+
+// MarshalJSON customizes how ColumnType is serialized to JSON.
+func (cst ColumnSubType) MarshalJSON() ([]byte, error) {
+	// Return the string representation of the ReceiverType
+	return json.Marshal(cst.jsonRep())
+}
+
+func (cst ColumnSubType) jsonRep() string {
+	switch cst {
+	case ColSubTypeNone:
 		return "none"
 	case ColSubTypeDateOnly:
 		return "date_only"
@@ -269,12 +324,6 @@ func (ct ColumnSubType) String() string {
 	default:
 		return "none"
 	}
-}
-
-// MarshalJSON customizes how ColumnType is serialized to JSON.
-func (cst ColumnSubType) MarshalJSON() ([]byte, error) {
-	// Return the string representation of the ReceiverType
-	return json.Marshal(cst.String())
 }
 
 // UnmarshalJSON customizes how ColumnType is deserialized from JSON.

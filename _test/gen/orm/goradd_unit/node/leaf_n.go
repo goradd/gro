@@ -7,6 +7,7 @@ import (
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
 )
 
 // LeafNNode is the builder interface to the LeafN nodes.
@@ -87,10 +88,12 @@ func (n *leafNReverse) PrimaryKey() *query.ColumnNode {
 
 func (n leafNTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "id",
-		Identifier:   "ID",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: true,
+		QueryName:     "id",
+		Identifier:    "ID",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeAutoPrimaryKey,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  true,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -104,10 +107,12 @@ func (n *leafNReverse) ID() *query.ColumnNode {
 
 func (n leafNTable) Name() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "name",
-		Identifier:   "Name",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "name",
+		Identifier:    "Name",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeString,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -121,10 +126,12 @@ func (n *leafNReverse) Name() *query.ColumnNode {
 
 func (n leafNTable) RootNID() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "root_n_id",
-		Identifier:   "RootNID",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "root_n_id",
+		Identifier:    "RootNID",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeReference,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn

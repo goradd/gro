@@ -41,7 +41,7 @@ type EnumTable struct {
 	// Each entry must have the same key-value pairs.
 	// Each entry must have a "const" key with an integer value. That will become the const value in Go code.
 	// Each entry must have either a "label" key, an "identifier" key, or both. The label is a human-readable
-	// description of the value, and identifier is a snake_case equivalent used as the JSON identifier for the value.
+	// description of the value, and identifier is the value that will be used in JSON and as a key in the database.
 	// If either is missing, it will be generated from the other.
 	// Additional entries will create accessor functions for those values.
 	// The first entry will determine what types are inferred for each value.

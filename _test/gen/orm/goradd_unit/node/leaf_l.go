@@ -7,6 +7,7 @@ import (
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
 )
 
 // LeafLNode is the builder interface to the LeafL nodes.
@@ -90,10 +91,12 @@ func (n *leafLReverse) PrimaryKey() *query.ColumnNode {
 
 func (n leafLTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "id",
-		Identifier:   "ID",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: true,
+		QueryName:     "id",
+		Identifier:    "ID",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeAutoPrimaryKey,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  true,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -107,10 +110,12 @@ func (n *leafLReverse) ID() *query.ColumnNode {
 
 func (n leafLTable) Name() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "name",
-		Identifier:   "Name",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "name",
+		Identifier:    "Name",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeString,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -124,10 +129,12 @@ func (n *leafLReverse) Name() *query.ColumnNode {
 
 func (n leafLTable) GroLock() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "gro_lock",
-		Identifier:   "GroLock",
-		ReceiverType: query.ColTypeInteger64,
-		IsPrimaryKey: false,
+		QueryName:     "gro_lock",
+		Identifier:    "GroLock",
+		ReceiverType:  query.ColTypeInteger64,
+		SchemaType:    schema.ColTypeInt,
+		SchemaSubType: schema.ColSubTypeLock,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -141,10 +148,12 @@ func (n *leafLReverse) GroLock() *query.ColumnNode {
 
 func (n leafLTable) RootLID() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "root_l_id",
-		Identifier:   "RootLID",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "root_l_id",
+		Identifier:    "RootLID",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeReference,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn

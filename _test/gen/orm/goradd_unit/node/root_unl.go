@@ -7,6 +7,7 @@ import (
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
 )
 
 // RootUnlNode is the builder interface to the RootUnl nodes.
@@ -87,10 +88,12 @@ func (n *rootUnlReference) PrimaryKey() *query.ColumnNode {
 
 func (n rootUnlTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "id",
-		Identifier:   "ID",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: true,
+		QueryName:     "id",
+		Identifier:    "ID",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeAutoPrimaryKey,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  true,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -104,10 +107,12 @@ func (n *rootUnlReference) ID() *query.ColumnNode {
 
 func (n rootUnlTable) Name() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "name",
-		Identifier:   "Name",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "name",
+		Identifier:    "Name",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeString,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -121,10 +126,12 @@ func (n *rootUnlReference) Name() *query.ColumnNode {
 
 func (n rootUnlTable) GroLock() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "gro_lock",
-		Identifier:   "GroLock",
-		ReceiverType: query.ColTypeInteger64,
-		IsPrimaryKey: false,
+		QueryName:     "gro_lock",
+		Identifier:    "GroLock",
+		ReceiverType:  query.ColTypeInteger64,
+		SchemaType:    schema.ColTypeInt,
+		SchemaSubType: schema.ColSubTypeLock,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn

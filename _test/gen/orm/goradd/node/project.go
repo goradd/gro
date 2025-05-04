@@ -7,6 +7,7 @@ import (
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
 )
 
 // ProjectNode is the builder interface to the Project nodes.
@@ -167,10 +168,12 @@ func (n *projectAssociation) PrimaryKey() *query.ColumnNode {
 
 func (n projectTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "id",
-		Identifier:   "ID",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: true,
+		QueryName:     "id",
+		Identifier:    "ID",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeAutoPrimaryKey,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  true,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -196,10 +199,12 @@ func (n *projectAssociation) ID() *query.ColumnNode {
 
 func (n projectTable) Num() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "num",
-		Identifier:   "Num",
-		ReceiverType: query.ColTypeInteger,
-		IsPrimaryKey: false,
+		QueryName:     "num",
+		Identifier:    "Num",
+		ReceiverType:  query.ColTypeInteger,
+		SchemaType:    schema.ColTypeInt,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -225,10 +230,12 @@ func (n *projectAssociation) Num() *query.ColumnNode {
 
 func (n projectTable) Status() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "status_enum",
-		Identifier:   "Status",
-		ReceiverType: query.ColTypeInteger,
-		IsPrimaryKey: false,
+		QueryName:     "status_enum",
+		Identifier:    "Status",
+		ReceiverType:  query.ColTypeInteger,
+		SchemaType:    schema.ColTypeEnum,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -254,10 +261,12 @@ func (n *projectAssociation) Status() *query.ColumnNode {
 
 func (n projectTable) ManagerID() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "manager_id",
-		Identifier:   "ManagerID",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "manager_id",
+		Identifier:    "ManagerID",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeReference,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -314,10 +323,12 @@ func (n *projectAssociation) Manager() PersonNode {
 
 func (n projectTable) Name() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "name",
-		Identifier:   "Name",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "name",
+		Identifier:    "Name",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeString,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -343,10 +354,12 @@ func (n *projectAssociation) Name() *query.ColumnNode {
 
 func (n projectTable) Description() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "description",
-		Identifier:   "Description",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "description",
+		Identifier:    "Description",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeString,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -372,10 +385,12 @@ func (n *projectAssociation) Description() *query.ColumnNode {
 
 func (n projectTable) StartDate() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "start_date",
-		Identifier:   "StartDate",
-		ReceiverType: query.ColTypeTime,
-		IsPrimaryKey: false,
+		QueryName:     "start_date",
+		Identifier:    "StartDate",
+		ReceiverType:  query.ColTypeTime,
+		SchemaType:    schema.ColTypeTime,
+		SchemaSubType: schema.ColSubTypeDateOnly,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -401,10 +416,12 @@ func (n *projectAssociation) StartDate() *query.ColumnNode {
 
 func (n projectTable) EndDate() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "end_date",
-		Identifier:   "EndDate",
-		ReceiverType: query.ColTypeTime,
-		IsPrimaryKey: false,
+		QueryName:     "end_date",
+		Identifier:    "EndDate",
+		ReceiverType:  query.ColTypeTime,
+		SchemaType:    schema.ColTypeTime,
+		SchemaSubType: schema.ColSubTypeDateOnly,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -430,10 +447,12 @@ func (n *projectAssociation) EndDate() *query.ColumnNode {
 
 func (n projectTable) Budget() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "budget",
-		Identifier:   "Budget",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "budget",
+		Identifier:    "Budget",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeString,
+		SchemaSubType: schema.ColSubTypeNumeric,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -459,10 +478,12 @@ func (n *projectAssociation) Budget() *query.ColumnNode {
 
 func (n projectTable) Spent() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "spent",
-		Identifier:   "Spent",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "spent",
+		Identifier:    "Spent",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeString,
+		SchemaSubType: schema.ColSubTypeNumeric,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -488,10 +509,12 @@ func (n *projectAssociation) Spent() *query.ColumnNode {
 
 func (n projectTable) ParentProjectID() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "parent_project_id",
-		Identifier:   "ParentProjectID",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "parent_project_id",
+		Identifier:    "ParentProjectID",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeReference,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn

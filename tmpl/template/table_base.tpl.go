@@ -10222,7 +10222,8 @@ func (o *`); err != nil {
 
 			if col.IsEnumArray() {
 
-				if _, err = io.WriteString(_w, `            b,_ := json.Marshal(o.`); err != nil {
+				if _, err = io.WriteString(_w, `            var a []int
+            for _,v := range o.`); err != nil {
 					return
 				}
 
@@ -10230,7 +10231,10 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `)
+				if _, err = io.WriteString(_w, `.Values() {
+                a = append(a, int(v))
+            }
+            b, _ := json.Marshal(a)
             fields["`); err != nil {
 					return
 				}
@@ -10520,7 +10524,8 @@ func (o *`); err != nil {
 
 			if col.IsEnumArray() {
 
-				if _, err = io.WriteString(_w, `        b,_ := json.Marshal(o.`); err != nil {
+				if _, err = io.WriteString(_w, `		var a []int
+		for _,v := range o.`); err != nil {
 					return
 				}
 
@@ -10528,7 +10533,10 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `)
+				if _, err = io.WriteString(_w, `.Values() {
+			a = append(a, int(v))
+		}
+		b, _ := json.Marshal(a)
         fields["`); err != nil {
 					return
 				}

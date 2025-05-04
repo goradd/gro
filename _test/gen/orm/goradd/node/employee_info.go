@@ -7,6 +7,7 @@ import (
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
 )
 
 // EmployeeInfoNode is the builder interface to the EmployeeInfo nodes.
@@ -87,10 +88,12 @@ func (n *employeeInfoReverse) PrimaryKey() *query.ColumnNode {
 
 func (n employeeInfoTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "id",
-		Identifier:   "ID",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: true,
+		QueryName:     "id",
+		Identifier:    "ID",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeAutoPrimaryKey,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  true,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -104,10 +107,12 @@ func (n *employeeInfoReverse) ID() *query.ColumnNode {
 
 func (n employeeInfoTable) PersonID() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "person_id",
-		Identifier:   "PersonID",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "person_id",
+		Identifier:    "PersonID",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeReference,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -140,10 +145,12 @@ func (n *employeeInfoReverse) Person() PersonNode {
 
 func (n employeeInfoTable) EmployeeNumber() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "employee_number",
-		Identifier:   "EmployeeNumber",
-		ReceiverType: query.ColTypeInteger,
-		IsPrimaryKey: false,
+		QueryName:     "employee_number",
+		Identifier:    "EmployeeNumber",
+		ReceiverType:  query.ColTypeInteger,
+		SchemaType:    schema.ColTypeInt,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn

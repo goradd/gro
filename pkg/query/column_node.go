@@ -3,6 +3,7 @@ package query
 import (
 	"bytes"
 	"encoding/gob"
+	"github.com/goradd/orm/pkg/schema"
 )
 
 type ColumnNodeI interface {
@@ -20,6 +21,10 @@ type ColumnNode struct {
 	Identifier string
 	// The receiver type for the column
 	ReceiverType ReceiverType
+	// The schema type for the node
+	SchemaType schema.ColumnType
+	// The schema subtype for the node
+	SchemaSubType schema.ColumnSubType
 	// True if this is the primary key of its parent table
 	IsPrimaryKey   bool
 	sortDescending bool

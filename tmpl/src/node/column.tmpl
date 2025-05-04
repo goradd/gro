@@ -18,6 +18,8 @@ func (n {{= table.DecapIdentifier}}Table) {{= col.Identifier }}() *query.ColumnN
 		QueryName: "{{= col.QueryName }}",
 		Identifier: "{{= col.Identifier }}",
 		ReceiverType: query.{{= col.ReceiverType.String() }},
+		SchemaType: schema.{{= col.SchemaType.String() }},
+		SchemaSubType: schema.{{= col.SchemaSubType.String() }},
 		IsPrimaryKey: {{b col.IsPrimaryKey }},
 	}
 	query.NodeSetParent(cn, n)

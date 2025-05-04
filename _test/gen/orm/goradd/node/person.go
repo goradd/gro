@@ -7,6 +7,7 @@ import (
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
 )
 
 // PersonNode is the builder interface to the Person nodes.
@@ -126,10 +127,12 @@ func (n *personAssociation) PrimaryKey() *query.ColumnNode {
 
 func (n personTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "id",
-		Identifier:   "ID",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: true,
+		QueryName:     "id",
+		Identifier:    "ID",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeAutoPrimaryKey,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  true,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -149,10 +152,12 @@ func (n *personAssociation) ID() *query.ColumnNode {
 
 func (n personTable) FirstName() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "first_name",
-		Identifier:   "FirstName",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "first_name",
+		Identifier:    "FirstName",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeString,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -172,10 +177,12 @@ func (n *personAssociation) FirstName() *query.ColumnNode {
 
 func (n personTable) LastName() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "last_name",
-		Identifier:   "LastName",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "last_name",
+		Identifier:    "LastName",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeString,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -195,10 +202,12 @@ func (n *personAssociation) LastName() *query.ColumnNode {
 
 func (n personTable) Types() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "type_enum",
-		Identifier:   "Types",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "type_enum",
+		Identifier:    "Types",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeEnumArray,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -218,10 +227,12 @@ func (n *personAssociation) Types() *query.ColumnNode {
 
 func (n personTable) Created() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "created",
-		Identifier:   "Created",
-		ReceiverType: query.ColTypeTime,
-		IsPrimaryKey: false,
+		QueryName:     "created",
+		Identifier:    "Created",
+		ReceiverType:  query.ColTypeTime,
+		SchemaType:    schema.ColTypeTime,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -241,10 +252,12 @@ func (n *personAssociation) Created() *query.ColumnNode {
 
 func (n personTable) Modified() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "modified",
-		Identifier:   "Modified",
-		ReceiverType: query.ColTypeTime,
-		IsPrimaryKey: false,
+		QueryName:     "modified",
+		Identifier:    "Modified",
+		ReceiverType:  query.ColTypeTime,
+		SchemaType:    schema.ColTypeTime,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn

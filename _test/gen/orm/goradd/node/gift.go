@@ -6,6 +6,7 @@ import (
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
 )
 
 // GiftNode is the builder interface to the Gift nodes.
@@ -59,10 +60,12 @@ func (n giftTable) PrimaryKey() *query.ColumnNode {
 
 func (n giftTable) Number() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "number",
-		Identifier:   "Number",
-		ReceiverType: query.ColTypeInteger,
-		IsPrimaryKey: true,
+		QueryName:     "number",
+		Identifier:    "Number",
+		ReceiverType:  query.ColTypeInteger,
+		SchemaType:    schema.ColTypeInt,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  true,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -70,10 +73,12 @@ func (n giftTable) Number() *query.ColumnNode {
 
 func (n giftTable) Name() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "name",
-		Identifier:   "Name",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "name",
+		Identifier:    "Name",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeString,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn

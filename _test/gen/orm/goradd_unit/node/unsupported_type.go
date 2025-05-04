@@ -6,6 +6,7 @@ import (
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
 )
 
 // UnsupportedTypeNode is the builder interface to the UnsupportedType nodes.
@@ -86,10 +87,12 @@ func (n unsupportedTypeTable) PrimaryKey() *query.ColumnNode {
 
 func (n unsupportedTypeTable) TypeSerial() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "type_serial",
-		Identifier:   "TypeSerial",
-		ReceiverType: query.ColTypeUnsigned64,
-		IsPrimaryKey: true,
+		QueryName:     "type_serial",
+		Identifier:    "TypeSerial",
+		ReceiverType:  query.ColTypeUnsigned64,
+		SchemaType:    schema.ColTypeUint,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  true,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -97,10 +100,12 @@ func (n unsupportedTypeTable) TypeSerial() *query.ColumnNode {
 
 func (n unsupportedTypeTable) TypeSet() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "type_set",
-		Identifier:   "TypeSet",
-		ReceiverType: query.ColTypeUnknown,
-		IsPrimaryKey: false,
+		QueryName:     "type_set",
+		Identifier:    "TypeSet",
+		ReceiverType:  query.ColTypeUnknown,
+		SchemaType:    schema.ColTypeUnknown,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -108,10 +113,12 @@ func (n unsupportedTypeTable) TypeSet() *query.ColumnNode {
 
 func (n unsupportedTypeTable) TypeEnumerated() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "type_enumerated",
-		Identifier:   "TypeEnumerated",
-		ReceiverType: query.ColTypeUnknown,
-		IsPrimaryKey: false,
+		QueryName:     "type_enumerated",
+		Identifier:    "TypeEnumerated",
+		ReceiverType:  query.ColTypeUnknown,
+		SchemaType:    schema.ColTypeUnknown,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -119,10 +126,12 @@ func (n unsupportedTypeTable) TypeEnumerated() *query.ColumnNode {
 
 func (n unsupportedTypeTable) TypeGeo() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "type_geo",
-		Identifier:   "TypeGeo",
-		ReceiverType: query.ColTypeUnknown,
-		IsPrimaryKey: false,
+		QueryName:     "type_geo",
+		Identifier:    "TypeGeo",
+		ReceiverType:  query.ColTypeUnknown,
+		SchemaType:    schema.ColTypeUnknown,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -130,10 +139,12 @@ func (n unsupportedTypeTable) TypeGeo() *query.ColumnNode {
 
 func (n unsupportedTypeTable) TypeTinyblob() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "type_tinyblob",
-		Identifier:   "TypeTinyblob",
-		ReceiverType: query.ColTypeBytes,
-		IsPrimaryKey: false,
+		QueryName:     "type_tinyblob",
+		Identifier:    "TypeTinyblob",
+		ReceiverType:  query.ColTypeBytes,
+		SchemaType:    schema.ColTypeBytes,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -141,10 +152,12 @@ func (n unsupportedTypeTable) TypeTinyblob() *query.ColumnNode {
 
 func (n unsupportedTypeTable) TypeBinary() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "type_binary",
-		Identifier:   "TypeBinary",
-		ReceiverType: query.ColTypeUnknown,
-		IsPrimaryKey: false,
+		QueryName:     "type_binary",
+		Identifier:    "TypeBinary",
+		ReceiverType:  query.ColTypeUnknown,
+		SchemaType:    schema.ColTypeUnknown,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -152,10 +165,12 @@ func (n unsupportedTypeTable) TypeBinary() *query.ColumnNode {
 
 func (n unsupportedTypeTable) TypeSmall() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "type_small",
-		Identifier:   "TypeSmall",
-		ReceiverType: query.ColTypeInteger,
-		IsPrimaryKey: false,
+		QueryName:     "type_small",
+		Identifier:    "TypeSmall",
+		ReceiverType:  query.ColTypeInteger,
+		SchemaType:    schema.ColTypeInt,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -163,10 +178,12 @@ func (n unsupportedTypeTable) TypeSmall() *query.ColumnNode {
 
 func (n unsupportedTypeTable) TypeMedium() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "type_medium",
-		Identifier:   "TypeMedium",
-		ReceiverType: query.ColTypeInteger,
-		IsPrimaryKey: false,
+		QueryName:     "type_medium",
+		Identifier:    "TypeMedium",
+		ReceiverType:  query.ColTypeInteger,
+		SchemaType:    schema.ColTypeInt,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -174,10 +191,12 @@ func (n unsupportedTypeTable) TypeMedium() *query.ColumnNode {
 
 func (n unsupportedTypeTable) TypePolygon() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "type_polygon",
-		Identifier:   "TypePolygon",
-		ReceiverType: query.ColTypeUnknown,
-		IsPrimaryKey: false,
+		QueryName:     "type_polygon",
+		Identifier:    "TypePolygon",
+		ReceiverType:  query.ColTypeUnknown,
+		SchemaType:    schema.ColTypeUnknown,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -185,10 +204,12 @@ func (n unsupportedTypeTable) TypePolygon() *query.ColumnNode {
 
 func (n unsupportedTypeTable) TypeMultfk1() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "type_multFk1",
-		Identifier:   "TypeMultfk1",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "type_multFk1",
+		Identifier:    "TypeMultfk1",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeString,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -196,10 +217,12 @@ func (n unsupportedTypeTable) TypeMultfk1() *query.ColumnNode {
 
 func (n unsupportedTypeTable) TypeMultifk2() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "type_multiFk2",
-		Identifier:   "TypeMultifk2",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "type_multiFk2",
+		Identifier:    "TypeMultifk2",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeString,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn

@@ -6,6 +6,7 @@ import (
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
 )
 
 // DoubleIndexNode is the builder interface to the DoubleIndex nodes.
@@ -68,10 +69,12 @@ func (n doubleIndexTable) PrimaryKey() *query.ColumnNode {
 
 func (n doubleIndexTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "id",
-		Identifier:   "ID",
-		ReceiverType: query.ColTypeInteger,
-		IsPrimaryKey: true,
+		QueryName:     "id",
+		Identifier:    "ID",
+		ReceiverType:  query.ColTypeInteger,
+		SchemaType:    schema.ColTypeInt,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  true,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -79,10 +82,12 @@ func (n doubleIndexTable) ID() *query.ColumnNode {
 
 func (n doubleIndexTable) FieldInt() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "field_int",
-		Identifier:   "FieldInt",
-		ReceiverType: query.ColTypeInteger,
-		IsPrimaryKey: false,
+		QueryName:     "field_int",
+		Identifier:    "FieldInt",
+		ReceiverType:  query.ColTypeInteger,
+		SchemaType:    schema.ColTypeInt,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -90,10 +95,12 @@ func (n doubleIndexTable) FieldInt() *query.ColumnNode {
 
 func (n doubleIndexTable) FieldString() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "field_string",
-		Identifier:   "FieldString",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "field_string",
+		Identifier:    "FieldString",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeString,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -101,10 +108,12 @@ func (n doubleIndexTable) FieldString() *query.ColumnNode {
 
 func (n doubleIndexTable) Field2Int() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "field2_int",
-		Identifier:   "Field2Int",
-		ReceiverType: query.ColTypeInteger,
-		IsPrimaryKey: false,
+		QueryName:     "field2_int",
+		Identifier:    "Field2Int",
+		ReceiverType:  query.ColTypeInteger,
+		SchemaType:    schema.ColTypeInt,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn
@@ -112,10 +121,12 @@ func (n doubleIndexTable) Field2Int() *query.ColumnNode {
 
 func (n doubleIndexTable) Field2String() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:    "field2_string",
-		Identifier:   "Field2String",
-		ReceiverType: query.ColTypeString,
-		IsPrimaryKey: false,
+		QueryName:     "field2_string",
+		Identifier:    "Field2String",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeString,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
 	}
 	query.NodeSetParent(cn, n)
 	return cn

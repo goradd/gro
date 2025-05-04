@@ -218,6 +218,7 @@ func {{= table.Identifier }}FromInterface(i any) ({{= table.Identifier }}, error
     		    return {{= table.Identifier }}(v2), nil
     		}
 		}
+		// Otherwise convert from the identifier
 		return {{= table.Identifier }}FromIdentifier(v)
 	case json.Number:
 		if v2, err := v.Int64(); err == nil {
