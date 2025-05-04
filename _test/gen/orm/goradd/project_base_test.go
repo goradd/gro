@@ -37,7 +37,7 @@ func updateMinimalSampleProject(obj *Project) {
 
 	obj.SetName(test.RandomValue[string](100))
 
-	obj.SetDescription(test.RandomValue[string](65535))
+	obj.SetDescription(test.RandomValue[string](0))
 
 	obj.SetStartDate(test.RandomValue[time.Time](0))
 
@@ -235,7 +235,7 @@ func TestProject_SetDescription(t *testing.T) {
 	obj := NewProject()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[string](65535)
+	val := test.RandomValue[string](0)
 	obj.SetDescription(val)
 	assert.Equal(t, val, obj.Description())
 	assert.False(t, obj.DescriptionIsNull())
@@ -249,11 +249,6 @@ func TestProject_SetDescription(t *testing.T) {
 	obj.SetDescription("")
 	assert.EqualValues(t, "", obj.Description(), "set default")
 
-	// test panic on setting value larger than maximum size allowed
-	val = test.RandomValue[string](65536)
-	assert.Panics(t, func() {
-		obj.SetDescription(val)
-	})
 }
 func TestProject_SetStartDate(t *testing.T) {
 

@@ -122,10 +122,9 @@ const (
 const ProjectIDMaxLength = 32 // The number of runes the column can hold
 const ProjectNumMax = 2147483647
 const ProjectNumMin = -2147483648
-const ProjectNameMaxLength = 100          // The number of runes the column can hold
-const ProjectDescriptionMaxLength = 65535 // The number of runes the column can hold
-const ProjectBudgetMaxLength = 14         // The number of runes the column can hold
-const ProjectSpentMaxLength = 14          // The number of runes the column can hold
+const ProjectNameMaxLength = 100  // The number of runes the column can hold
+const ProjectBudgetMaxLength = 14 // The number of runes the column can hold
+const ProjectSpentMaxLength = 14  // The number of runes the column can hold
 
 // Initialize or re-initialize a Project database object to default values.
 // The primary key will get a temporary negative number which will be replaced when the object is saved.
@@ -490,9 +489,6 @@ func (o *projectBase) DescriptionIsNull() bool {
 
 // SetDescription sets the value of Description in the object, to be saved later in the database using the Save() function.
 func (o *projectBase) SetDescription(v string) {
-	if utf8.RuneCountInString(v) > ProjectDescriptionMaxLength {
-		panic("attempted to set Project.Description to a value larger than its maximum length in runes")
-	}
 	if o._restored &&
 		o.descriptionIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.descriptionIsNull && // if the db value is null, force a set of value

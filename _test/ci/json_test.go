@@ -92,7 +92,7 @@ func TestJsonMarshall3(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, r.TestInt(), r2.TestInt())
-	assert.Equal(t, string(r.TestBlob()), string(r2.TestBlob()))
+	assert.Equal(t, string(r.TestUnlimitedBytes()), string(r2.TestUnlimitedBytes()))
 }
 
 func TestJsonMarshallReferences(t *testing.T) {

@@ -13,6 +13,8 @@ type ValueNode struct {
 	value interface{}
 }
 
+type interface
+
 // Value is a shortcut for converting a constant value to a node
 func Value(i interface{}) Node {
 	return NewValueNode(i)
@@ -20,6 +22,7 @@ func Value(i interface{}) Node {
 
 // NewValueNode returns a new ValueNode that wraps the given value.
 func NewValueNode(i interface{}) Node {
+
 	n := &ValueNode{
 		value: i,
 	}
@@ -47,25 +50,9 @@ func NewValueNode(i interface{}) Node {
 		val := reflect.ValueOf(v)
 
 		switch k {
-		case reflect.Int:
-			fallthrough
-		case reflect.Int8:
-			fallthrough
-		case reflect.Int16:
-			fallthrough
-		case reflect.Int32:
-			fallthrough
-		case reflect.Int64:
+		case reflect.Int,reflect.Int8,reflect.Int16,reflect.Int32,reflect.Int64:
 			n.value = int(val.Int())
-		case reflect.Uint:
-			fallthrough
-		case reflect.Uint8:
-			fallthrough
-		case reflect.Uint16:
-			fallthrough
-		case reflect.Uint32:
-			fallthrough
-		case reflect.Uint64:
+		case reflect.Uint,reflect.Uint8,reflect.Uint16,reflect.Uint32,reflect.Uint64:
 			n.value = uint(val.Uint())
 		case reflect.Bool:
 			n.value = val.Bool()
@@ -74,9 +61,7 @@ func NewValueNode(i interface{}) Node {
 			n.value = float32(val.Float())
 		case reflect.Float64:
 			n.value = val.Float()
-		case reflect.Slice:
-			fallthrough
-		case reflect.Array:
+		case reflect.Slice,reflect.Array:
 			var ary []Node
 			for i2 := 0; i2 < val.Len(); i2++ {
 				// TODO: Handle QueryNode's here too? Prevent more than one level deep?

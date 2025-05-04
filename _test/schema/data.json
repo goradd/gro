@@ -18,105 +18,129 @@
 ],
 ["person",
 [{
+  "created": "2025-04-03T01:44:04Z",
   "firstName": "John",
   "id": "1",
   "lastName": "Doe",
+  "modified": null,
   "types": [
-    2,
-    3
+    "manager",
+    "inactive"
   ]
 }
 ,
 {
+  "created": "2025-04-03T01:44:04Z",
   "firstName": "Kendall",
   "id": "2",
   "lastName": "Public",
+  "modified": null,
   "types": [
-    4,
-    5
+    "company_car",
+    "works_from_home"
   ]
 }
 ,
 {
+  "created": "2025-04-03T01:44:04Z",
   "firstName": "Ben",
   "id": "3",
   "lastName": "Robinson",
+  "modified": null,
   "types": [
-    1,
-    2,
-    3
+    "contractor",
+    "manager",
+    "inactive"
   ]
 }
 ,
 {
+  "created": "2025-04-03T01:44:04Z",
   "firstName": "Mike",
   "id": "4",
   "lastName": "Ho",
+  "modified": null,
   "types": null
 }
 ,
 {
+  "created": "2025-04-03T01:44:04Z",
   "firstName": "Alex",
   "id": "5",
   "lastName": "Smith",
+  "modified": null,
   "types": [
-    5
+    "works_from_home"
   ]
 }
 ,
 {
+  "created": "2025-04-03T01:44:04Z",
   "firstName": "Wendy",
   "id": "6",
   "lastName": "Smith",
+  "modified": null,
   "types": null
 }
 ,
 {
+  "created": "2025-04-03T01:44:04Z",
   "firstName": "Karen",
   "id": "7",
   "lastName": "Wolfe",
+  "modified": "2025-04-21T16:47:52Z",
   "types": [
-    2,
-    4
+    "manager",
+    "company_car"
   ]
 }
 ,
 {
+  "created": "2025-04-03T01:44:04Z",
   "firstName": "Samantha",
   "id": "8",
   "lastName": "Jones",
+  "modified": null,
   "types": null
 }
 ,
 {
+  "created": "2025-04-03T01:44:04Z",
   "firstName": "Linda",
   "id": "9",
   "lastName": "Brady",
+  "modified": null,
   "types": [
-    3
+    "inactive"
   ]
 }
 ,
 {
+  "created": "2025-04-03T01:44:04Z",
   "firstName": "Jennifer",
   "id": "10",
   "lastName": "Smith",
+  "modified": null,
   "types": [
-    1
+    "contractor"
   ]
 }
 ,
 {
+  "created": "2025-04-03T01:44:04Z",
   "firstName": "Brett",
   "id": "11",
   "lastName": "Carlisle",
+  "modified": "2025-04-21T16:47:52Z",
   "types": null
 }
 ,
 {
+  "created": "2025-04-03T01:44:04Z",
   "firstName": "Jacob",
   "id": "12",
   "lastName": "Pratt",
+  "modified": null,
   "types": null
 }
 ]
@@ -231,7 +255,7 @@
   "parentProjectID": null,
   "spent": "10250.75",
   "startDate": "2004-03-01T00:00:00Z",
-  "status": 3
+  "status": "completed"
 }
 ,
 {
@@ -245,7 +269,7 @@
   "parentProjectID": null,
   "spent": "73200.00",
   "startDate": "2006-02-15T00:00:00Z",
-  "status": 1
+  "status": "open"
 }
 ,
 {
@@ -259,7 +283,7 @@
   "parentProjectID": null,
   "spent": "4200.50",
   "startDate": "2006-03-01T00:00:00Z",
-  "status": 1
+  "status": "open"
 }
 ,
 {
@@ -273,7 +297,7 @@
   "parentProjectID": null,
   "spent": "5175.30",
   "startDate": "2005-08-15T00:00:00Z",
-  "status": 2
+  "status": "cancelled"
 }
 ]
 ],
@@ -322,7 +346,12 @@
 ]
 ],
 ["employee_info",
-[]
+[{
+  "employeeNumber": 123,
+  "id": "1",
+  "personID": "7"
+}
+]
 ],
 ["login",
 [{
@@ -430,6 +459,11 @@
 ]
 ,
 ["related_project_assn",[{
+  "child_id": "1",
+  "parent_id": "4"
+}
+,
+{
   "child_id": "3",
   "parent_id": "1"
 }
@@ -438,64 +472,14 @@
   "child_id": "4",
   "parent_id": "1"
 }
-,
-{
-  "child_id": "1",
-  "parent_id": "4"
-}
 ]],
 ["team_member_project_assn",[{
-  "project_id": "3",
-  "team_member_id": "1"
-}
-,
-{
-  "project_id": "4",
-  "team_member_id": "1"
-}
-,
-{
   "project_id": "1",
   "team_member_id": "2"
 }
 ,
 {
-  "project_id": "2",
-  "team_member_id": "2"
-}
-,
-{
-  "project_id": "4",
-  "team_member_id": "2"
-}
-,
-{
-  "project_id": "4",
-  "team_member_id": "3"
-}
-,
-{
-  "project_id": "2",
-  "team_member_id": "4"
-}
-,
-{
-  "project_id": "3",
-  "team_member_id": "4"
-}
-,
-{
   "project_id": "1",
-  "team_member_id": "5"
-}
-,
-{
-  "project_id": "2",
-  "team_member_id": "5"
-}
-,
-{
-  "project_id": "4",
   "team_member_id": "5"
 }
 ,
@@ -505,33 +489,33 @@
 }
 ,
 {
-  "project_id": "3",
-  "team_member_id": "6"
+  "project_id": "1",
+  "team_member_id": "7"
 }
 ,
 {
   "project_id": "1",
-  "team_member_id": "7"
+  "team_member_id": "8"
+}
+,
+{
+  "project_id": "2",
+  "team_member_id": "2"
+}
+,
+{
+  "project_id": "2",
+  "team_member_id": "4"
+}
+,
+{
+  "project_id": "2",
+  "team_member_id": "5"
 }
 ,
 {
   "project_id": "2",
   "team_member_id": "7"
-}
-,
-{
-  "project_id": "1",
-  "team_member_id": "8"
-}
-,
-{
-  "project_id": "3",
-  "team_member_id": "8"
-}
-,
-{
-  "project_id": "4",
-  "team_member_id": "8"
 }
 ,
 {
@@ -546,7 +530,52 @@
 ,
 {
   "project_id": "3",
+  "team_member_id": "1"
+}
+,
+{
+  "project_id": "3",
+  "team_member_id": "4"
+}
+,
+{
+  "project_id": "3",
+  "team_member_id": "6"
+}
+,
+{
+  "project_id": "3",
+  "team_member_id": "8"
+}
+,
+{
+  "project_id": "3",
   "team_member_id": "10"
+}
+,
+{
+  "project_id": "4",
+  "team_member_id": "1"
+}
+,
+{
+  "project_id": "4",
+  "team_member_id": "2"
+}
+,
+{
+  "project_id": "4",
+  "team_member_id": "3"
+}
+,
+{
+  "project_id": "4",
+  "team_member_id": "5"
+}
+,
+{
+  "project_id": "4",
+  "team_member_id": "8"
 }
 ,
 {

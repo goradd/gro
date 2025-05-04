@@ -32,6 +32,8 @@ func initMysql() {
 	cfg.DBName = goraddDatabaseName
 	cfg.User = defaultUser
 	cfg.Passwd = defaultPassword
+	cfg.Net = "tcp"
+	cfg.Addr = "127.0.0.1:3307"
 
 	database, err := mysql2.NewDB(goraddKey, "", cfg)
 	if err != nil {

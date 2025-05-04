@@ -102,13 +102,13 @@ func (e ProjectStatus) Label() string {
 	case 0:
 		return ""
 	case ProjectStatusOpen:
-		return "open"
+		return "Open"
 	case ProjectStatusCancelled:
-		return "cancelled"
+		return "Cancelled"
 	case ProjectStatusCompleted:
-		return "completed"
+		return "Completed"
 	case ProjectStatusPlanned:
-		return "planned"
+		return "Planned"
 	default:
 		panic("Index out of range")
 	}
@@ -118,10 +118,10 @@ func (e ProjectStatus) Label() string {
 // doc: type=ProjectStatus
 func ProjectStatusLabels() []string {
 	return []string{
-		"open",
-		"cancelled",
-		"completed",
-		"planned",
+		"Open",
+		"Cancelled",
+		"Completed",
+		"Planned",
 	}
 }
 

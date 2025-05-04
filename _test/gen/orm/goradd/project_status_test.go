@@ -19,10 +19,10 @@ func TestProjectStatus_String(t *testing.T) {
 }
 
 func TestProjectStatus_Label(t *testing.T) {
-	assert.Equal(t, ProjectStatusOpen.Label(), "open")
-	assert.Equal(t, ProjectStatusCancelled.Label(), "cancelled")
-	assert.Equal(t, ProjectStatusCompleted.Label(), "completed")
-	assert.Equal(t, ProjectStatusPlanned.Label(), "planned")
+	assert.Equal(t, ProjectStatusOpen.Label(), "Open")
+	assert.Equal(t, ProjectStatusCancelled.Label(), "Cancelled")
+	assert.Equal(t, ProjectStatusCompleted.Label(), "Completed")
+	assert.Equal(t, ProjectStatusPlanned.Label(), "Planned")
 	assert.Zero(t, ProjectStatus(0).Label())
 	assert.Panics(t, func() {
 		ProjectStatus(-1).Label()
