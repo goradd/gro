@@ -15,53 +15,53 @@ func TestReverse(t *testing.T) {
 	defer goradd_unit.ClearAll(ctx)
 
 	// Insert-insert
-	r := goradd_unit.NewRootN()
-	l := goradd_unit.NewLeafN()
+	r := goradd_unit.NewRoot()
+	l := goradd_unit.NewLeaf()
 	r.SetName("root")
 	l.SetName("leaf")
-	r.SetLeafNs(l)
+	r.SetLeafs(l)
 	err := r.Save(ctx)
 	require.NoError(t, err)
 
-	var r2 *goradd_unit.RootN
-	r2, err = goradd_unit.LoadRootN(ctx, r.ID(), node.RootN().LeafNs())
+	var r2 *goradd_unit.Root
+	r2, err = goradd_unit.LoadRoot(ctx, r.ID(), node.Root().Leafs())
 	require.NoError(t, err)
 	assert.Equal(t, "root", r2.Name())
-	assert.Equal(t, "leaf", r2.LeafNs()[0].Name())
+	assert.Equal(t, "leaf", r2.Leafs()[0].Name())
 
 	// Update-update
 	r.SetName("root2")
-	r.LeafNs()[0].SetName("leaf2")
+	r.Leafs()[0].SetName("leaf2")
 	err = r.Save(ctx)
 	assert.NoError(t, err)
-	r2, err = goradd_unit.LoadRootN(ctx, r.ID(), node.RootN().LeafNs())
+	r2, err = goradd_unit.LoadRoot(ctx, r.ID(), node.Root().Leafs())
 	require.NoError(t, err)
 	assert.Equal(t, "root2", r2.Name())
-	assert.Equal(t, "leaf2", r2.LeafNs()[0].Name())
+	assert.Equal(t, "leaf2", r2.Leafs()[0].Name())
 
 	// Insert-update
-	r3 := goradd_unit.NewRootN()
+	r3 := goradd_unit.NewRoot()
 	r3.SetName("root3")
 	l.SetName("leaf3")
-	r3.SetLeafNs(l)
+	r3.SetLeafs(l)
 	err = r3.Save(ctx)
 	require.NoError(t, err)
-	r2, err = goradd_unit.LoadRootN(ctx, r3.ID(), node.RootN().LeafNs())
+	r2, err = goradd_unit.LoadRoot(ctx, r3.ID(), node.Root().Leafs())
 	require.NoError(t, err)
 	assert.Equal(t, "root3", r2.Name())
-	assert.Equal(t, "leaf3", r2.LeafNs()[0].Name())
+	assert.Equal(t, "leaf3", r2.Leafs()[0].Name())
 
 	// Update-insert
-	l4 := goradd_unit.NewLeafN()
+	l4 := goradd_unit.NewLeaf()
 	r.SetName("root4")
 	l4.SetName("leaf4")
-	r.SetLeafNs(l4)
+	r.SetLeafs(l4)
 	err = r.Save(ctx)
 	require.NoError(t, err)
-	r2, err = goradd_unit.LoadRootN(ctx, r.ID(), node.RootN().LeafNs())
+	r2, err = goradd_unit.LoadRoot(ctx, r.ID(), node.Root().Leafs())
 	require.NoError(t, err)
 	assert.Equal(t, "root4", r2.Name())
-	assert.Equal(t, "leaf4", r2.LeafNs()[0].Name())
+	assert.Equal(t, "leaf4", r2.Leafs()[0].Name())
 
 }
 
@@ -70,25 +70,25 @@ func TestReverseCollision(t *testing.T) {
 	ctx := db.NewContext(nil)
 	defer goradd_unit.ClearAll(ctx)
 
-	r := goradd_unit.NewRootN()
-	l := goradd_unit.NewLeafN()
+	r := goradd_unit.NewRoot()
+	l := goradd_unit.NewLeaf()
 	r.SetName("root")
 	l.SetName("leaf")
-	r.SetLeafNs(l)
+	r.SetLeafs(l)
 	err := r.Save(ctx)
 	require.NoError(t, err)
 
-	var r2 *goradd_unit.RootN
-	r2, err = goradd_unit.LoadRootN(ctx, r.ID(), node.RootN().LeafNs())
+	var r2 *goradd_unit.Root
+	r2, err = goradd_unit.LoadRoot(ctx, r.ID(), node.Root().Leafs())
 	require.NoError(t, err)
 
 	// Update first
 	r.SetName("root2")
-	r.LeafNs()[0].SetName("leaf2")
+	r.Leafs()[0].SetName("leaf2")
 
 	// Update second
 	r2.SetName("root3")
-	r2.LeafNs()[0].SetName("leaf3")
+	r2.Leafs()[0].SetName("leaf3")
 
 	// save first then second
 	err = r.Save(ctx)
@@ -97,58 +97,51 @@ func TestReverseCollision(t *testing.T) {
 	assert.NoError(t, err2)
 
 	// Last save should win
-	r3, err3 := goradd_unit.LoadRootN(ctx, r.ID(), node.RootN().LeafNs())
+	r3, err3 := goradd_unit.LoadRoot(ctx, r.ID(), node.Root().Leafs())
 	assert.NoError(t, err3)
 	assert.Equal(t, "root3", r3.Name())
-	assert.Equal(t, "leaf3", r3.LeafNs()[0].Name())
+	assert.Equal(t, "leaf3", r3.Leafs()[0].Name())
 }
 
 func TestReverseNull(t *testing.T) {
 	ctx := db.NewContext(nil)
 	defer goradd_unit.ClearAll(ctx)
 
-	r := goradd_unit.NewRootN()
+	r := goradd_unit.NewRoot()
 	r.SetName("root")
-	l := goradd_unit.NewLeafN()
+	l := goradd_unit.NewLeaf()
 	l.SetName("leaf")
-	r.SetLeafNs(l)
+	r.SetLeafs(l)
 	require.NoError(t, r.Save(ctx))
 
-	r.SetLeafNs()
+	r.SetLeafs()
 	require.NoError(t, r.Save(ctx))
 
-	r2, err := goradd_unit.LoadRootN(ctx, r.ID(), node.RootN().LeafNs())
+	r2, err := goradd_unit.LoadRoot(ctx, r.ID(), node.Root().Leafs())
 	require.NoError(t, err)
-	assert.Len(t, r2.LeafNs(), 0)
+	assert.Len(t, r2.Leafs(), 0)
 
-	l2, err := goradd_unit.LoadLeafN(ctx, l.ID())
+	l2, err := goradd_unit.LoadLeaf(ctx, l.ID())
 	require.NoError(t, err)
-	require.NotNil(t, l2)     // reverse linked item that could  have a nil pointer was retained
-	assert.Nil(t, l2.RootN()) // old reference was updated to nil
+	assert.Nil(t, l2) // reverse linked item that could not have a nil pointer was deleted
 }
 
 func TestReverseTwo(t *testing.T) {
 	ctx := db.NewContext(nil)
 	defer goradd_unit.ClearAll(ctx)
-	r := goradd_unit.NewRootN()
-	l := goradd_unit.NewLeafN()
+	r := goradd_unit.NewRoot()
+	l := goradd_unit.NewLeaf()
 	r.SetName("root")
 	l.SetName("leaf")
-	r.SetLeafNs(l)
+	r.SetLeafs(l)
 	require.NoError(t, r.Save(ctx))
 
-	l2 := goradd_unit.NewLeafN()
+	l2 := goradd_unit.NewLeaf()
 	l2.SetName("leaf2")
-	r.SetLeafNs(l, l2)
+	r.SetLeafs(l, l2)
 	require.NoError(t, r.Save(ctx))
 
-	r2, err := goradd_unit.LoadRootN(ctx, r.ID(), node.RootN().LeafNs())
+	r2, err := goradd_unit.LoadRoot(ctx, r.ID(), node.Root().Leafs())
 	require.NoError(t, err)
-	assert.Len(t, r2.LeafNs(), 2)
-
-	r.SetLeafNs()
-	require.NoError(t, r.Save(ctx))
-	r2, err = goradd_unit.LoadRootN(ctx, r.ID(), node.RootN().LeafNs())
-	require.NoError(t, err)
-	assert.Len(t, r2.LeafNs(), 0)
+	assert.Len(t, r2.Leafs(), 2)
 }
