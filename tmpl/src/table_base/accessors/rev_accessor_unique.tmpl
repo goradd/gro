@@ -39,7 +39,7 @@ func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.ReverseIdentifier() }}(ctx
 {{else}}
 // WARNING! Since this is a non-nullable unique relationship,
 // if a different {{= rev.Table.Identifier }} object is currently pointing to this {{= table.Identifier }},
-// Save() will panic. You should delete that object first.
+// it will be deleted. Pass nil to just delete the old object.
 {{if}}
 func (o *{{= table.DecapIdentifier}}Base) Set{{= rev.ReverseIdentifier() }}(obj *{{= rev.Table.Identifier }}) {
     if o.{{= rev.ReverseVariableIdentifier() }} != nil && o.{{= rev.ReverseVariableIdentifier() }}.IsDirty() {

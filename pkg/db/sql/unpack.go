@@ -113,13 +113,14 @@ func (u *unpacker) unpackObjectArray(el *jointree.Element, row db.ValueMap, resu
 		result.Set(key, obj)
 	}
 	u.unpackObject(el, row, obj)
-
 }
 
 // unpackObject adds data from row corresponding to element to the data in object.
 // object may already have data in it, in which case the row will have repeated data, and we are here to
 // find a sub-object that is not repeated.
-func (u *unpacker) unpackObject(el *jointree.Element, row db.ValueMap, object db.ValueMap) {
+// isNullObject will be true if we are attempting to unpack a non-aggregated object that has a nil key, which might
+// happen if a join failed to find an object. This indicates that the calling function should not add the object.
+func (u *unpacker) unpackObject(el *jointree.Element, row db.ValueMap, object db.ValueMap) (isNullObject bool) {
 	var isNew bool
 
 	if len(object) == 0 {
@@ -144,30 +145,48 @@ func (u *unpacker) unpackObject(el *jointree.Element, row db.ValueMap, object db
 			var childItem db.ValueMap
 			if i != nil {
 				childItem = i.(db.ValueMap)
+				u.unpackObject(childElement, row, childItem)
 			} else {
 				childItem = db.NewValueMap()
-				object[key] = childItem
+				isNullObject := u.unpackObject(childElement, row, childItem)
+				if !isNullObject {
+					object[key] = childItem
+				}
 			}
-			u.unpackObject(childElement, row, childItem)
 		}
 	}
 	if isNew {
 		for leafItem := range el.SelectedColumns.All() {
-			u.unpackLeaf(leafItem, row, object)
+			foundNullKey := u.unpackLeaf(leafItem, row, object)
+			if foundNullKey {
+				return true
+			}
 		}
 		u.unpackCalculationAliases(el.Calculations, row, object)
 	}
 	return
 }
 
-func (u *unpacker) unpackLeaf(j *jointree.Element, row db.ValueMap, obj db.ValueMap) {
+// unpackLeaf unpacks a column.
+// isNullKey indicates that we found a null item for the key of an object, which would happen if a join failed to
+// to find an object. We report back so that an empty object will not be attached to the main object. This does not
+// happen on aggregates, since aggregates will have null keys for the purpose of containing the aliased aggregate values.
+func (u *unpacker) unpackLeaf(j *jointree.Element, row db.ValueMap, obj db.ValueMap) (isNullKey bool) {
 	if node, ok := j.QueryNode.(*query.ColumnNode); ok {
 		key := j.Alias
+
+		if node.IsPrimaryKey &&
+			!u.jt.HasAggregates() &&
+			row[key] == nil {
+			return true
+		}
+
 		fieldName := node.QueryName
 		obj[fieldName] = row[key]
 	} else {
 		panic("Unexpected node type.") // this is a framework error, should not happen
 	}
+	return
 }
 
 // makeObjectKey makes a key for the element, such that when multiple rows for the same top object are

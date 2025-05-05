@@ -11,11 +11,15 @@
                           Get(); err != nil {
                         return err
                     } else if oldObj != nil {
-                        if o.{{= col.ReverseVariableIdentifier() }} != nil && oldObj.PrimaryKey() != o.{{= col.ReverseVariableIdentifier() }}.PrimaryKey() {
-                            panic(fmt.Sprintf("error: %s is referencing the object being saved. Since this is a unique, non-null reference, you must delete the referencing object before saving the new object.", oldObj))
+                        if o.{{= col.ReverseVariableIdentifier() }} == nil || oldObj.PrimaryKey() != o.{{= col.ReverseVariableIdentifier() }}.PrimaryKey() {
+                            // Delete the old object
+                            err = oldObj.Delete(ctx)
+                            if err != nil {
+                                return err
+                            }
                         }
                     }
-                    // we are moving the attachment from one place, to our object, or attaching an object that is already attached.
+                    // we are moving the attachment from another object to our object, or attaching an object that is already attached.
                     if o.{{= col.ReverseVariableIdentifier() }} != nil {
                         o.{{= col.ReverseVariableIdentifier() }}.Set{{= col.Identifier }}(o.PrimaryKey())
                         if err := o.{{= col.ReverseVariableIdentifier() }}.Save(ctx); err != nil {

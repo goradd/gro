@@ -210,7 +210,7 @@ func (o *rootUBase) LoadLeafU(ctx context.Context) (*LeafU, error) {
 // The association is temporary until you call Save().
 // WARNING! Since this is a non-nullable unique relationship,
 // if a different LeafU object is currently pointing to this RootU,
-// Save() will panic. You should delete that object first.
+// it will be deleted. Pass nil to just delete the old object.
 func (o *rootUBase) SetLeafU(obj *LeafU) {
 	if o.revLeafU != nil && o.revLeafU.IsDirty() {
 		panic("The LeafU has changed. You must save it first before changing to a different one.")
@@ -617,11 +617,15 @@ func (o *rootUBase) update(ctx context.Context) error {
 				Get(); err != nil {
 				return err
 			} else if oldObj != nil {
-				if o.revLeafU != nil && oldObj.PrimaryKey() != o.revLeafU.PrimaryKey() {
-					panic(fmt.Sprintf("error: %s is referencing the object being saved. Since this is a unique, non-null reference, you must delete the referencing object before saving the new object.", oldObj))
+				if o.revLeafU == nil || oldObj.PrimaryKey() != o.revLeafU.PrimaryKey() {
+					// Delete the old object
+					err = oldObj.Delete(ctx)
+					if err != nil {
+						return err
+					}
 				}
 			}
-			// we are moving the attachment from one place, to our object, or attaching an object that is already attached.
+			// we are moving the attachment from another object to our object, or attaching an object that is already attached.
 			if o.revLeafU != nil {
 				o.revLeafU.SetRootUID(o.PrimaryKey())
 				if err := o.revLeafU.Save(ctx); err != nil {

@@ -4324,7 +4324,7 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `,
-// Save() will panic. You should delete that object first.
+// it will be deleted. Pass nil to just delete the old object.
 `); err != nil {
 					return
 				}
@@ -8649,7 +8649,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, ` != nil && oldObj.PrimaryKey() != o.`); err != nil {
+				if _, err = io.WriteString(_w, ` == nil || oldObj.PrimaryKey() != o.`); err != nil {
 					return
 				}
 
@@ -8658,10 +8658,14 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `.PrimaryKey() {
-                            panic(fmt.Sprintf("error: %s is referencing the object being saved. Since this is a unique, non-null reference, you must delete the referencing object before saving the new object.", oldObj))
+                            // Delete the old object
+                            err = oldObj.Delete(ctx)
+                            if err != nil {
+                                return err
+                            }
                         }
                     }
-                    // we are moving the attachment from one place, to our object, or attaching an object that is already attached.
+                    // we are moving the attachment from another object to our object, or attaching an object that is already attached.
                     if o.`); err != nil {
 					return
 				}

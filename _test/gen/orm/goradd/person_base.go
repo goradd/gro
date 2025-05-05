@@ -613,7 +613,7 @@ func (o *personBase) LoadEmployeeInfo(ctx context.Context) (*EmployeeInfo, error
 // The association is temporary until you call Save().
 // WARNING! Since this is a non-nullable unique relationship,
 // if a different EmployeeInfo object is currently pointing to this Person,
-// Save() will panic. You should delete that object first.
+// it will be deleted. Pass nil to just delete the old object.
 func (o *personBase) SetEmployeeInfo(obj *EmployeeInfo) {
 	if o.revEmployeeInfo != nil && o.revEmployeeInfo.IsDirty() {
 		panic("The EmployeeInfo has changed. You must save it first before changing to a different one.")
@@ -1311,11 +1311,15 @@ func (o *personBase) update(ctx context.Context) error {
 				Get(); err != nil {
 				return err
 			} else if oldObj != nil {
-				if o.revEmployeeInfo != nil && oldObj.PrimaryKey() != o.revEmployeeInfo.PrimaryKey() {
-					panic(fmt.Sprintf("error: %s is referencing the object being saved. Since this is a unique, non-null reference, you must delete the referencing object before saving the new object.", oldObj))
+				if o.revEmployeeInfo == nil || oldObj.PrimaryKey() != o.revEmployeeInfo.PrimaryKey() {
+					// Delete the old object
+					err = oldObj.Delete(ctx)
+					if err != nil {
+						return err
+					}
 				}
 			}
-			// we are moving the attachment from one place, to our object, or attaching an object that is already attached.
+			// we are moving the attachment from another object to our object, or attaching an object that is already attached.
 			if o.revEmployeeInfo != nil {
 				o.revEmployeeInfo.SetPersonID(o.PrimaryKey())
 				if err := o.revEmployeeInfo.Save(ctx); err != nil {
