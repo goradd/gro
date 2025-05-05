@@ -696,6 +696,7 @@ func (o *rootNlBase) update(ctx context.Context) error {
 			if currentObjs, err := QueryLeafNls(ctx).
 				Where(op.Equal(node.LeafNl().RootNlID(), o.PrimaryKey())).
 				Select(node.LeafNl().RootNlID()).
+				Select(node.LeafNl().GroLock()).
 				Load(); err != nil {
 				return err
 			} else {

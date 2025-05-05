@@ -8,7 +8,10 @@
                     if oldObj, err := Query{{= col.Table.IdentifierPlural }}(ctx).
                           Where(op.Equal(node.{{= col.Table.Identifier}}().{{= col.Identifier }}(), o.PrimaryKey())).
                           Select(node.{{= col.Table.Identifier }}().{{= col.Identifier }}()).
-                          Get(); err != nil {
+{{if col.Table.LockColumn() != nil }}
+                          Select(node.{{= col.Table.Identifier }}().{{= col.Table.LockColumn().Identifier }}()).
+{{if}}
+                         Get(); err != nil {
                         return err
                     } else if oldObj != nil {
                         if o.{{= col.ReverseVariableIdentifier() }} == nil || oldObj.PrimaryKey() != o.{{= col.ReverseVariableIdentifier() }}.PrimaryKey() {

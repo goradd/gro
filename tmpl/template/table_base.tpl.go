@@ -4290,7 +4290,7 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, ` in the first place, used a conditional join,
-// or joined with an expansion, be particularly careful, since you may be inadvertently  changing an item
+// or joined with an expansion, be particularly careful, since you may be inadvertently changing an item
 // that is not currently attached to this `); err != nil {
 					return
 				}
@@ -8326,9 +8326,58 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `(), o.PrimaryKey())).
-                        Get(); err != nil {
+                        Select(node.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Table.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `().`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `()).
+ `); err != nil {
+					return
+				}
+
+				if col.Table.LockColumn() != nil {
+
+					if _, err = io.WriteString(_w, `
+                        Select(node.`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Table.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `().`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Table.LockColumn().Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `()).
+ `); err != nil {
+						return
+					}
+
+				}
+
+				if _, err = io.WriteString(_w, `
+                       Get(); err != nil {
                     return err
-                } else if obj != nil && obj.PrimaryKey() != o.`); err != nil {
+                } else if obj != nil &&
+                    (o.`); err != nil {
 					return
 				}
 
@@ -8336,7 +8385,17 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `.PrimaryKey() {
+				if _, err = io.WriteString(_w, ` == nil ||
+                    obj.PrimaryKey() != o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `.PrimaryKey()) {
+
                     obj.Set`); err != nil {
 					return
 				}
@@ -8350,7 +8409,17 @@ func (o *`); err != nil {
                         return err
                     }
                 }
-                o.`); err != nil {
+
+                if o.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ` != nil {
+                    o.`); err != nil {
 					return
 				}
 
@@ -8367,7 +8436,7 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `IsDirty = true // force a change in case data is stale
-                o.`); err != nil {
+                    o.`); err != nil {
 					return
 				}
 
@@ -8384,7 +8453,7 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `(o.PrimaryKey())
-                if err := o.`); err != nil {
+                    if err := o.`); err != nil {
 					return
 				}
 
@@ -8393,7 +8462,8 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `.Save(ctx); err != nil {
-                    return err
+                        return err
+                    }
                 }
 
 `); err != nil {
@@ -8461,7 +8531,36 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `()).
-                          Load(); err != nil {
+`); err != nil {
+					return
+				}
+
+				if col.Table.LockColumn() != nil {
+
+					if _, err = io.WriteString(_w, `                          Select(node.`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Table.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `().`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Table.LockColumn().Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `()).
+`); err != nil {
+						return
+					}
+
+				}
+
+				if _, err = io.WriteString(_w, `                          Load(); err != nil {
                     return err
                 } else {
                     for _,obj := range currentObjs {
@@ -8638,7 +8737,36 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `()).
-                          Get(); err != nil {
+`); err != nil {
+					return
+				}
+
+				if col.Table.LockColumn() != nil {
+
+					if _, err = io.WriteString(_w, `                          Select(node.`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Table.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `().`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Table.LockColumn().Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `()).
+`); err != nil {
+						return
+					}
+
+				}
+
+				if _, err = io.WriteString(_w, `                         Get(); err != nil {
                         return err
                     } else if oldObj != nil {
                         if o.`); err != nil {
@@ -8736,7 +8864,7 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `(ctx).
-                               Where(op.Equal(node.`); err != nil {
+                                Where(op.Equal(node.`); err != nil {
 					return
 				}
 
@@ -8753,7 +8881,7 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `(), o.PrimaryKey())).
-                               Select(node.`); err != nil {
+                                Select(node.`); err != nil {
 					return
 				}
 
@@ -8770,7 +8898,36 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `()).
-                               Load(); err != nil {
+`); err != nil {
+					return
+				}
+
+				if col.Table.LockColumn() != nil {
+
+					if _, err = io.WriteString(_w, `                                Select(node.`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Table.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `().`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Table.LockColumn().Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `()).
+`); err != nil {
+						return
+					}
+
+				}
+
+				if _, err = io.WriteString(_w, `                                Load(); err != nil {
                         return err
                     } else {
                         for _,obj := range oldObjs {

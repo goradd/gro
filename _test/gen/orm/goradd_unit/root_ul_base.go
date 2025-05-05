@@ -656,6 +656,7 @@ func (o *rootUlBase) update(ctx context.Context) error {
 			if oldObj, err := QueryLeafUls(ctx).
 				Where(op.Equal(node.LeafUl().RootUlID(), o.PrimaryKey())).
 				Select(node.LeafUl().RootUlID()).
+				Select(node.LeafUl().GroLock()).
 				Get(); err != nil {
 				return err
 			} else if oldObj != nil {

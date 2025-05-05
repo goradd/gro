@@ -652,7 +652,7 @@ func (o *personBase) LoadLogin(ctx context.Context) (*Login, error) {
 // Since this is a unique relationship, if a different Login object is currently pointing to this Person,
 // that Login's PersonID value will be set to null when Save is called.
 // If you did not use a join to query the attached Login in the first place, used a conditional join,
-// or joined with an expansion, be particularly careful, since you may be inadvertently  changing an item
+// or joined with an expansion, be particularly careful, since you may be inadvertently changing an item
 // that is not currently attached to this Person.
 func (o *personBase) SetLogin(obj *Login) {
 	if o.revLogin != nil && o.revLogin.IsDirty() {
@@ -1341,18 +1341,25 @@ func (o *personBase) update(ctx context.Context) error {
 
 			if obj, err := QueryLogins(ctx).
 				Where(op.Equal(node.Login().PersonID(), o.PrimaryKey())).
+				Select(node.Login().PersonID()).
 				Get(); err != nil {
 				return err
-			} else if obj != nil && obj.PrimaryKey() != o.revLogin.PrimaryKey() {
+			} else if obj != nil &&
+				(o.revLogin == nil ||
+					obj.PrimaryKey() != o.revLogin.PrimaryKey()) {
+
 				obj.SetPersonIDToNull()
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
 			}
-			o.revLogin.personIDIsDirty = true // force a change in case data is stale
-			o.revLogin.SetPersonID(o.PrimaryKey())
-			if err := o.revLogin.Save(ctx); err != nil {
-				return err
+
+			if o.revLogin != nil {
+				o.revLogin.personIDIsDirty = true // force a change in case data is stale
+				o.revLogin.SetPersonID(o.PrimaryKey())
+				if err := o.revLogin.Save(ctx); err != nil {
+					return err
+				}
 			}
 
 		} else {

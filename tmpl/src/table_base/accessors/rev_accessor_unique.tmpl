@@ -34,7 +34,7 @@ func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.ReverseIdentifier() }}(ctx
 // Since this is a unique relationship, if a different {{= rev.Table.Identifier }} object is currently pointing to this {{= table.Identifier }},
 // that {{= rev.Table.Identifier }}'s {{= rev.Identifier }} value will be set to null when Save is called.
 // If you did not use a join to query the attached {{= rev.Table.Identifier }} in the first place, used a conditional join,
-// or joined with an expansion, be particularly careful, since you may be inadvertently  changing an item
+// or joined with an expansion, be particularly careful, since you may be inadvertently changing an item
 // that is not currently attached to this {{table.Identifier}}.
 {{else}}
 // WARNING! Since this is a non-nullable unique relationship,

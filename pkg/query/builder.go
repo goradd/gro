@@ -149,7 +149,8 @@ func (b *Builder) Limit(maxRowCount int, offset int) {
 	b.Limits.Offset = offset
 }
 
-// Select specifies what specific columns will be loaded with data.
+// Select will add columns to the group of columns that will appear in the result.
+// Multiple calls to Select will add to the selected columns.
 // By default, all the columns of the root table will be queried and loaded.
 // If columns from the root table are selected, that will limit the columns queried and loaded to only those columns.
 // If related tables are specified, then all the columns from those tables are queried, selected and joined to the root.

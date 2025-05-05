@@ -5,18 +5,28 @@
 {{
                 if obj, err := Query{{= col.Table.IdentifierPlural }}(ctx).
                         Where(op.Equal(node.{{= col.Table.Identifier }}().{{= col.Identifier }}(), o.PrimaryKey())).
-                        Get(); err != nil {
+                        Select(node.{{= col.Table.Identifier }}().{{= col.Identifier }}()).
+ {{if col.Table.LockColumn() != nil }}
+                        Select(node.{{= col.Table.Identifier }}().{{= col.Table.LockColumn().Identifier }}()).
+ {{if}}
+                       Get(); err != nil {
                     return err
-                } else if obj != nil && obj.PrimaryKey() != o.{{= col.ReverseVariableIdentifier() }}.PrimaryKey() {
+                } else if obj != nil &&
+                    (o.{{= col.ReverseVariableIdentifier() }} == nil ||
+                    obj.PrimaryKey() != o.{{= col.ReverseVariableIdentifier() }}.PrimaryKey()) {
+
                     obj.Set{{= col.Identifier }}ToNull()
                     if err = obj.Save(ctx); err != nil {
                         return err
                     }
                 }
-                o.{{= col.ReverseVariableIdentifier() }}.{{= col.VariableIdentifier()}}IsDirty = true // force a change in case data is stale
-                o.{{= col.ReverseVariableIdentifier() }}.Set{{= col.Identifier }}(o.PrimaryKey())
-                if err := o.{{= col.ReverseVariableIdentifier() }}.Save(ctx); err != nil {
-                    return err
+
+                if o.{{= col.ReverseVariableIdentifier() }} != nil {
+                    o.{{= col.ReverseVariableIdentifier() }}.{{= col.VariableIdentifier()}}IsDirty = true // force a change in case data is stale
+                    o.{{= col.ReverseVariableIdentifier() }}.Set{{= col.Identifier }}(o.PrimaryKey())
+                    if err := o.{{= col.ReverseVariableIdentifier() }}.Save(ctx); err != nil {
+                        return err
+                    }
                 }
 
 }}

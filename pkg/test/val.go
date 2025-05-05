@@ -51,7 +51,9 @@ func RandomValue[T any](size int) T {
 		case 32:
 			v = int(rng.Uint32()) - 0x7fffffff
 		case 64:
-			v = int(rng.Int63() * int64(rng.Intn(2)*2-1))
+			v2 := rng.Int63() * int64(rng.Intn(2)*2-1)
+			v2 &^= 0xFFFF // Since we are using this to test JSON, and JSON has a 53-bit maximum, we truncate to avoid silly errors
+			v = int(v2)
 		default:
 			v = rng.Int()
 		}
@@ -73,13 +75,15 @@ func RandomValue[T any](size int) T {
 				v = uint(rng.Uint32())
 			} else {
 				v = uint(rng.Uint64())
+				v &^= 0xFFFF // Since we are using this to test JSON, and JSON has a 53-bit maximum, we truncate to avoid silly errors
 			}
 		}
 		i = v
 	case int64:
-		i = rng.Int63() * int64(rng.Intn(2)*2-1)
+		i = (rng.Int63() * int64(rng.Intn(2)*2-1)) & 0xFFFFFFFFFFFF
+
 	case uint64:
-		i = rng.Uint64()
+		i = rng.Uint64() & 0xFFFFFFFFFFFF
 	case bool:
 		i = rng.Intn(2) == 0
 	case float64:

@@ -694,6 +694,7 @@ func (o *rootLBase) update(ctx context.Context) error {
 			if oldObjs, err := QueryLeafLs(ctx).
 				Where(op.Equal(node.LeafL().RootLID(), o.PrimaryKey())).
 				Select(node.LeafL().RootLID()).
+				Select(node.LeafL().GroLock()).
 				Load(); err != nil {
 				return err
 			} else {

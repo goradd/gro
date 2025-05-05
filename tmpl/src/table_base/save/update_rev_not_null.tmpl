@@ -5,9 +5,12 @@
 {{
                     // Since the other side of the relationship cannot be null, there cannot be objects that will be detached.
                     if oldObjs, err := Query{{= col.Table.IdentifierPlural }}(ctx).
-                               Where(op.Equal(node.{{= col.Table.Identifier }}().{{= col.Identifier }}(), o.PrimaryKey())).
-                               Select(node.{{= col.Table.Identifier }}().{{= col.Identifier }}()).
-                               Load(); err != nil {
+                                Where(op.Equal(node.{{= col.Table.Identifier }}().{{= col.Identifier }}(), o.PrimaryKey())).
+                                Select(node.{{= col.Table.Identifier }}().{{= col.Identifier }}()).
+{{if col.Table.LockColumn() != nil }}
+                                Select(node.{{= col.Table.Identifier }}().{{= col.Table.LockColumn().Identifier }}()).
+{{if}}
+                                Load(); err != nil {
                         return err
                     } else {
                         for _,obj := range oldObjs {

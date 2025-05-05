@@ -211,7 +211,7 @@ func (o *rootUnBase) LoadLeafUn(ctx context.Context) (*LeafUn, error) {
 // Since this is a unique relationship, if a different LeafUn object is currently pointing to this RootUn,
 // that LeafUn's RootUnID value will be set to null when Save is called.
 // If you did not use a join to query the attached LeafUn in the first place, used a conditional join,
-// or joined with an expansion, be particularly careful, since you may be inadvertently  changing an item
+// or joined with an expansion, be particularly careful, since you may be inadvertently changing an item
 // that is not currently attached to this RootUn.
 func (o *rootUnBase) SetLeafUn(obj *LeafUn) {
 	if o.revLeafUn != nil && o.revLeafUn.IsDirty() {
@@ -613,18 +613,25 @@ func (o *rootUnBase) update(ctx context.Context) error {
 
 			if obj, err := QueryLeafUns(ctx).
 				Where(op.Equal(node.LeafUn().RootUnID(), o.PrimaryKey())).
+				Select(node.LeafUn().RootUnID()).
 				Get(); err != nil {
 				return err
-			} else if obj != nil && obj.PrimaryKey() != o.revLeafUn.PrimaryKey() {
+			} else if obj != nil &&
+				(o.revLeafUn == nil ||
+					obj.PrimaryKey() != o.revLeafUn.PrimaryKey()) {
+
 				obj.SetRootUnIDToNull()
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
 			}
-			o.revLeafUn.rootUnIDIsDirty = true // force a change in case data is stale
-			o.revLeafUn.SetRootUnID(o.PrimaryKey())
-			if err := o.revLeafUn.Save(ctx); err != nil {
-				return err
+
+			if o.revLeafUn != nil {
+				o.revLeafUn.rootUnIDIsDirty = true // force a change in case data is stale
+				o.revLeafUn.SetRootUnID(o.PrimaryKey())
+				if err := o.revLeafUn.Save(ctx); err != nil {
+					return err
+				}
 			}
 
 		} else {

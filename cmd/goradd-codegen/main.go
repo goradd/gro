@@ -20,6 +20,7 @@ func main() {
 		panic(err)
 	}
 
+	flag.StringVar(&schemaFile, "c", "", "Path to database configuration file")
 	flag.StringVar(&schemaFile, "s", "", "Path to schema file")
 	flag.StringVar(&outdir, "o", "", "Path to output directory")
 	flag.Parse()
