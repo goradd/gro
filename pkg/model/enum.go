@@ -3,7 +3,7 @@ package model
 import (
 	"cmp"
 	"fmt"
-	. "github.com/goradd/all"
+	. "github.com/goradd/anyutil"
 	. "github.com/goradd/orm/pkg/query"
 	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"

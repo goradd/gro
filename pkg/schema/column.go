@@ -1,7 +1,7 @@
 package schema
 
 import (
-	. "github.com/goradd/all"
+	. "github.com/goradd/anyutil"
 	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
 	log2 "log/slog"

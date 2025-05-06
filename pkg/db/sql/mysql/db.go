@@ -5,7 +5,7 @@ import (
 	sqldb "database/sql"
 	"fmt"
 	"github.com/go-sql-driver/mysql"
-	"github.com/goradd/all"
+	"github.com/goradd/anyutil"
 	"github.com/goradd/orm/pkg/db"
 	sql2 "github.com/goradd/orm/pkg/db/sql"
 	. "github.com/goradd/orm/pkg/query"
@@ -127,7 +127,7 @@ func OverrideConfigSettings(config *mysql.Config, jsonContent map[string]interfa
 			config.Addr = v.(string) // Note: if you set address, you MUST set net also.
 		case "params":
 			// Convert from map[string]any to map[string]string
-			config.Params = all.StringMap(v.(map[string]interface{}))
+			config.Params = anyutil.StringMap(v.(map[string]interface{}))
 		case "collation":
 			config.Collation = v.(string)
 		case "maxAllowedPacket":
@@ -218,7 +218,7 @@ func (m *DB) SupportsForUpdate() bool {
 func (m *DB) Insert(ctx context.Context, table string, _ string, fields map[string]interface{}) (string, error) {
 	s, args := sql2.GenerateInsert(m, table, fields)
 	if r, err := m.SqlExec(ctx, s, args...); err != nil {
-		if me, ok := all.As[*mysql.MySQLError](err); ok {
+		if me, ok := anyutil.As[*mysql.MySQLError](err); ok {
 			// expected error situation to report to developer
 			if me.Number == 1062 {
 				// Since it is not possible to completely prevent a unique constraint error, except by implementing a separate
@@ -263,7 +263,7 @@ func (m *DB) Update(ctx context.Context,
 	s, args := sql2.GenerateUpdate(m, table, fields, map[string]any{pkName: pkValue})
 	_, err = m.SqlExec(ctx, s, args...)
 	if err != nil {
-		if me, ok := all.As[*mysql.MySQLError](err); ok {
+		if me, ok := anyutil.As[*mysql.MySQLError](err); ok {
 			// expected error situation to report to developer
 			if me.Number == 1062 {
 				// Since it is not possible to completely prevent a unique constraint error, except by implementing a separate

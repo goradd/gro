@@ -4,7 +4,7 @@ import (
 	"context"
 	sqldb "database/sql"
 	"fmt"
-	"github.com/goradd/all"
+	"github.com/goradd/anyutil"
 	"github.com/goradd/orm/pkg/db"
 	sql2 "github.com/goradd/orm/pkg/db/sql"
 	. "github.com/goradd/orm/pkg/query"
@@ -75,7 +75,7 @@ func OverrideConfigSettings(config *pgx.ConnConfig, jsonContent map[string]inter
 		case "port":
 			config.Port = uint16(v.(float64))
 		case "runtimeParams":
-			config.RuntimeParams = all.StringMap(v.(map[string]interface{}))
+			config.RuntimeParams = anyutil.StringMap(v.(map[string]interface{}))
 		case "kerberosServerName":
 			config.KerberosSrvName = v.(string)
 		case "kerberosSPN":
@@ -143,7 +143,7 @@ func (m *DB) Insert(ctx context.Context, table string, pkName string, fields map
 		sql += pkName
 	}
 	if rows, err := m.SqlQuery(ctx, sql, args...); err != nil {
-		if pgErr, ok := all.As[*pgconn.PgError](err); ok {
+		if pgErr, ok := anyutil.As[*pgconn.PgError](err); ok {
 			if pgErr.Code == "23505" {
 				return "", db.NewUniqueValueError(table, nil, err)
 			}
@@ -190,7 +190,7 @@ func (m *DB) Update(ctx context.Context,
 	s, args := sql2.GenerateUpdate(m, table, fields, map[string]any{pkName: pkValue})
 	_, err = m.SqlExec(ctx, s, args...)
 	if err != nil {
-		if pgErr, ok := all.As[*pgconn.PgError](err); ok {
+		if pgErr, ok := anyutil.As[*pgconn.PgError](err); ok {
 			if pgErr.Code == "23505" {
 				return 0, db.NewUniqueValueError(table, nil, err)
 			}

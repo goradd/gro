@@ -3,7 +3,7 @@ package mysql
 import (
 	"context"
 	"fmt"
-	"github.com/goradd/all"
+	"github.com/goradd/anyutil"
 	"github.com/goradd/orm/pkg/db"
 	sql2 "github.com/goradd/orm/pkg/db/sql"
 	"github.com/goradd/orm/pkg/schema"
@@ -284,7 +284,7 @@ func enumValueSql(tableName string, fieldKeys []string, fields map[string]schema
 			}
 
 		case schema.ColTypeInt:
-			if all.IsInteger(value) {
+			if anyutil.IsInteger(value) {
 				args = append(args, value)
 			} else {
 				slog.Error("wrong type for enum value",
@@ -294,7 +294,7 @@ func enumValueSql(tableName string, fieldKeys []string, fields map[string]schema
 			}
 
 		case schema.ColTypeFloat:
-			if all.IsFloat(value) {
+			if anyutil.IsFloat(value) {
 				args = append(args, value)
 			} else {
 				slog.Error("wrong type for enum value",

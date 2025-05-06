@@ -127,7 +127,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/goradd/orm/pkg/op"
-	"github.com/goradd/all"
+	"github.com/goradd/anyutil"
 	"bytes"
 	"encoding/gob"
 	"encoding/json"
@@ -9394,7 +9394,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `", o._originalPK, all.SortedKeys(modifiedFields)...)
+	if _, err = io.WriteString(_w, `", o._originalPK, anyutil.SortedKeys(modifiedFields)...)
 	}
 
 	return nil

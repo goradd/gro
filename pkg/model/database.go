@@ -2,7 +2,7 @@ package model
 
 import (
 	"cmp"
-	"github.com/goradd/all"
+	"github.com/goradd/anyutil"
 	"github.com/goradd/maps"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/schema"
@@ -296,7 +296,7 @@ func (m *Database) MarshalOrder() (tables []*Table) {
 			if a.QueryName < b.QueryName {
 				return -1
 			} else {
-				return all.If(a.QueryName > b.QueryName, 1, 0)
+				return anyutil.If(a.QueryName > b.QueryName, 1, 0)
 			}
 		})
 		tables = append(tables, newTables...)

@@ -3,7 +3,7 @@ package jointree
 
 import (
 	"fmt"
-	"github.com/goradd/all"
+	"github.com/goradd/anyutil"
 	"github.com/goradd/orm/pkg/op"
 	"github.com/goradd/orm/pkg/query"
 	"iter"
@@ -56,7 +56,7 @@ func NewJoinTree(b query.BuilderI) *JoinTree {
 	if len(builder.Conditions) == 1 {
 		t.Condition = builder.Conditions[0]
 	} else if len(builder.Conditions) > 1 {
-		t.Condition = op.And(all.MapSlice[any](builder.Conditions)...)
+		t.Condition = op.And(anyutil.MapSlice[any](builder.Conditions)...)
 	}
 	t.buildNodeTree(builder)
 	t.buildCommand(builder)

@@ -2,7 +2,7 @@ package sql
 
 import (
 	"fmt"
-	"github.com/goradd/all"
+	"github.com/goradd/anyutil"
 	"github.com/goradd/iter"
 	"github.com/goradd/orm/pkg/db/jointree"
 	. "github.com/goradd/orm/pkg/query"
@@ -625,7 +625,7 @@ func generateWhereClause(db DbI, where map[string]any, connectWithOr bool, argsI
 		} else if ints, ok2 := value.([]int); ok2 {
 			s2 := db.QuoteIdentifier(key)
 			s2 += " IN ("
-			s2 += all.Join(ints, ",")
+			s2 += anyutil.Join(ints, ",")
 			s2 += ")"
 			clauses = append(clauses, s2)
 		} else if strs, ok3 := value.([]string); ok3 {

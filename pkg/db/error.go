@@ -25,7 +25,7 @@ func (e *OptimisticLockError) Unwrap() error {
 //
 // Test and get the values using:
 //
-//	 if myerr, ok := all.As[*OptimisticLockError](err); ok {
+//	 if myerr, ok := anyutil.As[*OptimisticLockError](err); ok {
 //		// process error
 //	 }
 func NewOptimisticLockError(table string, pkValue any, err error) error {

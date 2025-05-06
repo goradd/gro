@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"unicode/utf8"
 
-	"github.com/goradd/all"
+	"github.com/goradd/anyutil"
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
 	"github.com/goradd/orm/pkg/broadcast"
 	"github.com/goradd/orm/pkg/db"
@@ -651,7 +651,7 @@ func (o *rootUBase) update(ctx context.Context) error {
 
 	o.resetDirtyStatus()
 	if len(modifiedFields) != 0 {
-		broadcast.Update(ctx, "goradd_unit", "root_u", o._originalPK, all.SortedKeys(modifiedFields)...)
+		broadcast.Update(ctx, "goradd_unit", "root_u", o._originalPK, anyutil.SortedKeys(modifiedFields)...)
 	}
 
 	return nil

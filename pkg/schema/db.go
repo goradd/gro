@@ -1,7 +1,7 @@
 package schema
 
 import (
-	"github.com/goradd/all"
+	"github.com/goradd/anyutil"
 	"github.com/goradd/maps"
 	strings2 "github.com/goradd/strings"
 	"log/slog"
@@ -167,7 +167,7 @@ func (db *Database) sort() {
 			if a.Name < b.Name {
 				return -1
 			} else {
-				return all.If(a.Name > b.Name, 1, 0)
+				return anyutil.If(a.Name > b.Name, 1, 0)
 			}
 		})
 		db.Tables = append(db.Tables, newTables...)
@@ -189,7 +189,7 @@ func (db *Database) sort() {
 		if a.Name < b.Name {
 			return -1
 		} else {
-			return all.If(a.Name > b.Name, 1, 0)
+			return anyutil.If(a.Name > b.Name, 1, 0)
 		}
 	})
 
@@ -197,7 +197,7 @@ func (db *Database) sort() {
 		if a.Name < b.Name {
 			return -1
 		} else {
-			return all.If(a.Name > b.Name, 1, 0)
+			return anyutil.If(a.Name > b.Name, 1, 0)
 		}
 	})
 

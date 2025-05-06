@@ -68,7 +68,7 @@ func (o *{{= table.DecapIdentifier}}Base) update(ctx context.Context) error {
 
 	o.resetDirtyStatus()
 	if len(modifiedFields) != 0 {
-        broadcast.Update(ctx, "{{= table.DbKey}}", "{{= table.QueryName}}", o._originalPK, all.SortedKeys(modifiedFields)...)
+        broadcast.Update(ctx, "{{= table.DbKey}}", "{{= table.QueryName}}", o._originalPK, anyutil.SortedKeys(modifiedFields)...)
 	}
 
 	return nil
