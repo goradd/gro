@@ -635,7 +635,7 @@ func (o *rootUBase) update(ctx context.Context) error {
 
 		} else {
 
-			// save related object
+			// save related object in case internal values changed
 			if o.revLeafU != nil {
 				if err := o.revLeafU.Save(ctx); err != nil {
 					return err
@@ -742,11 +742,13 @@ func (o *rootUBase) Delete(ctx context.Context) (err error) {
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
 		{
-			if obj, err := QueryLeafUs(ctx).
+			obj, err := QueryLeafUs(ctx).
 				Where(op.Equal(node.LeafU().RootUID(), o.id)).
-				Get(); err != nil {
+				Get()
+			if err != nil {
 				return err
-			} else if obj != nil {
+			}
+			if obj != nil {
 				if err = obj.Delete(ctx); err != nil {
 					return err
 				}
@@ -755,7 +757,7 @@ func (o *rootUBase) Delete(ctx context.Context) (err error) {
 			o.revLeafU = nil
 		}
 
-		return d.Delete(ctx, "root_u", map[string]any{"ID": o.id})
+		return d.Delete(ctx, "root_u", "ID", o.id, "", 0)
 	})
 
 	if err != nil {
@@ -768,14 +770,23 @@ func (o *rootUBase) Delete(ctx context.Context) (err error) {
 // deleteRootU deletes the RootU with primary key pk from the database
 // and handles associated records.
 func deleteRootU(ctx context.Context, pk string) error {
-	if obj, err := LoadRootU(ctx, pk, node.RootU().PrimaryKey()); err != nil {
-		return err
-	} else if obj != nil {
-		if err := obj.Delete(ctx); err != nil {
+	d := db.GetDatabase("goradd_unit")
+	err := db.ExecuteTransaction(ctx, d, func() error {
+		if obj, err := LoadRootU(ctx,
+			pk,
+			node.RootU().PrimaryKey(),
+		); err != nil {
 			return err
+		} else if obj == nil {
+			return db.NewRecordNotFoundError("root_u", pk)
+		} else {
+			if err := obj.Delete(ctx); err != nil {
+				return err
+			}
 		}
-	}
-	return nil
+		return nil
+	})
+	return err
 }
 
 // resetDirtyStatus resets the dirty status of every field in the object.

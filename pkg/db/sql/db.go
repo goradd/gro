@@ -299,11 +299,33 @@ func (h *DbHelper) Query(ctx context.Context, table string, fields map[string]Re
 	}
 }
 
-// Delete deletes the indicated record from the database.
-// Care should be exercised when calling this directly, since related records are not modified in any way.
-// If this record has related records, the database structure may be corrupted.
-func (h *DbHelper) Delete(ctx context.Context, table string, where map[string]any) error {
-	s, args := GenerateDelete(h.dbi, table, where)
+// Delete deletes the indicated records from the database.
+// Care should be exercised when calling this directly, since linked records are not modified in any way.
+// If this record has linked records, the database structure may be corrupted.
+func (h *DbHelper) Delete(ctx context.Context, table string, colName string, colValue any, optLockFieldName string, optLockFieldValue int64) error {
+	where := map[string]any{colName: colValue}
+	if optLockFieldName != "" {
+		// push where field down a level so it gets ANDed.
+		where[optLockFieldName] = optLockFieldValue
+	}
+	s, args := GenerateDelete(h.dbi, table, where, false)
+	result, e := h.SqlExec(ctx, s, args...)
+	if e != nil {
+		return db.NewQueryError("SqlExec", s, args, e)
+	}
+	if rows, _ := result.RowsAffected(); rows == 0 {
+		if optLockFieldName != "" {
+			return db.NewOptimisticLockError(table, colValue, nil)
+		} else {
+			return db.NewRecordNotFoundError(table, colValue)
+		}
+	}
+	return nil
+}
+
+// DeleteAll deletes all the records from a table.
+func (h *DbHelper) DeleteAll(ctx context.Context, table string) error {
+	s, args := GenerateDelete(h.dbi, table, nil, false)
 	_, e := h.SqlExec(ctx, s, args...)
 	if e != nil {
 		return db.NewQueryError("SqlExec", s, args, e)

@@ -138,7 +138,7 @@ func ClearAll(ctx context.Context) {
 
 	for _, mm := range database.UniqueManyManyReferences() {
 
-		if _, err = io.WriteString(_w, `    _ = db.Delete(ctx, `); err != nil {
+		if _, err = io.WriteString(_w, `    _ = db.DeleteAll(ctx, `); err != nil {
 			return
 		}
 
@@ -146,7 +146,7 @@ func ClearAll(ctx context.Context) {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `, nil)
+		if _, err = io.WriteString(_w, `)
 `); err != nil {
 			return
 		}
@@ -160,7 +160,7 @@ func ClearAll(ctx context.Context) {
 
 	for _, table := range slices.Backward(database.MarshalOrder()) {
 
-		if _, err = io.WriteString(_w, `    _ = db.Delete(ctx, `); err != nil {
+		if _, err = io.WriteString(_w, `    _ = db.DeleteAll(ctx, `); err != nil {
 			return
 		}
 
@@ -168,7 +168,7 @@ func ClearAll(ctx context.Context) {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `, nil)
+		if _, err = io.WriteString(_w, `)
 `); err != nil {
 			return
 		}

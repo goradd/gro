@@ -684,7 +684,7 @@ func (o *rootNBase) update(ctx context.Context) error {
 
 		} else {
 
-			// save related objects
+			// save related objects in case internal values changed
 			for obj := range o.revLeafNs.ValuesIter() {
 				if err := obj.Save(ctx); err != nil {
 					return err
@@ -815,7 +815,7 @@ func (o *rootNBase) Delete(ctx context.Context) (err error) {
 			o.revLeafNs.Clear()
 		}
 
-		return d.Delete(ctx, "root_n", map[string]any{"ID": o.id})
+		return d.Delete(ctx, "root_n", "ID", o.id, "", 0)
 	})
 
 	if err != nil {
@@ -828,14 +828,23 @@ func (o *rootNBase) Delete(ctx context.Context) (err error) {
 // deleteRootN deletes the RootN with primary key pk from the database
 // and handles associated records.
 func deleteRootN(ctx context.Context, pk string) error {
-	if obj, err := LoadRootN(ctx, pk, node.RootN().PrimaryKey()); err != nil {
-		return err
-	} else if obj != nil {
-		if err := obj.Delete(ctx); err != nil {
+	d := db.GetDatabase("goradd_unit")
+	err := db.ExecuteTransaction(ctx, d, func() error {
+		if obj, err := LoadRootN(ctx,
+			pk,
+			node.RootN().PrimaryKey(),
+		); err != nil {
 			return err
+		} else if obj == nil {
+			return db.NewRecordNotFoundError("root_n", pk)
+		} else {
+			if err := obj.Delete(ctx); err != nil {
+				return err
+			}
 		}
-	}
-	return nil
+		return nil
+	})
+	return err
 }
 
 // resetDirtyStatus resets the dirty status of every field in the object.

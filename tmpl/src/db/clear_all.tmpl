@@ -9,11 +9,11 @@ func ClearAll(ctx context.Context) {
     db := Database()
 
 {{for _,mm := range database.UniqueManyManyReferences() }}
-    _ = db.Delete(ctx, {{L mm.AssnTableName }}, nil)
+    _ = db.DeleteAll(ctx, {{L mm.AssnTableName }})
 {{for}}
 
 {{for _,table := range slices.Backward(database.MarshalOrder()) }}
-    _ = db.Delete(ctx, {{L table.QueryName }}, nil)
+    _ = db.DeleteAll(ctx, {{L table.QueryName }})
 {{for}}
 
 }

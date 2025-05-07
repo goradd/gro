@@ -803,7 +803,7 @@ func (o *personWithLockBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	err = d.Delete(ctx, "person_with_lock", map[string]any{"ID": o.id})
+	err = d.Delete(ctx, "person_with_lock", "ID", o.id, "gro_lock", o.GroLock())
 	if err != nil {
 		return err
 	}
@@ -815,12 +815,12 @@ func (o *personWithLockBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deletePersonWithLock(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd")
-	err := d.Delete(ctx, "person_with_lock", map[string]any{"ID": pk})
+	err := d.Delete(ctx, "person_with_lock", "ID", pk, "", 0)
 	if err != nil {
 		return err
 	}
 	broadcast.Delete(ctx, "goradd", "person_with_lock", fmt.Sprint(pk))
-	return nil
+	return err
 }
 
 // resetDirtyStatus resets the dirty status of every field in the object.

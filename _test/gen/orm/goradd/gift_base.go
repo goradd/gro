@@ -660,7 +660,7 @@ func (o *giftBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	err = d.Delete(ctx, "gift", map[string]any{"Number": o.number})
+	err = d.Delete(ctx, "gift", "Number", o.number, "", 0)
 	if err != nil {
 		return err
 	}
@@ -672,12 +672,12 @@ func (o *giftBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteGift(ctx context.Context, pk int) error {
 	d := db.GetDatabase("goradd")
-	err := d.Delete(ctx, "gift", map[string]any{"Number": pk})
+	err := d.Delete(ctx, "gift", "Number", pk, "", 0)
 	if err != nil {
 		return err
 	}
 	broadcast.Delete(ctx, "goradd", "gift", fmt.Sprint(pk))
-	return nil
+	return err
 }
 
 // resetDirtyStatus resets the dirty status of every field in the object.

@@ -1125,7 +1125,7 @@ func (o *multiParentBase) update(ctx context.Context) error {
 
 		} else {
 
-			// save related objects
+			// save related objects in case internal values changed
 			for obj := range o.revParent1MultiParents.ValuesIter() {
 				if err := obj.Save(ctx); err != nil {
 					return err
@@ -1168,7 +1168,7 @@ func (o *multiParentBase) update(ctx context.Context) error {
 
 		} else {
 
-			// save related objects
+			// save related objects in case internal values changed
 			for obj := range o.revParent2MultiParents.ValuesIter() {
 				if err := obj.Save(ctx); err != nil {
 					return err
@@ -1375,7 +1375,7 @@ func (o *multiParentBase) Delete(ctx context.Context) (err error) {
 			o.revParent2MultiParents.Clear()
 		}
 
-		return d.Delete(ctx, "multi_parent", map[string]any{"ID": o.id})
+		return d.Delete(ctx, "multi_parent", "ID", o.id, "", 0)
 	})
 
 	if err != nil {
@@ -1388,14 +1388,23 @@ func (o *multiParentBase) Delete(ctx context.Context) (err error) {
 // deleteMultiParent deletes the MultiParent with primary key pk from the database
 // and handles associated records.
 func deleteMultiParent(ctx context.Context, pk string) error {
-	if obj, err := LoadMultiParent(ctx, pk, node.MultiParent().PrimaryKey()); err != nil {
-		return err
-	} else if obj != nil {
-		if err := obj.Delete(ctx); err != nil {
+	d := db.GetDatabase("goradd_unit")
+	err := db.ExecuteTransaction(ctx, d, func() error {
+		if obj, err := LoadMultiParent(ctx,
+			pk,
+			node.MultiParent().PrimaryKey(),
+		); err != nil {
 			return err
+		} else if obj == nil {
+			return db.NewRecordNotFoundError("multi_parent", pk)
+		} else {
+			if err := obj.Delete(ctx); err != nil {
+				return err
+			}
 		}
-	}
-	return nil
+		return nil
+	})
+	return err
 }
 
 // resetDirtyStatus resets the dirty status of every field in the object.

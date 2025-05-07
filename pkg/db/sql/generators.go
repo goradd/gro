@@ -546,7 +546,8 @@ func GenerateInsert(db DbI, table string, fields map[string]any) (sql string, ar
 }
 
 // GenerateDelete is a helper function for database implementations to generate a delete statement.
-func GenerateDelete(db DbI, table string, where map[string]any) (sql string, args []any) {
+// useOr will determine if the where items are initially ANDed or ORed
+func GenerateDelete(db DbI, table string, where map[string]any, useOr bool) (sql string, args []any) {
 	var sb strings.Builder
 
 	sb.WriteString("DELETE FROM ")
@@ -560,7 +561,7 @@ func GenerateDelete(db DbI, table string, where map[string]any) (sql string, arg
 	sb.WriteString("\nWHERE ")
 
 	var s string
-	s, args = generateWhereClause(db, where, true, args)
+	s, args = generateWhereClause(db, where, useOr, args)
 	sb.WriteString(s)
 
 	return sb.String(), args

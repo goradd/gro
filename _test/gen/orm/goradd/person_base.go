@@ -1246,7 +1246,7 @@ func (o *personBase) update(ctx context.Context) error {
 
 		} else {
 
-			// save related objects
+			// save related objects in case internal values changed
 			for obj := range o.revManagerProjects.ValuesIter() {
 				if err := obj.Save(ctx); err != nil {
 					return err
@@ -1293,7 +1293,7 @@ func (o *personBase) update(ctx context.Context) error {
 
 		} else {
 
-			// save related objects
+			// save related objects in case internal values changed
 			for obj := range o.revAddresses.ValuesIter() {
 				if err := obj.Save(ctx); err != nil {
 					return err
@@ -1329,7 +1329,7 @@ func (o *personBase) update(ctx context.Context) error {
 
 		} else {
 
-			// save related object
+			// save related object in case internal values changed
 			if o.revEmployeeInfo != nil {
 				if err := o.revEmployeeInfo.Save(ctx); err != nil {
 					return err
@@ -1364,7 +1364,7 @@ func (o *personBase) update(ctx context.Context) error {
 
 		} else {
 
-			// save related object
+			// save related object in case internal values changed
 			if o.revLogin != nil {
 				if err := o.revLogin.Save(ctx); err != nil {
 					return err
@@ -1667,11 +1667,13 @@ func (o *personBase) Delete(ctx context.Context) (err error) {
 		}
 
 		{
-			if obj, err := QueryEmployeeInfos(ctx).
+			obj, err := QueryEmployeeInfos(ctx).
 				Where(op.Equal(node.EmployeeInfo().PersonID(), o.id)).
-				Get(); err != nil {
+				Get()
+			if err != nil {
 				return err
-			} else if obj != nil {
+			}
+			if obj != nil {
 				if err = obj.Delete(ctx); err != nil {
 					return err
 				}
@@ -1709,7 +1711,7 @@ func (o *personBase) Delete(ctx context.Context) (err error) {
 			return err
 		}
 
-		return d.Delete(ctx, "person", map[string]any{"ID": o.id})
+		return d.Delete(ctx, "person", "ID", o.id, "", 0)
 	})
 
 	if err != nil {
@@ -1722,14 +1724,23 @@ func (o *personBase) Delete(ctx context.Context) (err error) {
 // deletePerson deletes the Person with primary key pk from the database
 // and handles associated records.
 func deletePerson(ctx context.Context, pk string) error {
-	if obj, err := LoadPerson(ctx, pk, node.Person().PrimaryKey()); err != nil {
-		return err
-	} else if obj != nil {
-		if err := obj.Delete(ctx); err != nil {
+	d := db.GetDatabase("goradd")
+	err := db.ExecuteTransaction(ctx, d, func() error {
+		if obj, err := LoadPerson(ctx,
+			pk,
+			node.Person().PrimaryKey(),
+		); err != nil {
 			return err
+		} else if obj == nil {
+			return db.NewRecordNotFoundError("person", pk)
+		} else {
+			if err := obj.Delete(ctx); err != nil {
+				return err
+			}
 		}
-	}
-	return nil
+		return nil
+	})
+	return err
 }
 
 // resetDirtyStatus resets the dirty status of every field in the object.

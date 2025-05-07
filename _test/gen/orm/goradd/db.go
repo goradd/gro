@@ -47,17 +47,17 @@ func Database() db.DatabaseI {
 func ClearAll(ctx context.Context) {
 	db := Database()
 
-	_ = db.Delete(ctx, "related_project_assn", nil)
-	_ = db.Delete(ctx, "team_member_project_assn", nil)
+	_ = db.DeleteAll(ctx, "related_project_assn")
+	_ = db.DeleteAll(ctx, "team_member_project_assn")
 
-	_ = db.Delete(ctx, "milestone", nil)
-	_ = db.Delete(ctx, "login", nil)
-	_ = db.Delete(ctx, "employee_info", nil)
-	_ = db.Delete(ctx, "address", nil)
-	_ = db.Delete(ctx, "project", nil)
-	_ = db.Delete(ctx, "person_with_lock", nil)
-	_ = db.Delete(ctx, "person", nil)
-	_ = db.Delete(ctx, "gift", nil)
+	_ = db.DeleteAll(ctx, "milestone")
+	_ = db.DeleteAll(ctx, "login")
+	_ = db.DeleteAll(ctx, "employee_info")
+	_ = db.DeleteAll(ctx, "address")
+	_ = db.DeleteAll(ctx, "project")
+	_ = db.DeleteAll(ctx, "person_with_lock")
+	_ = db.DeleteAll(ctx, "person")
+	_ = db.DeleteAll(ctx, "gift")
 
 }
 

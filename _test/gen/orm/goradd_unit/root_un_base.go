@@ -636,7 +636,7 @@ func (o *rootUnBase) update(ctx context.Context) error {
 
 		} else {
 
-			// save related object
+			// save related object in case internal values changed
 			if o.revLeafUn != nil {
 				if err := o.revLeafUn.Save(ctx); err != nil {
 					return err
@@ -761,7 +761,7 @@ func (o *rootUnBase) Delete(ctx context.Context) (err error) {
 			o.revLeafUn = nil
 		}
 
-		return d.Delete(ctx, "root_un", map[string]any{"ID": o.id})
+		return d.Delete(ctx, "root_un", "ID", o.id, "", 0)
 	})
 
 	if err != nil {
@@ -774,14 +774,23 @@ func (o *rootUnBase) Delete(ctx context.Context) (err error) {
 // deleteRootUn deletes the RootUn with primary key pk from the database
 // and handles associated records.
 func deleteRootUn(ctx context.Context, pk string) error {
-	if obj, err := LoadRootUn(ctx, pk, node.RootUn().PrimaryKey()); err != nil {
-		return err
-	} else if obj != nil {
-		if err := obj.Delete(ctx); err != nil {
+	d := db.GetDatabase("goradd_unit")
+	err := db.ExecuteTransaction(ctx, d, func() error {
+		if obj, err := LoadRootUn(ctx,
+			pk,
+			node.RootUn().PrimaryKey(),
+		); err != nil {
 			return err
+		} else if obj == nil {
+			return db.NewRecordNotFoundError("root_un", pk)
+		} else {
+			if err := obj.Delete(ctx); err != nil {
+				return err
+			}
 		}
-	}
-	return nil
+		return nil
+	})
+	return err
 }
 
 // resetDirtyStatus resets the dirty status of every field in the object.

@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"errors"
 	"github.com/goradd/maps"
 	. "github.com/goradd/orm/pkg/query"
 	"github.com/goradd/orm/pkg/schema"
@@ -53,9 +54,13 @@ type DatabaseI interface {
 	// The primary key will be returned.
 	// If the primary key is set in fields, it will be used instead of a generated value.
 	Insert(ctx context.Context, table string, pkName string, fields map[string]any) (string, error)
-	// Delete will delete records from the database that match the key value pairs in where.
-	// If where is nil, all the data will be deleted.
-	Delete(ctx context.Context, table string, where map[string]any) error
+	// Delete will delete records from the database that match the colName and colValue.
+	// If optLockFieldName is provided, the optLockFieldValue will also constrain the delete, and if no
+	// records are found, it will return an OptimisticLockError. If optLockFieldName is empty, and
+	// no record is found, a NoRecordFound error will be returned.
+	Delete(ctx context.Context, table string, colName string, colValue any, optLockFieldName string, optLockFieldValue int64) error
+	// DeleteAll will efficiently delete all the records from a table.
+	DeleteAll(ctx context.Context, table string) error
 	// Query executes a simple query on a single table using fields, where the keys of fields are the names of database fields to select,
 	// and the values are the types of data to return for each field.
 	// If orderBy is not nil, it specifies field names to sort the data on, in ascending order.
@@ -145,8 +150,11 @@ func AssociateOnly[J, K any](ctx context.Context,
 	relatedColumnName string,
 	relatedPks []K) error {
 	err := ExecuteTransaction(ctx, d, func() error {
-		if err := d.Delete(ctx, assnTable, map[string]interface{}{srcColumnName: pk}); err != nil {
-			return err
+		if err := d.Delete(ctx, assnTable, srcColumnName, pk, "", 0); err != nil {
+			var rErr *RecordNotFoundError
+			if !errors.As(err, &rErr) { // ignore record not found errors
+				return err
+			}
 		}
 		for _, relatedPk := range relatedPks {
 			if _, err := d.Insert(ctx, assnTable, "", map[string]any{srcColumnName: pk, relatedColumnName: relatedPk}); err != nil {

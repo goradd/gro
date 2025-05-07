@@ -769,7 +769,7 @@ func (o *milestoneBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	err = d.Delete(ctx, "milestone", map[string]any{"ID": o.id})
+	err = d.Delete(ctx, "milestone", "ID", o.id, "", 0)
 	if err != nil {
 		return err
 	}
@@ -781,12 +781,12 @@ func (o *milestoneBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteMilestone(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd")
-	err := d.Delete(ctx, "milestone", map[string]any{"ID": pk})
+	err := d.Delete(ctx, "milestone", "ID", pk, "", 0)
 	if err != nil {
 		return err
 	}
 	broadcast.Delete(ctx, "goradd", "milestone", fmt.Sprint(pk))
-	return nil
+	return err
 }
 
 // resetDirtyStatus resets the dirty status of every field in the object.

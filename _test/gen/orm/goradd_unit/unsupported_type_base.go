@@ -1322,7 +1322,7 @@ func (o *unsupportedTypeBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	err = d.Delete(ctx, "unsupported_type", map[string]any{"TypeSerial": o.typeSerial})
+	err = d.Delete(ctx, "unsupported_type", "TypeSerial", o.typeSerial, "", 0)
 	if err != nil {
 		return err
 	}
@@ -1334,12 +1334,12 @@ func (o *unsupportedTypeBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteUnsupportedType(ctx context.Context, pk uint64) error {
 	d := db.GetDatabase("goradd_unit")
-	err := d.Delete(ctx, "unsupported_type", map[string]any{"TypeSerial": pk})
+	err := d.Delete(ctx, "unsupported_type", "TypeSerial", pk, "", 0)
 	if err != nil {
 		return err
 	}
 	broadcast.Delete(ctx, "goradd_unit", "unsupported_type", fmt.Sprint(pk))
-	return nil
+	return err
 }
 
 // resetDirtyStatus resets the dirty status of every field in the object.

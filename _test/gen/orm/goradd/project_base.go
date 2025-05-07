@@ -2008,7 +2008,7 @@ func (o *projectBase) update(ctx context.Context) error {
 
 		} else {
 
-			// save related objects
+			// save related objects in case internal values changed
 			for obj := range o.revParentProjectProjects.ValuesIter() {
 				if err := obj.Save(ctx); err != nil {
 					return err
@@ -2055,7 +2055,7 @@ func (o *projectBase) update(ctx context.Context) error {
 
 		} else {
 
-			// save related objects
+			// save related objects in case internal values changed
 			for obj := range o.revMilestones.ValuesIter() {
 				if err := obj.Save(ctx); err != nil {
 					return err
@@ -2600,7 +2600,7 @@ func (o *projectBase) Delete(ctx context.Context) (err error) {
 			return err
 		}
 
-		return d.Delete(ctx, "project", map[string]any{"ID": o.id})
+		return d.Delete(ctx, "project", "ID", o.id, "", 0)
 	})
 
 	if err != nil {
@@ -2613,14 +2613,23 @@ func (o *projectBase) Delete(ctx context.Context) (err error) {
 // deleteProject deletes the Project with primary key pk from the database
 // and handles associated records.
 func deleteProject(ctx context.Context, pk string) error {
-	if obj, err := LoadProject(ctx, pk, node.Project().PrimaryKey()); err != nil {
-		return err
-	} else if obj != nil {
-		if err := obj.Delete(ctx); err != nil {
+	d := db.GetDatabase("goradd")
+	err := db.ExecuteTransaction(ctx, d, func() error {
+		if obj, err := LoadProject(ctx,
+			pk,
+			node.Project().PrimaryKey(),
+		); err != nil {
 			return err
+		} else if obj == nil {
+			return db.NewRecordNotFoundError("project", pk)
+		} else {
+			if err := obj.Delete(ctx); err != nil {
+				return err
+			}
 		}
-	}
-	return nil
+		return nil
+	})
+	return err
 }
 
 // resetDirtyStatus resets the dirty status of every field in the object.

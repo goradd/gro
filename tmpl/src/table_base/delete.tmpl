@@ -31,7 +31,11 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
 	}
 	d := Database()
 {{if len(table.ReverseReferences) == 0 && len(table.ManyManyReferences) == 0}}
-	err = d.Delete(ctx, "{{table.QueryName}}", map[string]any{"{{= table.PrimaryKeyColumn().Identifier }}":o.{{= table.PrimaryKeyColumn().DecapIdentifier }} })
+{{if c := table.LockColumn(); c == nil }}
+	err = d.Delete(ctx, "{{table.QueryName}}", "{{= table.PrimaryKeyColumn().Identifier }}", o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}, "", 0)
+{{else}}
+	err = d.Delete(ctx, "{{table.QueryName}}", "{{= table.PrimaryKeyColumn().Identifier }}", o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}, "{{= c.QueryName }}", o.{{= c.Identifier}}())
+{{if}}
 {{else}}
     err = db.ExecuteTransaction(ctx, d, func() error {
 	{{for _,rev := range table.ReverseReferences }}
@@ -57,11 +61,13 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
             }
             {{else}}
             {
-                 if obj, err := Query{{= rev.Table.IdentifierPlural }}(ctx).
+                 obj, err := Query{{= rev.Table.IdentifierPlural }}(ctx).
                          Where(op.Equal(node.{{= rev.Table.Identifier}}().{{= rev.Identifier }}(), o.{{= table.PrimaryKeyColumn().VariableIdentifier() }})).
-                         Get(); err != nil {
+                         Get()
+                 if err != nil {
                      return err
-                 } else if obj != nil {
+                 }
+                 if obj != nil {
                      if err = obj.Delete(ctx); err != nil {
                          return err
                      }
@@ -119,8 +125,11 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
             }
 
     {{for}}
-
-	    return d.Delete(ctx, "{{= table.QueryName }}", map[string]any{"{{= table.PrimaryKeyColumn().Identifier }}": o.{{= table.PrimaryKeyColumn().VariableIdentifier() }} })
+{{if c := table.LockColumn(); c == nil }}
+	    return d.Delete(ctx, "{{table.QueryName}}", "{{= table.PrimaryKeyColumn().Identifier }}", o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}, "", 0)
+{{else}}
+	    return d.Delete(ctx, "{{table.QueryName}}", "{{= table.PrimaryKeyColumn().Identifier }}", o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}, "{{= c.QueryName }}", o.{{= c.Identifier}}())
+{{if}}
 	})
 
 {{if}}
@@ -134,22 +143,33 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
 // delete{{= table.Identifier }} deletes the {{= table.Identifier }} with primary key pk from the database
 // and handles associated records.
 func delete{{= table.Identifier }}(ctx context.Context, pk {{= table.PrimaryKeyGoType() }}) error {
-{{if len(table.ReverseReferences) == 0 && len(table.ManyManyReferences) == 0 }}
 	d := db.GetDatabase("{{= table.DbKey }}")
-	err := d.Delete(ctx, "{{= table.QueryName }}", map[string]any{"{{= table.PrimaryKeyColumn().Identifier }}": pk} )
+{{if len(table.ReverseReferences) == 0 && len(table.ManyManyReferences) == 0 }}
+	err := d.Delete(ctx, "{{= table.QueryName }}", "{{= table.PrimaryKeyColumn().Identifier }}", pk, "", 0)
 	if err != nil {
 	    return err
 	}
 	broadcast.Delete(ctx, "{{= table.DbKey }}", "{{= table.QueryName }}", fmt.Sprint(pk))
 {{else}}
-    if obj, err := Load{{= table.Identifier }}(ctx, pk, node.{{= table.Identifier}}().PrimaryKey()); err != nil {
-        return err
-    } else if obj != nil {
-        if err := obj.Delete(ctx); err != nil {
-            return err
-        }
-    }
+    err := db.ExecuteTransaction(ctx, d, func() error {
+        if obj, err := Load{{= table.Identifier }}(ctx,
+                pk,
+                node.{{= table.Identifier}}().PrimaryKey(),
+{{if table.LockColumn() != nil }}
+                node.{{= table.Identifier }}().{{= table.LockColumn().Identifier }}(),
 {{if}}
-    return nil
+                ); err != nil {
+            return err
+        } else if obj == nil {
+            return db.NewRecordNotFoundError("{{= table.QueryName }}", pk)
+        } else {
+            if err := obj.Delete(ctx); err != nil {
+                return err
+            }
+        }
+        return nil
+    })
+{{if}}
+    return err
 }
 }}

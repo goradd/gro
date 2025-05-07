@@ -727,7 +727,7 @@ func (o *rootNlBase) update(ctx context.Context) error {
 
 		} else {
 
-			// save related objects
+			// save related objects in case internal values changed
 			for obj := range o.revLeafNls.ValuesIter() {
 				if err := obj.Save(ctx); err != nil {
 					return err
@@ -867,7 +867,7 @@ func (o *rootNlBase) Delete(ctx context.Context) (err error) {
 			o.revLeafNls.Clear()
 		}
 
-		return d.Delete(ctx, "root_nl", map[string]any{"ID": o.id})
+		return d.Delete(ctx, "root_nl", "ID", o.id, "gro_lock", o.GroLock())
 	})
 
 	if err != nil {
@@ -880,14 +880,24 @@ func (o *rootNlBase) Delete(ctx context.Context) (err error) {
 // deleteRootNl deletes the RootNl with primary key pk from the database
 // and handles associated records.
 func deleteRootNl(ctx context.Context, pk string) error {
-	if obj, err := LoadRootNl(ctx, pk, node.RootNl().PrimaryKey()); err != nil {
-		return err
-	} else if obj != nil {
-		if err := obj.Delete(ctx); err != nil {
+	d := db.GetDatabase("goradd_unit")
+	err := db.ExecuteTransaction(ctx, d, func() error {
+		if obj, err := LoadRootNl(ctx,
+			pk,
+			node.RootNl().PrimaryKey(),
+			node.RootNl().GroLock(),
+		); err != nil {
 			return err
+		} else if obj == nil {
+			return db.NewRecordNotFoundError("root_nl", pk)
+		} else {
+			if err := obj.Delete(ctx); err != nil {
+				return err
+			}
 		}
-	}
-	return nil
+		return nil
+	})
+	return err
 }
 
 // resetDirtyStatus resets the dirty status of every field in the object.

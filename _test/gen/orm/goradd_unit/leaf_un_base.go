@@ -854,7 +854,7 @@ func (o *leafUnBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	err = d.Delete(ctx, "leaf_un", map[string]any{"ID": o.id})
+	err = d.Delete(ctx, "leaf_un", "ID", o.id, "", 0)
 	if err != nil {
 		return err
 	}
@@ -866,12 +866,12 @@ func (o *leafUnBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteLeafUn(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd_unit")
-	err := d.Delete(ctx, "leaf_un", map[string]any{"ID": pk})
+	err := d.Delete(ctx, "leaf_un", "ID", pk, "", 0)
 	if err != nil {
 		return err
 	}
 	broadcast.Delete(ctx, "goradd_unit", "leaf_un", fmt.Sprint(pk))
-	return nil
+	return err
 }
 
 // resetDirtyStatus resets the dirty status of every field in the object.

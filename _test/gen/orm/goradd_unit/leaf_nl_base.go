@@ -1247,7 +1247,7 @@ func (o *leafNlBase) Delete(ctx context.Context) (err error) {
 			return err
 		}
 
-		return d.Delete(ctx, "leaf_nl", map[string]any{"ID": o.id})
+		return d.Delete(ctx, "leaf_nl", "ID", o.id, "gro_lock", o.GroLock())
 	})
 
 	if err != nil {
@@ -1260,14 +1260,24 @@ func (o *leafNlBase) Delete(ctx context.Context) (err error) {
 // deleteLeafNl deletes the LeafNl with primary key pk from the database
 // and handles associated records.
 func deleteLeafNl(ctx context.Context, pk string) error {
-	if obj, err := LoadLeafNl(ctx, pk, node.LeafNl().PrimaryKey()); err != nil {
-		return err
-	} else if obj != nil {
-		if err := obj.Delete(ctx); err != nil {
+	d := db.GetDatabase("goradd_unit")
+	err := db.ExecuteTransaction(ctx, d, func() error {
+		if obj, err := LoadLeafNl(ctx,
+			pk,
+			node.LeafNl().PrimaryKey(),
+			node.LeafNl().GroLock(),
+		); err != nil {
 			return err
+		} else if obj == nil {
+			return db.NewRecordNotFoundError("leaf_nl", pk)
+		} else {
+			if err := obj.Delete(ctx); err != nil {
+				return err
+			}
 		}
-	}
-	return nil
+		return nil
+	})
+	return err
 }
 
 // resetDirtyStatus resets the dirty status of every field in the object.
