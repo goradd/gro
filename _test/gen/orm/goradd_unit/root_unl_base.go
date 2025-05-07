@@ -799,6 +799,7 @@ func (o *rootUnlBase) Delete(ctx context.Context) (err error) {
 			obj, err := QueryLeafUnls(ctx).
 				Where(op.Equal(node.LeafUnl().RootUnlID(), o.id)).
 				Select(node.LeafUnl().RootUnlID()).
+				Select(node.LeafUnl().GroLock()).
 				Get()
 			if err != nil {
 				return err

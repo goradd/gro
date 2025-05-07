@@ -95,11 +95,17 @@ func TestForwardLockCollision(t *testing.T) {
 	l2, _ = goradd_unit.LoadLeafL(ctx, l.ID(), node.LeafL().RootL())
 	l.RootL().SetName("root2")
 	l2.RootL().SetName("root3")
-
 	err = l.Save(ctx)
 	err2 = l2.Save(ctx)
 	assert.NoError(t, err)
 	assert.Error(t, err2)
+	assert.IsType(t, &db.OptimisticLockError{}, err2)
+
+	// Delete
+	l2, _ = goradd_unit.LoadLeafL(ctx, l.ID(), node.LeafL().RootL())
+	assert.NoError(t, l.RootL().Delete(ctx))
+	l2.SetName("leaf4")
+	err2 = l2.Save(ctx)
 	assert.IsType(t, &db.OptimisticLockError{}, err2)
 }
 
@@ -147,9 +153,8 @@ func TestForwardLockDelete(t *testing.T) {
 	l.SetRootL(r)
 	require.NoError(t, l.Save(ctx))
 
-	// iterate on delete and change collisions
-
-	l2, err := goradd_unit.LoadLeafL(ctx, l.ID())
+	// Collision on shallow change
+	l2, err := goradd_unit.LoadLeafL(ctx, l.ID(), node.LeafL().RootL())
 	require.NoError(t, err)
 	l.SetName("leaf2")
 	_ = l.Save(ctx)
@@ -157,11 +162,17 @@ func TestForwardLockDelete(t *testing.T) {
 	require.Error(t, err)
 	assert.IsType(t, &db.OptimisticLockError{}, err)
 
+	// Collision on deep Delete
 	l2, err = goradd_unit.LoadLeafL(ctx, l.ID())
 	require.NoError(t, err)
-	err = l.Delete(ctx)
+	err = l.RootL().Delete(ctx)
 	require.NoError(t, err)
 	err = l2.Delete(ctx)
 	assert.Error(t, err)
 	assert.IsType(t, &db.OptimisticLockError{}, err)
+
+	// Deep delete deleted the linked record
+	l2, err = goradd_unit.LoadLeafL(ctx, l.ID())
+	assert.NoError(t, err)
+	assert.Nil(t, l2)
 }

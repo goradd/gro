@@ -854,6 +854,7 @@ func (o *rootNlBase) Delete(ctx context.Context) (err error) {
 			objs, err := QueryLeafNls(ctx).
 				Where(op.Equal(node.LeafNl().RootNlID(), o.id)).
 				Select(node.LeafNl().RootNlID()).
+				Select(node.LeafNl().GroLock()).
 				Load()
 			if err != nil {
 				return err

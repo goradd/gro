@@ -97,6 +97,13 @@ func TestForwardUniqueLockCollision(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Error(t, err2)
 	assert.IsType(t, &db.OptimisticLockError{}, err2)
+
+	// Delete
+	l2, _ = goradd_unit.LoadLeafUl(ctx, l.ID(), node.LeafUl().RootUl())
+	assert.NoError(t, l.RootUl().Delete(ctx))
+	l2.SetName("leaf4")
+	err2 = l2.Save(ctx)
+	assert.IsType(t, &db.OptimisticLockError{}, err2)
 }
 
 func TestForwardUniqueLockNull(t *testing.T) {
@@ -126,4 +133,38 @@ func TestForwardUniqueLockTwo(t *testing.T) {
 	l2.SetName("leaf2")
 	l2.SetRootUl(r)
 	require.Error(t, l2.Save(ctx)) // unique value collision error
+}
+
+func TestForwardUniqueLockDelete(t *testing.T) {
+	ctx := db.NewContext(nil)
+	defer goradd_unit.ClearAll(ctx)
+	l := goradd_unit.NewLeafUl()
+	r := goradd_unit.NewRootUl()
+	l.SetName("leaf")
+	r.SetName("root")
+	l.SetRootUl(r)
+	require.NoError(t, l.Save(ctx))
+
+	// Collision on Change
+	l2, err := goradd_unit.LoadLeafUl(ctx, l.ID())
+	require.NoError(t, err)
+	l.SetName("leaf2")
+	_ = l.Save(ctx)
+	err = l2.Delete(ctx)
+	require.Error(t, err)
+	assert.IsType(t, &db.OptimisticLockError{}, err)
+
+	// Collision on deep Delete
+	l2, err = goradd_unit.LoadLeafUl(ctx, l.ID())
+	require.NoError(t, err)
+	err = l.RootUl().Delete(ctx)
+	require.NoError(t, err)
+	err = l2.Delete(ctx)
+	assert.Error(t, err)
+	assert.IsType(t, &db.OptimisticLockError{}, err)
+
+	// Deep delete deleted the linked record
+	l2, err = goradd_unit.LoadLeafUl(ctx, l.ID())
+	assert.NoError(t, err)
+	assert.Nil(t, l2)
 }

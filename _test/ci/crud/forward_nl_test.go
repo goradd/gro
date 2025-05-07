@@ -101,6 +101,14 @@ func TestForwardNullableLockCollision(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Error(t, err2)
 	assert.IsType(t, &db.OptimisticLockError{}, err2)
+
+	// Delete
+	l2, _ = goradd_unit.LoadLeafNl(ctx, l.ID(), node.LeafNl().RootNl())
+	assert.NoError(t, l.RootNl().Delete(ctx))
+	l2.SetName("leaf4")
+	err2 = l2.Save(ctx)
+	assert.IsType(t, &db.OptimisticLockError{}, err2)
+
 }
 
 func TestForwardNullableLockNull(t *testing.T) {
@@ -132,4 +140,39 @@ func TestForwardNullableLockTwo(t *testing.T) {
 	r2, err := goradd_unit.LoadRootNl(ctx, r.ID(), node.RootNl().LeafNls())
 	require.NoError(t, err)
 	assert.Len(t, r2.LeafNls(), 2)
+}
+
+func TestForwardNullableLockDelete(t *testing.T) {
+	ctx := db.NewContext(nil)
+	defer goradd_unit.ClearAll(ctx)
+	l := goradd_unit.NewLeafNl()
+	r := goradd_unit.NewRootNl()
+	l.SetName("leaf")
+	r.SetName("root")
+	l.SetRootNl(r)
+	require.NoError(t, l.Save(ctx))
+
+	// Collision on Change
+	l2, err := goradd_unit.LoadLeafNl(ctx, l.ID())
+	require.NoError(t, err)
+	l.SetName("leaf2")
+	_ = l.Save(ctx)
+	err = l2.Delete(ctx)
+	require.Error(t, err)
+	assert.IsType(t, &db.OptimisticLockError{}, err)
+
+	// Collision on deep Delete
+	l2, err = goradd_unit.LoadLeafNl(ctx, l.ID())
+	require.NoError(t, err)
+	err = l.RootNl().Delete(ctx)
+	require.NoError(t, err)
+	err = l2.Delete(ctx)
+	assert.Error(t, err)
+	assert.IsType(t, &db.OptimisticLockError{}, err)
+
+	// Deep delete set link to null
+	l2, err = goradd_unit.LoadLeafNl(ctx, l.ID())
+	assert.NoError(t, err)
+	assert.NotNil(t, l2)
+
 }

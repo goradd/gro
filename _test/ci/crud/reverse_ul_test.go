@@ -101,6 +101,14 @@ func TestReverseUniqueLockCollision(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Error(t, err2)
 	assert.IsType(t, &db.OptimisticLockError{}, err2)
+
+	// Delete
+	r2, _ = goradd_unit.LoadRootUl(ctx, r.ID(), node.RootUl().LeafUl())
+	assert.NoError(t, r.Delete(ctx))
+	r2.SetName("root4")
+	err2 = r2.Save(ctx)
+	assert.IsType(t, &db.OptimisticLockError{}, err2)
+
 }
 
 func TestReverseUniqueLockNull(t *testing.T) {
@@ -144,4 +152,32 @@ func TestReverseUniqueLockTwo(t *testing.T) {
 	l2, err := goradd_unit.LoadLeafUl(ctx, l.ID())
 	require.NoError(t, err)
 	assert.Nil(t, l2) // reverse linked item that could not have a nil pointer was deleted
+}
+
+func TestReverseUniqueLockDelete(t *testing.T) {
+	ctx := db.NewContext(nil)
+	defer goradd_unit.ClearAll(ctx)
+	l := goradd_unit.NewLeafUl()
+	r := goradd_unit.NewRootUl()
+	l.SetName("leaf")
+	r.SetName("root")
+	r.SetLeafUl(l)
+	require.NoError(t, r.Save(ctx))
+
+	// Collision on shallow change
+	r2, err := goradd_unit.LoadRootUl(ctx, r.ID(), node.RootUl().LeafUl())
+	require.NoError(t, err)
+	r.SetName("root2")
+	_ = r.Save(ctx)
+	err = r2.Delete(ctx)
+	require.Error(t, err)
+	assert.IsType(t, &db.OptimisticLockError{}, err)
+
+	// No collision on deep Delete since it can't be detected
+	r2, err = goradd_unit.LoadRootUl(ctx, r.ID(), node.RootUl().LeafUl())
+	require.NoError(t, err)
+	err = r.LeafUl().Delete(ctx)
+	require.NoError(t, err)
+	err = r2.Delete(ctx)
+	assert.NoError(t, err)
 }

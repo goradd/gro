@@ -144,3 +144,25 @@ func TestAssociationLockTwo(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, l4.Leaf2s(), 2)
 }
+
+func TestAssociationLockDelete(t *testing.T) {
+	ctx := db.NewContext(nil)
+	defer goradd_unit.ClearAll(ctx)
+
+	l1 := goradd_unit.NewLeafNl()
+	l2 := goradd_unit.NewLeafNl()
+	l3 := goradd_unit.NewLeafNl()
+
+	l1.SetName("leaf1")
+	l2.SetName("leaf2")
+	l3.SetName("leaf3")
+	l1.SetLeaf2s(l2, l3)
+	err := l1.Save(ctx)
+	require.NoError(t, err)
+
+	err = l2.Delete(ctx)
+	assert.NoError(t, err)
+
+	l4, err := goradd_unit.LoadLeafNl(ctx, l1.ID(), node.LeafNl().Leaf2s())
+	assert.Len(t, l4.Leaf2s(), 1)
+}

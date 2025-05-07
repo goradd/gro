@@ -11118,7 +11118,36 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 					}
 
 					if _, err = io.WriteString(_w, `()).
-                          Get()
+`); err != nil {
+						return
+					}
+
+					if rev.Table.LockColumn() != nil {
+
+						if _, err = io.WriteString(_w, `                          Select(node.`); err != nil {
+							return
+						}
+
+						if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
+							return
+						}
+
+						if _, err = io.WriteString(_w, `().`); err != nil {
+							return
+						}
+
+						if _, err = io.WriteString(_w, rev.Table.LockColumn().Identifier); err != nil {
+							return
+						}
+
+						if _, err = io.WriteString(_w, `()).
+`); err != nil {
+							return
+						}
+
+					}
+
+					if _, err = io.WriteString(_w, `                          Get()
                 if err != nil {
                     return err
                 }
@@ -11286,7 +11315,36 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 					}
 
 					if _, err = io.WriteString(_w, `()).
-                          Load()
+`); err != nil {
+						return
+					}
+
+					if rev.Table.LockColumn() != nil {
+
+						if _, err = io.WriteString(_w, `                          Select(node.`); err != nil {
+							return
+						}
+
+						if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
+							return
+						}
+
+						if _, err = io.WriteString(_w, `().`); err != nil {
+							return
+						}
+
+						if _, err = io.WriteString(_w, rev.Table.LockColumn().Identifier); err != nil {
+							return
+						}
+
+						if _, err = io.WriteString(_w, `()).
+`); err != nil {
+							return
+						}
+
+					}
+
+					if _, err = io.WriteString(_w, `                          Load()
                 if err != nil {
                     return err
                 }

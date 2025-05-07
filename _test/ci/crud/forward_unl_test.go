@@ -97,6 +97,13 @@ func TestForwardUniqueNullableLockCollision(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Error(t, err2)
 	assert.IsType(t, &db.OptimisticLockError{}, err2)
+
+	// Delete
+	l2, _ = goradd_unit.LoadLeafUnl(ctx, l.ID(), node.LeafUnl().RootUnl())
+	assert.NoError(t, l.RootUnl().Delete(ctx))
+	l2.SetName("leaf4")
+	err2 = l2.Save(ctx)
+	assert.IsType(t, &db.OptimisticLockError{}, err2)
 }
 
 func TestForwardUniqueNullableLockNull(t *testing.T) {
@@ -128,4 +135,38 @@ func TestForwardUniqueNullableLockTwo(t *testing.T) {
 	l2, err := goradd_unit.LoadLeafUnl(ctx, l.ID())
 	require.NoError(t, err)
 	assert.NotNil(t, l2) // reverse linked item that is allowed to have a nil pointer was not deleted
+}
+
+func TestForwardUniqueNullableLockDelete(t *testing.T) {
+	ctx := db.NewContext(nil)
+	defer goradd_unit.ClearAll(ctx)
+	l := goradd_unit.NewLeafUnl()
+	r := goradd_unit.NewRootUnl()
+	l.SetName("leaf")
+	r.SetName("root")
+	l.SetRootUnl(r)
+	require.NoError(t, l.Save(ctx))
+
+	// Collision on Change
+	l2, err := goradd_unit.LoadLeafUnl(ctx, l.ID())
+	require.NoError(t, err)
+	l.SetName("leaf2")
+	_ = l.Save(ctx)
+	err = l2.Delete(ctx)
+	require.Error(t, err)
+	assert.IsType(t, &db.OptimisticLockError{}, err)
+
+	// Collision on deep Delete
+	l2, err = goradd_unit.LoadLeafUnl(ctx, l.ID())
+	require.NoError(t, err)
+	err = l.RootUnl().Delete(ctx)
+	require.NoError(t, err)
+	err = l2.Delete(ctx)
+	assert.Error(t, err)
+	assert.IsType(t, &db.OptimisticLockError{}, err)
+
+	// Deep delete set link to null
+	l2, err = goradd_unit.LoadLeafUnl(ctx, l.ID())
+	assert.NoError(t, err)
+	assert.NotNil(t, l2)
 }

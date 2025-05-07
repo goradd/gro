@@ -93,13 +93,19 @@ func TestReverseLockCollision(t *testing.T) {
 
 	// Level 2
 	r2, _ = goradd_unit.LoadRootL(ctx, r.ID(), node.RootL().LeafLs())
-
 	r.LeafLs()[0].SetName("leaf2")
 	r2.LeafLs()[0].SetName("leaf3")
 	err = r.Save(ctx)
 	err2 = r2.Save(ctx)
 	assert.NoError(t, err)
 	assert.Error(t, err2)
+	assert.IsType(t, &db.OptimisticLockError{}, err2)
+
+	// Delete
+	r2, _ = goradd_unit.LoadRootL(ctx, r.ID(), node.RootL().LeafLs())
+	assert.NoError(t, r.Delete(ctx))
+	r2.SetName("root4")
+	err2 = r2.Save(ctx)
 	assert.IsType(t, &db.OptimisticLockError{}, err2)
 }
 
@@ -144,4 +150,32 @@ func TestReverseLockTwo(t *testing.T) {
 	r2, err := goradd_unit.LoadRootL(ctx, r.ID(), node.RootL().LeafLs())
 	require.NoError(t, err)
 	assert.Len(t, r2.LeafLs(), 2)
+}
+
+func TestReverseLockDelete(t *testing.T) {
+	ctx := db.NewContext(nil)
+	defer goradd_unit.ClearAll(ctx)
+	l := goradd_unit.NewLeafL()
+	r := goradd_unit.NewRootL()
+	l.SetName("leaf")
+	r.SetName("root")
+	r.SetLeafLs(l)
+	require.NoError(t, r.Save(ctx))
+
+	// Collision on shallow change
+	r2, err := goradd_unit.LoadRootL(ctx, r.ID(), node.RootL().LeafLs())
+	require.NoError(t, err)
+	r.SetName("root2")
+	_ = r.Save(ctx)
+	err = r2.Delete(ctx)
+	require.Error(t, err)
+	assert.IsType(t, &db.OptimisticLockError{}, err)
+
+	// No collision on deep Delete since it can't be detected
+	r2, err = goradd_unit.LoadRootL(ctx, r.ID(), node.RootL().LeafLs())
+	require.NoError(t, err)
+	err = r.LeafLs()[0].Delete(ctx)
+	require.NoError(t, err)
+	err = r2.Delete(ctx)
+	assert.NoError(t, err)
 }

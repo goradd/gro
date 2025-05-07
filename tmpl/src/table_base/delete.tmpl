@@ -46,6 +46,9 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
                 obj, err := Query{{= rev.Table.IdentifierPlural }}(ctx).
                           Where(op.Equal(node.{{= rev.Table.Identifier }}().{{= rev.Identifier }}(), o.{{= table.PrimaryKeyColumn().VariableIdentifier() }})).
                           Select(node.{{= rev.Table.Identifier}}().{{= rev.Identifier }}()).
+{{if rev.Table.LockColumn() != nil }}
+                          Select(node.{{= rev.Table.Identifier }}().{{= rev.Table.LockColumn().Identifier }}()).
+{{if}}
                           Get()
                 if err != nil {
                     return err
@@ -82,6 +85,9 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
                 objs, err := Query{{= rev.Table.IdentifierPlural }}(ctx).
                           Where(op.Equal(node.{{= rev.Table.Identifier }}().{{= rev.Identifier }}(), o.{{= table.PrimaryKeyColumn().VariableIdentifier() }})).
                           Select(node.{{= rev.Table.Identifier }}().{{= rev.Identifier }}()).
+{{if rev.Table.LockColumn() != nil }}
+                          Select(node.{{= rev.Table.Identifier }}().{{= rev.Table.LockColumn().Identifier }}()).
+{{if}}
                           Load()
                 if err != nil {
                     return err

@@ -93,7 +93,6 @@ func TestReverseUniqueNullableLockCollision(t *testing.T) {
 
 	// Level 2
 	r2, _ = goradd_unit.LoadRootUnl(ctx, r.ID(), node.RootUnl().LeafUnl())
-
 	r.LeafUnl().SetName("leaf2")
 	r2.LeafUnl().SetName("leaf3")
 	err = r.Save(ctx)
@@ -101,6 +100,14 @@ func TestReverseUniqueNullableLockCollision(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Error(t, err2)
 	assert.IsType(t, &db.OptimisticLockError{}, err2)
+
+	// Delete
+	r2, _ = goradd_unit.LoadRootUnl(ctx, r.ID(), node.RootUnl().LeafUnl())
+	assert.NoError(t, r.Delete(ctx))
+	r2.SetName("root4")
+	err2 = r2.Save(ctx)
+	assert.IsType(t, &db.OptimisticLockError{}, err2)
+
 }
 
 func TestReverseUniqueNullableLockNull(t *testing.T) {
@@ -145,4 +152,32 @@ func TestReverseUniqueNullableLockTwo(t *testing.T) {
 	// Confirm detached.
 	l3, _ := goradd_unit.LoadLeafUnl(ctx, l.ID())
 	assert.Nil(t, l3.RootUnl())
+}
+
+func TestReverseUniqueNullableLockDelete(t *testing.T) {
+	ctx := db.NewContext(nil)
+	defer goradd_unit.ClearAll(ctx)
+	l := goradd_unit.NewLeafUnl()
+	r := goradd_unit.NewRootUnl()
+	l.SetName("leaf")
+	r.SetName("root")
+	r.SetLeafUnl(l)
+	require.NoError(t, r.Save(ctx))
+
+	// Collision on shallow change
+	r2, err := goradd_unit.LoadRootUnl(ctx, r.ID(), node.RootUnl().LeafUnl())
+	require.NoError(t, err)
+	r.SetName("root2")
+	_ = r.Save(ctx)
+	err = r2.Delete(ctx)
+	require.Error(t, err)
+	assert.IsType(t, &db.OptimisticLockError{}, err)
+
+	// No collision on deep Delete since it can't be detected
+	r2, err = goradd_unit.LoadRootUnl(ctx, r.ID(), node.RootUnl().LeafUnl())
+	require.NoError(t, err)
+	err = r.LeafUnl().Delete(ctx)
+	require.NoError(t, err)
+	err = r2.Delete(ctx)
+	assert.NoError(t, err)
 }
