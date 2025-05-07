@@ -126,3 +126,24 @@ func TestForwardUniqueTwo(t *testing.T) {
 	l2.SetRootU(r)
 	require.Error(t, l2.Save(ctx)) // unique value collision error
 }
+
+func TestForwardUniqueDelete(t *testing.T) {
+	ctx := db.NewContext(nil)
+	defer goradd_unit.ClearAll(ctx)
+	l := goradd_unit.NewLeafU()
+	r := goradd_unit.NewRootU()
+	l.SetName("leaf")
+	r.SetName("root")
+	l.SetRootU(r)
+	require.NoError(t, l.Save(ctx))
+
+	require.NoError(t, l.Delete(ctx))
+
+	l2, err := goradd_unit.LoadLeafU(ctx, l.ID())
+	require.NoError(t, err)
+	assert.Nil(t, l2)
+
+	r2, err := goradd_unit.LoadRootU(ctx, r.ID())
+	require.NoError(t, err)
+	assert.NotNil(t, r2)
+}

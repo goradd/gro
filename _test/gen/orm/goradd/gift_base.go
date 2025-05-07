@@ -660,7 +660,10 @@ func (o *giftBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	return d.Delete(ctx, "gift", map[string]any{"Number": o.number})
+	err = d.Delete(ctx, "gift", map[string]any{"Number": o.number})
+	if err != nil {
+		return err
+	}
 	broadcast.Delete(ctx, "goradd", "gift", fmt.Sprint(o.number))
 	return
 }

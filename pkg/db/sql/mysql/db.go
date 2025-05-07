@@ -237,11 +237,16 @@ func (m *DB) Insert(ctx context.Context, table string, _ string, fields map[stri
 	}
 }
 
-// Update sets specific fields of a record that already exists in the database.
-// optLockFieldName is the name of a version field that will implement an optimistic locking check before executing the update.
-// Note that if the database is not currently in a transaction, then the optimistic lock
-// will be a cursory check, but will not be able to definitively prevent a prior write.
-// If optLockFieldName is provided, that field will be updated with a new version number value during the update process.
+// Update sets specific fields of a single record that exists in the database.
+// optLockFieldName is the name of a version field that will implement an optimistic locking check while doing the update.
+// If optLockFieldName is provided:
+//   - That field will be used to limit the update,
+//   - That field will be updated with a new version
+//   - If the record was deleted, or if the record was previously updated, an OptimisticLockError will be returned.
+//     You will need to query further to determine if the record still exists.
+//
+// Otherwise, if optLockFieldName is blank, and the record we are attempting to change does not exist, the database
+// will not be altered, and no error will be returned.
 func (m *DB) Update(ctx context.Context,
 	table string,
 	pkName string,
@@ -253,18 +258,18 @@ func (m *DB) Update(ctx context.Context,
 	if len(fields) == 0 {
 		panic("fields must not be empty")
 	}
-	newLock, err = m.DbHelper.CheckLock(ctx, table, pkName, pkValue, optLockFieldName, optLockFieldValue)
-	if err != nil {
-		return
-	}
-	if newLock != 0 {
+	where := map[string]any{pkName: pkValue}
+	if optLockFieldName != "" {
+		newLock = db.RecordVersion(optLockFieldValue)
+		where[optLockFieldName] = optLockFieldValue
 		fields[optLockFieldName] = newLock
 	}
-	s, args := sql2.GenerateUpdate(m, table, fields, map[string]any{pkName: pkValue})
-	_, err = m.SqlExec(ctx, s, args...)
+	s, args := sql2.GenerateUpdate(m, table, fields, where, false)
+	var result sqldb.Result
+	result, err = m.SqlExec(ctx, s, args...)
 	if err != nil {
 		if me, ok := anyutil.As[*mysql.MySQLError](err); ok {
-			// expected error situation to report to developer
+			// expected error situation to report to developer. Unique value constraint was violated.
 			if me.Number == 1062 {
 				// Since it is not possible to completely prevent a unique constraint error, except by implementing a separate
 				// service to track and lock unique values that are in use (which is beyond the scope of the ORM), we need
@@ -273,6 +278,15 @@ func (m *DB) Update(ctx context.Context,
 			}
 		}
 		return 0, db.NewQueryError("SqlExec", s, args, err)
+	}
+	if rows, _ := result.RowsAffected(); rows == 0 {
+		if optLockFieldName != "" {
+			return 0, db.NewOptimisticLockError(table, pkValue, nil)
+		} /*else {
+			Note: We cannot determine that a record was not found, because another possibility is simply that the record
+				  did not change. The above works because the optimistic lock forces a change.
+			return 0, db.NewRecordNotFoundError(table, pkValue)
+		} */
 	}
 	return
 }

@@ -10966,7 +10966,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 
 	if len(table.ReverseReferences) == 0 && len(table.ManyManyReferences) == 0 {
 
-		if _, err = io.WriteString(_w, `	return d.Delete(ctx, "`); err != nil {
+		if _, err = io.WriteString(_w, `	err = d.Delete(ctx, "`); err != nil {
 			return
 		}
 
@@ -11433,16 +11433,16 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 		if _, err = io.WriteString(_w, ` })
 	})
 
-	if err != nil {
-	    return err
-	}
 `); err != nil {
 			return
 		}
 
 	}
 
-	if _, err = io.WriteString(_w, `	broadcast.Delete(ctx, "`); err != nil {
+	if _, err = io.WriteString(_w, `	if err != nil {
+	    return err
+	}
+	broadcast.Delete(ctx, "`); err != nil {
 		return
 	}
 

@@ -135,3 +135,24 @@ func TestForwardTwo(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, r2.Leafs(), 2)
 }
+
+func TestForwardDelete(t *testing.T) {
+	ctx := db.NewContext(nil)
+	defer goradd_unit.ClearAll(ctx)
+	l := goradd_unit.NewLeaf()
+	r := goradd_unit.NewRoot()
+	l.SetName("leaf")
+	r.SetName("root")
+	l.SetRoot(r)
+	require.NoError(t, l.Save(ctx))
+
+	require.NoError(t, l.Delete(ctx))
+
+	l2, err := goradd_unit.LoadLeaf(ctx, l.ID())
+	require.NoError(t, err)
+	assert.Nil(t, l2)
+
+	r2, err := goradd_unit.LoadRoot(ctx, r.ID())
+	require.NoError(t, err)
+	assert.NotNil(t, r2)
+}

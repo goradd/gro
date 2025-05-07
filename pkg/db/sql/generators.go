@@ -477,7 +477,9 @@ func (g *sqlGenerator) generateOrderBySql() (sql string) {
 }
 
 // GenerateUpdate is a helper function for database implementations to generate an update statement.
-func GenerateUpdate(db DbI, table string, fields map[string]any, where map[string]any) (sql string, args []any) {
+// useOr will indicate whether to OR or AND the items in the where group. If where has a map[string]any object in it,
+// the items in that map will be OR'd or AND'd opposite to userOr. This is recursive.
+func GenerateUpdate(db DbI, table string, fields map[string]any, where map[string]any, useOr bool) (sql string, args []any) {
 	if len(fields) == 0 {
 		panic("No fields to set")
 	}
@@ -505,7 +507,7 @@ func GenerateUpdate(db DbI, table string, fields map[string]any, where map[strin
 	sb.WriteString("\nWHERE ")
 
 	var s2 string
-	s2, args = generateWhereClause(db, where, true, args)
+	s2, args = generateWhereClause(db, where, useOr, args)
 	sb.WriteString(s2)
 	sql = sb.String()
 

@@ -132,3 +132,24 @@ func TestForwardNullableTwo(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, r2.LeafNs(), 2)
 }
+
+func TestForwardNullableDelete(t *testing.T) {
+	ctx := db.NewContext(nil)
+	defer goradd_unit.ClearAll(ctx)
+	l := goradd_unit.NewLeafN()
+	r := goradd_unit.NewRootN()
+	l.SetName("leaf")
+	r.SetName("root")
+	l.SetRootN(r)
+	require.NoError(t, l.Save(ctx))
+
+	require.NoError(t, l.Delete(ctx))
+
+	l2, err := goradd_unit.LoadLeafN(ctx, l.ID())
+	require.NoError(t, err)
+	assert.Nil(t, l2)
+
+	r2, err := goradd_unit.LoadRootN(ctx, r.ID())
+	require.NoError(t, err)
+	assert.NotNil(t, r2)
+}

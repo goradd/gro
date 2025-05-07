@@ -1,0 +1,27 @@
+Note on Updating linked records.
+
+When calling Save on records that have linked records, the following caveats apply.
+
+If the records have optimistic lock protection, then all MODIFIED linked records will be checked for optimistic locking
+changes, including whether the linked records were deleted. Linked records that were not modified will not be checked,
+and therefore may have been altered by another process during the Save.
+
+If the records do not have optimistic lock protection, generally the last save wins. However, since linked records
+that were not modified do not get saved, then another process may have altered them. Also, linked records that are
+deleted prior to a save are not recreated. The prior delete takes precedence.
+
+Much of this depends on the application's needs whether this is important. However, if it is important to preserve
+the integrity of linked records during a save, such that all the saved records are treated as a unit, you should do the
+following from within a transaction. (i.e. inside db.ExecuteTransaction):
+
+- Read the record again and select all the other linked records that are important
+- Compare this with the record you are saving to detect whether anything has been deleted or altered that you were unaware of
+  and if so, react appropriately. This may require comparing against a previous unaltered version of the record.
+- If the record has not changed, call Save()
+- If necessary, check the error returned from Save to see if optimistic locking collisions occurred
+
+The read of the record inside of the transaction will temporarily block other processes from altering these values, so
+that when the Save is executed, everything saved will have integrity at that moment.
+
+The alternative to the above process is to prevent linked records from being reassigned or deleted independently
+in your application logic.

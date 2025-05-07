@@ -136,3 +136,32 @@ func TestForwardLockTwo(t *testing.T) {
 	require.NoError(t, err)
 	assert.Len(t, r2.LeafLs(), 2)
 }
+
+func TestForwardLockDelete(t *testing.T) {
+	ctx := db.NewContext(nil)
+	defer goradd_unit.ClearAll(ctx)
+	l := goradd_unit.NewLeafL()
+	r := goradd_unit.NewRootL()
+	l.SetName("leaf")
+	r.SetName("root")
+	l.SetRootL(r)
+	require.NoError(t, l.Save(ctx))
+
+	// iterate on delete and change collisions
+
+	l2, err := goradd_unit.LoadLeafL(ctx, l.ID())
+	require.NoError(t, err)
+	l.SetName("leaf2")
+	_ = l.Save(ctx)
+	err = l2.Delete(ctx)
+	require.Error(t, err)
+	assert.IsType(t, &db.OptimisticLockError{}, err)
+
+	l2, err = goradd_unit.LoadLeafL(ctx, l.ID())
+	require.NoError(t, err)
+	err = l.Delete(ctx)
+	require.NoError(t, err)
+	err = l2.Delete(ctx)
+	assert.Error(t, err)
+	assert.IsType(t, &db.OptimisticLockError{}, err)
+}

@@ -905,7 +905,10 @@ func (o *leafUnlBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	return d.Delete(ctx, "leaf_unl", map[string]any{"ID": o.id})
+	err = d.Delete(ctx, "leaf_unl", map[string]any{"ID": o.id})
+	if err != nil {
+		return err
+	}
 	broadcast.Delete(ctx, "goradd_unit", "leaf_unl", fmt.Sprint(o.id))
 	return
 }

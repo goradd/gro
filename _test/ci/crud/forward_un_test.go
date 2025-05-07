@@ -128,3 +128,24 @@ func TestForwardUniqueNullableTwo(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, l2) // reverse linked item that is allowed to have a nil pointer was not deleted
 }
+
+func TestForwardUniqueNullableDelete(t *testing.T) {
+	ctx := db.NewContext(nil)
+	defer goradd_unit.ClearAll(ctx)
+	l := goradd_unit.NewLeafUn()
+	r := goradd_unit.NewRootUn()
+	l.SetName("leaf")
+	r.SetName("root")
+	l.SetRootUn(r)
+	require.NoError(t, l.Save(ctx))
+
+	require.NoError(t, l.Delete(ctx))
+
+	l2, err := goradd_unit.LoadLeafUn(ctx, l.ID())
+	require.NoError(t, err)
+	assert.Nil(t, l2)
+
+	r2, err := goradd_unit.LoadRootUn(ctx, r.ID())
+	require.NoError(t, err)
+	assert.NotNil(t, r2)
+}

@@ -1023,7 +1023,10 @@ func (o *doubleIndexBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	return d.Delete(ctx, "double_index", map[string]any{"ID": o.id})
+	err = d.Delete(ctx, "double_index", map[string]any{"ID": o.id})
+	if err != nil {
+		return err
+	}
 	broadcast.Delete(ctx, "goradd_unit", "double_index", fmt.Sprint(o.id))
 	return
 }

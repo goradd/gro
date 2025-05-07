@@ -1057,7 +1057,10 @@ func (o *loginBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	return d.Delete(ctx, "login", map[string]any{"ID": o.id})
+	err = d.Delete(ctx, "login", map[string]any{"ID": o.id})
+	if err != nil {
+		return err
+	}
 	broadcast.Delete(ctx, "goradd", "login", fmt.Sprint(o.id))
 	return
 }

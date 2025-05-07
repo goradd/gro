@@ -31,7 +31,7 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
 	}
 	d := Database()
 {{if len(table.ReverseReferences) == 0 && len(table.ManyManyReferences) == 0}}
-	return d.Delete(ctx, "{{table.QueryName}}", map[string]any{"{{= table.PrimaryKeyColumn().Identifier }}":o.{{= table.PrimaryKeyColumn().DecapIdentifier }} })
+	err = d.Delete(ctx, "{{table.QueryName}}", map[string]any{"{{= table.PrimaryKeyColumn().Identifier }}":o.{{= table.PrimaryKeyColumn().DecapIdentifier }} })
 {{else}}
     err = db.ExecuteTransaction(ctx, d, func() error {
 	{{for _,rev := range table.ReverseReferences }}
@@ -123,10 +123,10 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
 	    return d.Delete(ctx, "{{= table.QueryName }}", map[string]any{"{{= table.PrimaryKeyColumn().Identifier }}": o.{{= table.PrimaryKeyColumn().VariableIdentifier() }} })
 	})
 
+{{if}}
 	if err != nil {
 	    return err
 	}
-{{if}}
 	broadcast.Delete(ctx, "{{= table.DbKey }}", "{{= table.QueryName }}", fmt.Sprint(o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}))
 	return
 }

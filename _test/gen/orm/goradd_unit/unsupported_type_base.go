@@ -1322,7 +1322,10 @@ func (o *unsupportedTypeBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	return d.Delete(ctx, "unsupported_type", map[string]any{"TypeSerial": o.typeSerial})
+	err = d.Delete(ctx, "unsupported_type", map[string]any{"TypeSerial": o.typeSerial})
+	if err != nil {
+		return err
+	}
 	broadcast.Delete(ctx, "goradd_unit", "unsupported_type", fmt.Sprint(o.typeSerial))
 	return
 }

@@ -803,7 +803,10 @@ func (o *personWithLockBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	return d.Delete(ctx, "person_with_lock", map[string]any{"ID": o.id})
+	err = d.Delete(ctx, "person_with_lock", map[string]any{"ID": o.id})
+	if err != nil {
+		return err
+	}
 	broadcast.Delete(ctx, "goradd", "person_with_lock", fmt.Sprint(o.id))
 	return
 }

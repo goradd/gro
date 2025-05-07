@@ -803,7 +803,10 @@ func (o *employeeInfoBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	return d.Delete(ctx, "employee_info", map[string]any{"ID": o.id})
+	err = d.Delete(ctx, "employee_info", map[string]any{"ID": o.id})
+	if err != nil {
+		return err
+	}
 	broadcast.Delete(ctx, "goradd", "employee_info", fmt.Sprint(o.id))
 	return
 }
