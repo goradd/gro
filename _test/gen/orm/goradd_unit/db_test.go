@@ -50,6 +50,7 @@ func TestDbJson(t *testing.T) {
 	// get single comparison objects and data sizes
 	// database must be pre-populated for test
 
+	v_AutoGen, _ := QueryAutoGens(ctx).OrderBy(node.AutoGen().PrimaryKey()).Get()                         // gets first record
 	v_DoubleIndex, _ := QueryDoubleIndices(ctx).OrderBy(node.DoubleIndex().PrimaryKey()).Get()            // gets first record
 	v_MultiParent, _ := QueryMultiParents(ctx).OrderBy(node.MultiParent().PrimaryKey()).Get()             // gets first record
 	v_Root, _ := QueryRoots(ctx).OrderBy(node.Root().PrimaryKey()).Get()                                  // gets first record
@@ -70,6 +71,7 @@ func TestDbJson(t *testing.T) {
 	v_LeafUl, _ := QueryLeafUls(ctx).OrderBy(node.LeafUl().PrimaryKey()).Get()                            // gets first record
 	v_LeafUn, _ := QueryLeafUns(ctx).OrderBy(node.LeafUn().PrimaryKey()).Get()                            // gets first record
 	v_LeafUnl, _ := QueryLeafUnls(ctx).OrderBy(node.LeafUnl().PrimaryKey()).Get()                         // gets first record
+	v_AutoGenCount, _ := CountAutoGens(ctx)
 	v_DoubleIndexCount, _ := CountDoubleIndices(ctx)
 	v_MultiParentCount, _ := CountMultiParents(ctx)
 	v_RootCount, _ := CountRoots(ctx)
@@ -96,6 +98,7 @@ func TestDbJson(t *testing.T) {
 	assert.NoError(t, JsonEncodeAll(ctx, w))
 
 	ClearAll(ctx)
+	assert.Equal(t, 0, func() int { i, _ := CountAutoGens(ctx); return i }())
 	assert.Equal(t, 0, func() int { i, _ := CountDoubleIndices(ctx); return i }())
 	assert.Equal(t, 0, func() int { i, _ := CountMultiParents(ctx); return i }())
 	assert.Equal(t, 0, func() int { i, _ := CountRoots(ctx); return i }())
@@ -120,6 +123,10 @@ func TestDbJson(t *testing.T) {
 	r := bufio.NewReader(&b)
 	assert.NoError(t, JsonDecodeAll(ctx, r))
 
+	if v_AutoGen != nil {
+		obj, _ := QueryAutoGens(ctx).OrderBy(node.AutoGen().PrimaryKey()).Get()
+		assertEqualFieldsAutoGen(t, v_AutoGen, obj)
+	}
 	if v_DoubleIndex != nil {
 		obj, _ := QueryDoubleIndices(ctx).OrderBy(node.DoubleIndex().PrimaryKey()).Get()
 		assertEqualFieldsDoubleIndex(t, v_DoubleIndex, obj)
@@ -200,6 +207,7 @@ func TestDbJson(t *testing.T) {
 		obj, _ := QueryLeafUnls(ctx).OrderBy(node.LeafUnl().PrimaryKey()).Get()
 		assertEqualFieldsLeafUnl(t, v_LeafUnl, obj)
 	}
+	assert.Equal(t, v_AutoGenCount, func() int { i, _ := CountAutoGens(ctx); return i }())
 	assert.Equal(t, v_DoubleIndexCount, func() int { i, _ := CountDoubleIndices(ctx); return i }())
 	assert.Equal(t, v_MultiParentCount, func() int { i, _ := CountMultiParents(ctx); return i }())
 	assert.Equal(t, v_RootCount, func() int { i, _ := CountRoots(ctx); return i }())

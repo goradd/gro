@@ -10,7 +10,6 @@ import (
 	"github.com/goradd/orm/pkg/op"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"time"
 )
 
 func TestBasic(t *testing.T) {
@@ -333,21 +332,4 @@ func TestMultiParent(t *testing.T) {
 	assert.Equal(t, baby.ID(), baby2.ID())
 	assert.Equal(t, baby.Parent1().ID(), baby2.Parent1().ID())
 	assert.Equal(t, baby.Parent2().ID(), baby2.Parent2().ID())
-}
-
-func TestTimeDefaults(t *testing.T) {
-	ctx := db.NewContext(nil)
-	p := goradd.NewPerson()
-	defer p.Delete(ctx)
-	p.SetFirstName("Bob")
-	p.SetLastName("Dylan")
-	assert.NoError(t, p.Save(ctx))
-	now := time.Now()
-	assert.WithinDuration(t, now, p.Created(), time.Second)
-	assert.WithinDuration(t, p.Created(), p.Modified(), time.Second)
-	time.Sleep(2 * time.Second)
-	p.SetLastName("Hope")
-	assert.NoError(t, p.Save(ctx))
-	assert.WithinDuration(t, now, p.Created(), time.Second) // no change
-	assert.WithinDuration(t, time.Now(), p.Modified(), time.Second)
 }

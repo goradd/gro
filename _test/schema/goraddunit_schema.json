@@ -5,6 +5,44 @@
   "assn_table_suffix": "_assn",
   "tables": [
     {
+      "name": "auto_gen",
+      "columns": [
+        {
+          "name": "id",
+          "type": "auto_primary_key",
+          "size": 32
+        },
+        {
+          "name": "gro_lock",
+          "type": "int",
+          "sub_type": "gro_lock",
+          "size": 64
+        },
+        {
+          "name": "gro_timestamp",
+          "type": "int",
+          "sub_type": "gro_timestamp",
+          "size": 64
+        },
+        {
+          "name": "created",
+          "type": "time",
+          "default_value": "now"
+        },
+        {
+          "name": "modified",
+          "type": "time",
+          "default_value": "update",
+          "is_nullable": true
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "size": 10
+        }
+      ]
+    },
+    {
       "name": "double_index",
       "columns": [
         {
