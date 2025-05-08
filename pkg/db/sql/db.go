@@ -24,8 +24,10 @@ import (
 // cast it to this type to gain access to the low level SQL driver and send it raw SQL commands.
 type DbI interface {
 	// SqlExec executes a query that does not expect to return values.
+	// It will time out the query if contextTimeout is exceeded
 	SqlExec(ctx context.Context, sql string, args ...interface{}) (r sql.Result, err error)
 	// SqlQuery executes a SQL query that returns values.
+	// It will time out the query if contextTimeout is exceeded
 	SqlQuery(ctx context.Context, sql string, args ...interface{}) (r *sql.Rows, err error)
 	// QuoteIdentifier will put quotes around an identifier in a database specific way.
 	QuoteIdentifier(string) string
@@ -62,18 +64,20 @@ type sqlContext struct {
 // DbHelper is a mixin for SQL database drivers.
 // It implements common code needed by all SQL database drivers and default implementations of database code.
 type DbHelper struct {
-	dbKey     string  // key of the database as used in the global database map
-	db        *sql.DB // Internal copy of a Go database/sql object
-	dbi       DbI
-	profiling bool
+	dbKey          string  // key of the database as used in the global database map
+	db             *sql.DB // Internal copy of a Go database/sql object
+	dbi            DbI
+	profiling      bool
+	contextTimeout time.Duration
 }
 
 // NewSqlHelper creates a default DbHelper mixin.
-func NewSqlHelper(dbKey string, db *sql.DB, dbi DbI) DbHelper {
+func NewSqlHelper(dbKey string, db *sql.DB, dbi DbI, contextTimeout time.Duration) DbHelper {
 	s := DbHelper{
-		dbKey: dbKey,
-		db:    db,
-		dbi:   dbi,
+		dbKey:          dbKey,
+		db:             db,
+		dbi:            dbi,
+		contextTimeout: contextTimeout,
 	}
 	return s
 }
@@ -81,7 +85,7 @@ func NewSqlHelper(dbKey string, db *sql.DB, dbi DbI) DbHelper {
 // Begin starts a transaction. You should immediately defer a Rollback using the returned transaction id.
 // If you Commit before the Rollback happens, no Rollback will occur. The Begin-Commit-Rollback pattern is nestable.
 func (h *DbHelper) Begin(ctx context.Context) (txid db.TransactionID, err error) {
-	c := h.getContext(ctx)
+	c := h.getSqlContext(ctx)
 	if c == nil {
 		panic("Can't use transactions without pre-loading a context")
 	}
@@ -99,7 +103,7 @@ func (h *DbHelper) Begin(ctx context.Context) (txid db.TransactionID, err error)
 
 // Commit commits the transaction, and if an error occurs, will panic with the error.
 func (h *DbHelper) Commit(ctx context.Context, txid db.TransactionID) error {
-	c := h.getContext(ctx)
+	c := h.getSqlContext(ctx)
 	if c == nil {
 		panic("Can't use transactions without pre-loading a context")
 	}
@@ -128,7 +132,7 @@ func (h *DbHelper) Commit(ctx context.Context, txid db.TransactionID) error {
 // to implement a transaction management scheme, because you simply always defer a Rollback after a Begin. Pass the txid
 // that you got from the Begin to the Rollback. To trigger a Rollback, simply panic or exit the function.
 func (h *DbHelper) Rollback(ctx context.Context, txid db.TransactionID) error {
-	c := h.getContext(ctx)
+	c := h.getSqlContext(ctx)
 	if c == nil {
 		panic("Can't use transactions without pre-loading a context")
 	}
@@ -146,13 +150,18 @@ func (h *DbHelper) Rollback(ctx context.Context, txid db.TransactionID) error {
 
 // SqlExec executes the given SQL code, without returning any result rows.
 func (h *DbHelper) SqlExec(ctx context.Context, sql string, args ...interface{}) (r sql.Result, err error) {
-	c := h.getContext(ctx)
+	c := h.getSqlContext(ctx)
 	slog.Debug("SqlExec: ",
 		slog.String(db.LogSql, sql),
 		slog.Any(db.LogArgs, args))
 
-	var beginTime = time.Now()
+	if h.contextTimeout != 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, h.contextTimeout)
+		defer cancel()
+	}
 
+	var beginTime = time.Now()
 	if c != nil && c.tx != nil {
 		r, err = c.tx.ExecContext(ctx, sql, args...)
 	} else {
@@ -198,10 +207,16 @@ func (s *DbHelper) Prepare(ctx context.Context, sql string) (r *sql.Stmt, err er
 
 // SqlQuery executes the given sql, and returns a row result set.
 func (h *DbHelper) SqlQuery(ctx context.Context, sql string, args ...interface{}) (r *sql.Rows, err error) {
-	c := h.getContext(ctx)
+	c := h.getSqlContext(ctx)
 	slog.Debug("SqlExec: ",
 		slog.String(db.LogSql, sql),
 		slog.Any(db.LogArgs, args))
+
+	if h.contextTimeout != 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, h.contextTimeout)
+		defer cancel()
+	}
 
 	var beginTime = time.Now()
 	if c != nil && c.tx != nil {
@@ -233,7 +248,7 @@ func (h *DbHelper) contextKey() contextKey {
 	return contextKey("db-" + h.DbKey())
 }
 
-func (h *DbHelper) getContext(ctx context.Context) *sqlContext {
+func (h *DbHelper) getSqlContext(ctx context.Context) *sqlContext {
 	i := ctx.Value(h.contextKey())
 	if i != nil {
 		if c, ok := i.(*sqlContext); ok {
@@ -245,7 +260,7 @@ func (h *DbHelper) getContext(ctx context.Context) *sqlContext {
 
 // IsInTransaction returns true if the database is in the middle of a transaction.
 func (h *DbHelper) IsInTransaction(ctx context.Context) (inTx bool) {
-	c := h.getContext(ctx)
+	c := h.getSqlContext(ctx)
 	if c != nil && c.txCount > 0 {
 		inTx = true
 	}
@@ -270,7 +285,7 @@ func (h *DbHelper) StartProfiling() {
 // GetProfiles returns currently collected profile information
 // TODO: Move profiles to a session variable so we can access ajax queries too
 func (h *DbHelper) GetProfiles(ctx context.Context) []ProfileEntry {
-	c := h.getContext(ctx)
+	c := h.getSqlContext(ctx)
 	if c == nil {
 		panic("Profiling requires a preloaded context.")
 	}
@@ -287,6 +302,7 @@ func (h *DbHelper) GetProfiles(ctx context.Context) []ProfileEntry {
 func (h *DbHelper) Query(ctx context.Context, table string, fields map[string]ReceiverType, where map[string]any, orderBy []string) (CursorI, error) {
 	var fieldNames []string
 	var receivers []ReceiverType
+
 	for k, v := range fields {
 		fieldNames = append(fieldNames, k)
 		receivers = append(receivers, v)
@@ -374,14 +390,15 @@ func (h *DbHelper) CheckLock(ctx context.Context,
 // The data returned will depend on the command inside the builder.
 // Be sure when using BuilderCommandLoadCursor you close the returned cursor, probably with a defer command.
 func (h *DbHelper) BuilderQuery(builder *Builder) (ret any, err error) {
+	ctx := builder.Context()
 	joinTree := jointree.NewJoinTree(builder)
 	switch joinTree.Command {
 	case BuilderCommandLoad:
-		ret, err = h.joinTreeLoad(builder.Context(), joinTree)
+		ret, err = h.joinTreeLoad(ctx, joinTree)
 	case BuilderCommandLoadCursor:
-		ret, err = h.joinTreeLoadCursor(builder.Context(), joinTree)
+		ret, err = h.joinTreeLoadCursor(ctx, joinTree)
 	case BuilderCommandCount:
-		ret, err = h.joinTreeCount(builder.Context(), joinTree)
+		ret, err = h.joinTreeCount(ctx, joinTree)
 	}
 	return
 }

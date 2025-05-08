@@ -12,15 +12,27 @@ import (
 	maps2 "maps"
 	"slices"
 	"strings"
+	"time"
 )
 
 func FromSchema(s *schema.Database) *Database {
 	s.FillDefaults()
+	var timeout time.Duration
+	if s.TransactionTimeout != "" {
+		var err error
+		timeout, err = time.ParseDuration(s.TransactionTimeout)
+		if err != nil {
+			slog.Warn("invalid timeout",
+				slog.Any(db.LogError, err))
+			timeout = 0
+		}
+	}
 	d := Database{
-		Key:             s.Key,
-		ReferenceSuffix: s.ReferenceSuffix,
-		EnumTableSuffix: s.EnumTableSuffix,
-		AssnTableSuffix: s.AssnTableSuffix,
+		Key:                s.Key,
+		TransactionTimeout: timeout,
+		ReferenceSuffix:    s.ReferenceSuffix,
+		EnumTableSuffix:    s.EnumTableSuffix,
+		AssnTableSuffix:    s.AssnTableSuffix,
 	}
 	d.importSchema(s)
 	return &d
@@ -31,6 +43,10 @@ func FromSchema(s *schema.Database) *Database {
 type Database struct {
 	// The database key corresponding to its key in the global database cluster
 	Key string
+	// TransactionTimeout is used to wrap transactions with a timeout on their contexts.
+	// Leaving it as zero will turn off timeout wrapping, allowing you to wrap individual calls as you
+	// see fit.
+	TransactionTimeout time.Duration
 	// Tables are the tables in the database, keyed by database table name
 	Tables map[string]*Table
 	// Enums contains a description of the enumerated types linked to the database, keyed by database table name

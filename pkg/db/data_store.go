@@ -114,6 +114,9 @@ func NewContext(ctx context.Context) context.Context {
 }
 
 // ExecuteTransaction wraps the function f in a database transaction.
+// While the ORM by default will wrap individual database calls with a timeout,
+// it will not apply this timeout to transactions. It is up to you to pass a context that
+// has a timeout to prevent the overall transaction from hanging.
 func ExecuteTransaction(ctx context.Context, d DatabaseI, f func() error) error {
 	txid, err := d.Begin(ctx)
 	if err != nil {

@@ -17,6 +17,12 @@ type Table struct {
 	// Databases that do not support schemas will have this prepended to the name of the table.
 	Schema string `json:"schema,omitempty"`
 
+	// TransactionTimeout is used to wrap transactions with a timeout on their contexts.
+	// Leaving it as zero will turn off timeout wrapping, allowing you to wrap individual calls as you
+	// see fit. This only applies to code generated transactions.
+	// Use a duration format understood by time.ParseDuration.
+	TransactionTimeout string `json:"timeout,omitempty"`
+
 	// Columns is a list of Column objects, one for each column in the table.
 	Columns []*Column `json:"columns"`
 

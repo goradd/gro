@@ -65,7 +65,16 @@ type DB struct {
 // NewDB returns a new DB database object that you can add to the datastore.
 // If connectionString is set, it will be used to create the configuration. Otherwise,
 // use a config setting.
-func NewDB(dbKey string, connectionString string, config *mysql.Config) (*DB, error) {
+//
+// contextTimeout is the timeout that will be set in the context such that all individual database
+// calls will need to complete within that time or the context will be canceled with an error.
+// The MySQL driver monitors this cancellation and will time out the database call.
+// There are additional timeout setting in config.
+// contextTimeout is not applied to transactions.
+func NewDB(dbKey string,
+	connectionString string,
+	config *mysql.Config,
+	contextTimeout time.Duration) (*DB, error) {
 	if connectionString == "" && config == nil {
 		return nil, fmt.Errorf("must specify how to connect to the database")
 
@@ -84,7 +93,7 @@ func NewDB(dbKey string, connectionString string, config *mysql.Config) (*DB, er
 	}
 
 	m := new(DB)
-	m.DbHelper = sql2.NewSqlHelper(dbKey, db3, m)
+	m.DbHelper = sql2.NewSqlHelper(dbKey, db3, m, contextTimeout)
 	if config != nil {
 		m.databaseName = config.DBName // save off the database name for later use
 	} else {
@@ -137,11 +146,20 @@ func OverrideConfigSettings(config *mysql.Config, jsonContent map[string]interfa
 		case "tlsConfig":
 			config.TLSConfig = v.(string)
 		case "timeout":
-			config.Timeout = time.Duration(int(v.(float64))) * time.Second
+			d, err := time.ParseDuration(v.(string))
+			if err != nil {
+				config.Timeout = d
+			}
 		case "readTimeout":
-			config.ReadTimeout = time.Duration(int(v.(float64))) * time.Second
+			d, err := time.ParseDuration(v.(string))
+			if err != nil {
+				config.ReadTimeout = d
+			}
 		case "writeTimeout":
-			config.WriteTimeout = time.Duration(int(v.(float64))) * time.Second
+			d, err := time.ParseDuration(v.(string))
+			if err != nil {
+				config.WriteTimeout = d
+			}
 		case "allowAllFiles":
 			config.AllowAllFiles = v.(bool)
 		case "allowCleartextPasswords":

@@ -7,11 +7,15 @@ import (
 	"github.com/kenshaw/snaker"
 	"log/slog"
 	"slices"
+	"time"
 )
 
 type Table struct {
 	// DbKey is the key used to find the database in the global database cluster
 	DbKey string
+	// TransactionTimeout is used to wrap transactions with a timeout on their contexts.
+	// Leaving it as zero will use the timeout in the database, if one is set.
+	TransactionTimeout time.Duration
 	// QueryName is the name of the database table or object in the database.
 	QueryName string
 	// Label is the name of the object when describing it to the world. Should be lower case.
@@ -140,14 +144,25 @@ func (t *Table) HasUniqueIndexes() bool {
 // If an error occurs, it is logged and nil is returned.
 func newTable(dbKey string, tableSchema *schema.Table) *Table {
 	queryName := strings2.If(tableSchema.Schema == "", tableSchema.Name, tableSchema.Schema+"."+tableSchema.Name)
+	var timeout time.Duration
+	if tableSchema.TransactionTimeout != "" {
+		var err error
+		timeout, err = time.ParseDuration(tableSchema.TransactionTimeout)
+		if err != nil {
+			slog.Warn("invalid timeout",
+				slog.Any(db.LogError, err))
+			timeout = 0
+		}
+	}
 	t := &Table{
-		DbKey:            dbKey,
-		QueryName:        queryName,
-		Label:            tableSchema.Label,
-		LabelPlural:      tableSchema.LabelPlural,
-		Identifier:       tableSchema.Identifier,
-		IdentifierPlural: tableSchema.IdentifierPlural,
-		columnMap:        make(map[string]*Column),
+		DbKey:              dbKey,
+		TransactionTimeout: timeout,
+		QueryName:          queryName,
+		Label:              tableSchema.Label,
+		LabelPlural:        tableSchema.LabelPlural,
+		Identifier:         tableSchema.Identifier,
+		IdentifierPlural:   tableSchema.IdentifierPlural,
+		columnMap:          make(map[string]*Column),
 	}
 
 	t.DecapIdentifier = strings2.Decap(tableSchema.Identifier)

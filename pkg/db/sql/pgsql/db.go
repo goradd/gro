@@ -13,11 +13,13 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/stdlib"
 	"strings"
+	"time"
 )
 
 // DB is the goradd driver for postgresql databases.
 type DB struct {
 	sql2.DbHelper
+	contextTimeout time.Duration
 }
 
 // NewDB returns a new Postgresql DB database object based on the pgx driver
@@ -34,9 +36,17 @@ type DB struct {
 //	config,_ := pgx.ParseConfig(connectionString)
 //	config.Password = "mysecret"
 //	db := pgsql.NewDB(key, "", config)
+//
+// contextTimeout is the timeout that will be set in the context such that all individual database
+// calls will need to complete within that time or the context will be canceled with an error.
+// The PGX driver monitors this cancellation and will timeout the database call.
+// PGX has no other mechanism of assuring a database query does not hang. The ConnectionTimeout
+// setting in config only monitors the time it takes to establish a connection.
+// contextTimeout will not be applied to transactions.
 func NewDB(dbKey string,
 	connectionString string,
-	config *pgx.ConnConfig) (*DB, error) {
+	config *pgx.ConnConfig,
+	contextTimeout time.Duration) (*DB, error) {
 	if connectionString == "" && config == nil {
 		return nil, fmt.Errorf("must specify how to connect to the database")
 	}
@@ -55,7 +65,7 @@ func NewDB(dbKey string,
 	}
 
 	m := new(DB)
-	m.DbHelper = sql2.NewSqlHelper(dbKey, db3, m)
+	m.DbHelper = sql2.NewSqlHelper(dbKey, db3, m, contextTimeout)
 	return m, nil
 }
 
@@ -80,6 +90,11 @@ func OverrideConfigSettings(config *pgx.ConnConfig, jsonContent map[string]inter
 			config.KerberosSrvName = v.(string)
 		case "kerberosSPN":
 			config.KerberosSpn = v.(string)
+		case "connectionTimeout":
+			d, err := time.ParseDuration(v.(string))
+			if err != nil {
+				config.ConnectTimeout = d
+			}
 		}
 	}
 }
