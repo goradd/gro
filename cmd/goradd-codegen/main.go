@@ -37,14 +37,19 @@ func main() {
 	}
 
 	if outdir != "" {
-		d, err2 := filepath.Abs(outdir)
-		if err2 != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "cannot find schema file %s: %s", schemaFile, err2)
+		var d string
+		d, err = filepath.Abs(outdir)
+		if err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "error with output directory path: %s", err)
+			os.Exit(1)
+		}
+		if err = os.MkdirAll(d, 0777); err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "could not create output directory: %s", err)
 			os.Exit(1)
 		}
 		err = os.Chdir(d)
 		if err != nil {
-			_, _ = fmt.Fprintf(os.Stderr, "cannot change directory to %s: %s", outdir, err)
+			_, _ = fmt.Fprintf(os.Stderr, "cannot change directory to %s: %s", d, err)
 			os.Exit(1)
 		}
 	}

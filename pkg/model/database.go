@@ -78,6 +78,9 @@ func (m *Database) importSchema(schema *schema.Database) {
 	for _, table := range schema.Tables {
 		t := newTable(m.Key, table)
 		if t != nil {
+			if t.TransactionTimeout == 0 {
+				t.TransactionTimeout = m.TransactionTimeout
+			}
 			m.Tables[t.QueryName] = t
 		}
 	}

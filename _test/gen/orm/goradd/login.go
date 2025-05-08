@@ -54,7 +54,8 @@ func (o *Login) Label() string {
 }
 
 // Save will update or insert the object, depending on the state of the object.
-// If it has an auto-generated primary key, it will be changed after an insert.
+//
+// If it has an auto-generated primary key, it will be updated after an insert.
 // Database errors generally will be handled by a panic and not returned here,
 // since those indicate a problem with a database driver or configuration.
 //
@@ -65,6 +66,9 @@ func (o *Login) Label() string {
 // is made to add a record with a unique column that is given a value that is already in the database.
 //
 // Updating a record that has not changed will have no effect on the database.
+// Updating a record that has linked records will also update any linked records that are MODIFIED,
+// and if optimistic locking is in effect, will also check whether those records have been altered or deleted,
+// returning an OptimisticLockError if so.
 func (o *Login) Save(ctx context.Context) error {
 	return o.save(ctx)
 }

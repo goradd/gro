@@ -37,7 +37,7 @@ func TestAutoGen_Label(t *testing.T) {
 
 	obj = NewAutoGen()
 	s := obj.Label()
-	assert.True(t, strings.HasPrefix(s, "Auto Gen"))
+	assert.Equal(t, "", s)
 }
 
 func TestAutoGen_Delete(t *testing.T) {

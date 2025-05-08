@@ -54,7 +54,8 @@ func (o *MultiParent) Label() string {
 }
 
 // Save will update or insert the object, depending on the state of the object.
-// If it has an auto-generated primary key, it will be changed after an insert.
+//
+// If it has an auto-generated primary key, it will be updated after an insert.
 // Database errors generally will be handled by a panic and not returned here,
 // since those indicate a problem with a database driver or configuration.
 //
@@ -65,11 +66,15 @@ func (o *MultiParent) Label() string {
 // is made to add a record with a unique column that is given a value that is already in the database.
 //
 // Updating a record that has not changed will have no effect on the database.
+// Updating a record that has linked records will also update any linked records that are MODIFIED,
+// and if optimistic locking is in effect, will also check whether those records have been altered or deleted,
+// returning an OptimisticLockError if so.
 func (o *MultiParent) Save(ctx context.Context) error {
 	return o.save(ctx)
 }
 
 // QueryMultiParents returns a new query builder.
+// See MultiParentBuilder for doc on how to use the builder.
 func QueryMultiParents(ctx context.Context) MultiParentBuilder {
 	return queryMultiParents(ctx)
 }
@@ -78,6 +83,9 @@ func QueryMultiParents(ctx context.Context) MultiParentBuilder {
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
 func queryMultiParents(ctx context.Context) MultiParentBuilder {
+	// Note: the context is provided here so that you can use it to enforce credentials if needed.
+	// It is stored in the builder and later used in the terminating functions, like Load(), Get(), etc.
+	// A QueryBuilder is meant to be a short-lived structure.
 	return newMultiParentBuilder(ctx)
 }
 

@@ -291,14 +291,17 @@ func HasRootL(ctx context.Context, id string) (bool, error) {
 	return v > 0, err
 }
 
-// The RootLBuilder uses the query.BuilderI interface to build a query.
-// All query operations go through this query builder.
-// End a query by calling either Load, LoadCursor, Get, Count, or Delete
+// The RootLBuilder uses a builder pattern to create a query on the database.
+// Start a query by calling QueryRootLs, which will select all
+// the RootL object in the database. Then filter and arrange those objects
+// by calling Where, Select, etc.
+// End a query by calling either Load, LoadI, LoadCursor, Get, or Count.
+// A RootLBuilder stores the context it will use to perform the query, and thus is
+// meant to be a short-lived object. You should not save a query builder for later use.
 type RootLBuilder interface {
-	// Join(alias string, joinedTable query.Node, condition query.Node) RootLBuilder
-
 	// Where adds a condition to filter what gets selected.
 	// Calling Where multiple times will AND the conditions together.
+	// See the op package for the usable conditions.
 	Where(c query.Node) RootLBuilder
 
 	// OrderBy specifies how the resulting data should be sorted.
@@ -309,7 +312,7 @@ type RootLBuilder interface {
 	// Limit will return a subset of the data, limited to the offset and number of rows specified.
 	// For large data sets and specific types of queries, this can be slow, because it will perform
 	// the entire query before computing the limit.
-	// You cannot limit a query that has selected a "many" relationship".
+	// You cannot limit a query that has selected a "many" relationship.
 	Limit(maxRowCount int, offset int) RootLBuilder
 
 	// Select performs two functions:
@@ -322,12 +325,12 @@ type RootLBuilder interface {
 	// you MUST also select the GroLock column for optimistic locking protection.
 	Select(nodes ...query.Node) RootLBuilder
 
-	// Calculation adds a calculation described by operation with the name alias.
+	// Calculation adds a calculation described by operation with alias.
 	// After the query, you can read the data using GetAlias() on the object identified by base.
 	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) RootLBuilder
 
 	// Distinct removes duplicates from the results of the query.
-	// Adding a Select() is required.
+	// Adding a Select() is required when using Distinct.
 	Distinct() RootLBuilder
 
 	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
@@ -763,7 +766,6 @@ func (o *rootLBase) insert(ctx context.Context) (err error) {
 		if !o.nameIsLoaded {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
-
 		insertFields = getRootLInsertFields(o)
 		var newPk string
 

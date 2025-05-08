@@ -64,20 +64,18 @@ type sqlContext struct {
 // DbHelper is a mixin for SQL database drivers.
 // It implements common code needed by all SQL database drivers and default implementations of database code.
 type DbHelper struct {
-	dbKey          string  // key of the database as used in the global database map
-	db             *sql.DB // Internal copy of a Go database/sql object
-	dbi            DbI
-	profiling      bool
-	contextTimeout time.Duration
+	dbKey     string  // key of the database as used in the global database map
+	db        *sql.DB // Internal copy of a Go database/sql object
+	dbi       DbI
+	profiling bool
 }
 
 // NewSqlHelper creates a default DbHelper mixin.
-func NewSqlHelper(dbKey string, db *sql.DB, dbi DbI, contextTimeout time.Duration) DbHelper {
+func NewSqlHelper(dbKey string, db *sql.DB, dbi DbI) DbHelper {
 	s := DbHelper{
-		dbKey:          dbKey,
-		db:             db,
-		dbi:            dbi,
-		contextTimeout: contextTimeout,
+		dbKey: dbKey,
+		db:    db,
+		dbi:   dbi,
 	}
 	return s
 }
@@ -155,12 +153,6 @@ func (h *DbHelper) SqlExec(ctx context.Context, sql string, args ...interface{})
 		slog.String(db.LogSql, sql),
 		slog.Any(db.LogArgs, args))
 
-	if h.contextTimeout != 0 {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, h.contextTimeout)
-		defer cancel()
-	}
-
 	var beginTime = time.Now()
 	if c != nil && c.tx != nil {
 		r, err = c.tx.ExecContext(ctx, sql, args...)
@@ -211,12 +203,6 @@ func (h *DbHelper) SqlQuery(ctx context.Context, sql string, args ...interface{}
 	slog.Debug("SqlExec: ",
 		slog.String(db.LogSql, sql),
 		slog.Any(db.LogArgs, args))
-
-	if h.contextTimeout != 0 {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, h.contextTimeout)
-		defer cancel()
-	}
 
 	var beginTime = time.Now()
 	if c != nil && c.tx != nil {

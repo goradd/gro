@@ -1237,14 +1237,17 @@ func HasProjectByNum(ctx context.Context, num int) (bool, error) {
 	return v > 0, err
 }
 
-// The ProjectBuilder uses the query.BuilderI interface to build a query.
-// All query operations go through this query builder.
-// End a query by calling either Load, LoadCursor, Get, Count, or Delete
+// The ProjectBuilder uses a builder pattern to create a query on the database.
+// Start a query by calling QueryProjects, which will select all
+// the Project object in the database. Then filter and arrange those objects
+// by calling Where, Select, etc.
+// End a query by calling either Load, LoadI, LoadCursor, Get, or Count.
+// A ProjectBuilder stores the context it will use to perform the query, and thus is
+// meant to be a short-lived object. You should not save a query builder for later use.
 type ProjectBuilder interface {
-	// Join(alias string, joinedTable query.Node, condition query.Node) ProjectBuilder
-
 	// Where adds a condition to filter what gets selected.
 	// Calling Where multiple times will AND the conditions together.
+	// See the op package for the usable conditions.
 	Where(c query.Node) ProjectBuilder
 
 	// OrderBy specifies how the resulting data should be sorted.
@@ -1255,7 +1258,7 @@ type ProjectBuilder interface {
 	// Limit will return a subset of the data, limited to the offset and number of rows specified.
 	// For large data sets and specific types of queries, this can be slow, because it will perform
 	// the entire query before computing the limit.
-	// You cannot limit a query that has selected a "many" relationship".
+	// You cannot limit a query that has selected a "many" relationship.
 	Limit(maxRowCount int, offset int) ProjectBuilder
 
 	// Select performs two functions:
@@ -1266,12 +1269,12 @@ type ProjectBuilder interface {
 	// If you are using a GroupBy, you must select the fields in the GroupBy.
 	Select(nodes ...query.Node) ProjectBuilder
 
-	// Calculation adds a calculation described by operation with the name alias.
+	// Calculation adds a calculation described by operation with alias.
 	// After the query, you can read the data using GetAlias() on the object identified by base.
 	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) ProjectBuilder
 
 	// Distinct removes duplicates from the results of the query.
-	// Adding a Select() is required.
+	// Adding a Select() is required when using Distinct.
 	Distinct() ProjectBuilder
 
 	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
@@ -1936,6 +1939,9 @@ func (o *projectBase) update(ctx context.Context) error {
 	var modifiedFields map[string]interface{}
 
 	d := Database()
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
 	err := db.ExecuteTransaction(ctx, d, func() error {
 
 		// Save loaded Manager object to get its new pk and update it here.
@@ -2195,6 +2201,11 @@ func (o *projectBase) update(ctx context.Context) error {
 func (o *projectBase) insert(ctx context.Context) (err error) {
 	var insertFields map[string]interface{}
 	d := Database()
+
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
 		// Save loaded Manager object to get its new pk and update it here.
@@ -2222,7 +2233,6 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 		if !o.nameIsLoaded {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
-
 		if o.numIsDirty {
 			if obj, err := LoadProjectByNum(ctx, o.num); err != nil {
 				return err
@@ -2230,7 +2240,6 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 				return db.NewUniqueValueError("project", map[string]any{"num": o.num}, nil)
 			}
 		}
-
 		insertFields = getProjectInsertFields(o)
 		var newPk string
 
@@ -2536,6 +2545,11 @@ func (o *projectBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
+
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
 		{
@@ -2614,6 +2628,11 @@ func (o *projectBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteProject(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd")
+
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
 	err := db.ExecuteTransaction(ctx, d, func() error {
 		if obj, err := LoadProject(ctx,
 			pk,

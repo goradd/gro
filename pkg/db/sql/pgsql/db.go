@@ -36,17 +36,9 @@ type DB struct {
 //	config,_ := pgx.ParseConfig(connectionString)
 //	config.Password = "mysecret"
 //	db := pgsql.NewDB(key, "", config)
-//
-// contextTimeout is the timeout that will be set in the context such that all individual database
-// calls will need to complete within that time or the context will be canceled with an error.
-// The PGX driver monitors this cancellation and will timeout the database call.
-// PGX has no other mechanism of assuring a database query does not hang. The ConnectionTimeout
-// setting in config only monitors the time it takes to establish a connection.
-// contextTimeout will not be applied to transactions.
 func NewDB(dbKey string,
 	connectionString string,
-	config *pgx.ConnConfig,
-	contextTimeout time.Duration) (*DB, error) {
+	config *pgx.ConnConfig) (*DB, error) {
 	if connectionString == "" && config == nil {
 		return nil, fmt.Errorf("must specify how to connect to the database")
 	}
@@ -65,7 +57,7 @@ func NewDB(dbKey string,
 	}
 
 	m := new(DB)
-	m.DbHelper = sql2.NewSqlHelper(dbKey, db3, m, contextTimeout)
+	m.DbHelper = sql2.NewSqlHelper(dbKey, db3, m)
 	return m, nil
 }
 

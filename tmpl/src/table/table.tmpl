@@ -83,6 +83,9 @@ func (o *{{= table.Identifier }}) Save(ctx context.Context) error {
 
 
 // Query{{= table.IdentifierPlural }} returns a new query builder.
+// See {{= table.Identifier }}Builder for doc on how to use the builder.
+// You should pass a context that has a timeout with it to protect against a long delay from
+// the database possibly hanging your application.
 func Query{{= table.IdentifierPlural }}(ctx context.Context) {{= table.Identifier }}Builder {
 	return query{{= table.IdentifierPlural }}(ctx)
 }
@@ -91,6 +94,9 @@ func Query{{= table.IdentifierPlural }}(ctx context.Context) {{= table.Identifie
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
 func query{{= table.IdentifierPlural }}(ctx context.Context) {{= table.Identifier }}Builder {
+    // Note: the context is provided here so that you can use it to enforce credentials if needed.
+    // It is stored in the builder and later used in the terminating functions, like Load(), Get(), etc.
+    // A QueryBuilder is meant to be a short-lived structure.
 	return new{{= table.Identifier }}Builder(ctx)
 }
 

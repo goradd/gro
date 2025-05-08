@@ -5571,9 +5571,37 @@ func (tmpl *TableBaseTemplate) genBuilder(table *model.Table, _w io.Writer) (err
 		return
 	}
 
-	if _, err = io.WriteString(_w, ` uses the query.BuilderI interface to build a query.
-// All query operations go through this query builder.
-// End a query by calling either Load, LoadCursor, Get, Count, or Delete
+	if _, err = io.WriteString(_w, ` uses a builder pattern to create a query on the database.
+// Start a query by calling Query`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `, which will select all
+// the `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` object in the database. Then filter and arrange those objects
+// by calling Where, Select, etc.
+// End a query by calling either Load, LoadI, LoadCursor, Get, or Count.
+// A `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, builderInterface); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` stores the context it will use to perform the query, and thus is
+// meant to be a short-lived object. You should not save a query builder for later use.
 type `); err != nil {
 		return
 	}
@@ -5583,18 +5611,9 @@ type `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, ` interface {
-	// Join(alias string, joinedTable query.Node, condition query.Node) `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, builderInterface); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `
-
 	// Where adds a condition to filter what gets selected.
     // Calling Where multiple times will AND the conditions together.
+    // See the op package for the usable conditions.
 	Where(c query.Node) `); err != nil {
 		return
 	}
@@ -5621,7 +5640,7 @@ type `); err != nil {
 	// Limit will return a subset of the data, limited to the offset and number of rows specified.
     // For large data sets and specific types of queries, this can be slow, because it will perform
     // the entire query before computing the limit.
-    // You cannot limit a query that has selected a "many" relationship".
+    // You cannot limit a query that has selected a "many" relationship.
 	Limit(maxRowCount int, offset int) `); err != nil {
 		return
 	}
@@ -5670,7 +5689,7 @@ type `); err != nil {
 
 	if _, err = io.WriteString(_w, `
 
-	// Calculation adds a calculation described by operation with the name alias.
+	// Calculation adds a calculation described by operation with alias.
     // After the query, you can read the data using GetAlias() on the object identified by base.
 	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) `); err != nil {
 		return
@@ -5683,7 +5702,7 @@ type `); err != nil {
 	if _, err = io.WriteString(_w, `
 
 	// Distinct removes duplicates from the results of the query.
-    // Adding a Select() is required.
+    // Adding a Select() is required when using Distinct.
 	Distinct() `); err != nil {
 		return
 	}
@@ -7817,17 +7836,35 @@ func (o *`); err != nil {
 
 	if _, err = io.WriteString(_w, `
     d := Database()
-    err := db.ExecuteTransaction(ctx, d, func() error {
+`); err != nil {
+		return
+	}
+
+	if table.TransactionTimeout != 0 {
+
+		if _, err = io.WriteString(_w, `    var cancel context.CancelFunc
+    ctx, cancel = context.WithTimeout(ctx, `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.TimeoutConst()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `)
+    defer cancel()
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `    err := db.ExecuteTransaction(ctx, d, func() error {
 `); err != nil {
 		return
 	}
 
 	//*** update_ref.tmpl
-
-	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
-	}
 
 	for _, col := range table.Columns {
 
@@ -9418,18 +9455,37 @@ func (o *`); err != nil {
 	if _, err = io.WriteString(_w, `Base) insert(ctx context.Context) (err error) {
     var insertFields map[string]interface{}
     d := Database()
-	err = db.ExecuteTransaction(ctx, d, func() error {
+`); err != nil {
+		return
+	}
 
+	if table.TransactionTimeout != 0 {
+
+		if _, err = io.WriteString(_w, `
+    var cancel context.CancelFunc
+    ctx, cancel = context.WithTimeout(ctx, `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.TimeoutConst()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `)
+    defer cancel()
+
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `	err = db.ExecuteTransaction(ctx, d, func() error {
 `); err != nil {
 		return
 	}
 
 	//*** update_ref.tmpl
-
-	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
-	}
 
 	for _, col := range table.Columns {
 
@@ -9500,11 +9556,6 @@ func (o *`); err != nil {
 
 	}
 
-	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
-	}
-
 	for _, col := range table.SettableColumns() {
 
 		if !col.IsAutoPK && !col.IsNullable {
@@ -9542,11 +9593,6 @@ func (o *`); err != nil {
 
 		}
 
-	}
-
-	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
 	}
 
 	for _, col := range table.SettableColumns() {
@@ -9797,8 +9843,7 @@ func (o *`); err != nil {
 
 	}
 
-	if _, err = io.WriteString(_w, `
-    insertFields = get`); err != nil {
+	if _, err = io.WriteString(_w, `    insertFields = get`); err != nil {
 		return
 	}
 
@@ -11043,6 +11088,27 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 
 	} else {
 
+		if table.TransactionTimeout != 0 {
+
+			if _, err = io.WriteString(_w, `
+    var cancel context.CancelFunc
+    ctx, cancel = context.WithTimeout(ctx, `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.TimeoutConst()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `)
+    defer cancel()
+
+`); err != nil {
+				return
+			}
+
+		}
+
 		if _, err = io.WriteString(_w, `    err = db.ExecuteTransaction(ctx, d, func() error {
 	`); err != nil {
 			return
@@ -11726,6 +11792,27 @@ func delete`); err != nil {
 		}
 
 	} else {
+
+		if table.TransactionTimeout != 0 {
+
+			if _, err = io.WriteString(_w, `
+    var cancel context.CancelFunc
+    ctx, cancel = context.WithTimeout(ctx, `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.TimeoutConst()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `)
+    defer cancel()
+
+`); err != nil {
+				return
+			}
+
+		}
 
 		if _, err = io.WriteString(_w, `    err := db.ExecuteTransaction(ctx, d, func() error {
         if obj, err := Load`); err != nil {

@@ -301,6 +301,15 @@ func (o *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, ` returns a new query builder.
+// See `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Builder for doc on how to use the builder.
 func Query`); err != nil {
 		return
 	}
@@ -357,6 +366,9 @@ func query`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `Builder {
+    // Note: the context is provided here so that you can use it to enforce credentials if needed.
+    // It is stored in the builder and later used in the terminating functions, like Load(), Get(), etc.
+    // A QueryBuilder is meant to be a short-lived structure.
 	return new`); err != nil {
 		return
 	}

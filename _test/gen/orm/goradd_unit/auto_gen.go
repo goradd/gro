@@ -50,7 +50,7 @@ func (o *AutoGen) Label() string {
 	if o == nil {
 		return ""
 	}
-	return fmt.Sprintf("Auto Gen %v", o.PrimaryKey())
+	return o.Name()
 }
 
 // Save will update or insert the object, depending on the state of the object.
@@ -74,6 +74,7 @@ func (o *AutoGen) Save(ctx context.Context) error {
 }
 
 // QueryAutoGens returns a new query builder.
+// See AutoGenBuilder for doc on how to use the builder.
 func QueryAutoGens(ctx context.Context) AutoGenBuilder {
 	return queryAutoGens(ctx)
 }
@@ -82,6 +83,9 @@ func QueryAutoGens(ctx context.Context) AutoGenBuilder {
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
 func queryAutoGens(ctx context.Context) AutoGenBuilder {
+	// Note: the context is provided here so that you can use it to enforce credentials if needed.
+	// It is stored in the builder and later used in the terminating functions, like Load(), Get(), etc.
+	// A QueryBuilder is meant to be a short-lived structure.
 	return newAutoGenBuilder(ctx)
 }
 

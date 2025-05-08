@@ -8,6 +8,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"time"
 	"unicode/utf8"
 
 	"github.com/goradd/anyutil"
@@ -286,14 +287,17 @@ func HasEmployeeInfoByPersonID(ctx context.Context, personID string) (bool, erro
 	return v > 0, err
 }
 
-// The EmployeeInfoBuilder uses the query.BuilderI interface to build a query.
-// All query operations go through this query builder.
-// End a query by calling either Load, LoadCursor, Get, Count, or Delete
+// The EmployeeInfoBuilder uses a builder pattern to create a query on the database.
+// Start a query by calling QueryEmployeeInfos, which will select all
+// the EmployeeInfo object in the database. Then filter and arrange those objects
+// by calling Where, Select, etc.
+// End a query by calling either Load, LoadI, LoadCursor, Get, or Count.
+// A EmployeeInfoBuilder stores the context it will use to perform the query, and thus is
+// meant to be a short-lived object. You should not save a query builder for later use.
 type EmployeeInfoBuilder interface {
-	// Join(alias string, joinedTable query.Node, condition query.Node) EmployeeInfoBuilder
-
 	// Where adds a condition to filter what gets selected.
 	// Calling Where multiple times will AND the conditions together.
+	// See the op package for the usable conditions.
 	Where(c query.Node) EmployeeInfoBuilder
 
 	// OrderBy specifies how the resulting data should be sorted.
@@ -304,7 +308,7 @@ type EmployeeInfoBuilder interface {
 	// Limit will return a subset of the data, limited to the offset and number of rows specified.
 	// For large data sets and specific types of queries, this can be slow, because it will perform
 	// the entire query before computing the limit.
-	// You cannot limit a query that has selected a "many" relationship".
+	// You cannot limit a query that has selected a "many" relationship.
 	Limit(maxRowCount int, offset int) EmployeeInfoBuilder
 
 	// Select performs two functions:
@@ -315,12 +319,12 @@ type EmployeeInfoBuilder interface {
 	// If you are using a GroupBy, you must select the fields in the GroupBy.
 	Select(nodes ...query.Node) EmployeeInfoBuilder
 
-	// Calculation adds a calculation described by operation with the name alias.
+	// Calculation adds a calculation described by operation with alias.
 	// After the query, you can read the data using GetAlias() on the object identified by base.
 	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) EmployeeInfoBuilder
 
 	// Distinct removes duplicates from the results of the query.
-	// Adding a Select() is required.
+	// Adding a Select() is required when using Distinct.
 	Distinct() EmployeeInfoBuilder
 
 	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
@@ -664,6 +668,9 @@ func (o *employeeInfoBase) update(ctx context.Context) error {
 	var modifiedFields map[string]interface{}
 
 	d := Database()
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
 	err := db.ExecuteTransaction(ctx, d, func() error {
 
 		// Save loaded Person object to get its new pk and update it here.
@@ -710,6 +717,11 @@ func (o *employeeInfoBase) update(ctx context.Context) error {
 func (o *employeeInfoBase) insert(ctx context.Context) (err error) {
 	var insertFields map[string]interface{}
 	d := Database()
+
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
 		// Save loaded Person object to get its new pk and update it here.
@@ -726,7 +738,6 @@ func (o *employeeInfoBase) insert(ctx context.Context) (err error) {
 		if !o.employeeNumberIsLoaded {
 			panic("a value for EmployeeNumber is required, and there is no default value. Call SetEmployeeNumber() before inserting the record.")
 		}
-
 		if o.personIDIsDirty {
 			if obj, err := LoadEmployeeInfoByPersonID(ctx, o.personID); err != nil {
 				return err
@@ -734,7 +745,6 @@ func (o *employeeInfoBase) insert(ctx context.Context) (err error) {
 				return db.NewUniqueValueError("employee_info", map[string]any{"person_id": o.personID}, nil)
 			}
 		}
-
 		insertFields = getEmployeeInfoInsertFields(o)
 		var newPk string
 

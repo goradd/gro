@@ -19,6 +19,11 @@ func (o *{{= table.DecapIdentifier}}Base) update(ctx context.Context) error {
 {{if}}
 
     d := Database()
+{{if table.TransactionTimeout != 0 }}
+    var cancel context.CancelFunc
+    ctx, cancel = context.WithTimeout(ctx, {{= table.TimeoutConst() }})
+    defer cancel()
+{{if}}
     err := db.ExecuteTransaction(ctx, d, func() error {
 {{: "update_ref.tmpl" }}
 

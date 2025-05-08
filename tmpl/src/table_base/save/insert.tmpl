@@ -7,10 +7,15 @@
 func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) (err error) {
     var insertFields map[string]interface{}
     d := Database()
+{{if table.TransactionTimeout != 0 }}
+
+    var cancel context.CancelFunc
+    ctx, cancel = context.WithTimeout(ctx, {{= table.TimeoutConst() }})
+    defer cancel()
+
+{{if}}
 	err = db.ExecuteTransaction(ctx, d, func() error {
-
 {{: update_ref.tmpl }}
-
 {{for _,col := range table.SettableColumns() }}
 {{if !col.IsAutoPK && !col.IsNullable}}
 {{# Note: Most likely the user is inserting a new record, but forgot to set a required value, but there is the
@@ -21,9 +26,7 @@ func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) (err error
     }
 {{if}}
 {{for}}
-
 {{: unique_check.tmpl }}
-
     insertFields = get{{= table.Identifier }}InsertFields(o)
     var newPk {{= table.PrimaryKeyGoType() }}
 

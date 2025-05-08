@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
@@ -66,6 +67,10 @@ func (t *Table) ColumnByName(name string) *Column {
 
 func (t *Table) VariableNamePlural() string {
 	return LowerCaseIdentifier(t.IdentifierPlural)
+}
+
+func (t *Table) TimeoutConst() string {
+	return durationConst(t.TransactionTimeout)
 }
 
 // FileName is the base name of generated file names that correspond to this database table.
@@ -228,4 +233,25 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 		t.Indexes = append(t.Indexes, Index{IsUnique: idx.IsUnique, Columns: columns})
 	}
 	return t
+}
+
+func durationConst(d time.Duration) string {
+	// try from largest to smallest
+	for _, u := range []struct {
+		unit time.Duration
+		name string
+	}{
+		{time.Hour, "time.Hour"},
+		{time.Minute, "time.Minute"},
+		{time.Second, "time.Second"},
+		{time.Millisecond, "time.Millisecond"},
+		{time.Microsecond, "time.Microsecond"},
+		{time.Nanosecond, "time.Nanosecond"},
+	} {
+		if d%u.unit == 0 {
+			return fmt.Sprintf("%d * %s", d/u.unit, u.name)
+		}
+	}
+	// fallback to nanoseconds (always valid Go)
+	return fmt.Sprintf("%d * time.Nanosecond", d)
 }

@@ -54,7 +54,8 @@ func (o *LeafL) Label() string {
 }
 
 // Save will update or insert the object, depending on the state of the object.
-// If it has an auto-generated primary key, it will be changed after an insert.
+//
+// If it has an auto-generated primary key, it will be updated after an insert.
 // Database errors generally will be handled by a panic and not returned here,
 // since those indicate a problem with a database driver or configuration.
 //
@@ -65,11 +66,15 @@ func (o *LeafL) Label() string {
 // is made to add a record with a unique column that is given a value that is already in the database.
 //
 // Updating a record that has not changed will have no effect on the database.
+// Updating a record that has linked records will also update any linked records that are MODIFIED,
+// and if optimistic locking is in effect, will also check whether those records have been altered or deleted,
+// returning an OptimisticLockError if so.
 func (o *LeafL) Save(ctx context.Context) error {
 	return o.save(ctx)
 }
 
 // QueryLeafLs returns a new query builder.
+// See LeafLBuilder for doc on how to use the builder.
 func QueryLeafLs(ctx context.Context) LeafLBuilder {
 	return queryLeafLs(ctx)
 }
@@ -78,6 +83,9 @@ func QueryLeafLs(ctx context.Context) LeafLBuilder {
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
 func queryLeafLs(ctx context.Context) LeafLBuilder {
+	// Note: the context is provided here so that you can use it to enforce credentials if needed.
+	// It is stored in the builder and later used in the terminating functions, like Load(), Get(), etc.
+	// A QueryBuilder is meant to be a short-lived structure.
 	return newLeafLBuilder(ctx)
 }
 
