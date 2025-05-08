@@ -598,35 +598,14 @@ func CountAddresses(ctx context.Context) (int, error) {
 	return QueryAddresses(ctx).Count()
 }
 
-// CountAddressesByID queries the database and returns the number of Address objects that
-// have id.
-// doc: type=Address
-func CountAddressesByID(ctx context.Context, id string) (int, error) {
-	return QueryAddresses(ctx).Where(op.Equal(node.Address().ID(), id)).Count()
-}
-
 // CountAddressesByPersonID queries the database and returns the number of Address objects that
 // have personID.
 // doc: type=Address
 func CountAddressesByPersonID(ctx context.Context, personID string) (int, error) {
-	if personID == "" {
-		return 0, nil
-	}
-	return QueryAddresses(ctx).Where(op.Equal(node.Address().PersonID(), personID)).Count()
-}
-
-// CountAddressesByStreet queries the database and returns the number of Address objects that
-// have street.
-// doc: type=Address
-func CountAddressesByStreet(ctx context.Context, street string) (int, error) {
-	return QueryAddresses(ctx).Where(op.Equal(node.Address().Street(), street)).Count()
-}
-
-// CountAddressesByCity queries the database and returns the number of Address objects that
-// have city.
-// doc: type=Address
-func CountAddressesByCity(ctx context.Context, city string) (int, error) {
-	return QueryAddresses(ctx).Where(op.Equal(node.Address().City(), city)).Count()
+	v_personID := personID
+	return QueryAddresses(ctx).
+		Where(op.Equal(node.Address().PersonID(), v_personID)).
+		Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships

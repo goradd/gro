@@ -474,14 +474,10 @@ func CountGifts(ctx context.Context) (int, error) {
 // have number.
 // doc: type=Gift
 func CountGiftsByNumber(ctx context.Context, number int) (int, error) {
-	return QueryGifts(ctx).Where(op.Equal(node.Gift().Number(), number)).Count()
-}
-
-// CountGiftsByName queries the database and returns the number of Gift objects that
-// have name.
-// doc: type=Gift
-func CountGiftsByName(ctx context.Context, name string) (int, error) {
-	return QueryGifts(ctx).Where(op.Equal(node.Gift().Name(), name)).Count()
+	v_number := number
+	return QueryGifts(ctx).
+		Where(op.Equal(node.Gift().Number(), v_number)).
+		Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships

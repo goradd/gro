@@ -612,35 +612,14 @@ func CountLeafUnls(ctx context.Context) (int, error) {
 	return QueryLeafUnls(ctx).Count()
 }
 
-// CountLeafUnlsByID queries the database and returns the number of LeafUnl objects that
-// have id.
-// doc: type=LeafUnl
-func CountLeafUnlsByID(ctx context.Context, id string) (int, error) {
-	return QueryLeafUnls(ctx).Where(op.Equal(node.LeafUnl().ID(), id)).Count()
-}
-
-// CountLeafUnlsByName queries the database and returns the number of LeafUnl objects that
-// have name.
-// doc: type=LeafUnl
-func CountLeafUnlsByName(ctx context.Context, name string) (int, error) {
-	return QueryLeafUnls(ctx).Where(op.Equal(node.LeafUnl().Name(), name)).Count()
-}
-
 // CountLeafUnlsByRootUnlID queries the database and returns the number of LeafUnl objects that
 // have rootUnlID.
 // doc: type=LeafUnl
 func CountLeafUnlsByRootUnlID(ctx context.Context, rootUnlID string) (int, error) {
-	if rootUnlID == "" {
-		return 0, nil
-	}
-	return QueryLeafUnls(ctx).Where(op.Equal(node.LeafUnl().RootUnlID(), rootUnlID)).Count()
-}
-
-// CountLeafUnlsByGroLock queries the database and returns the number of LeafUnl objects that
-// have groLock.
-// doc: type=LeafUnl
-func CountLeafUnlsByGroLock(ctx context.Context, groLock int64) (int, error) {
-	return QueryLeafUnls(ctx).Where(op.Equal(node.LeafUnl().GroLock(), groLock)).Count()
+	v_rootUnlID := rootUnlID
+	return QueryLeafUnls(ctx).
+		Where(op.Equal(node.LeafUnl().RootUnlID(), v_rootUnlID)).
+		Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships

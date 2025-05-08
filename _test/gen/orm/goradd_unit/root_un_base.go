@@ -506,20 +506,6 @@ func CountRootUns(ctx context.Context) (int, error) {
 	return QueryRootUns(ctx).Count()
 }
 
-// CountRootUnsByID queries the database and returns the number of RootUn objects that
-// have id.
-// doc: type=RootUn
-func CountRootUnsByID(ctx context.Context, id string) (int, error) {
-	return QueryRootUns(ctx).Where(op.Equal(node.RootUn().ID(), id)).Count()
-}
-
-// CountRootUnsByName queries the database and returns the number of RootUn objects that
-// have name.
-// doc: type=RootUn
-func CountRootUnsByName(ctx context.Context, name string) (int, error) {
-	return QueryRootUns(ctx).Where(op.Equal(node.RootUn().Name(), name)).Count()
-}
-
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
 func (o *rootUnBase) load(m map[string]interface{}, objThis *RootUn) {

@@ -535,28 +535,14 @@ func CountMilestones(ctx context.Context) (int, error) {
 	return QueryMilestones(ctx).Count()
 }
 
-// CountMilestonesByID queries the database and returns the number of Milestone objects that
-// have id.
-// doc: type=Milestone
-func CountMilestonesByID(ctx context.Context, id string) (int, error) {
-	return QueryMilestones(ctx).Where(op.Equal(node.Milestone().ID(), id)).Count()
-}
-
 // CountMilestonesByProjectID queries the database and returns the number of Milestone objects that
 // have projectID.
 // doc: type=Milestone
 func CountMilestonesByProjectID(ctx context.Context, projectID string) (int, error) {
-	if projectID == "" {
-		return 0, nil
-	}
-	return QueryMilestones(ctx).Where(op.Equal(node.Milestone().ProjectID(), projectID)).Count()
-}
-
-// CountMilestonesByName queries the database and returns the number of Milestone objects that
-// have name.
-// doc: type=Milestone
-func CountMilestonesByName(ctx context.Context, name string) (int, error) {
-	return QueryMilestones(ctx).Where(op.Equal(node.Milestone().Name(), name)).Count()
+	v_projectID := projectID
+	return QueryMilestones(ctx).
+		Where(op.Equal(node.Milestone().ProjectID(), v_projectID)).
+		Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships

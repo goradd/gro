@@ -368,13 +368,16 @@ func TestEmployeeInfo_Count(t *testing.T) {
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSampleEmployeeInfo(ctx, obj)
+	assert.Positive(t, func() int { i, _ := CountEmployeeInfos(ctx); return i }())
+
 	// reread in case there are data limitations imposed by the database
 	obj2, _ := LoadEmployeeInfo(ctx, obj.PrimaryKey())
-
-	assert.Positive(t, func() int { i, _ := CountEmployeeInfos(ctx); return i }())
-	assert.Positive(t, func() int { i, _ := CountEmployeeInfosByID(ctx, obj2.ID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountEmployeeInfosByPersonID(ctx, obj2.PersonID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountEmployeeInfosByEmployeeNumber(ctx, obj2.EmployeeNumber()); return i }())
+	assert.Positive(t,
+		func() int {
+			i, _ := CountEmployeeInfosByPersonID(ctx,
+				obj2.PersonID())
+			return i
+		}())
 
 }
 

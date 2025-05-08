@@ -6435,18 +6435,13 @@ func Count`); err != nil {
 		return
 	}
 
-	for _, col := range table.Columns {
+	for _, idx := range table.Indexes {
 
-		if col.IsEnumArray() {
-			continue
-		}
-
-		if _, err = io.WriteString(_w, `
-// Count`); err != nil {
+		if _, err = io.WriteString(_w, `// Count`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, fmt.Sprint(table.IdentifierPlural)); err != nil {
+		if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
 			return
 		}
 
@@ -6454,7 +6449,7 @@ func Count`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, fmt.Sprint(col.Identifier)); err != nil {
+		if _, err = io.WriteString(_w, idx.Name()); err != nil {
 			return
 		}
 
@@ -6462,7 +6457,7 @@ func Count`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, fmt.Sprint(table.Identifier)); err != nil {
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
 			return
 		}
 
@@ -6471,16 +6466,25 @@ func Count`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
-			return
-		}
+		for _i, _j := range idx.Columns {
+			_ = _j
 
+			if _, err = io.WriteString(_w, _j.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _i < len(idx.Columns)-1 {
+				if _, err = io.WriteString(_w, " and "); err != nil {
+					return
+				}
+			}
+		}
 		if _, err = io.WriteString(_w, `.
 // doc: type=`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, fmt.Sprint(table.Identifier)); err != nil {
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
 			return
 		}
 
@@ -6489,7 +6493,7 @@ func Count`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, fmt.Sprint(table.IdentifierPlural)); err != nil {
+		if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
 			return
 		}
 
@@ -6497,7 +6501,7 @@ func Count`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, fmt.Sprint(col.Identifier)); err != nil {
+		if _, err = io.WriteString(_w, idx.Name()); err != nil {
 			return
 		}
 
@@ -6505,70 +6509,100 @@ func Count`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-			return
-		}
+		for _i, _j := range idx.Columns {
+			_ = _j
 
-		if _, err = io.WriteString(_w, ` `); err != nil {
-			return
-		}
+			if _, err = io.WriteString(_w, _j.VariableIdentifier()); err != nil {
+				return
+			}
 
-		if _, err = io.WriteString(_w, col.GoType()); err != nil {
-			return
-		}
+			if _, err = io.WriteString(_w, ` `); err != nil {
+				return
+			}
 
-		if _, err = io.WriteString(_w, `) (int, error) {
+			if _, err = io.WriteString(_w, _j.GoType()); err != nil {
+				return
+			}
+
+			if _i < len(idx.Columns)-1 {
+				if _, err = io.WriteString(_w, ", "); err != nil {
+					return
+				}
+			}
+		}
+		if _, err = io.WriteString(_w, ` ) (int, error) {
 `); err != nil {
 			return
 		}
 
-		if col.IsReference() {
+		for _, col := range idx.Columns {
 
-			if _, err = io.WriteString(_w, `    if `); err != nil {
-				return
-			}
+			if col.SchemaSubType == schema.ColSubTypeTimeOnly {
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
+				if _, err = io.WriteString(_w, `    v_`); err != nil {
+					return
+				}
 
-			if _, err = io.WriteString(_w, ` == `); err != nil {
-				return
-			}
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
 
-			if _, err = io.WriteString(_w, col.DefaultValueAsValue()); err != nil {
-				return
-			}
+				if _, err = io.WriteString(_w, ` := `); err != nil {
+					return
+				}
 
-			if _, err = io.WriteString(_w, ` {
-        return 0, nil
-    }
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `.Format("15:04:05")
 `); err != nil {
-				return
+					return
+				}
+
+			} else {
+
+				if _, err = io.WriteString(_w, `    v_`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ` := `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `
+`); err != nil {
+					return
+				}
+
 			}
 
 		}
 
-		if col.SchemaSubType == schema.ColSubTypeTimeOnly {
+		if _, err = io.WriteString(_w, `	return Query`); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `    t := `); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, `(ctx).
+`); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `.Format("15:04:05")
-	return Query`); err != nil {
-				return
-			}
+		for _, col := range idx.Columns {
 
-			if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `(ctx).Where(op.Equal(node.`); err != nil {
+			if _, err = io.WriteString(_w, `	Where(op.Equal(node.`); err != nil {
 				return
 			}
 
@@ -6584,38 +6618,7 @@ func Count`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `(), t)).Count()
-`); err != nil {
-				return
-			}
-
-		} else {
-
-			if _, err = io.WriteString(_w, `	return Query`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `(ctx).Where(op.Equal(node.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `().`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `(), `); err != nil {
+			if _, err = io.WriteString(_w, `(), v_`); err != nil {
 				return
 			}
 
@@ -6623,14 +6626,15 @@ func Count`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `)).Count()
+			if _, err = io.WriteString(_w, `)).
 `); err != nil {
 				return
 			}
 
 		}
 
-		if _, err = io.WriteString(_w, `}
+		if _, err = io.WriteString(_w, `	Count()
+}
 
 `); err != nil {
 			return

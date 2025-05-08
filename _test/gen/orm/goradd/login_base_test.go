@@ -441,15 +441,22 @@ func TestLogin_Count(t *testing.T) {
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSampleLogin(ctx, obj)
+	assert.Positive(t, func() int { i, _ := CountLogins(ctx); return i }())
+
 	// reread in case there are data limitations imposed by the database
 	obj2, _ := LoadLogin(ctx, obj.PrimaryKey())
-
-	assert.Positive(t, func() int { i, _ := CountLogins(ctx); return i }())
-	assert.Positive(t, func() int { i, _ := CountLoginsByID(ctx, obj2.ID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountLoginsByPersonID(ctx, obj2.PersonID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountLoginsByUsername(ctx, obj2.Username()); return i }())
-	assert.Positive(t, func() int { i, _ := CountLoginsByPassword(ctx, obj2.Password()); return i }())
-	assert.Positive(t, func() int { i, _ := CountLoginsByIsEnabled(ctx, obj2.IsEnabled()); return i }())
+	assert.Positive(t,
+		func() int {
+			i, _ := CountLoginsByPersonID(ctx,
+				obj2.PersonID())
+			return i
+		}())
+	assert.Positive(t,
+		func() int {
+			i, _ := CountLoginsByUsername(ctx,
+				obj2.Username())
+			return i
+		}())
 
 }
 

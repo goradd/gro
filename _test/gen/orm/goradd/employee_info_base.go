@@ -553,28 +553,14 @@ func CountEmployeeInfos(ctx context.Context) (int, error) {
 	return QueryEmployeeInfos(ctx).Count()
 }
 
-// CountEmployeeInfosByID queries the database and returns the number of EmployeeInfo objects that
-// have id.
-// doc: type=EmployeeInfo
-func CountEmployeeInfosByID(ctx context.Context, id string) (int, error) {
-	return QueryEmployeeInfos(ctx).Where(op.Equal(node.EmployeeInfo().ID(), id)).Count()
-}
-
 // CountEmployeeInfosByPersonID queries the database and returns the number of EmployeeInfo objects that
 // have personID.
 // doc: type=EmployeeInfo
 func CountEmployeeInfosByPersonID(ctx context.Context, personID string) (int, error) {
-	if personID == "" {
-		return 0, nil
-	}
-	return QueryEmployeeInfos(ctx).Where(op.Equal(node.EmployeeInfo().PersonID(), personID)).Count()
-}
-
-// CountEmployeeInfosByEmployeeNumber queries the database and returns the number of EmployeeInfo objects that
-// have employeeNumber.
-// doc: type=EmployeeInfo
-func CountEmployeeInfosByEmployeeNumber(ctx context.Context, employeeNumber int) (int, error) {
-	return QueryEmployeeInfos(ctx).Where(op.Equal(node.EmployeeInfo().EmployeeNumber(), employeeNumber)).Count()
+	v_personID := personID
+	return QueryEmployeeInfos(ctx).
+		Where(op.Equal(node.EmployeeInfo().PersonID(), v_personID)).
+		Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships

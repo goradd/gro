@@ -538,20 +538,6 @@ func CountRoots(ctx context.Context) (int, error) {
 	return QueryRoots(ctx).Count()
 }
 
-// CountRootsByID queries the database and returns the number of Root objects that
-// have id.
-// doc: type=Root
-func CountRootsByID(ctx context.Context, id string) (int, error) {
-	return QueryRoots(ctx).Where(op.Equal(node.Root().ID(), id)).Count()
-}
-
-// CountRootsByName queries the database and returns the number of Root objects that
-// have name.
-// doc: type=Root
-func CountRootsByName(ctx context.Context, name string) (int, error) {
-	return QueryRoots(ctx).Where(op.Equal(node.Root().Name(), name)).Count()
-}
-
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
 func (o *rootBase) load(m map[string]interface{}, objThis *Root) {

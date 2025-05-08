@@ -1503,87 +1503,44 @@ func CountProjects(ctx context.Context) (int, error) {
 	return QueryProjects(ctx).Count()
 }
 
-// CountProjectsByID queries the database and returns the number of Project objects that
-// have id.
-// doc: type=Project
-func CountProjectsByID(ctx context.Context, id string) (int, error) {
-	return QueryProjects(ctx).Where(op.Equal(node.Project().ID(), id)).Count()
-}
-
 // CountProjectsByNum queries the database and returns the number of Project objects that
 // have num.
 // doc: type=Project
 func CountProjectsByNum(ctx context.Context, num int) (int, error) {
-	return QueryProjects(ctx).Where(op.Equal(node.Project().Num(), num)).Count()
+	v_num := num
+	return QueryProjects(ctx).
+		Where(op.Equal(node.Project().Num(), v_num)).
+		Count()
 }
 
 // CountProjectsByStatus queries the database and returns the number of Project objects that
 // have status.
 // doc: type=Project
 func CountProjectsByStatus(ctx context.Context, status ProjectStatus) (int, error) {
-	return QueryProjects(ctx).Where(op.Equal(node.Project().Status(), status)).Count()
+	v_status := status
+	return QueryProjects(ctx).
+		Where(op.Equal(node.Project().Status(), v_status)).
+		Count()
 }
 
 // CountProjectsByManagerID queries the database and returns the number of Project objects that
 // have managerID.
 // doc: type=Project
 func CountProjectsByManagerID(ctx context.Context, managerID string) (int, error) {
-	if managerID == "" {
-		return 0, nil
-	}
-	return QueryProjects(ctx).Where(op.Equal(node.Project().ManagerID(), managerID)).Count()
-}
-
-// CountProjectsByName queries the database and returns the number of Project objects that
-// have name.
-// doc: type=Project
-func CountProjectsByName(ctx context.Context, name string) (int, error) {
-	return QueryProjects(ctx).Where(op.Equal(node.Project().Name(), name)).Count()
-}
-
-// CountProjectsByDescription queries the database and returns the number of Project objects that
-// have description.
-// doc: type=Project
-func CountProjectsByDescription(ctx context.Context, description string) (int, error) {
-	return QueryProjects(ctx).Where(op.Equal(node.Project().Description(), description)).Count()
-}
-
-// CountProjectsByStartDate queries the database and returns the number of Project objects that
-// have startDate.
-// doc: type=Project
-func CountProjectsByStartDate(ctx context.Context, startDate time.Time) (int, error) {
-	return QueryProjects(ctx).Where(op.Equal(node.Project().StartDate(), startDate)).Count()
-}
-
-// CountProjectsByEndDate queries the database and returns the number of Project objects that
-// have endDate.
-// doc: type=Project
-func CountProjectsByEndDate(ctx context.Context, endDate time.Time) (int, error) {
-	return QueryProjects(ctx).Where(op.Equal(node.Project().EndDate(), endDate)).Count()
-}
-
-// CountProjectsByBudget queries the database and returns the number of Project objects that
-// have budget.
-// doc: type=Project
-func CountProjectsByBudget(ctx context.Context, budget string) (int, error) {
-	return QueryProjects(ctx).Where(op.Equal(node.Project().Budget(), budget)).Count()
-}
-
-// CountProjectsBySpent queries the database and returns the number of Project objects that
-// have spent.
-// doc: type=Project
-func CountProjectsBySpent(ctx context.Context, spent string) (int, error) {
-	return QueryProjects(ctx).Where(op.Equal(node.Project().Spent(), spent)).Count()
+	v_managerID := managerID
+	return QueryProjects(ctx).
+		Where(op.Equal(node.Project().ManagerID(), v_managerID)).
+		Count()
 }
 
 // CountProjectsByParentProjectID queries the database and returns the number of Project objects that
 // have parentProjectID.
 // doc: type=Project
 func CountProjectsByParentProjectID(ctx context.Context, parentProjectID string) (int, error) {
-	if parentProjectID == "" {
-		return 0, nil
-	}
-	return QueryProjects(ctx).Where(op.Equal(node.Project().ParentProjectID(), parentProjectID)).Count()
+	v_parentProjectID := parentProjectID
+	return QueryProjects(ctx).
+		Where(op.Equal(node.Project().ParentProjectID(), v_parentProjectID)).
+		Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships

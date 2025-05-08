@@ -525,27 +525,6 @@ func CountRootUls(ctx context.Context) (int, error) {
 	return QueryRootUls(ctx).Count()
 }
 
-// CountRootUlsByID queries the database and returns the number of RootUl objects that
-// have id.
-// doc: type=RootUl
-func CountRootUlsByID(ctx context.Context, id string) (int, error) {
-	return QueryRootUls(ctx).Where(op.Equal(node.RootUl().ID(), id)).Count()
-}
-
-// CountRootUlsByName queries the database and returns the number of RootUl objects that
-// have name.
-// doc: type=RootUl
-func CountRootUlsByName(ctx context.Context, name string) (int, error) {
-	return QueryRootUls(ctx).Where(op.Equal(node.RootUl().Name(), name)).Count()
-}
-
-// CountRootUlsByGroLock queries the database and returns the number of RootUl objects that
-// have groLock.
-// doc: type=RootUl
-func CountRootUlsByGroLock(ctx context.Context, groLock int64) (int, error) {
-	return QueryRootUls(ctx).Where(op.Equal(node.RootUl().GroLock(), groLock)).Count()
-}
-
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
 func (o *rootUlBase) load(m map[string]interface{}, objThis *RootUl) {

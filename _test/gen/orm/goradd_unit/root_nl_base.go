@@ -562,27 +562,6 @@ func CountRootNls(ctx context.Context) (int, error) {
 	return QueryRootNls(ctx).Count()
 }
 
-// CountRootNlsByID queries the database and returns the number of RootNl objects that
-// have id.
-// doc: type=RootNl
-func CountRootNlsByID(ctx context.Context, id string) (int, error) {
-	return QueryRootNls(ctx).Where(op.Equal(node.RootNl().ID(), id)).Count()
-}
-
-// CountRootNlsByName queries the database and returns the number of RootNl objects that
-// have name.
-// doc: type=RootNl
-func CountRootNlsByName(ctx context.Context, name string) (int, error) {
-	return QueryRootNls(ctx).Where(op.Equal(node.RootNl().Name(), name)).Count()
-}
-
-// CountRootNlsByGroLock queries the database and returns the number of RootNl objects that
-// have groLock.
-// doc: type=RootNl
-func CountRootNlsByGroLock(ctx context.Context, groLock int64) (int, error) {
-	return QueryRootNls(ctx).Where(op.Equal(node.RootNl().GroLock(), groLock)).Count()
-}
-
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
 func (o *rootNlBase) load(m map[string]interface{}, objThis *RootNl) {

@@ -383,14 +383,16 @@ func TestLeafL_Count(t *testing.T) {
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSampleLeafL(ctx, obj)
+	assert.Positive(t, func() int { i, _ := CountLeafLs(ctx); return i }())
+
 	// reread in case there are data limitations imposed by the database
 	obj2, _ := LoadLeafL(ctx, obj.PrimaryKey())
-
-	assert.Positive(t, func() int { i, _ := CountLeafLs(ctx); return i }())
-	assert.Positive(t, func() int { i, _ := CountLeafLsByID(ctx, obj2.ID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountLeafLsByName(ctx, obj2.Name()); return i }())
-	assert.Positive(t, func() int { i, _ := CountLeafLsByGroLock(ctx, obj2.GroLock()); return i }())
-	assert.Positive(t, func() int { i, _ := CountLeafLsByRootLID(ctx, obj2.RootLID()); return i }())
+	assert.Positive(t,
+		func() int {
+			i, _ := CountLeafLsByRootLID(ctx,
+				obj2.RootLID())
+			return i
+		}())
 
 }
 

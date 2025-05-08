@@ -575,35 +575,14 @@ func CountLeafUls(ctx context.Context) (int, error) {
 	return QueryLeafUls(ctx).Count()
 }
 
-// CountLeafUlsByID queries the database and returns the number of LeafUl objects that
-// have id.
-// doc: type=LeafUl
-func CountLeafUlsByID(ctx context.Context, id string) (int, error) {
-	return QueryLeafUls(ctx).Where(op.Equal(node.LeafUl().ID(), id)).Count()
-}
-
-// CountLeafUlsByName queries the database and returns the number of LeafUl objects that
-// have name.
-// doc: type=LeafUl
-func CountLeafUlsByName(ctx context.Context, name string) (int, error) {
-	return QueryLeafUls(ctx).Where(op.Equal(node.LeafUl().Name(), name)).Count()
-}
-
 // CountLeafUlsByRootUlID queries the database and returns the number of LeafUl objects that
 // have rootUlID.
 // doc: type=LeafUl
 func CountLeafUlsByRootUlID(ctx context.Context, rootUlID string) (int, error) {
-	if rootUlID == "" {
-		return 0, nil
-	}
-	return QueryLeafUls(ctx).Where(op.Equal(node.LeafUl().RootUlID(), rootUlID)).Count()
-}
-
-// CountLeafUlsByGroLock queries the database and returns the number of LeafUl objects that
-// have groLock.
-// doc: type=LeafUl
-func CountLeafUlsByGroLock(ctx context.Context, groLock int64) (int, error) {
-	return QueryLeafUls(ctx).Where(op.Equal(node.LeafUl().GroLock(), groLock)).Count()
+	v_rootUlID := rootUlID
+	return QueryLeafUls(ctx).
+		Where(op.Equal(node.LeafUl().RootUlID(), v_rootUlID)).
+		Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships

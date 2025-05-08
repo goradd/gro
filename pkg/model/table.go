@@ -226,11 +226,17 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 				slog.Error("Cannot find column in multi-column index",
 					slog.String(db.LogTable, t.QueryName),
 					slog.String(db.LogColumn, name))
-				return nil
+			} else if col.SchemaType == schema.ColTypeEnumArray {
+				slog.Error("An EnumArray column cannot be part of a multi-column index",
+					slog.String(db.LogTable, t.QueryName),
+					slog.String(db.LogColumn, name))
+			} else {
+				columns = append(columns, col)
 			}
-			columns = append(columns, col)
 		}
-		t.Indexes = append(t.Indexes, Index{IsUnique: idx.IsUnique, Columns: columns})
+		if len(columns) > 0 {
+			t.Indexes = append(t.Indexes, Index{IsUnique: idx.IsUnique, Columns: columns})
+		}
 	}
 	return t
 }

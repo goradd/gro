@@ -349,13 +349,7 @@ func TestRootUnl_Count(t *testing.T) {
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSampleRootUnl(ctx, obj)
-	// reread in case there are data limitations imposed by the database
-	obj2, _ := LoadRootUnl(ctx, obj.PrimaryKey())
-
 	assert.Positive(t, func() int { i, _ := CountRootUnls(ctx); return i }())
-	assert.Positive(t, func() int { i, _ := CountRootUnlsByID(ctx, obj2.ID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountRootUnlsByName(ctx, obj2.Name()); return i }())
-	assert.Positive(t, func() int { i, _ := CountRootUnlsByGroLock(ctx, obj2.GroLock()); return i }())
 
 }
 

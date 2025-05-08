@@ -349,13 +349,7 @@ func TestRootUl_Count(t *testing.T) {
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSampleRootUl(ctx, obj)
-	// reread in case there are data limitations imposed by the database
-	obj2, _ := LoadRootUl(ctx, obj.PrimaryKey())
-
 	assert.Positive(t, func() int { i, _ := CountRootUls(ctx); return i }())
-	assert.Positive(t, func() int { i, _ := CountRootUlsByID(ctx, obj2.ID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountRootUlsByName(ctx, obj2.Name()); return i }())
-	assert.Positive(t, func() int { i, _ := CountRootUlsByGroLock(ctx, obj2.GroLock()); return i }())
 
 }
 

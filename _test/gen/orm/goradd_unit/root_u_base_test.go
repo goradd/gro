@@ -340,12 +340,7 @@ func TestRootU_Count(t *testing.T) {
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSampleRootU(ctx, obj)
-	// reread in case there are data limitations imposed by the database
-	obj2, _ := LoadRootU(ctx, obj.PrimaryKey())
-
 	assert.Positive(t, func() int { i, _ := CountRootUs(ctx); return i }())
-	assert.Positive(t, func() int { i, _ := CountRootUsByID(ctx, obj2.ID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountRootUsByName(ctx, obj2.Name()); return i }())
 
 }
 

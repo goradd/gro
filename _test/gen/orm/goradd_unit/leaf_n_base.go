@@ -563,28 +563,14 @@ func CountLeafNs(ctx context.Context) (int, error) {
 	return QueryLeafNs(ctx).Count()
 }
 
-// CountLeafNsByID queries the database and returns the number of LeafN objects that
-// have id.
-// doc: type=LeafN
-func CountLeafNsByID(ctx context.Context, id string) (int, error) {
-	return QueryLeafNs(ctx).Where(op.Equal(node.LeafN().ID(), id)).Count()
-}
-
-// CountLeafNsByName queries the database and returns the number of LeafN objects that
-// have name.
-// doc: type=LeafN
-func CountLeafNsByName(ctx context.Context, name string) (int, error) {
-	return QueryLeafNs(ctx).Where(op.Equal(node.LeafN().Name(), name)).Count()
-}
-
 // CountLeafNsByRootNID queries the database and returns the number of LeafN objects that
 // have rootNID.
 // doc: type=LeafN
 func CountLeafNsByRootNID(ctx context.Context, rootNID string) (int, error) {
-	if rootNID == "" {
-		return 0, nil
-	}
-	return QueryLeafNs(ctx).Where(op.Equal(node.LeafN().RootNID(), rootNID)).Count()
+	v_rootNID := rootNID
+	return QueryLeafNs(ctx).
+		Where(op.Equal(node.LeafN().RootNID(), v_rootNID)).
+		Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships

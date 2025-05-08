@@ -456,14 +456,22 @@ func TestMultiParent_Count(t *testing.T) {
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSampleMultiParent(ctx, obj)
+	assert.Positive(t, func() int { i, _ := CountMultiParents(ctx); return i }())
+
 	// reread in case there are data limitations imposed by the database
 	obj2, _ := LoadMultiParent(ctx, obj.PrimaryKey())
-
-	assert.Positive(t, func() int { i, _ := CountMultiParents(ctx); return i }())
-	assert.Positive(t, func() int { i, _ := CountMultiParentsByID(ctx, obj2.ID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountMultiParentsByName(ctx, obj2.Name()); return i }())
-	assert.Positive(t, func() int { i, _ := CountMultiParentsByParent1ID(ctx, obj2.Parent1ID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountMultiParentsByParent2ID(ctx, obj2.Parent2ID()); return i }())
+	assert.Positive(t,
+		func() int {
+			i, _ := CountMultiParentsByParent1ID(ctx,
+				obj2.Parent1ID())
+			return i
+		}())
+	assert.Positive(t,
+		func() int {
+			i, _ := CountMultiParentsByParent2ID(ctx,
+				obj2.Parent2ID())
+			return i
+		}())
 
 }
 

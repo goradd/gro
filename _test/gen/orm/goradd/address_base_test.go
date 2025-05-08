@@ -415,14 +415,16 @@ func TestAddress_Count(t *testing.T) {
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSampleAddress(ctx, obj)
+	assert.Positive(t, func() int { i, _ := CountAddresses(ctx); return i }())
+
 	// reread in case there are data limitations imposed by the database
 	obj2, _ := LoadAddress(ctx, obj.PrimaryKey())
-
-	assert.Positive(t, func() int { i, _ := CountAddresses(ctx); return i }())
-	assert.Positive(t, func() int { i, _ := CountAddressesByID(ctx, obj2.ID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountAddressesByPersonID(ctx, obj2.PersonID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountAddressesByStreet(ctx, obj2.Street()); return i }())
-	assert.Positive(t, func() int { i, _ := CountAddressesByCity(ctx, obj2.City()); return i }())
+	assert.Positive(t,
+		func() int {
+			i, _ := CountAddressesByPersonID(ctx,
+				obj2.PersonID())
+			return i
+		}())
 
 }
 

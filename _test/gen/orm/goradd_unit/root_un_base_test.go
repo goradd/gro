@@ -340,12 +340,7 @@ func TestRootUn_Count(t *testing.T) {
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSampleRootUn(ctx, obj)
-	// reread in case there are data limitations imposed by the database
-	obj2, _ := LoadRootUn(ctx, obj.PrimaryKey())
-
 	assert.Positive(t, func() int { i, _ := CountRootUns(ctx); return i }())
-	assert.Positive(t, func() int { i, _ := CountRootUnsByID(ctx, obj2.ID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountRootUnsByName(ctx, obj2.Name()); return i }())
 
 }
 

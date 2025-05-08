@@ -335,12 +335,7 @@ func TestRoot_Count(t *testing.T) {
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSampleRoot(ctx, obj)
-	// reread in case there are data limitations imposed by the database
-	obj2, _ := LoadRoot(ctx, obj.PrimaryKey())
-
 	assert.Positive(t, func() int { i, _ := CountRoots(ctx); return i }())
-	assert.Positive(t, func() int { i, _ := CountRootsByID(ctx, obj2.ID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountRootsByName(ctx, obj2.Name()); return i }())
 
 }
 

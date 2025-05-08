@@ -539,41 +539,6 @@ func CountPersonWithLocks(ctx context.Context) (int, error) {
 	return QueryPersonWithLocks(ctx).Count()
 }
 
-// CountPersonWithLocksByID queries the database and returns the number of PersonWithLock objects that
-// have id.
-// doc: type=PersonWithLock
-func CountPersonWithLocksByID(ctx context.Context, id string) (int, error) {
-	return QueryPersonWithLocks(ctx).Where(op.Equal(node.PersonWithLock().ID(), id)).Count()
-}
-
-// CountPersonWithLocksByFirstName queries the database and returns the number of PersonWithLock objects that
-// have firstName.
-// doc: type=PersonWithLock
-func CountPersonWithLocksByFirstName(ctx context.Context, firstName string) (int, error) {
-	return QueryPersonWithLocks(ctx).Where(op.Equal(node.PersonWithLock().FirstName(), firstName)).Count()
-}
-
-// CountPersonWithLocksByLastName queries the database and returns the number of PersonWithLock objects that
-// have lastName.
-// doc: type=PersonWithLock
-func CountPersonWithLocksByLastName(ctx context.Context, lastName string) (int, error) {
-	return QueryPersonWithLocks(ctx).Where(op.Equal(node.PersonWithLock().LastName(), lastName)).Count()
-}
-
-// CountPersonWithLocksByGroLock queries the database and returns the number of PersonWithLock objects that
-// have groLock.
-// doc: type=PersonWithLock
-func CountPersonWithLocksByGroLock(ctx context.Context, groLock int64) (int, error) {
-	return QueryPersonWithLocks(ctx).Where(op.Equal(node.PersonWithLock().GroLock(), groLock)).Count()
-}
-
-// CountPersonWithLocksByGroTimestamp queries the database and returns the number of PersonWithLock objects that
-// have groTimestamp.
-// doc: type=PersonWithLock
-func CountPersonWithLocksByGroTimestamp(ctx context.Context, groTimestamp int64) (int, error) {
-	return QueryPersonWithLocks(ctx).Where(op.Equal(node.PersonWithLock().GroTimestamp(), groTimestamp)).Count()
-}
-
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
 func (o *personWithLockBase) load(m map[string]interface{}, objThis *PersonWithLock) {

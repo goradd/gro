@@ -856,38 +856,24 @@ func CountMultiParents(ctx context.Context) (int, error) {
 	return QueryMultiParents(ctx).Count()
 }
 
-// CountMultiParentsByID queries the database and returns the number of MultiParent objects that
-// have id.
-// doc: type=MultiParent
-func CountMultiParentsByID(ctx context.Context, id string) (int, error) {
-	return QueryMultiParents(ctx).Where(op.Equal(node.MultiParent().ID(), id)).Count()
-}
-
-// CountMultiParentsByName queries the database and returns the number of MultiParent objects that
-// have name.
-// doc: type=MultiParent
-func CountMultiParentsByName(ctx context.Context, name string) (int, error) {
-	return QueryMultiParents(ctx).Where(op.Equal(node.MultiParent().Name(), name)).Count()
-}
-
 // CountMultiParentsByParent1ID queries the database and returns the number of MultiParent objects that
 // have parent1ID.
 // doc: type=MultiParent
 func CountMultiParentsByParent1ID(ctx context.Context, parent1ID string) (int, error) {
-	if parent1ID == "" {
-		return 0, nil
-	}
-	return QueryMultiParents(ctx).Where(op.Equal(node.MultiParent().Parent1ID(), parent1ID)).Count()
+	v_parent1ID := parent1ID
+	return QueryMultiParents(ctx).
+		Where(op.Equal(node.MultiParent().Parent1ID(), v_parent1ID)).
+		Count()
 }
 
 // CountMultiParentsByParent2ID queries the database and returns the number of MultiParent objects that
 // have parent2ID.
 // doc: type=MultiParent
 func CountMultiParentsByParent2ID(ctx context.Context, parent2ID string) (int, error) {
-	if parent2ID == "" {
-		return 0, nil
-	}
-	return QueryMultiParents(ctx).Where(op.Equal(node.MultiParent().Parent2ID(), parent2ID)).Count()
+	v_parent2ID := parent2ID
+	return QueryMultiParents(ctx).
+		Where(op.Equal(node.MultiParent().Parent2ID(), v_parent2ID)).
+		Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships

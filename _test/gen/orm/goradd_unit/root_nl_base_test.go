@@ -344,13 +344,7 @@ func TestRootNl_Count(t *testing.T) {
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSampleRootNl(ctx, obj)
-	// reread in case there are data limitations imposed by the database
-	obj2, _ := LoadRootNl(ctx, obj.PrimaryKey())
-
 	assert.Positive(t, func() int { i, _ := CountRootNls(ctx); return i }())
-	assert.Positive(t, func() int { i, _ := CountRootNlsByID(ctx, obj2.ID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountRootNlsByName(ctx, obj2.Name()); return i }())
-	assert.Positive(t, func() int { i, _ := CountRootNlsByGroLock(ctx, obj2.GroLock()); return i }())
 
 }
 

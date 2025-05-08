@@ -3818,17 +3818,6 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `(ctx, obj)
-	// reread in case there are data limitations imposed by the database
-	obj2, _ := Load`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey())
-
 	assert.Positive(t, func() int { i,_ := Count`); err != nil {
 			return
 		}
@@ -3838,15 +3827,31 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `(ctx); return i }() )
+
 `); err != nil {
 			return
 		}
 
-		for _, col := range table.Columns {
+		if len(table.Indexes) > 0 {
 
-			if !col.IsEnum() {
+			if _, err = io.WriteString(_w, `	// reread in case there are data limitations imposed by the database
+	obj2, _ := Load`); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, `	assert.Positive(t, func() int { i,_ := Count`); err != nil {
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey())
+`); err != nil {
+				return
+			}
+
+			for _, idx := range table.Indexes {
+
+				if _, err = io.WriteString(_w, `	assert.Positive(t,
+	    func() int { i,_ := Count`); err != nil {
 					return
 				}
 
@@ -3858,19 +3863,39 @@ func Test`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				if _, err = io.WriteString(_w, idx.Name()); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `(ctx, obj2.`); err != nil {
+				if _, err = io.WriteString(_w, `(ctx,
+	        `); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
+				for _i, _j := range idx.Columns {
+					_ = _j
 
-				if _, err = io.WriteString(_w, `()); return i }() )
+					if _, err = io.WriteString(_w, `obj2.`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, _j.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `()`); err != nil {
+						return
+					}
+
+					if _i < len(idx.Columns)-1 {
+						if _, err = io.WriteString(_w, ",\n"); err != nil {
+							return
+						}
+					}
+				}
+				if _, err = io.WriteString(_w, `)
+	        return i
+	    }() )
 `); err != nil {
 					return
 				}

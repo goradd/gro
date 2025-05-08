@@ -56,6 +56,10 @@ type Column struct {
 	Options map[string]interface{}
 }
 
+func (cd *Column) String() string {
+	return cd.Identifier
+}
+
 // DefaultConstantName returns the name of the default value constant that will be used to refer to the default value
 func (cd *Column) DefaultConstantName() string {
 	return cd.Table.Identifier + cd.Identifier + "Default"

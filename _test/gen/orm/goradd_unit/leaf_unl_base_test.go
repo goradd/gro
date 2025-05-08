@@ -375,14 +375,16 @@ func TestLeafUnl_Count(t *testing.T) {
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSampleLeafUnl(ctx, obj)
+	assert.Positive(t, func() int { i, _ := CountLeafUnls(ctx); return i }())
+
 	// reread in case there are data limitations imposed by the database
 	obj2, _ := LoadLeafUnl(ctx, obj.PrimaryKey())
-
-	assert.Positive(t, func() int { i, _ := CountLeafUnls(ctx); return i }())
-	assert.Positive(t, func() int { i, _ := CountLeafUnlsByID(ctx, obj2.ID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountLeafUnlsByName(ctx, obj2.Name()); return i }())
-	assert.Positive(t, func() int { i, _ := CountLeafUnlsByRootUnlID(ctx, obj2.RootUnlID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountLeafUnlsByGroLock(ctx, obj2.GroLock()); return i }())
+	assert.Positive(t,
+		func() int {
+			i, _ := CountLeafUnlsByRootUnlID(ctx,
+				obj2.RootUnlID())
+			return i
+		}())
 
 }
 

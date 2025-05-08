@@ -411,14 +411,16 @@ func TestLeafNl_Count(t *testing.T) {
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSampleLeafNl(ctx, obj)
+	assert.Positive(t, func() int { i, _ := CountLeafNls(ctx); return i }())
+
 	// reread in case there are data limitations imposed by the database
 	obj2, _ := LoadLeafNl(ctx, obj.PrimaryKey())
-
-	assert.Positive(t, func() int { i, _ := CountLeafNls(ctx); return i }())
-	assert.Positive(t, func() int { i, _ := CountLeafNlsByID(ctx, obj2.ID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountLeafNlsByName(ctx, obj2.Name()); return i }())
-	assert.Positive(t, func() int { i, _ := CountLeafNlsByRootNlID(ctx, obj2.RootNlID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountLeafNlsByGroLock(ctx, obj2.GroLock()); return i }())
+	assert.Positive(t,
+		func() int {
+			i, _ := CountLeafNlsByRootNlID(ctx,
+				obj2.RootNlID())
+			return i
+		}())
 
 }
 

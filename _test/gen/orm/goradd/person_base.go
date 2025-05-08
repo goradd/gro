@@ -947,39 +947,14 @@ func CountPeople(ctx context.Context) (int, error) {
 	return QueryPeople(ctx).Count()
 }
 
-// CountPeopleByID queries the database and returns the number of Person objects that
-// have id.
-// doc: type=Person
-func CountPeopleByID(ctx context.Context, id string) (int, error) {
-	return QueryPeople(ctx).Where(op.Equal(node.Person().ID(), id)).Count()
-}
-
-// CountPeopleByFirstName queries the database and returns the number of Person objects that
-// have firstName.
-// doc: type=Person
-func CountPeopleByFirstName(ctx context.Context, firstName string) (int, error) {
-	return QueryPeople(ctx).Where(op.Equal(node.Person().FirstName(), firstName)).Count()
-}
-
 // CountPeopleByLastName queries the database and returns the number of Person objects that
 // have lastName.
 // doc: type=Person
 func CountPeopleByLastName(ctx context.Context, lastName string) (int, error) {
-	return QueryPeople(ctx).Where(op.Equal(node.Person().LastName(), lastName)).Count()
-}
-
-// CountPeopleByCreated queries the database and returns the number of Person objects that
-// have created.
-// doc: type=Person
-func CountPeopleByCreated(ctx context.Context, created time.Time) (int, error) {
-	return QueryPeople(ctx).Where(op.Equal(node.Person().Created(), created)).Count()
-}
-
-// CountPeopleByModified queries the database and returns the number of Person objects that
-// have modified.
-// doc: type=Person
-func CountPeopleByModified(ctx context.Context, modified time.Time) (int, error) {
-	return QueryPeople(ctx).Where(op.Equal(node.Person().Modified(), modified)).Count()
+	v_lastName := lastName
+	return QueryPeople(ctx).
+		Where(op.Equal(node.Person().LastName(), v_lastName)).
+		Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships

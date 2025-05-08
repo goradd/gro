@@ -373,13 +373,16 @@ func TestMilestone_Count(t *testing.T) {
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSampleMilestone(ctx, obj)
+	assert.Positive(t, func() int { i, _ := CountMilestones(ctx); return i }())
+
 	// reread in case there are data limitations imposed by the database
 	obj2, _ := LoadMilestone(ctx, obj.PrimaryKey())
-
-	assert.Positive(t, func() int { i, _ := CountMilestones(ctx); return i }())
-	assert.Positive(t, func() int { i, _ := CountMilestonesByID(ctx, obj2.ID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountMilestonesByProjectID(ctx, obj2.ProjectID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountMilestonesByName(ctx, obj2.Name()); return i }())
+	assert.Positive(t,
+		func() int {
+			i, _ := CountMilestonesByProjectID(ctx,
+				obj2.ProjectID())
+			return i
+		}())
 
 }
 

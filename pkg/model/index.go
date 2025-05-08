@@ -1,5 +1,7 @@
 package model
 
+import "github.com/goradd/anyutil"
+
 // Index is used by SQL analysis to extract details about an Index in the database. We can use indexes
 // to know how to get to sorted data easily.
 type Index struct {
@@ -7,4 +9,8 @@ type Index struct {
 	IsUnique bool
 	// Columns are the columns that are part of the index
 	Columns []*Column
+}
+
+func (i *Index) Name() string {
+	return anyutil.Join(i.Columns, "")
 }

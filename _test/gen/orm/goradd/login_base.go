@@ -713,42 +713,24 @@ func CountLogins(ctx context.Context) (int, error) {
 	return QueryLogins(ctx).Count()
 }
 
-// CountLoginsByID queries the database and returns the number of Login objects that
-// have id.
-// doc: type=Login
-func CountLoginsByID(ctx context.Context, id string) (int, error) {
-	return QueryLogins(ctx).Where(op.Equal(node.Login().ID(), id)).Count()
-}
-
 // CountLoginsByPersonID queries the database and returns the number of Login objects that
 // have personID.
 // doc: type=Login
 func CountLoginsByPersonID(ctx context.Context, personID string) (int, error) {
-	if personID == "" {
-		return 0, nil
-	}
-	return QueryLogins(ctx).Where(op.Equal(node.Login().PersonID(), personID)).Count()
+	v_personID := personID
+	return QueryLogins(ctx).
+		Where(op.Equal(node.Login().PersonID(), v_personID)).
+		Count()
 }
 
 // CountLoginsByUsername queries the database and returns the number of Login objects that
 // have username.
 // doc: type=Login
 func CountLoginsByUsername(ctx context.Context, username string) (int, error) {
-	return QueryLogins(ctx).Where(op.Equal(node.Login().Username(), username)).Count()
-}
-
-// CountLoginsByPassword queries the database and returns the number of Login objects that
-// have password.
-// doc: type=Login
-func CountLoginsByPassword(ctx context.Context, password string) (int, error) {
-	return QueryLogins(ctx).Where(op.Equal(node.Login().Password(), password)).Count()
-}
-
-// CountLoginsByIsEnabled queries the database and returns the number of Login objects that
-// have isEnabled.
-// doc: type=Login
-func CountLoginsByIsEnabled(ctx context.Context, isEnabled bool) (int, error) {
-	return QueryLogins(ctx).Where(op.Equal(node.Login().IsEnabled(), isEnabled)).Count()
+	v_username := username
+	return QueryLogins(ctx).
+		Where(op.Equal(node.Login().Username(), v_username)).
+		Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships

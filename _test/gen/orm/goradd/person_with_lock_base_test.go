@@ -371,15 +371,7 @@ func TestPersonWithLock_Count(t *testing.T) {
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSamplePersonWithLock(ctx, obj)
-	// reread in case there are data limitations imposed by the database
-	obj2, _ := LoadPersonWithLock(ctx, obj.PrimaryKey())
-
 	assert.Positive(t, func() int { i, _ := CountPersonWithLocks(ctx); return i }())
-	assert.Positive(t, func() int { i, _ := CountPersonWithLocksByID(ctx, obj2.ID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountPersonWithLocksByFirstName(ctx, obj2.FirstName()); return i }())
-	assert.Positive(t, func() int { i, _ := CountPersonWithLocksByLastName(ctx, obj2.LastName()); return i }())
-	assert.Positive(t, func() int { i, _ := CountPersonWithLocksByGroLock(ctx, obj2.GroLock()); return i }())
-	assert.Positive(t, func() int { i, _ := CountPersonWithLocksByGroTimestamp(ctx, obj2.GroTimestamp()); return i }())
 
 }
 

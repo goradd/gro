@@ -310,6 +310,8 @@ func (o *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `Builder for doc on how to use the builder.
+// You should pass a context that has a timeout with it to protect against a long delay from
+// the database possibly hanging your application.
 func Query`); err != nil {
 		return
 	}

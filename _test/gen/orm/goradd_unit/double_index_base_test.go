@@ -424,15 +424,30 @@ func TestDoubleIndex_Count(t *testing.T) {
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSampleDoubleIndex(ctx, obj)
+	assert.Positive(t, func() int { i, _ := CountDoubleIndices(ctx); return i }())
+
 	// reread in case there are data limitations imposed by the database
 	obj2, _ := LoadDoubleIndex(ctx, obj.PrimaryKey())
-
-	assert.Positive(t, func() int { i, _ := CountDoubleIndices(ctx); return i }())
-	assert.Positive(t, func() int { i, _ := CountDoubleIndicesByID(ctx, obj2.ID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountDoubleIndicesByFieldInt(ctx, obj2.FieldInt()); return i }())
-	assert.Positive(t, func() int { i, _ := CountDoubleIndicesByFieldString(ctx, obj2.FieldString()); return i }())
-	assert.Positive(t, func() int { i, _ := CountDoubleIndicesByField2Int(ctx, obj2.Field2Int()); return i }())
-	assert.Positive(t, func() int { i, _ := CountDoubleIndicesByField2String(ctx, obj2.Field2String()); return i }())
+	assert.Positive(t,
+		func() int {
+			i, _ := CountDoubleIndicesByID(ctx,
+				obj2.ID())
+			return i
+		}())
+	assert.Positive(t,
+		func() int {
+			i, _ := CountDoubleIndicesByField2IntField2String(ctx,
+				obj2.Field2Int(),
+				obj2.Field2String())
+			return i
+		}())
+	assert.Positive(t,
+		func() int {
+			i, _ := CountDoubleIndicesByFieldIntFieldString(ctx,
+				obj2.FieldInt(),
+				obj2.FieldString())
+			return i
+		}())
 
 }
 

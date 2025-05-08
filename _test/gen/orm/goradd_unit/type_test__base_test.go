@@ -913,30 +913,7 @@ func TestTypeTest_Count(t *testing.T) {
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSampleTypeTest(ctx, obj)
-	// reread in case there are data limitations imposed by the database
-	obj2, _ := LoadTypeTest(ctx, obj.PrimaryKey())
-
 	assert.Positive(t, func() int { i, _ := CountTypeTests(ctx); return i }())
-	assert.Positive(t, func() int { i, _ := CountTypeTestsByID(ctx, obj2.ID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountTypeTestsByDate(ctx, obj2.Date()); return i }())
-	assert.Positive(t, func() int { i, _ := CountTypeTestsByTime(ctx, obj2.Time()); return i }())
-	assert.Positive(t, func() int { i, _ := CountTypeTestsByDateTime(ctx, obj2.DateTime()); return i }())
-	assert.Positive(t, func() int { i, _ := CountTypeTestsByCreationTime(ctx, obj2.CreationTime()); return i }())
-	assert.Positive(t, func() int { i, _ := CountTypeTestsByModifiedTime(ctx, obj2.ModifiedTime()); return i }())
-	assert.Positive(t, func() int { i, _ := CountTypeTestsByTestInt(ctx, obj2.TestInt()); return i }())
-	assert.Positive(t, func() int { i, _ := CountTypeTestsByTestUnsigned(ctx, obj2.TestUnsigned()); return i }())
-	assert.Positive(t, func() int { i, _ := CountTypeTestsByTestInt64(ctx, obj2.TestInt64()); return i }())
-	assert.Positive(t, func() int { i, _ := CountTypeTestsByTestUint64(ctx, obj2.TestUint64()); return i }())
-	assert.Positive(t, func() int { i, _ := CountTypeTestsByTestFloat32(ctx, obj2.TestFloat32()); return i }())
-	assert.Positive(t, func() int { i, _ := CountTypeTestsByTestFloat64(ctx, obj2.TestFloat64()); return i }())
-	assert.Positive(t, func() int { i, _ := CountTypeTestsByTestNumeric(ctx, obj2.TestNumeric()); return i }())
-	assert.Positive(t, func() int { i, _ := CountTypeTestsByTestBool(ctx, obj2.TestBool()); return i }())
-	assert.Positive(t, func() int { i, _ := CountTypeTestsByTestUnlimitedString(ctx, obj2.TestUnlimitedString()); return i }())
-	assert.Positive(t, func() int { i, _ := CountTypeTestsByTestLimitedString(ctx, obj2.TestLimitedString()); return i }())
-	assert.Positive(t, func() int { i, _ := CountTypeTestsByTestLongstring(ctx, obj2.TestLongstring()); return i }())
-	assert.Positive(t, func() int { i, _ := CountTypeTestsByTestUnlimitedBytes(ctx, obj2.TestUnlimitedBytes()); return i }())
-	assert.Positive(t, func() int { i, _ := CountTypeTestsByTestLimitedBytes(ctx, obj2.TestLimitedBytes()); return i }())
-	assert.Positive(t, func() int { i, _ := CountTypeTestsByTypeLongBytes(ctx, obj2.TypeLongBytes()); return i }())
 
 }
 

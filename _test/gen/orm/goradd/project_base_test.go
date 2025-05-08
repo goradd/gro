@@ -767,20 +767,34 @@ func TestProject_Count(t *testing.T) {
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSampleProject(ctx, obj)
+	assert.Positive(t, func() int { i, _ := CountProjects(ctx); return i }())
+
 	// reread in case there are data limitations imposed by the database
 	obj2, _ := LoadProject(ctx, obj.PrimaryKey())
-
-	assert.Positive(t, func() int { i, _ := CountProjects(ctx); return i }())
-	assert.Positive(t, func() int { i, _ := CountProjectsByID(ctx, obj2.ID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountProjectsByNum(ctx, obj2.Num()); return i }())
-	assert.Positive(t, func() int { i, _ := CountProjectsByManagerID(ctx, obj2.ManagerID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountProjectsByName(ctx, obj2.Name()); return i }())
-	assert.Positive(t, func() int { i, _ := CountProjectsByDescription(ctx, obj2.Description()); return i }())
-	assert.Positive(t, func() int { i, _ := CountProjectsByStartDate(ctx, obj2.StartDate()); return i }())
-	assert.Positive(t, func() int { i, _ := CountProjectsByEndDate(ctx, obj2.EndDate()); return i }())
-	assert.Positive(t, func() int { i, _ := CountProjectsByBudget(ctx, obj2.Budget()); return i }())
-	assert.Positive(t, func() int { i, _ := CountProjectsBySpent(ctx, obj2.Spent()); return i }())
-	assert.Positive(t, func() int { i, _ := CountProjectsByParentProjectID(ctx, obj2.ParentProjectID()); return i }())
+	assert.Positive(t,
+		func() int {
+			i, _ := CountProjectsByNum(ctx,
+				obj2.Num())
+			return i
+		}())
+	assert.Positive(t,
+		func() int {
+			i, _ := CountProjectsByStatus(ctx,
+				obj2.Status())
+			return i
+		}())
+	assert.Positive(t,
+		func() int {
+			i, _ := CountProjectsByManagerID(ctx,
+				obj2.ManagerID())
+			return i
+		}())
+	assert.Positive(t,
+		func() int {
+			i, _ := CountProjectsByParentProjectID(ctx,
+				obj2.ParentProjectID())
+			return i
+		}())
 
 }
 

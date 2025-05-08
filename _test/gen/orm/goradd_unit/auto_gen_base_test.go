@@ -356,16 +356,7 @@ func TestAutoGen_Count(t *testing.T) {
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSampleAutoGen(ctx, obj)
-	// reread in case there are data limitations imposed by the database
-	obj2, _ := LoadAutoGen(ctx, obj.PrimaryKey())
-
 	assert.Positive(t, func() int { i, _ := CountAutoGens(ctx); return i }())
-	assert.Positive(t, func() int { i, _ := CountAutoGensByID(ctx, obj2.ID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountAutoGensByGroLock(ctx, obj2.GroLock()); return i }())
-	assert.Positive(t, func() int { i, _ := CountAutoGensByGroTimestamp(ctx, obj2.GroTimestamp()); return i }())
-	assert.Positive(t, func() int { i, _ := CountAutoGensByCreated(ctx, obj2.Created()); return i }())
-	assert.Positive(t, func() int { i, _ := CountAutoGensByModified(ctx, obj2.Modified()); return i }())
-	assert.Positive(t, func() int { i, _ := CountAutoGensByName(ctx, obj2.Name()); return i }())
 
 }
 

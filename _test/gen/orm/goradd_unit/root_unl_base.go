@@ -527,27 +527,6 @@ func CountRootUnls(ctx context.Context) (int, error) {
 	return QueryRootUnls(ctx).Count()
 }
 
-// CountRootUnlsByID queries the database and returns the number of RootUnl objects that
-// have id.
-// doc: type=RootUnl
-func CountRootUnlsByID(ctx context.Context, id string) (int, error) {
-	return QueryRootUnls(ctx).Where(op.Equal(node.RootUnl().ID(), id)).Count()
-}
-
-// CountRootUnlsByName queries the database and returns the number of RootUnl objects that
-// have name.
-// doc: type=RootUnl
-func CountRootUnlsByName(ctx context.Context, name string) (int, error) {
-	return QueryRootUnls(ctx).Where(op.Equal(node.RootUnl().Name(), name)).Count()
-}
-
-// CountRootUnlsByGroLock queries the database and returns the number of RootUnl objects that
-// have groLock.
-// doc: type=RootUnl
-func CountRootUnlsByGroLock(ctx context.Context, groLock int64) (int, error) {
-	return QueryRootUnls(ctx).Where(op.Equal(node.RootUnl().GroLock(), groLock)).Count()
-}
-
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
 func (o *rootUnlBase) load(m map[string]interface{}, objThis *RootUnl) {

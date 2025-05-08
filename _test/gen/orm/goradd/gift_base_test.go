@@ -311,12 +311,16 @@ func TestGift_Count(t *testing.T) {
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSampleGift(ctx, obj)
+	assert.Positive(t, func() int { i, _ := CountGifts(ctx); return i }())
+
 	// reread in case there are data limitations imposed by the database
 	obj2, _ := LoadGift(ctx, obj.PrimaryKey())
-
-	assert.Positive(t, func() int { i, _ := CountGifts(ctx); return i }())
-	assert.Positive(t, func() int { i, _ := CountGiftsByNumber(ctx, obj2.Number()); return i }())
-	assert.Positive(t, func() int { i, _ := CountGiftsByName(ctx, obj2.Name()); return i }())
+	assert.Positive(t,
+		func() int {
+			i, _ := CountGiftsByNumber(ctx,
+				obj2.Number())
+			return i
+		}())
 
 }
 

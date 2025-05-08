@@ -513,15 +513,16 @@ func TestPerson_Count(t *testing.T) {
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSamplePerson(ctx, obj)
+	assert.Positive(t, func() int { i, _ := CountPeople(ctx); return i }())
+
 	// reread in case there are data limitations imposed by the database
 	obj2, _ := LoadPerson(ctx, obj.PrimaryKey())
-
-	assert.Positive(t, func() int { i, _ := CountPeople(ctx); return i }())
-	assert.Positive(t, func() int { i, _ := CountPeopleByID(ctx, obj2.ID()); return i }())
-	assert.Positive(t, func() int { i, _ := CountPeopleByFirstName(ctx, obj2.FirstName()); return i }())
-	assert.Positive(t, func() int { i, _ := CountPeopleByLastName(ctx, obj2.LastName()); return i }())
-	assert.Positive(t, func() int { i, _ := CountPeopleByCreated(ctx, obj2.Created()); return i }())
-	assert.Positive(t, func() int { i, _ := CountPeopleByModified(ctx, obj2.Modified()); return i }())
+	assert.Positive(t,
+		func() int {
+			i, _ := CountPeopleByLastName(ctx,
+				obj2.LastName())
+			return i
+		}())
 
 }
 

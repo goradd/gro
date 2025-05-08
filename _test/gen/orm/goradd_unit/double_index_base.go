@@ -697,35 +697,34 @@ func CountDoubleIndices(ctx context.Context) (int, error) {
 // have id.
 // doc: type=DoubleIndex
 func CountDoubleIndicesByID(ctx context.Context, id int) (int, error) {
-	return QueryDoubleIndices(ctx).Where(op.Equal(node.DoubleIndex().ID(), id)).Count()
+	v_id := id
+	return QueryDoubleIndices(ctx).
+		Where(op.Equal(node.DoubleIndex().ID(), v_id)).
+		Count()
 }
 
-// CountDoubleIndicesByFieldInt queries the database and returns the number of DoubleIndex objects that
-// have fieldInt.
+// CountDoubleIndicesByField2IntField2String queries the database and returns the number of DoubleIndex objects that
+// have field2Int and field2String.
 // doc: type=DoubleIndex
-func CountDoubleIndicesByFieldInt(ctx context.Context, fieldInt int) (int, error) {
-	return QueryDoubleIndices(ctx).Where(op.Equal(node.DoubleIndex().FieldInt(), fieldInt)).Count()
+func CountDoubleIndicesByField2IntField2String(ctx context.Context, field2Int int, field2String string) (int, error) {
+	v_field2Int := field2Int
+	v_field2String := field2String
+	return QueryDoubleIndices(ctx).
+		Where(op.Equal(node.DoubleIndex().Field2Int(), v_field2Int)).
+		Where(op.Equal(node.DoubleIndex().Field2String(), v_field2String)).
+		Count()
 }
 
-// CountDoubleIndicesByFieldString queries the database and returns the number of DoubleIndex objects that
-// have fieldString.
+// CountDoubleIndicesByFieldIntFieldString queries the database and returns the number of DoubleIndex objects that
+// have fieldInt and fieldString.
 // doc: type=DoubleIndex
-func CountDoubleIndicesByFieldString(ctx context.Context, fieldString string) (int, error) {
-	return QueryDoubleIndices(ctx).Where(op.Equal(node.DoubleIndex().FieldString(), fieldString)).Count()
-}
-
-// CountDoubleIndicesByField2Int queries the database and returns the number of DoubleIndex objects that
-// have field2Int.
-// doc: type=DoubleIndex
-func CountDoubleIndicesByField2Int(ctx context.Context, field2Int int) (int, error) {
-	return QueryDoubleIndices(ctx).Where(op.Equal(node.DoubleIndex().Field2Int(), field2Int)).Count()
-}
-
-// CountDoubleIndicesByField2String queries the database and returns the number of DoubleIndex objects that
-// have field2String.
-// doc: type=DoubleIndex
-func CountDoubleIndicesByField2String(ctx context.Context, field2String string) (int, error) {
-	return QueryDoubleIndices(ctx).Where(op.Equal(node.DoubleIndex().Field2String(), field2String)).Count()
+func CountDoubleIndicesByFieldIntFieldString(ctx context.Context, fieldInt int, fieldString string) (int, error) {
+	v_fieldInt := fieldInt
+	v_fieldString := fieldString
+	return QueryDoubleIndices(ctx).
+		Where(op.Equal(node.DoubleIndex().FieldInt(), v_fieldInt)).
+		Where(op.Equal(node.DoubleIndex().FieldString(), v_fieldString)).
+		Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships

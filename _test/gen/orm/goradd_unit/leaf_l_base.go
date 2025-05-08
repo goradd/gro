@@ -555,35 +555,14 @@ func CountLeafLs(ctx context.Context) (int, error) {
 	return QueryLeafLs(ctx).Count()
 }
 
-// CountLeafLsByID queries the database and returns the number of LeafL objects that
-// have id.
-// doc: type=LeafL
-func CountLeafLsByID(ctx context.Context, id string) (int, error) {
-	return QueryLeafLs(ctx).Where(op.Equal(node.LeafL().ID(), id)).Count()
-}
-
-// CountLeafLsByName queries the database and returns the number of LeafL objects that
-// have name.
-// doc: type=LeafL
-func CountLeafLsByName(ctx context.Context, name string) (int, error) {
-	return QueryLeafLs(ctx).Where(op.Equal(node.LeafL().Name(), name)).Count()
-}
-
-// CountLeafLsByGroLock queries the database and returns the number of LeafL objects that
-// have groLock.
-// doc: type=LeafL
-func CountLeafLsByGroLock(ctx context.Context, groLock int64) (int, error) {
-	return QueryLeafLs(ctx).Where(op.Equal(node.LeafL().GroLock(), groLock)).Count()
-}
-
 // CountLeafLsByRootLID queries the database and returns the number of LeafL objects that
 // have rootLID.
 // doc: type=LeafL
 func CountLeafLsByRootLID(ctx context.Context, rootLID string) (int, error) {
-	if rootLID == "" {
-		return 0, nil
-	}
-	return QueryLeafLs(ctx).Where(op.Equal(node.LeafL().RootLID(), rootLID)).Count()
+	v_rootLID := rootLID
+	return QueryLeafLs(ctx).
+		Where(op.Equal(node.LeafL().RootLID(), v_rootLID)).
+		Count()
 }
 
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships

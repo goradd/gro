@@ -542,48 +542,6 @@ func CountAutoGens(ctx context.Context) (int, error) {
 	return QueryAutoGens(ctx).Count()
 }
 
-// CountAutoGensByID queries the database and returns the number of AutoGen objects that
-// have id.
-// doc: type=AutoGen
-func CountAutoGensByID(ctx context.Context, id string) (int, error) {
-	return QueryAutoGens(ctx).Where(op.Equal(node.AutoGen().ID(), id)).Count()
-}
-
-// CountAutoGensByGroLock queries the database and returns the number of AutoGen objects that
-// have groLock.
-// doc: type=AutoGen
-func CountAutoGensByGroLock(ctx context.Context, groLock int64) (int, error) {
-	return QueryAutoGens(ctx).Where(op.Equal(node.AutoGen().GroLock(), groLock)).Count()
-}
-
-// CountAutoGensByGroTimestamp queries the database and returns the number of AutoGen objects that
-// have groTimestamp.
-// doc: type=AutoGen
-func CountAutoGensByGroTimestamp(ctx context.Context, groTimestamp int64) (int, error) {
-	return QueryAutoGens(ctx).Where(op.Equal(node.AutoGen().GroTimestamp(), groTimestamp)).Count()
-}
-
-// CountAutoGensByCreated queries the database and returns the number of AutoGen objects that
-// have created.
-// doc: type=AutoGen
-func CountAutoGensByCreated(ctx context.Context, created time.Time) (int, error) {
-	return QueryAutoGens(ctx).Where(op.Equal(node.AutoGen().Created(), created)).Count()
-}
-
-// CountAutoGensByModified queries the database and returns the number of AutoGen objects that
-// have modified.
-// doc: type=AutoGen
-func CountAutoGensByModified(ctx context.Context, modified time.Time) (int, error) {
-	return QueryAutoGens(ctx).Where(op.Equal(node.AutoGen().Modified(), modified)).Count()
-}
-
-// CountAutoGensByName queries the database and returns the number of AutoGen objects that
-// have name.
-// doc: type=AutoGen
-func CountAutoGensByName(ctx context.Context, name string) (int, error) {
-	return QueryAutoGens(ctx).Where(op.Equal(node.AutoGen().Name(), name)).Count()
-}
-
 // load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
 // between the object chain requested by the user in the query.
 func (o *autoGenBase) load(m map[string]interface{}, objThis *AutoGen) {
