@@ -297,6 +297,34 @@ func HasLeafN(ctx context.Context, id string) (bool, error) {
 	return v > 0, err
 }
 
+// LoadLeafNsByRootNID queries LeafN objects by the given index values.
+// selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
+// See [LeafNsBuilder.Select].
+// If you need a more elaborate query, use QueryLeafNs() to start a query builder.
+func LoadLeafNsByRootNID(ctx context.Context, rootNID interface{}, selectNodes ...query.Node) ([]*LeafN, error) {
+	q := queryLeafNs(ctx)
+	if rootNID == nil {
+		q = q.Where(op.IsNull(node.LeafN().RootNID()))
+	} else {
+		q = q.Where(op.Equal(node.LeafN().RootNID(), rootNID))
+	}
+	return q.Select(selectNodes...).Load()
+}
+
+// HasLeafNsByRootNID returns true if the
+// given index values exist in the database.
+// doc: type=LeafN
+func HasLeafNsByRootNID(ctx context.Context, rootNID interface{}) (bool, error) {
+	q := queryLeafNs(ctx)
+	if rootNID == nil {
+		q = q.Where(op.IsNull(node.LeafN().RootNID()))
+	} else {
+		q = q.Where(op.Equal(node.LeafN().RootNID(), rootNID))
+	}
+	v, err := q.Count()
+	return v > 0, err
+}
+
 // The LeafNBuilder uses a builder pattern to create a query on the database.
 // Start a query by calling QueryLeafNs, which will select all
 // the LeafN object in the database. Then filter and arrange those objects

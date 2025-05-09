@@ -452,7 +452,7 @@ func (o *personBase) ManagerProjects() []*Project {
 }
 
 // LoadManagerProjects loads a new slice of Project objects and returns it.
-func (o *personBase) LoadManagerProjects(ctx context.Context, conditions ...interface{}) ([]*Project, error) {
+func (o *personBase) LoadManagerProjects(ctx context.Context) ([]*Project, error) {
 	if o.IsNew() {
 		return nil, nil
 	}
@@ -462,14 +462,7 @@ func (o *personBase) LoadManagerProjects(ctx context.Context, conditions ...inte
 		}
 	}
 
-	qb := queryProjects(ctx)
-	cond := op.Equal(node.Project().ManagerID(), o.PrimaryKey())
-	if conditions != nil {
-		conditions = append(conditions, cond)
-		cond = op.And(conditions...)
-	}
-
-	objs, err := qb.Where(cond).Load()
+	objs, err := LoadProjectsByManagerID(ctx, o.PrimaryKey())
 	if err != nil {
 		return nil, err
 	}
@@ -526,7 +519,7 @@ func (o *personBase) Addresses() []*Address {
 }
 
 // LoadAddresses loads a new slice of Address objects and returns it.
-func (o *personBase) LoadAddresses(ctx context.Context, conditions ...interface{}) ([]*Address, error) {
+func (o *personBase) LoadAddresses(ctx context.Context) ([]*Address, error) {
 	if o.IsNew() {
 		return nil, nil
 	}
@@ -536,14 +529,7 @@ func (o *personBase) LoadAddresses(ctx context.Context, conditions ...interface{
 		}
 	}
 
-	qb := queryAddresses(ctx)
-	cond := op.Equal(node.Address().PersonID(), o.PrimaryKey())
-	if conditions != nil {
-		conditions = append(conditions, cond)
-		cond = op.And(conditions...)
-	}
-
-	objs, err := qb.Where(cond).Load()
+	objs, err := LoadAddressesByPersonID(ctx, o.PrimaryKey())
 	if err != nil {
 		return nil, err
 	}
@@ -678,6 +664,26 @@ func HasPerson(ctx context.Context, id string) (bool, error) {
 	v, err := queryPeople(ctx).
 		Where(op.Equal(node.Person().ID(), id)).
 		Count()
+	return v > 0, err
+}
+
+// LoadPeopleByLastName queries Person objects by the given index values.
+// selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
+// See [PeopleBuilder.Select].
+// If you need a more elaborate query, use QueryPeople() to start a query builder.
+func LoadPeopleByLastName(ctx context.Context, lastName string, selectNodes ...query.Node) ([]*Person, error) {
+	q := queryPeople(ctx)
+	q = q.Where(op.Equal(node.Person().LastName(), lastName))
+	return q.Select(selectNodes...).Load()
+}
+
+// HasPeopleByLastName returns true if the
+// given index values exist in the database.
+// doc: type=Person
+func HasPeopleByLastName(ctx context.Context, lastName string) (bool, error) {
+	q := queryPeople(ctx)
+	q = q.Where(op.Equal(node.Person().LastName(), lastName))
+	v, err := q.Count()
 	return v > 0, err
 }
 

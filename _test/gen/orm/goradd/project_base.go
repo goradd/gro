@@ -1066,7 +1066,7 @@ func (o *projectBase) ParentProjectProjects() []*Project {
 }
 
 // LoadParentProjectProjects loads a new slice of Project objects and returns it.
-func (o *projectBase) LoadParentProjectProjects(ctx context.Context, conditions ...interface{}) ([]*Project, error) {
+func (o *projectBase) LoadParentProjectProjects(ctx context.Context) ([]*Project, error) {
 	if o.IsNew() {
 		return nil, nil
 	}
@@ -1076,14 +1076,7 @@ func (o *projectBase) LoadParentProjectProjects(ctx context.Context, conditions 
 		}
 	}
 
-	qb := queryProjects(ctx)
-	cond := op.Equal(node.Project().ParentProjectID(), o.PrimaryKey())
-	if conditions != nil {
-		conditions = append(conditions, cond)
-		cond = op.And(conditions...)
-	}
-
-	objs, err := qb.Where(cond).Load()
+	objs, err := LoadProjectsByParentProjectID(ctx, o.PrimaryKey())
 	if err != nil {
 		return nil, err
 	}
@@ -1140,7 +1133,7 @@ func (o *projectBase) Milestones() []*Milestone {
 }
 
 // LoadMilestones loads a new slice of Milestone objects and returns it.
-func (o *projectBase) LoadMilestones(ctx context.Context, conditions ...interface{}) ([]*Milestone, error) {
+func (o *projectBase) LoadMilestones(ctx context.Context) ([]*Milestone, error) {
 	if o.IsNew() {
 		return nil, nil
 	}
@@ -1150,14 +1143,7 @@ func (o *projectBase) LoadMilestones(ctx context.Context, conditions ...interfac
 		}
 	}
 
-	qb := queryMilestones(ctx)
-	cond := op.Equal(node.Milestone().ProjectID(), o.PrimaryKey())
-	if conditions != nil {
-		conditions = append(conditions, cond)
-		cond = op.And(conditions...)
-	}
-
-	objs, err := qb.Where(cond).Load()
+	objs, err := LoadMilestonesByProjectID(ctx, o.PrimaryKey())
 	if err != nil {
 		return nil, err
 	}
@@ -1233,6 +1219,82 @@ func LoadProjectByNum(ctx context.Context, num int, selectNodes ...query.Node) (
 func HasProjectByNum(ctx context.Context, num int) (bool, error) {
 	q := queryProjects(ctx)
 	q = q.Where(op.Equal(node.Project().Num(), num))
+	v, err := q.Count()
+	return v > 0, err
+}
+
+// LoadProjectsByStatus queries Project objects by the given index values.
+// selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
+// See [ProjectsBuilder.Select].
+// If you need a more elaborate query, use QueryProjects() to start a query builder.
+func LoadProjectsByStatus(ctx context.Context, status ProjectStatus, selectNodes ...query.Node) ([]*Project, error) {
+	q := queryProjects(ctx)
+	q = q.Where(op.Equal(node.Project().Status(), status))
+	return q.Select(selectNodes...).Load()
+}
+
+// HasProjectsByStatus returns true if the
+// given index values exist in the database.
+// doc: type=Project
+func HasProjectsByStatus(ctx context.Context, status ProjectStatus) (bool, error) {
+	q := queryProjects(ctx)
+	q = q.Where(op.Equal(node.Project().Status(), status))
+	v, err := q.Count()
+	return v > 0, err
+}
+
+// LoadProjectsByManagerID queries Project objects by the given index values.
+// selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
+// See [ProjectsBuilder.Select].
+// If you need a more elaborate query, use QueryProjects() to start a query builder.
+func LoadProjectsByManagerID(ctx context.Context, managerID interface{}, selectNodes ...query.Node) ([]*Project, error) {
+	q := queryProjects(ctx)
+	if managerID == nil {
+		q = q.Where(op.IsNull(node.Project().ManagerID()))
+	} else {
+		q = q.Where(op.Equal(node.Project().ManagerID(), managerID))
+	}
+	return q.Select(selectNodes...).Load()
+}
+
+// HasProjectsByManagerID returns true if the
+// given index values exist in the database.
+// doc: type=Project
+func HasProjectsByManagerID(ctx context.Context, managerID interface{}) (bool, error) {
+	q := queryProjects(ctx)
+	if managerID == nil {
+		q = q.Where(op.IsNull(node.Project().ManagerID()))
+	} else {
+		q = q.Where(op.Equal(node.Project().ManagerID(), managerID))
+	}
+	v, err := q.Count()
+	return v > 0, err
+}
+
+// LoadProjectsByParentProjectID queries Project objects by the given index values.
+// selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
+// See [ProjectsBuilder.Select].
+// If you need a more elaborate query, use QueryProjects() to start a query builder.
+func LoadProjectsByParentProjectID(ctx context.Context, parentProjectID interface{}, selectNodes ...query.Node) ([]*Project, error) {
+	q := queryProjects(ctx)
+	if parentProjectID == nil {
+		q = q.Where(op.IsNull(node.Project().ParentProjectID()))
+	} else {
+		q = q.Where(op.Equal(node.Project().ParentProjectID(), parentProjectID))
+	}
+	return q.Select(selectNodes...).Load()
+}
+
+// HasProjectsByParentProjectID returns true if the
+// given index values exist in the database.
+// doc: type=Project
+func HasProjectsByParentProjectID(ctx context.Context, parentProjectID interface{}) (bool, error) {
+	q := queryProjects(ctx)
+	if parentProjectID == nil {
+		q = q.Where(op.IsNull(node.Project().ParentProjectID()))
+	} else {
+		q = q.Where(op.Equal(node.Project().ParentProjectID(), parentProjectID))
+	}
 	v, err := q.Count()
 	return v > 0, err
 }

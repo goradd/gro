@@ -68,7 +68,7 @@ func (tmpl *TableBaseTemplate) gen(table *model.Table, _w io.Writer, importPath 
 	if err = tmpl.genReverseRefAccessors(table, _w); err != nil {
 		return
 	}
-	if err = tmpl.genQuery(table, _w); err != nil {
+	if err = tmpl.genLoad(table, _w); err != nil {
 		return
 	}
 	if err = tmpl.genBuilder(table, _w); err != nil {
@@ -4568,7 +4568,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `(ctx context.Context, conditions ...interface{}) ([]*`); err != nil {
+			if _, err = io.WriteString(_w, `(ctx context.Context) ([]*`); err != nil {
 				return
 			}
 
@@ -4594,7 +4594,7 @@ func (o *`); err != nil {
         }
     }
 
-	qb := query`); err != nil {
+    objs,err := Load`); err != nil {
 				return
 			}
 
@@ -4602,16 +4602,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `(ctx)
-	cond := op.Equal(node.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `().`); err != nil {
+			if _, err = io.WriteString(_w, `By`); err != nil {
 				return
 			}
 
@@ -4619,13 +4610,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `(), o.PrimaryKey())
-    if conditions != nil {
-        conditions = append(conditions, cond)
-        cond = op.And(conditions...)
-    }
-
-    objs, err := qb.Where(cond).Load()
+			if _, err = io.WriteString(_w, `(ctx, o.PrimaryKey())
     if err != nil {
         return nil, err
     }
@@ -4907,9 +4892,9 @@ func (o *`); err != nil {
 	return
 }
 
-func (tmpl *TableBaseTemplate) genQuery(table *model.Table, _w io.Writer) (err error) {
+func (tmpl *TableBaseTemplate) genLoad(table *model.Table, _w io.Writer) (err error) {
 
-	//*** query.tmpl
+	//*** load.tmpl
 
 	if _, err = io.WriteString(_w, `// Load`); err != nil {
 		return
@@ -5118,12 +5103,8 @@ func Has`); err != nil {
 				return
 			}
 
-			for _, col := range idx.Columns {
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
+			if _, err = io.WriteString(_w, idx.Name()); err != nil {
+				return
 			}
 
 			if _, err = io.WriteString(_w, ` queries for a single `); err != nil {
@@ -5166,25 +5147,18 @@ func Load`); err != nil {
 				return
 			}
 
-			for _, col := range idx.Columns {
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-			}
-
-			if _, err = io.WriteString(_w, ` (ctx context.Context`); err != nil {
+			if _, err = io.WriteString(_w, idx.Name()); err != nil {
 				return
 			}
 
-			for _, col := range idx.Columns {
+			if _, err = io.WriteString(_w, ` (ctx context.Context, `); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, `, `); err != nil {
-					return
-				}
+			for _i, _j := range idx.Columns {
+				_ = _j
 
-				if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+				if _, err = io.WriteString(_w, _j.VariableIdentifier()); err != nil {
 					return
 				}
 
@@ -5192,7 +5166,7 @@ func Load`); err != nil {
 					return
 				}
 
-				if col.IsNullable {
+				if _j.IsNullable {
 
 					if _, err = io.WriteString(_w, `interface{}`); err != nil {
 						return
@@ -5200,18 +5174,18 @@ func Load`); err != nil {
 
 				} else {
 
-					if _, err = io.WriteString(_w, col.GoType()); err != nil {
+					if _, err = io.WriteString(_w, _j.GoType()); err != nil {
 						return
 					}
 
 				}
 
-				if _, err = io.WriteString(_w, ` `); err != nil {
-					return
+				if _i < len(idx.Columns)-1 {
+					if _, err = io.WriteString(_w, ", "); err != nil {
+						return
+					}
 				}
-
 			}
-
 			if _, err = io.WriteString(_w, `, selectNodes ...query.Node) (*`); err != nil {
 				return
 			}
@@ -5242,7 +5216,7 @@ func Load`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 						return
 					}
 
@@ -5285,7 +5259,7 @@ func Load`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 						return
 					}
 
@@ -5317,7 +5291,7 @@ func Load`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 						return
 					}
 
@@ -5345,12 +5319,8 @@ func Load`); err != nil {
 				return
 			}
 
-			for _, col := range idx.Columns {
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
+			if _, err = io.WriteString(_w, idx.Name()); err != nil {
+				return
 			}
 
 			if _, err = io.WriteString(_w, ` returns true if the
@@ -5376,25 +5346,18 @@ func Has`); err != nil {
 				return
 			}
 
-			for _, col := range idx.Columns {
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-			}
-
-			if _, err = io.WriteString(_w, ` (ctx context.Context`); err != nil {
+			if _, err = io.WriteString(_w, idx.Name()); err != nil {
 				return
 			}
 
-			for _, col := range idx.Columns {
+			if _, err = io.WriteString(_w, ` (ctx context.Context, `); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, `, `); err != nil {
-					return
-				}
+			for _i, _j := range idx.Columns {
+				_ = _j
 
-				if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+				if _, err = io.WriteString(_w, _j.VariableIdentifier()); err != nil {
 					return
 				}
 
@@ -5402,7 +5365,7 @@ func Has`); err != nil {
 					return
 				}
 
-				if col.IsNullable {
+				if _j.IsNullable {
 
 					if _, err = io.WriteString(_w, `interface{}`); err != nil {
 						return
@@ -5410,18 +5373,18 @@ func Has`); err != nil {
 
 				} else {
 
-					if _, err = io.WriteString(_w, col.GoType()); err != nil {
+					if _, err = io.WriteString(_w, _j.GoType()); err != nil {
 						return
 					}
 
 				}
 
-				if _, err = io.WriteString(_w, ` `); err != nil {
-					return
+				if _i < len(idx.Columns)-1 {
+					if _, err = io.WriteString(_w, ", "); err != nil {
+						return
+					}
 				}
-
 			}
-
 			if _, err = io.WriteString(_w, `) (bool, error) {
     q := query`); err != nil {
 				return
@@ -5444,7 +5407,7 @@ func Has`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 						return
 					}
 
@@ -5487,7 +5450,7 @@ func Has`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 						return
 					}
 
@@ -5519,7 +5482,7 @@ func Has`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
 						return
 					}
 
@@ -5539,15 +5502,424 @@ func Has`); err != nil {
 				return
 			}
 
-		}
+		} else {
 
-		if _, err = io.WriteString(_w, ` `); err != nil {
-			return
-		}
+			if _, err = io.WriteString(_w, ` `); err != nil {
+				return
+			}
 
-		if _, err = io.WriteString(_w, `
+			if _, err = io.WriteString(_w, `
+// Load`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `By`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, idx.Name()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` queries `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` objects by the given index values.
+// selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
+// See [`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `Builder.Select].
+// If you need a more elaborate query, use Query`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `() to start a query builder.
+func Load`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `By`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, idx.Name()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` (ctx context.Context, `); err != nil {
+				return
+			}
+
+			for _i, _j := range idx.Columns {
+				_ = _j
+
+				if _, err = io.WriteString(_w, _j.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ` `); err != nil {
+					return
+				}
+
+				if _j.IsNullable {
+
+					if _, err = io.WriteString(_w, `interface{}`); err != nil {
+						return
+					}
+
+				} else {
+
+					if _, err = io.WriteString(_w, _j.GoType()); err != nil {
+						return
+					}
+
+				}
+
+				if _i < len(idx.Columns)-1 {
+					if _, err = io.WriteString(_w, ", "); err != nil {
+						return
+					}
+				}
+			}
+			if _, err = io.WriteString(_w, `, selectNodes ...query.Node) ([]*`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `, error) {
+    q := query`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(ctx)
 `); err != nil {
-			return
+				return
+			}
+
+			for _, col := range idx.Columns {
+
+				if col.IsNullable {
+
+					if _, err = io.WriteString(_w, `    if `); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, ` == nil {
+        q = q.Where(op.IsNull(node.`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, table.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `().`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `()))
+    } else {
+        q = q.Where(op.Equal(node.`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, table.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `().`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `(), `); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `))
+    }
+`); err != nil {
+						return
+					}
+
+				} else {
+
+					if _, err = io.WriteString(_w, `    q = q.Where(op.Equal(node.`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, table.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `().`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `(), `); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `))
+`); err != nil {
+						return
+					}
+
+				}
+
+			}
+
+			if _, err = io.WriteString(_w, `    return q.Select(selectNodes...).Load()
+}
+
+// Has`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `By`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, idx.Name()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` returns true if the
+// given index values exist in the database.
+// doc: type=`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `
+func Has`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `By`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, idx.Name()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` (ctx context.Context, `); err != nil {
+				return
+			}
+
+			for _i, _j := range idx.Columns {
+				_ = _j
+
+				if _, err = io.WriteString(_w, _j.VariableIdentifier()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ` `); err != nil {
+					return
+				}
+
+				if _j.IsNullable {
+
+					if _, err = io.WriteString(_w, `interface{}`); err != nil {
+						return
+					}
+
+				} else {
+
+					if _, err = io.WriteString(_w, _j.GoType()); err != nil {
+						return
+					}
+
+				}
+
+				if _i < len(idx.Columns)-1 {
+					if _, err = io.WriteString(_w, ", "); err != nil {
+						return
+					}
+				}
+			}
+			if _, err = io.WriteString(_w, `) (bool, error) {
+    q := query`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(ctx)
+`); err != nil {
+				return
+			}
+
+			for _, col := range idx.Columns {
+
+				if col.IsNullable {
+
+					if _, err = io.WriteString(_w, `    if `); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, ` == nil {
+        q = q.Where(op.IsNull(node.`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, table.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `().`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `()))
+    } else {
+        q = q.Where(op.Equal(node.`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, table.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `().`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `(), `); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `))
+    }
+`); err != nil {
+						return
+					}
+
+				} else {
+
+					if _, err = io.WriteString(_w, `    q = q.Where(op.Equal(node.`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, table.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `().`); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.Identifier); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `(), `); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+						return
+					}
+
+					if _, err = io.WriteString(_w, `))
+`); err != nil {
+						return
+					}
+
+				}
+
+			}
+
+			if _, err = io.WriteString(_w, `    v, err := q.Count()
+    return v > 0, err
+}
+`); err != nil {
+				return
+			}
+
 		}
 
 	}

@@ -195,7 +195,7 @@ func (o *rootNBase) LeafNs() []*LeafN {
 }
 
 // LoadLeafNs loads a new slice of LeafN objects and returns it.
-func (o *rootNBase) LoadLeafNs(ctx context.Context, conditions ...interface{}) ([]*LeafN, error) {
+func (o *rootNBase) LoadLeafNs(ctx context.Context) ([]*LeafN, error) {
 	if o.IsNew() {
 		return nil, nil
 	}
@@ -205,14 +205,7 @@ func (o *rootNBase) LoadLeafNs(ctx context.Context, conditions ...interface{}) (
 		}
 	}
 
-	qb := queryLeafNs(ctx)
-	cond := op.Equal(node.LeafN().RootNID(), o.PrimaryKey())
-	if conditions != nil {
-		conditions = append(conditions, cond)
-		cond = op.And(conditions...)
-	}
-
-	objs, err := qb.Where(cond).Load()
+	objs, err := LoadLeafNsByRootNID(ctx, o.PrimaryKey())
 	if err != nil {
 		return nil, err
 	}

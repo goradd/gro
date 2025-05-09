@@ -436,7 +436,7 @@ func (o *multiParentBase) Parent1MultiParents() []*MultiParent {
 }
 
 // LoadParent1MultiParents loads a new slice of MultiParent objects and returns it.
-func (o *multiParentBase) LoadParent1MultiParents(ctx context.Context, conditions ...interface{}) ([]*MultiParent, error) {
+func (o *multiParentBase) LoadParent1MultiParents(ctx context.Context) ([]*MultiParent, error) {
 	if o.IsNew() {
 		return nil, nil
 	}
@@ -446,14 +446,7 @@ func (o *multiParentBase) LoadParent1MultiParents(ctx context.Context, condition
 		}
 	}
 
-	qb := queryMultiParents(ctx)
-	cond := op.Equal(node.MultiParent().Parent1ID(), o.PrimaryKey())
-	if conditions != nil {
-		conditions = append(conditions, cond)
-		cond = op.And(conditions...)
-	}
-
-	objs, err := qb.Where(cond).Load()
+	objs, err := LoadMultiParentsByParent1ID(ctx, o.PrimaryKey())
 	if err != nil {
 		return nil, err
 	}
@@ -510,7 +503,7 @@ func (o *multiParentBase) Parent2MultiParents() []*MultiParent {
 }
 
 // LoadParent2MultiParents loads a new slice of MultiParent objects and returns it.
-func (o *multiParentBase) LoadParent2MultiParents(ctx context.Context, conditions ...interface{}) ([]*MultiParent, error) {
+func (o *multiParentBase) LoadParent2MultiParents(ctx context.Context) ([]*MultiParent, error) {
 	if o.IsNew() {
 		return nil, nil
 	}
@@ -520,14 +513,7 @@ func (o *multiParentBase) LoadParent2MultiParents(ctx context.Context, condition
 		}
 	}
 
-	qb := queryMultiParents(ctx)
-	cond := op.Equal(node.MultiParent().Parent2ID(), o.PrimaryKey())
-	if conditions != nil {
-		conditions = append(conditions, cond)
-		cond = op.And(conditions...)
-	}
-
-	objs, err := qb.Where(cond).Load()
+	objs, err := LoadMultiParentsByParent2ID(ctx, o.PrimaryKey())
 	if err != nil {
 		return nil, err
 	}
@@ -587,6 +573,62 @@ func HasMultiParent(ctx context.Context, id string) (bool, error) {
 	v, err := queryMultiParents(ctx).
 		Where(op.Equal(node.MultiParent().ID(), id)).
 		Count()
+	return v > 0, err
+}
+
+// LoadMultiParentsByParent1ID queries MultiParent objects by the given index values.
+// selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
+// See [MultiParentsBuilder.Select].
+// If you need a more elaborate query, use QueryMultiParents() to start a query builder.
+func LoadMultiParentsByParent1ID(ctx context.Context, parent1ID interface{}, selectNodes ...query.Node) ([]*MultiParent, error) {
+	q := queryMultiParents(ctx)
+	if parent1ID == nil {
+		q = q.Where(op.IsNull(node.MultiParent().Parent1ID()))
+	} else {
+		q = q.Where(op.Equal(node.MultiParent().Parent1ID(), parent1ID))
+	}
+	return q.Select(selectNodes...).Load()
+}
+
+// HasMultiParentsByParent1ID returns true if the
+// given index values exist in the database.
+// doc: type=MultiParent
+func HasMultiParentsByParent1ID(ctx context.Context, parent1ID interface{}) (bool, error) {
+	q := queryMultiParents(ctx)
+	if parent1ID == nil {
+		q = q.Where(op.IsNull(node.MultiParent().Parent1ID()))
+	} else {
+		q = q.Where(op.Equal(node.MultiParent().Parent1ID(), parent1ID))
+	}
+	v, err := q.Count()
+	return v > 0, err
+}
+
+// LoadMultiParentsByParent2ID queries MultiParent objects by the given index values.
+// selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
+// See [MultiParentsBuilder.Select].
+// If you need a more elaborate query, use QueryMultiParents() to start a query builder.
+func LoadMultiParentsByParent2ID(ctx context.Context, parent2ID interface{}, selectNodes ...query.Node) ([]*MultiParent, error) {
+	q := queryMultiParents(ctx)
+	if parent2ID == nil {
+		q = q.Where(op.IsNull(node.MultiParent().Parent2ID()))
+	} else {
+		q = q.Where(op.Equal(node.MultiParent().Parent2ID(), parent2ID))
+	}
+	return q.Select(selectNodes...).Load()
+}
+
+// HasMultiParentsByParent2ID returns true if the
+// given index values exist in the database.
+// doc: type=MultiParent
+func HasMultiParentsByParent2ID(ctx context.Context, parent2ID interface{}) (bool, error) {
+	q := queryMultiParents(ctx)
+	if parent2ID == nil {
+		q = q.Where(op.IsNull(node.MultiParent().Parent2ID()))
+	} else {
+		q = q.Where(op.Equal(node.MultiParent().Parent2ID(), parent2ID))
+	}
+	v, err := q.Count()
 	return v > 0, err
 }
 

@@ -604,6 +604,28 @@ func HasUnsupportedTypeByTypeSerial(ctx context.Context, typeSerial uint64) (boo
 	return v > 0, err
 }
 
+// LoadUnsupportedTypesByTypeMultfk1TypeMultifk2 queries UnsupportedType objects by the given index values.
+// selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
+// See [UnsupportedTypesBuilder.Select].
+// If you need a more elaborate query, use QueryUnsupportedTypes() to start a query builder.
+func LoadUnsupportedTypesByTypeMultfk1TypeMultifk2(ctx context.Context, typeMultfk1 string, typeMultifk2 string, selectNodes ...query.Node) ([]*UnsupportedType, error) {
+	q := queryUnsupportedTypes(ctx)
+	q = q.Where(op.Equal(node.UnsupportedType().TypeMultfk1(), typeMultfk1))
+	q = q.Where(op.Equal(node.UnsupportedType().TypeMultifk2(), typeMultifk2))
+	return q.Select(selectNodes...).Load()
+}
+
+// HasUnsupportedTypesByTypeMultfk1TypeMultifk2 returns true if the
+// given index values exist in the database.
+// doc: type=UnsupportedType
+func HasUnsupportedTypesByTypeMultfk1TypeMultifk2(ctx context.Context, typeMultfk1 string, typeMultifk2 string) (bool, error) {
+	q := queryUnsupportedTypes(ctx)
+	q = q.Where(op.Equal(node.UnsupportedType().TypeMultfk1(), typeMultfk1))
+	q = q.Where(op.Equal(node.UnsupportedType().TypeMultifk2(), typeMultifk2))
+	v, err := q.Count()
+	return v > 0, err
+}
+
 // The UnsupportedTypeBuilder uses a builder pattern to create a query on the database.
 // Start a query by calling QueryUnsupportedTypes, which will select all
 // the UnsupportedType object in the database. Then filter and arrange those objects

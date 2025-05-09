@@ -269,6 +269,26 @@ func HasMilestone(ctx context.Context, id string) (bool, error) {
 	return v > 0, err
 }
 
+// LoadMilestonesByProjectID queries Milestone objects by the given index values.
+// selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
+// See [MilestonesBuilder.Select].
+// If you need a more elaborate query, use QueryMilestones() to start a query builder.
+func LoadMilestonesByProjectID(ctx context.Context, projectID string, selectNodes ...query.Node) ([]*Milestone, error) {
+	q := queryMilestones(ctx)
+	q = q.Where(op.Equal(node.Milestone().ProjectID(), projectID))
+	return q.Select(selectNodes...).Load()
+}
+
+// HasMilestonesByProjectID returns true if the
+// given index values exist in the database.
+// doc: type=Milestone
+func HasMilestonesByProjectID(ctx context.Context, projectID string) (bool, error) {
+	q := queryMilestones(ctx)
+	q = q.Where(op.Equal(node.Milestone().ProjectID(), projectID))
+	v, err := q.Count()
+	return v > 0, err
+}
+
 // The MilestoneBuilder uses a builder pattern to create a query on the database.
 // Start a query by calling QueryMilestones, which will select all
 // the Milestone object in the database. Then filter and arrange those objects

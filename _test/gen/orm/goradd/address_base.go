@@ -332,6 +332,26 @@ func HasAddress(ctx context.Context, id string) (bool, error) {
 	return v > 0, err
 }
 
+// LoadAddressesByPersonID queries Address objects by the given index values.
+// selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
+// See [AddressesBuilder.Select].
+// If you need a more elaborate query, use QueryAddresses() to start a query builder.
+func LoadAddressesByPersonID(ctx context.Context, personID string, selectNodes ...query.Node) ([]*Address, error) {
+	q := queryAddresses(ctx)
+	q = q.Where(op.Equal(node.Address().PersonID(), personID))
+	return q.Select(selectNodes...).Load()
+}
+
+// HasAddressesByPersonID returns true if the
+// given index values exist in the database.
+// doc: type=Address
+func HasAddressesByPersonID(ctx context.Context, personID string) (bool, error) {
+	q := queryAddresses(ctx)
+	q = q.Where(op.Equal(node.Address().PersonID(), personID))
+	v, err := q.Count()
+	return v > 0, err
+}
+
 // The AddressBuilder uses a builder pattern to create a query on the database.
 // Start a query by calling QueryAddresses, which will select all
 // the Address object in the database. Then filter and arrange those objects

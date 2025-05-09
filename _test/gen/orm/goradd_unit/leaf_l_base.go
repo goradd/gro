@@ -287,6 +287,26 @@ func HasLeafL(ctx context.Context, id string) (bool, error) {
 	return v > 0, err
 }
 
+// LoadLeafLsByRootLID queries LeafL objects by the given index values.
+// selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
+// See [LeafLsBuilder.Select].
+// If you need a more elaborate query, use QueryLeafLs() to start a query builder.
+func LoadLeafLsByRootLID(ctx context.Context, rootLID string, selectNodes ...query.Node) ([]*LeafL, error) {
+	q := queryLeafLs(ctx)
+	q = q.Where(op.Equal(node.LeafL().RootLID(), rootLID))
+	return q.Select(selectNodes...).Load()
+}
+
+// HasLeafLsByRootLID returns true if the
+// given index values exist in the database.
+// doc: type=LeafL
+func HasLeafLsByRootLID(ctx context.Context, rootLID string) (bool, error) {
+	q := queryLeafLs(ctx)
+	q = q.Where(op.Equal(node.LeafL().RootLID(), rootLID))
+	v, err := q.Count()
+	return v > 0, err
+}
+
 // The LeafLBuilder uses a builder pattern to create a query on the database.
 // Start a query by calling QueryLeafLs, which will select all
 // the LeafL object in the database. Then filter and arrange those objects

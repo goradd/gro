@@ -268,6 +268,26 @@ func HasLeaf(ctx context.Context, id string) (bool, error) {
 	return v > 0, err
 }
 
+// LoadLeafsByRootID queries Leaf objects by the given index values.
+// selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
+// See [LeafsBuilder.Select].
+// If you need a more elaborate query, use QueryLeafs() to start a query builder.
+func LoadLeafsByRootID(ctx context.Context, rootID string, selectNodes ...query.Node) ([]*Leaf, error) {
+	q := queryLeafs(ctx)
+	q = q.Where(op.Equal(node.Leaf().RootID(), rootID))
+	return q.Select(selectNodes...).Load()
+}
+
+// HasLeafsByRootID returns true if the
+// given index values exist in the database.
+// doc: type=Leaf
+func HasLeafsByRootID(ctx context.Context, rootID string) (bool, error) {
+	q := queryLeafs(ctx)
+	q = q.Where(op.Equal(node.Leaf().RootID(), rootID))
+	v, err := q.Count()
+	return v > 0, err
+}
+
 // The LeafBuilder uses a builder pattern to create a query on the database.
 // Start a query by calling QueryLeafs, which will select all
 // the Leaf object in the database. Then filter and arrange those objects

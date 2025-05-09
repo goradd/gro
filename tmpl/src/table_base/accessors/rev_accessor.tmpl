@@ -15,7 +15,7 @@ func (o *{{= table.DecapIdentifier}}Base) {{= rev.ReverseIdentifier() }}() []*{{
 }
 
 // Load{{= rev.ReverseIdentifier() }} loads a new slice of {{= rev.Table.Identifier }} objects and returns it.
-func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.ReverseIdentifier() }}(ctx context.Context, conditions ...interface{}) ([]*{{= rev.Table.Identifier }}, error) {
+func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.ReverseIdentifier() }}(ctx context.Context) ([]*{{= rev.Table.Identifier }}, error) {
 	if o.IsNew() {
 		return nil, nil
 	}
@@ -25,14 +25,7 @@ func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.ReverseIdentifier() }}(ctx
         }
     }
 
-	qb := query{{= rev.Table.IdentifierPlural }}(ctx)
-	cond := op.Equal(node.{{= rev.Table.Identifier }}().{{= rev.Identifier }}(), o.PrimaryKey())
-    if conditions != nil {
-        conditions = append(conditions, cond)
-        cond = op.And(conditions...)
-    }
-
-    objs, err := qb.Where(cond).Load()
+    objs,err := Load{{= rev.Table.IdentifierPlural }}By{{= rev.Identifier }}(ctx, o.PrimaryKey())
     if err != nil {
         return nil, err
     }
