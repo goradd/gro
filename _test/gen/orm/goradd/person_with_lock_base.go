@@ -378,7 +378,7 @@ func (b *personWithLockQueryBuilder) Load() (personWithLocks []*PersonWithLock, 
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(PersonWithLock)
-		o.load(item, o)
+		o.unpack(item, o)
 		personWithLocks = append(personWithLocks, o)
 	}
 	return
@@ -398,7 +398,7 @@ func (b *personWithLockQueryBuilder) LoadI() (personWithLocks []query.OrmObj, er
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(PersonWithLock)
-		o.load(item, o)
+		o.unpack(item, o)
 		personWithLocks = append(personWithLocks, o)
 	}
 	return
@@ -442,7 +442,7 @@ func (c personWithLocksCursor) Next() (*PersonWithLock, error) {
 		return nil, err
 	}
 	o := new(PersonWithLock)
-	o.load(row, o)
+	o.unpack(row, o)
 	return o, nil
 }
 
@@ -539,9 +539,8 @@ func CountPersonWithLocks(ctx context.Context) (int, error) {
 	return QueryPersonWithLocks(ctx).Count()
 }
 
-// load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
-// between the object chain requested by the user in the query.
-func (o *personWithLockBase) load(m map[string]interface{}, objThis *PersonWithLock) {
+// unpack recursively transforms data coming from the database into ORM objects.
+func (o *personWithLockBase) unpack(m map[string]interface{}, objThis *PersonWithLock) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {

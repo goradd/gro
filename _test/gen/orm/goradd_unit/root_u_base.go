@@ -343,7 +343,7 @@ func (b *rootUQueryBuilder) Load() (rootUs []*RootU, err error) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(RootU)
-		o.load(item, o)
+		o.unpack(item, o)
 		rootUs = append(rootUs, o)
 	}
 	return
@@ -363,7 +363,7 @@ func (b *rootUQueryBuilder) LoadI() (rootUs []query.OrmObj, err error) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(RootU)
-		o.load(item, o)
+		o.unpack(item, o)
 		rootUs = append(rootUs, o)
 	}
 	return
@@ -407,7 +407,7 @@ func (c rootUsCursor) Next() (*RootU, error) {
 		return nil, err
 	}
 	o := new(RootU)
-	o.load(row, o)
+	o.unpack(row, o)
 	return o, nil
 }
 
@@ -504,9 +504,8 @@ func CountRootUs(ctx context.Context) (int, error) {
 	return QueryRootUs(ctx).Count()
 }
 
-// load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
-// between the object chain requested by the user in the query.
-func (o *rootUBase) load(m map[string]interface{}, objThis *RootU) {
+// unpack recursively transforms data coming from the database into ORM objects.
+func (o *rootUBase) unpack(m map[string]interface{}, objThis *RootU) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
@@ -543,7 +542,7 @@ func (o *rootUBase) load(m map[string]interface{}, objThis *RootU) {
 	if v, ok := m["LeafU"]; ok {
 		if v2, ok2 := v.(map[string]any); ok2 {
 			o.revLeafU = new(LeafU)
-			o.revLeafU.load(v2, o.revLeafU)
+			o.revLeafU.unpack(v2, o.revLeafU)
 			o.revLeafUIsDirty = false
 		} else {
 			panic("Wrong type found for rootUID object.")

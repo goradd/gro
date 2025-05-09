@@ -374,7 +374,7 @@ func (b *milestoneQueryBuilder) Load() (milestones []*Milestone, err error) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(Milestone)
-		o.load(item, o)
+		o.unpack(item, o)
 		milestones = append(milestones, o)
 	}
 	return
@@ -394,7 +394,7 @@ func (b *milestoneQueryBuilder) LoadI() (milestones []query.OrmObj, err error) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(Milestone)
-		o.load(item, o)
+		o.unpack(item, o)
 		milestones = append(milestones, o)
 	}
 	return
@@ -438,7 +438,7 @@ func (c milestonesCursor) Next() (*Milestone, error) {
 		return nil, err
 	}
 	o := new(Milestone)
-	o.load(row, o)
+	o.unpack(row, o)
 	return o, nil
 }
 
@@ -545,9 +545,8 @@ func CountMilestonesByProjectID(ctx context.Context, projectID string) (int, err
 		Count()
 }
 
-// load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
-// between the object chain requested by the user in the query.
-func (o *milestoneBase) load(m map[string]interface{}, objThis *Milestone) {
+// unpack recursively transforms data coming from the database into ORM objects.
+func (o *milestoneBase) unpack(m map[string]interface{}, objThis *Milestone) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
@@ -582,7 +581,7 @@ func (o *milestoneBase) load(m map[string]interface{}, objThis *Milestone) {
 	if v, ok := m["Project"]; ok {
 		if objProject, ok2 := v.(map[string]any); ok2 {
 			o.objProject = new(Project)
-			o.objProject.load(objProject, o.objProject)
+			o.objProject.unpack(objProject, o.objProject)
 			o.projectIDIsLoaded = true
 			o.projectIDIsDirty = false
 		} else {

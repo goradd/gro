@@ -392,7 +392,7 @@ func (b *employeeInfoQueryBuilder) Load() (employeeInfos []*EmployeeInfo, err er
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(EmployeeInfo)
-		o.load(item, o)
+		o.unpack(item, o)
 		employeeInfos = append(employeeInfos, o)
 	}
 	return
@@ -412,7 +412,7 @@ func (b *employeeInfoQueryBuilder) LoadI() (employeeInfos []query.OrmObj, err er
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(EmployeeInfo)
-		o.load(item, o)
+		o.unpack(item, o)
 		employeeInfos = append(employeeInfos, o)
 	}
 	return
@@ -456,7 +456,7 @@ func (c employeeInfosCursor) Next() (*EmployeeInfo, error) {
 		return nil, err
 	}
 	o := new(EmployeeInfo)
-	o.load(row, o)
+	o.unpack(row, o)
 	return o, nil
 }
 
@@ -563,9 +563,8 @@ func CountEmployeeInfosByPersonID(ctx context.Context, personID string) (int, er
 		Count()
 }
 
-// load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
-// between the object chain requested by the user in the query.
-func (o *employeeInfoBase) load(m map[string]interface{}, objThis *EmployeeInfo) {
+// unpack recursively transforms data coming from the database into ORM objects.
+func (o *employeeInfoBase) unpack(m map[string]interface{}, objThis *EmployeeInfo) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
@@ -600,7 +599,7 @@ func (o *employeeInfoBase) load(m map[string]interface{}, objThis *EmployeeInfo)
 	if v, ok := m["Person"]; ok {
 		if objPerson, ok2 := v.(map[string]any); ok2 {
 			o.objPerson = new(Person)
-			o.objPerson.load(objPerson, o.objPerson)
+			o.objPerson.unpack(objPerson, o.objPerson)
 			o.personIDIsLoaded = true
 			o.personIDIsDirty = false
 		} else {

@@ -377,7 +377,7 @@ func (b *rootQueryBuilder) Load() (roots []*Root, err error) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(Root)
-		o.load(item, o)
+		o.unpack(item, o)
 		roots = append(roots, o)
 	}
 	return
@@ -397,7 +397,7 @@ func (b *rootQueryBuilder) LoadI() (roots []query.OrmObj, err error) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(Root)
-		o.load(item, o)
+		o.unpack(item, o)
 		roots = append(roots, o)
 	}
 	return
@@ -441,7 +441,7 @@ func (c rootsCursor) Next() (*Root, error) {
 		return nil, err
 	}
 	o := new(Root)
-	o.load(row, o)
+	o.unpack(row, o)
 	return o, nil
 }
 
@@ -538,9 +538,8 @@ func CountRoots(ctx context.Context) (int, error) {
 	return QueryRoots(ctx).Count()
 }
 
-// load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
-// between the object chain requested by the user in the query.
-func (o *rootBase) load(m map[string]interface{}, objThis *Root) {
+// unpack recursively transforms data coming from the database into ORM objects.
+func (o *rootBase) unpack(m map[string]interface{}, objThis *Root) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
@@ -581,7 +580,7 @@ func (o *rootBase) load(m map[string]interface{}, objThis *Root) {
 			o.revLeafsIsDirty = false
 			for _, v3 := range v2 {
 				obj := new(Leaf)
-				obj.load(v3, obj)
+				obj.unpack(v3, obj)
 				o.revLeafs.Set(obj.PrimaryKey(), obj)
 			}
 		default:

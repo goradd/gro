@@ -552,7 +552,7 @@ func (b *loginQueryBuilder) Load() (logins []*Login, err error) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(Login)
-		o.load(item, o)
+		o.unpack(item, o)
 		logins = append(logins, o)
 	}
 	return
@@ -572,7 +572,7 @@ func (b *loginQueryBuilder) LoadI() (logins []query.OrmObj, err error) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(Login)
-		o.load(item, o)
+		o.unpack(item, o)
 		logins = append(logins, o)
 	}
 	return
@@ -616,7 +616,7 @@ func (c loginsCursor) Next() (*Login, error) {
 		return nil, err
 	}
 	o := new(Login)
-	o.load(row, o)
+	o.unpack(row, o)
 	return o, nil
 }
 
@@ -733,9 +733,8 @@ func CountLoginsByUsername(ctx context.Context, username string) (int, error) {
 		Count()
 }
 
-// load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
-// between the object chain requested by the user in the query.
-func (o *loginBase) load(m map[string]interface{}, objThis *Login) {
+// unpack recursively transforms data coming from the database into ORM objects.
+func (o *loginBase) unpack(m map[string]interface{}, objThis *Login) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
@@ -776,7 +775,7 @@ func (o *loginBase) load(m map[string]interface{}, objThis *Login) {
 	if v, ok := m["Person"]; ok {
 		if objPerson, ok2 := v.(map[string]any); ok2 {
 			o.objPerson = new(Person)
-			o.objPerson.load(objPerson, o.objPerson)
+			o.objPerson.unpack(objPerson, o.objPerson)
 			o.personIDIsLoaded = true
 			o.personIDIsDirty = false
 		} else {

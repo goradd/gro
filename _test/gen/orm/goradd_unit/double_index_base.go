@@ -532,7 +532,7 @@ func (b *doubleIndexQueryBuilder) Load() (doubleIndices []*DoubleIndex, err erro
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(DoubleIndex)
-		o.load(item, o)
+		o.unpack(item, o)
 		doubleIndices = append(doubleIndices, o)
 	}
 	return
@@ -552,7 +552,7 @@ func (b *doubleIndexQueryBuilder) LoadI() (doubleIndices []query.OrmObj, err err
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(DoubleIndex)
-		o.load(item, o)
+		o.unpack(item, o)
 		doubleIndices = append(doubleIndices, o)
 	}
 	return
@@ -596,7 +596,7 @@ func (c doubleIndicesCursor) Next() (*DoubleIndex, error) {
 		return nil, err
 	}
 	o := new(DoubleIndex)
-	o.load(row, o)
+	o.unpack(row, o)
 	return o, nil
 }
 
@@ -727,9 +727,8 @@ func CountDoubleIndicesByFieldIntFieldString(ctx context.Context, fieldInt int, 
 		Count()
 }
 
-// load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
-// between the object chain requested by the user in the query.
-func (o *doubleIndexBase) load(m map[string]interface{}, objThis *DoubleIndex) {
+// unpack recursively transforms data coming from the database into ORM objects.
+func (o *doubleIndexBase) unpack(m map[string]interface{}, objThis *DoubleIndex) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(int); ok {

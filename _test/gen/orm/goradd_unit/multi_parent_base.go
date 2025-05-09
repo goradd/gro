@@ -695,7 +695,7 @@ func (b *multiParentQueryBuilder) Load() (multiParents []*MultiParent, err error
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(MultiParent)
-		o.load(item, o)
+		o.unpack(item, o)
 		multiParents = append(multiParents, o)
 	}
 	return
@@ -715,7 +715,7 @@ func (b *multiParentQueryBuilder) LoadI() (multiParents []query.OrmObj, err erro
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(MultiParent)
-		o.load(item, o)
+		o.unpack(item, o)
 		multiParents = append(multiParents, o)
 	}
 	return
@@ -759,7 +759,7 @@ func (c multiParentsCursor) Next() (*MultiParent, error) {
 		return nil, err
 	}
 	o := new(MultiParent)
-	o.load(row, o)
+	o.unpack(row, o)
 	return o, nil
 }
 
@@ -876,9 +876,8 @@ func CountMultiParentsByParent2ID(ctx context.Context, parent2ID string) (int, e
 		Count()
 }
 
-// load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
-// between the object chain requested by the user in the query.
-func (o *multiParentBase) load(m map[string]interface{}, objThis *MultiParent) {
+// unpack recursively transforms data coming from the database into ORM objects.
+func (o *multiParentBase) unpack(m map[string]interface{}, objThis *MultiParent) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
@@ -939,7 +938,7 @@ func (o *multiParentBase) load(m map[string]interface{}, objThis *MultiParent) {
 	if v, ok := m["Parent1"]; ok {
 		if objParent1, ok2 := v.(map[string]any); ok2 {
 			o.objParent1 = new(MultiParent)
-			o.objParent1.load(objParent1, o.objParent1)
+			o.objParent1.unpack(objParent1, o.objParent1)
 			o.parent1IDIsLoaded = true
 			o.parent1IDIsDirty = false
 		} else {
@@ -972,7 +971,7 @@ func (o *multiParentBase) load(m map[string]interface{}, objThis *MultiParent) {
 	if v, ok := m["Parent2"]; ok {
 		if objParent2, ok2 := v.(map[string]any); ok2 {
 			o.objParent2 = new(MultiParent)
-			o.objParent2.load(objParent2, o.objParent2)
+			o.objParent2.unpack(objParent2, o.objParent2)
 			o.parent2IDIsLoaded = true
 			o.parent2IDIsDirty = false
 		} else {
@@ -991,7 +990,7 @@ func (o *multiParentBase) load(m map[string]interface{}, objThis *MultiParent) {
 			o.revParent1MultiParentsIsDirty = false
 			for _, v3 := range v2 {
 				obj := new(MultiParent)
-				obj.load(v3, obj)
+				obj.unpack(v3, obj)
 				o.revParent1MultiParents.Set(obj.PrimaryKey(), obj)
 			}
 		default:
@@ -1009,7 +1008,7 @@ func (o *multiParentBase) load(m map[string]interface{}, objThis *MultiParent) {
 			o.revParent2MultiParentsIsDirty = false
 			for _, v3 := range v2 {
 				obj := new(MultiParent)
-				obj.load(v3, obj)
+				obj.unpack(v3, obj)
 				o.revParent2MultiParents.Set(obj.PrimaryKey(), obj)
 			}
 		default:

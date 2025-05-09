@@ -394,7 +394,7 @@ func (b *leafLQueryBuilder) Load() (leafLs []*LeafL, err error) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(LeafL)
-		o.load(item, o)
+		o.unpack(item, o)
 		leafLs = append(leafLs, o)
 	}
 	return
@@ -414,7 +414,7 @@ func (b *leafLQueryBuilder) LoadI() (leafLs []query.OrmObj, err error) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(LeafL)
-		o.load(item, o)
+		o.unpack(item, o)
 		leafLs = append(leafLs, o)
 	}
 	return
@@ -458,7 +458,7 @@ func (c leafLsCursor) Next() (*LeafL, error) {
 		return nil, err
 	}
 	o := new(LeafL)
-	o.load(row, o)
+	o.unpack(row, o)
 	return o, nil
 }
 
@@ -565,9 +565,8 @@ func CountLeafLsByRootLID(ctx context.Context, rootLID string) (int, error) {
 		Count()
 }
 
-// load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
-// between the object chain requested by the user in the query.
-func (o *leafLBase) load(m map[string]interface{}, objThis *LeafL) {
+// unpack recursively transforms data coming from the database into ORM objects.
+func (o *leafLBase) unpack(m map[string]interface{}, objThis *LeafL) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
@@ -628,7 +627,7 @@ func (o *leafLBase) load(m map[string]interface{}, objThis *LeafL) {
 	if v, ok := m["RootL"]; ok {
 		if objRootL, ok2 := v.(map[string]any); ok2 {
 			o.objRootL = new(RootL)
-			o.objRootL.load(objRootL, o.objRootL)
+			o.objRootL.unpack(objRootL, o.objRootL)
 			o.rootLIDIsLoaded = true
 			o.rootLIDIsDirty = false
 		} else {

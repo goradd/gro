@@ -1102,7 +1102,7 @@ func (b *typeTestQueryBuilder) Load() (typeTests []*TypeTest, err error) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(TypeTest)
-		o.load(item, o)
+		o.unpack(item, o)
 		typeTests = append(typeTests, o)
 	}
 	return
@@ -1122,7 +1122,7 @@ func (b *typeTestQueryBuilder) LoadI() (typeTests []query.OrmObj, err error) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(TypeTest)
-		o.load(item, o)
+		o.unpack(item, o)
 		typeTests = append(typeTests, o)
 	}
 	return
@@ -1166,7 +1166,7 @@ func (c typeTestsCursor) Next() (*TypeTest, error) {
 		return nil, err
 	}
 	o := new(TypeTest)
-	o.load(row, o)
+	o.unpack(row, o)
 	return o, nil
 }
 
@@ -1263,9 +1263,8 @@ func CountTypeTests(ctx context.Context) (int, error) {
 	return QueryTypeTests(ctx).Count()
 }
 
-// load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
-// between the object chain requested by the user in the query.
-func (o *typeTestBase) load(m map[string]interface{}, objThis *TypeTest) {
+// unpack recursively transforms data coming from the database into ORM objects.
+func (o *typeTestBase) unpack(m map[string]interface{}, objThis *TypeTest) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {

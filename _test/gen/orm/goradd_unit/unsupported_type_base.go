@@ -709,7 +709,7 @@ func (b *unsupportedTypeQueryBuilder) Load() (unsupportedTypes []*UnsupportedTyp
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(UnsupportedType)
-		o.load(item, o)
+		o.unpack(item, o)
 		unsupportedTypes = append(unsupportedTypes, o)
 	}
 	return
@@ -729,7 +729,7 @@ func (b *unsupportedTypeQueryBuilder) LoadI() (unsupportedTypes []query.OrmObj, 
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(UnsupportedType)
-		o.load(item, o)
+		o.unpack(item, o)
 		unsupportedTypes = append(unsupportedTypes, o)
 	}
 	return
@@ -773,7 +773,7 @@ func (c unsupportedTypesCursor) Next() (*UnsupportedType, error) {
 		return nil, err
 	}
 	o := new(UnsupportedType)
-	o.load(row, o)
+	o.unpack(row, o)
 	return o, nil
 }
 
@@ -892,9 +892,8 @@ func CountUnsupportedTypesByTypeMultfk1TypeMultifk2(ctx context.Context, typeMul
 		Count()
 }
 
-// load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
-// between the object chain requested by the user in the query.
-func (o *unsupportedTypeBase) load(m map[string]interface{}, objThis *UnsupportedType) {
+// unpack recursively transforms data coming from the database into ORM objects.
+func (o *unsupportedTypeBase) unpack(m map[string]interface{}, objThis *UnsupportedType) {
 
 	if v, ok := m["type_serial"]; ok && v != nil {
 		if o.typeSerial, ok = v.(uint64); ok {

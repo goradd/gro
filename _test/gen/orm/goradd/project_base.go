@@ -1342,7 +1342,7 @@ func (b *projectQueryBuilder) Load() (projects []*Project, err error) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(Project)
-		o.load(item, o)
+		o.unpack(item, o)
 		projects = append(projects, o)
 	}
 	return
@@ -1362,7 +1362,7 @@ func (b *projectQueryBuilder) LoadI() (projects []query.OrmObj, err error) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(Project)
-		o.load(item, o)
+		o.unpack(item, o)
 		projects = append(projects, o)
 	}
 	return
@@ -1406,7 +1406,7 @@ func (c projectsCursor) Next() (*Project, error) {
 		return nil, err
 	}
 	o := new(Project)
-	o.load(row, o)
+	o.unpack(row, o)
 	return o, nil
 }
 
@@ -1543,9 +1543,8 @@ func CountProjectsByParentProjectID(ctx context.Context, parentProjectID string)
 		Count()
 }
 
-// load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
-// between the object chain requested by the user in the query.
-func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
+// unpack recursively transforms data coming from the database into ORM objects.
+func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
@@ -1615,7 +1614,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 	if v, ok := m["Manager"]; ok {
 		if objManager, ok2 := v.(map[string]any); ok2 {
 			o.objManager = new(Person)
-			o.objManager.load(objManager, o.objManager)
+			o.objManager.unpack(objManager, o.objManager)
 			o.managerIDIsLoaded = true
 			o.managerIDIsDirty = false
 		} else {
@@ -1762,7 +1761,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 	if v, ok := m["ParentProject"]; ok {
 		if objParentProject, ok2 := v.(map[string]any); ok2 {
 			o.objParentProject = new(Project)
-			o.objParentProject.load(objParentProject, o.objParentProject)
+			o.objParentProject.unpack(objParentProject, o.objParentProject)
 			o.parentProjectIDIsLoaded = true
 			o.parentProjectIDIsDirty = false
 		} else {
@@ -1780,7 +1779,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 
 			for _, v3 := range v2 {
 				obj := new(Project)
-				obj.load(v3, obj)
+				obj.unpack(v3, obj)
 				o.mmChildren.Set(obj.PrimaryKey(), obj)
 			}
 			o.mmChildrenPks = nil
@@ -1798,7 +1797,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 
 			for _, v3 := range v2 {
 				obj := new(Project)
-				obj.load(v3, obj)
+				obj.unpack(v3, obj)
 				o.mmParents.Set(obj.PrimaryKey(), obj)
 			}
 			o.mmParentsPks = nil
@@ -1816,7 +1815,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 
 			for _, v3 := range v2 {
 				obj := new(Person)
-				obj.load(v3, obj)
+				obj.unpack(v3, obj)
 				o.mmTeamMembers.Set(obj.PrimaryKey(), obj)
 			}
 			o.mmTeamMembersPks = nil
@@ -1837,7 +1836,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 			o.revParentProjectProjectsIsDirty = false
 			for _, v3 := range v2 {
 				obj := new(Project)
-				obj.load(v3, obj)
+				obj.unpack(v3, obj)
 				o.revParentProjectProjects.Set(obj.PrimaryKey(), obj)
 			}
 		default:
@@ -1855,7 +1854,7 @@ func (o *projectBase) load(m map[string]interface{}, objThis *Project) {
 			o.revMilestonesIsDirty = false
 			for _, v3 := range v2 {
 				obj := new(Milestone)
-				obj.load(v3, obj)
+				obj.unpack(v3, obj)
 				o.revMilestones.Set(obj.PrimaryKey(), obj)
 			}
 		default:

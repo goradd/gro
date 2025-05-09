@@ -12,7 +12,7 @@
 			o.{{= col.ReverseVariableIdentifier() }}IsDirty = false
 			for _,v3 := range v2 {
 				obj := new({{= col.Table.Identifier }})
-				obj.load(v3, obj)
+				obj.unpack(v3, obj)
 				o.{{= col.ReverseVariableIdentifier() }}.Set(obj.PrimaryKey(), obj)
 			}
 		default:

@@ -309,7 +309,7 @@ func (b *giftQueryBuilder) Load() (gifts []*Gift, err error) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(Gift)
-		o.load(item, o)
+		o.unpack(item, o)
 		gifts = append(gifts, o)
 	}
 	return
@@ -329,7 +329,7 @@ func (b *giftQueryBuilder) LoadI() (gifts []query.OrmObj, err error) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(Gift)
-		o.load(item, o)
+		o.unpack(item, o)
 		gifts = append(gifts, o)
 	}
 	return
@@ -373,7 +373,7 @@ func (c giftsCursor) Next() (*Gift, error) {
 		return nil, err
 	}
 	o := new(Gift)
-	o.load(row, o)
+	o.unpack(row, o)
 	return o, nil
 }
 
@@ -480,9 +480,8 @@ func CountGiftsByNumber(ctx context.Context, number int) (int, error) {
 		Count()
 }
 
-// load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
-// between the object chain requested by the user in the query.
-func (o *giftBase) load(m map[string]interface{}, objThis *Gift) {
+// unpack recursively transforms data coming from the database into ORM objects.
+func (o *giftBase) unpack(m map[string]interface{}, objThis *Gift) {
 
 	if v, ok := m["number"]; ok && v != nil {
 		if o.number, ok = v.(int); ok {

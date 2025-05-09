@@ -17,7 +17,7 @@ func (tmpl *TableBaseTemplate) gen(table *model.Table, _w io.Writer, importPath 
     if err = tmpl.genQuery(table, _w); err != nil { return }
     if err = tmpl.genBuilder(table, _w); err != nil { return }
     if err = tmpl.genCount(table, _w); err != nil { return }
-    if err = tmpl.genLoader(table, _w); err != nil { return }
+    if err = tmpl.genUnpack(table, _w); err != nil { return }
     if err = tmpl.genSave(table, _w); err != nil { return }
     if err = tmpl.genDelete(table, _w); err != nil { return }
     if err = tmpl.genDirty(table, _w); err != nil { return }
@@ -87,8 +87,8 @@ func (tmpl *TableBaseTemplate)genCount(table *model.Table, _w io.Writer) (err er
     return
 }
 
-func (tmpl *TableBaseTemplate)genLoader(table *model.Table, _w io.Writer) (err error) {
-{{: "loader.tmpl" }}
+func (tmpl *TableBaseTemplate)genUnpack(table *model.Table, _w io.Writer) (err error) {
+{{: "unpack.tmpl" }}
     return
 }
 

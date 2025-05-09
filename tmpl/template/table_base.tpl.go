@@ -77,7 +77,7 @@ func (tmpl *TableBaseTemplate) gen(table *model.Table, _w io.Writer, importPath 
 	if err = tmpl.genCount(table, _w); err != nil {
 		return
 	}
-	if err = tmpl.genLoader(table, _w); err != nil {
+	if err = tmpl.genUnpack(table, _w); err != nil {
 		return
 	}
 	if err = tmpl.genSave(table, _w); err != nil {
@@ -5915,7 +5915,7 @@ func (b *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `)
-		o.load(item, o)
+		o.unpack(item, o)
 		`); err != nil {
 		return
 	}
@@ -5983,7 +5983,7 @@ func (b *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `)
-		o.load(item, o)
+		o.unpack(item, o)
 		`); err != nil {
 		return
 	}
@@ -6114,7 +6114,7 @@ func (c `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `)
-	o.load(row, o)
+	o.unpack(row, o)
 	return o, nil
 }
 
@@ -6650,12 +6650,11 @@ func Count`); err != nil {
 	return
 }
 
-func (tmpl *TableBaseTemplate) genLoader(table *model.Table, _w io.Writer) (err error) {
+func (tmpl *TableBaseTemplate) genUnpack(table *model.Table, _w io.Writer) (err error) {
 
-	//*** loader.tmpl
+	//*** unpack.tmpl
 
-	if _, err = io.WriteString(_w, `// load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
-// between the object chain requested by the user in the query.
+	if _, err = io.WriteString(_w, `// unpack recursively transforms data coming from the database into ORM objects.
 func (o *`); err != nil {
 		return
 	}
@@ -6664,7 +6663,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Base) load (m map[string]interface{}, objThis *`); err != nil {
+	if _, err = io.WriteString(_w, `Base) unpack (m map[string]interface{}, objThis *`); err != nil {
 		return
 	}
 
@@ -6696,7 +6695,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			//*** null_column_loader.tmpl
+			//*** null_column.tmpl
 
 			if _, err = io.WriteString(_w, `
 	if v, ok := m["`); err != nil {
@@ -6994,7 +6993,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			//*** not_null_column_loader.tmpl
+			//*** not_null_column.tmpl
 
 			if _, err = io.WriteString(_w, `
 	if v, ok := m["`); err != nil {
@@ -7253,7 +7252,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			//*** reference_loader.tmpl
+			//*** reference.tmpl
 
 			if _, err = io.WriteString(_w, `
 	if v, ok := m["`); err != nil {
@@ -7299,7 +7298,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `.load(`); err != nil {
+			if _, err = io.WriteString(_w, `.unpack(`); err != nil {
 				return
 			}
 
@@ -7432,7 +7431,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `)
-				obj.load(v3, obj)
+				obj.unpack(v3, obj)
 				o.`); err != nil {
 			return
 		}
@@ -7560,7 +7559,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `.load(v2, o.`); err != nil {
+			if _, err = io.WriteString(_w, `.unpack(v2, o.`); err != nil {
 				return
 			}
 
@@ -7681,7 +7680,7 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `)
-				obj.load(v3, obj)
+				obj.unpack(v3, obj)
 				o.`); err != nil {
 				return
 			}

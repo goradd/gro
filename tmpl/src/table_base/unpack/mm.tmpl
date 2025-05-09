@@ -10,7 +10,7 @@
 
 			for _,v3 := range v2 {
 				obj := new({{= mm.ObjectType() }})
-				obj.load(v3, obj)
+				obj.unpack(v3, obj)
 				o.{{= mm.VariableIdentifier() }}.Set(obj.PrimaryKey(), obj)
 			}
 			o.{{= mm.PkIdentifier() }} = nil

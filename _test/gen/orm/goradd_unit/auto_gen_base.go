@@ -381,7 +381,7 @@ func (b *autoGenQueryBuilder) Load() (autoGens []*AutoGen, err error) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(AutoGen)
-		o.load(item, o)
+		o.unpack(item, o)
 		autoGens = append(autoGens, o)
 	}
 	return
@@ -401,7 +401,7 @@ func (b *autoGenQueryBuilder) LoadI() (autoGens []query.OrmObj, err error) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(AutoGen)
-		o.load(item, o)
+		o.unpack(item, o)
 		autoGens = append(autoGens, o)
 	}
 	return
@@ -445,7 +445,7 @@ func (c autoGensCursor) Next() (*AutoGen, error) {
 		return nil, err
 	}
 	o := new(AutoGen)
-	o.load(row, o)
+	o.unpack(row, o)
 	return o, nil
 }
 
@@ -542,9 +542,8 @@ func CountAutoGens(ctx context.Context) (int, error) {
 	return QueryAutoGens(ctx).Count()
 }
 
-// load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
-// between the object chain requested by the user in the query.
-func (o *autoGenBase) load(m map[string]interface{}, objThis *AutoGen) {
+// unpack recursively transforms data coming from the database into ORM objects.
+func (o *autoGenBase) unpack(m map[string]interface{}, objThis *AutoGen) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {

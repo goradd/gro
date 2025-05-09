@@ -366,7 +366,7 @@ func (b *rootUnlQueryBuilder) Load() (rootUnls []*RootUnl, err error) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(RootUnl)
-		o.load(item, o)
+		o.unpack(item, o)
 		rootUnls = append(rootUnls, o)
 	}
 	return
@@ -386,7 +386,7 @@ func (b *rootUnlQueryBuilder) LoadI() (rootUnls []query.OrmObj, err error) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(RootUnl)
-		o.load(item, o)
+		o.unpack(item, o)
 		rootUnls = append(rootUnls, o)
 	}
 	return
@@ -430,7 +430,7 @@ func (c rootUnlsCursor) Next() (*RootUnl, error) {
 		return nil, err
 	}
 	o := new(RootUnl)
-	o.load(row, o)
+	o.unpack(row, o)
 	return o, nil
 }
 
@@ -527,9 +527,8 @@ func CountRootUnls(ctx context.Context) (int, error) {
 	return QueryRootUnls(ctx).Count()
 }
 
-// load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
-// between the object chain requested by the user in the query.
-func (o *rootUnlBase) load(m map[string]interface{}, objThis *RootUnl) {
+// unpack recursively transforms data coming from the database into ORM objects.
+func (o *rootUnlBase) unpack(m map[string]interface{}, objThis *RootUnl) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
@@ -578,7 +577,7 @@ func (o *rootUnlBase) load(m map[string]interface{}, objThis *RootUnl) {
 	if v, ok := m["LeafUnl"]; ok {
 		if v2, ok2 := v.(map[string]any); ok2 {
 			o.revLeafUnl = new(LeafUnl)
-			o.revLeafUnl.load(v2, o.revLeafUnl)
+			o.revLeafUnl.unpack(v2, o.revLeafUnl)
 			o.revLeafUnlIsDirty = false
 		} else {
 			panic("Wrong type found for rootUnlID object.")

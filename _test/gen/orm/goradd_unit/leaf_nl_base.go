@@ -598,7 +598,7 @@ func (b *leafNlQueryBuilder) Load() (leafNls []*LeafNl, err error) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(LeafNl)
-		o.load(item, o)
+		o.unpack(item, o)
 		leafNls = append(leafNls, o)
 	}
 	return
@@ -618,7 +618,7 @@ func (b *leafNlQueryBuilder) LoadI() (leafNls []query.OrmObj, err error) {
 	}
 	for _, item := range results.([]map[string]any) {
 		o := new(LeafNl)
-		o.load(item, o)
+		o.unpack(item, o)
 		leafNls = append(leafNls, o)
 	}
 	return
@@ -662,7 +662,7 @@ func (c leafNlsCursor) Next() (*LeafNl, error) {
 		return nil, err
 	}
 	o := new(LeafNl)
-	o.load(row, o)
+	o.unpack(row, o)
 	return o, nil
 }
 
@@ -769,9 +769,8 @@ func CountLeafNlsByRootNlID(ctx context.Context, rootNlID string) (int, error) {
 		Count()
 }
 
-// load is the private loader that transforms data coming from the database into a tree structure reflecting the relationships
-// between the object chain requested by the user in the query.
-func (o *leafNlBase) load(m map[string]interface{}, objThis *LeafNl) {
+// unpack recursively transforms data coming from the database into ORM objects.
+func (o *leafNlBase) unpack(m map[string]interface{}, objThis *LeafNl) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
@@ -826,7 +825,7 @@ func (o *leafNlBase) load(m map[string]interface{}, objThis *LeafNl) {
 	if v, ok := m["RootNl"]; ok {
 		if objRootNl, ok2 := v.(map[string]any); ok2 {
 			o.objRootNl = new(RootNl)
-			o.objRootNl.load(objRootNl, o.objRootNl)
+			o.objRootNl.unpack(objRootNl, o.objRootNl)
 			o.rootNlIDIsLoaded = true
 			o.rootNlIDIsDirty = false
 		} else {
@@ -856,7 +855,7 @@ func (o *leafNlBase) load(m map[string]interface{}, objThis *LeafNl) {
 
 			for _, v3 := range v2 {
 				obj := new(LeafNl)
-				obj.load(v3, obj)
+				obj.unpack(v3, obj)
 				o.mmLeaf2s.Set(obj.PrimaryKey(), obj)
 			}
 			o.mmLeaf2sPks = nil
@@ -874,7 +873,7 @@ func (o *leafNlBase) load(m map[string]interface{}, objThis *LeafNl) {
 
 			for _, v3 := range v2 {
 				obj := new(LeafNl)
-				obj.load(v3, obj)
+				obj.unpack(v3, obj)
 				o.mmLeaf1s.Set(obj.PrimaryKey(), obj)
 			}
 			o.mmLeaf1sPks = nil

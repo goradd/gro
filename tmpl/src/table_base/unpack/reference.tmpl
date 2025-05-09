@@ -7,7 +7,7 @@
 	if v, ok := m["{{= col.ReferenceIdentifier() }}"]; ok {
 		if {{= col.ReferenceVariableIdentifier() }}, ok2 := v.(map[string]any); ok2 {
 			o.{{= col.ReferenceVariableIdentifier() }} = new({{= col.ReferenceType() }})
-			o.{{= col.ReferenceVariableIdentifier() }}.load({{= col.ReferenceVariableIdentifier() }}, o.{{= col.ReferenceVariableIdentifier() }})
+			o.{{= col.ReferenceVariableIdentifier() }}.unpack({{= col.ReferenceVariableIdentifier() }}, o.{{= col.ReferenceVariableIdentifier() }})
 			o.{{= col.VariableIdentifier() }}IsLoaded = true
 			o.{{= col.VariableIdentifier() }}IsDirty = false
 		} else {
