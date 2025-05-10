@@ -275,6 +275,23 @@
       ]
     },
     {
+      "name": "timeout_test",
+      "write_timeout": "1ns",
+      "read_timeout": "1ns",
+      "columns": [
+        {
+          "name": "id",
+          "type": "auto_primary_key",
+          "size": 32
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "size": 100
+        }
+      ]
+    },
+    {
       "name": "two_key",
       "columns": [
         {
