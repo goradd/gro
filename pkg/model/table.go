@@ -14,9 +14,12 @@ import (
 type Table struct {
 	// DbKey is the key used to find the database in the global database cluster
 	DbKey string
-	// TransactionTimeout is used to wrap transactions with a timeout on their contexts.
+	// WriteTimeout is used to wrap write transactions with a timeout on their contexts.
 	// Leaving it as zero will use the timeout in the database, if one is set.
-	TransactionTimeout time.Duration
+	WriteTimeout time.Duration
+	// ReadTimeout is used to protect read transactions with a timeout on their contexts.
+	// Leaving it as zero will use the timeout in the database, if one is set.
+	ReadTimeout time.Duration
 	// QueryName is the name of the database table or object in the database.
 	QueryName string
 	// Label is the name of the object when describing it to the world. Should be lower case.
@@ -69,8 +72,11 @@ func (t *Table) VariableNamePlural() string {
 	return LowerCaseIdentifier(t.IdentifierPlural)
 }
 
-func (t *Table) TimeoutConst() string {
-	return durationConst(t.TransactionTimeout)
+func (t *Table) WriteTimeoutConst() string {
+	return durationConst(t.WriteTimeout)
+}
+func (t *Table) ReadTimeoutConst() string {
+	return durationConst(t.ReadTimeout)
 }
 
 // FileName is the base name of generated file names that correspond to this database table.
@@ -150,9 +156,9 @@ func (t *Table) HasUniqueIndexes() bool {
 func newTable(dbKey string, tableSchema *schema.Table) *Table {
 	queryName := strings2.If(tableSchema.Schema == "", tableSchema.Name, tableSchema.Schema+"."+tableSchema.Name)
 	var timeout time.Duration
-	if tableSchema.TransactionTimeout != "" {
+	if tableSchema.WriteTimeout != "" {
 		var err error
-		timeout, err = time.ParseDuration(tableSchema.TransactionTimeout)
+		timeout, err = time.ParseDuration(tableSchema.WriteTimeout)
 		if err != nil {
 			slog.Warn("invalid timeout",
 				slog.Any(db.LogError, err))
@@ -160,14 +166,14 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 		}
 	}
 	t := &Table{
-		DbKey:              dbKey,
-		TransactionTimeout: timeout,
-		QueryName:          queryName,
-		Label:              tableSchema.Label,
-		LabelPlural:        tableSchema.LabelPlural,
-		Identifier:         tableSchema.Identifier,
-		IdentifierPlural:   tableSchema.IdentifierPlural,
-		columnMap:          make(map[string]*Column),
+		DbKey:            dbKey,
+		WriteTimeout:     timeout,
+		QueryName:        queryName,
+		Label:            tableSchema.Label,
+		LabelPlural:      tableSchema.LabelPlural,
+		Identifier:       tableSchema.Identifier,
+		IdentifierPlural: tableSchema.IdentifierPlural,
+		columnMap:        make(map[string]*Column),
 	}
 
 	t.DecapIdentifier = strings2.Decap(tableSchema.Identifier)
@@ -242,6 +248,9 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 }
 
 func durationConst(d time.Duration) string {
+	if d == 0 {
+		return ""
+	}
 	// try from largest to smallest
 	for _, u := range []struct {
 		unit time.Duration

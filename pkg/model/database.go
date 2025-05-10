@@ -18,9 +18,9 @@ import (
 func FromSchema(s *schema.Database) *Database {
 	s.FillDefaults()
 	var timeout time.Duration
-	if s.TransactionTimeout != "" {
+	if s.WriteTimeout != "" {
 		var err error
-		timeout, err = time.ParseDuration(s.TransactionTimeout)
+		timeout, err = time.ParseDuration(s.WriteTimeout)
 		if err != nil {
 			slog.Warn("invalid timeout",
 				slog.Any(db.LogError, err))
@@ -28,11 +28,11 @@ func FromSchema(s *schema.Database) *Database {
 		}
 	}
 	d := Database{
-		Key:                s.Key,
-		TransactionTimeout: timeout,
-		ReferenceSuffix:    s.ReferenceSuffix,
-		EnumTableSuffix:    s.EnumTableSuffix,
-		AssnTableSuffix:    s.AssnTableSuffix,
+		Key:             s.Key,
+		WriteTimeout:    timeout,
+		ReferenceSuffix: s.ReferenceSuffix,
+		EnumTableSuffix: s.EnumTableSuffix,
+		AssnTableSuffix: s.AssnTableSuffix,
 	}
 	d.importSchema(s)
 	return &d
@@ -43,10 +43,14 @@ func FromSchema(s *schema.Database) *Database {
 type Database struct {
 	// The database key corresponding to its key in the global database cluster
 	Key string
-	// TransactionTimeout is used to wrap transactions with a timeout on their contexts.
+	// WriteTimeout is used to wrap write transactions with a timeout on their contexts.
 	// Leaving it as zero will turn off timeout wrapping, allowing you to wrap individual calls as you
 	// see fit.
-	TransactionTimeout time.Duration
+	WriteTimeout time.Duration
+	// ReadTimeout is used to wrap read transactions with a timeout on their contexts.
+	// Leaving it as zero will turn off timeout wrapping, allowing you to wrap individual calls as you
+	// see fit.
+	ReadTimeout time.Duration
 	// Tables are the tables in the database, keyed by database table name
 	Tables map[string]*Table
 	// Enums contains a description of the enumerated types linked to the database, keyed by database table name
@@ -78,9 +82,13 @@ func (m *Database) importSchema(schema *schema.Database) {
 	for _, table := range schema.Tables {
 		t := newTable(m.Key, table)
 		if t != nil {
-			if t.TransactionTimeout == 0 {
-				t.TransactionTimeout = m.TransactionTimeout
+			if t.WriteTimeout == 0 {
+				t.WriteTimeout = m.WriteTimeout
 			}
+			if t.ReadTimeout == 0 {
+				t.ReadTimeout = m.ReadTimeout
+			}
+
 			m.Tables[t.QueryName] = t
 		}
 	}

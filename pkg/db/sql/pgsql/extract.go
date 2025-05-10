@@ -467,6 +467,15 @@ func (m *DB) schemaFromRawTables(rawTables map[string]pgTable, options map[strin
 		Key:             m.DbKey(),
 	}
 
+	// Database wide setting to limit database write times through a context timeout in generated code
+	if v, ok := options["context_write_timeout"]; ok {
+		dd.WriteTimeout = v.(string)
+	}
+	// Database wide setting to limit database read times through a context timeout in generated code
+	if v, ok := options["context_read_timeout"]; ok {
+		dd.ReadTimeout = v.(string)
+	}
+
 	for tableName, rawTable := range rawTables {
 		if strings.Contains(rawTable.name, ".") {
 			slog.Warn("Table name "+rawTable.name+"cannot contain a period in its name. Skipping.",

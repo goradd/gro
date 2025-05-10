@@ -16,6 +16,8 @@ type tableCommentItems struct {
 	IdentifierPlural string `json:"id_plural,omitempty"`
 	Key              string `json:"key,omitempty"`
 	NoOrm            bool   `json:"no_orm,omitempty"`
+	WriteTimeout     string `json:"write_timeout,omitempty"`
+	ReadTimeout      string `json:"read_timeout,omitempty"`
 }
 
 // TableComment returns extra schema fields to be stored as a JSON object in the table comment.
@@ -27,6 +29,8 @@ func TableComment(t *schema.Table) string {
 		IdentifierPlural: t.IdentifierPlural,
 		Key:              t.Key,
 		NoOrm:            t.NoOrm,
+		WriteTimeout:     t.WriteTimeout,
+		ReadTimeout:      t.ReadTimeout,
 	}
 
 	data, _ := json.Marshal(ti)
@@ -62,6 +66,8 @@ func FillTableCommentFields(t *schema.Table, comment string) {
 	t.IdentifierPlural = ti.IdentifierPlural
 	t.Key = ti.Key
 	t.NoOrm = ti.NoOrm
+	t.WriteTimeout = ti.WriteTimeout
+	t.ReadTimeout = ti.ReadTimeout
 }
 
 // columnCommentItems holds fields that will be included in the column comments.

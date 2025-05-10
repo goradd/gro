@@ -1,6 +1,7 @@
 {
   "key": "goradd",
-  "timeout": "30s",
+  "write_timeout": "30s",
+  "read_timeout": "5s",
   "reference_suffix": "_id",
   "enum_table_suffix": "_enum",
   "assn_table_suffix": "_assn",

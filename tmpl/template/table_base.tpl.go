@@ -8215,14 +8215,14 @@ func (o *`); err != nil {
 		return
 	}
 
-	if table.TransactionTimeout != 0 {
+	if table.WriteTimeout != 0 {
 
 		if _, err = io.WriteString(_w, `    var cancel context.CancelFunc
     ctx, cancel = context.WithTimeout(ctx, `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.TimeoutConst()); err != nil {
+		if _, err = io.WriteString(_w, table.WriteTimeoutConst()); err != nil {
 			return
 		}
 
@@ -9834,7 +9834,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if table.TransactionTimeout != 0 {
+	if table.WriteTimeout != 0 {
 
 		if _, err = io.WriteString(_w, `
     var cancel context.CancelFunc
@@ -9842,7 +9842,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.TimeoutConst()); err != nil {
+		if _, err = io.WriteString(_w, table.WriteTimeoutConst()); err != nil {
 			return
 		}
 
@@ -11463,7 +11463,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 
 	} else {
 
-		if table.TransactionTimeout != 0 {
+		if table.WriteTimeout != 0 {
 
 			if _, err = io.WriteString(_w, `
     var cancel context.CancelFunc
@@ -11471,7 +11471,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 				return
 			}
 
-			if _, err = io.WriteString(_w, table.TimeoutConst()); err != nil {
+			if _, err = io.WriteString(_w, table.WriteTimeoutConst()); err != nil {
 				return
 			}
 
@@ -12168,7 +12168,7 @@ func delete`); err != nil {
 
 	} else {
 
-		if table.TransactionTimeout != 0 {
+		if table.WriteTimeout != 0 {
 
 			if _, err = io.WriteString(_w, `
     var cancel context.CancelFunc
@@ -12176,7 +12176,7 @@ func delete`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, table.TimeoutConst()); err != nil {
+			if _, err = io.WriteString(_w, table.WriteTimeoutConst()); err != nil {
 				return
 			}
 

@@ -17,11 +17,15 @@ type Table struct {
 	// Databases that do not support schemas will have this prepended to the name of the table.
 	Schema string `json:"schema,omitempty"`
 
-	// TransactionTimeout is used to wrap transactions with a timeout on their contexts.
-	// Leaving it as zero will turn off timeout wrapping, allowing you to wrap individual calls as you
-	// see fit. This only applies to code generated transactions.
+	// WriteTimeout is used to wrap write transactions with a timeout on their contexts.
+	// Leaving it as zero will use the Database.WriteTimeout value.
 	// Use a duration format understood by time.ParseDuration.
-	TransactionTimeout string `json:"timeout,omitempty"`
+	WriteTimeout string `json:"write_timeout,omitempty"`
+
+	// ReadTimeout is used to wrap read transactions with a timeout on their contexts.
+	// Leaving it as zero will use the Database.ReadTimeout value.
+	// Use a duration format understood by time.ParseDuration.
+	ReadTimeout string `json:"read_timeout,omitempty"`
 
 	// Columns is a list of Column objects, one for each column in the table.
 	Columns []*Column `json:"columns"`

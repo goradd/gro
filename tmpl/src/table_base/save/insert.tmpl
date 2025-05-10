@@ -7,10 +7,10 @@
 func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) (err error) {
     var insertFields map[string]interface{}
     d := Database()
-{{if table.TransactionTimeout != 0 }}
+{{if table.WriteTimeout != 0 }}
 
     var cancel context.CancelFunc
-    ctx, cancel = context.WithTimeout(ctx, {{= table.TimeoutConst() }})
+    ctx, cancel = context.WithTimeout(ctx, {{= table.WriteTimeoutConst() }})
     defer cancel()
 
 {{if}}

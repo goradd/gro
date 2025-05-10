@@ -21,11 +21,19 @@ type Database struct {
 	// Should be all lower case, with no hyphens or underscores. Will be based on Key if omitted.
 	Package string `json:"package,omitempty"`
 
-	// TransactionTimeout is used to wrap transactions with a timeout on their contexts.
+	// WriteTimeout is used to wrap write transactions with a timeout on their contexts.
 	// Leaving it as zero will turn off timeout wrapping, allowing you to wrap individual calls as you
-	// see fit. This only applies to code generated transactions.
+	// see fit. This only applies to code generated transactions. See also table.WriteTimeout to set
+	// a timeout value on an individual table.
 	// Use a duration format understood by time.ParseDuration.
-	TransactionTimeout string `json:"timeout,omitempty"`
+	WriteTimeout string `json:"write_timeout,omitempty"`
+
+	// ReadTimeout is used to wrap read transactions with a timeout on their contexts.
+	// Leaving it as zero will turn off timeout wrapping, allowing you to wrap individual calls as you
+	// see fit. This only applies to code generated transactions. See also table.ReadTimeout to set
+	// a timeout value on an individual table.
+	// Use a duration format understood by time.ParseDuration.
+	ReadTimeout string `json:"read_timeout,omitempty"`
 
 	// ReferenceSuffix is the ending to expect at the end of column names that are referencing other
 	// tables (also known as foreign keys in SQL databases).

@@ -93,12 +93,14 @@ type {{= builderInterface }} interface {
 
 type {{= builderStruct }} struct {
 	builder *query.Builder
+	ctx context.Context
 }
 
 
 func new{{= table.Identifier }}Builder(ctx context.Context) {{= builderInterface }} {
 	b := {{= builderStruct }}{
-		builder: query.NewBuilder(ctx, node.{{= table.Identifier }}()),
+		builder: query.NewBuilder(node.{{= table.Identifier }}()),
+		ctx: ctx,
 	}
 	return &b
 }
@@ -110,7 +112,15 @@ func (b *{{= builderStruct }}) Load() ({{= table.VariableNamePlural() }} []*{{= 
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("{{= table.DbKey }}")
 	var results any
-	results, err = database.BuilderQuery(b.builder)
+
+    ctx := b.ctx
+{{if table.ReadTimeout != 0 }}
+    var cancel context.CancelFunc
+    ctx, cancel = context.WithTimeout(ctx, {{= table.ReadTimeoutConst() }})
+    defer cancel()
+
+{{if}}
+	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
@@ -122,7 +132,7 @@ func (b *{{= builderStruct }}) Load() ({{= table.VariableNamePlural() }} []*{{= 
 	return
 }
 
-// Load terminates the query builder, performs the query, and returns a slice of interfaces.
+// LoadI terminates the query builder, performs the query, and returns a slice of interfaces.
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
@@ -130,7 +140,15 @@ func (b *{{= builderStruct }}) LoadI() ({{= table.VariableNamePlural() }} []quer
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("{{= table.DbKey }}")
 	var results any
-	results, err = database.BuilderQuery(b.builder)
+
+    ctx := b.ctx
+{{if table.ReadTimeout != 0 }}
+    var cancel context.CancelFunc
+    ctx, cancel = context.WithTimeout(ctx, {{= table.ReadTimeoutConst() }})
+    defer cancel()
+
+{{if}}
+	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
@@ -153,6 +171,10 @@ func (b *{{= builderStruct }}) LoadI() ({{= table.VariableNamePlural() }} []quer
 // on the cursor object when you are done. You should use
 //   defer cursor.Close()
 // to make sure the cursor gets closed.
+//
+{{if table.ReadTimeout != 0 }}
+// LoadCursor is NOT protected by a timeout on the context. You should set your own timeout on the context,
+// but all the rows of the cursor must be read before canceling the cursor.
 func (b *{{= builderStruct }}) LoadCursor() ({{= table.VariableNamePlural() }}Cursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("{{= table.DbKey }}")
@@ -264,7 +286,15 @@ func (b *{{= builderStruct }})  Having(node query.Node)  {{= builderInterface }}
 func (b *{{= builderStruct }})  Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("{{= table.DbKey }}")
-	results, err := database.BuilderQuery(b.builder)
+
+    ctx := b.ctx
+{{if table.ReadTimeout != 0 }}
+    var cancel context.CancelFunc
+    ctx, cancel = context.WithTimeout(ctx, {{= table.ReadTimeoutConst() }})
+    defer cancel()
+
+{{if}}
+	results, err := database.BuilderQuery(ctx, b.builder)
     if results == nil || err != nil {
         return 0, err
     }

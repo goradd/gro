@@ -375,8 +375,7 @@ func (h *DbHelper) CheckLock(ctx context.Context,
 // BuilderQuery performs a complex query using a query builder.
 // The data returned will depend on the command inside the builder.
 // Be sure when using BuilderCommandLoadCursor you close the returned cursor, probably with a defer command.
-func (h *DbHelper) BuilderQuery(builder *Builder) (ret any, err error) {
-	ctx := builder.Context()
+func (h *DbHelper) BuilderQuery(ctx context.Context, builder *Builder) (ret any, err error) {
 	joinTree := jointree.NewJoinTree(builder)
 	switch joinTree.Command {
 	case BuilderCommandLoad:

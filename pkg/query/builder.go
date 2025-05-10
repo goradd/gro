@@ -1,7 +1,6 @@
 package query
 
 import (
-	"context"
 	"fmt"
 )
 
@@ -55,7 +54,6 @@ type calc struct {
 // processes the query into a join tree that can be used by database drivers to generate
 // the database specific query.
 type Builder struct {
-	ctx     context.Context // The context that will be used in all the queries
 	Command BuilderCommand
 	Root    TableNodeI
 	//Joins      []Node
@@ -71,17 +69,12 @@ type Builder struct {
 	IsSubquery bool
 }
 
-func NewBuilder(ctx context.Context, rootNode TableNodeI) *Builder {
+func NewBuilder(rootNode TableNodeI) *Builder {
 	if NodeParent(rootNode) != nil {
 		panic("root node must be a top level node")
 	}
 
-	return &Builder{ctx: ctx, Root: rootNode}
-}
-
-// Context returns the context.
-func (b *Builder) Context() context.Context {
-	return b.ctx
+	return &Builder{Root: rootNode}
 }
 
 /*

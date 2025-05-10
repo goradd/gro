@@ -76,13 +76,13 @@ func OverrideConfigSettings(config *pgx.ConnConfig, jsonContent map[string]inter
 			config.Host = v.(string) // Typically, tcp or unix (for unix sockets).
 		case "port":
 			config.Port = uint16(v.(float64))
-		case "runtimeParams":
+		case "runtime_params":
 			config.RuntimeParams = anyutil.StringMap(v.(map[string]interface{}))
-		case "kerberosServerName":
+		case "kerberos_server_name":
 			config.KerberosSrvName = v.(string)
-		case "kerberosSPN":
+		case "kerberos_spn":
 			config.KerberosSpn = v.(string)
-		case "connectionTimeout":
+		case "connection_timeout":
 			d, err := time.ParseDuration(v.(string))
 			if err != nil {
 				config.ConnectTimeout = d

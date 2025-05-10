@@ -132,34 +132,34 @@ func OverrideConfigSettings(config *mysql.Config, jsonContent map[string]interfa
 			config.Params = anyutil.StringMap(v.(map[string]interface{}))
 		case "collation":
 			config.Collation = v.(string)
-		case "maxAllowedPacket":
+		case "max_allowed_packet":
 			config.MaxAllowedPacket = int(v.(float64))
-		case "serverPubKey":
+		case "server_pub_key":
 			config.ServerPubKey = v.(string)
-		case "tlsConfig":
+		case "tls_config":
 			config.TLSConfig = v.(string)
 		case "timeout":
 			d, err := time.ParseDuration(v.(string))
 			if err != nil {
 				config.Timeout = d
 			}
-		case "readTimeout":
+		case "read_timeout":
 			d, err := time.ParseDuration(v.(string))
 			if err != nil {
 				config.ReadTimeout = d
 			}
-		case "writeTimeout":
+		case "write_timeout":
 			d, err := time.ParseDuration(v.(string))
 			if err != nil {
 				config.WriteTimeout = d
 			}
-		case "allowAllFiles":
+		case "allow_all_files":
 			config.AllowAllFiles = v.(bool)
-		case "allowCleartextPasswords":
+		case "allow_cleartext_passwords":
 			config.AllowCleartextPasswords = v.(bool)
-		case "allowNativePasswords":
+		case "allow_native_passwords":
 			config.AllowNativePasswords = v.(bool)
-		case "allowOldPasswords":
+		case "allow_old_passwords":
 			config.AllowOldPasswords = v.(bool)
 		}
 	}

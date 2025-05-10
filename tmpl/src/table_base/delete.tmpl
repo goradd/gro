@@ -37,10 +37,10 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
 	err = d.Delete(ctx, "{{table.QueryName}}", "{{= table.PrimaryKeyColumn().Identifier }}", o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}, "{{= c.QueryName }}", o.{{= c.Identifier}}())
 {{if}}
 {{else}}
-{{if table.TransactionTimeout != 0 }}
+{{if table.WriteTimeout != 0 }}
 
     var cancel context.CancelFunc
-    ctx, cancel = context.WithTimeout(ctx, {{= table.TimeoutConst() }})
+    ctx, cancel = context.WithTimeout(ctx, {{= table.WriteTimeoutConst() }})
     defer cancel()
 
 {{if}}
@@ -164,10 +164,10 @@ func delete{{= table.Identifier }}(ctx context.Context, pk {{= table.PrimaryKeyG
 	}
 	broadcast.Delete(ctx, "{{= table.DbKey }}", "{{= table.QueryName }}", fmt.Sprint(pk))
 {{else}}
-{{if table.TransactionTimeout != 0 }}
+{{if table.WriteTimeout != 0 }}
 
     var cancel context.CancelFunc
-    ctx, cancel = context.WithTimeout(ctx, {{= table.TimeoutConst() }})
+    ctx, cancel = context.WithTimeout(ctx, {{= table.WriteTimeoutConst() }})
     defer cancel()
 
 {{if}}

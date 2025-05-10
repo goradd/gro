@@ -84,8 +84,11 @@ func (o *{{= table.Identifier }}) Save(ctx context.Context) error {
 
 // Query{{= table.IdentifierPlural }} returns a new query builder.
 // See {{= table.Identifier }}Builder for doc on how to use the builder.
+{{if table.ReadTimeout == 0 }}
 // You should pass a context that has a timeout with it to protect against a long delay from
-// the database possibly hanging your application.
+// the database possibly hanging your application. You can set a ReadTimeout value on the schema
+// to do this by default during code generation.
+{{if}}
 func Query{{= table.IdentifierPlural }}(ctx context.Context) {{= table.Identifier }}Builder {
 	return query{{= table.IdentifierPlural }}(ctx)
 }
