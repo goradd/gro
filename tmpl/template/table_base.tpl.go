@@ -6143,6 +6143,22 @@ type `); err != nil {
     // on the cursor object when you are done. You should use
     //   defer cursor.Close()
     // to make sure the cursor gets closed.
+    `); err != nil {
+		return
+	}
+
+	if table.ReadTimeout != 0 {
+
+		if _, err = io.WriteString(_w, `
+    // LoadCursor is NOT protected by a timeout on the context. You should set your own timeout on the context,
+    // but all the rows of the cursor must be read before canceling the cursor.
+    `); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
 	LoadCursor() (`); err != nil {
 		return
 	}
@@ -6184,6 +6200,7 @@ type `); err != nil {
 
 	if _, err = io.WriteString(_w, ` struct {
 	builder *query.Builder
+	ctx context.Context
 }
 
 
@@ -6213,7 +6230,7 @@ func new`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `{
-		builder: query.NewBuilder(ctx, node.`); err != nil {
+		builder: query.NewBuilder(node.`); err != nil {
 		return
 	}
 
@@ -6222,6 +6239,7 @@ func new`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `()),
+		ctx: ctx,
 	}
 	return &b
 }
@@ -6273,7 +6291,33 @@ func (b *`); err != nil {
 
 	if _, err = io.WriteString(_w, `")
 	var results any
-	results, err = database.BuilderQuery(b.builder)
+
+    ctx := b.ctx
+`); err != nil {
+		return
+	}
+
+	if table.ReadTimeout != 0 {
+
+		if _, err = io.WriteString(_w, `    var cancel context.CancelFunc
+    ctx, cancel = context.WithTimeout(ctx, `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.ReadTimeoutConst()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `)
+    defer cancel()
+
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
@@ -6309,7 +6353,7 @@ func (b *`); err != nil {
 	return
 }
 
-// Load terminates the query builder, performs the query, and returns a slice of interfaces.
+// LoadI terminates the query builder, performs the query, and returns a slice of interfaces.
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
@@ -6341,7 +6385,33 @@ func (b *`); err != nil {
 
 	if _, err = io.WriteString(_w, `")
 	var results any
-	results, err = database.BuilderQuery(b.builder)
+
+    ctx := b.ctx
+`); err != nil {
+		return
+	}
+
+	if table.ReadTimeout != 0 {
+
+		if _, err = io.WriteString(_w, `    var cancel context.CancelFunc
+    ctx, cancel = context.WithTimeout(ctx, `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.ReadTimeoutConst()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `)
+    defer cancel()
+
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
@@ -6388,7 +6458,22 @@ func (b *`); err != nil {
 // on the cursor object when you are done. You should use
 //   defer cursor.Close()
 // to make sure the cursor gets closed.
-func (b *`); err != nil {
+//
+`); err != nil {
+		return
+	}
+
+	if table.ReadTimeout != 0 {
+
+		if _, err = io.WriteString(_w, `// LoadCursor is NOT protected by a timeout on the context. You should set your own timeout on the context,
+// but all the rows of the cursor must be read before canceling the cursor.
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `func (b *`); err != nil {
 		return
 	}
 
@@ -6747,7 +6832,33 @@ func (b *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `")
-	results, err := database.BuilderQuery(b.builder)
+
+    ctx := b.ctx
+`); err != nil {
+		return
+	}
+
+	if table.ReadTimeout != 0 {
+
+		if _, err = io.WriteString(_w, `    var cancel context.CancelFunc
+    ctx, cancel = context.WithTimeout(ctx, `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.ReadTimeoutConst()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `)
+    defer cancel()
+
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `	results, err := database.BuilderQuery(ctx, b.builder)
     if results == nil || err != nil {
         return 0, err
     }

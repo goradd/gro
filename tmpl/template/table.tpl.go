@@ -310,9 +310,22 @@ func (o *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `Builder for doc on how to use the builder.
-// You should pass a context that has a timeout with it to protect against a long delay from
-// the database possibly hanging your application.
-func Query`); err != nil {
+`); err != nil {
+		return
+	}
+
+	if table.ReadTimeout == 0 {
+
+		if _, err = io.WriteString(_w, `// You should pass a context that has a timeout with it to protect against a long delay from
+// the database possibly hanging your application. You can set a ReadTimeout value on the schema
+// to do this by default during code generation.
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `func Query`); err != nil {
 		return
 	}
 

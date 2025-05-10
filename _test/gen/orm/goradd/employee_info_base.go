@@ -353,6 +353,7 @@ type EmployeeInfoBuilder interface {
 	// on the cursor object when you are done. You should use
 	//   defer cursor.Close()
 	// to make sure the cursor gets closed.
+
 	LoadCursor() (employeeInfosCursor, error)
 
 	// Get is a convenience method to return only the first item found in a query.
@@ -370,11 +371,13 @@ type EmployeeInfoBuilder interface {
 
 type employeeInfoQueryBuilder struct {
 	builder *query.Builder
+	ctx     context.Context
 }
 
 func newEmployeeInfoBuilder(ctx context.Context) EmployeeInfoBuilder {
 	b := employeeInfoQueryBuilder{
-		builder: query.NewBuilder(ctx, node.EmployeeInfo()),
+		builder: query.NewBuilder(node.EmployeeInfo()),
+		ctx:     ctx,
 	}
 	return &b
 }
@@ -386,7 +389,9 @@ func (b *employeeInfoQueryBuilder) Load() (employeeInfos []*EmployeeInfo, err er
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
 	var results any
-	results, err = database.BuilderQuery(b.builder)
+
+	ctx := b.ctx
+	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
@@ -398,7 +403,7 @@ func (b *employeeInfoQueryBuilder) Load() (employeeInfos []*EmployeeInfo, err er
 	return
 }
 
-// Load terminates the query builder, performs the query, and returns a slice of interfaces.
+// LoadI terminates the query builder, performs the query, and returns a slice of interfaces.
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
@@ -406,7 +411,9 @@ func (b *employeeInfoQueryBuilder) LoadI() (employeeInfos []query.OrmObj, err er
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
 	var results any
-	results, err = database.BuilderQuery(b.builder)
+
+	ctx := b.ctx
+	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
@@ -541,7 +548,9 @@ func (b *employeeInfoQueryBuilder) Having(node query.Node) EmployeeInfoBuilder {
 func (b *employeeInfoQueryBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd")
-	results, err := database.BuilderQuery(b.builder)
+
+	ctx := b.ctx
+	results, err := database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return 0, err
 	}

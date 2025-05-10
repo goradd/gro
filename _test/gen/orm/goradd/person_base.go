@@ -753,6 +753,7 @@ type PersonBuilder interface {
 	// on the cursor object when you are done. You should use
 	//   defer cursor.Close()
 	// to make sure the cursor gets closed.
+
 	LoadCursor() (peopleCursor, error)
 
 	// Get is a convenience method to return only the first item found in a query.
@@ -770,11 +771,13 @@ type PersonBuilder interface {
 
 type personQueryBuilder struct {
 	builder *query.Builder
+	ctx     context.Context
 }
 
 func newPersonBuilder(ctx context.Context) PersonBuilder {
 	b := personQueryBuilder{
-		builder: query.NewBuilder(ctx, node.Person()),
+		builder: query.NewBuilder(node.Person()),
+		ctx:     ctx,
 	}
 	return &b
 }
@@ -786,7 +789,9 @@ func (b *personQueryBuilder) Load() (people []*Person, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
 	var results any
-	results, err = database.BuilderQuery(b.builder)
+
+	ctx := b.ctx
+	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
@@ -798,7 +803,7 @@ func (b *personQueryBuilder) Load() (people []*Person, err error) {
 	return
 }
 
-// Load terminates the query builder, performs the query, and returns a slice of interfaces.
+// LoadI terminates the query builder, performs the query, and returns a slice of interfaces.
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
@@ -806,7 +811,9 @@ func (b *personQueryBuilder) LoadI() (people []query.OrmObj, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
 	var results any
-	results, err = database.BuilderQuery(b.builder)
+
+	ctx := b.ctx
+	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
@@ -941,7 +948,9 @@ func (b *personQueryBuilder) Having(node query.Node) PersonBuilder {
 func (b *personQueryBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd")
-	results, err := database.BuilderQuery(b.builder)
+
+	ctx := b.ctx
+	results, err := database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return 0, err
 	}

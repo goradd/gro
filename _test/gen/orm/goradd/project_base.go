@@ -1365,6 +1365,7 @@ type ProjectBuilder interface {
 	// on the cursor object when you are done. You should use
 	//   defer cursor.Close()
 	// to make sure the cursor gets closed.
+
 	LoadCursor() (projectsCursor, error)
 
 	// Get is a convenience method to return only the first item found in a query.
@@ -1382,11 +1383,13 @@ type ProjectBuilder interface {
 
 type projectQueryBuilder struct {
 	builder *query.Builder
+	ctx     context.Context
 }
 
 func newProjectBuilder(ctx context.Context) ProjectBuilder {
 	b := projectQueryBuilder{
-		builder: query.NewBuilder(ctx, node.Project()),
+		builder: query.NewBuilder(node.Project()),
+		ctx:     ctx,
 	}
 	return &b
 }
@@ -1398,7 +1401,9 @@ func (b *projectQueryBuilder) Load() (projects []*Project, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
 	var results any
-	results, err = database.BuilderQuery(b.builder)
+
+	ctx := b.ctx
+	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
@@ -1410,7 +1415,7 @@ func (b *projectQueryBuilder) Load() (projects []*Project, err error) {
 	return
 }
 
-// Load terminates the query builder, performs the query, and returns a slice of interfaces.
+// LoadI terminates the query builder, performs the query, and returns a slice of interfaces.
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
@@ -1418,7 +1423,9 @@ func (b *projectQueryBuilder) LoadI() (projects []query.OrmObj, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
 	var results any
-	results, err = database.BuilderQuery(b.builder)
+
+	ctx := b.ctx
+	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
@@ -1553,7 +1560,9 @@ func (b *projectQueryBuilder) Having(node query.Node) ProjectBuilder {
 func (b *projectQueryBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd")
-	results, err := database.BuilderQuery(b.builder)
+
+	ctx := b.ctx
+	results, err := database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return 0, err
 	}

@@ -76,6 +76,10 @@ type {{= builderInterface }} interface {
     // on the cursor object when you are done. You should use
     //   defer cursor.Close()
     // to make sure the cursor gets closed.
+    {{if table.ReadTimeout != 0 }}
+    // LoadCursor is NOT protected by a timeout on the context. You should set your own timeout on the context,
+    // but all the rows of the cursor must be read before canceling the cursor.
+    {{if}}
 	LoadCursor() ({{= table.VariableNamePlural() }}Cursor, error)
 
 	// Get is a convenience method to return only the first item found in a query.
@@ -175,6 +179,7 @@ func (b *{{= builderStruct }}) LoadI() ({{= table.VariableNamePlural() }} []quer
 {{if table.ReadTimeout != 0 }}
 // LoadCursor is NOT protected by a timeout on the context. You should set your own timeout on the context,
 // but all the rows of the cursor must be read before canceling the cursor.
+{{if}}
 func (b *{{= builderStruct }}) LoadCursor() ({{= table.VariableNamePlural() }}Cursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("{{= table.DbKey }}")

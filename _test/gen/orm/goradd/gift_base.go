@@ -270,6 +270,7 @@ type GiftBuilder interface {
 	// on the cursor object when you are done. You should use
 	//   defer cursor.Close()
 	// to make sure the cursor gets closed.
+
 	LoadCursor() (giftsCursor, error)
 
 	// Get is a convenience method to return only the first item found in a query.
@@ -287,11 +288,13 @@ type GiftBuilder interface {
 
 type giftQueryBuilder struct {
 	builder *query.Builder
+	ctx     context.Context
 }
 
 func newGiftBuilder(ctx context.Context) GiftBuilder {
 	b := giftQueryBuilder{
-		builder: query.NewBuilder(ctx, node.Gift()),
+		builder: query.NewBuilder(node.Gift()),
+		ctx:     ctx,
 	}
 	return &b
 }
@@ -303,7 +306,9 @@ func (b *giftQueryBuilder) Load() (gifts []*Gift, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
 	var results any
-	results, err = database.BuilderQuery(b.builder)
+
+	ctx := b.ctx
+	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
@@ -315,7 +320,7 @@ func (b *giftQueryBuilder) Load() (gifts []*Gift, err error) {
 	return
 }
 
-// Load terminates the query builder, performs the query, and returns a slice of interfaces.
+// LoadI terminates the query builder, performs the query, and returns a slice of interfaces.
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
@@ -323,7 +328,9 @@ func (b *giftQueryBuilder) LoadI() (gifts []query.OrmObj, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
 	var results any
-	results, err = database.BuilderQuery(b.builder)
+
+	ctx := b.ctx
+	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
@@ -458,7 +465,9 @@ func (b *giftQueryBuilder) Having(node query.Node) GiftBuilder {
 func (b *giftQueryBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd")
-	results, err := database.BuilderQuery(b.builder)
+
+	ctx := b.ctx
+	results, err := database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return 0, err
 	}

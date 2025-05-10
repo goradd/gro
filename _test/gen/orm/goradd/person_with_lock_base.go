@@ -339,6 +339,7 @@ type PersonWithLockBuilder interface {
 	// on the cursor object when you are done. You should use
 	//   defer cursor.Close()
 	// to make sure the cursor gets closed.
+
 	LoadCursor() (personWithLocksCursor, error)
 
 	// Get is a convenience method to return only the first item found in a query.
@@ -356,11 +357,13 @@ type PersonWithLockBuilder interface {
 
 type personWithLockQueryBuilder struct {
 	builder *query.Builder
+	ctx     context.Context
 }
 
 func newPersonWithLockBuilder(ctx context.Context) PersonWithLockBuilder {
 	b := personWithLockQueryBuilder{
-		builder: query.NewBuilder(ctx, node.PersonWithLock()),
+		builder: query.NewBuilder(node.PersonWithLock()),
+		ctx:     ctx,
 	}
 	return &b
 }
@@ -372,7 +375,9 @@ func (b *personWithLockQueryBuilder) Load() (personWithLocks []*PersonWithLock, 
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
 	var results any
-	results, err = database.BuilderQuery(b.builder)
+
+	ctx := b.ctx
+	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
@@ -384,7 +389,7 @@ func (b *personWithLockQueryBuilder) Load() (personWithLocks []*PersonWithLock, 
 	return
 }
 
-// Load terminates the query builder, performs the query, and returns a slice of interfaces.
+// LoadI terminates the query builder, performs the query, and returns a slice of interfaces.
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
@@ -392,7 +397,9 @@ func (b *personWithLockQueryBuilder) LoadI() (personWithLocks []query.OrmObj, er
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
 	var results any
-	results, err = database.BuilderQuery(b.builder)
+
+	ctx := b.ctx
+	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
@@ -527,7 +534,9 @@ func (b *personWithLockQueryBuilder) Having(node query.Node) PersonWithLockBuild
 func (b *personWithLockQueryBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd")
-	results, err := database.BuilderQuery(b.builder)
+
+	ctx := b.ctx
+	results, err := database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return 0, err
 	}
