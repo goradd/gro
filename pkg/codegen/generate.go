@@ -62,6 +62,9 @@ func genDatabaseTemplate(g DatabaseGenerator, db *model.Database) {
 
 func genTableTemplate(g TableGenerator, table *model.Table) {
 	filename := g.FileName(table)
+	if filename == "" {
+		return
+	}
 	if !g.Overwrite() && fileExists(filename) {
 		return
 	}

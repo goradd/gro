@@ -99,7 +99,7 @@ func (b *{{= builderStruct }}) LoadI() ({{= table.VariableNamePlural() }} []quer
 func (b *{{= builderStruct }}) LoadCursor() ({{= table.VariableNamePlural() }}Cursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("{{= table.DbKey }}")
-	result, err := database.BuilderQuery(b.builder)
+	result, err := database.BuilderQuery(b.ctx, b.builder)
 	cursor := result.(query.CursorI)
 
 	return {{= table.VariableNamePlural() }}Cursor{cursor}, err

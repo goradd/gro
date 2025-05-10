@@ -5931,20 +5931,27 @@ func (tmpl *TableBaseTemplate) genBuilder(table *model.Table, _w io.Writer) (err
 
 	//*** query_builder.tmpl
 
-	builderInterface := table.Identifier + "Builder"
-	builderStruct := table.DecapIdentifier + "QueryBuilder"
+	builderStruct := table.Identifier + "Builder"
 
 	if _, err = io.WriteString(_w, `
 // The `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, builderInterface); err != nil {
+	if _, err = io.WriteString(_w, builderStruct); err != nil {
 		return
 	}
 
 	if _, err = io.WriteString(_w, ` uses a builder pattern to create a query on the database.
-// Start a query by calling Query`); err != nil {
+// Create a `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, builderStruct); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` by calling Query`); err != nil {
 		return
 	}
 
@@ -5968,228 +5975,12 @@ func (tmpl *TableBaseTemplate) genBuilder(table *model.Table, _w io.Writer) (err
 		return
 	}
 
-	if _, err = io.WriteString(_w, builderInterface); err != nil {
+	if _, err = io.WriteString(_w, builderStruct); err != nil {
 		return
 	}
 
 	if _, err = io.WriteString(_w, ` stores the context it will use to perform the query, and thus is
-// meant to be a short-lived object. You should not save a query builder for later use.
-type `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, builderInterface); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, ` interface {
-	// Where adds a condition to filter what gets selected.
-    // Calling Where multiple times will AND the conditions together.
-    // See the op package for the usable conditions.
-	Where(c query.Node) `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, builderInterface); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `
-
-	// OrderBy specifies how the resulting data should be sorted.
-    // By default, the given nodes are sorted in ascending order.
-    // Add Descending() to the node to specify that it should be sorted in descending order.
-	OrderBy(nodes... query.Sorter) `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, builderInterface); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `
-
-	// Limit will return a subset of the data, limited to the offset and number of rows specified.
-    // For large data sets and specific types of queries, this can be slow, because it will perform
-    // the entire query before computing the limit.
-    // You cannot limit a query that has selected a "many" relationship.
-	Limit(maxRowCount int, offset int) `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, builderInterface); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `
-
-	// Select performs two functions:
-	//  - Passing a table type node will join the object or objects from that table to this object.
-	//  - Passing a column node will optimize the query to only return the specified fields.
-    // Once you select at least one column, you must select all the columns that you want in the result.
-    // Some fields, like primary keys, are always selected.
-    // If you are using a GroupBy, you must select the fields in the GroupBy.
-`); err != nil {
-		return
-	}
-
-	if table.LockColumn() != nil {
-
-		if _, err = io.WriteString(_w, `    // If you intend to modify the resulting records, and you have selected at least one column,
-    // you MUST also select the `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.LockColumn().Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, ` column for optimistic locking protection.
-`); err != nil {
-			return
-		}
-
-	}
-
-	if _, err = io.WriteString(_w, `	Select(nodes... query.Node) `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, builderInterface); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `
-
-	// Calculation adds a calculation described by operation with alias.
-    // After the query, you can read the data using GetAlias() on the object identified by base.
-	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, builderInterface); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `
-
-	// Distinct removes duplicates from the results of the query.
-    // Adding a Select() is required when using Distinct.
-	Distinct() `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, builderInterface); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `
-
-	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
-	GroupBy(nodes... query.Node) `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, builderInterface); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `
-
-	// Having does additional filtering on the results of the query after the query is performed.
-	Having(node query.Node)  `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, builderInterface); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `
-
-    // Load terminates the query builder, performs the query, and returns a slice of `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, ` objects.
-    // If there are any errors, nil is returned along with the error.
-    // If no results come back from the query, it will return a non-nil empty slice.
-	Load() ([]*`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `, error)
-    // Load terminates the query builder, performs the query, and returns a slice of interfaces.
-    // This can then satisfy a general interface that loads arrays of objects.
-    // If there are any errors, nil is returned along with the error.
-    // If no results come back from the query, it will return a non-nil empty slice.
-	LoadI() ([]query.OrmObj, error)
-
-    // LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
-    //
-    // A query cursor is useful for dealing with large amounts of query results. However, there are some
-    // limitations to its use. When working with SQL databases, you cannot use a cursor while querying
-    // many-to-many or reverse relationships that will create an array of values.
-    //
-    // Call Next() on the returned cursor object to step through the results. Make sure you call Close
-    // on the cursor object when you are done. You should use
-    //   defer cursor.Close()
-    // to make sure the cursor gets closed.
-    `); err != nil {
-		return
-	}
-
-	if table.ReadTimeout != 0 {
-
-		if _, err = io.WriteString(_w, `
-    // LoadCursor is NOT protected by a timeout on the context. You should set your own timeout on the context,
-    // but all the rows of the cursor must be read before canceling the cursor.
-    `); err != nil {
-			return
-		}
-
-	}
-
-	if _, err = io.WriteString(_w, `
-	LoadCursor() (`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.VariableNamePlural()); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `Cursor, error)
-
-	// Get is a convenience method to return only the first item found in a query.
-    // The entire query is performed, so you should generally use this only if you know
-    // you are selecting on one or very few items.
-    // If an error occurs, or no results are found, a nil is returned.
-	Get() (*`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `, error)
-
-    // Count terminates a query and returns just the number of items in the result.
-    // If you have Select or Calculation columns in the query, it will count NULL results as well.
-    // To not count NULL values, use Where in the builder with a NotNull operation.
-    // To count distinct combinations of items, call Distinct() on the builder.
-	Count() (int, error)
-}
-
+// meant to be a short-lived object. You should not save it for later use.
 type `); err != nil {
 		return
 	}
@@ -6203,7 +5994,6 @@ type `); err != nil {
 	ctx context.Context
 }
 
-
 func new`); err != nil {
 		return
 	}
@@ -6212,11 +6002,11 @@ func new`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `Builder(ctx context.Context) `); err != nil {
+	if _, err = io.WriteString(_w, `Builder(ctx context.Context) *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, builderInterface); err != nil {
+	if _, err = io.WriteString(_w, builderStruct); err != nil {
 		return
 	}
 
@@ -6500,7 +6290,7 @@ func (b *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `")
-	result, err := database.BuilderQuery(b.builder)
+	result, err := database.BuilderQuery(b.ctx, b.builder)
 	cursor := result.(query.CursorI)
 
 	return `); err != nil {
@@ -6613,11 +6403,11 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `)  Where(c query.Node) `); err != nil {
+	if _, err = io.WriteString(_w, `)  Where(c query.Node) *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, builderInterface); err != nil {
+	if _, err = io.WriteString(_w, builderStruct); err != nil {
 		return
 	}
 
@@ -6637,11 +6427,11 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `)  OrderBy(nodes... query.Sorter) `); err != nil {
+	if _, err = io.WriteString(_w, `)  OrderBy(nodes... query.Sorter) *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, builderInterface); err != nil {
+	if _, err = io.WriteString(_w, builderStruct); err != nil {
 		return
 	}
 
@@ -6662,11 +6452,11 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `)  Limit(maxRowCount int, offset int) `); err != nil {
+	if _, err = io.WriteString(_w, `)  Limit(maxRowCount int, offset int) *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, builderInterface); err != nil {
+	if _, err = io.WriteString(_w, builderStruct); err != nil {
 		return
 	}
 
@@ -6706,11 +6496,11 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `)  Select(nodes... query.Node) `); err != nil {
+	if _, err = io.WriteString(_w, `)  Select(nodes... query.Node) *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, builderInterface); err != nil {
+	if _, err = io.WriteString(_w, builderStruct); err != nil {
 		return
 	}
 
@@ -6729,11 +6519,11 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) `); err != nil {
+	if _, err = io.WriteString(_w, `) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, builderInterface); err != nil {
+	if _, err = io.WriteString(_w, builderStruct); err != nil {
 		return
 	}
 
@@ -6752,11 +6542,11 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `)  Distinct() `); err != nil {
+	if _, err = io.WriteString(_w, `)  Distinct() *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, builderInterface); err != nil {
+	if _, err = io.WriteString(_w, builderStruct); err != nil {
 		return
 	}
 
@@ -6774,11 +6564,11 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `)  GroupBy(nodes... query.Node) `); err != nil {
+	if _, err = io.WriteString(_w, `)  GroupBy(nodes... query.Node) *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, builderInterface); err != nil {
+	if _, err = io.WriteString(_w, builderStruct); err != nil {
 		return
 	}
 
@@ -6796,11 +6586,11 @@ func (b *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `)  Having(node query.Node)  `); err != nil {
+	if _, err = io.WriteString(_w, `)  Having(node query.Node)  *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, builderInterface); err != nil {
+	if _, err = io.WriteString(_w, builderStruct); err != nil {
 		return
 	}
 

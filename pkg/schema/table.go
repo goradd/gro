@@ -27,6 +27,9 @@ type Table struct {
 	// Use a duration format understood by time.ParseDuration.
 	ReadTimeout string `json:"read_timeout,omitempty"`
 
+	// NoTest indicates that the table should NOT have an automated test generated for it.
+	NoTest bool `json:"no_test,omitempty"`
+
 	// Columns is a list of Column objects, one for each column in the table.
 	Columns []*Column `json:"columns"`
 

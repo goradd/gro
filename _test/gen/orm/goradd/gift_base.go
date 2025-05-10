@@ -205,94 +205,19 @@ func HasGiftByNumber(ctx context.Context, number int) (bool, error) {
 }
 
 // The GiftBuilder uses a builder pattern to create a query on the database.
-// Start a query by calling QueryGifts, which will select all
+// Create a GiftBuilder by calling QueryGifts, which will select all
 // the Gift object in the database. Then filter and arrange those objects
 // by calling Where, Select, etc.
 // End a query by calling either Load, LoadI, LoadCursor, Get, or Count.
 // A GiftBuilder stores the context it will use to perform the query, and thus is
-// meant to be a short-lived object. You should not save a query builder for later use.
-type GiftBuilder interface {
-	// Where adds a condition to filter what gets selected.
-	// Calling Where multiple times will AND the conditions together.
-	// See the op package for the usable conditions.
-	Where(c query.Node) GiftBuilder
-
-	// OrderBy specifies how the resulting data should be sorted.
-	// By default, the given nodes are sorted in ascending order.
-	// Add Descending() to the node to specify that it should be sorted in descending order.
-	OrderBy(nodes ...query.Sorter) GiftBuilder
-
-	// Limit will return a subset of the data, limited to the offset and number of rows specified.
-	// For large data sets and specific types of queries, this can be slow, because it will perform
-	// the entire query before computing the limit.
-	// You cannot limit a query that has selected a "many" relationship.
-	Limit(maxRowCount int, offset int) GiftBuilder
-
-	// Select performs two functions:
-	//  - Passing a table type node will join the object or objects from that table to this object.
-	//  - Passing a column node will optimize the query to only return the specified fields.
-	// Once you select at least one column, you must select all the columns that you want in the result.
-	// Some fields, like primary keys, are always selected.
-	// If you are using a GroupBy, you must select the fields in the GroupBy.
-	Select(nodes ...query.Node) GiftBuilder
-
-	// Calculation adds a calculation described by operation with alias.
-	// After the query, you can read the data using GetAlias() on the object identified by base.
-	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) GiftBuilder
-
-	// Distinct removes duplicates from the results of the query.
-	// Adding a Select() is required when using Distinct.
-	Distinct() GiftBuilder
-
-	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
-	GroupBy(nodes ...query.Node) GiftBuilder
-
-	// Having does additional filtering on the results of the query after the query is performed.
-	Having(node query.Node) GiftBuilder
-
-	// Load terminates the query builder, performs the query, and returns a slice of Gift objects.
-	// If there are any errors, nil is returned along with the error.
-	// If no results come back from the query, it will return a non-nil empty slice.
-	Load() ([]*Gift, error)
-	// Load terminates the query builder, performs the query, and returns a slice of interfaces.
-	// This can then satisfy a general interface that loads arrays of objects.
-	// If there are any errors, nil is returned along with the error.
-	// If no results come back from the query, it will return a non-nil empty slice.
-	LoadI() ([]query.OrmObj, error)
-
-	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
-	//
-	// A query cursor is useful for dealing with large amounts of query results. However, there are some
-	// limitations to its use. When working with SQL databases, you cannot use a cursor while querying
-	// many-to-many or reverse relationships that will create an array of values.
-	//
-	// Call Next() on the returned cursor object to step through the results. Make sure you call Close
-	// on the cursor object when you are done. You should use
-	//   defer cursor.Close()
-	// to make sure the cursor gets closed.
-
-	LoadCursor() (giftsCursor, error)
-
-	// Get is a convenience method to return only the first item found in a query.
-	// The entire query is performed, so you should generally use this only if you know
-	// you are selecting on one or very few items.
-	// If an error occurs, or no results are found, a nil is returned.
-	Get() (*Gift, error)
-
-	// Count terminates a query and returns just the number of items in the result.
-	// If you have Select or Calculation columns in the query, it will count NULL results as well.
-	// To not count NULL values, use Where in the builder with a NotNull operation.
-	// To count distinct combinations of items, call Distinct() on the builder.
-	Count() (int, error)
-}
-
-type giftQueryBuilder struct {
+// meant to be a short-lived object. You should not save it for later use.
+type GiftBuilder struct {
 	builder *query.Builder
 	ctx     context.Context
 }
 
-func newGiftBuilder(ctx context.Context) GiftBuilder {
-	b := giftQueryBuilder{
+func newGiftBuilder(ctx context.Context) *GiftBuilder {
+	b := GiftBuilder{
 		builder: query.NewBuilder(node.Gift()),
 		ctx:     ctx,
 	}
@@ -302,7 +227,7 @@ func newGiftBuilder(ctx context.Context) GiftBuilder {
 // Load terminates the query builder, performs the query, and returns a slice of Gift objects.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *giftQueryBuilder) Load() (gifts []*Gift, err error) {
+func (b *GiftBuilder) Load() (gifts []*Gift, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
 	var results any
@@ -324,7 +249,7 @@ func (b *giftQueryBuilder) Load() (gifts []*Gift, err error) {
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *giftQueryBuilder) LoadI() (gifts []query.OrmObj, err error) {
+func (b *GiftBuilder) LoadI() (gifts []query.OrmObj, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
 	var results any
@@ -354,10 +279,10 @@ func (b *giftQueryBuilder) LoadI() (gifts []query.OrmObj, err error) {
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *giftQueryBuilder) LoadCursor() (giftsCursor, error) {
+func (b *GiftBuilder) LoadCursor() (giftsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
-	result, err := database.BuilderQuery(b.builder)
+	result, err := database.BuilderQuery(b.ctx, b.builder)
 	cursor := result.(query.CursorI)
 
 	return giftsCursor{cursor}, err
@@ -388,7 +313,7 @@ func (c giftsCursor) Next() (*Gift, error) {
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
 // If an error occurs, or no results are found, a nil is returned.
-func (b *giftQueryBuilder) Get() (*Gift, error) {
+func (b *GiftBuilder) Get() (*Gift, error) {
 	results, err := b.Load()
 	if err != nil || len(results) == 0 {
 		return nil, err
@@ -398,7 +323,7 @@ func (b *giftQueryBuilder) Get() (*Gift, error) {
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
-func (b *giftQueryBuilder) Where(c query.Node) GiftBuilder {
+func (b *GiftBuilder) Where(c query.Node) *GiftBuilder {
 	b.builder.Where(c)
 	return b
 }
@@ -406,7 +331,7 @@ func (b *giftQueryBuilder) Where(c query.Node) GiftBuilder {
 // OrderBy specifies how the resulting data should be sorted.
 // By default, the given nodes are sorted in ascending order.
 // Add Descending() to the node to specify that it should be sorted in descending order.
-func (b *giftQueryBuilder) OrderBy(nodes ...query.Sorter) GiftBuilder {
+func (b *GiftBuilder) OrderBy(nodes ...query.Sorter) *GiftBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
@@ -415,7 +340,7 @@ func (b *giftQueryBuilder) OrderBy(nodes ...query.Sorter) GiftBuilder {
 // For large data sets and specific types of queries, this can be slow, because it will perform
 // the entire query before computing the limit.
 // You cannot limit a query that has embedded arrays.
-func (b *giftQueryBuilder) Limit(maxRowCount int, offset int) GiftBuilder {
+func (b *GiftBuilder) Limit(maxRowCount int, offset int) *GiftBuilder {
 	b.builder.Limit(maxRowCount, offset)
 	return b
 }
@@ -427,33 +352,33 @@ func (b *giftQueryBuilder) Limit(maxRowCount int, offset int) GiftBuilder {
 // If columns in related tables are specified, then only those columns will be queried and loaded.
 // Depending on the query, additional columns may automatically be added to the query. In particular, primary key columns
 // will be added in most situations. The exception to this would be in distinct queries, group by queries, or subqueries.
-func (b *giftQueryBuilder) Select(nodes ...query.Node) GiftBuilder {
+func (b *GiftBuilder) Select(nodes ...query.Node) *GiftBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
 // Calculation adds operation as an aliased value onto base.
 // After the query, you can read the data by passing alias to GetAlias on the returned object.
-func (b *giftQueryBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) GiftBuilder {
+func (b *GiftBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) *GiftBuilder {
 	b.builder.Calculation(base, alias, operation)
 	return b
 }
 
 // Distinct removes duplicates from the results of the query.
 // Adding a Select() is usually required.
-func (b *giftQueryBuilder) Distinct() GiftBuilder {
+func (b *GiftBuilder) Distinct() *GiftBuilder {
 	b.builder.Distinct()
 	return b
 }
 
 // GroupBy controls how results are grouped when using aggregate functions with Calculation.
-func (b *giftQueryBuilder) GroupBy(nodes ...query.Node) GiftBuilder {
+func (b *GiftBuilder) GroupBy(nodes ...query.Node) *GiftBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
 // Having does additional filtering on the results of the query after the query is performed.
-func (b *giftQueryBuilder) Having(node query.Node) GiftBuilder {
+func (b *GiftBuilder) Having(node query.Node) *GiftBuilder {
 	b.builder.Having(node)
 	return b
 }
@@ -462,7 +387,7 @@ func (b *giftQueryBuilder) Having(node query.Node) GiftBuilder {
 // If you have Select or Calculation columns in the query, it will count NULL results as well.
 // To not count NULL values, use Where in the builder with a NotNull operation.
 // To count distinct combinations of items, call Distinct() on the builder.
-func (b *giftQueryBuilder) Count() (int, error) {
+func (b *GiftBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd")
 

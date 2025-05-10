@@ -75,14 +75,17 @@ func (o *RootN) Save(ctx context.Context) error {
 
 // QueryRootNs returns a new query builder.
 // See RootNBuilder for doc on how to use the builder.
-func QueryRootNs(ctx context.Context) RootNBuilder {
+// You should pass a context that has a timeout with it to protect against a long delay from
+// the database possibly hanging your application. You can set a ReadTimeout value on the schema
+// to do this by default during code generation.
+func QueryRootNs(ctx context.Context) *RootNBuilder {
 	return queryRootNs(ctx)
 }
 
 // queryRootNs creates a new builder and is the central spot where all queries are directed.
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
-func queryRootNs(ctx context.Context) RootNBuilder {
+func queryRootNs(ctx context.Context) *RootNBuilder {
 	// Note: the context is provided here so that you can use it to enforce credentials if needed.
 	// It is stored in the builder and later used in the terminating functions, like Load(), Get(), etc.
 	// A QueryBuilder is meant to be a short-lived structure.

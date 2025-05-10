@@ -61,6 +61,7 @@ func TestDbJson(t *testing.T) {
 	v_RootUl, _ := QueryRootUls(ctx).OrderBy(node.RootUl().PrimaryKey()).Get()                            // gets first record
 	v_RootUn, _ := QueryRootUns(ctx).OrderBy(node.RootUn().PrimaryKey()).Get()                            // gets first record
 	v_RootUnl, _ := QueryRootUnls(ctx).OrderBy(node.RootUnl().PrimaryKey()).Get()                         // gets first record
+	v_TimeoutTest, _ := QueryTimeoutTests(ctx).OrderBy(node.TimeoutTest().PrimaryKey()).Get()             // gets first record
 	v_TypeTest, _ := QueryTypeTests(ctx).OrderBy(node.TypeTest().PrimaryKey()).Get()                      // gets first record
 	v_UnsupportedType, _ := QueryUnsupportedTypes(ctx).OrderBy(node.UnsupportedType().PrimaryKey()).Get() // gets first record
 	v_Leaf, _ := QueryLeafs(ctx).OrderBy(node.Leaf().PrimaryKey()).Get()                                  // gets first record
@@ -82,6 +83,7 @@ func TestDbJson(t *testing.T) {
 	v_RootUlCount, _ := CountRootUls(ctx)
 	v_RootUnCount, _ := CountRootUns(ctx)
 	v_RootUnlCount, _ := CountRootUnls(ctx)
+	v_TimeoutTestCount, _ := CountTimeoutTests(ctx)
 	v_TypeTestCount, _ := CountTypeTests(ctx)
 	v_UnsupportedTypeCount, _ := CountUnsupportedTypes(ctx)
 	v_LeafCount, _ := CountLeafs(ctx)
@@ -109,6 +111,7 @@ func TestDbJson(t *testing.T) {
 	assert.Equal(t, 0, func() int { i, _ := CountRootUls(ctx); return i }())
 	assert.Equal(t, 0, func() int { i, _ := CountRootUns(ctx); return i }())
 	assert.Equal(t, 0, func() int { i, _ := CountRootUnls(ctx); return i }())
+	assert.Equal(t, 0, func() int { i, _ := CountTimeoutTests(ctx); return i }())
 	assert.Equal(t, 0, func() int { i, _ := CountTypeTests(ctx); return i }())
 	assert.Equal(t, 0, func() int { i, _ := CountUnsupportedTypes(ctx); return i }())
 	assert.Equal(t, 0, func() int { i, _ := CountLeafs(ctx); return i }())
@@ -167,6 +170,8 @@ func TestDbJson(t *testing.T) {
 		obj, _ := QueryRootUnls(ctx).OrderBy(node.RootUnl().PrimaryKey()).Get()
 		assertEqualFieldsRootUnl(t, v_RootUnl, obj)
 	}
+	if v_TimeoutTest != nil {
+	}
 	if v_TypeTest != nil {
 		obj, _ := QueryTypeTests(ctx).OrderBy(node.TypeTest().PrimaryKey()).Get()
 		assertEqualFieldsTypeTest(t, v_TypeTest, obj)
@@ -218,6 +223,7 @@ func TestDbJson(t *testing.T) {
 	assert.Equal(t, v_RootUlCount, func() int { i, _ := CountRootUls(ctx); return i }())
 	assert.Equal(t, v_RootUnCount, func() int { i, _ := CountRootUns(ctx); return i }())
 	assert.Equal(t, v_RootUnlCount, func() int { i, _ := CountRootUnls(ctx); return i }())
+	assert.Equal(t, v_TimeoutTestCount, func() int { i, _ := CountTimeoutTests(ctx); return i }())
 	assert.Equal(t, v_TypeTestCount, func() int { i, _ := CountTypeTests(ctx); return i }())
 	assert.Equal(t, v_UnsupportedTypeCount, func() int { i, _ := CountUnsupportedTypes(ctx); return i }())
 	assert.Equal(t, v_LeafCount, func() int { i, _ := CountLeafs(ctx); return i }())

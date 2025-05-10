@@ -269,93 +269,21 @@ func HasRootN(ctx context.Context, id string) (bool, error) {
 }
 
 // The RootNBuilder uses a builder pattern to create a query on the database.
-// Start a query by calling QueryRootNs, which will select all
+// Create a RootNBuilder by calling QueryRootNs, which will select all
 // the RootN object in the database. Then filter and arrange those objects
 // by calling Where, Select, etc.
 // End a query by calling either Load, LoadI, LoadCursor, Get, or Count.
 // A RootNBuilder stores the context it will use to perform the query, and thus is
-// meant to be a short-lived object. You should not save a query builder for later use.
-type RootNBuilder interface {
-	// Where adds a condition to filter what gets selected.
-	// Calling Where multiple times will AND the conditions together.
-	// See the op package for the usable conditions.
-	Where(c query.Node) RootNBuilder
-
-	// OrderBy specifies how the resulting data should be sorted.
-	// By default, the given nodes are sorted in ascending order.
-	// Add Descending() to the node to specify that it should be sorted in descending order.
-	OrderBy(nodes ...query.Sorter) RootNBuilder
-
-	// Limit will return a subset of the data, limited to the offset and number of rows specified.
-	// For large data sets and specific types of queries, this can be slow, because it will perform
-	// the entire query before computing the limit.
-	// You cannot limit a query that has selected a "many" relationship.
-	Limit(maxRowCount int, offset int) RootNBuilder
-
-	// Select performs two functions:
-	//  - Passing a table type node will join the object or objects from that table to this object.
-	//  - Passing a column node will optimize the query to only return the specified fields.
-	// Once you select at least one column, you must select all the columns that you want in the result.
-	// Some fields, like primary keys, are always selected.
-	// If you are using a GroupBy, you must select the fields in the GroupBy.
-	Select(nodes ...query.Node) RootNBuilder
-
-	// Calculation adds a calculation described by operation with alias.
-	// After the query, you can read the data using GetAlias() on the object identified by base.
-	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) RootNBuilder
-
-	// Distinct removes duplicates from the results of the query.
-	// Adding a Select() is required when using Distinct.
-	Distinct() RootNBuilder
-
-	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
-	GroupBy(nodes ...query.Node) RootNBuilder
-
-	// Having does additional filtering on the results of the query after the query is performed.
-	Having(node query.Node) RootNBuilder
-
-	// Load terminates the query builder, performs the query, and returns a slice of RootN objects.
-	// If there are any errors, nil is returned along with the error.
-	// If no results come back from the query, it will return a non-nil empty slice.
-	Load() ([]*RootN, error)
-	// Load terminates the query builder, performs the query, and returns a slice of interfaces.
-	// This can then satisfy a general interface that loads arrays of objects.
-	// If there are any errors, nil is returned along with the error.
-	// If no results come back from the query, it will return a non-nil empty slice.
-	LoadI() ([]query.OrmObj, error)
-
-	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
-	//
-	// A query cursor is useful for dealing with large amounts of query results. However, there are some
-	// limitations to its use. When working with SQL databases, you cannot use a cursor while querying
-	// many-to-many or reverse relationships that will create an array of values.
-	//
-	// Call Next() on the returned cursor object to step through the results. Make sure you call Close
-	// on the cursor object when you are done. You should use
-	//   defer cursor.Close()
-	// to make sure the cursor gets closed.
-	LoadCursor() (rootNsCursor, error)
-
-	// Get is a convenience method to return only the first item found in a query.
-	// The entire query is performed, so you should generally use this only if you know
-	// you are selecting on one or very few items.
-	// If an error occurs, or no results are found, a nil is returned.
-	Get() (*RootN, error)
-
-	// Count terminates a query and returns just the number of items in the result.
-	// If you have Select or Calculation columns in the query, it will count NULL results as well.
-	// To not count NULL values, use Where in the builder with a NotNull operation.
-	// To count distinct combinations of items, call Distinct() on the builder.
-	Count() (int, error)
-}
-
-type rootNQueryBuilder struct {
+// meant to be a short-lived object. You should not save it for later use.
+type RootNBuilder struct {
 	builder *query.Builder
+	ctx     context.Context
 }
 
-func newRootNBuilder(ctx context.Context) RootNBuilder {
-	b := rootNQueryBuilder{
-		builder: query.NewBuilder(ctx, node.RootN()),
+func newRootNBuilder(ctx context.Context) *RootNBuilder {
+	b := RootNBuilder{
+		builder: query.NewBuilder(node.RootN()),
+		ctx:     ctx,
 	}
 	return &b
 }
@@ -363,11 +291,13 @@ func newRootNBuilder(ctx context.Context) RootNBuilder {
 // Load terminates the query builder, performs the query, and returns a slice of RootN objects.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *rootNQueryBuilder) Load() (rootNs []*RootN, err error) {
+func (b *RootNBuilder) Load() (rootNs []*RootN, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
 	var results any
-	results, err = database.BuilderQuery(b.builder)
+
+	ctx := b.ctx
+	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
@@ -379,15 +309,17 @@ func (b *rootNQueryBuilder) Load() (rootNs []*RootN, err error) {
 	return
 }
 
-// Load terminates the query builder, performs the query, and returns a slice of interfaces.
+// LoadI terminates the query builder, performs the query, and returns a slice of interfaces.
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *rootNQueryBuilder) LoadI() (rootNs []query.OrmObj, err error) {
+func (b *RootNBuilder) LoadI() (rootNs []query.OrmObj, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
 	var results any
-	results, err = database.BuilderQuery(b.builder)
+
+	ctx := b.ctx
+	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
@@ -411,10 +343,10 @@ func (b *rootNQueryBuilder) LoadI() (rootNs []query.OrmObj, err error) {
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *rootNQueryBuilder) LoadCursor() (rootNsCursor, error) {
+func (b *RootNBuilder) LoadCursor() (rootNsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
-	result, err := database.BuilderQuery(b.builder)
+	result, err := database.BuilderQuery(b.ctx, b.builder)
 	cursor := result.(query.CursorI)
 
 	return rootNsCursor{cursor}, err
@@ -445,7 +377,7 @@ func (c rootNsCursor) Next() (*RootN, error) {
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
 // If an error occurs, or no results are found, a nil is returned.
-func (b *rootNQueryBuilder) Get() (*RootN, error) {
+func (b *RootNBuilder) Get() (*RootN, error) {
 	results, err := b.Load()
 	if err != nil || len(results) == 0 {
 		return nil, err
@@ -455,7 +387,7 @@ func (b *rootNQueryBuilder) Get() (*RootN, error) {
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
-func (b *rootNQueryBuilder) Where(c query.Node) RootNBuilder {
+func (b *RootNBuilder) Where(c query.Node) *RootNBuilder {
 	b.builder.Where(c)
 	return b
 }
@@ -463,7 +395,7 @@ func (b *rootNQueryBuilder) Where(c query.Node) RootNBuilder {
 // OrderBy specifies how the resulting data should be sorted.
 // By default, the given nodes are sorted in ascending order.
 // Add Descending() to the node to specify that it should be sorted in descending order.
-func (b *rootNQueryBuilder) OrderBy(nodes ...query.Sorter) RootNBuilder {
+func (b *RootNBuilder) OrderBy(nodes ...query.Sorter) *RootNBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
@@ -472,7 +404,7 @@ func (b *rootNQueryBuilder) OrderBy(nodes ...query.Sorter) RootNBuilder {
 // For large data sets and specific types of queries, this can be slow, because it will perform
 // the entire query before computing the limit.
 // You cannot limit a query that has embedded arrays.
-func (b *rootNQueryBuilder) Limit(maxRowCount int, offset int) RootNBuilder {
+func (b *RootNBuilder) Limit(maxRowCount int, offset int) *RootNBuilder {
 	b.builder.Limit(maxRowCount, offset)
 	return b
 }
@@ -484,33 +416,33 @@ func (b *rootNQueryBuilder) Limit(maxRowCount int, offset int) RootNBuilder {
 // If columns in related tables are specified, then only those columns will be queried and loaded.
 // Depending on the query, additional columns may automatically be added to the query. In particular, primary key columns
 // will be added in most situations. The exception to this would be in distinct queries, group by queries, or subqueries.
-func (b *rootNQueryBuilder) Select(nodes ...query.Node) RootNBuilder {
+func (b *RootNBuilder) Select(nodes ...query.Node) *RootNBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
 // Calculation adds operation as an aliased value onto base.
 // After the query, you can read the data by passing alias to GetAlias on the returned object.
-func (b *rootNQueryBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) RootNBuilder {
+func (b *RootNBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) *RootNBuilder {
 	b.builder.Calculation(base, alias, operation)
 	return b
 }
 
 // Distinct removes duplicates from the results of the query.
 // Adding a Select() is usually required.
-func (b *rootNQueryBuilder) Distinct() RootNBuilder {
+func (b *RootNBuilder) Distinct() *RootNBuilder {
 	b.builder.Distinct()
 	return b
 }
 
 // GroupBy controls how results are grouped when using aggregate functions with Calculation.
-func (b *rootNQueryBuilder) GroupBy(nodes ...query.Node) RootNBuilder {
+func (b *RootNBuilder) GroupBy(nodes ...query.Node) *RootNBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
 // Having does additional filtering on the results of the query after the query is performed.
-func (b *rootNQueryBuilder) Having(node query.Node) RootNBuilder {
+func (b *RootNBuilder) Having(node query.Node) *RootNBuilder {
 	b.builder.Having(node)
 	return b
 }
@@ -519,10 +451,12 @@ func (b *rootNQueryBuilder) Having(node query.Node) RootNBuilder {
 // If you have Select or Calculation columns in the query, it will count NULL results as well.
 // To not count NULL values, use Where in the builder with a NotNull operation.
 // To count distinct combinations of items, call Distinct() on the builder.
-func (b *rootNQueryBuilder) Count() (int, error) {
+func (b *RootNBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd_unit")
-	results, err := database.BuilderQuery(b.builder)
+
+	ctx := b.ctx
+	results, err := database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return 0, err
 	}

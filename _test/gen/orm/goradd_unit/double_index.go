@@ -75,14 +75,17 @@ func (o *DoubleIndex) Save(ctx context.Context) error {
 
 // QueryDoubleIndices returns a new query builder.
 // See DoubleIndexBuilder for doc on how to use the builder.
-func QueryDoubleIndices(ctx context.Context) DoubleIndexBuilder {
+// You should pass a context that has a timeout with it to protect against a long delay from
+// the database possibly hanging your application. You can set a ReadTimeout value on the schema
+// to do this by default during code generation.
+func QueryDoubleIndices(ctx context.Context) *DoubleIndexBuilder {
 	return queryDoubleIndices(ctx)
 }
 
 // queryDoubleIndices creates a new builder and is the central spot where all queries are directed.
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
-func queryDoubleIndices(ctx context.Context) DoubleIndexBuilder {
+func queryDoubleIndices(ctx context.Context) *DoubleIndexBuilder {
 	// Note: the context is provided here so that you can use it to enforce credentials if needed.
 	// It is stored in the builder and later used in the terminating functions, like Load(), Get(), etc.
 	// A QueryBuilder is meant to be a short-lived structure.

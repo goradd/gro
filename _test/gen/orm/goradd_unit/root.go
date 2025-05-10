@@ -75,14 +75,17 @@ func (o *Root) Save(ctx context.Context) error {
 
 // QueryRoots returns a new query builder.
 // See RootBuilder for doc on how to use the builder.
-func QueryRoots(ctx context.Context) RootBuilder {
+// You should pass a context that has a timeout with it to protect against a long delay from
+// the database possibly hanging your application. You can set a ReadTimeout value on the schema
+// to do this by default during code generation.
+func QueryRoots(ctx context.Context) *RootBuilder {
 	return queryRoots(ctx)
 }
 
 // queryRoots creates a new builder and is the central spot where all queries are directed.
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
-func queryRoots(ctx context.Context) RootBuilder {
+func queryRoots(ctx context.Context) *RootBuilder {
 	// Note: the context is provided here so that you can use it to enforce credentials if needed.
 	// It is stored in the builder and later used in the terminating functions, like Load(), Get(), etc.
 	// A QueryBuilder is meant to be a short-lived structure.

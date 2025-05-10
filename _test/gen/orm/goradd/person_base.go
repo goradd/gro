@@ -688,94 +688,19 @@ func HasPeopleByLastName(ctx context.Context, lastName string) (bool, error) {
 }
 
 // The PersonBuilder uses a builder pattern to create a query on the database.
-// Start a query by calling QueryPeople, which will select all
+// Create a PersonBuilder by calling QueryPeople, which will select all
 // the Person object in the database. Then filter and arrange those objects
 // by calling Where, Select, etc.
 // End a query by calling either Load, LoadI, LoadCursor, Get, or Count.
 // A PersonBuilder stores the context it will use to perform the query, and thus is
-// meant to be a short-lived object. You should not save a query builder for later use.
-type PersonBuilder interface {
-	// Where adds a condition to filter what gets selected.
-	// Calling Where multiple times will AND the conditions together.
-	// See the op package for the usable conditions.
-	Where(c query.Node) PersonBuilder
-
-	// OrderBy specifies how the resulting data should be sorted.
-	// By default, the given nodes are sorted in ascending order.
-	// Add Descending() to the node to specify that it should be sorted in descending order.
-	OrderBy(nodes ...query.Sorter) PersonBuilder
-
-	// Limit will return a subset of the data, limited to the offset and number of rows specified.
-	// For large data sets and specific types of queries, this can be slow, because it will perform
-	// the entire query before computing the limit.
-	// You cannot limit a query that has selected a "many" relationship.
-	Limit(maxRowCount int, offset int) PersonBuilder
-
-	// Select performs two functions:
-	//  - Passing a table type node will join the object or objects from that table to this object.
-	//  - Passing a column node will optimize the query to only return the specified fields.
-	// Once you select at least one column, you must select all the columns that you want in the result.
-	// Some fields, like primary keys, are always selected.
-	// If you are using a GroupBy, you must select the fields in the GroupBy.
-	Select(nodes ...query.Node) PersonBuilder
-
-	// Calculation adds a calculation described by operation with alias.
-	// After the query, you can read the data using GetAlias() on the object identified by base.
-	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) PersonBuilder
-
-	// Distinct removes duplicates from the results of the query.
-	// Adding a Select() is required when using Distinct.
-	Distinct() PersonBuilder
-
-	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
-	GroupBy(nodes ...query.Node) PersonBuilder
-
-	// Having does additional filtering on the results of the query after the query is performed.
-	Having(node query.Node) PersonBuilder
-
-	// Load terminates the query builder, performs the query, and returns a slice of Person objects.
-	// If there are any errors, nil is returned along with the error.
-	// If no results come back from the query, it will return a non-nil empty slice.
-	Load() ([]*Person, error)
-	// Load terminates the query builder, performs the query, and returns a slice of interfaces.
-	// This can then satisfy a general interface that loads arrays of objects.
-	// If there are any errors, nil is returned along with the error.
-	// If no results come back from the query, it will return a non-nil empty slice.
-	LoadI() ([]query.OrmObj, error)
-
-	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
-	//
-	// A query cursor is useful for dealing with large amounts of query results. However, there are some
-	// limitations to its use. When working with SQL databases, you cannot use a cursor while querying
-	// many-to-many or reverse relationships that will create an array of values.
-	//
-	// Call Next() on the returned cursor object to step through the results. Make sure you call Close
-	// on the cursor object when you are done. You should use
-	//   defer cursor.Close()
-	// to make sure the cursor gets closed.
-
-	LoadCursor() (peopleCursor, error)
-
-	// Get is a convenience method to return only the first item found in a query.
-	// The entire query is performed, so you should generally use this only if you know
-	// you are selecting on one or very few items.
-	// If an error occurs, or no results are found, a nil is returned.
-	Get() (*Person, error)
-
-	// Count terminates a query and returns just the number of items in the result.
-	// If you have Select or Calculation columns in the query, it will count NULL results as well.
-	// To not count NULL values, use Where in the builder with a NotNull operation.
-	// To count distinct combinations of items, call Distinct() on the builder.
-	Count() (int, error)
-}
-
-type personQueryBuilder struct {
+// meant to be a short-lived object. You should not save it for later use.
+type PersonBuilder struct {
 	builder *query.Builder
 	ctx     context.Context
 }
 
-func newPersonBuilder(ctx context.Context) PersonBuilder {
-	b := personQueryBuilder{
+func newPersonBuilder(ctx context.Context) *PersonBuilder {
+	b := PersonBuilder{
 		builder: query.NewBuilder(node.Person()),
 		ctx:     ctx,
 	}
@@ -785,7 +710,7 @@ func newPersonBuilder(ctx context.Context) PersonBuilder {
 // Load terminates the query builder, performs the query, and returns a slice of Person objects.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *personQueryBuilder) Load() (people []*Person, err error) {
+func (b *PersonBuilder) Load() (people []*Person, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
 	var results any
@@ -807,7 +732,7 @@ func (b *personQueryBuilder) Load() (people []*Person, err error) {
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *personQueryBuilder) LoadI() (people []query.OrmObj, err error) {
+func (b *PersonBuilder) LoadI() (people []query.OrmObj, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
 	var results any
@@ -837,10 +762,10 @@ func (b *personQueryBuilder) LoadI() (people []query.OrmObj, err error) {
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *personQueryBuilder) LoadCursor() (peopleCursor, error) {
+func (b *PersonBuilder) LoadCursor() (peopleCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
-	result, err := database.BuilderQuery(b.builder)
+	result, err := database.BuilderQuery(b.ctx, b.builder)
 	cursor := result.(query.CursorI)
 
 	return peopleCursor{cursor}, err
@@ -871,7 +796,7 @@ func (c peopleCursor) Next() (*Person, error) {
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
 // If an error occurs, or no results are found, a nil is returned.
-func (b *personQueryBuilder) Get() (*Person, error) {
+func (b *PersonBuilder) Get() (*Person, error) {
 	results, err := b.Load()
 	if err != nil || len(results) == 0 {
 		return nil, err
@@ -881,7 +806,7 @@ func (b *personQueryBuilder) Get() (*Person, error) {
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
-func (b *personQueryBuilder) Where(c query.Node) PersonBuilder {
+func (b *PersonBuilder) Where(c query.Node) *PersonBuilder {
 	b.builder.Where(c)
 	return b
 }
@@ -889,7 +814,7 @@ func (b *personQueryBuilder) Where(c query.Node) PersonBuilder {
 // OrderBy specifies how the resulting data should be sorted.
 // By default, the given nodes are sorted in ascending order.
 // Add Descending() to the node to specify that it should be sorted in descending order.
-func (b *personQueryBuilder) OrderBy(nodes ...query.Sorter) PersonBuilder {
+func (b *PersonBuilder) OrderBy(nodes ...query.Sorter) *PersonBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
@@ -898,7 +823,7 @@ func (b *personQueryBuilder) OrderBy(nodes ...query.Sorter) PersonBuilder {
 // For large data sets and specific types of queries, this can be slow, because it will perform
 // the entire query before computing the limit.
 // You cannot limit a query that has embedded arrays.
-func (b *personQueryBuilder) Limit(maxRowCount int, offset int) PersonBuilder {
+func (b *PersonBuilder) Limit(maxRowCount int, offset int) *PersonBuilder {
 	b.builder.Limit(maxRowCount, offset)
 	return b
 }
@@ -910,33 +835,33 @@ func (b *personQueryBuilder) Limit(maxRowCount int, offset int) PersonBuilder {
 // If columns in related tables are specified, then only those columns will be queried and loaded.
 // Depending on the query, additional columns may automatically be added to the query. In particular, primary key columns
 // will be added in most situations. The exception to this would be in distinct queries, group by queries, or subqueries.
-func (b *personQueryBuilder) Select(nodes ...query.Node) PersonBuilder {
+func (b *PersonBuilder) Select(nodes ...query.Node) *PersonBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
 // Calculation adds operation as an aliased value onto base.
 // After the query, you can read the data by passing alias to GetAlias on the returned object.
-func (b *personQueryBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) PersonBuilder {
+func (b *PersonBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) *PersonBuilder {
 	b.builder.Calculation(base, alias, operation)
 	return b
 }
 
 // Distinct removes duplicates from the results of the query.
 // Adding a Select() is usually required.
-func (b *personQueryBuilder) Distinct() PersonBuilder {
+func (b *PersonBuilder) Distinct() *PersonBuilder {
 	b.builder.Distinct()
 	return b
 }
 
 // GroupBy controls how results are grouped when using aggregate functions with Calculation.
-func (b *personQueryBuilder) GroupBy(nodes ...query.Node) PersonBuilder {
+func (b *PersonBuilder) GroupBy(nodes ...query.Node) *PersonBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
 // Having does additional filtering on the results of the query after the query is performed.
-func (b *personQueryBuilder) Having(node query.Node) PersonBuilder {
+func (b *PersonBuilder) Having(node query.Node) *PersonBuilder {
 	b.builder.Having(node)
 	return b
 }
@@ -945,7 +870,7 @@ func (b *personQueryBuilder) Having(node query.Node) PersonBuilder {
 // If you have Select or Calculation columns in the query, it will count NULL results as well.
 // To not count NULL values, use Where in the builder with a NotNull operation.
 // To count distinct combinations of items, call Distinct() on the builder.
-func (b *personQueryBuilder) Count() (int, error) {
+func (b *PersonBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd")
 

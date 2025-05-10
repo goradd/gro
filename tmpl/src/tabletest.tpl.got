@@ -16,6 +16,9 @@ type TableTestTemplate struct {
 }
 
 func (tmpl *TableTestTemplate) FileName(table *model.Table) string {
+    if table.NoTest {
+        return "" // indicates to NOT create a file for this table
+    }
     return table.FileName() + "_test.go"
 }
 

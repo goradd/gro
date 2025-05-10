@@ -75,14 +75,17 @@ func (o *LeafNl) Save(ctx context.Context) error {
 
 // QueryLeafNls returns a new query builder.
 // See LeafNlBuilder for doc on how to use the builder.
-func QueryLeafNls(ctx context.Context) LeafNlBuilder {
+// You should pass a context that has a timeout with it to protect against a long delay from
+// the database possibly hanging your application. You can set a ReadTimeout value on the schema
+// to do this by default during code generation.
+func QueryLeafNls(ctx context.Context) *LeafNlBuilder {
 	return queryLeafNls(ctx)
 }
 
 // queryLeafNls creates a new builder and is the central spot where all queries are directed.
 // You can modify this function to enforce restrictions on queries, for example to make sure the user is authorized to
 // access the data.
-func queryLeafNls(ctx context.Context) LeafNlBuilder {
+func queryLeafNls(ctx context.Context) *LeafNlBuilder {
 	// Note: the context is provided here so that you can use it to enforce credentials if needed.
 	// It is stored in the builder and later used in the terminating functions, like Load(), Get(), etc.
 	// A QueryBuilder is meant to be a short-lived structure.

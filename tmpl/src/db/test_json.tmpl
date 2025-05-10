@@ -38,8 +38,10 @@ return
 
 {{for _,table := range orderedTables}}
     if v_{{= table.Identifier}} != nil {
+{{if !table.NoTest}}
         obj, _ := Query{{= table.IdentifierPlural }}(ctx).OrderBy(node.{{= table.Identifier }}().PrimaryKey()).Get()
         assertEqualFields{{= table.Identifier}}(t, v_{{= table.Identifier}}, obj)
+{{if}}
     }
 {{for}}
 {{for _,table := range orderedTables}}

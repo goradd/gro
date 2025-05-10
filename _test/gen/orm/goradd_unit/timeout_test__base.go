@@ -8,6 +8,7 @@ import (
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
+	"time"
 	"unicode/utf8"
 
 	"github.com/goradd/anyutil"
@@ -18,22 +19,16 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
-// RootUnlBase is embedded in a RootUnl object and provides the ORM access to the database.
-// The member variables of the structure are private and should not normally be accessed by the RootUnl embedder.
+// TimeoutTestBase is embedded in a TimeoutTest object and provides the ORM access to the database.
+// The member variables of the structure are private and should not normally be accessed by the TimeoutTest embedder.
 // Instead, use the accessor functions.
-type rootUnlBase struct {
-	id              string
-	idIsLoaded      bool
-	idIsDirty       bool
-	name            string
-	nameIsLoaded    bool
-	nameIsDirty     bool
-	groLock         int64
-	groLockIsLoaded bool
-
-	// Reverse reference objects.
-	revLeafUnl        *LeafUnl
-	revLeafUnlIsDirty bool // is a new one being associated
+type timeoutTestBase struct {
+	id           string
+	idIsLoaded   bool
+	idIsDirty    bool
+	name         string
+	nameIsLoaded bool
+	nameIsDirty  bool
 
 	// Custom aliases, if specified
 	_aliases map[string]any
@@ -44,22 +39,20 @@ type rootUnlBase struct {
 	_originalPK string
 }
 
-// IDs used to access the RootUnl object fields by name using the Get function.
-// doc: type=RootUnl
+// IDs used to access the TimeoutTest object fields by name using the Get function.
+// doc: type=TimeoutTest
 const (
-	RootUnl_ID      = `ID`
-	RootUnl_Name    = `Name`
-	RootUnl_GroLock = `GroLock`
-	RootUnlLeafUnl  = `LeafUnl`
+	TimeoutTest_ID   = `ID`
+	TimeoutTest_Name = `Name`
 )
 
-const RootUnlIDMaxLength = 32    // The number of runes the column can hold
-const RootUnlNameMaxLength = 100 // The number of runes the column can hold
+const TimeoutTestIDMaxLength = 32    // The number of runes the column can hold
+const TimeoutTestNameMaxLength = 100 // The number of runes the column can hold
 
-// Initialize or re-initialize a RootUnl database object to default values.
+// Initialize or re-initialize a TimeoutTest database object to default values.
 // The primary key will get a temporary negative number which will be replaced when the object is saved.
 // Multiple calls to Initialize are not guaranteed to create sequential values for the primary key.
-func (o *rootUnlBase) Initialize() {
+func (o *timeoutTestBase) Initialize() {
 	o.id = db.TemporaryPrimaryKey()
 	o.idIsLoaded = true
 	o.idIsDirty = false
@@ -68,30 +61,22 @@ func (o *rootUnlBase) Initialize() {
 	o.nameIsLoaded = false
 	o.nameIsDirty = false
 
-	o.groLock = 0
-	o.groLockIsLoaded = false
-
-	// Reverse reference objects.
-
-	o.revLeafUnl = nil
-	o.revLeafUnlIsDirty = false
-
 	o._aliases = nil
 	o._restored = false
 }
 
 // PrimaryKey returns the current value of the primary key field.
-func (o *rootUnlBase) PrimaryKey() string {
+func (o *timeoutTestBase) PrimaryKey() string {
 	return o.id
 }
 
 // OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
 // read from the database.
-func (o *rootUnlBase) OriginalPrimaryKey() string {
+func (o *timeoutTestBase) OriginalPrimaryKey() string {
 	return o._originalPK
 }
 
-// Copy copies most fields to a new RootUnl object.
+// Copy copies most fields to a new TimeoutTest object.
 // Forward reference ids will be copied, but reverse and many-many references will not.
 // Attached objects will not be included in the copy.
 // Automatically generated fields will not be included in the copy.
@@ -99,8 +84,8 @@ func (o *rootUnlBase) OriginalPrimaryKey() string {
 // Call Save() on the new object to save it into the database.
 // Copy might panic if any fields in the database were set to a size larger than the
 // maximum size through a process that accessed the database outside of the ORM.
-func (o *rootUnlBase) Copy() (newObject *RootUnl) {
-	newObject = NewRootUnl()
+func (o *timeoutTestBase) Copy() (newObject *TimeoutTest) {
+	newObject = NewTimeoutTest()
 	if o.idIsLoaded {
 		newObject.SetID(o.id)
 	}
@@ -111,7 +96,7 @@ func (o *rootUnlBase) Copy() (newObject *RootUnl) {
 }
 
 // ID returns the value of ID.
-func (o *rootUnlBase) ID() string {
+func (o *timeoutTestBase) ID() string {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -119,7 +104,7 @@ func (o *rootUnlBase) ID() string {
 }
 
 // IDIsLoaded returns true if the value was loaded from the database or has been set.
-func (o *rootUnlBase) IDIsLoaded() bool {
+func (o *timeoutTestBase) IDIsLoaded() bool {
 	return o.idIsLoaded
 }
 
@@ -129,12 +114,12 @@ func (o *rootUnlBase) IDIsLoaded() bool {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *rootUnlBase) SetID(v string) {
+func (o *timeoutTestBase) SetID(v string) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
 	}
-	if utf8.RuneCountInString(v) > RootUnlIDMaxLength {
-		panic("attempted to set RootUnl.ID to a value larger than its maximum length in runes")
+	if utf8.RuneCountInString(v) > TimeoutTestIDMaxLength {
+		panic("attempted to set TimeoutTest.ID to a value larger than its maximum length in runes")
 	}
 
 	o.idIsLoaded = true
@@ -143,7 +128,7 @@ func (o *rootUnlBase) SetID(v string) {
 }
 
 // Name returns the value of Name.
-func (o *rootUnlBase) Name() string {
+func (o *timeoutTestBase) Name() string {
 	if o._restored && !o.nameIsLoaded {
 		panic("Name was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -151,14 +136,14 @@ func (o *rootUnlBase) Name() string {
 }
 
 // NameIsLoaded returns true if the value was loaded from the database or has been set.
-func (o *rootUnlBase) NameIsLoaded() bool {
+func (o *timeoutTestBase) NameIsLoaded() bool {
 	return o.nameIsLoaded
 }
 
 // SetName sets the value of Name in the object, to be saved later in the database using the Save() function.
-func (o *rootUnlBase) SetName(v string) {
-	if utf8.RuneCountInString(v) > RootUnlNameMaxLength {
-		panic("attempted to set RootUnl.Name to a value larger than its maximum length in runes")
+func (o *timeoutTestBase) SetName(v string) {
+	if utf8.RuneCountInString(v) > TimeoutTestNameMaxLength {
+		panic("attempted to set TimeoutTest.Name to a value larger than its maximum length in runes")
 	}
 	if o._restored &&
 		o.nameIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
@@ -172,22 +157,9 @@ func (o *rootUnlBase) SetName(v string) {
 	o.nameIsDirty = true
 }
 
-// GroLock returns the value of GroLock.
-func (o *rootUnlBase) GroLock() int64 {
-	if o._restored && !o.groLockIsLoaded {
-		panic("GroLock was not selected in the last query and has not been set, and so is not valid")
-	}
-	return o.groLock
-}
-
-// GroLockIsLoaded returns true if the value was loaded from the database or has been set.
-func (o *rootUnlBase) GroLockIsLoaded() bool {
-	return o.groLockIsLoaded
-}
-
 // GetAlias returns the value for the Alias node aliasKey that was returned in the most
 // recent query.
-func (o *rootUnlBase) GetAlias(aliasKey string) query.AliasValue {
+func (o *timeoutTestBase) GetAlias(aliasKey string) query.AliasValue {
 	if a, ok := o._aliases[aliasKey]; ok {
 		return query.NewAliasValue(a)
 	} else {
@@ -196,93 +168,53 @@ func (o *rootUnlBase) GetAlias(aliasKey string) query.AliasValue {
 }
 
 // IsNew returns true if the object will create a new record when saved.
-func (o *rootUnlBase) IsNew() bool {
+func (o *timeoutTestBase) IsNew() bool {
 	return !o._restored
 }
 
-// LeafUnl returns the connected LeafUnl object, if one was loaded.
-// Otherwise, it will return nil.
-func (o *rootUnlBase) LeafUnl() *LeafUnl {
-	if o.revLeafUnl == nil {
-		return nil
-	}
-	return o.revLeafUnl
-}
-
-// LoadLeafUnl returns the connected LeafUnl object, if one was loaded.
-// Otherwise, it will load a new one and return it.
-func (o *rootUnlBase) LoadLeafUnl(ctx context.Context) (*LeafUnl, error) {
-	if o.revLeafUnl != nil && o.revLeafUnl.IsDirty() {
-		panic("The LeafUnl has changed. You must save it first before changing to a different one.")
-	}
-	var err error
-	if o.revLeafUnl == nil {
-		pk := o.ID()
-		o.revLeafUnl, err = LoadLeafUnlByRootUnlID(ctx, pk)
-	}
-	return o.revLeafUnl, err
-}
-
-// SetLeafUnl associates obj with this RootUnl
-// through the reverse relationship in LeafUnl.RootUnlID.
-//
-// The association is temporary until you call Save().
-// Since this is a unique relationship, if a different LeafUnl object is currently pointing to this RootUnl,
-// that LeafUnl's RootUnlID value will be set to null when Save is called.
-// If you did not use a join to query the attached LeafUnl in the first place, used a conditional join,
-// or joined with an expansion, be particularly careful, since you may be inadvertently changing an item
-// that is not currently attached to this RootUnl.
-func (o *rootUnlBase) SetLeafUnl(obj *LeafUnl) {
-	if o.revLeafUnl != nil && o.revLeafUnl.IsDirty() {
-		panic("The LeafUnl has changed. You must save it first before changing to a different one.")
-	}
-	o.revLeafUnl = obj
-	o.revLeafUnlIsDirty = true
-}
-
-// LoadRootUnl returns a RootUnl from the database.
+// LoadTimeoutTest returns a TimeoutTest from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
-// See [RootUnlsBuilder.Select] for more info.
-func LoadRootUnl(ctx context.Context, id string, selectNodes ...query.Node) (*RootUnl, error) {
-	return queryRootUnls(ctx).
-		Where(op.Equal(node.RootUnl().ID(), id)).
+// See [TimeoutTestsBuilder.Select] for more info.
+func LoadTimeoutTest(ctx context.Context, id string, selectNodes ...query.Node) (*TimeoutTest, error) {
+	return queryTimeoutTests(ctx).
+		Where(op.Equal(node.TimeoutTest().ID(), id)).
 		Select(selectNodes...).
 		Get()
 }
 
-// HasRootUnl returns true if a RootUnl with the given primary key exists in the database.
-// doc: type=RootUnl
-func HasRootUnl(ctx context.Context, id string) (bool, error) {
-	v, err := queryRootUnls(ctx).
-		Where(op.Equal(node.RootUnl().ID(), id)).
+// HasTimeoutTest returns true if a TimeoutTest with the given primary key exists in the database.
+// doc: type=TimeoutTest
+func HasTimeoutTest(ctx context.Context, id string) (bool, error) {
+	v, err := queryTimeoutTests(ctx).
+		Where(op.Equal(node.TimeoutTest().ID(), id)).
 		Count()
 	return v > 0, err
 }
 
-// The RootUnlBuilder uses a builder pattern to create a query on the database.
-// Create a RootUnlBuilder by calling QueryRootUnls, which will select all
-// the RootUnl object in the database. Then filter and arrange those objects
+// The TimeoutTestBuilder uses a builder pattern to create a query on the database.
+// Create a TimeoutTestBuilder by calling QueryTimeoutTests, which will select all
+// the TimeoutTest object in the database. Then filter and arrange those objects
 // by calling Where, Select, etc.
 // End a query by calling either Load, LoadI, LoadCursor, Get, or Count.
-// A RootUnlBuilder stores the context it will use to perform the query, and thus is
+// A TimeoutTestBuilder stores the context it will use to perform the query, and thus is
 // meant to be a short-lived object. You should not save it for later use.
-type RootUnlBuilder struct {
+type TimeoutTestBuilder struct {
 	builder *query.Builder
 	ctx     context.Context
 }
 
-func newRootUnlBuilder(ctx context.Context) *RootUnlBuilder {
-	b := RootUnlBuilder{
-		builder: query.NewBuilder(node.RootUnl()),
+func newTimeoutTestBuilder(ctx context.Context) *TimeoutTestBuilder {
+	b := TimeoutTestBuilder{
+		builder: query.NewBuilder(node.TimeoutTest()),
 		ctx:     ctx,
 	}
 	return &b
 }
 
-// Load terminates the query builder, performs the query, and returns a slice of RootUnl objects.
+// Load terminates the query builder, performs the query, and returns a slice of TimeoutTest objects.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *RootUnlBuilder) Load() (rootUnls []*RootUnl, err error) {
+func (b *TimeoutTestBuilder) Load() (timeoutTests []*TimeoutTest, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
 	var results any
@@ -293,9 +225,9 @@ func (b *RootUnlBuilder) Load() (rootUnls []*RootUnl, err error) {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
-		o := new(RootUnl)
+		o := new(TimeoutTest)
 		o.unpack(item, o)
-		rootUnls = append(rootUnls, o)
+		timeoutTests = append(timeoutTests, o)
 	}
 	return
 }
@@ -304,7 +236,7 @@ func (b *RootUnlBuilder) Load() (rootUnls []*RootUnl, err error) {
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *RootUnlBuilder) LoadI() (rootUnls []query.OrmObj, err error) {
+func (b *TimeoutTestBuilder) LoadI() (timeoutTests []query.OrmObj, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
 	var results any
@@ -315,9 +247,9 @@ func (b *RootUnlBuilder) LoadI() (rootUnls []query.OrmObj, err error) {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
-		o := new(RootUnl)
+		o := new(TimeoutTest)
 		o.unpack(item, o)
-		rootUnls = append(rootUnls, o)
+		timeoutTests = append(timeoutTests, o)
 	}
 	return
 }
@@ -334,23 +266,23 @@ func (b *RootUnlBuilder) LoadI() (rootUnls []query.OrmObj, err error) {
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *RootUnlBuilder) LoadCursor() (rootUnlsCursor, error) {
+func (b *TimeoutTestBuilder) LoadCursor() (timeoutTestsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
 	cursor := result.(query.CursorI)
 
-	return rootUnlsCursor{cursor}, err
+	return timeoutTestsCursor{cursor}, err
 }
 
-type rootUnlsCursor struct {
+type timeoutTestsCursor struct {
 	query.CursorI
 }
 
-// Next returns the current RootUnl object and moves the cursor to the next one.
+// Next returns the current TimeoutTest object and moves the cursor to the next one.
 //
 // If there are no more records, it returns nil.
-func (c rootUnlsCursor) Next() (*RootUnl, error) {
+func (c timeoutTestsCursor) Next() (*TimeoutTest, error) {
 	if c.CursorI == nil {
 		return nil, nil
 	}
@@ -359,7 +291,7 @@ func (c rootUnlsCursor) Next() (*RootUnl, error) {
 	if row == nil || err != nil {
 		return nil, err
 	}
-	o := new(RootUnl)
+	o := new(TimeoutTest)
 	o.unpack(row, o)
 	return o, nil
 }
@@ -368,7 +300,7 @@ func (c rootUnlsCursor) Next() (*RootUnl, error) {
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
 // If an error occurs, or no results are found, a nil is returned.
-func (b *RootUnlBuilder) Get() (*RootUnl, error) {
+func (b *TimeoutTestBuilder) Get() (*TimeoutTest, error) {
 	results, err := b.Load()
 	if err != nil || len(results) == 0 {
 		return nil, err
@@ -378,7 +310,7 @@ func (b *RootUnlBuilder) Get() (*RootUnl, error) {
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
-func (b *RootUnlBuilder) Where(c query.Node) *RootUnlBuilder {
+func (b *TimeoutTestBuilder) Where(c query.Node) *TimeoutTestBuilder {
 	b.builder.Where(c)
 	return b
 }
@@ -386,7 +318,7 @@ func (b *RootUnlBuilder) Where(c query.Node) *RootUnlBuilder {
 // OrderBy specifies how the resulting data should be sorted.
 // By default, the given nodes are sorted in ascending order.
 // Add Descending() to the node to specify that it should be sorted in descending order.
-func (b *RootUnlBuilder) OrderBy(nodes ...query.Sorter) *RootUnlBuilder {
+func (b *TimeoutTestBuilder) OrderBy(nodes ...query.Sorter) *TimeoutTestBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
@@ -395,45 +327,45 @@ func (b *RootUnlBuilder) OrderBy(nodes ...query.Sorter) *RootUnlBuilder {
 // For large data sets and specific types of queries, this can be slow, because it will perform
 // the entire query before computing the limit.
 // You cannot limit a query that has embedded arrays.
-func (b *RootUnlBuilder) Limit(maxRowCount int, offset int) *RootUnlBuilder {
+func (b *TimeoutTestBuilder) Limit(maxRowCount int, offset int) *TimeoutTestBuilder {
 	b.builder.Limit(maxRowCount, offset)
 	return b
 }
 
 // Select specifies what specific columns will be loaded with data.
-// By default, all the columns of the root_unl table will be queried and loaded.
-// If nodes contains columns from the root_unl table, that will limit the columns queried and loaded to only those columns.
+// By default, all the columns of the timeout_test table will be queried and loaded.
+// If nodes contains columns from the timeout_test table, that will limit the columns queried and loaded to only those columns.
 // If related tables are specified, then all the columns from those tables are queried, selected and joined to the result.
 // If columns in related tables are specified, then only those columns will be queried and loaded.
 // Depending on the query, additional columns may automatically be added to the query. In particular, primary key columns
 // will be added in most situations. The exception to this would be in distinct queries, group by queries, or subqueries.
-func (b *RootUnlBuilder) Select(nodes ...query.Node) *RootUnlBuilder {
+func (b *TimeoutTestBuilder) Select(nodes ...query.Node) *TimeoutTestBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
 // Calculation adds operation as an aliased value onto base.
 // After the query, you can read the data by passing alias to GetAlias on the returned object.
-func (b *RootUnlBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) *RootUnlBuilder {
+func (b *TimeoutTestBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) *TimeoutTestBuilder {
 	b.builder.Calculation(base, alias, operation)
 	return b
 }
 
 // Distinct removes duplicates from the results of the query.
 // Adding a Select() is usually required.
-func (b *RootUnlBuilder) Distinct() *RootUnlBuilder {
+func (b *TimeoutTestBuilder) Distinct() *TimeoutTestBuilder {
 	b.builder.Distinct()
 	return b
 }
 
 // GroupBy controls how results are grouped when using aggregate functions with Calculation.
-func (b *RootUnlBuilder) GroupBy(nodes ...query.Node) *RootUnlBuilder {
+func (b *TimeoutTestBuilder) GroupBy(nodes ...query.Node) *TimeoutTestBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
 // Having does additional filtering on the results of the query after the query is performed.
-func (b *RootUnlBuilder) Having(node query.Node) *RootUnlBuilder {
+func (b *TimeoutTestBuilder) Having(node query.Node) *TimeoutTestBuilder {
 	b.builder.Having(node)
 	return b
 }
@@ -442,7 +374,7 @@ func (b *RootUnlBuilder) Having(node query.Node) *RootUnlBuilder {
 // If you have Select or Calculation columns in the query, it will count NULL results as well.
 // To not count NULL values, use Where in the builder with a NotNull operation.
 // To count distinct combinations of items, call Distinct() on the builder.
-func (b *RootUnlBuilder) Count() (int, error) {
+func (b *TimeoutTestBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd_unit")
 
@@ -454,13 +386,13 @@ func (b *RootUnlBuilder) Count() (int, error) {
 	return results.(int), nil
 }
 
-// CountRootUnls returns the total number of items in the root_unl table.
-func CountRootUnls(ctx context.Context) (int, error) {
-	return QueryRootUnls(ctx).Count()
+// CountTimeoutTests returns the total number of items in the timeout_test table.
+func CountTimeoutTests(ctx context.Context) (int, error) {
+	return QueryTimeoutTests(ctx).Count()
 }
 
 // unpack recursively transforms data coming from the database into ORM objects.
-func (o *rootUnlBase) unpack(m map[string]interface{}, objThis *RootUnl) {
+func (o *timeoutTestBase) unpack(m map[string]interface{}, objThis *TimeoutTest) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
@@ -492,33 +424,6 @@ func (o *rootUnlBase) unpack(m map[string]interface{}, objThis *RootUnl) {
 		o.nameIsDirty = false
 	}
 
-	if v, ok := m["gro_lock"]; ok && v != nil {
-		if o.groLock, ok = v.(int64); ok {
-			o.groLockIsLoaded = true
-
-		} else {
-			panic("Wrong type found for gro_lock.")
-		}
-	} else {
-		o.groLockIsLoaded = false
-		o.groLock = 0
-	}
-
-	// Reverse references
-
-	if v, ok := m["LeafUnl"]; ok {
-		if v2, ok2 := v.(map[string]any); ok2 {
-			o.revLeafUnl = new(LeafUnl)
-			o.revLeafUnl.unpack(v2, o.revLeafUnl)
-			o.revLeafUnlIsDirty = false
-		} else {
-			panic("Wrong type found for rootUnlID object.")
-		}
-	} else {
-		o.revLeafUnl = nil
-		o.revLeafUnlIsDirty = false
-	}
-
 	if v, ok := m["aliases_"]; ok {
 		o._aliases = v.(map[string]any)
 	}
@@ -528,7 +433,7 @@ func (o *rootUnlBase) unpack(m map[string]interface{}, objThis *RootUnl) {
 }
 
 // save will update or insert the object, depending on the state of the object.
-func (o *rootUnlBase) save(ctx context.Context) error {
+func (o *timeoutTestBase) save(ctx context.Context) error {
 	if o._restored {
 		return o.update(ctx)
 	} else {
@@ -538,7 +443,7 @@ func (o *rootUnlBase) save(ctx context.Context) error {
 
 // update will update the values in the database, saving any changed values.
 // If the table has auto-generated values, those will be updated automatically.
-func (o *rootUnlBase) update(ctx context.Context) error {
+func (o *timeoutTestBase) update(ctx context.Context) error {
 	if !o._restored {
 		panic("cannot update a record that was not originally read from the database.")
 	}
@@ -547,56 +452,20 @@ func (o *rootUnlBase) update(ctx context.Context) error {
 	}
 
 	var modifiedFields map[string]interface{}
-	var newLock int64
 
 	d := Database()
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 1*time.Nanosecond)
+	defer cancel()
 	err := db.ExecuteTransaction(ctx, d, func() error {
 
-		modifiedFields = getRootUnlUpdateFields(o)
+		modifiedFields = getTimeoutTestUpdateFields(o)
 		if len(modifiedFields) != 0 {
 			var err2 error
 
-			// If this panics with an invalid GroLock value, then the GroLock field was not selected in a prior query. Be sure to include it in any Select statements.
-			newLock, err2 = d.Update(ctx, "root_unl", "id", o._originalPK, modifiedFields, "gro_lock", o.GroLock())
+			_, err2 = d.Update(ctx, "timeout_test", "id", o._originalPK, modifiedFields, "", 0)
 			if err2 != nil {
 				return err2
-			}
-		}
-
-		if o.revLeafUnlIsDirty {
-			// relation connection changed
-
-			if obj, err := QueryLeafUnls(ctx).
-				Where(op.Equal(node.LeafUnl().RootUnlID(), o.PrimaryKey())).
-				Select(node.LeafUnl().RootUnlID()).
-				Select(node.LeafUnl().GroLock()).
-				Get(); err != nil {
-				return err
-			} else if obj != nil &&
-				(o.revLeafUnl == nil ||
-					obj.PrimaryKey() != o.revLeafUnl.PrimaryKey()) {
-
-				obj.SetRootUnlIDToNull()
-				if err = obj.Save(ctx); err != nil {
-					return err
-				}
-			}
-
-			if o.revLeafUnl != nil {
-				o.revLeafUnl.rootUnlIDIsDirty = true // force a change in case data is stale
-				o.revLeafUnl.SetRootUnlID(o.PrimaryKey())
-				if err := o.revLeafUnl.Save(ctx); err != nil {
-					return err
-				}
-			}
-
-		} else {
-
-			// save related object in case internal values changed
-			if o.revLeafUnl != nil {
-				if err := o.revLeafUnl.Save(ctx); err != nil {
-					return err
-				}
 			}
 		}
 
@@ -605,45 +474,39 @@ func (o *rootUnlBase) update(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
-	if newLock != 0 {
-		o.groLock = newLock
-		o.groLockIsLoaded = true
-	}
 
 	o.resetDirtyStatus()
 	if len(modifiedFields) != 0 {
-		broadcast.Update(ctx, "goradd_unit", "root_unl", o._originalPK, anyutil.SortedKeys(modifiedFields)...)
+		broadcast.Update(ctx, "goradd_unit", "timeout_test", o._originalPK, anyutil.SortedKeys(modifiedFields)...)
 	}
 
 	return nil
 }
 
 // insert will insert the object into the database. Related items will be saved.
-func (o *rootUnlBase) insert(ctx context.Context) (err error) {
+func (o *timeoutTestBase) insert(ctx context.Context) (err error) {
 	var insertFields map[string]interface{}
 	d := Database()
+
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 1*time.Nanosecond)
+	defer cancel()
+
 	err = db.ExecuteTransaction(ctx, d, func() error {
 
 		if !o.nameIsLoaded {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
-		insertFields = getRootUnlInsertFields(o)
+		insertFields = getTimeoutTestInsertFields(o)
 		var newPk string
 
-		newPk, err = d.Insert(ctx, "root_unl", "id", insertFields)
+		newPk, err = d.Insert(ctx, "timeout_test", "id", insertFields)
 		if err != nil {
 			return err
 		}
 		o.id = newPk
 		o._originalPK = newPk
 		o.idIsLoaded = true
-
-		if o.revLeafUnl != nil {
-			o.revLeafUnl.SetRootUnlID(newPk)
-			if err = o.revLeafUnl.Save(ctx); err != nil {
-				return err
-			}
-		}
 
 		return nil
 
@@ -652,20 +515,16 @@ func (o *rootUnlBase) insert(ctx context.Context) (err error) {
 	if err != nil {
 		return
 	}
-	if t, ok := insertFields["gro_lock"]; ok {
-		o.groLock = t.(int64)
-		o.groLockIsLoaded = true
-	}
 
 	o.resetDirtyStatus()
 	o._restored = true
-	broadcast.Insert(ctx, "goradd_unit", "root_unl", o.PrimaryKey())
+	broadcast.Insert(ctx, "goradd_unit", "timeout_test", o.PrimaryKey())
 	return
 }
 
 // getUpdateFields returns the database columns that will be sent to the update process.
 // This will include timestamp fields only if some other column has changed.
-func (o *rootUnlBase) getUpdateFields() (fields map[string]interface{}) {
+func (o *timeoutTestBase) getUpdateFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.idIsDirty {
 		fields["id"] = o.id
@@ -682,21 +541,18 @@ func (o *rootUnlBase) getUpdateFields() (fields map[string]interface{}) {
 // explicitly setting a NULL value, which would override any database specific default value.
 // Auto-generated fields will be returned with their generated values, except AutoPK fields, which are generated by the
 // database driver and updated after the insert.
-func (o *rootUnlBase) getInsertFields() (fields map[string]interface{}) {
+func (o *timeoutTestBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.idIsDirty {
 		fields["id"] = o.id
 	}
 
 	fields["name"] = o.name
-	fields["gro_lock"] = db.RecordVersion(0)
 	return
 }
 
 // Delete deletes the record from the database.
-//
-// An associated LeafUnl will have its RootUnlID field set to NULL.
-func (o *rootUnlBase) Delete(ctx context.Context) (err error) {
+func (o *timeoutTestBase) Delete(ctx context.Context) (err error) {
 	if o == nil {
 		return // allow deleting of a nil object to be a noop
 	}
@@ -704,79 +560,38 @@ func (o *rootUnlBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	err = db.ExecuteTransaction(ctx, d, func() error {
-
-		{
-			// Set the related objects pointer to us to NULL in the database
-			obj, err := QueryLeafUnls(ctx).
-				Where(op.Equal(node.LeafUnl().RootUnlID(), o.id)).
-				Select(node.LeafUnl().RootUnlID()).
-				Select(node.LeafUnl().GroLock()).
-				Get()
-			if err != nil {
-				return err
-			}
-			if obj != nil {
-				obj.SetRootUnlIDToNull()
-				if err = obj.Save(ctx); err != nil {
-					return err
-				}
-			}
-			// Set this object's pointer to the reverse object to nil to mark that we broke the link
-			o.revLeafUnl = nil
-		}
-
-		return d.Delete(ctx, "root_unl", "ID", o.id, "gro_lock", o.GroLock())
-	})
-
+	err = d.Delete(ctx, "timeout_test", "ID", o.id, "", 0)
 	if err != nil {
 		return err
 	}
-	broadcast.Delete(ctx, "goradd_unit", "root_unl", fmt.Sprint(o.id))
+	broadcast.Delete(ctx, "goradd_unit", "timeout_test", fmt.Sprint(o.id))
 	return
 }
 
-// deleteRootUnl deletes the RootUnl with primary key pk from the database
+// deleteTimeoutTest deletes the TimeoutTest with primary key pk from the database
 // and handles associated records.
-func deleteRootUnl(ctx context.Context, pk string) error {
+func deleteTimeoutTest(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd_unit")
-	err := db.ExecuteTransaction(ctx, d, func() error {
-		if obj, err := LoadRootUnl(ctx,
-			pk,
-			node.RootUnl().PrimaryKey(),
-			node.RootUnl().GroLock(),
-		); err != nil {
-			return err
-		} else if obj == nil {
-			return db.NewRecordNotFoundError("root_unl", pk)
-		} else {
-			if err := obj.Delete(ctx); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
+	err := d.Delete(ctx, "timeout_test", "ID", pk, "", 0)
+	if err != nil {
+		return err
+	}
+	broadcast.Delete(ctx, "goradd_unit", "timeout_test", fmt.Sprint(pk))
 	return err
 }
 
 // resetDirtyStatus resets the dirty status of every field in the object.
-func (o *rootUnlBase) resetDirtyStatus() {
+func (o *timeoutTestBase) resetDirtyStatus() {
 	o.idIsDirty = false
 	o.nameIsDirty = false
-	o.revLeafUnlIsDirty = false
 
 }
 
 // IsDirty returns true if the object has been changed since it was read from the database or created.
 // However, a new object that has a column with a default value will be automatically marked as dirty upon creation.
-func (o *rootUnlBase) IsDirty() (dirty bool) {
+func (o *timeoutTestBase) IsDirty() (dirty bool) {
 	dirty = o.idIsDirty ||
 		o.nameIsDirty
-
-	dirty = dirty ||
-		o.revLeafUnlIsDirty
-
-	dirty = dirty || (o.revLeafUnl != nil && o.revLeafUnl.IsDirty())
 
 	return
 }
@@ -785,7 +600,7 @@ func (o *rootUnlBase) IsDirty() (dirty bool) {
 // It will also get related objects if they are loaded.
 // Invalid fields and objects are returned as nil.
 // Get can be used to retrieve a value by using the Identifier of a node.
-func (o *rootUnlBase) Get(key string) interface{} {
+func (o *timeoutTestBase) Get(key string) interface{} {
 
 	switch key {
 
@@ -801,15 +616,6 @@ func (o *rootUnlBase) Get(key string) interface{} {
 		}
 		return o.name
 
-	case "GroLock":
-		if !o.groLockIsLoaded {
-			return nil
-		}
-		return o.groLock
-
-	case "LeafUnl":
-		return o.revLeafUnl
-
 	}
 	return nil
 }
@@ -818,7 +624,7 @@ func (o *rootUnlBase) Get(key string) interface{} {
 // It should be used for transmitting database objects over the wire, or for temporary storage. It does not send
 // a version number, so if the data format changes, its up to you to invalidate the old stored objects.
 // The framework uses this to serialize the object when it is stored in a control.
-func (o *rootUnlBase) MarshalBinary() ([]byte, error) {
+func (o *timeoutTestBase) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
 	enc := gob.NewEncoder(buf)
 	if err := o.encodeTo(enc); err != nil {
@@ -827,50 +633,26 @@ func (o *rootUnlBase) MarshalBinary() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (o *rootUnlBase) encodeTo(enc db.Encoder) error {
+func (o *timeoutTestBase) encodeTo(enc db.Encoder) error {
 
 	if err := enc.Encode(o.id); err != nil {
-		return fmt.Errorf("error encoding RootUnl.id: %w", err)
+		return fmt.Errorf("error encoding TimeoutTest.id: %w", err)
 	}
 	if err := enc.Encode(o.idIsLoaded); err != nil {
-		return fmt.Errorf("error encoding RootUnl.idIsLoaded: %w", err)
+		return fmt.Errorf("error encoding TimeoutTest.idIsLoaded: %w", err)
 	}
 	if err := enc.Encode(o.idIsDirty); err != nil {
-		return fmt.Errorf("error encoding RootUnl.idIsDirty: %w", err)
+		return fmt.Errorf("error encoding TimeoutTest.idIsDirty: %w", err)
 	}
 
 	if err := enc.Encode(o.name); err != nil {
-		return fmt.Errorf("error encoding RootUnl.name: %w", err)
+		return fmt.Errorf("error encoding TimeoutTest.name: %w", err)
 	}
 	if err := enc.Encode(o.nameIsLoaded); err != nil {
-		return fmt.Errorf("error encoding RootUnl.nameIsLoaded: %w", err)
+		return fmt.Errorf("error encoding TimeoutTest.nameIsLoaded: %w", err)
 	}
 	if err := enc.Encode(o.nameIsDirty); err != nil {
-		return fmt.Errorf("error encoding RootUnl.nameIsDirty: %w", err)
-	}
-
-	if err := enc.Encode(o.groLock); err != nil {
-		return fmt.Errorf("error encoding RootUnl.groLock: %w", err)
-	}
-	if err := enc.Encode(o.groLockIsLoaded); err != nil {
-		return fmt.Errorf("error encoding RootUnl.groLockIsLoaded: %w", err)
-	}
-
-	if o.revLeafUnl == nil {
-		if err := enc.Encode(false); err != nil {
-			return err
-		}
-	} else {
-		if err := enc.Encode(true); err != nil {
-			return err
-		}
-		if err := enc.Encode(o.revLeafUnl); err != nil {
-			return fmt.Errorf("error encoding RootUnl.revLeafUnl: %w", err)
-		}
-	}
-
-	if err := enc.Encode(o.revLeafUnlIsDirty); err != nil {
-		return fmt.Errorf("error encoding RootUnl.revLeafUnlIsDirty: %w", err)
+		return fmt.Errorf("error encoding TimeoutTest.nameIsDirty: %w", err)
 	}
 
 	if o._aliases == nil {
@@ -882,83 +664,64 @@ func (o *rootUnlBase) encodeTo(enc db.Encoder) error {
 			return err
 		}
 		if err := enc.Encode(o._aliases); err != nil {
-			return fmt.Errorf("error encoding RootUnl._aliases: %w", err)
+			return fmt.Errorf("error encoding TimeoutTest._aliases: %w", err)
 		}
 	}
 
 	if err := enc.Encode(o._restored); err != nil {
-		return fmt.Errorf("error encoding RootUnl._restored: %w", err)
+		return fmt.Errorf("error encoding TimeoutTest._restored: %w", err)
 	}
 	if err := enc.Encode(o._originalPK); err != nil {
-		return fmt.Errorf("error encoding RootUnl._originalPK: %w", err)
+		return fmt.Errorf("error encoding TimeoutTest._originalPK: %w", err)
 	}
 	return nil
 }
 
-// UnmarshalBinary converts a structure that was created with MarshalBinary into a RootUnl object.
-func (o *rootUnlBase) UnmarshalBinary(data []byte) (err error) {
+// UnmarshalBinary converts a structure that was created with MarshalBinary into a TimeoutTest object.
+func (o *timeoutTestBase) UnmarshalBinary(data []byte) (err error) {
 	buf := bytes.NewReader(data)
 	dec := gob.NewDecoder(buf)
 	return o.decodeFrom(dec)
 }
 
-func (o *rootUnlBase) decodeFrom(dec db.Decoder) (err error) {
+func (o *timeoutTestBase) decodeFrom(dec db.Decoder) (err error) {
 	var isPtr bool
 
 	_ = isPtr
 	if err = dec.Decode(&o.id); err != nil {
-		return fmt.Errorf("error decoding RootUnl.id: %w", err)
+		return fmt.Errorf("error decoding TimeoutTest.id: %w", err)
 	}
 	if err = dec.Decode(&o.idIsLoaded); err != nil {
-		return fmt.Errorf("error decoding RootUnl.idIsLoaded: %w", err)
+		return fmt.Errorf("error decoding TimeoutTest.idIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.idIsDirty); err != nil {
-		return fmt.Errorf("error decoding RootUnl.idIsDirty: %w", err)
+		return fmt.Errorf("error decoding TimeoutTest.idIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.name); err != nil {
-		return fmt.Errorf("error decoding RootUnl.name: %w", err)
+		return fmt.Errorf("error decoding TimeoutTest.name: %w", err)
 	}
 	if err = dec.Decode(&o.nameIsLoaded); err != nil {
-		return fmt.Errorf("error decoding RootUnl.nameIsLoaded: %w", err)
+		return fmt.Errorf("error decoding TimeoutTest.nameIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.nameIsDirty); err != nil {
-		return fmt.Errorf("error decoding RootUnl.nameIsDirty: %w", err)
-	}
-
-	if err = dec.Decode(&o.groLock); err != nil {
-		return fmt.Errorf("error decoding RootUnl.groLock: %w", err)
-	}
-	if err = dec.Decode(&o.groLockIsLoaded); err != nil {
-		return fmt.Errorf("error decoding RootUnl.groLockIsLoaded: %w", err)
+		return fmt.Errorf("error decoding TimeoutTest.nameIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return fmt.Errorf("error decoding RootUnl.revLeafUnl isPtr: %w", err)
-	}
-	if isPtr {
-		if err = dec.Decode(&o.revLeafUnl); err != nil {
-			return fmt.Errorf("error decoding RootUnl.revLeafUnl: %w", err)
-		}
-	}
-
-	if err = dec.Decode(&o.revLeafUnlIsDirty); err != nil {
-		return fmt.Errorf("error decoding RootUnl.revLeafUnlIsDirty: %w", err)
-	}
-	if err = dec.Decode(&isPtr); err != nil {
-		return fmt.Errorf("error decoding RootUnl._aliases isPtr: %w", err)
+		return fmt.Errorf("error decoding TimeoutTest._aliases isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o._aliases); err != nil {
-			return fmt.Errorf("error decoding RootUnl._aliases: %w", err)
+			return fmt.Errorf("error decoding TimeoutTest._aliases: %w", err)
 		}
 	}
 
 	if err = dec.Decode(&o._restored); err != nil {
-		return fmt.Errorf("error decoding RootUnl._restored: %w", err)
+		return fmt.Errorf("error decoding TimeoutTest._restored: %w", err)
 	}
 	if err = dec.Decode(&o._originalPK); err != nil {
-		return fmt.Errorf("error decoding RootUnl._originalPK: %w", err)
+		return fmt.Errorf("error decoding TimeoutTest._originalPK: %w", err)
 	}
 	return
 }
@@ -967,7 +730,7 @@ func (o *rootUnlBase) decodeFrom(dec db.Decoder) (err error) {
 // Only valid data will be serialized, meaning, you can control what gets serialized by using Select to
 // select only the fields you want when you query for the object. Another way to control the output
 // is to call MarshalStringMap, modify the map, then encode the map.
-func (o *rootUnlBase) MarshalJSON() (data []byte, err error) {
+func (o *timeoutTestBase) MarshalJSON() (data []byte, err error) {
 	v := o.MarshalStringMap()
 	return json.Marshal(v)
 }
@@ -975,7 +738,7 @@ func (o *rootUnlBase) MarshalJSON() (data []byte, err error) {
 // MarshalStringMap serializes the object into a string map of interfaces.
 // Only valid data will be serialized, meaning, you can control what gets serialized by using Select to
 // select only the fields you want when you query for the object. The keys are the same as the json keys.
-func (o *rootUnlBase) MarshalStringMap() map[string]interface{} {
+func (o *timeoutTestBase) MarshalStringMap() map[string]interface{} {
 	v := make(map[string]interface{})
 
 	if o.idIsLoaded {
@@ -986,20 +749,13 @@ func (o *rootUnlBase) MarshalStringMap() map[string]interface{} {
 		v["name"] = o.name
 	}
 
-	if o.groLockIsLoaded {
-		v["groLock"] = o.groLock
-	}
-
-	if obj := o.revLeafUnl; obj != nil {
-		v["leafUnl"] = obj.MarshalStringMap()
-	}
 	for _k, _v := range o._aliases {
 		v[_k] = _v
 	}
 	return v
 }
 
-// UnmarshalJSON unmarshalls the given json data into the RootUnl. The RootUnl can be a
+// UnmarshalJSON unmarshalls the given json data into the TimeoutTest. The TimeoutTest can be a
 // newly created object, or one loaded from the database.
 //
 // After unmarshalling, the object is not  saved. You must call Save to insert it into the database
@@ -1011,8 +767,7 @@ func (o *rootUnlBase) MarshalStringMap() map[string]interface{} {
 //
 //	"id" - string
 //	"name" - string
-//	"groLock" - int64
-func (o *rootUnlBase) UnmarshalJSON(data []byte) (err error) {
+func (o *timeoutTestBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
 	if len(data) == 0 {
 		return
@@ -1027,8 +782,8 @@ func (o *rootUnlBase) UnmarshalJSON(data []byte) (err error) {
 
 // UnmarshalStringMap will load the values from the stringmap into the object.
 //
-// Override this in RootUnl to modify the json before sending it here.
-func (o *rootUnlBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
+// Override this in TimeoutTest to modify the json before sending it here.
+func (o *timeoutTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 	for k, v := range m {
 		switch k {
 
@@ -1057,18 +812,6 @@ func (o *rootUnlBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					o.SetName(s)
 				}
 			}
-
-		case "leafUnl":
-			v2 := NewLeafUnl()
-			m2, ok := v.(map[string]any)
-			if !ok {
-				return fmt.Errorf("json field %s must be a map", k)
-			}
-			err = v2.UnmarshalStringMap(m2)
-			if err != nil {
-				return
-			}
-			o.SetLeafUnl(v2)
 
 		}
 	}

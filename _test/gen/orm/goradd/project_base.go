@@ -1300,94 +1300,19 @@ func HasProjectsByParentProjectID(ctx context.Context, parentProjectID interface
 }
 
 // The ProjectBuilder uses a builder pattern to create a query on the database.
-// Start a query by calling QueryProjects, which will select all
+// Create a ProjectBuilder by calling QueryProjects, which will select all
 // the Project object in the database. Then filter and arrange those objects
 // by calling Where, Select, etc.
 // End a query by calling either Load, LoadI, LoadCursor, Get, or Count.
 // A ProjectBuilder stores the context it will use to perform the query, and thus is
-// meant to be a short-lived object. You should not save a query builder for later use.
-type ProjectBuilder interface {
-	// Where adds a condition to filter what gets selected.
-	// Calling Where multiple times will AND the conditions together.
-	// See the op package for the usable conditions.
-	Where(c query.Node) ProjectBuilder
-
-	// OrderBy specifies how the resulting data should be sorted.
-	// By default, the given nodes are sorted in ascending order.
-	// Add Descending() to the node to specify that it should be sorted in descending order.
-	OrderBy(nodes ...query.Sorter) ProjectBuilder
-
-	// Limit will return a subset of the data, limited to the offset and number of rows specified.
-	// For large data sets and specific types of queries, this can be slow, because it will perform
-	// the entire query before computing the limit.
-	// You cannot limit a query that has selected a "many" relationship.
-	Limit(maxRowCount int, offset int) ProjectBuilder
-
-	// Select performs two functions:
-	//  - Passing a table type node will join the object or objects from that table to this object.
-	//  - Passing a column node will optimize the query to only return the specified fields.
-	// Once you select at least one column, you must select all the columns that you want in the result.
-	// Some fields, like primary keys, are always selected.
-	// If you are using a GroupBy, you must select the fields in the GroupBy.
-	Select(nodes ...query.Node) ProjectBuilder
-
-	// Calculation adds a calculation described by operation with alias.
-	// After the query, you can read the data using GetAlias() on the object identified by base.
-	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) ProjectBuilder
-
-	// Distinct removes duplicates from the results of the query.
-	// Adding a Select() is required when using Distinct.
-	Distinct() ProjectBuilder
-
-	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
-	GroupBy(nodes ...query.Node) ProjectBuilder
-
-	// Having does additional filtering on the results of the query after the query is performed.
-	Having(node query.Node) ProjectBuilder
-
-	// Load terminates the query builder, performs the query, and returns a slice of Project objects.
-	// If there are any errors, nil is returned along with the error.
-	// If no results come back from the query, it will return a non-nil empty slice.
-	Load() ([]*Project, error)
-	// Load terminates the query builder, performs the query, and returns a slice of interfaces.
-	// This can then satisfy a general interface that loads arrays of objects.
-	// If there are any errors, nil is returned along with the error.
-	// If no results come back from the query, it will return a non-nil empty slice.
-	LoadI() ([]query.OrmObj, error)
-
-	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
-	//
-	// A query cursor is useful for dealing with large amounts of query results. However, there are some
-	// limitations to its use. When working with SQL databases, you cannot use a cursor while querying
-	// many-to-many or reverse relationships that will create an array of values.
-	//
-	// Call Next() on the returned cursor object to step through the results. Make sure you call Close
-	// on the cursor object when you are done. You should use
-	//   defer cursor.Close()
-	// to make sure the cursor gets closed.
-
-	LoadCursor() (projectsCursor, error)
-
-	// Get is a convenience method to return only the first item found in a query.
-	// The entire query is performed, so you should generally use this only if you know
-	// you are selecting on one or very few items.
-	// If an error occurs, or no results are found, a nil is returned.
-	Get() (*Project, error)
-
-	// Count terminates a query and returns just the number of items in the result.
-	// If you have Select or Calculation columns in the query, it will count NULL results as well.
-	// To not count NULL values, use Where in the builder with a NotNull operation.
-	// To count distinct combinations of items, call Distinct() on the builder.
-	Count() (int, error)
-}
-
-type projectQueryBuilder struct {
+// meant to be a short-lived object. You should not save it for later use.
+type ProjectBuilder struct {
 	builder *query.Builder
 	ctx     context.Context
 }
 
-func newProjectBuilder(ctx context.Context) ProjectBuilder {
-	b := projectQueryBuilder{
+func newProjectBuilder(ctx context.Context) *ProjectBuilder {
+	b := ProjectBuilder{
 		builder: query.NewBuilder(node.Project()),
 		ctx:     ctx,
 	}
@@ -1397,7 +1322,7 @@ func newProjectBuilder(ctx context.Context) ProjectBuilder {
 // Load terminates the query builder, performs the query, and returns a slice of Project objects.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *projectQueryBuilder) Load() (projects []*Project, err error) {
+func (b *ProjectBuilder) Load() (projects []*Project, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
 	var results any
@@ -1419,7 +1344,7 @@ func (b *projectQueryBuilder) Load() (projects []*Project, err error) {
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *projectQueryBuilder) LoadI() (projects []query.OrmObj, err error) {
+func (b *ProjectBuilder) LoadI() (projects []query.OrmObj, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd")
 	var results any
@@ -1449,10 +1374,10 @@ func (b *projectQueryBuilder) LoadI() (projects []query.OrmObj, err error) {
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *projectQueryBuilder) LoadCursor() (projectsCursor, error) {
+func (b *ProjectBuilder) LoadCursor() (projectsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
-	result, err := database.BuilderQuery(b.builder)
+	result, err := database.BuilderQuery(b.ctx, b.builder)
 	cursor := result.(query.CursorI)
 
 	return projectsCursor{cursor}, err
@@ -1483,7 +1408,7 @@ func (c projectsCursor) Next() (*Project, error) {
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
 // If an error occurs, or no results are found, a nil is returned.
-func (b *projectQueryBuilder) Get() (*Project, error) {
+func (b *ProjectBuilder) Get() (*Project, error) {
 	results, err := b.Load()
 	if err != nil || len(results) == 0 {
 		return nil, err
@@ -1493,7 +1418,7 @@ func (b *projectQueryBuilder) Get() (*Project, error) {
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
-func (b *projectQueryBuilder) Where(c query.Node) ProjectBuilder {
+func (b *ProjectBuilder) Where(c query.Node) *ProjectBuilder {
 	b.builder.Where(c)
 	return b
 }
@@ -1501,7 +1426,7 @@ func (b *projectQueryBuilder) Where(c query.Node) ProjectBuilder {
 // OrderBy specifies how the resulting data should be sorted.
 // By default, the given nodes are sorted in ascending order.
 // Add Descending() to the node to specify that it should be sorted in descending order.
-func (b *projectQueryBuilder) OrderBy(nodes ...query.Sorter) ProjectBuilder {
+func (b *ProjectBuilder) OrderBy(nodes ...query.Sorter) *ProjectBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
@@ -1510,7 +1435,7 @@ func (b *projectQueryBuilder) OrderBy(nodes ...query.Sorter) ProjectBuilder {
 // For large data sets and specific types of queries, this can be slow, because it will perform
 // the entire query before computing the limit.
 // You cannot limit a query that has embedded arrays.
-func (b *projectQueryBuilder) Limit(maxRowCount int, offset int) ProjectBuilder {
+func (b *ProjectBuilder) Limit(maxRowCount int, offset int) *ProjectBuilder {
 	b.builder.Limit(maxRowCount, offset)
 	return b
 }
@@ -1522,33 +1447,33 @@ func (b *projectQueryBuilder) Limit(maxRowCount int, offset int) ProjectBuilder 
 // If columns in related tables are specified, then only those columns will be queried and loaded.
 // Depending on the query, additional columns may automatically be added to the query. In particular, primary key columns
 // will be added in most situations. The exception to this would be in distinct queries, group by queries, or subqueries.
-func (b *projectQueryBuilder) Select(nodes ...query.Node) ProjectBuilder {
+func (b *ProjectBuilder) Select(nodes ...query.Node) *ProjectBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
 // Calculation adds operation as an aliased value onto base.
 // After the query, you can read the data by passing alias to GetAlias on the returned object.
-func (b *projectQueryBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) ProjectBuilder {
+func (b *ProjectBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) *ProjectBuilder {
 	b.builder.Calculation(base, alias, operation)
 	return b
 }
 
 // Distinct removes duplicates from the results of the query.
 // Adding a Select() is usually required.
-func (b *projectQueryBuilder) Distinct() ProjectBuilder {
+func (b *ProjectBuilder) Distinct() *ProjectBuilder {
 	b.builder.Distinct()
 	return b
 }
 
 // GroupBy controls how results are grouped when using aggregate functions with Calculation.
-func (b *projectQueryBuilder) GroupBy(nodes ...query.Node) ProjectBuilder {
+func (b *ProjectBuilder) GroupBy(nodes ...query.Node) *ProjectBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
 // Having does additional filtering on the results of the query after the query is performed.
-func (b *projectQueryBuilder) Having(node query.Node) ProjectBuilder {
+func (b *ProjectBuilder) Having(node query.Node) *ProjectBuilder {
 	b.builder.Having(node)
 	return b
 }
@@ -1557,7 +1482,7 @@ func (b *projectQueryBuilder) Having(node query.Node) ProjectBuilder {
 // If you have Select or Calculation columns in the query, it will count NULL results as well.
 // To not count NULL values, use Where in the builder with a NotNull operation.
 // To count distinct combinations of items, call Distinct() on the builder.
-func (b *projectQueryBuilder) Count() (int, error) {
+func (b *ProjectBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd")
 

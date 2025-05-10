@@ -218,41 +218,53 @@ return
 		}
 
 		if _, err = io.WriteString(_w, ` != nil {
-        obj, _ := Query`); err != nil {
+`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
-			return
-		}
+		if !table.NoTest {
 
-		if _, err = io.WriteString(_w, `(ctx).OrderBy(node.`); err != nil {
-			return
-		}
+			if _, err = io.WriteString(_w, `        obj, _ := Query`); err != nil {
+				return
+			}
 
-		if _, err = io.WriteString(_w, table.Identifier); err != nil {
-			return
-		}
+			if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+				return
+			}
 
-		if _, err = io.WriteString(_w, `().PrimaryKey()).Get()
+			if _, err = io.WriteString(_w, `(ctx).OrderBy(node.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().PrimaryKey()).Get()
         assertEqualFields`); err != nil {
-			return
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(t, v_`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `, obj)
+`); err != nil {
+				return
+			}
+
 		}
 
-		if _, err = io.WriteString(_w, table.Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `(t, v_`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `, obj)
-    }
+		if _, err = io.WriteString(_w, `    }
 `); err != nil {
 			return
 		}

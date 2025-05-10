@@ -20,6 +20,8 @@ type Table struct {
 	// ReadTimeout is used to protect read transactions with a timeout on their contexts.
 	// Leaving it as zero will use the timeout in the database, if one is set.
 	ReadTimeout time.Duration
+	// NoTest indicates that the table should NOT have an automated test generated for it.
+	NoTest bool
 	// QueryName is the name of the database table or object in the database.
 	QueryName string
 	// Label is the name of the object when describing it to the world. Should be lower case.
@@ -173,6 +175,7 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 		LabelPlural:      tableSchema.LabelPlural,
 		Identifier:       tableSchema.Identifier,
 		IdentifierPlural: tableSchema.IdentifierPlural,
+		NoTest:           tableSchema.NoTest,
 		columnMap:        make(map[string]*Column),
 	}
 

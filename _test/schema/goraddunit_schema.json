@@ -278,6 +278,7 @@
       "name": "timeout_test",
       "write_timeout": "1ns",
       "read_timeout": "1ns",
+      "no_test": true,
       "columns": [
         {
           "name": "id",

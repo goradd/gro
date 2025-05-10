@@ -59,6 +59,7 @@ func ClearAll(ctx context.Context) {
 	_ = db.DeleteAll(ctx, "leaf")
 	_ = db.DeleteAll(ctx, "unsupported_type")
 	_ = db.DeleteAll(ctx, "type_test")
+	_ = db.DeleteAll(ctx, "timeout_test")
 	_ = db.DeleteAll(ctx, "root_unl")
 	_ = db.DeleteAll(ctx, "root_un")
 	_ = db.DeleteAll(ctx, "root_ul")
@@ -595,6 +596,56 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 		}
 
 		cursor, err := QueryRootUnls(ctx).LoadCursor()
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
+		defer cursor.Close()
+		obj, err2 := cursor.Next()
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+		if obj != nil {
+			if err := encoder.Encode(obj); err != nil {
+				return fmt.Errorf("encoding error: %w", err)
+			}
+		}
+
+		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
+			if _, err := io.WriteString(writer, ",\n"); err != nil {
+				return fmt.Errorf("writer error: %w", err)
+			}
+			if err := encoder.Encode(obj); err != nil {
+				return fmt.Errorf("encoding error: %w", err)
+			}
+		}
+		if err != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+
+		if _, err := io.WriteString(writer, "]\n]"); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+
+		if _, err := io.WriteString(writer, ","); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+		if _, err := io.WriteString(writer, "\n"); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+	}
+	{ // Write TimeoutTests
+		if _, err := io.WriteString(writer, "["); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+
+		if _, err := io.WriteString(writer, `"timeout_test"`); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+		if _, err := io.WriteString(writer, ",\n["); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+
+		cursor, err := QueryTimeoutTests(ctx).LoadCursor()
 		if err != nil {
 			return fmt.Errorf("query error: %w", err)
 		}
@@ -1264,6 +1315,8 @@ func jsonDecodeTable(ctx context.Context, decoder *json.Decoder) error {
 			err = jsonDecodeRootUns(ctx, decoder)
 		case "root_unl":
 			err = jsonDecodeRootUnls(ctx, decoder)
+		case "timeout_test":
+			err = jsonDecodeTimeoutTests(ctx, decoder)
 		case "type_test":
 			err = jsonDecodeTypeTests(ctx, decoder)
 		case "unsupported_type":
@@ -1682,6 +1735,42 @@ func jsonDecodeRootUnls(ctx context.Context, decoder *json.Decoder) error {
 
 	for decoder.More() {
 		obj := NewRootUnl()
+		if err = decoder.Decode(&obj); err != nil {
+			return err
+		}
+		if err = obj.Save(ctx); err != nil {
+			return err
+		}
+	}
+
+	// Check if the last token is the end of the array
+	token, err = decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading the last token:", err)
+		return err
+	}
+
+	if delim, ok := token.(json.Delim); !ok || delim != ']' {
+		fmt.Println("Error: Expected the JSON to end with a closing array token")
+		return err
+	}
+
+	return nil
+}
+func jsonDecodeTimeoutTests(ctx context.Context, decoder *json.Decoder) error {
+	token, err := decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading opening token:", err)
+		return err
+	}
+	// Ensure the first token is a start of an array
+	if delim, ok := token.(json.Delim); !ok || delim != '[' {
+		fmt.Println("Error: Expected the TimeoutTest list to start with an array")
+		return err
+	}
+
+	for decoder.More() {
+		obj := NewTimeoutTest()
 		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}

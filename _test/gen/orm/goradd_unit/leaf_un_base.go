@@ -326,93 +326,21 @@ func HasLeafUnByRootUnID(ctx context.Context, rootUnID interface{}) (bool, error
 }
 
 // The LeafUnBuilder uses a builder pattern to create a query on the database.
-// Start a query by calling QueryLeafUns, which will select all
+// Create a LeafUnBuilder by calling QueryLeafUns, which will select all
 // the LeafUn object in the database. Then filter and arrange those objects
 // by calling Where, Select, etc.
 // End a query by calling either Load, LoadI, LoadCursor, Get, or Count.
 // A LeafUnBuilder stores the context it will use to perform the query, and thus is
-// meant to be a short-lived object. You should not save a query builder for later use.
-type LeafUnBuilder interface {
-	// Where adds a condition to filter what gets selected.
-	// Calling Where multiple times will AND the conditions together.
-	// See the op package for the usable conditions.
-	Where(c query.Node) LeafUnBuilder
-
-	// OrderBy specifies how the resulting data should be sorted.
-	// By default, the given nodes are sorted in ascending order.
-	// Add Descending() to the node to specify that it should be sorted in descending order.
-	OrderBy(nodes ...query.Sorter) LeafUnBuilder
-
-	// Limit will return a subset of the data, limited to the offset and number of rows specified.
-	// For large data sets and specific types of queries, this can be slow, because it will perform
-	// the entire query before computing the limit.
-	// You cannot limit a query that has selected a "many" relationship.
-	Limit(maxRowCount int, offset int) LeafUnBuilder
-
-	// Select performs two functions:
-	//  - Passing a table type node will join the object or objects from that table to this object.
-	//  - Passing a column node will optimize the query to only return the specified fields.
-	// Once you select at least one column, you must select all the columns that you want in the result.
-	// Some fields, like primary keys, are always selected.
-	// If you are using a GroupBy, you must select the fields in the GroupBy.
-	Select(nodes ...query.Node) LeafUnBuilder
-
-	// Calculation adds a calculation described by operation with alias.
-	// After the query, you can read the data using GetAlias() on the object identified by base.
-	Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) LeafUnBuilder
-
-	// Distinct removes duplicates from the results of the query.
-	// Adding a Select() is required when using Distinct.
-	Distinct() LeafUnBuilder
-
-	// GroupBy controls how results are grouped when using aggregate functions with Calculation.
-	GroupBy(nodes ...query.Node) LeafUnBuilder
-
-	// Having does additional filtering on the results of the query after the query is performed.
-	Having(node query.Node) LeafUnBuilder
-
-	// Load terminates the query builder, performs the query, and returns a slice of LeafUn objects.
-	// If there are any errors, nil is returned along with the error.
-	// If no results come back from the query, it will return a non-nil empty slice.
-	Load() ([]*LeafUn, error)
-	// Load terminates the query builder, performs the query, and returns a slice of interfaces.
-	// This can then satisfy a general interface that loads arrays of objects.
-	// If there are any errors, nil is returned along with the error.
-	// If no results come back from the query, it will return a non-nil empty slice.
-	LoadI() ([]query.OrmObj, error)
-
-	// LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
-	//
-	// A query cursor is useful for dealing with large amounts of query results. However, there are some
-	// limitations to its use. When working with SQL databases, you cannot use a cursor while querying
-	// many-to-many or reverse relationships that will create an array of values.
-	//
-	// Call Next() on the returned cursor object to step through the results. Make sure you call Close
-	// on the cursor object when you are done. You should use
-	//   defer cursor.Close()
-	// to make sure the cursor gets closed.
-	LoadCursor() (leafUnsCursor, error)
-
-	// Get is a convenience method to return only the first item found in a query.
-	// The entire query is performed, so you should generally use this only if you know
-	// you are selecting on one or very few items.
-	// If an error occurs, or no results are found, a nil is returned.
-	Get() (*LeafUn, error)
-
-	// Count terminates a query and returns just the number of items in the result.
-	// If you have Select or Calculation columns in the query, it will count NULL results as well.
-	// To not count NULL values, use Where in the builder with a NotNull operation.
-	// To count distinct combinations of items, call Distinct() on the builder.
-	Count() (int, error)
-}
-
-type leafUnQueryBuilder struct {
+// meant to be a short-lived object. You should not save it for later use.
+type LeafUnBuilder struct {
 	builder *query.Builder
+	ctx     context.Context
 }
 
-func newLeafUnBuilder(ctx context.Context) LeafUnBuilder {
-	b := leafUnQueryBuilder{
-		builder: query.NewBuilder(ctx, node.LeafUn()),
+func newLeafUnBuilder(ctx context.Context) *LeafUnBuilder {
+	b := LeafUnBuilder{
+		builder: query.NewBuilder(node.LeafUn()),
+		ctx:     ctx,
 	}
 	return &b
 }
@@ -420,11 +348,13 @@ func newLeafUnBuilder(ctx context.Context) LeafUnBuilder {
 // Load terminates the query builder, performs the query, and returns a slice of LeafUn objects.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *leafUnQueryBuilder) Load() (leafUns []*LeafUn, err error) {
+func (b *LeafUnBuilder) Load() (leafUns []*LeafUn, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
 	var results any
-	results, err = database.BuilderQuery(b.builder)
+
+	ctx := b.ctx
+	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
@@ -436,15 +366,17 @@ func (b *leafUnQueryBuilder) Load() (leafUns []*LeafUn, err error) {
 	return
 }
 
-// Load terminates the query builder, performs the query, and returns a slice of interfaces.
+// LoadI terminates the query builder, performs the query, and returns a slice of interfaces.
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *leafUnQueryBuilder) LoadI() (leafUns []query.OrmObj, err error) {
+func (b *LeafUnBuilder) LoadI() (leafUns []query.OrmObj, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
 	var results any
-	results, err = database.BuilderQuery(b.builder)
+
+	ctx := b.ctx
+	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
@@ -468,10 +400,10 @@ func (b *leafUnQueryBuilder) LoadI() (leafUns []query.OrmObj, err error) {
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *leafUnQueryBuilder) LoadCursor() (leafUnsCursor, error) {
+func (b *LeafUnBuilder) LoadCursor() (leafUnsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
-	result, err := database.BuilderQuery(b.builder)
+	result, err := database.BuilderQuery(b.ctx, b.builder)
 	cursor := result.(query.CursorI)
 
 	return leafUnsCursor{cursor}, err
@@ -502,7 +434,7 @@ func (c leafUnsCursor) Next() (*LeafUn, error) {
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
 // If an error occurs, or no results are found, a nil is returned.
-func (b *leafUnQueryBuilder) Get() (*LeafUn, error) {
+func (b *LeafUnBuilder) Get() (*LeafUn, error) {
 	results, err := b.Load()
 	if err != nil || len(results) == 0 {
 		return nil, err
@@ -512,7 +444,7 @@ func (b *leafUnQueryBuilder) Get() (*LeafUn, error) {
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
-func (b *leafUnQueryBuilder) Where(c query.Node) LeafUnBuilder {
+func (b *LeafUnBuilder) Where(c query.Node) *LeafUnBuilder {
 	b.builder.Where(c)
 	return b
 }
@@ -520,7 +452,7 @@ func (b *leafUnQueryBuilder) Where(c query.Node) LeafUnBuilder {
 // OrderBy specifies how the resulting data should be sorted.
 // By default, the given nodes are sorted in ascending order.
 // Add Descending() to the node to specify that it should be sorted in descending order.
-func (b *leafUnQueryBuilder) OrderBy(nodes ...query.Sorter) LeafUnBuilder {
+func (b *LeafUnBuilder) OrderBy(nodes ...query.Sorter) *LeafUnBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
@@ -529,7 +461,7 @@ func (b *leafUnQueryBuilder) OrderBy(nodes ...query.Sorter) LeafUnBuilder {
 // For large data sets and specific types of queries, this can be slow, because it will perform
 // the entire query before computing the limit.
 // You cannot limit a query that has embedded arrays.
-func (b *leafUnQueryBuilder) Limit(maxRowCount int, offset int) LeafUnBuilder {
+func (b *LeafUnBuilder) Limit(maxRowCount int, offset int) *LeafUnBuilder {
 	b.builder.Limit(maxRowCount, offset)
 	return b
 }
@@ -541,33 +473,33 @@ func (b *leafUnQueryBuilder) Limit(maxRowCount int, offset int) LeafUnBuilder {
 // If columns in related tables are specified, then only those columns will be queried and loaded.
 // Depending on the query, additional columns may automatically be added to the query. In particular, primary key columns
 // will be added in most situations. The exception to this would be in distinct queries, group by queries, or subqueries.
-func (b *leafUnQueryBuilder) Select(nodes ...query.Node) LeafUnBuilder {
+func (b *LeafUnBuilder) Select(nodes ...query.Node) *LeafUnBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
 // Calculation adds operation as an aliased value onto base.
 // After the query, you can read the data by passing alias to GetAlias on the returned object.
-func (b *leafUnQueryBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) LeafUnBuilder {
+func (b *LeafUnBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) *LeafUnBuilder {
 	b.builder.Calculation(base, alias, operation)
 	return b
 }
 
 // Distinct removes duplicates from the results of the query.
 // Adding a Select() is usually required.
-func (b *leafUnQueryBuilder) Distinct() LeafUnBuilder {
+func (b *LeafUnBuilder) Distinct() *LeafUnBuilder {
 	b.builder.Distinct()
 	return b
 }
 
 // GroupBy controls how results are grouped when using aggregate functions with Calculation.
-func (b *leafUnQueryBuilder) GroupBy(nodes ...query.Node) LeafUnBuilder {
+func (b *LeafUnBuilder) GroupBy(nodes ...query.Node) *LeafUnBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
 // Having does additional filtering on the results of the query after the query is performed.
-func (b *leafUnQueryBuilder) Having(node query.Node) LeafUnBuilder {
+func (b *LeafUnBuilder) Having(node query.Node) *LeafUnBuilder {
 	b.builder.Having(node)
 	return b
 }
@@ -576,10 +508,12 @@ func (b *leafUnQueryBuilder) Having(node query.Node) LeafUnBuilder {
 // If you have Select or Calculation columns in the query, it will count NULL results as well.
 // To not count NULL values, use Where in the builder with a NotNull operation.
 // To count distinct combinations of items, call Distinct() on the builder.
-func (b *leafUnQueryBuilder) Count() (int, error) {
+func (b *LeafUnBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd_unit")
-	results, err := database.BuilderQuery(b.builder)
+
+	ctx := b.ctx
+	results, err := database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return 0, err
 	}
