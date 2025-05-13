@@ -76,7 +76,7 @@ func (cd *Column) VariableIdentifierPlural() string {
 // DefaultValueAsValue returns the default value of the column as a GO value
 func (cd *Column) DefaultValueAsValue() string {
 	if cd.DefaultValue == nil {
-		if cd.IsAutoPK || cd.IsReference() {
+		if cd.IsAutoPK {
 			return `""`
 		} else if cd.IsEnum() {
 			if cd.IsEnumArray() {

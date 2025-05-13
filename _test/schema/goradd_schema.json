@@ -13,7 +13,7 @@
           "name": "number",
           "type": "int",
           "size": 32,
-          "index_level": "Primary"
+          "index_level": "primary"
         },
         {
           "name": "name",
@@ -39,7 +39,7 @@
           "name": "last_name",
           "type": "string",
           "size": 50,
-          "index_level": "Indexed"
+          "index_level": "indexed"
         },
         {
           "name": "type_enum",
@@ -106,12 +106,12 @@
           "name": "num",
           "type": "int",
           "size": 32,
-          "index_level": "Unique"
+          "index_level": "unique"
         },
         {
           "name": "status_enum",
           "type": "enum",
-          "index_level": "Indexed",
+          "index_level": "indexed",
           "reference": {
             "table": "project_status_enum"
           }
@@ -120,7 +120,7 @@
           "name": "manager_id",
           "type": "ref",
           "is_nullable": true,
-          "index_level": "Indexed",
+          "index_level": "indexed",
           "reference": {
             "table": "person"
           }
@@ -175,7 +175,7 @@
           "name": "parent_project_id",
           "type": "ref",
           "is_nullable": true,
-          "index_level": "Indexed",
+          "index_level": "indexed",
           "reference": {
             "table": "project"
           }
@@ -193,7 +193,7 @@
         {
           "name": "person_id",
           "type": "ref",
-          "index_level": "Indexed",
+          "index_level": "indexed",
           "reference": {
             "table": "person"
           }
@@ -223,7 +223,7 @@
         {
           "name": "person_id",
           "type": "ref",
-          "index_level": "Unique",
+          "index_level": "unique",
           "reference": {
             "table": "person"
           }
@@ -247,7 +247,7 @@
           "name": "person_id",
           "type": "ref",
           "is_nullable": true,
-          "index_level": "Unique",
+          "index_level": "unique",
           "reference": {
             "table": "person"
           }
@@ -256,7 +256,7 @@
           "name": "username",
           "type": "string",
           "size": 20,
-          "index_level": "Unique"
+          "index_level": "unique"
         },
         {
           "name": "password",
@@ -282,7 +282,7 @@
         {
           "name": "project_id",
           "type": "ref",
-          "index_level": "Indexed",
+          "index_level": "indexed",
           "reference": {
             "table": "project"
           }

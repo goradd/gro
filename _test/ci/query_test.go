@@ -333,3 +333,11 @@ func TestMultiParent(t *testing.T) {
 	assert.Equal(t, baby.Parent1().ID(), baby2.Parent1().ID())
 	assert.Equal(t, baby.Parent2().ID(), baby2.Parent2().ID())
 }
+
+func TestWriteTimeout(t *testing.T) {
+	ctx := db.NewContext(nil)
+
+	obj := goradd_unit.NewTimeoutTest()
+	obj.SetName("test")
+	assert.Error(t, obj.Save(ctx))
+}

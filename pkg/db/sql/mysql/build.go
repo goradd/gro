@@ -115,7 +115,10 @@ func tableSql(s *schema.Database, table *schema.Table) string {
 				slog.String(db.LogColumn, col.Name))
 			continue
 		}
-		colDef := buildColumnDef(col)
+		colDef := buildColumnDef(s, col)
+		if colDef == "" {
+			continue // error, already reported
+		}
 		columnDefs = append(columnDefs, "  "+colDef)
 
 		// Primary Key
@@ -382,7 +385,7 @@ func associationSql(s *schema.Database, table *schema.AssociationTable) string {
 	return sb.String()
 }
 
-func buildColumnDef(col *schema.Column) string {
+func buildColumnDef(d *schema.Database, col *schema.Column) string {
 	var colType string
 	var collation string
 	var defaultStr string
@@ -400,7 +403,26 @@ func buildColumnDef(col *schema.Column) string {
 
 	}
 	if colType == "" {
-		colType = sqlType(col.Type, col.Size, col.SubType)
+		if col.Type == schema.ColTypeReference {
+			// match the referenced column's type
+			t := d.FindTable(col.Reference.Table)
+			if t == nil {
+				slog.Error("Column skipped, ref table not found",
+					slog.String(db.LogTable, col.Reference.Table),
+					slog.String(db.LogColumn, col.Name))
+			}
+			c := t.PrimaryKeyColumn()
+			if c == nil {
+				slog.Error("Column skipped, reference table does not have a primary key",
+					slog.String(db.LogTable, col.Reference.Table))
+			}
+			colType = sqlType(c.Type, c.Size, c.SubType)
+		} else {
+			colType = sqlType(col.Type, col.Size, col.SubType)
+			if col.Type == schema.ColTypeAutoPrimaryKey {
+				colType += " AUTO_INCREMENT"
+			}
+		}
 	}
 	nullStr := "NOT NULL"
 	if col.IsNullable {
@@ -439,7 +461,7 @@ func buildColumnDef(col *schema.Column) string {
 func sqlType(colType schema.ColumnType, size uint64, subType schema.ColumnSubType) string {
 	switch colType {
 	case schema.ColTypeAutoPrimaryKey:
-		return intType(size, false) + " AUTO_INCREMENT"
+		return intType(size, false)
 	case schema.ColTypeString:
 		if subType == schema.ColSubTypeNumeric {
 			precision := size & 0x0000FFFF

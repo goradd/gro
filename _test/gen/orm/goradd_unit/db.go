@@ -57,6 +57,7 @@ func ClearAll(ctx context.Context) {
 	_ = db.DeleteAll(ctx, "leaf_n")
 	_ = db.DeleteAll(ctx, "leaf_l")
 	_ = db.DeleteAll(ctx, "leaf")
+	_ = db.DeleteAll(ctx, "alt_leaf_un")
 	_ = db.DeleteAll(ctx, "unsupported_type")
 	_ = db.DeleteAll(ctx, "type_test")
 	_ = db.DeleteAll(ctx, "timeout_test")
@@ -71,6 +72,7 @@ func ClearAll(ctx context.Context) {
 	_ = db.DeleteAll(ctx, "multi_parent")
 	_ = db.DeleteAll(ctx, "double_index")
 	_ = db.DeleteAll(ctx, "auto_gen")
+	_ = db.DeleteAll(ctx, "alt_root_un")
 
 }
 
@@ -83,6 +85,56 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 		return fmt.Errorf("writer error: %w", err)
 	}
 
+	{ // Write AltRootUns
+		if _, err := io.WriteString(writer, "["); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+
+		if _, err := io.WriteString(writer, `"alt_root_un"`); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+		if _, err := io.WriteString(writer, ",\n["); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+
+		cursor, err := QueryAltRootUns(ctx).LoadCursor()
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
+		defer cursor.Close()
+		obj, err2 := cursor.Next()
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+		if obj != nil {
+			if err := encoder.Encode(obj); err != nil {
+				return fmt.Errorf("encoding error: %w", err)
+			}
+		}
+
+		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
+			if _, err := io.WriteString(writer, ",\n"); err != nil {
+				return fmt.Errorf("writer error: %w", err)
+			}
+			if err := encoder.Encode(obj); err != nil {
+				return fmt.Errorf("encoding error: %w", err)
+			}
+		}
+		if err != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+
+		if _, err := io.WriteString(writer, "]\n]"); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+
+		if _, err := io.WriteString(writer, ","); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+		if _, err := io.WriteString(writer, "\n"); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+	}
 	{ // Write AutoGens
 		if _, err := io.WriteString(writer, "["); err != nil {
 			return fmt.Errorf("writer error: %w", err)
@@ -783,6 +835,56 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 			return fmt.Errorf("writer error: %w", err)
 		}
 	}
+	{ // Write AltLeafUns
+		if _, err := io.WriteString(writer, "["); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+
+		if _, err := io.WriteString(writer, `"alt_leaf_un"`); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+		if _, err := io.WriteString(writer, ",\n["); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+
+		cursor, err := QueryAltLeafUns(ctx).LoadCursor()
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
+		defer cursor.Close()
+		obj, err2 := cursor.Next()
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+		if obj != nil {
+			if err := encoder.Encode(obj); err != nil {
+				return fmt.Errorf("encoding error: %w", err)
+			}
+		}
+
+		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
+			if _, err := io.WriteString(writer, ",\n"); err != nil {
+				return fmt.Errorf("writer error: %w", err)
+			}
+			if err := encoder.Encode(obj); err != nil {
+				return fmt.Errorf("encoding error: %w", err)
+			}
+		}
+		if err != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+
+		if _, err := io.WriteString(writer, "]\n]"); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+
+		if _, err := io.WriteString(writer, ","); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+		if _, err := io.WriteString(writer, "\n"); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+	}
 	{ // Write Leafs
 		if _, err := io.WriteString(writer, "["); err != nil {
 			return fmt.Errorf("writer error: %w", err)
@@ -1293,6 +1395,8 @@ func jsonDecodeTable(ctx context.Context, decoder *json.Decoder) error {
 		return err
 	} else {
 		switch tableName {
+		case "alt_root_un":
+			err = jsonDecodeAltRootUns(ctx, decoder)
 		case "auto_gen":
 			err = jsonDecodeAutoGens(ctx, decoder)
 		case "double_index":
@@ -1321,6 +1425,8 @@ func jsonDecodeTable(ctx context.Context, decoder *json.Decoder) error {
 			err = jsonDecodeTypeTests(ctx, decoder)
 		case "unsupported_type":
 			err = jsonDecodeUnsupportedTypes(ctx, decoder)
+		case "alt_leaf_un":
+			err = jsonDecodeAltLeafUns(ctx, decoder)
 		case "leaf":
 			err = jsonDecodeLeafs(ctx, decoder)
 		case "leaf_l":
@@ -1361,6 +1467,42 @@ func jsonDecodeTable(ctx context.Context, decoder *json.Decoder) error {
 	return nil
 }
 
+func jsonDecodeAltRootUns(ctx context.Context, decoder *json.Decoder) error {
+	token, err := decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading opening token:", err)
+		return err
+	}
+	// Ensure the first token is a start of an array
+	if delim, ok := token.(json.Delim); !ok || delim != '[' {
+		fmt.Println("Error: Expected the AltRootUn list to start with an array")
+		return err
+	}
+
+	for decoder.More() {
+		obj := NewAltRootUn()
+		if err = decoder.Decode(&obj); err != nil {
+			return err
+		}
+		if err = obj.Save(ctx); err != nil {
+			return err
+		}
+	}
+
+	// Check if the last token is the end of the array
+	token, err = decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading the last token:", err)
+		return err
+	}
+
+	if delim, ok := token.(json.Delim); !ok || delim != ']' {
+		fmt.Println("Error: Expected the JSON to end with a closing array token")
+		return err
+	}
+
+	return nil
+}
 func jsonDecodeAutoGens(ctx context.Context, decoder *json.Decoder) error {
 	token, err := decoder.Token()
 	if err != nil {
@@ -1843,6 +1985,42 @@ func jsonDecodeUnsupportedTypes(ctx context.Context, decoder *json.Decoder) erro
 
 	for decoder.More() {
 		obj := NewUnsupportedType()
+		if err = decoder.Decode(&obj); err != nil {
+			return err
+		}
+		if err = obj.Save(ctx); err != nil {
+			return err
+		}
+	}
+
+	// Check if the last token is the end of the array
+	token, err = decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading the last token:", err)
+		return err
+	}
+
+	if delim, ok := token.(json.Delim); !ok || delim != ']' {
+		fmt.Println("Error: Expected the JSON to end with a closing array token")
+		return err
+	}
+
+	return nil
+}
+func jsonDecodeAltLeafUns(ctx context.Context, decoder *json.Decoder) error {
+	token, err := decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading opening token:", err)
+		return err
+	}
+	// Ensure the first token is a start of an array
+	if delim, ok := token.(json.Delim); !ok || delim != '[' {
+		fmt.Println("Error: Expected the AltLeafUn list to start with an array")
+		return err
+	}
+
+	for decoder.More() {
+		obj := NewAltLeafUn()
 		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}

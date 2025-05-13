@@ -53,6 +53,21 @@ func (il IndexLevel) MarshalJSON() ([]byte, error) {
 	return json.Marshal(il.String())
 }
 
+func (il IndexLevel) jsonRep() string {
+	switch il {
+	case IndexLevelNone:
+		return "none"
+	case IndexLevelIndexed:
+		return "indexed"
+	case IndexLevelUnique:
+		return "unique"
+	case IndexLevelManualPrimaryKey:
+		return "primary"
+	default:
+		return "unknown"
+	}
+}
+
 // UnmarshalJSON implements custom JSON deserialization for IndexLevel
 func (il *IndexLevel) UnmarshalJSON(data []byte) error {
 	var levelStr string
@@ -61,13 +76,13 @@ func (il *IndexLevel) UnmarshalJSON(data []byte) error {
 	}
 
 	switch levelStr {
-	case "None":
+	case "none":
 		*il = IndexLevelNone
-	case "Indexed":
+	case "indexed":
 		*il = IndexLevelIndexed
-	case "Unique":
+	case "unique":
 		*il = IndexLevelUnique
-	case "Primary":
+	case "primary":
 		*il = IndexLevelManualPrimaryKey
 	default:
 		return fmt.Errorf("invalid IndexLevel: %s", levelStr)

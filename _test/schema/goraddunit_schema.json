@@ -49,7 +49,7 @@
           "name": "id",
           "type": "int",
           "size": 32,
-          "index_level": "Primary"
+          "index_level": "primary"
         },
         {
           "name": "field_int",
@@ -114,7 +114,7 @@
           "name": "parent_1_id",
           "type": "ref",
           "is_nullable": true,
-          "index_level": "Indexed",
+          "index_level": "indexed",
           "reference": {
             "table": "multi_parent"
           }
@@ -123,7 +123,7 @@
           "name": "parent_2_id",
           "type": "ref",
           "is_nullable": true,
-          "index_level": "Indexed",
+          "index_level": "indexed",
           "reference": {
             "table": "multi_parent"
           }
@@ -275,6 +275,22 @@
       ]
     },
     {
+      "name": "alt_root_un",
+      "columns": [
+        {
+          "name": "id",
+          "type": "float",
+          "size": 32,
+          "index_level": "primary"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "size": 100
+        }
+      ]
+    },
+    {
       "name": "timeout_test",
       "write_timeout": "1ns",
       "read_timeout": "1ns",
@@ -299,13 +315,13 @@
           "name": "server",
           "type": "string",
           "size": 50,
-          "index_level": "Primary"
+          "index_level": "primary"
         },
         {
           "name": "directory",
           "type": "string",
           "size": 50,
-          "index_level": "Primary"
+          "index_level": "primary"
         },
         {
           "name": "file_name",
@@ -430,7 +446,7 @@
           "name": "type_serial",
           "type": "uint",
           "size": 64,
-          "index_level": "Primary"
+          "index_level": "primary"
         },
         {
           "name": "type_set",
@@ -541,7 +557,7 @@
         {
           "name": "root_id",
           "type": "ref",
-          "index_level": "Indexed",
+          "index_level": "indexed",
           "reference": {
             "table": "root"
           }
@@ -570,7 +586,7 @@
         {
           "name": "root_l_id",
           "type": "ref",
-          "index_level": "Indexed",
+          "index_level": "indexed",
           "reference": {
             "table": "root_l"
           }
@@ -594,7 +610,7 @@
           "name": "root_n_id",
           "type": "ref",
           "is_nullable": true,
-          "index_level": "Indexed",
+          "index_level": "indexed",
           "reference": {
             "table": "root_n"
           }
@@ -618,7 +634,7 @@
           "name": "root_nl_id",
           "type": "ref",
           "is_nullable": true,
-          "index_level": "Indexed",
+          "index_level": "indexed",
           "reference": {
             "table": "root_nl"
           }
@@ -647,7 +663,7 @@
         {
           "name": "root_u_id",
           "type": "ref",
-          "index_level": "Unique",
+          "index_level": "unique",
           "reference": {
             "table": "root_u"
           }
@@ -670,7 +686,7 @@
         {
           "name": "root_ul_id",
           "type": "ref",
-          "index_level": "Unique",
+          "index_level": "unique",
           "reference": {
             "table": "root_ul"
           }
@@ -700,7 +716,7 @@
           "name": "root_un_id",
           "type": "ref",
           "is_nullable": true,
-          "index_level": "Unique",
+          "index_level": "unique",
           "reference": {
             "table": "root_un"
           }
@@ -724,7 +740,7 @@
           "name": "root_unl_id",
           "type": "ref",
           "is_nullable": true,
-          "index_level": "Unique",
+          "index_level": "unique",
           "reference": {
             "table": "root_unl"
           }
@@ -734,6 +750,30 @@
           "type": "int",
           "sub_type": "gro_lock",
           "size": 64
+        }
+      ]
+    },
+    {
+      "name": "alt_leaf_un",
+      "columns": [
+        {
+          "name": "id",
+          "type": "auto_primary_key",
+          "size": 32
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "size": 100
+        },
+        {
+          "name": "alt_root_un_id",
+          "type": "ref",
+          "is_nullable": true,
+          "index_level": "unique",
+          "reference": {
+            "table": "alt_root_un"
+          }
         }
       ]
     }
