@@ -9,7 +9,8 @@ import (
 	"testing"
 )
 
-// TestForwardNullable tests insert and update of two linked records where the link is nullable.
+// TestForwardAltUniqueNullable tests insert and update of two linked records where the link is nullable
+// and the foreign key is to a manual non-string and non-integer primary key.
 func TestForwardAltUniqueNullable(t *testing.T) {
 	ctx := db.NewContext(nil)
 	defer goradd_unit.ClearAll(ctx)
