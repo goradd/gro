@@ -1,6 +1,7 @@
 package crud
 
 import (
+	"encoding/json"
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit"
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
 	"github.com/goradd/orm/pkg/db"
@@ -165,4 +166,37 @@ func TestAssociationLockDelete(t *testing.T) {
 
 	l4, err := goradd_unit.LoadLeafNl(ctx, l1.ID(), node.LeafNl().Leaf2s())
 	assert.Len(t, l4.Leaf2s(), 1)
+}
+
+func TestAssociationLockJson(t *testing.T) {
+	ctx := db.NewContext(nil)
+	defer goradd_unit.ClearAll(ctx)
+
+	l1 := goradd_unit.NewLeafNl()
+	l2 := goradd_unit.NewLeafNl()
+	l3 := goradd_unit.NewLeafNl()
+
+	l1.SetName("leaf1")
+	l2.SetName("leaf2")
+	l3.SetName("leaf3")
+	l1.SetLeaf2s(l2, l3)
+	require.NoError(t, l1.Save(ctx))
+
+	j, err := l1.MarshalJSON()
+	require.NoError(t, err)
+
+	var m map[string]any
+
+	err = json.Unmarshal(j, &m)
+	require.NoError(t, err)
+	v, ok := m["leaf2s"]
+	assert.True(t, ok)
+	v2 := v.([]any)
+	assert.Equal(t, "leaf2", v2[0].(map[string]any)["name"].(string))
+
+	var leaf goradd_unit.LeafNl
+	err = json.Unmarshal(j, &leaf)
+	require.NoError(t, err)
+	assert.Equal(t, "leaf1", leaf.Name())
+	assert.Equal(t, "leaf2", leaf.Leaf2s()[0].Name())
 }

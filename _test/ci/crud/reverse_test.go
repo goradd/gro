@@ -1,6 +1,7 @@
 package crud
 
 import (
+	"encoding/json"
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit"
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
 	"github.com/goradd/orm/pkg/db"
@@ -144,4 +145,34 @@ func TestReverseTwo(t *testing.T) {
 	r2, err := goradd_unit.LoadRoot(ctx, r.ID(), node.Root().Leafs())
 	require.NoError(t, err)
 	assert.Len(t, r2.Leafs(), 2)
+}
+
+func TestReverseJson(t *testing.T) {
+	ctx := db.NewContext(nil)
+	defer goradd_unit.ClearAll(ctx)
+	r := goradd_unit.NewRoot()
+	l := goradd_unit.NewLeaf()
+	r.SetName("root")
+	l.SetName("leaf")
+	r.SetLeafs(l)
+	require.NoError(t, r.Save(ctx))
+
+	j, err := r.MarshalJSON()
+	require.NoError(t, err)
+
+	var m map[string]any
+
+	err = json.Unmarshal(j, &m)
+	require.NoError(t, err)
+	v, ok := m["leafs"]
+	assert.True(t, ok)
+	v2 := v.([]any)
+	assert.Equal(t, "leaf", v2[0].(map[string]any)["name"].(string))
+
+	var root goradd_unit.Root
+	err = json.Unmarshal(j, &root)
+	require.NoError(t, err)
+	assert.Equal(t, "root", root.Name())
+	assert.Equal(t, "leaf", root.Leafs()[0].Name())
+
 }

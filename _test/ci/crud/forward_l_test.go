@@ -1,6 +1,7 @@
 package crud
 
 import (
+	"encoding/json"
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit"
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
 	"github.com/goradd/orm/pkg/db"
@@ -175,4 +176,32 @@ func TestForwardLockDelete(t *testing.T) {
 	l2, err = goradd_unit.LoadLeafL(ctx, l.ID())
 	assert.NoError(t, err)
 	assert.Nil(t, l2)
+}
+
+func TestForwardLockJson(t *testing.T) {
+	ctx := db.NewContext(nil)
+	defer goradd_unit.ClearAll(ctx)
+	l := goradd_unit.NewLeafL()
+	r := goradd_unit.NewRootL()
+	l.SetName("leaf")
+	r.SetName("root")
+	l.SetRootL(r)
+	require.NoError(t, l.Save(ctx))
+
+	j, err := l.MarshalJSON()
+	require.NoError(t, err)
+
+	var m map[string]any
+
+	err = json.Unmarshal(j, &m)
+	require.NoError(t, err)
+	v, ok := m["rootL"]
+	assert.True(t, ok)
+	assert.Equal(t, "root", v.(map[string]any)["name"].(string))
+
+	var leaf goradd_unit.LeafL
+	err = json.Unmarshal(j, &leaf)
+	require.NoError(t, err)
+	assert.Equal(t, "leaf", leaf.Name())
+	assert.Equal(t, "root", leaf.RootL().Name())
 }
