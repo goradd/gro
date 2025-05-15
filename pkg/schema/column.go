@@ -57,6 +57,10 @@ type Column struct {
 	// foreign key and the loaded object.
 	Identifier string `json:"identifier,omitempty"`
 
+	// IdentifierPlural is the plural name of the column in Go code. This is primarily used internally.
+	// You will not normally set this value.
+	IdentifierPlural string `json:"identifier_plural,omitempty"`
+
 	// Label is the human-readable description of the item. Leave blank to base it on the Name.
 	Label string `json:"label,omitempty"`
 

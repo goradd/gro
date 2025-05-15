@@ -73,7 +73,7 @@ func OverrideConfigSettings(config *pgx.ConnConfig, jsonContent map[string]inter
 		case "password":
 			config.Password = v.(string)
 		case "host":
-			config.Host = v.(string) // Typically, tcp or unix (for unix sockets).
+			config.Host = v.(string)
 		case "port":
 			config.Port = uint16(v.(float64))
 		case "runtime_params":

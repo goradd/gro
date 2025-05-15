@@ -20,7 +20,7 @@ func build(dbConfigFile, inFile, dbKey string) {
 				if db == nil {
 					panic("database not found")
 				}
-				if e, ok := db.(db2.SchemaBuilder); ok {
+				if e, ok := db.(db2.SchemaRebuilder); ok {
 					s, err := schema.ReadJsonFile(inFile)
 					if err != nil {
 						panic(err)
@@ -31,7 +31,7 @@ func build(dbConfigFile, inFile, dbKey string) {
 						panic(err)
 					}
 					s.Clean()
-					err = e.BuildSchema(ctx, *s)
+					err = e.CreateSchema(ctx, *s)
 					if err != nil {
 						panic(err)
 					}

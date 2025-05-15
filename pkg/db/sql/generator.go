@@ -35,6 +35,7 @@ func newSqlGenerator(jt *jointree.JoinTree, dbi DbI) *sqlGenerator {
 	return &sqlGenerator{jt: jt, dbi: dbi}
 }
 
+// iq quotes an identifier in the way the current SQL dialect accepts.
 func (g *sqlGenerator) iq(v string) string {
 	return g.dbi.QuoteIdentifier(v)
 }

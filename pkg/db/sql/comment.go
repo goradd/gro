@@ -74,6 +74,7 @@ func FillTableCommentFields(t *schema.Table, comment string) {
 type columnCommentItems struct {
 	Label                   string `json:"label,omitempty"`
 	Identifier              string `json:"id,omitempty"`
+	IdentifierPlural        string `json:"id_plural,omitempty"`
 	Key                     string `json:"key,omitempty"`
 	Size                    uint64 `json:"size,omitempty"`
 	ReferenceIdentifier     string `json:"ref_id,omitempty"`
@@ -89,9 +90,10 @@ type columnCommentItems struct {
 // ColumnComment returns extra schema fields to be stored as a JSON object in the column comment.
 func ColumnComment(c *schema.Column) string {
 	ti := columnCommentItems{
-		Label:      c.Label,
-		Identifier: c.Identifier,
-		Key:        c.Key,
+		Label:            c.Label,
+		Identifier:       c.Identifier,
+		IdentifierPlural: c.IdentifierPlural,
+		Key:              c.Key,
 	}
 	if c.Type == schema.ColTypeString {
 		ti.Size = c.Size

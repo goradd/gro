@@ -93,7 +93,7 @@ func sampleSchema() schema.Database {
 	return db
 }
 
-func TestDB_BuildSchema(t *testing.T) {
+func TestDB_CreateSchema(t *testing.T) {
 	sampleSchemas := []struct {
 		name        string
 		schema      func() schema.Database // assume schema.Database is your top-level object
@@ -123,8 +123,11 @@ func TestDB_BuildSchema(t *testing.T) {
 
 			ctx := d.NewContext(context.Background())
 
+			// prep
+			_ = d.DestroySchema(ctx)
+
 			s1 := tt.schema() // <== use dynamic schema generator
-			err = d.BuildSchema(ctx, s1)
+			err = d.CreateSchema(ctx, s1)
 
 			defer func() {
 				err := d.DestroySchema(ctx)

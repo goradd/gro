@@ -1,0 +1,18 @@
+[
+    {
+      "type": "postgres",
+      "database": "goradd_unit",
+      "key": "goradd_unit",
+      "user": "root",
+      "password": "12345",
+      "host": "127.0.0.1"
+    },
+    {
+      "type": "postgres",
+      "database": "goradd",
+      "key": "goradd",
+      "user": "root",
+      "password": "12345",
+      "host": "127.0.0.1"
+    }
+]

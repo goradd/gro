@@ -818,6 +818,7 @@ func (m *DB) getColumnSchema(table mysqlTable,
 	if isAuto {
 		// Note that unsigned auto increment primary keys is not supported
 		cd.Type = schema.ColTypeAutoPrimaryKey
+		cd.Size = 0 // hide details of auto id generation from schema file. If int size is needed, it should go in DatabaseDefinition
 	} else if isPk {
 		cd.IndexLevel = schema.IndexLevelManualPrimaryKey
 	} else if isUnique {
@@ -872,12 +873,8 @@ func (m *DB) getAssociationSchema(t mysqlTable, enumTableSuffix string) (mm sche
 		err = fmt.Errorf("association table must have only 2 columns")
 		return
 	}
-	if len(td.MultiColumnIndexes) != 1 ||
-		!td.MultiColumnIndexes[0].IsUnique {
-		err = fmt.Errorf("association table must have one multi-column index that is unique")
-	}
-	var typeIndex = -1
-	for i, cd := range td.Columns {
+	//var typeIndex = -1
+	for _, cd := range td.Columns {
 		if cd.Reference == nil {
 			err = fmt.Errorf("column " + cd.Name + " must be a foreign key.")
 			return
@@ -887,14 +884,14 @@ func (m *DB) getAssociationSchema(t mysqlTable, enumTableSuffix string) (mm sche
 			err = fmt.Errorf("column " + cd.Name + " cannot be nullable.")
 			return
 		}
-
-		if cd.Type == schema.ColTypeEnum {
-			if typeIndex != -1 {
-				err = fmt.Errorf("column " + cd.Name + " cannot have two foreign keys to enum tables.")
-				return
-			}
-			typeIndex = i
-		}
+		/*
+			if cd.Type == schema.ColTypeEnum {
+				if typeIndex != -1 {
+					err = fmt.Errorf("column " + cd.Name + " cannot have two foreign keys to enum tables.")
+					return
+				}
+				typeIndex = i
+			}*/
 	}
 	mm.Name = td.Name
 	mm.Table1 = td.Columns[0].Reference.Table
