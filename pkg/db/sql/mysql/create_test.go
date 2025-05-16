@@ -15,7 +15,11 @@ const connectionString = "root:12345@tcp(127.0.0.1:3306)/goradd_test?parseTime=t
 
 func sampleSchema() schema.Database {
 	db := schema.Database{
-		Key: "test",
+		Key:             "test",
+		ReferenceSuffix: "_id",
+		EnumTableSuffix: "_enum",
+		AssnTableSuffix: "_assn",
+
 		Tables: []*schema.Table{
 			// User table
 			{
@@ -53,8 +57,7 @@ func sampleSchema() schema.Database {
 						IsNullable: false,
 						IndexLevel: schema.IndexLevelIndexed, // foreign keys are always indexed
 						Reference: &schema.Reference{
-							Table:      "user",
-							Identifier: "User",
+							Table: "user",
 						},
 					},
 					{
@@ -72,16 +75,15 @@ func sampleSchema() schema.Database {
 		EnumTables: []*schema.EnumTable{
 			// Enum table: post_status
 			{
-				Name:       "post_status_enum",
-				Label:      "Post Status",
-				Identifier: "PostStatus",
+				Name: "post_status_enum",
 				Fields: map[string]schema.EnumField{
-					"const": {Type: schema.ColTypeInt},
-					"label": {Type: schema.ColTypeString},
+					"const":      {Type: schema.ColTypeInt},
+					"label":      {Type: schema.ColTypeString},
+					"identifier": {Type: schema.ColTypeString},
 				},
 				Values: []map[string]any{
-					{"const": 1, "label": "Open"},
-					{"const": 2, "label": "Closed"},
+					{"const": 1, "label": "Open", "identifier": "open"},
+					{"const": 2, "label": "Closed", "identifier": "closed"},
 				},
 			},
 		},
@@ -89,7 +91,7 @@ func sampleSchema() schema.Database {
 			{Name: "rel_assn", Table1: "user", Column1: "user_id", Table2: "post", Column2: "post_id"},
 		},
 	}
-	db.FillDefaults()
+	//db.FillDefaults()
 	return db
 }
 
@@ -144,7 +146,6 @@ func TestDB_CreateSchema(t *testing.T) {
 
 			s2 := d.ExtractSchema(options)
 			s2.Clean()
-			s2.Package = "test"
 			if tt.zeroNonComp {
 				zeroNonCmp(&s1)
 				zeroNonCmp(&s2)
@@ -171,7 +172,11 @@ func zeroNonCmp(db *schema.Database) {
 
 func sampleSchemaWithCollation() schema.Database {
 	db := schema.Database{
-		Key: "test",
+		Key:             "test",
+		ReferenceSuffix: "_id",
+		EnumTableSuffix: "_enum",
+		AssnTableSuffix: "_assn",
+
 		Tables: []*schema.Table{
 			// User table
 			{
@@ -186,19 +191,23 @@ func sampleSchemaWithCollation() schema.Database {
 						Type:               schema.ColTypeString,
 						Size:               100,
 						IsNullable:         false,
-						DatabaseDefinition: map[string]map[string]interface{}{"mysql": map[string]interface{}{"type": "char(100)", "collation": "utf8mb4_bin"}},
+						DatabaseDefinition: map[string]map[string]interface{}{"mysql": map[string]interface{}{"collation": "utf8mb4_bin"}},
 					},
 				},
 			},
 		},
 	}
-	db.FillDefaults()
+	//db.FillDefaults()
 	return db
 }
 
 func sampleSchemaTypes() schema.Database {
 	db := schema.Database{
-		Key: "test",
+		Key:             "test",
+		ReferenceSuffix: "_id",
+		EnumTableSuffix: "_enum",
+		AssnTableSuffix: "_assn",
+
 		Tables: []*schema.Table{
 			{
 				Name: "sample_types",
@@ -215,12 +224,14 @@ func sampleSchemaTypes() schema.Database {
 					},
 					{
 						Name:       "age",
+						Size:       32,
 						Type:       schema.ColTypeInt,
 						IsNullable: false,
 					},
 					{
 						Name:       "balance",
 						Type:       schema.ColTypeFloat,
+						Size:       32,
 						IsNullable: false,
 					},
 					{
@@ -235,11 +246,6 @@ func sampleSchemaTypes() schema.Database {
 						IsNullable: true,
 					},
 					{
-						Name:       "metadata",
-						Type:       schema.ColTypeJSON,
-						IsNullable: true,
-					},
-					{
 						Name:       "created_date",
 						Type:       schema.ColTypeTime,
 						IsNullable: true,
@@ -249,6 +255,6 @@ func sampleSchemaTypes() schema.Database {
 		},
 	}
 
-	db.FillDefaults()
+	//db.FillDefaults()
 	return db
 }

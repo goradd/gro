@@ -37,7 +37,7 @@ type Table struct {
 	// Columns is a list of Columns, one for each column in the table.
 	// Primary keys are sorted to the front.
 	Columns []*Column
-	// Indexes are the indexes defined on the table.
+	// Indexes are all the indexes defined on the table, single and multi-column and primary key.
 	Indexes []Index
 	// Options are key-value pairs of values that can be used to customize how code generation is performed
 	Options map[string]interface{}
@@ -56,6 +56,9 @@ type Table struct {
 func (t *Table) PrimaryKeyColumn() *Column {
 	if len(t.Columns) == 0 {
 		return nil
+	}
+	if !t.Columns[0].IsPrimaryKey {
+		return nil // this is an error. Every table should have a primary key column
 	}
 	return t.Columns[0]
 }

@@ -3,7 +3,6 @@ package schema
 import (
 	"github.com/goradd/anyutil"
 	"github.com/goradd/maps"
-	strings2 "github.com/goradd/strings"
 	"log/slog"
 	"slices"
 )
@@ -63,7 +62,7 @@ func (db *Database) FillDefaults() {
 		db.Package = db.Key
 	}
 	// remove invalid characters
-	s := SanitizePackageName(db.Package)
+	s := SanitizeName(db.Package)
 	if s != db.Package {
 		slog.Warn("Package name was modified",
 			slog.String("original name", db.Package),
@@ -122,32 +121,6 @@ func (db *Database) FindEnumTable(name string) *EnumTable {
 // A cleaned structure should be saved so that it can be synchronized with the database as it changes.
 func (db *Database) Clean() {
 	db.sort()
-}
-
-// FillKeys assigns keys to all parts of the schema as an aid in synchronization when the schema changes.
-func (db *Database) FillKeys() {
-	for _, t := range db.Tables {
-		if t.Key == "" {
-			t.Key = strings2.RandomString(strings2.AlphaNumeric, 10)
-		}
-		for _, c := range t.Columns {
-			if c.Key == "" {
-				c.Key = strings2.RandomString(strings2.AlphaNumeric, 10)
-			}
-		}
-	}
-
-	for _, t := range db.EnumTables {
-		if t.Key == "" {
-			t.Key = strings2.RandomString(strings2.AlphaNumeric, 10)
-		}
-	}
-
-	for _, t := range db.AssociationTables {
-		if t.Key == "" {
-			t.Key = strings2.RandomString(strings2.AlphaNumeric, 10)
-		}
-	}
 }
 
 // sort will sort the Tables, EnumTables and AssociationTables into a predictable order that also

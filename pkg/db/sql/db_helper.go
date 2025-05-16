@@ -413,11 +413,6 @@ func (h *DbHelper) joinTreeCount(ctx context.Context, joinTree *jointree.JoinTre
 	return ret, nil
 }
 
-// iq quotes an identifier in the way the current SQL dialect accepts.
-func (h *DbHelper) iq(v string) string {
-	return h.dbi.QuoteIdentifier(v)
-}
-
 func (h *DbHelper) CreateSchema(ctx context.Context, s schema.Database) error {
 	for _, table := range s.EnumTables {
 		if err := h.buildEnum(ctx, &s, table); err != nil {
@@ -497,125 +492,23 @@ func (h *DbHelper) buildAssociation(ctx context.Context, d *schema.Database, tab
 }
 
 func (h *DbHelper) tableSql(d *schema.Database, table *schema.Table) string {
-	var sb strings.Builder
-
-	tableName := h.iq(table.Name)
-	if table.Schema != "" {
-		tableName = fmt.Sprintf("%s.%s", h.iq(table.Schema), h.iq(table.Name))
-	}
-
-	sb.WriteString(fmt.Sprintf("CREATE TABLE %s (\n", tableName))
-
-	var pkCols []string
-	var columnDefs []string
-	var indexDefs []string
-	var foreignKeys []string
-
-	for _, col := range table.Columns {
-		if col.Type == schema.ColTypeReference ||
-			col.Type == schema.ColTypeEnum ||
-			col.Type == schema.ColTypeEnumArray {
-
-			if col.Reference == nil || col.Reference.Table == "" {
-				slog.Error("Column skipped, Reference with a Table value is required",
-					slog.String(db.LogTable, tableName),
-					slog.String(db.LogColumn, col.Name))
-				continue
-			}
-
-			if col.Type == schema.ColTypeReference {
-				t := d.FindTable(col.Reference.Table)
-				if t == nil {
-					slog.Error("Column skipped, referenced table not found",
-						slog.String(db.LogTable, col.Reference.Table),
-						slog.String(db.LogColumn, col.Name))
-					continue
-				}
-				c := t.PrimaryKeyColumn()
-				if c == nil {
-					slog.Error("Column skipped, referenced table does not have a primary key",
-						slog.String(db.LogTable, col.Reference.Table))
-					continue
-				}
-				s := fmt.Sprintf(" FOREIGN KEY (%s) REFERENCES %s(%s)", h.iq(col.Name), h.iq(t.Name), h.iq(c.Name))
-				foreignKeys = append(foreignKeys, s)
-			} else if col.Type == schema.ColTypeEnum {
-				s := fmt.Sprintf(" FOREIGN KEY (%s) REFERENCES %s(%s)", h.iq(col.Name), h.iq(col.Reference.Table), h.iq("const"))
-				foreignKeys = append(foreignKeys, s)
-			}
-		}
-		colDef := h.buildColumnDef(d, col)
-		if colDef == "" {
-			continue // error, already reported
-		}
-		columnDefs = append(columnDefs, "  "+colDef)
-
-		// Primary Key
-		if col.Type == schema.ColTypeAutoPrimaryKey ||
-			col.IndexLevel == schema.IndexLevelManualPrimaryKey {
-			pkCols = append(pkCols, h.iq(col.Name))
-		}
-
-		// Indexes
-		switch col.IndexLevel {
-		case schema.IndexLevelIndexed:
-			indexDefs = append(indexDefs, fmt.Sprintf(" INDEX (%s)", h.iq(col.Name)))
-		case schema.IndexLevelUnique:
-			indexDefs = append(indexDefs, fmt.Sprintf(" UNIQUE INDEX (%s)", h.iq(col.Name)))
-		default:
-			// do nothing
-		}
-	}
-
-	// Add primary key
-	if len(pkCols) > 0 {
-		columnDefs = append(columnDefs, fmt.Sprintf("  PRIMARY KEY (%s)", strings.Join(pkCols, ", ")))
-	}
-
-	// Multi-column indexes
-	for _, mci := range table.MultiColumnIndexes {
-		cols := make([]string, len(mci.Columns))
-		for i, name := range mci.Columns {
-			cols[i] = fmt.Sprintf("%s", h.iq(name))
-		}
-		idx := "INDEX"
-		if mci.IsUnique {
-			idx = "UNIQUE INDEX"
-		}
-		indexDefs = append(indexDefs, fmt.Sprintf("  %s (%s)", idx, strings.Join(cols, ", ")))
-	}
-
-	allDefs := append(columnDefs, foreignKeys...)
-	allDefs = append(allDefs, indexDefs...)
-	sb.WriteString(strings.Join(allDefs, ",\n"))
-	sb.WriteString("\n)")
-
-	commentStr := TableComment(table)
-	if commentStr != "" {
-		sb.WriteString(fmt.Sprintf(` COMMENT='%s'`, commentStr))
-	}
-	sb.WriteString("\n")
-
-	return sb.String()
+	return h.dbi.TableDefinitionSql(d, table)
 }
 
-func (h *DbHelper) enumTableSql(d *schema.Database, table *schema.EnumTable) (s string) {
-	var sb strings.Builder
-
-	tableName := h.iq(table.Name)
-	if table.Schema != "" {
-		tableName = fmt.Sprintf("%s.%s", h.iq(table.Schema), h.iq(table.Name))
+// enumTableSql returns the sql to create an enum table.
+func (h *DbHelper) enumTableSql(d *schema.Database, et *schema.EnumTable) (s string) {
+	// Build a schema table to create the enum table
+	table := &schema.Table{
+		Name:    et.Name,
+		Schema:  et.Schema,
+		Comment: et.Comment,
 	}
 
-	// Build CREATE TABLE
-	sb.WriteString(fmt.Sprintf("CREATE TABLE %s (\n", tableName))
-	var columnDefs []string
-
-	for i, k := range table.FieldKeys() {
+	for i, k := range et.FieldKeys() {
 		var size uint64
-		for _, v := range table.Values {
-			if table.Fields[k].Type == schema.ColTypeString ||
-				table.Fields[k].Type == schema.ColTypeBytes {
+		for _, v := range et.Values {
+			if et.Fields[k].Type == schema.ColTypeString ||
+				et.Fields[k].Type == schema.ColTypeBytes {
 				if s, ok := v[k].(string); ok {
 					size = max(size, uint64(len(s)))
 				}
@@ -624,39 +517,25 @@ func (h *DbHelper) enumTableSql(d *schema.Database, table *schema.EnumTable) (s 
 		// build a column to send to the column builder
 		col := &schema.Column{
 			Name:             k,
-			Type:             table.Fields[k].Type,
+			Type:             et.Fields[k].Type,
 			Size:             size,
-			Identifier:       table.Fields[k].Identifier,
-			IdentifierPlural: table.Fields[k].IdentifierPlural,
+			Identifier:       et.Fields[k].Identifier,
+			IdentifierPlural: et.Fields[k].IdentifierPlural,
 		}
 		if i == 0 {
 			col.IndexLevel = schema.IndexLevelManualPrimaryKey
 		}
-		colDef := h.buildColumnDef(d, col)
-		columnDefs = append(columnDefs, "  "+colDef)
+		table.Columns = append(table.Columns, col)
 	}
 
-	// Add primary key
-	columnDefs = append(columnDefs, fmt.Sprintf("  PRIMARY KEY (%s)", h.iq(table.FieldKeys()[0])))
-
-	sb.WriteString(strings.Join(columnDefs, ",\n"))
-	sb.WriteString("\n)")
-
-	// Add table comment
-	commentStr := EnumTableComment(table) // assume you aliased import to sqlPkg if conflicting
-	if commentStr != "" {
-		sb.WriteString(fmt.Sprintf(` COMMENT='%s'`, commentStr))
-	}
-	sb.WriteString("\n")
-
-	return sb.String()
+	return h.tableSql(d, table)
 }
 
 func (h *DbHelper) enumValueSql(tableName string, fieldKeys []string, fields map[string]schema.EnumField, v map[string]any) (sql string, args []any) {
 	var columns []string
 	var placeholders []string
 	for _, k := range fieldKeys {
-		columns = append(columns, fmt.Sprintf("%s", h.iq(k)))
+		columns = append(columns, fmt.Sprintf("%s", h.dbi.QuoteIdentifier(k)))
 
 		fieldType := fields[k].Type
 		value := v[k]
@@ -701,83 +580,42 @@ func (h *DbHelper) enumValueSql(tableName string, fieldKeys []string, fields map
 
 	return fmt.Sprintf(
 		"INSERT INTO %s (%s) VALUES (%s)",
-		h.iq(tableName),
+		h.dbi.QuoteIdentifier(tableName),
 		strings.Join(columns, ", "),
 		strings.Join(placeholders, ", "),
 	), args
 }
 
-func (h *DbHelper) associationSql(d *schema.Database, table *schema.AssociationTable) string {
-	var sb strings.Builder
-
-	tableName := h.iq(table.Name)
-	if table.Schema != "" {
-		tableName = fmt.Sprintf("%s.%s", h.iq(table.Schema), h.iq(table.Name))
+func (h *DbHelper) associationSql(d *schema.Database, at *schema.AssociationTable) string {
+	// Build a schema table to create the association table
+	table := &schema.Table{
+		Name:    at.Name,
+		Schema:  at.Schema,
+		Comment: at.Comment,
 	}
-
-	sb.WriteString(fmt.Sprintf("CREATE TABLE %s (\n", tableName))
 
 	// Make columns to send to the column builder
-	col1 := &schema.Column{
-		Name: table.Column1,
+	col := &schema.Column{
+		Name: at.Column1,
 		Type: schema.ColTypeReference,
 		Reference: &schema.Reference{
-			Table: table.Table1,
+			Table: at.Table1,
 		},
 	}
-	var columnDefs []string
-	colDef := h.buildColumnDef(d, col1)
-	columnDefs = append(columnDefs, colDef)
+	table.Columns = append(table.Columns, col)
 
-	col2 := &schema.Column{
-		Name: table.Column2,
-		Type: schema.ColTypeReference,
+	col = &schema.Column{
+		Name:       at.Column2,
+		Type:       schema.ColTypeReference,
+		IndexLevel: schema.IndexLevelIndexed, // individual indexes for fast lookups
 		Reference: &schema.Reference{
-			Table: table.Table2,
+			Table: at.Table2,
 		},
 	}
-	colDef = h.buildColumnDef(d, col2)
-	columnDefs = append(columnDefs, colDef)
-
-	t := d.FindTable(table.Table1)
-	if t == nil {
-		slog.Error("association table skipped, Table1 not found",
-			slog.String(db.LogTable, table.Name))
+	table.Columns = append(table.Columns, col)
+	// multicolumn index for uniqueness and row id
+	table.MultiColumnIndexes = []schema.MultiColumnIndex{
+		{[]string{at.Column1, at.Column2}, schema.IndexLevelManualPrimaryKey},
 	}
-	c := t.PrimaryKeyColumn()
-	if c == nil {
-		slog.Error("association table skipped, Table1 does not have a primary key column",
-			slog.String(db.LogTable, table.Name))
-	}
-	columnDefs = append(columnDefs, fmt.Sprintf("  FOREIGN KEY (%s) REFERENCES %s(%s)", h.iq(table.Column1), h.iq(table.Table1), h.iq(c.Name)))
-	t = d.FindTable(table.Table2)
-	if t == nil {
-		slog.Error("association table skipped, Table2 not found",
-			slog.String(db.LogTable, table.Name))
-	}
-	c = t.PrimaryKeyColumn()
-	if c == nil {
-		slog.Error("association table skipped, Table2 does not have a primary key column",
-			slog.String(db.LogTable, table.Name))
-	}
-	columnDefs = append(columnDefs, fmt.Sprintf("  FOREIGN KEY (%s) REFERENCES %s(%s)", h.iq(table.Column2), h.iq(table.Table2), h.iq(c.Name)))
-	columnDefs = append(columnDefs, fmt.Sprintf("  INDEX (%s)", h.iq(table.Column1)))
-	columnDefs = append(columnDefs, fmt.Sprintf("  INDEX (%s)", h.iq(table.Column2)))
-	columnDefs = append(columnDefs, fmt.Sprintf("  PRIMARY KEY (%s, %s)", h.iq(table.Column1), h.iq(table.Column2)))
-
-	sb.WriteString(strings.Join(columnDefs, ",\n"))
-	sb.WriteString("\n)")
-
-	commentStr := AssociationTableComment(table)
-	if commentStr != "" {
-		sb.WriteString(fmt.Sprintf(` COMMENT='%s'`, commentStr))
-	}
-	sb.WriteString("\n")
-
-	return sb.String()
-}
-
-func (h *DbHelper) buildColumnDef(d *schema.Database, col *schema.Column) string {
-	// pass off to the database driver
-	return h.dbi.ColumnDefinitionSql(d, col)
+	return h.tableSql(d, table)
 }

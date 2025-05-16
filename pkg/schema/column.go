@@ -46,6 +46,9 @@ type Column struct {
 
 	// IndexLevel indicates what kind of index is associated with this column.
 	// ColTypeAutoPrimaryKey columns are automatically indexed uniquely, so this can be left blank for those columns.
+	// This is for specifying single-column indexes.
+	// See MultiColumnIndex for specifying a multi-column index or multi-column primary key.
+	// Only one column in a table can have a single primary key column.
 	IndexLevel IndexLevel `json:"index_level,omitempty"`
 
 	// Reference is set when the column is a pointer to another table.
@@ -72,8 +75,8 @@ type Column struct {
 	// The information recognized is specific to the database driver.
 	DatabaseDefinition map[string]map[string]interface{} `json:"database_def,omitempty"`
 
-	// Key is used internally to aid in synchronizing database structure changes. Do not set or change it.
-	Key string `json:"key,omitempty"`
+	// Comment is a place to put a comment in the JSON description file. If the database driver supports it, it may be put in the database..
+	Comment string `json:"comment,omitempty"`
 }
 
 // Reference is the additional information needed for reference type  and enum columns.

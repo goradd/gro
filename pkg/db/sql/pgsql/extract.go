@@ -13,7 +13,6 @@ import (
 	"log"
 	"log/slog"
 	"slices"
-	"sort"
 	"strings"
 )
 
@@ -78,7 +77,10 @@ func (m *DB) getRawTables(options map[string]any) map[string]pgTable {
 		defaultSchemaName = d
 	}
 
-	schemas, _ := options["schemas"].([]string)
+	schemas, ok := options["schemas"].([]string)
+	if !ok {
+		schemas = []string{defaultSchemaName}
+	}
 	tables, schemas2 := m.getTables(schemas, defaultSchemaName)
 
 	indexes := m.getIndexes(schemas2, defaultSchemaName)
@@ -514,42 +516,65 @@ func (m *DB) schemaFromRawTables(rawTables map[string]pgTable, options map[strin
 
 func (m *DB) getTableSchema(t pgTable, enumTableSuffix string) schema.Table {
 	var columnSchemas []*schema.Column
+	var multiColumnPK *schema.MultiColumnIndex
 
 	// Build the indexes
 	indexes := make(map[string]*schema.MultiColumnIndex)
-	pkColumns := maps.NewSet[string]()
-	uniqueColumns := maps.NewSet[string]()
-	singleIndexes := maps.NewSet[string]()
+	singleIndexes := make(map[string]schema.IndexLevel)
 
-	// Fill pkColumns map with the column names of all the pk columns
-	// Also fill the indexes map with a list of columns for each index
 	for _, idx := range t.indexes {
-		if idx.primary {
-			pkColumns.Add(idx.columnName)
-		} else if i, ok2 := indexes[idx.name]; ok2 {
+		if i, ok := indexes[idx.name]; ok {
+			// add a column to the previously found index
 			i.Columns = append(i.Columns, idx.columnName)
-			sort.Strings(i.Columns) // make sure this list stays in a predictable order each time
 		} else {
-			i = &schema.MultiColumnIndex{IsUnique: idx.unique, Columns: []string{idx.columnName}}
-			indexes[idx.name] = i
+			// create a new index
+			var level schema.IndexLevel
+			if idx.primary {
+				level = schema.IndexLevelManualPrimaryKey
+			} else if idx.unique {
+				level = schema.IndexLevelUnique
+			} else {
+				level = schema.IndexLevelIndexed
+			}
+			mci := &schema.MultiColumnIndex{Columns: []string{idx.columnName}, IndexLevel: level}
+			indexes[idx.name] = mci
 		}
 	}
 
-	// Fill the uniqueColumns map with all the columns that have a single unique index,
-	// including any PK columns. Single indexes are used to determine 1 to 1 relationships.
+	// Fill the singleIndexes set with all the columns that have a single index,
+	// There should not be multiple single indexes on the same column, but if there are
+	// we prioritize by the value of the index level.
 	for _, idx := range indexes {
-		if len(idx.Columns) == 1 && idx.IsUnique {
-			singleIndexes.Add(idx.Columns[0])
-			if idx.IsUnique {
-				uniqueColumns.Add(idx.Columns[0])
+		if len(idx.Columns) == 1 {
+			if level, ok := singleIndexes[idx.Columns[0]]; ok {
+				if idx.IndexLevel > level {
+					singleIndexes[idx.Columns[0]] = idx.IndexLevel
+				}
+			} else {
+				singleIndexes[idx.Columns[0]] = idx.IndexLevel
 			}
+		} else if idx.IndexLevel == schema.IndexLevelManualPrimaryKey {
+			// We have a multi-column primary key
+			multiColumnPK = idx
 		}
-	}
-	if pkColumns.Len() == 1 {
-		uniqueColumns.Add(pkColumns.Values()[0])
 	}
 
 	var pkCount int
+
+	// Since we don't support multi-column primary keys in the ORM, we convert to
+	// an auto-generated primary key plus a unique index.
+	if multiColumnPK != nil {
+		cd := &schema.Column{
+			Name:    "_id",
+			Type:    schema.ColTypeAutoPrimaryKey,
+			Comment: "Replacing multi-column primary key",
+		}
+		columnSchemas = append(columnSchemas, cd)
+		multiColumnPK.IndexLevel = schema.IndexLevelUnique
+		pkCount = 1
+		// these columns should already be identified as not nullable
+	}
+
 	for _, col := range t.columns {
 		if strings.Contains(col.name, ".") {
 			slog.Warn("Column cannot contain a period in its name. Skipping.",
@@ -558,39 +583,31 @@ func (m *DB) getTableSchema(t pgTable, enumTableSuffix string) schema.Table {
 			continue
 		}
 
-		cd := m.getColumnSchema(t, col, singleIndexes.Has(col.name), pkColumns.Has(col.name), uniqueColumns.Has(col.name), enumTableSuffix)
+		cd := m.getColumnSchema(t, col, singleIndexes[col.name], enumTableSuffix)
 
-		if cd.Type == schema.ColTypeAutoPrimaryKey || cd.IndexLevel == schema.IndexLevelManualPrimaryKey {
+		if cd.Type == schema.ColTypeAutoPrimaryKey ||
+			cd.IndexLevel == schema.IndexLevelManualPrimaryKey ||
+			multiColumnPK != nil && slices.Contains(multiColumnPK.Columns, col.name) {
 			// private keys go first
 			columnSchemas = slices.Insert(columnSchemas, pkCount, &cd)
 			pkCount++
 		} else {
 			columnSchemas = append(columnSchemas, &cd)
 		}
-
 	}
 
 	td := schema.Table{
 		Name:    t.name,
 		Schema:  t.schema,
 		Columns: columnSchemas,
-		Key:     t.name,
+		Comment: t.comment,
 	}
 
 	// Create the multi-column index array
 	for _, idx := range indexes {
 		if len(idx.Columns) > 1 {
-			slices.Sort(idx.Columns)
 			td.MultiColumnIndexes = append(td.MultiColumnIndexes, *idx)
 		}
-	}
-	if pkColumns.Len() == 2 {
-		mc := schema.MultiColumnIndex{
-			IsUnique: true,
-			Columns:  pkColumns.Values(),
-		}
-		slices.Sort(mc.Columns)
-		td.MultiColumnIndexes = append(td.MultiColumnIndexes, mc)
 	}
 
 	// Keep the MultiColumnIndexes in a predictable order
@@ -687,7 +704,10 @@ ORDER BY
 	return
 }
 
-func (m *DB) getColumnSchema(table pgTable, column pgColumn, isIndexed bool, isPk bool, isUnique bool, enumTableSuffix string) schema.Column {
+func (m *DB) getColumnSchema(table pgTable,
+	column pgColumn,
+	indexLevel schema.IndexLevel,
+	enumTableSuffix string) schema.Column {
 	cd := schema.Column{
 		Name: column.name,
 	}
@@ -698,12 +718,8 @@ func (m *DB) getColumnSchema(table pgTable, column pgColumn, isIndexed bool, isP
 	if isAuto {
 		cd.Type = schema.ColTypeAutoPrimaryKey
 		cd.Size = 0
-	} else if isPk {
-		cd.IndexLevel = schema.IndexLevelManualPrimaryKey
-	} else if isUnique {
-		cd.IndexLevel = schema.IndexLevelUnique
-	} else if isIndexed {
-		cd.IndexLevel = schema.IndexLevelIndexed
+	} else {
+		cd.IndexLevel = indexLevel
 	}
 
 	cd.IsNullable = column.isNullable
@@ -734,13 +750,8 @@ func (m *DB) getAssociationSchema(t pgTable, enumTableSuffix string) (mm schema.
 		err = fmt.Errorf("table " + td.Name + " must have only 2 primary key columns.")
 		return
 	}
-	if len(td.MultiColumnIndexes) != 1 ||
-		!td.MultiColumnIndexes[0].IsUnique {
-		err = fmt.Errorf("association table must have one multi-column index that is unique")
-	}
 
-	var typeIndex = -1
-	for i, cd := range td.Columns {
+	for _, cd := range td.Columns {
 		if cd.Reference == nil {
 			err = fmt.Errorf("column " + cd.Name + " must be a foreign key.")
 			return
@@ -749,14 +760,6 @@ func (m *DB) getAssociationSchema(t pgTable, enumTableSuffix string) (mm schema.
 		if cd.IsNullable {
 			err = fmt.Errorf("column " + cd.Name + " cannot be nullable.")
 			return
-		}
-
-		if cd.Type == schema.ColTypeEnum {
-			if typeIndex != -1 {
-				err = fmt.Errorf("column " + cd.Name + " cannot have two foreign keys to enum tables.")
-				return
-			}
-			typeIndex = i
 		}
 	}
 

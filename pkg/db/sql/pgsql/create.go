@@ -3,7 +3,6 @@ package pgsql
 import (
 	"fmt"
 	"github.com/goradd/orm/pkg/db"
-	"github.com/goradd/orm/pkg/db/sql"
 	"github.com/goradd/orm/pkg/schema"
 	"log/slog"
 )
@@ -11,12 +10,12 @@ import (
 // ColumnDefinitionSql returns the sql that will create the column col.
 // This will include single-column foreign key references.
 // This will not include a primary key designation.
-func (m *DB) ColumnDefinitionSql(d *schema.Database, col *schema.Column) string {
+func (m *DB) ColumnDefinitionSql(d *schema.Database, col *schema.Column) (s string, tableClauses []string, extraClauses []string) {
 	var colType string
 	var collation string
 	var defaultStr string
 
-	if def := col.DatabaseDefinition[db.DriverTypeMysql]; def != nil {
+	if def := col.DatabaseDefinition[db.DriverTypePostgres]; def != nil {
 		if t, ok := def["type"].(string); ok {
 			colType = t
 		}
@@ -43,23 +42,8 @@ func (m *DB) ColumnDefinitionSql(d *schema.Database, col *schema.Column) string 
 					slog.String(db.LogTable, col.Reference.Table))
 			}
 			colType = sqlType(c.Type, c.Size, c.SubType, true)
-			if !col.IsNullable {
-				colType += " NOT NULL "
-			}
-			colType += " REFERENCES " + m.QuoteIdentifier(col.Reference.Table) + "(" + m.QuoteIdentifier(c.Name) + ")"
-		} else if col.Type == schema.ColTypeEnum {
-			colType = "INT"
-			t := d.FindEnumTable(col.Reference.Table)
-			k := t.FieldKeys()[0]
-			if !col.IsNullable {
-				colType += " NOT NULL "
-			}
-			colType += " REFERENCES " + m.QuoteIdentifier(col.Reference.Table) + "(" + m.QuoteIdentifier(k) + ")"
 		} else {
 			colType = sqlType(col.Type, col.Size, col.SubType, false)
-			if !col.IsNullable {
-				colType += " NOT NULL "
-			}
 		}
 	}
 
@@ -84,12 +68,13 @@ func (m *DB) ColumnDefinitionSql(d *schema.Database, col *schema.Column) string 
 		}
 	}
 
-	commentStr := sql.ColumnComment(col)
+	commentStr := col.Comment
 	if commentStr != "" {
 		commentStr = fmt.Sprintf("COMMENT '%s'", commentStr)
 	}
 
-	return fmt.Sprintf("%s %s %s %s %s %s", m.QuoteIdentifier(col.Name), colType, defaultStr, extraStr, collation, commentStr)
+	s = fmt.Sprintf("%s %s %s %s %s %s", m.QuoteIdentifier(col.Name), colType, defaultStr, extraStr, collation, commentStr)
+	return
 }
 
 // SqlType is used by the builder to return the SQL corresponding to the given colType that will create

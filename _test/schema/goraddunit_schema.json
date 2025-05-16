@@ -80,14 +80,14 @@
             "field2_int",
             "field2_string"
           ],
-          "is_unique": true
+          "index_level": "unique"
         },
         {
           "columns": [
             "field_int",
             "field_string"
           ],
-          "is_unique": true
+          "index_level": "unique"
         }
       ]
     },
@@ -537,7 +537,7 @@
             "type_multFk1",
             "type_multiFk2"
           ],
-          "is_unique": false
+          "index_level": "indexed"
         }
       ]
     },

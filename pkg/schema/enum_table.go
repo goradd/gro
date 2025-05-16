@@ -68,8 +68,9 @@ type EnumTable struct {
 	// IdentifierPlural is the plural form of Identifier.
 	IdentifierPlural string `json:"identifier_plural,omitempty"`
 
-	// Key is used internally to aid in database synchronization.
-	Key string `json:"key,omitempty"`
+	// Comment is a place to put a comment in the JSON description file.
+	// If the database driver supports it, it may be put in the database.
+	Comment string `json:"comment,omitempty"`
 }
 
 // QualifiedName returns the name of the table in the database, including its schema if applicable.

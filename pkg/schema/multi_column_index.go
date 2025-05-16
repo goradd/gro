@@ -1,10 +1,10 @@
 package schema
 
-// MultiColumnIndex declares that a LoadBy or QueryBy function should be created on the given columns in the table.
+// MultiColumnIndex declares that a Get or Load function should be created on the given columns in the table
+// and gives direction to the database to create an index on the columns.
 //
-// Databases that support multi-column indexes will have a matching multi-column index on the given columns.
-//
-// If IsUnique is true, a LoadBy function will be generated, otherwise a QueryBy function will be generated.
+// Databases that support indexes will have a matching index on the given columns.
+// See Column.IndexLevel to specify a single-column index.
 //
 // Note On Uniqueness:
 //
@@ -26,8 +26,10 @@ package schema
 type MultiColumnIndex struct {
 	// Columns are the Column.Name values of the columns in the table that will be used to access the data.
 	Columns []string `json:"columns"`
-	// IsUnique will create a constraint in the database to make sure the combined columns are unique within
-	// the table. Not all databases support uniqueness, but the generated ORM will attempt to check for existence
-	// before adding the data to the database to minimize collisions in those databases that do not support uniqueness.
-	IsUnique bool `json:"is_unique"`
+	// IndexLevel will specify the type of index, and possibly a constraint to put on the columns.
+	// If specifying a multi-column primary key, understand that the table cannot have any
+	// columns marked as primary keys in the column definitions, that the table cannot have any foreign keys
+	// pointing to it, and that some databases do not support multi-column primary keys in which case the driver
+	// may set it up as a unique non-null index instead.
+	IndexLevel IndexLevel `json:"index_level"`
 }

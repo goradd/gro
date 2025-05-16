@@ -34,10 +34,8 @@ type DbI interface {
 	FormatArgument(n int) string
 	// SupportsForUpdate will return true if it supports SELECT ... FOR UPDATE clauses for row level locking in a transaction
 	SupportsForUpdate() bool
-	// ColumnDefinitionSql returns the sql that will create the column col.
-	// This will include the SQL for single-column foreign key references.
-	// This will not include a primary key designation.
-	ColumnDefinitionSql(d *schema.Database, col *schema.Column) string
+	// TableDefinitionSql returns the sql that will create table.
+	TableDefinitionSql(d *schema.Database, table *schema.Table) (s string)
 }
 
 type contextKey string
