@@ -347,26 +347,6 @@ func HasDoubleIndex(ctx context.Context, id int) (bool, error) {
 	return v > 0, err
 }
 
-// LoadDoubleIndexByID queries for a single DoubleIndex object by the given unique index values.
-// selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
-// See [DoubleIndicesBuilder.Select].
-// If you need a more elaborate query, use QueryDoubleIndices() to start a query builder.
-func LoadDoubleIndexByID(ctx context.Context, id int, selectNodes ...query.Node) (*DoubleIndex, error) {
-	q := queryDoubleIndices(ctx)
-	q = q.Where(op.Equal(node.DoubleIndex().ID(), id))
-	return q.Select(selectNodes...).Get()
-}
-
-// HasDoubleIndexByID returns true if the
-// given unique index values exist in the database.
-// doc: type=DoubleIndex
-func HasDoubleIndexByID(ctx context.Context, id int) (bool, error) {
-	q := queryDoubleIndices(ctx)
-	q = q.Where(op.Equal(node.DoubleIndex().ID(), id))
-	v, err := q.Count()
-	return v > 0, err
-}
-
 // LoadDoubleIndexByField2IntField2String queries for a single DoubleIndex object by the given unique index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [DoubleIndicesBuilder.Select].
@@ -627,16 +607,6 @@ func CountDoubleIndices(ctx context.Context) (int, error) {
 	return QueryDoubleIndices(ctx).Count()
 }
 
-// CountDoubleIndicesByID queries the database and returns the number of DoubleIndex objects that
-// have id.
-// doc: type=DoubleIndex
-func CountDoubleIndicesByID(ctx context.Context, id int) (int, error) {
-	v_id := id
-	return QueryDoubleIndices(ctx).
-		Where(op.Equal(node.DoubleIndex().ID(), v_id)).
-		Count()
-}
-
 // CountDoubleIndicesByField2IntField2String queries the database and returns the number of DoubleIndex objects that
 // have field2Int and field2String.
 // doc: type=DoubleIndex
@@ -781,7 +751,7 @@ func (o *doubleIndexBase) update(ctx context.Context) error {
 	err := db.ExecuteTransaction(ctx, d, func() error {
 
 		if o.idIsDirty {
-			if obj, err := LoadDoubleIndexByID(ctx, o.id); err != nil {
+			if obj, err := LoadDoubleIndex(ctx, o.id); err != nil {
 				return err
 			} else if obj != nil {
 				return db.NewUniqueValueError("double_index", map[string]any{"id": o.id}, nil)
@@ -844,7 +814,7 @@ func (o *doubleIndexBase) insert(ctx context.Context) (err error) {
 			panic("a value for FieldString is required, and there is no default value. Call SetFieldString() before inserting the record.")
 		}
 		if o.idIsDirty {
-			if obj, err := LoadDoubleIndexByID(ctx, o.id); err != nil {
+			if obj, err := LoadDoubleIndex(ctx, o.id); err != nil {
 				return err
 			} else if obj != nil {
 				return db.NewUniqueValueError("double_index", map[string]any{"id": o.id}, nil)

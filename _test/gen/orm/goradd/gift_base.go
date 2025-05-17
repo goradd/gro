@@ -184,26 +184,6 @@ func HasGift(ctx context.Context, number int) (bool, error) {
 	return v > 0, err
 }
 
-// LoadGiftByNumber queries for a single Gift object by the given unique index values.
-// selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
-// See [GiftsBuilder.Select].
-// If you need a more elaborate query, use QueryGifts() to start a query builder.
-func LoadGiftByNumber(ctx context.Context, number int, selectNodes ...query.Node) (*Gift, error) {
-	q := queryGifts(ctx)
-	q = q.Where(op.Equal(node.Gift().Number(), number))
-	return q.Select(selectNodes...).Get()
-}
-
-// HasGiftByNumber returns true if the
-// given unique index values exist in the database.
-// doc: type=Gift
-func HasGiftByNumber(ctx context.Context, number int) (bool, error) {
-	q := queryGifts(ctx)
-	q = q.Where(op.Equal(node.Gift().Number(), number))
-	v, err := q.Count()
-	return v > 0, err
-}
-
 // The GiftBuilder uses a builder pattern to create a query on the database.
 // Create a GiftBuilder by calling QueryGifts, which will select all
 // the Gift object in the database. Then filter and arrange those objects
@@ -404,16 +384,6 @@ func CountGifts(ctx context.Context) (int, error) {
 	return QueryGifts(ctx).Count()
 }
 
-// CountGiftsByNumber queries the database and returns the number of Gift objects that
-// have number.
-// doc: type=Gift
-func CountGiftsByNumber(ctx context.Context, number int) (int, error) {
-	v_number := number
-	return QueryGifts(ctx).
-		Where(op.Equal(node.Gift().Number(), v_number)).
-		Count()
-}
-
 // unpack recursively transforms data coming from the database into ORM objects.
 func (o *giftBase) unpack(m map[string]interface{}, objThis *Gift) {
 
@@ -483,7 +453,7 @@ func (o *giftBase) update(ctx context.Context) error {
 	err := db.ExecuteTransaction(ctx, d, func() error {
 
 		if o.numberIsDirty {
-			if obj, err := LoadGiftByNumber(ctx, o.number); err != nil {
+			if obj, err := LoadGift(ctx, o.number); err != nil {
 				return err
 			} else if obj != nil {
 				return db.NewUniqueValueError("gift", map[string]any{"number": o.number}, nil)
@@ -532,7 +502,7 @@ func (o *giftBase) insert(ctx context.Context) (err error) {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
 		if o.numberIsDirty {
-			if obj, err := LoadGiftByNumber(ctx, o.number); err != nil {
+			if obj, err := LoadGift(ctx, o.number); err != nil {
 				return err
 			} else if obj != nil {
 				return db.NewUniqueValueError("gift", map[string]any{"number": o.number}, nil)

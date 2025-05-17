@@ -32,12 +32,12 @@ type Table struct {
 	Identifier string
 	// IdentifierPlural is the name of a collection of these objects when referring to them in go code.
 	IdentifierPlural string
-	// DecapIdentifier is the same as Identifier, but with first letter lower case.
+	// DecapIdentifier is the same as Identifier, but the first letter is lower case.
 	DecapIdentifier string
 	// Columns is a list of Columns, one for each column in the table.
-	// Primary keys are sorted to the front.
+	// The primary key is sorted to the front.
 	Columns []*Column
-	// Indexes are all the indexes defined on the table, single and multi-column and primary key.
+	// Indexes are all the indexes defined on the table, single and multi-column, but not primary key.
 	Indexes []Index
 	// Options are key-value pairs of values that can be used to customize how code generation is performed
 	Options map[string]interface{}
@@ -220,7 +220,8 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 			t.Columns = append(t.Columns, newCol)
 		}
 		t.columnMap[newCol.QueryName] = newCol
-		if schemaCol.IndexLevel != schema.IndexLevelNone {
+		if schemaCol.IndexLevel == schema.IndexLevelIndexed ||
+			schemaCol.IndexLevel == schema.IndexLevelUnique {
 			idx := Index{Columns: []*Column{newCol},
 				IsUnique: schemaCol.IndexLevel != schema.IndexLevelIndexed}
 			t.Indexes = append(t.Indexes, idx)
@@ -247,7 +248,7 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 			}
 		}
 		if len(columns) > 0 {
-			t.Indexes = append(t.Indexes, Index{IsUnique: idx.IsUnique, Columns: columns})
+			t.Indexes = append(t.Indexes, Index{IsUnique: idx.IndexLevel == schema.IndexLevelUnique, Columns: columns})
 		}
 	}
 	return t

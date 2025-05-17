@@ -430,12 +430,6 @@ func TestDoubleIndex_Count(t *testing.T) {
 	obj2, _ := LoadDoubleIndex(ctx, obj.PrimaryKey())
 	assert.Positive(t,
 		func() int {
-			i, _ := CountDoubleIndicesByID(ctx,
-				obj2.ID())
-			return i
-		}())
-	assert.Positive(t,
-		func() int {
 			i, _ := CountDoubleIndicesByField2IntField2String(ctx,
 				obj2.Field2Int(),
 				obj2.Field2String())
@@ -530,10 +524,6 @@ func TestDoubleIndex_Indexes(t *testing.T) {
 	defer deleteSampleDoubleIndex(ctx, obj)
 
 	var obj2 *DoubleIndex
-	obj2, _ = LoadDoubleIndexByID(ctx, obj.ID())
-	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.True(t, func() bool { h, _ := HasDoubleIndexByID(ctx, obj.ID()); return h }())
-
 	obj2, _ = LoadDoubleIndexByField2IntField2String(ctx, obj.Field2Int(), obj.Field2String())
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
 	assert.True(t, func() bool {

@@ -5,12 +5,89 @@ import (
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/schema"
 	"log/slog"
+	"strings"
 )
+
+// TableDefinitionSql will return the sql needed to create the table.
+// This can include clauses separated by semicolons that add additional capabilities to the table.
+func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) string {
+	var sb strings.Builder
+
+	var pkCount int
+	var columnDefs []string
+	var tableClauses []string
+	var extraClauses []string
+
+	for _, col := range table.Columns {
+		if col.IsPrimaryKey() {
+			pkCount++
+			if pkCount > 1 {
+				slog.Error("Table skipped. Table has more than one primary key column",
+					slog.String(db.LogTable, table.Name))
+				return ""
+			}
+		}
+		colDef, tc, xc := m.buildColumnDef(d, col)
+		if colDef == "" {
+			continue // error, already reported
+		}
+		columnDefs = append(columnDefs, "  "+colDef)
+		tableClauses = append(tableClauses, tc...)
+		extraClauses = append(extraClauses, xc...)
+	}
+
+	quotedTableName := m.QuoteIdentifier(table.Name)
+	if table.Schema != "" && table.Schema != "public" {
+		quotedTableName = m.QuoteIdentifier(table.Schema) + "." + m.QuoteIdentifier(quotedTableName)
+	}
+
+	// Multi-column indexes
+	for _, mci := range table.MultiColumnIndexes {
+		cols := make([]string, len(mci.Columns))
+		for i, name := range mci.Columns {
+			cols[i] = m.QuoteIdentifier(name)
+		}
+		quotedCols := strings.Join(cols, ", ")
+
+		var idxType string
+		switch mci.IndexLevel {
+		case schema.IndexLevelManualPrimaryKey:
+			def := fmt.Sprintf("PRIMARY KEY (%s)", quotedCols)
+			tableClauses = append(tableClauses, def)
+
+		case schema.IndexLevelUnique:
+			idxType = "UNIQUE "
+			fallthrough
+		case schema.IndexLevelIndexed:
+			idxType += "INDEX"
+			idxName := "idx_" + strings.Join(mci.Columns, "_")
+			def := fmt.Sprintf("CREATE %s %s ON %s (%s)", idxType, m.QuoteIdentifier(idxName), quotedTableName, quotedCols)
+			extraClauses = append(extraClauses, def)
+		default:
+			slog.Error("Index skipped. Unknown index level in multi-column index",
+				slog.String(db.LogTable, table.Name))
+			continue
+		}
+	}
+
+	columnDefs = append(columnDefs, tableClauses...)
+	if table.Comment != "" {
+		cmt := fmt.Sprintf("COMMENT ON TABLE %s IS '%s'", quotedTableName, table.Comment)
+		extraClauses = append(extraClauses, cmt)
+	}
+
+	sb.WriteString(fmt.Sprintf("CREATE TABLE %s (\n", quotedTableName))
+	sb.WriteString(strings.Join(columnDefs, ",\n"))
+	sb.WriteString("\n)")
+	sb.WriteString(";\n")
+	sb.WriteString(strings.Join(extraClauses, ";/n"))
+	return sb.String()
+}
 
 // ColumnDefinitionSql returns the sql that will create the column col.
 // This will include single-column foreign key references.
 // This will not include a primary key designation.
-func (m *DB) ColumnDefinitionSql(d *schema.Database, col *schema.Column) (s string, tableClauses []string, extraClauses []string) {
+func (m *DB) buildColumnDef(d *schema.Database, col *schema.Column) (s string, tableClauses []string, extraClauses []string) {
 	var colType string
 	var collation string
 	var defaultStr string

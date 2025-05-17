@@ -436,7 +436,7 @@ func (h *DbHelper) CreateSchema(ctx context.Context, s schema.Database) error {
 func (h *DbHelper) buildTable(ctx context.Context, d *schema.Database, table *schema.Table) (err error) {
 	s := h.tableSql(d, table)
 	if s == "" {
-		return fmt.Errorf("error in table `%s`", table.Name)
+		return nil // already reported error as table skipped
 	}
 	_, err = h.dbi.SqlExec(ctx, s)
 	if err != nil {

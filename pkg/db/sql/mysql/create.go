@@ -21,8 +21,8 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) string 
 	for _, col := range table.Columns {
 		if col.IsPrimaryKey() {
 			pkCount++
-			if pkCount > 2 {
-				slog.Error("Table skipped. Table has more than two primary key columns",
+			if pkCount > 1 {
+				slog.Error("Table skipped. Table has more than one primary key column",
 					slog.String(db.LogTable, table.Name))
 				return ""
 			}

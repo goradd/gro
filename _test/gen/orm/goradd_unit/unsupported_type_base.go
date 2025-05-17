@@ -584,26 +584,6 @@ func HasUnsupportedType(ctx context.Context, typeSerial uint64) (bool, error) {
 	return v > 0, err
 }
 
-// LoadUnsupportedTypeByTypeSerial queries for a single UnsupportedType object by the given unique index values.
-// selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
-// See [UnsupportedTypesBuilder.Select].
-// If you need a more elaborate query, use QueryUnsupportedTypes() to start a query builder.
-func LoadUnsupportedTypeByTypeSerial(ctx context.Context, typeSerial uint64, selectNodes ...query.Node) (*UnsupportedType, error) {
-	q := queryUnsupportedTypes(ctx)
-	q = q.Where(op.Equal(node.UnsupportedType().TypeSerial(), typeSerial))
-	return q.Select(selectNodes...).Get()
-}
-
-// HasUnsupportedTypeByTypeSerial returns true if the
-// given unique index values exist in the database.
-// doc: type=UnsupportedType
-func HasUnsupportedTypeByTypeSerial(ctx context.Context, typeSerial uint64) (bool, error) {
-	q := queryUnsupportedTypes(ctx)
-	q = q.Where(op.Equal(node.UnsupportedType().TypeSerial(), typeSerial))
-	v, err := q.Count()
-	return v > 0, err
-}
-
 // LoadUnsupportedTypesByTypeMultfk1TypeMultifk2 queries UnsupportedType objects by the given index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [UnsupportedTypesBuilder.Select].
@@ -826,16 +806,6 @@ func CountUnsupportedTypes(ctx context.Context) (int, error) {
 	return QueryUnsupportedTypes(ctx).Count()
 }
 
-// CountUnsupportedTypesByTypeSerial queries the database and returns the number of UnsupportedType objects that
-// have typeSerial.
-// doc: type=UnsupportedType
-func CountUnsupportedTypesByTypeSerial(ctx context.Context, typeSerial uint64) (int, error) {
-	v_typeSerial := typeSerial
-	return QueryUnsupportedTypes(ctx).
-		Where(op.Equal(node.UnsupportedType().TypeSerial(), v_typeSerial)).
-		Count()
-}
-
 // CountUnsupportedTypesByTypeMultfk1TypeMultifk2 queries the database and returns the number of UnsupportedType objects that
 // have typeMultfk1 and typeMultifk2.
 // doc: type=UnsupportedType
@@ -1040,7 +1010,7 @@ func (o *unsupportedTypeBase) update(ctx context.Context) error {
 	err := db.ExecuteTransaction(ctx, d, func() error {
 
 		if o.typeSerialIsDirty {
-			if obj, err := LoadUnsupportedTypeByTypeSerial(ctx, o.typeSerial); err != nil {
+			if obj, err := LoadUnsupportedType(ctx, o.typeSerial); err != nil {
 				return err
 			} else if obj != nil {
 				return db.NewUniqueValueError("unsupported_type", map[string]any{"type_serial": o.typeSerial}, nil)
@@ -1111,7 +1081,7 @@ func (o *unsupportedTypeBase) insert(ctx context.Context) (err error) {
 			panic("a value for TypeMultifk2 is required, and there is no default value. Call SetTypeMultifk2() before inserting the record.")
 		}
 		if o.typeSerialIsDirty {
-			if obj, err := LoadUnsupportedTypeByTypeSerial(ctx, o.typeSerial); err != nil {
+			if obj, err := LoadUnsupportedType(ctx, o.typeSerial); err != nil {
 				return err
 			} else if obj != nil {
 				return db.NewUniqueValueError("unsupported_type", map[string]any{"type_serial": o.typeSerial}, nil)

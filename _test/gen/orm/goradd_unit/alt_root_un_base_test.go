@@ -23,13 +23,13 @@ func createMinimalSampleAltRootUn() *AltRootUn {
 	obj := NewAltRootUn()
 	updateMinimalSampleAltRootUn(obj)
 
+	obj.SetID(test.RandomValue[float32](32))
+
 	return obj
 }
 
 // updateMinimalSampleAltRootUn sets the values of a minimal sample to new, random values.
 func updateMinimalSampleAltRootUn(obj *AltRootUn) {
-
-	obj.SetID(test.RandomValue[float32](32))
 
 	obj.SetName(test.RandomValue[string](100))
 
@@ -39,6 +39,7 @@ func updateMinimalSampleAltRootUn(obj *AltRootUn) {
 // for testing that includes references to minimal objects.
 func createMaximalSampleAltRootUn(ctx context.Context) *AltRootUn {
 	obj := NewAltRootUn()
+	obj.SetID(test.RandomValue[float32](32))
 	updateMaximalSampleAltRootUn(ctx, obj)
 	return obj
 }
@@ -138,10 +139,9 @@ func TestAltRootUn_BasicInsert(t *testing.T) {
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
 	assert.True(t, obj2.IDIsLoaded())
-	// test that setting it to the same value will not change the dirty bit
-	assert.False(t, obj2.idIsDirty)
-	obj2.SetID(obj2.ID())
-	assert.False(t, obj2.idIsDirty)
+	assert.Panics(t, func() {
+		obj2.SetID(obj2.ID())
+	})
 
 	assert.True(t, obj2.NameIsLoaded())
 	// test that setting it to the same value will not change the dirty bit
@@ -268,8 +268,6 @@ func TestAltRootUn_Getters(t *testing.T) {
 	assert.Equal(t, obj.ID(), obj2.ID())
 
 	assert.Equal(t, obj.ID(), obj.Get(node.AltRootUn().ID().Identifier))
-	assert.Panics(t, func() { obj2.ID() })
-	assert.Nil(t, obj2.Get(node.AltRootUn().ID().Identifier))
 	assert.Equal(t, obj.Name(), obj.Get(node.AltRootUn().Name().Identifier))
 	assert.Panics(t, func() { obj2.Name() })
 	assert.Nil(t, obj2.Get(node.AltRootUn().Name().Identifier))

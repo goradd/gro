@@ -90,7 +90,7 @@ func (n altRootUnTable) ID() *query.ColumnNode {
 		ReceiverType:  query.ColTypeFloat32,
 		SchemaType:    schema.ColTypeFloat,
 		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
+		IsPrimaryKey:  true,
 	}
 	query.NodeSetParent(cn, n)
 	return cn

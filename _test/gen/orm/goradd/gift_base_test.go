@@ -313,15 +313,6 @@ func TestGift_Count(t *testing.T) {
 	defer deleteSampleGift(ctx, obj)
 	assert.Positive(t, func() int { i, _ := CountGifts(ctx); return i }())
 
-	// reread in case there are data limitations imposed by the database
-	obj2, _ := LoadGift(ctx, obj.PrimaryKey())
-	assert.Positive(t,
-		func() int {
-			i, _ := CountGiftsByNumber(ctx,
-				obj2.Number())
-			return i
-		}())
-
 }
 
 func TestGift_MarshalJSON(t *testing.T) {
@@ -393,18 +384,4 @@ func TestGift_FailingUnmarshalBinary(t *testing.T) {
 		err = obj2.decodeFrom(dec)
 		assert.Error(t, err)
 	}
-}
-
-func TestGift_Indexes(t *testing.T) {
-	ctx := db.NewContext(nil)
-	obj := createMaximalSampleGift(ctx)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
-	defer deleteSampleGift(ctx, obj)
-
-	var obj2 *Gift
-	obj2, _ = LoadGiftByNumber(ctx, obj.Number())
-	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.True(t, func() bool { h, _ := HasGiftByNumber(ctx, obj.Number()); return h }())
-
 }

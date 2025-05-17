@@ -11,7 +11,7 @@
 {{if col.IsUnique && !col.IsAutoPK }}
     if o.{{= col.VariableIdentifier() }}IsDirty {{if col.IsNullable}} &&
             !o.{{= col.VariableIdentifier() }}IsNull{{if}} {
-        if obj,err := Load{{= table.Identifier }}By{{= col.Identifier}}(ctx, o.{{= col.VariableIdentifier() }}); err != nil {
+        if obj,err := Load{{= table.Identifier }}{{if !col.IsPrimaryKey }}By{{= col.Identifier}}{{if}}(ctx, o.{{= col.VariableIdentifier() }}); err != nil {
             return err
         } else if obj != nil {
             return db.NewUniqueValueError("{{= table.QueryName }}", map[string]any{"{{= col.QueryName }}":o.{{= col.VariableIdentifier() }} }, nil)

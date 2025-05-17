@@ -8258,12 +8258,16 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `By`); err != nil {
-				return
-			}
+			if !col.IsPrimaryKey {
 
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
+				if _, err = io.WriteString(_w, `By`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
 			}
 
 			if _, err = io.WriteString(_w, `(ctx, o.`); err != nil {
@@ -9913,12 +9917,16 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `By`); err != nil {
-				return
-			}
+			if !col.IsPrimaryKey {
 
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
+				if _, err = io.WriteString(_w, `By`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
 			}
 
 			if _, err = io.WriteString(_w, `(ctx, o.`); err != nil {

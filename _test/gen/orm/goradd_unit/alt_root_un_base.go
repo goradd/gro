@@ -115,12 +115,11 @@ func (o *altRootUnBase) IDIsLoaded() bool {
 }
 
 // SetID sets the value of ID in the object, to be saved later in the database using the Save() function.
+// You cannot change a primary key for a record that has been written to the database. While SQL databases will
+// allow it, NoSql databases will not. Save a copy and delete this one instead.
 func (o *altRootUnBase) SetID(v float32) {
-	if o._restored &&
-		o.idIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
-		o.id == v {
-		// no change
-		return
+	if o._restored {
+		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
 	}
 
 	o.idIsLoaded = true
@@ -440,6 +439,8 @@ func (o *altRootUnBase) unpack(m map[string]interface{}, objThis *AltRootUn) {
 			o.idIsLoaded = true
 			o.idIsDirty = false
 
+			o._originalPK = o.id
+
 		} else {
 			panic("Wrong type found for id.")
 		}
@@ -509,6 +510,14 @@ func (o *altRootUnBase) update(ctx context.Context) error {
 
 	d := Database()
 	err := db.ExecuteTransaction(ctx, d, func() error {
+
+		if o.idIsDirty {
+			if obj, err := LoadAltRootUn(ctx, o.id); err != nil {
+				return err
+			} else if obj != nil {
+				return db.NewUniqueValueError("alt_root_un", map[string]any{"id": o.id}, nil)
+			}
+		}
 
 		modifiedFields = getAltRootUnUpdateFields(o)
 		if len(modifiedFields) != 0 {
@@ -581,6 +590,13 @@ func (o *altRootUnBase) insert(ctx context.Context) (err error) {
 		}
 		if !o.nameIsLoaded {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
+		}
+		if o.idIsDirty {
+			if obj, err := LoadAltRootUn(ctx, o.id); err != nil {
+				return err
+			} else if obj != nil {
+				return db.NewUniqueValueError("alt_root_un", map[string]any{"id": o.id}, nil)
+			}
 		}
 		insertFields = getAltRootUnInsertFields(o)
 		var newPk float32
