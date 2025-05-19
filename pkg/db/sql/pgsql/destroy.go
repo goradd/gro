@@ -2,18 +2,36 @@ package pgsql
 
 import (
 	"context"
+	"github.com/goradd/orm/pkg/db"
+	"github.com/goradd/orm/pkg/schema"
+	"log/slog"
 )
 
-// DestroySchema removes all tables and data from the database.
-// Note that this is not limited to what was previously read by ExtractSchema, but rather
-// drops all the tables that are currently found.
-// The entire process is in a transaction.
-func (m *DB) DestroySchema(ctx context.Context) (err error) {
-	rawTables := m.getRawTables(nil)
-	for _, table := range rawTables {
-		_, err = m.SqlExec(ctx, `DROP TABLE `+m.QuoteIdentifier(table.name))
+// DestroySchema removes all tables and data from the tables found in the given schema s.
+func (m *DB) DestroySchema(ctx context.Context, s schema.Database) (err error) {
+	// gather table names to delete
+	var tables []string
+
+	// build in creation order
+	for _, table := range s.EnumTables {
+		tables = append(tables, table.Name)
+	}
+	for _, table := range s.Tables {
+		tables = append(tables, table.Name)
+	}
+	for _, table := range s.AssociationTables {
+		tables = append(tables, table.Name)
+	}
+
+	// iterate in the reverse order of creation
+	for i := len(tables) - 1; i >= 0; i-- {
+		table := tables[i]
+		_, err := m.SqlExec(ctx, `DROP TABLE `+m.QuoteIdentifier(table))
 		if err != nil {
-			return err
+			slog.Error("failed to drop table",
+				slog.String(db.LogTable, table),
+				slog.Any(db.LogError, err),
+			)
 		}
 	}
 	return nil

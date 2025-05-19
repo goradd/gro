@@ -843,8 +843,7 @@ func (m *DB) getColumnSchema(table mysqlTable,
 				slog.Warn("Could not find foreign key to enum table.",
 					slog.String(db.LogComponent, "extract"),
 					slog.String(db.LogTable, table.name),
-					slog.String(db.LogColumn, column.name),
-					slog.Any(db.LogError, err))
+					slog.String(db.LogColumn, column.name))
 			}
 		} else if cd.Type == schema.ColTypeString {
 			cd.Type = schema.ColTypeEnumArray
@@ -852,7 +851,7 @@ func (m *DB) getColumnSchema(table mysqlTable,
 		cd.Size = 0 // use default size
 	} else if fk, ok2 := table.fkMap[column.name]; ok2 { // handle forward reference
 		if fk.referencedColumnIndexName.String != "PRIMARY" {
-			slog.Warn("Foregin key appears to not be pointing to a primary key. Only primary key foreign keys are supported.",
+			slog.Warn("Foregin key appears to NOT be pointing to a primary key. Only primary key foreign keys are supported.",
 				slog.String(db.LogComponent, "extract"),
 				slog.String(db.LogTable, table.name),
 				slog.String(db.LogColumn, column.name),
@@ -877,7 +876,7 @@ func (m *DB) getAssociationSchema(t mysqlTable, enumTableSuffix string) (mm sche
 		return
 	}
 	if td.Columns[0].Name == "_id" {
-		// This was added because of a multi-column primary key, which is ok for an association table
+		// This column was added because of a multi-column primary key.
 		td.Columns = slices.Delete(td.Columns, 0, 1)
 	}
 	if len(td.Columns) != 2 {

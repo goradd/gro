@@ -540,7 +540,7 @@ func (h *DbHelper) enumValueSql(tableName string, fieldKeys []string, fields map
 		fieldType := fields[k].Type
 		value := v[k]
 
-		placeholders = append(placeholders, "?")
+		placeholders = append(placeholders, h.dbi.FormatArgument(len(placeholders)+1))
 
 		switch fieldType {
 		case schema.ColTypeString:

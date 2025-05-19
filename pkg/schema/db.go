@@ -118,7 +118,6 @@ func (db *Database) FindEnumTable(name string) *EnumTable {
 }
 
 // Clean modifies the structure to prepare it for creating a schema in a database.
-// A cleaned structure should be saved so that it can be synchronized with the database as it changes.
 func (db *Database) Clean() {
 	db.sort()
 }

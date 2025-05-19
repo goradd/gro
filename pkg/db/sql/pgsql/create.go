@@ -27,7 +27,7 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) string 
 				return ""
 			}
 		}
-		colDef, tc, xc := m.buildColumnDef(d, col)
+		colDef, tc, xc := m.buildColumnDef(d, table, col)
 		if colDef == "" {
 			continue // error, already reported
 		}
@@ -80,14 +80,14 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) string 
 	sb.WriteString(strings.Join(columnDefs, ",\n"))
 	sb.WriteString("\n)")
 	sb.WriteString(";\n")
-	sb.WriteString(strings.Join(extraClauses, ";/n"))
+	sb.WriteString(strings.Join(extraClauses, ";\n"))
 	return sb.String()
 }
 
 // ColumnDefinitionSql returns the sql that will create the column col.
 // This will include single-column foreign key references.
 // This will not include a primary key designation.
-func (m *DB) buildColumnDef(d *schema.Database, col *schema.Column) (s string, tableClauses []string, extraClauses []string) {
+func (m *DB) buildColumnDef(d *schema.Database, table *schema.Table, col *schema.Column) (s string, tableClauses []string, extraClauses []string) {
 	var colType string
 	var collation string
 	var defaultStr string
@@ -97,31 +97,68 @@ func (m *DB) buildColumnDef(d *schema.Database, col *schema.Column) (s string, t
 			colType = t
 		}
 		if c, ok := def["collation"].(string); ok && c != "" {
-			collation = " COLLATE " + c
+			collation = fmt.Sprintf(`COLLATE "%s"`, c)
 		}
 		if d, ok := def["default"].(string); ok && d != "" {
 			defaultStr = " DEFAULT " + d
 		}
 
 	}
-	if colType == "" {
-		if col.Type == schema.ColTypeReference {
-			// match the referenced column's type
-			t := d.FindTable(col.Reference.Table)
-			if t == nil {
-				slog.Error("Column skipped, ref table not found",
-					slog.String(db.LogTable, col.Reference.Table),
-					slog.String(db.LogColumn, col.Name))
-			}
-			c := t.PrimaryKeyColumn()
-			if c == nil {
-				slog.Error("Column skipped, reference table does not have a primary key",
-					slog.String(db.LogTable, col.Reference.Table))
-			}
-			colType = sqlType(c.Type, c.Size, c.SubType, true)
-		} else {
-			colType = sqlType(col.Type, col.Size, col.SubType, false)
+	if col.Type == schema.ColTypeReference {
+		if col.Reference == nil || col.Reference.Table == "" {
+			slog.Error("Column skipped, Reference with a Table value is required",
+				slog.String(db.LogColumn, col.Name))
+			return
 		}
+		// match the referenced column's type
+		t := d.FindTable(col.Reference.Table)
+		if t == nil {
+			slog.Error("Column skipped, ref table not found",
+				slog.String(db.LogTable, col.Reference.Table),
+				slog.String(db.LogColumn, col.Name))
+		}
+		c := t.PrimaryKeyColumn()
+		if c == nil {
+			slog.Error("Column skipped, reference table does not have a primary key",
+				slog.String(db.LogTable, col.Reference.Table))
+		}
+		if colType == "" {
+			colType = sqlType(c.Type, c.Size, c.SubType, true)
+		}
+
+		fk := fmt.Sprintf(" FOREIGN KEY (%s) REFERENCES %s(%s)", m.QuoteIdentifier(col.Name), m.QuoteIdentifier(t.Name), m.QuoteIdentifier(c.Name))
+		tableClauses = append(tableClauses, fk)
+	} else if col.Type == schema.ColTypeEnum {
+		if col.Reference == nil || col.Reference.Table == "" {
+			slog.Error("Column skipped, Reference with a Table value is required",
+				slog.String(db.LogColumn, col.Name))
+			return
+		}
+
+		fk := fmt.Sprintf(" FOREIGN KEY (%s) REFERENCES %s(%s)", m.QuoteIdentifier(col.Name), m.QuoteIdentifier(col.Reference.Table), m.QuoteIdentifier("const"))
+		tableClauses = append(tableClauses, fk)
+		colType = "INT"
+	} else {
+		colType = sqlType(col.Type, col.Size, col.SubType, false)
+	}
+
+	if !col.IsNullable {
+		colType += " NOT NULL"
+	}
+
+	var idx string
+	// Note: Postgres does not automatically index foreign keys
+	switch col.IndexLevel {
+	case schema.IndexLevelIndexed:
+		idx_name := "idx_" + table.Name + "_" + col.Name
+		s := fmt.Sprintf("CREATE INDEX %s ON %s (%s)", m.QuoteIdentifier(idx_name), m.QuoteIdentifier(table.Name), m.QuoteIdentifier(col.Name))
+		extraClauses = append(extraClauses, s)
+	case schema.IndexLevelUnique:
+		idx = "UNIQUE" // inline
+	case schema.IndexLevelManualPrimaryKey:
+		idx = "PRIMARY KEY" // inline
+	default:
+		// do nothing
 	}
 
 	var extraStr string
@@ -130,10 +167,10 @@ func (m *DB) buildColumnDef(d *schema.Database, col *schema.Column) (s string, t
 		case string:
 			if col.Type == schema.ColTypeTime {
 				if val == "now" {
-					defaultStr = " DEFAULT CURRENT_TIMESTAMP"
+					defaultStr = "DEFAULT CURRENT_TIMESTAMP"
 				} else if val == "update" {
-					defaultStr = " DEFAULT CURRENT_TIMESTAMP"
-					extraStr = " ON UPDATE CURRENT_TIMESTAMP"
+					defaultStr = "DEFAULT CURRENT_TIMESTAMP"
+					extraStr = "ON UPDATE CURRENT_TIMESTAMP"
 				} else {
 					defaultStr = fmt.Sprintf("DEFAULT '%s'", val)
 				}
@@ -150,7 +187,7 @@ func (m *DB) buildColumnDef(d *schema.Database, col *schema.Column) (s string, t
 		commentStr = fmt.Sprintf("COMMENT '%s'", commentStr)
 	}
 
-	s = fmt.Sprintf("%s %s %s %s %s %s", m.QuoteIdentifier(col.Name), colType, defaultStr, extraStr, collation, commentStr)
+	s = fmt.Sprintf("%s %s %s %s %s %s %s", m.QuoteIdentifier(col.Name), colType, idx, defaultStr, extraStr, collation, commentStr)
 	return
 }
 
@@ -162,7 +199,7 @@ func sqlType(colType schema.ColumnType, size uint64, subType schema.ColumnSubTyp
 	case schema.ColTypeAutoPrimaryKey:
 		typ := intType(size, false)
 		if !forReference {
-			typ += " AUTO_INCREMENT"
+			typ += " GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY"
 		}
 		return typ
 	case schema.ColTypeString:
@@ -170,38 +207,28 @@ func sqlType(colType schema.ColumnType, size uint64, subType schema.ColumnSubTyp
 			precision := size & 0x0000FFFF
 			scale := size >> 16
 			if precision != 0 && scale != 0 {
-				return fmt.Sprintf("DECIMAL(%d, %d)", precision, scale)
+				return fmt.Sprintf("NUMERIC(%d, %d)", precision, scale)
 			} else {
-				return "DECIMAL(65, 30)" // max precision available in mysql
+				return "NUMERIC" // max precision available in postgres
 			}
 		} else if size == 0 {
 			return "TEXT"
-		} else if size < 16383 {
+		} else if size < 16383 { // this is arbitrary really. Postgres behaves differently when the whole row exceeds 2KB.
 			return fmt.Sprintf("VARCHAR(%d)", size)
-		} else if size < 4194303 {
-			return "MEDIUMTEXT"
 		} else {
-			return "LONGTEXT"
+			return "TEXT"
 		}
 	case schema.ColTypeBytes:
-		if size == 0 {
-			return "BLOB"
-		} else if size < 65532 {
-			return fmt.Sprintf("VARBINARY(%d)", size)
-		} else if size < 16777215 {
-			return "MEDIUMBLOB"
-		} else {
-			return "LONGBLOB"
-		}
+		return "BYTEA"
 	case schema.ColTypeInt:
 		return intType(size, false)
 	case schema.ColTypeUint:
 		return intType(size, true)
 	case schema.ColTypeFloat:
 		if size == 32 {
-			return "FLOAT"
+			return "FLOAT4"
 		}
-		return "DOUBLE"
+		return "FLOAT8"
 	case schema.ColTypeBool:
 		return "BOOLEAN"
 	case schema.ColTypeTime:
@@ -211,12 +238,12 @@ func sqlType(colType schema.ColumnType, size uint64, subType schema.ColumnSubTyp
 		case schema.ColSubTypeTimeOnly:
 			return "TIME"
 		case schema.ColSubTypeNone:
-			return "DATETIME"
+			return "TIMESTAMP"
 		default:
 			slog.Warn("Wrong subtype for time column",
 				slog.String("subtype", subType.String()))
 		}
-		return "DATETIME"
+		return "TIMESTAMP"
 	case schema.ColTypeReference:
 		return intType(size, false)
 	case schema.ColTypeEnum:
@@ -224,7 +251,7 @@ func sqlType(colType schema.ColumnType, size uint64, subType schema.ColumnSubTyp
 	case schema.ColTypeJSON:
 		fallthrough
 	case schema.ColTypeEnumArray:
-		return "JSON" // In MariaDB, this becomes a LONGTEXT, but MariaDB will store in like a varchar if its <8KB.
+		return "JSONB"
 	default:
 		return "TEXT"
 	}
@@ -232,20 +259,22 @@ func sqlType(colType schema.ColumnType, size uint64, subType schema.ColumnSubTyp
 
 func intType(size uint64, unsigned bool) string {
 	var t string
-	switch size {
-	case 8:
-		t = "TINYINT"
-	case 16:
-		t = "SMALLINT"
-	case 32:
-		t = "INT"
-	case 64:
-		t = "BIGINT"
-	default:
-		t = "INT"
-	}
+
 	if unsigned {
-		t += " UNSIGNED"
+		size += 1 // postgres does not support unsigned values, so we need to make sure we pick a type
+		// that covers Go's possible matching unsigned values.
+	}
+	switch {
+	case size == 0:
+		t = "INT"
+	case size == 1: // unsigned int
+		t = "BIGINT"
+	case size <= 16:
+		t = "SMALLINT"
+	case size <= 32:
+		t = "INT"
+	default:
+		t = "BIGINT"
 	}
 	return t
 }

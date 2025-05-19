@@ -1,4 +1,4 @@
-package mysql
+package pgsql
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"testing"
 )
 
-const mysqlConnectionString = "root:12345@tcp(127.0.0.1:3306)/goradd_test?parseTime=true&charset=utf8mb4&loc=Local"
+const postgresConnectionString = "host=127.0.0.1 port=5432 user=root password=12345 dbname=goradd_test sslmode=disable"
 
 func sampleSchema() schema.Database {
 	db := schema.Database{
@@ -55,7 +55,7 @@ func sampleSchema() schema.Database {
 						Name:       "user_id",
 						Type:       schema.ColTypeReference,
 						IsNullable: false,
-						IndexLevel: schema.IndexLevelIndexed, // foreign keys are always indexed
+						IndexLevel: schema.IndexLevelIndexed, // foreign keys should always be indexed
 						Reference: &schema.Reference{
 							Table: "user",
 						},
@@ -64,7 +64,7 @@ func sampleSchema() schema.Database {
 						Name:       "status_enum",
 						Type:       schema.ColTypeEnum,
 						IsNullable: false,
-						IndexLevel: schema.IndexLevelIndexed, // foreign keys are always indexed
+						IndexLevel: schema.IndexLevelIndexed,
 						Reference: &schema.Reference{
 							Table: "post_status_enum",
 						},
@@ -91,7 +91,7 @@ func sampleSchema() schema.Database {
 			{Name: "rel_assn", Table1: "user", Column1: "user_id", Table2: "post", Column2: "post_id"},
 		},
 	}
-	db.Clean()
+	//db.FillDefaults()
 	return db
 }
 
@@ -120,15 +120,15 @@ func TestDB_CreateSchema(t *testing.T) {
 
 	for _, tt := range sampleSchemas {
 		t.Run(tt.name, func(t *testing.T) {
-			d, err := NewDB("test", mysqlConnectionString, nil)
+			d, err := NewDB("test", postgresConnectionString, nil)
 			require.NoError(t, err)
 
 			ctx := d.NewContext(context.Background())
 
 			// prep
 			s1 := tt.schema() // <== use dynamic schema generator
-			_ = d.DestroySchema(ctx, s1)
 
+			_ = d.DestroySchema(ctx, s1)
 			err = d.CreateSchema(ctx, s1)
 
 			defer func() {
@@ -191,13 +191,13 @@ func sampleSchemaWithCollation() schema.Database {
 						Type:               schema.ColTypeString,
 						Size:               100,
 						IsNullable:         false,
-						DatabaseDefinition: map[string]map[string]interface{}{"mysql": map[string]interface{}{"collation": "utf8mb4_bin"}},
+						DatabaseDefinition: map[string]map[string]interface{}{"postgres": map[string]interface{}{"collation": "en-US-x-icu"}},
 					},
 				},
 			},
 		},
 	}
-	db.Clean()
+	//db.FillDefaults()
 	return db
 }
 
@@ -242,7 +242,6 @@ func sampleSchemaTypes() schema.Database {
 					{
 						Name:       "profile_picture",
 						Type:       schema.ColTypeBytes,
-						Size:       1024,
 						IsNullable: true,
 					},
 					{
@@ -255,6 +254,6 @@ func sampleSchemaTypes() schema.Database {
 		},
 	}
 
-	db.Clean()
+	//db.FillDefaults()
 	return db
 }

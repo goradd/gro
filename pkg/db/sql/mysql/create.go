@@ -70,7 +70,7 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) string 
 		sb.WriteString(fmt.Sprintf(` COMMENT='%s'`, table.Comment))
 	}
 	sb.WriteString(";\n")
-	sb.WriteString(strings.Join(extraClauses, ";/n"))
+	sb.WriteString(strings.Join(extraClauses, ";\n"))
 	return sb.String()
 }
 
