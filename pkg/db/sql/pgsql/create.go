@@ -1,12 +1,53 @@
 package pgsql
 
 import (
+	"context"
 	"fmt"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/schema"
 	"log/slog"
 	"strings"
 )
+
+// CreateSchema overrides the DbHelper version to also create a function in the database
+// to make it easier and faster to synchronize auto-generated identity columns.
+// This function will be called goradd_sync_identity_sequence.
+func (m *DB) CreateSchema(ctx context.Context, s schema.Database) error {
+	err := m.DbHelper.CreateSchema(ctx, s)
+	if err != nil {
+		return err
+	}
+	qry := `CREATE OR REPLACE FUNCTION goradd_sync_identity_sequence(tablename TEXT, columnname TEXT)
+RETURNS void AS $$
+DECLARE
+    seq TEXT;
+    max_id BIGINT;
+BEGIN
+    -- Get the associated sequence name
+    SELECT pg_get_serial_sequence(tablename, columnname) INTO seq;
+
+    -- Proceed only if the sequence exists
+    IF seq IS NOT NULL THEN
+        -- Get the maximum existing ID or fallback to 1 (not 0!)
+        EXECUTE format(
+            'SELECT COALESCE(MAX(%I), 0) FROM %I',
+            columnname, tablename
+        ) INTO max_id;
+
+        -- If table is empty, use 1 as the minimum acceptable value
+        IF max_id < 1 THEN
+            max_id := 1;
+        END IF;
+
+        -- Set the sequence value safely
+        EXECUTE format('SELECT setval(%L, %s)', seq, max_id);
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
+`
+	_, err = m.SqlExec(ctx, qry)
+	return err
+}
 
 // TableDefinitionSql will return the sql needed to create the table.
 // This can include clauses separated by semicolons that add additional capabilities to the table.

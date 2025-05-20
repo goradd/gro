@@ -32,16 +32,23 @@ func NewSqlCursor(rows *sql.Rows,
 ) query.CursorI {
 	var err error
 
+	if rows == nil {
+		panic("rows cannot be nil")
+	}
+
 	if columnNames == nil {
 		columnNames, err = rows.Columns()
 		if err != nil {
+			_ = rows.Close()
 			panic(fmt.Errorf("error getting column names from sql result: %w", err)) // a framework error, rows were closed before we got here
 		}
 		if len(columnNames) < len(columnTypes) {
+			_ = rows.Close()
 			panic(fmt.Errorf("column names length mismatch, expected at least %d, got %d", len(columnTypes), len(columnNames)))
 		}
 	} else {
 		if len(columnNames) < len(columnTypes) {
+			_ = rows.Close()
 			panic(fmt.Errorf("column names length mismatch, expected at least %d, got %d", len(columnTypes), len(columnNames)))
 		}
 	}

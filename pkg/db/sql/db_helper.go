@@ -248,6 +248,9 @@ func (h *DbHelper) Query(ctx context.Context, table string, fields map[string]Re
 	}
 	s, args := GenerateSelect(h.dbi, table, fieldNames, where, orderBy)
 	if rows, err := h.SqlQuery(ctx, s, args...); err != nil {
+		if rows != nil {
+			_ = rows.Close()
+		}
 		return nil, db.NewQueryError("SqlQuery", s, args, err)
 	} else {
 		return NewSqlCursor(rows, receivers, fieldNames, nil, s, args), nil
