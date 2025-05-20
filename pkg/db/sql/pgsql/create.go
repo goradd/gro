@@ -169,8 +169,7 @@ func (m *DB) buildColumnDef(d *schema.Database, table *schema.Table, col *schema
 				if val == "now" {
 					defaultStr = "DEFAULT CURRENT_TIMESTAMP"
 				} else if val == "update" {
-					defaultStr = "DEFAULT CURRENT_TIMESTAMP"
-					extraStr = "ON UPDATE CURRENT_TIMESTAMP"
+					// The way to do this is through a trigger. Since we are providing the value programmatically, we will punt on it.
 				} else {
 					defaultStr = fmt.Sprintf("DEFAULT '%s'", val)
 				}

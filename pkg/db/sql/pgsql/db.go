@@ -159,10 +159,16 @@ func (m *DB) Insert(ctx context.Context, table string, pkName string, fields map
 	} else {
 		var id string
 		defer sql2.RowClose(rows)
-		for rows.Next() {
-			err = rows.Scan(&id)
+		// get id
+		if !rows.Next() {
+			// Theoretically this should not happen.
+			return "", fmt.Errorf("primary key column not found")
+		}
+		err = rows.Scan(&id)
+		if err != nil {
 			return "", db.NewQueryError("Scan", sql, args, err)
 		}
+
 		if err = rows.Err(); err != nil {
 			return "", db.NewQueryError("rows.Err", sql, args, err)
 		} else {

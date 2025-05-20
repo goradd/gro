@@ -5,6 +5,7 @@ import (
 	"github.com/goradd/orm/pkg/config"
 	db2 "github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/schema"
+	"log/slog"
 )
 
 func build(dbConfigFile, inFile, dbKey string) {
@@ -26,13 +27,16 @@ func build(dbConfigFile, inFile, dbKey string) {
 						panic(err)
 					}
 					ctx := context.Background()
-					err = e.DestroySchema(ctx)
+					err = e.DestroySchema(ctx, *s)
 					if err != nil {
 						panic(err)
 					}
 					s.Clean()
 					_ = e.CreateSchema(ctx, *s)
 					return
+				} else {
+					slog.Error("Database cannot rebuild a schema.",
+						slog.String(db2.LogDatabase, dbKey))
 				}
 			}
 		}

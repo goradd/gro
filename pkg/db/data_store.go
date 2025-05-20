@@ -25,7 +25,7 @@ type SchemaExtractor interface {
 }
 
 type SchemaRebuilder interface {
-	DestroySchema(ctx context.Context) error
+	DestroySchema(ctx context.Context, s schema.Database) error
 	CreateSchema(ctx context.Context, s schema.Database) error
 }
 

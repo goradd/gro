@@ -53,7 +53,7 @@ func initMysql() {
 func initPostgres() {
 	cfg, _ := pgx.ParseConfig("")
 
-	cfg.Host = "localhost"
+	cfg.Host = "127.0.0.1"
 	cfg.User = defaultUser
 	cfg.Password = defaultPassword
 	cfg.Database = goraddDatabaseName
@@ -91,6 +91,6 @@ func InitDB() {
 	}
 
 	// pick a database to initialize here if no config file
-	initMysql()
-	//initPostgres()
+	//initMysql()
+	initPostgres()
 }

@@ -440,7 +440,7 @@ func (h *DbHelper) buildTable(ctx context.Context, d *schema.Database, table *sc
 	}
 	_, err = h.dbi.SqlExec(ctx, s)
 	if err != nil {
-		slog.Error("SQL error",
+		slog.Error("SQL error in buildTable.",
 			slog.String("sql", s),
 			slog.Any("error", err))
 	}
