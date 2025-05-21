@@ -161,6 +161,40 @@ func TestDB_CreateSchema(t *testing.T) {
 	}
 }
 
+// TestDB_AutoGen tests the ability to reset the next value in an auto-generated sequence after manually
+// entering a primary key that is auto generated. If we don't reset, then the nextval might be one of the
+// manually entered values.
+func TestDB_AutoGen(t *testing.T) {
+	d, err := NewDB("test", postgresConnectionString, nil)
+	require.NoError(t, err)
+
+	ctx := d.NewContext(context.Background())
+
+	s1 := sampleSchemaWithSchemaName()
+	_ = d.DestroySchema(ctx, s1)
+	err = d.CreateSchema(ctx, s1)
+	require.NoError(t, err)
+	defer func() {
+		err := d.DestroySchema(ctx, s1)
+		assert.NoError(t, err)
+	}()
+
+	// manual id
+	id, err := d.Insert(ctx, "test.user", "id", map[string]interface{}{
+		"id":   1,
+		"name": "Bob",
+	})
+	assert.Equal(t, "1", id)
+	assert.NoError(t, err)
+
+	// auto id
+	id, err = d.Insert(ctx, "test.user", "id", map[string]interface{}{
+		"name": "Sue",
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, "2", id)
+}
+
 // zero out items that we will not be comparing
 func zeroNonCmp(db *schema.Database) {
 	for _, t := range db.Tables {
@@ -254,6 +288,37 @@ func sampleSchemaTypes() schema.Database {
 		},
 	}
 
+	//db.FillDefaults()
+	return db
+}
+
+func sampleSchemaWithSchemaName() schema.Database {
+	db := schema.Database{
+		Key:             "test",
+		ReferenceSuffix: "_id",
+		EnumTableSuffix: "_enum",
+		AssnTableSuffix: "_assn",
+
+		Tables: []*schema.Table{
+			// User table
+			{
+				Name:   "user",
+				Schema: "test",
+				Columns: []*schema.Column{
+					{
+						Name: "id",
+						Type: schema.ColTypeAutoPrimaryKey,
+					},
+					{
+						Name:       "name",
+						Type:       schema.ColTypeString,
+						Size:       100,
+						IsNullable: false,
+					},
+				},
+			},
+		},
+	}
 	//db.FillDefaults()
 	return db
 }

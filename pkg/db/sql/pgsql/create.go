@@ -1,7 +1,6 @@
 package pgsql
 
 import (
-	"context"
 	"fmt"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/schema"
@@ -9,15 +8,15 @@ import (
 	"strings"
 )
 
-// CreateSchema overrides the DbHelper version to also create a function in the database
-// to make it easier and faster to synchronize auto-generated identity columns.
-// This function will be called goradd_sync_identity_sequence.
-func (m *DB) CreateSchema(ctx context.Context, s schema.Database) error {
-	err := m.DbHelper.CreateSchema(ctx, s)
-	if err != nil {
-		return err
+// addSyncFunc adds the sync function to the given sql. It can be called multiple times for the
+// same schema.
+func (m *DB) addSynFuncSql(schemaName string) string {
+	var schemaWithDot string
+
+	if schemaName != "" {
+		schemaWithDot = m.QuoteIdentifier(schemaName) + "."
 	}
-	qry := `CREATE OR REPLACE FUNCTION goradd_sync_identity_sequence(tablename TEXT, columnname TEXT)
+	qry := `CREATE OR REPLACE FUNCTION ` + schemaWithDot + `goradd_sync_identity_sequence(tablename TEXT, columnname TEXT)
 RETURNS void AS $$
 DECLARE
     seq TEXT;
@@ -30,7 +29,7 @@ BEGIN
     IF seq IS NOT NULL THEN
         -- Get the maximum existing ID or fallback to 1 (not 0!)
         EXECUTE format(
-            'SELECT COALESCE(MAX(%I), 0) FROM %I',
+            'SELECT COALESCE(MAX(%I), 0) FROM %s',
             columnname, tablename
         ) INTO max_id;
 
@@ -45,8 +44,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 `
-	_, err = m.SqlExec(ctx, qry)
-	return err
+	return qry
 }
 
 // TableDefinitionSql will return the sql needed to create the table.
@@ -77,9 +75,11 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) string 
 		extraClauses = append(extraClauses, xc...)
 	}
 
-	quotedTableName := m.QuoteIdentifier(table.Name)
+	var quotedTableName string
 	if table.Schema != "" && table.Schema != "public" {
-		quotedTableName = m.QuoteIdentifier(table.Schema) + "." + m.QuoteIdentifier(quotedTableName)
+		quotedTableName = m.QuoteIdentifier(table.Schema) + "." + m.QuoteIdentifier(table.Name)
+	} else {
+		quotedTableName = m.QuoteIdentifier(table.Name)
 	}
 
 	// Multi-column indexes
@@ -117,10 +117,16 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) string 
 		extraClauses = append(extraClauses, cmt)
 	}
 
+	if table.Schema != "" {
+		// Make sure a named schema exists
+		sb.WriteString(`CREATE SCHEMA IF NOT EXISTS ` + m.QuoteIdentifier(table.Schema) + ";\n")
+	}
+
 	sb.WriteString(fmt.Sprintf("CREATE TABLE %s (\n", quotedTableName))
 	sb.WriteString(strings.Join(columnDefs, ",\n"))
 	sb.WriteString("\n)")
 	sb.WriteString(";\n")
+	extraClauses = append(extraClauses, m.addSynFuncSql(table.Schema))
 	sb.WriteString(strings.Join(extraClauses, ";\n"))
 	return sb.String()
 }

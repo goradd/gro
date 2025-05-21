@@ -8,6 +8,7 @@ import (
 	"github.com/kenshaw/snaker"
 	"log/slog"
 	"slices"
+	"strings"
 	"time"
 )
 
@@ -159,6 +160,17 @@ func (t *Table) HasUniqueIndexes() bool {
 // newTable will import the table provided by tableSchema.
 // If an error occurs, it is logged and nil is returned.
 func newTable(dbKey string, tableSchema *schema.Table) *Table {
+	if strings.ContainsRune(tableSchema.Name, '.') {
+		slog.Error("Table name cannot contain a period.",
+			slog.String(db.LogTable, tableSchema.Name))
+		return nil
+	}
+	if strings.ContainsRune(tableSchema.Schema, '.') {
+		slog.Error("Schema name cannot contain a period.",
+			slog.String("schema", tableSchema.Schema))
+		return nil
+	}
+
 	queryName := strings2.If(tableSchema.Schema == "", tableSchema.Name, tableSchema.Schema+"."+tableSchema.Name)
 	var timeout time.Duration
 	if tableSchema.WriteTimeout != "" {

@@ -39,12 +39,11 @@ func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) (err error
 	o._originalPK = newPk
     o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}IsLoaded = true
 {{else}}
-	_, err = d.Insert(ctx, "{{= table.QueryName }}", "{{= table.PrimaryKeyColumn().QueryName }}", insertFields)
+	_, err = d.Insert(ctx, "{{= table.QueryName }}", "", insertFields)
     if err != nil {
         return err
     }
-	newPk = o.PrimaryKey()
-	o._originalPK = newPk
+	o._originalPK = o.PrimaryKey()
 {{if}}
 
 {{g

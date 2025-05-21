@@ -516,6 +516,7 @@ func GenerateUpdate(db DbI, table string, fields map[string]any, where map[strin
 }
 
 // GenerateInsert is a helper function for database implementations to generate an insert statement.
+// Pass the quoted table name to quotedTable. Include the schema name here if applicaable.
 func GenerateInsert(db DbI, table string, fields map[string]any) (sql string, args []any) {
 	if len(fields) == 0 {
 		panic("No fields to insert")

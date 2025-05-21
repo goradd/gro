@@ -14,13 +14,13 @@ func (m *DB) DestroySchema(ctx context.Context, s schema.Database) (err error) {
 
 	// build in creation order
 	for _, table := range s.EnumTables {
-		tables = append(tables, table.Name)
+		tables = append(tables, table.QualifiedName())
 	}
 	for _, table := range s.Tables {
-		tables = append(tables, table.Name)
+		tables = append(tables, table.QualifiedName())
 	}
 	for _, table := range s.AssociationTables {
-		tables = append(tables, table.Name)
+		tables = append(tables, table.QualifiedName())
 	}
 
 	// iterate in the reverse order of creation

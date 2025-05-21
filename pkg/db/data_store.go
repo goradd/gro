@@ -48,12 +48,14 @@ type DatabaseI interface {
 	// optLockFieldName and optLockFieldValue points to a version field in the record that helps implement optimistic locking. These can be empty if no optimistic locking is required.
 	// returns a new value of the lock if the update is successful.
 	Update(ctx context.Context, table string, pkName string, pkValue any, fields map[string]any, optLockFieldName string, optLockFieldValue int64) (int64, error)
-	// Insert will insert a new record into the database with the given values, and return the new record's primary key value.
-	// pkName is the query name of the primary key field.
-	// fields should include all the required values in the database at a minimum.
-	// The primary key will be returned.
-	// If the primary key is set in fields, it will be used instead of a generated value.
-	Insert(ctx context.Context, table string, pkName string, fields map[string]any) (string, error)
+	// Insert will insert a new record into the database with the given values.
+	// If the primary key is auto generated, then the name of the primary key column should be passed in autoPkName, in which
+	// case the newly generated primary key will be returned.
+	// If the primary key is set in fields, it will be used instead of the generated value and the database will
+	// be updated, if needed, to prevent the database from generating a future value that conflicts with this value.
+	// Otherwise, if the primary key is manually set, autoPkName should be empty.
+	// If fields does not include all the required values in the database, the database may return an error.
+	Insert(ctx context.Context, table string, autoPkName string, fields map[string]any) (string, error)
 	// Delete will delete records from the database that match the colName and colValue.
 	// If optLockFieldName is provided, the optLockFieldValue will also constrain the delete, and if no
 	// records are found, it will return an OptimisticLockError. If optLockFieldName is empty, and
