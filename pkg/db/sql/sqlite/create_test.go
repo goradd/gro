@@ -1,91 +1,50 @@
-package mysql
+package sqlite
 
 import (
 	"context"
-	"fmt"
-	"github.com/google/go-cmp/cmp"
+	"github.com/goradd/orm/pkg/query"
 	"github.com/goradd/orm/pkg/schema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"reflect"
 	"testing"
 )
 
-const mysqlConnectionString = "root:12345@tcp(127.0.0.1:3306)/goradd_test?parseTime=true&charset=utf8mb4&loc=Local"
+func TestDB_CreateSampleSchema(t *testing.T) {
+	d, err := NewDB("test", "") // memory only database will automatically be destroyed after test
+	require.NoError(t, err)
 
-func TestDB_CreateSchema(t *testing.T) {
-	sampleSchemas := []struct {
-		name        string
-		schema      func() schema.Database // assume schema.Database is your top-level object
-		zeroNonComp bool
-	}{
-		{
-			name:        "SimpleSchema",
-			schema:      sampleSchema, // your original function
-			zeroNonComp: true,
-		},
-		{
-			name:        "SchemaWithCollation",
-			schema:      sampleSchemaWithCollation,
-			zeroNonComp: false,
-		},
-		{
-			name:        "SchemaTypes",
-			schema:      sampleSchemaTypes,
-			zeroNonComp: true,
-		},
-	}
+	ctx := d.NewContext(context.Background())
 
-	for _, tt := range sampleSchemas {
-		t.Run(tt.name, func(t *testing.T) {
-			d, err := NewDB("test", mysqlConnectionString, nil)
-			require.NoError(t, err)
+	// prep
+	s1 := sampleSchema()
+	err = d.CreateSchema(ctx, s1)
 
-			ctx := d.NewContext(context.Background())
+	// insert, update, delete
+	var userId string
+	userId, err = d.Insert(ctx, "user", "id", map[string]interface{}{"name": "Bob"})
+	assert.NotEmpty(t, userId)
+	assert.NoError(t, err)
 
-			// prep
-			s1 := tt.schema() // <== use dynamic schema generator
-			_ = d.DestroySchema(ctx, s1)
+	var postId string
+	postId, err = d.Insert(ctx, "post", "id", map[string]interface{}{"title": "This", "user_id": userId, "status_enum": 1})
+	assert.NotEmpty(t, postId)
+	require.NoError(t, err)
 
-			err = d.CreateSchema(ctx, s1)
+	_, err = d.Update(ctx, "post", "id", postId, map[string]any{"title": "That"}, "", 0)
+	require.NoError(t, err)
 
-			defer func() {
-				err := d.DestroySchema(ctx, s1)
-				assert.NoError(t, err)
-			}()
+	var cursor query.CursorI
+	cursor, err = d.Query(ctx,
+		"post",
+		map[string]query.ReceiverType{"title": query.ColTypeString},
+		map[string]any{"id": postId},
+		nil)
+	require.NoError(t, err)
 
-			assert.NoError(t, err)
-
-			options := map[string]any{
-				"reference_suffix":  "_id",
-				"enum_table_suffix": "_enum",
-				"assn_table_suffix": "_assn",
-			}
-
-			s2 := d.ExtractSchema(options)
-			s2.Clean()
-			if tt.zeroNonComp {
-				zeroNonCmp(&s1)
-				zeroNonCmp(&s2)
-			}
-
-			v := reflect.DeepEqual(s1, s2)
-			assert.True(t, v)
-
-			if !v {
-				fmt.Println("Mismatch:", cmp.Diff(s1, s2))
-			}
-		})
-	}
-}
-
-// zero out items that we will not be comparing
-func zeroNonCmp(db *schema.Database) {
-	for _, t := range db.Tables {
-		for _, c := range t.Columns {
-			c.DatabaseDefinition = nil
-		}
-	}
+	var data map[string]interface{}
+	data, err = cursor.Next()
+	assert.NoError(t, err)
+	assert.Equal(t, "That", data["title"].(string))
 }
 
 func sampleSchema() schema.Database {
@@ -130,7 +89,7 @@ func sampleSchema() schema.Database {
 						Name:       "user_id",
 						Type:       schema.ColTypeReference,
 						IsNullable: false,
-						IndexLevel: schema.IndexLevelIndexed, // foreign keys are always indexed
+						IndexLevel: schema.IndexLevelIndexed, // foreign keys should always be indexed
 						Reference: &schema.Reference{
 							Table: "user",
 						},
@@ -139,7 +98,7 @@ func sampleSchema() schema.Database {
 						Name:       "status_enum",
 						Type:       schema.ColTypeEnum,
 						IsNullable: false,
-						IndexLevel: schema.IndexLevelIndexed, // foreign keys are always indexed
+						IndexLevel: schema.IndexLevelIndexed,
 						Reference: &schema.Reference{
 							Table: "post_status_enum",
 						},
@@ -166,7 +125,7 @@ func sampleSchema() schema.Database {
 			{Name: "rel_assn", Table1: "user", Column1: "user_id", Table2: "post", Column2: "post_id"},
 		},
 	}
-	db.Clean()
+	//db.FillDefaults()
 	return db
 }
 
@@ -191,13 +150,13 @@ func sampleSchemaWithCollation() schema.Database {
 						Type:               schema.ColTypeString,
 						Size:               100,
 						IsNullable:         false,
-						DatabaseDefinition: map[string]map[string]interface{}{"mysql": map[string]interface{}{"collation": "utf8mb4_bin"}},
+						DatabaseDefinition: map[string]map[string]interface{}{"postgres": map[string]interface{}{"collation": "en-US-x-icu"}},
 					},
 				},
 			},
 		},
 	}
-	db.Clean()
+	//db.FillDefaults()
 	return db
 }
 
@@ -242,7 +201,6 @@ func sampleSchemaTypes() schema.Database {
 					{
 						Name:       "profile_picture",
 						Type:       schema.ColTypeBytes,
-						Size:       1024,
 						IsNullable: true,
 					},
 					{
@@ -255,6 +213,37 @@ func sampleSchemaTypes() schema.Database {
 		},
 	}
 
-	db.Clean()
+	//db.FillDefaults()
+	return db
+}
+
+func sampleSchemaWithSchemaName() schema.Database {
+	db := schema.Database{
+		Key:             "test",
+		ReferenceSuffix: "_id",
+		EnumTableSuffix: "_enum",
+		AssnTableSuffix: "_assn",
+
+		Tables: []*schema.Table{
+			// User table
+			{
+				Name:   "user",
+				Schema: "test",
+				Columns: []*schema.Column{
+					{
+						Name: "id",
+						Type: schema.ColTypeAutoPrimaryKey,
+					},
+					{
+						Name:       "name",
+						Type:       schema.ColTypeString,
+						Size:       100,
+						IsNullable: false,
+					},
+				},
+			},
+		},
+	}
+	//db.FillDefaults()
 	return db
 }

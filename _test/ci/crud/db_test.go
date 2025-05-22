@@ -2,7 +2,7 @@ package crud
 
 import (
 	"fmt"
-	"github.com/goradd/orm/_test/ci/config"
+	"github.com/goradd/orm/_test/config"
 	"os"
 	"testing"
 )

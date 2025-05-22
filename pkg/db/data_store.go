@@ -13,6 +13,7 @@ import (
 const (
 	DriverTypeMysql    = "mysql"
 	DriverTypePostgres = "postgres"
+	DriverTypeSQLite   = "sqlite"
 )
 
 // The dataStore is the central database collection used in code generation and the orm.

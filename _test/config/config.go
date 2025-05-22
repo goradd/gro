@@ -7,13 +7,19 @@
 package config
 
 import (
+	"context"
 	"flag"
+	"fmt"
 	"github.com/go-sql-driver/mysql"
 	"github.com/goradd/orm/pkg/config"
 	"github.com/goradd/orm/pkg/db"
 	mysql2 "github.com/goradd/orm/pkg/db/sql/mysql"
 	"github.com/goradd/orm/pkg/db/sql/pgsql"
+	"github.com/goradd/orm/pkg/db/sql/sqlite"
+	"github.com/goradd/orm/pkg/schema"
 	"github.com/jackc/pgx/v5"
+	"path/filepath"
+	"runtime"
 )
 
 // Default credentials for purposes of local development.
@@ -25,6 +31,30 @@ const goraddKey = "goradd"
 const goraddDatabaseName = "goradd"
 const goraddUnitKey = "goradd_unit"
 const goraddUnitDatabaseName = "goradd_unit"
+
+// InitDB initializes the database.
+// It checks for a command line argument, and if present, treats it as a path to a configuration file
+// with database settings.
+func InitDB() {
+	var configFile string
+	flag.StringVar(&configFile, "c", "", "Path to database configuration file")
+	flag.Parse()
+
+	// If a config file is provided, use it instead
+	if configFile != "" {
+		if databaseConfigs, err := config.OpenConfigFile(configFile); err != nil {
+			panic(err)
+		} else if err := config.InitDatastore(databaseConfigs); err != nil {
+			panic(err)
+		}
+		return
+	}
+
+	// pick a database to initialize here if no config file
+	//initMysql()
+	//initPostgres()
+	initSQLite()
+}
 
 func initMysql() {
 	cfg := mysql.NewConfig()
@@ -72,25 +102,50 @@ func initPostgres() {
 	db.AddDatabase(database, goraddUnitKey)
 }
 
-// InitDB initializes the database.
-// It checks for a command line argument, and if present, treats it as a path to a configuration file
-// with database settings.
-func InitDB() {
-	var configFile string
-	flag.StringVar(&configFile, "c", "", "Path to database configuration file")
-	flag.Parse()
+func initSQLite() {
+	database, err := sqlite.NewDB(goraddKey, ":memory:")
+	if err != nil {
+		panic(err)
+	}
+	db.AddDatabase(database, goraddKey)
 
-	// If a config file is provided, use it instead
-	if configFile != "" {
-		if databaseConfigs, err := config.OpenConfigFile(configFile); err != nil {
-			panic(err)
-		} else if err := config.InitDatastore(databaseConfigs); err != nil {
-			panic(err)
-		}
-		return
+	path := testDir()
+	fmt.Println(path)
+
+	s, err := schema.ReadJsonFile(filepath.Join(path, "schema", "goradd_schema.json"))
+	if err != nil {
+		panic(err)
+	}
+	ctx := context.Background()
+	s.Clean()
+	err = database.CreateSchema(ctx, *s)
+	if err != nil {
+		panic(err)
 	}
 
-	// pick a database to initialize here if no config file
-	initMysql()
-	//initPostgres()
+	database, err = sqlite.NewDB(goraddUnitKey, ":memory:")
+	if err != nil {
+		panic(err)
+	}
+	db.AddDatabase(database, goraddUnitKey)
+
+	s, err = schema.ReadJsonFile(filepath.Join(path, "schema", "goraddunit_schema.json"))
+	if err != nil {
+		panic(err)
+	}
+	s.Clean()
+	err = database.CreateSchema(ctx, *s)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func testDir() string {
+	// skip=0 means "this call site" (inside currentSourceDir)
+	_, file, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("unable to get caller info")
+	}
+	t := filepath.Dir(file)
+	return filepath.Dir(t)
 }

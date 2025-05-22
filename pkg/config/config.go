@@ -8,6 +8,7 @@ import (
 	"github.com/goradd/orm/pkg/db"
 	mysql2 "github.com/goradd/orm/pkg/db/sql/mysql"
 	"github.com/goradd/orm/pkg/db/sql/pgsql"
+	"github.com/goradd/orm/pkg/db/sql/sqlite"
 	"github.com/goradd/strings"
 	"github.com/jackc/pgx/v5"
 	"os"
@@ -32,6 +33,9 @@ func NewDatabase(config map[string]any) (database db.DatabaseI, err error) {
 		database, err = initMysql(config)
 	case db.DriverTypePostgres:
 		database, err = initPgsql(config)
+	case db.DriverTypeSQLite:
+		database, err = initSQLite(config)
+
 	}
 	return
 }
@@ -52,6 +56,14 @@ func initPgsql(overrides map[string]any) (db1 db.DatabaseI, err error) {
 	key := overrides["key"].(string)
 
 	db1, err = pgsql.NewDB(key, "", cfg)
+	return db1, err
+}
+
+func initSQLite(overrides map[string]any) (db1 db.DatabaseI, err error) {
+	key := overrides["key"].(string)
+	dsn := overrides["dsn"].(string)
+
+	db1, err = sqlite.NewDB(key, dsn)
 	return db1, err
 }
 
