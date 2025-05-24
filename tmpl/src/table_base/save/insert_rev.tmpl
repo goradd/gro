@@ -9,7 +9,7 @@
     {{if col.IsUnique }}
 
     if o.{{= col.ReverseVariableIdentifier() }} != nil {
-        o.{{= col.ReverseVariableIdentifier() }}.Set{{= col.Identifier }}(newPk)
+        o.{{= col.ReverseVariableIdentifier() }}.Set{{= col.Identifier }}(newPK)
         if err = o.{{= col.ReverseVariableIdentifier() }}.Save(ctx); err != nil {
             return err
         }
@@ -21,7 +21,7 @@
         keys := o.{{= col.ReverseVariableIdentifier() }}.Keys()
         for i, k := range keys {
             obj := o.{{= col.ReverseVariableIdentifier() }}.Get(k)
-            obj.Set{{= col.Identifier }}(newPk)
+            obj.Set{{= col.Identifier }}(newPK)
             if err = obj.Save(ctx); err != nil {
                 return err
             }

@@ -317,8 +317,10 @@ func (b *RootUBuilder) LoadCursor() (rootUsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
-	cursor := result.(query.CursorI)
-
+	var cursor query.CursorI
+	if result != nil {
+		cursor = result.(query.CursorI)
+	}
 	return rootUsCursor{cursor}, err
 }
 
@@ -589,18 +591,17 @@ func (o *rootUBase) insert(ctx context.Context) (err error) {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
 		insertFields = getRootUInsertFields(o)
-		var newPk string
-
-		newPk, err = d.Insert(ctx, "root_u", "id", insertFields)
+		var newPK string
+		newPK, err = d.Insert(ctx, "root_u", "id", insertFields)
 		if err != nil {
 			return err
 		}
-		o.id = newPk
-		o._originalPK = newPk
+		o.id = newPK
+		o._originalPK = newPK
 		o.idIsLoaded = true
 
 		if o.revLeafU != nil {
-			o.revLeafU.SetRootUID(newPk)
+			o.revLeafU.SetRootUID(newPK)
 			if err = o.revLeafU.Save(ctx); err != nil {
 				return err
 			}

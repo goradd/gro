@@ -685,8 +685,10 @@ func (b *UnsupportedTypeBuilder) LoadCursor() (unsupportedTypesCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
-	cursor := result.(query.CursorI)
-
+	var cursor query.CursorI
+	if result != nil {
+		cursor = result.(query.CursorI)
+	}
 	return unsupportedTypesCursor{cursor}, err
 }
 
@@ -1088,14 +1090,14 @@ func (o *unsupportedTypeBase) insert(ctx context.Context) (err error) {
 			}
 		}
 		insertFields = getUnsupportedTypeInsertFields(o)
-		var newPk uint64
-
-		_, err = d.Insert(ctx, "unsupported_type", "type_serial", insertFields)
+		var newPK uint64
+		_, err = d.Insert(ctx, "unsupported_type", "", insertFields)
 		if err != nil {
 			return err
 		}
-		newPk = o.PrimaryKey()
-		o._originalPK = newPk
+		o._originalPK = o.PrimaryKey()
+		newPK = o.PrimaryKey()
+		_ = newPK
 
 		return nil
 
@@ -1205,7 +1207,7 @@ func (o *unsupportedTypeBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteUnsupportedType(ctx context.Context, pk uint64) error {
 	d := db.GetDatabase("goradd_unit")
-	err := d.Delete(ctx, "unsupported_type", "TypeSerial", pk, "", 0)
+	err := d.Delete(ctx, "unsupported_type", "type_serial", pk, "", 0)
 	if err != nil {
 		return err
 	}

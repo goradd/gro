@@ -283,17 +283,16 @@ func TestRootNl_Getters(t *testing.T) {
 func TestRootNl_QueryLoad(t *testing.T) {
 	obj := createMinimalSampleRootNl()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleRootNl(ctx, obj)
 
-	objs, _ := QueryRootNls(ctx).
+	objs, err := QueryRootNls(ctx).
 		Where(op.Equal(node.RootNl().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.RootNl().PrimaryKey()). // exercise order by
 		Limit(1, 0).                         // exercise limit
-		Calculation(node.RootNl(), "IsTrue", op.Equal(1, 1)).
+		Calculation(node.RootNl(), "IsTrue", op.Equal("A", "A")).
 		Load()
-
+	assert.NoError(t, err)
 	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
 	assert.True(t, objs[0].GetAlias("IsTrue").Bool())
 }
@@ -313,29 +312,30 @@ func TestRootNl_QueryLoadI(t *testing.T) {
 func TestRootNl_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleRootNl()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleRootNl(ctx, obj)
 
-	cursor, _ := QueryRootNls(ctx).
+	cursor, err := QueryRootNls(ctx).
 		Where(op.Equal(node.RootNl().PrimaryKey(), obj.PrimaryKey())).
 		LoadCursor()
-
+	require.NoError(t, err)
 	obj2, err2 := cursor.Next()
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.NoError(t, err2)
+	require.NoError(t, err2)
 	obj2, err2 = cursor.Next()
 	assert.Nil(t, obj2)
-	assert.NoError(t, err2)
+	require.NoError(t, err2)
 	assert.NoError(t, cursor.Close())
 
 	// test empty cursor result
 	cursor, err = QueryRootNls(ctx).
-		Where(op.Equal(1, 0)).
+		Where(op.Equal("B", "A")).
 		LoadCursor()
+	require.NoError(t, err)
+
 	obj2, err = cursor.Next()
 	assert.Nil(t, obj2)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NoError(t, cursor.Close())
 }
 func TestRootNl_Count(t *testing.T) {

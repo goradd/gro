@@ -338,8 +338,10 @@ func (b *RootUnlBuilder) LoadCursor() (rootUnlsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
-	cursor := result.(query.CursorI)
-
+	var cursor query.CursorI
+	if result != nil {
+		cursor = result.(query.CursorI)
+	}
 	return rootUnlsCursor{cursor}, err
 }
 
@@ -628,18 +630,17 @@ func (o *rootUnlBase) insert(ctx context.Context) (err error) {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
 		insertFields = getRootUnlInsertFields(o)
-		var newPk string
-
-		newPk, err = d.Insert(ctx, "root_unl", "id", insertFields)
+		var newPK string
+		newPK, err = d.Insert(ctx, "root_unl", "id", insertFields)
 		if err != nil {
 			return err
 		}
-		o.id = newPk
-		o._originalPK = newPk
+		o.id = newPK
+		o._originalPK = newPK
 		o.idIsLoaded = true
 
 		if o.revLeafUnl != nil {
-			o.revLeafUnl.SetRootUnlID(newPk)
+			o.revLeafUnl.SetRootUnlID(newPK)
 			if err = o.revLeafUnl.Save(ctx); err != nil {
 				return err
 			}

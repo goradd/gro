@@ -486,8 +486,10 @@ func (b *DoubleIndexBuilder) LoadCursor() (doubleIndicesCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
-	cursor := result.(query.CursorI)
-
+	var cursor query.CursorI
+	if result != nil {
+		cursor = result.(query.CursorI)
+	}
 	return doubleIndicesCursor{cursor}, err
 }
 
@@ -837,14 +839,14 @@ func (o *doubleIndexBase) insert(ctx context.Context) (err error) {
 			}
 		}
 		insertFields = getDoubleIndexInsertFields(o)
-		var newPk int
-
-		_, err = d.Insert(ctx, "double_index", "id", insertFields)
+		var newPK int
+		_, err = d.Insert(ctx, "double_index", "", insertFields)
 		if err != nil {
 			return err
 		}
-		newPk = o.PrimaryKey()
-		o._originalPK = newPk
+		o._originalPK = o.PrimaryKey()
+		newPK = o.PrimaryKey()
+		_ = newPK
 
 		return nil
 
@@ -938,7 +940,7 @@ func (o *doubleIndexBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteDoubleIndex(ctx context.Context, pk int) error {
 	d := db.GetDatabase("goradd_unit")
-	err := d.Delete(ctx, "double_index", "ID", pk, "", 0)
+	err := d.Delete(ctx, "double_index", "id", pk, "", 0)
 	if err != nil {
 		return err
 	}

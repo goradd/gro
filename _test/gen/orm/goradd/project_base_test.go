@@ -706,17 +706,16 @@ func TestProject_Getters(t *testing.T) {
 func TestProject_QueryLoad(t *testing.T) {
 	obj := createMinimalSampleProject()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleProject(ctx, obj)
 
-	objs, _ := QueryProjects(ctx).
+	objs, err := QueryProjects(ctx).
 		Where(op.Equal(node.Project().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.Project().PrimaryKey()). // exercise order by
 		Limit(1, 0).                          // exercise limit
-		Calculation(node.Project(), "IsTrue", op.Equal(1, 1)).
+		Calculation(node.Project(), "IsTrue", op.Equal("A", "A")).
 		Load()
-
+	assert.NoError(t, err)
 	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
 	assert.True(t, objs[0].GetAlias("IsTrue").Bool())
 }
@@ -736,29 +735,30 @@ func TestProject_QueryLoadI(t *testing.T) {
 func TestProject_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleProject()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleProject(ctx, obj)
 
-	cursor, _ := QueryProjects(ctx).
+	cursor, err := QueryProjects(ctx).
 		Where(op.Equal(node.Project().PrimaryKey(), obj.PrimaryKey())).
 		LoadCursor()
-
+	require.NoError(t, err)
 	obj2, err2 := cursor.Next()
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.NoError(t, err2)
+	require.NoError(t, err2)
 	obj2, err2 = cursor.Next()
 	assert.Nil(t, obj2)
-	assert.NoError(t, err2)
+	require.NoError(t, err2)
 	assert.NoError(t, cursor.Close())
 
 	// test empty cursor result
 	cursor, err = QueryProjects(ctx).
-		Where(op.Equal(1, 0)).
+		Where(op.Equal("B", "A")).
 		LoadCursor()
+	require.NoError(t, err)
+
 	obj2, err = cursor.Next()
 	assert.Nil(t, obj2)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NoError(t, cursor.Close())
 }
 func TestProject_Count(t *testing.T) {

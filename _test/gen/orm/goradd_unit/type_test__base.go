@@ -1076,8 +1076,10 @@ func (b *TypeTestBuilder) LoadCursor() (typeTestsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
-	cursor := result.(query.CursorI)
-
+	var cursor query.CursorI
+	if result != nil {
+		cursor = result.(query.CursorI)
+	}
 	return typeTestsCursor{cursor}, err
 }
 
@@ -1611,14 +1613,13 @@ func (o *typeTestBase) insert(ctx context.Context) (err error) {
 			panic("a value for TypeLongBytes is required, and there is no default value. Call SetTypeLongBytes() before inserting the record.")
 		}
 		insertFields = getTypeTestInsertFields(o)
-		var newPk string
-
-		newPk, err = d.Insert(ctx, "type_test", "id", insertFields)
+		var newPK string
+		newPK, err = d.Insert(ctx, "type_test", "id", insertFields)
 		if err != nil {
 			return err
 		}
-		o.id = newPk
-		o._originalPK = newPk
+		o.id = newPK
+		o._originalPK = newPK
 		o.idIsLoaded = true
 
 		return nil
@@ -1813,7 +1814,7 @@ func (o *typeTestBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteTypeTest(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd_unit")
-	err := d.Delete(ctx, "type_test", "ID", pk, "", 0)
+	err := d.Delete(ctx, "type_test", "id", pk, "", 0)
 	if err != nil {
 		return err
 	}

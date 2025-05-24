@@ -599,8 +599,9 @@ func (h *DbHelper) associationSql(d *schema.Database, at *schema.AssociationTabl
 
 	// Make columns to send to the column builder
 	col := &schema.Column{
-		Name: at.Column1,
-		Type: schema.ColTypeReference,
+		Name:       at.Column1,
+		Type:       schema.ColTypeReference,
+		IndexLevel: schema.IndexLevelIndexed, // individual indexes for fast lookups
 		Reference: &schema.Reference{
 			Table: at.Table1,
 		},

@@ -423,8 +423,10 @@ func (b *LeafUnlBuilder) LoadCursor() (leafUnlsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
-	cursor := result.(query.CursorI)
-
+	var cursor query.CursorI
+	if result != nil {
+		cursor = result.(query.CursorI)
+	}
 	return leafUnlsCursor{cursor}, err
 }
 
@@ -737,14 +739,13 @@ func (o *leafUnlBase) insert(ctx context.Context) (err error) {
 			}
 		}
 		insertFields = getLeafUnlInsertFields(o)
-		var newPk string
-
-		newPk, err = d.Insert(ctx, "leaf_unl", "id", insertFields)
+		var newPK string
+		newPK, err = d.Insert(ctx, "leaf_unl", "id", insertFields)
 		if err != nil {
 			return err
 		}
-		o.id = newPk
-		o._originalPK = newPk
+		o.id = newPK
+		o._originalPK = newPK
 		o.idIsLoaded = true
 
 		return nil
@@ -828,7 +829,7 @@ func (o *leafUnlBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteLeafUnl(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd_unit")
-	err := d.Delete(ctx, "leaf_unl", "ID", pk, "", 0)
+	err := d.Delete(ctx, "leaf_unl", "id", pk, "", 0)
 	if err != nil {
 		return err
 	}

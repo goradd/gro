@@ -100,8 +100,10 @@ func (b *{{= builderStruct }}) LoadCursor() ({{= table.VariableNamePlural() }}Cu
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("{{= table.DbKey }}")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
-	cursor := result.(query.CursorI)
-
+	var cursor query.CursorI
+	if result != nil {
+	    cursor = result.(query.CursorI)
+	}
 	return {{= table.VariableNamePlural() }}Cursor{cursor}, err
 }
 

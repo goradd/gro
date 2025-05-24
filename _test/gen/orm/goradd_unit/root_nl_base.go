@@ -366,8 +366,10 @@ func (b *RootNlBuilder) LoadCursor() (rootNlsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
-	cursor := result.(query.CursorI)
-
+	var cursor query.CursorI
+	if result != nil {
+		cursor = result.(query.CursorI)
+	}
 	return rootNlsCursor{cursor}, err
 }
 
@@ -669,21 +671,20 @@ func (o *rootNlBase) insert(ctx context.Context) (err error) {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
 		insertFields = getRootNlInsertFields(o)
-		var newPk string
-
-		newPk, err = d.Insert(ctx, "root_nl", "id", insertFields)
+		var newPK string
+		newPK, err = d.Insert(ctx, "root_nl", "id", insertFields)
 		if err != nil {
 			return err
 		}
-		o.id = newPk
-		o._originalPK = newPk
+		o.id = newPK
+		o._originalPK = newPK
 		o.idIsLoaded = true
 
 		if o.revLeafNls.Len() > 0 {
 			keys := o.revLeafNls.Keys()
 			for i, k := range keys {
 				obj := o.revLeafNls.Get(k)
-				obj.SetRootNlID(newPk)
+				obj.SetRootNlID(newPK)
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}

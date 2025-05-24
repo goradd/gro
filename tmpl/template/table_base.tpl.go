@@ -6291,8 +6291,10 @@ func (b *`); err != nil {
 
 	if _, err = io.WriteString(_w, `")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
-	cursor := result.(query.CursorI)
-
+	var cursor query.CursorI
+	if result != nil {
+	    cursor = result.(query.CursorI)
+	}
 	return `); err != nil {
 		return
 	}
@@ -10136,7 +10138,7 @@ func (o *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `InsertFields(o)
-    var newPk `); err != nil {
+    var newPK `); err != nil {
 		return
 	}
 
@@ -10145,14 +10147,13 @@ func (o *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `
-
 `); err != nil {
 		return
 	}
 
 	if table.HasAutoPK() {
 
-		if _, err = io.WriteString(_w, `	newPk, err = d.Insert(ctx, "`); err != nil {
+		if _, err = io.WriteString(_w, `	newPK, err = d.Insert(ctx, "`); err != nil {
 			return
 		}
 
@@ -10180,8 +10181,8 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ` = newPk
-	o._originalPK = newPk
+		if _, err = io.WriteString(_w, ` = newPK
+	o._originalPK = newPK
     o.`); err != nil {
 			return
 		}
@@ -10205,20 +10206,13 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `", "`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().QueryName); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `", insertFields)
+		if _, err = io.WriteString(_w, `", "", insertFields)
     if err != nil {
         return err
     }
-	newPk = o.PrimaryKey()
-	o._originalPK = newPk
+	o._originalPK = o.PrimaryKey()
+	newPK = o.PrimaryKey()
+	_ = newPK
 `); err != nil {
 			return
 		}
@@ -10272,7 +10266,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `(newPk)
+			if _, err = io.WriteString(_w, `(newPK)
         if err = o.`); err != nil {
 				return
 			}
@@ -10334,7 +10328,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `(newPk)
+			if _, err = io.WriteString(_w, `(newPK)
             if err = obj.Save(ctx); err != nil {
                 return err
             }
@@ -10454,7 +10448,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `",
-                newPk,
+                newPK,
                 "`); err != nil {
 			return
 		}
@@ -10518,7 +10512,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `",
-                    newPk,
+                    newPK,
                     "`); err != nil {
 			return
 		}
@@ -12046,7 +12040,7 @@ func delete`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Identifier); err != nil {
+		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().QueryName); err != nil {
 			return
 		}
 

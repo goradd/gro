@@ -404,8 +404,10 @@ func (b *LeafUnBuilder) LoadCursor() (leafUnsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
-	cursor := result.(query.CursorI)
-
+	var cursor query.CursorI
+	if result != nil {
+		cursor = result.(query.CursorI)
+	}
 	return leafUnsCursor{cursor}, err
 }
 
@@ -700,14 +702,13 @@ func (o *leafUnBase) insert(ctx context.Context) (err error) {
 			}
 		}
 		insertFields = getLeafUnInsertFields(o)
-		var newPk string
-
-		newPk, err = d.Insert(ctx, "leaf_un", "id", insertFields)
+		var newPK string
+		newPK, err = d.Insert(ctx, "leaf_un", "id", insertFields)
 		if err != nil {
 			return err
 		}
-		o.id = newPk
-		o._originalPK = newPk
+		o.id = newPK
+		o._originalPK = newPK
 		o.idIsLoaded = true
 
 		return nil
@@ -786,7 +787,7 @@ func (o *leafUnBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteLeafUn(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd_unit")
-	err := d.Delete(ctx, "leaf_un", "ID", pk, "", 0)
+	err := d.Delete(ctx, "leaf_un", "id", pk, "", 0)
 	if err != nil {
 		return err
 	}

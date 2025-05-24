@@ -711,8 +711,10 @@ func (b *MultiParentBuilder) LoadCursor() (multiParentsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
-	cursor := result.(query.CursorI)
-
+	var cursor query.CursorI
+	if result != nil {
+		cursor = result.(query.CursorI)
+	}
 	return multiParentsCursor{cursor}, err
 }
 
@@ -1177,21 +1179,20 @@ func (o *multiParentBase) insert(ctx context.Context) (err error) {
 		}
 
 		insertFields = getMultiParentInsertFields(o)
-		var newPk string
-
-		newPk, err = d.Insert(ctx, "multi_parent", "id", insertFields)
+		var newPK string
+		newPK, err = d.Insert(ctx, "multi_parent", "id", insertFields)
 		if err != nil {
 			return err
 		}
-		o.id = newPk
-		o._originalPK = newPk
+		o.id = newPK
+		o._originalPK = newPK
 		o.idIsLoaded = true
 
 		if o.revParent1MultiParents.Len() > 0 {
 			keys := o.revParent1MultiParents.Keys()
 			for i, k := range keys {
 				obj := o.revParent1MultiParents.Get(k)
-				obj.SetParent1ID(newPk)
+				obj.SetParent1ID(newPK)
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
@@ -1206,7 +1207,7 @@ func (o *multiParentBase) insert(ctx context.Context) (err error) {
 			keys := o.revParent2MultiParents.Keys()
 			for i, k := range keys {
 				obj := o.revParent2MultiParents.Get(k)
-				obj.SetParent2ID(newPk)
+				obj.SetParent2ID(newPK)
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}

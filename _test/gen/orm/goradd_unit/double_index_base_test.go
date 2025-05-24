@@ -363,17 +363,16 @@ func TestDoubleIndex_Getters(t *testing.T) {
 func TestDoubleIndex_QueryLoad(t *testing.T) {
 	obj := createMinimalSampleDoubleIndex()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleDoubleIndex(ctx, obj)
 
-	objs, _ := QueryDoubleIndices(ctx).
+	objs, err := QueryDoubleIndices(ctx).
 		Where(op.Equal(node.DoubleIndex().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.DoubleIndex().PrimaryKey()). // exercise order by
 		Limit(1, 0).                              // exercise limit
-		Calculation(node.DoubleIndex(), "IsTrue", op.Equal(1, 1)).
+		Calculation(node.DoubleIndex(), "IsTrue", op.Equal("A", "A")).
 		Load()
-
+	assert.NoError(t, err)
 	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
 	assert.True(t, objs[0].GetAlias("IsTrue").Bool())
 }
@@ -393,29 +392,30 @@ func TestDoubleIndex_QueryLoadI(t *testing.T) {
 func TestDoubleIndex_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleDoubleIndex()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleDoubleIndex(ctx, obj)
 
-	cursor, _ := QueryDoubleIndices(ctx).
+	cursor, err := QueryDoubleIndices(ctx).
 		Where(op.Equal(node.DoubleIndex().PrimaryKey(), obj.PrimaryKey())).
 		LoadCursor()
-
+	require.NoError(t, err)
 	obj2, err2 := cursor.Next()
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.NoError(t, err2)
+	require.NoError(t, err2)
 	obj2, err2 = cursor.Next()
 	assert.Nil(t, obj2)
-	assert.NoError(t, err2)
+	require.NoError(t, err2)
 	assert.NoError(t, cursor.Close())
 
 	// test empty cursor result
 	cursor, err = QueryDoubleIndices(ctx).
-		Where(op.Equal(1, 0)).
+		Where(op.Equal("B", "A")).
 		LoadCursor()
+	require.NoError(t, err)
+
 	obj2, err = cursor.Next()
 	assert.Nil(t, obj2)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NoError(t, cursor.Close())
 }
 func TestDoubleIndex_Count(t *testing.T) {

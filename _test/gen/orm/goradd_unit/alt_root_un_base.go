@@ -310,8 +310,10 @@ func (b *AltRootUnBuilder) LoadCursor() (altRootUnsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
-	cursor := result.(query.CursorI)
-
+	var cursor query.CursorI
+	if result != nil {
+		cursor = result.(query.CursorI)
+	}
 	return altRootUnsCursor{cursor}, err
 }
 
@@ -599,17 +601,17 @@ func (o *altRootUnBase) insert(ctx context.Context) (err error) {
 			}
 		}
 		insertFields = getAltRootUnInsertFields(o)
-		var newPk float32
-
-		_, err = d.Insert(ctx, "alt_root_un", "id", insertFields)
+		var newPK float32
+		_, err = d.Insert(ctx, "alt_root_un", "", insertFields)
 		if err != nil {
 			return err
 		}
-		newPk = o.PrimaryKey()
-		o._originalPK = newPk
+		o._originalPK = o.PrimaryKey()
+		newPK = o.PrimaryKey()
+		_ = newPK
 
 		if o.revAltLeafUn != nil {
-			o.revAltLeafUn.SetAltRootUnID(newPk)
+			o.revAltLeafUn.SetAltRootUnID(newPK)
 			if err = o.revAltLeafUn.Save(ctx); err != nil {
 				return err
 			}

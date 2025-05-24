@@ -1378,8 +1378,10 @@ func (b *ProjectBuilder) LoadCursor() (projectsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
-	cursor := result.(query.CursorI)
-
+	var cursor query.CursorI
+	if result != nil {
+		cursor = result.(query.CursorI)
+	}
 	return projectsCursor{cursor}, err
 }
 
@@ -2193,21 +2195,20 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 			}
 		}
 		insertFields = getProjectInsertFields(o)
-		var newPk string
-
-		newPk, err = d.Insert(ctx, "project", "id", insertFields)
+		var newPK string
+		newPK, err = d.Insert(ctx, "project", "id", insertFields)
 		if err != nil {
 			return err
 		}
-		o.id = newPk
-		o._originalPK = newPk
+		o.id = newPK
+		o._originalPK = newPK
 		o.idIsLoaded = true
 
 		if o.revParentProjectProjects.Len() > 0 {
 			keys := o.revParentProjectProjects.Keys()
 			for i, k := range keys {
 				obj := o.revParentProjectProjects.Get(k)
-				obj.SetParentProjectID(newPk)
+				obj.SetParentProjectID(newPK)
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
@@ -2222,7 +2223,7 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 			keys := o.revMilestones.Keys()
 			for i, k := range keys {
 				obj := o.revMilestones.Get(k)
-				obj.SetProjectID(newPk)
+				obj.SetProjectID(newPK)
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
@@ -2248,7 +2249,7 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 					d,
 					"related_project_assn",
 					"parent_id",
-					newPk,
+					newPK,
 					"child_id",
 					obj.PrimaryKey(),
 				)
@@ -2264,7 +2265,7 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 						d,
 						"related_project_assn",
 						"parent_id",
-						newPk,
+						newPK,
 						"child_id",
 						k,
 					)
@@ -2286,7 +2287,7 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 					d,
 					"related_project_assn",
 					"child_id",
-					newPk,
+					newPK,
 					"parent_id",
 					obj.PrimaryKey(),
 				)
@@ -2302,7 +2303,7 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 						d,
 						"related_project_assn",
 						"child_id",
-						newPk,
+						newPK,
 						"parent_id",
 						k,
 					)
@@ -2324,7 +2325,7 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 					d,
 					"team_member_project_assn",
 					"project_id",
-					newPk,
+					newPK,
 					"team_member_id",
 					obj.PrimaryKey(),
 				)
@@ -2340,7 +2341,7 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 						d,
 						"team_member_project_assn",
 						"project_id",
-						newPk,
+						newPK,
 						"team_member_id",
 						k,
 					)

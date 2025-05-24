@@ -250,17 +250,16 @@ func TestGift_Getters(t *testing.T) {
 func TestGift_QueryLoad(t *testing.T) {
 	obj := createMinimalSampleGift()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleGift(ctx, obj)
 
-	objs, _ := QueryGifts(ctx).
+	objs, err := QueryGifts(ctx).
 		Where(op.Equal(node.Gift().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.Gift().PrimaryKey()). // exercise order by
 		Limit(1, 0).                       // exercise limit
-		Calculation(node.Gift(), "IsTrue", op.Equal(1, 1)).
+		Calculation(node.Gift(), "IsTrue", op.Equal("A", "A")).
 		Load()
-
+	assert.NoError(t, err)
 	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
 	assert.True(t, objs[0].GetAlias("IsTrue").Bool())
 }
@@ -280,29 +279,30 @@ func TestGift_QueryLoadI(t *testing.T) {
 func TestGift_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleGift()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleGift(ctx, obj)
 
-	cursor, _ := QueryGifts(ctx).
+	cursor, err := QueryGifts(ctx).
 		Where(op.Equal(node.Gift().PrimaryKey(), obj.PrimaryKey())).
 		LoadCursor()
-
+	require.NoError(t, err)
 	obj2, err2 := cursor.Next()
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.NoError(t, err2)
+	require.NoError(t, err2)
 	obj2, err2 = cursor.Next()
 	assert.Nil(t, obj2)
-	assert.NoError(t, err2)
+	require.NoError(t, err2)
 	assert.NoError(t, cursor.Close())
 
 	// test empty cursor result
 	cursor, err = QueryGifts(ctx).
-		Where(op.Equal(1, 0)).
+		Where(op.Equal("B", "A")).
 		LoadCursor()
+	require.NoError(t, err)
+
 	obj2, err = cursor.Next()
 	assert.Nil(t, obj2)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NoError(t, cursor.Close())
 }
 func TestGift_Count(t *testing.T) {

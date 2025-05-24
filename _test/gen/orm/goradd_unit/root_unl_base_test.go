@@ -288,17 +288,16 @@ func TestRootUnl_Getters(t *testing.T) {
 func TestRootUnl_QueryLoad(t *testing.T) {
 	obj := createMinimalSampleRootUnl()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleRootUnl(ctx, obj)
 
-	objs, _ := QueryRootUnls(ctx).
+	objs, err := QueryRootUnls(ctx).
 		Where(op.Equal(node.RootUnl().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.RootUnl().PrimaryKey()). // exercise order by
 		Limit(1, 0).                          // exercise limit
-		Calculation(node.RootUnl(), "IsTrue", op.Equal(1, 1)).
+		Calculation(node.RootUnl(), "IsTrue", op.Equal("A", "A")).
 		Load()
-
+	assert.NoError(t, err)
 	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
 	assert.True(t, objs[0].GetAlias("IsTrue").Bool())
 }
@@ -318,29 +317,30 @@ func TestRootUnl_QueryLoadI(t *testing.T) {
 func TestRootUnl_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleRootUnl()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleRootUnl(ctx, obj)
 
-	cursor, _ := QueryRootUnls(ctx).
+	cursor, err := QueryRootUnls(ctx).
 		Where(op.Equal(node.RootUnl().PrimaryKey(), obj.PrimaryKey())).
 		LoadCursor()
-
+	require.NoError(t, err)
 	obj2, err2 := cursor.Next()
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.NoError(t, err2)
+	require.NoError(t, err2)
 	obj2, err2 = cursor.Next()
 	assert.Nil(t, obj2)
-	assert.NoError(t, err2)
+	require.NoError(t, err2)
 	assert.NoError(t, cursor.Close())
 
 	// test empty cursor result
 	cursor, err = QueryRootUnls(ctx).
-		Where(op.Equal(1, 0)).
+		Where(op.Equal("B", "A")).
 		LoadCursor()
+	require.NoError(t, err)
+
 	obj2, err = cursor.Next()
 	assert.Nil(t, obj2)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NoError(t, cursor.Close())
 }
 func TestRootUnl_Count(t *testing.T) {

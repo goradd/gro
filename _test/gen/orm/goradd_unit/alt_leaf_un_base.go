@@ -400,8 +400,10 @@ func (b *AltLeafUnBuilder) LoadCursor() (altLeafUnsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
-	cursor := result.(query.CursorI)
-
+	var cursor query.CursorI
+	if result != nil {
+		cursor = result.(query.CursorI)
+	}
 	return altLeafUnsCursor{cursor}, err
 }
 
@@ -696,14 +698,13 @@ func (o *altLeafUnBase) insert(ctx context.Context) (err error) {
 			}
 		}
 		insertFields = getAltLeafUnInsertFields(o)
-		var newPk string
-
-		newPk, err = d.Insert(ctx, "alt_leaf_un", "id", insertFields)
+		var newPK string
+		newPK, err = d.Insert(ctx, "alt_leaf_un", "id", insertFields)
 		if err != nil {
 			return err
 		}
-		o.id = newPk
-		o._originalPK = newPk
+		o.id = newPK
+		o._originalPK = newPK
 		o.idIsLoaded = true
 
 		return nil
@@ -782,7 +783,7 @@ func (o *altLeafUnBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteAltLeafUn(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd_unit")
-	err := d.Delete(ctx, "alt_leaf_un", "ID", pk, "", 0)
+	err := d.Delete(ctx, "alt_leaf_un", "id", pk, "", 0)
 	if err != nil {
 		return err
 	}

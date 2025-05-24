@@ -70,7 +70,9 @@ func (m *DB) QuoteIdentifier(v string) string {
 
 // FormatArgument formats the given argument number for embedding in a SQL statement.
 func (m *DB) FormatArgument(n int) string {
-	return "?"
+	// Although SQLite supports jut a question mark, using positional placeholders give us the ability to
+	// simulate more advanced oeprations. In particular, its needed to suppor the XOR operator.
+	return fmt.Sprintf("?%d", n)
 }
 
 // OperationSql provides SQLite specific SQL for certain operators.

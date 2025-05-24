@@ -368,8 +368,10 @@ func (b *MilestoneBuilder) LoadCursor() (milestonesCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
-	cursor := result.(query.CursorI)
-
+	var cursor query.CursorI
+	if result != nil {
+		cursor = result.(query.CursorI)
+	}
 	return milestonesCursor{cursor}, err
 }
 
@@ -652,14 +654,13 @@ func (o *milestoneBase) insert(ctx context.Context) (err error) {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
 		insertFields = getMilestoneInsertFields(o)
-		var newPk string
-
-		newPk, err = d.Insert(ctx, "milestone", "id", insertFields)
+		var newPK string
+		newPK, err = d.Insert(ctx, "milestone", "id", insertFields)
 		if err != nil {
 			return err
 		}
-		o.id = newPk
-		o._originalPK = newPk
+		o.id = newPK
+		o._originalPK = newPK
 		o.idIsLoaded = true
 
 		return nil
@@ -731,7 +732,7 @@ func (o *milestoneBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteMilestone(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd")
-	err := d.Delete(ctx, "milestone", "ID", pk, "", 0)
+	err := d.Delete(ctx, "milestone", "id", pk, "", 0)
 	if err != nil {
 		return err
 	}

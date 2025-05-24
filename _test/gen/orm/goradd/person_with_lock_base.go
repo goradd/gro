@@ -350,8 +350,10 @@ func (b *PersonWithLockBuilder) LoadCursor() (personWithLocksCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
-	cursor := result.(query.CursorI)
-
+	var cursor query.CursorI
+	if result != nil {
+		cursor = result.(query.CursorI)
+	}
 	return personWithLocksCursor{cursor}, err
 }
 
@@ -629,14 +631,13 @@ func (o *personWithLockBase) insert(ctx context.Context) (err error) {
 			panic("a value for LastName is required, and there is no default value. Call SetLastName() before inserting the record.")
 		}
 		insertFields = getPersonWithLockInsertFields(o)
-		var newPk string
-
-		newPk, err = d.Insert(ctx, "person_with_lock", "id", insertFields)
+		var newPK string
+		newPK, err = d.Insert(ctx, "person_with_lock", "id", insertFields)
 		if err != nil {
 			return err
 		}
-		o.id = newPk
-		o._originalPK = newPk
+		o.id = newPK
+		o._originalPK = newPK
 		o.idIsLoaded = true
 
 		return nil
@@ -721,7 +722,7 @@ func (o *personWithLockBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deletePersonWithLock(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd")
-	err := d.Delete(ctx, "person_with_lock", "ID", pk, "", 0)
+	err := d.Delete(ctx, "person_with_lock", "id", pk, "", 0)
 	if err != nil {
 		return err
 	}

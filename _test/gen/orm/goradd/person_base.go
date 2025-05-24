@@ -766,8 +766,10 @@ func (b *PersonBuilder) LoadCursor() (peopleCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
-	cursor := result.(query.CursorI)
-
+	var cursor query.CursorI
+	if result != nil {
+		cursor = result.(query.CursorI)
+	}
 	return peopleCursor{cursor}, err
 }
 
@@ -1366,21 +1368,20 @@ func (o *personBase) insert(ctx context.Context) (err error) {
 			panic("a value for LastName is required, and there is no default value. Call SetLastName() before inserting the record.")
 		}
 		insertFields = getPersonInsertFields(o)
-		var newPk string
-
-		newPk, err = d.Insert(ctx, "person", "id", insertFields)
+		var newPK string
+		newPK, err = d.Insert(ctx, "person", "id", insertFields)
 		if err != nil {
 			return err
 		}
-		o.id = newPk
-		o._originalPK = newPk
+		o.id = newPK
+		o._originalPK = newPK
 		o.idIsLoaded = true
 
 		if o.revManagerProjects.Len() > 0 {
 			keys := o.revManagerProjects.Keys()
 			for i, k := range keys {
 				obj := o.revManagerProjects.Get(k)
-				obj.SetManagerID(newPk)
+				obj.SetManagerID(newPK)
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
@@ -1395,7 +1396,7 @@ func (o *personBase) insert(ctx context.Context) (err error) {
 			keys := o.revAddresses.Keys()
 			for i, k := range keys {
 				obj := o.revAddresses.Get(k)
-				obj.SetPersonID(newPk)
+				obj.SetPersonID(newPK)
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
@@ -1407,14 +1408,14 @@ func (o *personBase) insert(ctx context.Context) (err error) {
 		}
 
 		if o.revEmployeeInfo != nil {
-			o.revEmployeeInfo.SetPersonID(newPk)
+			o.revEmployeeInfo.SetPersonID(newPK)
 			if err = o.revEmployeeInfo.Save(ctx); err != nil {
 				return err
 			}
 		}
 
 		if o.revLogin != nil {
-			o.revLogin.SetPersonID(newPk)
+			o.revLogin.SetPersonID(newPK)
 			if err = o.revLogin.Save(ctx); err != nil {
 				return err
 			}
@@ -1435,7 +1436,7 @@ func (o *personBase) insert(ctx context.Context) (err error) {
 					d,
 					"team_member_project_assn",
 					"team_member_id",
-					newPk,
+					newPK,
 					"project_id",
 					obj.PrimaryKey(),
 				)
@@ -1451,7 +1452,7 @@ func (o *personBase) insert(ctx context.Context) (err error) {
 						d,
 						"team_member_project_assn",
 						"team_member_id",
-						newPk,
+						newPK,
 						"project_id",
 						k,
 					)

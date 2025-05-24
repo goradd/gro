@@ -367,8 +367,10 @@ func (b *LeafBuilder) LoadCursor() (leafsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
-	cursor := result.(query.CursorI)
-
+	var cursor query.CursorI
+	if result != nil {
+		cursor = result.(query.CursorI)
+	}
 	return leafsCursor{cursor}, err
 }
 
@@ -643,14 +645,13 @@ func (o *leafBase) insert(ctx context.Context) (err error) {
 			panic("a value for RootID is required, and there is no default value. Call SetRootID() before inserting the record.")
 		}
 		insertFields = getLeafInsertFields(o)
-		var newPk string
-
-		newPk, err = d.Insert(ctx, "leaf", "id", insertFields)
+		var newPK string
+		newPK, err = d.Insert(ctx, "leaf", "id", insertFields)
 		if err != nil {
 			return err
 		}
-		o.id = newPk
-		o._originalPK = newPk
+		o.id = newPK
+		o._originalPK = newPK
 		o.idIsLoaded = true
 
 		return nil
@@ -722,7 +723,7 @@ func (o *leafBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteLeaf(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd_unit")
-	err := d.Delete(ctx, "leaf", "ID", pk, "", 0)
+	err := d.Delete(ctx, "leaf", "id", pk, "", 0)
 	if err != nil {
 		return err
 	}

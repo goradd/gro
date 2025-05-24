@@ -366,8 +366,10 @@ func (b *EmployeeInfoBuilder) LoadCursor() (employeeInfosCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
-	cursor := result.(query.CursorI)
-
+	var cursor query.CursorI
+	if result != nil {
+		cursor = result.(query.CursorI)
+	}
 	return employeeInfosCursor{cursor}, err
 }
 
@@ -665,14 +667,13 @@ func (o *employeeInfoBase) insert(ctx context.Context) (err error) {
 			}
 		}
 		insertFields = getEmployeeInfoInsertFields(o)
-		var newPk string
-
-		newPk, err = d.Insert(ctx, "employee_info", "id", insertFields)
+		var newPK string
+		newPK, err = d.Insert(ctx, "employee_info", "id", insertFields)
 		if err != nil {
 			return err
 		}
-		o.id = newPk
-		o._originalPK = newPk
+		o.id = newPK
+		o._originalPK = newPK
 		o.idIsLoaded = true
 
 		return nil
@@ -744,7 +745,7 @@ func (o *employeeInfoBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteEmployeeInfo(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd")
-	err := d.Delete(ctx, "employee_info", "ID", pk, "", 0)
+	err := d.Delete(ctx, "employee_info", "id", pk, "", 0)
 	if err != nil {
 		return err
 	}

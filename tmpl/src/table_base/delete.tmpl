@@ -158,7 +158,7 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
 func delete{{= table.Identifier }}(ctx context.Context, pk {{= table.PrimaryKeyGoType() }}) error {
 	d := db.GetDatabase("{{= table.DbKey }}")
 {{if len(table.ReverseReferences) == 0 && len(table.ManyManyReferences) == 0 }}
-	err := d.Delete(ctx, "{{= table.QueryName }}", "{{= table.PrimaryKeyColumn().Identifier }}", pk, "", 0)
+	err := d.Delete(ctx, "{{= table.QueryName }}", "{{= table.PrimaryKeyColumn().QueryName }}", pk, "", 0)
 	if err != nil {
 	    return err
 	}

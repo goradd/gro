@@ -305,17 +305,16 @@ func TestLeafN_Getters(t *testing.T) {
 func TestLeafN_QueryLoad(t *testing.T) {
 	obj := createMinimalSampleLeafN()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleLeafN(ctx, obj)
 
-	objs, _ := QueryLeafNs(ctx).
+	objs, err := QueryLeafNs(ctx).
 		Where(op.Equal(node.LeafN().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.LeafN().PrimaryKey()). // exercise order by
 		Limit(1, 0).                        // exercise limit
-		Calculation(node.LeafN(), "IsTrue", op.Equal(1, 1)).
+		Calculation(node.LeafN(), "IsTrue", op.Equal("A", "A")).
 		Load()
-
+	assert.NoError(t, err)
 	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
 	assert.True(t, objs[0].GetAlias("IsTrue").Bool())
 }
@@ -335,29 +334,30 @@ func TestLeafN_QueryLoadI(t *testing.T) {
 func TestLeafN_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleLeafN()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleLeafN(ctx, obj)
 
-	cursor, _ := QueryLeafNs(ctx).
+	cursor, err := QueryLeafNs(ctx).
 		Where(op.Equal(node.LeafN().PrimaryKey(), obj.PrimaryKey())).
 		LoadCursor()
-
+	require.NoError(t, err)
 	obj2, err2 := cursor.Next()
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.NoError(t, err2)
+	require.NoError(t, err2)
 	obj2, err2 = cursor.Next()
 	assert.Nil(t, obj2)
-	assert.NoError(t, err2)
+	require.NoError(t, err2)
 	assert.NoError(t, cursor.Close())
 
 	// test empty cursor result
 	cursor, err = QueryLeafNs(ctx).
-		Where(op.Equal(1, 0)).
+		Where(op.Equal("B", "A")).
 		LoadCursor()
+	require.NoError(t, err)
+
 	obj2, err = cursor.Next()
 	assert.Nil(t, obj2)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NoError(t, cursor.Close())
 }
 func TestLeafN_Count(t *testing.T) {

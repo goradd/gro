@@ -431,8 +431,10 @@ func (b *AddressBuilder) LoadCursor() (addressesCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
-	cursor := result.(query.CursorI)
-
+	var cursor query.CursorI
+	if result != nil {
+		cursor = result.(query.CursorI)
+	}
 	return addressesCursor{cursor}, err
 }
 
@@ -735,14 +737,13 @@ func (o *addressBase) insert(ctx context.Context) (err error) {
 			panic("a value for Street is required, and there is no default value. Call SetStreet() before inserting the record.")
 		}
 		insertFields = getAddressInsertFields(o)
-		var newPk string
-
-		newPk, err = d.Insert(ctx, "address", "id", insertFields)
+		var newPK string
+		newPK, err = d.Insert(ctx, "address", "id", insertFields)
 		if err != nil {
 			return err
 		}
-		o.id = newPk
-		o._originalPK = newPk
+		o.id = newPK
+		o._originalPK = newPK
 		o.idIsLoaded = true
 
 		return nil
@@ -826,7 +827,7 @@ func (o *addressBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteAddress(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd")
-	err := d.Delete(ctx, "address", "ID", pk, "", 0)
+	err := d.Delete(ctx, "address", "id", pk, "", 0)
 	if err != nil {
 		return err
 	}

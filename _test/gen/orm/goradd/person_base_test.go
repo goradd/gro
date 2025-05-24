@@ -452,17 +452,16 @@ func TestPerson_Getters(t *testing.T) {
 func TestPerson_QueryLoad(t *testing.T) {
 	obj := createMinimalSamplePerson()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSamplePerson(ctx, obj)
 
-	objs, _ := QueryPeople(ctx).
+	objs, err := QueryPeople(ctx).
 		Where(op.Equal(node.Person().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.Person().PrimaryKey()). // exercise order by
 		Limit(1, 0).                         // exercise limit
-		Calculation(node.Person(), "IsTrue", op.Equal(1, 1)).
+		Calculation(node.Person(), "IsTrue", op.Equal("A", "A")).
 		Load()
-
+	assert.NoError(t, err)
 	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
 	assert.True(t, objs[0].GetAlias("IsTrue").Bool())
 }
@@ -482,29 +481,30 @@ func TestPerson_QueryLoadI(t *testing.T) {
 func TestPerson_QueryCursor(t *testing.T) {
 	obj := createMinimalSamplePerson()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSamplePerson(ctx, obj)
 
-	cursor, _ := QueryPeople(ctx).
+	cursor, err := QueryPeople(ctx).
 		Where(op.Equal(node.Person().PrimaryKey(), obj.PrimaryKey())).
 		LoadCursor()
-
+	require.NoError(t, err)
 	obj2, err2 := cursor.Next()
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.NoError(t, err2)
+	require.NoError(t, err2)
 	obj2, err2 = cursor.Next()
 	assert.Nil(t, obj2)
-	assert.NoError(t, err2)
+	require.NoError(t, err2)
 	assert.NoError(t, cursor.Close())
 
 	// test empty cursor result
 	cursor, err = QueryPeople(ctx).
-		Where(op.Equal(1, 0)).
+		Where(op.Equal("B", "A")).
 		LoadCursor()
+	require.NoError(t, err)
+
 	obj2, err = cursor.Next()
 	assert.Nil(t, obj2)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NoError(t, cursor.Close())
 }
 func TestPerson_Count(t *testing.T) {

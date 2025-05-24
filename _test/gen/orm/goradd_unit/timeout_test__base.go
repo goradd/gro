@@ -270,8 +270,10 @@ func (b *TimeoutTestBuilder) LoadCursor() (timeoutTestsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
-	cursor := result.(query.CursorI)
-
+	var cursor query.CursorI
+	if result != nil {
+		cursor = result.(query.CursorI)
+	}
 	return timeoutTestsCursor{cursor}, err
 }
 
@@ -498,14 +500,13 @@ func (o *timeoutTestBase) insert(ctx context.Context) (err error) {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
 		insertFields = getTimeoutTestInsertFields(o)
-		var newPk string
-
-		newPk, err = d.Insert(ctx, "timeout_test", "id", insertFields)
+		var newPK string
+		newPK, err = d.Insert(ctx, "timeout_test", "id", insertFields)
 		if err != nil {
 			return err
 		}
-		o.id = newPk
-		o._originalPK = newPk
+		o.id = newPK
+		o._originalPK = newPK
 		o.idIsLoaded = true
 
 		return nil
@@ -572,7 +573,7 @@ func (o *timeoutTestBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteTimeoutTest(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd_unit")
-	err := d.Delete(ctx, "timeout_test", "ID", pk, "", 0)
+	err := d.Delete(ctx, "timeout_test", "id", pk, "", 0)
 	if err != nil {
 		return err
 	}

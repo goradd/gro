@@ -526,8 +526,10 @@ func (b *LoginBuilder) LoadCursor() (loginsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
-	cursor := result.(query.CursorI)
-
+	var cursor query.CursorI
+	if result != nil {
+		cursor = result.(query.CursorI)
+	}
 	return loginsCursor{cursor}, err
 }
 
@@ -891,14 +893,13 @@ func (o *loginBase) insert(ctx context.Context) (err error) {
 			}
 		}
 		insertFields = getLoginInsertFields(o)
-		var newPk string
-
-		newPk, err = d.Insert(ctx, "login", "id", insertFields)
+		var newPK string
+		newPK, err = d.Insert(ctx, "login", "id", insertFields)
 		if err != nil {
 			return err
 		}
-		o.id = newPk
-		o._originalPK = newPk
+		o.id = newPK
+		o._originalPK = newPK
 		o.idIsLoaded = true
 
 		return nil
@@ -994,7 +995,7 @@ func (o *loginBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteLogin(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd")
-	err := d.Delete(ctx, "login", "ID", pk, "", 0)
+	err := d.Delete(ctx, "login", "id", pk, "", 0)
 	if err != nil {
 		return err
 	}

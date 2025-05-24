@@ -279,17 +279,16 @@ func TestRootU_Getters(t *testing.T) {
 func TestRootU_QueryLoad(t *testing.T) {
 	obj := createMinimalSampleRootU()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleRootU(ctx, obj)
 
-	objs, _ := QueryRootUs(ctx).
+	objs, err := QueryRootUs(ctx).
 		Where(op.Equal(node.RootU().PrimaryKey(), obj.PrimaryKey())).
 		OrderBy(node.RootU().PrimaryKey()). // exercise order by
 		Limit(1, 0).                        // exercise limit
-		Calculation(node.RootU(), "IsTrue", op.Equal(1, 1)).
+		Calculation(node.RootU(), "IsTrue", op.Equal("A", "A")).
 		Load()
-
+	assert.NoError(t, err)
 	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
 	assert.True(t, objs[0].GetAlias("IsTrue").Bool())
 }
@@ -309,29 +308,30 @@ func TestRootU_QueryLoadI(t *testing.T) {
 func TestRootU_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleRootU()
 	ctx := db.NewContext(nil)
-	err := obj.Save(ctx)
-	assert.NoError(t, err)
+	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleRootU(ctx, obj)
 
-	cursor, _ := QueryRootUs(ctx).
+	cursor, err := QueryRootUs(ctx).
 		Where(op.Equal(node.RootU().PrimaryKey(), obj.PrimaryKey())).
 		LoadCursor()
-
+	require.NoError(t, err)
 	obj2, err2 := cursor.Next()
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.NoError(t, err2)
+	require.NoError(t, err2)
 	obj2, err2 = cursor.Next()
 	assert.Nil(t, obj2)
-	assert.NoError(t, err2)
+	require.NoError(t, err2)
 	assert.NoError(t, cursor.Close())
 
 	// test empty cursor result
 	cursor, err = QueryRootUs(ctx).
-		Where(op.Equal(1, 0)).
+		Where(op.Equal("B", "A")).
 		LoadCursor()
+	require.NoError(t, err)
+
 	obj2, err = cursor.Next()
 	assert.Nil(t, obj2)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NoError(t, cursor.Close())
 }
 func TestRootU_Count(t *testing.T) {

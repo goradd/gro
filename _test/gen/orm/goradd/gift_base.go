@@ -263,8 +263,10 @@ func (b *GiftBuilder) LoadCursor() (giftsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
-	cursor := result.(query.CursorI)
-
+	var cursor query.CursorI
+	if result != nil {
+		cursor = result.(query.CursorI)
+	}
 	return giftsCursor{cursor}, err
 }
 
@@ -509,14 +511,14 @@ func (o *giftBase) insert(ctx context.Context) (err error) {
 			}
 		}
 		insertFields = getGiftInsertFields(o)
-		var newPk int
-
-		_, err = d.Insert(ctx, "gift", "number", insertFields)
+		var newPK int
+		_, err = d.Insert(ctx, "gift", "", insertFields)
 		if err != nil {
 			return err
 		}
-		newPk = o.PrimaryKey()
-		o._originalPK = newPk
+		o._originalPK = o.PrimaryKey()
+		newPK = o.PrimaryKey()
+		_ = newPK
 
 		return nil
 
@@ -581,7 +583,7 @@ func (o *giftBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteGift(ctx context.Context, pk int) error {
 	d := db.GetDatabase("goradd")
-	err := d.Delete(ctx, "gift", "Number", pk, "", 0)
+	err := d.Delete(ctx, "gift", "number", pk, "", 0)
 	if err != nil {
 		return err
 	}
