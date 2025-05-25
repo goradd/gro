@@ -1188,7 +1188,7 @@ func (o *leafNlBase) Delete(ctx context.Context) (err error) {
 			return err
 		}
 
-		return d.Delete(ctx, "leaf_nl", "ID", o.id, "gro_lock", o.GroLock())
+		return d.Delete(ctx, "leaf_nl", "id", o.id, "gro_lock", o.GroLock())
 	})
 
 	if err != nil {

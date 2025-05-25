@@ -4,9 +4,9 @@ package goradd
 // Feel free to modify this file to suit your database configuration needs.
 
 import (
-	"github.com/goradd/orm/_test/config"
+	"github.com/goradd/orm/_test/config" // replace with the directory containing your InitDB function for tests.
 )
 
 func InitDB() {
-	config.InitDB() // replace with your database initialization function for running automated tests
+	config.InitDB() // replace with your database initialization function
 }

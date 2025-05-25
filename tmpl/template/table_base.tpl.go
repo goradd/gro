@@ -11298,7 +11298,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 				return
 			}
 
-			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Identifier); err != nil {
+			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().QueryName); err != nil {
 				return
 			}
 
@@ -11329,7 +11329,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 				return
 			}
 
-			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Identifier); err != nil {
+			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().QueryName); err != nil {
 				return
 			}
 
@@ -11873,7 +11873,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 				return
 			}
 
-			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Identifier); err != nil {
+			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().QueryName); err != nil {
 				return
 			}
 
@@ -11904,7 +11904,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 				return
 			}
 
-			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Identifier); err != nil {
+			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().QueryName); err != nil {
 				return
 			}
 

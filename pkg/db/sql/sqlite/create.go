@@ -211,7 +211,7 @@ func sqlType(colType schema.ColumnType, size uint64, subType schema.ColumnSubTyp
 		return typ
 	case schema.ColTypeString:
 		if subType == schema.ColSubTypeNumeric {
-			return "NUMERIC" // max precision available in postgres
+			return "TEXT" // NUMERIC is not infinite precision, just allows sqlite to convert to int or real as needed.
 		} else {
 			return "TEXT"
 		}

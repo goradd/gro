@@ -1340,7 +1340,7 @@ func (o *multiParentBase) Delete(ctx context.Context) (err error) {
 			o.revParent2MultiParents.Clear()
 		}
 
-		return d.Delete(ctx, "multi_parent", "ID", o.id, "", 0)
+		return d.Delete(ctx, "multi_parent", "id", o.id, "", 0)
 	})
 
 	if err != nil {

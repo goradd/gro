@@ -727,7 +727,7 @@ func (o *rootUnlBase) Delete(ctx context.Context) (err error) {
 			o.revLeafUnl = nil
 		}
 
-		return d.Delete(ctx, "root_unl", "ID", o.id, "gro_lock", o.GroLock())
+		return d.Delete(ctx, "root_unl", "id", o.id, "gro_lock", o.GroLock())
 	})
 
 	if err != nil {

@@ -32,9 +32,9 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
 	d := Database()
 {{if len(table.ReverseReferences) == 0 && len(table.ManyManyReferences) == 0}}
 {{if c := table.LockColumn(); c == nil }}
-	err = d.Delete(ctx, "{{table.QueryName}}", "{{= table.PrimaryKeyColumn().Identifier }}", o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}, "", 0)
+	err = d.Delete(ctx, "{{table.QueryName}}", "{{= table.PrimaryKeyColumn().QueryName }}", o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}, "", 0)
 {{else}}
-	err = d.Delete(ctx, "{{table.QueryName}}", "{{= table.PrimaryKeyColumn().Identifier }}", o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}, "{{= c.QueryName }}", o.{{= c.Identifier}}())
+	err = d.Delete(ctx, "{{table.QueryName}}", "{{= table.PrimaryKeyColumn().QueryName }}", o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}, "{{= c.QueryName }}", o.{{= c.Identifier}}())
 {{if}}
 {{else}}
 {{if table.WriteTimeout != 0 }}
@@ -139,9 +139,9 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
 
     {{for}}
 {{if c := table.LockColumn(); c == nil }}
-	    return d.Delete(ctx, "{{table.QueryName}}", "{{= table.PrimaryKeyColumn().Identifier }}", o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}, "", 0)
+	    return d.Delete(ctx, "{{table.QueryName}}", "{{= table.PrimaryKeyColumn().QueryName }}", o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}, "", 0)
 {{else}}
-	    return d.Delete(ctx, "{{table.QueryName}}", "{{= table.PrimaryKeyColumn().Identifier }}", o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}, "{{= c.QueryName }}", o.{{= c.Identifier}}())
+	    return d.Delete(ctx, "{{table.QueryName}}", "{{= table.PrimaryKeyColumn().QueryName }}", o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}, "{{= c.QueryName }}", o.{{= c.Identifier}}())
 {{if}}
 	})
 

@@ -983,7 +983,7 @@ func (o *loginBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	err = d.Delete(ctx, "login", "ID", o.id, "", 0)
+	err = d.Delete(ctx, "login", "id", o.id, "", 0)
 	if err != nil {
 		return err
 	}

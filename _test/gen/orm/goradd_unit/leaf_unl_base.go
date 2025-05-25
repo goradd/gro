@@ -817,7 +817,7 @@ func (o *leafUnlBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	err = d.Delete(ctx, "leaf_unl", "ID", o.id, "gro_lock", o.GroLock())
+	err = d.Delete(ctx, "leaf_unl", "id", o.id, "gro_lock", o.GroLock())
 	if err != nil {
 		return err
 	}

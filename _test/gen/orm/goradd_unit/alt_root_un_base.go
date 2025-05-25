@@ -691,7 +691,7 @@ func (o *altRootUnBase) Delete(ctx context.Context) (err error) {
 			o.revAltLeafUn = nil
 		}
 
-		return d.Delete(ctx, "alt_root_un", "ID", o.id, "", 0)
+		return d.Delete(ctx, "alt_root_un", "id", o.id, "", 0)
 	})
 
 	if err != nil {

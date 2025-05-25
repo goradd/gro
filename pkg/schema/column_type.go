@@ -274,10 +274,17 @@ const (
 	// instances of the application.
 	ColSubTypeLock
 	// ColSubTypeNumeric is a string that only accepts numeric values, as in positive or negative numbers with
-	// a decimal point. SQL databases use a NUMERIC or DECIMAL column, and NoSQL generally just supports this natively.
+	// a decimal point, and represents an arbitrary precision value.
+	// Some SQL databases use a NUMERIC or DECIMAL column to represent these,
+	// and NoSQL generally just supports this natively.
 	// This is not a floating point number, as those numbers can have precision limitations.
 	// Because of this, numeric values are preferred when storing currency values.
 	// See the math/big package for working with these types of values in Go.
+	//
+	// Note: Although SQLite has a NUMERIC type, it
+	// is not actually an arbitrary precision value, but rather in some cases could be converted to a REAL with
+	// a loss of precision, so the ORM will store these as a string in SQLite. One result of this is that database numeric
+	// operations will panic if attempted on these in SQLite.
 	ColSubTypeNumeric
 )
 

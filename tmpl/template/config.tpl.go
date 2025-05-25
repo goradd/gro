@@ -45,7 +45,7 @@ package `); err != nil {
 // Feel free to modify this file to suit your database configuration needs.
 
 import (
-	"github.com/goradd/orm/_test/ci/config" // replace with the directory containing your InitDB function for tests.
+	"github.com/goradd/orm/_test/config" // replace with the directory containing your InitDB function for tests.
 )
 
 

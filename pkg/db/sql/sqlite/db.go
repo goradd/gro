@@ -103,6 +103,14 @@ func (m *DB) OperationSql(op Operator, operands []Node, operandStrings []string)
 			modifier = "+"
 		}
 		return fmt.Sprintf(`datetime(%s, '%s%s seconds')`, s, modifier, s2)
+
+	case OpGreater, OpGreaterEqual, OpLess, OpLessEqual:
+		if o := operands[0]; o.NodeType_() == ColumnNodeType {
+			cn := o.(*ColumnNode)
+			if cn.SchemaSubType == schema.ColSubTypeNumeric {
+				panic("SQLite does not support arbitrary precision numbers, and cannot compare them")
+			}
+		}
 	}
 	return
 }

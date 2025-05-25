@@ -2567,7 +2567,7 @@ func (o *projectBase) Delete(ctx context.Context) (err error) {
 			return err
 		}
 
-		return d.Delete(ctx, "project", "ID", o.id, "", 0)
+		return d.Delete(ctx, "project", "id", o.id, "", 0)
 	})
 
 	if err != nil {

@@ -729,7 +729,7 @@ func (o *rootBase) Delete(ctx context.Context) (err error) {
 			o.revLeafs.Clear()
 		}
 
-		return d.Delete(ctx, "root", "ID", o.id, "", 0)
+		return d.Delete(ctx, "root", "id", o.id, "", 0)
 	})
 
 	if err != nil {

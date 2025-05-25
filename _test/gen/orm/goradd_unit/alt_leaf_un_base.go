@@ -771,7 +771,7 @@ func (o *altLeafUnBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	err = d.Delete(ctx, "alt_leaf_un", "ID", o.id, "", 0)
+	err = d.Delete(ctx, "alt_leaf_un", "id", o.id, "", 0)
 	if err != nil {
 		return err
 	}

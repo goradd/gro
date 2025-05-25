@@ -1641,7 +1641,7 @@ func (o *personBase) Delete(ctx context.Context) (err error) {
 			return err
 		}
 
-		return d.Delete(ctx, "person", "ID", o.id, "", 0)
+		return d.Delete(ctx, "person", "id", o.id, "", 0)
 	})
 
 	if err != nil {

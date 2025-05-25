@@ -1,6 +1,7 @@
 package ci
 
 import (
+	"context"
 	"fmt"
 	"github.com/goradd/orm/_test/config"
 	"github.com/goradd/orm/_test/gen/orm/goradd"
@@ -23,7 +24,9 @@ func setup(m *testing.M) {
 	fmt.Println("Setting up tests...")
 
 	config.InitDB()
-	loadData()
+	ctx := db.NewContext(nil)
+	goradd.ClearAll(ctx)
+	loadData(ctx)
 }
 
 func teardown() {
@@ -31,13 +34,12 @@ func teardown() {
 	fmt.Println("Cleaning up after tests...")
 }
 
-func loadData() {
+func loadData(ctx context.Context) {
 	f, err := os.Open("./../schema/data.json")
 	if err != nil {
 		panic(err)
 	}
 	defer f.Close()
-	ctx := db.NewContext(nil)
 	goradd.ClearAll(ctx)
 	err = goradd.JsonDecodeAll(ctx, f)
 	if err != nil {

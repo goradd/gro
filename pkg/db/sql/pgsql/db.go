@@ -126,7 +126,7 @@ func (m *DB) OperationSql(op Operator, operands []Node, operandStrings []string)
 				s := operandStrings[0]
 				s2 := operandStrings[1]
 				// stored as a json array in the field
-				return fmt.Sprintf(`%s @> '%s'`, s, s2)
+				return fmt.Sprintf(`%s @> to_jsonb(ARRAY[%s::int])`, s, s2)
 			}
 		}
 

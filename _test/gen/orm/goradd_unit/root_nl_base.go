@@ -774,7 +774,7 @@ func (o *rootNlBase) Delete(ctx context.Context) (err error) {
 			o.revLeafNls.Clear()
 		}
 
-		return d.Delete(ctx, "root_nl", "ID", o.id, "gro_lock", o.GroLock())
+		return d.Delete(ctx, "root_nl", "id", o.id, "gro_lock", o.GroLock())
 	})
 
 	if err != nil {

@@ -679,7 +679,7 @@ func (o *rootUBase) Delete(ctx context.Context) (err error) {
 			o.revLeafU = nil
 		}
 
-		return d.Delete(ctx, "root_u", "ID", o.id, "", 0)
+		return d.Delete(ctx, "root_u", "id", o.id, "", 0)
 	})
 
 	if err != nil {
