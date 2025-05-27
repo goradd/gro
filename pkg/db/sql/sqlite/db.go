@@ -14,7 +14,12 @@ import (
 	"time"
 )
 
-// DB is the goradd driver for a modernc sqlite database.
+// DB is the goradd driver for a modernc SQLite database.
+//
+// Although SQLite has a NUMERIC type, it is not the same as NUMERIC types in other databases,
+// which are variable precision numbers. Instead, SQLite will convert the value internally to an
+// INT, REAL, or TEXT at will, and may lose precision in the process. Therefore, these values are
+// stored as TEXT in SQLite, and no numeric operations can be preformed on these values.
 type DB struct {
 	sql2.DbHelper
 	contextTimeout time.Duration
