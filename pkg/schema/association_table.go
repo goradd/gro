@@ -9,19 +9,22 @@ import (
 // AssociationTable describes a table in the database that will be used to create a many-to-many
 // relationship between two tables.
 type AssociationTable struct {
-	// Name is the name of the association table in the database. It should be lower_snake_case.
+	// Name is the name of the association table in the database. It should be lower_snake_case and end
+	// with the Database.AssnTableSuffix value.
 	Name string `json:"name"`
 	// For databases that support schemas, this is the name of the schema of the table.
 	// Leave blank for the default schema.
-	// Databases that do not support schemas will have this prepended to the name of the table.
+	// Databases that do not support schemas will have this prepended to the name of the table if this is present.
 	Schema string `json:"schema,omitempty"`
 
 	// Table1 is the name of first table in the association.
-	// If it has a schema, should be of the form "schema.table".
-	// Should not be an enum table.
+	// If Schema is set, it will be expected to be in the same schema.
+	// This table name must exist in the list of tables in the database, and must
+	// not be an enum table.
 	Table1 string `json:"table1"`
 
-	// The name of the column in the association table that will be used to point to table 1.
+	// The name of the column that will be created in the association table that will be used to point to Table1
+	// by containing the primary key of the object pointed to. Should end with Database.ReferenceSuffix.
 	Column1 string `json:"column1"`
 
 	// Label1 is the singular description that will be used to describe the objects to human readers.
@@ -32,6 +35,7 @@ type AssociationTable struct {
 
 	// Label1Plural is the plural description that will be used to describe the objects to human readers.
 	// This will be used to create the corresponding Go identifier.
+	// The default will be based on Label1.
 	Label1Plural string `json:"label1_plural,omitempty"`
 
 	// Identifier1 is the singular Go name that will be used for one object pointed at.
@@ -46,6 +50,7 @@ type AssociationTable struct {
 	Table2 string `json:"table2"`
 
 	// The name of the column in the association table that will be used to point to table 2.
+	// End with Database.ReferenceSuffix or Database.EnumTableSuffix.
 	Column2 string `json:"column2"`
 
 	// Label2 is the singular description that will be used to describe the objects to human readers.

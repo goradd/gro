@@ -20,8 +20,8 @@ type PersonNode interface {
 	FirstName() *query.ColumnNode
 	// LastName represents the last_name column in the database.
 	LastName() *query.ColumnNode
-	// Types represents the type_enum column in the database.
-	Types() *query.ColumnNode
+	// PersonType represents the person_type_enum column in the database.
+	PersonType() *query.ColumnNode
 	// Created represents the created column in the database.
 	Created() *query.ColumnNode
 	// Modified represents the modified column in the database.
@@ -80,7 +80,7 @@ func (n personTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.FirstName())
 	nodes = append(nodes, n.LastName())
-	nodes = append(nodes, n.Types())
+	nodes = append(nodes, n.PersonType())
 	nodes = append(nodes, n.Created())
 	nodes = append(nodes, n.Modified())
 	return nodes
@@ -200,12 +200,12 @@ func (n *personAssociation) LastName() *query.ColumnNode {
 	return cn
 }
 
-func (n personTable) Types() *query.ColumnNode {
+func (n personTable) PersonType() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:     "type_enum",
-		Identifier:    "Types",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeEnumArray,
+		QueryName:     "person_type_enum",
+		Identifier:    "PersonType",
+		ReceiverType:  query.ColTypeInteger,
+		SchemaType:    schema.ColTypeEnum,
 		SchemaSubType: schema.ColSubTypeNone,
 		IsPrimaryKey:  false,
 	}
@@ -213,14 +213,14 @@ func (n personTable) Types() *query.ColumnNode {
 	return cn
 }
 
-func (n *personReference) Types() *query.ColumnNode {
-	cn := n.personTable.Types()
+func (n *personReference) PersonType() *query.ColumnNode {
+	cn := n.personTable.PersonType()
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *personAssociation) Types() *query.ColumnNode {
-	cn := n.personTable.Types()
+func (n *personAssociation) PersonType() *query.ColumnNode {
+	cn := n.personTable.PersonType()
 	query.NodeSetParent(cn, n)
 	return cn
 }

@@ -24,24 +24,24 @@ import (
 // The member variables of the structure are private and should not normally be accessed by the Person embedder.
 // Instead, use the accessor functions.
 type personBase struct {
-	id                string
-	idIsLoaded        bool
-	idIsDirty         bool
-	firstName         string
-	firstNameIsLoaded bool
-	firstNameIsDirty  bool
-	lastName          string
-	lastNameIsLoaded  bool
-	lastNameIsDirty   bool
-	types             PersonTypeSet
-	typesIsNull       bool
-	typesIsLoaded     bool
-	typesIsDirty      bool
-	created           time.Time
-	createdIsLoaded   bool
-	modified          time.Time
-	modifiedIsNull    bool
-	modifiedIsLoaded  bool
+	id                 string
+	idIsLoaded         bool
+	idIsDirty          bool
+	firstName          string
+	firstNameIsLoaded  bool
+	firstNameIsDirty   bool
+	lastName           string
+	lastNameIsLoaded   bool
+	lastNameIsDirty    bool
+	personType         PersonType
+	personTypeIsNull   bool
+	personTypeIsLoaded bool
+	personTypeIsDirty  bool
+	created            time.Time
+	createdIsLoaded    bool
+	modified           time.Time
+	modifiedIsNull     bool
+	modifiedIsLoaded   bool
 
 	// Reverse reference objects.
 	revManagerProjects        maps.SliceMap[string, *Project] // Objects in the order they were queried
@@ -73,7 +73,7 @@ const (
 	Person_ID             = `ID`
 	Person_FirstName      = `FirstName`
 	Person_LastName       = `LastName`
-	Person_Types          = `Types`
+	Person_PersonType     = `PersonType`
 	Person_Created        = `Created`
 	Person_Modified       = `Modified`
 	PersonManagerProjects = `ManagerProjects`
@@ -104,10 +104,10 @@ func (o *personBase) Initialize() {
 	o.lastNameIsLoaded = false
 	o.lastNameIsDirty = false
 
-	o.types = nil
-	o.typesIsNull = true
-	o.typesIsLoaded = false
-	o.typesIsDirty = false
+	o.personType = 0
+	o.personTypeIsNull = true
+	o.personTypeIsLoaded = false
+	o.personTypeIsDirty = false
 
 	o.created = time.Time{}
 	o.createdIsLoaded = true
@@ -169,8 +169,8 @@ func (o *personBase) Copy() (newObject *Person) {
 	if o.lastNameIsLoaded {
 		newObject.SetLastName(o.lastName)
 	}
-	if o.typesIsLoaded {
-		newObject.SetTypes(o.types)
+	if o.personTypeIsLoaded {
+		newObject.SetPersonType(o.personType)
 	}
 	return
 }
@@ -267,53 +267,50 @@ func (o *personBase) SetLastName(v string) {
 	o.lastNameIsDirty = true
 }
 
-// Types returns the value of Types.
-func (o *personBase) Types() PersonTypeSet {
-	if o._restored && !o.typesIsLoaded {
-		panic("Types was not selected in the last query and has not been set, and so is not valid")
+// PersonType returns the value of PersonType.
+func (o *personBase) PersonType() PersonType {
+	if o._restored && !o.personTypeIsLoaded {
+		panic("PersonType was not selected in the last query and has not been set, and so is not valid")
 	}
-	if o.types == nil {
-		return nil
-	}
-	return o.types.Clone()
+	return o.personType
 }
 
-// TypesIsLoaded returns true if the value was loaded from the database or has been set.
-func (o *personBase) TypesIsLoaded() bool {
-	return o.typesIsLoaded
+// PersonTypeIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *personBase) PersonTypeIsLoaded() bool {
+	return o.personTypeIsLoaded
 }
 
-// TypesIsNull returns true if the related database value is null.
-func (o *personBase) TypesIsNull() bool {
-	return o.typesIsNull
+// PersonTypeIsNull returns true if the related database value is null.
+func (o *personBase) PersonTypeIsNull() bool {
+	return o.personTypeIsNull
 }
 
-// SetTypes sets the value of Types in the object, to be saved later in the database using the Save() function.
-func (o *personBase) SetTypes(v PersonTypeSet) {
+// SetPersonType sets the value of PersonType in the object, to be saved later in the database using the Save() function.
+func (o *personBase) SetPersonType(v PersonType) {
 	if o._restored &&
-		o.typesIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
-		!o.typesIsNull && // if the db value is null, force a set of value
-		o.types.Equal(v) {
+		o.personTypeIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		!o.personTypeIsNull && // if the db value is null, force a set of value
+		o.personType == v {
 		// no change
 		return
 	}
 
-	o.typesIsLoaded = true
-	o.types = v.Clone()
-	o.typesIsDirty = true
-	o.typesIsNull = false
+	o.personTypeIsLoaded = true
+	o.personType = v
+	o.personTypeIsDirty = true
+	o.personTypeIsNull = false
 }
 
-// SetTypesToNull() will set the type_enum value in the database to NULL.
-// Types() will return the column's default value after this.
-func (o *personBase) SetTypesToNull() {
-	if !o.typesIsLoaded || !o.typesIsNull {
+// SetPersonTypeToNull() will set the person_type_enum value in the database to NULL.
+// PersonType() will return the column's default value after this.
+func (o *personBase) SetPersonTypeToNull() {
+	if !o.personTypeIsLoaded || !o.personTypeIsNull {
 		// If we know it is null in the database, don't save it
-		o.typesIsDirty = true
+		o.personTypeIsDirty = true
 	}
-	o.typesIsLoaded = true
-	o.typesIsNull = true
-	o.types = nil
+	o.personTypeIsLoaded = true
+	o.personTypeIsNull = true
+	o.personType = 0
 }
 
 // Created returns the value of Created.
@@ -946,32 +943,25 @@ func (o *personBase) unpack(m map[string]interface{}, objThis *Person) {
 		o.lastNameIsDirty = false
 	}
 
-	if v, ok := m["type_enum"]; ok {
+	if v, ok := m["person_type_enum"]; ok {
 		if v == nil {
-			o.types = nil
-			o.typesIsNull = true
-			o.typesIsLoaded = true
-			o.typesIsDirty = false
-		} else if s, ok2 := v.(string); ok2 {
-			var v PersonTypeSet
-			if s == "" {
-				o.types = nil
-			} else if err := json.Unmarshal([]byte(s), &v); err != nil {
-				panic("Value for type_enum is not valid json")
-			} else {
-				o.types = v
-			}
-			o.typesIsNull = false
-			o.typesIsLoaded = true
-			o.typesIsDirty = false
+			o.personType = 0
+			o.personTypeIsNull = true
+			o.personTypeIsLoaded = true
+			o.personTypeIsDirty = false
+		} else if i, ok2 := v.(int); ok2 {
+			o.personType = PersonType(i)
+			o.personTypeIsNull = false
+			o.personTypeIsLoaded = true
+			o.personTypeIsDirty = false
 		} else {
-			panic("Wrong type found for type_enum.")
+			panic("Wrong type found for person_type_enum.")
 		}
 	} else {
-		o.typesIsLoaded = false
-		o.typesIsNull = true
-		o.types = nil
-		o.typesIsDirty = false
+		o.personTypeIsLoaded = false
+		o.personTypeIsNull = true
+		o.personType = 0
+		o.personTypeIsDirty = false
 	}
 
 	if v, ok := m["created"]; ok && v != nil {
@@ -1495,16 +1485,11 @@ func (o *personBase) getUpdateFields() (fields map[string]interface{}) {
 	if o.lastNameIsDirty {
 		fields["last_name"] = o.lastName
 	}
-	if o.typesIsDirty {
-		if o.typesIsNull {
-			fields["type_enum"] = nil
+	if o.personTypeIsDirty {
+		if o.personTypeIsNull {
+			fields["person_type_enum"] = nil
 		} else {
-			var a []int
-			for _, v := range o.types.Values() {
-				a = append(a, int(v))
-			}
-			b, _ := json.Marshal(a)
-			fields["type_enum"] = string(b)
+			fields["person_type_enum"] = o.personType
 		}
 	}
 	if len(fields) > 0 {
@@ -1528,15 +1513,10 @@ func (o *personBase) getInsertFields() (fields map[string]interface{}) {
 	fields["first_name"] = o.firstName
 
 	fields["last_name"] = o.lastName
-	if o.typesIsNull {
-		fields["type_enum"] = nil
+	if o.personTypeIsNull {
+		fields["person_type_enum"] = nil
 	} else {
-		var a []int
-		for _, v := range o.types.Values() {
-			a = append(a, int(v))
-		}
-		b, _ := json.Marshal(a)
-		fields["type_enum"] = string(b)
+		fields["person_type_enum"] = o.personType
 	}
 	fields["created"] = time.Now().UTC()
 	fields["modified"] = time.Now().UTC()
@@ -1683,7 +1663,7 @@ func (o *personBase) resetDirtyStatus() {
 	o.idIsDirty = false
 	o.firstNameIsDirty = false
 	o.lastNameIsDirty = false
-	o.typesIsDirty = false
+	o.personTypeIsDirty = false
 	o.revManagerProjectsIsDirty = false
 	o.revAddressesIsDirty = false
 	o.revEmployeeInfoIsDirty = false
@@ -1699,7 +1679,7 @@ func (o *personBase) IsDirty() (dirty bool) {
 	dirty = o.idIsDirty ||
 		o.firstNameIsDirty ||
 		o.lastNameIsDirty ||
-		o.typesIsDirty
+		o.personTypeIsDirty
 
 	dirty = dirty ||
 		o.revManagerProjectsIsDirty ||
@@ -1752,11 +1732,11 @@ func (o *personBase) Get(key string) interface{} {
 		}
 		return o.lastName
 
-	case "Types":
-		if !o.typesIsLoaded {
+	case "PersonType":
+		if !o.personTypeIsLoaded {
 			return nil
 		}
-		return o.types
+		return o.personType
 
 	case "Created":
 		if !o.createdIsLoaded {
@@ -1831,17 +1811,17 @@ func (o *personBase) encodeTo(enc db.Encoder) error {
 		return fmt.Errorf("error encoding Person.lastNameIsDirty: %w", err)
 	}
 
-	if err := enc.Encode(o.types); err != nil {
-		return fmt.Errorf("error encoding Person.types: %w", err)
+	if err := enc.Encode(o.personType); err != nil {
+		return fmt.Errorf("error encoding Person.personType: %w", err)
 	}
-	if err := enc.Encode(o.typesIsNull); err != nil {
-		return fmt.Errorf("error encoding Person.typesIsNull: %w", err)
+	if err := enc.Encode(o.personTypeIsNull); err != nil {
+		return fmt.Errorf("error encoding Person.personTypeIsNull: %w", err)
 	}
-	if err := enc.Encode(o.typesIsLoaded); err != nil {
-		return fmt.Errorf("error encoding Person.typesIsLoaded: %w", err)
+	if err := enc.Encode(o.personTypeIsLoaded); err != nil {
+		return fmt.Errorf("error encoding Person.personTypeIsLoaded: %w", err)
 	}
-	if err := enc.Encode(o.typesIsDirty); err != nil {
-		return fmt.Errorf("error encoding Person.typesIsDirty: %w", err)
+	if err := enc.Encode(o.personTypeIsDirty); err != nil {
+		return fmt.Errorf("error encoding Person.personTypeIsDirty: %w", err)
 	}
 
 	if err := enc.Encode(o.created); err != nil {
@@ -1987,17 +1967,17 @@ func (o *personBase) decodeFrom(dec db.Decoder) (err error) {
 		return fmt.Errorf("error decoding Person.lastNameIsDirty: %w", err)
 	}
 
-	if err = dec.Decode(&o.types); err != nil {
-		return fmt.Errorf("error decoding Person.types: %w", err)
+	if err = dec.Decode(&o.personType); err != nil {
+		return fmt.Errorf("error decoding Person.personType: %w", err)
 	}
-	if err = dec.Decode(&o.typesIsNull); err != nil {
-		return fmt.Errorf("error decoding Person.typesIsNull: %w", err)
+	if err = dec.Decode(&o.personTypeIsNull); err != nil {
+		return fmt.Errorf("error decoding Person.personTypeIsNull: %w", err)
 	}
-	if err = dec.Decode(&o.typesIsLoaded); err != nil {
-		return fmt.Errorf("error decoding Person.typesIsLoaded: %w", err)
+	if err = dec.Decode(&o.personTypeIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Person.personTypeIsLoaded: %w", err)
 	}
-	if err = dec.Decode(&o.typesIsDirty); err != nil {
-		return fmt.Errorf("error decoding Person.typesIsDirty: %w", err)
+	if err = dec.Decode(&o.personTypeIsDirty); err != nil {
+		return fmt.Errorf("error decoding Person.personTypeIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.created); err != nil {
@@ -2117,11 +2097,11 @@ func (o *personBase) MarshalStringMap() map[string]interface{} {
 		v["lastName"] = o.lastName
 	}
 
-	if o.typesIsLoaded {
-		if o.typesIsNull {
-			v["types"] = nil
+	if o.personTypeIsLoaded {
+		if o.personTypeIsNull {
+			v["personType"] = nil
 		} else {
-			v["types"] = o.types
+			v["personType"] = o.personType
 		}
 	}
 
@@ -2183,7 +2163,7 @@ func (o *personBase) MarshalStringMap() map[string]interface{} {
 //	"id" - string
 //	"firstName" - string
 //	"lastName" - string
-//	"types" - PersonTypeSet, nullable
+//	"personType" - PersonType, nullable
 //	"created" - time.Time
 //	"modified" - time.Time, nullable
 func (o *personBase) UnmarshalJSON(data []byte) (err error) {
@@ -2245,29 +2225,18 @@ func (o *personBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 				}
 			}
 
-		case "types":
+		case "personType":
 			{
 				if v == nil {
-					o.SetTypesToNull()
+					o.SetPersonTypeToNull()
 					continue
 				}
 
-				if v == nil {
-					return fmt.Errorf("field %s cannot be null", k)
+				v2, err := PersonTypeFromInterface(v)
+				if err != nil {
+					return err
 				}
-				if v2, ok := v.([]any); ok {
-					a := NewPersonTypeSet()
-					for _, i := range v2 {
-						v3, err := PersonTypeFromInterface(i)
-						if err != nil {
-							return err
-						}
-						a.Add(v3)
-					}
-					o.SetTypes(a)
-				} else {
-					return fmt.Errorf("field '%s' must be an array of numbers or strings", k)
-				}
+				o.SetPersonType(v2)
 			}
 
 		case "managerProjects":

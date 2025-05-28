@@ -35,7 +35,7 @@ func updateMinimalSamplePerson(obj *Person) {
 
 	obj.SetLastName(test.RandomValue[string](50))
 
-	obj.SetTypes(test.RandomEnumArray(PersonTypes()))
+	obj.SetPersonType(test.RandomEnum(PersonTypes()))
 
 }
 
@@ -105,8 +105,8 @@ func assertEqualFieldsPerson(t *testing.T, obj1, obj2 *Person) {
 	if obj1.LastNameIsLoaded() && obj2.LastNameIsLoaded() { // only check loaded values
 		assert.EqualValues(t, obj1.LastName(), obj2.LastName())
 	}
-	if obj1.TypesIsLoaded() && obj2.TypesIsLoaded() { // only check loaded values
-		assert.True(t, obj1.Types().Equal(obj2.Types()))
+	if obj1.PersonTypeIsLoaded() && obj2.PersonTypeIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.PersonType(), obj2.PersonType())
 	}
 	if obj1.CreatedIsLoaded() && obj2.CreatedIsLoaded() { // only check loaded values
 		// ignore fractional seconds since some types truncate to the second.
@@ -176,26 +176,26 @@ func TestPerson_SetLastName(t *testing.T) {
 		obj.SetLastName(val)
 	})
 }
-func TestPerson_SetTypes(t *testing.T) {
+func TestPerson_SetPersonType(t *testing.T) {
 
 	obj := NewPerson()
 
 	assert.True(t, obj.IsNew())
 
-	val := test.RandomEnumArray(PersonTypes())
-	obj.SetTypes(val)
+	val := test.RandomEnum(PersonTypes())
+	obj.SetPersonType(val)
 
-	assert.Equal(t, val, obj.Types())
-	assert.False(t, obj.TypesIsNull())
+	assert.Equal(t, val, obj.PersonType())
+	assert.False(t, obj.PersonTypeIsNull())
 
 	// Test NULL
-	obj.SetTypesToNull()
-	assert.Nil(t, obj.Types())
-	assert.True(t, obj.TypesIsNull())
+	obj.SetPersonTypeToNull()
+	assert.EqualValues(t, 0, obj.PersonType())
+	assert.True(t, obj.PersonTypeIsNull())
 
 	// test default
-	obj.SetTypes(nil)
-	assert.True(t, obj.Types().Equal(PersonTypeSet(nil)), "set default")
+	obj.SetPersonType(0)
+	assert.EqualValues(t, 0, obj.PersonType(), "set default")
 
 }
 
@@ -206,7 +206,7 @@ func TestPerson_Copy(t *testing.T) {
 
 	assert.Equal(t, obj.FirstName(), obj2.FirstName())
 	assert.Equal(t, obj.LastName(), obj2.LastName())
-	assert.Equal(t, obj.Types(), obj2.Types())
+	assert.Equal(t, obj.PersonType(), obj2.PersonType())
 
 }
 
@@ -240,13 +240,12 @@ func TestPerson_BasicInsert(t *testing.T) {
 	obj2.SetLastName(obj2.LastName())
 	assert.False(t, obj2.lastNameIsDirty)
 
-	assert.True(t, obj2.TypesIsLoaded())
-	assert.False(t, obj2.TypesIsNull())
-	assert.True(t, obj.Types().Equal(obj2.Types()))
+	assert.True(t, obj2.PersonTypeIsLoaded())
+	assert.False(t, obj2.PersonTypeIsNull())
 	// test that setting it to the same value will not change the dirty bit
-	assert.False(t, obj2.typesIsDirty)
-	obj2.SetTypes(obj2.Types())
-	assert.False(t, obj2.typesIsDirty)
+	assert.False(t, obj2.personTypeIsDirty)
+	obj2.SetPersonType(obj2.PersonType())
+	assert.False(t, obj2.personTypeIsDirty)
 
 	assert.True(t, obj2.CreatedIsLoaded())
 
@@ -284,7 +283,7 @@ func TestPerson_BasicUpdate(t *testing.T) {
 	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
 	assert.Equal(t, obj2.FirstName(), obj.FirstName(), "FirstName did not update")
 	assert.Equal(t, obj2.LastName(), obj.LastName(), "LastName did not update")
-	assert.Equal(t, obj2.Types(), obj.Types(), "Types did not update")
+	assert.Equal(t, obj2.PersonType(), obj.PersonType(), "PersonType did not update")
 
 	assert.WithinDuration(t, obj2.Created(), obj.Created(), time.Second, "Created not within one second")
 
@@ -438,9 +437,9 @@ func TestPerson_Getters(t *testing.T) {
 	assert.Equal(t, obj.LastName(), obj.Get(node.Person().LastName().Identifier))
 	assert.Panics(t, func() { obj2.LastName() })
 	assert.Nil(t, obj2.Get(node.Person().LastName().Identifier))
-	assert.Equal(t, obj.Types(), obj.Get(node.Person().Types().Identifier))
-	assert.Panics(t, func() { obj2.Types() })
-	assert.Nil(t, obj2.Get(node.Person().Types().Identifier))
+	assert.Equal(t, obj.PersonType(), obj.Get(node.Person().PersonType().Identifier))
+	assert.Panics(t, func() { obj2.PersonType() })
+	assert.Nil(t, obj2.Get(node.Person().PersonType().Identifier))
 	assert.Equal(t, obj.Created(), obj.Get(node.Person().Created().Identifier))
 	assert.Panics(t, func() { obj2.Created() })
 	assert.Nil(t, obj2.Get(node.Person().Created().Identifier))

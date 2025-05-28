@@ -47,7 +47,7 @@ func TestSerializeReferencesEmployeeInfoTable(t *testing.T) {
 		assert.True(t, query.NodesMatch(EmployeeInfo().Person().ID(), n2.(PersonNode).ID()))
 		assert.True(t, query.NodesMatch(EmployeeInfo().Person().FirstName(), n2.(PersonNode).FirstName()))
 		assert.True(t, query.NodesMatch(EmployeeInfo().Person().LastName(), n2.(PersonNode).LastName()))
-		assert.True(t, query.NodesMatch(EmployeeInfo().Person().Types(), n2.(PersonNode).Types()))
+		assert.True(t, query.NodesMatch(EmployeeInfo().Person().PersonType(), n2.(PersonNode).PersonType()))
 		assert.True(t, query.NodesMatch(EmployeeInfo().Person().Created(), n2.(PersonNode).Created()))
 		assert.True(t, query.NodesMatch(EmployeeInfo().Person().Modified(), n2.(PersonNode).Modified()))
 		assert.True(t, query.NodesMatch(EmployeeInfo().Person().ManagerProjects(), n2.(PersonNode).ManagerProjects()))

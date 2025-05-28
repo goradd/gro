@@ -23,10 +23,7 @@
   "id": "1",
   "lastName": "Doe",
   "modified": null,
-  "types": [
-    "manager",
-    "inactive"
-  ]
+  "personType": "inactive"
 }
 ,
 {
@@ -35,10 +32,7 @@
   "id": "2",
   "lastName": "Public",
   "modified": null,
-  "types": [
-    "company_car",
-    "works_from_home"
-  ]
+  "personType": null
 }
 ,
 {
@@ -47,11 +41,7 @@
   "id": "3",
   "lastName": "Robinson",
   "modified": null,
-  "types": [
-    "contractor",
-    "manager",
-    "inactive"
-  ]
+  "personType": "contractor"
 }
 ,
 {
@@ -60,7 +50,7 @@
   "id": "4",
   "lastName": "Ho",
   "modified": null,
-  "types": null
+  "personType": null
 }
 ,
 {
@@ -69,9 +59,7 @@
   "id": "5",
   "lastName": "Smith",
   "modified": null,
-  "types": [
-    "works_from_home"
-  ]
+  "personType": "vendor"
 }
 ,
 {
@@ -80,7 +68,7 @@
   "id": "6",
   "lastName": "Smith",
   "modified": null,
-  "types": null
+  "personType": null
 }
 ,
 {
@@ -89,10 +77,7 @@
   "id": "7",
   "lastName": "Wolfe",
   "modified": "2025-04-21T16:47:52Z",
-  "types": [
-    "manager",
-    "company_car"
-  ]
+  "personType": "manager"
 }
 ,
 {
@@ -101,7 +86,7 @@
   "id": "8",
   "lastName": "Jones",
   "modified": null,
-  "types": null
+  "personType": null
 }
 ,
 {
@@ -110,9 +95,7 @@
   "id": "9",
   "lastName": "Brady",
   "modified": null,
-  "types": [
-    "inactive"
-  ]
+  "personType": "inactive"
 }
 ,
 {
@@ -121,9 +104,7 @@
   "id": "10",
   "lastName": "Smith",
   "modified": null,
-  "types": [
-    "contractor"
-  ]
+  "personType": "contractor"
 }
 ,
 {
@@ -132,7 +113,7 @@
   "id": "11",
   "lastName": "Carlisle",
   "modified": "2025-04-21T16:47:52Z",
-  "types": null
+  "personType": null
 }
 ,
 {
@@ -141,7 +122,7 @@
   "id": "12",
   "lastName": "Pratt",
   "modified": null,
-  "types": null
+  "personType": null
 }
 ]
 ],

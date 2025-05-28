@@ -27,7 +27,6 @@ var reservedWords = map[string]struct{}{
 // If the result starts with a non-letter or is a reserved keyword, it prepends an underscore.
 func SanitizeName(input string) string {
 	var b strings.Builder
-	var modified bool
 
 	for _, r := range input {
 		switch {
@@ -35,10 +34,8 @@ func SanitizeName(input string) string {
 			b.WriteRune(r)
 		case unicode.IsUpper(r):
 			b.WriteRune(unicode.ToLower(r))
-			modified = true
 		default:
 			b.WriteRune('_')
-			modified = true
 		}
 	}
 
@@ -52,7 +49,7 @@ func SanitizeName(input string) string {
 		result = "_" + result
 	}
 
-	if modified {
+	if input != result {
 		slog.Warn("Name was modified because its not a valid go identifier",
 			slog.String("old name", input),
 			slog.String("new name", result))

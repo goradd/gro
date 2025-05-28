@@ -42,8 +42,8 @@
           "index_level": "indexed"
         },
         {
-          "name": "type_enum",
-          "type": "enum_array",
+          "name": "person_type_enum",
+          "type": "enum",
           "is_nullable": true,
           "reference": {
             "table": "person_type_enum"
@@ -316,13 +316,13 @@
         },
         {
           "const": 4,
-          "identifier": "company_car",
-          "label": "Company Car"
+          "identifier": "customer",
+          "label": "Customer"
         },
         {
           "const": 5,
-          "identifier": "works_from_home",
-          "label": "Works From Home"
+          "identifier": "vendor",
+          "label": "Vendor"
         }
       ],
       "fields": {

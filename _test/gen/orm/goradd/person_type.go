@@ -15,11 +15,11 @@ import (
 type PersonType int
 
 const (
-	PersonTypeContractor    PersonType = 1
-	PersonTypeManager       PersonType = 2
-	PersonTypeInactive      PersonType = 3
-	PersonTypeCompanyCar    PersonType = 4
-	PersonTypeWorksFromHome PersonType = 5
+	PersonTypeContractor PersonType = 1
+	PersonTypeManager    PersonType = 2
+	PersonTypeInactive   PersonType = 3
+	PersonTypeCustomer   PersonType = 4
+	PersonTypeVendor     PersonType = 5
 )
 
 // PersonTypeMaxValue is the maximum enumerated value of PersonType
@@ -64,9 +64,9 @@ func PersonTypeFromKey(key string) PersonType {
 	case `3`:
 		return PersonTypeInactive
 	case `4`:
-		return PersonTypeCompanyCar
+		return PersonTypeCustomer
 	case `5`:
-		return PersonTypeWorksFromHome
+		return PersonTypeVendor
 	}
 	return PersonType(0)
 }
@@ -87,8 +87,8 @@ func PersonTypes() []PersonType {
 		PersonTypeContractor,
 		PersonTypeManager,
 		PersonTypeInactive,
-		PersonTypeCompanyCar,
-		PersonTypeWorksFromHome,
+		PersonTypeCustomer,
+		PersonTypeVendor,
 	}
 }
 
@@ -99,8 +99,8 @@ func PersonTypesI() (values []any) {
 		PersonTypeContractor,
 		PersonTypeManager,
 		PersonTypeInactive,
-		PersonTypeCompanyCar,
-		PersonTypeWorksFromHome,
+		PersonTypeCustomer,
+		PersonTypeVendor,
 	}
 }
 
@@ -114,10 +114,10 @@ func (e PersonType) Label() string {
 		return "Manager"
 	case PersonTypeInactive:
 		return "Inactive"
-	case PersonTypeCompanyCar:
-		return "Company Car"
-	case PersonTypeWorksFromHome:
-		return "Works From Home"
+	case PersonTypeCustomer:
+		return "Customer"
+	case PersonTypeVendor:
+		return "Vendor"
 	default:
 		panic("Index out of range")
 	}
@@ -130,8 +130,8 @@ func PersonTypeLabels() []string {
 		"Contractor",
 		"Manager",
 		"Inactive",
-		"Company Car",
-		"Works From Home",
+		"Customer",
+		"Vendor",
 	}
 }
 
@@ -145,10 +145,10 @@ func (e PersonType) Identifier() string {
 		return "manager"
 	case PersonTypeInactive:
 		return "inactive"
-	case PersonTypeCompanyCar:
-		return "company_car"
-	case PersonTypeWorksFromHome:
-		return "works_from_home"
+	case PersonTypeCustomer:
+		return "customer"
+	case PersonTypeVendor:
+		return "vendor"
 	default:
 		panic("Index out of range")
 	}
@@ -161,8 +161,8 @@ func PersonTypeIdentifiers() []string {
 		"contractor",
 		"manager",
 		"inactive",
-		"company_car",
-		"works_from_home",
+		"customer",
+		"vendor",
 	}
 }
 
@@ -224,10 +224,10 @@ func PersonTypeFromIdentifier(i string) (e PersonType, err error) {
 		return PersonTypeManager, nil
 	case "inactive":
 		return PersonTypeInactive, nil
-	case "company_car":
-		return PersonTypeCompanyCar, nil
-	case "works_from_home":
-		return PersonTypeWorksFromHome, nil
+	case "customer":
+		return PersonTypeCustomer, nil
+	case "vendor":
+		return PersonTypeVendor, nil
 	default:
 		return PersonType(0), fmt.Errorf("PersonType  for %s not found", i)
 	}

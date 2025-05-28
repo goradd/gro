@@ -43,7 +43,6 @@ func TestLoad(t *testing.T) {
 	assert.Equal(t, "Wolfe", person.LastName(), "Last name was not selected by default")
 	assert.Len(t, person.Projects(), 2)
 	assert.Len(t, person.ManagerProjects(), 2)
-	assert.Equal(t, person.Types().Len(), 2)
 	assert.Equal(t, "kwolfe", person.Login().Username())
 
 	person, err = goradd.LoadPerson(ctx, "7",
@@ -55,7 +54,6 @@ func TestLoad(t *testing.T) {
 	// Serialize and deserialize
 	assert.Len(t, person.Projects(), 2)
 	assert.Len(t, person.ManagerProjects(), 2)
-	assert.Equal(t, person.Types().Len(), 2)
 	assert.Equal(t, "kwolfe", person.Login().Username())
 }
 

@@ -135,6 +135,8 @@ func (c *Column) FillDefaults(db *Database, table *Table) {
 			}
 		}
 		objName := strings.TrimSuffix(c.Name, db.EnumTableSuffix)
+		objName = SanitizeName(objName)
+
 		if c.Label == "" {
 			c.Label = strings2.Title(objName)
 			if c.Type == ColTypeEnumArray {
@@ -181,7 +183,8 @@ func (c *Column) FillDefaults(db *Database, table *Table) {
 	}
 
 	if c.Identifier == "" {
-		c.Identifier = snaker.SnakeToCamelIdentifier(c.Name)
+		objName := SanitizeName(c.Name)
+		c.Identifier = snaker.SnakeToCamelIdentifier(objName)
 	}
 
 	if c.Size == 0 {

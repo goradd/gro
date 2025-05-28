@@ -50,7 +50,7 @@ func TestJsonMarshall2(t *testing.T) {
 	p, err := goradd.LoadPerson(ctx, "1",
 		node.Person().FirstName(),
 		node.Person().LastName(),
-		node.Person().Types())
+		node.Person().PersonType())
 	assert.NoError(t, err)
 	j, err2 := json.Marshal(p)
 	assert.NoError(t, err2)
@@ -59,7 +59,7 @@ func TestJsonMarshall2(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "John", m["firstName"])
 	assert.Equal(t, "Doe", m["lastName"])
-	assert.ElementsMatch(t, []string{"manager", "inactive"}, m["types"])
+	assert.Equal(t, "inactive", m["personType"])
 }
 
 func TestJsonUnmarshall2(t *testing.T) {
@@ -68,14 +68,14 @@ func TestJsonUnmarshall2(t *testing.T) {
 		`{
 	"firstName":"John",
 	"lastName":"Doe",
-	"types":[2, 3]
+	"personType":"inactive"
 }
 `),
 		&p)
 	assert.NoError(t, err)
 	assert.Equal(t, "John", p.FirstName())
 	assert.Equal(t, "Doe", p.LastName())
-	assert.ElementsMatch(t, []goradd.PersonType{goradd.PersonTypeManager, goradd.PersonTypeInactive}, p.Types().Values())
+	assert.Equal(t, goradd.PersonTypeInactive, p.PersonType())
 }
 
 func TestJsonMarshallReferences(t *testing.T) {

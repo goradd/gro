@@ -15,16 +15,16 @@ func TestPersonType_String(t *testing.T) {
 	assert.Equal(t, PersonTypeContractor.String(), PersonTypeContractor.Identifier())
 	assert.Equal(t, PersonTypeManager.String(), PersonTypeManager.Identifier())
 	assert.Equal(t, PersonTypeInactive.String(), PersonTypeInactive.Identifier())
-	assert.Equal(t, PersonTypeCompanyCar.String(), PersonTypeCompanyCar.Identifier())
-	assert.Equal(t, PersonTypeWorksFromHome.String(), PersonTypeWorksFromHome.Identifier())
+	assert.Equal(t, PersonTypeCustomer.String(), PersonTypeCustomer.Identifier())
+	assert.Equal(t, PersonTypeVendor.String(), PersonTypeVendor.Identifier())
 }
 
 func TestPersonType_Label(t *testing.T) {
 	assert.Equal(t, PersonTypeContractor.Label(), "Contractor")
 	assert.Equal(t, PersonTypeManager.Label(), "Manager")
 	assert.Equal(t, PersonTypeInactive.Label(), "Inactive")
-	assert.Equal(t, PersonTypeCompanyCar.Label(), "Company Car")
-	assert.Equal(t, PersonTypeWorksFromHome.Label(), "Works From Home")
+	assert.Equal(t, PersonTypeCustomer.Label(), "Customer")
+	assert.Equal(t, PersonTypeVendor.Label(), "Vendor")
 	assert.Zero(t, PersonType(0).Label())
 	assert.Panics(t, func() {
 		PersonType(-1).Label()
@@ -36,16 +36,16 @@ func TestPersonType_LabelSlice(t *testing.T) {
 	assert.Equal(t, PersonTypeContractor.Label(), a[0])
 	assert.Equal(t, PersonTypeManager.Label(), a[1])
 	assert.Equal(t, PersonTypeInactive.Label(), a[2])
-	assert.Equal(t, PersonTypeCompanyCar.Label(), a[3])
-	assert.Equal(t, PersonTypeWorksFromHome.Label(), a[4])
+	assert.Equal(t, PersonTypeCustomer.Label(), a[3])
+	assert.Equal(t, PersonTypeVendor.Label(), a[4])
 }
 
 func TestPersonType_Identifier(t *testing.T) {
 	assert.Equal(t, PersonTypeContractor.Identifier(), "contractor")
 	assert.Equal(t, PersonTypeManager.Identifier(), "manager")
 	assert.Equal(t, PersonTypeInactive.Identifier(), "inactive")
-	assert.Equal(t, PersonTypeCompanyCar.Identifier(), "company_car")
-	assert.Equal(t, PersonTypeWorksFromHome.Identifier(), "works_from_home")
+	assert.Equal(t, PersonTypeCustomer.Identifier(), "customer")
+	assert.Equal(t, PersonTypeVendor.Identifier(), "vendor")
 	assert.Zero(t, PersonType(0).Identifier())
 	assert.Panics(t, func() {
 		PersonType(-1).Identifier()
@@ -57,8 +57,8 @@ func TestPersonType_IdentifierSlice(t *testing.T) {
 	assert.Equal(t, PersonTypeContractor.Identifier(), a[0])
 	assert.Equal(t, PersonTypeManager.Identifier(), a[1])
 	assert.Equal(t, PersonTypeInactive.Identifier(), a[2])
-	assert.Equal(t, PersonTypeCompanyCar.Identifier(), a[3])
-	assert.Equal(t, PersonTypeWorksFromHome.Identifier(), a[4])
+	assert.Equal(t, PersonTypeCustomer.Identifier(), a[3])
+	assert.Equal(t, PersonTypeVendor.Identifier(), a[4])
 }
 
 func TestPersonType_Keys(t *testing.T) {
@@ -67,8 +67,8 @@ func TestPersonType_Keys(t *testing.T) {
 	keys = append(keys, PersonTypeContractor.Key())
 	keys = append(keys, PersonTypeManager.Key())
 	keys = append(keys, PersonTypeInactive.Key())
-	keys = append(keys, PersonTypeCompanyCar.Key())
-	keys = append(keys, PersonTypeWorksFromHome.Key())
+	keys = append(keys, PersonTypeCustomer.Key())
+	keys = append(keys, PersonTypeVendor.Key())
 	v := PersonTypesFromKeys(keys)
 	assert.Equal(t, PersonTypes(), v)
 
