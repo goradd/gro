@@ -240,7 +240,7 @@ func sqlType(colType schema.ColumnType, size uint64, subType schema.ColumnSubTyp
 		return "INTEGER"
 	case schema.ColTypeEnum:
 		return "INTEGER"
-	case schema.ColTypeJSON, schema.ColTypeEnumArray:
+	case schema.ColTypeJSON:
 		return "BLOB" // use new jsonb format
 	default:
 		return "TEXT"

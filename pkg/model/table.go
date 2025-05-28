@@ -251,10 +251,6 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 				slog.Error("Cannot find column in multi-column index",
 					slog.String(db.LogTable, t.QueryName),
 					slog.String(db.LogColumn, name))
-			} else if col.SchemaType == schema.ColTypeEnumArray {
-				slog.Error("An EnumArray column cannot be part of a multi-column index",
-					slog.String(db.LogTable, t.QueryName),
-					slog.String(db.LogColumn, name))
 			} else {
 				columns = append(columns, col)
 			}

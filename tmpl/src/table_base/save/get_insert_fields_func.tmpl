@@ -26,24 +26,10 @@ func (o *{{= table.DecapIdentifier}}Base) getInsertFields() (fields map[string]i
     if o.{{= col.VariableIdentifier() }}IsNull {
         fields["{{= col.QueryName }}"] = nil
     } else {
-{{if col.IsEnumArray() }}
-		var a []int
-		for _,v := range o.{{= col.VariableIdentifier() }}.Values() {
-			a = append(a, int(v))
-		}
-		b, _ := json.Marshal(a)
-        fields["{{= col.QueryName }}"] = string(b)
-{{else}}
         fields["{{= col.QueryName }}"] = o.{{= col.VariableIdentifier() }}
-{{if}}
     }
 {{else}} {{# IsNullable }}
-{{if col.IsEnumArray() }}
-    b,_ := json.Marshal(o.{{= col.VariableIdentifier() }})
-    fields["{{= col.QueryName }}"] = string(b)
-{{else}}
     fields["{{= col.QueryName }}"] = o.{{= col.VariableIdentifier() }}
-{{if}}
 {{if}}
 {{for}}
 	return

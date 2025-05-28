@@ -181,10 +181,8 @@ func TestPerson_SetPersonType(t *testing.T) {
 	obj := NewPerson()
 
 	assert.True(t, obj.IsNew())
-
 	val := test.RandomEnum(PersonTypes())
 	obj.SetPersonType(val)
-
 	assert.Equal(t, val, obj.PersonType())
 	assert.False(t, obj.PersonTypeIsNull())
 

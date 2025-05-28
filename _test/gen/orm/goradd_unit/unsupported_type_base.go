@@ -51,12 +51,12 @@ type unsupportedTypeBase struct {
 	typePolygon            []byte
 	typePolygonIsLoaded    bool
 	typePolygonIsDirty     bool
-	typeMultfk1            string
-	typeMultfk1IsLoaded    bool
-	typeMultfk1IsDirty     bool
-	typeMultifk2           string
-	typeMultifk2IsLoaded   bool
-	typeMultifk2IsDirty    bool
+	typeMultFk1            string
+	typeMultFk1IsLoaded    bool
+	typeMultFk1IsDirty     bool
+	typeMultiFk2           string
+	typeMultiFk2IsLoaded   bool
+	typeMultiFk2IsDirty    bool
 
 	// Custom aliases, if specified
 	_aliases map[string]any
@@ -79,8 +79,8 @@ const (
 	UnsupportedType_TypeSmall      = `TypeSmall`
 	UnsupportedType_TypeMedium     = `TypeMedium`
 	UnsupportedType_TypePolygon    = `TypePolygon`
-	UnsupportedType_TypeMultfk1    = `TypeMultfk1`
-	UnsupportedType_TypeMultifk2   = `TypeMultifk2`
+	UnsupportedType_TypeMultFk1    = `TypeMultFk1`
+	UnsupportedType_TypeMultiFk2   = `TypeMultiFk2`
 )
 
 const UnsupportedTypeTypeSetMaxLength = 5        // The number of bytes the column can hold
@@ -90,8 +90,8 @@ const UnsupportedTypeTypeSmallMax = 32767
 const UnsupportedTypeTypeSmallMin = -32768
 const UnsupportedTypeTypeMediumMax = 8388607
 const UnsupportedTypeTypeMediumMin = -8388608
-const UnsupportedTypeTypeMultfk1MaxLength = 50  // The number of runes the column can hold
-const UnsupportedTypeTypeMultifk2MaxLength = 50 // The number of runes the column can hold
+const UnsupportedTypeTypeMultFk1MaxLength = 50  // The number of runes the column can hold
+const UnsupportedTypeTypeMultiFk2MaxLength = 50 // The number of runes the column can hold
 
 // Initialize or re-initialize a UnsupportedType database object to default values.
 func (o *unsupportedTypeBase) Initialize() {
@@ -131,13 +131,13 @@ func (o *unsupportedTypeBase) Initialize() {
 	o.typePolygonIsLoaded = false
 	o.typePolygonIsDirty = false
 
-	o.typeMultfk1 = ""
-	o.typeMultfk1IsLoaded = false
-	o.typeMultfk1IsDirty = false
+	o.typeMultFk1 = ""
+	o.typeMultFk1IsLoaded = false
+	o.typeMultFk1IsDirty = false
 
-	o.typeMultifk2 = ""
-	o.typeMultifk2IsLoaded = false
-	o.typeMultifk2IsDirty = false
+	o.typeMultiFk2 = ""
+	o.typeMultiFk2IsLoaded = false
+	o.typeMultiFk2IsDirty = false
 
 	o._aliases = nil
 	o._restored = false
@@ -191,11 +191,11 @@ func (o *unsupportedTypeBase) Copy() (newObject *UnsupportedType) {
 	if o.typePolygonIsLoaded {
 		newObject.SetTypePolygon(o.typePolygon)
 	}
-	if o.typeMultfk1IsLoaded {
-		newObject.SetTypeMultfk1(o.typeMultfk1)
+	if o.typeMultFk1IsLoaded {
+		newObject.SetTypeMultFk1(o.typeMultFk1)
 	}
-	if o.typeMultifk2IsLoaded {
-		newObject.SetTypeMultifk2(o.typeMultifk2)
+	if o.typeMultiFk2IsLoaded {
+		newObject.SetTypeMultiFk2(o.typeMultiFk2)
 	}
 	return
 }
@@ -490,64 +490,64 @@ func (o *unsupportedTypeBase) SetTypePolygon(v []byte) {
 	o.typePolygonIsDirty = true
 }
 
-// TypeMultfk1 returns the value of TypeMultfk1.
-func (o *unsupportedTypeBase) TypeMultfk1() string {
-	if o._restored && !o.typeMultfk1IsLoaded {
-		panic("TypeMultfk1 was not selected in the last query and has not been set, and so is not valid")
+// TypeMultFk1 returns the value of TypeMultFk1.
+func (o *unsupportedTypeBase) TypeMultFk1() string {
+	if o._restored && !o.typeMultFk1IsLoaded {
+		panic("TypeMultFk1 was not selected in the last query and has not been set, and so is not valid")
 	}
-	return o.typeMultfk1
+	return o.typeMultFk1
 }
 
-// TypeMultfk1IsLoaded returns true if the value was loaded from the database or has been set.
-func (o *unsupportedTypeBase) TypeMultfk1IsLoaded() bool {
-	return o.typeMultfk1IsLoaded
+// TypeMultFk1IsLoaded returns true if the value was loaded from the database or has been set.
+func (o *unsupportedTypeBase) TypeMultFk1IsLoaded() bool {
+	return o.typeMultFk1IsLoaded
 }
 
-// SetTypeMultfk1 sets the value of TypeMultfk1 in the object, to be saved later in the database using the Save() function.
-func (o *unsupportedTypeBase) SetTypeMultfk1(v string) {
-	if utf8.RuneCountInString(v) > UnsupportedTypeTypeMultfk1MaxLength {
-		panic("attempted to set UnsupportedType.TypeMultfk1 to a value larger than its maximum length in runes")
+// SetTypeMultFk1 sets the value of TypeMultFk1 in the object, to be saved later in the database using the Save() function.
+func (o *unsupportedTypeBase) SetTypeMultFk1(v string) {
+	if utf8.RuneCountInString(v) > UnsupportedTypeTypeMultFk1MaxLength {
+		panic("attempted to set UnsupportedType.TypeMultFk1 to a value larger than its maximum length in runes")
 	}
 	if o._restored &&
-		o.typeMultfk1IsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
-		o.typeMultfk1 == v {
+		o.typeMultFk1IsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeMultFk1 == v {
 		// no change
 		return
 	}
 
-	o.typeMultfk1IsLoaded = true
-	o.typeMultfk1 = v
-	o.typeMultfk1IsDirty = true
+	o.typeMultFk1IsLoaded = true
+	o.typeMultFk1 = v
+	o.typeMultFk1IsDirty = true
 }
 
-// TypeMultifk2 returns the value of TypeMultifk2.
-func (o *unsupportedTypeBase) TypeMultifk2() string {
-	if o._restored && !o.typeMultifk2IsLoaded {
-		panic("TypeMultifk2 was not selected in the last query and has not been set, and so is not valid")
+// TypeMultiFk2 returns the value of TypeMultiFk2.
+func (o *unsupportedTypeBase) TypeMultiFk2() string {
+	if o._restored && !o.typeMultiFk2IsLoaded {
+		panic("TypeMultiFk2 was not selected in the last query and has not been set, and so is not valid")
 	}
-	return o.typeMultifk2
+	return o.typeMultiFk2
 }
 
-// TypeMultifk2IsLoaded returns true if the value was loaded from the database or has been set.
-func (o *unsupportedTypeBase) TypeMultifk2IsLoaded() bool {
-	return o.typeMultifk2IsLoaded
+// TypeMultiFk2IsLoaded returns true if the value was loaded from the database or has been set.
+func (o *unsupportedTypeBase) TypeMultiFk2IsLoaded() bool {
+	return o.typeMultiFk2IsLoaded
 }
 
-// SetTypeMultifk2 sets the value of TypeMultifk2 in the object, to be saved later in the database using the Save() function.
-func (o *unsupportedTypeBase) SetTypeMultifk2(v string) {
-	if utf8.RuneCountInString(v) > UnsupportedTypeTypeMultifk2MaxLength {
-		panic("attempted to set UnsupportedType.TypeMultifk2 to a value larger than its maximum length in runes")
+// SetTypeMultiFk2 sets the value of TypeMultiFk2 in the object, to be saved later in the database using the Save() function.
+func (o *unsupportedTypeBase) SetTypeMultiFk2(v string) {
+	if utf8.RuneCountInString(v) > UnsupportedTypeTypeMultiFk2MaxLength {
+		panic("attempted to set UnsupportedType.TypeMultiFk2 to a value larger than its maximum length in runes")
 	}
 	if o._restored &&
-		o.typeMultifk2IsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
-		o.typeMultifk2 == v {
+		o.typeMultiFk2IsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.typeMultiFk2 == v {
 		// no change
 		return
 	}
 
-	o.typeMultifk2IsLoaded = true
-	o.typeMultifk2 = v
-	o.typeMultifk2IsDirty = true
+	o.typeMultiFk2IsLoaded = true
+	o.typeMultiFk2 = v
+	o.typeMultiFk2IsDirty = true
 }
 
 // GetAlias returns the value for the Alias node aliasKey that was returned in the most
@@ -584,24 +584,24 @@ func HasUnsupportedType(ctx context.Context, typeSerial uint64) (bool, error) {
 	return v > 0, err
 }
 
-// LoadUnsupportedTypesByTypeMultfk1TypeMultifk2 queries UnsupportedType objects by the given index values.
+// LoadUnsupportedTypesByTypeMultFk1TypeMultiFk2 queries UnsupportedType objects by the given index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [UnsupportedTypesBuilder.Select].
 // If you need a more elaborate query, use QueryUnsupportedTypes() to start a query builder.
-func LoadUnsupportedTypesByTypeMultfk1TypeMultifk2(ctx context.Context, typeMultfk1 string, typeMultifk2 string, selectNodes ...query.Node) ([]*UnsupportedType, error) {
+func LoadUnsupportedTypesByTypeMultFk1TypeMultiFk2(ctx context.Context, typeMultFk1 string, typeMultiFk2 string, selectNodes ...query.Node) ([]*UnsupportedType, error) {
 	q := queryUnsupportedTypes(ctx)
-	q = q.Where(op.Equal(node.UnsupportedType().TypeMultfk1(), typeMultfk1))
-	q = q.Where(op.Equal(node.UnsupportedType().TypeMultifk2(), typeMultifk2))
+	q = q.Where(op.Equal(node.UnsupportedType().TypeMultFk1(), typeMultFk1))
+	q = q.Where(op.Equal(node.UnsupportedType().TypeMultiFk2(), typeMultiFk2))
 	return q.Select(selectNodes...).Load()
 }
 
-// HasUnsupportedTypesByTypeMultfk1TypeMultifk2 returns true if the
+// HasUnsupportedTypesByTypeMultFk1TypeMultiFk2 returns true if the
 // given index values exist in the database.
 // doc: type=UnsupportedType
-func HasUnsupportedTypesByTypeMultfk1TypeMultifk2(ctx context.Context, typeMultfk1 string, typeMultifk2 string) (bool, error) {
+func HasUnsupportedTypesByTypeMultFk1TypeMultiFk2(ctx context.Context, typeMultFk1 string, typeMultiFk2 string) (bool, error) {
 	q := queryUnsupportedTypes(ctx)
-	q = q.Where(op.Equal(node.UnsupportedType().TypeMultfk1(), typeMultfk1))
-	q = q.Where(op.Equal(node.UnsupportedType().TypeMultifk2(), typeMultifk2))
+	q = q.Where(op.Equal(node.UnsupportedType().TypeMultFk1(), typeMultFk1))
+	q = q.Where(op.Equal(node.UnsupportedType().TypeMultiFk2(), typeMultiFk2))
 	v, err := q.Count()
 	return v > 0, err
 }
@@ -808,15 +808,15 @@ func CountUnsupportedTypes(ctx context.Context) (int, error) {
 	return QueryUnsupportedTypes(ctx).Count()
 }
 
-// CountUnsupportedTypesByTypeMultfk1TypeMultifk2 queries the database and returns the number of UnsupportedType objects that
-// have typeMultfk1 and typeMultifk2.
+// CountUnsupportedTypesByTypeMultFk1TypeMultiFk2 queries the database and returns the number of UnsupportedType objects that
+// have typeMultFk1 and typeMultiFk2.
 // doc: type=UnsupportedType
-func CountUnsupportedTypesByTypeMultfk1TypeMultifk2(ctx context.Context, typeMultfk1 string, typeMultifk2 string) (int, error) {
-	v_typeMultfk1 := typeMultfk1
-	v_typeMultifk2 := typeMultifk2
+func CountUnsupportedTypesByTypeMultFk1TypeMultiFk2(ctx context.Context, typeMultFk1 string, typeMultiFk2 string) (int, error) {
+	v_typeMultFk1 := typeMultFk1
+	v_typeMultiFk2 := typeMultiFk2
 	return QueryUnsupportedTypes(ctx).
-		Where(op.Equal(node.UnsupportedType().TypeMultfk1(), v_typeMultfk1)).
-		Where(op.Equal(node.UnsupportedType().TypeMultifk2(), v_typeMultifk2)).
+		Where(op.Equal(node.UnsupportedType().TypeMultFk1(), v_typeMultFk1)).
+		Where(op.Equal(node.UnsupportedType().TypeMultiFk2(), v_typeMultiFk2)).
 		Count()
 }
 
@@ -951,32 +951,32 @@ func (o *unsupportedTypeBase) unpack(m map[string]interface{}, objThis *Unsuppor
 		o.typePolygonIsDirty = false
 	}
 
-	if v, ok := m["type_multFk1"]; ok && v != nil {
-		if o.typeMultfk1, ok = v.(string); ok {
-			o.typeMultfk1IsLoaded = true
-			o.typeMultfk1IsDirty = false
+	if v, ok := m["type_mult_fk1"]; ok && v != nil {
+		if o.typeMultFk1, ok = v.(string); ok {
+			o.typeMultFk1IsLoaded = true
+			o.typeMultFk1IsDirty = false
 
 		} else {
-			panic("Wrong type found for type_multFk1.")
+			panic("Wrong type found for type_mult_fk1.")
 		}
 	} else {
-		o.typeMultfk1IsLoaded = false
-		o.typeMultfk1 = ""
-		o.typeMultfk1IsDirty = false
+		o.typeMultFk1IsLoaded = false
+		o.typeMultFk1 = ""
+		o.typeMultFk1IsDirty = false
 	}
 
-	if v, ok := m["type_multiFk2"]; ok && v != nil {
-		if o.typeMultifk2, ok = v.(string); ok {
-			o.typeMultifk2IsLoaded = true
-			o.typeMultifk2IsDirty = false
+	if v, ok := m["type_multi_fk2"]; ok && v != nil {
+		if o.typeMultiFk2, ok = v.(string); ok {
+			o.typeMultiFk2IsLoaded = true
+			o.typeMultiFk2IsDirty = false
 
 		} else {
-			panic("Wrong type found for type_multiFk2.")
+			panic("Wrong type found for type_multi_fk2.")
 		}
 	} else {
-		o.typeMultifk2IsLoaded = false
-		o.typeMultifk2 = ""
-		o.typeMultifk2IsDirty = false
+		o.typeMultiFk2IsLoaded = false
+		o.typeMultiFk2 = ""
+		o.typeMultiFk2IsDirty = false
 	}
 
 	if v, ok := m["aliases_"]; ok {
@@ -1076,11 +1076,11 @@ func (o *unsupportedTypeBase) insert(ctx context.Context) (err error) {
 		if !o.typePolygonIsLoaded {
 			panic("a value for TypePolygon is required, and there is no default value. Call SetTypePolygon() before inserting the record.")
 		}
-		if !o.typeMultfk1IsLoaded {
-			panic("a value for TypeMultfk1 is required, and there is no default value. Call SetTypeMultfk1() before inserting the record.")
+		if !o.typeMultFk1IsLoaded {
+			panic("a value for TypeMultFk1 is required, and there is no default value. Call SetTypeMultFk1() before inserting the record.")
 		}
-		if !o.typeMultifk2IsLoaded {
-			panic("a value for TypeMultifk2 is required, and there is no default value. Call SetTypeMultifk2() before inserting the record.")
+		if !o.typeMultiFk2IsLoaded {
+			panic("a value for TypeMultiFk2 is required, and there is no default value. Call SetTypeMultiFk2() before inserting the record.")
 		}
 		if o.typeSerialIsDirty {
 			if obj, err := LoadUnsupportedType(ctx, o.typeSerial); err != nil {
@@ -1144,11 +1144,11 @@ func (o *unsupportedTypeBase) getUpdateFields() (fields map[string]interface{}) 
 	if o.typePolygonIsDirty {
 		fields["type_polygon"] = o.typePolygon
 	}
-	if o.typeMultfk1IsDirty {
-		fields["type_multFk1"] = o.typeMultfk1
+	if o.typeMultFk1IsDirty {
+		fields["type_mult_fk1"] = o.typeMultFk1
 	}
-	if o.typeMultifk2IsDirty {
-		fields["type_multiFk2"] = o.typeMultifk2
+	if o.typeMultiFk2IsDirty {
+		fields["type_multi_fk2"] = o.typeMultiFk2
 	}
 	return
 }
@@ -1180,9 +1180,9 @@ func (o *unsupportedTypeBase) getInsertFields() (fields map[string]interface{}) 
 
 	fields["type_polygon"] = o.typePolygon
 
-	fields["type_multFk1"] = o.typeMultfk1
+	fields["type_mult_fk1"] = o.typeMultFk1
 
-	fields["type_multiFk2"] = o.typeMultifk2
+	fields["type_multi_fk2"] = o.typeMultiFk2
 	return
 }
 
@@ -1226,8 +1226,8 @@ func (o *unsupportedTypeBase) resetDirtyStatus() {
 	o.typeSmallIsDirty = false
 	o.typeMediumIsDirty = false
 	o.typePolygonIsDirty = false
-	o.typeMultfk1IsDirty = false
-	o.typeMultifk2IsDirty = false
+	o.typeMultFk1IsDirty = false
+	o.typeMultiFk2IsDirty = false
 
 }
 
@@ -1243,8 +1243,8 @@ func (o *unsupportedTypeBase) IsDirty() (dirty bool) {
 		o.typeSmallIsDirty ||
 		o.typeMediumIsDirty ||
 		o.typePolygonIsDirty ||
-		o.typeMultfk1IsDirty ||
-		o.typeMultifk2IsDirty
+		o.typeMultFk1IsDirty ||
+		o.typeMultiFk2IsDirty
 
 	return
 }
@@ -1311,17 +1311,17 @@ func (o *unsupportedTypeBase) Get(key string) interface{} {
 		}
 		return o.typePolygon
 
-	case "TypeMultfk1":
-		if !o.typeMultfk1IsLoaded {
+	case "TypeMultFk1":
+		if !o.typeMultFk1IsLoaded {
 			return nil
 		}
-		return o.typeMultfk1
+		return o.typeMultFk1
 
-	case "TypeMultifk2":
-		if !o.typeMultifk2IsLoaded {
+	case "TypeMultiFk2":
+		if !o.typeMultiFk2IsLoaded {
 			return nil
 		}
-		return o.typeMultifk2
+		return o.typeMultiFk2
 
 	}
 	return nil
@@ -1432,24 +1432,24 @@ func (o *unsupportedTypeBase) encodeTo(enc db.Encoder) error {
 		return fmt.Errorf("error encoding UnsupportedType.typePolygonIsDirty: %w", err)
 	}
 
-	if err := enc.Encode(o.typeMultfk1); err != nil {
-		return fmt.Errorf("error encoding UnsupportedType.typeMultfk1: %w", err)
+	if err := enc.Encode(o.typeMultFk1); err != nil {
+		return fmt.Errorf("error encoding UnsupportedType.typeMultFk1: %w", err)
 	}
-	if err := enc.Encode(o.typeMultfk1IsLoaded); err != nil {
-		return fmt.Errorf("error encoding UnsupportedType.typeMultfk1IsLoaded: %w", err)
+	if err := enc.Encode(o.typeMultFk1IsLoaded); err != nil {
+		return fmt.Errorf("error encoding UnsupportedType.typeMultFk1IsLoaded: %w", err)
 	}
-	if err := enc.Encode(o.typeMultfk1IsDirty); err != nil {
-		return fmt.Errorf("error encoding UnsupportedType.typeMultfk1IsDirty: %w", err)
+	if err := enc.Encode(o.typeMultFk1IsDirty); err != nil {
+		return fmt.Errorf("error encoding UnsupportedType.typeMultFk1IsDirty: %w", err)
 	}
 
-	if err := enc.Encode(o.typeMultifk2); err != nil {
-		return fmt.Errorf("error encoding UnsupportedType.typeMultifk2: %w", err)
+	if err := enc.Encode(o.typeMultiFk2); err != nil {
+		return fmt.Errorf("error encoding UnsupportedType.typeMultiFk2: %w", err)
 	}
-	if err := enc.Encode(o.typeMultifk2IsLoaded); err != nil {
-		return fmt.Errorf("error encoding UnsupportedType.typeMultifk2IsLoaded: %w", err)
+	if err := enc.Encode(o.typeMultiFk2IsLoaded); err != nil {
+		return fmt.Errorf("error encoding UnsupportedType.typeMultiFk2IsLoaded: %w", err)
 	}
-	if err := enc.Encode(o.typeMultifk2IsDirty); err != nil {
-		return fmt.Errorf("error encoding UnsupportedType.typeMultifk2IsDirty: %w", err)
+	if err := enc.Encode(o.typeMultiFk2IsDirty); err != nil {
+		return fmt.Errorf("error encoding UnsupportedType.typeMultiFk2IsDirty: %w", err)
 	}
 
 	if o._aliases == nil {
@@ -1575,24 +1575,24 @@ func (o *unsupportedTypeBase) decodeFrom(dec db.Decoder) (err error) {
 		return fmt.Errorf("error decoding UnsupportedType.typePolygonIsDirty: %w", err)
 	}
 
-	if err = dec.Decode(&o.typeMultfk1); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeMultfk1: %w", err)
+	if err = dec.Decode(&o.typeMultFk1); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeMultFk1: %w", err)
 	}
-	if err = dec.Decode(&o.typeMultfk1IsLoaded); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeMultfk1IsLoaded: %w", err)
+	if err = dec.Decode(&o.typeMultFk1IsLoaded); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeMultFk1IsLoaded: %w", err)
 	}
-	if err = dec.Decode(&o.typeMultfk1IsDirty); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeMultfk1IsDirty: %w", err)
+	if err = dec.Decode(&o.typeMultFk1IsDirty); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeMultFk1IsDirty: %w", err)
 	}
 
-	if err = dec.Decode(&o.typeMultifk2); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeMultifk2: %w", err)
+	if err = dec.Decode(&o.typeMultiFk2); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeMultiFk2: %w", err)
 	}
-	if err = dec.Decode(&o.typeMultifk2IsLoaded); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeMultifk2IsLoaded: %w", err)
+	if err = dec.Decode(&o.typeMultiFk2IsLoaded); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeMultiFk2IsLoaded: %w", err)
 	}
-	if err = dec.Decode(&o.typeMultifk2IsDirty); err != nil {
-		return fmt.Errorf("error decoding UnsupportedType.typeMultifk2IsDirty: %w", err)
+	if err = dec.Decode(&o.typeMultiFk2IsDirty); err != nil {
+		return fmt.Errorf("error decoding UnsupportedType.typeMultiFk2IsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
@@ -1664,12 +1664,12 @@ func (o *unsupportedTypeBase) MarshalStringMap() map[string]interface{} {
 		v["typePolygon"] = o.typePolygon
 	}
 
-	if o.typeMultfk1IsLoaded {
-		v["typeMultfk1"] = o.typeMultfk1
+	if o.typeMultFk1IsLoaded {
+		v["typeMultFk1"] = o.typeMultFk1
 	}
 
-	if o.typeMultifk2IsLoaded {
-		v["typeMultifk2"] = o.typeMultifk2
+	if o.typeMultiFk2IsLoaded {
+		v["typeMultiFk2"] = o.typeMultiFk2
 	}
 
 	for _k, _v := range o._aliases {
@@ -1697,8 +1697,8 @@ func (o *unsupportedTypeBase) MarshalStringMap() map[string]interface{} {
 //	"typeSmall" - int
 //	"typeMedium" - int
 //	"typePolygon" - []byte
-//	"typeMultfk1" - string
-//	"typeMultifk2" - string
+//	"typeMultFk1" - string
+//	"typeMultiFk2" - string
 func (o *unsupportedTypeBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
 	if len(data) == 0 {
@@ -1997,7 +1997,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 
 			}
 
-		case "typeMultfk1":
+		case "typeMultFk1":
 			{
 				if v == nil {
 					return fmt.Errorf("field %s cannot be null", k)
@@ -2006,11 +2006,11 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 				if s, ok := v.(string); !ok {
 					return fmt.Errorf("json field %s must be a string", k)
 				} else {
-					o.SetTypeMultfk1(s)
+					o.SetTypeMultFk1(s)
 				}
 			}
 
-		case "typeMultifk2":
+		case "typeMultiFk2":
 			{
 				if v == nil {
 					return fmt.Errorf("field %s cannot be null", k)
@@ -2019,7 +2019,7 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 				if s, ok := v.(string); !ok {
 					return fmt.Errorf("json field %s must be a string", k)
 				} else {
-					o.SetTypeMultifk2(s)
+					o.SetTypeMultiFk2(s)
 				}
 			}
 

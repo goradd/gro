@@ -408,8 +408,6 @@ func (r SqlReceiver) UnpackDefaultValue(typ schema.ColumnType, size int) interfa
 			return nil
 		}
 		return b
-	case schema.ColTypeEnumArray:
-		fallthrough
 	case schema.ColTypeString:
 		s := r.StringI()
 		if s == nil {

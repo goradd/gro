@@ -33,22 +33,14 @@ func updateMinimalSample{{= table.Identifier }}(obj *{{= table.Identifier }})  {
 }}
 
 {{if col.IsEnum() }}
-
-{{if col.IsEnumArray() }}
-     obj.Set{{= col.Identifier }}(test.RandomEnumArray({{= col.Reference.EnumTable.IdentifierPlural}}()))
-{{else}}
      obj.Set{{= col.Identifier }}(test.RandomEnum({{= col.Reference.EnumTable.IdentifierPlural}}()))
-{{if}}
-
-{{else}} {{# IsEnum}}
-
+{{else}}{{# IsEnum}}
 {{if col.IsDecimal() }}
     obj.Set{{= col.Identifier }}(test.RandomDecimal({{u col.DecimalPrecision()}}, {{u col.DecimalScale()}} ))
 {{else}}
     obj.Set{{= col.Identifier }}(test.RandomValue[{{= col.GoType() }}]({{u testSize}}))
 {{if}}
-
-{{if}}
+{{if}}{{# IsEnum}}
 
 {{for}}
 }
@@ -133,11 +125,7 @@ func assertEqualFields{{= table.Identifier }}(t *testing.T, obj1, obj2 *{{= tabl
 {{for _,col := range table.Columns }}
     if obj1.{{= col.Identifier }}IsLoaded() && obj2.{{= col.Identifier }}IsLoaded() { // only check loaded values
 {{if col.IsEnum() }}
-{{if col.IsEnumArray() }}
-        assert.True(t, obj1.{{= col.Identifier }}().Equal(obj2.{{= col.Identifier }}()))
-{{else}}
         assert.EqualValues(t, obj1.{{= col.Identifier }}(), obj2.{{= col.Identifier }}())
-{{if}}
 {{elseif col.IsDecimal() }}
         assert.True(t, test.EqualDecimals(obj1.{{= col.Identifier }}(), obj2.{{= col.Identifier }}()))
 {{elseif col.ReceiverType == query.ColTypeTime }}

@@ -1375,54 +1375,16 @@ func (o *`); err != nil {
 
 	if _, err = io.WriteString(_w, ` was not selected in the last query and has not been set, and so is not valid")
 	}
-`); err != nil {
+	return o.`); err != nil {
 		return
 	}
 
-	if col.IsEnumArray() {
-
-		if _, err = io.WriteString(_w, `    if o.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, ` == nil {
-        return nil
-    }
-    return o.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `.Clone()
-`); err != nil {
-			return
-		}
-
-	} else {
-
-		if _, err = io.WriteString(_w, `	return o.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `
-`); err != nil {
-			return
-		}
-
+	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		return
 	}
 
-	if _, err = io.WriteString(_w, `}
+	if _, err = io.WriteString(_w, `
+}
 
 `); err != nil {
 		return
@@ -2188,7 +2150,7 @@ func (o *`); err != nil {
 
 		}
 
-		if col.Size > 0 && !col.IsEnumArray() {
+		if col.Size > 0 {
 
 			if _, err = io.WriteString(_w, `    if utf8.RuneCountInString(v) > `); err != nil {
 				return
@@ -2260,39 +2222,16 @@ func (o *`); err != nil {
 
 			}
 
-			if col.IsEnumArray() {
-
-				if _, err = io.WriteString(_w, `        o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `.Equal(v) {
-`); err != nil {
-					return
-				}
-
-			} else {
-
-				if _, err = io.WriteString(_w, `        o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, ` == v {
-`); err != nil {
-					return
-				}
-
+			if _, err = io.WriteString(_w, `        o.`); err != nil {
+				return
 			}
 
-			if _, err = io.WriteString(_w, `        // no change
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` == v {
+        // no change
         return
     }
 `); err != nil {
@@ -2311,43 +2250,16 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `IsLoaded = true
-`); err != nil {
+	o.`); err != nil {
 			return
 		}
 
-		if col.IsEnumArray() {
-
-			if _, err = io.WriteString(_w, `    o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` = v.Clone()
-`); err != nil {
-				return
-			}
-
-		} else {
-
-			if _, err = io.WriteString(_w, `	o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` = v
-`); err != nil {
-				return
-			}
-
+		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			return
 		}
 
-		if _, err = io.WriteString(_w, `	o.`); err != nil {
+		if _, err = io.WriteString(_w, ` = v
+	o.`); err != nil {
 			return
 		}
 
@@ -7041,77 +6953,26 @@ func (o *`); err != nil {
 
 			if col.IsEnum() {
 
-				if col.IsEnumArray() {
-
-					if _, err = io.WriteString(_w, ` 		} else if s, ok2 := v.(string); ok2 {
- 		    var v `); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, col.GoType()); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, `
- 		    if s == "" {
- 		        o.`); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, ` = nil
- 		    } else if err := json.Unmarshal([]byte(s), &v); err != nil {
- 		        panic("Value for `); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, col.QueryName); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, ` is not valid json")
- 		    } else {
- 		        o.`); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, ` = v
- 		    }
-`); err != nil {
-						return
-					}
-
-				} else {
-
-					if _, err = io.WriteString(_w, `		} else if i, ok2 := v.(int); ok2 {
+				if _, err = io.WriteString(_w, `		} else if i, ok2 := v.(int); ok2 {
 		    o.`); err != nil {
-						return
-					}
+					return
+				}
 
-					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-						return
-					}
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
 
-					if _, err = io.WriteString(_w, ` = `); err != nil {
-						return
-					}
+				if _, err = io.WriteString(_w, ` = `); err != nil {
+					return
+				}
 
-					if _, err = io.WriteString(_w, col.GoType()); err != nil {
-						return
-					}
+				if _, err = io.WriteString(_w, col.GoType()); err != nil {
+					return
+				}
 
-					if _, err = io.WriteString(_w, `(i)
+				if _, err = io.WriteString(_w, `(i)
 `); err != nil {
-						return
-					}
-
+					return
 				}
 
 			} else {
@@ -7286,78 +7147,26 @@ func (o *`); err != nil {
 
 			if col.IsEnum() {
 
-				if col.IsEnumArray() {
-
-					if _, err = io.WriteString(_w, `     	if s, ok2 := v.(string); ok2 {
- 		    var v `); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, col.GoType()); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, `
-
- 		    if s == "" {
- 		        o.`); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, ` = nil
- 		    } else if err := json.Unmarshal([]byte(s), &v); err != nil {
- 		        panic("Value for `); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, col.QueryName); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, ` is not valid json")
- 		    } else {
- 		        o.`); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, ` = v
- 		    }
-`); err != nil {
-						return
-					}
-
-				} else {
-
-					if _, err = io.WriteString(_w, `     	if i, ok2 := v.(int); ok2 {
+				if _, err = io.WriteString(_w, `     	if i, ok2 := v.(int); ok2 {
            o.`); err != nil {
-						return
-					}
+					return
+				}
 
-					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-						return
-					}
+				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					return
+				}
 
-					if _, err = io.WriteString(_w, ` = `); err != nil {
-						return
-					}
+				if _, err = io.WriteString(_w, ` = `); err != nil {
+					return
+				}
 
-					if _, err = io.WriteString(_w, col.GoType()); err != nil {
-						return
-					}
+				if _, err = io.WriteString(_w, col.GoType()); err != nil {
+					return
+				}
 
-					if _, err = io.WriteString(_w, `(i)
+				if _, err = io.WriteString(_w, `(i)
 `); err != nil {
-						return
-					}
-
+					return
 				}
 
 			} else {
@@ -10695,117 +10504,49 @@ func (o *`); err != nil {
 
 			if _, err = io.WriteString(_w, `"] = nil
         } else {
-`); err != nil {
+  		    fields["`); err != nil {
 				return
 			}
 
-			if col.IsEnumArray() {
-
-				if _, err = io.WriteString(_w, `            var a []int
-            for _,v := range o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `.Values() {
-                a = append(a, int(v))
-            }
-            b, _ := json.Marshal(a)
-            fields["`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.QueryName); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `"] = string(b)
-`); err != nil {
-					return
-				}
-
-			} else {
-
-				if _, err = io.WriteString(_w, `  		    fields["`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.QueryName); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `"] = o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `
-`); err != nil {
-					return
-				}
-
+			if _, err = io.WriteString(_w, col.QueryName); err != nil {
+				return
 			}
 
-			if _, err = io.WriteString(_w, `        }
+			if _, err = io.WriteString(_w, `"] = o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `
+        }
 `); err != nil {
 				return
 			}
 
 		} else {
 
-			if col.IsEnumArray() {
+			if _, err = io.WriteString(_w, `        fields["`); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, `        b,_ := json.Marshal(o.`); err != nil {
-					return
-				}
+			if _, err = io.WriteString(_w, col.QueryName); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-					return
-				}
+			if _, err = io.WriteString(_w, `"] = o.`); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, `)
-        fields["`); err != nil {
-					return
-				}
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, col.QueryName); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `"] = string(b)
+			if _, err = io.WriteString(_w, `
 `); err != nil {
-					return
-				}
-
-			} else {
-
-				if _, err = io.WriteString(_w, `        fields["`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.QueryName); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `"] = o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `
-`); err != nil {
-					return
-				}
-
+				return
 			}
 
 		}
@@ -10997,64 +10738,24 @@ func (o *`); err != nil {
 
 			if _, err = io.WriteString(_w, `"] = nil
     } else {
-`); err != nil {
+        fields["`); err != nil {
 				return
 			}
 
-			if col.IsEnumArray() {
-
-				if _, err = io.WriteString(_w, `		var a []int
-		for _,v := range o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `.Values() {
-			a = append(a, int(v))
-		}
-		b, _ := json.Marshal(a)
-        fields["`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.QueryName); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `"] = string(b)
-`); err != nil {
-					return
-				}
-
-			} else {
-
-				if _, err = io.WriteString(_w, `        fields["`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.QueryName); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `"] = o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `
-`); err != nil {
-					return
-				}
-
+			if _, err = io.WriteString(_w, col.QueryName); err != nil {
+				return
 			}
 
-			if _, err = io.WriteString(_w, `    }
+			if _, err = io.WriteString(_w, `"] = o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `
+    }
 `); err != nil {
 				return
 			}
@@ -11066,57 +10767,25 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `
-`); err != nil {
+    fields["`); err != nil {
 				return
 			}
 
-			if col.IsEnumArray() {
+			if _, err = io.WriteString(_w, col.QueryName); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, `    b,_ := json.Marshal(o.`); err != nil {
-					return
-				}
+			if _, err = io.WriteString(_w, `"] = o.`); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-					return
-				}
+			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, `)
-    fields["`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.QueryName); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `"] = string(b)
+			if _, err = io.WriteString(_w, `
 `); err != nil {
-					return
-				}
-
-			} else {
-
-				if _, err = io.WriteString(_w, `    fields["`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.QueryName); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `"] = o.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `
-`); err != nil {
-					return
-				}
-
+				return
 			}
 
 		}
@@ -14266,84 +13935,30 @@ func (o *`); err != nil {
 
 		if col.IsEnum() {
 
-			if col.IsEnumArray() {
-
-				if _, err = io.WriteString(_w, `            if v == nil {
-                return fmt.Errorf("field %s cannot be null", k)
-            }
-            if v2, ok := v.([]any); ok {
-                a := New`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.GoType()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `()
-                for _,i := range v2 {
-                    v3, err := `); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `FromInterface(i)
-                    if err != nil {return err}
-                    a.Add(v3)
-                }
-                o.Set`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(a)
-            } else {
-                return fmt.Errorf("field '%s' must be an array of numbers or strings", k)
-            }
-`); err != nil {
-					return
-				}
-
-			} else {
-
-				if _, err = io.WriteString(_w, `            v2, err := `); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.GoType()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `FromInterface(v)
-            if err != nil {return err}
-            o.Set`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(v2)
-`); err != nil {
-					return
-				}
-
+			if _, err = io.WriteString(_w, `            v2, err := `); err != nil {
+				return
 			}
 
-		} else {
+			if _, err = io.WriteString(_w, col.GoType()); err != nil {
+				return
+			}
 
-			if _, err = io.WriteString(_w, `
+			if _, err = io.WriteString(_w, `FromInterface(v)
+            if err != nil {return err}
+            o.Set`); err != nil {
+				return
+			}
 
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(v2)
 `); err != nil {
 				return
 			}
+
+		} else {
 
 			switch col.ReceiverType {
 

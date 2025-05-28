@@ -180,10 +180,8 @@ func TestProject_SetStatus(t *testing.T) {
 	obj := NewProject()
 
 	assert.True(t, obj.IsNew())
-
 	val := test.RandomEnum(ProjectStatuses())
 	obj.SetStatus(val)
-
 	assert.Equal(t, val, obj.Status())
 
 	// test default

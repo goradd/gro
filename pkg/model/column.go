@@ -79,9 +79,6 @@ func (cd *Column) DefaultValueAsValue() string {
 		if cd.IsAutoPK {
 			return `""`
 		} else if cd.IsEnum() {
-			if cd.IsEnumArray() {
-				return "nil"
-			}
 			return "0"
 		}
 		return cd.ReceiverType.DefaultValueString()
@@ -100,11 +97,7 @@ func (cd *Column) DefaultValueAsValue() string {
 	}
 
 	if cd.IsEnum() {
-		if cd.IsEnumArray() {
-			// not supported yet
-		} else {
-			return fmt.Sprintf("%s(%d)", cd.ReferenceType(), cd.DefaultValue) // should be casting an int to an enum type
-		}
+		return fmt.Sprintf("%s(%d)", cd.ReferenceType(), cd.DefaultValue) // should be casting an int to an enum type
 	}
 
 	return fmt.Sprintf("%#v", cd.DefaultValue)
@@ -150,14 +143,9 @@ func (cd *Column) IsReference() bool {
 }
 
 // IsEnum returns true if the column contains a type defined by a enum table.
-// This could be a ColTypeEnum or ColTypeEnumArray
+// This could be a ColTypeEnum
 func (cd *Column) IsEnum() bool {
 	return cd.Reference != nil && cd.Reference.EnumTable != nil
-}
-
-// IsEnumArray returns true if the column contains a an enum array
-func (cd *Column) IsEnumArray() bool {
-	return cd.SchemaType == schema.ColTypeEnumArray
 }
 
 // IsDecimal returns true if the column is a Decimal (Numeric) string value, meaning
@@ -266,8 +254,6 @@ func (cd *Column) GoType() string {
 			// enum tables are an enumerated type
 			if cd.SchemaType == schema.ColTypeEnum {
 				return enumTable.Identifier
-			} else if cd.SchemaType == schema.ColTypeEnumArray {
-				return enumTable.Identifier + "Set"
 			} else {
 				panic("unknown column type for enum table")
 			}

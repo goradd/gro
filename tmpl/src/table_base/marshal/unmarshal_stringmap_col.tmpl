@@ -23,29 +23,10 @@
 {{if}}
 
 {{if col.IsEnum()}}
-{{if col.IsEnumArray()}}
-            if v == nil {
-                return fmt.Errorf("field %s cannot be null", k)
-            }
-            if v2, ok := v.([]any); ok {
-                a := New{{= col.GoType() }}()
-                for _,i := range v2 {
-                    v3, err := {{= col.ReferenceType() }}FromInterface(i)
-                    if err != nil {return err}
-                    a.Add(v3)
-                }
-                o.Set{{= col.Identifier }}(a)
-            } else {
-                return fmt.Errorf("field '%s' must be an array of numbers or strings", k)
-            }
-{{else}}
             v2, err := {{= col.GoType() }}FromInterface(v)
             if err != nil {return err}
             o.Set{{= col.Identifier }}(v2)
-{{if}}
 {{else}}
-
-
 {{g
 switch col.ReceiverType {
 

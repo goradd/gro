@@ -746,8 +746,11 @@ func (m *DB) getColumnSchema(table pgTable,
 					slog.String(db.LogTable, table.name),
 					slog.String(db.LogColumn, column.name))
 			}
-		} else if cd.Type == schema.ColTypeString {
-			cd.Type = schema.ColTypeEnumArray
+		} else {
+			slog.Error("Enum type should be an integer",
+				slog.String(db.LogComponent, "extract"),
+				slog.String(db.LogTable, table.name),
+				slog.String(db.LogColumn, column.name))
 		}
 		cd.Size = 0 // use default size
 	} else if fk, ok2 := table.fkMap[cd.Name]; ok2 {

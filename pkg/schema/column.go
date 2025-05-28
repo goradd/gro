@@ -52,7 +52,7 @@ type Column struct {
 	IndexLevel IndexLevel `json:"index_level,omitempty"`
 
 	// Reference is set when the column is a pointer to another table.
-	// This is required for ColTypeReference, ColTypeEnum and ColTypeEnumArray tables.
+	// This is required for ColTypeReference, ColTypeEnum tables.
 	Reference *Reference `json:"reference,omitempty"`
 
 	// Identifier is the name of the column in Go code. Leave blank to base it on the Name.
@@ -139,9 +139,6 @@ func (c *Column) FillDefaults(db *Database, table *Table) {
 
 		if c.Label == "" {
 			c.Label = strings2.Title(objName)
-			if c.Type == ColTypeEnumArray {
-				c.Label = strings2.Plural(c.Label)
-			}
 			if c.Identifier == "" {
 				c.Identifier = snaker.ForceCamelIdentifier(c.Label)
 			}

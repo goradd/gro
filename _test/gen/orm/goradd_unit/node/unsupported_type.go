@@ -31,10 +31,10 @@ type UnsupportedTypeNode interface {
 	TypeMedium() *query.ColumnNode
 	// TypePolygon represents the type_polygon column in the database.
 	TypePolygon() *query.ColumnNode
-	// TypeMultfk1 represents the type_multFk1 column in the database.
-	TypeMultfk1() *query.ColumnNode
-	// TypeMultifk2 represents the type_multiFk2 column in the database.
-	TypeMultifk2() *query.ColumnNode
+	// TypeMultFk1 represents the type_mult_fk1 column in the database.
+	TypeMultFk1() *query.ColumnNode
+	// TypeMultiFk2 represents the type_multi_fk2 column in the database.
+	TypeMultiFk2() *query.ColumnNode
 }
 
 // unsupportedTypeTable represents the unsupported_type table in a query. It uses a builder pattern to chain
@@ -75,8 +75,8 @@ func (n unsupportedTypeTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.TypeSmall())
 	nodes = append(nodes, n.TypeMedium())
 	nodes = append(nodes, n.TypePolygon())
-	nodes = append(nodes, n.TypeMultfk1())
-	nodes = append(nodes, n.TypeMultifk2())
+	nodes = append(nodes, n.TypeMultFk1())
+	nodes = append(nodes, n.TypeMultiFk2())
 	return nodes
 }
 
@@ -202,10 +202,10 @@ func (n unsupportedTypeTable) TypePolygon() *query.ColumnNode {
 	return cn
 }
 
-func (n unsupportedTypeTable) TypeMultfk1() *query.ColumnNode {
+func (n unsupportedTypeTable) TypeMultFk1() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:     "type_multFk1",
-		Identifier:    "TypeMultfk1",
+		QueryName:     "type_mult_fk1",
+		Identifier:    "TypeMultFk1",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeString,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -215,10 +215,10 @@ func (n unsupportedTypeTable) TypeMultfk1() *query.ColumnNode {
 	return cn
 }
 
-func (n unsupportedTypeTable) TypeMultifk2() *query.ColumnNode {
+func (n unsupportedTypeTable) TypeMultiFk2() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:     "type_multiFk2",
-		Identifier:    "TypeMultifk2",
+		QueryName:     "type_multi_fk2",
+		Identifier:    "TypeMultiFk2",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeString,
 		SchemaSubType: schema.ColSubTypeNone,

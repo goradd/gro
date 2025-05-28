@@ -84,20 +84,6 @@ func (m *DB) FormatArgument(n int) string {
 // operandStrings will already be escaped.
 func (m *DB) OperationSql(op Operator, operands []Node, operandStrings []string) (sql string) {
 	switch op {
-	case OpContains:
-		// handle enum fields
-		if o := operands[0]; o.NodeType_() == ColumnNodeType {
-			cn := o.(*ColumnNode)
-			if cn.SchemaType == schema.ColTypeEnumArray {
-				s := operandStrings[0]
-				s2 := operandStrings[1]
-				return fmt.Sprintf(`EXISTS (
-  					SELECT 1
-  					FROM   json_each(%s)
-  					WHERE  json_each.value = %s)`, s, s2)
-			}
-		}
-
 	case OpDateAddSeconds:
 		// Modifying a datetime in the query
 		// Only works on date, datetime and timestamps. Not times.

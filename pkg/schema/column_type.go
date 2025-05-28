@@ -114,11 +114,12 @@ import "encoding/json"
 // This is a column that contains the value of a primary key of a table, creating a reference to the
 // object in that table. This is known as a foreign key in SQL databases or an edge in graph databases.
 //
-// # ColTypeEnum and ColTypeEnumArray
+// # ColTypeEnum
 //
 // Enum columns contain values of enumerated types that are described by Enum tables in the schema.
-// ColTypeEnum is an integer value in the database, and ColTypeEnumArray is stored as a JSON array of integers.
-// Note that filtering queries on ColTypeEnumArray columns may be limited based on your database type.
+// ColTypeEnum is an integer value in the database.
+// There is no ColTypeEnumArray because it is difficult to model cross-platform, and is better modeled
+// as a series of ColTypeBool values.
 type ColumnType int
 
 const (
@@ -134,7 +135,6 @@ const (
 	ColTypeJSON
 	ColTypeReference
 	ColTypeEnum
-	ColTypeEnumArray
 )
 
 // GroTimestampColumnName is the convention for the name of a ColSubTypeTimestamp column
@@ -170,8 +170,6 @@ func (ct ColumnType) String() string {
 		return "ColTypeReference"
 	case ColTypeEnum:
 		return "ColTypeEnum"
-	case ColTypeEnumArray:
-		return "ColTypeEnumArray"
 	default:
 		return "ColTypeUnknown"
 	}
@@ -206,8 +204,6 @@ func (ct ColumnType) jsonRep() string {
 		return "ref"
 	case ColTypeEnum:
 		return "enum"
-	case ColTypeEnumArray:
-		return "enum_array"
 	default:
 		return "unknown"
 	}
@@ -244,8 +240,6 @@ func (ct *ColumnType) UnmarshalJSON(data []byte) error {
 		*ct = ColTypeReference
 	case "enum":
 		*ct = ColTypeEnum
-	case "enum_array":
-		*ct = ColTypeEnumArray
 	default:
 		*ct = ColTypeUnknown
 	}

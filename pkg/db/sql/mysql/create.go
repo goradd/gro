@@ -247,8 +247,6 @@ func sqlType(colType schema.ColumnType, size uint64, subType schema.ColumnSubTyp
 		return "INT"
 	case schema.ColTypeJSON:
 		fallthrough
-	case schema.ColTypeEnumArray:
-		return "JSON" // In MariaDB, this becomes a LONGTEXT, but MariaDB will store in like a varchar if its <8KB.
 	default:
 		return "TEXT"
 	}

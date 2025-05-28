@@ -300,8 +300,6 @@ func sqlType(colType schema.ColumnType, size uint64, subType schema.ColumnSubTyp
 	case schema.ColTypeEnum:
 		return "INT"
 	case schema.ColTypeJSON:
-		fallthrough
-	case schema.ColTypeEnumArray:
 		return "JSONB"
 	default:
 		return "TEXT"

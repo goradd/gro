@@ -25,9 +25,7 @@ func Test{{= table.Identifier }}_BasicInsert(t *testing.T) {
     assert.False(t, obj2.{{= col.Identifier }}IsNull())
 {{if}}
 {{if col.HasSetter()}}
-{{if col.IsEnumArray() }}
-    assert.True(t, obj.{{= col.Identifier }}().Equal(obj2.{{= col.Identifier }}()))
-{{elseif col.IsDecimal() }}
+{{if col.IsDecimal() }}
     assert.True(t, test.EqualDecimals(obj.{{= col.Identifier }}(), obj2.{{= col.Identifier }}()))
 {{if}}
 {{if col.IsPrimaryKey}}

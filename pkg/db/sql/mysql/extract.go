@@ -516,12 +516,7 @@ func (m *DB) processTypeInfo(column mysqlColumn) (
 		}
 
 	case "json":
-		// this might be an enum array field
-		if strings.Contains(column.comment, `"enum_table"`) {
-			typ = schema.ColTypeEnumArray
-		} else {
-			typ = schema.ColTypeJSON
-		}
+		typ = schema.ColTypeJSON
 
 	default:
 		typ = schema.ColTypeUnknown
@@ -840,13 +835,16 @@ func (m *DB) getColumnSchema(table mysqlTable,
 					Table: fk.referencedTableName.String,
 				}
 			} else {
-				slog.Warn("Could not find foreign key to enum table.",
+				slog.Warn("Could not find foreign key to enum table",
 					slog.String(db.LogComponent, "extract"),
 					slog.String(db.LogTable, table.name),
 					slog.String(db.LogColumn, column.name))
 			}
-		} else if cd.Type == schema.ColTypeString {
-			cd.Type = schema.ColTypeEnumArray
+		} else {
+			slog.Error("Enum type should be an integer",
+				slog.String(db.LogComponent, "extract"),
+				slog.String(db.LogTable, table.name),
+				slog.String(db.LogColumn, column.name))
 		}
 		cd.Size = 0 // use default size
 	} else if fk, ok2 := table.fkMap[column.name]; ok2 { // handle forward reference

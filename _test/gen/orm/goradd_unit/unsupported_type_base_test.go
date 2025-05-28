@@ -30,9 +30,9 @@ func updateMinimalSampleUnsupportedType(obj *UnsupportedType) {
 
 	obj.SetTypeMedium(test.RandomValue[int](24))
 
-	obj.SetTypeMultfk1(test.RandomValue[string](50))
+	obj.SetTypeMultFk1(test.RandomValue[string](50))
 
-	obj.SetTypeMultifk2(test.RandomValue[string](50))
+	obj.SetTypeMultiFk2(test.RandomValue[string](50))
 
 }
 
@@ -91,11 +91,11 @@ func assertEqualFieldsUnsupportedType(t *testing.T, obj1, obj2 *UnsupportedType)
 	if obj1.TypePolygonIsLoaded() && obj2.TypePolygonIsLoaded() { // only check loaded values
 		assert.EqualValues(t, obj1.TypePolygon(), obj2.TypePolygon())
 	}
-	if obj1.TypeMultfk1IsLoaded() && obj2.TypeMultfk1IsLoaded() { // only check loaded values
-		assert.EqualValues(t, obj1.TypeMultfk1(), obj2.TypeMultfk1())
+	if obj1.TypeMultFk1IsLoaded() && obj2.TypeMultFk1IsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TypeMultFk1(), obj2.TypeMultFk1())
 	}
-	if obj1.TypeMultifk2IsLoaded() && obj2.TypeMultifk2IsLoaded() { // only check loaded values
-		assert.EqualValues(t, obj1.TypeMultifk2(), obj2.TypeMultifk2())
+	if obj1.TypeMultiFk2IsLoaded() && obj2.TypeMultiFk2IsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.TypeMultiFk2(), obj2.TypeMultiFk2())
 	}
 
 }

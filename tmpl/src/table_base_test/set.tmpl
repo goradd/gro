@@ -9,13 +9,8 @@ func Test{{= table.Identifier }}_Set{{= col.Identifier }}(t *testing.T) {
 
     assert.True(t, obj.IsNew())
 {{if col.IsEnum() }}
-    {{if col.IsEnumArray() }}
-    val := 	test.RandomEnumArray({{= col.Reference.EnumTable.IdentifierPlural}}())
-    obj.Set{{= col.Identifier }}(val)
-    {{else}}
     val := test.RandomEnum({{= col.Reference.EnumTable.IdentifierPlural}}())
     obj.Set{{= col.Identifier }}(val)
-   {{if}}
 {{else}}
 {{if col.IsAutoPK}}
     val := 	test.RandomNumberString()
@@ -55,13 +50,8 @@ func Test{{= table.Identifier }}_Set{{= col.Identifier }}(t *testing.T) {
 {{if}}
 
     // test default
-{{if col.IsEnumArray()}}
-    obj.Set{{= col.Identifier }}({{= col.DefaultValueAsValue() }})
-    assert.True(t, obj.{{= col.Identifier }}().Equal({{= col.GoType() }}({{= col.DefaultValueAsValue() }})), "set default")
-{{else}}
     obj.Set{{= col.Identifier }}({{= col.DefaultValueAsValue() }})
     assert.EqualValues(t, {{= col.DefaultValueAsValue() }}, obj.{{= col.Identifier }}(), "set default")
-{{if}}
 
 {{if col.Size > 0 &&
         col.Size == testSize &&

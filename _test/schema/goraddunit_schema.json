@@ -521,12 +521,12 @@
           }
         },
         {
-          "name": "type_multFk1",
+          "name": "type_mult_fk1",
           "type": "string",
           "size": 50
         },
         {
-          "name": "type_multiFk2",
+          "name": "type_multi_fk2",
           "type": "string",
           "size": 50
         }
@@ -534,8 +534,8 @@
       "multi_column_indexes": [
         {
           "columns": [
-            "type_multFk1",
-            "type_multiFk2"
+            "type_mult_fk1",
+            "type_multi_fk2"
           ],
           "index_level": "indexed"
         }
