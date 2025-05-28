@@ -54,11 +54,6 @@ type Table struct {
 	// IdentifierPlural is the plural form of Identifier.
 	IdentifierPlural string `json:"identifier_plural,omitempty"`
 
-	// NoOrm will prevent the table from generating code or being used by the ORM.
-	// You will still be able to access the table through direct calls to the database.
-	// Not recommended for tables that are involved in any reference or association relationships between tables that are part of the ORM.
-	NoOrm bool `json:"no_orm,omitempty"`
-
 	// Comment is a place to put a comment in the json description file.
 	// If the database driver supports it, it may be put in the database.
 	Comment string `json:"comment,omitempty"`
