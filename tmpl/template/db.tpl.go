@@ -570,7 +570,7 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.TableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, mm.TableName()); err != nil {
 				return
 			}
 
@@ -686,7 +686,7 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.TableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, mm.TableName()); err != nil {
 				return
 			}
 
@@ -702,7 +702,7 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.TableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, mm.TableName()); err != nil {
 				return
 			}
 

@@ -2,7 +2,6 @@
   "key": "goradd",
   "write_timeout": "30s",
   "read_timeout": "5s",
-  "reference_suffix": "_id",
   "enum_table_suffix": "_enum",
   "assn_table_suffix": "_assn",
   "tables": [
@@ -42,12 +41,9 @@
           "index_level": "indexed"
         },
         {
-          "name": "person_type_enum",
+          "name": "person_type",
           "type": "enum",
-          "is_nullable": true,
-          "reference": {
-            "table": "person_type_enum"
-          }
+          "is_nullable": true
         },
         {
           "name": "created",
@@ -109,12 +105,9 @@
           "index_level": "unique"
         },
         {
-          "name": "status_enum",
+          "name": "status",
           "type": "enum",
-          "index_level": "indexed",
-          "reference": {
-            "table": "project_status_enum"
-          }
+          "index_level": "indexed"
         },
         {
           "name": "manager_id",
@@ -192,11 +185,7 @@
         },
         {
           "name": "person_id",
-          "type": "ref",
-          "index_level": "indexed",
-          "reference": {
-            "table": "person"
-          }
+          "type": "ref"
         },
         {
           "name": "street",
@@ -223,10 +212,7 @@
         {
           "name": "person_id",
           "type": "ref",
-          "index_level": "unique",
-          "reference": {
-            "table": "person"
-          }
+          "index_level": "unique"
         },
         {
           "name": "employee_number",
@@ -247,10 +233,7 @@
           "name": "person_id",
           "type": "ref",
           "is_nullable": true,
-          "index_level": "unique",
-          "reference": {
-            "table": "person"
-          }
+          "index_level": "unique"
         },
         {
           "name": "username",
@@ -282,10 +265,7 @@
         {
           "name": "project_id",
           "type": "ref",
-          "index_level": "indexed",
-          "reference": {
-            "table": "project"
-          }
+          "index_level": "indexed"
         },
         {
           "name": "name",
@@ -399,16 +379,16 @@
     {
       "name": "related_project_assn",
       "table1": "project",
-      "column1": "parent_id",
+      "name1": "parent",
       "table2": "project",
-      "column2": "child_id"
+      "name2": "child"
     },
     {
       "name": "team_member_project_assn",
       "table1": "person",
-      "column1": "team_member_id",
+      "name1": "team_member",
       "table2": "project",
-      "column2": "project_id"
+      "name2": "project"
     }
   ]
 }

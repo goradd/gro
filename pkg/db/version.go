@@ -31,7 +31,7 @@ func TemporaryPrimaryKey() string {
 // RecordVersion produces an atomically unique record version value that is different from prev.
 // The value returned can be used to determine when a record has changed for optimistic locking.
 // Many database implementations provide a mechanism to do row-level locking, and in those cases a basic incrementer
-// would work.
+// would work. This only needs to be unique within a record and previous versions of that sinclge record.
 //
 // However, some NoSQL databases (DynamoDB for one) do not have a mechanism to lock rows ahead of changes, but rather expect
 // a condition to be given to the database to check whether a value (like a version number) remains constant throughout

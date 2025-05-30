@@ -556,7 +556,6 @@ func (m *DB) processTypeInfo(column mysqlColumn) (
 func (m *DB) schemaFromRawTables(rawTables map[string]mysqlTable, options map[string]any) schema.Database {
 
 	dd := schema.Database{
-		ReferenceSuffix: options["reference_suffix"].(string),
 		EnumTableSuffix: options["enum_table_suffix"].(string),
 		AssnTableSuffix: options["assn_table_suffix"].(string),
 		Key:             m.DbKey(),
@@ -894,9 +893,9 @@ func (m *DB) getAssociationSchema(t mysqlTable, enumTableSuffix string) (mm sche
 	}
 	mm.Name = td.Name
 	mm.Table1 = td.Columns[0].Reference.Table
-	mm.Column1 = td.Columns[0].Name
+	mm.Name1 = td.Columns[0].Name
 	mm.Table2 = td.Columns[1].Reference.Table
-	mm.Column2 = td.Columns[1].Name
+	mm.Name2 = td.Columns[1].Name
 
 	mm.Comment = t.comment
 	return

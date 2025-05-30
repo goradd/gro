@@ -63,7 +63,8 @@ func TestDB_CreateSchema(t *testing.T) {
 			}
 
 			s2 := d.ExtractSchema(options)
-			s2.Clean()
+			err = s2.Clean()
+			require.NoError(t, err)
 			if tt.zeroNonComp {
 				zeroNonCmp(&s1)
 				zeroNonCmp(&s2)
@@ -91,7 +92,6 @@ func zeroNonCmp(db *schema.Database) {
 func sampleSchema() schema.Database {
 	db := schema.Database{
 		Key:             "test",
-		ReferenceSuffix: "_id",
 		EnumTableSuffix: "_enum",
 		AssnTableSuffix: "_assn",
 
@@ -163,17 +163,18 @@ func sampleSchema() schema.Database {
 			},
 		},
 		AssociationTables: []*schema.AssociationTable{
-			{Name: "rel_assn", Table1: "user", Column1: "user_id", Table2: "post", Column2: "post_id"},
+			{Name: "rel_assn", Table1: "user", Name1: "user_id", Table2: "post", Name2: "post_id"},
 		},
 	}
-	db.Clean()
+	if err := db.Clean(); err != nil {
+		panic(err)
+	}
 	return db
 }
 
 func sampleSchemaWithCollation() schema.Database {
 	db := schema.Database{
 		Key:             "test",
-		ReferenceSuffix: "_id",
 		EnumTableSuffix: "_enum",
 		AssnTableSuffix: "_assn",
 
@@ -197,14 +198,15 @@ func sampleSchemaWithCollation() schema.Database {
 			},
 		},
 	}
-	db.Clean()
+	if err := db.Clean(); err != nil {
+		panic(err)
+	}
 	return db
 }
 
 func sampleSchemaTypes() schema.Database {
 	db := schema.Database{
 		Key:             "test",
-		ReferenceSuffix: "_id",
 		EnumTableSuffix: "_enum",
 		AssnTableSuffix: "_assn",
 
@@ -255,6 +257,8 @@ func sampleSchemaTypes() schema.Database {
 		},
 	}
 
-	db.Clean()
+	if err := db.Clean(); err != nil {
+		panic(err)
+	}
 	return db
 }

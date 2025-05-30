@@ -27,9 +27,10 @@ type MultiColumnIndex struct {
 	// Columns are the Column.Name values of the columns in the table that will be used to access the data.
 	Columns []string `json:"columns"`
 	// IndexLevel will specify the type of index, and possibly a constraint to put on the columns.
-	// If specifying a multi-column primary key, understand that the table cannot have any
-	// columns marked as primary keys in the column definitions, that the table cannot have any foreign keys
-	// pointing to it, and that some databases do not support multi-column primary keys in which case the driver
-	// may set it up as a unique non-null index instead.
 	IndexLevel IndexLevel `json:"index_level"`
+	// For future expansion. Defines a multi-column foreign key. The reference in those columns
+	// will need to point to a primary key column in the other table. Must use the MultiColumnIndex structure
+	// to tell which columns make up a foreign key, since there is a possibility of two separate foreign keys
+	// pointing to the same table. (i.e. Mother and Father pointing to a person table).
+	// IsReference bool
 }

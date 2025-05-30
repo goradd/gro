@@ -1,6 +1,6 @@
 {
   "key": "goradd_unit",
-  "reference_suffix": "_id",
+  "reference_suffix": "",
   "enum_table_suffix": "_enum",
   "assn_table_suffix": "_assn",
   "tables": [
@@ -111,7 +111,7 @@
           }
         },
         {
-          "name": "parent_1_id",
+          "name": "parent_1",
           "type": "ref",
           "is_nullable": true,
           "index_level": "indexed",
@@ -120,7 +120,7 @@
           }
         },
         {
-          "name": "parent_2_id",
+          "name": "parent_2",
           "type": "ref",
           "is_nullable": true,
           "index_level": "indexed",
@@ -555,7 +555,7 @@
           "size": 100
         },
         {
-          "name": "root_id",
+          "name": "root",
           "type": "ref",
           "index_level": "indexed",
           "reference": {
@@ -584,7 +584,7 @@
           "size": 64
         },
         {
-          "name": "root_l_id",
+          "name": "root_l",
           "type": "ref",
           "index_level": "indexed",
           "reference": {
@@ -607,7 +607,7 @@
           "size": 100
         },
         {
-          "name": "root_n_id",
+          "name": "root_n",
           "type": "ref",
           "is_nullable": true,
           "index_level": "indexed",
@@ -631,7 +631,7 @@
           "size": 100
         },
         {
-          "name": "root_nl_id",
+          "name": "root_nl",
           "type": "ref",
           "is_nullable": true,
           "index_level": "indexed",
@@ -661,7 +661,7 @@
           "size": 100
         },
         {
-          "name": "root_u_id",
+          "name": "root_u",
           "type": "ref",
           "index_level": "unique",
           "reference": {
@@ -684,7 +684,7 @@
           "size": 100
         },
         {
-          "name": "root_ul_id",
+          "name": "root_ul",
           "type": "ref",
           "index_level": "unique",
           "reference": {
@@ -713,7 +713,7 @@
           "size": 100
         },
         {
-          "name": "root_un_id",
+          "name": "root_un",
           "type": "ref",
           "is_nullable": true,
           "index_level": "unique",
@@ -737,7 +737,7 @@
           "size": 100
         },
         {
-          "name": "root_unl_id",
+          "name": "root_unl",
           "type": "ref",
           "is_nullable": true,
           "index_level": "unique",
@@ -767,7 +767,7 @@
           "size": 100
         },
         {
-          "name": "alt_root_un_id",
+          "name": "alt_root_un",
           "type": "ref",
           "is_nullable": true,
           "index_level": "unique",
@@ -783,9 +783,9 @@
     {
       "name": "leaf_nl_assn",
       "table1": "leaf_nl",
-      "column1": "leaf_1_id",
+      "name1": "leaf_1",
       "table2": "leaf_nl",
-      "column2": "leaf_2_id"
+      "name2": "leaf_2"
     }
   ]
 }

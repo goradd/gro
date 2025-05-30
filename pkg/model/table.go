@@ -36,7 +36,7 @@ type Table struct {
 	// DecapIdentifier is the same as Identifier, but the first letter is lower case.
 	DecapIdentifier string
 	// Columns is a list of Columns, one for each column in the table.
-	// The primary key is sorted to the front.
+	// The primary keys are sorted to the front.
 	Columns []*Column
 	// Indexes are all the indexes defined on the table, single and multi-column, but not primary key.
 	Indexes []Index
@@ -44,9 +44,11 @@ type Table struct {
 	Options map[string]interface{}
 	// columnMap is an internal map of the columns by query name of the column
 	columnMap map[string]*Column
+	// References are all the foreign keys
+	References []*Reference
 	// ReverseReferences are the columns from other tables, or even this table,
-	// that point to this column.
-	ReverseReferences []*Column
+	// that point to this table.
+	ReverseReferences []*Reference
 	// ManyManyReferences describe the many-to-many references pointing to this table
 	ManyManyReferences []*ManyManyReference
 	// The cached optimistic locking column, if one is present
@@ -63,6 +65,22 @@ func (t *Table) PrimaryKeyColumn() *Column {
 	}
 	return t.Columns[0]
 }
+
+/* Future expansion supporting composite primary keys
+// PrimaryKeyColumns returns a slice of the primary key columns in the table.
+func (t *Table) PrimaryKeyColumns() []*Column {
+	if len(t.Columns) == 0 {
+		return nil
+	}
+	var count int
+	for _, column := range t.Columns {
+		if column.IsPrimaryKey {
+			count++
+		}
+	}
+	return t.Columns[0:count]
+}
+*/
 
 func (t *Table) PrimaryKeyGoType() string {
 	return t.PrimaryKeyColumn().GoType()
@@ -106,11 +124,11 @@ func (t *Table) HasGetterName(name string) (hasName bool, desc string) {
 			return false, "conflicts with column " + c.Identifier
 		}
 		for _, rr := range t.ReverseReferences {
-			if rr.Reference.ReverseIdentifier == name {
-				return false, "conflicts with reverse reference singular name " + rr.Reference.ReverseIdentifier
+			if rr.ReverseIdentifier == name {
+				return false, "conflicts with reverse reference singular name " + rr.ReverseIdentifier
 			}
-			if rr.Reference.ReverseIdentifierPlural == name {
-				return false, "conflicts with reverse reference plural name " + rr.Reference.ReverseIdentifierPlural
+			if rr.ReverseIdentifierPlural == name {
+				return false, "conflicts with reverse reference plural name " + rr.ReverseIdentifierPlural
 			}
 		}
 	}
@@ -208,7 +226,6 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 		return nil
 	}
 
-	var pkCount int
 	for _, schemaCol := range tableSchema.Columns {
 		newCol := newColumn(schemaCol)
 		newCol.Table = t
@@ -221,12 +238,6 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 		}
 
 		if newCol.IsPrimaryKey {
-			pkCount++
-			if pkCount > 1 {
-				slog.Error("Table cannot have a multi-column primary key. Instead combine a multi-column unique index with a single column auto-generated primary key.",
-					slog.String(db.LogTable, t.QueryName))
-				return nil
-			}
 			t.Columns = slices.Insert(t.Columns, 0, newCol)
 		} else {
 			t.Columns = append(t.Columns, newCol)

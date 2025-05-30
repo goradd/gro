@@ -50,7 +50,6 @@ func TestDB_CreateSampleSchema(t *testing.T) {
 func sampleSchema() schema.Database {
 	db := schema.Database{
 		Key:             "test",
-		ReferenceSuffix: "_id",
 		EnumTableSuffix: "_enum",
 		AssnTableSuffix: "_assn",
 
@@ -122,17 +121,16 @@ func sampleSchema() schema.Database {
 			},
 		},
 		AssociationTables: []*schema.AssociationTable{
-			{Name: "rel_assn", Table1: "user", Column1: "user_id", Table2: "post", Column2: "post_id"},
+			{Name: "rel_assn", Table1: "user", Name1: "user_id", Table2: "post", Name2: "post_id"},
 		},
 	}
-	//db.FillDefaults()
+	//db.fillDefault()
 	return db
 }
 
 func sampleSchemaWithCollation() schema.Database {
 	db := schema.Database{
 		Key:             "test",
-		ReferenceSuffix: "_id",
 		EnumTableSuffix: "_enum",
 		AssnTableSuffix: "_assn",
 
@@ -156,14 +154,13 @@ func sampleSchemaWithCollation() schema.Database {
 			},
 		},
 	}
-	//db.FillDefaults()
+	//db.fillDefault()
 	return db
 }
 
 func sampleSchemaTypes() schema.Database {
 	db := schema.Database{
 		Key:             "test",
-		ReferenceSuffix: "_id",
 		EnumTableSuffix: "_enum",
 		AssnTableSuffix: "_assn",
 
@@ -213,14 +210,13 @@ func sampleSchemaTypes() schema.Database {
 		},
 	}
 
-	//db.FillDefaults()
+	//db.fillDefault()
 	return db
 }
 
 func sampleSchemaWithSchemaName() schema.Database {
 	db := schema.Database{
 		Key:             "test",
-		ReferenceSuffix: "_id",
 		EnumTableSuffix: "_enum",
 		AssnTableSuffix: "_assn",
 
@@ -244,6 +240,6 @@ func sampleSchemaWithSchemaName() schema.Database {
 			},
 		},
 	}
-	//db.FillDefaults()
+	//db.fillDefault()
 	return db
 }

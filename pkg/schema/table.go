@@ -2,7 +2,6 @@ package schema
 
 import (
 	strings2 "github.com/goradd/strings"
-	"github.com/kenshaw/snaker"
 )
 
 // Table represents the metadata for a table in the database.
@@ -38,21 +37,25 @@ type Table struct {
 	// Single-column indexes are defined in the Column structure.
 	MultiColumnIndexes []MultiColumnIndex `json:"multi_column_indexes,omitempty"`
 
-	// Label is the name of the object when describing it to humans.
-	// This is not used by the ORM, but may be used by UI generators.
-	// If creating a multi-language app, your app would provide translation from this string to the language of choice.
-	// Can be multiple words.
-	// If left blank, the app will base this on the Name of the table.
-	Label string `json:"label,omitempty"`
-
-	// LabelPlural is the plural form of the Label.
-	LabelPlural string `json:"label_plural,omitempty"`
-
-	// Identifier is the corresponding Go object name. It must obey Go identifier labeling rules.
+	// Identifier is the corresponding Go object name.
+	// It must obey Go identifier labeling rules.
+	// Should be CamelCase.
+	// If empty, will be based on Name.
 	Identifier string `json:"identifier,omitempty"`
 
 	// IdentifierPlural is the plural form of Identifier.
+	// If blank, will be base on Identifier.
 	IdentifierPlural string `json:"identifier_plural,omitempty"`
+
+	// Label is the name of the object when describing it to humans.
+	// If creating a multi-language app, your app would provide translation from this string to the language of choice.
+	// Can be multiple words.
+	// If left blank, will be base on Identifier.
+	Label string `json:"label,omitempty"`
+
+	// LabelPlural is the plural form of the Label.
+	// If left blank, will be based on Label.
+	LabelPlural string `json:"label_plural,omitempty"`
 
 	// Comment is a place to put a comment in the json description file.
 	// If the database driver supports it, it may be put in the database.
@@ -69,22 +72,30 @@ func (t *Table) QualifiedName() string {
 	}
 }
 
-func (t *Table) FillDefaults(db *Database) {
-	if t.Label == "" {
-		t.Label = strings2.Title(t.Name)
+func (t *Table) infer(db *Database) error {
+	for _, c := range t.Columns {
+		if err := c.infer(db, t); err != nil {
+			return err
+		}
 	}
-	if t.LabelPlural == "" {
-		t.LabelPlural = strings2.Plural(t.Label)
-	}
+	return nil
+}
+
+func (t *Table) fillDefaults(db *Database) {
 	if t.Identifier == "" {
-		t.Identifier = snaker.SnakeToCamelIdentifier(t.QualifiedName())
+		t.Identifier = strings2.SnakeToCamel(t.Name)
 	}
 	if t.IdentifierPlural == "" {
 		t.IdentifierPlural = strings2.Plural(t.Identifier)
 	}
-
+	if t.Label == "" {
+		t.Label = strings2.Title(t.Identifier)
+	}
+	if t.LabelPlural == "" {
+		t.LabelPlural = strings2.Plural(t.Label)
+	}
 	for _, c := range t.Columns {
-		c.FillDefaults(db, t)
+		c.fillDefaults(db, t)
 	}
 }
 

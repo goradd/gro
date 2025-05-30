@@ -1,25 +1,33 @@
 package schema
 
 import (
-	. "github.com/goradd/anyutil"
+	"fmt"
 	strings2 "github.com/goradd/strings"
-	"github.com/kenshaw/snaker"
-	log2 "log/slog"
-	"slices"
+	"golang.org/x/exp/slog"
 	"strings"
 )
 
 // Column represents a database column with its attributes and associated metadata.
 type Column struct {
 	// Name is the name of the column in the database.
-	// By convention, if this is a primary key, this value should be "id".
-	// If this is a reference to another table, the name should end in "_id",
-	// or whatever the Database.ReferenceSuffix value is set to.
+	//
+	// If this is a reference column to another table, by convention this name should be
+	// of the form "object_id", with "object" being the name of the object you want generated
+	// and "id" being the name of the primary key column in the referenced table.
+	// If specified in this way, then the values in Reference can be inferred. If not,
+	// Reference will need to be set.
+	//
+	// If an enum column, by convention the name can be one of the following forms:
+	//  - enumtype
+	//	- tablename_enumtype
+	//  - enumtype_enum
+	//  - tablename_enumtype_enum
+	// For example, if this table is named "person", and the enum table is named "status",
+	// then by convention the name can be: status, person_status, status_enum, or person_status_enum.
+	// If this convention is not followed, then the Reference should include the name of the enum table.
 	Name string `json:"name"`
 
 	// Type is the type of column. See the doc for ColumnType for more info.
-	// If this is an auto generated primary key column, or a reference, the type must be a string,
-	// even if the underlying type in the database is a different type.
 	Type ColumnType `json:"type"`
 
 	// SubType further describes how the database treats the type.
@@ -51,20 +59,18 @@ type Column struct {
 	// Only one column in a table can have a single primary key column.
 	IndexLevel IndexLevel `json:"index_level,omitempty"`
 
-	// Reference is set when the column is a pointer to another table.
-	// This is required for ColTypeReference, ColTypeEnum tables.
+	// Reference can be set to specify additional information for references.
+	// In particular, if the referenced table cannot be inferred from Name, then
+	// it must be included here.
 	Reference *Reference `json:"reference,omitempty"`
 
 	// Identifier is the name of the column in Go code. Leave blank to base it on the Name.
-	// References should keep the "ID" at the name to differentiate between the value of the
-	// foreign key and the loaded object.
+	// Should be CamelCase. For example: "LastName".
 	Identifier string `json:"identifier,omitempty"`
 
-	// IdentifierPlural is the plural name of the column in Go code. This is primarily used internally.
-	// You will not normally set this value.
-	IdentifierPlural string `json:"identifier_plural,omitempty"`
-
-	// Label is the human-readable description of the item. Leave blank to base it on the Name.
+	// Label is the human-readable description of the item. Leave blank to base it on the Identifier.
+	// Should be title case.
+	// For example: "Last Name".
 	Label string `json:"label,omitempty"`
 
 	// DatabaseDefinition contains database specific extra information on the column that helps the database driver
@@ -79,109 +85,69 @@ type Column struct {
 	Comment string `json:"comment,omitempty"`
 }
 
-// Reference is the additional information needed for reference type  and enum columns.
-// For reference columns, if the IndexLevel of the containing column is Unique, it creates a one-to-one relationship.
-// Otherwise, it is a one-to-many relationship.
-type Reference struct {
-	// If this column is a reference to an object in another table, this is the name of that other table.
-	// If using schemas, the format should be "SchemaName.TableName".
-	// The QueryName of the Column should end in "_id" or whatever the value of Database.ReferenceSuffix is for the database.
-	// If Table is the same as the QueryName of the column's table, it creates a parent-child relationship.
-	// This can point to an enum table, in which case Table should end in the EnumTableSuffix.
-	Table string `json:"table"`
-
-	// Identifier is the Go name used for the referenced object.
-	Identifier string `json:"identifier,omitempty"`
-
-	// Label is the human-readable name for the referenced object.
-	Label string `json:"label,omitempty"`
-
-	// The singular description of this table's objects as referred to by the referenced table.
-	// If not specified, one will be created.
-	ReverseLabel string `json:"reverse_label,omitempty"`
-
-	// The plural description of this table's objects as referred to by the reference object.
-	// If not specified, the ReverseLabel will be pluralized.
-	ReverseLabelPlural string `json:"reverse_label_plural,omitempty"`
-
-	// The singular Go identifier that will be used for the reverse relationships.
-	// If not specified, the ReverseLabel will be used to create one.
-	ReverseIdentifier string `json:"reverse_identifier,omitempty"`
-
-	// The plural Go identifier that will be used for the reverse relationships.
-	// If not specified, the ReverseIdentifier will be pluralized.
-	ReverseIdentifierPlural string `json:"reverse_identifier_plural,omitempty"`
+// infer creates some required values if not specified and does some validity checks.
+func (c *Column) infer(db *Database, table *Table) error {
+	if c.Name == "" {
+		slog.Error("Column name is empty",
+			slog.String("table", table.Name))
+		return fmt.Errorf("missing column name in table %s", table.Name)
+	}
+	if c.Type == ColTypeEnum && c.Reference == nil {
+		// Infer the table from the name of the column
+		for _, e := range db.EnumTables {
+			if e.Name == c.Name ||
+				e.Name == table.Name+"_"+c.Name ||
+				e.Name == c.Name+db.EnumTableSuffix ||
+				e.Name == table.Name+"_"+c.Name+db.EnumTableSuffix {
+				c.Reference = &Reference{
+					Table: e.Name,
+				}
+				break
+			}
+		}
+		if c.Reference == nil {
+			slog.Error("Enum table was not specified and could not be inferred",
+				slog.String("table", table.Name),
+				slog.String("column", c.Name))
+			return fmt.Errorf("enum table was not specified and could not be inferred from table %s, column %s", table.Name, c.Name)
+		}
+	} else if c.Type == ColTypeReference && c.Reference == nil {
+		// try to infer referred table from column name
+		parts := strings.Split(c.Name, "_")
+		for i := 1; i < len(parts); i++ {
+			tableName := strings.Join(parts[:i], "_")
+			columnName := strings.Join(parts[i:], "_")
+			if columnName == "" {
+				break // not going to default to anything
+			}
+			for _, t := range db.Tables {
+				if t.Name == tableName &&
+					columnName == t.PrimaryKeyColumn().Name {
+					c.Reference = &Reference{
+						Table:  tableName,
+						Column: columnName,
+					}
+				}
+			}
+		}
+		if c.Reference == nil {
+			slog.Error("Reference table was not specified and could not be inferred",
+				slog.String("table", table.Name),
+				slog.String("column", c.Name))
+			return fmt.Errorf("referenced table was not specified and could not be inferred from table %s, column %s", table.Name, c.Name)
+		}
+	}
+	return nil
 }
 
-func (c *Column) FillDefaults(db *Database, table *Table) {
-	if strings.HasSuffix(c.Name, db.EnumTableSuffix) {
-		if c.Reference == nil {
-			// Infer the table from the name of the column
-			if slices.ContainsFunc(db.EnumTables, func(e *EnumTable) bool {
-				return e.Name == c.Name
-			}) {
-				c.Reference = &Reference{
-					Table: c.Name,
-				}
-			} else if slices.ContainsFunc(db.EnumTables, func(e *EnumTable) bool {
-				return e.Name == table.Name+"_"+c.Name
-			}) {
-				c.Reference = &Reference{
-					Table: table.Name + "_" + c.Name,
-				}
-			} else {
-				log2.Error("Enum value's table was not specified and could not be inferred: " + c.Name)
-				c.Reference = &Reference{}
-			}
-		}
-		objName := strings.TrimSuffix(c.Name, db.EnumTableSuffix)
-		objName = SanitizeName(objName)
-
-		if c.Label == "" {
-			c.Label = strings2.Title(objName)
-			if c.Identifier == "" {
-				c.Identifier = snaker.ForceCamelIdentifier(c.Label)
-			}
-		}
-	}
-	if c.Label == "" {
-		c.Label = strings2.Title(c.Name)
-	}
-
-	if c.Reference != nil {
-		objName := strings.TrimSuffix(c.Name, db.ReferenceSuffix)
-
-		if c.Reference.Identifier == "" {
-			c.Reference.Identifier = snaker.ForceCamelIdentifier(objName)
-		}
-		if c.Reference.Label == "" {
-			c.Reference.Label = strings2.Title(c.Reference.Identifier)
-		}
-		if objName == c.Reference.Table {
-			objName = ""
-		}
-		if c.Reference.ReverseLabel == "" {
-			c.Reference.ReverseLabel = If(objName, strings2.Title(objName)+" "+table.Label, table.Label)
-		}
-		if c.Reference.ReverseLabelPlural == "" && c.IndexLevel != IndexLevelUnique {
-			c.Reference.ReverseLabelPlural = strings2.Plural(c.Reference.ReverseLabel)
-		}
-		if c.Reference.ReverseIdentifier == "" {
-			c.Reference.ReverseIdentifier = snaker.ForceCamelIdentifier(c.Reference.ReverseLabel)
-		}
-		if c.Reference.ReverseIdentifierPlural == "" && c.IndexLevel != IndexLevelUnique {
-			c.Reference.ReverseIdentifierPlural = strings2.Plural(c.Reference.ReverseIdentifier)
-		}
-
-		// Enum references do not have a public difference between the name of the id field and the object itself.
-		if c.Identifier == "" && strings.HasSuffix(c.Reference.Table, db.EnumTableSuffix) {
-			c.Identifier = c.Reference.Identifier
-		}
-	}
-
+func (c *Column) fillDefaults(db *Database, table *Table) {
 	if c.Identifier == "" {
-		objName := SanitizeName(c.Name)
-		c.Identifier = snaker.SnakeToCamelIdentifier(objName)
+		objName := strings2.SnakeToCamel(c.Name)
+		c.Identifier = SanitizeIdentifier(objName)
+	}
+
+	if c.Label == "" {
+		c.Label = strings2.Title(c.Identifier)
 	}
 
 	if c.Size == 0 {
@@ -192,6 +158,43 @@ func (c *Column) FillDefaults(db *Database, table *Table) {
 		}
 	}
 
+	if c.Reference != nil {
+		if c.Reference.Table == "" {
+			slog.Error("Reference table was not specified",
+				slog.String("table", table.Name),
+				slog.String("column", c.Name))
+			return
+		}
+
+		if c.IndexLevel == IndexLevelNone {
+			c.IndexLevel = IndexLevelIndexed
+		}
+
+		if c.Reference.Identifier == "" {
+			c.Reference.Identifier = strings2.SnakeToCamel(c.Reference.Table)
+		}
+		if c.Reference.Label == "" {
+			c.Reference.Label = strings2.Title(c.Reference.Identifier)
+		}
+
+		if c.Reference.ReverseIdentifier == "" {
+			if c.Reference.Table+"_"+c.Reference.Column == c.Name {
+				c.Reference.ReverseIdentifier = table.Identifier
+			} else {
+				c.Reference.ReverseIdentifier = c.Identifier + table.Identifier
+			}
+		}
+		if c.Reference.ReverseIdentifierPlural == "" {
+			c.Reference.ReverseIdentifierPlural = strings2.Plural(c.Reference.ReverseIdentifier)
+		}
+
+		if c.Reference.ReverseLabel == "" {
+			c.Reference.ReverseLabel = strings2.Title(c.Reference.Identifier)
+		}
+		if c.Reference.ReverseLabelPlural == "" {
+			c.Reference.ReverseLabelPlural = strings2.Plural(c.Reference.ReverseLabel)
+		}
+	}
 }
 
 func (c *Column) IsPrimaryKey() bool {

@@ -11,6 +11,11 @@ const Version = 1
 
 // Database is a description of the structure of the data in a database that is agnostic of the type
 // of the database, including whether its SQL or NoSQL.
+//
+// The purpose is to create a structure that is as easy as possible to be specified by humans minimalistically,
+// with many of the values being optional as they can be inferred from other values.
+//
+// See model.Database for the structure that is presented to the code generator and that is based on this structure.
 type Database struct {
 	// Key is the database key corresponding to its key in the global database cluster.
 	// Should be unique among the other databases in use.
@@ -34,11 +39,6 @@ type Database struct {
 	// Use a duration format understood by time.ParseDuration.
 	ReadTimeout string `json:"read_timeout,omitempty"`
 
-	// ReferenceSuffix is the ending to expect at the end of column names that are referencing other
-	// tables (also known as foreign keys in SQL databases).
-	// Defaults to "_id". Will be added to references if missing.
-	ReferenceSuffix string `json:"reference_suffix,omitempty"`
-
 	// EnumTableSuffix is the text to strip off the end of an enum table name when converting it to a type name.
 	// Defaults to "_enum". Will be added to enum table names if missing.
 	EnumTableSuffix string `json:"enum_table_suffix,omitempty"`
@@ -56,13 +56,14 @@ type Database struct {
 	AssociationTables []*AssociationTable `json:"association_tables"`
 }
 
-// FillDefaults will fill all the undeclared values in the database structure with default values.
+// FillDefaults will fill all the undeclared values in the database structure with default values
+// in preparation for building the model.Database structure.
 func (db *Database) FillDefaults() {
 	if db.Package == "" {
 		db.Package = db.Key
 	}
 	// remove invalid characters
-	s := SanitizeName(db.Package)
+	s := SanitizePackageName(db.Package)
 	if s != db.Package {
 		slog.Warn("Package name was modified",
 			slog.String("original name", db.Package),
@@ -71,9 +72,6 @@ func (db *Database) FillDefaults() {
 		db.Package = s
 	}
 
-	if db.ReferenceSuffix == "" {
-		db.ReferenceSuffix = "_id"
-	}
 	if db.EnumTableSuffix == "" {
 		db.EnumTableSuffix = "_enum"
 	}
@@ -82,17 +80,34 @@ func (db *Database) FillDefaults() {
 	}
 
 	for _, t := range db.Tables {
-		t.FillDefaults(db)
+		t.fillDefaults(db)
 	}
 
 	for _, t := range db.EnumTables {
-		t.FillDefaults(db.EnumTableSuffix)
+		t.fillDefaults(db.EnumTableSuffix)
 	}
 
 	for _, t := range db.AssociationTables {
-		t.FillDefaults(db.ReferenceSuffix)
+		t.fillDefaults(db.AssnTableSuffix)
 	}
-	db.Clean()
+}
+
+// infer fills in certain key inferred values. The goal is to infer the minimal set of values
+// to create a database structure. There is some coordination here with the SQL databases that can
+// export their schemas.
+// It also does some validity checks.
+func (db *Database) infer() error {
+	for _, t := range db.Tables {
+		if err := t.infer(db); err != nil {
+			return err
+		}
+	}
+	for _, t := range db.AssociationTables {
+		if err := t.infer(db, db.AssnTableSuffix); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // FindTable finds the table by name. Returns nil if not found.
@@ -118,8 +133,12 @@ func (db *Database) FindEnumTable(name string) *EnumTable {
 }
 
 // Clean modifies the structure to prepare it for creating a schema in a database.
-func (db *Database) Clean() {
+func (db *Database) Clean() error {
+	if err := db.infer(); err != nil {
+		return err
+	}
 	db.sort()
+	return nil
 }
 
 // sort will sort the Tables, EnumTables and AssociationTables into a predictable order that also

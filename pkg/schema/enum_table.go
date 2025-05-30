@@ -82,8 +82,8 @@ func (t *EnumTable) QualifiedName() string {
 	}
 }
 
-// FillDefaults will fill in empty values in the EnumTable struct based on the values provided.
-func (t *EnumTable) FillDefaults(suffix string) {
+// fillDefaults will fill in empty values in the EnumTable struct based on the values provided.
+func (t *EnumTable) fillDefaults(suffix string) {
 	name := strings.TrimSuffix(t.QualifiedName(), suffix)
 	if t.Label == "" {
 		t.Label = strings2.Title(name)

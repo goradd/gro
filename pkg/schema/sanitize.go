@@ -21,11 +21,11 @@ var reservedWords = map[string]struct{}{
 	// There are others that are unlikely or technically allowed but might conflict. Add as needed.
 }
 
-// SanitizeName returns a string that is valid as a Go identifier.
+// SanitizePackageName returns a string that is valid as a Go package name.
 // It only allows lowercase letters and digits, replacing all other characters with underscores.
 // Uppercase letters are converted to lowercase.
 // If the result starts with a non-letter or is a reserved keyword, it prepends an underscore.
-func SanitizeName(input string) string {
+func SanitizePackageName(input string) string {
 	var b strings.Builder
 
 	for _, r := range input {
@@ -51,6 +51,41 @@ func SanitizeName(input string) string {
 
 	if input != result {
 		slog.Warn("Name was modified because its not a valid go identifier",
+			slog.String("old name", input),
+			slog.String("new name", result))
+	}
+
+	return result
+}
+
+// SanitizeIdentifier will sanitize Go identifiers, allowing CamelCase and camelCase, but converting
+// all other characters to underscores.
+func SanitizeIdentifier(input string) string {
+	var b strings.Builder
+
+	for _, r := range input {
+		switch {
+		case unicode.IsLower(r),
+			unicode.IsDigit(r),
+			unicode.IsUpper(r),
+			r == '_':
+
+			b.WriteRune(r)
+		default:
+			b.WriteRune('_')
+		}
+	}
+
+	result := b.String()
+
+	resultTest := strings.ToLower(result)
+
+	if _, isReserved := reservedWords[resultTest]; isReserved {
+		result = "_" + result
+	}
+
+	if input != result {
+		slog.Warn("Name was modified because it may conflict with go reserved words or contain invalid characters",
 			slog.String("old name", input),
 			slog.String("new name", result))
 	}

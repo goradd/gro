@@ -1,13 +1,15 @@
 package model
 
-// Reference is additional information to describe what a forward reference points to.
-// Cross database references are not supported. References are always to the primary
-// key of Table.
+// Reference describes a forward relationship.
+// Cross database references are not supported.
+// References will cause a copy of the primary key of Table to be placed in Column,
+// and will generate code that refers to an object in Table as Identifier, and reverse
+// code in Table that will refer to objects in this table as ReverseIdentifier.
 type Reference struct {
-	// Table is the table on the other end of the foreign key.
+	// Table is the referenced table.
 	Table *Table
-	// If this is a reference to an enum table, EnumTable will point to that enum table
-	EnumTable *Enum
+	// Column is the column that is referring to the referenced table
+	Column *Column
 	// The go name of the forward referenced object
 	Identifier string
 	// The local name used to refer to the referenced object

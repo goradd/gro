@@ -3,10 +3,9 @@ package model
 import "github.com/goradd/orm/pkg/query"
 
 // The ManyManyReference structure is used by the templates during the codegen process to describe a many-to-many relationship.
-// Underlying the structure is an association table that has two values that are foreign keys pointing
-// to the records that are linked. The names of these fields will determine the names of the corresponding accessors
-// in each of the model objects. This allows multiple of these many-many relationships to exist
-// on the same tables but for different purposes. These fields MUST point to primary keys.
+// Underlying the structure is an association table that has two foreign keys pointing
+// to the records that are linked.
+// For each relationship, two ManyManyReference structures are created.
 type ManyManyReference struct {
 	// AssnTableName is the database table that links the two associated tables together.
 	AssnTableName string
@@ -38,8 +37,9 @@ type ManyManyReference struct {
 	MM *ManyManyReference
 }
 
-// TableIdentifier returns a name to use to describe the relationship in code.
-func (m *ManyManyReference) TableIdentifier() string {
+// TableName returns the name of the association table. This is mainly used to import and export
+// the table.
+func (m *ManyManyReference) TableName() string {
 	return UpperCaseIdentifier(m.AssnTableName)
 }
 
@@ -84,12 +84,17 @@ func (m *ManyManyReference) PkIdentifier() string {
 }
 
 func makeManyManyRef(
-	assnTable, column1, column2 string,
+	assnTable string,
+	column1, column2 string,
 	t1, t2 *Table,
 	label, labels, id, ids string,
 ) *ManyManyReference {
-	type1 := t1.PrimaryKeyColumn().ReceiverType
-	type2 := t2.PrimaryKeyColumn().ReceiverType
+	pk1 := t1.PrimaryKeyColumn()
+	type1 := pk1.ReceiverType
+
+	pk2 := t2.PrimaryKeyColumn()
+	type2 := pk2.ReceiverType
+
 	ref := ManyManyReference{
 		AssnTableName:        assnTable,
 		AssnSourceColumnName: column1,

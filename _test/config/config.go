@@ -117,7 +117,10 @@ func initSQLite() {
 		panic(err)
 	}
 	ctx := context.Background()
-	s.Clean()
+	err = s.Clean()
+	if err != nil {
+		panic(err)
+	}
 	err = database.CreateSchema(ctx, *s)
 	if err != nil {
 		panic(err)
@@ -133,7 +136,10 @@ func initSQLite() {
 	if err != nil {
 		panic(err)
 	}
-	s.Clean()
+	err = s.Clean()
+	if err != nil {
+		panic(err)
+	}
 	err = database.CreateSchema(ctx, *s)
 	if err != nil {
 		panic(err)

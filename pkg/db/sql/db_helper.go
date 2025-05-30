@@ -519,11 +519,10 @@ func (h *DbHelper) enumTableSql(d *schema.Database, et *schema.EnumTable) (s str
 		}
 		// build a column to send to the column builder
 		col := &schema.Column{
-			Name:             k,
-			Type:             et.Fields[k].Type,
-			Size:             size,
-			Identifier:       et.Fields[k].Identifier,
-			IdentifierPlural: et.Fields[k].IdentifierPlural,
+			Name:       k,
+			Type:       et.Fields[k].Type,
+			Size:       size,
+			Identifier: et.Fields[k].Identifier,
 		}
 		if i == 0 {
 			col.IndexLevel = schema.IndexLevelManualPrimaryKey

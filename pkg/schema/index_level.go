@@ -7,12 +7,14 @@ import (
 
 // IndexLevel indicates the type of index the column should have. Not all databases have indexes,
 // and some databases index everything, so this doesn't precisely translate to an eventual index
-// in the database.
+// in the database. What this DOES do is determine the primary key and LoadByXXX functions that will
+// be generated in the API.
 //
 // # IndexLevelNone is the default indicating no special treatment for the column
 //
-// IndexLevelIndexed will result in a QueryByXXX function in the generated ORM that will
+// IndexLevelIndexed will result in a LoadByXXX function in the generated ORM that will
 // return a group of objects containing the given value in the column's field.
+// This will be for a single column. To create an index on multiple columns, use a MultiColumnIndex.
 //
 // IndexLevelUnique will result in a LoadByXXX function in the ORM that will return a single object with
 // the given value in the column's field. Uniqueness is up to the database or database driver to ensure.
@@ -21,9 +23,10 @@ import (
 // uniqueness, rather than relying on the database.
 // See also the comment on uniqueness in MultiColumnIndex.
 //
-// IndexLevelManualPrimaryKey and Unique are basically equivalent.
-// IndexLevelManualPrimaryKey gives a hint to the database to mark this field as the primary key for the table.
-// Only one column should be marked this way.
+// IndexLevelManualPrimaryKey indicates that this is a manually entered private key.
+// If there are multiple columns that have this, they will form a composite index.
+// A column of ColTypeAutoKey will also participate in that primary key.
+// If this column is a partition key or shard key, it should have this setting.
 type IndexLevel int
 
 const (

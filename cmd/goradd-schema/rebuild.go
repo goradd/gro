@@ -31,7 +31,10 @@ func build(dbConfigFile, inFile, dbKey string) {
 					if err != nil {
 						panic(err)
 					}
-					s.Clean()
+					err = s.Clean()
+					if err != nil {
+						panic(err)
+					}
 					_ = e.CreateSchema(ctx, *s)
 					return
 				} else {

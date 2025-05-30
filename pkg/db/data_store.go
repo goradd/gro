@@ -163,7 +163,7 @@ func AssociateOnly[J, K any](ctx context.Context,
 			}
 		}
 		for _, relatedPk := range relatedPks {
-			if _, err := d.Insert(ctx, assnTable, "", map[string]any{srcColumnName: pk, relatedColumnName: relatedPk}); err != nil {
+			if err := Associate(ctx, d, assnTable, srcColumnName, pk, relatedColumnName, relatedPk); err != nil {
 				return err
 			}
 		}

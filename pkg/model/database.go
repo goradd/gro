@@ -16,6 +16,9 @@ import (
 )
 
 func FromSchema(s *schema.Database) *Database {
+	if err := s.Clean(); err != nil {
+		panic(err)
+	}
 	s.FillDefaults()
 	var timeout time.Duration
 	if s.WriteTimeout != "" {
@@ -30,7 +33,6 @@ func FromSchema(s *schema.Database) *Database {
 	d := Database{
 		Key:             s.Key,
 		WriteTimeout:    timeout,
-		ReferenceSuffix: s.ReferenceSuffix,
 		EnumTableSuffix: s.EnumTableSuffix,
 		AssnTableSuffix: s.AssnTableSuffix,
 	}
@@ -56,9 +58,6 @@ type Database struct {
 	// Enums contains a description of the enumerated types linked to the database, keyed by database table name
 	Enums map[string]*Enum
 
-	// ReferenceSuffix is the text to strip off the end of foreign key references when converting to names.
-	// Defaults to "_id"
-	ReferenceSuffix string
 	// EnumTableSuffix is the text to string off the end of an enum table when converting it to a type name.
 	// Defaults to "_enum".
 	EnumTableSuffix string
@@ -110,18 +109,28 @@ func (m *Database) importSchema(schema *schema.Database) {
 // association columns directly and store an array of records on either end of the association.
 func (m *Database) importAssociation(schemaAssn *schema.AssociationTable) {
 	t1 := m.Table(schemaAssn.Table1)
+	if t1 == nil {
+		slog.Error("Missing associated table from association "+schemaAssn.Name,
+			slog.String(db.LogTable, schemaAssn.Table1))
+		return
+	}
 	t2 := m.Table(schemaAssn.Table2)
+	if t2 == nil {
+		slog.Error("Missing associated table from association "+schemaAssn.Table2,
+			slog.String(db.LogTable, schemaAssn.Table2))
+		return
+	}
 
-	if t1 != nil && t2 != nil {
-		ref1 := makeManyManyRef(schemaAssn.Name, schemaAssn.Column1, schemaAssn.Column2, t1, t2, schemaAssn.Label2, schemaAssn.Label2Plural, schemaAssn.Identifier2, schemaAssn.Identifier2Plural)
-		ref2 := makeManyManyRef(schemaAssn.Name, schemaAssn.Column2, schemaAssn.Column1, t2, t1, schemaAssn.Table1, schemaAssn.Label1Plural, schemaAssn.Identifier1, schemaAssn.Identifier1Plural)
-		ref1.MM = ref2
-		ref2.MM = ref1
-	} else {
-		slog.Warn("Skipped association table. Missing associated table.",
+	if schemaAssn.Name1 == schemaAssn.Name2 {
+		slog.Error("Name1 and Name2 cannot be the same",
 			slog.String(db.LogTable, schemaAssn.Name))
 		return
 	}
+
+	ref1 := makeManyManyRef(schemaAssn.Name, schemaAssn.Column1, schemaAssn.Column2, t1, t2, schemaAssn.Label2, schemaAssn.Label2Plural, schemaAssn.Identifier2, schemaAssn.Identifier2Plural)
+	ref2 := makeManyManyRef(schemaAssn.Name, schemaAssn.Column2, schemaAssn.Column1, t2, t1, schemaAssn.Table1, schemaAssn.Label1Plural, schemaAssn.Identifier1, schemaAssn.Identifier1Plural)
+	ref1.MM = ref2
+	ref2.MM = ref1
 }
 
 func (m *Database) importReferences(t *Table, schemaTable *schema.Table) {
@@ -131,49 +140,49 @@ func (m *Database) importReferences(t *Table, schemaTable *schema.Table) {
 }
 
 func (m *Database) importReference(table *Table, schemaCol *schema.Column) {
-	if schemaCol.Reference != nil {
-		refTable := m.Table(schemaCol.Reference.Table)
-		et := m.Enum(schemaCol.Reference.Table)
-		if refTable == nil && et == nil {
-			slog.Error("Reference skipped, table not found.",
-				slog.String(db.LogTable, table.QueryName),
-				slog.String(db.LogColumn, schemaCol.Name))
-			return
-		}
-		if refTable != nil && !strings.HasSuffix(schemaCol.Name, m.ReferenceSuffix) {
-			slog.Warn("Reference column name is missing ReferenceSuffix.",
-				slog.String(db.LogTable, table.QueryName),
-				slog.String(db.LogColumn, schemaCol.Name))
-		}
-		f := &Reference{
-			Table:                   refTable,
-			EnumTable:               et,
-			Identifier:              schemaCol.Reference.Identifier,
-			Label:                   schemaCol.Reference.Label,
-			ReverseLabel:            schemaCol.Reference.ReverseLabel,
-			ReverseLabelPlural:      schemaCol.Reference.ReverseLabelPlural,
-			ReverseIdentifier:       schemaCol.Reference.ReverseIdentifier,
-			ReverseIdentifierPlural: schemaCol.Reference.ReverseIdentifierPlural,
-		}
-		f.DecapIdentifier = strings2.Decap(f.Identifier)
-
-		var thisCol *Column
-		thisCol = table.ColumnByName(schemaCol.Name)
-		if thisCol == nil {
-			// This should not happen
-			slog.Error("Reference skipped, column not found.",
-				slog.String(db.LogTable, refTable.QueryName),
-				slog.String(db.LogColumn, schemaCol.Name))
-			return
-		}
-		thisCol.Reference = f
-		if refTable != nil {
-			// Fix up receiver type to match the primary key type of the refTable.
-			// In autoId tables, this is always a string, but for manually entered primary keys, it could be anything.
-			thisCol.ReceiverType = refTable.PrimaryKeyColumn().ReceiverType
-			refTable.ReverseReferences = append(refTable.ReverseReferences, thisCol)
-		}
+	if schemaCol.Reference == nil {
+		return
 	}
+
+	var thisCol *Column
+	thisCol = table.ColumnByName(schemaCol.Name)
+	refTable := m.Table(schemaCol.Reference.Table)
+	et := m.Enum(schemaCol.Reference.Table)
+	if refTable == nil && et == nil {
+		slog.Error("Reference skipped, referenced table not found.",
+			slog.String(db.LogTable, table.QueryName),
+			slog.String(db.LogColumn, schemaCol.Name))
+		return
+	}
+	if et != nil {
+		if thisCol == nil {
+			slog.Error("Could not find enum column",
+				slog.String("table", table.QueryName),
+				slog.String("column", schemaCol.Name))
+			return
+		}
+		thisCol.EnumTable = et
+		return
+	}
+
+	ref := &Reference{
+		Table:                   refTable,
+		Identifier:              schemaCol.Identifier,
+		Label:                   schemaCol.Label,
+		ReverseLabel:            schemaCol.Reference.ReverseLabel,
+		ReverseLabelPlural:      schemaCol.Reference.ReverseLabelPlural,
+		ReverseIdentifier:       schemaCol.Reference.ReverseIdentifier,
+		ReverseIdentifierPlural: schemaCol.Reference.ReverseIdentifierPlural,
+		DecapIdentifier:         strings2.Decap(schemaCol.Identifier),
+		Column:                  thisCol,
+	}
+
+	// Fix up receiver type to match the primary key type of the refTable.
+	// In autoId tables, this is always a string, but for manually entered primary keys, it could be anything.
+	thisCol.ReceiverType = refTable.PrimaryKeyColumn().ReceiverType
+	refTable.ReverseReferences = append(refTable.ReverseReferences, ref)
+	table.References = append(table.References, ref)
+
 }
 
 // Table returns a Table from the database given the table name.
@@ -306,15 +315,14 @@ func (m *Database) MarshalOrder() (tables []*Table) {
 		var newTables []*Table
 	nexttable:
 		for t := range unusedTables.All() {
-			for _, col := range t.Columns {
-				if col.IsReference() {
-					// skip this table if it has references to a table we have not yet seen
-					if !slices.Contains(tables, col.Reference.Table) &&
-						!slices.Contains(newTables, col.Reference.Table) &&
-						col.Table != col.Reference.Table {
-						continue nexttable
-					}
+			for _, ref := range t.References {
+				// skip this table if it has references to a table we have not yet seen
+				if !slices.Contains(tables, ref.Table) &&
+					!slices.Contains(newTables, ref.Table) &&
+					t != ref.Table {
+					continue nexttable
 				}
+
 			}
 			// This has no forward references we care about
 			newTables = append(newTables, t)
