@@ -90,7 +90,7 @@ func (tt *Enum) FileName() string {
 func newEnumTable(dbKey string, enumSchema *schema.EnumTable) *Enum {
 	t := &Enum{
 		DbKey:            dbKey,
-		QueryName:        enumSchema.QualifiedName(),
+		QueryName:        enumSchema.QualifiedTableName(),
 		Label:            enumSchema.Label,
 		LabelPlural:      enumSchema.LabelPlural,
 		Identifier:       enumSchema.Identifier,

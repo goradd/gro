@@ -21,7 +21,7 @@ import (
 // INT, REAL, or TEXT at will, and may lose precision in the process. Therefore, these values are
 // stored as TEXT in SQLite, and no numeric operations can be preformed on these values.
 type DB struct {
-	sql2.DbHelper
+	sql2.Base
 	contextTimeout time.Duration
 }
 
@@ -59,7 +59,7 @@ func NewDB(dbKey string,
 	slog.Info("SQLite version:" + version)
 
 	m := new(DB)
-	m.DbHelper = sql2.NewSqlHelper(dbKey, db3, m)
+	m.Base = sql2.NewBase(dbKey, db3, m)
 	return m, nil
 }
 
@@ -223,4 +223,17 @@ func (m *DB) Update(ctx context.Context,
 
 func (m *DB) SupportsForUpdate() bool {
 	return true
+}
+
+// SetConstraints turns constraints on and off.
+func (m *DB) SetConstraints(on bool) error {
+	var sqlStr string
+
+	if on {
+		sqlStr = "PRAGMA foreign_keys = ON"
+	} else {
+		sqlStr = "PRAGMA foreign_keys = OFF"
+	}
+	_, err := m.SqlDb().Exec(sqlStr)
+	return err
 }

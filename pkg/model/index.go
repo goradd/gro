@@ -2,15 +2,14 @@ package model
 
 import "github.com/goradd/anyutil"
 
-// Index is used by SQL analysis to extract details about an Index in the database. We can use indexes
-// to know how to get to sorted data easily.
+// Index will create accessor functions related to Columns.
 type Index struct {
-	// IsUnique indicates whether the index is for a unique index
+	// IsUnique indicates whether the index is unique
 	IsUnique bool
 	// Columns are the columns that are part of the index
 	Columns []*Column
 }
 
 func (i *Index) Name() string {
-	return anyutil.Join(i.Columns, "")
+	return anyutil.Join(i.Columns, "_")
 }

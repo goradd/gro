@@ -265,13 +265,23 @@ type `); err != nil {
 
 		}
 
-		if col.IsReference() {
+	}
+
+	if table.HasReferences() {
+
+		if _, err = io.WriteString(_w, `
+    // Referenced objects.
+`); err != nil {
+			return
+		}
+
+		for _, ref := range table.References {
 
 			if _, err = io.WriteString(_w, `	`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, ref.VariableIdentifier()); err != nil {
 				return
 			}
 
@@ -279,7 +289,7 @@ type `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
+			if _, err = io.WriteString(_w, ref.GoType()); err != nil {
 				return
 			}
 
@@ -292,7 +302,7 @@ type `); err != nil {
 
 	}
 
-	if len(table.ReverseReferences) > 0 {
+	if table.HasReverseReferences() {
 
 		if _, err = io.WriteString(_w, `
     // Reverse reference objects.
@@ -300,15 +310,15 @@ type `); err != nil {
 			return
 		}
 
-		for _, col := range table.ReverseReferences {
+		for _, ref := range table.ReverseReferences {
 
-			if col.IsUnique {
+			if ref.Column.IsUnique {
 
 				if _, err = io.WriteString(_w, `    `); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, ref.ReverseVariableIdentifier()); err != nil {
 					return
 				}
 
@@ -316,7 +326,7 @@ type `); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.Table.Identifier); err != nil {
+				if _, err = io.WriteString(_w, ref.Table.Identifier); err != nil {
 					return
 				}
 
@@ -325,7 +335,7 @@ type `); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, ref.ReverseVariableIdentifier()); err != nil {
 					return
 				}
 
@@ -340,7 +350,7 @@ type `); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, ref.ReverseVariableIdentifier()); err != nil {
 					return
 				}
 
@@ -348,7 +358,7 @@ type `); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.Table.PrimaryKeyGoType()); err != nil {
+				if _, err = io.WriteString(_w, ref.Column.Table.PrimaryKeyGoType()); err != nil {
 					return
 				}
 
@@ -356,7 +366,7 @@ type `); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.Table.Identifier); err != nil {
+				if _, err = io.WriteString(_w, ref.Table.Identifier); err != nil {
 					return
 				}
 
@@ -365,7 +375,7 @@ type `); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, ref.ReverseVariableIdentifier()); err != nil {
 					return
 				}
 
@@ -380,7 +390,7 @@ type `); err != nil {
 
 	}
 
-	if len(table.ManyManyReferences) > 0 {
+	if table.HasManyManyReferences() {
 
 		if _, err = io.WriteString(_w, `
 // Many-Many reference objects.
@@ -794,7 +804,7 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 		return
 	}
 
-	if pk := table.PrimaryKeyColumn(); pk != nil && pk.IsAutoPK {
+	if pk := table.PrimaryKeyColumn(); pk != nil && pk.IsAutoPk {
 
 		if _, err = io.WriteString(_w, `// The primary key will get a temporary negative number which will be replaced when the object is saved.
 // Multiple calls to Initialize are not guaranteed to create sequential values for the primary key.
@@ -819,7 +829,7 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 
 	for _, col := range table.Columns {
 
-		if col.IsAutoPK {
+		if col.IsAutoPk {
 
 			if _, err = io.WriteString(_w, `    o.`); err != nil {
 				return
@@ -1470,7 +1480,7 @@ func (tmpl *TableBaseTemplate) genColSetter(table *model.Table, col *model.Colum
 			return
 		}
 
-		if col.IsAutoPK {
+		if col.IsAutoPk {
 
 			if _, err = io.WriteString(_w, `// Normally you will not need to call this function, since the `); err != nil {
 				return
@@ -2081,7 +2091,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if col.IsAutoPK {
+		if col.IsAutoPk {
 
 			if _, err = io.WriteString(_w, `// Normally you will not need to call this function, since the `); err != nil {
 				return
@@ -2189,7 +2199,7 @@ func (o *`); err != nil {
 
 		}
 
-		if !col.IsAutoPK {
+		if !col.IsAutoPk {
 
 			if _, err = io.WriteString(_w, `	if o._restored &&
 	    o.`); err != nil {
@@ -8029,7 +8039,7 @@ func (o *`); err != nil {
 
 	for _, col := range table.SettableColumns() {
 
-		if col.IsUnique && !col.IsAutoPK {
+		if col.IsUnique && !col.IsAutoPk {
 
 			if _, err = io.WriteString(_w, `    if o.`); err != nil {
 				return
@@ -9649,7 +9659,7 @@ func (o *`); err != nil {
 
 	for _, col := range table.SettableColumns() {
 
-		if !col.IsAutoPK && !col.IsNullable {
+		if !col.IsAutoPk && !col.IsNullable {
 
 			if _, err = io.WriteString(_w, `    if !o.`); err != nil {
 				return
@@ -9688,7 +9698,7 @@ func (o *`); err != nil {
 
 	for _, col := range table.SettableColumns() {
 
-		if col.IsUnique && !col.IsAutoPK {
+		if col.IsUnique && !col.IsAutoPk {
 
 			if _, err = io.WriteString(_w, `    if o.`); err != nil {
 				return
@@ -10639,7 +10649,7 @@ func (o *`); err != nil {
 
 	for _, col := range table.Columns {
 
-		if col.IsAutoPK {
+		if col.IsAutoPk {
 
 			if _, err = io.WriteString(_w, `    if o.`); err != nil {
 				return

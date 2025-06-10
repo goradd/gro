@@ -12,7 +12,7 @@ const Version = 1
 // Database is a description of the structure of the data in a database that is agnostic of the type
 // of the database, including whether its SQL or NoSQL.
 //
-// The purpose is to create a structure that is as easy as possible to be specified by humans minimalistically,
+// The purpose is to create a structure that is as easy as possible to be specified by humans,
 // with many of the values being optional as they can be inferred from other values.
 //
 // See model.Database for the structure that is presented to the code generator and that is based on this structure.
@@ -88,7 +88,7 @@ func (db *Database) FillDefaults() {
 	}
 
 	for _, t := range db.AssociationTables {
-		t.fillDefaults(db.AssnTableSuffix)
+		t.fillDefaults(db)
 	}
 }
 
@@ -102,8 +102,9 @@ func (db *Database) infer() error {
 			return err
 		}
 	}
+
 	for _, t := range db.AssociationTables {
-		if err := t.infer(db, db.AssnTableSuffix); err != nil {
+		if err := t.infer(db); err != nil {
 			return err
 		}
 	}
@@ -125,7 +126,7 @@ func (db *Database) FindTable(name string) *Table {
 // name should be schema.table if the table has a schema specified.
 func (db *Database) FindEnumTable(name string) *EnumTable {
 	for _, t := range db.EnumTables {
-		if t.QualifiedName() == name {
+		if t.QualifiedTableName() == name {
 			return t
 		}
 	}
@@ -141,6 +142,9 @@ func (db *Database) Clean() error {
 	return nil
 }
 
+// To deal with the special case of a reference being a primary key, and referring to another
+// table that has the same thing, and so the additional possibility of a circular reference,
+// we create a sorted list of tables.
 // sort will sort the Tables, EnumTables and AssociationTables into a predictable order that also
 // orders the tables so that earlier tables do not reference later tables.
 func (db *Database) sort() {
@@ -155,14 +159,12 @@ func (db *Database) sort() {
 		var newTables []*Table
 	nexttable:
 		for t := range unusedTables.All() {
-			for _, col := range t.Columns {
-				if col.Type == ColTypeReference {
-					// skip this table if it has references to a table we have not yet seen
-					if !slices.ContainsFunc(db.Tables, func(t2 *Table) bool { return t2.Name == col.Reference.Table }) &&
-						!slices.ContainsFunc(newTables, func(t2 *Table) bool { return t2.Name == col.Reference.Table }) &&
-						t.Name != col.Reference.Table {
-						continue nexttable
-					}
+			for _, ref := range t.References {
+				// skip this table if it has references to a table we have not yet seen
+				if !slices.ContainsFunc(db.Tables, func(t2 *Table) bool { return t2.Name == ref.Table }) &&
+					!slices.ContainsFunc(newTables, func(t2 *Table) bool { return t2.Name == ref.Table }) &&
+					t.Name != ref.Table {
+					continue nexttable
 				}
 			}
 			// This has no forward references we care about
@@ -184,25 +186,24 @@ func (db *Database) sort() {
 			break
 		}
 		if len(newTables) == 0 {
-			// circular references are what is left, so just add everything and return
-			db.Tables = append(db.Tables, unusedTables.Values()...)
-			break
+			// circular references are what is left
+			panic("database has circular primary key references")
 		}
 	}
 
 	slices.SortFunc(db.EnumTables, func(a, b *EnumTable) int {
-		if a.Name < b.Name {
+		if a.QualifiedTableName() < b.QualifiedTableName() {
 			return -1
 		} else {
-			return anyutil.If(a.Name > b.Name, 1, 0)
+			return anyutil.If(a.QualifiedTableName() > b.QualifiedTableName(), 1, 0)
 		}
 	})
 
 	slices.SortFunc(db.AssociationTables, func(a, b *AssociationTable) int {
-		if a.Name < b.Name {
+		if a.QualifiedTableName() < b.QualifiedTableName() {
 			return -1
 		} else {
-			return anyutil.If(a.Name > b.Name, 1, 0)
+			return anyutil.If(a.QualifiedTableName() > b.QualifiedTableName(), 1, 0)
 		}
 	})
 

@@ -41,17 +41,16 @@ func TestDB_CreateSchema(t *testing.T) {
 			d, err := NewDB("test", mysqlConnectionString, nil)
 			require.NoError(t, err)
 
-			ctx := d.NewContext(context.Background())
+			ctx := context.Background()
 
 			// prep
-			s1 := tt.schema() // <== use dynamic schema generator
-			_ = d.DestroySchema(ctx, s1)
+			s1 := tt.schema()
+			d.DestroySchema(ctx, s1)
 
 			err = d.CreateSchema(ctx, s1)
 
 			defer func() {
-				err := d.DestroySchema(ctx, s1)
-				assert.NoError(t, err)
+				d.DestroySchema(ctx, s1)
 			}()
 
 			assert.NoError(t, err)
@@ -127,22 +126,16 @@ func sampleSchema() schema.Database {
 						Size: 200,
 					},
 					{
-						Name:       "user_id",
-						Type:       schema.ColTypeReference,
-						IsNullable: false,
-						IndexLevel: schema.IndexLevelIndexed, // foreign keys are always indexed
-						Reference: &schema.Reference{
-							Table: "user",
-						},
-					},
-					{
 						Name:       "status_enum",
 						Type:       schema.ColTypeEnum,
 						IsNullable: false,
 						IndexLevel: schema.IndexLevelIndexed, // foreign keys are always indexed
-						Reference: &schema.Reference{
-							Table: "post_status_enum",
-						},
+						EnumTable:  "post_status_enum",
+					},
+				},
+				References: []*schema.Reference{
+					{
+						Table: "user",
 					},
 				},
 			},
@@ -163,9 +156,20 @@ func sampleSchema() schema.Database {
 			},
 		},
 		AssociationTables: []*schema.AssociationTable{
-			{Name: "rel_assn", Table1: "user", Name1: "user_id", Table2: "post", Name2: "post_id"},
+			{
+				Table: "uer_post_assn",
+				Ref1: schema.AssociationReference{
+					Table:  "user",
+					Column: "user_id",
+				},
+				Ref2: schema.AssociationReference{
+					Table:  "post",
+					Column: "post_id",
+				},
+			},
 		},
 	}
+
 	if err := db.Clean(); err != nil {
 		panic(err)
 	}
@@ -192,7 +196,7 @@ func sampleSchemaWithCollation() schema.Database {
 						Type:               schema.ColTypeString,
 						Size:               100,
 						IsNullable:         false,
-						DatabaseDefinition: map[string]map[string]interface{}{"mysql": map[string]interface{}{"collation": "utf8mb4_bin"}},
+						DatabaseDefinition: map[string]map[string]interface{}{"mysql": {"collation": "utf8mb4_bin"}},
 					},
 				},
 			},

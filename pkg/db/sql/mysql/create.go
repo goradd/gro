@@ -2,6 +2,7 @@ package mysql
 
 import (
 	"fmt"
+	"github.com/goradd/anyutil"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/schema"
 	"log/slog"
@@ -9,54 +10,72 @@ import (
 )
 
 // TableDefinitionSql will return the sql needed to create the table.
-// This can include clauses separated by semicolons that add additional capabilities to the table.
-func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) string {
+// This can include clauses separated by semicolons.
+// All the returned tableSql items will be executed for all tables before extraSql will be executed.
+// This allows extraSql to refer to other tables in the schema that might not have been created yet,
+// and is particularly useful for handling cyclic foreign key references.
+func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) (tableSql string, extraSql string) {
 	var sb strings.Builder
 
-	var pkCount int
 	var columnDefs []string
 	var tableClauses []string
 	var extraClauses []string
 
 	for _, col := range table.Columns {
-		if col.IsPrimaryKey() {
-			pkCount++
-			if pkCount > 1 {
-				slog.Error("Table skipped. Table has more than one primary key column",
-					slog.String(db.LogTable, table.Name))
-				return ""
-			}
-		}
-		colDef, tc, xc := m.buildColumnDef(d, col)
-		if colDef == "" {
+		cc, tc, xc := m.buildColumnDef(col)
+		if cc == "" {
 			continue // error, already reported
 		}
-		columnDefs = append(columnDefs, "  "+colDef)
+		columnDefs = append(columnDefs, cc)
+		tableClauses = append(tableClauses, tc...)
+		extraClauses = append(extraClauses, xc...)
+	}
+
+	// Build the primary key
+	var pks []string
+	for _, c := range table.Columns {
+		if c.IndexLevel == schema.IndexLevelPrimaryKey {
+			pks = append(pks, c.Name)
+		}
+	}
+	if len(pks) == 0 {
+		slog.Error("Table skipped. Table has no primary key",
+			slog.String(db.LogTable, table.Name))
+		return "", ""
+	}
+	def := m.indexSql(schema.IndexLevelPrimaryKey, pks...)
+	tableClauses = append(tableClauses, def)
+
+	// build the foreign keys
+	for _, ref := range table.References {
+		cc, tc, xc := m.buildReferenceDef(d, table, ref)
+		if tc == nil {
+			continue // error, already reported
+		}
+		columnDefs = append(columnDefs, cc)
 		tableClauses = append(tableClauses, tc...)
 		extraClauses = append(extraClauses, xc...)
 	}
 
 	// Multi-column indexes
-	for _, mci := range table.MultiColumnIndexes {
-		cols := make([]string, len(mci.Columns))
-		for i, name := range mci.Columns {
-			cols[i] = m.QuoteIdentifier(name)
-		}
-		var idxType string
-		switch mci.IndexLevel {
-		case schema.IndexLevelManualPrimaryKey:
-			idxType = "PRIMARY KEY"
-		case schema.IndexLevelUnique:
-			idxType = "UNIQUE INDEX"
-		case schema.IndexLevelIndexed:
-			idxType = "INDEX"
-		default:
-			slog.Error("Index skipped. Unknown index level in multi-column index",
+MCI:
+	for _, mci := range table.Indexes {
+		// Validate
+		if mci.IndexLevel == schema.IndexLevelPrimaryKey {
+			slog.Error("Index skipped. Multi-column index cannot be a primary key",
 				slog.String(db.LogTable, table.Name))
 			continue
 		}
-		idxCols := strings.Join(cols, ", ")
-		def := fmt.Sprintf("%s (%s)", idxType, idxCols)
+		for _, i := range mci.Columns {
+			if c := table.FindColumn(i); c == nil {
+				slog.Error("Index skipped. Column in multi-column index was not found",
+					slog.String(db.LogTable, table.Name),
+					slog.String(db.LogColumn, i),
+				)
+				continue MCI
+			}
+		}
+		def := m.indexSql(mci.IndexLevel, mci.Columns...)
 		tableClauses = append(tableClauses, def)
 	}
 	columnDefs = append(columnDefs, tableClauses...)
@@ -69,15 +88,14 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) string 
 	if table.Comment != "" {
 		sb.WriteString(fmt.Sprintf(` COMMENT='%s'`, table.Comment))
 	}
-	sb.WriteString(";\n")
-	sb.WriteString(strings.Join(extraClauses, ";\n"))
-	return sb.String()
+	return sb.String(), strings.Join(extraClauses, ";\n")
 }
 
-// buildColumnDef returns the sql that will create the column col.
-// tableClauses will be included within the Create Table definition
-// extraClauses will be executed outside the table definition
-func (m *DB) buildColumnDef(d *schema.Database, col *schema.Column) (s string, tableClauses []string, extraClauses []string) {
+// buildColumnDef returns the sql that will create the column col, including related indexes and foreign keys.
+// columnClause is the column definition.
+// tableClauses will be included within the Create Table definition after the column clauses.
+// extraClauses will be executed outside the table definition after all tables and their columns have been created.
+func (m *DB) buildColumnDef(col *schema.Column) (columnClause string, tableClauses []string, extraClauses []string) {
 	var colType string
 	var collation string
 	var defaultStr string
@@ -93,55 +111,22 @@ func (m *DB) buildColumnDef(d *schema.Database, col *schema.Column) (s string, t
 			defaultStr = " DEFAULT " + d
 		}
 	}
-	if col.Type == schema.ColTypeReference {
-		if col.Reference == nil || col.Reference.Table == "" {
-			slog.Error("Column skipped, Reference with a Table value is required",
-				slog.String(db.LogColumn, col.Name))
-			return
-		}
-		// match the referenced column's type
-		t := d.FindTable(col.Reference.Table)
-		if t == nil {
-			slog.Error("Column skipped, ref table not found",
-				slog.String(db.LogTable, col.Reference.Table),
-				slog.String(db.LogColumn, col.Name))
-		}
-		c := t.PrimaryKeyColumn()
-		if c == nil {
-			slog.Error("Column skipped, reference table does not have a primary key",
-				slog.String(db.LogTable, col.Reference.Table))
-		}
-		if colType == "" {
-			colType = sqlType(c.Type, c.Size, c.SubType, true)
-		}
-
-		// foreign key will automatically index the column
-		fk := fmt.Sprintf(" FOREIGN KEY (%s) REFERENCES %s(%s)", m.QuoteIdentifier(col.Name), m.QuoteIdentifier(t.Name), m.QuoteIdentifier(c.Name))
-		tableClauses = append(tableClauses, fk)
-	} else if col.Type == schema.ColTypeEnum {
-		if col.Reference == nil || col.Reference.Table == "" {
-			slog.Error("Column skipped, Reference with a Table value is required",
+	if col.Type == schema.ColTypeEnum {
+		if col.EnumTable == "" {
+			slog.Error("Column skipped, EnumTable not specified for an enum value.",
 				slog.String(db.LogColumn, col.Name))
 			return
 		}
 
 		// foreign key will automatically index the column
-		fk := fmt.Sprintf(" FOREIGN KEY (%s) REFERENCES %s(%s)", m.QuoteIdentifier(col.Name), m.QuoteIdentifier(col.Reference.Table), m.QuoteIdentifier("const"))
+		fk := fmt.Sprintf(" FOREIGN KEY (%s) REFERENCES %s(%s)",
+			m.QuoteIdentifier(col.Name),
+			m.QuoteIdentifier(col.EnumTable),
+			m.QuoteIdentifier("const"))
 		tableClauses = append(tableClauses, fk)
 		colType = "INT"
 	} else {
-		colType = sqlType(col.Type, col.Size, col.SubType, false)
-
-		switch col.IndexLevel {
-		case schema.IndexLevelIndexed:
-			tableClauses = append(tableClauses, fmt.Sprintf(" INDEX (%s)", m.QuoteIdentifier(col.Name)))
-		case schema.IndexLevelUnique:
-			tableClauses = append(tableClauses, fmt.Sprintf(" UNIQUE (%s)", m.QuoteIdentifier(col.Name)))
-		case schema.IndexLevelManualPrimaryKey:
-			tableClauses = append(tableClauses, fmt.Sprintf(" PRIMARY KEY (%s)", m.QuoteIdentifier(col.Name)))
-		default:
-			// do nothing
-		}
+		colType = sqlType(col.Type, col.Size, col.SubType)
 	}
 
 	if !col.IsNullable {
@@ -174,20 +159,95 @@ func (m *DB) buildColumnDef(d *schema.Database, col *schema.Column) (s string, t
 		commentStr = fmt.Sprintf("COMMENT '%s'", commentStr)
 	}
 
-	s = fmt.Sprintf("%s %s %s %s %s %s", m.QuoteIdentifier(col.Name), colType, defaultStr, extraStr, collation, commentStr)
+	columnClause = fmt.Sprintf("%s %s %s %s %s %s", m.QuoteIdentifier(col.Name), colType, defaultStr, extraStr, collation, commentStr)
+	return
+}
+
+func (m *DB) indexSql(level schema.IndexLevel, cols ...string) string {
+	var idxType string
+	switch level {
+	case schema.IndexLevelPrimaryKey:
+		idxType = "PRIMARY KEY"
+	case schema.IndexLevelUnique:
+		idxType = "UNIQUE INDEX"
+	case schema.IndexLevelIndexed:
+		idxType = "INDEX"
+	default:
+		return ""
+	}
+	cols = anyutil.MapSliceFunc(cols, func(s string) string {
+		return m.QuoteIdentifier(s)
+	})
+	idxCols := strings.Join(cols, ", ")
+	def := fmt.Sprintf("%s (%s)", idxType, idxCols)
+	return def
+}
+
+func (m *DB) buildReferenceDef(d *schema.Database, table *schema.Table, ref *schema.Reference) (columnClause string, tableClauses, extraClauses []string) {
+	if ref.Table == "" {
+		// Should be already checked in schema infer.
+		slog.Error("Reference skipped, Reference with a Table value is required")
+		return
+	}
+	// match the referenced column's type
+	t := d.FindTable(ref.Table)
+	if t == nil {
+		// Should be already checked in schema infer.
+		slog.Error("Reference skipped, Table not found",
+			slog.String(db.LogTable, ref.Table))
+		return
+	}
+	pkCol := t.PrimaryKeyColumn()
+	if pkCol == nil {
+		slog.Error("Column skipped, could not find a primary key",
+			slog.String(db.LogTable, ref.Table))
+		return
+	}
+
+	colType := pkCol.Type
+	if colType == schema.ColTypeAutoPrimaryKey {
+		colType = schema.ColTypeInt
+	}
+	indexLevel := schema.IndexLevelIndexed
+	if ref.IsUnique {
+		indexLevel = schema.IndexLevelUnique
+	}
+
+	col := schema.Column{
+		Name:       ref.Column,
+		Type:       colType,
+		SubType:    pkCol.SubType,
+		Size:       pkCol.Size,
+		IsNullable: ref.IsNullable,
+		IndexLevel: indexLevel,
+	}
+
+	columnClause, tableClauses, extraClauses = m.buildColumnDef(&col)
+	if tableClauses == nil {
+		return
+	}
+
+	// Make a constraint name that will be unique within the database and logically related to the relationship.
+	constraintName := table.Name + "_" + ref.Column + "_fk"
+
+	// We use alter table after all tables are created in case of cyclic foreign keys.
+	fk := fmt.Sprintf("ALTER TABLE %s ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s(%s)",
+		m.QuoteIdentifier(table.Name),
+		m.QuoteIdentifier(constraintName),
+		m.QuoteIdentifier(ref.Column),
+		m.QuoteIdentifier(ref.Table),
+		m.QuoteIdentifier(pkCol.Name))
+	extraClauses = append(extraClauses, fk)
 	return
 }
 
 // SqlType is used by the builder to return the SQL corresponding to the given colType that will create
 // the column.
 // If forReference is true, then it returns the SQL for creating a reference to the column.
-func sqlType(colType schema.ColumnType, size uint64, subType schema.ColumnSubType, forReference bool) string {
+func sqlType(colType schema.ColumnType, size uint64, subType schema.ColumnSubType) string {
 	switch colType {
 	case schema.ColTypeAutoPrimaryKey:
 		typ := intType(size, false)
-		if !forReference {
-			typ += " AUTO_INCREMENT PRIMARY KEY"
-		}
 		return typ
 	case schema.ColTypeString:
 		if subType == schema.ColSubTypeNumeric {
@@ -241,8 +301,6 @@ func sqlType(colType schema.ColumnType, size uint64, subType schema.ColumnSubTyp
 				slog.String("subtype", subType.String()))
 		}
 		return "DATETIME"
-	case schema.ColTypeReference:
-		return intType(size, false)
 	case schema.ColTypeEnum:
 		return "INT"
 	case schema.ColTypeJSON:

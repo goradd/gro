@@ -1,7 +1,10 @@
 package schema
 
 import (
+	"fmt"
 	strings2 "github.com/goradd/strings"
+	"strings"
+	"time"
 )
 
 // Table represents the metadata for a table in the database.
@@ -32,10 +35,16 @@ type Table struct {
 	// Columns is a list of Column objects, one for each column in the table.
 	Columns []*Column `json:"columns"`
 
-	// MultiColumnIndexes will be used to generate multi-column getter functions.
-	// In databases that support indexes, this will create a multi-column index in the database.
-	// Single-column indexes are defined in the Column structure.
-	MultiColumnIndexes []MultiColumnIndex `json:"multi_column_indexes,omitempty"`
+	// References is a list of links to other tables, also known as foreign keys.
+	References []*Reference `json:"references,omitempty"`
+
+	// Indexes will be used to generate additional indexes and getter functions.
+	// Single-column indexes can also be defined in Column and Reference.
+	// You can use this to specify multiple types of indexes on the same column(s), including a
+	// composite primary key. Note that some databases do not support composite primary keys and
+	// will convert a composite primary key to a composite unique key, and then will automatically
+	// generate a single unique primary key.
+	Indexes []Index `json:"indexes,omitempty"`
 
 	// Identifier is the corresponding Go object name.
 	// It must obey Go identifier labeling rules.
@@ -73,10 +82,62 @@ func (t *Table) QualifiedName() string {
 }
 
 func (t *Table) infer(db *Database) error {
+	if strings.ContainsRune(t.Name, '.') {
+		return fmt.Errorf("table name %q cannot contain a period", t.Name)
+	}
+	if strings.ContainsRune(t.Schema, '.') {
+		return fmt.Errorf("table schema %q cannot contain a period", t.Schema)
+	}
+
+	if t.WriteTimeout != "" {
+		if _, err := time.ParseDuration(t.WriteTimeout); err != nil {
+			return fmt.Errorf("invalid WriteTimeout %q: %w", t.WriteTimeout, err)
+		}
+	}
+	if t.ReadTimeout != "" {
+		if _, err := time.ParseDuration(t.ReadTimeout); err != nil {
+			return fmt.Errorf("invalid ReadTimeout %q: %w", t.ReadTimeout, err)
+		}
+	}
+
+	if len(t.Columns) == 0 && len(t.References) == 0 {
+		return fmt.Errorf("table %q does not have any columns or references", t.QualifiedName())
+	}
+
 	for _, c := range t.Columns {
 		if err := c.infer(db, t); err != nil {
 			return err
 		}
+		if c.IndexLevel != IndexLevelNone {
+			t.Indexes = append(t.Indexes, Index{IndexLevel: c.IndexLevel, Columns: []string{c.Name}})
+		}
+	}
+
+	for _, ref := range t.References {
+		if err := ref.infer(db, t); err != nil {
+			return err
+		}
+		if ref.IndexLevel == IndexLevelNone {
+			if !t.columnIsIndexed(ref.Column) {
+				ref.IndexLevel = IndexLevelIndexed
+			}
+		}
+		if ref.IndexLevel != IndexLevelNone {
+			t.Indexes = append(t.Indexes, Index{IndexLevel: ref.IndexLevel, Columns: []string{ref.Column}})
+		}
+	}
+
+	var hasPk bool
+	for _, m := range t.Indexes {
+		if m.IndexLevel == IndexLevelPrimaryKey {
+			if hasPk {
+				return fmt.Errorf("table %s cannot have multiple primary keys", t.QualifiedName())
+			}
+			hasPk = true
+		}
+	}
+	if !hasPk {
+		return fmt.Errorf("table %s has no primary key", t.QualifiedName())
 	}
 	return nil
 }
@@ -95,16 +156,43 @@ func (t *Table) fillDefaults(db *Database) {
 		t.LabelPlural = strings2.Plural(t.Label)
 	}
 	for _, c := range t.Columns {
-		c.fillDefaults(db, t)
+		c.fillDefaults()
+	}
+	for _, r := range t.References {
+		r.fillDefaults(db, t)
 	}
 }
 
-// PrimaryKeyColumn returns the primary key column of the table, or nil if not found.
-func (t *Table) PrimaryKeyColumn() *Column {
+// PrimaryKeyColumns returns the names of the primary key columns of the table, or nil if not found.
+// Note that these names may refer to references.
+// This only works after infer has been called.
+func (t *Table) PrimaryKeyColumns() []string {
+	for _, i := range t.Indexes {
+		if i.IndexLevel == IndexLevelPrimaryKey {
+			return i.Columns
+		}
+	}
+	return nil
+}
+
+// FindColumn returns the named column of the table, or nil if not found.
+// Will not find columns that are references though.
+func (t *Table) FindColumn(n string) *Column {
 	for _, c := range t.Columns {
-		if c.IsPrimaryKey() {
+		if c.Name == n {
 			return c
 		}
 	}
 	return nil
+}
+
+func (t *Table) columnIsIndexed(n string) bool {
+	for _, i := range t.Indexes {
+		for _, c := range i.Columns {
+			if c == n {
+				return true
+			}
+		}
+	}
+	return false
 }

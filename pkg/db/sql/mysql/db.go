@@ -9,6 +9,7 @@ import (
 	"github.com/goradd/orm/pkg/db"
 	sql2 "github.com/goradd/orm/pkg/db/sql"
 	. "github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
 	"strings"
 	"time"
 )
@@ -55,7 +56,7 @@ import (
 //
 // Be aware that when you view the data in SQL, it will appear in whatever timezone the MYSQL server is set to.
 type DB struct {
-	sql2.DbHelper
+	sql2.Base
 	databaseName     string
 	isMariaDB        bool
 	defaultCollation string
@@ -85,7 +86,7 @@ func NewDB(dbKey string,
 	}
 
 	m := new(DB)
-	m.DbHelper = sql2.NewSqlHelper(dbKey, db3, m)
+	m.Base = sql2.NewBase(dbKey, db3, m)
 	if config != nil {
 		m.databaseName = config.DBName // save off the database name for later use
 	} else {
@@ -286,4 +287,82 @@ func (m *DB) Update(ctx context.Context,
 		} */
 	}
 	return
+}
+
+// SetConstraints turns constraints on or off.
+// This operation MUST be done on the same connection as the operations depending on it.
+func (m *DB) SetConstraints(ctx context.Context, on bool) error {
+	arg := 0
+	if on {
+		arg = 1
+	}
+	sqlStr := fmt.Sprintf("SET FOREIGN_KEY_CHECKS = %d", arg)
+	_, err := m.SqlDb().Exec(sqlStr)
+	return err
+}
+
+type contextKey string
+
+func (m *DB) constraintKey() contextKey {
+	return contextKey("GoraddMysqlConstraint-" + m.DbKey())
+}
+
+func (m *DB) getConstraintsOff(ctx context.Context) bool {
+	i := ctx.Value(m.constraintKey())
+	return i != nil
+}
+
+// WithConstraintsOff makes sure operations in f occur with foreign key constraints turned off.
+// As a byproduct of this, the operations will happen on the same pinned connection, meaning the
+// operations should not be long-running so that the connection pool will not run dry.
+// Nested calls will continue to operate with checks off, and the outermost call will turn them on.
+func (m *DB) WithConstraintsOff(ctx context.Context, f func(ctx context.Context) error) (err error) {
+	off := m.getConstraintsOff(ctx)
+	if off {
+		// constraints are already off, so just pass through
+		err = f(ctx)
+		return
+	}
+
+	err = m.WithSameConnection(ctx, func(ctx context.Context) (err error) {
+		ctx = context.WithValue(ctx, m.constraintKey(), true)
+		_, err = m.SqlExec(ctx, "SET FOREIGN_KEY_CHECKS = 0")
+		if err != nil {
+			return
+		}
+		defer func() {
+			_, err = m.SqlExec(ctx, "SET FOREIGN_KEY_CHECKS = 1")
+		}()
+		return f(ctx)
+	})
+
+	return
+}
+
+// DestroySchema removes all the tables listed in the schema.
+//
+// Mysql automatically commits a transaction when dropping a table, so this operation
+// cannot be done within a transaction, and is not reversible.
+// It also handles turning off and on constraints, since that is session wide and so
+// the connection must be controlled.
+func (m *DB) DestroySchema(ctx context.Context, s schema.Database) {
+	// gather table names to delete
+	var tables []string
+
+	for _, table := range s.EnumTables {
+		tables = append(tables, table.QualifiedTableName())
+	}
+	for _, table := range s.Tables {
+		tables = append(tables, table.QualifiedName())
+	}
+	for _, table := range s.AssociationTables {
+		tables = append(tables, table.QualifiedTableName())
+	}
+
+	_ = m.WithConstraintsOff(ctx, func(ctx context.Context) (err error) {
+		for _, table := range tables {
+			_, _ = m.SqlExec(ctx, `DROP TABLE `+m.QuoteIdentifier(table))
+		}
+		return
+	})
 }

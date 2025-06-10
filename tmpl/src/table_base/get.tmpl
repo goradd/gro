@@ -17,20 +17,19 @@ func (o *{{= table.DecapIdentifier}}Base) Get(key string) interface{} {
             return nil
         }
         return o.{{= col.DecapIdentifier }}
-
-	{{if col.IsReference()}}
-    case "{{= col.ReferenceIdentifier() }}":
-        return o.{{= col.ReferenceIdentifier() }}()
-    {{if}}
-
 {{for}}
 
-{{for _,col := range table.ReverseReferences }}
-    case "{{= col.ReverseIdentifier() }}":
-{{if col.IsUnique}}
-        return o.{{= col.ReverseVariableIdentifier() }}
+{{for _,ref := range table.References }}
+    case "{{= ref.Identifier }}":
+        return o.{{= ref.Identifier }}()
+{{for}}
+
+{{for _,ref := range table.ReverseReferences }}
+    case "{{= ref.ReverseIdentifier }}":
+{{if ref.IsUnique() }}
+        return o.{{= ref.ReverseVariableIdentifier() }}
 {{else}}
-        return o.{{= col.ReverseVariableIdentifier() }}.Values()
+        return o.{{= ref.ReverseVariableIdentifier() }}.Values()
 {{if}}
 {{for}}
 

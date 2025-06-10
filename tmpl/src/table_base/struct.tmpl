@@ -17,24 +17,28 @@ type {{= table.DecapIdentifier}}Base struct {
 {{if col.HasSetter() }}
 	{{= col.VariableIdentifier() }}IsDirty bool
 {{if}}
-{{if col.IsReference() }}
-	{{= col.ReferenceVariableIdentifier() }} *{{= col.ReferenceType() }}
-{{if}}
 {{for}}
-{{if len(table.ReverseReferences) > 0 }}
+{{if table.HasReferences() }}
+
+    // Referenced objects.
+{{for _,ref := range table.References}}
+	{{= ref.VariableIdentifier() }} *{{= ref.GoType() }}
+{{for}}
+{{if}}
+{{if table.HasReverseReferences() }}
 
     // Reverse reference objects.
-{{for _,col := range table.ReverseReferences}}
-{{if col.IsUnique}}
-    {{= col.ReverseVariableIdentifier() }} *{{= col.Table.Identifier }}
-    {{= col.ReverseVariableIdentifier() }}IsDirty bool // is a new one being associated
+{{for _,ref := range table.ReverseReferences}}
+{{if ref.Column.IsUnique}}
+    {{= ref.ReverseVariableIdentifier() }} *{{= ref.Table.Identifier }}
+    {{= ref.ReverseVariableIdentifier() }}IsDirty bool // is a new one being associated
 {{else}}
-    {{= col.ReverseVariableIdentifier() }} maps.SliceMap[{{= col.Table.PrimaryKeyGoType() }}, *{{= col.Table.Identifier }}]  // Objects in the order they were queried
-    {{= col.ReverseVariableIdentifier() }}IsDirty bool
+    {{= ref.ReverseVariableIdentifier() }} maps.SliceMap[{{= ref.Column.Table.PrimaryKeyGoType() }}, *{{= ref.Table.Identifier }}]  // Objects in the order they were queried
+    {{= ref.ReverseVariableIdentifier() }}IsDirty bool
 {{if}}
 {{for}}
 {{if}}
-{{if len(table.ManyManyReferences) > 0}}
+{{if table.HasManyManyReferences() }}
 
 // Many-Many reference objects.
 {{for _,mm := range table.ManyManyReferences }}

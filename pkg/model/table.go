@@ -7,7 +7,6 @@ import (
 	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
 	"log/slog"
-	"slices"
 	"strings"
 	"time"
 )
@@ -35,16 +34,13 @@ type Table struct {
 	IdentifierPlural string
 	// DecapIdentifier is the same as Identifier, but the first letter is lower case.
 	DecapIdentifier string
-	// Columns is a list of Columns, one for each column in the table.
-	// The primary keys are sorted to the front.
+	// Columns is a list of Columns, one for each column in the table, but does not include columns in references.
 	Columns []*Column
 	// Indexes are all the indexes defined on the table, single and multi-column, but not primary key.
 	Indexes []Index
 	// Options are key-value pairs of values that can be used to customize how code generation is performed
 	Options map[string]interface{}
-	// columnMap is an internal map of the columns by query name of the column
-	columnMap map[string]*Column
-	// References are all the foreign keys
+	// References are all the foreign keys. References contains additional columns.
 	References []*Reference
 	// ReverseReferences are the columns from other tables, or even this table,
 	// that point to this table.
@@ -53,37 +49,35 @@ type Table struct {
 	ManyManyReferences []*ManyManyReference
 	// The cached optimistic locking column, if one is present
 	lockColumn *Column
+	// columnMap is an internal map of the columns by query name of the column
+	columnMap map[string]*Column
+	// primaryKeyColumns is a cache of the primary key columns, which can include reference columns
+	primaryKeyColumns []*Column
 }
 
-// PrimaryKeyColumn returns the primary key column
+// PrimaryKeyColumn returns a single primary key column if the table is keyed on one column.
+// If not, nil is returned.
 func (t *Table) PrimaryKeyColumn() *Column {
-	if len(t.Columns) == 0 {
+	if len(t.primaryKeyColumns) != 1 {
 		return nil
 	}
-	if !t.Columns[0].IsPrimaryKey {
-		return nil // this is an error. Every table should have a primary key column
-	}
-	return t.Columns[0]
+	return t.primaryKeyColumns[0]
 }
 
-/* Future expansion supporting composite primary keys
 // PrimaryKeyColumns returns a slice of the primary key columns in the table.
+// Note that some of these columns may be part of a reference.
 func (t *Table) PrimaryKeyColumns() []*Column {
-	if len(t.Columns) == 0 {
-		return nil
-	}
-	var count int
-	for _, column := range t.Columns {
-		if column.IsPrimaryKey {
-			count++
-		}
-	}
-	return t.Columns[0:count]
+	return t.primaryKeyColumns
 }
-*/
 
-func (t *Table) PrimaryKeyGoType() string {
-	return t.PrimaryKeyColumn().GoType()
+// PrimaryKeyGoTypes returns a comma separated list of types for the primary keys, such that it can be
+// used in a return value list.
+func (t *Table) PrimaryKeyGoTypes() string {
+	var s []string
+	for _, column := range t.PrimaryKeyColumns() {
+		s = append(s, column.GoType())
+	}
+	return strings.Join(s, ", ")
 }
 
 // ColumnByName returns a Column given the query name of the column,
@@ -123,13 +117,22 @@ func (t *Table) HasGetterName(name string) (hasName bool, desc string) {
 		if c.Identifier == name {
 			return false, "conflicts with column " + c.Identifier
 		}
-		for _, rr := range t.ReverseReferences {
-			if rr.ReverseIdentifier == name {
-				return false, "conflicts with reverse reference singular name " + rr.ReverseIdentifier
-			}
-			if rr.ReverseIdentifierPlural == name {
-				return false, "conflicts with reverse reference plural name " + rr.ReverseIdentifierPlural
-			}
+	}
+	for _, ref := range t.References {
+		if ref.Identifier == name {
+			return false, "conflicts with reference " + ref.Identifier
+		}
+		if ref.Column.Identifier == name {
+			return false, "conflicts with reference column " + ref.Column.Identifier
+		}
+	}
+
+	for _, rr := range t.ReverseReferences {
+		if rr.ReverseIdentifier == name {
+			return false, "conflicts with reverse reference singular name " + rr.ReverseIdentifier
+		}
+		if rr.ReverseIdentifierPlural == name {
+			return false, "conflicts with reverse reference plural name " + rr.ReverseIdentifierPlural
 		}
 	}
 
@@ -146,7 +149,9 @@ func (t *Table) HasGetterName(name string) (hasName bool, desc string) {
 
 // HasAutoPK returns true if the table has an automatically generated primary key
 func (t *Table) HasAutoPK() bool {
-	return t.PrimaryKeyColumn().IsAutoPK
+	pk := t.PrimaryKeyColumn()
+
+	return pk != nil && pk.SchemaType == schema.ColTypeAutoPrimaryKey
 }
 
 // SettableColumns returns an array of columns that are settable
@@ -175,35 +180,42 @@ func (t *Table) HasUniqueIndexes() bool {
 	return false
 }
 
-// newTable will import the table provided by tableSchema.
+// HasReferences returns true if the table has at least one forward reference.
+func (t *Table) HasReferences() bool {
+	return len(t.References) > 0
+}
+
+// HasReverseReferences returns true if the table has at least one reverse reference.
+func (t *Table) HasReverseReferences() bool {
+	return len(t.ReverseReferences) > 0
+}
+
+// HasManyManyReferences returns true if the table has at least one many-many reference.
+func (t *Table) HasManyManyReferences() bool {
+	return len(t.ManyManyReferences) > 0
+}
+
+// importTable will import the table provided by tableSchema.
 // If an error occurs, it is logged and nil is returned.
-func newTable(dbKey string, tableSchema *schema.Table) *Table {
-	if strings.ContainsRune(tableSchema.Name, '.') {
-		slog.Error("Table name cannot contain a period.",
-			slog.String(db.LogTable, tableSchema.Name))
-		return nil
+// There are a number of dependencies here, so code order is important.
+func (m *Database) importTable(tableSchema *schema.Table,
+	writeTimeout time.Duration,
+	readTimeout time.Duration,
+) {
+
+	// Override database wide timeouts with local values
+	if tableSchema.WriteTimeout != "" {
+		writeTimeout, _ = time.ParseDuration(tableSchema.WriteTimeout)
 	}
-	if strings.ContainsRune(tableSchema.Schema, '.') {
-		slog.Error("Schema name cannot contain a period.",
-			slog.String("schema", tableSchema.Schema))
-		return nil
+	if tableSchema.ReadTimeout != "" {
+		readTimeout, _ = time.ParseDuration(tableSchema.ReadTimeout)
 	}
 
-	queryName := strings2.If(tableSchema.Schema == "", tableSchema.Name, tableSchema.Schema+"."+tableSchema.Name)
-	var timeout time.Duration
-	if tableSchema.WriteTimeout != "" {
-		var err error
-		timeout, err = time.ParseDuration(tableSchema.WriteTimeout)
-		if err != nil {
-			slog.Warn("invalid timeout",
-				slog.Any(db.LogError, err))
-			timeout = 0
-		}
-	}
 	t := &Table{
-		DbKey:            dbKey,
-		WriteTimeout:     timeout,
-		QueryName:        queryName,
+		DbKey:            m.Key,
+		WriteTimeout:     writeTimeout,
+		ReadTimeout:      readTimeout,
+		QueryName:        tableSchema.QualifiedName(),
 		Label:            tableSchema.Label,
 		LabelPlural:      tableSchema.LabelPlural,
 		Identifier:       tableSchema.Identifier,
@@ -215,62 +227,65 @@ func newTable(dbKey string, tableSchema *schema.Table) *Table {
 	t.DecapIdentifier = strings2.Decap(tableSchema.Identifier)
 
 	if t.Identifier == t.IdentifierPlural {
-		slog.Error("Table is using a plural name",
+		slog.Error("Table skipped. Table identifier is plural word.",
 			slog.String(db.LogTable, t.QueryName))
-		return nil
-	}
-
-	if len(tableSchema.Columns) == 0 {
-		slog.Error("Table has no columns",
-			slog.String(db.LogTable, t.QueryName))
-		return nil
+		return
 	}
 
 	for _, schemaCol := range tableSchema.Columns {
-		newCol := newColumn(schemaCol)
+		newCol := m.importColumn(schemaCol)
 		newCol.Table = t
-		if (newCol.SchemaSubType == schema.ColSubTypeTimestamp ||
-			newCol.SchemaSubType == schema.ColSubTypeLock) && newCol.IsNullable {
-			slog.Warn("Column should not be nullable. Nullable status will be ignored.",
+		t.Columns = append(t.Columns, newCol)
+		if _, ok := t.columnMap[newCol.QueryName]; ok {
+			slog.Error("Table skipped. Table has two columns with the same name.",
 				slog.String(db.LogTable, t.QueryName),
-				slog.String(db.LogColumn, newCol.QueryName))
-			newCol.IsNullable = false
-		}
-
-		if newCol.IsPrimaryKey {
-			t.Columns = slices.Insert(t.Columns, 0, newCol)
-		} else {
-			t.Columns = append(t.Columns, newCol)
+				slog.String(db.LogColumn, newCol.QueryName),
+			)
+			return
 		}
 		t.columnMap[newCol.QueryName] = newCol
-		if schemaCol.IndexLevel == schema.IndexLevelIndexed ||
-			schemaCol.IndexLevel == schema.IndexLevelUnique {
-			idx := Index{Columns: []*Column{newCol},
-				IsUnique: schemaCol.IndexLevel != schema.IndexLevelIndexed}
-			t.Indexes = append(t.Indexes, idx)
-		}
 		if schemaCol.SubType == schema.ColSubTypeLock {
 			t.lockColumn = newCol
 		}
 	}
 
-	for _, idx := range tableSchema.MultiColumnIndexes {
+	// The following relies on the order of tables being processed
+	// such that the referenced tables exist with primary keys.
+	for _, schemaRef := range tableSchema.References {
+		ref := m.importReference(schemaRef)
+		if _, ok := t.columnMap[ref.Column.QueryName]; ok {
+			slog.Error("Table skipped. Reference column name already exists in the table.",
+				slog.String(db.LogTable, t.QueryName),
+				slog.String(db.LogColumn, ref.Column.QueryName),
+			)
+			return
+		}
+		t.columnMap[ref.Column.QueryName] = ref.Column
+		t.References = append(t.References, ref)
+	}
+
+	for _, idx := range tableSchema.Indexes {
 		var columns []*Column
 		for _, name := range idx.Columns {
 			col := t.ColumnByName(name)
 			if col == nil {
-				slog.Error("Cannot find column in multi-column index",
+				slog.Error("Cannot find column in index",
 					slog.String(db.LogTable, t.QueryName),
 					slog.String(db.LogColumn, name))
+				continue
 			} else {
 				columns = append(columns, col)
 			}
 		}
 		if len(columns) > 0 {
-			t.Indexes = append(t.Indexes, Index{IsUnique: idx.IndexLevel == schema.IndexLevelUnique, Columns: columns})
+			if idx.IndexLevel == schema.IndexLevelPrimaryKey {
+				t.primaryKeyColumns = columns
+			} else {
+				t.Indexes = append(t.Indexes, Index{IsUnique: idx.IndexLevel == schema.IndexLevelUnique, Columns: columns})
+			}
 		}
 	}
-	return t
+	m.Tables[t.QueryName] = t
 }
 
 func durationConst(d time.Duration) string {

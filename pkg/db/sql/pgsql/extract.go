@@ -524,10 +524,10 @@ func (m *DB) schemaFromRawTables(rawTables map[string]pgTable, options map[strin
 
 func (m *DB) getTableSchema(t pgTable, enumTableSuffix string) schema.Table {
 	var columnSchemas []*schema.Column
-	var multiColumnPK *schema.MultiColumnIndex
+	var multiColumnPK *schema.Index
 
 	// Build the indexes
-	indexes := make(map[string]*schema.MultiColumnIndex)
+	indexes := make(map[string]*schema.Index)
 	singleIndexes := make(map[string]schema.IndexLevel)
 
 	for _, idx := range t.indexes {
@@ -538,13 +538,13 @@ func (m *DB) getTableSchema(t pgTable, enumTableSuffix string) schema.Table {
 			// create a new index
 			var level schema.IndexLevel
 			if idx.primary {
-				level = schema.IndexLevelManualPrimaryKey
+				level = schema.IndexLevelPrimaryKey
 			} else if idx.unique {
 				level = schema.IndexLevelUnique
 			} else {
 				level = schema.IndexLevelIndexed
 			}
-			mci := &schema.MultiColumnIndex{Columns: []string{idx.columnName}, IndexLevel: level}
+			mci := &schema.Index{Columns: []string{idx.columnName}, IndexLevel: level}
 			indexes[idx.name] = mci
 		}
 	}
@@ -561,7 +561,7 @@ func (m *DB) getTableSchema(t pgTable, enumTableSuffix string) schema.Table {
 			} else {
 				singleIndexes[idx.Columns[0]] = idx.IndexLevel
 			}
-		} else if idx.IndexLevel == schema.IndexLevelManualPrimaryKey {
+		} else if idx.IndexLevel == schema.IndexLevelPrimaryKey {
 			// We have a multi-column primary key
 			multiColumnPK = idx
 		}
@@ -594,7 +594,7 @@ func (m *DB) getTableSchema(t pgTable, enumTableSuffix string) schema.Table {
 		cd := m.getColumnSchema(t, col, singleIndexes[col.name], enumTableSuffix)
 
 		if cd.Type == schema.ColTypeAutoPrimaryKey ||
-			cd.IndexLevel == schema.IndexLevelManualPrimaryKey ||
+			cd.IndexLevel == schema.IndexLevelPrimaryKey ||
 			multiColumnPK != nil && slices.Contains(multiColumnPK.Columns, col.name) {
 			// private keys go first
 			columnSchemas = slices.Insert(columnSchemas, pkCount, &cd)
@@ -614,12 +614,12 @@ func (m *DB) getTableSchema(t pgTable, enumTableSuffix string) schema.Table {
 	// Create the multi-column index array
 	for _, idx := range indexes {
 		if len(idx.Columns) > 1 {
-			td.MultiColumnIndexes = append(td.MultiColumnIndexes, *idx)
+			td.Indexes = append(td.Indexes, *idx)
 		}
 	}
 
-	// Keep the MultiColumnIndexes in a predictable order
-	slices.SortFunc(td.MultiColumnIndexes, func(m1 schema.MultiColumnIndex, m2 schema.MultiColumnIndex) int {
+	// Keep the Indexes in a predictable order
+	slices.SortFunc(td.Indexes, func(m1 schema.Index, m2 schema.Index) int {
 		return slices.Compare(m1.Columns, m2.Columns)
 	})
 

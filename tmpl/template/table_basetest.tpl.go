@@ -126,7 +126,7 @@ func createMinimalSample`); err != nil {
 
 	for _, col := range table.Columns {
 
-		if col.IsPrimaryKey && !col.IsAutoPK {
+		if col.IsPrimaryKey && !col.IsAutoPk {
 
 			if _, err = io.WriteString(_w, `    obj.Set`); err != nil {
 				return
@@ -391,7 +391,7 @@ func createMaximalSample`); err != nil {
 
 	for _, col := range table.Columns {
 
-		if col.IsPrimaryKey && !col.IsAutoPK {
+		if col.IsPrimaryKey && !col.IsAutoPk {
 
 			if _, err = io.WriteString(_w, `    obj.Set`); err != nil {
 				return
@@ -1007,7 +1007,7 @@ func assertEqualFields`); err != nil {
 
 			} else {
 
-				if col.IsAutoPK {
+				if col.IsAutoPk {
 
 					if _, err = io.WriteString(_w, `    val := 	test.RandomNumberString()
 `); err != nil {
@@ -1339,7 +1339,7 @@ func Test`); err != nil {
 
 		for _, col := range table.SettableColumns() {
 
-			if !col.IsAutoPK {
+			if !col.IsAutoPk {
 
 				if _, err = io.WriteString(_w, `    assert.Equal(t, obj.`); err != nil {
 					return
@@ -1595,7 +1595,7 @@ func Test`); err != nil {
 
 		for _, col := range table.SettableColumns() {
 
-			if !col.IsAutoPK && !col.IsNullable {
+			if !col.IsAutoPk && !col.IsNullable {
 
 				if col.IsReference() {
 
@@ -3134,7 +3134,7 @@ func Test`); err != nil {
 			return
 		}
 
-		if table.PrimaryKeyColumn().IsAutoPK {
+		if table.PrimaryKeyColumn().IsAutoPk {
 
 			if _, err = io.WriteString(_w, `    i,err := strconv.Atoi(obj.`); err != nil {
 				return
@@ -3193,7 +3193,7 @@ func Test`); err != nil {
 			return
 		}
 
-		if table.PrimaryKeyColumn().IsAutoPK {
+		if table.PrimaryKeyColumn().IsAutoPk {
 
 			if _, err = io.WriteString(_w, `    i,err := strconv.Atoi(obj.`); err != nil {
 				return
@@ -3257,7 +3257,7 @@ func Test`); err != nil {
 			return
 		}
 
-		if !table.PrimaryKeyColumn().IsAutoPK {
+		if !table.PrimaryKeyColumn().IsAutoPk {
 
 			if _, err = io.WriteString(_w, `    assert.Equal(t, obj.`); err != nil {
 				return

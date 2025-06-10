@@ -1,35 +1,74 @@
 package schema
 
-// Reference is the additional information needed for reference type and enum columns.
-// For reference columns, if the IndexLevel of the containing column is Unique, it creates a one-to-one relationship.
-// Otherwise, it is a one-to-many relationship.
+import (
+	"fmt"
+	strings2 "github.com/goradd/strings"
+	"log/slog"
+	"strings"
+)
+
+// Reference represents a forward link to an object described by a table.
+// In SQL databases these are known as foreign-keys.
+// The link will be a one-to-one link if IsUnique is true, or a one-to-many link.
+// Reference will create a column in this table that holds a duplicate of the primary key
+// from the referenced table.
+// Reference automatically creates a reverse link in the referenced table. That reverse link may
+// create a column in the other table, or may be a kind of virtual column that only gets populated during
+// a query using an index.
+//
+// References to tables with composite keys are not currently supported.
 type Reference struct {
-	// If this column is a reference to an object in another table, this is the name of that other table.
-	// If using schemas, the format should be "SchemaName.TableName".
+	// Table is the name of the table being referenced.
 	// If Table is the same as the column's table, it creates a parent-child relationship.
 	// Should match a Table.Name value in another table.
-	// Enum values should point to an enum table.
 	Table string `json:"table"`
 
-	// For future expansion. If this is a reference to a table with a composite key, this will
-	// specify which specific column is being mirrored. For now, this is unused.
+	// Schema is the schema that Table belongs to. If empty, will use the default schema.
+	Schema string `json:"schema,omitempty"`
+
+	// Column is the name of the local column created in this table to hold a duplicate of the private key in Table.
+	// It will default to a name based on Table and the name of the primary key column in Table.
 	Column string `json:"column,omitempty"`
 
-	// Identifier is the Go name used for the referenced object.
-	// If not specified, will be based on Table.
-	Identifier string `json:"identifier,omitempty"`
+	// ColumnIdentifier is the name that Go will use to identify the column
+	ColumnIdentifier string `json:"column_identifier,omitempty"`
+
+	// ColumnLabel is the human-readable name of the column.
+	ColumnLabel string `json:"column_label,omitempty"`
+
+	/* Future expansion for composite keys:
+	// Maps a column name in the composite primary key in Table to a local column.
+	// If empty, will infer the values from the names of the columns in Table.
+	// User should fill out Column for single key tables, or Columns for composite-key tables.
+	Columns map[string]ColumnDescription // (name, identifier, label)
+	*/
+
+	// ObjectIdentifier is the Go name used for the referenced object.
+	// If not specified, will be based on Column.
+	ObjectIdentifier string `json:"object_identifier,omitempty"`
 
 	// Label is the human-readable name for the referenced object.
 	// If not specified, will be based on Identifier.
-	Label string `json:"label,omitempty"`
+	ObjectLabel string `json:"object_label,omitempty"`
 
-	// The singular Go identifier that will be used for the reverse relationships.
+	// IndexLevel specifies the index to be created on the foreign key column.
+	// If a primary key or unique key, will create a one-to-one relationship.
+	// If left empty, will default to IndexLevelIndexed.
+	IndexLevel IndexLevel `json:"index_level,omitempty"`
+
+	// IsNullable indicates that the reference is not required and can be represented as a null value.
+	// If not nullable, then the reference is required to be present and valid when the record is saved.
+	// This would also mean that if the referenced object is deleted, or changes its reverse
+	// relationship, then this object will be deleted.
+	IsNullable bool `json:"nullable,omitempty"`
+
+	// The singular Go identifier that will be used for the reverse relationship objects.
 	// If not specified, will be based on Table.Name.
 	// Should be CamelCase with no spaces.
 	// For example, "ManagedProject".
 	ReverseIdentifier string `json:"reverse_identifier,omitempty"`
 
-	// The plural Go identifier that will be used for the reverse relationships.
+	// The plural Go identifier that will be used for the reverse relationship objects.
 	// If not specified, the ReverseIdentifier will be pluralized.
 	ReverseIdentifierPlural string `json:"reverse_identifier_plural,omitempty"`
 
@@ -41,4 +80,82 @@ type Reference struct {
 	// The plural description of Table objects as referred to by the referenced table.
 	// If not specified, the ReverseLabel will be pluralized.
 	ReverseLabelPlural string `json:"reverse_label_plural,omitempty"`
+}
+
+func (r *Reference) infer(db *Database, table *Table) error {
+	if r.Table == "" {
+		slog.Error("Table value in Reference was not specified",
+			slog.String("table", table.Name))
+		return fmt.Errorf("table value in Reference was not specified in table %s", table.Name)
+	}
+
+	if t := db.FindTable(r.Table); t == nil {
+		slog.Error("Reference to Table was not found in the database",
+			slog.String("referring table", table.Name),
+			slog.String("referenced table", r.Table))
+		return fmt.Errorf("table %s was not found", r.Table)
+	} else {
+		if r.Column == "" {
+			// Find the primary key column in the other table.
+			// If the other table does not have a set single primary key column, then a name cannot be inferred
+			for _, col := range t.Columns {
+				if col.IndexLevel == IndexLevelPrimaryKey {
+					r.Column = r.Table + "_" + col.Name
+				}
+			}
+			if r.Column == "" {
+				// We do not currently support references to tables with composite primary keys or with no key.
+				slog.Error("Referenced table does not have a single, non-referenced primary key, so column name cannot be inferred.",
+					slog.String("table", table.Name))
+				return fmt.Errorf("referenced table %s does not have a single primary key, so column name cannot be inferred. ", table.Name)
+			}
+		}
+	}
+
+	if r.IndexLevel == IndexLevelNone {
+		r.IndexLevel = IndexLevelIndexed
+	}
+	return nil
+}
+
+// fillDefaults fills optional default values.
+// It expects infer to have already been called.
+func (r *Reference) fillDefaults(db *Database, table *Table) {
+	if r.ColumnIdentifier == "" {
+		r.ColumnIdentifier = strings2.SnakeToCamel(r.Column)
+	}
+	if r.ColumnLabel == "" {
+		r.ColumnLabel = strings2.Title(r.ColumnIdentifier)
+	}
+	if r.ObjectIdentifier == "" {
+		t := db.FindTable(r.Table)
+		pks := t.PrimaryKeyColumns()
+		if len(pks) == 1 {
+			objName := strings.TrimSuffix(r.Column, "_"+pks[0])
+			r.ObjectIdentifier = strings2.SnakeToCamel(objName)
+		} else {
+			r.ObjectIdentifier = strings2.SnakeToCamel(r.Table)
+		}
+	}
+	if r.ObjectLabel == "" {
+		r.ObjectLabel = strings2.Title(r.ObjectIdentifier)
+	}
+
+	if r.ReverseIdentifier == "" {
+		if r.Column == r.Table {
+			r.ReverseIdentifier = table.Identifier
+		} else {
+			r.ReverseIdentifier = r.ObjectIdentifier + table.Identifier
+		}
+	}
+	if r.ReverseIdentifierPlural == "" {
+		r.ReverseIdentifierPlural = strings2.Plural(r.ReverseIdentifier)
+	}
+
+	if r.ReverseLabel == "" {
+		r.ReverseLabel = strings2.Title(r.ObjectIdentifier)
+	}
+	if r.ReverseLabelPlural == "" {
+		r.ReverseLabelPlural = strings2.Plural(r.ReverseLabel)
+	}
 }

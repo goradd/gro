@@ -1,15 +1,15 @@
 package schema
 
-// MultiColumnIndex declares that a Get or Load function should be created on the given columns in the table
+// Index declares that a Get or Load function should be created on the given columns in the table
 // and gives direction to the database to create an index on the columns.
 //
 // Databases that support indexes will have a matching index on the given columns.
-// See Column.IndexLevel to specify a single-column index.
+// See also Column.IndexLevel as another way to specify a single-column index.
 //
 // Note On Uniqueness:
 //
 // Not all databases natively enforce uniqueness.
-// The generated ORM will attempt to check for existence before adding the data to the database to minimize collisions
+// The generated ORM will attempt to check for existence before adding the data to the database to minimize collisions,
 // but it is possible to still have a collision if two processes are trying to add the same value to two
 // different records at the same time.
 //
@@ -23,13 +23,13 @@ package schema
 //     is permanently locked until the requester answers back, which might be fine.
 //   - Whenever requesting a record by the unique value, you use a Query operation to detect if there are
 //     duplicate records with the same value, and then respond accordingly if so.
-type MultiColumnIndex struct {
+type Index struct {
 	// Columns are the Column.Name values of the columns in the table that will be used to access the data.
 	Columns []string `json:"columns"`
 	// IndexLevel will specify the type of index, and possibly a constraint to put on the columns.
 	IndexLevel IndexLevel `json:"index_level"`
 	// For future expansion. Defines a multi-column foreign key. The reference in those columns
-	// will need to point to a primary key column in the other table. Must use the MultiColumnIndex structure
+	// will need to point to a primary key column in the other table. Must use the Index structure
 	// to tell which columns make up a foreign key, since there is a possibility of two separate foreign keys
 	// pointing to the same table. (i.e. Mother and Father pointing to a person table).
 	// IsReference bool

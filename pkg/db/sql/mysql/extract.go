@@ -9,7 +9,6 @@ import (
 	. "github.com/goradd/orm/pkg/query"
 	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
-	"log"
 	"log/slog"
 	"math"
 	"slices"
@@ -25,7 +24,7 @@ type mysqlTable struct {
 	name                string
 	columns             []mysqlColumn
 	indexes             []mysqlIndex
-	fkMap               map[string]mysqlForeignKey
+	fkMap               map[string][]mysqlForeignKey
 	comment             string
 	supportsForeignKeys bool
 }
@@ -58,8 +57,17 @@ type mysqlForeignKey struct {
 	referencedTableName       sql.NullString
 	referencedColumnName      sql.NullString
 	referencedColumnIndexName sql.NullString
-	updateRule                sql.NullString
-	deleteRule                sql.NullString
+}
+
+func (m *mysqlTable) findForeignKeyByColumn(col string) *mysqlForeignKey {
+	for _, group := range m.fkMap {
+		for _, fk := range group {
+			if fk.columnName == col {
+				return &fk
+			}
+		}
+	}
+	return nil
 }
 
 func (m *DB) ExtractSchema(options map[string]any) schema.Database {
@@ -81,19 +89,20 @@ func (m *DB) getRawTables() map[string]mysqlTable {
 	}
 
 	tables := m.getTables()
+
 	for _, table := range tables {
-		// Do some processing on the foreign keys
-		for _, fk := range foreignKeys[table.name] {
-			if fk.referencedColumnName.Valid && fk.referencedTableName.Valid {
-				if _, ok := table.fkMap[fk.columnName]; ok {
-					slog.Warn("Multi-column foreign keys are not supported.",
-						slog.String(db.LogTable, table.name),
-						slog.String(db.LogColumn, fk.columnName),
-						slog.String(db.LogComponent, "extract"))
-					delete(table.fkMap, fk.columnName)
-				} else {
-					table.fkMap[fk.columnName] = fk
-				}
+		// Place foreign keys by table, since they are database wide
+		for fkName, fkGroup := range foreignKeys {
+			if len(fkGroup) > 0 {
+				slog.Warn("Multi-column foreign key skipped.",
+					slog.String(db.LogTable, table.name),
+					slog.String("name", fkName),
+					slog.String(db.LogComponent, "extract"))
+			}
+			if fkGroup[0].tableName == table.name &&
+				fkGroup[0].referencedColumnName.Valid &&
+				fkGroup[0].referencedTableName.Valid {
+				table.fkMap[fkName] = fkGroup
 			}
 		}
 
@@ -152,7 +161,7 @@ func (m *DB) getTables() []mysqlTable {
 			name:                tableName,
 			comment:             tableComment,
 			columns:             []mysqlColumn{},
-			fkMap:               make(map[string]mysqlForeignKey),
+			fkMap:               make(map[string][]mysqlForeignKey),
 			indexes:             []mysqlIndex{},
 			supportsForeignKeys: supportsForeignKeys,
 		}
@@ -259,7 +268,7 @@ func (m *DB) getIndexes() (indexes map[string][]mysqlIndex, err error) {
 // Note that querying the information_schema database is SLOW, so we want to do it as few times as possible.
 func (m *DB) getForeignKeys() (foreignKeys map[string][]mysqlForeignKey, err error) {
 	dbName := m.databaseName
-	fkMap := make(map[string]mysqlForeignKey)
+	foreignKeys = make(map[string][]mysqlForeignKey)
 
 	rows, err := m.SqlDb().Query(fmt.Sprintf(`
 SELECT
@@ -280,67 +289,25 @@ WHERE
 ORDER BY
     t1.ordinal_position
 `, dbName))
+
+	defer sql2.RowClose(rows)
 	if err != nil {
 		panic(err)
 	}
 
-	func() {
-		defer sql2.RowClose(rows)
-
-		for rows.Next() {
-			fk := mysqlForeignKey{}
-			err = rows.Scan(&fk.constraintName, &fk.tableName, &fk.columnName, &fk.referencedTableName, &fk.referencedColumnName, &fk.referencedColumnIndexName)
-			if err != nil {
-				panic(err)
-			}
-			if fk.referencedColumnName.Valid {
-				fkMap[fk.constraintName] = fk
-			}
-		}
-		err = rows.Err()
+	for rows.Next() {
+		fk := mysqlForeignKey{}
+		err = rows.Scan(&fk.constraintName, &fk.tableName, &fk.columnName, &fk.referencedTableName, &fk.referencedColumnName, &fk.referencedColumnIndexName)
 		if err != nil {
 			panic(err)
 		}
-	}()
-
-	rows, err = m.SqlDb().Query(fmt.Sprintf(`
-	SELECT
-	constraint_name,
-	update_rule,
-	delete_rule
-	FROM
-	information_schema.referential_constraints
-	WHERE
-	constraint_schema = '%s';
-	`, dbName))
-	if err != nil {
-		panic(err)
-	}
-
-	defer sql2.RowClose(rows)
-	for rows.Next() {
-		var constraintName string
-		var updateRule, deleteRule sql.NullString
-		err = rows.Scan(&constraintName, &updateRule, &deleteRule)
-		if err != nil {
-			log.Fatal(err)
-		}
-		if fk, ok := fkMap[constraintName]; ok {
-			fk.updateRule = updateRule
-			fk.deleteRule = deleteRule
-			fkMap[constraintName] = fk
-		}
+		fks := foreignKeys[fk.constraintName]
+		fks = append(fks, fk)
+		foreignKeys[fk.constraintName] = fks
 	}
 	err = rows.Err()
 	if err != nil {
 		panic(err)
-	}
-
-	foreignKeys = make(map[string][]mysqlForeignKey)
-	for _, fk := range iter.KeySort(fkMap) {
-		tableKeys := foreignKeys[fk.tableName]
-		tableKeys = append(tableKeys, fk)
-		foreignKeys[fk.tableName] = tableKeys
 	}
 	return foreignKeys, err
 }
@@ -597,10 +564,10 @@ func (m *DB) schemaFromRawTables(rawTables map[string]mysqlTable, options map[st
 
 func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema.Table {
 	var columnSchemas []*schema.Column
-	var multiColumnPK *schema.MultiColumnIndex
+	var multiColumnPK *schema.Index
 
 	// Build the indexes
-	indexes := make(map[string]*schema.MultiColumnIndex)
+	indexes := make(map[string]*schema.Index)
 	singleIndexes := make(map[string]schema.IndexLevel)
 
 	for _, idx := range t.indexes {
@@ -611,13 +578,13 @@ func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema.Table {
 			// create a new index
 			var level schema.IndexLevel
 			if idx.name == "PRIMARY" {
-				level = schema.IndexLevelManualPrimaryKey
+				level = schema.IndexLevelPrimaryKey
 			} else if idx.nonUnique {
 				level = schema.IndexLevelIndexed
 			} else {
 				level = schema.IndexLevelUnique
 			}
-			mci := &schema.MultiColumnIndex{Columns: []string{idx.columnName}, IndexLevel: level}
+			mci := &schema.Index{Columns: []string{idx.columnName}, IndexLevel: level}
 			indexes[idx.name] = mci
 		}
 	}
@@ -634,7 +601,7 @@ func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema.Table {
 			} else {
 				singleIndexes[idx.Columns[0]] = idx.IndexLevel
 			}
-		} else if idx.IndexLevel == schema.IndexLevelManualPrimaryKey {
+		} else if idx.IndexLevel == schema.IndexLevelPrimaryKey {
 			// We have a multi-column primary key
 			multiColumnPK = idx
 		}
@@ -660,7 +627,7 @@ func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema.Table {
 		cd := m.getColumnSchema(t, col, singleIndexes[col.name], enumTableSuffix)
 
 		if cd.Type == schema.ColTypeAutoPrimaryKey ||
-			cd.IndexLevel == schema.IndexLevelManualPrimaryKey ||
+			cd.IndexLevel == schema.IndexLevelPrimaryKey ||
 			multiColumnPK != nil && slices.Contains(multiColumnPK.Columns, col.name) {
 			// private keys go first
 			columnSchemas = slices.Insert(columnSchemas, pkCount, &cd)
@@ -687,12 +654,12 @@ func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema.Table {
 	// Create the multi-column index array
 	for _, idx := range indexes {
 		if len(idx.Columns) > 1 {
-			td.MultiColumnIndexes = append(td.MultiColumnIndexes, *idx)
+			td.Indexes = append(td.Indexes, *idx)
 		}
 	}
 
-	// Keep the MultiColumnIndexes in a predictable order
-	slices.SortFunc(td.MultiColumnIndexes, func(m1 schema.MultiColumnIndex, m2 schema.MultiColumnIndex) int {
+	// Keep the Indexes in a predictable order
+	slices.SortFunc(td.Indexes, func(m1 schema.Index, m2 schema.Index) int {
 		return slices.Compare(m1.Columns, m2.Columns)
 	})
 
@@ -721,6 +688,11 @@ func (m *DB) getEnumTableSchema(t mysqlTable) (ed schema.EnumTable, err error) {
 		rawColumns[c.name] = c
 	}
 
+	if td.References != nil {
+		err = fmt.Errorf("cannot have references in an enum table")
+		return
+	}
+
 	for _, c := range td.Columns {
 		if c.Name == schema.ConstKey {
 			hasConst = true
@@ -728,10 +700,6 @@ func (m *DB) getEnumTableSchema(t mysqlTable) (ed schema.EnumTable, err error) {
 			hasLabelOrIdentifier = true
 		} else if c.Name == schema.IdentifierKey {
 			hasLabelOrIdentifier = true
-		}
-		if c.Type == schema.ColTypeReference {
-			err = fmt.Errorf("cannot have a reference column in an enum table")
-			return
 		}
 		columnNames = append(columnNames, c.Name)
 		recType := ReceiverTypeFromSchema(c.Type, c.Size)
@@ -829,16 +797,9 @@ func (m *DB) getColumnSchema(table mysqlTable,
 	if enumTableSuffix != "" && strings.HasSuffix(column.name, enumTableSuffix) { // handle enum type
 		if cd.Type == schema.ColTypeInt || cd.Type == schema.ColTypeUint {
 			cd.Type = schema.ColTypeEnum
-			if fk, ok := table.fkMap[column.name]; ok { // if it is a foreign key to the enum table, use that
-				cd.Reference = &schema.Reference{
-					Table: fk.referencedTableName.String,
-				}
-			} else {
-				slog.Warn("Could not find foreign key to enum table",
-					slog.String(db.LogComponent, "extract"),
-					slog.String(db.LogTable, table.name),
-					slog.String(db.LogColumn, column.name))
-			}
+			fk := table.findForeignKeyByColumn(cd.Name)
+			// assume for now it is actually pointing to an enum table. Probably should check later.
+			cd.EnumTable = fk.referencedTableName.String
 		} else {
 			slog.Error("Enum type should be an integer",
 				slog.String(db.LogComponent, "extract"),
@@ -846,21 +807,7 @@ func (m *DB) getColumnSchema(table mysqlTable,
 				slog.String(db.LogColumn, column.name))
 		}
 		cd.Size = 0 // use default size
-	} else if fk, ok2 := table.fkMap[column.name]; ok2 { // handle forward reference
-		if fk.referencedColumnIndexName.String != "PRIMARY" {
-			slog.Warn("Foregin key appears to NOT be pointing to a primary key. Only primary key foreign keys are supported.",
-				slog.String(db.LogComponent, "extract"),
-				slog.String(db.LogTable, table.name),
-				slog.String(db.LogColumn, column.name),
-				slog.Any(db.LogError, err))
-		}
-		cd.Reference = &schema.Reference{
-			Table: fk.referencedTableName.String,
-		}
-		cd.Type = schema.ColTypeReference
-		cd.Size = 0
 	}
-
 	cd.Comment = column.comment
 
 	return cd
@@ -868,35 +815,26 @@ func (m *DB) getColumnSchema(table mysqlTable,
 
 func (m *DB) getAssociationSchema(t mysqlTable, enumTableSuffix string) (mm schema.AssociationTable, err error) {
 	td := m.getTableSchema(t, enumTableSuffix)
-	if len(td.Columns) == 0 {
-		err = fmt.Errorf("association table must have 2 columns")
+	if len(td.References) != 0 {
+		err = fmt.Errorf("association table must have 2 foreign keys")
 		return
 	}
-	if td.Columns[0].Name == "_id" {
-		// This column was added because of a multi-column primary key.
-		td.Columns = slices.Delete(td.Columns, 0, 1)
-	}
-	if len(td.Columns) != 2 {
-		err = fmt.Errorf("association table must have only 2 columns")
-		return
-	}
-	for _, cd := range td.Columns {
-		if cd.Reference == nil {
-			err = fmt.Errorf("column " + cd.Name + " must be a foreign key.")
-			return
-		}
-
-		if cd.IsNullable {
-			err = fmt.Errorf("column " + cd.Name + " cannot be nullable.")
+	/*
+		if td.Columns[0].Name == "_id" {
+			// This column was added because of a multi-column primary key.
+			td.Columns = slices.Delete(td.Columns, 0, 1)
+		}*/
+	for _, ref := range td.References {
+		if ref.IsNullable {
+			err = fmt.Errorf("column " + ref.Column + " cannot be nullable.")
 			return
 		}
 	}
-	mm.Name = td.Name
-	mm.Table1 = td.Columns[0].Reference.Table
-	mm.Name1 = td.Columns[0].Name
-	mm.Table2 = td.Columns[1].Reference.Table
-	mm.Name2 = td.Columns[1].Name
-
+	mm.Table = td.Name
+	mm.Ref1.Table = td.References[0].Table
+	mm.Ref1.Column = td.References[0].Column
+	mm.Ref2.Table = td.References[1].Table
+	mm.Ref2.Column = td.References[1].Column
 	mm.Comment = t.comment
 	return
 }

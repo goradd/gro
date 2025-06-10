@@ -6,7 +6,6 @@ import (
 	"github.com/goradd/orm/_test/gen/orm/goradd"
 	"github.com/goradd/orm/pkg/config"
 	"github.com/goradd/orm/pkg/db"
-	_ "github.com/goradd/orm/tmpl/template"
 	"os"
 )
 

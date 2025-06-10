@@ -142,9 +142,6 @@ func ReceiverTypeFromSchema(columnType schema.ColumnType, maxLength uint64) Rece
 		return ColTypeString
 	case schema.ColTypeJSON:
 		return ColTypeString
-	case schema.ColTypeReference:
-		panic("pass the ColType of the primary key in the destination table")
-		return ColTypeString
 	case schema.ColTypeEnum:
 		return ColTypeInteger
 	}

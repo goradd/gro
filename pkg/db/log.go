@@ -10,4 +10,7 @@ const (
 	LogTable     = "table"
 	LogColumn    = "column"
 	LogFilename  = "filename"
+	LogStartTime = "start"
+	LogEndTime   = "end"
+	LogDuration  = "duration"
 )

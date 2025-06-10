@@ -18,7 +18,7 @@ import (
 
 // DB is the goradd driver for postgresql databases.
 type DB struct {
-	sql2.DbHelper
+	sql2.Base
 	contextTimeout time.Duration
 }
 
@@ -57,7 +57,7 @@ func NewDB(dbKey string,
 	}
 
 	m := new(DB)
-	m.DbHelper = sql2.NewSqlHelper(dbKey, db3, m)
+	m.Base = sql2.NewBase(dbKey, db3, m)
 	return m, nil
 }
 
@@ -271,5 +271,19 @@ func (m *DB) syncIdentity(ctx context.Context, table string, pk string) error {
 			slog.String(db.LogColumn, pk),
 			slog.Any(db.LogError, err))
 	}
+	return err
+}
+
+// SetConstraints turns constraints on and off.
+// For postgres, this must be done inside a transaction.
+func (m *DB) SetConstraints(on bool) error {
+	var sqlStr string
+
+	if on {
+		sqlStr = "SET CONSTRAINTS ALL DEFERRED"
+	} else {
+		sqlStr = "SET CONSTRAINTS ALL IMMEDIATE"
+	}
+	_, err := m.SqlDb().Exec(sqlStr)
 	return err
 }

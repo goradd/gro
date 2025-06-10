@@ -6,7 +6,6 @@ import (
 	"github.com/goradd/maps"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/schema"
-	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
 	"log/slog"
 	maps2 "maps"
@@ -14,31 +13,6 @@ import (
 	"strings"
 	"time"
 )
-
-func FromSchema(s *schema.Database) *Database {
-	if err := s.Clean(); err != nil {
-		panic(err)
-	}
-	s.FillDefaults()
-	var timeout time.Duration
-	if s.WriteTimeout != "" {
-		var err error
-		timeout, err = time.ParseDuration(s.WriteTimeout)
-		if err != nil {
-			slog.Warn("invalid timeout",
-				slog.Any(db.LogError, err))
-			timeout = 0
-		}
-	}
-	d := Database{
-		Key:             s.Key,
-		WriteTimeout:    timeout,
-		EnumTableSuffix: s.EnumTableSuffix,
-		AssnTableSuffix: s.AssnTableSuffix,
-	}
-	d.importSchema(s)
-	return &d
-}
 
 // Database is the top level struct that contains a description of a database modeled as objects.
 // It is used in code generation and query creation.
@@ -67,6 +41,7 @@ type Database struct {
 
 // importSchema will convert a database description to a model which generally treats
 // tables as objects and columns as member variables.
+// schema must be Clean() first.
 func (m *Database) importSchema(schema *schema.Database) {
 	m.Enums = make(map[string]*Enum)
 	m.Tables = make(map[string]*Table)
@@ -79,26 +54,9 @@ func (m *Database) importSchema(schema *schema.Database) {
 
 	// get the regular tables
 	for _, table := range schema.Tables {
-		t := newTable(m.Key, table)
-		if t != nil {
-			if t.WriteTimeout == 0 {
-				t.WriteTimeout = m.WriteTimeout
-			}
-			if t.ReadTimeout == 0 {
-				t.ReadTimeout = m.ReadTimeout
-			}
-
-			m.Tables[t.QueryName] = t
-		}
+		m.importTable(table, m.WriteTimeout, m.ReadTimeout)
 	}
-
-	// import references after the columns are in place
-	for _, table := range schema.Tables {
-		if t := m.Table(table.Name); t != nil {
-			m.importReferences(t, table)
-		}
-	}
-
+	
 	for _, assn := range schema.AssociationTables {
 		m.importAssociation(assn)
 	}
@@ -108,81 +66,43 @@ func (m *Database) importSchema(schema *schema.Database) {
 // Association tables are used by SQL databases to create many-many relationships. NoSQL databases can define their
 // association columns directly and store an array of records on either end of the association.
 func (m *Database) importAssociation(schemaAssn *schema.AssociationTable) {
-	t1 := m.Table(schemaAssn.Table1)
+	t1 := m.Table(schemaAssn.Ref1.QualifiedTableName())
 	if t1 == nil {
-		slog.Error("Missing associated table from association "+schemaAssn.Name,
-			slog.String(db.LogTable, schemaAssn.Table1))
+		slog.Error("Missing associated table from association "+schemaAssn.Table,
+			slog.String(db.LogTable, schemaAssn.Ref1.Table))
 		return
 	}
-	t2 := m.Table(schemaAssn.Table2)
+	t2 := m.Table(schemaAssn.Ref2.QualifiedTableName())
 	if t2 == nil {
-		slog.Error("Missing associated table from association "+schemaAssn.Table2,
-			slog.String(db.LogTable, schemaAssn.Table2))
+		slog.Error("Missing associated table from association "+schemaAssn.Ref2.Table,
+			slog.String(db.LogTable, schemaAssn.Ref2.Table))
 		return
 	}
 
-	if schemaAssn.Name1 == schemaAssn.Name2 {
-		slog.Error("Name1 and Name2 cannot be the same",
-			slog.String(db.LogTable, schemaAssn.Name))
-		return
-	}
-
-	ref1 := makeManyManyRef(schemaAssn.Name, schemaAssn.Column1, schemaAssn.Column2, t1, t2, schemaAssn.Label2, schemaAssn.Label2Plural, schemaAssn.Identifier2, schemaAssn.Identifier2Plural)
-	ref2 := makeManyManyRef(schemaAssn.Name, schemaAssn.Column2, schemaAssn.Column1, t2, t1, schemaAssn.Table1, schemaAssn.Label1Plural, schemaAssn.Identifier1, schemaAssn.Identifier1Plural)
+	ref1 := makeManyManyRef(
+		schemaAssn.Table,
+		schemaAssn.Ref1.Column,
+		schemaAssn.Ref2.Column,
+		t1,
+		t2,
+		schemaAssn.Ref2.Label,
+		schemaAssn.Ref2.LabelPlural,
+		schemaAssn.Ref2.Identifier,
+		schemaAssn.Ref2.IdentifierPlural,
+	)
+	ref2 := makeManyManyRef(
+		schemaAssn.Table,
+		schemaAssn.Ref2.Column,
+		schemaAssn.Ref1.Column,
+		t2,
+		t1,
+		schemaAssn.Ref1.Label,
+		schemaAssn.Ref1.LabelPlural,
+		schemaAssn.Ref1.Schema,
+		schemaAssn.Ref1.IdentifierPlural,
+	)
 	ref1.MM = ref2
 	ref2.MM = ref1
-}
-
-func (m *Database) importReferences(t *Table, schemaTable *schema.Table) {
-	for _, col := range schemaTable.Columns {
-		m.importReference(t, col)
-	}
-}
-
-func (m *Database) importReference(table *Table, schemaCol *schema.Column) {
-	if schemaCol.Reference == nil {
-		return
-	}
-
-	var thisCol *Column
-	thisCol = table.ColumnByName(schemaCol.Name)
-	refTable := m.Table(schemaCol.Reference.Table)
-	et := m.Enum(schemaCol.Reference.Table)
-	if refTable == nil && et == nil {
-		slog.Error("Reference skipped, referenced table not found.",
-			slog.String(db.LogTable, table.QueryName),
-			slog.String(db.LogColumn, schemaCol.Name))
-		return
-	}
-	if et != nil {
-		if thisCol == nil {
-			slog.Error("Could not find enum column",
-				slog.String("table", table.QueryName),
-				slog.String("column", schemaCol.Name))
-			return
-		}
-		thisCol.EnumTable = et
-		return
-	}
-
-	ref := &Reference{
-		Table:                   refTable,
-		Identifier:              schemaCol.Identifier,
-		Label:                   schemaCol.Label,
-		ReverseLabel:            schemaCol.Reference.ReverseLabel,
-		ReverseLabelPlural:      schemaCol.Reference.ReverseLabelPlural,
-		ReverseIdentifier:       schemaCol.Reference.ReverseIdentifier,
-		ReverseIdentifierPlural: schemaCol.Reference.ReverseIdentifierPlural,
-		DecapIdentifier:         strings2.Decap(schemaCol.Identifier),
-		Column:                  thisCol,
-	}
-
-	// Fix up receiver type to match the primary key type of the refTable.
-	// In autoId tables, this is always a string, but for manually entered primary keys, it could be anything.
-	thisCol.ReceiverType = refTable.PrimaryKeyColumn().ReceiverType
-	refTable.ReverseReferences = append(refTable.ReverseReferences, ref)
-	table.References = append(table.References, ref)
-
 }
 
 // Table returns a Table from the database given the table name.
@@ -366,4 +286,29 @@ func (m *Database) UniqueManyManyReferences() []*ManyManyReference {
 	return slices.SortedFunc(maps2.Values(refs), func(reference *ManyManyReference, reference2 *ManyManyReference) int {
 		return cmp.Compare(reference.AssnSourceColumnName, reference2.AssnSourceColumnName)
 	})
+}
+
+func FromSchema(s *schema.Database) *Database {
+	if err := s.Clean(); err != nil {
+		panic(err)
+	}
+	s.FillDefaults()
+	var timeout time.Duration
+	if s.WriteTimeout != "" {
+		var err error
+		timeout, err = time.ParseDuration(s.WriteTimeout)
+		if err != nil {
+			slog.Warn("invalid timeout",
+				slog.Any(db.LogError, err))
+			timeout = 0
+		}
+	}
+	d := Database{
+		Key:             s.Key,
+		WriteTimeout:    timeout,
+		EnumTableSuffix: s.EnumTableSuffix,
+		AssnTableSuffix: s.AssnTableSuffix,
+	}
+	d.importSchema(s)
+	return &d
 }

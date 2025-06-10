@@ -14,26 +14,25 @@ import (
 //
 // IndexLevelIndexed will result in a LoadByXXX function in the generated ORM that will
 // return a group of objects containing the given value in the column's field.
-// This will be for a single column. To create an index on multiple columns, use a MultiColumnIndex.
+// This will be for a single column. To create an index on multiple columns, use an Index.
 //
 // IndexLevelUnique will result in a LoadByXXX function in the ORM that will return a single object with
 // the given value in the column's field. Uniqueness is up to the database or database driver to ensure.
 // Note that some databases (aka MongoDB) do not allow unique constraints on nullable fields to have more
 // than one null value in the database, in which case the application will need custom logic to enforce
 // uniqueness, rather than relying on the database.
-// See also the comment on uniqueness in MultiColumnIndex.
+// See also the comment on uniqueness in Index.
 //
-// IndexLevelManualPrimaryKey indicates that this is a manually entered private key.
-// If there are multiple columns that have this, they will form a composite index.
-// A column of ColTypeAutoKey will also participate in that primary key.
-// If this column is a partition key or shard key, it should have this setting.
+// IndexLevelPrimaryKey indicates that this is a private key.
+// Only one column or one index can be specified with this index level, in a table.
+// Use an Index to specify a composite primary key.
 type IndexLevel int
 
 const (
 	IndexLevelNone IndexLevel = iota
 	IndexLevelIndexed
 	IndexLevelUnique
-	IndexLevelManualPrimaryKey
+	IndexLevelPrimaryKey
 )
 
 func (il IndexLevel) String() string {
@@ -44,7 +43,7 @@ func (il IndexLevel) String() string {
 		return "Indexed"
 	case IndexLevelUnique:
 		return "Unique"
-	case IndexLevelManualPrimaryKey:
+	case IndexLevelPrimaryKey:
 		return "Primary"
 	default:
 		return "Unknown"
@@ -64,7 +63,7 @@ func (il IndexLevel) jsonRep() string {
 		return "indexed"
 	case IndexLevelUnique:
 		return "unique"
-	case IndexLevelManualPrimaryKey:
+	case IndexLevelPrimaryKey:
 		return "primary"
 	default:
 		return "unknown"
@@ -86,7 +85,7 @@ func (il *IndexLevel) UnmarshalJSON(data []byte) error {
 	case "unique":
 		*il = IndexLevelUnique
 	case "primary":
-		*il = IndexLevelManualPrimaryKey
+		*il = IndexLevelPrimaryKey
 	default:
 		return fmt.Errorf("invalid IndexLevel: %s", levelStr)
 	}

@@ -12,7 +12,6 @@ import (
 	"github.com/goradd/orm/pkg/schema"
 	"io"
 	"log/slog"
-	"time"
 )
 
 // The DbI interface describes the interface that a sql database needs to implement so that
@@ -35,30 +34,10 @@ type DbI interface {
 	// SupportsForUpdate will return true if it supports SELECT ... FOR UPDATE clauses for row level locking in a transaction
 	SupportsForUpdate() bool
 	// TableDefinitionSql returns the sql that will create table.
-	TableDefinitionSql(d *schema.Database, table *schema.Table) (s string)
+	TableDefinitionSql(d *schema.Database, table *schema.Table) (tableSql, extraSql string)
 }
 
 type contextKey string
-
-// ProfileEntry contains the data collected during sql profiling
-type ProfileEntry struct {
-	DbKey     string
-	BeginTime time.Time
-	EndTime   time.Time
-	Typ       string
-	Sql       string
-}
-
-// sqlContext is what is stored in the current context to keep track of queries.
-// You must save a copy of this in the
-// current context with the sqlContext key before calling database functions in order to use transactions or
-// database profiling, or anything else the context is required for. The framework does this for you, but you will need
-// to do this yourself if using the orm without the framework.
-type sqlContext struct {
-	tx       *sql.Tx
-	txCount  int // Keeps track of when to close a transaction
-	profiles []ProfileEntry
-}
 
 func RowClose(c io.Closer) {
 	if err := c.Close(); err != nil {

@@ -19,6 +19,8 @@ const (
 // The dataStore is the central database collection used in code generation and the orm.
 var datastore maps.SliceMap[string, DatabaseI]
 
+type contextKey string
+
 type TransactionID int
 
 type SchemaExtractor interface {
@@ -73,17 +75,14 @@ type DatabaseI interface {
 	// BuilderQuery performs a complex query using a query builder.
 	// The data returned will depend on the command inside the builder.
 	BuilderQuery(ctx context.Context, builder *Builder) (any, error)
-	// Begin will begin a transaction in the database and return the transaction id
-	// Instead of calling Begin directly, use the ExecuteTransaction wrapper.
-	Begin(ctx context.Context) (TransactionID, error)
-	// Commit will commit the given transaction
-	Commit(ctx context.Context, txid TransactionID) error
-	// Rollback will roll back the given transaction PROVIDED it has not been committed. If it has been
-	// committed, it will do nothing. Rollback can therefore be used in a defer statement as a safeguard in case
-	// a transaction fails.
-	Rollback(ctx context.Context, txid TransactionID) error
 	// NewContext is called early in the processing of a response to insert an empty context that the database can use if needed.
 	NewContext(ctx context.Context) context.Context
+	// SetConstraints will turn foreign key constraints on or off.
+	// Databases that do not support constraints can make this a no-op.
+	// This is used during import in case there are circular or forward references in the data.
+	// Applications should not call this directly, but rather use the WithConstraintsDisabled wrapper.
+	// This MUST be done inside a transaction.
+	SetConstraints(on bool) error
 }
 
 // AddDatabase adds a database to the global database store. Only call this during app startup.
@@ -116,28 +115,34 @@ func NewContext(ctx context.Context) context.Context {
 	return ctx
 }
 
-// ExecuteTransaction wraps the function f in a database transaction.
-// While the ORM by default will wrap individual database calls with a timeout,
-// it will not apply this timeout to transactions. It is up to you to pass a context that
-// has a timeout to prevent the overall transaction from hanging.
-func ExecuteTransaction(ctx context.Context, d DatabaseI, f func() error) error {
-	txid, err := d.Begin(ctx)
-	if err != nil {
-		return err
-	}
-	defer func() {
-		rerr := d.Rollback(ctx, txid)
-		if err == nil {
-			err = rerr
-		}
-	}()
-	err = f()
-	if err != nil {
-		return err
-	}
+type transactioner interface {
+	WithTransaction(ctx context.Context, f func(ctx context.Context) error) error
+}
 
-	err = d.Commit(ctx, txid)
-	return err
+// WithTransaction wraps the function f in a database transaction if the driver supports transactions.
+// Otherwise, just executes f with ctx.
+//
+// While the ORM by default will wrap individual database calls with a timeout,
+// it will not apply this timeout to a transaction. It is up to you to pass a context that
+// has a timeout to prevent the overall transaction from hanging.
+func WithTransaction(ctx context.Context, d DatabaseI, f func(ctx context.Context) error) error {
+	if t, ok := d.(transactioner); ok {
+		return t.WithTransaction(ctx, f)
+	}
+	return f(ctx) // pass through without transaction
+}
+
+type constrainter interface {
+	WithConstraintsOff(ctx context.Context, f func(ctx context.Context) error) error
+}
+
+// WithConstraintsOff turns off constraints for databases that support foreign key constraints.
+// Otherwise, will just call f with ctx.
+func WithConstraintsOff(ctx context.Context, d DatabaseI, f func(ctx context.Context) error) error {
+	if c, ok := d.(constrainter); ok {
+		return c.WithConstraintsOff(ctx, f)
+	}
+	return f(ctx) // pass through without constraint change
 }
 
 // AssociateOnly resets a many-many relationship in the database.
@@ -155,7 +160,7 @@ func AssociateOnly[J, K any](ctx context.Context,
 	pk J,
 	relatedColumnName string,
 	relatedPks []K) error {
-	err := ExecuteTransaction(ctx, d, func() error {
+	err := WithTransaction(ctx, d, func(ctx context.Context) error {
 		if err := d.Delete(ctx, assnTable, srcColumnName, pk, "", 0); err != nil {
 			var rErr *RecordNotFoundError
 			if !errors.As(err, &rErr) { // ignore record not found errors

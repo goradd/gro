@@ -4,18 +4,11 @@ import (
 	"fmt"
 	strings2 "github.com/goradd/strings"
 	"golang.org/x/exp/slog"
-	"strings"
 )
 
 // Column represents a database column with its attributes and associated metadata.
 type Column struct {
 	// Name is the name of the column in the database.
-	//
-	// If this is a reference column to another table, by convention this name should be
-	// of the form "object_id", with "object" being the name of the object you want generated
-	// and "id" being the name of the primary key column in the referenced table.
-	// If specified in this way, then the values in Reference can be inferred. If not,
-	// Reference will need to be set.
 	//
 	// If an enum column, by convention the name can be one of the following forms:
 	//  - enumtype
@@ -24,7 +17,7 @@ type Column struct {
 	//  - tablename_enumtype_enum
 	// For example, if this table is named "person", and the enum table is named "status",
 	// then by convention the name can be: status, person_status, status_enum, or person_status_enum.
-	// If this convention is not followed, then the Reference should include the name of the enum table.
+	// If this convention is not followed, then the EnumTable should include the name of the enum table.
 	Name string `json:"name"`
 
 	// Type is the type of column. See the doc for ColumnType for more info.
@@ -52,17 +45,11 @@ type Column struct {
 	// IsNullable is true if the column can be given a NULL value.
 	IsNullable bool `json:"is_nullable,omitempty"`
 
-	// IndexLevel indicates what kind of index is associated with this column.
-	// ColTypeAutoPrimaryKey columns are automatically indexed uniquely, so this can be left blank for those columns.
-	// This is for specifying single-column indexes.
-	// See MultiColumnIndex for specifying a multi-column index or multi-column primary key.
-	// Only one column in a table can have a single primary key column.
+	// IndexLevel indicates what kind of single-column index is associated with this column.
+	// ColTypeAutoPrimaryKey columns by default will be given a primary key index.
+	// At least one primary key index must be specified.
+	// See Table.Indexes for specifying a multi-column index.
 	IndexLevel IndexLevel `json:"index_level,omitempty"`
-
-	// Reference can be set to specify additional information for references.
-	// In particular, if the referenced table cannot be inferred from Name, then
-	// it must be included here.
-	Reference *Reference `json:"reference,omitempty"`
 
 	// Identifier is the name of the column in Go code. Leave blank to base it on the Name.
 	// Should be CamelCase. For example: "LastName".
@@ -83,6 +70,9 @@ type Column struct {
 
 	// Comment is a place to put a comment in the JSON description file. If the database driver supports it, it may be put in the database..
 	Comment string `json:"comment,omitempty"`
+
+	// EnumTable is the enum table if the Type is ColTypeEnum.
+	EnumTable string `json:"enum_table,omitempty"`
 }
 
 // infer creates some required values if not specified and does some validity checks.
@@ -92,55 +82,30 @@ func (c *Column) infer(db *Database, table *Table) error {
 			slog.String("table", table.Name))
 		return fmt.Errorf("missing column name in table %s", table.Name)
 	}
-	if c.Type == ColTypeEnum && c.Reference == nil {
+	if c.Type == ColTypeEnum {
 		// Infer the table from the name of the column
 		for _, e := range db.EnumTables {
 			if e.Name == c.Name ||
 				e.Name == table.Name+"_"+c.Name ||
 				e.Name == c.Name+db.EnumTableSuffix ||
 				e.Name == table.Name+"_"+c.Name+db.EnumTableSuffix {
-				c.Reference = &Reference{
-					Table: e.Name,
-				}
+				c.EnumTable = e.Name
 				break
 			}
 		}
-		if c.Reference == nil {
+		if c.EnumTable == "" {
 			slog.Error("Enum table was not specified and could not be inferred",
 				slog.String("table", table.Name),
 				slog.String("column", c.Name))
 			return fmt.Errorf("enum table was not specified and could not be inferred from table %s, column %s", table.Name, c.Name)
 		}
-	} else if c.Type == ColTypeReference && c.Reference == nil {
-		// try to infer referred table from column name
-		parts := strings.Split(c.Name, "_")
-		for i := 1; i < len(parts); i++ {
-			tableName := strings.Join(parts[:i], "_")
-			columnName := strings.Join(parts[i:], "_")
-			if columnName == "" {
-				break // not going to default to anything
-			}
-			for _, t := range db.Tables {
-				if t.Name == tableName &&
-					columnName == t.PrimaryKeyColumn().Name {
-					c.Reference = &Reference{
-						Table:  tableName,
-						Column: columnName,
-					}
-				}
-			}
-		}
-		if c.Reference == nil {
-			slog.Error("Reference table was not specified and could not be inferred",
-				slog.String("table", table.Name),
-				slog.String("column", c.Name))
-			return fmt.Errorf("referenced table was not specified and could not be inferred from table %s, column %s", table.Name, c.Name)
-		}
+	} else if c.Type == ColTypeAutoPrimaryKey {
+		c.IndexLevel = IndexLevelPrimaryKey
 	}
 	return nil
 }
 
-func (c *Column) fillDefaults(db *Database, table *Table) {
+func (c *Column) fillDefaults() {
 	if c.Identifier == "" {
 		objName := strings2.SnakeToCamel(c.Name)
 		c.Identifier = SanitizeIdentifier(objName)
@@ -157,46 +122,4 @@ func (c *Column) fillDefaults(db *Database, table *Table) {
 			c.Size = 64
 		}
 	}
-
-	if c.Reference != nil {
-		if c.Reference.Table == "" {
-			slog.Error("Reference table was not specified",
-				slog.String("table", table.Name),
-				slog.String("column", c.Name))
-			return
-		}
-
-		if c.IndexLevel == IndexLevelNone {
-			c.IndexLevel = IndexLevelIndexed
-		}
-
-		if c.Reference.Identifier == "" {
-			c.Reference.Identifier = strings2.SnakeToCamel(c.Reference.Table)
-		}
-		if c.Reference.Label == "" {
-			c.Reference.Label = strings2.Title(c.Reference.Identifier)
-		}
-
-		if c.Reference.ReverseIdentifier == "" {
-			if c.Reference.Table+"_"+c.Reference.Column == c.Name {
-				c.Reference.ReverseIdentifier = table.Identifier
-			} else {
-				c.Reference.ReverseIdentifier = c.Identifier + table.Identifier
-			}
-		}
-		if c.Reference.ReverseIdentifierPlural == "" {
-			c.Reference.ReverseIdentifierPlural = strings2.Plural(c.Reference.ReverseIdentifier)
-		}
-
-		if c.Reference.ReverseLabel == "" {
-			c.Reference.ReverseLabel = strings2.Title(c.Reference.Identifier)
-		}
-		if c.Reference.ReverseLabelPlural == "" {
-			c.Reference.ReverseLabelPlural = strings2.Plural(c.Reference.ReverseLabel)
-		}
-	}
-}
-
-func (c *Column) IsPrimaryKey() bool {
-	return c.Type == ColTypeAutoPrimaryKey || c.IndexLevel == IndexLevelManualPrimaryKey
 }

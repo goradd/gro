@@ -60,7 +60,7 @@ func (m *ManyManyReference) ObjectTypePlural() string {
 
 // PrimaryKeyType returns the Go type of the primary key of the object the association links to.
 func (m *ManyManyReference) PrimaryKeyType() string {
-	return m.DestinationTable.PrimaryKeyGoType()
+	return m.DestinationTable.PrimaryKeyColumn().GoType()
 }
 
 // PrimaryKey returns the database field name of the primary key of the object the association links to.

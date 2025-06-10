@@ -44,7 +44,7 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) string 
 	}
 
 	// Multi-column indexes
-	for _, mci := range table.MultiColumnIndexes {
+	for _, mci := range table.Indexes {
 		cols := make([]string, len(mci.Columns))
 		for i, name := range mci.Columns {
 			cols[i] = m.QuoteIdentifier(name)
@@ -53,7 +53,7 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) string 
 
 		var idxType string
 		switch mci.IndexLevel {
-		case schema.IndexLevelManualPrimaryKey:
+		case schema.IndexLevelPrimaryKey:
 			def := fmt.Sprintf("PRIMARY KEY (%s)", quotedCols)
 			tableClauses = append(tableClauses, def)
 
@@ -163,7 +163,7 @@ func (m *DB) buildColumnDef(d *schema.Database, table *schema.Table, col *schema
 		extraClauses = append(extraClauses, s)
 	case schema.IndexLevelUnique:
 		idx = "UNIQUE" // inline
-	case schema.IndexLevelManualPrimaryKey:
+	case schema.IndexLevelPrimaryKey:
 		idx = "PRIMARY KEY" // inline
 	default:
 		// do nothing

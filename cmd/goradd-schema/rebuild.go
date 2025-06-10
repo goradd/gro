@@ -27,15 +27,21 @@ func build(dbConfigFile, inFile, dbKey string) {
 						panic(err)
 					}
 					ctx := context.Background()
-					err = e.DestroySchema(ctx, *s)
+					err = db2.WithConstraintsOff(ctx, db, func(ctx context.Context) error {
+						err2 := e.DestroySchema(ctx, *s)
+						if err2 != nil {
+							return err2
+						}
+						err2 = s.Clean()
+						if err2 != nil {
+							panic(err2)
+						}
+						_ = e.CreateSchema(ctx, *s)
+						return nil
+					})
 					if err != nil {
 						panic(err)
 					}
-					err = s.Clean()
-					if err != nil {
-						panic(err)
-					}
-					_ = e.CreateSchema(ctx, *s)
 					return
 				} else {
 					slog.Error("Database cannot rebuild a schema.",

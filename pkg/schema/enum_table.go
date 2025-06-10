@@ -73,8 +73,8 @@ type EnumTable struct {
 	Comment string `json:"comment,omitempty"`
 }
 
-// QualifiedName returns the name of the table in the database, including its schema if applicable.
-func (t *EnumTable) QualifiedName() string {
+// QualifiedTableName returns the name of the table in the database, including its schema if applicable.
+func (t *EnumTable) QualifiedTableName() string {
 	if t.Schema == "" {
 		return t.Name
 	} else {
@@ -84,7 +84,7 @@ func (t *EnumTable) QualifiedName() string {
 
 // fillDefaults will fill in empty values in the EnumTable struct based on the values provided.
 func (t *EnumTable) fillDefaults(suffix string) {
-	name := strings.TrimSuffix(t.QualifiedName(), suffix)
+	name := strings.TrimSuffix(t.QualifiedTableName(), suffix)
 	if t.Label == "" {
 		t.Label = strings2.Title(name)
 	}

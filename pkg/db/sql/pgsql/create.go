@@ -83,7 +83,7 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) string 
 	}
 
 	// Multi-column indexes
-	for _, mci := range table.MultiColumnIndexes {
+	for _, mci := range table.Indexes {
 		cols := make([]string, len(mci.Columns))
 		for i, name := range mci.Columns {
 			cols[i] = m.QuoteIdentifier(name)
@@ -92,7 +92,7 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) string 
 
 		var idxType string
 		switch mci.IndexLevel {
-		case schema.IndexLevelManualPrimaryKey:
+		case schema.IndexLevelPrimaryKey:
 			def := fmt.Sprintf("PRIMARY KEY (%s)", quotedCols)
 			tableClauses = append(tableClauses, def)
 
@@ -173,7 +173,7 @@ func (m *DB) buildColumnDef(d *schema.Database, table *schema.Table, col *schema
 			colType = sqlType(c.Type, c.Size, c.SubType, true)
 		}
 
-		fk := fmt.Sprintf(" FOREIGN KEY (%s) REFERENCES %s(%s)", m.QuoteIdentifier(col.Name), m.QuoteIdentifier(t.Name), m.QuoteIdentifier(c.Name))
+		fk := fmt.Sprintf(" FOREIGN KEY (%s) REFERENCES %s(%s) DEFERRABLE", m.QuoteIdentifier(col.Name), m.QuoteIdentifier(t.Name), m.QuoteIdentifier(c.Name))
 		tableClauses = append(tableClauses, fk)
 		// Note: Postgres does not automatically index foreign keys
 		if col.IndexLevel == schema.IndexLevelNone {
@@ -188,7 +188,7 @@ func (m *DB) buildColumnDef(d *schema.Database, table *schema.Table, col *schema
 			return
 		}
 
-		fk := fmt.Sprintf(" FOREIGN KEY (%s) REFERENCES %s(%s)", m.QuoteIdentifier(col.Name), m.QuoteIdentifier(col.Reference.Table), m.QuoteIdentifier("const"))
+		fk := fmt.Sprintf(" FOREIGN KEY (%s) REFERENCES %s(%s) DEFERRABLE", m.QuoteIdentifier(col.Name), m.QuoteIdentifier(col.Reference.Table), m.QuoteIdentifier("const"))
 		tableClauses = append(tableClauses, fk)
 		colType = "INT"
 	} else {
@@ -207,7 +207,7 @@ func (m *DB) buildColumnDef(d *schema.Database, table *schema.Table, col *schema
 		extraClauses = append(extraClauses, s)
 	case schema.IndexLevelUnique:
 		idx = "UNIQUE" // inline
-	case schema.IndexLevelManualPrimaryKey:
+	case schema.IndexLevelPrimaryKey:
 		idx = "PRIMARY KEY" // inline
 	default:
 		// do nothing

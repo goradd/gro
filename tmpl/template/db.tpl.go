@@ -467,7 +467,24 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 
 		if _, err = io.WriteString(_w, `
 // JsonDecodeAll imports the entire database from JSON that was created using JsonEncodeAll.
+// This is done within a transaction and with constraints off in case there are circular references.
 func JsonDecodeAll(ctx context.Context,  reader io.Reader) error {
+    database := `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, tmpl.Package); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `.Database()
+    return db.WithConstraintsDisabled(ctx, database, func() error {
+        jsonDecodeAll(ctx, reader)
+    }
+}
+
+
+func jsonDecodeAll(ctx context.Context,  reader io.Reader) error {
 	decoder := json.NewDecoder(reader)
 
 	token, err := decoder.Token()
