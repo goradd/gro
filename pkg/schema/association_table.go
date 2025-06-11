@@ -22,7 +22,7 @@ type AssociationReference struct {
 	Column string `json:"column,omitempty"`
 	/* Future expansion for composite keys:
 	// Maps a column name in the association table to a column in the composite primary key in Table.
-	// If empty, will infer the values from the names of the columns in Table.
+	// If empty, will Clean the values from the names of the columns in Table.
 	Columns map[string]string
 	*/
 

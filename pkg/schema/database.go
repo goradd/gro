@@ -98,7 +98,7 @@ func (db *Database) FillDefaults() {
 // It also does some validity checks.
 func (db *Database) infer() error {
 	for _, t := range db.Tables {
-		if err := t.infer(db); err != nil {
+		if err := t.Clean(db); err != nil {
 			return err
 		}
 	}

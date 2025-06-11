@@ -157,7 +157,7 @@ func sampleSchema() schema.Database {
 		},
 		AssociationTables: []*schema.AssociationTable{
 			{
-				Table: "uer_post_assn",
+				Table: "user_post_assn",
 				Ref1: schema.AssociationReference{
 					Table:  "user",
 					Column: "user_id",

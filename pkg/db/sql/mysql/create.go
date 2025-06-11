@@ -14,14 +14,16 @@ import (
 // All the returned tableSql items will be executed for all tables before extraSql will be executed.
 // This allows extraSql to refer to other tables in the schema that might not have been created yet,
 // and is particularly useful for handling cyclic foreign key references.
-func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) (tableSql string, extraSql string) {
+func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) (tableSql string, extraClauses []string) {
 	var sb strings.Builder
 
 	var columnDefs []string
 	var tableClauses []string
-	var extraClauses []string
 
 	for _, col := range table.Columns {
+		if col.Reference() != nil {
+			continue // foreign keys will be handled later
+		}
 		cc, tc, xc := m.buildColumnDef(col)
 		if cc == "" {
 			continue // error, already reported
@@ -33,8 +35,8 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) (tableS
 
 	// build the foreign keys
 	for _, ref := range table.References {
-		cc, tc, xc := m.buildReferenceDef(d, table, ref)
-		if tc == nil {
+		cc, tc, xc := m.buildReferenceDef(table, ref)
+		if cc == "" {
 			continue // error, already reported
 		}
 		columnDefs = append(columnDefs, cc)
@@ -66,7 +68,7 @@ MCI:
 	if table.Comment != "" {
 		sb.WriteString(fmt.Sprintf(` COMMENT='%s'`, table.Comment))
 	}
-	return sb.String(), strings.Join(extraClauses, ";\n")
+	return sb.String(), extraClauses
 }
 
 // buildColumnDef returns the sql that will create the column col, including related indexes and foreign keys.
@@ -161,63 +163,30 @@ func (m *DB) indexSql(level schema.IndexLevel, cols ...string) string {
 	return def
 }
 
-func (m *DB) buildReferenceDef(d *schema.Database, table *schema.Table, ref *schema.Reference) (columnClause string, tableClauses, extraClauses []string) {
-	if ref.Table == "" {
-		// Should be already checked in schema infer.
-		slog.Error("Reference skipped, Reference with a Table value is required")
-		return
-	}
-	// match the referenced column's type
-	t := d.FindTable(ref.Table)
-	if t == nil {
-		// Should be already checked in schema infer.
-		slog.Error("Reference skipped, Table not found",
-			slog.String(db.LogTable, ref.Table))
-		return
-	}
-	pks := t.PrimaryKeyColumns()
-	if len(pks) != 1 {
-		slog.Error("Reference skipped, referenced table did not have a single primary key",
-			slog.String(db.LogTable, table.Name),
-			slog.String(db.LogColumn, ref.Column))
-		return
-	}
-	pkCol := t.FindColumn(pks[0])
-	if pkCol == nil {
-		slog.Error("Reference skipped, primary key column not found",
-			slog.String(db.LogTable, table.Name),
-			slog.String(db.LogColumn, ref.Column))
-		return
+func (m *DB) buildReferenceDef(table *schema.Table, ref *schema.Reference) (columnClause string, tableClauses, extraClauses []string) {
+	// Much of this depends on infer() having been called on the schema
+	fk, pk := ref.ReferenceColumns()
+
+	if fk.Type == schema.ColTypeAutoPrimaryKey {
+		fk.Type = schema.ColTypeInt // auto columns internally are integers
 	}
 
-	colType := pkCol.Type
-	if colType == schema.ColTypeAutoPrimaryKey {
-		colType = schema.ColTypeInt // auto columns internally are integers
-	}
-	col := schema.Column{
-		Name:       ref.Column,
-		Type:       colType,
-		SubType:    pkCol.SubType,
-		Size:       pkCol.Size,
-		IsNullable: ref.IsNullable,
-	}
-
-	columnClause, tableClauses, extraClauses = m.buildColumnDef(&col)
-	if tableClauses == nil {
-		return
+	columnClause, tableClauses, extraClauses = m.buildColumnDef(fk)
+	if columnClause == "" {
+		return // error, already logged
 	}
 
 	// Make a constraint name that will be unique within the database and logically related to the relationship.
 	constraintName := table.Name + "_" + ref.Column + "_fk"
 
 	// We use alter table after all tables are created in case of cyclic foreign keys.
-	fk := fmt.Sprintf("ALTER TABLE %s ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s(%s)",
+	s := fmt.Sprintf("ALTER TABLE %s ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s(%s)",
 		m.QuoteIdentifier(table.Name),
 		m.QuoteIdentifier(constraintName),
-		m.QuoteIdentifier(ref.Column),
+		m.QuoteIdentifier(fk.Name),
 		m.QuoteIdentifier(ref.Table),
-		m.QuoteIdentifier(pkCol.Name))
-	extraClauses = append(extraClauses, fk)
+		m.QuoteIdentifier(pk.Name))
+	extraClauses = append(extraClauses, s)
 	return
 }
 

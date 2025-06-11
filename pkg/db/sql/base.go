@@ -315,46 +315,43 @@ func (h *Base) CreateSchema(ctx context.Context, s schema.Database) error {
 }
 
 func (h *Base) buildTables(ctx context.Context, d *schema.Database, tables []*schema.Table) (err error) {
-	var extras string
 	for _, table := range tables {
-		s, e := h.tableSql(d, table)
-		if e != "" {
-			extras += e + ";\n"
-		}
-		if s == "" {
+		statements := h.tableSql(d, table)
+		if statements == nil {
 			continue // already reported error
 		}
-		_, err = h.dbi.SqlExec(ctx, s)
-		if err != nil {
-			slog.Error("SQL error in buildTables.",
-				slog.String("sql", s),
-				slog.Any("error", err))
+		for _, s := range statements {
+			_, err = h.dbi.SqlExec(ctx, s)
+			if err != nil {
+				slog.Error("SQL error in buildTables.",
+					slog.String("sql", s),
+					slog.Any("error", err))
+				return err
+			}
 		}
 	}
-	if err == nil && extras != "" {
-		_, err = h.dbi.SqlExec(ctx, extras)
-	}
-	return err
+	return nil
 }
 
 func (h *Base) buildEnums(ctx context.Context, d *schema.Database, tables []*schema.EnumTable) (err error) {
 	for _, table := range tables {
-		var args []any
-		s := h.enumTableSql(d, table)
-		if s == "" {
+		statements := h.enumTableSql(d, table)
+		if statements == nil {
 			return fmt.Errorf("error in table `%s`", table.Name)
 		}
-		if _, err = h.dbi.SqlExec(ctx, s); err != nil {
-			slog.Error("SQL error",
-				slog.String("sql", s),
-				slog.Any("error", err))
+		for _, s := range statements {
+			if _, err = h.dbi.SqlExec(ctx, s); err != nil {
+				slog.Error("SQL error",
+					slog.String("sql", s),
+					slog.Any("error", err))
 
-			return
+				return
+			}
 		}
 
 		fieldKeys := table.FieldKeys()
 		for _, v := range table.Values {
-			s, args = h.enumValueSql(table.Name, fieldKeys, table.Fields, v)
+			s, args := h.enumValueSql(table.Name, fieldKeys, table.Fields, v)
 			if _, err = h.dbi.SqlExec(ctx, s, args...); err != nil {
 				slog.Error("SQL error",
 					slog.String("sql", s),
@@ -370,27 +367,33 @@ func (h *Base) buildEnums(ctx context.Context, d *schema.Database, tables []*sch
 
 func (h *Base) buildAssociations(ctx context.Context, d *schema.Database, table []*schema.AssociationTable) (err error) {
 	for _, table := range table {
-		s := h.associationSql(d, table)
-		if s == "" {
+		statements := h.associationSql(d, table)
+		if statements == nil {
 			return fmt.Errorf("error in table `%s`", table.Table)
 		}
-		_, err = h.dbi.SqlExec(ctx, s)
-		if err != nil {
-			slog.Error("SQL error",
-				slog.String("sql", s),
-				slog.Any("error", err),
-			)
+		for _, s := range statements {
+			_, err = h.dbi.SqlExec(ctx, s)
+			if err != nil {
+				slog.Error("SQL error",
+					slog.String("sql", s),
+					slog.Any("error", err),
+				)
+			}
 		}
 	}
 	return err
 }
 
-func (h *Base) tableSql(d *schema.Database, table *schema.Table) (string, string) {
-	return h.dbi.TableDefinitionSql(d, table)
+func (h *Base) tableSql(d *schema.Database, table *schema.Table) []string {
+	s, e := h.dbi.TableDefinitionSql(d, table)
+	if s == "" {
+		return nil
+	}
+	return append([]string{s}, e...)
 }
 
 // enumTableSql returns the sql to create an enum table.
-func (h *Base) enumTableSql(d *schema.Database, et *schema.EnumTable) (s string) {
+func (h *Base) enumTableSql(d *schema.Database, et *schema.EnumTable) (s []string) {
 	// Build a schema table to create the enum table
 	table := &schema.Table{
 		Name:    et.Name,
@@ -421,8 +424,7 @@ func (h *Base) enumTableSql(d *schema.Database, et *schema.EnumTable) (s string)
 		table.Columns = append(table.Columns, col)
 	}
 
-	s, e := h.tableSql(d, table)
-	return s + ";\n" + e
+	return h.tableSql(d, table)
 }
 
 func (h *Base) enumValueSql(tableName string, fieldKeys []string, fields map[string]schema.EnumField, v map[string]any) (sql string, args []any) {
@@ -480,7 +482,7 @@ func (h *Base) enumValueSql(tableName string, fieldKeys []string, fields map[str
 	), args
 }
 
-func (h *Base) associationSql(d *schema.Database, at *schema.AssociationTable) string {
+func (h *Base) associationSql(d *schema.Database, at *schema.AssociationTable) []string {
 	// Build a schema table to create the association table
 	table := &schema.Table{
 		Name:    at.Table,
@@ -492,23 +494,26 @@ func (h *Base) associationSql(d *schema.Database, at *schema.AssociationTable) s
 	ref := &schema.Reference{
 		Table:      at.Ref1.Table,
 		Column:     at.Ref1.Column,
-		IndexLevel: schema.IndexLevelIndexed, // individual indexes on columns, though its a composite primary key
+		IndexLevel: schema.IndexLevelIndexed, // individual indexes on columns, though it is a composite primary key
 	}
 	table.References = append(table.References, ref)
 
 	ref = &schema.Reference{
 		Table:      at.Ref2.Table,
 		Column:     at.Ref2.Column,
-		IndexLevel: schema.IndexLevelIndexed, // individual indexes on columns, though its a composite primary key
+		IndexLevel: schema.IndexLevelIndexed, // individual indexes on columns, though it is a composite primary key
 	}
 	table.References = append(table.References, ref)
 
-	// multicolumn index for uniqueness and row id
+	// composite index for uniqueness and row id
 	table.Indexes = []schema.Index{
 		{[]string{at.Ref1.Column, at.Ref2.Column}, schema.IndexLevelPrimaryKey},
 	}
-	s, e := h.tableSql(d, table)
-	return s + ";\n" + e
+	err := table.Clean(d)
+	if err != nil {
+		panic(err)
+	}
+	return h.tableSql(d, table)
 }
 
 // DestroySchema removes all tables and data from the tables found in the given schema s.

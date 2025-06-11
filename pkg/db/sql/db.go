@@ -34,7 +34,7 @@ type DbI interface {
 	// SupportsForUpdate will return true if it supports SELECT ... FOR UPDATE clauses for row level locking in a transaction
 	SupportsForUpdate() bool
 	// TableDefinitionSql returns the sql that will create table.
-	TableDefinitionSql(d *schema.Database, table *schema.Table) (tableSql, extraSql string)
+	TableDefinitionSql(d *schema.Database, table *schema.Table) (tableSql string, extraSql []string)
 }
 
 type contextKey string

@@ -81,7 +81,8 @@ func (t *Table) QualifiedName() string {
 	}
 }
 
-func (t *Table) infer(db *Database) error {
+// Clean fills in defaults and does some processing on the references and indexes.
+func (t *Table) Clean(db *Database) error {
 	if strings.ContainsRune(t.Name, '.') {
 		return fmt.Errorf("table name %q cannot contain a period", t.Name)
 	}
@@ -165,7 +166,7 @@ func (t *Table) fillDefaults(db *Database) {
 
 // PrimaryKeyColumns returns the names of the primary key columns of the table, or nil if not found.
 // Note that these names may refer to references.
-// This only works after infer has been called.
+// This only works after Clean has been called.
 func (t *Table) PrimaryKeyColumns() []string {
 	for _, i := range t.Indexes {
 		if i.IndexLevel == IndexLevelPrimaryKey {
