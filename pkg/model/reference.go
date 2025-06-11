@@ -116,5 +116,6 @@ func (m *Database) importReference(schemaRef *schema.Reference) *Reference {
 	}
 
 	refTable.ReverseReferences = append(refTable.ReverseReferences, ref)
+	col.Reference = ref
 	return ref
 }

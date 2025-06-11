@@ -48,6 +48,8 @@ type Column struct {
 	// Options are the options extracted from the comments string
 	Options map[string]interface{}
 
+	Reference *Reference // if a reference column, the containing reference
+
 	// goType is the cached go type as a string for the column
 	goType string
 	// decapIdentifier is a cache for the lower case identifier for the column.

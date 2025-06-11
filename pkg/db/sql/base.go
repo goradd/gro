@@ -416,7 +416,7 @@ func (h *Base) enumTableSql(d *schema.Database, et *schema.EnumTable) (s string)
 			Identifier: et.Fields[k].Identifier,
 		}
 		if i == 0 {
-			col.IndexLevel = schema.IndexLevelPrimaryKey
+			table.Indexes = append(table.Indexes, schema.Index{IndexLevel: schema.IndexLevelPrimaryKey, Columns: []string{col.Name}})
 		}
 		table.Columns = append(table.Columns, col)
 	}
@@ -490,16 +490,19 @@ func (h *Base) associationSql(d *schema.Database, at *schema.AssociationTable) s
 
 	// Make columns to send to the column builder
 	ref := &schema.Reference{
-		Table:  at.Ref1.Table,
-		Column: at.Ref1.Column,
+		Table:      at.Ref1.Table,
+		Column:     at.Ref1.Column,
+		IndexLevel: schema.IndexLevelIndexed, // individual indexes on columns, though its a composite primary key
 	}
 	table.References = append(table.References, ref)
 
 	ref = &schema.Reference{
-		Table:  at.Ref2.Table,
-		Column: at.Ref2.Column,
+		Table:      at.Ref2.Table,
+		Column:     at.Ref2.Column,
+		IndexLevel: schema.IndexLevelIndexed, // individual indexes on columns, though its a composite primary key
 	}
 	table.References = append(table.References, ref)
+
 	// multicolumn index for uniqueness and row id
 	table.Indexes = []schema.Index{
 		{[]string{at.Ref1.Column, at.Ref2.Column}, schema.IndexLevelPrimaryKey},

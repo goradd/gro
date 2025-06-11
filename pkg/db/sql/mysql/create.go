@@ -31,21 +31,6 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) (tableS
 		extraClauses = append(extraClauses, xc...)
 	}
 
-	// Build the primary key
-	var pks []string
-	for _, c := range table.Columns {
-		if c.IndexLevel == schema.IndexLevelPrimaryKey {
-			pks = append(pks, c.Name)
-		}
-	}
-	if len(pks) == 0 {
-		slog.Error("Table skipped. Table has no primary key",
-			slog.String(db.LogTable, table.Name))
-		return "", ""
-	}
-	def := m.indexSql(schema.IndexLevelPrimaryKey, pks...)
-	tableClauses = append(tableClauses, def)
-
 	// build the foreign keys
 	for _, ref := range table.References {
 		cc, tc, xc := m.buildReferenceDef(d, table, ref)
@@ -57,18 +42,11 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) (tableS
 		extraClauses = append(extraClauses, xc...)
 	}
 
-	// Multi-column indexes
 MCI:
 	for _, mci := range table.Indexes {
-		// Validate
-		if mci.IndexLevel == schema.IndexLevelPrimaryKey {
-			slog.Error("Index skipped. Multi-column index cannot be a primary key",
-				slog.String(db.LogTable, table.Name))
-			continue
-		}
 		for _, i := range mci.Columns {
 			if c := table.FindColumn(i); c == nil {
-				slog.Error("Index skipped. Column in multi-column index was not found",
+				slog.Error("Index skipped. Column in index was not found",
 					slog.String(db.LogTable, table.Name),
 					slog.String(db.LogColumn, i),
 				)
@@ -197,29 +175,31 @@ func (m *DB) buildReferenceDef(d *schema.Database, table *schema.Table, ref *sch
 			slog.String(db.LogTable, ref.Table))
 		return
 	}
-	pkCol := t.PrimaryKeyColumn()
+	pks := t.PrimaryKeyColumns()
+	if len(pks) != 1 {
+		slog.Error("Reference skipped, referenced table did not have a single primary key",
+			slog.String(db.LogTable, table.Name),
+			slog.String(db.LogColumn, ref.Column))
+		return
+	}
+	pkCol := t.FindColumn(pks[0])
 	if pkCol == nil {
-		slog.Error("Column skipped, could not find a primary key",
-			slog.String(db.LogTable, ref.Table))
+		slog.Error("Reference skipped, primary key column not found",
+			slog.String(db.LogTable, table.Name),
+			slog.String(db.LogColumn, ref.Column))
 		return
 	}
 
 	colType := pkCol.Type
 	if colType == schema.ColTypeAutoPrimaryKey {
-		colType = schema.ColTypeInt
+		colType = schema.ColTypeInt // auto columns internally are integers
 	}
-	indexLevel := schema.IndexLevelIndexed
-	if ref.IsUnique {
-		indexLevel = schema.IndexLevelUnique
-	}
-
 	col := schema.Column{
 		Name:       ref.Column,
 		Type:       colType,
 		SubType:    pkCol.SubType,
 		Size:       pkCol.Size,
 		IsNullable: ref.IsNullable,
-		IndexLevel: indexLevel,
 	}
 
 	columnClause, tableClauses, extraClauses = m.buildColumnDef(&col)
