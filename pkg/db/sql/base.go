@@ -113,7 +113,7 @@ func (h *Base) StartProfiling() {
 	h.profiling = true
 }
 
-// StopProfiling will start the database profiling process.
+// StopProfiling will stop the database profiling process.
 func (h *Base) StopProfiling() {
 	h.profiling = false
 }
@@ -384,6 +384,9 @@ func (h *Base) buildAssociations(ctx context.Context, d *schema.Database, table 
 	return err
 }
 
+// tableSql returns sql statements to create a table.
+// Multiple statements are returned because some drivers do not allow the execution of
+// multiple statements by default.
 func (h *Base) tableSql(d *schema.Database, table *schema.Table) []string {
 	s, e := h.dbi.TableDefinitionSql(d, table)
 	if s == "" {
@@ -533,12 +536,13 @@ func (h *Base) DestroySchema(ctx context.Context, s schema.Database) {
 
 	_ = db.WithConstraintsOff(ctx, h.dbi.(db.DatabaseI), func(ctx2 context.Context) error {
 		for _, table := range tables {
-			_, err := h.SqlExec(ctx2, `DROP TABLE `+h.dbi.QuoteIdentifier(table))
+			_, err := h.SqlExec(ctx2, `DROP TABLE IF EXISTS `+h.dbi.QuoteIdentifier(table))
 			if err != nil {
 				slog.Warn("failed to drop table",
 					slog.String(db.LogTable, table),
 					slog.Any(db.LogError, err),
 				)
+				return err
 			}
 		}
 		return nil
@@ -615,7 +619,7 @@ func (h *Base) getTransaction(ctx context.Context) *sql.Tx {
 // when the transaction is finally committed.
 func (h *Base) WithTransaction(ctx context.Context, f func(ctx context.Context) error) (err error) {
 	tx := h.getTransaction(ctx)
-	if tx == nil {
+	if tx == nil { // is not already in a transaction
 		con := h.getConnection(ctx)
 		if con == nil {
 			tx, err = h.db.BeginTx(ctx, nil)

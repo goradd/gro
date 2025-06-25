@@ -9,7 +9,6 @@ import (
 	"github.com/goradd/orm/pkg/db"
 	sql2 "github.com/goradd/orm/pkg/db/sql"
 	. "github.com/goradd/orm/pkg/query"
-	"github.com/goradd/orm/pkg/schema"
 	"strings"
 	"time"
 )
@@ -289,22 +288,10 @@ func (m *DB) Update(ctx context.Context,
 	return
 }
 
-// SetConstraints turns constraints on or off.
-// This operation MUST be done on the same connection as the operations depending on it.
-func (m *DB) SetConstraints(ctx context.Context, on bool) error {
-	arg := 0
-	if on {
-		arg = 1
-	}
-	sqlStr := fmt.Sprintf("SET FOREIGN_KEY_CHECKS = %d", arg)
-	_, err := m.SqlDb().Exec(sqlStr)
-	return err
-}
-
 type contextKey string
 
 func (m *DB) constraintKey() contextKey {
-	return contextKey("GoraddMysqlConstraint-" + m.DbKey())
+	return contextKey("MysqlConstraint-" + m.DbKey())
 }
 
 func (m *DB) getConstraintsOff(ctx context.Context) bool {
@@ -345,6 +332,7 @@ func (m *DB) WithConstraintsOff(ctx context.Context, f func(ctx context.Context)
 // cannot be done within a transaction, and is not reversible.
 // It also handles turning off and on constraints, since that is session wide and so
 // the connection must be controlled.
+/*
 func (m *DB) DestroySchema(ctx context.Context, s schema.Database) {
 	// gather table names to delete
 	var tables []string
@@ -366,3 +354,4 @@ func (m *DB) DestroySchema(ctx context.Context, s schema.Database) {
 		return
 	})
 }
+*/

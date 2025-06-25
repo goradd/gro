@@ -33,6 +33,8 @@ type Table struct {
 	NoTest bool `json:"no_test,omitempty"`
 
 	// Columns is a list of Column objects, one for each column in the table.
+	// This does not include columns associated with references.
+	// Use AllColumns() to get the list of all columns, including the foreign key columns.
 	Columns []*Column `json:"columns"`
 
 	// References is a list of links to other tables, also known as foreign keys.
@@ -44,6 +46,8 @@ type Table struct {
 	// composite primary key. Note that some databases do not support composite primary keys and
 	// will convert a composite primary key to a composite unique key, and then will automatically
 	// generate a single unique primary key.
+	// Composite primary keys with an auto generated primary key is not supported in the orm. To
+	// implement this, you will need to manually generate or assign the primary key columns.
 	Indexes []Index `json:"indexes,omitempty"`
 
 	// Identifier is the corresponding Go object name.
@@ -165,7 +169,7 @@ func (t *Table) fillDefaults(db *Database) {
 }
 
 // PrimaryKeyColumns returns the names of the primary key columns of the table, or nil if not found.
-// Note that these names may refer to references.
+// Note that these names may refer to reference columns.
 // This only works after Clean has been called.
 func (t *Table) PrimaryKeyColumns() []string {
 	for _, i := range t.Indexes {
@@ -177,7 +181,7 @@ func (t *Table) PrimaryKeyColumns() []string {
 }
 
 // FindColumn returns the named column of the table, or nil if not found.
-// Will not find columns that are references though.
+// This does not include columns in references.
 func (t *Table) FindColumn(n string) *Column {
 	for _, c := range t.Columns {
 		if c.Name == n {

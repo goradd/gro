@@ -279,11 +279,50 @@ func (m *DB) syncIdentity(ctx context.Context, table string, pk string) error {
 func (m *DB) SetConstraints(on bool) error {
 	var sqlStr string
 
-	if on {
+	if !on {
 		sqlStr = "SET CONSTRAINTS ALL DEFERRED"
 	} else {
 		sqlStr = "SET CONSTRAINTS ALL IMMEDIATE"
 	}
 	_, err := m.SqlDb().Exec(sqlStr)
 	return err
+}
+
+type contextKey string
+
+func (m *DB) constraintKey() contextKey {
+	return contextKey("PostgresConstraint-" + m.DbKey())
+}
+
+func (m *DB) getConstraintsOff(ctx context.Context) bool {
+	i := ctx.Value(m.constraintKey())
+	return i != nil
+}
+
+// WithConstraintsOff makes sure operations in f occur with foreign key constraints turned off.
+// Postgres (and many other drivers), require that this happens within a transaction.
+func (m *DB) WithConstraintsOff(ctx context.Context, f func(ctx context.Context) error) (err error) {
+	off := m.getConstraintsOff(ctx)
+	if off {
+		// constraints are already off, so just pass through
+		err = f(ctx)
+		return
+	}
+
+	err = m.WithTransaction(ctx, func(ctx context.Context) (err error) {
+		ctx = context.WithValue(ctx, m.constraintKey(), true)
+		_, err = m.SqlExec(ctx, "SET CONSTRAINTS ALL DEFERRED")
+		if err != nil {
+			return
+		}
+		defer func() {
+			// Although a transaction will automatically turn constraints back on,
+			// we do this in case the call is embedded in another transaction and the developer
+			// is trying to carefully control transactions
+			_, err = m.SqlExec(ctx, "SET CONSTRAINTS ALL IMMEDIATE")
+		}()
+		return f(ctx)
+	})
+
+	return
 }

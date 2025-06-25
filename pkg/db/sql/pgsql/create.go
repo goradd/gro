@@ -2,6 +2,7 @@ package pgsql
 
 import (
 	"fmt"
+	"github.com/goradd/anyutil"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/schema"
 	"log/slog"
@@ -49,24 +50,14 @@ $$ LANGUAGE plpgsql;
 
 // TableDefinitionSql will return the sql needed to create the table.
 // This can include clauses separated by semicolons that add additional capabilities to the table.
-func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) string {
+func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) (tableSql string, extraClauses []string) {
 	var sb strings.Builder
 
-	var pkCount int
 	var columnDefs []string
 	var tableClauses []string
-	var extraClauses []string
 
 	for _, col := range table.Columns {
-		if col.IsPrimaryKey() {
-			pkCount++
-			if pkCount > 1 {
-				slog.Error("Table skipped. Table has more than one primary key column",
-					slog.String(db.LogTable, table.Name))
-				return ""
-			}
-		}
-		colDef, tc, xc := m.buildColumnDef(d, table, col)
+		colDef, tc, xc := m.buildColumnDef(col)
 		if colDef == "" {
 			continue // error, already reported
 		}
@@ -82,32 +73,24 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) string 
 		quotedTableName = m.QuoteIdentifier(table.Name)
 	}
 
-	// Multi-column indexes
-	for _, mci := range table.Indexes {
-		cols := make([]string, len(mci.Columns))
-		for i, name := range mci.Columns {
-			cols[i] = m.QuoteIdentifier(name)
+	// build the foreign keys
+	for _, ref := range table.References {
+		cc, tc, xc := m.buildReferenceDef(d, table, ref)
+		if cc == "" {
+			continue // error, already reported
 		}
-		quotedCols := strings.Join(cols, ", ")
+		columnDefs = append(columnDefs, cc)
+		tableClauses = append(tableClauses, tc...)
+		extraClauses = append(extraClauses, xc...)
+	}
 
-		var idxType string
-		switch mci.IndexLevel {
-		case schema.IndexLevelPrimaryKey:
-			def := fmt.Sprintf("PRIMARY KEY (%s)", quotedCols)
-			tableClauses = append(tableClauses, def)
-
-		case schema.IndexLevelUnique:
-			idxType = "UNIQUE "
-			fallthrough
-		case schema.IndexLevelIndexed:
-			idxType += "INDEX"
-			idxName := "idx_" + strings.Join(mci.Columns, "_")
-			def := fmt.Sprintf("CREATE %s %s ON %s (%s)", idxType, m.QuoteIdentifier(idxName), quotedTableName, quotedCols)
-			extraClauses = append(extraClauses, def)
-		default:
-			slog.Error("Index skipped. Unknown index level in multi-column index",
-				slog.String(db.LogTable, table.Name))
-			continue
+	for _, mci := range table.Indexes {
+		tableSql, extraSql := m.indexSql(table.Name, mci.IndexLevel, mci.Columns...)
+		if tableSql != "" {
+			tableClauses = append(tableClauses, tableSql)
+		}
+		if extraSql != "" {
+			extraClauses = append(extraClauses, extraSql)
 		}
 	}
 
@@ -125,19 +108,18 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) string 
 	sb.WriteString(fmt.Sprintf("CREATE TABLE %s (\n", quotedTableName))
 	sb.WriteString(strings.Join(columnDefs, ",\n"))
 	sb.WriteString("\n)")
-	sb.WriteString(";\n")
 	extraClauses = append(extraClauses, m.addSynFuncSql(table.Schema))
-	sb.WriteString(strings.Join(extraClauses, ";\n"))
-	return sb.String()
+	return sb.String(), extraClauses
 }
 
 // ColumnDefinitionSql returns the sql that will create the column col.
 // This will include single-column foreign key references.
 // This will not include a primary key designation.
-func (m *DB) buildColumnDef(d *schema.Database, table *schema.Table, col *schema.Column) (s string, tableClauses []string, extraClauses []string) {
+func (m *DB) buildColumnDef(col *schema.Column) (columnClause string, tableClauses []string, extraClauses []string) {
 	var colType string
 	var collation string
 	var defaultStr string
+	var extraStr string
 
 	if def := col.DatabaseDefinition[db.DriverTypePostgres]; def != nil {
 		if t, ok := def["type"].(string); ok {
@@ -151,69 +133,30 @@ func (m *DB) buildColumnDef(d *schema.Database, table *schema.Table, col *schema
 		}
 
 	}
-	if col.Type == schema.ColTypeReference {
-		if col.Reference == nil || col.Reference.Table == "" {
-			slog.Error("Column skipped, Reference with a Table value is required",
-				slog.String(db.LogColumn, col.Name))
-			return
-		}
-		// match the referenced column's type
-		t := d.FindTable(col.Reference.Table)
-		if t == nil {
-			slog.Error("Column skipped, ref table not found",
-				slog.String(db.LogTable, col.Reference.Table),
-				slog.String(db.LogColumn, col.Name))
-		}
-		c := t.PrimaryKeyColumn()
-		if c == nil {
-			slog.Error("Column skipped, reference table does not have a primary key",
-				slog.String(db.LogTable, col.Reference.Table))
-		}
-		if colType == "" {
-			colType = sqlType(c.Type, c.Size, c.SubType, true)
-		}
-
-		fk := fmt.Sprintf(" FOREIGN KEY (%s) REFERENCES %s(%s) DEFERRABLE", m.QuoteIdentifier(col.Name), m.QuoteIdentifier(t.Name), m.QuoteIdentifier(c.Name))
-		tableClauses = append(tableClauses, fk)
-		// Note: Postgres does not automatically index foreign keys
-		if col.IndexLevel == schema.IndexLevelNone {
-			slog.Warn("Reference column is not indexed. Indexing reference columns is HIGHLY recommended.",
-				slog.String(db.LogTable, table.Name),
-				slog.String(db.LogColumn, col.Name))
-		}
-	} else if col.Type == schema.ColTypeEnum {
-		if col.Reference == nil || col.Reference.Table == "" {
-			slog.Error("Column skipped, Reference with a Table value is required",
+	if col.Type == schema.ColTypeEnum {
+		if col.EnumTable == "" {
+			slog.Error("Column skipped, EnumTable not specified for an enum value.",
 				slog.String(db.LogColumn, col.Name))
 			return
 		}
 
-		fk := fmt.Sprintf(" FOREIGN KEY (%s) REFERENCES %s(%s) DEFERRABLE", m.QuoteIdentifier(col.Name), m.QuoteIdentifier(col.Reference.Table), m.QuoteIdentifier("const"))
+		fk := fmt.Sprintf(" FOREIGN KEY (%s) REFERENCES %s(%s)",
+			m.QuoteIdentifier(col.Name),
+			m.QuoteIdentifier(col.EnumTable),
+			m.QuoteIdentifier("const"))
 		tableClauses = append(tableClauses, fk)
 		colType = "INT"
 	} else {
-		colType = sqlType(col.Type, col.Size, col.SubType, false)
+		colType = sqlType(col.Type, col.Size, col.SubType)
+		if col.Type == schema.ColTypeAutoPrimaryKey {
+			extraStr += "GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY"
+		}
 	}
 
 	if !col.IsNullable {
 		colType += " NOT NULL"
 	}
 
-	var idx string
-	switch col.IndexLevel {
-	case schema.IndexLevelIndexed:
-		idx_name := "idx_" + table.Name + "_" + col.Name
-		s := fmt.Sprintf("CREATE INDEX %s ON %s (%s)", m.QuoteIdentifier(idx_name), m.QuoteIdentifier(table.Name), m.QuoteIdentifier(col.Name))
-		extraClauses = append(extraClauses, s)
-	case schema.IndexLevelUnique:
-		idx = "UNIQUE" // inline
-	case schema.IndexLevelPrimaryKey:
-		idx = "PRIMARY KEY" // inline
-	default:
-		// do nothing
-	}
-
-	var extraStr string
 	if col.DefaultValue != nil && defaultStr == "" {
 		switch val := col.DefaultValue.(type) {
 		case string:
@@ -238,21 +181,16 @@ func (m *DB) buildColumnDef(d *schema.Database, table *schema.Table, col *schema
 		commentStr = fmt.Sprintf("COMMENT '%s'", commentStr)
 	}
 
-	s = fmt.Sprintf("%s %s %s %s %s %s %s", m.QuoteIdentifier(col.Name), colType, idx, defaultStr, extraStr, collation, commentStr)
+	columnClause = fmt.Sprintf("%s %s %s %s %s %s", m.QuoteIdentifier(col.Name), colType, defaultStr, extraStr, collation, commentStr)
 	return
 }
 
 // SqlType is used by the builder to return the SQL corresponding to the given colType that will create
 // the column.
-// If forReference is true, then it returns the SQL for creating a reference to the column.
-func sqlType(colType schema.ColumnType, size uint64, subType schema.ColumnSubType, forReference bool) string {
+func sqlType(colType schema.ColumnType, size uint64, subType schema.ColumnSubType) string {
 	switch colType {
 	case schema.ColTypeAutoPrimaryKey:
-		typ := intType(size, false)
-		if !forReference {
-			typ += " GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY"
-		}
-		return typ
+		return intType(size, false)
 	case schema.ColTypeString:
 		if subType == schema.ColSubTypeNumeric {
 			precision := size & 0x0000FFFF
@@ -295,8 +233,6 @@ func sqlType(colType schema.ColumnType, size uint64, subType schema.ColumnSubTyp
 				slog.String("subtype", subType.String()))
 		}
 		return "TIMESTAMP"
-	case schema.ColTypeReference:
-		return intType(size, false)
 	case schema.ColTypeEnum:
 		return "INT"
 	case schema.ColTypeJSON:
@@ -326,4 +262,57 @@ func intType(size uint64, unsigned bool) string {
 		t = "BIGINT"
 	}
 	return t
+}
+
+func (m *DB) buildReferenceDef(db *schema.Database, table *schema.Table, ref *schema.Reference) (columnClause string, tableClauses, extraClauses []string) {
+	fk, pk := ref.ReferenceColumns(db, table)
+
+	if fk.Type == schema.ColTypeAutoPrimaryKey {
+		fk.Type = schema.ColTypeInt // auto columns internally are integers
+	}
+
+	columnClause, tableClauses, extraClauses = m.buildColumnDef(fk)
+	if columnClause == "" {
+		return // error, already logged
+	}
+
+	// Make a constraint name that will be unique within the database and logically related to the relationship.
+	constraintName := table.Name + "_" + ref.Column + "_fk"
+
+	// We use alter table after all tables are created in case of cyclic foreign keys.
+	s := fmt.Sprintf("ALTER TABLE %s ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s(%s)",
+		m.QuoteIdentifier(table.Name),
+		m.QuoteIdentifier(constraintName),
+		m.QuoteIdentifier(fk.Name),
+		m.QuoteIdentifier(ref.Table),
+		m.QuoteIdentifier(pk.Name))
+	extraClauses = append(extraClauses, s)
+	return
+}
+
+// indexSql returns sql to be included after a table definition that will create an
+// index on the columns. table should NOT include the schema, since index names only need to
+// be unique within the schema in postgres.
+func (m *DB) indexSql(table string, level schema.IndexLevel, cols ...string) (tableSql string, extraSql string) {
+	cols = anyutil.MapSliceFunc(cols, func(s string) string {
+		return m.QuoteIdentifier(s)
+	})
+
+	var idxType string
+	switch level {
+	case schema.IndexLevelPrimaryKey:
+		idxType = "PRIMARY KEY"
+	case schema.IndexLevelUnique:
+		idxType = "UNIQUE INDEX"
+	case schema.IndexLevelIndexed:
+		// regular indexes must be added after the table definition
+		idx_name := "idx_" + table + "_" + strings.Join(cols, "_")
+		extraSql = fmt.Sprintf("CREATE INDEX %s ON %s (%s)", m.QuoteIdentifier(idx_name), m.QuoteIdentifier(table), strings.Join(cols, ","))
+		return
+	default:
+		return
+	}
+	// handle primary and unique
+	tableSql = fmt.Sprintf("%s (%s)", idxType, strings.Join(cols, ","))
+	return
 }

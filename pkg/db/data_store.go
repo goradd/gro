@@ -75,14 +75,6 @@ type DatabaseI interface {
 	// BuilderQuery performs a complex query using a query builder.
 	// The data returned will depend on the command inside the builder.
 	BuilderQuery(ctx context.Context, builder *Builder) (any, error)
-	// NewContext is called early in the processing of a response to insert an empty context that the database can use if needed.
-	NewContext(ctx context.Context) context.Context
-	// SetConstraints will turn foreign key constraints on or off.
-	// Databases that do not support constraints can make this a no-op.
-	// This is used during import in case there are circular or forward references in the data.
-	// Applications should not call this directly, but rather use the WithConstraintsDisabled wrapper.
-	// This MUST be done inside a transaction.
-	SetConstraints(on bool) error
 }
 
 // AddDatabase adds a database to the global database store. Only call this during app startup.
@@ -98,21 +90,6 @@ func GetDatabase(key string) DatabaseI {
 // DatabaseIter returns an iterator over the databases in key order.
 func DatabaseIter() iter.Seq2[string, DatabaseI] {
 	return datastore.All()
-}
-
-// NewContext returns a new context with the database contexts inserted into the given
-// context. Pass nil to return a BackgroundContext with the database contexts.
-//
-// A database context is required by the various database calls to track results
-// and transactions.
-func NewContext(ctx context.Context) context.Context {
-	if ctx == nil {
-		ctx = context.Background()
-	}
-	for _, d := range DatabaseIter() {
-		ctx = d.NewContext(ctx)
-	}
-	return ctx
 }
 
 type transactioner interface {

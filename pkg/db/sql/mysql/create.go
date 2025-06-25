@@ -21,9 +21,6 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) (tableS
 	var tableClauses []string
 
 	for _, col := range table.Columns {
-		if col.Reference() != nil {
-			continue // foreign keys will be handled later
-		}
 		cc, tc, xc := m.buildColumnDef(col)
 		if cc == "" {
 			continue // error, already reported
@@ -35,7 +32,7 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) (tableS
 
 	// build the foreign keys
 	for _, ref := range table.References {
-		cc, tc, xc := m.buildReferenceDef(table, ref)
+		cc, tc, xc := m.buildReferenceDef(d, table, ref)
 		if cc == "" {
 			continue // error, already reported
 		}
@@ -44,17 +41,7 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) (tableS
 		extraClauses = append(extraClauses, xc...)
 	}
 
-MCI:
 	for _, mci := range table.Indexes {
-		for _, i := range mci.Columns {
-			if c := table.FindColumn(i); c == nil {
-				slog.Error("Index skipped. Column in index was not found",
-					slog.String(db.LogTable, table.Name),
-					slog.String(db.LogColumn, i),
-				)
-				continue MCI
-			}
-		}
 		def := m.indexSql(mci.IndexLevel, mci.Columns...)
 		tableClauses = append(tableClauses, def)
 	}
@@ -79,6 +66,7 @@ func (m *DB) buildColumnDef(col *schema.Column) (columnClause string, tableClaus
 	var colType string
 	var collation string
 	var defaultStr string
+	var extraStr string
 
 	if def := col.DatabaseDefinition[db.DriverTypeMysql]; def != nil {
 		if t, ok := def["type"].(string); ok {
@@ -107,13 +95,15 @@ func (m *DB) buildColumnDef(col *schema.Column) (columnClause string, tableClaus
 		colType = "INT"
 	} else {
 		colType = sqlType(col.Type, col.Size, col.SubType)
+		if col.Type == schema.ColTypeAutoPrimaryKey {
+			extraStr += "AUTO_INCREMENT"
+		}
 	}
 
 	if !col.IsNullable {
 		colType += " NOT NULL "
 	}
 
-	var extraStr string
 	if col.DefaultValue != nil && defaultStr == "" {
 		switch val := col.DefaultValue.(type) {
 		case string:
@@ -163,9 +153,8 @@ func (m *DB) indexSql(level schema.IndexLevel, cols ...string) string {
 	return def
 }
 
-func (m *DB) buildReferenceDef(table *schema.Table, ref *schema.Reference) (columnClause string, tableClauses, extraClauses []string) {
-	// Much of this depends on infer() having been called on the schema
-	fk, pk := ref.ReferenceColumns()
+func (m *DB) buildReferenceDef(db *schema.Database, table *schema.Table, ref *schema.Reference) (columnClause string, tableClauses, extraClauses []string) {
+	fk, pk := ref.ReferenceColumns(db, table)
 
 	if fk.Type == schema.ColTypeAutoPrimaryKey {
 		fk.Type = schema.ColTypeInt // auto columns internally are integers

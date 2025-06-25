@@ -13,6 +13,108 @@ import (
 
 const postgresConnectionString = "host=127.0.0.1 port=5432 user=root password=12345 dbname=goradd_test sslmode=disable"
 
+func TestDB_CreateSchema(t *testing.T) {
+	sampleSchemas := []struct {
+		name        string
+		schema      func() schema.Database // assume schema.Database is your top-level object
+		zeroNonComp bool
+	}{
+		{
+			name:        "SimpleSchema",
+			schema:      sampleSchema, // your original function
+			zeroNonComp: true,
+		},
+		{
+			name:        "SchemaWithCollation",
+			schema:      sampleSchemaWithCollation,
+			zeroNonComp: false,
+		},
+		{
+			name:        "SchemaTypes",
+			schema:      sampleSchemaTypes,
+			zeroNonComp: true,
+		},
+	}
+
+	for _, tt := range sampleSchemas {
+		t.Run(tt.name, func(t *testing.T) {
+			d, err := NewDB("test", postgresConnectionString, nil)
+			require.NoError(t, err)
+
+			ctx := context.Background()
+
+			// prep
+			s1 := tt.schema() // <== use dynamic schema generator
+			d.DestroySchema(ctx, s1)
+
+			err = d.CreateSchema(ctx, s1)
+
+			defer d.DestroySchema(ctx, s1)
+
+			options := map[string]any{
+				"reference_suffix":  "_id",
+				"enum_table_suffix": "_enum",
+				"assn_table_suffix": "_assn",
+			}
+
+			s2 := d.ExtractSchema(options)
+			err = s2.Clean()
+			require.NoError(t, err)
+			if tt.zeroNonComp {
+				zeroNonCmp(&s1)
+				zeroNonCmp(&s2)
+			}
+
+			v := reflect.DeepEqual(s1, s2)
+			assert.True(t, v)
+
+			if !v {
+				fmt.Println("Mismatch:", cmp.Diff(s1, s2))
+			}
+		})
+	}
+}
+
+// TestDB_AutoGen tests the ability to reset the next value in an auto-generated sequence after manually
+// entering a primary key that is auto generated. If we don't reset, then the nextval might be one of the
+// manually entered values.
+func TestDB_AutoGen(t *testing.T) {
+	d, err := NewDB("test", postgresConnectionString, nil)
+	require.NoError(t, err)
+
+	ctx := context.Background()
+
+	s1 := sampleSchemaWithSchemaName()
+	d.DestroySchema(ctx, s1)
+	err = d.CreateSchema(ctx, s1)
+	require.NoError(t, err)
+	defer d.DestroySchema(ctx, s1)
+
+	// manual id
+	id, err := d.Insert(ctx, "test.user", "id", map[string]interface{}{
+		"id":   1,
+		"name": "Bob",
+	})
+	assert.Equal(t, "1", id)
+	assert.NoError(t, err)
+
+	// auto id
+	id, err = d.Insert(ctx, "test.user", "id", map[string]interface{}{
+		"name": "Sue",
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, "2", id)
+}
+
+// zero out items that we will not be comparing
+func zeroNonCmp(db *schema.Database) {
+	for _, t := range db.Tables {
+		for _, c := range t.Columns {
+			c.DatabaseDefinition = nil
+		}
+	}
+}
+
 func sampleSchema() schema.Database {
 	db := schema.Database{
 		Key:             "test",
@@ -51,22 +153,16 @@ func sampleSchema() schema.Database {
 						Size: 200,
 					},
 					{
-						Name:       "user_id",
-						Type:       schema.ColTypeReference,
-						IsNullable: false,
-						IndexLevel: schema.IndexLevelIndexed, // foreign keys should always be indexed
-						Reference: &schema.Reference{
-							Table: "user",
-						},
-					},
-					{
 						Name:       "status_enum",
 						Type:       schema.ColTypeEnum,
 						IsNullable: false,
-						IndexLevel: schema.IndexLevelIndexed,
-						Reference: &schema.Reference{
-							Table: "post_status_enum",
-						},
+						IndexLevel: schema.IndexLevelIndexed, // foreign keys are always indexed
+						EnumTable:  "post_status_enum",
+					},
+				},
+				References: []*schema.Reference{
+					{
+						Table: "user",
 					},
 				},
 			},
@@ -87,121 +183,23 @@ func sampleSchema() schema.Database {
 			},
 		},
 		AssociationTables: []*schema.AssociationTable{
-			{Name: "rel_assn", Table1: "user", Name1: "user_id", Table2: "post", Name2: "post_id"},
+			{
+				Table: "user_post_assn",
+				Ref1: schema.AssociationReference{
+					Table:  "user",
+					Column: "user_id",
+				},
+				Ref2: schema.AssociationReference{
+					Table:  "post",
+					Column: "post_id",
+				},
+			},
 		},
 	}
-	//db.fillDefault()
+	if err := db.Clean(); err != nil {
+		panic(err)
+	}
 	return db
-}
-
-func TestDB_CreateSchema(t *testing.T) {
-	sampleSchemas := []struct {
-		name        string
-		schema      func() schema.Database // assume schema.Database is your top-level object
-		zeroNonComp bool
-	}{
-		{
-			name:        "SimpleSchema",
-			schema:      sampleSchema, // your original function
-			zeroNonComp: true,
-		},
-		{
-			name:        "SchemaWithCollation",
-			schema:      sampleSchemaWithCollation,
-			zeroNonComp: false,
-		},
-		{
-			name:        "SchemaTypes",
-			schema:      sampleSchemaTypes,
-			zeroNonComp: true,
-		},
-	}
-
-	for _, tt := range sampleSchemas {
-		t.Run(tt.name, func(t *testing.T) {
-			d, err := NewDB("test", postgresConnectionString, nil)
-			require.NoError(t, err)
-
-			ctx := d.NewContext(context.Background())
-
-			// prep
-			s1 := tt.schema() // <== use dynamic schema generator
-
-			_ = d.DestroySchema(ctx, s1)
-			err = d.CreateSchema(ctx, s1)
-
-			defer func() {
-				err := d.DestroySchema(ctx, s1)
-				assert.NoError(t, err)
-			}()
-
-			assert.NoError(t, err)
-
-			options := map[string]any{
-				"reference_suffix":  "_id",
-				"enum_table_suffix": "_enum",
-				"assn_table_suffix": "_assn",
-			}
-
-			s2 := d.ExtractSchema(options)
-			err = s2.Clean()
-			require.NoError(t, err)
-			if tt.zeroNonComp {
-				zeroNonCmp(&s1)
-				zeroNonCmp(&s2)
-			}
-
-			v := reflect.DeepEqual(s1, s2)
-			assert.True(t, v)
-
-			if !v {
-				fmt.Println("Mismatch:", cmp.Diff(s1, s2))
-			}
-		})
-	}
-}
-
-// TestDB_AutoGen tests the ability to reset the next value in an auto-generated sequence after manually
-// entering a primary key that is auto generated. If we don't reset, then the nextval might be one of the
-// manually entered values.
-func TestDB_AutoGen(t *testing.T) {
-	d, err := NewDB("test", postgresConnectionString, nil)
-	require.NoError(t, err)
-
-	ctx := d.NewContext(context.Background())
-
-	s1 := sampleSchemaWithSchemaName()
-	_ = d.DestroySchema(ctx, s1)
-	err = d.CreateSchema(ctx, s1)
-	require.NoError(t, err)
-	defer func() {
-		err := d.DestroySchema(ctx, s1)
-		assert.NoError(t, err)
-	}()
-
-	// manual id
-	id, err := d.Insert(ctx, "test.user", "id", map[string]interface{}{
-		"id":   1,
-		"name": "Bob",
-	})
-	assert.Equal(t, "1", id)
-	assert.NoError(t, err)
-
-	// auto id
-	id, err = d.Insert(ctx, "test.user", "id", map[string]interface{}{
-		"name": "Sue",
-	})
-	assert.NoError(t, err)
-	assert.Equal(t, "2", id)
-}
-
-// zero out items that we will not be comparing
-func zeroNonCmp(db *schema.Database) {
-	for _, t := range db.Tables {
-		for _, c := range t.Columns {
-			c.DatabaseDefinition = nil
-		}
-	}
 }
 
 func sampleSchemaWithCollation() schema.Database {
@@ -224,13 +222,15 @@ func sampleSchemaWithCollation() schema.Database {
 						Type:               schema.ColTypeString,
 						Size:               100,
 						IsNullable:         false,
-						DatabaseDefinition: map[string]map[string]interface{}{"postgres": map[string]interface{}{"collation": "en-US-x-icu"}},
+						DatabaseDefinition: map[string]map[string]interface{}{"postgres": {"collation": "en-US-x-icu"}},
 					},
 				},
 			},
 		},
 	}
-	//db.fillDefault()
+	if err := db.Clean(); err != nil {
+		panic(err)
+	}
 	return db
 }
 
@@ -286,7 +286,9 @@ func sampleSchemaTypes() schema.Database {
 		},
 	}
 
-	//db.fillDefault()
+	if err := db.Clean(); err != nil {
+		panic(err)
+	}
 	return db
 }
 

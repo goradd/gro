@@ -26,7 +26,7 @@ type pgTable struct {
 	schema  string
 	columns []pgColumn
 	indexes []pgIndex
-	fkMap   map[string]pgForeignKey
+	fkMap   map[string][]pgForeignKey
 	comment string
 	options map[string]interface{}
 }
@@ -55,14 +55,22 @@ type pgIndex struct {
 }
 
 type pgForeignKey struct {
-	constraintName          string
-	tableName               string
-	columnName              string
-	referencedTableName     string
-	referencedColumnName    sql.NullString
-	updateRule              sql.NullString
-	deleteRule              sql.NullString
-	referencedColumnKeyType sql.NullString
+	constraintName       string
+	tableName            string
+	columnName           string
+	referencedTableName  string
+	referencedColumnName sql.NullString
+}
+
+func (m *pgTable) findForeignKeyGroupByColumn(col string) []pgForeignKey {
+	for _, group := range m.fkMap {
+		for _, fk := range group {
+			if fk.columnName == col {
+				return group
+			}
+		}
+	}
+	return nil
 }
 
 func (m *DB) ExtractSchema(options map[string]any) schema.Database {
@@ -94,17 +102,19 @@ func (m *DB) getRawTables(options map[string]any) map[string]pgTable {
 			tableIndex = table.schema + "." + table.name
 		}
 
-		// Do some processing on the foreign keys
-		for _, fk := range foreignKeys[tableIndex] {
-			if fk.referencedColumnName.Valid && fk.referencedTableName != "" {
-				if _, ok := table.fkMap[fk.columnName]; ok {
-					slog.Warn("Multi-table foreign keys are not supported.",
-						slog.String(db.LogTable, table.name),
-						slog.String(db.LogColumn, fk.columnName))
-					delete(table.fkMap, fk.columnName)
-				} else {
-					table.fkMap[fk.columnName] = fk
-				}
+		// Place foreign keys by table, since they are database wide
+		for fkName, fkGroup := range foreignKeys {
+			if len(fkGroup) > 1 {
+				slog.Warn("Multi-column foreign key skipped.",
+					slog.String(db.LogTable, table.name),
+					slog.String("name", fkName),
+					slog.String(db.LogComponent, "extract"))
+				continue
+			}
+			if fkGroup[0].tableName == table.name &&
+				fkGroup[0].referencedColumnName.Valid &&
+				fkGroup[0].referencedTableName != "" {
+				table.fkMap[fkName] = fkGroup
 			}
 		}
 
@@ -159,7 +169,7 @@ func (m *DB) getTables(schemas []string, defaultSchemaName string) ([]pgTable, [
 			schema:  strings2.If(tableSchema == defaultSchemaName, "", tableSchema),
 			comment: tableComment,
 			columns: []pgColumn{},
-			fkMap:   make(map[string]pgForeignKey),
+			fkMap:   make(map[string][]pgForeignKey),
 			indexes: []pgIndex{},
 		}
 
@@ -311,8 +321,6 @@ where
 }
 
 // getForeignKeys gets information on the foreign keys.
-//
-// Note that querying the information_schema database is SLOW, so we want to do it as few times as possible.
 func (m *DB) getForeignKeys(schemas []string, defaultSchemaName string) (foreignKeys map[string][]pgForeignKey) {
 	fkMap := make(map[string]pgForeignKey)
 
@@ -324,10 +332,7 @@ SELECT
     att.attname AS column_name,
     fcl.relname AS foreign_table_name,
     fnsp.nspname AS foreign_table_schema,
-    fatt.attname AS foreign_column_name,
-    pc.confdeltype,
-    pc.confupdtype,
-    fpc.contype AS foreign_column_contype
+    fatt.attname AS foreign_column_name
 FROM 
     pg_constraint pc
 -- Join to get the table and schema of the constraint
@@ -379,10 +384,7 @@ WHERE
 			&fk.columnName,
 			&referencedTable,
 			&referencedSchema,
-			&fk.referencedColumnName,
-			&fk.updateRule,
-			&fk.deleteRule,
-			&fk.referencedColumnKeyType)
+			&fk.referencedColumnName)
 
 		if err != nil {
 			panic(err)
@@ -524,6 +526,7 @@ func (m *DB) schemaFromRawTables(rawTables map[string]pgTable, options map[strin
 
 func (m *DB) getTableSchema(t pgTable, enumTableSuffix string) schema.Table {
 	var columnSchemas []*schema.Column
+	var referenceSchemas []*schema.Reference
 	var multiColumnPK *schema.Index
 
 	// Build the indexes
@@ -582,25 +585,19 @@ func (m *DB) getTableSchema(t pgTable, enumTableSuffix string) schema.Table {
 		pkCount = 1
 		// these columns should already be identified as not nullable
 	}
-
 	for _, col := range t.columns {
-		if strings.Contains(col.name, ".") {
-			slog.Warn("Column cannot contain a period in its name. Skipping.",
-				slog.String(db.LogTable, t.name),
-				slog.String(db.LogColumn, col.name))
-			continue
-		}
+		cd, rd := m.getColumnSchema(t, col, singleIndexes[col.name], enumTableSuffix)
 
-		cd := m.getColumnSchema(t, col, singleIndexes[col.name], enumTableSuffix)
-
-		if cd.Type == schema.ColTypeAutoPrimaryKey ||
+		if rd != nil {
+			referenceSchemas = append(referenceSchemas, rd)
+		} else if cd.Type == schema.ColTypeAutoPrimaryKey ||
 			cd.IndexLevel == schema.IndexLevelPrimaryKey ||
 			multiColumnPK != nil && slices.Contains(multiColumnPK.Columns, col.name) {
 			// private keys go first
-			columnSchemas = slices.Insert(columnSchemas, pkCount, &cd)
+			columnSchemas = slices.Insert(columnSchemas, pkCount, cd)
 			pkCount++
 		} else {
-			columnSchemas = append(columnSchemas, &cd)
+			columnSchemas = append(columnSchemas, cd)
 		}
 	}
 
@@ -652,11 +649,6 @@ func (m *DB) getEnumTableSchema(t pgTable) (ed schema.EnumTable, err error) {
 		} else if c.Name == schema.IdentifierKey {
 			hasLabelOrIdentifier = true
 		}
-		if c.Type == schema.ColTypeReference {
-			err = fmt.Errorf("cannot have a reference column in an enum table")
-			return
-		}
-
 		columnNames = append(columnNames, c.Name)
 		quotedNames = append(quotedNames, m.QuoteIdentifier(c.Name))
 		recType := ReceiverTypeFromSchema(c.Type, c.Size)
@@ -716,94 +708,79 @@ ORDER BY
 func (m *DB) getColumnSchema(table pgTable,
 	column pgColumn,
 	indexLevel schema.IndexLevel,
-	enumTableSuffix string) schema.Column {
-	cd := schema.Column{
+	enumTableSuffix string) (columnSchema *schema.Column, refSchema *schema.Reference) {
+
+	columnSchema = &schema.Column{
 		Name: column.name,
 	}
-	cd.Type, cd.Size, cd.DefaultValue = processTypeInfo(column)
+	columnSchema.Type, columnSchema.Size, columnSchema.DefaultValue = processTypeInfo(column)
 
 	// treat auto incrementing values as id values
 	if column.isAutoIncrement && column.isIdentity {
-		cd.Type = schema.ColTypeAutoPrimaryKey
-		cd.Size = 0
+		columnSchema.Type = schema.ColTypeAutoPrimaryKey
+		columnSchema.Size = 0
 	} else {
-		cd.IndexLevel = indexLevel
+		columnSchema.IndexLevel = indexLevel
 	}
 
-	cd.IsNullable = column.isNullable
+	columnSchema.IsNullable = column.isNullable
 
-	if enumTableSuffix != "" && strings.HasSuffix(column.name, enumTableSuffix) { // handle enum type
-		if cd.Type == schema.ColTypeInt || cd.Type == schema.ColTypeUint {
-			cd.Type = schema.ColTypeEnum
-			if fk, ok := table.fkMap[column.name]; ok { // if it is a foreign key to the enum table, use that
-				cd.Reference = &schema.Reference{
-					Table: fk.referencedTableName,
-				}
-			} else {
-				slog.Warn("Could not find foreign key to enum table.",
-					slog.String(db.LogComponent, "extract"),
-					slog.String(db.LogTable, table.name),
-					slog.String(db.LogColumn, column.name))
-			}
+	fkGroup := table.findForeignKeyGroupByColumn(columnSchema.Name)
+	if len(fkGroup) > 1 {
+		slog.Warn("Multi-column foreign keys are not currently supported.",
+			slog.String("Constraint", fkGroup[0].constraintName))
+	} else if len(fkGroup) == 1 {
+		fk := fkGroup[0]
+		if fk.referencedTableName == "" {
+			slog.Error("Foreign key reference is empty.",
+				slog.String("Constraint", fkGroup[0].constraintName))
 		} else {
-			slog.Error("Enum type should be an integer",
-				slog.String(db.LogComponent, "extract"),
-				slog.String(db.LogTable, table.name),
-				slog.String(db.LogColumn, column.name))
+			if enumTableSuffix != "" && strings.HasSuffix(fk.referencedTableName, enumTableSuffix) {
+				// assume enum table table exists
+				columnSchema.Type = schema.ColTypeEnum
+				columnSchema.Size = 0
+				columnSchema.EnumTable = fk.referencedTableName
+			} else {
+				if indexLevel != schema.IndexLevelUnique {
+					// IndexLevelIndexed is default for references, so setting to None will preserve that, but also simplify schema file.
+					indexLevel = schema.IndexLevelNone
+				}
+				refSchema = &schema.Reference{
+					Table:      fk.referencedTableName,
+					Column:     fk.columnName,
+					IndexLevel: indexLevel,
+					IsNullable: columnSchema.IsNullable,
+				}
+				columnSchema = nil
+			}
 		}
-		cd.Size = 0 // use default size
-	} else if fk, ok2 := table.fkMap[cd.Name]; ok2 {
-		tableName := fk.referencedTableName
-		if fk.referencedColumnKeyType.String != "p" {
-			slog.Warn("Foreign key appears to NOT be pointing to a primary key. Only primary key foreign keys are supported.",
-				slog.String(db.LogTable, table.name),
-				slog.String(db.LogColumn, column.name))
-		}
-		cd.Reference = &schema.Reference{
-			Table: tableName,
-		}
-		cd.Type = schema.ColTypeReference
-		cd.Size = 0
 	}
 
-	cd.Comment = column.comment
+	columnSchema.Comment = column.comment
 	if column.collationName.Valid && column.collationName.String != "" {
-		cd.DatabaseDefinition = map[string]map[string]any{db.DriverTypePostgres: {"collation": column.collationName.String}}
+		columnSchema.DatabaseDefinition = map[string]map[string]any{db.DriverTypePostgres: {"collation": column.collationName.String}}
 	}
 
-	return cd
+	return
 }
 
 func (m *DB) getAssociationSchema(t pgTable, enumTableSuffix string) (mm schema.AssociationTable, err error) {
 	td := m.getTableSchema(t, enumTableSuffix)
-	if len(td.Columns) == 0 {
-		err = fmt.Errorf("association table must have 2 columns")
+	if len(td.References) != 2 {
+		err = fmt.Errorf("association table must have 2 foreign keys")
 		return
 	}
-	if td.Columns[0].Name == "_id" {
-		// This column was added because of a multi-column primary key.
-		td.Columns = slices.Delete(td.Columns, 0, 1)
-	}
-	if len(td.Columns) != 2 {
-		err = fmt.Errorf("association table must have only 2 columns")
-		return
-	}
-	for _, cd := range td.Columns {
-		if cd.Reference == nil {
-			err = fmt.Errorf("column " + cd.Name + " must be a foreign key.")
-			return
-		}
-
-		if cd.IsNullable {
-			err = fmt.Errorf("column " + cd.Name + " cannot be nullable.")
+	for _, ref := range td.References {
+		if ref.IsNullable {
+			err = fmt.Errorf("column " + ref.Column + " cannot be nullable.")
 			return
 		}
 	}
-
-	mm.Name = td.Name
-	mm.Table1 = td.Columns[0].Reference.Table
-	mm.Name1 = td.Columns[0].Name
-	mm.Table2 = td.Columns[1].Reference.Table
-	mm.Name2 = td.Columns[1].Name
+	mm.Table = td.Name
+	mm.Ref1.Table = td.References[0].Table
+	mm.Ref1.Column = td.References[0].Column
+	mm.Ref2.Table = td.References[1].Table
+	mm.Ref2.Column = td.References[1].Column
+	mm.Comment = t.comment
 	return
 }

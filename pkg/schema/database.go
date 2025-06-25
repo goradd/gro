@@ -135,10 +135,10 @@ func (db *Database) FindEnumTable(name string) *EnumTable {
 
 // Clean modifies the structure to prepare it for creating a schema in a database.
 func (db *Database) Clean() error {
+	db.sort()
 	if err := db.infer(); err != nil {
 		return err
 	}
-	db.sort()
 	return nil
 }
 

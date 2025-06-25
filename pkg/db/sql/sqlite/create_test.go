@@ -13,7 +13,7 @@ func TestDB_CreateSampleSchema(t *testing.T) {
 	d, err := NewDB("test", "") // memory only database will automatically be destroyed after test
 	require.NoError(t, err)
 
-	ctx := d.NewContext(context.Background())
+	ctx := context.Background()
 
 	// prep
 	s1 := sampleSchema()
@@ -124,7 +124,9 @@ func sampleSchema() schema.Database {
 			{Name: "rel_assn", Table1: "user", Name1: "user_id", Table2: "post", Name2: "post_id"},
 		},
 	}
-	//db.fillDefault()
+	if err := db.Clean(); err != nil {
+		panic(err)
+	}
 	return db
 }
 
@@ -154,7 +156,9 @@ func sampleSchemaWithCollation() schema.Database {
 			},
 		},
 	}
-	//db.fillDefault()
+	if err := db.Clean(); err != nil {
+		panic(err)
+	}
 	return db
 }
 
@@ -210,7 +214,9 @@ func sampleSchemaTypes() schema.Database {
 		},
 	}
 
-	//db.fillDefault()
+	if err := db.Clean(); err != nil {
+		panic(err)
+	}
 	return db
 }
 
