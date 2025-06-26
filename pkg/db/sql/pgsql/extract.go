@@ -3,7 +3,6 @@ package pgsql
 import (
 	"database/sql"
 	"fmt"
-	iter2 "github.com/goradd/iter"
 	"github.com/goradd/maps"
 	"github.com/goradd/orm/pkg/db"
 	sql2 "github.com/goradd/orm/pkg/db/sql"
@@ -322,7 +321,7 @@ where
 
 // getForeignKeys gets information on the foreign keys.
 func (m *DB) getForeignKeys(schemas []string, defaultSchemaName string) (foreignKeys map[string][]pgForeignKey) {
-	fkMap := make(map[string]pgForeignKey)
+	foreignKeys = make(map[string][]pgForeignKey)
 
 	stmt := fmt.Sprintf(`
 SELECT
@@ -396,19 +395,11 @@ WHERE
 		if referencedSchema.String != "" && referencedSchema.String != defaultSchemaName {
 			fk.referencedTableName = referencedSchema.String + "." + fk.referencedTableName
 		}
-		if fk.referencedColumnName.Valid {
-			fkMap[fk.constraintName] = fk
-		}
+		fks := foreignKeys[fk.constraintName]
+		fks = append(fks, fk)
+		foreignKeys[fk.constraintName] = fks
 	}
-
-	foreignKeys = make(map[string][]pgForeignKey)
-	for _, fk := range iter2.KeySort(fkMap) {
-		i := fk.tableName
-		tableKeys := foreignKeys[i]
-		tableKeys = append(tableKeys, fk)
-		foreignKeys[i] = tableKeys
-	}
-	return foreignKeys
+	return
 }
 
 // Convert the database native type to a more generic sql type, and a go table type.
@@ -553,8 +544,9 @@ func (m *DB) getTableSchema(t pgTable, enumTableSuffix string) schema.Table {
 	}
 
 	// Fill the singleIndexes set with all the columns that have a single index,
-	// There should not be multiple single indexes on the same column, but if there are
+	// There might be multiple single indexes on the same column, but if there are
 	// we prioritize by the value of the index level.
+	// We don't support the esoteric index types yet.
 	for _, idx := range indexes {
 		if len(idx.Columns) == 1 {
 			if level, ok := singleIndexes[idx.Columns[0]]; ok {
@@ -572,19 +564,6 @@ func (m *DB) getTableSchema(t pgTable, enumTableSuffix string) schema.Table {
 
 	var pkCount int
 
-	// Since we don't support multi-column primary keys in the ORM, we convert to
-	// an auto-generated primary key plus a unique index.
-	if multiColumnPK != nil {
-		cd := &schema.Column{
-			Name:    "_id",
-			Type:    schema.ColTypeAutoPrimaryKey,
-			Comment: "Replacing multi-column primary key",
-		}
-		columnSchemas = append(columnSchemas, cd)
-		multiColumnPK.IndexLevel = schema.IndexLevelUnique
-		pkCount = 1
-		// these columns should already be identified as not nullable
-	}
 	for _, col := range t.columns {
 		cd, rd := m.getColumnSchema(t, col, singleIndexes[col.name], enumTableSuffix)
 
@@ -602,15 +581,17 @@ func (m *DB) getTableSchema(t pgTable, enumTableSuffix string) schema.Table {
 	}
 
 	td := schema.Table{
-		Name:    t.name,
-		Schema:  t.schema,
-		Columns: columnSchemas,
-		Comment: t.comment,
+		Name:       t.name,
+		Schema:     t.schema,
+		Columns:    columnSchemas,
+		Comment:    t.comment,
+		References: referenceSchemas,
 	}
 
-	// Create the multi-column index array
+	// Create the  index array
 	for _, idx := range indexes {
 		if len(idx.Columns) > 1 {
+			// only do multi-column indexes, since single column indexes should be specified in the column definition
 			td.Indexes = append(td.Indexes, *idx)
 		}
 	}
@@ -756,9 +737,11 @@ func (m *DB) getColumnSchema(table pgTable,
 		}
 	}
 
-	columnSchema.Comment = column.comment
-	if column.collationName.Valid && column.collationName.String != "" {
-		columnSchema.DatabaseDefinition = map[string]map[string]any{db.DriverTypePostgres: {"collation": column.collationName.String}}
+	if columnSchema != nil {
+		columnSchema.Comment = column.comment
+		if column.collationName.Valid && column.collationName.String != "" {
+			columnSchema.DatabaseDefinition = map[string]map[string]any{db.DriverTypePostgres: {"collation": column.collationName.String}}
+		}
 	}
 
 	return

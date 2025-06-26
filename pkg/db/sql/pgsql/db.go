@@ -8,10 +8,12 @@ import (
 	"github.com/goradd/orm/pkg/db"
 	sql2 "github.com/goradd/orm/pkg/db/sql"
 	. "github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/schema"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/stdlib"
 	"log/slog"
+	"slices"
 	"strings"
 	"time"
 )
@@ -325,4 +327,28 @@ func (m *DB) WithConstraintsOff(ctx context.Context, f func(ctx context.Context)
 	})
 
 	return
+}
+
+// DestroySchema removes all tables and data from the tables found in the given schema s.
+func (m *DB) DestroySchema(ctx context.Context, s schema.Database) {
+	// gather table names to delete
+	var tables []string
+
+	for _, table := range s.AssociationTables {
+		tables = append(tables, m.QuoteIdentifier(table.QualifiedTableName()))
+	}
+	for _, table := range slices.Backward(s.Tables) {
+		tables = append(tables, m.QuoteIdentifier(table.QualifiedName()))
+	}
+	for _, table := range s.EnumTables {
+		tables = append(tables, m.QuoteIdentifier(table.QualifiedTableName()))
+	}
+
+	cmd := fmt.Sprintf(`DROP TABLE IF EXISTS %s CASCADE`, strings.Join(tables, ","))
+	_, err := m.SqlExec(ctx, cmd)
+	if err != nil {
+		slog.Error("failed to drop tables",
+			slog.Any(db.LogError, err),
+		)
+	}
 }

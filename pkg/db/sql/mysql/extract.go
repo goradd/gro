@@ -589,8 +589,9 @@ func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema.Table {
 	}
 
 	// Fill the singleIndexes set with all the columns that have a single index,
-	// There should not be multiple single indexes on the same column, but if there are
+	// There might be multiple single indexes on the same column, and if there are
 	// we prioritize by the value of the index level.
+	// We don't support multiple types of indexes yet.
 	for _, idx := range indexes {
 		if len(idx.Columns) == 1 {
 			if level, ok := singleIndexes[idx.Columns[0]]; ok {

@@ -10,6 +10,7 @@ import (
 	. "github.com/goradd/orm/pkg/query"
 	"github.com/goradd/orm/pkg/schema"
 	"log/slog"
+	"slices"
 	"strings"
 	"time"
 )
@@ -524,21 +525,25 @@ func (h *Base) DestroySchema(ctx context.Context, s schema.Database) {
 	// gather table names to delete
 	var tables []string
 
-	for _, table := range s.EnumTables {
-		tables = append(tables, table.QualifiedTableName())
-	}
-	for _, table := range s.Tables {
-		tables = append(tables, table.QualifiedName())
-	}
 	for _, table := range s.AssociationTables {
 		tables = append(tables, table.QualifiedTableName())
 	}
+	for _, table := range slices.Backward(s.Tables) {
+		tables = append(tables, table.QualifiedName())
+	}
+	for _, table := range s.EnumTables {
+		tables = append(tables, table.QualifiedTableName())
+	}
 
+	// Note that constraints off will only work for MySQL and SQLite here,
+	// Most databases still enforce dependency checking during drop table.
+	// The above sorting of the tables should help, but not for circular dependencies.
+	// Databases may have to implement their own version of this to support circular dependencies.
 	_ = db.WithConstraintsOff(ctx, h.dbi.(db.DatabaseI), func(ctx2 context.Context) error {
 		for _, table := range tables {
 			_, err := h.SqlExec(ctx2, `DROP TABLE IF EXISTS `+h.dbi.QuoteIdentifier(table))
 			if err != nil {
-				slog.Warn("failed to drop table",
+				slog.Error("failed to drop table",
 					slog.String(db.LogTable, table),
 					slog.Any(db.LogError, err),
 				)
