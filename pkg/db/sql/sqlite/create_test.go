@@ -85,22 +85,16 @@ func sampleSchema() schema.Database {
 						Size: 200,
 					},
 					{
-						Name:       "user_id",
-						Type:       schema.ColTypeReference,
-						IsNullable: false,
-						IndexLevel: schema.IndexLevelIndexed, // foreign keys should always be indexed
-						Reference: &schema.Reference{
-							Table: "user",
-						},
-					},
-					{
 						Name:       "status_enum",
 						Type:       schema.ColTypeEnum,
 						IsNullable: false,
-						IndexLevel: schema.IndexLevelIndexed,
-						Reference: &schema.Reference{
-							Table: "post_status_enum",
-						},
+						IndexLevel: schema.IndexLevelIndexed, // foreign keys are always indexed
+						EnumTable:  "post_status_enum",
+					},
+				},
+				References: []*schema.Reference{
+					{
+						Table: "user",
 					},
 				},
 			},
@@ -121,9 +115,20 @@ func sampleSchema() schema.Database {
 			},
 		},
 		AssociationTables: []*schema.AssociationTable{
-			{Name: "rel_assn", Table1: "user", Name1: "user_id", Table2: "post", Name2: "post_id"},
+			{
+				Table: "user_post_assn",
+				Ref1: schema.AssociationReference{
+					Table:  "user",
+					Column: "user_id",
+				},
+				Ref2: schema.AssociationReference{
+					Table:  "post",
+					Column: "post_id",
+				},
+			},
 		},
 	}
+
 	if err := db.Clean(); err != nil {
 		panic(err)
 	}

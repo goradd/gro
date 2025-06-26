@@ -20,6 +20,10 @@ import (
 // which are variable precision numbers. Instead, SQLite will convert the value internally to an
 // INT, REAL, or TEXT at will, and may lose precision in the process. Therefore, these values are
 // stored as TEXT in SQLite, and no numeric operations can be preformed on these values.
+//
+// Cyclic foreign keys cannot be created using the modernc driver, because to do this in SQLite requires
+// executing multiple create table statements at one time, and the modernc driver does not support this.
+// Instead, you will need to execute the CREATE TABLE statements outside the ORM.
 type DB struct {
 	sql2.Base
 	contextTimeout time.Duration

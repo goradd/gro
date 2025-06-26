@@ -85,9 +85,9 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) (tableS
 	}
 
 	for _, mci := range table.Indexes {
-		tableSql, extraSql := m.indexSql(table.Name, mci.IndexLevel, mci.Columns...)
-		if tableSql != "" {
-			tableClauses = append(tableClauses, tableSql)
+		tSql, extraSql := m.indexSql(table.Name, mci.IndexLevel, mci.Columns...)
+		if tSql != "" {
+			tableClauses = append(tableClauses, tSql)
 		}
 		if extraSql != "" {
 			extraClauses = append(extraClauses, extraSql)
