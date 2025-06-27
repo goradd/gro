@@ -310,9 +310,11 @@ func (t *JoinTree) selectAllColumnNodes(tableNode query.TableNodeI) {
 // selectParentPrimaryKeys walks the tree selecting all the parent primary keys of n.
 func (t *JoinTree) selectParentPrimaryKeys(e *Element) {
 	for parentElement := e.Parent; parentElement != nil; parentElement = parentElement.Parent {
-		fkn := parentElement.QueryNode.(query.PrimaryKeyer).PrimaryKey()
-		en := t.addNode(fkn)
-		en.Parent.SelectedColumns.Add(en)
+		fkns := parentElement.QueryNode.(query.PrimaryKeyer).PrimaryKeys()
+		for _, fkn := range fkns {
+			en := t.addNode(fkn)
+			en.Parent.SelectedColumns.Add(en)
+		}
 	}
 }
 
@@ -340,12 +342,14 @@ func (t *JoinTree) addGroupBySelects(b *query.Builder) {
 			if !nodeMatch(t.Root.QueryNode, n) {
 				panic("group by node should be the root node")
 			}
-			pk := n.(query.TableNodeI).PrimaryKey()
-			e, _, found := t.findNode(pk)
-			if !found {
-				panic("group by pk node not found in the tree")
+			pks := n.(query.TableNodeI).PrimaryKeys()
+			for _, pk := range pks {
+				e, _, found := t.findNode(pk)
+				if !found {
+					panic("group by pk node not found in the tree")
+				}
+				e.Parent.SelectedColumns.Add(e)
 			}
-			e.Parent.SelectedColumns.Add(e)
 
 		case query.AliasNodeType:
 			alias := n.(query.AliasNodeI).Alias()

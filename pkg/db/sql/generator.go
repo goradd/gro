@@ -102,7 +102,7 @@ func (g *sqlGenerator) generateColumnNodeSql(parentAlias string, node Node) (sql
 	return sb.String()
 }
 
-// generateNodeSql will create the sql for a node. If the node is a collection of nodes, it will generate it for the collection.
+// generateNodeSql will create the sql for a node. If the node is a collection of nodes, it will generate it for the collection separated by commas.
 func (g *sqlGenerator) generateNodeSql(n Node, useAlias bool) (sql string) {
 	switch node := n.(type) {
 	case *ValueNode:
@@ -113,12 +113,12 @@ func (g *sqlGenerator) generateNodeSql(n Node, useAlias bool) (sql string) {
 			for _, o := range a {
 				l = append(l, g.generateNodeSql(o, useAlias))
 			}
-			return strings.Join(l, ",")
+			sql = strings.Join(l, ",")
 		} else {
-			return g.addArg(v)
+			sql = g.addArg(v)
 		}
 	case *OperationNode:
-		return g.generateOperationSql(node, useAlias)
+		sql = g.generateOperationSql(node, useAlias)
 	case *ColumnNode:
 		item := g.jt.FindElement(node)
 		if useAlias && item.Alias != "" {
@@ -140,7 +140,11 @@ func (g *sqlGenerator) generateNodeSql(n Node, useAlias bool) (sql string) {
 		//sql = g.generateSubquerySql(node)
 	case TableNodeI:
 		tj := g.jt.FindElement(node)
-		sql = g.generateColumnNodeSql(tj.Alias, node.PrimaryKey())
+		var l []string
+		for _, pk := range node.PrimaryKeys() {
+			l = append(l, g.generateColumnNodeSql(tj.Alias, pk))
+		}
+		sql = strings.Join(l, ",")
 	default:
 		panic("Can't generate sql from node type.")
 	}
@@ -309,6 +313,7 @@ func (g *sqlGenerator) generateJoinSql(j *jointree.Element) (sql string) {
 	switch tn.NodeType_() {
 	case ReferenceNodeType:
 		ref := tn.(ReferenceNodeI)
+		fk, pk := ref.ColumnNames()
 		sb.WriteString("LEFT JOIN ")
 		sb.WriteString(g.iq(tn.TableName_()))
 		sb.WriteString(" AS ")
@@ -316,11 +321,11 @@ func (g *sqlGenerator) generateJoinSql(j *jointree.Element) (sql string) {
 		sb.WriteString(" ON ")
 		sb.WriteString(g.iq(j.Parent.Alias))
 		sb.WriteString(".")
-		sb.WriteString(g.iq(ref.ColumnNames()))
+		sb.WriteString(g.iq(fk))
 		sb.WriteString(" = ")
 		sb.WriteString(g.iq(j.Alias))
 		sb.WriteString(".")
-		sb.WriteString(g.iq(ref.PrimaryKey().QueryName))
+		sb.WriteString(g.iq(pk))
 		/*
 			if j.JoinCondition != nil {
 				s := g.generateNodeSql(j.JoinCondition, false)
@@ -329,6 +334,8 @@ func (g *sqlGenerator) generateJoinSql(j *jointree.Element) (sql string) {
 			}*/
 	case ReverseNodeType:
 		rev := tn.(ReverseNodeI)
+		fk, pk := rev.ColumnNames()
+
 		if g.jt.Limits.AreSet() {
 			panic("We do not currently support limited queries with an array join.")
 		}
@@ -340,11 +347,11 @@ func (g *sqlGenerator) generateJoinSql(j *jointree.Element) (sql string) {
 		sb.WriteString(" ON ")
 		sb.WriteString(g.iq(j.Parent.Alias))
 		sb.WriteString(".")
-		sb.WriteString(g.iq(j.Parent.QueryNode.(PrimaryKeyer).PrimaryKey().QueryName))
+		sb.WriteString(g.iq(pk))
 		sb.WriteString(" = ")
 		sb.WriteString(g.iq(j.Alias))
 		sb.WriteString(".")
-		sb.WriteString(g.iq(rev.ColumnName()))
+		sb.WriteString(g.iq(fk))
 		/*
 			if j.JoinCondition != nil {
 				s := g.generateNodeSql(j.JoinCondition, false)
@@ -353,6 +360,8 @@ func (g *sqlGenerator) generateJoinSql(j *jointree.Element) (sql string) {
 			}*/
 	case ManyManyNodeType:
 		mm := tn.(ManyManyNodeI)
+		fkp, pkp := mm.ParentColumnNames()
+		fkr, pkr := mm.RefColumnNames()
 
 		if g.jt.Limits.AreSet() {
 			panic("We do not currently support limited queries with an array join.")
@@ -365,11 +374,11 @@ func (g *sqlGenerator) generateJoinSql(j *jointree.Element) (sql string) {
 		sb.WriteString(" ON ")
 		sb.WriteString(g.iq(j.Parent.Alias))
 		sb.WriteString(".")
-		sb.WriteString(g.iq(NodeParent(mm).(TableNodeI).PrimaryKey().QueryName))
+		sb.WriteString(g.iq(pkp))
 		sb.WriteString(" = ")
 		sb.WriteString(g.iq(j.Alias + "a"))
 		sb.WriteString(".")
-		sb.WriteString(g.iq(mm.ParentColumnName()))
+		sb.WriteString(g.iq(fkp))
 		sb.WriteString("\n")
 
 		sb.WriteString("LEFT JOIN ")
@@ -379,11 +388,11 @@ func (g *sqlGenerator) generateJoinSql(j *jointree.Element) (sql string) {
 		sb.WriteString(" ON ")
 		sb.WriteString(g.iq(j.Alias + "a"))
 		sb.WriteString(".")
-		sb.WriteString(g.iq(mm.RefColumnName()))
+		sb.WriteString(g.iq(fkr))
 		sb.WriteString(" = ")
 		sb.WriteString(g.iq(j.Alias))
 		sb.WriteString(".")
-		sb.WriteString(g.iq(mm.PrimaryKey().QueryName))
+		sb.WriteString(g.iq(pkr))
 		/*
 			if j.JoinCondition != nil {
 				s := g.generateNodeSql(j.JoinCondition, false)

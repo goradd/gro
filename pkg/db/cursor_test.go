@@ -22,7 +22,7 @@ func (m *mockCursor[T]) Next() (*T, error) {
 	if m.index >= len(m.items) {
 		return zero, nil
 	}
-	if m.failAt >= 0 && m.index == m.failAt {
+	if m.failAt > 0 && m.index == m.failAt {
 		return zero, errors.New("mock Next failure")
 	}
 	item := m.items[m.index]
