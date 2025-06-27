@@ -1,7 +1,7 @@
 package query
 
 type PrimaryKeyer interface {
-	PrimaryKey() *ColumnNode
+	PrimaryKeys() []*ColumnNode
 }
 
 // TableNodeI is the interface that all table-like nodes must adhere to
@@ -18,10 +18,12 @@ func NodeIsTable(n Node) bool {
 	return ok
 }
 
-// NodePrimaryKey returns the primary key of a node, if it has a primary key. Otherwise, returns nil.
-func NodePrimaryKey(n Node) Node {
+// NodePrimaryKeys returns the primary key nodes of a table type node.
+func NodePrimaryKeys(n Node) (nodes []Node) {
 	if tn, ok := n.(PrimaryKeyer); ok {
-		return tn.PrimaryKey()
+		for _, n2 := range tn.PrimaryKeys() {
+			nodes = append(nodes, n2)
+		}
 	}
-	return nil
+	return
 }

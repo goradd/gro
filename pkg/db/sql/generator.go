@@ -316,7 +316,7 @@ func (g *sqlGenerator) generateJoinSql(j *jointree.Element) (sql string) {
 		sb.WriteString(" ON ")
 		sb.WriteString(g.iq(j.Parent.Alias))
 		sb.WriteString(".")
-		sb.WriteString(g.iq(ref.ColumnName()))
+		sb.WriteString(g.iq(ref.ColumnNames()))
 		sb.WriteString(" = ")
 		sb.WriteString(g.iq(j.Alias))
 		sb.WriteString(".")

@@ -6,7 +6,8 @@ import (
 )
 
 type ReferenceNodeI interface {
-	ColumnName() string
+	ColumnNames() (string, string)
+	equal(n Node) bool
 	TableNodeI
 	linker
 }
@@ -14,30 +15,41 @@ type ReferenceNodeI interface {
 // A ReferenceNode is a mixin for a forward-pointing foreign key relationship.
 type ReferenceNode struct {
 	// The query name of the column that is the foreign key
-	ColumnQueryName string
+	ForeignKey string
+	// The name of the matching primary key column in the referenced table
+	PrimaryKey string
 	// The identifier that will be used to identify this object in source code.
 	// Equals the key for the Get() function on an object.
 	Identifier string
-	// The type of item acting as a pointer. This should be the same on both sides of the reference.
-	ReceiverType ReceiverType
 	nodeLink
 }
 
-func (n *ReferenceNode) ColumnName() string {
-	return n.ColumnQueryName
+// ColumnNames returns the foreign key column name in this table, and the name of the primary
+// key column that it mirrors in the referenced table.
+func (n *ReferenceNode) ColumnNames() (string, string) {
+	return n.ForeignKey, n.PrimaryKey
 }
 
+func (n *ReferenceNode) equal(n2 Node) bool {
+	if r, ok := n2.(ReferenceNodeI); ok {
+		c1, c2 := r.ColumnNames()
+		return c1 == n.ForeignKey && c2 == n.PrimaryKey
+	}
+	return false
+}
+
+// GobEncode encodes the reference in a binary form.
 func (n *ReferenceNode) GobEncode() (data []byte, err error) {
 	var buf bytes.Buffer
 	e := gob.NewEncoder(&buf)
 
-	if err = e.Encode(n.ColumnQueryName); err != nil {
+	if err = e.Encode(n.ForeignKey); err != nil {
+		panic(err)
+	}
+	if err = e.Encode(n.PrimaryKey); err != nil {
 		panic(err)
 	}
 	if err = e.Encode(n.Identifier); err != nil {
-		panic(err)
-	}
-	if err = e.Encode(n.ReceiverType); err != nil {
 		panic(err)
 	}
 	if err = e.Encode(&n.nodeLink.parentNode); err != nil {
@@ -50,13 +62,13 @@ func (n *ReferenceNode) GobEncode() (data []byte, err error) {
 func (n *ReferenceNode) GobDecode(data []byte) (err error) {
 	buf := bytes.NewBuffer(data)
 	dec := gob.NewDecoder(buf)
-	if err = dec.Decode(&n.ColumnQueryName); err != nil {
+	if err = dec.Decode(&n.ForeignKey); err != nil {
+		panic(err)
+	}
+	if err = dec.Decode(&n.PrimaryKey); err != nil {
 		panic(err)
 	}
 	if err = dec.Decode(&n.Identifier); err != nil {
-		panic(err)
-	}
-	if err = dec.Decode(&n.ReceiverType); err != nil {
 		panic(err)
 	}
 	if err = dec.Decode(&n.nodeLink.parentNode); err != nil {

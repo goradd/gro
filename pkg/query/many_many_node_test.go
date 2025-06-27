@@ -7,12 +7,12 @@ import (
 
 func TestManyManyNodeInterfaces(t *testing.T) {
 	n := &ManyManyNode{
-		AssnTableQueryName:       "table",
-		ParentColumnQueryName:    "col1",
-		ParentColumnReceiverType: ColTypeString,
-		Identifier:               "Field1",
-		RefColumnQueryName:       "col2",
-		RefColumnReceiverType:    ColTypeInteger,
+		AssnTableQueryName: "table",
+		ParentForeignKey:   "col1",
+		ParentPrimaryKey:   "col2",
+		Identifier:         "Field1",
+		RefForeignKey:      "col2",
+		RefPrimaryKey:      "col1",
 	}
 
 	assert.Implements(t, (*linker)(nil), n)

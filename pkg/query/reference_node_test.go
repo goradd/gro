@@ -7,9 +7,9 @@ import (
 
 func TestReferenceNodeInterfaces(t *testing.T) {
 	n := &ReferenceNode{
-		ColumnQueryName: "dbCol",
-		Identifier:      "Obj",
-		ReceiverType:    ColTypeString,
+		ForeignKey: "dbCol",
+		PrimaryKey: "dbPk",
+		Identifier: "Obj",
 	}
 
 	assert.Implements(t, (*linker)(nil), n)

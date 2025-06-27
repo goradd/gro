@@ -253,10 +253,12 @@ func (b *Builder) topNodes() []Node {
 	nodes = append(nodes, b.Conditions...)
 
 	for _, n := range b.GroupBys {
-		if p, ok := n.(PrimaryKeyer); ok {
-			n = p.PrimaryKey() // Allow table nodes, but then actually have them be the pk in this context
+		pks := NodePrimaryKeys(n)
+		if pks != nil {
+			nodes = append(nodes, pks...)
+		} else {
+			nodes = append(nodes, n)
 		}
-		nodes = append(nodes, n)
 	}
 
 	if b.HavingNode != nil {

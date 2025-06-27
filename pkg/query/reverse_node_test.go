@@ -7,10 +7,10 @@ import (
 
 func TestReverseReferenceNodeInterfaces(t *testing.T) {
 	n := &ReverseNode{
-		ColumnQueryName: "col",
-		Identifier:      "Obj",
-		ReceiverType:    ColTypeString,
+		ForeignKey: "col",
+		PrimaryKey: "pk",
+		Identifier: "Obj",
 	}
-	
+
 	assert.Implements(t, (*linker)(nil), n)
 }

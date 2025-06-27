@@ -103,14 +103,13 @@ func NodesMatch(node1, node2 Node) bool {
 	case TableNodeType:
 		return true // already know table names are equal
 	case ReferenceNodeType:
-		return node1.(ReferenceNodeI).ColumnName() == node2.(ReferenceNodeI).ColumnName() &&
+		return node1.(ReferenceNodeI).equal(node2.(ReferenceNodeI)) &&
 			NodesMatch(NodeParent(node1), NodeParent(node2))
 	case ReverseNodeType:
-		return node1.(ReverseNodeI).ColumnName() == node2.(ReverseNodeI).ColumnName() &&
+		return node1.(ReverseNodeI).equal(node2.(ReverseNodeI)) &&
 			NodesMatch(NodeParent(node1), NodeParent(node2))
 	case ManyManyNodeType:
-		return node1.(ManyManyNodeI).AssnTableName() == node2.(ManyManyNodeI).AssnTableName() &&
-			node1.(ManyManyNodeI).RefColumnName() == node2.(ManyManyNodeI).RefColumnName() &&
+		return node1.(ManyManyNodeI).equal(node2.(ManyManyNodeI)) &&
 			NodesMatch(NodeParent(node1), NodeParent(node2))
 	default:
 		return false

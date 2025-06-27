@@ -1835,7 +1835,7 @@ func (n `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `",
-			ParentColumnQueryName:    "`); err != nil {
+			ParentForeignKey:    "`); err != nil {
 		return
 	}
 
@@ -1862,7 +1862,7 @@ func (n `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `",
-			RefColumnQueryName:       "`); err != nil {
+			RefForeignKey:       "`); err != nil {
 		return
 	}
 
