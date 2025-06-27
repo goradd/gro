@@ -289,7 +289,7 @@ type `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ref.GoType()); err != nil {
+			if _, err = io.WriteString(_w, ref.ObjectType()); err != nil {
 				return
 			}
 

@@ -1,0 +1,47 @@
+{{g
+//*** {{includeName}}
+}}
+
+func (n *NodeTemplate)genRefNode(table *model.Table, ref *model.Reference, _w io.Writer) (err error) {
+{{
+// {{= ref.Identifier }} represents the link to a {{= ref.ObjectType() }} object.
+func (n {{= table.DecapIdentifier}}Table) {{= ref.Identifier }}() {{= ref.ObjectType() }}Node {
+	cn := &{{= ref.Table.DecapIdentifier }}Reference{
+		ReferenceNode: query.ReferenceNode {
+            ColumnQueryName: "{{= col.QueryName }}",
+            Identifier:      "{{= ref.Identifier }}",
+            ReceiverType:    query.{{= col.ReceiverType.String() }},
+		},
+	}
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+{{if hasReverse}}
+func (n *{{= table.DecapIdentifier}}Reference) {{= ref.Identifier }}() {{= ref.ObjectType() }}Node {
+    cn := n.{{= table.DecapIdentifier}}Table.{{= ref.Identifier }}().(*{{= ref.Table.DecapIdentifier }}Reference)
+    query.NodeSetParent(cn, n)
+    return cn
+}
+
+{{if}}
+{{if hasReference}}
+func (n *{{= table.DecapIdentifier}}Reverse) {{= ref.Identifier }}() {{= ref.ObjectType() }}Node {
+    cn := n.{{= table.DecapIdentifier}}Table.{{= ref.Identifier }}().(*{{= ref.Table.DecapIdentifier }}Reference)
+    query.NodeSetParent(cn, n)
+    return cn
+}
+
+{{if}}
+{{if hasAssociation}}
+func (n *{{= table.DecapIdentifier}}Association) {{= ref.Identifier }}() {{= ref.ObjectType() }}Node {
+    cn := n.{{= table.DecapIdentifier}}Table.{{= ref.Identifier }}().(*{{= ref.Table.DecapIdentifier }}Reference)
+    query.NodeSetParent(cn, n)
+    return cn
+}
+
+{{if}}
+}}
+    return
+}
+

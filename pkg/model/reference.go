@@ -41,9 +41,9 @@ func (r *Reference) VariableIdentifier() string {
 	return "obj" + r.Identifier
 }
 
-// GoType returns the name of the Go struct type in a forward reference.
-func (r *Reference) GoType() string {
-	return r.Column.Table.Identifier
+// ObjectType returns the name of the Go struct that a forward reference points to.
+func (r *Reference) ObjectType() string {
+	return r.Table.Identifier
 }
 
 // ReverseVariableIdentifier returns the name of the local variable that will

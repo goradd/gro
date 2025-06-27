@@ -7,17 +7,10 @@
 
 }}
 
-{{# The master template for the nodes for a particular column.}}
+{{# The master template for the nodes for a particular table.}}
 
 func (n *NodeTemplate)gen(table *model.Table, _w io.Writer) (err error) {
-    hasReference = false
-    
-    for _,col := range table.Columns {
-        if col.IsReference() {
-            hasReference = true
-        }
-    }
-
+    hasReference = len(table.References) > 0
     hasAssociation = len(table.ManyManyReferences) > 0
     hasReverse = len(table.ReverseReferences) > 0
 
@@ -27,6 +20,7 @@ func (n *NodeTemplate)gen(table *model.Table, _w io.Writer) (err error) {
     if err = n.genPrivate(table, _w); err != nil { return }
     if err = n.genPrimaryKey(table, _w); err != nil { return }
     if err = n.genColumns(table, _w); err != nil { return }
+    if err = n.genReferences(table, _w); err != nil { return }
     if err = n.genAssn(table, _w); err != nil { return }
     if err = n.genReverse(table, _w); err != nil { return }
     if err = n.genGob(table, _w); err != nil { return }
@@ -80,6 +74,15 @@ func (n *NodeTemplate)genColumns(table *model.Table, _w io.Writer) (err error) {
     return
 }
 
+func (n *NodeTemplate)genReference(table *model.Table, _w io.Writer) (err error) {
+    for _,ref := range table.References {
+        if err = n.genColumn(table, ref.Column, _w); err != nil { return }
+        if err = n.genRefNode(table, ref.Column, _w); err != nil { return }
+    }
+    return
+}
+
+
 func (n *NodeTemplate)genGob(table *model.Table, _w io.Writer) (err error) {
 {{: "gob.tmpl" }}
     return
@@ -91,6 +94,7 @@ func (n *NodeTemplate)genInit(table *model.Table, _w io.Writer) (err error) {
 }
 
 {{: column.tmpl }}
+{{: referemce.tmpl }}
 {{: assn.tmpl }}
 {{: reverse.tmpl }}
 

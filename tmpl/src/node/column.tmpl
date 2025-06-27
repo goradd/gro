@@ -1,13 +1,9 @@
-
 {{g
 //*** {{includeName}}
 }}
 
 func (n *NodeTemplate)genColumn(table *model.Table, col *model.Column, _w io.Writer) (err error) {
     if err = n.genColumnNode(table, col, _w); err != nil { return }
-    if col.IsReference() {
-       err = n.genTableRefNode(table, col, _w)
-    }
     return
 }
 
@@ -54,48 +50,5 @@ func (n *{{= table.DecapIdentifier}}Association) {{= col.Identifier }}() *query.
     return
 }
 
-
-func (n *NodeTemplate)genTableRefNode(table *model.Table, col *model.Column, _w io.Writer) (err error) {
-{{
-// {{= col.ReferenceIdentifier() }} represents the link to a {{= col.ReferenceType() }} object.
-func (n {{= table.DecapIdentifier}}Table) {{= col.ReferenceIdentifier() }}() {{= col.ReferenceType() }}Node {
-	cn := &{{= col.Reference.Table.DecapIdentifier }}Reference{
-		ReferenceNode: query.ReferenceNode {
-            ColumnQueryName: "{{= col.QueryName }}",
-            Identifier:      "{{= col.ReferenceIdentifier() }}",
-            ReceiverType:    query.{{= col.ReceiverType.String() }},
-		},
-	}
-	query.NodeSetParent(cn, n)
-	return cn
-}
-
-{{if hasReverse}}
-func (n *{{= table.DecapIdentifier}}Reference) {{= col.ReferenceIdentifier() }}() {{= col.ReferenceType() }}Node {
-    cn := n.{{= table.DecapIdentifier}}Table.{{= col.ReferenceIdentifier() }}().(*{{= col.Reference.Table.DecapIdentifier }}Reference)
-    query.NodeSetParent(cn, n)
-    return cn
-}
-
-{{if}}
-{{if hasReference}}
-func (n *{{= table.DecapIdentifier}}Reverse) {{= col.ReferenceIdentifier() }}() {{= col.ReferenceType() }}Node {
-    cn := n.{{= table.DecapIdentifier}}Table.{{= col.ReferenceIdentifier() }}().(*{{= col.Reference.Table.DecapIdentifier }}Reference)
-    query.NodeSetParent(cn, n)
-    return cn
-}
-
-{{if}}
-{{if hasAssociation}}
-func (n *{{= table.DecapIdentifier}}Association) {{= col.ReferenceIdentifier() }}() {{= col.ReferenceType() }}Node {
-    cn := n.{{= table.DecapIdentifier}}Table.{{= col.ReferenceIdentifier() }}().(*{{= col.Reference.Table.DecapIdentifier }}Reference)
-    query.NodeSetParent(cn, n)
-    return cn
-}
-
-{{if}}
-}}
-    return
-}
 
 
