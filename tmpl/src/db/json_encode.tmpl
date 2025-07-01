@@ -84,15 +84,15 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
         if _,err := io.WriteString(writer, ",\n["); err != nil {
             return fmt.Errorf("writer error: %w", err)
         }
-        if _,err := io.WriteString(writer, `{{L mm.AssnTableName}},[`); err != nil {
+        if _,err := io.WriteString(writer, `{{L mm.TableQueryName}},[`); err != nil {
             return fmt.Errorf("writer error: %w", err)
         }
 
 
-        cursor, err := db.Query(ctx, {{L mm.AssnTableName}},
+        cursor, err := db.Query(ctx, {{L mm.TableQueryName}},
             map[string]query.ReceiverType{
-                {{L mm.AssnSourceColumnName}}: query.{{= mm.AssnSourceColumnType.String() }},
-                {{L mm.AssnDestColumnName}}: query.{{= mm.AssnDestColumnType.String() }},
+                {{L mm.SourceColumnName}}: query.{{= mm.SourceColumnReceiverType.String() }},
+                {{L mm.DestColumnName}}: query.{{= mm.DestColumnReceiverType.String() }},
             },
             nil,
             nil)

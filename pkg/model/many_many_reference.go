@@ -1,24 +1,28 @@
 package model
 
-import "github.com/goradd/orm/pkg/query"
+import (
+	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/strings"
+)
 
-// The ManyManyReference structure is used by the templates during the codegen process to describe a many-to-many relationship.
+// The ManyManyReference structure is used by the templates during the codegen process to describe
+// a many-to-many relationship.
 // Underlying the structure is an association table that has two foreign keys pointing
 // to the records that are linked.
 // For each relationship, two ManyManyReference structures are created.
 type ManyManyReference struct {
-	// AssnTableName is the database table that links the two associated tables together.
-	AssnTableName string
-	// AssnSourceColumnName is the database column in the association table that points at the source table's primary key.
-	AssnSourceColumnName string
-	// AssnSourceColumnType is the type of the column in the association table.
-	AssnSourceColumnType query.ReceiverType
-	// AssnDestColumnName is the database column in the association table that points at the destination table's primary key.
-	AssnDestColumnName string
-	// AssnDestColumnType is the type of the column in the association table.
-	AssnDestColumnType query.ReceiverType
-	// DestinationTable is the table being linked (the table that we are joining to)
-	DestinationTable *Table
+	// TableQueryName is the database table that links the two associated tables together.
+	TableQueryName string
+	// SourceColumnName is the database name for the column that points at the source table's primary key.
+	SourceColumnName string
+	// SourceColumnReceiverType is the query.ReceiverType of the SourceColumnName.
+	SourceColumnReceiverType query.ReceiverType
+	// DestColumnName is the database column in the association table that points at the destination table's primary key.
+	DestColumnName string
+	// DestColumnReceiverType is the type of the column in the association table.
+	DestColumnReceiverType query.ReceiverType
+	// ReferencedTable is the table being linked.
+	ReferencedTable *Table
 
 	// Label is the human-readable label of the objects pointed to.
 	Label string
@@ -26,21 +30,18 @@ type ManyManyReference struct {
 	LabelPlural string
 	// Identifier is the name used to refer to an object on the other end of the reference.
 	// It is not the same as the object type. For example TeamMember would refer to a Person type.
-	// This is derived from the AssnDestColumnName but can be overridden.
+	// This is derived from the DestColumnName but can be overridden.
 	Identifier string
 	// IdentifierPlural is the name used to refer to the group of objects on the other end of the reference.
-	// For example, TeamMembers. This is derived from the AssnDestColumnName but can be overridden by
+	// For example, TeamMembers. This is derived from the DestColumnName but can be overridden by
 	// a comment in the table.
 	IdentifierPlural string
+	// Field is the go identifier that will be used in the Table struct and parameters.
+	// Since this always points to many objects, it will be a plural name.
+	Field string
 
 	// MM is the many-many reference on the other end of the relationship that points back to this one.
 	MM *ManyManyReference
-}
-
-// TableName returns the name of the association table. This is mainly used to import and export
-// the table.
-func (m *ManyManyReference) TableName() string {
-	return UpperCaseIdentifier(m.AssnTableName)
 }
 
 // JsonKey returns the key used when referring to the associated objects in JSON.
@@ -48,39 +49,29 @@ func (m *ManyManyReference) JsonKey() string {
 	return LowerCaseIdentifier(m.IdentifierPlural)
 }
 
-// ObjectType returns the name of the object type the association links to.
-func (m *ManyManyReference) ObjectType() string {
-	return m.DestinationTable.Identifier
+// Type returns the name of the object type the association links to.
+func (m *ManyManyReference) Type() string {
+	return m.ReferencedTable.Identifier
 }
 
-// ObjectTypePlural returns the plural name of the object type the association links to.
-func (m *ManyManyReference) ObjectTypePlural() string {
-	return m.DestinationTable.IdentifierPlural
+// TypePlural returns the plural name of the object type the association links to.
+func (m *ManyManyReference) TypePlural() string {
+	return m.ReferencedTable.IdentifierPlural
 }
 
-// PrimaryKeyType returns the Go type of the primary key of the object the association links to.
-func (m *ManyManyReference) PrimaryKeyType() string {
-	return m.DestinationTable.PrimaryKeyColumn().GoType()
+// PrimaryKeyColumnName returns the database name of the primary key of the object the association links to.
+func (m *ManyManyReference) PrimaryKeyColumnName() string {
+	return m.ReferencedTable.PrimaryKeyColumn().QueryName
 }
 
-// PrimaryKey returns the database field name of the primary key of the object the association links to.
-func (m *ManyManyReference) PrimaryKey() string {
-	return m.DestinationTable.PrimaryKeyColumn().QueryName
+// TableIdentifier identifies the association table.
+func (m *ManyManyReference) TableIdentifier() string {
+	return UpperCaseIdentifier(m.TableQueryName)
 }
 
-// QueryName returns the database table name of the destination table.
-func (m *ManyManyReference) QueryName() string {
-	return m.DestinationTable.QueryName
-}
-
-// VariableIdentifier is the local variable name used to identify queried objects attached to the local object
-// through the many-many relationship.
-func (m *ManyManyReference) VariableIdentifier() string {
-	return "mm" + m.IdentifierPlural
-}
-
-func (m *ManyManyReference) PkIdentifier() string {
-	return "mm" + m.IdentifierPlural + "Pks"
+// PkField returns the identifier used for the variable listing the primary keys of the association.
+func (m *ManyManyReference) PkField() string {
+	return m.Field + "Pks"
 }
 
 func makeManyManyRef(
@@ -96,16 +87,17 @@ func makeManyManyRef(
 	type2 := pk2.ReceiverType
 
 	ref := ManyManyReference{
-		AssnTableName:        assnTable,
-		AssnSourceColumnName: column1,
-		AssnSourceColumnType: type1,
-		AssnDestColumnName:   column2,
-		AssnDestColumnType:   type2,
-		DestinationTable:     t2,
-		Label:                label,
-		LabelPlural:          labels,
-		Identifier:           id,
-		IdentifierPlural:     ids,
+		TableQueryName:           assnTable,
+		SourceColumnName:         column1,
+		SourceColumnReceiverType: type1,
+		DestColumnName:           column2,
+		DestColumnReceiverType:   type2,
+		ReferencedTable:          t2,
+		Label:                    label,
+		LabelPlural:              labels,
+		Identifier:               id,
+		IdentifierPlural:         ids,
+		Field:                    strings.Decap(ids),
 	}
 	t1.ManyManyReferences = append(t1.ManyManyReferences, &ref)
 	return &ref

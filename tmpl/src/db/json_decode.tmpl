@@ -82,8 +82,8 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 			err = jsonDecode{{= table.IdentifierPlural }}(ctx, decoder)
 {{for}}
 {{for _,mm := range assnTables}}
-		case {{L mm.AssnTableName }}:
-			err = jsonDecode{{= mm.TableName() }}(ctx, decoder)
+		case {{L mm.TableQueryName }}:
+			err = jsonDecode{{= mm.TableIdentifier() }}(ctx, decoder)
 {{for}}
 
 		}
@@ -147,7 +147,7 @@ func jsonDecode{{= table.IdentifierPlural}}(ctx context.Context,  decoder *json.
 {{for}}
 
 {{for _,mm := range assnTables}}
-func jsonDecode{{= mm.TableName() }}(ctx context.Context,  decoder *json.Decoder) error {
+func jsonDecode{{= mm.TableIdentifier() }}(ctx context.Context,  decoder *json.Decoder) error {
 	token, err := decoder.Token()
 	if err != nil {
 		fmt.Println("Error reading opening token:", err)
@@ -155,21 +155,21 @@ func jsonDecode{{= mm.TableName() }}(ctx context.Context,  decoder *json.Decoder
 	}
 	// Ensure the first token is a start of an array
 	if delim, ok := token.(json.Delim); !ok || delim != '[' {
-		fmt.Println("Error: Expected the {{= mm.TableName() }} list to start with an array")
+		fmt.Println("Error: Expected the {{= mm.TableIdentifier() }} list to start with an array")
 		return err
 	}
 
     database := Database()
 	for decoder.More() {
 	    var imp struct {
-            Src {{= mm.AssnSourceColumnType.GoType() }} `json:"{{= mm.AssnSourceColumnName }}"`
-            Dest {{= mm.AssnDestColumnType.GoType() }} `json:"{{= mm.AssnDestColumnName }}"`
+            Src {{= mm.SourceColumnReceiverType.GoType() }} `json:"{{= mm.SourceColumnName }}"`
+            Dest {{= mm.DestColumnReceiverType.GoType() }} `json:"{{= mm.DestColumnName }}"`
         }
 
 		if err = decoder.Decode(&imp); err != nil {
 			return err
 		}
-		db.Associate(ctx, database, {{L mm.AssnTableName }}, {{L mm.AssnSourceColumnName }}, imp.Src, {{L mm.AssnDestColumnName }}, imp.Dest)
+		db.Associate(ctx, database, {{L mm.TableQueryName }}, {{L mm.SourceColumnName }}, imp.Src, {{L mm.DestColumnName }}, imp.Dest)
 	}
 
 	// Check if the last token is the end of the array

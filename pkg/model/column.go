@@ -24,13 +24,20 @@ type Column struct {
 	Table *Table
 	// Identifier is the name of the accessor function in go code. e.g. "FirstName".
 	Identifier string
+	// Field is the name of the field in the Table struct that will hold the column's value.
+	// It is also used as the name for a function parameter.
+	Field string
+	// FieldPlural is the plural form of Field.
+	FieldPlural string
 	// Label is the name that identifies the value to humans. e.g. "First Name".
 	Label string
+	// Type is the Go type that the column represents to the rest of the Go application.
+	Type string
 	// SchemaType is the type info specified in the schema description
 	SchemaType schema.ColumnType
 	// SchemaSubType further describes the schema type.
 	SchemaSubType schema.ColumnSubType
-	//  ReceiverType indicates the Go type that matches the column.
+	//  ReceiverType is the Go type that will be received from the database.
 	ReceiverType ReceiverType
 	// Size is the maximum length of runes to allow in the column if a string type column.
 	// If a byte array, it is the number of bytes permitted.
@@ -47,13 +54,6 @@ type Column struct {
 	EnumTable *Enum
 	// Options are the options extracted from the comments string
 	Options map[string]interface{}
-
-	Reference *Reference // if a reference column, the containing reference
-
-	// goType is the cached go type as a string for the column
-	goType string
-	// decapIdentifier is a cache for the lower case identifier for the column.
-	decapIdentifier string
 }
 
 func (cd *Column) String() string {
@@ -63,14 +63,6 @@ func (cd *Column) String() string {
 // DefaultConstantName returns the name of the default value constant that will be used to refer to the default value
 func (cd *Column) DefaultConstantName() string {
 	return cd.Table.Identifier + cd.Identifier + "Default"
-}
-
-func (cd *Column) VariableIdentifier() string {
-	return cd.decapIdentifier
-}
-
-func (cd *Column) VariableIdentifierPlural() string {
-	return strings2.Plural(cd.decapIdentifier)
 }
 
 // DefaultValueAsValue returns the default value of the column as a GO value
@@ -134,7 +126,7 @@ func (cd *Column) DefaultValueAsConstant() string {
 
 // JsonKey returns the key used for the column when outputting JSON.
 func (cd *Column) JsonKey() string {
-	return cd.decapIdentifier
+	return cd.Field
 }
 
 // IsEnum returns true if the column contains a type defined by an enum table.
@@ -153,9 +145,9 @@ func (cd *Column) HasDefaultValue() bool {
 	return cd.SchemaType == schema.ColTypeAutoPrimaryKey || cd.DefaultValue != nil
 }
 
-// GoType returns the Go type of the internal member variable corresponding to the column.
-func (cd *Column) GoType() string {
-	return cd.goType
+// IsPrimaryKey returns true if this is the single primary key of its table.
+func (cd *Column) IsPrimaryKey() bool {
+	return cd.Table.PrimaryKeyColumn() == cd
 }
 
 // HasSetter returns true if the column should be allowed to be set by the programmer. Some columns should not be alterable,
@@ -247,23 +239,24 @@ func (cd *Column) DecimalScale() uint64 {
 
 func (m *Database) importColumn(schemaCol *schema.Column) *Column {
 	col := &Column{
-		QueryName:       schemaCol.Name,
-		Identifier:      schemaCol.Identifier,
-		Label:           schemaCol.Label,
-		SchemaType:      schemaCol.Type,
-		SchemaSubType:   schemaCol.SubType,
-		ReceiverType:    ReceiverTypeFromSchema(schemaCol.Type, schemaCol.Size),
-		Size:            schemaCol.Size,
-		DefaultValue:    schemaCol.DefaultValue,
-		IsNullable:      schemaCol.IsNullable,
-		decapIdentifier: strings2.Decap(schemaCol.Identifier),
+		QueryName:     schemaCol.Name,
+		Identifier:    schemaCol.Identifier,
+		Field:         strings2.Decap(schemaCol.Identifier),
+		FieldPlural:   strings2.Plural(strings2.Decap(schemaCol.Identifier)),
+		Label:         schemaCol.Label,
+		SchemaType:    schemaCol.Type,
+		SchemaSubType: schemaCol.SubType,
+		ReceiverType:  ReceiverTypeFromSchema(schemaCol.Type, schemaCol.Size),
+		Size:          schemaCol.Size,
+		DefaultValue:  schemaCol.DefaultValue,
+		IsNullable:    schemaCol.IsNullable,
 	}
 
 	if schemaCol.Type == schema.ColTypeEnum {
 		col.EnumTable = m.Enum(schemaCol.EnumTable)
-		col.goType = col.EnumTable.Identifier
+		col.Type = col.EnumTable.Identifier
 	} else {
-		col.goType = col.ReceiverType.GoType()
+		col.Type = col.ReceiverType.GoType()
 	}
 
 	if (col.SchemaSubType == schema.ColSubTypeTimestamp || col.SchemaSubType == schema.ColSubTypeLock) &&

@@ -172,13 +172,53 @@ func TestSerializeReferences`); err != nil {
 		return
 	}
 
-	for _, col := range table.Columns {
+	for _, ref := range table.References {
 
-		if col.IsReference() {
-
-			if _, err = io.WriteString(_w, `
-{
+		if _, err = io.WriteString(_w, `{
     n := `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, fmt.Sprint(ref.Identifier)); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+    n2 := serNode(t, n)
+    parentNode := query.NodeParent(n2)
+    assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
+    assert.Equal(t, "`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.QueryName); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `", parentNode.TableName_())
+
+    nodes := n.(query.TableNodeI).ColumnNodes_()
+    for _,cn := range nodes {
+        cn2 := serNode(t, cn)
+        assert.Equal(t, n.TableName_(), cn2.TableName_())
+        assert.Equal(t, query.ReferenceNodeType, query.NodeParent(cn2).NodeType_())
+    }
+
+`); err != nil {
+			return
+		}
+
+		for _, col2 := range ref.ReferencedTable.Columns {
+
+			if _, err = io.WriteString(_w, `    assert.True(t, query.NodesMatch(`); err != nil {
 				return
 			}
 
@@ -190,238 +230,234 @@ func TestSerializeReferences`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, fmt.Sprint(col.ReferenceIdentifier())); err != nil {
+			if _, err = io.WriteString(_w, ref.Identifier); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `()
-    n2 := serNode(t, n)
-    parentNode := query.NodeParent(n2)
-    assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
-    assert.Equal(t, "`); err != nil {
+			if _, err = io.WriteString(_w, `().`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, table.QueryName); err != nil {
+			if _, err = io.WriteString(_w, col2.Identifier); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `", parentNode.TableName_())
+			if _, err = io.WriteString(_w, `(), n2.(`); err != nil {
+				return
+			}
 
-    nodes := n.(query.TableNodeI).ColumnNodes_()
-    for _,cn := range nodes {
-        cn2 := serNode(t, cn)
-        assert.Equal(t, n.TableName_(), cn2.TableName_())
-        assert.Equal(t, query.ReferenceNodeType, query.NodeParent(cn2).NodeType_())
-    }
+			if _, err = io.WriteString(_w, ref.ReferencedTable.Identifier); err != nil {
+				return
+			}
 
+			if _, err = io.WriteString(_w, `Node).`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col2.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()))
 `); err != nil {
 				return
 			}
 
-			for _, col2 := range col.Reference.Table.Columns {
+		}
 
-				if _, err = io.WriteString(_w, `    assert.True(t, query.NodesMatch(`); err != nil {
-					return
-				}
+		for _, ref2 := range ref.ReferencedTable.References {
 
-				if _, err = io.WriteString(_w, table.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `().`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `().`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col2.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(), n2.(`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `Node).`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col2.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `()))
-`); err != nil {
-					return
-				}
-
-				if col2.IsReference() {
-
-					if _, err = io.WriteString(_w, `    assert.True(t, query.NodesMatch(`); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, table.Identifier); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, `().`); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, `().`); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, col2.ReferenceIdentifier()); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, `(), n2.(`); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, `Node).`); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, col2.ReferenceIdentifier()); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, `()))
-`); err != nil {
-						return
-					}
-
-				}
-
+			if _, err = io.WriteString(_w, `    assert.True(t, query.NodesMatch(`); err != nil {
+				return
 			}
 
-			for _, rev2 := range col.Reference.Table.ReverseReferences {
-
-				if _, err = io.WriteString(_w, `	assert.True(t, query.NodesMatch(`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, table.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `().`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `().`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, rev2.ReverseIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(), n2.(`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `Node).`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, rev2.ReverseIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `()))
-`); err != nil {
-					return
-				}
-
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
 			}
 
-			for _, mm2 := range col.Reference.Table.ManyManyReferences {
-
-				if _, err = io.WriteString(_w, `	assert.True(t, query.NodesMatch(`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, table.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `().`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `().`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, mm2.IdentifierPlural); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(), n2.(`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `Node).`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, mm2.IdentifierPlural); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `()))
-`); err != nil {
-					return
-				}
-
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
 			}
 
-			if _, err = io.WriteString(_w, `
+			if _, err = io.WriteString(_w, ref.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ref2.ForeignKey.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(), n2.(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ref.ReferencedTable.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `Node).`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ref2.ForeignKey.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()))
+    assert.True(t, query.NodesMatch(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ref.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ref2.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(), n2.(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ref.ReferencedTable.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `Node).`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ref2.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()))
+`); err != nil {
+				return
+			}
+
+		}
+
+		for _, rev2 := range ref.ReferencedTable.ReverseReferences {
+
+			if _, err = io.WriteString(_w, `	assert.True(t, query.NodesMatch(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ref.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev2.ReverseIdentifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(), n2.(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ref.ReferencedTable.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `Node).`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev2.ReverseIdentifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()))
+`); err != nil {
+				return
+			}
+
+		}
+
+		for _, mm2 := range ref.ReferencedTable.ManyManyReferences {
+
+			if _, err = io.WriteString(_w, `	assert.True(t, query.NodesMatch(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ref.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm2.IdentifierPlural); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(), n2.(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ref.ReferencedTable.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `Node).`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm2.IdentifierPlural); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()))
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `
 }
 
 `); err != nil {
-				return
-			}
-
+			return
 		}
 
 	}
@@ -457,7 +493,7 @@ func TestSerializeReverseReferences`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 			return
 		}
 
@@ -500,7 +536,7 @@ func TestSerializeReverseReferences`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -533,53 +569,94 @@ func TestSerializeReverseReferences`); err != nil {
 				return
 			}
 
-			if col.IsReference() {
+		}
 
-				if _, err = io.WriteString(_w, `    assert.True(t, query.NodesMatch(`); err != nil {
-					return
-				}
+		for _, ref := range rev.Table.References {
 
-				if _, err = io.WriteString(_w, table.Identifier); err != nil {
-					return
-				}
+			if _, err = io.WriteString(_w, `	assert.True(t, query.NodesMatch(`); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, `().`); err != nil {
-					return
-				}
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
-					return
-				}
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, `().`); err != nil {
-					return
-				}
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-					return
-				}
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, `(), n2.(`); err != nil {
-					return
-				}
+			if _, err = io.WriteString(_w, ref.ForeignKey.Identifier); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
-					return
-				}
+			if _, err = io.WriteString(_w, `(), n2.(`); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, `Node).`); err != nil {
-					return
-				}
+			if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-					return
-				}
+			if _, err = io.WriteString(_w, `Node).`); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, `()))
+			if _, err = io.WriteString(_w, ref.ForeignKey.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()))
+    assert.True(t, query.NodesMatch(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ref.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(), n2.(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `Node).`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ref.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()))
 `); err != nil {
-					return
-				}
-
+				return
 			}
 
 		}
@@ -598,7 +675,7 @@ func TestSerializeReverseReferences`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -606,7 +683,7 @@ func TestSerializeReverseReferences`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev2.ReverseIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev2.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -622,7 +699,7 @@ func TestSerializeReverseReferences`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev2.ReverseIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev2.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -647,7 +724,7 @@ func TestSerializeReverseReferences`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -753,7 +830,7 @@ func TestSerializeAssociations`); err != nil {
 			return
 		}
 
-		for _, col := range mm.DestinationTable.Columns {
+		for _, col := range mm.ReferencedTable.Columns {
 
 			if _, err = io.WriteString(_w, `    assert.True(t, query.NodesMatch(`); err != nil {
 				return
@@ -783,7 +860,7 @@ func TestSerializeAssociations`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.DestinationTable.Identifier); err != nil {
+			if _, err = io.WriteString(_w, mm.ReferencedTable.Identifier); err != nil {
 				return
 			}
 
@@ -800,58 +877,99 @@ func TestSerializeAssociations`); err != nil {
 				return
 			}
 
-			if col.IsReference() {
+		}
 
-				if _, err = io.WriteString(_w, `    assert.True(t, query.NodesMatch(`); err != nil {
-					return
-				}
+		for _, ref := range mm.ReferencedTable.References {
 
-				if _, err = io.WriteString(_w, table.Identifier); err != nil {
-					return
-				}
+			if _, err = io.WriteString(_w, `    assert.True(t, query.NodesMatch(`); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, `().`); err != nil {
-					return
-				}
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
-					return
-				}
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, `().`); err != nil {
-					return
-				}
+			if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-					return
-				}
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, `(), n2.(`); err != nil {
-					return
-				}
+			if _, err = io.WriteString(_w, ref.ForeignKey.Identifier); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, mm.DestinationTable.Identifier); err != nil {
-					return
-				}
+			if _, err = io.WriteString(_w, `(), n2.(`); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, `Node).`); err != nil {
-					return
-				}
+			if _, err = io.WriteString(_w, mm.ReferencedTable.Identifier); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-					return
-				}
+			if _, err = io.WriteString(_w, `Node).`); err != nil {
+				return
+			}
 
-				if _, err = io.WriteString(_w, `()))
+			if _, err = io.WriteString(_w, ref.ForeignKey.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()))
+    assert.True(t, query.NodesMatch(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ref.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(), n2.(`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, mm.ReferencedTable.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `Node).`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ref.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()))
 `); err != nil {
-					return
-				}
-
+				return
 			}
 
 		}
 
-		for _, rev2 := range mm.DestinationTable.ReverseReferences {
+		for _, rev2 := range mm.ReferencedTable.ReverseReferences {
 
 			if _, err = io.WriteString(_w, `	assert.True(t, query.NodesMatch(`); err != nil {
 				return
@@ -873,7 +991,7 @@ func TestSerializeAssociations`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev2.ReverseIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev2.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -881,7 +999,7 @@ func TestSerializeAssociations`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.DestinationTable.Identifier); err != nil {
+			if _, err = io.WriteString(_w, mm.ReferencedTable.Identifier); err != nil {
 				return
 			}
 
@@ -889,7 +1007,7 @@ func TestSerializeAssociations`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev2.ReverseIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev2.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -900,7 +1018,7 @@ func TestSerializeAssociations`); err != nil {
 
 		}
 
-		for _, mm2 := range mm.DestinationTable.ManyManyReferences {
+		for _, mm2 := range mm.ReferencedTable.ManyManyReferences {
 
 			if _, err = io.WriteString(_w, `	assert.True(t, query.NodesMatch(`); err != nil {
 				return
@@ -930,7 +1048,7 @@ func TestSerializeAssociations`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.DestinationTable.Identifier); err != nil {
+			if _, err = io.WriteString(_w, mm.ReferencedTable.Identifier); err != nil {
 				return
 			}
 

@@ -74,10 +74,10 @@ func (n *NodeTemplate)genColumns(table *model.Table, _w io.Writer) (err error) {
     return
 }
 
-func (n *NodeTemplate)genReference(table *model.Table, _w io.Writer) (err error) {
+func (n *NodeTemplate)genReferences(table *model.Table, _w io.Writer) (err error) {
     for _,ref := range table.References {
-        if err = n.genColumn(table, ref.Column, _w); err != nil { return }
-        if err = n.genRefNode(table, ref.Column, _w); err != nil { return }
+        if err = n.genColumn(table, ref.ForeignKey, _w); err != nil { return }
+        if err = n.genRefNode(table, ref, _w); err != nil { return }
     }
     return
 }
@@ -94,7 +94,7 @@ func (n *NodeTemplate)genInit(table *model.Table, _w io.Writer) (err error) {
 }
 
 {{: column.tmpl }}
-{{: referemce.tmpl }}
+{{: reference.tmpl }}
 {{: assn.tmpl }}
 {{: reverse.tmpl }}
 

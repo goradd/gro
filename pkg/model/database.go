@@ -56,7 +56,7 @@ func (m *Database) importSchema(schema *schema.Database) {
 	for _, table := range schema.Tables {
 		m.importTable(table, m.WriteTimeout, m.ReadTimeout)
 	}
-	
+
 	for _, assn := range schema.AssociationTables {
 		m.importAssociation(assn)
 	}
@@ -237,9 +237,9 @@ func (m *Database) MarshalOrder() (tables []*Table) {
 		for t := range unusedTables.All() {
 			for _, ref := range t.References {
 				// skip this table if it has references to a table we have not yet seen
-				if !slices.Contains(tables, ref.Table) &&
-					!slices.Contains(newTables, ref.Table) &&
-					t != ref.Table {
+				if !slices.Contains(tables, ref.ReferencedTable) &&
+					!slices.Contains(newTables, ref.ReferencedTable) &&
+					t != ref.ReferencedTable {
 					continue nexttable
 				}
 
@@ -279,12 +279,12 @@ func (m *Database) UniqueManyManyReferences() []*ManyManyReference {
 		return cmp.Compare(table.QueryName, table2.QueryName)
 	}) {
 		for _, mm := range table.ManyManyReferences {
-			refs[mm.AssnTableName] = mm
+			refs[mm.TableQueryName] = mm
 		}
 	}
 
 	return slices.SortedFunc(maps2.Values(refs), func(reference *ManyManyReference, reference2 *ManyManyReference) int {
-		return cmp.Compare(reference.AssnSourceColumnName, reference2.AssnSourceColumnName)
+		return cmp.Compare(reference.SourceColumnName, reference2.SourceColumnName)
 	})
 }
 

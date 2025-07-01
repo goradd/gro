@@ -17,10 +17,10 @@
             }
             db.Associate(ctx,
                 d,
-                "{{= mm.AssnTableName }}",
-                "{{= mm.AssnSourceColumnName }}",
+                "{{= mm.TableName }}",
+                "{{= mm.SourceColumnName }}",
                 newPK,
-                "{{= mm.AssnDestColumnName }}",
+                "{{= mm.DestColumnName }}",
                 obj.PrimaryKey(),
             )
         }
@@ -33,10 +33,10 @@
             if (obj != nil) {
                 db.Associate(ctx,
                     d,
-                    "{{= mm.AssnTableName }}",
-                    "{{= mm.AssnSourceColumnName }}",
+                    "{{= mm.TableName }}",
+                    "{{= mm.SourceColumnName }}",
                     newPK,
-                    "{{= mm.AssnDestColumnName }}",
+                    "{{= mm.DestColumnName }}",
                     k,
                 )
             }

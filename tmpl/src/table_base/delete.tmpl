@@ -129,8 +129,8 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
     {{for _,mm := range table.ManyManyReferences}}
         if err := db.AssociateOnly(ctx,
             d,
-            "{{= mm.AssnTableName }}",
-            "{{= mm.AssnSourceColumnName }}",
+            "{{= mm.TableName }}",
+            "{{= mm.SourceColumnName }}",
             o.PrimaryKey(),
             "{{= mm.PrimaryKey() }}",
             []{{= mm.ObjectType() }}(nil)); err != nil {

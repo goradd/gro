@@ -11,18 +11,18 @@ func (n *NodeTemplate)genAssn(table *model.Table, _w io.Writer) (err error) {
 
 func (n *NodeTemplate)genAssnTable(table *model.Table, mm *model.ManyManyReference, _w io.Writer) (err error) {
     var objectType string
-    objectType = mm.DestinationTable.DecapIdentifier + "Association"
+    objectType = mm.ReferencedTable.DecapIdentifier + "Association"
 {{
-// {{= mm.IdentifierPlural }} represents the many-to-many relationship formed by the {{= mm.AssnTableName }} table.
-func (n {{= table.DecapIdentifier }}Table) {{= mm.IdentifierPlural }}() {{= mm.ObjectType() }}Node  {
+// {{= mm.IdentifierPlural }} represents the many-to-many relationship formed by the {{= mm.TableQueryName }} table.
+func (n {{= table.DecapIdentifier }}Table) {{= mm.IdentifierPlural }}() {{= mm.ReferencedTable.Identifier }}Node  {
 	cn := &{{= objectType }} {
 		ManyManyNode: query.ManyManyNode{
-			AssnTableQueryName:      "{{= mm.AssnTableName }}",
-			ParentColumnQueryName:    "{{= mm.AssnSourceColumnName }}",
-			ParentColumnReceiverType: query.{{= mm.AssnSourceColumnType.String() }},
+			AssnTableQueryName:      "{{= mm.TableQueryName }}",
+			ParentColumnQueryName:    "{{= mm.SourceColumnName }}",
+			ParentColumnReceiverType: query.{{= mm.SourceColumnReceiverType.String() }},
 			Identifier:               "{{= mm.IdentifierPlural }}",
-			RefColumnQueryName:       "{{= mm.AssnDestColumnName }}",
-			RefColumnReceiverType:    query.{{= mm.AssnDestColumnType.String() }},
+			RefColumnQueryName:       "{{= mm.DestColumnName }}",
+			RefColumnReceiverType:    query.{{= mm.DestColumnReceiverType.String() }},
 		},
 	}
 	query.NodeSetParent(cn, n)
@@ -30,7 +30,7 @@ func (n {{= table.DecapIdentifier }}Table) {{= mm.IdentifierPlural }}() {{= mm.O
 }
 
 {{if hasReverse}}
-func (n *{{= table.DecapIdentifier}}Reference) {{= mm.IdentifierPlural }}() {{= mm.ObjectType() }}Node  {
+func (n *{{= table.DecapIdentifier}}Reference) {{= mm.IdentifierPlural }}() {{= mm.ReferencedTable.Identifier }}Node  {
     cn := n.{{= table.DecapIdentifier}}Table.{{= mm.IdentifierPlural }}().(*{{= objectType }})
     query.NodeSetParent(cn, n)
     return cn
@@ -38,7 +38,7 @@ func (n *{{= table.DecapIdentifier}}Reference) {{= mm.IdentifierPlural }}() {{= 
 
 {{if}}
 {{if hasReference}}
-func (n *{{= table.DecapIdentifier}}Reverse) {{= mm.IdentifierPlural }}() {{= mm.ObjectType() }}Node  {
+func (n *{{= table.DecapIdentifier}}Reverse) {{= mm.IdentifierPlural }}() {{= mm.ReferencedTable.Identifier }}Node  {
     cn := n.{{= table.DecapIdentifier}}Table.{{= mm.IdentifierPlural }}().(*{{= objectType }})
     query.NodeSetParent(cn, n)
     return cn
@@ -46,7 +46,7 @@ func (n *{{= table.DecapIdentifier}}Reverse) {{= mm.IdentifierPlural }}() {{= mm
 
 {{if}}
 {{if hasAssociation}}
-func (n *{{= table.DecapIdentifier}}Association) {{= mm.IdentifierPlural }}() {{= mm.ObjectType() }}Node  {
+func (n *{{= table.DecapIdentifier}}Association) {{= mm.IdentifierPlural }}() {{= mm.ReferencedTable.Identifier }}Node  {
     cn := n.{{= table.DecapIdentifier}}Table.{{= mm.IdentifierPlural }}().(*{{= objectType }})
     query.NodeSetParent(cn, n)
     return cn

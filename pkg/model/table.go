@@ -22,7 +22,7 @@ type Table struct {
 	ReadTimeout time.Duration
 	// NoTest indicates that the table should NOT have an automated test generated for it.
 	NoTest bool
-	// QueryName is the name of the database table or object in the database.
+	// QueryName is the database's identifier for the table.
 	QueryName string
 	// Label is the name of the object when describing it to the world. Should be lower case.
 	Label string
@@ -48,7 +48,7 @@ type Table struct {
 	// ManyManyReferences describe the many-to-many references pointing to this table
 	ManyManyReferences []*ManyManyReference
 	// The cached optimistic locking column, if one is present
-	lockColumn *Column
+	LockColumn *Column
 	// columnMap is an internal map of the columns by query name of the column
 	columnMap map[string]*Column
 	// primaryKeyColumns is a cache of the primary key columns, which can include reference columns
@@ -75,7 +75,7 @@ func (t *Table) PrimaryKeyColumns() []*Column {
 func (t *Table) PrimaryKeyGoTypes() string {
 	var s []string
 	for _, column := range t.PrimaryKeyColumns() {
-		s = append(s, column.GoType())
+		s = append(s, column.Type)
 	}
 	return strings.Join(s, ", ")
 }
@@ -122,8 +122,8 @@ func (t *Table) HasGetterName(name string) (hasName bool, desc string) {
 		if ref.Identifier == name {
 			return false, "conflicts with reference " + ref.Identifier
 		}
-		if ref.Column.Identifier == name {
-			return false, "conflicts with reference column " + ref.Column.Identifier
+		if ref.ForeignKey.Identifier == name {
+			return false, "conflicts with reference column " + ref.ForeignKey.Identifier
 		}
 	}
 
@@ -163,11 +163,6 @@ func (t *Table) SettableColumns() []*Column {
 		}
 	}
 	return out
-}
-
-// LockColumn returns the special column that will be used to implement optimistic locking, if one exists for the table.
-func (t *Table) LockColumn() *Column {
-	return t.lockColumn
 }
 
 // HasUniqueIndexes returns true if the table has at least one unique index.
@@ -245,22 +240,22 @@ func (m *Database) importTable(tableSchema *schema.Table,
 		}
 		t.columnMap[newCol.QueryName] = newCol
 		if schemaCol.SubType == schema.ColSubTypeLock {
-			t.lockColumn = newCol
+			t.LockColumn = newCol
 		}
 	}
 
 	// The following relies on the order of tables being processed
 	// such that the referenced tables exist with primary keys.
 	for _, schemaRef := range tableSchema.References {
-		ref := m.importReference(schemaRef)
-		if _, ok := t.columnMap[ref.Column.QueryName]; ok {
+		ref := m.importReference(tableSchema, schemaRef)
+		if _, ok := t.columnMap[ref.ForeignKey.QueryName]; ok {
 			slog.Error("Table skipped. Reference column name already exists in the table.",
 				slog.String(db.LogTable, t.QueryName),
-				slog.String(db.LogColumn, ref.Column.QueryName),
+				slog.String(db.LogColumn, ref.ForeignKey.QueryName),
 			)
 			return
 		}
-		t.columnMap[ref.Column.QueryName] = ref.Column
+		t.columnMap[ref.ForeignKey.QueryName] = ref.ForeignKey
 		t.References = append(t.References, ref)
 	}
 

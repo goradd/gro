@@ -11,19 +11,22 @@ type {{= table.Identifier}}Node interface {
 {{for _,col := range table.Columns}}
     // {{= col.Identifier }} represents the {{= col.QueryName }} column in the database.
     {{= col.Identifier }}() *query.ColumnNode
-{{if col.IsReference() }}
-    // {{= col.ReferenceIdentifier() }} represents the {{= col.ReferenceIdentifier() }} reference to a {{= col.ReferenceType() }} object.
-    {{= col.ReferenceIdentifier() }}() {{= col.ReferenceType() }}Node
-{{if}}
+{{for}}
+{{for _,ref := range table.References}}
+    // {{= ref.ForeignKey.Identifier }} represents the {{= ref.ForeignKey.QueryName }} column in the database
+    // that references the {{= ref.Identifier }} object.
+    {{= ref.ForeignKey.Identifier }}() *query.ColumnNode
+    // {{= ref.Identifier }} references a {{= ref.ReferencedTable.Identifier }} object.
+    {{= ref.Identifier }}() {{= ref.ReferencedTable.Identifier }}Node
 {{for}}
 {{for _,mm := range table.ManyManyReferences}}
-     // {{= mm.IdentifierPlural }} represents the {{= mm.IdentifierPlural }} reference to {{= mm.ObjectType() }} objects.
-   {{= mm.IdentifierPlural }}() {{= mm.ObjectType() }}Node
+     // {{= mm.IdentifierPlural }} represents a reference to {{= mm.ReferencedTable.Identifier }} objects.
+   {{= mm.IdentifierPlural }}() {{= mm.ReferencedTable.Identifier }}Node
 {{for}}
 {{for _,rev := range table.ReverseReferences}}
-    // {{= rev.ReverseIdentifier() }} represents the {{= rev.ReverseIdentifier() }} reference to {{if rev.IsUnique
+    // {{= rev.ReverseIdentifier }} represents the {{= rev.ReverseIdentifier }} reference to {{if rev.IsUnique
 }}a {{= rev.Table.Identifier }} object.{{else}}{{= rev.Table.Identifier }} objects.{{if}}
-    {{= rev.ReverseIdentifier() }}() {{= rev.Table.Identifier }}Node
+    {{= rev.ReverseIdentifier }}() {{= rev.Table.Identifier }}Node
 {{for}}
 }
 

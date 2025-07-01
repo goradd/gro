@@ -142,7 +142,7 @@ func ClearAll(ctx context.Context) {
 			return
 		}
 
-		if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnTableName)); err != nil {
+		if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.TableQueryName)); err != nil {
 			return
 		}
 
@@ -337,7 +337,7 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 					return
 				}
 
-				if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnTableName)); err != nil {
+				if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.TableQueryName)); err != nil {
 					return
 				}
 
@@ -350,7 +350,7 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 					return
 				}
 
-				if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnTableName)); err != nil {
+				if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.TableQueryName)); err != nil {
 					return
 				}
 
@@ -360,7 +360,7 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 					return
 				}
 
-				if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnSourceColumnName)); err != nil {
+				if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.SourceColumnName)); err != nil {
 					return
 				}
 
@@ -368,7 +368,7 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 					return
 				}
 
-				if _, err = io.WriteString(_w, mm.AssnSourceColumnType.String()); err != nil {
+				if _, err = io.WriteString(_w, mm.SourceColumnReceiverType.String()); err != nil {
 					return
 				}
 
@@ -377,7 +377,7 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 					return
 				}
 
-				if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnDestColumnName)); err != nil {
+				if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.DestColumnName)); err != nil {
 					return
 				}
 
@@ -385,7 +385,7 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 					return
 				}
 
-				if _, err = io.WriteString(_w, mm.AssnDestColumnType.String()); err != nil {
+				if _, err = io.WriteString(_w, mm.DestColumnReceiverType.String()); err != nil {
 					return
 				}
 
@@ -578,7 +578,7 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 				return
 			}
 
-			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnTableName)); err != nil {
+			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.TableQueryName)); err != nil {
 				return
 			}
 
@@ -587,7 +587,7 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.TableName()); err != nil {
+			if _, err = io.WriteString(_w, mm.TableIdentifier()); err != nil {
 				return
 			}
 
@@ -703,7 +703,7 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.TableName()); err != nil {
+			if _, err = io.WriteString(_w, mm.TableIdentifier()); err != nil {
 				return
 			}
 
@@ -719,7 +719,7 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.TableName()); err != nil {
+			if _, err = io.WriteString(_w, mm.TableIdentifier()); err != nil {
 				return
 			}
 
@@ -734,7 +734,7 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.AssnSourceColumnType.GoType()); err != nil {
+			if _, err = io.WriteString(_w, mm.SourceColumnReceiverType.GoType()); err != nil {
 				return
 			}
 
@@ -742,7 +742,7 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.AssnSourceColumnName); err != nil {
+			if _, err = io.WriteString(_w, mm.SourceColumnName); err != nil {
 				return
 			}
 
@@ -751,7 +751,7 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.AssnDestColumnType.GoType()); err != nil {
+			if _, err = io.WriteString(_w, mm.DestColumnReceiverType.GoType()); err != nil {
 				return
 			}
 
@@ -759,7 +759,7 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.AssnDestColumnName); err != nil {
+			if _, err = io.WriteString(_w, mm.DestColumnName); err != nil {
 				return
 			}
 
@@ -773,7 +773,7 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 				return
 			}
 
-			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnTableName)); err != nil {
+			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.TableQueryName)); err != nil {
 				return
 			}
 
@@ -781,7 +781,7 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 				return
 			}
 
-			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnSourceColumnName)); err != nil {
+			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.SourceColumnName)); err != nil {
 				return
 			}
 
@@ -789,7 +789,7 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 				return
 			}
 
-			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.AssnDestColumnName)); err != nil {
+			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.DestColumnName)); err != nil {
 				return
 			}
 

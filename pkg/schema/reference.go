@@ -26,7 +26,8 @@ type Reference struct {
 	// Schema is the schema that Table belongs to. If empty, will use the default schema.
 	Schema string `json:"schema,omitempty"`
 
-	// Column is the name of the local column created in this table to hold a duplicate of the private key in Table.
+	// Column is the name of the local column created in this table to hold a duplicate of the private key in Table,
+	// and is also known as a foreign key.
 	// It will default to a name based on Table and the name of the primary key column in Table.
 	Column string `json:"column,omitempty"`
 
@@ -112,7 +113,7 @@ func (r *Reference) infer(db *Database, table *Table) error {
 	if pk == nil {
 		return fmt.Errorf("primary key column %s not found", cols[0])
 	}
-	
+
 	if r.Column == "" {
 		r.Column = r.Table + "_" + pk.Name
 	}

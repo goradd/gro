@@ -25,7 +25,7 @@ type ColumnNode struct {
 	SchemaType schema.ColumnType
 	// The schema subtype for the node
 	SchemaSubType schema.ColumnSubType
-	// True if this is the primary key of its parent table
+	// True if this is the single primary key of its parent table
 	IsPrimaryKey   bool
 	sortDescending bool
 	nodeLink
@@ -58,14 +58,6 @@ func (n *ColumnNode) Descending() Sorter {
 // IsDescending returns true if the node is sorted in descending order.
 func (n *ColumnNode) IsDescending() bool {
 	return n.sortDescending
-}
-
-func NodeIsPK(n Node) bool {
-	if cn, ok := n.(*ColumnNode); !ok {
-		return false
-	} else {
-		return cn.IsPrimaryKey
-	}
 }
 
 func (n *ColumnNode) GobEncode() (data []byte, err error) {

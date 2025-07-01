@@ -289,7 +289,7 @@ type `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ref.ObjectType()); err != nil {
+			if _, err = io.WriteString(_w, ref.GoType()); err != nil {
 				return
 			}
 
@@ -804,7 +804,7 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 		return
 	}
 
-	if pk := table.PrimaryKeyColumn(); pk != nil && pk.IsAutoPk {
+	if pk := table.PrimaryKeyColumn(); pk != nil && pk.IsAutoPK {
 
 		if _, err = io.WriteString(_w, `// The primary key will get a temporary negative number which will be replaced when the object is saved.
 // Multiple calls to Initialize are not guaranteed to create sequential values for the primary key.
@@ -829,7 +829,7 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 
 	for _, col := range table.Columns {
 
-		if col.IsAutoPk {
+		if col.IsAutoPK {
 
 			if _, err = io.WriteString(_w, `    o.`); err != nil {
 				return
@@ -1480,7 +1480,7 @@ func (tmpl *TableBaseTemplate) genColSetter(table *model.Table, col *model.Colum
 			return
 		}
 
-		if col.IsAutoPk {
+		if col.IsAutoPK {
 
 			if _, err = io.WriteString(_w, `// Normally you will not need to call this function, since the `); err != nil {
 				return
@@ -2091,7 +2091,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if col.IsAutoPk {
+		if col.IsAutoPK {
 
 			if _, err = io.WriteString(_w, `// Normally you will not need to call this function, since the `); err != nil {
 				return
@@ -2199,7 +2199,7 @@ func (o *`); err != nil {
 
 		}
 
-		if !col.IsAutoPk {
+		if !col.IsAutoPK {
 
 			if _, err = io.WriteString(_w, `	if o._restored &&
 	    o.`); err != nil {
@@ -3759,7 +3759,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.ObjectTypePlural()); err != nil {
+		if _, err = io.WriteString(_w, mm.TypePlural()); err != nil {
 			return
 		}
 
@@ -3787,7 +3787,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.ObjectTypePlural()); err != nil {
+		if _, err = io.WriteString(_w, mm.TypePlural()); err != nil {
 			return
 		}
 
@@ -3886,7 +3886,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.ObjectTypePlural()); err != nil {
+		if _, err = io.WriteString(_w, mm.TypePlural()); err != nil {
 			return
 		}
 
@@ -8039,7 +8039,7 @@ func (o *`); err != nil {
 
 	for _, col := range table.SettableColumns() {
 
-		if col.IsUnique && !col.IsAutoPk {
+		if col.IsUnique && !col.IsAutoPK {
 
 			if _, err = io.WriteString(_w, `    if o.`); err != nil {
 				return
@@ -9337,7 +9337,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.AssnTableName); err != nil {
+		if _, err = io.WriteString(_w, mm.TableName); err != nil {
 			return
 		}
 
@@ -9346,7 +9346,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.AssnSourceColumnName); err != nil {
+		if _, err = io.WriteString(_w, mm.SourceColumnName); err != nil {
 			return
 		}
 
@@ -9356,7 +9356,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.AssnDestColumnName); err != nil {
+		if _, err = io.WriteString(_w, mm.DestColumnName); err != nil {
 			return
 		}
 
@@ -9379,7 +9379,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.AssnTableName); err != nil {
+		if _, err = io.WriteString(_w, mm.TableName); err != nil {
 			return
 		}
 
@@ -9388,7 +9388,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.AssnSourceColumnName); err != nil {
+		if _, err = io.WriteString(_w, mm.SourceColumnName); err != nil {
 			return
 		}
 
@@ -9398,7 +9398,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.AssnDestColumnName); err != nil {
+		if _, err = io.WriteString(_w, mm.DestColumnName); err != nil {
 			return
 		}
 
@@ -9659,7 +9659,7 @@ func (o *`); err != nil {
 
 	for _, col := range table.SettableColumns() {
 
-		if !col.IsAutoPk && !col.IsNullable {
+		if !col.IsAutoPK && !col.IsNullable {
 
 			if _, err = io.WriteString(_w, `    if !o.`); err != nil {
 				return
@@ -9698,7 +9698,7 @@ func (o *`); err != nil {
 
 	for _, col := range table.SettableColumns() {
 
-		if col.IsUnique && !col.IsAutoPk {
+		if col.IsUnique && !col.IsAutoPK {
 
 			if _, err = io.WriteString(_w, `    if o.`); err != nil {
 				return
@@ -10253,7 +10253,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.AssnTableName); err != nil {
+		if _, err = io.WriteString(_w, mm.TableName); err != nil {
 			return
 		}
 
@@ -10262,7 +10262,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.AssnSourceColumnName); err != nil {
+		if _, err = io.WriteString(_w, mm.SourceColumnName); err != nil {
 			return
 		}
 
@@ -10272,7 +10272,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.AssnDestColumnName); err != nil {
+		if _, err = io.WriteString(_w, mm.DestColumnName); err != nil {
 			return
 		}
 
@@ -10317,7 +10317,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.AssnTableName); err != nil {
+		if _, err = io.WriteString(_w, mm.TableName); err != nil {
 			return
 		}
 
@@ -10326,7 +10326,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.AssnSourceColumnName); err != nil {
+		if _, err = io.WriteString(_w, mm.SourceColumnName); err != nil {
 			return
 		}
 
@@ -10336,7 +10336,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.AssnDestColumnName); err != nil {
+		if _, err = io.WriteString(_w, mm.DestColumnName); err != nil {
 			return
 		}
 
@@ -10649,7 +10649,7 @@ func (o *`); err != nil {
 
 	for _, col := range table.Columns {
 
-		if col.IsAutoPk {
+		if col.IsAutoPK {
 
 			if _, err = io.WriteString(_w, `    if o.`); err != nil {
 				return
@@ -11491,7 +11491,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.AssnTableName); err != nil {
+			if _, err = io.WriteString(_w, mm.TableName); err != nil {
 				return
 			}
 
@@ -11500,7 +11500,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.AssnSourceColumnName); err != nil {
+			if _, err = io.WriteString(_w, mm.SourceColumnName); err != nil {
 				return
 			}
 
@@ -12217,40 +12217,6 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `
-
-	`); err != nil {
-			return
-		}
-
-		if col.IsReference() {
-
-			if _, err = io.WriteString(_w, `
-    case "`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `":
-        return o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `()
-    `); err != nil {
-				return
-			}
-
-		}
-
-		if _, err = io.WriteString(_w, `
-
 `); err != nil {
 			return
 		}
@@ -12262,13 +12228,44 @@ func (o *`); err != nil {
 		return
 	}
 
-	for _, col := range table.ReverseReferences {
+	for _, ref := range table.References {
 
 		if _, err = io.WriteString(_w, `    case "`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.ReverseIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, ref.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `":
+        return o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ref.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `()
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
+`); err != nil {
+		return
+	}
+
+	for _, ref := range table.ReverseReferences {
+
+		if _, err = io.WriteString(_w, `    case "`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ref.ReverseIdentifier); err != nil {
 			return
 		}
 
@@ -12277,13 +12274,13 @@ func (o *`); err != nil {
 			return
 		}
 
-		if col.IsUnique {
+		if ref.IsUnique() {
 
 			if _, err = io.WriteString(_w, `        return o.`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, ref.ReverseVariableIdentifier()); err != nil {
 				return
 			}
 
@@ -12298,7 +12295,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, ref.ReverseVariableIdentifier()); err != nil {
 				return
 			}
 
