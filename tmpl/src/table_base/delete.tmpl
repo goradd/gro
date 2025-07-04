@@ -32,9 +32,9 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
 	d := Database()
 {{if len(table.ReverseReferences) == 0 && len(table.ManyManyReferences) == 0}}
 {{if c := table.LockColumn(); c == nil }}
-	err = d.Delete(ctx, "{{table.QueryName}}", "{{= table.PrimaryKeyColumn().QueryName }}", o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}, "", 0)
+	err = d.Delete(ctx, "{{table.QueryName}}", "{{= table.PrimaryKeyColumn().QueryName }}", o.{{= table.PrimaryKeyColumn().Field }}, "", 0)
 {{else}}
-	err = d.Delete(ctx, "{{table.QueryName}}", "{{= table.PrimaryKeyColumn().QueryName }}", o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}, "{{= c.QueryName }}", o.{{= c.Identifier}}())
+	err = d.Delete(ctx, "{{table.QueryName}}", "{{= table.PrimaryKeyColumn().QueryName }}", o.{{= table.PrimaryKeyColumn().Field }}, "{{= c.QueryName }}", o.{{= c.Identifier}}())
 {{if}}
 {{else}}
 {{if table.WriteTimeout != 0 }}
@@ -51,7 +51,7 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
             {
                 // Set the related objects pointer to us to NULL in the database
                 obj, err := Query{{= rev.Table.IdentifierPlural }}(ctx).
-                          Where(op.Equal(node.{{= rev.Table.Identifier }}().{{= rev.Identifier }}(), o.{{= table.PrimaryKeyColumn().VariableIdentifier() }})).
+                          Where(op.Equal(node.{{= rev.Table.Identifier }}().{{= rev.Identifier }}(), o.{{= table.PrimaryKeyColumn().Field }})).
                           Select(node.{{= rev.Table.Identifier}}().{{= rev.Identifier }}()).
 {{if rev.Table.LockColumn() != nil }}
                           Select(node.{{= rev.Table.Identifier }}().{{= rev.Table.LockColumn().Identifier }}()).
@@ -67,12 +67,12 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
                     }
                 }
                 // Set this object's pointer to the reverse object to nil to mark that we broke the link
-                o.{{= rev.ReverseVariableIdentifier() }} = nil
+                o.{{= rev.ReverseField }} = nil
             }
             {{else}}
             {
                  obj, err := Query{{= rev.Table.IdentifierPlural }}(ctx).
-                         Where(op.Equal(node.{{= rev.Table.Identifier}}().{{= rev.Identifier }}(), o.{{= table.PrimaryKeyColumn().VariableIdentifier() }})).
+                         Where(op.Equal(node.{{= rev.Table.Identifier}}().{{= rev.Identifier }}(), o.{{= table.PrimaryKeyColumn().Field }})).
                          Get()
                  if err != nil {
                      return err
@@ -83,14 +83,14 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
                      }
                  }
                  // Set this object's pointer to the reverse object to nil to mark that we broke the link
-                 o.{{= rev.ReverseVariableIdentifier() }} = nil
+                 o.{{= rev.ReverseField }} = nil
             }
             {{if}}
         {{else}} {{# one-to-many}}
             {{if rev.IsNullable}}
             {
                 objs, err := Query{{= rev.Table.IdentifierPlural }}(ctx).
-                          Where(op.Equal(node.{{= rev.Table.Identifier }}().{{= rev.Identifier }}(), o.{{= table.PrimaryKeyColumn().VariableIdentifier() }})).
+                          Where(op.Equal(node.{{= rev.Table.Identifier }}().{{= rev.Identifier }}(), o.{{= table.PrimaryKeyColumn().Field }})).
                           Select(node.{{= rev.Table.Identifier }}().{{= rev.Identifier }}()).
 {{if rev.Table.LockColumn() != nil }}
                           Select(node.{{= rev.Table.Identifier }}().{{= rev.Table.LockColumn().Identifier }}()).
@@ -105,12 +105,12 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
                         return err
                     }
                 }
-                o.{{= rev.ReverseVariableIdentifier() }}.Clear()
+                o.{{= rev.ReverseField }}.Clear()
             }
             {{else}}
             {
                 objs, err := Query{{= rev.Table.IdentifierPlural }}(ctx).
-                          Where(op.Equal(node.{{= rev.Table.Identifier}}().{{= rev.Identifier}}(), o.{{= table.PrimaryKeyColumn().VariableIdentifier() }})).
+                          Where(op.Equal(node.{{= rev.Table.Identifier}}().{{= rev.Identifier}}(), o.{{= table.PrimaryKeyColumn().Field }})).
                           Load()
                 if err != nil {
                     return err
@@ -120,7 +120,7 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
                         return err
                     }
                 }
-                o.{{= rev.ReverseVariableIdentifier() }}.Clear()
+                o.{{= rev.ReverseField }}.Clear()
             }
             {{if}}
         {{if}}
@@ -139,9 +139,9 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
 
     {{for}}
 {{if c := table.LockColumn(); c == nil }}
-	    return d.Delete(ctx, "{{table.QueryName}}", "{{= table.PrimaryKeyColumn().QueryName }}", o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}, "", 0)
+	    return d.Delete(ctx, "{{table.QueryName}}", "{{= table.PrimaryKeyColumn().QueryName }}", o.{{= table.PrimaryKeyColumn().Field }}, "", 0)
 {{else}}
-	    return d.Delete(ctx, "{{table.QueryName}}", "{{= table.PrimaryKeyColumn().QueryName }}", o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}, "{{= c.QueryName }}", o.{{= c.Identifier}}())
+	    return d.Delete(ctx, "{{table.QueryName}}", "{{= table.PrimaryKeyColumn().QueryName }}", o.{{= table.PrimaryKeyColumn().Field }}, "{{= c.QueryName }}", o.{{= c.Identifier}}())
 {{if}}
 	})
 
@@ -149,13 +149,13 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
 	if err != nil {
 	    return err
 	}
-	broadcast.Delete(ctx, "{{= table.DbKey }}", "{{= table.QueryName }}", fmt.Sprint(o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}))
+	broadcast.Delete(ctx, "{{= table.DbKey }}", "{{= table.QueryName }}", fmt.Sprint(o.{{= table.PrimaryKeyColumn().Field }}))
 	return
 }
 
 // delete{{= table.Identifier }} deletes the {{= table.Identifier }} with primary key pk from the database
 // and handles associated records.
-func delete{{= table.Identifier }}(ctx context.Context, pk {{= table.PrimaryKeyGoType() }}) error {
+func delete{{= table.Identifier }}(ctx context.Context, pk {{= table.PrimaryKeyType() }}) error {
 	d := db.GetDatabase("{{= table.DbKey }}")
 {{if len(table.ReverseReferences) == 0 && len(table.ManyManyReferences) == 0 }}
 	err := d.Delete(ctx, "{{= table.QueryName }}", "{{= table.PrimaryKeyColumn().QueryName }}", pk, "", 0)

@@ -155,6 +155,67 @@ func (tmpl *TableBaseTemplate) genStruct(table *model.Table, _w io.Writer) (err 
 	//*** struct.tmpl
 
 	if _, err = io.WriteString(_w, `
+`); err != nil {
+		return
+	}
+
+	if len(table.PrimaryKeyColumns()) > 1 {
+
+		if _, err = io.WriteString(_w, `// `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.PrimaryKeyType()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` represents the composite key type of the primary key.
+type `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.PrimaryKeyType()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` struct {
+`); err != nil {
+			return
+		}
+
+		for _, col := range table.PrimaryKeyColumns() {
+
+			if _, err = io.WriteString(_w, `    `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Type); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `}
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
 // `); err != nil {
 		return
 	}
@@ -195,13 +256,13 @@ type `); err != nil {
 		return
 	}
 
-	for _, col := range table.Columns {
+	for _, col := range table.AllColumns() {
 
 		if _, err = io.WriteString(_w, `	`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -209,7 +270,7 @@ type `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.GoType()); err != nil {
+		if _, err = io.WriteString(_w, col.Type); err != nil {
 			return
 		}
 
@@ -224,7 +285,7 @@ type `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -239,7 +300,7 @@ type `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -254,7 +315,7 @@ type `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -270,7 +331,7 @@ type `); err != nil {
 	if table.HasReferences() {
 
 		if _, err = io.WriteString(_w, `
-    // Referenced objects.
+    // References
 `); err != nil {
 			return
 		}
@@ -281,7 +342,7 @@ type `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ref.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, ref.Field); err != nil {
 				return
 			}
 
@@ -289,7 +350,7 @@ type `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ref.GoType()); err != nil {
+			if _, err = io.WriteString(_w, ref.ReferencedTable.Identifier); err != nil {
 				return
 			}
 
@@ -305,20 +366,20 @@ type `); err != nil {
 	if table.HasReverseReferences() {
 
 		if _, err = io.WriteString(_w, `
-    // Reverse reference objects.
+    // Reverse references
 `); err != nil {
 			return
 		}
 
-		for _, ref := range table.ReverseReferences {
+		for _, rev := range table.ReverseReferences {
 
-			if ref.Column.IsUnique {
+			if rev.IsUnique {
 
 				if _, err = io.WriteString(_w, `    `); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, ref.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 					return
 				}
 
@@ -326,7 +387,7 @@ type `); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, ref.Table.Identifier); err != nil {
+				if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
 					return
 				}
 
@@ -335,7 +396,7 @@ type `); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, ref.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 					return
 				}
 
@@ -350,7 +411,7 @@ type `); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, ref.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 					return
 				}
 
@@ -358,7 +419,7 @@ type `); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, ref.Column.Table.PrimaryKeyGoType()); err != nil {
+				if _, err = io.WriteString(_w, rev.Table.PrimaryKeyType()); err != nil {
 					return
 				}
 
@@ -366,7 +427,7 @@ type `); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, ref.Table.Identifier); err != nil {
+				if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
 					return
 				}
 
@@ -375,7 +436,7 @@ type `); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, ref.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 					return
 				}
 
@@ -393,7 +454,7 @@ type `); err != nil {
 	if table.HasManyManyReferences() {
 
 		if _, err = io.WriteString(_w, `
-// Many-Many reference objects.
+// Many-Many references
 `); err != nil {
 			return
 		}
@@ -404,7 +465,7 @@ type `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, mm.Field); err != nil {
 				return
 			}
 
@@ -420,7 +481,7 @@ type `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
+			if _, err = io.WriteString(_w, mm.Type()); err != nil {
 				return
 			}
 
@@ -429,7 +490,7 @@ type `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, mm.PkField()); err != nil {
 				return
 			}
 
@@ -446,7 +507,7 @@ type `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, mm.Field); err != nil {
 				return
 			}
 
@@ -470,7 +531,7 @@ type `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.PrimaryKeyGoType()); err != nil {
+	if _, err = io.WriteString(_w, table.PrimaryKeyType()); err != nil {
 		return
 	}
 
@@ -522,19 +583,15 @@ const  (
 			return
 		}
 
-		if _, err = io.WriteString(_w, `_`); err != nil {
-			return
-		}
-
 		if _, err = io.WriteString(_w, col.Identifier); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ` = `+"`"+``); err != nil {
+		if _, err = io.WriteString(_w, `Field = `+"`"+``); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -543,37 +600,54 @@ const  (
 			return
 		}
 
-		if col.IsReference() {
+	}
 
-			if _, err = io.WriteString(_w, `    `); err != nil {
-				return
-			}
+	for _, ref := range table.References {
 
-			if _, err = io.WriteString(_w, table.Identifier); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, `    `); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `_`); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, ref.ForeignKey.Identifier); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, ` = `+"`"+``); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, `Field = `+"`"+``); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, ref.ForeignKey.Field); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, ``+"`"+`
+		if _, err = io.WriteString(_w, ``+"`"+`
+    `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ref.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Field = `+"`"+``); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ref.Field); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ``+"`"+`
 `); err != nil {
-				return
-			}
-
+			return
 		}
 
 	}
@@ -588,15 +662,15 @@ const  (
 			return
 		}
 
-		if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ` = `+"`"+``); err != nil {
+		if _, err = io.WriteString(_w, `Field = `+"`"+``); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 			return
 		}
 
@@ -617,36 +691,15 @@ const  (
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, ` = `+"`"+``); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, mm.Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, ``+"`"+`
-    `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.Identifier); err != nil {
-			return
-		}
-
 		if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ` = `+"`"+``); err != nil {
+		if _, err = io.WriteString(_w, `Field = `+"`"+``); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -657,17 +710,13 @@ const  (
 
 	}
 
-	if _, err = io.WriteString(_w, `) `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `
+	if _, err = io.WriteString(_w, `)
 
 `); err != nil {
 		return
 	}
 
-	for _, col := range table.Columns {
+	for _, col := range table.AllColumns() {
 
 		if col.Size > 0 {
 
@@ -804,10 +853,9 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 		return
 	}
 
-	if pk := table.PrimaryKeyColumn(); pk != nil && pk.IsAutoPK {
+	if table.HasAutoPK() {
 
-		if _, err = io.WriteString(_w, `// The primary key will get a temporary negative number which will be replaced when the object is saved.
-// Multiple calls to Initialize are not guaranteed to create sequential values for the primary key.
+		if _, err = io.WriteString(_w, `// The primary key will get a temporary unique value which will be replaced when the object is saved.
 `); err != nil {
 			return
 		}
@@ -827,15 +875,15 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 		return
 	}
 
-	for _, col := range table.Columns {
+	for _, col := range table.AllColumns() {
 
-		if col.IsAutoPK {
+		if col.IsAutoPK() {
 
 			if _, err = io.WriteString(_w, `    o.`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -850,7 +898,7 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -877,7 +925,7 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.Field); err != nil {
 					return
 				}
 
@@ -892,7 +940,7 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.Field); err != nil {
 					return
 				}
 
@@ -909,7 +957,7 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -942,7 +990,7 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -960,7 +1008,7 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 
 	}
 
-	if len(table.ReverseReferences) > 0 {
+	if table.HasReverseReferences() {
 
 		if _, err = io.WriteString(_w, `
 // Reverse reference objects.
@@ -981,7 +1029,7 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -990,7 +1038,7 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -1006,7 +1054,7 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -1015,7 +1063,7 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -1035,7 +1083,7 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 
 	}
 
-	if len(table.ManyManyReferences) > 0 {
+	if table.HasManyManyReferences() {
 
 		if _, err = io.WriteString(_w, `
 // Many-Many reference objects.
@@ -1049,7 +1097,7 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, mm.Field); err != nil {
 				return
 			}
 
@@ -1058,7 +1106,7 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, mm.PkField()); err != nil {
 				return
 			}
 
@@ -1067,7 +1115,7 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, mm.Field); err != nil {
 				return
 			}
 
@@ -1097,7 +1145,59 @@ func (tmpl *TableBaseTemplate) genPK(table *model.Table, _w io.Writer) (err erro
 	//*** pk.tmpl
 
 	if _, err = io.WriteString(_w, `
-// PrimaryKey returns the current value of the primary key field.
+`); err != nil {
+		return
+	}
+
+	if len(table.PrimaryKeyColumns()) > 1 {
+
+		if _, err = io.WriteString(_w, `type `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.PrimaryKeyType()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` struct {
+`); err != nil {
+			return
+		}
+
+		for _, col := range table.PrimaryKeyColumns() {
+
+			if _, err = io.WriteString(_w, `    `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Type); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `}
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
+// PrimaryKey returns the current value of the primary key.
 func (o *`); err != nil {
 		return
 	}
@@ -1110,21 +1210,78 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.PrimaryKeyGoType()); err != nil {
+	if _, err = io.WriteString(_w, table.PrimaryKeyType()); err != nil {
 		return
 	}
 
 	if _, err = io.WriteString(_w, ` {
-	return o.`); err != nil {
+`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.PrimaryKeyColumn().VariableIdentifier()); err != nil {
-		return
+	if len(table.PrimaryKeyColumns()) > 1 {
+
+		if _, err = io.WriteString(_w, `    return `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.PrimaryKeyType()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `{
+`); err != nil {
+			return
+		}
+
+		for _, col := range table.PrimaryKeyColumns() {
+
+			if _, err = io.WriteString(_w, `        `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `: o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Field); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `,
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `    }
+`); err != nil {
+			return
+		}
+
+	} else {
+
+		if _, err = io.WriteString(_w, `	return o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `
+`); err != nil {
+			return
+		}
+
 	}
 
-	if _, err = io.WriteString(_w, `
-}
+	if _, err = io.WriteString(_w, `}
 
 // OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
 // read from the database.
@@ -1140,7 +1297,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.PrimaryKeyGoType()); err != nil {
+	if _, err = io.WriteString(_w, table.PrimaryKeyType()); err != nil {
 		return
 	}
 
@@ -1231,7 +1388,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -1248,7 +1405,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -1272,7 +1429,14 @@ func (o *`); err != nil {
 //*** accessors.tmpl
 
 func (tmpl *TableBaseTemplate) genAccessors(table *model.Table, _w io.Writer) (err error) {
-	for _, col := range table.Columns {
+	if err = tmpl.genColPrimaryKey(table, _w); err != nil {
+		return
+	}
+
+	for _, col := range table.AllColumns() {
+		if col.IsAPrimaryKey() {
+			continue
+		}
 		if err = tmpl.genColGetter(table, col, _w); err != nil {
 			return
 		}
@@ -1293,19 +1457,19 @@ func (tmpl *TableBaseTemplate) genAccessors(table *model.Table, _w io.Writer) (e
 				return
 			}
 		}
+	}
 
-		if col.IsReference() {
-			if err = tmpl.genColReferenceGetter(table, col, _w); err != nil {
+	for _, ref := range table.References {
+		if err = tmpl.genRefGetter(table, ref, _w); err != nil {
+			return
+		}
+		if ref.IsNullable {
+			if err = tmpl.genRefNullSetter(table, ref, _w); err != nil {
 				return
 			}
-			if col.IsNullable {
-				if err = tmpl.genColNullReferenceSetter(table, col, _w); err != nil {
-					return
-				}
-			} else {
-				if err = tmpl.genColNotNullReferenceSetter(table, col, _w); err != nil {
-					return
-				}
+		} else {
+			if err = tmpl.genRefNotNullSetter(table, ref, _w); err != nil {
+				return
 			}
 		}
 	}
@@ -1361,7 +1525,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.GoType()); err != nil {
+	if _, err = io.WriteString(_w, col.Type); err != nil {
 		return
 	}
 
@@ -1370,7 +1534,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, col.Field); err != nil {
 		return
 	}
 
@@ -1389,7 +1553,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, col.Field); err != nil {
 		return
 	}
 
@@ -1437,7 +1601,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, col.Field); err != nil {
 		return
 	}
 
@@ -1453,159 +1617,6 @@ func (o *`); err != nil {
 
 func (tmpl *TableBaseTemplate) genColSetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
 	if !col.HasSetter() {
-		return
-	}
-	if col.IsPrimaryKey {
-
-		//*** column_setter_pk.tmpl
-
-		if _, err = io.WriteString(_w, `// Set`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, ` sets the value of `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, ` in the object, to be saved later in the database using the Save() function.
-`); err != nil {
-			return
-		}
-
-		if col.IsAutoPK {
-
-			if _, err = io.WriteString(_w, `// Normally you will not need to call this function, since the `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` value is automatically generated by the
-// database driver. Exceptions might include importing data to a new database, or correcting primary key conflicts when
-// merging data.
-`); err != nil {
-				return
-			}
-
-		}
-
-		if _, err = io.WriteString(_w, `// You cannot change a primary key for a record that has been written to the database. While SQL databases will
-// allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `Base) Set`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `(v `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.GoType()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `) {
-    if o._restored {
-        panic ("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-    }
-`); err != nil {
-			return
-		}
-
-		if col.Size > 0 && col.ReceiverType == query.ColTypeString {
-
-			if _, err = io.WriteString(_w, `    if utf8.RuneCountInString(v) > `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `MaxLength {
-        panic("attempted to set `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` to a value larger than its maximum length in runes")
-    }
-`); err != nil {
-				return
-			}
-
-		}
-
-		if _, err = io.WriteString(_w, `
-	o.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `IsLoaded = true
-	o.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, ` = v
-	o.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `IsDirty = true
-}
-
-`); err != nil {
-			return
-		}
-
 		return
 	}
 	switch col.ReceiverType {
@@ -1759,7 +1770,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -1774,7 +1785,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -1789,7 +1800,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -1802,7 +1813,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -1817,7 +1828,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -1826,7 +1837,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -1842,7 +1853,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -1852,7 +1863,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -1868,7 +1879,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -1942,7 +1953,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.GoType()); err != nil {
+		if _, err = io.WriteString(_w, col.Type); err != nil {
 			return
 		}
 
@@ -1952,7 +1963,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -1967,7 +1978,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -1982,7 +1993,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -1995,7 +2006,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -2025,7 +2036,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -2034,7 +2045,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -2049,7 +2060,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -2091,7 +2102,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if col.IsAutoPK {
+		if col.IsAutoPK() {
 
 			if _, err = io.WriteString(_w, `// Normally you will not need to call this function, since the `); err != nil {
 				return
@@ -2110,7 +2121,7 @@ func (o *`); err != nil {
 
 		}
 
-		if col.IsPrimaryKey {
+		if col.IsAPrimaryKey() {
 
 			if _, err = io.WriteString(_w, `// You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
@@ -2140,7 +2151,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.GoType()); err != nil {
+		if _, err = io.WriteString(_w, col.Type); err != nil {
 			return
 		}
 
@@ -2149,7 +2160,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if col.IsPrimaryKey {
+		if col.IsAPrimaryKey() {
 
 			if _, err = io.WriteString(_w, `    if o._restored {
         panic ("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
@@ -2199,14 +2210,14 @@ func (o *`); err != nil {
 
 		}
 
-		if !col.IsAutoPK {
+		if !col.IsAutoPK() {
 
 			if _, err = io.WriteString(_w, `	if o._restored &&
 	    o.`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -2221,7 +2232,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.Field); err != nil {
 					return
 				}
 
@@ -2236,7 +2247,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -2255,7 +2266,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -2264,7 +2275,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -2273,7 +2284,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -2288,7 +2299,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -2299,13 +2310,13 @@ func (o *`); err != nil {
 
 		}
 
-		if col.IsReference() {
+		if col.Reference != nil {
 
 			if _, err = io.WriteString(_w, `	if o.`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Reference.Field); err != nil {
 				return
 			}
 
@@ -2314,7 +2325,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -2322,7 +2333,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Reference.Field); err != nil {
 				return
 			}
 
@@ -2331,7 +2342,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Reference.Field); err != nil {
 				return
 			}
 
@@ -2390,7 +2401,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.GoType()); err != nil {
+		if _, err = io.WriteString(_w, col.Type); err != nil {
 			return
 		}
 
@@ -2400,7 +2411,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -2415,7 +2426,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -2430,7 +2441,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -2443,7 +2454,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -2452,7 +2463,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -2467,7 +2478,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -2484,7 +2495,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -2502,6 +2513,409 @@ func (o *`); err != nil {
 		}
 
 	}
+	return
+}
+
+func (tmpl *TableBaseTemplate) genColPrimaryKey(table *model.Table, _w io.Writer) (err error) {
+
+	//*** column_pk.tmpl
+
+	if _, err = io.WriteString(_w, `// PrimaryKey returns the value of the primary key of the record.
+func (o *`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Base) PrimaryKey() `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.PrimaryKeyType()); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` {
+`); err != nil {
+		return
+	}
+
+	for _, col := range table.PrimaryKeyColumns() {
+
+		if _, err = io.WriteString(_w, `	if o._restored && !o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Field); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `IsLoaded {
+		panic ("`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` was not selected in the last query and has not been set, and so PrimaryKey is not valid")
+	}
+`); err != nil {
+			return
+		}
+
+	}
+
+	if len(table.PrimaryKeyColumns()) == 1 {
+
+		if _, err = io.WriteString(_w, `	return o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `
+`); err != nil {
+			return
+		}
+
+	} else {
+
+		if _, err = io.WriteString(_w, `    return `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.PrimaryKeyType()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` {
+`); err != nil {
+			return
+		}
+
+		for _, col := range table.PrimaryKeyColumns() {
+
+			if _, err = io.WriteString(_w, `        `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `: o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Field); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `,
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `    }
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `}
+
+// SetPrimaryKey sets the value of the primary key in the object, to be saved later in the database using the Save() function.
+`); err != nil {
+		return
+	}
+
+	if table.HasAutoPK() {
+
+		if _, err = io.WriteString(_w, `// Normally you will not need to call this function, since the primary key value is automatically generated by the
+// database driver. Exceptions might include importing data to a new database, or correcting primary key conflicts when
+// merging data.
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `// You cannot change a primary key for a record that has been written to the database. While SQL databases will
+// allow it, NoSql databases will not. Save a copy and delete this one instead.
+func (o *`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Base) SetPrimaryKey(v `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.PrimaryKeyType()); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `) {
+    if o._restored {
+        panic ("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+    }
+`); err != nil {
+		return
+	}
+
+	for _, col := range table.PrimaryKeyColumns() {
+
+		if col.Size > 0 && col.ReceiverType == query.ColTypeString {
+
+			if _, err = io.WriteString(_w, `    if utf8.RuneCountInString(v) > `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `MaxLength {
+        panic("attempted to set `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` to a value larger than its maximum length in runes")
+    }
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `	o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Field); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `IsLoaded = true
+	o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Field); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `IsDirty = true
+`); err != nil {
+			return
+		}
+
+		if len(table.PrimaryKeyColumns()) == 1 {
+
+			if _, err = io.WriteString(_w, `	o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Field); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` = v
+`); err != nil {
+				return
+			}
+
+		} else {
+
+			if _, err = io.WriteString(_w, `    o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Field); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` = v.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `
+`); err != nil {
+				return
+			}
+
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `}
+
+`); err != nil {
+		return
+	}
+
+	if len(table.PrimaryKeyColumns()) == 1 {
+
+		col := table.PrimaryKeyColumns()[0]
+
+		if _, err = io.WriteString(_w, `// `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` returns the value of `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `.
+func (o *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Base) `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `() `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Type); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` {
+	return o.PrimaryKey()
+}
+
+// Set`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` sets the value of `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` in the object, to be saved later in the database using the Save() function.
+`); err != nil {
+			return
+		}
+
+		if col.IsAutoPK() {
+
+			if _, err = io.WriteString(_w, `// Normally you will not need to call this function, since the `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` value is automatically generated by the
+// database driver. Exceptions might include importing data to a new database, or correcting primary key conflicts when
+// merging data.
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `// You cannot change a primary key for a record that has been written to the database. While SQL databases will
+// allow it, NoSql databases will not. Save a copy and delete this one instead.
+func (o *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Base) Set`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(v `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Type); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `) {
+    o.SetPrimaryKey(v)
+}
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
+
+`); err != nil {
+		return
+	}
+
 	return
 }
 
@@ -2540,7 +2954,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, col.Field); err != nil {
 		return
 	}
 
@@ -2587,7 +3001,28 @@ func (tmpl *TableBaseTemplate) genColNullSetter(table *model.Table, col *model.C
 	}
 
 	if _, err = io.WriteString(_w, `() will return the column's default value after this.
-func (o *`); err != nil {
+`); err != nil {
+		return
+	}
+
+	if col.Reference != nil {
+
+		if _, err = io.WriteString(_w, `// Will also set the attached o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Reference.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` to nil.
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `func (o *`); err != nil {
 		return
 	}
 
@@ -2608,7 +3043,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, col.Field); err != nil {
 		return
 	}
 
@@ -2616,7 +3051,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, col.Field); err != nil {
 		return
 	}
 
@@ -2626,7 +3061,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, col.Field); err != nil {
 		return
 	}
 
@@ -2636,7 +3071,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, col.Field); err != nil {
 		return
 	}
 
@@ -2645,7 +3080,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, col.Field); err != nil {
 		return
 	}
 
@@ -2654,7 +3089,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, col.Field); err != nil {
 		return
 	}
 
@@ -2671,13 +3106,13 @@ func (o *`); err != nil {
 		return
 	}
 
-	if col.IsReference() {
+	if col.Reference != nil {
 
 		if _, err = io.WriteString(_w, `	o.`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Reference.Field); err != nil {
 			return
 		}
 
@@ -2696,16 +3131,16 @@ func (o *`); err != nil {
 	return
 }
 
-func (tmpl *TableBaseTemplate) genColReferenceGetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
+func (tmpl *TableBaseTemplate) genRefGetter(table *model.Table, ref *model.Reference, _w io.Writer) (err error) {
 
-	//*** column_reference_getter.tmpl
+	//*** ref_getter.tmpl
 
 	if _, err = io.WriteString(_w, `
 // `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Identifier); err != nil {
 		return
 	}
 
@@ -2713,7 +3148,7 @@ func (tmpl *TableBaseTemplate) genColReferenceGetter(table *model.Table, col *mo
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Identifier); err != nil {
 		return
 	}
 
@@ -2730,7 +3165,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Identifier); err != nil {
 		return
 	}
 
@@ -2738,7 +3173,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
+	if _, err = io.WriteString(_w, ref.ReferencedTable.Identifier); err != nil {
 		return
 	}
 
@@ -2747,7 +3182,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Field); err != nil {
 		return
 	}
 
@@ -2758,7 +3193,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Identifier); err != nil {
 		return
 	}
 
@@ -2766,7 +3201,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Identifier); err != nil {
 		return
 	}
 
@@ -2775,7 +3210,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.Identifier); err != nil {
+	if _, err = io.WriteString(_w, ref.ForeignKey.Identifier); err != nil {
 		return
 	}
 
@@ -2792,7 +3227,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Identifier); err != nil {
 		return
 	}
 
@@ -2800,7 +3235,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
+	if _, err = io.WriteString(_w, ref.ReferencedTable.Identifier); err != nil {
 		return
 	}
 
@@ -2811,7 +3246,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Field); err != nil {
 		return
 	}
 
@@ -2820,7 +3255,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.ForeignKey.Field); err != nil {
 		return
 	}
 
@@ -2829,7 +3264,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.Identifier); err != nil {
+	if _, err = io.WriteString(_w, ref.ForeignKey.Identifier); err != nil {
 		return
 	}
 
@@ -2840,7 +3275,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Field); err != nil {
 		return
 	}
 
@@ -2848,7 +3283,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
+	if _, err = io.WriteString(_w, ref.ReferencedTable.Identifier); err != nil {
 		return
 	}
 
@@ -2856,7 +3291,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.ForeignKey.Field); err != nil {
 		return
 	}
 
@@ -2866,7 +3301,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Field); err != nil {
 		return
 	}
 
@@ -2880,16 +3315,16 @@ func (o *`); err != nil {
 	return
 }
 
-func (tmpl *TableBaseTemplate) genColNullReferenceSetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
+func (tmpl *TableBaseTemplate) genRefNullSetter(table *model.Table, ref *model.Reference, _w io.Writer) (err error) {
 
-	//*** column_null_reference_setter.tmpl
+	//*** ref_null_setter.tmpl
 
 	if _, err = io.WriteString(_w, `
 // Set`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Identifier); err != nil {
 		return
 	}
 
@@ -2897,7 +3332,7 @@ func (tmpl *TableBaseTemplate) genColNullReferenceSetter(table *model.Table, col
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.Reference.DecapIdentifier); err != nil {
+	if _, err = io.WriteString(_w, ref.Field); err != nil {
 		return
 	}
 
@@ -2923,7 +3358,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Identifier); err != nil {
 		return
 	}
 
@@ -2931,7 +3366,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Field); err != nil {
 		return
 	}
 
@@ -2939,7 +3374,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
+	if _, err = io.WriteString(_w, ref.ReferencedTable.Identifier); err != nil {
 		return
 	}
 
@@ -2948,7 +3383,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+	if _, err = io.WriteString(_w, ref.ForeignKey.Field); err != nil {
 		return
 	}
 
@@ -2957,7 +3392,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Field); err != nil {
 		return
 	}
 
@@ -2966,7 +3401,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+	if _, err = io.WriteString(_w, ref.ForeignKey.Field); err != nil {
 		return
 	}
 
@@ -2975,7 +3410,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+	if _, err = io.WriteString(_w, ref.ForeignKey.Field); err != nil {
 		return
 	}
 
@@ -2984,7 +3419,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+	if _, err = io.WriteString(_w, ref.ForeignKey.Field); err != nil {
 		return
 	}
 
@@ -2993,7 +3428,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.ForeignKey.Field); err != nil {
 		return
 	}
 
@@ -3001,7 +3436,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DefaultValueAsValue()); err != nil {
+	if _, err = io.WriteString(_w, ref.ForeignKey.DefaultValueAsValue()); err != nil {
 		return
 	}
 
@@ -3010,7 +3445,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Field); err != nil {
 		return
 	}
 
@@ -3021,7 +3456,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Field); err != nil {
 		return
 	}
 
@@ -3029,7 +3464,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Field); err != nil {
 		return
 	}
 
@@ -3038,7 +3473,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+	if _, err = io.WriteString(_w, ref.ForeignKey.Field); err != nil {
 		return
 	}
 
@@ -3046,7 +3481,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+	if _, err = io.WriteString(_w, ref.ForeignKey.Field); err != nil {
 		return
 	}
 
@@ -3054,7 +3489,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Field); err != nil {
 		return
 	}
 
@@ -3063,7 +3498,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+	if _, err = io.WriteString(_w, ref.ForeignKey.Field); err != nil {
 		return
 	}
 
@@ -3072,7 +3507,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.ForeignKey.Field); err != nil {
 		return
 	}
 
@@ -3080,7 +3515,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Field); err != nil {
 		return
 	}
 
@@ -3089,7 +3524,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+	if _, err = io.WriteString(_w, ref.ForeignKey.Field); err != nil {
 		return
 	}
 
@@ -3105,15 +3540,15 @@ func (o *`); err != nil {
 	return
 }
 
-func (tmpl *TableBaseTemplate) genColNotNullReferenceSetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
+func (tmpl *TableBaseTemplate) genRefNotNullSetter(table *model.Table, ref *model.Reference, _w io.Writer) (err error) {
 
-	//*** column_not_null_reference_setter.tmpl
+	//*** ref_not_null_setter.tmpl
 
 	if _, err = io.WriteString(_w, `// Set`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Identifier); err != nil {
 		return
 	}
 
@@ -3121,7 +3556,7 @@ func (tmpl *TableBaseTemplate) genColNotNullReferenceSetter(table *model.Table, 
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Identifier); err != nil {
 		return
 	}
 
@@ -3138,7 +3573,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Identifier); err != nil {
 		return
 	}
 
@@ -3146,7 +3581,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Field); err != nil {
 		return
 	}
 
@@ -3154,7 +3589,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceType()); err != nil {
+	if _, err = io.WriteString(_w, ref.ReferencedTable.Identifier); err != nil {
 		return
 	}
 
@@ -3163,7 +3598,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Field); err != nil {
 		return
 	}
 
@@ -3172,7 +3607,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Identifier); err != nil {
 		return
 	}
 
@@ -3180,7 +3615,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.Identifier); err != nil {
+	if _, err = io.WriteString(_w, ref.ForeignKey.Identifier); err != nil {
 		return
 	}
 
@@ -3190,7 +3625,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Field); err != nil {
 		return
 	}
 
@@ -3198,7 +3633,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Field); err != nil {
 		return
 	}
 
@@ -3207,7 +3642,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.ForeignKey.Field); err != nil {
 		return
 	}
 
@@ -3216,7 +3651,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.ForeignKey.Field); err != nil {
 		return
 	}
 
@@ -3224,7 +3659,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Field); err != nil {
 		return
 	}
 
@@ -3233,7 +3668,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.ForeignKey.Field); err != nil {
 		return
 	}
 
@@ -3241,7 +3676,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.ReferenceVariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.Field); err != nil {
 		return
 	}
 
@@ -3250,7 +3685,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, ref.ForeignKey.Field); err != nil {
 		return
 	}
 
@@ -3351,7 +3786,7 @@ func (tmpl *TableBaseTemplate) genManyManyAccessors(table *model.Table, _w io.Wr
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
+		if _, err = io.WriteString(_w, mm.Type()); err != nil {
 			return
 		}
 
@@ -3385,7 +3820,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
+		if _, err = io.WriteString(_w, mm.Type()); err != nil {
 			return
 		}
 
@@ -3394,7 +3829,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -3413,7 +3848,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
+		if _, err = io.WriteString(_w, mm.Type()); err != nil {
 			return
 		}
 
@@ -3439,7 +3874,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
+		if _, err = io.WriteString(_w, mm.Type()); err != nil {
 			return
 		}
 
@@ -3448,7 +3883,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -3467,7 +3902,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
+		if _, err = io.WriteString(_w, mm.Type()); err != nil {
 			return
 		}
 
@@ -3494,7 +3929,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
+		if _, err = io.WriteString(_w, mm.Type()); err != nil {
 			return
 		}
 
@@ -3503,7 +3938,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -3512,7 +3947,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -3521,7 +3956,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.PkField()); err != nil {
 			return
 		}
 
@@ -3531,7 +3966,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -3551,7 +3986,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.DestinationTable.PrimaryKeyColumn().Identifier); err != nil {
+		if _, err = io.WriteString(_w, mm.ReferencedTable.PrimaryKeyColumn().Identifier); err != nil {
 			return
 		}
 
@@ -3559,7 +3994,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
+		if _, err = io.WriteString(_w, mm.Type()); err != nil {
 			return
 		}
 
@@ -3568,7 +4003,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.DestinationTable.PrimaryKeyColumn().VariableIdentifierPlural()); err != nil {
+		if _, err = io.WriteString(_w, mm.ReferencedTable.PrimaryKeyColumn().FieldPlural); err != nil {
 			return
 		}
 
@@ -3598,7 +4033,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.DestinationTable.PrimaryKeyColumn().Identifier); err != nil {
+		if _, err = io.WriteString(_w, mm.ReferencedTable.PrimaryKeyColumn().Identifier); err != nil {
 			return
 		}
 
@@ -3606,7 +4041,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.DestinationTable.PrimaryKeyColumn().VariableIdentifierPlural()); err != nil {
+		if _, err = io.WriteString(_w, mm.ReferencedTable.PrimaryKeyColumn().FieldPlural); err != nil {
 			return
 		}
 
@@ -3614,7 +4049,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.DestinationTable.PrimaryKeyGoType()); err != nil {
+		if _, err = io.WriteString(_w, mm.ReferencedTable.PrimaryKeyType()); err != nil {
 			return
 		}
 
@@ -3623,7 +4058,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -3632,7 +4067,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.PkField()); err != nil {
 			return
 		}
 
@@ -3640,7 +4075,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.DestinationTable.PrimaryKeyColumn().VariableIdentifierPlural()); err != nil {
+		if _, err = io.WriteString(_w, mm.ReferencedTable.PrimaryKeyColumn().FieldPlural); err != nil {
 			return
 		}
 
@@ -3649,7 +4084,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -3668,7 +4103,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
+		if _, err = io.WriteString(_w, mm.Type()); err != nil {
 			return
 		}
 
@@ -3709,7 +4144,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
+		if _, err = io.WriteString(_w, mm.Type()); err != nil {
 			return
 		}
 
@@ -3718,7 +4153,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -3726,7 +4161,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.PkField()); err != nil {
 			return
 		}
 
@@ -3738,7 +4173,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
+		if _, err = io.WriteString(_w, mm.Type()); err != nil {
 			return
 		}
 
@@ -3749,7 +4184,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.PkField()); err != nil {
 			return
 		}
 
@@ -3768,7 +4203,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
+		if _, err = io.WriteString(_w, mm.Type()); err != nil {
 			return
 		}
 
@@ -3776,7 +4211,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.PkField()); err != nil {
 			return
 		}
 
@@ -3796,7 +4231,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
+		if _, err = io.WriteString(_w, mm.Type()); err != nil {
 			return
 		}
 
@@ -3819,7 +4254,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -3829,7 +4264,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -3839,7 +4274,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -3858,7 +4293,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -3895,7 +4330,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.ObjectType()); err != nil {
+		if _, err = io.WriteString(_w, mm.Type()); err != nil {
 			return
 		}
 
@@ -3940,7 +4375,7 @@ func (tmpl *TableBaseTemplate) genReverseRefAccessors(table *model.Table, _w io.
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -3966,7 +4401,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -3983,7 +4418,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -3994,7 +4429,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -4005,7 +4440,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -4031,7 +4466,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -4048,7 +4483,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -4056,7 +4491,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -4065,7 +4500,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -4076,7 +4511,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -4094,7 +4529,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -4120,7 +4555,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -4131,7 +4566,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -4265,7 +4700,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -4282,7 +4717,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -4290,7 +4725,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -4299,7 +4734,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -4309,7 +4744,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -4318,7 +4753,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -4337,7 +4772,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -4371,7 +4806,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.Reference.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -4379,7 +4814,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.Table.PrimaryKeyGoType()); err != nil {
+			if _, err = io.WriteString(_w, rev.Table.PrimaryKeyType()); err != nil {
 				return
 			}
 
@@ -4396,7 +4831,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -4408,7 +4843,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -4433,7 +4868,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -4450,7 +4885,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -4461,7 +4896,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -4486,7 +4921,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -4506,7 +4941,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -4540,7 +4975,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -4560,7 +4995,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -4571,7 +5006,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -4582,7 +5017,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -4593,7 +5028,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -4619,7 +5054,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -4647,7 +5082,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -4670,7 +5105,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 					return
 				}
 
@@ -4679,7 +5114,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 					return
 				}
 
@@ -4705,7 +5140,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 					return
 				}
 
@@ -4714,7 +5149,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 					return
 				}
 
@@ -4737,7 +5172,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
 				return
 			}
 
@@ -4754,7 +5189,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -4768,7 +5203,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -4787,7 +5222,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -4797,7 +5232,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -4857,7 +5292,7 @@ func Load`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.PrimaryKeyColumn().VariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
 		return
 	}
 
@@ -4865,7 +5300,7 @@ func Load`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.PrimaryKeyGoType()); err != nil {
+	if _, err = io.WriteString(_w, table.PrimaryKeyType()); err != nil {
 		return
 	}
 
@@ -4907,7 +5342,7 @@ func Load`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.PrimaryKeyColumn().VariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
 		return
 	}
 
@@ -4954,7 +5389,7 @@ func Has`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.PrimaryKeyColumn().VariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
 		return
 	}
 
@@ -4962,7 +5397,7 @@ func Has`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.PrimaryKeyGoType()); err != nil {
+	if _, err = io.WriteString(_w, table.PrimaryKeyType()); err != nil {
 		return
 	}
 
@@ -4996,7 +5431,7 @@ func Has`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.PrimaryKeyColumn().VariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
 		return
 	}
 
@@ -5080,7 +5515,7 @@ func Load`); err != nil {
 			for _i, _j := range idx.Columns {
 				_ = _j
 
-				if _, err = io.WriteString(_w, _j.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, _j.Field); err != nil {
 					return
 				}
 
@@ -5096,7 +5531,7 @@ func Load`); err != nil {
 
 				} else {
 
-					if _, err = io.WriteString(_w, _j.GoType()); err != nil {
+					if _, err = io.WriteString(_w, _j.Type); err != nil {
 						return
 					}
 
@@ -5138,7 +5573,7 @@ func Load`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					if _, err = io.WriteString(_w, col.Field); err != nil {
 						return
 					}
 
@@ -5181,7 +5616,7 @@ func Load`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					if _, err = io.WriteString(_w, col.Field); err != nil {
 						return
 					}
 
@@ -5213,7 +5648,7 @@ func Load`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					if _, err = io.WriteString(_w, col.Field); err != nil {
 						return
 					}
 
@@ -5279,7 +5714,7 @@ func Has`); err != nil {
 			for _i, _j := range idx.Columns {
 				_ = _j
 
-				if _, err = io.WriteString(_w, _j.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, _j.Field); err != nil {
 					return
 				}
 
@@ -5295,7 +5730,7 @@ func Has`); err != nil {
 
 				} else {
 
-					if _, err = io.WriteString(_w, _j.GoType()); err != nil {
+					if _, err = io.WriteString(_w, _j.Type); err != nil {
 						return
 					}
 
@@ -5329,7 +5764,7 @@ func Has`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					if _, err = io.WriteString(_w, col.Field); err != nil {
 						return
 					}
 
@@ -5372,7 +5807,7 @@ func Has`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					if _, err = io.WriteString(_w, col.Field); err != nil {
 						return
 					}
 
@@ -5404,7 +5839,7 @@ func Has`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					if _, err = io.WriteString(_w, col.Field); err != nil {
 						return
 					}
 
@@ -5498,7 +5933,7 @@ func Load`); err != nil {
 			for _i, _j := range idx.Columns {
 				_ = _j
 
-				if _, err = io.WriteString(_w, _j.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, _j.Field); err != nil {
 					return
 				}
 
@@ -5514,7 +5949,7 @@ func Load`); err != nil {
 
 				} else {
 
-					if _, err = io.WriteString(_w, _j.GoType()); err != nil {
+					if _, err = io.WriteString(_w, _j.Type); err != nil {
 						return
 					}
 
@@ -5556,7 +5991,7 @@ func Load`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					if _, err = io.WriteString(_w, col.Field); err != nil {
 						return
 					}
 
@@ -5599,7 +6034,7 @@ func Load`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					if _, err = io.WriteString(_w, col.Field); err != nil {
 						return
 					}
 
@@ -5631,7 +6066,7 @@ func Load`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					if _, err = io.WriteString(_w, col.Field); err != nil {
 						return
 					}
 
@@ -5697,7 +6132,7 @@ func Has`); err != nil {
 			for _i, _j := range idx.Columns {
 				_ = _j
 
-				if _, err = io.WriteString(_w, _j.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, _j.Field); err != nil {
 					return
 				}
 
@@ -5713,7 +6148,7 @@ func Has`); err != nil {
 
 				} else {
 
-					if _, err = io.WriteString(_w, _j.GoType()); err != nil {
+					if _, err = io.WriteString(_w, _j.Type); err != nil {
 						return
 					}
 
@@ -5747,7 +6182,7 @@ func Has`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					if _, err = io.WriteString(_w, col.Field); err != nil {
 						return
 					}
 
@@ -5790,7 +6225,7 @@ func Has`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					if _, err = io.WriteString(_w, col.Field); err != nil {
 						return
 					}
 
@@ -5822,7 +6257,7 @@ func Has`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					if _, err = io.WriteString(_w, col.Field); err != nil {
 						return
 					}
 
@@ -6666,7 +7101,7 @@ func Count`); err != nil {
 		for _i, _j := range idx.Columns {
 			_ = _j
 
-			if _, err = io.WriteString(_w, _j.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, _j.Field); err != nil {
 				return
 			}
 
@@ -6709,7 +7144,7 @@ func Count`); err != nil {
 		for _i, _j := range idx.Columns {
 			_ = _j
 
-			if _, err = io.WriteString(_w, _j.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, _j.Field); err != nil {
 				return
 			}
 
@@ -6717,7 +7152,7 @@ func Count`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, _j.GoType()); err != nil {
+			if _, err = io.WriteString(_w, _j.Type); err != nil {
 				return
 			}
 
@@ -6740,7 +7175,7 @@ func Count`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.Field); err != nil {
 					return
 				}
 
@@ -6748,7 +7183,7 @@ func Count`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.Field); err != nil {
 					return
 				}
 
@@ -6763,7 +7198,7 @@ func Count`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.Field); err != nil {
 					return
 				}
 
@@ -6771,7 +7206,7 @@ func Count`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.Field); err != nil {
 					return
 				}
 
@@ -6819,7 +7254,7 @@ func Count`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -6909,7 +7344,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -6926,7 +7361,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -6935,7 +7370,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -6950,7 +7385,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.Field); err != nil {
 					return
 				}
 
@@ -6968,7 +7403,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.Field); err != nil {
 					return
 				}
 
@@ -6976,7 +7411,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.GoType()); err != nil {
+				if _, err = io.WriteString(_w, col.Type); err != nil {
 					return
 				}
 
@@ -6991,7 +7426,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.Field); err != nil {
 					return
 				}
 
@@ -6999,7 +7434,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.GoType()); err != nil {
+				if _, err = io.WriteString(_w, col.Type); err != nil {
 					return
 				}
 
@@ -7014,7 +7449,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -7023,7 +7458,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -7038,7 +7473,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.Field); err != nil {
 					return
 				}
 
@@ -7065,7 +7500,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -7074,7 +7509,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -7083,7 +7518,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -7106,7 +7541,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.Field); err != nil {
 					return
 				}
 
@@ -7162,7 +7597,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.Field); err != nil {
 					return
 				}
 
@@ -7170,7 +7605,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.GoType()); err != nil {
+				if _, err = io.WriteString(_w, col.Type); err != nil {
 					return
 				}
 
@@ -7185,7 +7620,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.Field); err != nil {
 					return
 				}
 
@@ -7193,7 +7628,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.GoType()); err != nil {
+				if _, err = io.WriteString(_w, col.Type); err != nil {
 					return
 				}
 
@@ -7208,7 +7643,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -7223,7 +7658,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.Field); err != nil {
 					return
 				}
 
@@ -7245,7 +7680,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.Field); err != nil {
 					return
 				}
 
@@ -7273,7 +7708,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -7282,7 +7717,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -7305,7 +7740,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.Field); err != nil {
 					return
 				}
 
@@ -7413,7 +7848,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -7422,7 +7857,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -7509,7 +7944,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -7530,7 +7965,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -7540,7 +7975,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.PkField()); err != nil {
 			return
 		}
 
@@ -7550,7 +7985,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -7561,7 +7996,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -7570,7 +8005,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.PkField()); err != nil {
 			return
 		}
 
@@ -7632,7 +8067,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 				return
 			}
 
@@ -7649,7 +8084,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 				return
 			}
 
@@ -7657,7 +8092,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 				return
 			}
 
@@ -7666,7 +8101,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 				return
 			}
 
@@ -7676,7 +8111,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -7687,7 +8122,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 				return
 			}
 
@@ -7696,7 +8131,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 				return
 			}
 
@@ -7750,7 +8185,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 				return
 			}
 
@@ -7759,7 +8194,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 				return
 			}
 
@@ -7779,7 +8214,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 				return
 			}
 
@@ -7790,7 +8225,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 				return
 			}
 
@@ -7801,7 +8236,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 				return
 			}
 
@@ -7810,7 +8245,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 				return
 			}
 
@@ -8039,13 +8474,13 @@ func (o *`); err != nil {
 
 	for _, col := range table.SettableColumns() {
 
-		if col.IsUnique && !col.IsAutoPK {
+		if col.IsUnique && !col.IsAutoPK() {
 
 			if _, err = io.WriteString(_w, `    if o.`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -8060,7 +8495,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.Field); err != nil {
 					return
 				}
 
@@ -8095,7 +8530,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -8122,7 +8557,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -8153,7 +8588,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, _j.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, _j.Field); err != nil {
 					return
 				}
 
@@ -8179,7 +8614,7 @@ func (o *`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					if _, err = io.WriteString(_w, col.Field); err != nil {
 						return
 					}
 
@@ -8228,7 +8663,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, _j.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, _j.Field); err != nil {
 					return
 				}
 
@@ -8268,7 +8703,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, _j.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, _j.Field); err != nil {
 					return
 				}
 
@@ -8407,7 +8842,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 			return
 		}
 
@@ -8519,7 +8954,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -8528,7 +8963,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -8552,7 +8987,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -8561,7 +8996,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -8569,7 +9004,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.Field); err != nil {
 					return
 				}
 
@@ -8578,7 +9013,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -8595,7 +9030,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -8706,7 +9141,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -8730,7 +9165,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -8740,7 +9175,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -8758,7 +9193,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.Field); err != nil {
 					return
 				}
 
@@ -8772,7 +9207,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -8781,7 +9216,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -8911,7 +9346,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -8919,7 +9354,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -8936,7 +9371,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -8945,7 +9380,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -8962,7 +9397,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -9073,7 +9508,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -9088,7 +9523,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -9098,7 +9533,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -9120,7 +9555,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.Field); err != nil {
 					return
 				}
 
@@ -9134,7 +9569,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -9143,7 +9578,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 					return
 				}
 
@@ -9189,7 +9624,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 				return
 			}
 
@@ -9198,7 +9633,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 				return
 			}
 
@@ -9217,7 +9652,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 				return
 			}
 
@@ -9273,7 +9708,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -9283,7 +9718,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -9297,7 +9732,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -9306,7 +9741,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -9317,7 +9752,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -9326,7 +9761,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.PkField()); err != nil {
 			return
 		}
 
@@ -9365,7 +9800,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.PkField()); err != nil {
 			return
 		}
 
@@ -9407,7 +9842,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -9451,7 +9886,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -9459,7 +9894,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.GoType()); err != nil {
+			if _, err = io.WriteString(_w, col.Type); err != nil {
 				return
 			}
 
@@ -9468,7 +9903,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -9485,7 +9920,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -9494,7 +9929,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -9659,13 +10094,13 @@ func (o *`); err != nil {
 
 	for _, col := range table.SettableColumns() {
 
-		if !col.IsAutoPK && !col.IsNullable {
+		if !col.IsAutoPK() && !col.IsNullable {
 
 			if _, err = io.WriteString(_w, `    if !o.`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -9698,13 +10133,13 @@ func (o *`); err != nil {
 
 	for _, col := range table.SettableColumns() {
 
-		if col.IsUnique && !col.IsAutoPK {
+		if col.IsUnique && !col.IsAutoPK() {
 
 			if _, err = io.WriteString(_w, `    if o.`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -9719,7 +10154,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, col.Field); err != nil {
 					return
 				}
 
@@ -9754,7 +10189,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -9781,7 +10216,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -9812,7 +10247,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, _j.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, _j.Field); err != nil {
 					return
 				}
 
@@ -9838,7 +10273,7 @@ func (o *`); err != nil {
 						return
 					}
 
-					if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+					if _, err = io.WriteString(_w, col.Field); err != nil {
 						return
 					}
 
@@ -9887,7 +10322,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, _j.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, _j.Field); err != nil {
 					return
 				}
 
@@ -9927,7 +10362,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, _j.VariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, _j.Field); err != nil {
 					return
 				}
 
@@ -9961,7 +10396,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.PrimaryKeyGoType()); err != nil {
+	if _, err = io.WriteString(_w, table.PrimaryKeyType()); err != nil {
 		return
 	}
 
@@ -9996,7 +10431,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
 			return
 		}
 
@@ -10006,7 +10441,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
 			return
 		}
 
@@ -10064,7 +10499,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 				return
 			}
 
@@ -10073,7 +10508,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 				return
 			}
 
@@ -10090,7 +10525,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 				return
 			}
 
@@ -10115,7 +10550,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 				return
 			}
 
@@ -10124,7 +10559,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 				return
 			}
 
@@ -10134,7 +10569,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 				return
 			}
 
@@ -10156,7 +10591,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 				return
 			}
 
@@ -10165,7 +10600,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
 				return
 			}
 
@@ -10200,7 +10635,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -10209,7 +10644,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -10219,7 +10654,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -10232,7 +10667,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -10241,7 +10676,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -10284,7 +10719,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -10293,7 +10728,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -10383,7 +10818,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -10391,7 +10826,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.GoType()); err != nil {
+			if _, err = io.WriteString(_w, col.Type); err != nil {
 				return
 			}
 
@@ -10400,7 +10835,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -10484,7 +10919,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -10499,7 +10934,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -10526,7 +10961,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -10550,7 +10985,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -10649,13 +11084,13 @@ func (o *`); err != nil {
 
 	for _, col := range table.Columns {
 
-		if col.IsAutoPK {
+		if col.IsAutoPK() {
 
 			if _, err = io.WriteString(_w, `    if o.`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -10672,7 +11107,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -10733,7 +11168,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -10760,7 +11195,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -10789,7 +11224,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -10985,7 +11420,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 				return
 			}
 
-			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
 				return
 			}
 
@@ -11016,7 +11451,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 				return
 			}
 
-			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
 				return
 			}
 
@@ -11119,7 +11554,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 						return
 					}
 
-					if _, err = io.WriteString(_w, table.PrimaryKeyColumn().VariableIdentifier()); err != nil {
+					if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
 						return
 					}
 
@@ -11193,7 +11628,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 						return
 					}
 
-					if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+					if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 						return
 					}
 
@@ -11236,7 +11671,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 						return
 					}
 
-					if _, err = io.WriteString(_w, table.PrimaryKeyColumn().VariableIdentifier()); err != nil {
+					if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
 						return
 					}
 
@@ -11255,7 +11690,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 						return
 					}
 
-					if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+					if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 						return
 					}
 
@@ -11316,7 +11751,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 						return
 					}
 
-					if _, err = io.WriteString(_w, table.PrimaryKeyColumn().VariableIdentifier()); err != nil {
+					if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
 						return
 					}
 
@@ -11389,7 +11824,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 						return
 					}
 
-					if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+					if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 						return
 					}
 
@@ -11432,7 +11867,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 						return
 					}
 
-					if _, err = io.WriteString(_w, table.PrimaryKeyColumn().VariableIdentifier()); err != nil {
+					if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
 						return
 					}
 
@@ -11450,7 +11885,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 						return
 					}
 
-					if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+					if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 						return
 					}
 
@@ -11560,7 +11995,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 				return
 			}
 
-			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
 				return
 			}
 
@@ -11591,7 +12026,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 				return
 			}
 
-			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
 				return
 			}
 
@@ -11649,7 +12084,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.PrimaryKeyColumn().VariableIdentifier()); err != nil {
+	if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
 		return
 	}
 
@@ -11687,7 +12122,7 @@ func delete`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.PrimaryKeyGoType()); err != nil {
+	if _, err = io.WriteString(_w, table.PrimaryKeyType()); err != nil {
 		return
 	}
 
@@ -11878,7 +12313,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -11895,7 +12330,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ref.ReverseVariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, ref.ReverseField); err != nil {
 			return
 		}
 
@@ -11912,7 +12347,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -11921,7 +12356,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -11957,7 +12392,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, _j.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, _j.Field); err != nil {
 			return
 		}
 
@@ -12016,7 +12451,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, _j.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, _j.ReverseField); err != nil {
 				return
 			}
 
@@ -12044,7 +12479,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, ref.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, ref.ReverseField); err != nil {
 					return
 				}
 
@@ -12052,7 +12487,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, ref.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, ref.ReverseField); err != nil {
 					return
 				}
 
@@ -12067,7 +12502,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, ref.ReverseVariableIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, ref.ReverseField); err != nil {
 					return
 				}
 
@@ -12103,7 +12538,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, _j.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, _j.Field); err != nil {
 				return
 			}
 
@@ -12131,7 +12566,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, mm.Field); err != nil {
 				return
 			}
 
@@ -12179,20 +12614,18 @@ func (o *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `Base) Get(key string) interface{} {
-
     switch key {
-
 `); err != nil {
 		return
 	}
 
-	for _, col := range table.Columns {
+	for _, col := range table.AllColumns() {
 
 		if _, err = io.WriteString(_w, `    case "`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -12201,7 +12634,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -12212,7 +12645,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.DecapIdentifier); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -12223,18 +12656,13 @@ func (o *`); err != nil {
 
 	}
 
-	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
-	}
-
 	for _, ref := range table.References {
 
 		if _, err = io.WriteString(_w, `    case "`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ref.Identifier); err != nil {
+		if _, err = io.WriteString(_w, ref.Field); err != nil {
 			return
 		}
 
@@ -12254,18 +12682,13 @@ func (o *`); err != nil {
 
 	}
 
-	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
-	}
-
-	for _, ref := range table.ReverseReferences {
+	for _, rev := range table.ReverseReferences {
 
 		if _, err = io.WriteString(_w, `    case "`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ref.ReverseIdentifier); err != nil {
+		if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 			return
 		}
 
@@ -12274,13 +12697,13 @@ func (o *`); err != nil {
 			return
 		}
 
-		if ref.IsUnique() {
+		if rev.IsUnique {
 
 			if _, err = io.WriteString(_w, `        return o.`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ref.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -12295,7 +12718,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ref.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -12308,18 +12731,13 @@ func (o *`); err != nil {
 
 	}
 
-	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
-	}
-
 	for _, mm := range table.ManyManyReferences {
 
 		if _, err = io.WriteString(_w, `    case "`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -12328,7 +12746,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -12339,8 +12757,7 @@ func (o *`); err != nil {
 
 	}
 
-	if _, err = io.WriteString(_w, `
-    }
+	if _, err = io.WriteString(_w, `    }
     return nil
 }
 `); err != nil {
@@ -12397,7 +12814,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -12414,7 +12831,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -12430,7 +12847,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -12447,7 +12864,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -12463,7 +12880,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -12480,7 +12897,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -12496,7 +12913,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -12513,7 +12930,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -12598,7 +13015,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -12614,7 +13031,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -12631,7 +13048,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -12643,7 +13060,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -12660,7 +13077,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -12678,7 +13095,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -12690,7 +13107,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -12718,7 +13135,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -12735,7 +13152,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -12745,7 +13162,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -12762,7 +13179,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -12772,7 +13189,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.PkField()); err != nil {
 			return
 		}
 
@@ -12783,7 +13200,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.PkField()); err != nil {
 			return
 		}
 
@@ -12792,7 +13209,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.PkField()); err != nil {
 			return
 		}
 
@@ -12809,7 +13226,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.PkField()); err != nil {
 			return
 		}
 
@@ -12928,7 +13345,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -12945,7 +13362,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -12961,7 +13378,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -12978,7 +13395,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -12994,7 +13411,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -13011,7 +13428,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, col.Field); err != nil {
 			return
 		}
 
@@ -13027,7 +13444,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -13044,7 +13461,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -13137,7 +13554,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -13148,7 +13565,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -13165,7 +13582,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -13177,7 +13594,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -13194,7 +13611,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -13212,7 +13629,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -13229,7 +13646,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -13240,7 +13657,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -13257,7 +13674,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -13285,7 +13702,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -13302,7 +13719,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.PkField()); err != nil {
 			return
 		}
 
@@ -13312,7 +13729,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -13329,7 +13746,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -13348,7 +13765,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.PkField()); err != nil {
 			return
 		}
 
@@ -13359,7 +13776,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.PkField()); err != nil {
 			return
 		}
 
@@ -13376,7 +13793,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.PkIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.PkField()); err != nil {
 			return
 		}
 
@@ -13522,7 +13939,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -13537,7 +13954,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -13554,7 +13971,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -13581,7 +13998,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -13605,7 +14022,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.VariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -13634,7 +14051,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -13659,7 +14076,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -13669,7 +14086,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseVariableIdentifier()); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -13702,7 +14119,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -13712,7 +14129,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.VariableIdentifier()); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -13797,7 +14214,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.GoType()); err != nil {
+		if _, err = io.WriteString(_w, col.Type); err != nil {
 			return
 		}
 
@@ -13946,7 +14363,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.GoType()); err != nil {
+			if _, err = io.WriteString(_w, col.Type); err != nil {
 				return
 			}
 

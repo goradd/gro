@@ -1,0 +1,20 @@
+
+{{g
+//*** {{includeName}}
+}}
+{{
+// Set{{= ref.Identifier }} sets the value of {{= ref.Identifier }} in the object, to be saved later using the Save() function.
+func (o *{{= table.DecapIdentifier}}Base) Set{{= ref.Identifier }}({{= ref.Field }} *{{= ref.ReferencedTable.Identifier }})  {
+	if {{= ref.Field }} == nil {
+		panic("Cannot set {{= ref.Identifier }} to a nil value since {{= ref.ForeignKey.Identifier }} is not nullable.")
+	} else {
+		o.{{= ref.Field }} = {{= ref.Field }}
+		o.{{= ref.ForeignKey.Field }}IsLoaded = true
+		if o.{{= ref.ForeignKey.Field }} != {{= ref.Field }}.PrimaryKey() {
+			o.{{= ref.ForeignKey.Field }} = {{= ref.Field }}.PrimaryKey()
+			o.{{= ref.ForeignKey.Field }}IsDirty = true
+		}
+	}
+}
+
+}}

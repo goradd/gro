@@ -3,7 +3,12 @@
 //*** {{includeName}}
 }}
 func (tmpl *TableBaseTemplate)genAccessors(table *model.Table, _w io.Writer) (err error) {
-    for _,col := range table.Columns {
+    if err = tmpl.genColPrimaryKey(table, _w); err != nil {return}
+
+    for _,col := range table.AllColumns() {
+        if col.IsAPrimaryKey() {
+            continue
+        }
         if err = tmpl.genColGetter(table, col, _w); err != nil {return}
         if err = tmpl.genColValid(table, col, _w); err != nil {return}
         if col.IsNullable {
@@ -14,14 +19,14 @@ func (tmpl *TableBaseTemplate)genAccessors(table *model.Table, _w io.Writer) (er
         if col.IsNullable{
             if err = tmpl.genColNullSetter(table, col, _w); err != nil {return}
         }
+    }
 
-        if col.IsReference() {
-            if err = tmpl.genColReferenceGetter(table, col, _w); err != nil {return}
-            if col.IsNullable {
-                if err = tmpl.genColNullReferenceSetter(table, col, _w); err != nil {return}
-            } else {
-                if err = tmpl.genColNotNullReferenceSetter(table, col, _w); err != nil {return}
-            }
+    for _,ref := range table.References {
+        if err = tmpl.genRefGetter(table, ref, _w); err != nil {return}
+        if ref.IsNullable {
+            if err = tmpl.genRefNullSetter(table, ref, _w); err != nil {return}
+        } else {
+            if err = tmpl.genRefNotNullSetter(table, ref, _w); err != nil {return}
         }
     }
 
@@ -45,10 +50,6 @@ func (tmpl *TableBaseTemplate)genColSetter(table *model.Table, col *model.Column
     if !col.HasSetter() {
         return
     }
-    if col.IsPrimaryKey {
-{{: "accessors/column_setter_pk.tmpl" }}
-        return
-    }
     switch col.ReceiverType {
     case query.ColTypeUnknown: fallthrough
     case query.ColTypeBytes:
@@ -63,6 +64,10 @@ func (tmpl *TableBaseTemplate)genColSetter(table *model.Table, col *model.Column
     return
 }
 
+func (tmpl *TableBaseTemplate)genColPrimaryKey(table *model.Table, _w io.Writer) (err error) {
+{{: "accessors/column_pk.tmpl" }}
+    return
+}
 
 
 func (tmpl *TableBaseTemplate)genColNullGetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
@@ -79,18 +84,18 @@ func (tmpl *TableBaseTemplate)genColNullSetter(table *model.Table, col *model.Co
 }
 
 
-func (tmpl *TableBaseTemplate)genColReferenceGetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
-{{: "accessors/column_reference_getter.tmpl" }}
+func (tmpl *TableBaseTemplate)genRefGetter(table *model.Table, ref *model.Reference, _w io.Writer) (err error) {
+{{: "accessors/ref_getter.tmpl" }}
     return
 }
 
-func (tmpl *TableBaseTemplate)genColNullReferenceSetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
-{{: "accessors/column_null_reference_setter.tmpl" }}
+func (tmpl *TableBaseTemplate)genRefNullSetter(table *model.Table, ref *model.Reference, _w io.Writer) (err error) {
+{{: "accessors/ref_null_setter.tmpl" }}
     return
 }
 
-func (tmpl *TableBaseTemplate)genColNotNullReferenceSetter(table *model.Table, col *model.Column, _w io.Writer) (err error) {
-{{: "accessors/column_not_null_reference_setter.tmpl" }}
+func (tmpl *TableBaseTemplate)genRefNotNullSetter(table *model.Table, ref *model.Reference, _w io.Writer) (err error) {
+{{: "accessors/ref_not_null_setter.tmpl" }}
     return
 }
 

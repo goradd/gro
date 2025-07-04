@@ -3,11 +3,11 @@
 //*** {{includeName}}
 }}
 {{
-    if err := enc.Encode(&o.{{= rev.ReverseVariableIdentifier() }} ); err != nil {
+    if err := enc.Encode(&o.{{= rev.ReverseField }} ); err != nil {
         return err
     }
 
-    if err := enc.Encode(o.{{= rev.ReverseVariableIdentifier() }}IsDirty); err != nil {
+    if err := enc.Encode(o.{{= rev.ReverseField }}IsDirty); err != nil {
         return err
     }
 

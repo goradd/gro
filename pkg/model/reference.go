@@ -20,10 +20,10 @@ type Reference struct {
 	ReferencedTable *Table
 	// ForeignKey is the local column that is referring to the referenced table
 	ForeignKey *Column
-	// The go identifier used as an accessor to the forward referenced object.
+	// Identifier is the go identifier used as an accessor to the forward referenced object.
 	// Example: ProjectManager
 	Identifier string
-	// The field name representing a pointer to the reference.
+	// Field is the name used in the struct representing a pointer to the referenced object.
 	// Also used as a function parameter name.
 	// Example: projectManager
 	Field string
@@ -43,18 +43,13 @@ type Reference struct {
 	// ReverseLabelPlural is the plural of ReverseLabel.
 	// Example: Projects
 	ReverseLabelPlural string
-	// True if this is a one-to-one relationship
+	// ReverseField is the name used in the struct for the reverse object(s)
+	ReverseField string
+	// IsUnique is true if this is a one-to-one relationship
 	IsUnique bool
-}
-
-// ReverseVariableIdentifier returns the name of the local variable that will
-// hold the object(s) loaded in the reverse reference.
-func (r *Reference) ReverseVariableIdentifier() string {
-	if r.IsUnique {
-		return "rev" + r.ReverseIdentifier
-	} else {
-		return "rev" + r.ReverseIdentifierPlural
-	}
+	// IsNullable is true if the foreign keys are nullable. This also indicates that the
+	// reference is not required when the table is saved.
+	IsNullable bool
 }
 
 // JsonKey returns the key that will be used for the referenced object in JSON.
@@ -122,9 +117,12 @@ func (m *Database) importReference(schemaTable *schema.Table, schemaRef *schema.
 		ReverseLabelPlural:      schemaRef.ReverseLabelPlural,
 		ReverseIdentifier:       schemaRef.ReverseIdentifier,
 		ReverseIdentifierPlural: schemaRef.ReverseIdentifierPlural,
+		ReverseField:            strings2.Decap(schemaRef.ReverseIdentifier),
 		IsUnique:                schemaRef.IndexLevel == schema.IndexLevelPrimaryKey || schemaRef.IndexLevel == schema.IndexLevelUnique,
+		IsNullable:              schemaRef.IsNullable,
 	}
 
 	refTable.ReverseReferences = append(refTable.ReverseReferences, ref)
+	col.Reference = ref
 	return ref
 }

@@ -15,11 +15,11 @@ type ManyManyReference struct {
 	TableQueryName string
 	// SourceColumnName is the database name for the column that points at the source table's primary key.
 	SourceColumnName string
-	// SourceColumnReceiverType is the query.ReceiverType of the SourceColumnName.
+	// SourceColumnReceiverType is the query.ReceiverType of the source column.
 	SourceColumnReceiverType query.ReceiverType
-	// DestColumnName is the database column in the association table that points at the destination table's primary key.
+	// DestColumnName is the database column in the association table that points at the referenced table's primary key.
 	DestColumnName string
-	// DestColumnReceiverType is the type of the column in the association table.
+	// DestColumnReceiverType is the query.ReceiverType of the destination column.
 	DestColumnReceiverType query.ReceiverType
 	// ReferencedTable is the table being linked.
 	ReferencedTable *Table
@@ -64,12 +64,17 @@ func (m *ManyManyReference) PrimaryKeyColumnName() string {
 	return m.ReferencedTable.PrimaryKeyColumn().QueryName
 }
 
+// PrimaryKeyType returns the type of the referenced table's primary key.
+func (m *ManyManyReference) PrimaryKeyType() string {
+	return m.ReferencedTable.PrimaryKeyType()
+}
+
 // TableIdentifier identifies the association table.
 func (m *ManyManyReference) TableIdentifier() string {
 	return UpperCaseIdentifier(m.TableQueryName)
 }
 
-// PkField returns the identifier used for the variable listing the primary keys of the association.
+// PkField returns the identifier used for the variable listing the primary keys of the associated objects.
 func (m *ManyManyReference) PkField() string {
 	return m.Field + "Pks"
 }

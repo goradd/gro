@@ -3,9 +3,9 @@
 //*** {{includeName}}
 }}
 {{
-    if o.{{= mm.VariableIdentifier() }}.Len() != 0 {
+    if o.{{= mm.Field }}.Len() != 0 {
         var vals []map[string]interface{}
-        for obj := range o.{{= mm.VariableIdentifier() }}.ValuesIter() {
+        for obj := range o.{{= mm.Field }}.ValuesIter() {
             vals = append(vals, obj.MarshalStringMap())
         }
         v["{{= mm.JsonKey() }}"] = vals

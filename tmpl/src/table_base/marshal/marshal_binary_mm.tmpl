@@ -3,18 +3,18 @@
 //*** {{includeName}}
 }}
 {{
-    if err := enc.Encode(&o.{{= mm.VariableIdentifier() }}); err != nil {
-        return fmt.Errorf("error encoding {{= table.Identifier }}.{{= mm.VariableIdentifier() }}: %w", err)
+    if err := enc.Encode(&o.{{= mm.Field }}); err != nil {
+        return fmt.Errorf("error encoding {{= table.Identifier }}.{{= mm.Field }}: %w", err)
     }
-    if err := enc.Encode(o.{{= mm.VariableIdentifier() }}IsDirty); err != nil {
-        return fmt.Errorf("error encoding {{= table.Identifier }}.{{= mm.VariableIdentifier() }}IsDirty: %w", err)
+    if err := enc.Encode(o.{{= mm.Field }}IsDirty); err != nil {
+        return fmt.Errorf("error encoding {{= table.Identifier }}.{{= mm.Field }}IsDirty: %w", err)
     }
-    if err := enc.Encode(o.{{= mm.PkIdentifier() }} != nil); err != nil {
+    if err := enc.Encode(o.{{= mm.PkField() }} != nil); err != nil {
         return err
     }
-    if o.{{= mm.PkIdentifier() }} != nil {
-        if err := enc.Encode(o.{{= mm.PkIdentifier() }}); err != nil {
-            return fmt.Errorf("error encoding {{= table.Identifier }}.{{= mm.PkIdentifier() }}: %w", err)
+    if o.{{= mm.PkField() }} != nil {
+        if err := enc.Encode(o.{{= mm.PkField() }}); err != nil {
+            return fmt.Errorf("error encoding {{= table.Identifier }}.{{= mm.PkField() }}: %w", err)
         }
     }
 

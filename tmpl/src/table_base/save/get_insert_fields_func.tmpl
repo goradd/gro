@@ -12,9 +12,9 @@
 func (o *{{= table.DecapIdentifier}}Base) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 {{for _,col := range table.Columns}}
-{{if col.IsAutoPK }}
-    if o.{{= col.VariableIdentifier() }}IsDirty {
-        fields["{{= col.QueryName }}"] = o.{{= col.VariableIdentifier() }}
+{{if col.IsAutoPK() }}
+    if o.{{= col.Field }}IsDirty {
+        fields["{{= col.QueryName }}"] = o.{{= col.Field }}
     }
 {{elseif col.ReceiverType == query.ColTypeTime && (col.DefaultValue == model.CreatedTime || col.DefaultValue == model.ModifiedTime)}}
     fields["{{= col.QueryName }}"] = time.Now().UTC()
@@ -23,13 +23,13 @@ func (o *{{= table.DecapIdentifier}}Base) getInsertFields() (fields map[string]i
 {{elseif col.SchemaSubType == schema.ColSubTypeLock }}
     fields["{{= col.QueryName }}"] = db.RecordVersion(0)
 {{elseif col.IsNullable}}
-    if o.{{= col.VariableIdentifier() }}IsNull {
+    if o.{{= col.Field }}IsNull {
         fields["{{= col.QueryName }}"] = nil
     } else {
-        fields["{{= col.QueryName }}"] = o.{{= col.VariableIdentifier() }}
+        fields["{{= col.QueryName }}"] = o.{{= col.Field }}
     }
 {{else}} {{# IsNullable }}
-    fields["{{= col.QueryName }}"] = o.{{= col.VariableIdentifier() }}
+    fields["{{= col.QueryName }}"] = o.{{= col.Field }}
 {{if}}
 {{for}}
 	return

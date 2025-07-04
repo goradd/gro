@@ -5,7 +5,7 @@
 {{
 // {{= col.Identifier }}IsLoaded returns true if the value was loaded from the database or has been set.
 func (o *{{= table.DecapIdentifier}}Base) {{= col.Identifier }}IsLoaded() bool {
-	return o.{{= col.VariableIdentifier() }}IsLoaded
+	return o.{{= col.Field }}IsLoaded
 }
 
 }}

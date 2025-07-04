@@ -6,11 +6,11 @@
 }}
 {{
 // {{= col.Identifier }} returns the value of {{= col.Identifier }}.
-func (o *{{= table.DecapIdentifier}}Base) {{= col.Identifier }}() {{= col.GoType() }} {
-	if o._restored && !o.{{= col.VariableIdentifier() }}IsLoaded {
+func (o *{{= table.DecapIdentifier}}Base) {{= col.Identifier }}() {{= col.Type }} {
+	if o._restored && !o.{{= col.Field }}IsLoaded {
 		panic ("{{= col.Identifier }} was not selected in the last query and has not been set, and so is not valid")
 	}
-	return o.{{= col.VariableIdentifier() }}
+	return o.{{= col.Field }}
 }
 
 }}

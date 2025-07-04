@@ -4,50 +4,49 @@
 }}
 {{
 // Initialize or re-initialize a {{= table.Identifier }} database object to default values.
-{{if pk := table.PrimaryKeyColumn(); pk != nil && pk.IsAutoPK }}
-// The primary key will get a temporary negative number which will be replaced when the object is saved.
-// Multiple calls to Initialize are not guaranteed to create sequential values for the primary key.
+{{if table.HasAutoPK() }}
+// The primary key will get a temporary unique value which will be replaced when the object is saved.
 {{if}}
 func (o *{{= table.DecapIdentifier}}Base) Initialize() {
-{{for _,col := range table.Columns}}
-{{if col.IsAutoPK}}
-    o.{{= col.VariableIdentifier() }} = db.TemporaryPrimaryKey()
+{{for _,col := range table.AllColumns() }}
+{{if col.IsAutoPK()}}
+    o.{{= col.Field }} = db.TemporaryPrimaryKey()
 {{else}}
-	o.{{= col.VariableIdentifier() }} = {{= col.DefaultValueAsValue() }}
+	o.{{= col.Field }} = {{= col.DefaultValueAsValue() }}
 {{if}}
-{{if col.IsNullable}}
+{{if col.IsNullable }}
 {{if col.HasDefaultValue() }}
-	o.{{= col.VariableIdentifier() }}IsNull = false
+	o.{{= col.Field }}IsNull = false
 {{else}}
-	o.{{= col.VariableIdentifier() }}IsNull = true
+	o.{{= col.Field }}IsNull = true
 {{if}}
 {{if}}{{# IsNullable}}
-	o.{{= col.VariableIdentifier() }}IsLoaded = {{if col.HasDefaultValue()}}true{{else}}false{{if}}
+	o.{{= col.Field }}IsLoaded = {{if col.HasDefaultValue()}}true{{else}}false{{if}}
 {{if col.HasSetter() }}
-	o.{{= col.VariableIdentifier() }}IsDirty = false
+	o.{{= col.Field }}IsDirty = false
 {{if}}
 
 {{for}}
-{{if len(table.ReverseReferences) > 0 }}
+{{if table.HasReverseReferences() }}
 
 // Reverse reference objects.
 {{for _,col := range table.ReverseReferences}}
     {{if col.IsUnique}}
-        o.{{= col.ReverseVariableIdentifier() }} = nil
-        o.{{= col.ReverseVariableIdentifier() }}IsDirty = false
+        o.{{= col.ReverseField }} = nil
+        o.{{= col.ReverseField }}IsDirty = false
     {{else}}
-        o.{{= col.ReverseVariableIdentifier() }}.Clear()
-        o.{{= col.ReverseVariableIdentifier() }}IsDirty = false
+        o.{{= col.ReverseField }}.Clear()
+        o.{{= col.ReverseField }}IsDirty = false
 	{{if}}
 {{for}}
 {{if}}
-{{if len(table.ManyManyReferences) > 0}}
+{{if table.HasManyManyReferences() }}
 
 // Many-Many reference objects.
 {{for _,mm := range table.ManyManyReferences }}
-    o.{{= mm.VariableIdentifier() }}.Clear()
-    o.{{= mm.PkIdentifier() }} = nil
-    o.{{= mm.VariableIdentifier() }}IsDirty = false
+    o.{{= mm.Field }}.Clear()
+    o.{{= mm.PkField() }} = nil
+    o.{{= mm.Field }}IsDirty = false
 {{for}}
 {{if}}
 

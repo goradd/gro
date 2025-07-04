@@ -12,8 +12,8 @@
                        Get(); err != nil {
                     return err
                 } else if obj != nil &&
-                    (o.{{= col.ReverseVariableIdentifier() }} == nil ||
-                    obj.PrimaryKey() != o.{{= col.ReverseVariableIdentifier() }}.PrimaryKey()) {
+                    (o.{{= col.ReverseField }} == nil ||
+                    obj.PrimaryKey() != o.{{= col.ReverseField }}.PrimaryKey()) {
 
                     obj.Set{{= col.Identifier }}ToNull()
                     if err = obj.Save(ctx); err != nil {
@@ -21,10 +21,10 @@
                     }
                 }
 
-                if o.{{= col.ReverseVariableIdentifier() }} != nil {
-                    o.{{= col.ReverseVariableIdentifier() }}.{{= col.VariableIdentifier()}}IsDirty = true // force a change in case data is stale
-                    o.{{= col.ReverseVariableIdentifier() }}.Set{{= col.Identifier }}(o.PrimaryKey())
-                    if err := o.{{= col.ReverseVariableIdentifier() }}.Save(ctx); err != nil {
+                if o.{{= col.ReverseField }} != nil {
+                    o.{{= col.ReverseField }}.{{= col.Field}}IsDirty = true // force a change in case data is stale
+                    o.{{= col.ReverseField }}.Set{{= col.Identifier }}(o.PrimaryKey())
+                    if err := o.{{= col.ReverseField }}.Save(ctx); err != nil {
                         return err
                     }
                 }

@@ -135,7 +135,7 @@ func (m *DB) buildColumnDef(col *schema.Column) (columnClause string, tableClaus
 	}
 	if col.Type == schema.ColTypeEnum {
 		if col.EnumTable == "" {
-			slog.Error("Column skipped, EnumTable not specified for an enum value.",
+			slog.Error("Column skipped, Enum not specified for an enum value.",
 				slog.String(db.LogColumn, col.Name))
 			return
 		}

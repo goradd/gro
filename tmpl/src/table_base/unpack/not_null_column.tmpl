@@ -7,25 +7,25 @@
 	if v, ok := m["{{= col.QueryName }}"]; ok && v != nil {
 {{if col.IsEnum()}}
      	if i, ok2 := v.(int); ok2 {
-           o.{{= col.VariableIdentifier() }} = {{= col.GoType() }}(i)
+           o.{{= col.Field }} = {{= col.Type }}(i)
 {{else}}
-    	if o.{{= col.VariableIdentifier() }}, ok = v.({{= col.GoType() }}); ok {
+    	if o.{{= col.Field }}, ok = v.({{= col.Type }}); ok {
 {{if}}
-			o.{{= col.VariableIdentifier() }}IsLoaded = true
+			o.{{= col.Field }}IsLoaded = true
 {{if col.HasSetter() }}
-			o.{{= col.VariableIdentifier() }}IsDirty = false
+			o.{{= col.Field }}IsDirty = false
 {{if}}
         {{if col.IsPrimaryKey}}
-            o._originalPK = o.{{= col.VariableIdentifier() }}
+            o._originalPK = o.{{= col.Field }}
         {{if}}
 		} else {
 			panic("Wrong type found for {{= col.QueryName }}.")
 		}
 	} else {
-		o.{{= col.VariableIdentifier() }}IsLoaded = false
-		o.{{= col.VariableIdentifier() }} = {{= col.DefaultValueAsValue() }}
+		o.{{= col.Field }}IsLoaded = false
+		o.{{= col.Field }} = {{= col.DefaultValueAsValue() }}
 {{if col.HasSetter() }}
-		o.{{= col.VariableIdentifier() }}IsDirty = false
+		o.{{= col.Field }}IsDirty = false
 {{if}}
 	}
 

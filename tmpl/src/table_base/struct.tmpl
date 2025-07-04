@@ -4,47 +4,56 @@
 }}
 {{
 
+{{if len(table.PrimaryKeyColumns()) > 1 }}
+// {{= table.PrimaryKeyType() }} represents the composite key type of the primary key.
+type {{= table.PrimaryKeyType() }} struct {
+{{for _,col := range table.PrimaryKeyColumns() }}
+    {{= col.Identifier }} {{= col.Type }}
+{{for}}
+}
+{{if}}
+
 // {{= table.Identifier}}Base is embedded in a {{= table.Identifier }} object and provides the ORM access to the database.
 // The member variables of the structure are private and should not normally be accessed by the {{= table.Identifier }} embedder.
 // Instead, use the accessor functions.
 type {{= table.DecapIdentifier}}Base struct {
-{{for _,col := range table.Columns}}
-	{{= col.VariableIdentifier() }} {{= col.GoType() }}
+{{for _,col := range table.AllColumns() }}
+	{{= col.Field }} {{= col.Type }}
 {{if col.IsNullable}}
-	{{= col.VariableIdentifier() }}IsNull bool
+	{{= col.Field }}IsNull bool
 {{if}}
-	{{= col.VariableIdentifier() }}IsLoaded bool
+	{{= col.Field }}IsLoaded bool
 {{if col.HasSetter() }}
-	{{= col.VariableIdentifier() }}IsDirty bool
+	{{= col.Field }}IsDirty bool
 {{if}}
 {{for}}
 {{if table.HasReferences() }}
 
-    // Referenced objects.
+    // References
 {{for _,ref := range table.References}}
-	{{= ref.VariableIdentifier() }} *{{= ref.GoType() }}
+	{{= ref.Field }} *{{= ref.ReferencedTable.Identifier }}
 {{for}}
 {{if}}
 {{if table.HasReverseReferences() }}
 
-    // Reverse reference objects.
-{{for _,ref := range table.ReverseReferences}}
-{{if ref.Column.IsUnique}}
-    {{= ref.ReverseVariableIdentifier() }} *{{= ref.Table.Identifier }}
-    {{= ref.ReverseVariableIdentifier() }}IsDirty bool // is a new one being associated
+    // Reverse references
+{{for _,rev := range table.ReverseReferences}}
+{{if rev.IsUnique }}
+    {{= rev.ReverseField }} *{{= rev.Table.Identifier }}
+    {{= rev.ReverseField }}IsDirty bool // is a new one being associated
 {{else}}
-    {{= ref.ReverseVariableIdentifier() }} maps.SliceMap[{{= ref.Column.Table.PrimaryKeyGoType() }}, *{{= ref.Table.Identifier }}]  // Objects in the order they were queried
-    {{= ref.ReverseVariableIdentifier() }}IsDirty bool
+    {{= rev.ReverseField }} maps.SliceMap[{{= rev.Table.PrimaryKeyType() }}, *{{= rev.Table.Identifier }}]  // Objects in the order they were queried
+    {{= rev.ReverseField }}IsDirty bool
 {{if}}
 {{for}}
 {{if}}
 {{if table.HasManyManyReferences() }}
 
-// Many-Many reference objects.
+// Many-Many references
 {{for _,mm := range table.ManyManyReferences }}
-    {{= mm.VariableIdentifier() }} maps.SliceMap[{{= mm.PrimaryKeyType() }}, *{{= mm.ObjectType() }}]
-    {{= mm.PkIdentifier() }} []{{= mm.PrimaryKeyType() }}                // Primary keys to associate at Save time
-    {{= mm.VariableIdentifier() }}IsDirty bool
+    {{= mm.Field }} maps.SliceMap[{{= mm.PrimaryKeyType() }}, *{{= mm.Type() }}]
+    {{= mm.PkField() }} []{{= mm.PrimaryKeyType() }}                // Primary keys to associate at Save time
+    {{= mm.Field }}IsDirty bool
 {{for}}
 {{if}}
 
@@ -54,7 +63,7 @@ type {{= table.DecapIdentifier}}Base struct {
 	// Indicates whether this is a new object, or one loaded from the database. Used by Save to know whether to Insert or Update.
 	_restored bool
 
-    _originalPK {{= table.PrimaryKeyGoType() }}
+    _originalPK {{= table.PrimaryKeyType() }}
 }
 
 }}

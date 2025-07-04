@@ -7,6 +7,7 @@ import (
 	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
 	"log/slog"
+	"slices"
 	"time"
 )
 
@@ -50,37 +51,39 @@ type Column struct {
 	DefaultValue interface{}
 	// IsNullable is true if the column can be given a NULL value.
 	IsNullable bool
-	// If this is an enum type, EnumTable will point to that enum table
-	EnumTable *Enum
+	// If this is an enum type, Enum will point to the Enum object.
+	Enum *Enum
+	// If this column is a reference, a pointer to the Reference object.
+	Reference *Reference
 	// Options are the options extracted from the comments string
 	Options map[string]interface{}
 }
 
-func (cd *Column) String() string {
-	return cd.Identifier
+func (c *Column) String() string {
+	return c.Identifier
 }
 
 // DefaultConstantName returns the name of the default value constant that will be used to refer to the default value
-func (cd *Column) DefaultConstantName() string {
-	return cd.Table.Identifier + cd.Identifier + "Default"
+func (c *Column) DefaultConstantName() string {
+	return c.Table.Identifier + c.Identifier + "Default"
 }
 
 // DefaultValueAsValue returns the default value of the column as a GO value
-func (cd *Column) DefaultValueAsValue() string {
-	if cd.DefaultValue == nil {
-		if cd.SchemaType == schema.ColTypeAutoPrimaryKey {
+func (c *Column) DefaultValueAsValue() string {
+	if c.DefaultValue == nil {
+		if c.SchemaType == schema.ColTypeAutoPrimaryKey {
 			return `""`
-		} else if cd.IsEnum() {
+		} else if c.IsEnum() {
 			return "0"
 		}
-		return cd.ReceiverType.DefaultValueString()
+		return c.ReceiverType.DefaultValueString()
 	}
 
-	if cd.ReceiverType == ColTypeTime {
-		if cd.DefaultValue == CreatedTime || cd.DefaultValue == ModifiedTime {
+	if c.ReceiverType == ColTypeTime {
+		if c.DefaultValue == CreatedTime || c.DefaultValue == ModifiedTime {
 			return "time.Time{}" // These times will be updated when the object is saved.
 		} else {
-			t := cd.DefaultValue.(time.Time)
+			t := c.DefaultValue.(time.Time)
 			if t.IsZero() {
 				return "time.Time{}"
 			}
@@ -88,11 +91,11 @@ func (cd *Column) DefaultValueAsValue() string {
 		}
 	}
 
-	if cd.IsEnum() {
-		return fmt.Sprintf("%s(%d)", cd.EnumTable.Identifier, cd.DefaultValue) // should be casting an int to an enum type
+	if c.IsEnum() {
+		return fmt.Sprintf("%s(%d)", c.Enum.Identifier, c.DefaultValue) // should be casting an int to an enum type
 	}
 
-	return fmt.Sprintf("%#v", cd.DefaultValue)
+	return fmt.Sprintf("%#v", c.DefaultValue)
 }
 
 /*
@@ -125,41 +128,46 @@ func (cd *Column) DefaultValueAsConstant() string {
 */
 
 // JsonKey returns the key used for the column when outputting JSON.
-func (cd *Column) JsonKey() string {
-	return cd.Field
+func (c *Column) JsonKey() string {
+	return c.Field
 }
 
 // IsEnum returns true if the column contains a type defined by an enum table.
-func (cd *Column) IsEnum() bool {
-	return cd.SchemaType == schema.ColTypeEnum
+func (c *Column) IsEnum() bool {
+	return c.SchemaType == schema.ColTypeEnum
 }
 
 // IsDecimal returns true if the column is a Decimal (Numeric) string value, meaning
 // is a variable precision decimal number.
-func (cd *Column) IsDecimal() bool {
-	return cd.SchemaSubType == schema.ColSubTypeNumeric
+func (c *Column) IsDecimal() bool {
+	return c.SchemaSubType == schema.ColSubTypeNumeric
 }
 
 // HasDefaultValue returns true if the column has a default value.
-func (cd *Column) HasDefaultValue() bool {
-	return cd.SchemaType == schema.ColTypeAutoPrimaryKey || cd.DefaultValue != nil
+func (c *Column) HasDefaultValue() bool {
+	return c.SchemaType == schema.ColTypeAutoPrimaryKey || c.DefaultValue != nil
 }
 
-// IsPrimaryKey returns true if this is the single primary key of its table.
-func (cd *Column) IsPrimaryKey() bool {
-	return cd.Table.PrimaryKeyColumn() == cd
+// IsThePrimaryKey returns true if this is the single primary key of its table.
+func (c *Column) IsThePrimaryKey() bool {
+	return c.Table.PrimaryKeyColumn() == c
+}
+
+// IsAPrimaryKey returns true if this is one of the primary keys.
+func (c *Column) IsAPrimaryKey() bool {
+	return slices.Contains(c.Table.primaryKeyColumns, c)
 }
 
 // HasSetter returns true if the column should be allowed to be set by the programmer. Some columns should not be alterable,
 // including AutoID columns, and time based columns that automatically set or update their times.
-func (cd *Column) HasSetter() bool {
-	if cd.ReceiverType == ColTypeTime {
-		if cd.DefaultValue == CreatedTime || cd.DefaultValue == ModifiedTime {
+func (c *Column) HasSetter() bool {
+	if c.ReceiverType == ColTypeTime {
+		if c.DefaultValue == CreatedTime || c.DefaultValue == ModifiedTime {
 			return false
 		}
 	}
-	if cd.SchemaSubType == schema.ColSubTypeTimestamp ||
-		cd.SchemaSubType == schema.ColSubTypeLock {
+	if c.SchemaSubType == schema.ColSubTypeTimestamp ||
+		c.SchemaSubType == schema.ColSubTypeLock {
 		return false
 	}
 	return true
@@ -167,9 +175,9 @@ func (cd *Column) HasSetter() bool {
 
 // MaxInt returns the maximum integer that the column can hold if it is an integer type.
 // Returns 0 if not.
-func (cd *Column) MaxInt() int64 {
-	if cd.ReceiverType == ColTypeInteger {
-		switch cd.Size {
+func (c *Column) MaxInt() int64 {
+	if c.ReceiverType == ColTypeInteger {
+		switch c.Size {
 		case 8:
 			return 127
 		case 16:
@@ -179,8 +187,8 @@ func (cd *Column) MaxInt() int64 {
 		case 32:
 			return 2147483647
 		}
-	} else if cd.ReceiverType == ColTypeUnsigned {
-		switch cd.Size {
+	} else if c.ReceiverType == ColTypeUnsigned {
+		switch c.Size {
 		case 8:
 			return 255
 		case 16:
@@ -196,9 +204,9 @@ func (cd *Column) MaxInt() int64 {
 
 // MinInt returns the minimum integer that the column can hold if it is an integer type.
 // Returns 0 if not.
-func (cd *Column) MinInt() int64 {
-	if cd.ReceiverType == ColTypeInteger {
-		switch cd.Size {
+func (c *Column) MinInt() int64 {
+	if c.ReceiverType == ColTypeInteger {
+		switch c.Size {
 		case 8:
 			return -128
 		case 16:
@@ -214,27 +222,32 @@ func (cd *Column) MinInt() int64 {
 
 // MaxLength returns the maximum length of the column, which normally is Column.Size, but
 // in certain situations might be something else.
-func (cd *Column) MaxLength() uint64 {
-	if cd.SchemaSubType == schema.ColSubTypeNumeric {
-		return cd.Size&0x0000ffff + 2 // allow for +/- and decimal point
+func (c *Column) MaxLength() uint64 {
+	if c.SchemaSubType == schema.ColSubTypeNumeric {
+		return c.Size&0x0000ffff + 2 // allow for +/- and decimal point
 	}
-	return cd.Size
+	return c.Size
 }
 
 // DecimalPrecision returns the precision value of a decimal number that is packed into the Size value.
-func (cd *Column) DecimalPrecision() uint64 {
-	if cd.SchemaSubType == schema.ColSubTypeNumeric {
-		return cd.Size & 0x0000ffff
+func (c *Column) DecimalPrecision() uint64 {
+	if c.SchemaSubType == schema.ColSubTypeNumeric {
+		return c.Size & 0x0000ffff
 	}
 	return 0
 }
 
 // DecimalScale returns the scale value of a decimal number when it is packed into the Size value.
-func (cd *Column) DecimalScale() uint64 {
-	if cd.SchemaSubType == schema.ColSubTypeNumeric {
-		return cd.Size >> 16
+func (c *Column) DecimalScale() uint64 {
+	if c.SchemaSubType == schema.ColSubTypeNumeric {
+		return c.Size >> 16
 	}
 	return 0
+}
+
+// IsAutoPK returns true of the column is an auto-generated primary key.
+func (c *Column) IsAutoPK() bool {
+	return c.SchemaType == schema.ColTypeAutoPrimaryKey
 }
 
 func (m *Database) importColumn(schemaCol *schema.Column) *Column {
@@ -253,8 +266,8 @@ func (m *Database) importColumn(schemaCol *schema.Column) *Column {
 	}
 
 	if schemaCol.Type == schema.ColTypeEnum {
-		col.EnumTable = m.Enum(schemaCol.EnumTable)
-		col.Type = col.EnumTable.Identifier
+		col.Enum = m.Enum(schemaCol.EnumTable)
+		col.Type = col.Enum.Identifier
 	} else {
 		col.Type = col.ReceiverType.GoType()
 	}

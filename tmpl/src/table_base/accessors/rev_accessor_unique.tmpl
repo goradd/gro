@@ -3,30 +3,30 @@
 }}
 {{
 
-// {{= rev.ReverseIdentifier() }} returns the connected {{= rev.Table.Identifier }} object, if one was loaded.
+// {{= rev.ReverseIdentifier }} returns the connected {{= rev.Table.Identifier }} object, if one was loaded.
 // Otherwise, it will return nil.
-func (o *{{= table.DecapIdentifier}}Base) {{= rev.ReverseIdentifier() }}() *{{= rev.Table.Identifier}} {
-	if o.{{= rev.ReverseVariableIdentifier() }} == nil {
+func (o *{{= table.DecapIdentifier}}Base) {{= rev.ReverseIdentifier }}() *{{= rev.Table.Identifier}} {
+	if o.{{= rev.ReverseField }} == nil {
 		return nil
 	}
-	return o.{{= rev.ReverseVariableIdentifier() }}
+	return o.{{= rev.ReverseField }}
 }
 
-// Load{{= rev.ReverseIdentifier() }} returns the connected {{= rev.Table.Identifier }} object, if one was loaded.
+// Load{{= rev.ReverseIdentifier }} returns the connected {{= rev.Table.Identifier }} object, if one was loaded.
 // Otherwise, it will load a new one and return it.
-func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.ReverseIdentifier() }}(ctx context.Context) (*{{= rev.Table.Identifier }}, error) {
-    if o.{{= rev.ReverseVariableIdentifier() }} != nil && o.{{= rev.ReverseVariableIdentifier() }}.IsDirty() {
-        panic("The {{= rev.ReverseIdentifier() }} has changed. You must save it first before changing to a different one.")
+func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.ReverseIdentifier }}(ctx context.Context) (*{{= rev.Table.Identifier }}, error) {
+    if o.{{= rev.ReverseField }} != nil && o.{{= rev.ReverseField }}.IsDirty() {
+        panic("The {{= rev.ReverseIdentifier }} has changed. You must save it first before changing to a different one.")
     }
     var err error
-	if o.{{= rev.ReverseVariableIdentifier() }} == nil {
+	if o.{{= rev.ReverseField }} == nil {
 	    pk := o.{{= rev.Table.PrimaryKeyColumn().Identifier }}()
-		o.{{= rev.ReverseVariableIdentifier() }}, err = Load{{= rev.Table.Identifier }}By{{= rev.Identifier }}(ctx, pk)
+		o.{{= rev.ReverseField }}, err = Load{{= rev.Table.Identifier }}By{{= rev.Identifier }}(ctx, pk)
 	}
-	return o.{{= rev.ReverseVariableIdentifier() }}, err
+	return o.{{= rev.ReverseField }}, err
 }
 
-// Set{{= rev.ReverseIdentifier() }} associates obj with this {{= table.Identifier }}
+// Set{{= rev.ReverseIdentifier }} associates obj with this {{= table.Identifier }}
 // through the reverse relationship in {{= rev.Table.Identifier }}.{{= rev.Identifier }}.
 //
 // The association is temporary until you call Save().
@@ -41,12 +41,12 @@ func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.ReverseIdentifier() }}(ctx
 // if a different {{= rev.Table.Identifier }} object is currently pointing to this {{= table.Identifier }},
 // it will be deleted. Pass nil to just delete the old object.
 {{if}}
-func (o *{{= table.DecapIdentifier}}Base) Set{{= rev.ReverseIdentifier() }}(obj *{{= rev.Table.Identifier }}) {
-    if o.{{= rev.ReverseVariableIdentifier() }} != nil && o.{{= rev.ReverseVariableIdentifier() }}.IsDirty() {
-        panic("The {{= rev.ReverseIdentifier() }} has changed. You must save it first before changing to a different one.")
+func (o *{{= table.DecapIdentifier}}Base) Set{{= rev.ReverseIdentifier }}(obj *{{= rev.Table.Identifier }}) {
+    if o.{{= rev.ReverseField }} != nil && o.{{= rev.ReverseField }}.IsDirty() {
+        panic("The {{= rev.ReverseIdentifier }} has changed. You must save it first before changing to a different one.")
     }
-	o.{{= rev.ReverseVariableIdentifier() }} = obj
-	o.{{= rev.ReverseVariableIdentifier() }}IsDirty = true
+	o.{{= rev.ReverseField }} = obj
+	o.{{= rev.ReverseField }}IsDirty = true
 }
 
 }}

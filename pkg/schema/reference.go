@@ -61,6 +61,7 @@ type Reference struct {
 	// If not nullable, then the reference is required to be present and valid when the record is saved.
 	// This would also mean that if the referenced object is deleted, or changes its reverse
 	// relationship, then this object will be deleted.
+	// The foreign key column(s) will be nullable if this is nullable.
 	IsNullable bool `json:"nullable,omitempty"`
 
 	// The singular Go identifier that will be used for the reverse relationship objects.

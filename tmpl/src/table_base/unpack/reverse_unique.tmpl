@@ -6,15 +6,15 @@
 
 	if v, ok := m["{{= col.ReverseIdentifier() }}"]; ok {
 		if v2, ok2 := v.(map[string]any); ok2 {
-			o.{{= col.ReverseVariableIdentifier() }} = new({{= col.Table.Identifier }})
-			o.{{= col.ReverseVariableIdentifier() }}.unpack(v2, o.{{= col.ReverseVariableIdentifier() }})
-			o.{{= col.ReverseVariableIdentifier() }}IsDirty = false
+			o.{{= col.ReverseField }} = new({{= col.Table.Identifier }})
+			o.{{= col.ReverseField }}.unpack(v2, o.{{= col.ReverseField }})
+			o.{{= col.ReverseField }}IsDirty = false
 		} else {
-			panic("Wrong type found for {{= col.VariableIdentifier() }} object.")
+			panic("Wrong type found for {{= col.Field }} object.")
 		}
 	} else {
-		o.{{= col.ReverseVariableIdentifier() }} = nil
-		o.{{= col.ReverseVariableIdentifier() }}IsDirty = false
+		o.{{= col.ReverseField }} = nil
+		o.{{= col.ReverseField }}IsDirty = false
 	}
 
 }}

@@ -1,0 +1,28 @@
+
+{{g
+//*** {{includeName}}
+}}
+{{
+
+// Set{{= ref.Identifier }} will set the reference to {{= ref.Field }}. The referenced object
+// will be saved when {{= table.Identifier}} is saved. Pass nil to break the connection.
+func (o *{{= table.DecapIdentifier}}Base) Set{{= ref.Identifier }}({{= ref.Field }} *{{= ref.ReferencedTable.Identifier }}) {
+	o.{{= ref.ForeignKey.Field }}IsLoaded = true
+	if {{= ref.Field }} == nil {
+		if !o.{{= ref.ForeignKey.Field }}IsNull || !o._restored {
+			o.{{= ref.ForeignKey.Field }}IsNull = true
+			o.{{= ref.ForeignKey.Field }}IsDirty = true
+			o.{{= ref.ForeignKey.Field }} = {{= ref.ForeignKey.DefaultValueAsValue() }}
+			o.{{= ref.Field }} = nil
+		}
+	} else {
+		o.{{= ref.Field }}  = {{= ref.Field }}
+		if o.{{= ref.ForeignKey.Field }}IsNull || !o._restored || o.{{= ref.ForeignKey.Field }} != {{= ref.Field }}.PrimaryKey() {
+			o.{{= ref.ForeignKey.Field }}IsNull = false
+			o.{{= ref.ForeignKey.Field }} = {{= ref.Field }}.PrimaryKey()
+			o.{{= ref.ForeignKey.Field }}IsDirty = true
+		}
+	}
+}
+
+}}

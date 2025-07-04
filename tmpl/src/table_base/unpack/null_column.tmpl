@@ -6,32 +6,32 @@
 
 	if v, ok := m["{{= col.QueryName }}"]; ok {
 		if v == nil {
-			o.{{= col.VariableIdentifier() }} = {{= col.DefaultValueAsValue() }}
-			o.{{= col.VariableIdentifier() }}IsNull = true
-			o.{{= col.VariableIdentifier() }}IsLoaded = true
+			o.{{= col.Field }} = {{= col.DefaultValueAsValue() }}
+			o.{{= col.Field }}IsNull = true
+			o.{{= col.Field }}IsLoaded = true
 {{if col.HasSetter() }}
-			o.{{= col.VariableIdentifier() }}IsDirty = false
+			o.{{= col.Field }}IsDirty = false
 {{if}}
 {{if col.IsEnum() }}
 		} else if i, ok2 := v.(int); ok2 {
-		    o.{{= col.VariableIdentifier() }} = {{= col.GoType() }}(i)
+		    o.{{= col.Field }} = {{= col.Type }}(i)
 {{else}}
-		} else if o.{{= col.VariableIdentifier() }}, ok = v.({{= col.GoType() }}); ok {
+		} else if o.{{= col.Field }}, ok = v.({{= col.Type }}); ok {
 {{if}}
-			o.{{= col.VariableIdentifier() }}IsNull = false
-			o.{{= col.VariableIdentifier() }}IsLoaded = true
+			o.{{= col.Field }}IsNull = false
+			o.{{= col.Field }}IsLoaded = true
 {{if col.HasSetter() }}
-			o.{{= col.VariableIdentifier() }}IsDirty = false
+			o.{{= col.Field }}IsDirty = false
 {{if}}
 		} else {
 			panic("Wrong type found for {{= col.QueryName }}.")
 		}
 	} else {
-		o.{{= col.VariableIdentifier() }}IsLoaded = false
-		o.{{= col.VariableIdentifier() }}IsNull = true
-		o.{{= col.VariableIdentifier() }} = {{= col.DefaultValueAsValue() }}
+		o.{{= col.Field }}IsLoaded = false
+		o.{{= col.Field }}IsNull = true
+		o.{{= col.Field }} = {{= col.DefaultValueAsValue() }}
 {{if col.HasSetter() }}
-		o.{{= col.VariableIdentifier() }}IsDirty = false
+		o.{{= col.Field }}IsDirty = false
 {{if}}
 	}
 

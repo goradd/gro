@@ -7,7 +7,6 @@ import (
 	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
 	"log/slog"
-	"strings"
 	"time"
 )
 
@@ -70,14 +69,16 @@ func (t *Table) PrimaryKeyColumns() []*Column {
 	return t.primaryKeyColumns
 }
 
-// PrimaryKeyGoTypes returns a comma separated list of types for the primary keys, such that it can be
-// used in a return value list.
-func (t *Table) PrimaryKeyGoTypes() string {
-	var s []string
-	for _, column := range t.PrimaryKeyColumns() {
-		s = append(s, column.Type)
+// PrimaryKeyType returns a type name for the primary key.
+// If the primary key is a single column, this will be a go type.
+// If a composite key, this will be the name of a struct type that should be generated to house
+// the primary key values.
+func (t *Table) PrimaryKeyType() string {
+	if len(t.primaryKeyColumns) == 1 {
+		return t.primaryKeyColumns[0].Type
+	} else {
+		return t.Identifier + "PrimaryKey"
 	}
-	return strings.Join(s, ", ")
 }
 
 // ColumnByName returns a Column given the query name of the column,
@@ -150,17 +151,27 @@ func (t *Table) HasGetterName(name string) (hasName bool, desc string) {
 // HasAutoPK returns true if the table has an automatically generated primary key
 func (t *Table) HasAutoPK() bool {
 	pk := t.PrimaryKeyColumn()
-
 	return pk != nil && pk.SchemaType == schema.ColTypeAutoPrimaryKey
 }
 
-// SettableColumns returns an array of columns that are settable
-func (t *Table) SettableColumns() []*Column {
-	var out []*Column
+// AllColumns returns all the columns in the table, including foreign keys
+func (t *Table) AllColumns() (out []*Column) {
+	out = append(out, t.Columns...)
+	for _, ref := range t.References {
+		out = append(out, ref.ForeignKey)
+	}
+	return
+}
+
+// SettableColumns returns an array of columns that are settable, including foreign keys.
+func (t *Table) SettableColumns() (out []*Column) {
 	for _, c := range t.Columns {
 		if c.HasSetter() {
 			out = append(out, c)
 		}
+	}
+	for _, ref := range t.References {
+		out = append(out, ref.ForeignKey)
 	}
 	return out
 }

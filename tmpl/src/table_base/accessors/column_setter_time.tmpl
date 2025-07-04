@@ -12,28 +12,28 @@
 {{elseif col.SchemaSubType == schema.ColSubTypeTimeOnly}}
 // The date will also be zeroed. This process may cause the time value to change. To prevent this, be sure that the time given is already in UTC time.
 {{if}}
-func (o *{{= table.DecapIdentifier }}Base) Set{{= col.Identifier }}(v {{= col.GoType() }}) {
+func (o *{{= table.DecapIdentifier }}Base) Set{{= col.Identifier }}(v {{= col.Type }}) {
 	if o._restored &&
-	    o.{{= col.VariableIdentifier() }}IsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+	    o.{{= col.Field }}IsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 {{if col.IsNullable }}
-		!o.{{= col.VariableIdentifier() }}IsNull && // if the db value is null, force a set of value
+		!o.{{= col.Field }}IsNull && // if the db value is null, force a set of value
 {{if}}
-        o.{{= col.VariableIdentifier() }}.Equal(v) {
+        o.{{= col.Field }}.Equal(v) {
         // no change
         return
     }
 
-	o.{{= col.VariableIdentifier() }}IsLoaded = true
+	o.{{= col.Field }}IsLoaded = true
     v = v.UTC()
 {{if col.SchemaSubType == schema.ColSubTypeDateOnly}}
     v = time.Date(v.Year(), v.Month(), v.Day(), 0, 0, 0, 0, v.Location())
 {{elseif col.SchemaSubType == schema.ColSubTypeTimeOnly}}
     v = time.Date(1, 1, 1, v.Hour(), v.Minute(), v.Second(), v.Nanosecond(), time.UTC)
 {{if}}
-	o.{{= col.VariableIdentifier() }} = v
-	o.{{= col.VariableIdentifier() }}IsDirty = true
+	o.{{= col.Field }} = v
+	o.{{= col.Field }}IsDirty = true
 {{if col.IsNullable }}
-    o.{{= col.VariableIdentifier() }}IsNull = false
+    o.{{= col.Field }}IsNull = false
 {{if}}
 }
 

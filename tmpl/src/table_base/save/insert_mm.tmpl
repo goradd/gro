@@ -4,16 +4,16 @@
 }}
 {{
 {{for _,mm := range table.ManyManyReferences}}
-    if o.{{= mm.VariableIdentifier() }}.Len() > 0 {
-        keys := o.{{= mm.VariableIdentifier() }}.Keys()
+    if o.{{= mm.Field }}.Len() > 0 {
+        keys := o.{{= mm.Field }}.Keys()
         for i, k := range keys {
-            obj := o.{{= mm.VariableIdentifier() }}.Get(k)
+            obj := o.{{= mm.Field }}.Get(k)
             if err = obj.Save(ctx); err != nil {
                 return err
             }
             if k != obj.PrimaryKey() {
-                o.{{= mm.VariableIdentifier() }}.Delete(k)
-                o.{{= mm.VariableIdentifier() }}.SetAt(i, obj.PrimaryKey(), obj)
+                o.{{= mm.Field }}.Delete(k)
+                o.{{= mm.Field }}.SetAt(i, obj.PrimaryKey(), obj)
             }
             db.Associate(ctx,
                 d,
@@ -24,8 +24,8 @@
                 obj.PrimaryKey(),
             )
         }
-    } else if len(o.{{= mm.VariableIdentifier() }}Pks) > 0 {
-        for _,k := range o.{{= mm.VariableIdentifier() }}Pks {
+    } else if len(o.{{= mm.Field }}Pks) > 0 {
+        for _,k := range o.{{= mm.Field }}Pks {
             obj, err2 := Load{{= mm.DestinationTable.Identifier }}(ctx, k)
             if err2 != nil {
                 return err2

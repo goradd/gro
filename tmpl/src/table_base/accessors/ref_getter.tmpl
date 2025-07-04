@@ -1,0 +1,27 @@
+
+{{g
+//*** {{includeName}}
+}}
+{{
+
+// {{= ref.Identifier }} returns the current value of the loaded {{= ref.Identifier }}, and nil if its not loaded.
+func (o *{{= table.DecapIdentifier}}Base) {{= ref.Identifier }}() *{{= ref.ReferencedTable.Identifier }} {
+	return o.{{= ref.Field }}
+}
+
+// Load{{= ref.Identifier }} returns the related {{= ref.Identifier }}. If it is not already loaded,
+// it will attempt to load it, provided the {{= ref.ForeignKey.Identifier }} column has been loaded first.
+func (o *{{= table.DecapIdentifier}}Base) Load{{= ref.Identifier }}(ctx context.Context) (*{{= ref.ReferencedTable.Identifier }}, error) {
+	var err error
+
+	if o.{{= ref.Field }} == nil {
+	    if !o.{{= ref.ForeignKey.Field }}IsLoaded  {
+    		panic("{{= ref.ForeignKey.Identifier }} must be selected in the previous query")
+    	}
+		// Load and cache
+		o.{{= ref.Field }}, err = Load{{= ref.ReferencedTable.Identifier }}(ctx, o.{{= ref.ForeignKey.Field }})
+    }
+	return o.{{= ref.Field }}, err
+}
+
+}}

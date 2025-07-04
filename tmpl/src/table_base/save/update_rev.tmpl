@@ -4,7 +4,7 @@
 }}
 {{
 {{for _,col := range table.ReverseReferences }}
-        if o.{{= col.ReverseVariableIdentifier() }}IsDirty {
+        if o.{{= col.ReverseField }}IsDirty {
             // relation connection changed
     {{if col.IsNullable }}
         {{if col.IsUnique}}

@@ -60,13 +60,13 @@ func (o *{{= table.DecapIdentifier}}Base) update(ctx context.Context) error {
 {{if col.SchemaSubType == schema.ColSubTypeTimestamp ||
         col.ReceiverType == query.ColTypeTime && col.DefaultValue == model.ModifiedTime }}
     if t, ok := modifiedFields["{{= col.QueryName }}"]; ok {
-        o.{{= col.VariableIdentifier() }} = t.({{= col.GoType() }})
-        o.{{= col.VariableIdentifier() }}IsLoaded = true
+        o.{{= col.Field }} = t.({{= col.Type }})
+        o.{{= col.Field }}IsLoaded = true
     }
 {{elseif col.SchemaSubType == schema.ColSubTypeLock}}
     if newLock != 0 {
-        o.{{= col.VariableIdentifier() }} = newLock
-        o.{{= col.VariableIdentifier() }}IsLoaded = true
+        o.{{= col.Field }} = newLock
+        o.{{= col.Field }}IsLoaded = true
     }
 {{if}}
 {{for}}

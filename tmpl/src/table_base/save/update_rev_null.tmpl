@@ -13,7 +13,7 @@
                     return err
                 } else {
                     for _,obj := range currentObjs {
-                        if !o.{{= col.ReverseVariableIdentifier() }}.Has(obj.PrimaryKey()) {
+                        if !o.{{= col.ReverseField }}.Has(obj.PrimaryKey()) {
                             // The old object is not in the group of new objects
                             obj.Set{{= col.Identifier }}ToNull()
                             if err = obj.Save(ctx); err != nil {
@@ -21,18 +21,18 @@
                             }
                         }
                     }
-                    keys := o.{{= col.ReverseVariableIdentifier() }}.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
+                    keys := o.{{= col.ReverseField }}.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
                     for i, k := range keys {
-                        obj := o.{{= col.ReverseVariableIdentifier() }}.Get(k)
+                        obj := o.{{= col.ReverseField }}.Get(k)
                         obj.Set{{= col.Identifier }}(o.PrimaryKey())
-                        obj.{{= col.VariableIdentifier() }}IsDirty = true // force a change in case data is stale
+                        obj.{{= col.Field }}IsDirty = true // force a change in case data is stale
                         if err = obj.Save(ctx); err != nil {
                             return err
                         }
                         if obj.PrimaryKey() != k {
                             // update slice map key without changing order
-                            o.{{= col.ReverseVariableIdentifier() }}.Delete(k)
-                            o.{{= col.ReverseVariableIdentifier() }}.SetAt(i, obj.PrimaryKey(), obj)
+                            o.{{= col.ReverseField }}.Delete(k)
+                            o.{{= col.ReverseField }}.SetAt(i, obj.PrimaryKey(), obj)
                         }
                     }
                 }

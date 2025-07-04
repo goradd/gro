@@ -6,16 +6,19 @@
 {{
 // Set{{= col.Identifier }}ToNull() will set the {{= col.QueryName }} value in the database to NULL.
 // {{= col.Identifier }}() will return the column's default value after this.
+{{if col.Reference != nil }}
+// Will also set the attached o.{{= col.Reference.Identifier }} to nil.
+{{if}}
 func (o *{{= table.DecapIdentifier}}Base) Set{{= col.Identifier }}ToNull() {
-	if !o.{{= col.VariableIdentifier() }}IsLoaded || !o.{{= col.VariableIdentifier() }}IsNull {
+	if !o.{{= col.Field }}IsLoaded || !o.{{= col.Field }}IsNull {
         // If we know it is null in the database, don't save it
-		o.{{= col.VariableIdentifier() }}IsDirty = true
+		o.{{= col.Field }}IsDirty = true
 	}
-    o.{{= col.VariableIdentifier() }}IsLoaded = true
-    o.{{= col.VariableIdentifier() }}IsNull = true
-    o.{{= col.VariableIdentifier() }} = {{= col.DefaultValueAsValue() }}
-{{if col.IsReference() }}
-	o.{{= col.ReferenceVariableIdentifier() }} = nil
+    o.{{= col.Field }}IsLoaded = true
+    o.{{= col.Field }}IsNull = true
+    o.{{= col.Field }} = {{= col.DefaultValueAsValue() }}
+{{if col.Reference != nil }}
+	o.{{= col.Reference.Field }} = nil
 {{if}}
 }
 }}

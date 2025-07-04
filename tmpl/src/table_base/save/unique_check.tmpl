@@ -8,13 +8,13 @@
     needed to allow for a locking service used with a database that does not support uniqueness.
  }}
 {{for _,col := range table.SettableColumns()}}
-{{if col.IsUnique && !col.IsAutoPK }}
-    if o.{{= col.VariableIdentifier() }}IsDirty {{if col.IsNullable}} &&
-            !o.{{= col.VariableIdentifier() }}IsNull{{if}} {
-        if obj,err := Load{{= table.Identifier }}{{if !col.IsPrimaryKey }}By{{= col.Identifier}}{{if}}(ctx, o.{{= col.VariableIdentifier() }}); err != nil {
+{{if col.IsUnique && !col.IsAutoPK() }}
+    if o.{{= col.Field }}IsDirty {{if col.IsNullable}} &&
+            !o.{{= col.Field }}IsNull{{if}} {
+        if obj,err := Load{{= table.Identifier }}{{if !col.IsPrimaryKey }}By{{= col.Identifier}}{{if}}(ctx, o.{{= col.Field }}); err != nil {
             return err
         } else if obj != nil {
-            return db.NewUniqueValueError("{{= table.QueryName }}", map[string]any{"{{= col.QueryName }}":o.{{= col.VariableIdentifier() }} }, nil)
+            return db.NewUniqueValueError("{{= table.QueryName }}", map[string]any{"{{= col.QueryName }}":o.{{= col.Field }} }, nil)
         }
     }
 {{if}}
@@ -22,11 +22,11 @@
 {{for _,idx := range table.Indexes}}
 {{if idx.IsUnique && len(idx.Columns) > 1 }}
     // Check mult-column unique index
-    if ({{join idx.Columns, " || "}}o.{{= _j.VariableIdentifier() }}IsDirty{{join}}) {{for _,col := range idx.Columns}}{{if col.IsNullable}} && !o.{{= col.VariableIdentifier() }}IsNull{{if}}{{for}} {
-        if obj, err := Load{{= table.Identifier }}By{{join idx.Columns, ""}}{{= _j.Identifier }}{{join}}(ctx, {{join idx.Columns, ", "}}o.{{= _j.VariableIdentifier() }}{{join}}); err != nil {
+    if ({{join idx.Columns, " || "}}o.{{= _j.Field }}IsDirty{{join}}) {{for _,col := range idx.Columns}}{{if col.IsNullable}} && !o.{{= col.Field }}IsNull{{if}}{{for}} {
+        if obj, err := Load{{= table.Identifier }}By{{join idx.Columns, ""}}{{= _j.Identifier }}{{join}}(ctx, {{join idx.Columns, ", "}}o.{{= _j.Field }}{{join}}); err != nil {
             return err
         } else if obj != nil {
-            return db.NewUniqueValueError("{{= table.QueryName }}", map[string]any{ {{join idx.Columns, ","}}"{{= _j.QueryName }}":o.{{= _j.VariableIdentifier() }}{{join}} }, nil)
+            return db.NewUniqueValueError("{{= table.QueryName }}", map[string]any{ {{join idx.Columns, ","}}"{{= _j.QueryName }}":o.{{= _j.Field }}{{join}} }, nil)
         }
     }
 {{if}}

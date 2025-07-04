@@ -4,13 +4,13 @@
 }}
 {{
 {{if rev.IsUnique }}
-    if obj := o.{{= rev.ReverseVariableIdentifier() }}; obj != nil {
+    if obj := o.{{= rev.ReverseField }}; obj != nil {
         v["{{= rev.ReverseJsonKey() }}"] = obj.MarshalStringMap()
     }
 {{else}}
-    if o.{{= rev.ReverseVariableIdentifier() }}.Len() != 0 {
+    if o.{{= rev.ReverseField }}.Len() != 0 {
         var vals []map[string]interface{}
-        for obj := range o.{{= rev.ReverseVariableIdentifier() }}.ValuesIter() {
+        for obj := range o.{{= rev.ReverseField }}.ValuesIter() {
             vals = append(vals, obj.MarshalStringMap())
         }
         v["{{= rev.ReverseJsonKey() }}"] = vals

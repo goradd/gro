@@ -3,12 +3,12 @@
 //*** {{includeName}}
 }}
 {{
-    if err = dec.Decode(&o.{{= rev.ReverseVariableIdentifier()}}); err != nil {
-        return fmt.Errorf("error decoding {{= table.Identifier }}.{{= rev.ReverseVariableIdentifier() }}: %w", err)
+    if err = dec.Decode(&o.{{= rev.ReverseField}}); err != nil {
+        return fmt.Errorf("error decoding {{= table.Identifier }}.{{= rev.ReverseField }}: %w", err)
     }
 
-    if err = dec.Decode(&o.{{= rev.ReverseVariableIdentifier()}}IsDirty); err != nil {
-        return fmt.Errorf("error decoding {{= table.Identifier }}.{{= rev.ReverseVariableIdentifier() }}IsDirty: %w", err)
+    if err = dec.Decode(&o.{{= rev.ReverseField}}IsDirty); err != nil {
+        return fmt.Errorf("error decoding {{= table.Identifier }}.{{= rev.ReverseField }}IsDirty: %w", err)
     }
 
     {{# We will need to rebuild the map based on the object decoded, since they are pointers to the same objects}}

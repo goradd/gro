@@ -14,7 +14,7 @@
                          Get(); err != nil {
                         return err
                     } else if oldObj != nil {
-                        if o.{{= col.ReverseVariableIdentifier() }} == nil || oldObj.PrimaryKey() != o.{{= col.ReverseVariableIdentifier() }}.PrimaryKey() {
+                        if o.{{= col.ReverseField }} == nil || oldObj.PrimaryKey() != o.{{= col.ReverseField }}.PrimaryKey() {
                             // Delete the old object
                             err = oldObj.Delete(ctx)
                             if err != nil {
@@ -23,9 +23,9 @@
                         }
                     }
                     // we are moving the attachment from another object to our object, or attaching an object that is already attached.
-                    if o.{{= col.ReverseVariableIdentifier() }} != nil {
-                        o.{{= col.ReverseVariableIdentifier() }}.Set{{= col.Identifier }}(o.PrimaryKey())
-                        if err := o.{{= col.ReverseVariableIdentifier() }}.Save(ctx); err != nil {
+                    if o.{{= col.ReverseField }} != nil {
+                        o.{{= col.ReverseField }}.Set{{= col.Identifier }}(o.PrimaryKey())
+                        if err := o.{{= col.ReverseField }}.Save(ctx); err != nil {
                             return err
                         }
                     }

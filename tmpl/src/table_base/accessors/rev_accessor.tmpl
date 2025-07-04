@@ -2,24 +2,24 @@
 //*** {{includeName}}
 }}
 {{
-// {{= rev.Reference.ReverseIdentifier }} returns a single {{= rev.Table.Identifier }} object by primary key, if one was loaded.
+// {{= rev.ReverseIdentifier }} returns a single {{= rev.Table.Identifier }} object by primary key, if one was loaded.
 // Otherwise, it will return nil. It will not return {{= rev.Table.Identifier }} objects that are not saved.
-func (o *{{= table.DecapIdentifier }}Base) {{= rev.Reference.ReverseIdentifier }}(pk {{= rev.Table.PrimaryKeyGoType() }}) *{{= rev.Table.Identifier }} {
-	v := o.{{= rev.ReverseVariableIdentifier() }}.Get(pk)
+func (o *{{= table.DecapIdentifier }}Base) {{= rev.ReverseIdentifier }}(pk {{= rev.Table.PrimaryKeyType() }}) *{{= rev.Table.Identifier }} {
+	v := o.{{= rev.ReverseField }}.Get(pk)
 	return v
 }
 
-// {{= rev.ReverseIdentifier() }} returns a slice of {{= rev.Table.Identifier }} objects if loaded.
-func (o *{{= table.DecapIdentifier}}Base) {{= rev.ReverseIdentifier() }}() []*{{= rev.Table.Identifier }} {
-	return o.{{= rev.ReverseVariableIdentifier() }}.Values()
+// {{= rev.ReverseIdentifier }} returns a slice of {{= rev.Table.Identifier }} objects if loaded.
+func (o *{{= table.DecapIdentifier}}Base) {{= rev.ReverseIdentifier }}() []*{{= rev.Table.Identifier }} {
+	return o.{{= rev.ReverseField }}.Values()
 }
 
-// Load{{= rev.ReverseIdentifier() }} loads a new slice of {{= rev.Table.Identifier }} objects and returns it.
-func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.ReverseIdentifier() }}(ctx context.Context) ([]*{{= rev.Table.Identifier }}, error) {
+// Load{{= rev.ReverseIdentifier }} loads a new slice of {{= rev.Table.Identifier }} objects and returns it.
+func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.ReverseIdentifier }}(ctx context.Context) ([]*{{= rev.Table.Identifier }}, error) {
 	if o.IsNew() {
 		return nil, nil
 	}
-	for obj := range o.{{= rev.ReverseVariableIdentifier() }}.ValuesIter() {
+	for obj := range o.{{= rev.ReverseField }}.ValuesIter() {
         if obj.IsDirty() {
             panic("You cannot load over items that have changed but have not been saved.")
         }
@@ -29,49 +29,49 @@ func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.ReverseIdentifier() }}(ctx
     if err != nil {
         return nil, err
     }
-    o.{{= rev.ReverseVariableIdentifier() }}.Clear()
+    o.{{= rev.ReverseField }}.Clear()
 
     for _,obj := range objs {
         pk := obj.{{= rev.Table.PrimaryKeyColumn().Identifier }}()
-        o.{{= rev.ReverseVariableIdentifier() }}.Set(pk, obj)
+        o.{{= rev.ReverseField }}.Set(pk, obj)
     }
 
-    if o.{{= rev.ReverseVariableIdentifier() }}.Len() == 0 {
+    if o.{{= rev.ReverseField }}.Len() == 0 {
         return nil, nil
     }
-	return o.{{= rev.ReverseVariableIdentifier() }}.Values(), nil
+	return o.{{= rev.ReverseField }}.Values(), nil
 }
 
-// Count{{= rev.ReverseIdentifier() }} does a database query and returns the number of {{= rev.Table.Identifier }}
+// Count{{= rev.ReverseIdentifier }} does a database query and returns the number of {{= rev.Table.Identifier }}
 // objects currently in the database connected to this object.
-func (o *{{= table.DecapIdentifier}}Base) Count{{= rev.ReverseIdentifier() }}(ctx context.Context) (int, error) {
+func (o *{{= table.DecapIdentifier}}Base) Count{{= rev.ReverseIdentifier }}(ctx context.Context) (int, error) {
     return Count{{= rev.Table.IdentifierPlural }}By{{= rev.Identifier }}(ctx, o.PrimaryKey())
 }
 
-// Set{{= rev.ReverseIdentifier() }} associates the objects in objs with the {{= table.Identifier }}.
+// Set{{= rev.ReverseIdentifier }} associates the objects in objs with the {{= table.Identifier }}.
 {{if rev.IsNullable }}
-// If it has {{= rev.ReverseIdentifier() }} already associated with it that will not be associated after a save,
-// the foreign keys for those {{= rev.ReverseIdentifier() }} will be set to null.
+// If it has {{= rev.ReverseIdentifier }} already associated with it that will not be associated after a save,
+// the foreign keys for those {{= rev.ReverseIdentifier }} will be set to null.
 // If you did not use a join to query the items in the first place, used a conditional join,
 // or joined with an expansion, be particularly careful, since you may be changing items
 // that are not currently attached to this {{= table.Identifier }}.
 {{else}}
-// WARNING! If it has {{= rev.ReverseIdentifier() }} already associated with it that will not be associated after a save,
-// Save will panic. Be sure to delete those {{= rev.ReverseIdentifier() }} or otherwise fix those pointers before calling save.
+// WARNING! If it has {{= rev.ReverseIdentifier }} already associated with it that will not be associated after a save,
+// Save will panic. Be sure to delete those {{= rev.ReverseIdentifier }} or otherwise fix those pointers before calling save.
 {{if}}
-func (o *{{= table.DecapIdentifier}}Base) Set{{= rev.ReverseIdentifier() }}(objs ...*{{= rev.Table.Identifier }}) {
-    for obj := range o.{{= rev.ReverseVariableIdentifier() }}.ValuesIter() {
+func (o *{{= table.DecapIdentifier}}Base) Set{{= rev.ReverseIdentifier }}(objs ...*{{= rev.Table.Identifier }}) {
+    for obj := range o.{{= rev.ReverseField }}.ValuesIter() {
         if obj.IsDirty() {
             panic("You cannot overwrite items that have changed but have not been saved.")
         }
     }
 
-    o.{{= rev.ReverseVariableIdentifier() }}.Clear()
+    o.{{= rev.ReverseField }}.Clear()
     for _,obj := range objs {
         pk := obj.{{= rev.Table.PrimaryKeyColumn().Identifier }}()
-        o.{{= rev.ReverseVariableIdentifier() }}.Set(pk, obj)
+        o.{{= rev.ReverseField }}.Set(pk, obj)
     }
-	o.{{= rev.ReverseVariableIdentifier() }}IsDirty = true
+	o.{{= rev.ReverseField }}IsDirty = true
 }
 
 }}

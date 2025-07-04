@@ -23,7 +23,7 @@
 {{if}}
 
 {{if col.IsEnum()}}
-            v2, err := {{= col.GoType() }}FromInterface(v)
+            v2, err := {{= col.Type }}FromInterface(v)
             if err != nil {return err}
             o.Set{{= col.Identifier }}(v2)
 {{else}}

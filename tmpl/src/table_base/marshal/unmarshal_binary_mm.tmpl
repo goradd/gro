@@ -4,18 +4,18 @@
 }}
 {{
 
-    if err = dec.Decode(&o.{{= mm.VariableIdentifier() }}); err != nil {
-        return fmt.Errorf("error decoding {{= table.Identifier }}.{{= mm.PkIdentifier() }}: %w", err)
+    if err = dec.Decode(&o.{{= mm.Field }}); err != nil {
+        return fmt.Errorf("error decoding {{= table.Identifier }}.{{= mm.PkField() }}: %w", err)
     }
-    if err = dec.Decode(&o.{{= mm.VariableIdentifier() }}IsDirty); err != nil {
-        return fmt.Errorf("error decoding {{= table.Identifier }}.{{= mm.VariableIdentifier() }}IsDirty: %w", err)
+    if err = dec.Decode(&o.{{= mm.Field }}IsDirty); err != nil {
+        return fmt.Errorf("error decoding {{= table.Identifier }}.{{= mm.Field }}IsDirty: %w", err)
     }
     if err = dec.Decode(&isPtr); err != nil {
-        return fmt.Errorf("error decoding {{= table.Identifier }}.{{= mm.PkIdentifier() }} isPtr: %w", err)
+        return fmt.Errorf("error decoding {{= table.Identifier }}.{{= mm.PkField() }} isPtr: %w", err)
     }
     if isPtr {
-        if err = dec.Decode(&o.{{= mm.PkIdentifier() }}); err != nil {
-            return fmt.Errorf("error decoding {{= table.Identifier }}.{{= mm.PkIdentifier() }}: %w", err)
+        if err = dec.Decode(&o.{{= mm.PkField() }}); err != nil {
+            return fmt.Errorf("error decoding {{= table.Identifier }}.{{= mm.PkField() }}: %w", err)
         }
     }
 }}

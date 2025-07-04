@@ -12,20 +12,20 @@ func Count{{= table.IdentifierPlural }}(ctx context.Context) (int, error) {
 
 {{for _,idx := range table.Indexes }}
 // Count{{= table.IdentifierPlural }}By{{= idx.Name() }} queries the database and returns the number of {{= table.Identifier }} objects that
-// have {{join idx.Columns, " and "}}{{= _j.VariableIdentifier() }}{{join}}.
+// have {{join idx.Columns, " and "}}{{= _j.Field }}{{join}}.
 // doc: type={{= table.Identifier }}
-func Count{{= table.IdentifierPlural }}By{{= idx.Name() }}(ctx context.Context, {{join idx.Columns, ", "}}{{= _j.VariableIdentifier() }} {{= _j.GoType()}}{{join}} ) (int, error) {
+func Count{{= table.IdentifierPlural }}By{{= idx.Name() }}(ctx context.Context, {{join idx.Columns, ", "}}{{= _j.Field }} {{= _j.Type}}{{join}} ) (int, error) {
 {{for _,col := range idx.Columns }}
 {{if col.SchemaSubType == schema.ColSubTypeTimeOnly}}
 {{# The Mysql driver cannot process time only time.Time values. This should work for other drivers too. }}
-    v_{{= col.VariableIdentifier() }} := {{= col.VariableIdentifier() }}.Format("15:04:05")
+    v_{{= col.Field }} := {{= col.Field }}.Format("15:04:05")
 {{else}}
-    v_{{= col.VariableIdentifier() }} := {{= col.VariableIdentifier() }}
+    v_{{= col.Field }} := {{= col.Field }}
 {{if}}
 {{for}}
 	return Query{{= table.IdentifierPlural }}(ctx).
 {{for _,col := range idx.Columns }}
-	Where(op.Equal(node.{{= table.Identifier }}().{{= col.Identifier }}(), v_{{= col.VariableIdentifier() }})).
+	Where(op.Equal(node.{{= table.Identifier }}().{{= col.Identifier }}(), v_{{= col.Field }})).
 {{for}}
 	Count()
 }

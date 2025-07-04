@@ -4,20 +4,20 @@
 }}
 {{
 
-    if err := enc.Encode(o.{{= col.VariableIdentifier() }}); err != nil {
-        return fmt.Errorf("error encoding {{= table.Identifier }}.{{= col.VariableIdentifier() }}: %w", err)
+    if err := enc.Encode(o.{{= col.Field }}); err != nil {
+        return fmt.Errorf("error encoding {{= table.Identifier }}.{{= col.Field }}: %w", err)
     }
 {{if col.IsNullable}}
-    if err := enc.Encode(o.{{= col.VariableIdentifier() }}IsNull); err != nil {
-        return fmt.Errorf("error encoding {{= table.Identifier }}.{{= col.VariableIdentifier() }}IsNull: %w", err)
+    if err := enc.Encode(o.{{= col.Field }}IsNull); err != nil {
+        return fmt.Errorf("error encoding {{= table.Identifier }}.{{= col.Field }}IsNull: %w", err)
     }
 {{if}}
-    if err := enc.Encode(o.{{= col.VariableIdentifier() }}IsLoaded); err != nil {
-        return fmt.Errorf("error encoding {{= table.Identifier }}.{{= col.VariableIdentifier() }}IsLoaded: %w", err)
+    if err := enc.Encode(o.{{= col.Field }}IsLoaded); err != nil {
+        return fmt.Errorf("error encoding {{= table.Identifier }}.{{= col.Field }}IsLoaded: %w", err)
     }
 {{if col.HasSetter() }}
-    if err := enc.Encode(o.{{= col.VariableIdentifier() }}IsDirty); err != nil {
-        return fmt.Errorf("error encoding {{= table.Identifier }}.{{= col.VariableIdentifier() }}IsDirty: %w", err)
+    if err := enc.Encode(o.{{= col.Field }}IsDirty); err != nil {
+        return fmt.Errorf("error encoding {{= table.Identifier }}.{{= col.Field }}IsDirty: %w", err)
     }
 {{if}}
 

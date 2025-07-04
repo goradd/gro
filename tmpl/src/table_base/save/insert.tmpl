@@ -17,26 +17,26 @@ func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) (err error
 	err = db.ExecuteTransaction(ctx, d, func() error {
 {{: update_ref.tmpl }}
 {{for _,col := range table.SettableColumns() }}
-{{if !col.IsAutoPK && !col.IsNullable}}
+{{if !col.IsAutoPK() && !col.IsNullable}}
 {{# Note: Most likely the user is inserting a new record, but forgot to set a required value, but there is the
               possibility that this is a retrieved record with missing fields (through the Select statement) and those
               missing fields are required, and the user is forcing an insert. }}
-    if !o.{{= col.VariableIdentifier() }}IsLoaded {
+    if !o.{{= col.Field }}IsLoaded {
         panic("a value for {{= col.Identifier }} is required, and there is no default value. Call Set{{= col.Identifier }}() before inserting the record.")
     }
 {{if}}
 {{for}}
 {{: unique_check.tmpl }}
     insertFields = get{{= table.Identifier }}InsertFields(o)
-    var newPK {{= table.PrimaryKeyGoType() }}
+    var newPK {{= table.PrimaryKeyType() }}
 {{if table.HasAutoPK() }}
 	newPK, err = d.Insert(ctx, "{{= table.QueryName }}", "{{= table.PrimaryKeyColumn().QueryName }}", insertFields)
     if err != nil {
         return err
     }
-	o.{{= table.PrimaryKeyColumn().VariableIdentifier() }} = newPK
+	o.{{= table.PrimaryKeyColumn().Field }} = newPK
 	o._originalPK = newPK
-    o.{{= table.PrimaryKeyColumn().VariableIdentifier() }}IsLoaded = true
+    o.{{= table.PrimaryKeyColumn().Field }}IsLoaded = true
 {{else}}
 	_, err = d.Insert(ctx, "{{= table.QueryName }}", "", insertFields)
     if err != nil {
@@ -67,8 +67,8 @@ func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) (err error
         col.SchemaSubType == schema.ColSubTypeTimestamp ||
         col.SchemaSubType == schema.ColSubTypeLock }}
     if t,ok := insertFields["{{= col.QueryName }}"]; ok {
-        o.{{= col.VariableIdentifier() }} = t.({{= col.GoType() }})
-        o.{{= col.VariableIdentifier() }}IsLoaded = true
+        o.{{= col.Field }} = t.({{= col.Type }})
+        o.{{= col.Field }}IsLoaded = true
     }
 {{if}}
 {{for}}

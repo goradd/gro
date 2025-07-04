@@ -124,7 +124,7 @@ func get{{= table.Identifier}}UpdateFields(o *{{= table.DecapIdentifier}}Base) (
 // Returns an error only if there was a problem with the database during the delete.
 // If the record was not found, no error will be returned.
 // doc: type={{= table.Identifier }}
-func Delete{{= table.Identifier }}(ctx context.Context, pk {{= table.PrimaryKeyColumn().GoType() }}) error {
+func Delete{{= table.Identifier }}(ctx context.Context, pk {{= table.PrimaryKeyColumn().Type }}) error {
 	return delete{{= table.Identifier }}(ctx, pk)
 }
 {{if}}

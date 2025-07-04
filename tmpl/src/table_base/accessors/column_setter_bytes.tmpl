@@ -25,27 +25,27 @@ func (o *{{= table.DecapIdentifier }}Base) Set{{= col.Identifier }}(v []byte) {
 {{if}}
 
 	if o._restored &&
-	    o.{{= col.VariableIdentifier() }}IsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+	    o.{{= col.Field }}IsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 {{if col.IsNullable }}
-		!o.{{= col.VariableIdentifier() }}IsNull && // if the db value is null, force a set of value
+		!o.{{= col.Field }}IsNull && // if the db value is null, force a set of value
 {{if}}
-        bytes.Equal(o.{{= col.VariableIdentifier() }}, v) {
+        bytes.Equal(o.{{= col.Field }}, v) {
         // no change
         return
     }
 
-	o.{{= col.VariableIdentifier() }}IsLoaded = true
+	o.{{= col.Field }}IsLoaded = true
 {{if col.IsNullable }}
-	o.{{= col.VariableIdentifier() }} = slices.Clone(v)
-    o.{{= col.VariableIdentifier() }}IsNull = false
+	o.{{= col.Field }} = slices.Clone(v)
+    o.{{= col.Field }}IsNull = false
 {{else}}
 	if v == nil {
-	    o.{{= col.VariableIdentifier() }} = []byte{}
+	    o.{{= col.Field }} = []byte{}
 	} else {
-	    o.{{= col.VariableIdentifier() }} = slices.Clone(v)
+	    o.{{= col.Field }} = slices.Clone(v)
 	}
 {{if}}
-	o.{{= col.VariableIdentifier() }}IsDirty = true
+	o.{{= col.Field }}IsDirty = true
 }
 
 }}

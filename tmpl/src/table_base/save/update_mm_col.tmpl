@@ -5,27 +5,27 @@
 {{
 {{# Update many-many references }}
     {
-        keys := o.{{= mm.VariableIdentifier() }}.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
+        keys := o.{{= mm.Field }}.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
         for i, k := range keys {
-            obj := o.{{= mm.VariableIdentifier() }}.Get(k)
+            obj := o.{{= mm.Field }}.Get(k)
             if err := obj.Save(ctx); err != nil {
                 return err
             }
             if obj.PrimaryKey() != k {
                 // update key in the slice map without changing the order
-                o.{{= mm.VariableIdentifier() }}.Delete(k)
-                o.{{= mm.VariableIdentifier() }}.SetAt(i, obj.PrimaryKey(), obj)
+                o.{{= mm.Field }}.Delete(k)
+                o.{{= mm.Field }}.SetAt(i, obj.PrimaryKey(), obj)
             }
         }
-        if o.{{= mm.VariableIdentifier() }}IsDirty {
-            if (len(o.{{= mm.PkIdentifier() }}) != 0) {
+        if o.{{= mm.Field }}IsDirty {
+            if (len(o.{{= mm.PkField() }}) != 0) {
                 if err := db.AssociateOnly(ctx,
                         d,
                         "{{= mm.TableName }}",
                         "{{= mm.SourceColumnName }}",
                         o.PrimaryKey(),
                         "{{= mm.DestColumnName }}",
-                        o.{{= mm.PkIdentifier() }}); err != nil {
+                        o.{{= mm.PkField() }}); err != nil {
                     return err
                 }
             } else {
@@ -35,7 +35,7 @@
                         "{{= mm.SourceColumnName }}",
                         o.PrimaryKey(),
                         "{{= mm.DestColumnName }}",
-                        o.{{= mm.VariableIdentifier() }}.Keys()); err != nil {
+                        o.{{= mm.Field }}.Keys()); err != nil {
                     return err
                 }
             }

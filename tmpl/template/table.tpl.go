@@ -513,7 +513,7 @@ func Delete`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().GoType()); err != nil {
+		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Type); err != nil {
 			return
 		}
 

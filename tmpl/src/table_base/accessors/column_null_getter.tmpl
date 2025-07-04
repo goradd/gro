@@ -6,7 +6,7 @@
 
 // {{= col.Identifier }}IsNull returns true if the related database value is null.
 func (o *{{= table.DecapIdentifier}}Base) {{= col.Identifier }}IsNull() bool {
-	return o.{{= col.VariableIdentifier() }}IsNull
+	return o.{{= col.Field }}IsNull
 }
 
 }}

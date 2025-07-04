@@ -3,7 +3,7 @@
 //*** {{includeName}}
 }}
 {{
-    if o.{{= rev.ReverseVariableIdentifier() }} == nil {
+    if o.{{= rev.ReverseField }} == nil {
         if err := enc.Encode(false); err != nil {
             return err
         }
@@ -11,12 +11,12 @@
         if err := enc.Encode(true); err != nil {
             return err
         }
-        if err := enc.Encode(o.{{= rev.ReverseVariableIdentifier() }}); err != nil {
-            return fmt.Errorf("error encoding {{= table.Identifier }}.{{= rev.ReverseVariableIdentifier() }}: %w", err)
+        if err := enc.Encode(o.{{= rev.ReverseField }}); err != nil {
+            return fmt.Errorf("error encoding {{= table.Identifier }}.{{= rev.ReverseField }}: %w", err)
         }
     }
 
-    if err := enc.Encode(o.{{= rev.ReverseVariableIdentifier() }}IsDirty); err != nil {
-        return fmt.Errorf("error encoding {{= table.Identifier }}.{{= rev.ReverseVariableIdentifier() }}IsDirty: %w", err)
+    if err := enc.Encode(o.{{= rev.ReverseField }}IsDirty); err != nil {
+        return fmt.Errorf("error encoding {{= table.Identifier }}.{{= rev.ReverseField }}IsDirty: %w", err)
     }
 }}
