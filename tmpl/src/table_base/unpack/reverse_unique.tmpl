@@ -4,17 +4,17 @@
 }}
 {{
 
-	if v, ok := m["{{= col.ReverseIdentifier() }}"]; ok {
+	if v, ok := m["{{= rev.ReverseIdentifier }}"]; ok {
 		if v2, ok2 := v.(map[string]any); ok2 {
-			o.{{= col.ReverseField }} = new({{= col.Table.Identifier }})
-			o.{{= col.ReverseField }}.unpack(v2, o.{{= col.ReverseField }})
-			o.{{= col.ReverseField }}IsDirty = false
+			o.{{= rev.ReverseField }} = new({{= rev.Table.Identifier }})
+			o.{{= rev.ReverseField }}.unpack(v2, o.{{= rev.ReverseField }})
+			o.{{= rev.ReverseField }}IsDirty = false
 		} else {
-			panic("Wrong type found for {{= col.Field }} object.")
+			panic("Wrong type found for {{= rev.ReverseField }} object.")
 		}
 	} else {
-		o.{{= col.ReverseField }} = nil
-		o.{{= col.ReverseField }}IsDirty = false
+		o.{{= rev.ReverseField }} = nil
+		o.{{= rev.ReverseField }}IsDirty = false
 	}
 
 }}

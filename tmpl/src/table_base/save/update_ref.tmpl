@@ -2,15 +2,13 @@
 //*** {{includeName}}
 }}
 {{
-{{for _,col := range table.Columns }}
-    {{if col.IsReference() }}
-        // Save loaded {{= col.ReferenceIdentifier() }} object to get its new pk and update it here.
-        if o.{{= col.ReferenceVariableIdentifier() }} != nil {
-            if err := o.{{= col.ReferenceVariableIdentifier() }}.Save(ctx); err != nil {
-                return err
-            }
-            o.Set{{= col.Identifier }}(o.{{= col.ReferenceVariableIdentifier() }}.PrimaryKey())
+{{for _,ref := range table.References }}
+    // Save loaded {{= ref.Identifier }} object to get its new pk and update it here.
+    if o.{{= ref.Field }} != nil {
+        if err := o.{{= ref.Field }}.Save(ctx); err != nil {
+            return err
         }
-    {{if}}
+        o.Set{{= ref.ForeignKey.Identifier }}(o.{{= ref.Field }}.PrimaryKey())
+    }
 {{for}}
 }}

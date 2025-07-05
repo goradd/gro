@@ -14,7 +14,7 @@ func (o *{{= table.DecapIdentifier}}Base) update(ctx context.Context) error {
     }
 
     var modifiedFields map[string]interface{}
-{{if c := table.LockColumn(); c != nil }}
+{{if c := table.LockColumn; c != nil }}
     var newLock int64
 {{if}}
 
@@ -33,7 +33,7 @@ func (o *{{= table.DecapIdentifier}}Base) update(ctx context.Context) error {
         if len(modifiedFields) != 0 {
             var err2 error
 
-{{if c := table.LockColumn(); c == nil }}
+{{if c := table.LockColumn; c == nil }}
             _, err2 = d.Update(ctx, "{{= table.QueryName }}", "{{= table.PrimaryKeyColumn().QueryName }}", o._originalPK, modifiedFields, "", 0)
             if err2 != nil {
                 return err2

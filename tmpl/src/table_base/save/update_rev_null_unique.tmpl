@@ -3,28 +3,28 @@
 //*** {{includeName}}
 }}
 {{
-                if obj, err := Query{{= col.Table.IdentifierPlural }}(ctx).
-                        Where(op.Equal(node.{{= col.Table.Identifier }}().{{= col.Identifier }}(), o.PrimaryKey())).
-                        Select(node.{{= col.Table.Identifier }}().{{= col.Identifier }}()).
- {{if col.Table.LockColumn() != nil }}
-                        Select(node.{{= col.Table.Identifier }}().{{= col.Table.LockColumn().Identifier }}()).
+                if obj, err := Query{{= rev.Table.IdentifierPlural }}(ctx).
+                        Where(op.Equal(node.{{= rev.Table.Identifier }}().{{= rev.ForeignKey.Identifier }}(), o.{{= table.PrimaryKeyColumn().Identifier }}())).
+                        Select(node.{{= rev.Table.Identifier }}().{{= rev.ForeignKey.Identifier }}()).
+ {{if rev.Table.LockColumn != nil }}
+                        Select(node.{{= rev.Table.Identifier }}().{{= rev.Table.LockColumn.Identifier }}()).
  {{if}}
                        Get(); err != nil {
                     return err
                 } else if obj != nil &&
-                    (o.{{= col.ReverseField }} == nil ||
-                    obj.PrimaryKey() != o.{{= col.ReverseField }}.PrimaryKey()) {
+                    (o.{{= rev.ReverseField }} == nil ||
+                    obj.PrimaryKey() != o.{{= rev.ReverseField }}.PrimaryKey()) {
 
-                    obj.Set{{= col.Identifier }}ToNull()
+                    obj.Set{{= rev.ForeignKey.Identifier }}ToNull()
                     if err = obj.Save(ctx); err != nil {
                         return err
                     }
                 }
 
-                if o.{{= col.ReverseField }} != nil {
-                    o.{{= col.ReverseField }}.{{= col.Field}}IsDirty = true // force a change in case data is stale
-                    o.{{= col.ReverseField }}.Set{{= col.Identifier }}(o.PrimaryKey())
-                    if err := o.{{= col.ReverseField }}.Save(ctx); err != nil {
+                if o.{{= rev.ReverseField }} != nil {
+                    o.{{= rev.ReverseField }}.{{= rev.ForeignKey.Field}}IsDirty = true // force a change in case data is stale
+                    o.{{= rev.ReverseField }}.Set{{= rev.ForeignKey.Identifier }}(o.PrimaryKey())
+                    if err := o.{{= rev.ReverseField }}.Save(ctx); err != nil {
                         return err
                     }
                 }

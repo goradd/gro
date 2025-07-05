@@ -5,22 +5,22 @@
 
 {{
 
-	if v, ok := m["{{= col.ReverseIdentifier() }}"]; ok {
+	if v, ok := m["{{= rev.ReverseIdentifier }}"]; ok {
 		switch v2 := v.(type) {
 		case []map[string]any: // array expansion
-		    o.{{= col.ReverseField }}.Clear()
-			o.{{= col.ReverseField }}IsDirty = false
+		    o.{{= rev.ReverseField }}.Clear()
+			o.{{= rev.ReverseField }}IsDirty = false
 			for _,v3 := range v2 {
-				obj := new({{= col.Table.Identifier }})
+				obj := new({{= rev.Table.Identifier }})
 				obj.unpack(v3, obj)
-				o.{{= col.ReverseField }}.Set(obj.PrimaryKey(), obj)
+				o.{{= rev.ReverseField }}.Set(obj.PrimaryKey(), obj)
 			}
 		default:
-			panic("Wrong type found for {{= col.ReverseField }} object.")
+			panic("Wrong type found for {{= rev.ReverseField }} object.")
 		}
 	} else {
-		o.{{= col.ReverseField }}.Clear()
-		o.{{= col.ReverseField }}IsDirty = false
+		o.{{= rev.ReverseField }}.Clear()
+		o.{{= rev.ReverseField }}IsDirty = false
 	}
 
 }}

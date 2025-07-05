@@ -1,3 +1,6 @@
+{{g
+//*** {{includeName}}
+}}
 {{# Since not all databases natively enforce uniqueness, we will attempt to do it manually here.
     However, unless the database has its own built-in mechanism to support uniqueness, this can
     still fail in a race condition. In such situations, the developer would have to implement a service that operates like
@@ -7,18 +10,6 @@
     database driver will generate the db.UniqueValueError if there is a collision. The check here is still
     needed to allow for a locking service used with a database that does not support uniqueness.
  }}
-{{for _,col := range table.SettableColumns()}}
-{{if col.IsUnique && !col.IsAutoPK() }}
-    if o.{{= col.Field }}IsDirty {{if col.IsNullable}} &&
-            !o.{{= col.Field }}IsNull{{if}} {
-        if obj,err := Load{{= table.Identifier }}{{if !col.IsPrimaryKey }}By{{= col.Identifier}}{{if}}(ctx, o.{{= col.Field }}); err != nil {
-            return err
-        } else if obj != nil {
-            return db.NewUniqueValueError("{{= table.QueryName }}", map[string]any{"{{= col.QueryName }}":o.{{= col.Field }} }, nil)
-        }
-    }
-{{if}}
-{{for}}
 {{for _,idx := range table.Indexes}}
 {{if idx.IsUnique && len(idx.Columns) > 1 }}
     // Check mult-column unique index

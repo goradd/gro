@@ -9,7 +9,7 @@
 			o.{{= mm.Field }}.Clear()
 
 			for _,v3 := range v2 {
-				obj := new({{= mm.ObjectType() }})
+				obj := new({{= mm.ReferencedTable.Identifier }})
 				obj.unpack(v3, obj)
 				o.{{= mm.Field }}.Set(obj.PrimaryKey(), obj)
 			}

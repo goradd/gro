@@ -4,16 +4,16 @@
 }}
 {{
 {{# save reverse reference objects that are dirty, but relationship has not changed }}
-{{if col.IsUnique }}
+{{if rev.IsUnique }}
             // save related object in case internal values changed
-            if o.{{= col.ReverseField }} != nil {
-                if err := o.{{= col.ReverseField }}.Save(ctx); err != nil {
+            if o.{{= rev.ReverseField }} != nil {
+                if err := o.{{= rev.ReverseField }}.Save(ctx); err != nil {
                     return err
                 }
             }
 {{else}}
             // save related objects in case internal values changed
-            for obj := range o.{{= col.ReverseField }}.ValuesIter() {
+            for obj := range o.{{= rev.ReverseField }}.ValuesIter() {
                 if err := obj.Save(ctx); err != nil {
                     return err
                 }

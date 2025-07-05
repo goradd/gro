@@ -4,39 +4,39 @@
 }}
 {{
                     // Since the other side of the relationship cannot be null, there cannot be objects that will be detached.
-                    if oldObjs, err := Query{{= col.Table.IdentifierPlural }}(ctx).
-                                Where(op.Equal(node.{{= col.Table.Identifier }}().{{= col.Identifier }}(), o.PrimaryKey())).
-                                Select(node.{{= col.Table.Identifier }}().{{= col.Identifier }}()).
-{{if col.Table.LockColumn() != nil }}
-                                Select(node.{{= col.Table.Identifier }}().{{= col.Table.LockColumn().Identifier }}()).
+                    if oldObjs, err := Query{{= rev.Table.IdentifierPlural }}(ctx).
+                                Where(op.Equal(node.{{= rev.Table.Identifier }}().{{= rev.ForeignKey.Identifier }}(), o.{{= table.PrimaryKeyColumn().Identifier }}())).
+                                Select(node.{{= rev.Table.Identifier }}().{{= rev.ForeignKey.Identifier }}()).
+{{if rev.Table.LockColumn != nil }}
+                                Select(node.{{= rev.Table.Identifier }}().{{= rev.Table.LockColumn.Identifier }}()).
 {{if}}
                                 Load(); err != nil {
                         return err
                     } else {
                         for _,obj := range oldObjs {
-                            if !o.{{= col.ReverseField }}.Has(obj.PrimaryKey()) {
+                            if !o.{{= rev.ReverseField }}.Has(obj.PrimaryKey()) {
                                 err = obj.Delete(ctx) // old object is not in group of new objects, so delete it since it has a non-null reference to o.
                                 if err != nil {
                                     return err
                                 }
                             }
                         }
-                        keys := o.{{= col.ReverseField }}.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
+                        keys := o.{{= rev.ReverseField }}.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
                         for i, k := range keys {
-                            obj := o.{{= col.ReverseField }}.Get(k)
+                            obj := o.{{= rev.ReverseField }}.Get(k)
                             if obj == nil {
                                 // object was deleted during save?
                                 continue
                             }
-                            obj.Set{{= col.Identifier }}(o.PrimaryKey())
-                            obj.{{= col.Field }}IsDirty = true // force a change in case data is stale
+                            obj.Set{{= rev.ForeignKey.Identifier }}(o.PrimaryKey())
+                            obj.{{= rev.ForeignKey.Field }}IsDirty = true // force a change in case data is stale
                             if err = obj.Save(ctx); err != nil {
                                 return err
                             }
                             if obj.PrimaryKey() != k {
                                 // update slice map key without changing order
-                                o.{{= col.ReverseField }}.Delete(k)
-                                o.{{= col.ReverseField }}.SetAt(i, obj.PrimaryKey(), obj)
+                                o.{{= rev.ReverseField }}.Delete(k)
+                                o.{{= rev.ReverseField }}.SetAt(i, obj.PrimaryKey(), obj)
                             }
                         }
                     }

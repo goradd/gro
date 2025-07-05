@@ -30,13 +30,13 @@ func (o *{{= table.DecapIdentifier}}Base) Initialize() {
 {{if table.HasReverseReferences() }}
 
 // Reverse reference objects.
-{{for _,col := range table.ReverseReferences}}
-    {{if col.IsUnique}}
-        o.{{= col.ReverseField }} = nil
-        o.{{= col.ReverseField }}IsDirty = false
+{{for _,ref := range table.ReverseReferences}}
+    {{if ref.IsUnique}}
+        o.{{= ref.ReverseField }} = nil
+        o.{{= ref.ReverseField }}IsDirty = false
     {{else}}
-        o.{{= col.ReverseField }}.Clear()
-        o.{{= col.ReverseField }}IsDirty = false
+        o.{{= ref.ReverseField }}.Clear()
+        o.{{= ref.ReverseField }}IsDirty = false
 	{{if}}
 {{for}}
 {{if}}

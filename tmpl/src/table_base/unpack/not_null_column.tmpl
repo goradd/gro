@@ -15,9 +15,13 @@
 {{if col.HasSetter() }}
 			o.{{= col.Field }}IsDirty = false
 {{if}}
-        {{if col.IsPrimaryKey}}
+{{if col.IsAPrimaryKey() }}
+{{if len(table.PrimaryKeyColumns()) == 1 }}
             o._originalPK = o.{{= col.Field }}
-        {{if}}
+{{else}}
+            o._originalPK.{{= col.Identifier }} = o.{{= col.Field }}
+{{if}}
+{{if}}{{# IsAPrimaryKey }}
 		} else {
 			panic("Wrong type found for {{= col.QueryName }}.")
 		}
