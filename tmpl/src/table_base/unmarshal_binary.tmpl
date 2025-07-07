@@ -16,20 +16,24 @@ func (o *{{= table.DecapIdentifier}}Base) decodeFrom(dec db.Decoder) (err error)
 	_ = isPtr
 }}
 
-for _,col := range table.Columns {
-    {{: "marshal/unmarshal_binary_col.tmpl" }}
+for _,col := range table.AllColumns() {
+{{: "marshal/unmarshal_binary_col.tmpl" }}
+}
+
+for _,ref := range table.References {
+{{: "marshal/unmarshal_binary_ref.tmpl" }}
 }
 
 for _,rev := range table.ReverseReferences {
     if rev.IsUnique {
-        {{: "marshal/unmarshal_binary_rev_unique.tmpl" }}
+{{: "marshal/unmarshal_binary_rev_unique.tmpl" }}
     } else {
-        {{: "marshal/unmarshal_binary_rev.tmpl" }}
+{{: "marshal/unmarshal_binary_rev.tmpl" }}
     }
 }
 
 for _,mm := range table.ManyManyReferences {
-    {{: "marshal/unmarshal_binary_mm.tmpl" }}
+{{: "marshal/unmarshal_binary_mm.tmpl" }}
 }
 
 {{: "marshal/unmarshal_binary_extra.tmpl" }}

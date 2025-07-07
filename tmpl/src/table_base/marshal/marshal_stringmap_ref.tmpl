@@ -1,0 +1,9 @@
+{{g
+//*** {{includeName}}
+}}
+{{
+
+    if val := o.{{= ref.Field }}; val != nil {
+        v["{{= ref.JsonKey() }}"] = val.MarshalStringMap()
+    }
+}}

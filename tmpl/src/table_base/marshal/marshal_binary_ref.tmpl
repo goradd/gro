@@ -1,0 +1,19 @@
+
+{{g
+//*** {{includeName}}
+}}
+{{
+
+    if o.{{= ref.Field }} == nil {
+        if err := enc.Encode(false); err != nil {
+            return err
+        }
+    } else {
+        if err := enc.Encode(true); err != nil {
+            return err
+        }
+        if err := enc.Encode(o.{{= ref.Field }}); err != nil {
+            return fmt.Errorf("error encoding {{= table.Identifier }}.{{= ref.Field }}: %w", err)
+        }
+    }
+}}

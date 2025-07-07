@@ -132,6 +132,11 @@ func (c *Column) JsonKey() string {
 	return c.Field
 }
 
+// IsReference returns true if the column is a foreign key.
+func (c *Column) IsReference() bool {
+	return c.Reference != nil
+}
+
 // IsEnum returns true if the column contains a type defined by an enum table.
 func (c *Column) IsEnum() bool {
 	return c.SchemaType == schema.ColTypeEnum

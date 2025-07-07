@@ -1,0 +1,17 @@
+
+{{g
+//*** {{includeName}}
+}}
+{{
+
+            case "{{= ref.JsonKey() }}":
+                v2 := New{{= ref.ReferencedTable.Identifier }}()
+                m2,ok := v.(map[string]any)
+                if !ok {
+                    return fmt.Errorf("json field %s must be a map", k)
+                }
+                err = v2.UnmarshalStringMap(m2)
+                if err != nil {return}
+                o.Set{{= ref.Identifier }}(v2)
+
+}}

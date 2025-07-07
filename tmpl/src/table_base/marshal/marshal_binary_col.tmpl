@@ -21,19 +21,4 @@
     }
 {{if}}
 
-{{if col.IsReference() }}
-    if o.{{= col.ReferenceVariableIdentifier() }} == nil {
-        if err := enc.Encode(false); err != nil {
-            return err
-        }
-    } else {
-        if err := enc.Encode(true); err != nil {
-            return err
-        }
-        if err := enc.Encode(o.{{= col.ReferenceVariableIdentifier() }}); err != nil {
-            return fmt.Errorf("error encoding {{= table.Identifier }}.{{= col.ReferenceVariableIdentifier() }}: %w", err)
-        }
-    }
-{{if}}
-
 }}

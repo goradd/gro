@@ -17,7 +17,7 @@
             }
             db.Associate(ctx,
                 d,
-                "{{= mm.TableName }}",
+                "{{= mm.TableQueryName }}",
                 "{{= mm.SourceColumnName }}",
                 newPK,
                 "{{= mm.DestColumnName }}",
@@ -26,14 +26,14 @@
         }
     } else if len(o.{{= mm.Field }}Pks) > 0 {
         for _,k := range o.{{= mm.Field }}Pks {
-            obj, err2 := Load{{= mm.DestinationTable.Identifier }}(ctx, k)
+            obj, err2 := Load{{= mm.ReferencedTable.Identifier }}(ctx, k)
             if err2 != nil {
                 return err2
             }
             if (obj != nil) {
                 db.Associate(ctx,
                     d,
-                    "{{= mm.TableName }}",
+                    "{{= mm.TableQueryName }}",
                     "{{= mm.SourceColumnName }}",
                     newPK,
                     "{{= mm.DestColumnName }}",

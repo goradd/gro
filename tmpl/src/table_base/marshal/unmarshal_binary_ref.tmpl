@@ -1,0 +1,15 @@
+
+{{g
+//*** {{includeName}}
+}}
+{{
+
+    if err = dec.Decode(&isPtr); err != nil {
+        return fmt.Errorf("error decoding {{= table.Identifier }}.{{= ref.Field }} isPtr: %w", err)
+    }
+    if isPtr {
+        if err = dec.Decode(&o.{{= ref.Field }}); err != nil {
+            return fmt.Errorf("error decoding {{= table.Identifier }}.{{= ref.Field }}: %w", err)
+        }
+    }
+}}

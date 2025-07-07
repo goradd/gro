@@ -21,7 +21,7 @@
             if (len(o.{{= mm.PkField() }}) != 0) {
                 if err := db.AssociateOnly(ctx,
                         d,
-                        "{{= mm.TableName }}",
+                        "{{= mm.TableQueryName }}",
                         "{{= mm.SourceColumnName }}",
                         o.PrimaryKey(),
                         "{{= mm.DestColumnName }}",
@@ -31,7 +31,7 @@
             } else {
                 if err := db.AssociateOnly(ctx,
                         d,
-                        "{{= mm.TableName }}",
+                        "{{= mm.TableQueryName }}",
                         "{{= mm.SourceColumnName }}",
                         o.PrimaryKey(),
                         "{{= mm.DestColumnName }}",

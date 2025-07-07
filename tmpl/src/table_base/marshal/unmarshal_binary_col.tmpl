@@ -20,14 +20,4 @@
     }
 {{if}}
 
-{{if col.IsReference()}}
-    if err = dec.Decode(&isPtr); err != nil {
-        return fmt.Errorf("error decoding {{= table.Identifier }}.{{= col.ReferenceVariableIdentifier() }} isPtr: %w", err)
-    }
-    if isPtr {
-        if err = dec.Decode(&o.{{= col.ReferenceVariableIdentifier() }}); err != nil {
-            return fmt.Errorf("error decoding {{= table.Identifier }}.{{= col.ReferenceVariableIdentifier() }}: %w", err)
-        }
-    }
-{{if}}
 }}

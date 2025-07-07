@@ -17,7 +17,7 @@
 {{if}}
 
 {{if col.IsReference() }}
-            if _,ok := m["{{= col.ReferenceJsonKey() }}"]; ok {
+            if _,ok := m["{{= col.Reference.JsonKey() }}"]; ok {
                 continue // importing the foreign key will remove the object
             }
 {{if}}
@@ -198,17 +198,4 @@ case query.ColTypeTime:
 }}
 {{if}}
             }
-
-{{if col.IsReference() }}
-            case "{{= col.ReferenceJsonKey() }}":
-                v2 := New{{= col.ReferenceType() }}()
-                m2,ok := v.(map[string]any)
-                if !ok {
-                    return fmt.Errorf("json field %s must be a map", k)
-                }
-                err = v2.UnmarshalStringMap(m2)
-                if err != nil {return}
-                o.Set{{= col.ReferenceIdentifier() }}(v2)
-
-{{if}}
 }}
