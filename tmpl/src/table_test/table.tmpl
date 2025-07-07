@@ -62,9 +62,9 @@ func Test{{= table.Identifier }}_Delete(t *testing.T) {
     ctx := db.NewContext(nil)
     obj := createMinimalSample{{= table.Identifier }}()
     assert.NoError(t, obj.Save(ctx))
-{{for _,col := range table.Columns }}
-{{if col.IsReference() && !col.IsNullable }}
-    defer obj.{{= col.ReferenceIdentifier() }}().Delete(ctx)
+{{for _,ref := range table.References }}
+{{if !ref.IsNullable }}
+    defer obj.{{= ref.Identifier }}().Delete(ctx)
 {{if}}
 {{for}}
     assert.NoError(t, Delete{{= table.Identifier }}(ctx, obj.PrimaryKey()))

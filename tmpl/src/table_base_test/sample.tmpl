@@ -8,14 +8,17 @@ func createMinimalSample{{= table.Identifier }}() *{{= table.Identifier }} {
     updateMinimalSample{{= table.Identifier }}(obj)
 
 {{for _,col := range table.Columns }}
-{{if col.IsPrimaryKey && !col.IsAutoPK }}
-    obj.Set{{= col.Identifier }}(test.RandomValue[{{= col.GoType() }}]({{u min(col.Size, 100000)}}))
+{{if col.IsAPrimaryKey() && !col.IsAutoPK() }}
+    obj.Set{{= col.Identifier }}(test.RandomValue[{{= col.Type }}]({{u min(col.Size, 100000)}}))
 {{if}}
-{{if col.IsReference() && !col.IsNullable }}
+{{for}}
+
+{{for _,ref := range table.References }}
+{{if !ref.IsNullable }}
         // A required forward reference will need to be fulfilled just to save the minimal version of this object
         // If the database is configured so that the referenced object points back here, either directly or through multiple
-        // forward references, it possible this could create an endless loop. Such a structure could not be saved anyways.
-        obj.Set{{= col.ReferenceIdentifier() }}(createMinimalSample{{= col.ReferenceType() }}())
+        // forward references, it possible this could create an endless loop. 
+        obj.Set{{= ref.Identifier }}(createMinimalSample{{= ref.ReferencedTable.Identifier }}())
 {{if}}
 {{for}}
 
@@ -28,17 +31,17 @@ func updateMinimalSample{{= table.Identifier }}(obj *{{= table.Identifier }})  {
 {{g
     if col.ReceiverType == query.ColTypeUnknown {continue} // cannot know what the set of valid input characters are.
     if col.IsReference() {continue} // references must point to objects
-    if col.IsPrimaryKey {continue} // cannot change a primary key
+    if col.IsAPrimaryKey() {continue} // cannot change a primary key
     testSize := min(col.Size, 100000)
 }}
 
 {{if col.IsEnum() }}
-     obj.Set{{= col.Identifier }}(test.RandomEnum({{= col.Reference.EnumTable.IdentifierPlural}}()))
+     obj.Set{{= col.Identifier }}(test.RandomEnum({{= col.Enum.IdentifierPlural}}()))
 {{else}}{{# IsEnum}}
 {{if col.IsDecimal() }}
     obj.Set{{= col.Identifier }}(test.RandomDecimal({{u col.DecimalPrecision()}}, {{u col.DecimalScale()}} ))
 {{else}}
-    obj.Set{{= col.Identifier }}(test.RandomValue[{{= col.GoType() }}]({{u testSize}}))
+    obj.Set{{= col.Identifier }}(test.RandomValue[{{= col.Type }}]({{u testSize}}))
 {{if}}
 {{if}}{{# IsEnum}}
 
@@ -50,8 +53,8 @@ func updateMinimalSample{{= table.Identifier }}(obj *{{= table.Identifier }})  {
 func createMaximalSample{{= table.Identifier }}(ctx context.Context) *{{= table.Identifier }} {
     obj := New{{= table.Identifier }}()
 {{for _,col := range table.Columns }}
-{{if col.IsPrimaryKey && !col.IsAutoPK }}
-    obj.Set{{= col.Identifier }}(test.RandomValue[{{= col.GoType() }}]({{u min(col.Size, 100000)}}))
+{{if col.IsAPrimaryKey() && !col.IsAutoPK() }}
+    obj.Set{{= col.Identifier }}(test.RandomValue[{{= col.Type }}]({{u min(col.Size, 100000)}}))
 {{if}}
 {{for}}
     updateMaximalSample{{= table.Identifier }}(ctx, obj)
@@ -62,29 +65,25 @@ func createMaximalSample{{= table.Identifier }}(ctx context.Context) *{{= table.
 // This will set new values for references, so save the old values and delete them.
 func updateMaximalSample{{= table.Identifier }}(ctx context.Context, obj *{{= table.Identifier }}) {
     updateMinimalSample{{= table.Identifier }}(obj)
-{{for _,col := range table.Columns}}
-{{if col.HasSetter()}}
-{{if col.IsReference()}}
-    obj.Set{{= col.ReferenceIdentifier() }}(createMinimalSample{{= col.ReferenceType() }}())
-{{if}}
-{{if}}
+{{for _,ref := range table.References}}
+    obj.Set{{= ref.Identifier }}(createMinimalSample{{= ref.ReferencedTable.Identifier }}())
 {{for}}
 
-{{for _,col := range table.ReverseReferences}}
-{{if col.IsUnique}}
+{{for _,rev := range table.ReverseReferences}}
+{{if rev.IsUnique}}
     {
-        obj2, _ := obj.Load{{= col.ReverseIdentifier() }}(ctx)
+        obj2, _ := obj.Load{{= rev.ReverseIdentifier }}(ctx)
         // only update if not already set, since it can't be changed once set unless the reverse object is deleted first.
         if obj2 == nil {
-            obj.Set{{= col.ReverseIdentifier() }}(createMinimalSample{{= col.Table.Identifier }}())
+            obj.Set{{= rev.ReverseIdentifier }}(createMinimalSample{{= rev.Table.Identifier }}())
         }
     }
 {{else}}
-    obj.Set{{= col.ReverseIdentifier() }}(createMinimalSample{{= col.Table.Identifier }}())
+    obj.Set{{= rev.ReverseIdentifier }}(createMinimalSample{{= rev.Table.Identifier }}())
 {{if}}
 {{for}}
 {{for _,mm := range table.ManyManyReferences}}
-    obj.Set{{= mm.IdentifierPlural }}(createMinimalSample{{= mm.DestinationTable.Identifier }}())
+    obj.Set{{= mm.IdentifierPlural }}(createMinimalSample{{= mm.ReferencedTable.Identifier }}())
 {{for}}
 }
 
@@ -94,29 +93,25 @@ func deleteSample{{= table.Identifier }}(ctx context.Context, obj *{{= table.Ide
         return
     }
 
-{{for _,col := range table.ReverseReferences}}
-{{if col.IsUnique }}
-    deleteSample{{= col.Table.Identifier }}(ctx, obj.{{= col.ReverseIdentifier() }}())
+{{for _,rev := range table.ReverseReferences}}
+{{if rev.IsUnique }}
+    deleteSample{{= rev.Table.Identifier }}(ctx, obj.{{= rev.ReverseIdentifier }}())
 {{else}}
-    for _,item := range obj.{{= col.ReverseIdentifier() }}() {
-        deleteSample{{= col.Table.Identifier }}(ctx, item)
+    for _,item := range obj.{{= rev.ReverseIdentifier }}() {
+        deleteSample{{= rev.Table.Identifier }}(ctx, item)
     }
 {{if}}
 {{for}}
 
 {{for _,mm := range table.ManyManyReferences}}
     for _,item := range obj.{{= mm.IdentifierPlural }}() {
-        deleteSample{{= mm.ObjectType() }}(ctx, item)
+        deleteSample{{= mm.ReferencedTable.Identifier }}(ctx, item)
     }
 {{for}}
 
     _ = obj.Delete(ctx)
-{{for _,col := range table.Columns}}
-{{if col.HasSetter()}}
-    {{if col.IsReference()}}
-    deleteSample{{= col.ReferenceType() }}(ctx, obj.{{= col.ReferenceIdentifier() }}())
-    {{if}}
-{{if}}
+{{for _,ref := range table.References}}
+    deleteSample{{= ref.ReferencedTable.Identifier }}(ctx, obj.{{= ref.Identifier }}())
 {{for}}
 }
 

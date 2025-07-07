@@ -9,15 +9,15 @@ func Test{{= table.Identifier }}_Set{{= col.Identifier }}(t *testing.T) {
 
     assert.True(t, obj.IsNew())
 {{if col.IsEnum() }}
-    val := test.RandomEnum({{= col.Reference.EnumTable.IdentifierPlural}}())
+    val := test.RandomEnum({{= col.Enum.IdentifierPlural}}())
     obj.Set{{= col.Identifier }}(val)
 {{else}}
-{{if col.IsAutoPK}}
+{{if col.IsAutoPK() }}
     val := 	test.RandomNumberString()
 {{elseif col.SchemaSubType == schema.ColSubTypeNumeric }}
     val := 	test.RandomDecimal({{u col.DecimalPrecision()}}, {{u col.DecimalScale()}} )
 {{else}}
-    val := 	test.RandomValue[{{= col.GoType() }}]({{u testSize }})
+    val := 	test.RandomValue[{{= col.Type }}]({{u testSize }})
 {{if}}
     obj.Set{{= col.Identifier }}(val)
 {{if}}
@@ -58,7 +58,7 @@ func Test{{= table.Identifier }}_Set{{= col.Identifier }}(t *testing.T) {
         !col.IsEnum() &&
         (col.ReceiverType == query.ColTypeBytes || col.ReceiverType == query.ColTypeString || col.ReceiverType == query.ColTypeUnknown) }}
     // test panic on setting value larger than maximum size allowed
-    val = test.RandomValue[{{= col.GoType() }}]({{u col.MaxLength() + 1}})
+    val = test.RandomValue[{{= col.Type }}]({{u col.MaxLength() + 1}})
     assert.Panics(t, func() {
         obj.Set{{= col.Identifier }}(val)
     })
@@ -75,7 +75,7 @@ func Test{{= table.Identifier }}_Copy(t *testing.T) {
     obj2 := obj.Copy()
 
 {{for _,col := range table.SettableColumns() }}
-{{if !col.IsAutoPK }}
+{{if !col.IsAutoPK() }}
     assert.Equal(t, obj.{{= col.Identifier }}(), obj2.{{= col.Identifier }}())
 {{if}}
 {{for}}

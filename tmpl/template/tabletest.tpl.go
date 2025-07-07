@@ -237,15 +237,15 @@ func Test`); err != nil {
 			return
 		}
 
-		for _, col := range table.Columns {
+		for _, ref := range table.References {
 
-			if col.IsReference() && !col.IsNullable {
+			if !ref.IsNullable {
 
 				if _, err = io.WriteString(_w, `    defer obj.`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.ReferenceIdentifier()); err != nil {
+				if _, err = io.WriteString(_w, ref.Identifier); err != nil {
 					return
 				}
 

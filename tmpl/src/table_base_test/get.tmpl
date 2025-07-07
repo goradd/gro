@@ -4,23 +4,27 @@
 func Test{{= table.Identifier }}_EmptyPrimaryKeyGetter(t *testing.T) {
     obj := New{{= table.Identifier }}()
 
-{{if table.PrimaryKeyColumn().IsAutoPK }}
-    i,err := strconv.Atoi(obj.{{= table.PrimaryKeyColumn().Identifier }}())
+{{for _, col := range table.PrimaryKeyColumns() }}
+{{if col.IsAutoPK()}}
+    i,err := strconv.Atoi(obj.{{= col.Identifier }}())
     assert.NoError(t, err)
     assert.True(t, i < 0)
 {{else}}
     assert.Zero(t, obj.{{= table.PrimaryKeyColumn().Identifier }}())
 {{if}}
+{{for}}
 }
 
 func Test{{= table.Identifier }}_Getters(t *testing.T) {
     obj := createMinimalSample{{= table.Identifier }}()
 
-{{if table.PrimaryKeyColumn().IsAutoPK }}
-    i,err := strconv.Atoi(obj.{{= table.PrimaryKeyColumn().Identifier }}())
+{{for _, col := range table.PrimaryKeyColumns() }}
+{{if col.IsAutoPK()}}
+    i,err := strconv.Atoi(obj.{{= col.Identifier }}())
     assert.NoError(t, err)
     assert.True(t, i < 0)
 {{if}}
+{{for}}
 
     ctx := db.NewContext(nil)
     require.NoError(t, obj.Save(ctx))
@@ -30,15 +34,13 @@ func Test{{= table.Identifier }}_Getters(t *testing.T) {
     assert.True(t, has)
 
     obj2, _ := Load{{= table.Identifier }}(ctx, obj.PrimaryKey(), node.{{= table.Identifier }}().PrimaryKey())
-{{if !table.PrimaryKeyColumn().IsAutoPK }}
-    assert.Equal(t, obj.{{= table.PrimaryKeyColumn().Identifier }}(), obj2.{{= table.PrimaryKeyColumn().Identifier }}())
+{{if !table.HasAutoPK() }}
+    assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
 {{if}}
 
 {{for _, col := range table.Columns }}
-{{if !col.IsReference() }}
     assert.Equal(t, obj.{{= col.Identifier }}(), obj.Get(node.{{= table.Identifier }}().{{= col.Identifier }}().Identifier))
-{{if}}
-{{if !col.IsPrimaryKey }}
+{{if !col.IsAPrimaryKey() }}
     assert.Panics(t, func() { obj2.{{= col.Identifier }}() })
     assert.Nil(t, obj2.Get(node.{{= table.Identifier }}().{{= col.Identifier }}().Identifier))
 {{if}}
