@@ -1344,7 +1344,7 @@ func (n *NodeTemplate) genColumnNode(table *model.Table, col *model.Column, _w i
 		return
 	}
 
-	if _, err = io.WriteString(_w, strconv.FormatBool(col.IsPrimaryKey())); err != nil {
+	if _, err = io.WriteString(_w, strconv.FormatBool(col.IsThePrimaryKey())); err != nil {
 		return
 	}
 

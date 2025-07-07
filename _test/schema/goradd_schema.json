@@ -378,17 +378,24 @@
   "association_tables": [
     {
       "name": "related_project_assn",
-      "table1": "project",
-      "name1": "parent",
-      "table2": "project",
-      "name2": "child"
+      "ref1": {
+        "table": "project",
+        "identifier": "Parent"
+      },
+      "ref2": {
+        "table": "project",
+        "identifier": "Child"
+      }
     },
     {
       "name": "team_member_project_assn",
-      "table1": "person",
-      "name1": "team_member",
-      "table2": "project",
-      "name2": "project"
+      "ref1": {
+        "table": "person",
+        "identifier": "TeamMember"
+      },
+      "ref2": {
+        "table": "project"
+      }
     }
   ]
 }
