@@ -12,7 +12,7 @@ import (
 
 // TestForwardLock tests insert and update of two linked records that have an optimistic lock.
 func TestForwardLock(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	// Insert-insert
@@ -67,7 +67,7 @@ func TestForwardLock(t *testing.T) {
 
 // TestForwardCollision tests saving two records that are changed at the same time.
 func TestForwardLockCollision(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	l := goradd_unit.NewLeafL()
@@ -111,7 +111,7 @@ func TestForwardLockCollision(t *testing.T) {
 }
 
 func TestForwardLockNull(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 	l := goradd_unit.NewLeafL()
 	l.SetName("leaf")
@@ -125,7 +125,7 @@ func TestForwardLockNull(t *testing.T) {
 }
 
 func TestForwardLockTwo(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 	l := goradd_unit.NewLeafL()
 	r := goradd_unit.NewRootL()
@@ -145,7 +145,7 @@ func TestForwardLockTwo(t *testing.T) {
 }
 
 func TestForwardLockDelete(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 	l := goradd_unit.NewLeafL()
 	r := goradd_unit.NewRootL()
@@ -179,7 +179,7 @@ func TestForwardLockDelete(t *testing.T) {
 }
 
 func TestForwardLockJson(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 	l := goradd_unit.NewLeafL()
 	r := goradd_unit.NewRootL()

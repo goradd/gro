@@ -160,7 +160,7 @@ func (n *milestoneReverse) ProjectID() *query.ColumnNode {
 
 // Project represents the link to a Project object.
 func (n milestoneTable) Project() ProjectNode {
-	cn := &milestoneReference{
+	cn := &projectReference{
 		ReferenceNode: query.ReferenceNode{
 			ForeignKey: "project_id",
 			PrimaryKey: "id",
@@ -172,7 +172,7 @@ func (n milestoneTable) Project() ProjectNode {
 }
 
 func (n *milestoneReverse) Project() ProjectNode {
-	cn := n.milestoneTable.Project().(*milestoneReference)
+	cn := n.milestoneTable.Project().(*projectReference)
 	query.NodeSetParent(cn, n)
 	return cn
 }

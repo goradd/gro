@@ -364,25 +364,56 @@ type `); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, ` foreign key there.
-    `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `() `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `Node
 `); err != nil {
 			return
+		}
+
+		if rev.IsUnique {
+
+			if _, err = io.WriteString(_w, `    `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `() `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `Node
+`); err != nil {
+				return
+			}
+
+		} else {
+
+			if _, err = io.WriteString(_w, `    `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `() `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `Node
+`); err != nil {
+				return
+			}
+
 		}
 
 	}
@@ -1734,7 +1765,7 @@ func (n `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, ref.Table.DecapIdentifier); err != nil {
+	if _, err = io.WriteString(_w, ref.ReferencedTable.DecapIdentifier); err != nil {
 		return
 	}
 
@@ -1824,7 +1855,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ref.Table.DecapIdentifier); err != nil {
+		if _, err = io.WriteString(_w, ref.ReferencedTable.DecapIdentifier); err != nil {
 			return
 		}
 
@@ -1886,7 +1917,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ref.Table.DecapIdentifier); err != nil {
+		if _, err = io.WriteString(_w, ref.ReferencedTable.DecapIdentifier); err != nil {
 			return
 		}
 
@@ -1948,7 +1979,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ref.Table.DecapIdentifier); err != nil {
+		if _, err = io.WriteString(_w, ref.ReferencedTable.DecapIdentifier); err != nil {
 			return
 		}
 
@@ -2398,15 +2429,7 @@ func (n `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `",
-			IsUnique:   `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, strconv.FormatBool(rev.IsUnique)); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `,
+			IsUnique:   true,
 		},
 	}
 	query.NodeSetParent(cn, n)
@@ -2652,7 +2675,7 @@ func (n `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+	if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 		return
 	}
 
@@ -2688,20 +2711,12 @@ func (n `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+	if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 		return
 	}
 
 	if _, err = io.WriteString(_w, `",
-			IsUnique:       `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, strconv.FormatBool(rev.IsUnique)); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `,
+			IsUnique:       false,
 		},
 	}
 	query.NodeSetParent(cn, n)
@@ -2726,7 +2741,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+		if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 			return
 		}
 
@@ -2751,7 +2766,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+		if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 			return
 		}
 
@@ -2788,7 +2803,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+		if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 			return
 		}
 
@@ -2813,7 +2828,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+		if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 			return
 		}
 
@@ -2850,7 +2865,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+		if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 			return
 		}
 
@@ -2875,7 +2890,7 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+		if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 			return
 		}
 

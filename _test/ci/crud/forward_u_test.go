@@ -11,7 +11,7 @@ import (
 
 // TestForwardUnique covers insert/update flows and enforces that only one LeafU may point to a given RootU.
 func TestForwardUnique(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	// Insert-insert
@@ -62,7 +62,7 @@ func TestForwardUnique(t *testing.T) {
 
 // TestForwardUniqueCollision tests saving two records that are changed at the same time.
 func TestForwardUniqueCollision(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	l := goradd_unit.NewLeafU()
@@ -99,7 +99,7 @@ func TestForwardUniqueCollision(t *testing.T) {
 }
 
 func TestForwardUniqueNull(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 	l := goradd_unit.NewLeafU()
 	l.SetName("leaf")
@@ -112,7 +112,7 @@ func TestForwardUniqueNull(t *testing.T) {
 	})
 }
 func TestForwardUniqueTwo(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 	l := goradd_unit.NewLeafU()
 	r := goradd_unit.NewRootU()
@@ -128,7 +128,7 @@ func TestForwardUniqueTwo(t *testing.T) {
 }
 
 func TestForwardUniqueDelete(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 	l := goradd_unit.NewLeafU()
 	r := goradd_unit.NewRootU()

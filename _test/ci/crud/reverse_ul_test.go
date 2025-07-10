@@ -11,7 +11,7 @@ import (
 
 // TestReverseUniqueLock tests insert and update of two linked records.
 func TestReverseUniqueLock(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	// Insert-insert
@@ -67,7 +67,7 @@ func TestReverseUniqueLock(t *testing.T) {
 
 // TestReverseCollision tests saving two records that are changed at the same time.
 func TestReverseUniqueLockCollision(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	r := goradd_unit.NewRootUl()
@@ -112,7 +112,7 @@ func TestReverseUniqueLockCollision(t *testing.T) {
 }
 
 func TestReverseUniqueLockNull(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	r := goradd_unit.NewRootUl()
@@ -135,7 +135,7 @@ func TestReverseUniqueLockNull(t *testing.T) {
 }
 
 func TestReverseUniqueLockTwo(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 	r := goradd_unit.NewRootUl()
 	l := goradd_unit.NewLeafUl()
@@ -155,7 +155,7 @@ func TestReverseUniqueLockTwo(t *testing.T) {
 }
 
 func TestReverseUniqueLockDelete(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 	l := goradd_unit.NewLeafUl()
 	r := goradd_unit.NewRootUl()

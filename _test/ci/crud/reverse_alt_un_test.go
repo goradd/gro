@@ -11,7 +11,7 @@ import (
 
 // TestReverseAltUniqueNullable tests insert and update of two linked records.
 func TestReverseAltUniqueNullable(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	// Insert-insert

@@ -6,7 +6,7 @@ func (n *NodeTemplate)genRefNode(table *model.Table, ref *model.Reference, _w io
 {{
 // {{= ref.Identifier }} represents the link to a {{= ref.ReferencedTable.Identifier }} object.
 func (n {{= table.DecapIdentifier}}Table) {{= ref.Identifier }}() {{= ref.ReferencedTable.Identifier }}Node {
-	cn := &{{= ref.Table.DecapIdentifier }}Reference{
+	cn := &{{= ref.ReferencedTable.DecapIdentifier }}Reference{
 		ReferenceNode: query.ReferenceNode {
             ForeignKey:      "{{= ref.ForeignKey.QueryName }}",
             PrimaryKey:      "{{= ref.ReferencedTable.PrimaryKeyColumn().QueryName }}",
@@ -19,7 +19,7 @@ func (n {{= table.DecapIdentifier}}Table) {{= ref.Identifier }}() {{= ref.Refere
 
 {{if hasReverse}}
 func (n *{{= table.DecapIdentifier}}Reference) {{= ref.Identifier }}() {{= ref.ReferencedTable.Identifier }}Node {
-    cn := n.{{= table.DecapIdentifier}}Table.{{= ref.Identifier }}().(*{{= ref.Table.DecapIdentifier }}Reference)
+    cn := n.{{= table.DecapIdentifier}}Table.{{= ref.Identifier }}().(*{{= ref.ReferencedTable.DecapIdentifier }}Reference)
     query.NodeSetParent(cn, n)
     return cn
 }
@@ -27,7 +27,7 @@ func (n *{{= table.DecapIdentifier}}Reference) {{= ref.Identifier }}() {{= ref.R
 {{if}}
 {{if hasReference}}
 func (n *{{= table.DecapIdentifier}}Reverse) {{= ref.Identifier }}() {{= ref.ReferencedTable.Identifier }}Node {
-    cn := n.{{= table.DecapIdentifier}}Table.{{= ref.Identifier }}().(*{{= ref.Table.DecapIdentifier }}Reference)
+    cn := n.{{= table.DecapIdentifier}}Table.{{= ref.Identifier }}().(*{{= ref.ReferencedTable.DecapIdentifier }}Reference)
     query.NodeSetParent(cn, n)
     return cn
 }
@@ -35,7 +35,7 @@ func (n *{{= table.DecapIdentifier}}Reverse) {{= ref.Identifier }}() {{= ref.Ref
 {{if}}
 {{if hasAssociation}}
 func (n *{{= table.DecapIdentifier}}Association) {{= ref.Identifier }}() {{= ref.ReferencedTable.Identifier }}Node {
-    cn := n.{{= table.DecapIdentifier}}Table.{{= ref.Identifier }}().(*{{= ref.Table.DecapIdentifier }}Reference)
+    cn := n.{{= table.DecapIdentifier}}Table.{{= ref.Identifier }}().(*{{= ref.ReferencedTable.DecapIdentifier }}Reference)
     query.NodeSetParent(cn, n)
     return cn
 }

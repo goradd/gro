@@ -28,7 +28,7 @@ func serNode(t *testing.T, n query.Node) query.Node {
 }
 
 func TestNodeSerializeReference(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	var n query.Node = node.Project().Manager()
 	proj, err := goradd.LoadProject(ctx, "1", n)
@@ -44,7 +44,7 @@ func TestNodeSerializeReference(t *testing.T) {
 }
 
 func TestNodeSerializeReverseReference(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	var n query.Node = node.Person().ManagerProjects()
 
 	n2 := serNode(t, n)
@@ -57,7 +57,7 @@ func TestNodeSerializeReverseReference(t *testing.T) {
 }
 
 func TestNodeSerializeManyMany(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	var n query.Node = node.Person().Projects()
 
 	n2 := serNode(t, n)
@@ -83,7 +83,7 @@ func serObject(t *testing.T, n interface{}) interface{} {
 }
 
 func TestRecordSerializeComplex1(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	person, err := goradd.LoadPerson(ctx, "7",
 		node.Person().Projects(),        // many many
 		node.Person().ManagerProjects(), // reverse
@@ -100,7 +100,7 @@ func TestRecordSerializeComplex1(t *testing.T) {
 }
 
 func TestRecordSerializeComplex2(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	login, err := goradd.LoadLogin(ctx, "4",
 		node.Login().Person().Projects(),        // many many
 		node.Login().Person().ManagerProjects(), // reverse

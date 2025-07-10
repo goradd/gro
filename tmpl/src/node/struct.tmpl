@@ -30,7 +30,11 @@ type {{= table.Identifier}}Node interface {
     // {{= rev.ReverseIdentifier }} represents the {{= rev.ReverseIdentifier }} reverse reference to {{if rev.IsUnique
 }}a {{= rev.Table.Identifier }} object{{else}}{{= rev.Table.Identifier }} objects{{if}}
     // through the {{= rev.ForeignKey.Identifier }} foreign key there.
+{{if rev.IsUnique }}
     {{= rev.ReverseIdentifier }}() {{= rev.Table.Identifier }}Node
+{{else}}
+    {{= rev.ReverseIdentifierPlural }}() {{= rev.Table.Identifier }}Node
+{{if}}
 {{for}}
 }
 

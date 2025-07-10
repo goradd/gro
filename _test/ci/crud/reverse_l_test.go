@@ -11,7 +11,7 @@ import (
 
 // TestReverseLock tests insert and update of two linked records that use an optimistic lock.
 func TestReverseLock(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	// Insert-insert
@@ -67,7 +67,7 @@ func TestReverseLock(t *testing.T) {
 
 // TestReverseCollision tests saving two records that are changed at the same time.
 func TestReverseLockCollision(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	r := goradd_unit.NewRootL()
@@ -110,7 +110,7 @@ func TestReverseLockCollision(t *testing.T) {
 }
 
 func TestReverseLockNull(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	r := goradd_unit.NewRootL()
@@ -133,7 +133,7 @@ func TestReverseLockNull(t *testing.T) {
 }
 
 func TestReverseLockTwo(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 	r := goradd_unit.NewRootL()
 	l := goradd_unit.NewLeafL()
@@ -153,7 +153,7 @@ func TestReverseLockTwo(t *testing.T) {
 }
 
 func TestReverseLockDelete(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 	l := goradd_unit.NewLeafL()
 	r := goradd_unit.NewRootL()

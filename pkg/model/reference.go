@@ -31,10 +31,12 @@ type Reference struct {
 	// The human-readable label of the object referred to.
 	// Example: Project Manager
 	Label string
-	// ReverseIdentifier is the name ReferencedTable should use to refer to the related object(s).
-	// If this is a unique reference, ReverseIdentifier will be singular. Otherwise, it will be plural.
-	// Example: Projects
+	// ReverseIdentifier is the name ReferencedTable should use to refer to the singular related object.
 	ReverseIdentifier string
+	// ReverseIdentifierPlural is the name ReferencedTable should use to refer to the plural related objects
+	// if this is not a unique reference.
+	// Example: Projects
+	ReverseIdentifierPlural string
 	// ReverseLabel is the human-readable label of the object of the reverse relationship.
 	// Example: Project
 	ReverseLabel string
@@ -107,18 +109,19 @@ func (m *Database) importReference(table *Table, schemaRef *schema.Reference) *R
 	}
 
 	ref := &Reference{
-		ForeignKey:         col,
-		Table:              table,
-		ReferencedTable:    refTable,
-		Identifier:         schemaRef.ObjectIdentifier,
-		Field:              strings2.Decap(schemaRef.ObjectIdentifier),
-		Label:              schemaRef.ObjectLabel,
-		ReverseLabel:       schemaRef.ReverseLabel,
-		ReverseLabelPlural: schemaRef.ReverseLabelPlural,
-		ReverseIdentifier:  revID,
-		ReverseField:       strings2.Decap(revID),
-		IsUnique:           isUnique,
-		IsNullable:         schemaRef.IsNullable,
+		ForeignKey:              col,
+		Table:                   table,
+		ReferencedTable:         refTable,
+		Identifier:              schemaRef.ObjectIdentifier,
+		Field:                   strings2.Decap(schemaRef.ObjectIdentifier),
+		Label:                   schemaRef.ObjectLabel,
+		ReverseLabel:            schemaRef.ReverseLabel,
+		ReverseLabelPlural:      schemaRef.ReverseLabelPlural,
+		ReverseIdentifier:       schemaRef.ReverseIdentifier,
+		ReverseIdentifierPlural: schemaRef.ReverseIdentifierPlural,
+		ReverseField:            strings2.Decap(revID),
+		IsUnique:                isUnique,
+		IsNullable:              schemaRef.IsNullable,
 	}
 
 	refTable.ReverseReferences = append(refTable.ReverseReferences, ref)

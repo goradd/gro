@@ -23,7 +23,7 @@ func setup(m *testing.M) {
 	fmt.Println("Setting up tests...")
 
 	config.InitDB()
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	goradd_unit.ClearAll(ctx)
 }
 

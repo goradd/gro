@@ -24,7 +24,7 @@ func (n {{= table.DecapIdentifier}}Table) {{= rev.ReverseIdentifier }}() {{= rev
 			ForeignKey: "{{= rev.ForeignKey.QueryName }}",
 			PrimaryKey: "{{= table.PrimaryKeyColumn().QueryName }}",
 			Identifier: "{{= rev.ReverseIdentifier }}",
-			IsUnique:   {{b rev.IsUnique }},
+			IsUnique:   true,
 		},
 	}
 	query.NodeSetParent(cn, n)
@@ -65,12 +65,12 @@ func (n *NodeTemplate)genReverseMany(table *model.Table, rev *model.Reference, _
 
 // {{= rev.ReverseIdentifier }} represents the many-to-one relationship formed by the reverse reference from the
 // {{= rev.ForeignKey.QueryName }} column in the {{= rev.Table.QueryName }} table.
-func (n {{= table.DecapIdentifier }}Table) {{= rev.ReverseIdentifier }}() {{= rev.Table.Identifier }}Node  {
+func (n {{= table.DecapIdentifier }}Table) {{= rev.ReverseIdentifierPlural }}() {{= rev.Table.Identifier }}Node  {
 	cn := &{{= rev.Table.DecapIdentifier }}Reverse{
 		ReverseNode: query.ReverseNode{
 			ForeignKey:     "{{= rev.ForeignKey.QueryName }}",
-			Identifier:     "{{= rev.ReverseIdentifier }}",
-			IsUnique:       {{b rev.IsUnique }},
+			Identifier:     "{{= rev.ReverseIdentifierPlural }}",
+			IsUnique:       false,
 		},
 	}
 	query.NodeSetParent(cn, n)
@@ -78,24 +78,24 @@ func (n {{= table.DecapIdentifier }}Table) {{= rev.ReverseIdentifier }}() {{= re
 }
 
 {{if hasReverse}}
-func (n *{{= table.DecapIdentifier}}Reference) {{= rev.ReverseIdentifier }}() {{= rev.Table.Identifier }}Node {
-    cn := n.{{= table.DecapIdentifier}}Table.{{= rev.ReverseIdentifier }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
+func (n *{{= table.DecapIdentifier}}Reference) {{= rev.ReverseIdentifierPlural }}() {{= rev.Table.Identifier }}Node {
+    cn := n.{{= table.DecapIdentifier}}Table.{{= rev.ReverseIdentifierPlural }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
     query.NodeSetParent(cn, n)
     return cn
 }
 
 {{if}}
 {{if hasReference}}
-func (n *{{= table.DecapIdentifier}}Reverse) {{= rev.ReverseIdentifier }}() {{= rev.Table.Identifier }}Node {
-    cn := n.{{= table.DecapIdentifier}}Table.{{= rev.ReverseIdentifier }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
+func (n *{{= table.DecapIdentifier}}Reverse) {{= rev.ReverseIdentifierPlural }}() {{= rev.Table.Identifier }}Node {
+    cn := n.{{= table.DecapIdentifier}}Table.{{= rev.ReverseIdentifierPlural }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
     query.NodeSetParent(cn, n)
     return cn
 }
 
 {{if}}
 {{if hasAssociation}}
-func (n *{{= table.DecapIdentifier}}Association) {{= rev.ReverseIdentifier }}() {{= rev.Table.Identifier }}Node {
-    cn := n.{{= table.DecapIdentifier}}Table.{{= rev.ReverseIdentifier }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
+func (n *{{= table.DecapIdentifier}}Association) {{= rev.ReverseIdentifierPlural }}() {{= rev.Table.Identifier }}Node {
+    cn := n.{{= table.DecapIdentifier}}Table.{{= rev.ReverseIdentifierPlural }}().(*{{= rev.Table.DecapIdentifier }}Reverse)
     query.NodeSetParent(cn, n)
     return cn
 }

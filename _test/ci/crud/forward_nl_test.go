@@ -11,7 +11,7 @@ import (
 
 // TestForwardNullable tests insert and update of two linked records where the link is nullable.
 func TestForwardNullableLock(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	// Insert-insert
@@ -66,7 +66,7 @@ func TestForwardNullableLock(t *testing.T) {
 
 // TestForwardNullableCollision tests saving two records that are changed at the same time.
 func TestForwardNullableLockCollision(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	l := goradd_unit.NewLeafNl()
@@ -112,7 +112,7 @@ func TestForwardNullableLockCollision(t *testing.T) {
 }
 
 func TestForwardNullableLockNull(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 	l := goradd_unit.NewLeafNl()
 	l.SetName("leaf")
@@ -123,7 +123,7 @@ func TestForwardNullableLockNull(t *testing.T) {
 }
 
 func TestForwardNullableLockTwo(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 	l := goradd_unit.NewLeafNl()
 	r := goradd_unit.NewRootNl()
@@ -143,7 +143,7 @@ func TestForwardNullableLockTwo(t *testing.T) {
 }
 
 func TestForwardNullableLockDelete(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 	l := goradd_unit.NewLeafNl()
 	r := goradd_unit.NewRootNl()

@@ -12,7 +12,7 @@ import (
 )
 
 func TestEqualBasic(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	projects, err := goradd.QueryProjects(ctx).
 		Where(op.Equal(node.Project().Num(), 2)).
 		OrderBy(node.Project().Num()).
@@ -23,7 +23,7 @@ func TestEqualBasic(t *testing.T) {
 }
 
 func TestMultiWhere(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	projects, err := goradd.QueryPeople(ctx).
 		Where(op.Equal(node.Person().LastName(), "Smith")).
 		Where(op.Equal(node.Person().FirstName(), "Alex")).
@@ -58,7 +58,7 @@ func TestLogical(t *testing.T) {
 		{op.In(node.Project().Num(), 2, 3, 4), 1, 3, 3, "In test"},
 	}
 
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	for i, c := range tests {
 		t.Run(c.desc, func(t *testing.T) {
@@ -78,7 +78,7 @@ func TestLogical(t *testing.T) {
 }
 
 func TestCount2(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	count, err := goradd.QueryPeople(ctx).
 		Select(node.Person().LastName()).
 		Distinct().
@@ -106,7 +106,7 @@ func TestCalculations(t *testing.T) {
 		{op.Subtract(node.Project().Spent(), 2000), 0, 8250.75, "Subtract test"},
 	}
 
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	for _, c := range intTests {
 		projects, err := goradd.QueryProjects(ctx).
@@ -129,7 +129,7 @@ func TestCalculations(t *testing.T) {
 }
 
 func TestAggregates(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	projects, err := goradd.QueryProjects(ctx).
 		Calculation(node.Project(), "sum", op.Sum(node.Project().Spent())).
 		OrderBy(node.Project().Status()).
@@ -158,7 +158,7 @@ func TestAggregates(t *testing.T) {
 /* TODO:
 
 func TestAliases(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	nVoyel := node.Person().ManagerProjects().Milestones()
 	nVoyel.SetAlias("voyel")
 	nConson := node.Person().ManagerProjects().Milestones()

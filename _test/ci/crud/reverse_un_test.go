@@ -11,7 +11,7 @@ import (
 
 // TestReverseUniqueNullable tests insert and update of two linked records.
 func TestReverseUniqueNullable(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	// Insert-insert
@@ -67,7 +67,7 @@ func TestReverseUniqueNullable(t *testing.T) {
 
 // TestReverseCollision tests saving two records that are changed at the same time.
 func TestReverseUniqueNullableCollision(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	r := goradd_unit.NewRootUn()
@@ -104,7 +104,7 @@ func TestReverseUniqueNullableCollision(t *testing.T) {
 }
 
 func TestReverseUniqueNullableNull(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	r := goradd_unit.NewRootUn()
@@ -128,7 +128,7 @@ func TestReverseUniqueNullableNull(t *testing.T) {
 }
 
 func TestReverseUniqueNullableTwo(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 	r := goradd_unit.NewRootUn()
 	l := goradd_unit.NewLeafUn()
@@ -141,7 +141,7 @@ func TestReverseUniqueNullableTwo(t *testing.T) {
 	l2.SetName("leaf2")
 	r.SetLeafUn(l2)
 	require.NoError(t, r.Save(ctx)) // unique failure
-	
+
 	// Confirm detached.
 	l3, _ := goradd_unit.LoadLeafUn(ctx, l.ID())
 	assert.Nil(t, l3.RootUn())

@@ -9,7 +9,7 @@ import (
 )
 
 func TestReference(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	projects, err := goradd.QueryProjects(ctx).
 		Select(node.Project().Manager()).
 		OrderBy(node.Project().ID()).
@@ -21,7 +21,7 @@ func TestReference(t *testing.T) {
 }
 
 func TestReferenceUpdate(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	// Test updating only a referenced object, and then saving, making sure all updates get recorded
 

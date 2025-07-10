@@ -13,7 +13,7 @@ import (
 )
 
 func TestBasic(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	people, err := goradd.QueryPeople(ctx).
 		OrderBy(node.Person().ID()).
@@ -28,7 +28,7 @@ func TestBasic(t *testing.T) {
 }
 
 func TestLoad(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	people, err := goradd.QueryPeople(ctx).
 		Where(op.Equal(node.Person().ID(), "7")).
@@ -58,7 +58,7 @@ func TestLoad(t *testing.T) {
 }
 
 func TestSort(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	people, err := goradd.QueryPeople(ctx).
 		OrderBy(node.Person().LastName()).
 		Load()
@@ -86,7 +86,7 @@ func TestSort(t *testing.T) {
 }
 
 func TestWhere(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	people, err := goradd.QueryPeople(ctx).
 		Where(op.Equal(node.Person().LastName(), "Smith")).
 		OrderBy(node.Person().FirstName().Descending(), node.Person().LastName()).
@@ -98,7 +98,7 @@ func TestWhere(t *testing.T) {
 }
 
 func TestAlias(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	projects, err := goradd.QueryProjects(ctx).
 		Where(op.Equal(node.Project().ID(), 1)).
 		Calculation(node.Project(), "Difference", op.Subtract(node.Project().Budget(), node.Project().Spent())).
@@ -109,7 +109,7 @@ func TestAlias(t *testing.T) {
 }
 
 func TestCursor(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	projectCursor, err := goradd.QueryProjects(ctx).
 		LoadCursor()
 	assert.NoError(t, err)
@@ -128,7 +128,7 @@ func TestCursor(t *testing.T) {
 
 /*
 	func TestAlias2(t *testing.T) {
-		ctx := db.NewContext(nil)
+		ctx := context.Background()
 		projects := goradd.QueryProjects(ctx).
 			Alias("a", node.Project().Num()).
 			Alias("b", node.Project().Name()).
@@ -150,7 +150,7 @@ func TestCursor(t *testing.T) {
 	}
 */
 func TestCount(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	count, err := goradd.QueryProjects(ctx).
 		Count()
@@ -159,7 +159,7 @@ func TestCount(t *testing.T) {
 }
 
 func TestGroupBy(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	projects, err := goradd.QueryProjects(ctx).
 		Calculation(node.Project(), "teamMemberCount", op.Count(node.Project().TeamMembers())).
@@ -171,7 +171,7 @@ func TestGroupBy(t *testing.T) {
 }
 
 func TestSelect(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	projects, err := goradd.QueryProjects(ctx).
 		Select(node.Project().Name()).
@@ -184,7 +184,7 @@ func TestSelect(t *testing.T) {
 }
 
 func TestLimit(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	people, err := goradd.QueryPeople(ctx).
 		OrderBy(node.Person().ID()).
@@ -196,7 +196,7 @@ func TestLimit(t *testing.T) {
 }
 
 func TestSaveAndDelete(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	person := goradd.NewPerson()
 	person.SetFirstName("Test1")
@@ -229,7 +229,7 @@ func TestSaveAndDelete(t *testing.T) {
 }
 
 func TestSingleEmpty(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	people, err := goradd.QueryPeople(ctx).
 		Where(op.Equal(node.Person().ID(), 12345)).
@@ -240,7 +240,7 @@ func TestSingleEmpty(t *testing.T) {
 }
 
 func TestLazyLoad(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	projects, err := goradd.QueryProjects(ctx).
 		Where(op.Equal(node.Project().ID(), 1)).
@@ -260,7 +260,7 @@ func TestHaving(t *testing.T) {
 	// 2) If you have a GROUPBY, you MUST SELECT and only select the things you are grouping by.
 	//
 	// Sooo, when we see a GroupBy, we automatically also select the same nodes.
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	projects, err := goradd.QueryProjects(ctx).
 		GroupBy(node.Project().ID(), node.Project().Name()).
@@ -275,13 +275,13 @@ func TestHaving(t *testing.T) {
 }
 
 func TestFailedSelects(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	assert.Panics(t, func() { goradd.QueryProjects(ctx).Select(node.Person()) })
 }
 
 func TestFailedGroupBy(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	assert.Panics(t, func() {
 		goradd.
@@ -293,7 +293,7 @@ func TestFailedGroupBy(t *testing.T) {
 
 // Test that we can get from an integer keyed database
 func TestIntKey(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	g, err := goradd.LoadGift(ctx, 2)
 	assert.NoError(t, err)
@@ -301,7 +301,7 @@ func TestIntKey(t *testing.T) {
 }
 
 func TestMultiParent(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	baby := goradd_unit.NewMultiParent()
 	baby.SetName("Baby")
@@ -333,7 +333,7 @@ func TestMultiParent(t *testing.T) {
 }
 
 func TestWriteTimeout(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	obj := goradd_unit.NewTimeoutTest()
 	obj.SetName("test")

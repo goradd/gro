@@ -76,8 +76,8 @@ const (
 	PersonPersonTypeEnumField     = `personTypeEnum`
 	PersonCreatedField            = `created`
 	PersonModifiedField           = `modified`
-	PersonManagerProjectsField    = `managerProjects`
-	PersonPersonAddressesField    = `personAddresses`
+	PersonManagerProjectField     = `managerProjects`
+	PersonPersonAddressField      = `personAddresses`
 	PersonPersonEmployeeInfoField = `personEmployeeInfo`
 	PersonPersonLoginField        = `personLogin`
 	PersonProjectsField           = `projects`
@@ -443,20 +443,20 @@ func (o *personBase) CountProjects(ctx context.Context) (int, error) {
 
 }
 
-// ManagerProjects returns a single Project object by primary key, if one was loaded.
+// ManagerProject returns a single Project object by primary key, if one was loaded.
 // Otherwise, it will return nil. It will not return Project objects that are not saved.
-func (o *personBase) ManagerProjects(pk string) *Project {
+func (o *personBase) ManagerProject(pk string) *Project {
 	v := o.managerProjects.Get(pk)
 	return v
 }
 
-// ManagerProjects returns a slice of Project objects if loaded.
-func (o *personBase) ManagerProjects() []*Project {
+// ManagerProject returns a slice of Project objects if loaded.
+func (o *personBase) ManagerProject() []*Project {
 	return o.managerProjects.Values()
 }
 
-// LoadManagerProjects loads a new slice of Project objects and returns it.
-func (o *personBase) LoadManagerProjects(ctx context.Context) ([]*Project, error) {
+// LoadManagerProject loads a new slice of Project objects and returns it.
+func (o *personBase) LoadManagerProject(ctx context.Context) ([]*Project, error) {
 	if o.IsNew() {
 		return nil, nil
 	}
@@ -483,16 +483,16 @@ func (o *personBase) LoadManagerProjects(ctx context.Context) ([]*Project, error
 	return o.managerProjects.Values(), nil
 }
 
-// CountManagerProjects does a database query and returns the number of Project
+// CountManagerProject does a database query and returns the number of Project
 // objects currently in the database connected to this object.
-func (o *personBase) CountManagerProjects(ctx context.Context) (int, error) {
+func (o *personBase) CountManagerProject(ctx context.Context) (int, error) {
 	return CountProjectsByManager(ctx, o.PrimaryKey())
 }
 
-// SetManagerProjects associates the objects in objs with the Person.
-// WARNING! If it has ManagerProjects already associated with it that will not be associated after a save,
-// Save will panic. Be sure to delete those ManagerProjects or otherwise fix those pointers before calling save.
-func (o *personBase) SetManagerProjects(objs ...*Project) {
+// SetManagerProject associates the objects in objs with the Person.
+// WARNING! If it has ManagerProject already associated with it that will not be associated after a save,
+// Save will panic. Be sure to delete those ManagerProject or otherwise fix those pointers before calling save.
+func (o *personBase) SetManagerProject(objs ...*Project) {
 	for obj := range o.managerProjects.ValuesIter() {
 		if obj.IsDirty() {
 			panic("You cannot overwrite items that have changed but have not been saved.")
@@ -507,20 +507,20 @@ func (o *personBase) SetManagerProjects(objs ...*Project) {
 	o.managerProjectsIsDirty = true
 }
 
-// PersonAddresses returns a single Address object by primary key, if one was loaded.
+// PersonAddress returns a single Address object by primary key, if one was loaded.
 // Otherwise, it will return nil. It will not return Address objects that are not saved.
-func (o *personBase) PersonAddresses(pk string) *Address {
+func (o *personBase) PersonAddress(pk string) *Address {
 	v := o.personAddresses.Get(pk)
 	return v
 }
 
-// PersonAddresses returns a slice of Address objects if loaded.
-func (o *personBase) PersonAddresses() []*Address {
+// PersonAddress returns a slice of Address objects if loaded.
+func (o *personBase) PersonAddress() []*Address {
 	return o.personAddresses.Values()
 }
 
-// LoadPersonAddresses loads a new slice of Address objects and returns it.
-func (o *personBase) LoadPersonAddresses(ctx context.Context) ([]*Address, error) {
+// LoadPersonAddress loads a new slice of Address objects and returns it.
+func (o *personBase) LoadPersonAddress(ctx context.Context) ([]*Address, error) {
 	if o.IsNew() {
 		return nil, nil
 	}
@@ -547,16 +547,16 @@ func (o *personBase) LoadPersonAddresses(ctx context.Context) ([]*Address, error
 	return o.personAddresses.Values(), nil
 }
 
-// CountPersonAddresses does a database query and returns the number of Address
+// CountPersonAddress does a database query and returns the number of Address
 // objects currently in the database connected to this object.
-func (o *personBase) CountPersonAddresses(ctx context.Context) (int, error) {
+func (o *personBase) CountPersonAddress(ctx context.Context) (int, error) {
 	return CountAddressesByPerson(ctx, o.PrimaryKey())
 }
 
-// SetPersonAddresses associates the objects in objs with the Person.
-// WARNING! If it has PersonAddresses already associated with it that will not be associated after a save,
-// Save will panic. Be sure to delete those PersonAddresses or otherwise fix those pointers before calling save.
-func (o *personBase) SetPersonAddresses(objs ...*Address) {
+// SetPersonAddress associates the objects in objs with the Person.
+// WARNING! If it has PersonAddress already associated with it that will not be associated after a save,
+// Save will panic. Be sure to delete those PersonAddress or otherwise fix those pointers before calling save.
+func (o *personBase) SetPersonAddress(objs ...*Address) {
 	for obj := range o.personAddresses.ValuesIter() {
 		if obj.IsDirty() {
 			panic("You cannot overwrite items that have changed but have not been saved.")
@@ -1012,7 +1012,7 @@ func (o *personBase) unpack(m map[string]interface{}, objThis *Person) {
 
 	// Reverse references
 
-	if v, ok := m["ManagerProjects"]; ok {
+	if v, ok := m["ManagerProject"]; ok {
 		switch v2 := v.(type) {
 		case []map[string]any: // array expansion
 			o.managerProjects.Clear()
@@ -1030,7 +1030,7 @@ func (o *personBase) unpack(m map[string]interface{}, objThis *Person) {
 		o.managerProjectsIsDirty = false
 	}
 
-	if v, ok := m["PersonAddresses"]; ok {
+	if v, ok := m["PersonAddress"]; ok {
 		switch v2 := v.(type) {
 		case []map[string]any: // array expansion
 			o.personAddresses.Clear()
@@ -1526,8 +1526,8 @@ func (o *personBase) getInsertFields() (fields map[string]interface{}) {
 
 // Delete deletes the record from the database.
 //
-// Associated ManagerProjects will also be deleted since their Manager fields are not nullable.
-// Associated PersonAddresses will also be deleted since their Person fields are not nullable.
+// Associated ManagerProject will also be deleted since their Manager fields are not nullable.
+// Associated PersonAddress will also be deleted since their Person fields are not nullable.
 // An associated {= rev.ReverseIdentifier  will also be deleted since its Person field is not nullable.
 // An associated {= rev.ReverseIdentifier  will also be deleted since its Person field is not nullable.
 func (o *personBase) Delete(ctx context.Context) (err error) {
@@ -2092,14 +2092,14 @@ func (o *personBase) MarshalStringMap() map[string]interface{} {
 		for obj := range o.managerProjects.ValuesIter() {
 			vals = append(vals, obj.MarshalStringMap())
 		}
-		v["managerProjects"] = vals
+		v["managerProject"] = vals
 	}
 	if o.personAddresses.Len() != 0 {
 		var vals []map[string]interface{}
 		for obj := range o.personAddresses.ValuesIter() {
 			vals = append(vals, obj.MarshalStringMap())
 		}
-		v["personAddresses"] = vals
+		v["personAddress"] = vals
 	}
 	if obj := o.personEmployeeInfo; obj != nil {
 		v["personEmployeeInfo"] = obj.MarshalStringMap()
@@ -2205,7 +2205,7 @@ func (o *personBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 				}
 				o.SetPersonTypeEnum(v2)
 			}
-		case "managerProjects":
+		case "managerProject":
 			v2, ok := v.([]any)
 			if !ok {
 				return fmt.Errorf("json field %s must be an array of maps", k)
@@ -2223,9 +2223,9 @@ func (o *personBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 				}
 				s = append(s, v3)
 			}
-			o.SetManagerProjects(s...)
+			o.SetManagerProject(s...)
 
-		case "personAddresses":
+		case "personAddress":
 			v2, ok := v.([]any)
 			if !ok {
 				return fmt.Errorf("json field %s must be an array of maps", k)
@@ -2243,7 +2243,7 @@ func (o *personBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 				}
 				s = append(s, v3)
 			}
-			o.SetPersonAddresses(s...)
+			o.SetPersonAddress(s...)
 
 		case "personEmployeeInfo":
 			v2 := NewEmployeeInfo()

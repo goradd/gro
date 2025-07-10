@@ -9,7 +9,7 @@ import (
 )
 
 func TestUniquePrimaryKey(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	gift := goradd.NewGift()
 	gift.SetNumber(1)
 	gift.SetName("Conflict")
@@ -18,7 +18,7 @@ func TestUniquePrimaryKey(t *testing.T) {
 }
 
 func TestUniqueValue(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	login := goradd.NewLogin()
 	login.SetUsername("system")
 	err := login.Save(ctx)
@@ -32,7 +32,7 @@ func TestUniqueValue(t *testing.T) {
 }
 
 func TestUnique2Value(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	i := goradd_unit.NewDoubleIndex()
 	i.SetID(1)
 	i.SetFieldInt(1)

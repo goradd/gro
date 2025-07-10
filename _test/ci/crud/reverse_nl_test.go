@@ -11,7 +11,7 @@ import (
 
 // TestReverseNullableLock tests insert and update of two linked records.
 func TestReverseNullableLock(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	// Insert-insert
@@ -67,7 +67,7 @@ func TestReverseNullableLock(t *testing.T) {
 
 // TestReverseNullableLockCollision tests saving two records that are changed at the same time.
 func TestReverseNullableLockCollision(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	r := goradd_unit.NewRootNl()
@@ -111,7 +111,7 @@ func TestReverseNullableLockCollision(t *testing.T) {
 }
 
 func TestReverseNullableLockNull(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	r := goradd_unit.NewRootNl()
@@ -135,7 +135,7 @@ func TestReverseNullableLockNull(t *testing.T) {
 }
 
 func TestReverseNullableLockTwo(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 	r := goradd_unit.NewRootNl()
 	l := goradd_unit.NewLeafNl()
@@ -161,7 +161,7 @@ func TestReverseNullableLockTwo(t *testing.T) {
 }
 
 func TestReverseNullableLockDelete(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 	l := goradd_unit.NewLeafNl()
 	r := goradd_unit.NewRootNl()

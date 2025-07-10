@@ -160,7 +160,7 @@ func (n *employeeInfoReverse) PersonID() *query.ColumnNode {
 
 // Person represents the link to a Person object.
 func (n employeeInfoTable) Person() PersonNode {
-	cn := &employeeInfoReference{
+	cn := &personReference{
 		ReferenceNode: query.ReferenceNode{
 			ForeignKey: "person_id",
 			PrimaryKey: "id",
@@ -172,7 +172,7 @@ func (n employeeInfoTable) Person() PersonNode {
 }
 
 func (n *employeeInfoReverse) Person() PersonNode {
-	cn := n.employeeInfoTable.Person().(*employeeInfoReference)
+	cn := n.employeeInfoTable.Person().(*personReference)
 	query.NodeSetParent(cn, n)
 	return cn
 }

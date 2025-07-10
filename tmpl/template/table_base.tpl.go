@@ -138,6 +138,8 @@ import (
 	}
 
 	if _, err = io.WriteString(_w, `/node"
+    "time"
+    "unicode/utf8"
 )
 
 `); err != nil {

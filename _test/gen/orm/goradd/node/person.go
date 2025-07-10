@@ -29,10 +29,10 @@ type PersonNode interface {
 	Modified() *query.ColumnNode
 	// Projects represents the many-many reference to Project objects.
 	Projects() ProjectNode
-	// ManagerProjects represents the ManagerProjects reverse reference to Project objects
+	// ManagerProject represents the ManagerProject reverse reference to Project objects
 	// through the ManagerID foreign key there.
 	ManagerProjects() ProjectNode
-	// PersonAddresses represents the PersonAddresses reverse reference to Address objects
+	// PersonAddress represents the PersonAddress reverse reference to Address objects
 	// through the PersonID foreign key there.
 	PersonAddresses() AddressNode
 	// PersonEmployeeInfo represents the PersonEmployeeInfo reverse reference to a EmployeeInfo object
@@ -324,7 +324,7 @@ func (n *personAssociation) Projects() ProjectNode {
 	return cn
 }
 
-// ManagerProjects represents the many-to-one relationship formed by the reverse reference from the
+// ManagerProject represents the many-to-one relationship formed by the reverse reference from the
 // manager_id column in the project table.
 func (n personTable) ManagerProjects() ProjectNode {
 	cn := &projectReverse{
@@ -350,7 +350,7 @@ func (n *personAssociation) ManagerProjects() ProjectNode {
 	return cn
 }
 
-// PersonAddresses represents the many-to-one relationship formed by the reverse reference from the
+// PersonAddress represents the many-to-one relationship formed by the reverse reference from the
 // person_id column in the address table.
 func (n personTable) PersonAddresses() AddressNode {
 	cn := &addressReverse{

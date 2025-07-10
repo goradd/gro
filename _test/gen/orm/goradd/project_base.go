@@ -15,6 +15,8 @@ import (
 	"encoding/json"
     "github.com/goradd/maps"
     "github.com/goradd/orm/_test/gen/orm/goradd/node"
+    "time"
+    "unicode/utf8"
 )
 
 
@@ -103,8 +105,8 @@ const  (
     ProjectManagerField = `manager`
     ProjectParentIDField = `parentID`
     ProjectParentField = `parent`
-    ProjectChildrenField = `children`
-    ProjectProjectMilestonesField = `projectMilestones`
+    ProjectChildField = `children`
+    ProjectProjectMilestoneField = `projectMilestones`
     ProjectTeamMembersField = `teamMembers`
 )
 
@@ -854,20 +856,20 @@ func (o *projectBase) CountTeamMembers(ctx context.Context) (int, error) {
 }
 
 
-// Children returns a single Project object by primary key, if one was loaded.
+// Child returns a single Project object by primary key, if one was loaded.
 // Otherwise, it will return nil. It will not return Project objects that are not saved.
-func (o *projectBase) Children(pk string) *Project {
+func (o *projectBase) Child(pk string) *Project {
 	v := o.children.Get(pk)
 	return v
 }
 
-// Children returns a slice of Project objects if loaded.
-func (o *projectBase) Children() []*Project {
+// Child returns a slice of Project objects if loaded.
+func (o *projectBase) Child() []*Project {
 	return o.children.Values()
 }
 
-// LoadChildren loads a new slice of Project objects and returns it.
-func (o *projectBase) LoadChildren(ctx context.Context) ([]*Project, error) {
+// LoadChild loads a new slice of Project objects and returns it.
+func (o *projectBase) LoadChild(ctx context.Context) ([]*Project, error) {
 	if o.IsNew() {
 		return nil, nil
 	}
@@ -894,16 +896,16 @@ func (o *projectBase) LoadChildren(ctx context.Context) ([]*Project, error) {
 	return o.children.Values(), nil
 }
 
-// CountChildren does a database query and returns the number of Project
+// CountChild does a database query and returns the number of Project
 // objects currently in the database connected to this object.
-func (o *projectBase) CountChildren(ctx context.Context) (int, error) {
+func (o *projectBase) CountChild(ctx context.Context) (int, error) {
     return CountProjectsByParent(ctx, o.PrimaryKey())
 }
 
-// SetChildren associates the objects in objs with the Project.
-// WARNING! If it has Children already associated with it that will not be associated after a save,
-// Save will panic. Be sure to delete those Children or otherwise fix those pointers before calling save.
-func (o *projectBase) SetChildren(objs ...*Project) {
+// SetChild associates the objects in objs with the Project.
+// WARNING! If it has Child already associated with it that will not be associated after a save,
+// Save will panic. Be sure to delete those Child or otherwise fix those pointers before calling save.
+func (o *projectBase) SetChild(objs ...*Project) {
     for obj := range o.children.ValuesIter() {
         if obj.IsDirty() {
             panic("You cannot overwrite items that have changed but have not been saved.")
@@ -918,20 +920,20 @@ func (o *projectBase) SetChildren(objs ...*Project) {
 	o.childrenIsDirty = true
 }
 
-// ProjectMilestones returns a single Milestone object by primary key, if one was loaded.
+// ProjectMilestone returns a single Milestone object by primary key, if one was loaded.
 // Otherwise, it will return nil. It will not return Milestone objects that are not saved.
-func (o *projectBase) ProjectMilestones(pk string) *Milestone {
+func (o *projectBase) ProjectMilestone(pk string) *Milestone {
 	v := o.projectMilestones.Get(pk)
 	return v
 }
 
-// ProjectMilestones returns a slice of Milestone objects if loaded.
-func (o *projectBase) ProjectMilestones() []*Milestone {
+// ProjectMilestone returns a slice of Milestone objects if loaded.
+func (o *projectBase) ProjectMilestone() []*Milestone {
 	return o.projectMilestones.Values()
 }
 
-// LoadProjectMilestones loads a new slice of Milestone objects and returns it.
-func (o *projectBase) LoadProjectMilestones(ctx context.Context) ([]*Milestone, error) {
+// LoadProjectMilestone loads a new slice of Milestone objects and returns it.
+func (o *projectBase) LoadProjectMilestone(ctx context.Context) ([]*Milestone, error) {
 	if o.IsNew() {
 		return nil, nil
 	}
@@ -958,16 +960,16 @@ func (o *projectBase) LoadProjectMilestones(ctx context.Context) ([]*Milestone, 
 	return o.projectMilestones.Values(), nil
 }
 
-// CountProjectMilestones does a database query and returns the number of Milestone
+// CountProjectMilestone does a database query and returns the number of Milestone
 // objects currently in the database connected to this object.
-func (o *projectBase) CountProjectMilestones(ctx context.Context) (int, error) {
+func (o *projectBase) CountProjectMilestone(ctx context.Context) (int, error) {
     return CountMilestonesByProject(ctx, o.PrimaryKey())
 }
 
-// SetProjectMilestones associates the objects in objs with the Project.
-// WARNING! If it has ProjectMilestones already associated with it that will not be associated after a save,
-// Save will panic. Be sure to delete those ProjectMilestones or otherwise fix those pointers before calling save.
-func (o *projectBase) SetProjectMilestones(objs ...*Milestone) {
+// SetProjectMilestone associates the objects in objs with the Project.
+// WARNING! If it has ProjectMilestone already associated with it that will not be associated after a save,
+// Save will panic. Be sure to delete those ProjectMilestone or otherwise fix those pointers before calling save.
+func (o *projectBase) SetProjectMilestone(objs ...*Milestone) {
     for obj := range o.projectMilestones.ValuesIter() {
         if obj.IsDirty() {
             panic("You cannot overwrite items that have changed but have not been saved.")
@@ -1610,7 +1612,7 @@ func (o *projectBase) unpack (m map[string]interface{}, objThis *Project) {
 	    
 
 
-	if v, ok := m["Children"]; ok {
+	if v, ok := m["Child"]; ok {
 		switch v2 := v.(type) {
 		case []map[string]any: // array expansion
 		    o.children.Clear()
@@ -1633,7 +1635,7 @@ func (o *projectBase) unpack (m map[string]interface{}, objThis *Project) {
 	    
 
 
-	if v, ok := m["ProjectMilestones"]; ok {
+	if v, ok := m["ProjectMilestone"]; ok {
 		switch v2 := v.(type) {
 		case []map[string]any: // array expansion
 		    o.projectMilestones.Clear()
@@ -2119,8 +2121,8 @@ func (o *projectBase) getInsertFields() (fields map[string]interface{}) {
 
 // Delete deletes the record from the database.
 //
-// Associated Children will also be deleted since their Parent fields are not nullable.
-// Associated ProjectMilestones will also be deleted since their Project fields are not nullable.
+// Associated Child will also be deleted since their Parent fields are not nullable.
+// Associated ProjectMilestone will also be deleted since their Project fields are not nullable.
 func (o *projectBase) Delete(ctx context.Context) (err error) {
     if o == nil {
         return // allow deleting of a nil object to be a noop
@@ -2896,14 +2898,14 @@ func (o *projectBase) MarshalStringMap() (map[string]interface{}) {
         for obj := range o.children.ValuesIter() {
             vals = append(vals, obj.MarshalStringMap())
         }
-        v["children"] = vals
+        v["child"] = vals
     }
     if o.projectMilestones.Len() != 0 {
         var vals []map[string]interface{}
         for obj := range o.projectMilestones.ValuesIter() {
             vals = append(vals, obj.MarshalStringMap())
         }
-        v["projectMilestones"] = vals
+        v["projectMilestone"] = vals
     }
     if o.teamMembers.Len() != 0 {
         var vals []map[string]interface{}
@@ -3170,7 +3172,7 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
                 if err != nil {return}
                 o.SetParent(v2)
 
-        case "children":
+        case "child":
             v2,ok := v.([]any)
             if !ok {
                 return fmt.Errorf("json field %s must be an array of maps", k)
@@ -3186,10 +3188,10 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
                 if err != nil {return}
                 s = append(s, v3)
             }
-            o.SetChildren(s...)
+            o.SetChild(s...)
 
 
-        case "projectMilestones":
+        case "projectMilestone":
             v2,ok := v.([]any)
             if !ok {
                 return fmt.Errorf("json field %s must be an array of maps", k)
@@ -3205,7 +3207,7 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
                 if err != nil {return}
                 s = append(s, v3)
             }
-            o.SetProjectMilestones(s...)
+            o.SetProjectMilestone(s...)
 
 
 

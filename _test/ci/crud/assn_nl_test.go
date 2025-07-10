@@ -12,7 +12,7 @@ import (
 
 // TestForwardLock tests insert and update of two linked records that have an optimistic lock.
 func TestAssociationLock(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	// Insert-insert
@@ -66,7 +66,7 @@ func TestAssociationLock(t *testing.T) {
 }
 
 func TestAssociationLockCollision(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	l1 := goradd_unit.NewLeafNl()
@@ -104,7 +104,7 @@ func TestAssociationLockCollision(t *testing.T) {
 }
 
 func TestAssociationLockNull(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	l1 := goradd_unit.NewLeafNl()
@@ -127,7 +127,7 @@ func TestAssociationLockNull(t *testing.T) {
 }
 
 func TestAssociationLockTwo(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	l1 := goradd_unit.NewLeafNl()
@@ -147,7 +147,7 @@ func TestAssociationLockTwo(t *testing.T) {
 }
 
 func TestAssociationLockDelete(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	l1 := goradd_unit.NewLeafNl()
@@ -169,7 +169,7 @@ func TestAssociationLockDelete(t *testing.T) {
 }
 
 func TestAssociationLockJson(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	l1 := goradd_unit.NewLeafNl()

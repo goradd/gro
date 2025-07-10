@@ -182,7 +182,7 @@ func (n *addressReverse) PersonID() *query.ColumnNode {
 
 // Person represents the link to a Person object.
 func (n addressTable) Person() PersonNode {
-	cn := &addressReference{
+	cn := &personReference{
 		ReferenceNode: query.ReferenceNode{
 			ForeignKey: "person_id",
 			PrimaryKey: "id",
@@ -194,7 +194,7 @@ func (n addressTable) Person() PersonNode {
 }
 
 func (n *addressReverse) Person() PersonNode {
-	cn := n.addressTable.Person().(*addressReference)
+	cn := n.addressTable.Person().(*personReference)
 	query.NodeSetParent(cn, n)
 	return cn
 }

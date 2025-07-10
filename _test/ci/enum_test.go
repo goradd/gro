@@ -1,15 +1,15 @@
 package ci
 
 import (
+	"context"
 	"github.com/goradd/orm/_test/gen/orm/goradd"
 	"github.com/goradd/orm/_test/gen/orm/goradd/node"
-	"github.com/goradd/orm/pkg/db"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func TestBasicEnum(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	projects, err := goradd.QueryProjects(ctx).
 		OrderBy(node.Project().ID()).
 		Load()

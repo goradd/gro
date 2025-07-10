@@ -56,8 +56,8 @@ func TestSerializeReferencesMilestoneTable(t *testing.T) {
 		assert.True(t, query.NodesMatch(Milestone().Project().Manager(), n2.(ProjectNode).Manager()))
 		assert.True(t, query.NodesMatch(Milestone().Project().ParentID(), n2.(ProjectNode).ParentID()))
 		assert.True(t, query.NodesMatch(Milestone().Project().Parent(), n2.(ProjectNode).Parent()))
-		assert.True(t, query.NodesMatch(Milestone().Project().Children(), n2.(ProjectNode).Children()))
-		assert.True(t, query.NodesMatch(Milestone().Project().ProjectMilestones(), n2.(ProjectNode).ProjectMilestones()))
+		assert.True(t, query.NodesMatch(Milestone().Project().Child(), n2.(ProjectNode).Child()))
+		assert.True(t, query.NodesMatch(Milestone().Project().ProjectMilestone(), n2.(ProjectNode).ProjectMilestone()))
 		assert.True(t, query.NodesMatch(Milestone().Project().TeamMembers(), n2.(ProjectNode).TeamMembers()))
 
 	}

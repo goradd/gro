@@ -12,7 +12,7 @@ import (
 
 // TestForward tests insert and update of two linked records.
 func TestForward(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	// Insert-insert
@@ -67,7 +67,7 @@ func TestForward(t *testing.T) {
 
 // TestForwardCollision tests saving two records that are changed at the same time.
 func TestForwardCollision(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	l := goradd_unit.NewLeaf()
@@ -104,7 +104,7 @@ func TestForwardCollision(t *testing.T) {
 }
 
 func TestForwardNull(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 	l := goradd_unit.NewLeaf()
 	l.SetName("leaf")
@@ -118,7 +118,7 @@ func TestForwardNull(t *testing.T) {
 }
 
 func TestForwardTwo(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 	l := goradd_unit.NewLeaf()
 	r := goradd_unit.NewRoot()
@@ -138,7 +138,7 @@ func TestForwardTwo(t *testing.T) {
 }
 
 func TestForwardDelete(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 	l := goradd_unit.NewLeaf()
 	r := goradd_unit.NewRoot()
@@ -159,7 +159,7 @@ func TestForwardDelete(t *testing.T) {
 }
 
 func TestForwardJson(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 	l := goradd_unit.NewLeaf()
 	r := goradd_unit.NewRoot()

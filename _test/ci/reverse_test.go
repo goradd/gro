@@ -11,7 +11,7 @@ import (
 )
 
 func TestReverseReference(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	people, err := goradd.QueryPeople(ctx).
 		Select(node.Person().ManagerProjects()).
 		OrderBy(node.Person().ID()).
@@ -28,7 +28,7 @@ func TestReverseReference(t *testing.T) {
 }
 
 func TestReverseConditionalSelect(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	people, err := goradd.QueryPeople(ctx).
 		OrderBy(node.Person().ID(), node.Person().ManagerProjects().Name()).
 		Where(op.IsNotNull(node.Person().ManagerProjects().ID())). // Filter out people who are not managers
@@ -47,7 +47,7 @@ func TestReverseConditionalSelect(t *testing.T) {
 
 // Complex test finding all the team members of all the projects a person is managing, ordering by last name
 func TestReverseManyLoad(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	people, err := goradd.QueryPeople(ctx).
 		OrderBy(node.Person().ID(), node.Person().ManagerProjects().TeamMembers().LastName(), node.Person().ManagerProjects().TeamMembers().FirstName()).
 		Select(node.Person().ManagerProjects().TeamMembers().FirstName(), node.Person().ManagerProjects().TeamMembers().LastName()).
@@ -91,7 +91,7 @@ func TestReverseManyLoad(t *testing.T) {
 }
 
 func TestUniqueReverseLoad(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	person, err := goradd.QueryPeople(ctx).
 		Where(op.Equal(node.Person().LastName(), "Doe")).
 		Get()
@@ -108,7 +108,7 @@ func TestUniqueReverseLoad(t *testing.T) {
 }
 
 func TestReverseUniqueInsert(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	var err error
 
 	// Test insert
@@ -173,7 +173,7 @@ func TestReverseUniqueInsert(t *testing.T) {
 }
 
 func TestReverseManyNotNullInsert(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	// Test insert
 	person := goradd.NewPerson()
 	person.SetFirstName("Sam")
@@ -218,7 +218,7 @@ func TestReverseManyNotNullInsert(t *testing.T) {
 }
 
 func TestReverseManyNullInsertNewObject(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	// Test insert
 	project := goradd.NewProject()
 	project.SetName("Big project")
@@ -259,7 +259,7 @@ func TestReverseManyNullInsertNewObject(t *testing.T) {
 }
 
 func TestReverseReferenceCount(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	person, err := goradd.LoadPerson(ctx, "3")
 	assert.NoError(t, err)
@@ -270,7 +270,7 @@ func TestReverseReferenceCount(t *testing.T) {
 }
 
 func TestReverseLoad(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	project, err := goradd.LoadProject(ctx, "1")
 	assert.NoError(t, err)
@@ -282,7 +282,7 @@ func TestReverseLoad(t *testing.T) {
 }
 
 func TestReverseLoadUnsaved(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	project, err := goradd.LoadProject(ctx, "1")
 	assert.NoError(t, err)
@@ -296,7 +296,7 @@ func TestReverseLoadUnsaved(t *testing.T) {
 }
 
 func TestReverseSelectByID(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	projects, err := goradd.QueryProjects(ctx).
 		OrderBy(node.Project().Name().Descending()).
@@ -321,7 +321,7 @@ func TestReverseSelectByID(t *testing.T) {
 }
 
 func TestReverseSet(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	person, err := goradd.QueryPeople(ctx).
 		Where(op.Equal(node.Person().ID(), "7")).

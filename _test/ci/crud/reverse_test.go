@@ -12,7 +12,7 @@ import (
 
 // TestReverse tests insert and update of two linked records.
 func TestReverse(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	// Insert-insert
@@ -68,7 +68,7 @@ func TestReverse(t *testing.T) {
 
 // TestReverseCollision tests saving two records that are changed at the same time.
 func TestReverseCollision(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	r := goradd_unit.NewRoot()
@@ -105,7 +105,7 @@ func TestReverseCollision(t *testing.T) {
 }
 
 func TestReverseNull(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 
 	r := goradd_unit.NewRoot()
@@ -128,7 +128,7 @@ func TestReverseNull(t *testing.T) {
 }
 
 func TestReverseTwo(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 	r := goradd_unit.NewRoot()
 	l := goradd_unit.NewLeaf()
@@ -148,7 +148,7 @@ func TestReverseTwo(t *testing.T) {
 }
 
 func TestReverseJson(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	defer goradd_unit.ClearAll(ctx)
 	r := goradd_unit.NewRoot()
 	l := goradd_unit.NewLeaf()

@@ -45,10 +45,10 @@ type ProjectNode interface {
 	Parent() ProjectNode
 	// TeamMembers represents the many-many reference to Person objects.
 	TeamMembers() PersonNode
-	// Children represents the Children reverse reference to Project objects
+	// Child represents the Child reverse reference to Project objects
 	// through the ParentID foreign key there.
 	Children() ProjectNode
-	// ProjectMilestones represents the ProjectMilestones reverse reference to Milestone objects
+	// ProjectMilestone represents the ProjectMilestone reverse reference to Milestone objects
 	// through the ProjectID foreign key there.
 	ProjectMilestones() MilestoneNode
 }
@@ -518,13 +518,13 @@ func (n *projectReference) Manager() PersonNode {
 }
 
 func (n *projectReverse) Manager() PersonNode {
-	cn := n.projectTable.Manager().(*projectReference)
+	cn := n.projectTable.Manager().(*personReference)
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
 func (n *projectAssociation) Manager() PersonNode {
-	cn := n.projectTable.Manager().(*projectReference)
+	cn := n.projectTable.Manager().(*personReference)
 	query.NodeSetParent(cn, n)
 	return cn
 }
@@ -625,7 +625,7 @@ func (n *projectAssociation) TeamMembers() PersonNode {
 	return cn
 }
 
-// Children represents the many-to-one relationship formed by the reverse reference from the
+// Child represents the many-to-one relationship formed by the reverse reference from the
 // parent_id column in the project table.
 func (n projectTable) Children() ProjectNode {
 	cn := &projectReverse{
@@ -657,7 +657,7 @@ func (n *projectAssociation) Children() ProjectNode {
 	return cn
 }
 
-// ProjectMilestones represents the many-to-one relationship formed by the reverse reference from the
+// ProjectMilestone represents the many-to-one relationship formed by the reverse reference from the
 // project_id column in the milestone table.
 func (n projectTable) ProjectMilestones() MilestoneNode {
 	cn := &milestoneReverse{
