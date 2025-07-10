@@ -24,10 +24,10 @@ func (o *{{= table.DecapIdentifier}}Base) IsDirty() (dirty bool) {
 
 {{if table.HasReferences() }}
     dirty = dirty ||
-        {{join table.References, " ||\n"}}o.{{= _j.Field }} != nil && o.{{= _j.Field }}.IsDirty()){{join}}
+        {{join table.References, " ||\n"}}o.{{= _j.Field }} != nil && o.{{= _j.Field }}.IsDirty(){{join}}
 {{if}}
 
-{{if table.HasReferences() }}
+{{if table.HasReverseReferences() }}
 	dirty = dirty ||
 	    {{join table.ReverseReferences, "|| \n"}}o.{{= _j.ReverseField }}IsDirty{{join}}
 
@@ -42,18 +42,17 @@ func (o *{{= table.DecapIdentifier}}Base) IsDirty() (dirty bool) {
 {{for}}
 {{if}}
 
-{{if len(table.ManyManyReferences) > 0}}
+{{if table.HasManyManyReferences() }}
 	dirty = dirty ||
 	    {{join table.ManyManyReferences, "|| \n"}}o.{{= _j.Field }}IsDirty{{join}}
 
     {{for _,mm := range table.ManyManyReferences}}
-
     for obj := range o.{{= mm.Field }}.ValuesIter() {
         dirty = dirty || obj.IsDirty()
     }
+
     {{for}}
 {{if}}
-
     return
 }
 

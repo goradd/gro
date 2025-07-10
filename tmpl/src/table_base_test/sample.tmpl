@@ -79,7 +79,7 @@ func updateMaximalSample{{= table.Identifier }}(ctx context.Context, obj *{{= ta
         }
     }
 {{else}}
-    obj.Set{{= rev.ReverseIdentifier }}(createMinimalSample{{= rev.Table.Identifier }}())
+    obj.Set{{= rev.ReverseIdentifierPlural }}(createMinimalSample{{= rev.Table.Identifier }}())
 {{if}}
 {{for}}
 {{for _,mm := range table.ManyManyReferences}}
@@ -97,7 +97,7 @@ func deleteSample{{= table.Identifier }}(ctx context.Context, obj *{{= table.Ide
 {{if rev.IsUnique }}
     deleteSample{{= rev.Table.Identifier }}(ctx, obj.{{= rev.ReverseIdentifier }}())
 {{else}}
-    for _,item := range obj.{{= rev.ReverseIdentifier }}() {
+    for _,item := range obj.{{= rev.ReverseIdentifierPlural }}() {
         deleteSample{{= rev.Table.Identifier }}(ctx, item)
     }
 {{if}}

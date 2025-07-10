@@ -4479,7 +4479,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.Identifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ForeignKey.Identifier); err != nil {
 				return
 			}
 
@@ -4777,7 +4777,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 				return
 			}
 
@@ -4802,7 +4802,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 				return
 			}
 
@@ -4830,7 +4830,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 				return
 			}
 
@@ -4855,7 +4855,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 				return
 			}
 
@@ -4897,7 +4897,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.Identifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ForeignKey.Identifier); err != nil {
 				return
 			}
 
@@ -4962,7 +4962,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 				return
 			}
 
@@ -4975,7 +4975,15 @@ func (o *`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `
-// objects currently in the database connected to this object.
+// objects currently in the database that have a `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.ForeignKey.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` value that equals this objects primary key.
 func (o *`); err != nil {
 				return
 			}
@@ -4988,7 +4996,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 				return
 			}
 
@@ -5005,7 +5013,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.Identifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ForeignKey.Identifier); err != nil {
 				return
 			}
 
@@ -5016,11 +5024,11 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` associates the objects in objs with the `); err != nil {
+			if _, err = io.WriteString(_w, ` associates the objects in objs with this `); err != nil {
 				return
 			}
 
@@ -5028,7 +5036,16 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `.
+			if _, err = io.WriteString(_w, ` by setting
+// their `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, rev.ForeignKey.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` values to this object's primary key.
 `); err != nil {
 				return
 			}
@@ -5039,7 +5056,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+				if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 					return
 				}
 
@@ -5048,7 +5065,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+				if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 					return
 				}
 
@@ -5074,7 +5091,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+				if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 					return
 				}
 
@@ -5083,7 +5100,7 @@ func (o *`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+				if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 					return
 				}
 
@@ -5106,7 +5123,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 				return
 			}
 
@@ -10227,13 +10244,13 @@ func (o *`); err != nil {
 		return
 	}
 
-	for _, col := range table.ReverseReferences {
+	for _, rev := range table.ReverseReferences {
 
 		if _, err = io.WriteString(_w, `    `); err != nil {
 			return
 		}
 
-		if col.IsUnique {
+		if rev.IsUnique {
 
 			if _, err = io.WriteString(_w, `
 
@@ -10241,7 +10258,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -10250,7 +10267,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -10258,7 +10275,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ForeignKey.Identifier); err != nil {
 				return
 			}
 
@@ -10267,7 +10284,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -10292,7 +10309,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -10301,7 +10318,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -10311,7 +10328,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -10320,7 +10337,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ForeignKey.Identifier); err != nil {
 				return
 			}
 
@@ -10333,7 +10350,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -10342,7 +10359,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.ReverseField); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -12195,7 +12212,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `.IsDirty())`); err != nil {
+			if _, err = io.WriteString(_w, `.IsDirty()`); err != nil {
 				return
 			}
 
@@ -12217,7 +12234,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if table.HasReferences() {
+	if table.HasReverseReferences() {
 
 		if _, err = io.WriteString(_w, `	dirty = dirty ||
 	    `); err != nil {
@@ -12304,7 +12321,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if len(table.ManyManyReferences) > 0 {
+	if table.HasManyManyReferences() {
 
 		if _, err = io.WriteString(_w, `	dirty = dirty ||
 	    `); err != nil {
@@ -12341,7 +12358,6 @@ func (o *`); err != nil {
 		for _, mm := range table.ManyManyReferences {
 
 			if _, err = io.WriteString(_w, `
-
     for obj := range o.`); err != nil {
 				return
 			}
@@ -12353,6 +12369,7 @@ func (o *`); err != nil {
 			if _, err = io.WriteString(_w, `.ValuesIter() {
         dirty = dirty || obj.IsDirty()
     }
+
     `); err != nil {
 				return
 			}
@@ -12366,8 +12383,7 @@ func (o *`); err != nil {
 
 	}
 
-	if _, err = io.WriteString(_w, `
-    return
+	if _, err = io.WriteString(_w, `    return
 }
 
 `); err != nil {
@@ -14698,7 +14714,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 				return
 			}
 

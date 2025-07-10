@@ -130,14 +130,17 @@ func Test{{= table.Identifier }}_ReferenceLoad(t *testing.T) {
 {{for}}
 
 {{for _,rev := range table.ReverseReferences }}
+{{if rev.IsUnique}}
     assert.Nil(t, obj2.{{= rev.ReverseIdentifier }}(), "{{= rev.ReverseIdentifier }} is not loaded initially")
     v_{{= rev.ReverseIdentifier }}, _ := obj2.Load{{= rev.ReverseIdentifier }}(ctx)
     assert.NotNil(t, v_{{= rev.ReverseIdentifier }})
-{{if rev.IsUnique}}
     assert.Equal(t, v_{{= rev.ReverseIdentifier }}.PrimaryKey(), obj2.{{= rev.ReverseIdentifier }}().PrimaryKey())
     assert.Equal(t, obj.{{= rev.ReverseIdentifier }}().PrimaryKey(), obj2.{{= rev.ReverseIdentifier }}().PrimaryKey())
 {{else}}
-    assert.Len(t, v_{{= rev.ReverseIdentifier }}, 1)
+    assert.Nil(t, obj2.{{= rev.ReverseIdentifierPlural }}(), "{{= rev.ReverseIdentifier }} is not loaded initially")
+    v_{{= rev.ReverseIdentifierPlural }}, _ := obj2.Load{{= rev.ReverseIdentifierPlural }}(ctx)
+    assert.NotNil(t, v_{{= rev.ReverseIdentifierPlural }})
+    assert.Len(t, v_{{= rev.ReverseIdentifierPlural }}, 1)
 {{if}}
 {{for}}
 
@@ -151,8 +154,13 @@ func Test{{= table.Identifier }}_ReferenceLoad(t *testing.T) {
     // test eager loading
     obj3, _ := Load{{= table.Identifier }}(ctx, obj.PrimaryKey(), {{join table.Columns, ""}}node.{{= table.Identifier }}().{{= _j.Identifier }}(),
 {{join}}
-{{join table.ReverseReferences, ""}}node.{{= table.Identifier }}().{{= _j.ReverseIdentifier }}(),
-{{join}}
+{{for _,rev := range table.ReverseReferences}}
+{{if rev.IsUnique }}
+    node.{{= table.Identifier }}().{{= rev.ReverseIdentifier }}(),
+{{else}}
+    node.{{= table.Identifier }}().{{= rev.ReverseIdentifierPlural }}(),
+{{if}}
+{{for}}
 {{join table.ManyManyReferences, ""}}node.{{= table.Identifier }}().{{= _j.IdentifierPlural }}(),
 {{join}}
     )
@@ -165,7 +173,7 @@ func Test{{= table.Identifier }}_ReferenceLoad(t *testing.T) {
 {{if rev.IsUnique}}
     assert.Equal(t, obj2.{{= rev.ReverseIdentifier }}().PrimaryKey(), obj3.{{= rev.ReverseIdentifier }}().PrimaryKey())
 {{else}}
-    assert.Equal(t, len(obj2.{{= rev.ReverseIdentifier }}()), len(obj3.{{= rev.ReverseIdentifier }}()))
+    assert.Equal(t, len(obj2.{{= rev.ReverseIdentifierPlural }}()), len(obj3.{{= rev.ReverseIdentifierPlural }}()))
 {{if}}
 {{for}}
 {{for _,mm := range table.ManyManyReferences }}
@@ -187,8 +195,13 @@ func Test{{= table.Identifier }}_ReferenceUpdateNewObjects(t *testing.T) {
 
     obj3, _ := Load{{= table.Identifier }}(ctx, obj2.PrimaryKey(), {{join table.References, ""}}node.{{= table.Identifier }}().{{= _j.Identifier }}(),
 {{join}}
-{{join table.ReverseReferences, ""}}node.{{= table.Identifier }}().{{= _j.ReverseIdentifier }}(),
-{{join}}
+{{for _,rev := range table.ReverseReferences }}
+{{if rev.IsUnique}}
+    node.{{= table.Identifier }}().{{= rev.ReverseIdentifier }}(),
+{{else}}
+    node.{{= table.Identifier }}().{{= rev.ReverseIdentifierPlural }}(),
+{{if}}
+{{for}}
 {{join table.ManyManyReferences, ""}}node.{{= table.Identifier }}().{{= _j.IdentifierPlural }}(),
 {{join}}
     )
@@ -202,7 +215,7 @@ func Test{{= table.Identifier }}_ReferenceUpdateNewObjects(t *testing.T) {
 {{if rev.IsUnique}}
     assert.Equal(t, obj2.{{= rev.ReverseIdentifier }}().PrimaryKey(), obj3.{{= rev.ReverseIdentifier }}().PrimaryKey())
 {{else}}
-    assert.Equal(t, len(obj2.{{= rev.ReverseIdentifier }}()), len(obj3.{{= rev.ReverseIdentifier }}()))
+    assert.Equal(t, len(obj2.{{= rev.ReverseIdentifierPlural }}()), len(obj3.{{= rev.ReverseIdentifierPlural }}()))
 {{if}}
 {{for}}
 
@@ -225,7 +238,7 @@ func Test{{= table.Identifier }}_ReferenceUpdateOldObjects(t *testing.T) {
 {{if rev.IsUnique}}
     updateMinimalSample{{= rev.Table.Identifier }}(obj.{{= rev.ReverseIdentifier }}())
 {{else}}
-    updateMinimalSample{{= rev.Table.Identifier }}(obj.{{= rev.ReverseIdentifier }}()[0])
+    updateMinimalSample{{= rev.Table.Identifier }}(obj.{{= rev.ReverseIdentifierPlural }}()[0])
 {{if}}
 {{for}}
 {{for _,mm := range table.ManyManyReferences }}
@@ -236,8 +249,13 @@ func Test{{= table.Identifier }}_ReferenceUpdateOldObjects(t *testing.T) {
 
     obj2, _ := Load{{= table.Identifier }}(ctx, obj.PrimaryKey(), {{join table.Columns, ""}}node.{{= table.Identifier }}().{{= _j.Identifier }}(),
 {{join}}
-{{join table.ReverseReferences, ""}}node.{{= table.Identifier }}().{{= _j.ReverseIdentifier }}(),
-{{join}}
+{{for _,rev := range table.ReverseReferences }}
+{{if rev.IsUnique}}
+    node.{{= table.Identifier }}().{{= rev.ReverseIdentifier }}(),
+{{else}}
+    node.{{= table.Identifier }}().{{= rev.ReverseIdentifierPlural }}(),
+{{if}}
+{{for}}
 {{join table.ManyManyReferences, ""}}node.{{= table.Identifier }}().{{= _j.IdentifierPlural }}(),
 {{join}}
     )
@@ -251,7 +269,7 @@ func Test{{= table.Identifier }}_ReferenceUpdateOldObjects(t *testing.T) {
 {{if rev.IsUnique}}
     assertEqualFields{{= rev.Table.Identifier }}(t, obj2.{{= rev.ReverseIdentifier }}(), obj.{{= rev.ReverseIdentifier }}())
 {{else}}
-    assertEqualFields{{= rev.Table.Identifier }}(t, obj2.{{= rev.ReverseIdentifier }}()[0], obj.{{= rev.ReverseIdentifier }}()[0])
+    assertEqualFields{{= rev.Table.Identifier }}(t, obj2.{{= rev.ReverseIdentifierPlural }}()[0], obj.{{= rev.ReverseIdentifierPlural }}()[0])
 {{if}}
 {{for}}
 

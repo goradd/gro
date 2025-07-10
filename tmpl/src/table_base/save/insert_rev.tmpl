@@ -5,29 +5,29 @@
 {{
 {{# Update reverse references }}
 
-{{for _,col := range table.ReverseReferences }}
-    {{if col.IsUnique }}
+{{for _,rev := range table.ReverseReferences }}
+    {{if rev.IsUnique }}
 
-    if o.{{= col.ReverseField }} != nil {
-        o.{{= col.ReverseField }}.Set{{= col.Identifier }}(newPK)
-        if err = o.{{= col.ReverseField }}.Save(ctx); err != nil {
+    if o.{{= rev.ReverseField }} != nil {
+        o.{{= rev.ReverseField }}.Set{{= rev.ForeignKey.Identifier }}(newPK)
+        if err = o.{{= rev.ReverseField }}.Save(ctx); err != nil {
             return err
         }
     }
 
     {{else}} {{# not unique }}
 
-    if o.{{= col.ReverseField }}.Len() > 0 {
-        keys := o.{{= col.ReverseField }}.Keys()
+    if o.{{= rev.ReverseField }}.Len() > 0 {
+        keys := o.{{= rev.ReverseField }}.Keys()
         for i, k := range keys {
-            obj := o.{{= col.ReverseField }}.Get(k)
-            obj.Set{{= col.Identifier }}(newPK)
+            obj := o.{{= rev.ReverseField }}.Get(k)
+            obj.Set{{= rev.ForeignKey.Identifier }}(newPK)
             if err = obj.Save(ctx); err != nil {
                 return err
             }
             if obj.PrimaryKey() != k {
-                o.{{= col.ReverseField }}.Delete(k)
-                o.{{= col.ReverseField }}.SetAt(i, obj.PrimaryKey(), obj)
+                o.{{= rev.ReverseField }}.Delete(k)
+                o.{{= rev.ReverseField }}.SetAt(i, obj.PrimaryKey(), obj)
             }
         }
     }

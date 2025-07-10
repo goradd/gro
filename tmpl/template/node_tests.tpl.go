@@ -377,7 +377,7 @@ func TestSerializeReferences`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev2.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev2.ReverseNodeIdentifier()); err != nil {
 				return
 			}
 
@@ -393,7 +393,7 @@ func TestSerializeReferences`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev2.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev2.ReverseNodeIdentifier()); err != nil {
 				return
 			}
 
@@ -479,8 +479,7 @@ func TestSerializeReverseReferences`); err != nil {
 
 	for _, rev := range table.ReverseReferences {
 
-		if _, err = io.WriteString(_w, `
-{
+		if _, err = io.WriteString(_w, `{
     n := `); err != nil {
 			return
 		}
@@ -493,7 +492,7 @@ func TestSerializeReverseReferences`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+		if _, err = io.WriteString(_w, rev.ReverseNodeIdentifier()); err != nil {
 			return
 		}
 
@@ -536,7 +535,7 @@ func TestSerializeReverseReferences`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseNodeIdentifier()); err != nil {
 				return
 			}
 
@@ -585,7 +584,7 @@ func TestSerializeReverseReferences`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseNodeIdentifier()); err != nil {
 				return
 			}
 
@@ -626,7 +625,7 @@ func TestSerializeReverseReferences`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseNodeIdentifier()); err != nil {
 				return
 			}
 
@@ -675,7 +674,7 @@ func TestSerializeReverseReferences`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseNodeIdentifier()); err != nil {
 				return
 			}
 
@@ -683,7 +682,7 @@ func TestSerializeReverseReferences`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev2.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev2.ReverseNodeIdentifier()); err != nil {
 				return
 			}
 
@@ -699,7 +698,7 @@ func TestSerializeReverseReferences`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev2.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev2.ReverseNodeIdentifier()); err != nil {
 				return
 			}
 
@@ -724,7 +723,7 @@ func TestSerializeReverseReferences`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseNodeIdentifier()); err != nil {
 				return
 			}
 
@@ -991,7 +990,7 @@ func TestSerializeAssociations`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev2.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev2.ReverseNodeIdentifier()); err != nil {
 				return
 			}
 
@@ -1007,7 +1006,7 @@ func TestSerializeAssociations`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev2.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev2.ReverseNodeIdentifier()); err != nil {
 				return
 			}
 

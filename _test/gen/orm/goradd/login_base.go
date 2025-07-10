@@ -3,46 +3,44 @@
 package goradd
 
 import (
-	"github.com/goradd/orm/pkg/db"
-	"github.com/goradd/orm/pkg/query"
-	"github.com/goradd/orm/pkg/broadcast"
-	"context"
-	"fmt"
-	"github.com/goradd/orm/pkg/op"
-	"github.com/goradd/anyutil"
 	"bytes"
+	"context"
 	"encoding/gob"
 	"encoding/json"
-    "github.com/goradd/maps"
-    "github.com/goradd/orm/_test/gen/orm/goradd/node"
-    "time"
-    "unicode/utf8"
+	"fmt"
+	"time"
+	"unicode/utf8"
+
+	"github.com/goradd/anyutil"
+	"github.com/goradd/orm/_test/gen/orm/goradd/node"
+	"github.com/goradd/orm/pkg/broadcast"
+	"github.com/goradd/orm/pkg/db"
+	"github.com/goradd/orm/pkg/op"
+	"github.com/goradd/orm/pkg/query"
 )
-
-
 
 // LoginBase is embedded in a Login object and provides the ORM access to the database.
 // The member variables of the structure are private and should not normally be accessed by the Login embedder.
 // Instead, use the accessor functions.
 type loginBase struct {
-	id string
-	idIsLoaded bool
-	idIsDirty bool
-	username string
-	usernameIsLoaded bool
-	usernameIsDirty bool
-	password string
-	passwordIsNull bool
-	passwordIsLoaded bool
-	passwordIsDirty bool
-	isEnabled bool
+	id                string
+	idIsLoaded        bool
+	idIsDirty         bool
+	username          string
+	usernameIsLoaded  bool
+	usernameIsDirty   bool
+	password          string
+	passwordIsNull    bool
+	passwordIsLoaded  bool
+	passwordIsDirty   bool
+	isEnabled         bool
 	isEnabledIsLoaded bool
-	isEnabledIsDirty bool
-	personID string
-	personIDIsLoaded bool
-	personIDIsDirty bool
+	isEnabledIsDirty  bool
+	personID          string
+	personIDIsLoaded  bool
+	personIDIsDirty   bool
 
-    // References
+	// References
 	person *Person
 
 	// Custom aliases, if specified
@@ -51,30 +49,29 @@ type loginBase struct {
 	// Indicates whether this is a new object, or one loaded from the database. Used by Save to know whether to Insert or Update.
 	_restored bool
 
-    _originalPK string
+	_originalPK string
 }
-
 
 // IDs used to access the Login object fields by name using the Get function.
 // doc: type=Login
-const  (
-    LoginIDField = `id`
-    LoginUsernameField = `username`
-    LoginPasswordField = `password`
-    LoginIsEnabledField = `isEnabled`
-    LoginPersonIDField = `personID`
-    LoginPersonField = `person`
+const (
+	LoginIDField        = `id`
+	LoginUsernameField  = `username`
+	LoginPasswordField  = `password`
+	LoginIsEnabledField = `isEnabled`
+	LoginPersonIDField  = `personID`
+	LoginPersonField    = `person`
 )
 
-    const LoginIDMaxLength = 32 // The number of runes the column can hold
-    const LoginUsernameMaxLength = 20 // The number of runes the column can hold
-    const LoginPasswordMaxLength = 20 // The number of runes the column can hold
-    const LoginPersonIDMaxLength = 32 // The number of runes the column can hold
+const LoginIDMaxLength = 32       // The number of runes the column can hold
+const LoginUsernameMaxLength = 20 // The number of runes the column can hold
+const LoginPasswordMaxLength = 20 // The number of runes the column can hold
+const LoginPersonIDMaxLength = 32 // The number of runes the column can hold
 
 // Initialize or re-initialize a Login database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
 func (o *loginBase) Initialize() {
-    o.id = db.TemporaryPrimaryKey()
+	o.id = db.TemporaryPrimaryKey()
 	o.idIsLoaded = true
 	o.idIsDirty = false
 
@@ -95,11 +92,9 @@ func (o *loginBase) Initialize() {
 	o.personIDIsLoaded = false
 	o.personIDIsDirty = false
 
-
 	o._aliases = nil
 	o._restored = false
 }
-
 
 // Copy copies most fields to a new Login object.
 // Forward reference ids will be copied, but reverse and many-many references will not.
@@ -110,23 +105,23 @@ func (o *loginBase) Initialize() {
 // Copy might panic if any fields in the database were set to a size larger than the
 // maximum size through a process that accessed the database outside of the ORM.
 func (o *loginBase) Copy() (newObject *Login) {
-    newObject = NewLogin()
-    if o.idIsLoaded {
-        newObject.SetID(o.id)
-    }
-    if o.usernameIsLoaded {
-        newObject.SetUsername(o.username)
-    }
-    if o.passwordIsLoaded {
-        newObject.SetPassword(o.password)
-    }
-    if o.isEnabledIsLoaded {
-        newObject.SetIsEnabled(o.isEnabled)
-    }
-    if o.personIDIsLoaded {
-        newObject.SetPersonID(o.personID)
-    }
-    return
+	newObject = NewLogin()
+	if o.idIsLoaded {
+		newObject.SetID(o.id)
+	}
+	if o.usernameIsLoaded {
+		newObject.SetUsername(o.username)
+	}
+	if o.passwordIsLoaded {
+		newObject.SetPassword(o.password)
+	}
+	if o.isEnabledIsLoaded {
+		newObject.SetIsEnabled(o.isEnabled)
+	}
+	if o.personIDIsLoaded {
+		newObject.SetPersonID(o.personID)
+	}
+	return
 }
 
 // OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
@@ -138,7 +133,7 @@ func (o *loginBase) OriginalPrimaryKey() string {
 // PrimaryKey returns the value of the primary key of the record.
 func (o *loginBase) PrimaryKey() string {
 	if o._restored && !o.idIsLoaded {
-		panic ("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
+		panic("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
 	}
 	return o.id
 }
@@ -150,12 +145,12 @@ func (o *loginBase) PrimaryKey() string {
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
 func (o *loginBase) SetPrimaryKey(v string) {
-    if o._restored {
-        panic ("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-    }
-    if utf8.RuneCountInString(v) > LoginIDMaxLength {
-        panic("attempted to set Login.ID to a value larger than its maximum length in runes")
-    }
+	if o._restored {
+		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+	}
+	if utf8.RuneCountInString(v) > LoginIDMaxLength {
+		panic("attempted to set Login.ID to a value larger than its maximum length in runes")
+	}
 	o.idIsLoaded = true
 	o.idIsDirty = true
 	o.id = v
@@ -178,14 +173,13 @@ func (o *loginBase) IDIsLoaded() bool {
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
 func (o *loginBase) SetID(v string) {
-    o.SetPrimaryKey(v)
+	o.SetPrimaryKey(v)
 }
-
 
 // Username returns the value of Username.
 func (o *loginBase) Username() string {
 	if o._restored && !o.usernameIsLoaded {
-		panic ("Username was not selected in the last query and has not been set, and so is not valid")
+		panic("Username was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.username
 }
@@ -197,15 +191,15 @@ func (o *loginBase) UsernameIsLoaded() bool {
 
 // SetUsername sets the value of Username in the object, to be saved later in the database using the Save() function.
 func (o *loginBase) SetUsername(v string) {
-    if utf8.RuneCountInString(v) > LoginUsernameMaxLength {
-        panic("attempted to set Login.Username to a value larger than its maximum length in runes")
-    }
+	if utf8.RuneCountInString(v) > LoginUsernameMaxLength {
+		panic("attempted to set Login.Username to a value larger than its maximum length in runes")
+	}
 	if o._restored &&
-	    o.usernameIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
-        o.username == v {
-        // no change
-        return
-    }
+		o.usernameIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.username == v {
+		// no change
+		return
+	}
 
 	o.usernameIsLoaded = true
 	o.username = v
@@ -215,7 +209,7 @@ func (o *loginBase) SetUsername(v string) {
 // Password returns the value of Password.
 func (o *loginBase) Password() string {
 	if o._restored && !o.passwordIsLoaded {
-		panic ("Password was not selected in the last query and has not been set, and so is not valid")
+		panic("Password was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.password
 }
@@ -225,7 +219,6 @@ func (o *loginBase) PasswordIsLoaded() bool {
 	return o.passwordIsLoaded
 }
 
-
 // PasswordIsNull returns true if the related database value is null.
 func (o *loginBase) PasswordIsNull() bool {
 	return o.passwordIsNull
@@ -233,38 +226,39 @@ func (o *loginBase) PasswordIsNull() bool {
 
 // SetPassword sets the value of Password in the object, to be saved later in the database using the Save() function.
 func (o *loginBase) SetPassword(v string) {
-    if utf8.RuneCountInString(v) > LoginPasswordMaxLength {
-        panic("attempted to set Login.Password to a value larger than its maximum length in runes")
-    }
+	if utf8.RuneCountInString(v) > LoginPasswordMaxLength {
+		panic("attempted to set Login.Password to a value larger than its maximum length in runes")
+	}
 	if o._restored &&
-	    o.passwordIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.passwordIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.passwordIsNull && // if the db value is null, force a set of value
-        o.password == v {
-        // no change
-        return
-    }
+		o.password == v {
+		// no change
+		return
+	}
 
 	o.passwordIsLoaded = true
 	o.password = v
 	o.passwordIsDirty = true
-    o.passwordIsNull = false
+	o.passwordIsNull = false
 }
 
 // SetPasswordToNull() will set the password value in the database to NULL.
 // Password() will return the column's default value after this.
 func (o *loginBase) SetPasswordToNull() {
 	if !o.passwordIsLoaded || !o.passwordIsNull {
-        // If we know it is null in the database, don't save it
+		// If we know it is null in the database, don't save it
 		o.passwordIsDirty = true
 	}
-    o.passwordIsLoaded = true
-    o.passwordIsNull = true
-    o.password = ""
+	o.passwordIsLoaded = true
+	o.passwordIsNull = true
+	o.password = ""
 }
+
 // IsEnabled returns the value of IsEnabled.
 func (o *loginBase) IsEnabled() bool {
 	if o._restored && !o.isEnabledIsLoaded {
-		panic ("IsEnabled was not selected in the last query and has not been set, and so is not valid")
+		panic("IsEnabled was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.isEnabled
 }
@@ -277,11 +271,11 @@ func (o *loginBase) IsEnabledIsLoaded() bool {
 // SetIsEnabled sets the value of IsEnabled in the object, to be saved later in the database using the Save() function.
 func (o *loginBase) SetIsEnabled(v bool) {
 	if o._restored &&
-	    o.isEnabledIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
-        o.isEnabled == v {
-        // no change
-        return
-    }
+		o.isEnabledIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.isEnabled == v {
+		// no change
+		return
+	}
 
 	o.isEnabledIsLoaded = true
 	o.isEnabled = v
@@ -291,7 +285,7 @@ func (o *loginBase) SetIsEnabled(v bool) {
 // PersonID returns the value of PersonID.
 func (o *loginBase) PersonID() string {
 	if o._restored && !o.personIDIsLoaded {
-		panic ("PersonID was not selected in the last query and has not been set, and so is not valid")
+		panic("PersonID was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.personID
 }
@@ -303,25 +297,24 @@ func (o *loginBase) PersonIDIsLoaded() bool {
 
 // SetPersonID sets the value of PersonID in the object, to be saved later in the database using the Save() function.
 func (o *loginBase) SetPersonID(v string) {
-    if utf8.RuneCountInString(v) > LoginPersonIDMaxLength {
-        panic("attempted to set Login.PersonID to a value larger than its maximum length in runes")
-    }
+	if utf8.RuneCountInString(v) > LoginPersonIDMaxLength {
+		panic("attempted to set Login.PersonID to a value larger than its maximum length in runes")
+	}
 	if o._restored &&
-	    o.personIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
-        o.personID == v {
-        // no change
-        return
-    }
+		o.personIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.personID == v {
+		// no change
+		return
+	}
 
 	o.personIDIsLoaded = true
 	o.personID = v
 	o.personIDIsDirty = true
 	if o.person != nil &&
-	        o.personID != o.person.PrimaryKey() {
-	    o.person = nil
+		o.personID != o.person.PrimaryKey() {
+		o.person = nil
 	}
 }
-
 
 // Person returns the current value of the loaded Person, and nil if its not loaded.
 func (o *loginBase) Person() *Person {
@@ -334,17 +327,17 @@ func (o *loginBase) LoadPerson(ctx context.Context) (*Person, error) {
 	var err error
 
 	if o.person == nil {
-	    if !o.personIDIsLoaded  {
-    		panic("PersonID must be selected in the previous query")
-    	}
+		if !o.personIDIsLoaded {
+			panic("PersonID must be selected in the previous query")
+		}
 		// Load and cache
 		o.person, err = LoadPerson(ctx, o.personID)
-    }
+	}
 	return o.person, err
 }
 
 // SetPerson sets the value of Person in the object, to be saved later using the Save() function.
-func (o *loginBase) SetPerson(person *Person)  {
+func (o *loginBase) SetPerson(person *Person) {
 	if person == nil {
 		panic("Cannot set Person to a nil value since PersonID is not nullable.")
 	} else {
@@ -357,80 +350,78 @@ func (o *loginBase) SetPerson(person *Person)  {
 	}
 }
 
-
 // GetAlias returns the value for the Alias node aliasKey that was returned in the most
 // recent query.
 func (o *loginBase) GetAlias(aliasKey string) query.AliasValue {
-	if a,ok := o._aliases[aliasKey]; ok {
+	if a, ok := o._aliases[aliasKey]; ok {
 		return query.NewAliasValue(a)
 	} else {
-		panic ("Alias " + aliasKey + " not found.")
+		panic("Alias " + aliasKey + " not found.")
 	}
 }
-
 
 // IsNew returns true if the object will create a new record when saved.
 func (o *loginBase) IsNew() bool {
 	return !o._restored
 }
 
-
 // LoadLogin returns a Login from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [LoginsBuilder.Select] for more info.
 func LoadLogin(ctx context.Context, id string, selectNodes ...query.Node) (*Login, error) {
 	return queryLogins(ctx).
-	    Where(op.Equal(node.Login().ID(), id)).
-	    Select(selectNodes...).
-	    Get()
+		Where(op.Equal(node.Login().ID(), id)).
+		Select(selectNodes...).
+		Get()
 }
 
 // HasLogin returns true if a Login with the given primary key exists in the database.
 // doc: type=Login
 func HasLogin(ctx context.Context, id string) (bool, error) {
-    v, err := queryLogins(ctx).
-	     Where(op.Equal(node.Login().ID(), id)).
-         Count()
-    return v > 0, err
+	v, err := queryLogins(ctx).
+		Where(op.Equal(node.Login().ID(), id)).
+		Count()
+	return v > 0, err
 }
 
 // LoadLoginByUsername queries for a single Login object by the given unique index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [LoginsBuilder.Select].
 // If you need a more elaborate query, use QueryLogins() to start a query builder.
-func LoadLoginByUsername (ctx context.Context, username string, selectNodes ...query.Node) (*Login, error) {
-    q := queryLogins(ctx)
-    q = q.Where(op.Equal(node.Login().Username(), username))
-    return q.Select(selectNodes...).Get()
+func LoadLoginByUsername(ctx context.Context, username string, selectNodes ...query.Node) (*Login, error) {
+	q := queryLogins(ctx)
+	q = q.Where(op.Equal(node.Login().Username(), username))
+	return q.Select(selectNodes...).Get()
 }
 
 // HasLoginByUsername returns true if the
 // given unique index values exist in the database.
 // doc: type=Login
-func HasLoginByUsername (ctx context.Context, username string) (bool, error) {
-    q := queryLogins(ctx)
-    q = q.Where(op.Equal(node.Login().Username(), username))
-    v, err := q.Count()
-    return v > 0, err
+func HasLoginByUsername(ctx context.Context, username string) (bool, error) {
+	q := queryLogins(ctx)
+	q = q.Where(op.Equal(node.Login().Username(), username))
+	v, err := q.Count()
+	return v > 0, err
 }
+
 // LoadLoginByPersonID queries for a single Login object by the given unique index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [LoginsBuilder.Select].
 // If you need a more elaborate query, use QueryLogins() to start a query builder.
-func LoadLoginByPersonID (ctx context.Context, personID string, selectNodes ...query.Node) (*Login, error) {
-    q := queryLogins(ctx)
-    q = q.Where(op.Equal(node.Login().PersonID(), personID))
-    return q.Select(selectNodes...).Get()
+func LoadLoginByPersonID(ctx context.Context, personID string, selectNodes ...query.Node) (*Login, error) {
+	q := queryLogins(ctx)
+	q = q.Where(op.Equal(node.Login().PersonID(), personID))
+	return q.Select(selectNodes...).Get()
 }
 
 // HasLoginByPersonID returns true if the
 // given unique index values exist in the database.
 // doc: type=Login
-func HasLoginByPersonID (ctx context.Context, personID string) (bool, error) {
-    q := queryLogins(ctx)
-    q = q.Where(op.Equal(node.Login().PersonID(), personID))
-    v, err := q.Count()
-    return v > 0, err
+func HasLoginByPersonID(ctx context.Context, personID string) (bool, error) {
+	q := queryLogins(ctx)
+	q = q.Where(op.Equal(node.Login().PersonID(), personID))
+	v, err := q.Count()
+	return v > 0, err
 }
 
 // The LoginBuilder uses a builder pattern to create a query on the database.
@@ -442,13 +433,13 @@ func HasLoginByPersonID (ctx context.Context, personID string) (bool, error) {
 // meant to be a short-lived object. You should not save it for later use.
 type LoginBuilder struct {
 	builder *query.Builder
-	ctx context.Context
+	ctx     context.Context
 }
 
 func newLoginBuilder(ctx context.Context) *LoginBuilder {
 	b := LoginBuilder{
 		builder: query.NewBuilder(node.Login()),
-		ctx: ctx,
+		ctx:     ctx,
 	}
 	return &b
 }
@@ -461,12 +452,12 @@ func (b *LoginBuilder) Load() (logins []*Login, err error) {
 	database := db.GetDatabase("goradd")
 	var results any
 
-    ctx := b.ctx
+	ctx := b.ctx
 	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
-	for _,item := range results.([]map[string]any) {
+	for _, item := range results.([]map[string]any) {
 		o := new(Login)
 		o.unpack(item, o)
 		logins = append(logins, o)
@@ -483,19 +474,18 @@ func (b *LoginBuilder) LoadI() (logins []query.OrmObj, err error) {
 	database := db.GetDatabase("goradd")
 	var results any
 
-    ctx := b.ctx
+	ctx := b.ctx
 	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
-	for _,item := range results.([]map[string]any) {
+	for _, item := range results.([]map[string]any) {
 		o := new(Login)
 		o.unpack(item, o)
 		logins = append(logins, o)
 	}
 	return
 }
-
 
 // LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
 //
@@ -505,16 +495,17 @@ func (b *LoginBuilder) LoadI() (logins []query.OrmObj, err error) {
 //
 // Call Next() on the returned cursor object to step through the results. Make sure you call Close
 // on the cursor object when you are done. You should use
-//   defer cursor.Close()
-// to make sure the cursor gets closed.
 //
+//	defer cursor.Close()
+//
+// to make sure the cursor gets closed.
 func (b *LoginBuilder) LoadCursor() (loginsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
 	var cursor query.CursorI
 	if result != nil {
-	    cursor = result.(query.CursorI)
+		cursor = result.(query.CursorI)
 	}
 	return loginsCursor{cursor}, err
 }
@@ -527,9 +518,9 @@ type loginsCursor struct {
 //
 // If there are no more records, it returns nil.
 func (c loginsCursor) Next() (*Login, error) {
-    if c.CursorI == nil {
-        return nil, nil
-    }
+	if c.CursorI == nil {
+		return nil, nil
+	}
 
 	row, err := c.CursorI.Next()
 	if row == nil || err != nil {
@@ -545,16 +536,16 @@ func (c loginsCursor) Next() (*Login, error) {
 // you are selecting on one or very few items.
 // If an error occurs, or no results are found, a nil is returned.
 func (b *LoginBuilder) Get() (*Login, error) {
-    results, err := b.Load()
-    if err != nil || len(results) == 0 {
-        return nil, err
-    }
-    return results[0], nil
+	results, err := b.Load()
+	if err != nil || len(results) == 0 {
+		return nil, err
+	}
+	return results[0], nil
 }
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
-func (b *LoginBuilder)  Where(c query.Node) *LoginBuilder {
+func (b *LoginBuilder) Where(c query.Node) *LoginBuilder {
 	b.builder.Where(c)
 	return b
 }
@@ -562,7 +553,7 @@ func (b *LoginBuilder)  Where(c query.Node) *LoginBuilder {
 // OrderBy specifies how the resulting data should be sorted.
 // By default, the given nodes are sorted in ascending order.
 // Add Descending() to the node to specify that it should be sorted in descending order.
-func (b *LoginBuilder)  OrderBy(nodes... query.Sorter) *LoginBuilder {
+func (b *LoginBuilder) OrderBy(nodes ...query.Sorter) *LoginBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
@@ -571,7 +562,7 @@ func (b *LoginBuilder)  OrderBy(nodes... query.Sorter) *LoginBuilder {
 // For large data sets and specific types of queries, this can be slow, because it will perform
 // the entire query before computing the limit.
 // You cannot limit a query that has embedded arrays.
-func (b *LoginBuilder)  Limit(maxRowCount int, offset int) *LoginBuilder {
+func (b *LoginBuilder) Limit(maxRowCount int, offset int) *LoginBuilder {
 	b.builder.Limit(maxRowCount, offset)
 	return b
 }
@@ -583,7 +574,7 @@ func (b *LoginBuilder)  Limit(maxRowCount int, offset int) *LoginBuilder {
 // If columns in related tables are specified, then only those columns will be queried and loaded.
 // Depending on the query, additional columns may automatically be added to the query. In particular, primary key columns
 // will be added in most situations. The exception to this would be in distinct queries, group by queries, or subqueries.
-func (b *LoginBuilder)  Select(nodes... query.Node) *LoginBuilder {
+func (b *LoginBuilder) Select(nodes ...query.Node) *LoginBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
@@ -597,39 +588,38 @@ func (b *LoginBuilder) Calculation(base query.TableNodeI, alias string, operatio
 
 // Distinct removes duplicates from the results of the query.
 // Adding a Select() is usually required.
-func (b *LoginBuilder)  Distinct() *LoginBuilder {
+func (b *LoginBuilder) Distinct() *LoginBuilder {
 	b.builder.Distinct()
 	return b
 }
 
 // GroupBy controls how results are grouped when using aggregate functions with Calculation.
-func (b *LoginBuilder)  GroupBy(nodes... query.Node) *LoginBuilder {
+func (b *LoginBuilder) GroupBy(nodes ...query.Node) *LoginBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
 // Having does additional filtering on the results of the query after the query is performed.
-func (b *LoginBuilder)  Having(node query.Node)  *LoginBuilder {
-	 b.builder.Having(node)
-	 return b
+func (b *LoginBuilder) Having(node query.Node) *LoginBuilder {
+	b.builder.Having(node)
+	return b
 }
 
 // Count terminates a query and returns just the number of items in the result.
 // If you have Select or Calculation columns in the query, it will count NULL results as well.
 // To not count NULL values, use Where in the builder with a NotNull operation.
 // To count distinct combinations of items, call Distinct() on the builder.
-func (b *LoginBuilder)  Count() (int, error) {
+func (b *LoginBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd")
 
-    ctx := b.ctx
+	ctx := b.ctx
 	results, err := database.BuilderQuery(ctx, b.builder)
-    if results == nil || err != nil {
-        return 0, err
-    }
+	if results == nil || err != nil {
+		return 0, err
+	}
 	return results.(int), nil
 }
-
 
 // CountLogins returns the total number of items in the login table.
 func CountLogins(ctx context.Context) (int, error) {
@@ -639,35 +629,31 @@ func CountLogins(ctx context.Context) (int, error) {
 // CountLoginsByUsername queries the database and returns the number of Login objects that
 // have username.
 // doc: type=Login
-func CountLoginsByUsername(ctx context.Context, username string ) (int, error) {
-    v_username := username
+func CountLoginsByUsername(ctx context.Context, username string) (int, error) {
+	v_username := username
 	return QueryLogins(ctx).
-	Where(op.Equal(node.Login().Username(), v_username)).
-	Count()
+		Where(op.Equal(node.Login().Username(), v_username)).
+		Count()
 }
 
 // CountLoginsByPersonID queries the database and returns the number of Login objects that
 // have personID.
 // doc: type=Login
-func CountLoginsByPersonID(ctx context.Context, personID string ) (int, error) {
-    v_personID := personID
+func CountLoginsByPersonID(ctx context.Context, personID string) (int, error) {
+	v_personID := personID
 	return QueryLogins(ctx).
-	Where(op.Equal(node.Login().PersonID(), v_personID)).
-	Count()
+		Where(op.Equal(node.Login().PersonID(), v_personID)).
+		Count()
 }
 
-
 // unpack recursively transforms data coming from the database into ORM objects.
-func (o *loginBase) unpack (m map[string]interface{}, objThis *Login) {
-
-	
-        
+func (o *loginBase) unpack(m map[string]interface{}, objThis *Login) {
 
 	if v, ok := m["id"]; ok && v != nil {
-    	if o.id, ok = v.(string); ok {
+		if o.id, ok = v.(string); ok {
 			o.idIsLoaded = true
 			o.idIsDirty = false
-            o._originalPK = o.id
+			o._originalPK = o.id
 		} else {
 			panic("Wrong type found for id.")
 		}
@@ -677,12 +663,8 @@ func (o *loginBase) unpack (m map[string]interface{}, objThis *Login) {
 		o.idIsDirty = false
 	}
 
-    
-	
-        
-
 	if v, ok := m["username"]; ok && v != nil {
-    	if o.username, ok = v.(string); ok {
+		if o.username, ok = v.(string); ok {
 			o.usernameIsLoaded = true
 			o.usernameIsDirty = false
 		} else {
@@ -693,10 +675,6 @@ func (o *loginBase) unpack (m map[string]interface{}, objThis *Login) {
 		o.username = ""
 		o.usernameIsDirty = false
 	}
-
-    
-	
-	    
 
 	if v, ok := m["password"]; ok {
 		if v == nil {
@@ -718,12 +696,8 @@ func (o *loginBase) unpack (m map[string]interface{}, objThis *Login) {
 		o.passwordIsDirty = false
 	}
 
-	
-	
-        
-
 	if v, ok := m["is_enabled"]; ok && v != nil {
-    	if o.isEnabled, ok = v.(bool); ok {
+		if o.isEnabled, ok = v.(bool); ok {
 			o.isEnabledIsLoaded = true
 			o.isEnabledIsDirty = false
 		} else {
@@ -735,12 +709,8 @@ func (o *loginBase) unpack (m map[string]interface{}, objThis *Login) {
 		o.isEnabledIsDirty = false
 	}
 
-    
-	
-        
-
 	if v, ok := m["person_id"]; ok && v != nil {
-    	if o.personID, ok = v.(string); ok {
+		if o.personID, ok = v.(string); ok {
 			o.personIDIsLoaded = true
 			o.personIDIsDirty = false
 		} else {
@@ -751,9 +721,6 @@ func (o *loginBase) unpack (m map[string]interface{}, objThis *Login) {
 		o.personID = ""
 		o.personIDIsDirty = false
 	}
-
-    
-	
 
 	if v, ok := m["Person"]; ok {
 		if person, ok2 := v.(map[string]any); ok2 {
@@ -768,9 +735,6 @@ func (o *loginBase) unpack (m map[string]interface{}, objThis *Login) {
 		o.person = nil
 	}
 
-
-
-
 	if v, ok := m["aliases_"]; ok {
 		o._aliases = v.(map[string]any)
 	}
@@ -778,7 +742,6 @@ func (o *loginBase) unpack (m map[string]interface{}, objThis *Login) {
 	o._restored = true
 
 }
-
 
 // save will update or insert the object, depending on the state of the object.
 func (o *loginBase) save(ctx context.Context) error {
@@ -792,102 +755,95 @@ func (o *loginBase) save(ctx context.Context) error {
 // update will update the values in the database, saving any changed values.
 // If the table has auto-generated values, those will be updated automatically.
 func (o *loginBase) update(ctx context.Context) error {
-    if !o._restored {
-        panic ("cannot update a record that was not originally read from the database.")
-    }
-    if !o.IsDirty() {
-        return nil // nothing to save
-    }
+	if !o._restored {
+		panic("cannot update a record that was not originally read from the database.")
+	}
+	if !o.IsDirty() {
+		return nil // nothing to save
+	}
 
-    var modifiedFields map[string]interface{}
+	var modifiedFields map[string]interface{}
 
-    d := Database()
-    var cancel context.CancelFunc
-    ctx, cancel = context.WithTimeout(ctx, 30 * time.Second)
-    defer cancel()
-    err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
-    // Save loaded Person object to get its new pk and update it here.
-    if o.person != nil {
-        if err := o.person.Save(ctx); err != nil {
-            return err
-        }
-        o.SetPersonID(o.person.PrimaryKey())
-    }
+	d := Database()
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+	err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
+		// Save loaded Person object to get its new pk and update it here.
+		if o.person != nil {
+			if err := o.person.Save(ctx); err != nil {
+				return err
+			}
+			o.SetPersonID(o.person.PrimaryKey())
+		}
 
+		modifiedFields = getLoginUpdateFields(o)
+		if len(modifiedFields) != 0 {
+			var err2 error
 
-        modifiedFields = getLoginUpdateFields(o)
-        if len(modifiedFields) != 0 {
-            var err2 error
+			_, err2 = d.Update(ctx, "login", "id", o._originalPK, modifiedFields, "", 0)
+			if err2 != nil {
+				return err2
+			}
+		}
 
-            _, err2 = d.Update(ctx, "login", "id", o._originalPK, modifiedFields, "", 0)
-            if err2 != nil {
-                return err2
-            }
-        }
-
-
-
-        return nil
-    }) // transaction
-    if err != nil {
-        return err
-    }
+		return nil
+	}) // transaction
+	if err != nil {
+		return err
+	}
 
 	o.resetDirtyStatus()
 	if len(modifiedFields) != 0 {
-        broadcast.Update(ctx, "goradd", "login", o._originalPK, anyutil.SortedKeys(modifiedFields)...)
+		broadcast.Update(ctx, "goradd", "login", o._originalPK, anyutil.SortedKeys(modifiedFields)...)
 	}
 
 	return nil
 }
 
-
 // insert will insert the object into the database. Related items will be saved.
 func (o *loginBase) insert(ctx context.Context) (err error) {
-    var insertFields map[string]interface{}
-    d := Database()
+	var insertFields map[string]interface{}
+	d := Database()
 
-    var cancel context.CancelFunc
-    ctx, cancel = context.WithTimeout(ctx, 30 * time.Second)
-    defer cancel()
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
 
 	err = db.WithTransaction(ctx, d, func(context.Context) error {
-    // Save loaded Person object to get its new pk and update it here.
-    if o.person != nil {
-        if err := o.person.Save(ctx); err != nil {
-            return err
-        }
-        o.SetPersonID(o.person.PrimaryKey())
-    }
-    if !o.usernameIsLoaded {
-        panic("a value for Username is required, and there is no default value. Call SetUsername() before inserting the record.")
-    }
-    if !o.isEnabledIsLoaded {
-        panic("a value for IsEnabled is required, and there is no default value. Call SetIsEnabled() before inserting the record.")
-    }
-    if !o.personIDIsLoaded {
-        panic("a value for PersonID is required, and there is no default value. Call SetPersonID() before inserting the record.")
-    }
-    insertFields = getLoginInsertFields(o)
-    var newPK string
-	newPK, err = d.Insert(ctx, "login", "id", insertFields)
-    if err != nil {
-        return err
-    }
-	o.id = newPK
-	o._originalPK = newPK
-    o.idIsLoaded = true
+		// Save loaded Person object to get its new pk and update it here.
+		if o.person != nil {
+			if err := o.person.Save(ctx); err != nil {
+				return err
+			}
+			o.SetPersonID(o.person.PrimaryKey())
+		}
+		if !o.usernameIsLoaded {
+			panic("a value for Username is required, and there is no default value. Call SetUsername() before inserting the record.")
+		}
+		if !o.isEnabledIsLoaded {
+			panic("a value for IsEnabled is required, and there is no default value. Call SetIsEnabled() before inserting the record.")
+		}
+		if !o.personIDIsLoaded {
+			panic("a value for PersonID is required, and there is no default value. Call SetPersonID() before inserting the record.")
+		}
+		insertFields = getLoginInsertFields(o)
+		var newPK string
+		newPK, err = d.Insert(ctx, "login", "id", insertFields)
+		if err != nil {
+			return err
+		}
+		o.id = newPK
+		o._originalPK = newPK
+		o.idIsLoaded = true
 
+		return nil
 
+	}) // transaction
 
-
-        return nil
-
-    }) // transaction
-
-    if err != nil {
-        return
-    }
+	if err != nil {
+		return
+	}
 
 	o.resetDirtyStatus()
 	o._restored = true
@@ -895,30 +851,28 @@ func (o *loginBase) insert(ctx context.Context) (err error) {
 	return
 }
 
-
-
 // getUpdateFields returns the database columns that will be sent to the update process.
 // This will include timestamp fields only if some other column has changed.
 func (o *loginBase) getUpdateFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.idIsDirty {
-        fields["id"] = o.id
+		fields["id"] = o.id
 	}
 	if o.usernameIsDirty {
-        fields["username"] = o.username
+		fields["username"] = o.username
 	}
 	if o.passwordIsDirty {
-        if 	o.passwordIsNull {
-            fields["password"] = nil
-        } else {
-  		    fields["password"] = o.password
-        }
+		if o.passwordIsNull {
+			fields["password"] = nil
+		} else {
+			fields["password"] = o.password
+		}
 	}
 	if o.isEnabledIsDirty {
-        fields["is_enabled"] = o.isEnabled
+		fields["is_enabled"] = o.isEnabled
 	}
 	if o.personIDIsDirty {
-        fields["person_id"] = o.personID
+		fields["person_id"] = o.personID
 	}
 	return
 }
@@ -931,34 +885,33 @@ func (o *loginBase) getUpdateFields() (fields map[string]interface{}) {
 // database driver and updated after the insert.
 func (o *loginBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-    if o.idIsDirty {
-        fields["id"] = o.id
-    }
- 
-    fields["username"] = o.username
-    if o.passwordIsNull {
-        fields["password"] = nil
-    } else {
-        fields["password"] = o.password
-    }
- 
-    fields["is_enabled"] = o.isEnabled
+	if o.idIsDirty {
+		fields["id"] = o.id
+	}
+
+	fields["username"] = o.username
+	if o.passwordIsNull {
+		fields["password"] = nil
+	} else {
+		fields["password"] = o.password
+	}
+
+	fields["is_enabled"] = o.isEnabled
 	return
 }
 
-
 // Delete deletes the record from the database.
 func (o *loginBase) Delete(ctx context.Context) (err error) {
-    if o == nil {
-        return // allow deleting of a nil object to be a noop
-    }
+	if o == nil {
+		return // allow deleting of a nil object to be a noop
+	}
 	if !o._restored {
-		panic ("Cannot delete a record that has no primary key value.")
+		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
 	err = d.Delete(ctx, "login", "id", o.id, "", 0)
 	if err != nil {
-	    return err
+		return err
 	}
 	broadcast.Delete(ctx, "goradd", "login", fmt.Sprint(o.id))
 	return
@@ -970,11 +923,12 @@ func deleteLogin(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd")
 	err := d.Delete(ctx, "login", "id", pk, "", 0)
 	if err != nil {
-	    return err
+		return err
 	}
 	broadcast.Delete(ctx, "goradd", "login", fmt.Sprint(pk))
-    return err
+	return err
 }
+
 // resetDirtyStatus resets the dirty status of every field in the object.
 func (o *loginBase) resetDirtyStatus() {
 	o.idIsDirty = false
@@ -987,21 +941,16 @@ func (o *loginBase) resetDirtyStatus() {
 
 // IsDirty returns true if the object has been changed since it was read from the database or created.
 func (o *loginBase) IsDirty() (dirty bool) {
-    dirty = o.idIsDirty ||
-o.usernameIsDirty ||
-o.passwordIsDirty ||
-o.isEnabledIsDirty ||
-o.personIDIsDirty
-
-    dirty = dirty ||
-        o.person != nil && o.person.IsDirty())
+	dirty = o.idIsDirty ||
+		o.usernameIsDirty ||
+		o.passwordIsDirty ||
+		o.isEnabledIsDirty ||
+		o.personIDIsDirty
 
 	dirty = dirty ||
-	    
+		o.person != nil && o.person.IsDirty()
 
-
-
-    return
+	return
 }
 
 // Get returns the value of a field in the object based on the field's name.
@@ -1009,144 +958,141 @@ o.personIDIsDirty
 // Invalid fields and objects are returned as nil.
 // Get can be used to retrieve a value by using the Identifier of a node.
 func (o *loginBase) Get(key string) interface{} {
-    switch key {
-    case "id":
-        if !o.idIsLoaded {
-            return nil
-        }
-        return o.id
-    case "username":
-        if !o.usernameIsLoaded {
-            return nil
-        }
-        return o.username
-    case "password":
-        if !o.passwordIsLoaded {
-            return nil
-        }
-        return o.password
-    case "isEnabled":
-        if !o.isEnabledIsLoaded {
-            return nil
-        }
-        return o.isEnabled
-    case "personID":
-        if !o.personIDIsLoaded {
-            return nil
-        }
-        return o.personID
-    case "person":
-        return o.Person()
-    }
-    return nil
+	switch key {
+	case "id":
+		if !o.idIsLoaded {
+			return nil
+		}
+		return o.id
+	case "username":
+		if !o.usernameIsLoaded {
+			return nil
+		}
+		return o.username
+	case "password":
+		if !o.passwordIsLoaded {
+			return nil
+		}
+		return o.password
+	case "isEnabled":
+		if !o.isEnabledIsLoaded {
+			return nil
+		}
+		return o.isEnabled
+	case "personID":
+		if !o.personIDIsLoaded {
+			return nil
+		}
+		return o.personID
+	case "person":
+		return o.Person()
+	}
+	return nil
 }
+
 // MarshalBinary serializes the object into a buffer that is deserializable using UnmarshalBinary.
 // It should be used for transmitting database objects over the wire, or for temporary storage. It does not send
 // a version number, so if the data format changes, its up to you to invalidate the old stored objects.
 // The framework uses this to serialize the object when it is stored in a control.
 func (o *loginBase) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-    enc := gob.NewEncoder(buf)
-    if err := o.encodeTo(enc); err != nil {
-        return nil, err
-    }
+	enc := gob.NewEncoder(buf)
+	if err := o.encodeTo(enc); err != nil {
+		return nil, err
+	}
 	return buf.Bytes(), nil
 }
 
 func (o *loginBase) encodeTo(enc db.Encoder) error {
 
-    if err := enc.Encode(o.id); err != nil {
-        return fmt.Errorf("error encoding Login.id: %w", err)
-    }
-    if err := enc.Encode(o.idIsLoaded); err != nil {
-        return fmt.Errorf("error encoding Login.idIsLoaded: %w", err)
-    }
-    if err := enc.Encode(o.idIsDirty); err != nil {
-        return fmt.Errorf("error encoding Login.idIsDirty: %w", err)
-    }
+	if err := enc.Encode(o.id); err != nil {
+		return fmt.Errorf("error encoding Login.id: %w", err)
+	}
+	if err := enc.Encode(o.idIsLoaded); err != nil {
+		return fmt.Errorf("error encoding Login.idIsLoaded: %w", err)
+	}
+	if err := enc.Encode(o.idIsDirty); err != nil {
+		return fmt.Errorf("error encoding Login.idIsDirty: %w", err)
+	}
 
+	if err := enc.Encode(o.username); err != nil {
+		return fmt.Errorf("error encoding Login.username: %w", err)
+	}
+	if err := enc.Encode(o.usernameIsLoaded); err != nil {
+		return fmt.Errorf("error encoding Login.usernameIsLoaded: %w", err)
+	}
+	if err := enc.Encode(o.usernameIsDirty); err != nil {
+		return fmt.Errorf("error encoding Login.usernameIsDirty: %w", err)
+	}
 
-    if err := enc.Encode(o.username); err != nil {
-        return fmt.Errorf("error encoding Login.username: %w", err)
-    }
-    if err := enc.Encode(o.usernameIsLoaded); err != nil {
-        return fmt.Errorf("error encoding Login.usernameIsLoaded: %w", err)
-    }
-    if err := enc.Encode(o.usernameIsDirty); err != nil {
-        return fmt.Errorf("error encoding Login.usernameIsDirty: %w", err)
-    }
+	if err := enc.Encode(o.password); err != nil {
+		return fmt.Errorf("error encoding Login.password: %w", err)
+	}
+	if err := enc.Encode(o.passwordIsNull); err != nil {
+		return fmt.Errorf("error encoding Login.passwordIsNull: %w", err)
+	}
+	if err := enc.Encode(o.passwordIsLoaded); err != nil {
+		return fmt.Errorf("error encoding Login.passwordIsLoaded: %w", err)
+	}
+	if err := enc.Encode(o.passwordIsDirty); err != nil {
+		return fmt.Errorf("error encoding Login.passwordIsDirty: %w", err)
+	}
 
+	if err := enc.Encode(o.isEnabled); err != nil {
+		return fmt.Errorf("error encoding Login.isEnabled: %w", err)
+	}
+	if err := enc.Encode(o.isEnabledIsLoaded); err != nil {
+		return fmt.Errorf("error encoding Login.isEnabledIsLoaded: %w", err)
+	}
+	if err := enc.Encode(o.isEnabledIsDirty); err != nil {
+		return fmt.Errorf("error encoding Login.isEnabledIsDirty: %w", err)
+	}
 
-    if err := enc.Encode(o.password); err != nil {
-        return fmt.Errorf("error encoding Login.password: %w", err)
-    }
-    if err := enc.Encode(o.passwordIsNull); err != nil {
-        return fmt.Errorf("error encoding Login.passwordIsNull: %w", err)
-    }
-    if err := enc.Encode(o.passwordIsLoaded); err != nil {
-        return fmt.Errorf("error encoding Login.passwordIsLoaded: %w", err)
-    }
-    if err := enc.Encode(o.passwordIsDirty); err != nil {
-        return fmt.Errorf("error encoding Login.passwordIsDirty: %w", err)
-    }
+	if err := enc.Encode(o.personID); err != nil {
+		return fmt.Errorf("error encoding Login.personID: %w", err)
+	}
+	if err := enc.Encode(o.personIDIsLoaded); err != nil {
+		return fmt.Errorf("error encoding Login.personIDIsLoaded: %w", err)
+	}
+	if err := enc.Encode(o.personIDIsDirty); err != nil {
+		return fmt.Errorf("error encoding Login.personIDIsDirty: %w", err)
+	}
 
+	if o.person == nil {
+		if err := enc.Encode(false); err != nil {
+			return err
+		}
+	} else {
+		if err := enc.Encode(true); err != nil {
+			return err
+		}
+		if err := enc.Encode(o.person); err != nil {
+			return fmt.Errorf("error encoding Login.person: %w", err)
+		}
+	}
 
-    if err := enc.Encode(o.isEnabled); err != nil {
-        return fmt.Errorf("error encoding Login.isEnabled: %w", err)
-    }
-    if err := enc.Encode(o.isEnabledIsLoaded); err != nil {
-        return fmt.Errorf("error encoding Login.isEnabledIsLoaded: %w", err)
-    }
-    if err := enc.Encode(o.isEnabledIsDirty); err != nil {
-        return fmt.Errorf("error encoding Login.isEnabledIsDirty: %w", err)
-    }
+	if o._aliases == nil {
+		if err := enc.Encode(false); err != nil {
+			return err
+		}
+	} else {
+		if err := enc.Encode(true); err != nil {
+			return err
+		}
+		if err := enc.Encode(o._aliases); err != nil {
+			return fmt.Errorf("error encoding Login._aliases: %w", err)
+		}
+	}
 
-
-    if err := enc.Encode(o.personID); err != nil {
-        return fmt.Errorf("error encoding Login.personID: %w", err)
-    }
-    if err := enc.Encode(o.personIDIsLoaded); err != nil {
-        return fmt.Errorf("error encoding Login.personIDIsLoaded: %w", err)
-    }
-    if err := enc.Encode(o.personIDIsDirty); err != nil {
-        return fmt.Errorf("error encoding Login.personIDIsDirty: %w", err)
-    }
-
-
-    if o.person == nil {
-        if err := enc.Encode(false); err != nil {
-            return err
-        }
-    } else {
-        if err := enc.Encode(true); err != nil {
-            return err
-        }
-        if err := enc.Encode(o.person); err != nil {
-            return fmt.Errorf("error encoding Login.person: %w", err)
-        }
-    }
-
-    if o._aliases == nil {
-        if err := enc.Encode(false); err != nil {
-            return err
-        }
-    } else {
-        if err := enc.Encode(true); err != nil {
-            return err
-        }
-        if err := enc.Encode(o._aliases); err != nil {
-            return fmt.Errorf("error encoding Login._aliases: %w", err)
-        }
-    }
-
-    if err := enc.Encode(o._restored); err != nil {
-        return fmt.Errorf("error encoding Login._restored: %w", err)
-    }
-    if err := enc.Encode(o._originalPK); err != nil {
-        return fmt.Errorf("error encoding Login._originalPK: %w", err)
-    }
-    return nil
+	if err := enc.Encode(o._restored); err != nil {
+		return fmt.Errorf("error encoding Login._restored: %w", err)
+	}
+	if err := enc.Encode(o._originalPK); err != nil {
+		return fmt.Errorf("error encoding Login._originalPK: %w", err)
+	}
+	return nil
 }
+
 // UnmarshalBinary converts a structure that was created with MarshalBinary into a Login object.
 func (o *loginBase) UnmarshalBinary(data []byte) (err error) {
 	buf := bytes.NewReader(data)
@@ -1158,138 +1104,132 @@ func (o *loginBase) decodeFrom(dec db.Decoder) (err error) {
 	var isPtr bool
 
 	_ = isPtr
-    if err = dec.Decode(&o.id); err != nil {
-        return fmt.Errorf("error decoding Login.id: %w", err)
-    }
-    if err = dec.Decode(&o.idIsLoaded); err != nil {
-        return fmt.Errorf("error decoding Login.idIsLoaded: %w", err)
-    }
-    if err = dec.Decode(&o.idIsDirty); err != nil {
-        return fmt.Errorf("error decoding Login.idIsDirty: %w", err)
-    }
+	if err = dec.Decode(&o.id); err != nil {
+		return fmt.Errorf("error decoding Login.id: %w", err)
+	}
+	if err = dec.Decode(&o.idIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Login.idIsLoaded: %w", err)
+	}
+	if err = dec.Decode(&o.idIsDirty); err != nil {
+		return fmt.Errorf("error decoding Login.idIsDirty: %w", err)
+	}
 
-    if err = dec.Decode(&o.username); err != nil {
-        return fmt.Errorf("error decoding Login.username: %w", err)
-    }
-    if err = dec.Decode(&o.usernameIsLoaded); err != nil {
-        return fmt.Errorf("error decoding Login.usernameIsLoaded: %w", err)
-    }
-    if err = dec.Decode(&o.usernameIsDirty); err != nil {
-        return fmt.Errorf("error decoding Login.usernameIsDirty: %w", err)
-    }
+	if err = dec.Decode(&o.username); err != nil {
+		return fmt.Errorf("error decoding Login.username: %w", err)
+	}
+	if err = dec.Decode(&o.usernameIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Login.usernameIsLoaded: %w", err)
+	}
+	if err = dec.Decode(&o.usernameIsDirty); err != nil {
+		return fmt.Errorf("error decoding Login.usernameIsDirty: %w", err)
+	}
 
-    if err = dec.Decode(&o.password); err != nil {
-        return fmt.Errorf("error decoding Login.password: %w", err)
-    }
-    if err = dec.Decode(&o.passwordIsNull); err != nil {
-        return fmt.Errorf("error decoding Login.passwordIsNull: %w", err)
-    }
-    if err = dec.Decode(&o.passwordIsLoaded); err != nil {
-        return fmt.Errorf("error decoding Login.passwordIsLoaded: %w", err)
-    }
-    if err = dec.Decode(&o.passwordIsDirty); err != nil {
-        return fmt.Errorf("error decoding Login.passwordIsDirty: %w", err)
-    }
+	if err = dec.Decode(&o.password); err != nil {
+		return fmt.Errorf("error decoding Login.password: %w", err)
+	}
+	if err = dec.Decode(&o.passwordIsNull); err != nil {
+		return fmt.Errorf("error decoding Login.passwordIsNull: %w", err)
+	}
+	if err = dec.Decode(&o.passwordIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Login.passwordIsLoaded: %w", err)
+	}
+	if err = dec.Decode(&o.passwordIsDirty); err != nil {
+		return fmt.Errorf("error decoding Login.passwordIsDirty: %w", err)
+	}
 
-    if err = dec.Decode(&o.isEnabled); err != nil {
-        return fmt.Errorf("error decoding Login.isEnabled: %w", err)
-    }
-    if err = dec.Decode(&o.isEnabledIsLoaded); err != nil {
-        return fmt.Errorf("error decoding Login.isEnabledIsLoaded: %w", err)
-    }
-    if err = dec.Decode(&o.isEnabledIsDirty); err != nil {
-        return fmt.Errorf("error decoding Login.isEnabledIsDirty: %w", err)
-    }
+	if err = dec.Decode(&o.isEnabled); err != nil {
+		return fmt.Errorf("error decoding Login.isEnabled: %w", err)
+	}
+	if err = dec.Decode(&o.isEnabledIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Login.isEnabledIsLoaded: %w", err)
+	}
+	if err = dec.Decode(&o.isEnabledIsDirty); err != nil {
+		return fmt.Errorf("error decoding Login.isEnabledIsDirty: %w", err)
+	}
 
-    if err = dec.Decode(&o.personID); err != nil {
-        return fmt.Errorf("error decoding Login.personID: %w", err)
-    }
-    if err = dec.Decode(&o.personIDIsLoaded); err != nil {
-        return fmt.Errorf("error decoding Login.personIDIsLoaded: %w", err)
-    }
-    if err = dec.Decode(&o.personIDIsDirty); err != nil {
-        return fmt.Errorf("error decoding Login.personIDIsDirty: %w", err)
-    }
+	if err = dec.Decode(&o.personID); err != nil {
+		return fmt.Errorf("error decoding Login.personID: %w", err)
+	}
+	if err = dec.Decode(&o.personIDIsLoaded); err != nil {
+		return fmt.Errorf("error decoding Login.personIDIsLoaded: %w", err)
+	}
+	if err = dec.Decode(&o.personIDIsDirty); err != nil {
+		return fmt.Errorf("error decoding Login.personIDIsDirty: %w", err)
+	}
 
+	if err = dec.Decode(&isPtr); err != nil {
+		return fmt.Errorf("error decoding Login.person isPtr: %w", err)
+	}
+	if isPtr {
+		if err = dec.Decode(&o.person); err != nil {
+			return fmt.Errorf("error decoding Login.person: %w", err)
+		}
+	}
+	if err = dec.Decode(&isPtr); err != nil {
+		return fmt.Errorf("error decoding Login._aliases isPtr: %w", err)
+	}
+	if isPtr {
+		if err = dec.Decode(&o._aliases); err != nil {
+			return fmt.Errorf("error decoding Login._aliases: %w", err)
+		}
+	}
 
-    if err = dec.Decode(&isPtr); err != nil {
-        return fmt.Errorf("error decoding Login.person isPtr: %w", err)
-    }
-    if isPtr {
-        if err = dec.Decode(&o.person); err != nil {
-            return fmt.Errorf("error decoding Login.person: %w", err)
-        }
-    }
-    if err = dec.Decode(&isPtr); err != nil {
-        return fmt.Errorf("error decoding Login._aliases isPtr: %w", err)
-    }
-    if isPtr {
-        if err = dec.Decode(&o._aliases); err != nil {
-            return fmt.Errorf("error decoding Login._aliases: %w", err)
-        }
-    }
-
-    if err = dec.Decode(&o._restored); err != nil {
-        return fmt.Errorf("error decoding Login._restored: %w", err)
-    }
-    if err = dec.Decode(&o._originalPK); err != nil {
-        return fmt.Errorf("error decoding Login._originalPK: %w", err)
-    }
+	if err = dec.Decode(&o._restored); err != nil {
+		return fmt.Errorf("error decoding Login._restored: %w", err)
+	}
+	if err = dec.Decode(&o._originalPK); err != nil {
+		return fmt.Errorf("error decoding Login._originalPK: %w", err)
+	}
 	return
 }
+
 // MarshalJSON serializes the object into a JSON object.
 // Only valid data will be serialized, meaning, you can control what gets serialized by using Select to
 // select only the fields you want when you query for the object. Another way to control the output
 // is to call MarshalStringMap, modify the map, then encode the map.
 func (o *loginBase) MarshalJSON() (data []byte, err error) {
-    v := o.MarshalStringMap()
-    return json.Marshal(v)
+	v := o.MarshalStringMap()
+	return json.Marshal(v)
 }
 
 // MarshalStringMap serializes the object into a string map of interfaces.
 // Only valid data will be serialized, meaning, you can control what gets serialized by using Select to
 // select only the fields you want when you query for the object. The keys are the same as the json keys.
-func (o *loginBase) MarshalStringMap() (map[string]interface{}) {
-    v := make(map[string]interface{})
+func (o *loginBase) MarshalStringMap() map[string]interface{} {
+	v := make(map[string]interface{})
 
-    if o.idIsLoaded {
-        v["id"] = o.id
-    }
+	if o.idIsLoaded {
+		v["id"] = o.id
+	}
 
+	if o.usernameIsLoaded {
+		v["username"] = o.username
+	}
 
-    if o.usernameIsLoaded {
-        v["username"] = o.username
-    }
+	if o.passwordIsLoaded {
+		if o.passwordIsNull {
+			v["password"] = nil
+		} else {
+			v["password"] = o.password
+		}
+	}
 
+	if o.isEnabledIsLoaded {
+		v["isEnabled"] = o.isEnabled
+	}
 
-    if o.passwordIsLoaded {
-        if o.passwordIsNull {
-            v["password"] = nil
-        } else {
-            v["password"] = o.password
-        }
-    }
+	if o.personIDIsLoaded {
+		v["personID"] = o.personID
+	}
 
-
-    if o.isEnabledIsLoaded {
-        v["isEnabled"] = o.isEnabled
-    }
-
-
-    if o.personIDIsLoaded {
-        v["personID"] = o.personID
-    }
-
-
-    if val := o.person; val != nil {
-        v["person"] = val.MarshalStringMap()
-    }
-    for _k,_v := range o._aliases {
-        v[_k] = _v
-    }
-    return v
+	if val := o.person; val != nil {
+		v["person"] = val.MarshalStringMap()
+	}
+	for _k, _v := range o._aliases {
+		v[_k] = _v
+	}
+	return v
 }
-
 
 // UnmarshalJSON unmarshalls the given json data into the Login. The Login can be a
 // newly created object, or one loaded from the database.
@@ -1300,11 +1240,12 @@ func (o *loginBase) MarshalStringMap() (map[string]interface{}) {
 // Unmarshalling of sub-objects, as in objects linked via foreign keys, is not currently supported.
 //
 // The fields it expects are:
-//   "id" - string
-//   "username" - string
-//   "password" - string, nullable
-//   "isEnabled" - bool
-func (o *loginBase) UnmarshalJSON (data []byte) (err error) {
+//
+//	"id" - string
+//	"username" - string
+//	"password" - string, nullable
+//	"isEnabled" - bool
+func (o *loginBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
 	if len(data) == 0 {
 		return
@@ -1321,91 +1262,88 @@ func (o *loginBase) UnmarshalJSON (data []byte) (err error) {
 //
 // Override this in Login to modify the json before sending it here.
 func (o *loginBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
-    for k,v := range m {
-        switch k {
+	for k, v := range m {
+		switch k {
 
-        case "id":
-        {
-            if v == nil {
-                return fmt.Errorf("field %s cannot be null", k)
-            }
+		case "id":
+			{
+				if v == nil {
+					return fmt.Errorf("field %s cannot be null", k)
+				}
 
+				if s, ok := v.(string); !ok {
+					return fmt.Errorf("json field %s must be a string", k)
+				} else {
+					o.SetID(s)
+				}
+			}
+		case "username":
+			{
+				if v == nil {
+					return fmt.Errorf("field %s cannot be null", k)
+				}
 
-            if s,ok := v.(string); !ok {
-                return fmt.Errorf("json field %s must be a string", k)
-            } else {
-                o.SetID(s)
-            }
-            }
-        case "username":
-        {
-            if v == nil {
-                return fmt.Errorf("field %s cannot be null", k)
-            }
+				if s, ok := v.(string); !ok {
+					return fmt.Errorf("json field %s must be a string", k)
+				} else {
+					o.SetUsername(s)
+				}
+			}
+		case "password":
+			{
+				if v == nil {
+					o.SetPasswordToNull()
+					continue
+				}
 
+				if s, ok := v.(string); !ok {
+					return fmt.Errorf("json field %s must be a string", k)
+				} else {
+					o.SetPassword(s)
+				}
+			}
+		case "isEnabled":
+			{
+				if v == nil {
+					return fmt.Errorf("field %s cannot be null", k)
+				}
 
-            if s,ok := v.(string); !ok {
-                return fmt.Errorf("json field %s must be a string", k)
-            } else {
-                o.SetUsername(s)
-            }
-            }
-        case "password":
-        {
-            if v == nil {
-                o.SetPasswordToNull()
-                continue
-            }
+				if b, ok := v.(bool); !ok {
+					return fmt.Errorf("json field %s must be a boolean", k)
+				} else {
+					o.SetIsEnabled(b)
+				}
+			}
+		case "personID":
+			{
+				if v == nil {
+					return fmt.Errorf("field %s cannot be null", k)
+				}
 
+				if _, ok := m["person"]; ok {
+					continue // importing the foreign key will remove the object
+				}
 
-            if s,ok := v.(string); !ok {
-                return fmt.Errorf("json field %s must be a string", k)
-            } else {
-                o.SetPassword(s)
-            }
-            }
-        case "isEnabled":
-        {
-            if v == nil {
-                return fmt.Errorf("field %s cannot be null", k)
-            }
+				if s, ok := v.(string); !ok {
+					return fmt.Errorf("json field %s must be a string", k)
+				} else {
+					o.SetPersonID(s)
+				}
+			}
 
+		case "person":
+			v2 := NewPerson()
+			m2, ok := v.(map[string]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be a map", k)
+			}
+			err = v2.UnmarshalStringMap(m2)
+			if err != nil {
+				return
+			}
+			o.SetPerson(v2)
 
-            if b,ok := v.(bool); !ok {
-                return fmt.Errorf("json field %s must be a boolean", k)
-            } else {
-                o.SetIsEnabled(b)
-            }
-            }
-        case "personID":
-        {
-            if v == nil {
-                return fmt.Errorf("field %s cannot be null", k)
-            }
-
-            if _,ok := m["person"]; ok {
-                continue // importing the foreign key will remove the object
-            }
-
-            if s,ok := v.(string); !ok {
-                return fmt.Errorf("json field %s must be a string", k)
-            } else {
-                o.SetPersonID(s)
-            }
-            }
-
-            case "person":
-                v2 := NewPerson()
-                m2,ok := v.(map[string]any)
-                if !ok {
-                    return fmt.Errorf("json field %s must be a map", k)
-                }
-                err = v2.UnmarshalStringMap(m2)
-                if err != nil {return}
-                o.SetPerson(v2)
-
-        }
-    }
-    return
+		}
+	}
+	return
 }
-

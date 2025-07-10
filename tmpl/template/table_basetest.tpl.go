@@ -562,7 +562,7 @@ func updateMaximalSample`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 				return
 			}
 
@@ -675,7 +675,7 @@ func deleteSample`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 				return
 			}
 
@@ -2047,56 +2047,52 @@ func Test`); err != nil {
 
 		for _, rev := range table.ReverseReferences {
 
-			if _, err = io.WriteString(_w, `    assert.Nil(t, obj2.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `(), "`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` is not loaded initially")
-    v_`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `, _ := obj2.Load`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `(ctx)
-    assert.NotNil(t, v_`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `)
-`); err != nil {
-				return
-			}
-
 			if rev.IsUnique {
 
-				if _, err = io.WriteString(_w, `    assert.Equal(t, v_`); err != nil {
+				if _, err = io.WriteString(_w, `    assert.Nil(t, obj2.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(), "`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ` is not loaded initially")
+    v_`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `, _ := obj2.Load`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(ctx)
+    assert.NotNil(t, v_`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `)
+    assert.Equal(t, v_`); err != nil {
 					return
 				}
 
@@ -2136,11 +2132,54 @@ func Test`); err != nil {
 
 			} else {
 
-				if _, err = io.WriteString(_w, `    assert.Len(t, v_`); err != nil {
+				if _, err = io.WriteString(_w, `    assert.Nil(t, obj2.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(), "`); err != nil {
 					return
 				}
 
 				if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ` is not loaded initially")
+    v_`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `, _ := obj2.Load`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(ctx)
+    assert.NotNil(t, v_`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `)
+    assert.Len(t, v_`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 					return
 				}
 
@@ -2262,36 +2301,58 @@ func Test`); err != nil {
 				}
 			}
 		}
-		for _i, _j := range table.ReverseReferences {
-			_ = _j
+		for _, rev := range table.ReverseReferences {
 
-			if _, err = io.WriteString(_w, `node.`); err != nil {
-				return
-			}
+			if rev.IsUnique {
 
-			if _, err = io.WriteString(_w, table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `().`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, _j.ReverseIdentifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `(),
-`); err != nil {
-				return
-			}
-
-			if _i < len(table.ReverseReferences)-1 {
-				if _, err = io.WriteString(_w, ""); err != nil {
+				if _, err = io.WriteString(_w, `    node.`); err != nil {
 					return
 				}
+
+				if _, err = io.WriteString(_w, table.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `().`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(),
+`); err != nil {
+					return
+				}
+
+			} else {
+
+				if _, err = io.WriteString(_w, `    node.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, table.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `().`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(),
+`); err != nil {
+					return
+				}
+
 			}
+
 		}
+
 		for _i, _j := range table.ManyManyReferences {
 			_ = _j
 
@@ -2385,7 +2446,7 @@ func Test`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+				if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 					return
 				}
 
@@ -2393,7 +2454,7 @@ func Test`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+				if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 					return
 				}
 
@@ -2535,36 +2596,58 @@ func Test`); err != nil {
 				}
 			}
 		}
-		for _i, _j := range table.ReverseReferences {
-			_ = _j
+		for _, rev := range table.ReverseReferences {
 
-			if _, err = io.WriteString(_w, `node.`); err != nil {
-				return
-			}
+			if rev.IsUnique {
 
-			if _, err = io.WriteString(_w, table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `().`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, _j.ReverseIdentifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `(),
-`); err != nil {
-				return
-			}
-
-			if _i < len(table.ReverseReferences)-1 {
-				if _, err = io.WriteString(_w, ""); err != nil {
+				if _, err = io.WriteString(_w, `    node.`); err != nil {
 					return
 				}
+
+				if _, err = io.WriteString(_w, table.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `().`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(),
+`); err != nil {
+					return
+				}
+
+			} else {
+
+				if _, err = io.WriteString(_w, `    node.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, table.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `().`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(),
+`); err != nil {
+					return
+				}
+
 			}
+
 		}
+
 		for _i, _j := range table.ManyManyReferences {
 			_ = _j
 
@@ -2663,7 +2746,7 @@ func Test`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+				if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 					return
 				}
 
@@ -2671,7 +2754,7 @@ func Test`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+				if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 					return
 				}
 
@@ -2815,7 +2898,7 @@ func Test`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+				if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 					return
 				}
 
@@ -2898,36 +2981,58 @@ func Test`); err != nil {
 				}
 			}
 		}
-		for _i, _j := range table.ReverseReferences {
-			_ = _j
+		for _, rev := range table.ReverseReferences {
 
-			if _, err = io.WriteString(_w, `node.`); err != nil {
-				return
-			}
+			if rev.IsUnique {
 
-			if _, err = io.WriteString(_w, table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `().`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, _j.ReverseIdentifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `(),
-`); err != nil {
-				return
-			}
-
-			if _i < len(table.ReverseReferences)-1 {
-				if _, err = io.WriteString(_w, ""); err != nil {
+				if _, err = io.WriteString(_w, `    node.`); err != nil {
 					return
 				}
+
+				if _, err = io.WriteString(_w, table.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `().`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(),
+`); err != nil {
+					return
+				}
+
+			} else {
+
+				if _, err = io.WriteString(_w, `    node.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, table.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `().`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(),
+`); err != nil {
+					return
+				}
+
 			}
+
 		}
+
 		for _i, _j := range table.ManyManyReferences {
 			_ = _j
 
@@ -3050,7 +3155,7 @@ func Test`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+				if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 					return
 				}
 
@@ -3058,7 +3163,7 @@ func Test`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+				if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
 					return
 				}
 

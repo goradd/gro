@@ -364,56 +364,25 @@ type `); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, ` foreign key there.
-`); err != nil {
+    `); err != nil {
 			return
 		}
 
-		if rev.IsUnique {
+		if _, err = io.WriteString(_w, rev.ReverseNodeIdentifier()); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `    `); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, `() `); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `() `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `Node
+		if _, err = io.WriteString(_w, `Node
 `); err != nil {
-				return
-			}
-
-		} else {
-
-			if _, err = io.WriteString(_w, `    `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `() `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, rev.Table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `Node
-`); err != nil {
-				return
-			}
-
+			return
 		}
 
 	}

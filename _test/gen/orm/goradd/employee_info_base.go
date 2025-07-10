@@ -3,39 +3,37 @@
 package goradd
 
 import (
-	"github.com/goradd/orm/pkg/db"
-	"github.com/goradd/orm/pkg/query"
-	"github.com/goradd/orm/pkg/broadcast"
-	"context"
-	"fmt"
-	"github.com/goradd/orm/pkg/op"
-	"github.com/goradd/anyutil"
 	"bytes"
+	"context"
 	"encoding/gob"
 	"encoding/json"
-    "github.com/goradd/maps"
-    "github.com/goradd/orm/_test/gen/orm/goradd/node"
-    "time"
-    "unicode/utf8"
+	"fmt"
+	"time"
+	"unicode/utf8"
+
+	"github.com/goradd/anyutil"
+	"github.com/goradd/orm/_test/gen/orm/goradd/node"
+	"github.com/goradd/orm/pkg/broadcast"
+	"github.com/goradd/orm/pkg/db"
+	"github.com/goradd/orm/pkg/op"
+	"github.com/goradd/orm/pkg/query"
 )
-
-
 
 // EmployeeInfoBase is embedded in a EmployeeInfo object and provides the ORM access to the database.
 // The member variables of the structure are private and should not normally be accessed by the EmployeeInfo embedder.
 // Instead, use the accessor functions.
 type employeeInfoBase struct {
-	id string
-	idIsLoaded bool
-	idIsDirty bool
-	employeeNumber int
+	id                     string
+	idIsLoaded             bool
+	idIsDirty              bool
+	employeeNumber         int
 	employeeNumberIsLoaded bool
-	employeeNumberIsDirty bool
-	personID string
-	personIDIsLoaded bool
-	personIDIsDirty bool
+	employeeNumberIsDirty  bool
+	personID               string
+	personIDIsLoaded       bool
+	personIDIsDirty        bool
 
-    // References
+	// References
 	person *Person
 
 	// Custom aliases, if specified
@@ -44,28 +42,27 @@ type employeeInfoBase struct {
 	// Indicates whether this is a new object, or one loaded from the database. Used by Save to know whether to Insert or Update.
 	_restored bool
 
-    _originalPK string
+	_originalPK string
 }
-
 
 // IDs used to access the EmployeeInfo object fields by name using the Get function.
 // doc: type=EmployeeInfo
-const  (
-    EmployeeInfoIDField = `id`
-    EmployeeInfoEmployeeNumberField = `employeeNumber`
-    EmployeeInfoPersonIDField = `personID`
-    EmployeeInfoPersonField = `person`
+const (
+	EmployeeInfoIDField             = `id`
+	EmployeeInfoEmployeeNumberField = `employeeNumber`
+	EmployeeInfoPersonIDField       = `personID`
+	EmployeeInfoPersonField         = `person`
 )
 
-    const EmployeeInfoIDMaxLength = 32 // The number of runes the column can hold
-    const EmployeeInfoEmployeeNumberMax = 2147483647
-    const EmployeeInfoEmployeeNumberMin = -2147483648
-    const EmployeeInfoPersonIDMaxLength = 32 // The number of runes the column can hold
+const EmployeeInfoIDMaxLength = 32 // The number of runes the column can hold
+const EmployeeInfoEmployeeNumberMax = 2147483647
+const EmployeeInfoEmployeeNumberMin = -2147483648
+const EmployeeInfoPersonIDMaxLength = 32 // The number of runes the column can hold
 
 // Initialize or re-initialize a EmployeeInfo database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
 func (o *employeeInfoBase) Initialize() {
-    o.id = db.TemporaryPrimaryKey()
+	o.id = db.TemporaryPrimaryKey()
 	o.idIsLoaded = true
 	o.idIsDirty = false
 
@@ -77,11 +74,9 @@ func (o *employeeInfoBase) Initialize() {
 	o.personIDIsLoaded = false
 	o.personIDIsDirty = false
 
-
 	o._aliases = nil
 	o._restored = false
 }
-
 
 // Copy copies most fields to a new EmployeeInfo object.
 // Forward reference ids will be copied, but reverse and many-many references will not.
@@ -92,17 +87,17 @@ func (o *employeeInfoBase) Initialize() {
 // Copy might panic if any fields in the database were set to a size larger than the
 // maximum size through a process that accessed the database outside of the ORM.
 func (o *employeeInfoBase) Copy() (newObject *EmployeeInfo) {
-    newObject = NewEmployeeInfo()
-    if o.idIsLoaded {
-        newObject.SetID(o.id)
-    }
-    if o.employeeNumberIsLoaded {
-        newObject.SetEmployeeNumber(o.employeeNumber)
-    }
-    if o.personIDIsLoaded {
-        newObject.SetPersonID(o.personID)
-    }
-    return
+	newObject = NewEmployeeInfo()
+	if o.idIsLoaded {
+		newObject.SetID(o.id)
+	}
+	if o.employeeNumberIsLoaded {
+		newObject.SetEmployeeNumber(o.employeeNumber)
+	}
+	if o.personIDIsLoaded {
+		newObject.SetPersonID(o.personID)
+	}
+	return
 }
 
 // OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
@@ -114,7 +109,7 @@ func (o *employeeInfoBase) OriginalPrimaryKey() string {
 // PrimaryKey returns the value of the primary key of the record.
 func (o *employeeInfoBase) PrimaryKey() string {
 	if o._restored && !o.idIsLoaded {
-		panic ("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
+		panic("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
 	}
 	return o.id
 }
@@ -126,12 +121,12 @@ func (o *employeeInfoBase) PrimaryKey() string {
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
 func (o *employeeInfoBase) SetPrimaryKey(v string) {
-    if o._restored {
-        panic ("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-    }
-    if utf8.RuneCountInString(v) > EmployeeInfoIDMaxLength {
-        panic("attempted to set EmployeeInfo.ID to a value larger than its maximum length in runes")
-    }
+	if o._restored {
+		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+	}
+	if utf8.RuneCountInString(v) > EmployeeInfoIDMaxLength {
+		panic("attempted to set EmployeeInfo.ID to a value larger than its maximum length in runes")
+	}
 	o.idIsLoaded = true
 	o.idIsDirty = true
 	o.id = v
@@ -154,14 +149,13 @@ func (o *employeeInfoBase) IDIsLoaded() bool {
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
 func (o *employeeInfoBase) SetID(v string) {
-    o.SetPrimaryKey(v)
+	o.SetPrimaryKey(v)
 }
-
 
 // EmployeeNumber returns the value of EmployeeNumber.
 func (o *employeeInfoBase) EmployeeNumber() int {
 	if o._restored && !o.employeeNumberIsLoaded {
-		panic ("EmployeeNumber was not selected in the last query and has not been set, and so is not valid")
+		panic("EmployeeNumber was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.employeeNumber
 }
@@ -174,11 +168,11 @@ func (o *employeeInfoBase) EmployeeNumberIsLoaded() bool {
 // SetEmployeeNumber sets the value of EmployeeNumber in the object, to be saved later in the database using the Save() function.
 func (o *employeeInfoBase) SetEmployeeNumber(v int) {
 	if o._restored &&
-	    o.employeeNumberIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
-        o.employeeNumber == v {
-        // no change
-        return
-    }
+		o.employeeNumberIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.employeeNumber == v {
+		// no change
+		return
+	}
 
 	o.employeeNumberIsLoaded = true
 	o.employeeNumber = v
@@ -188,7 +182,7 @@ func (o *employeeInfoBase) SetEmployeeNumber(v int) {
 // PersonID returns the value of PersonID.
 func (o *employeeInfoBase) PersonID() string {
 	if o._restored && !o.personIDIsLoaded {
-		panic ("PersonID was not selected in the last query and has not been set, and so is not valid")
+		panic("PersonID was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.personID
 }
@@ -200,25 +194,24 @@ func (o *employeeInfoBase) PersonIDIsLoaded() bool {
 
 // SetPersonID sets the value of PersonID in the object, to be saved later in the database using the Save() function.
 func (o *employeeInfoBase) SetPersonID(v string) {
-    if utf8.RuneCountInString(v) > EmployeeInfoPersonIDMaxLength {
-        panic("attempted to set EmployeeInfo.PersonID to a value larger than its maximum length in runes")
-    }
+	if utf8.RuneCountInString(v) > EmployeeInfoPersonIDMaxLength {
+		panic("attempted to set EmployeeInfo.PersonID to a value larger than its maximum length in runes")
+	}
 	if o._restored &&
-	    o.personIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
-        o.personID == v {
-        // no change
-        return
-    }
+		o.personIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.personID == v {
+		// no change
+		return
+	}
 
 	o.personIDIsLoaded = true
 	o.personID = v
 	o.personIDIsDirty = true
 	if o.person != nil &&
-	        o.personID != o.person.PrimaryKey() {
-	    o.person = nil
+		o.personID != o.person.PrimaryKey() {
+		o.person = nil
 	}
 }
-
 
 // Person returns the current value of the loaded Person, and nil if its not loaded.
 func (o *employeeInfoBase) Person() *Person {
@@ -231,17 +224,17 @@ func (o *employeeInfoBase) LoadPerson(ctx context.Context) (*Person, error) {
 	var err error
 
 	if o.person == nil {
-	    if !o.personIDIsLoaded  {
-    		panic("PersonID must be selected in the previous query")
-    	}
+		if !o.personIDIsLoaded {
+			panic("PersonID must be selected in the previous query")
+		}
 		// Load and cache
 		o.person, err = LoadPerson(ctx, o.personID)
-    }
+	}
 	return o.person, err
 }
 
 // SetPerson sets the value of Person in the object, to be saved later using the Save() function.
-func (o *employeeInfoBase) SetPerson(person *Person)  {
+func (o *employeeInfoBase) SetPerson(person *Person) {
 	if person == nil {
 		panic("Cannot set Person to a nil value since PersonID is not nullable.")
 	} else {
@@ -254,61 +247,58 @@ func (o *employeeInfoBase) SetPerson(person *Person)  {
 	}
 }
 
-
 // GetAlias returns the value for the Alias node aliasKey that was returned in the most
 // recent query.
 func (o *employeeInfoBase) GetAlias(aliasKey string) query.AliasValue {
-	if a,ok := o._aliases[aliasKey]; ok {
+	if a, ok := o._aliases[aliasKey]; ok {
 		return query.NewAliasValue(a)
 	} else {
-		panic ("Alias " + aliasKey + " not found.")
+		panic("Alias " + aliasKey + " not found.")
 	}
 }
-
 
 // IsNew returns true if the object will create a new record when saved.
 func (o *employeeInfoBase) IsNew() bool {
 	return !o._restored
 }
 
-
 // LoadEmployeeInfo returns a EmployeeInfo from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [EmployeeInfosBuilder.Select] for more info.
 func LoadEmployeeInfo(ctx context.Context, id string, selectNodes ...query.Node) (*EmployeeInfo, error) {
 	return queryEmployeeInfos(ctx).
-	    Where(op.Equal(node.EmployeeInfo().ID(), id)).
-	    Select(selectNodes...).
-	    Get()
+		Where(op.Equal(node.EmployeeInfo().ID(), id)).
+		Select(selectNodes...).
+		Get()
 }
 
 // HasEmployeeInfo returns true if a EmployeeInfo with the given primary key exists in the database.
 // doc: type=EmployeeInfo
 func HasEmployeeInfo(ctx context.Context, id string) (bool, error) {
-    v, err := queryEmployeeInfos(ctx).
-	     Where(op.Equal(node.EmployeeInfo().ID(), id)).
-         Count()
-    return v > 0, err
+	v, err := queryEmployeeInfos(ctx).
+		Where(op.Equal(node.EmployeeInfo().ID(), id)).
+		Count()
+	return v > 0, err
 }
 
 // LoadEmployeeInfoByPersonID queries for a single EmployeeInfo object by the given unique index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [EmployeeInfosBuilder.Select].
 // If you need a more elaborate query, use QueryEmployeeInfos() to start a query builder.
-func LoadEmployeeInfoByPersonID (ctx context.Context, personID string, selectNodes ...query.Node) (*EmployeeInfo, error) {
-    q := queryEmployeeInfos(ctx)
-    q = q.Where(op.Equal(node.EmployeeInfo().PersonID(), personID))
-    return q.Select(selectNodes...).Get()
+func LoadEmployeeInfoByPersonID(ctx context.Context, personID string, selectNodes ...query.Node) (*EmployeeInfo, error) {
+	q := queryEmployeeInfos(ctx)
+	q = q.Where(op.Equal(node.EmployeeInfo().PersonID(), personID))
+	return q.Select(selectNodes...).Get()
 }
 
 // HasEmployeeInfoByPersonID returns true if the
 // given unique index values exist in the database.
 // doc: type=EmployeeInfo
-func HasEmployeeInfoByPersonID (ctx context.Context, personID string) (bool, error) {
-    q := queryEmployeeInfos(ctx)
-    q = q.Where(op.Equal(node.EmployeeInfo().PersonID(), personID))
-    v, err := q.Count()
-    return v > 0, err
+func HasEmployeeInfoByPersonID(ctx context.Context, personID string) (bool, error) {
+	q := queryEmployeeInfos(ctx)
+	q = q.Where(op.Equal(node.EmployeeInfo().PersonID(), personID))
+	v, err := q.Count()
+	return v > 0, err
 }
 
 // The EmployeeInfoBuilder uses a builder pattern to create a query on the database.
@@ -320,13 +310,13 @@ func HasEmployeeInfoByPersonID (ctx context.Context, personID string) (bool, err
 // meant to be a short-lived object. You should not save it for later use.
 type EmployeeInfoBuilder struct {
 	builder *query.Builder
-	ctx context.Context
+	ctx     context.Context
 }
 
 func newEmployeeInfoBuilder(ctx context.Context) *EmployeeInfoBuilder {
 	b := EmployeeInfoBuilder{
 		builder: query.NewBuilder(node.EmployeeInfo()),
-		ctx: ctx,
+		ctx:     ctx,
 	}
 	return &b
 }
@@ -339,12 +329,12 @@ func (b *EmployeeInfoBuilder) Load() (employeeInfos []*EmployeeInfo, err error) 
 	database := db.GetDatabase("goradd")
 	var results any
 
-    ctx := b.ctx
+	ctx := b.ctx
 	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
-	for _,item := range results.([]map[string]any) {
+	for _, item := range results.([]map[string]any) {
 		o := new(EmployeeInfo)
 		o.unpack(item, o)
 		employeeInfos = append(employeeInfos, o)
@@ -361,19 +351,18 @@ func (b *EmployeeInfoBuilder) LoadI() (employeeInfos []query.OrmObj, err error) 
 	database := db.GetDatabase("goradd")
 	var results any
 
-    ctx := b.ctx
+	ctx := b.ctx
 	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
-	for _,item := range results.([]map[string]any) {
+	for _, item := range results.([]map[string]any) {
 		o := new(EmployeeInfo)
 		o.unpack(item, o)
 		employeeInfos = append(employeeInfos, o)
 	}
 	return
 }
-
 
 // LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
 //
@@ -383,16 +372,17 @@ func (b *EmployeeInfoBuilder) LoadI() (employeeInfos []query.OrmObj, err error) 
 //
 // Call Next() on the returned cursor object to step through the results. Make sure you call Close
 // on the cursor object when you are done. You should use
-//   defer cursor.Close()
-// to make sure the cursor gets closed.
 //
+//	defer cursor.Close()
+//
+// to make sure the cursor gets closed.
 func (b *EmployeeInfoBuilder) LoadCursor() (employeeInfosCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
 	var cursor query.CursorI
 	if result != nil {
-	    cursor = result.(query.CursorI)
+		cursor = result.(query.CursorI)
 	}
 	return employeeInfosCursor{cursor}, err
 }
@@ -405,9 +395,9 @@ type employeeInfosCursor struct {
 //
 // If there are no more records, it returns nil.
 func (c employeeInfosCursor) Next() (*EmployeeInfo, error) {
-    if c.CursorI == nil {
-        return nil, nil
-    }
+	if c.CursorI == nil {
+		return nil, nil
+	}
 
 	row, err := c.CursorI.Next()
 	if row == nil || err != nil {
@@ -423,16 +413,16 @@ func (c employeeInfosCursor) Next() (*EmployeeInfo, error) {
 // you are selecting on one or very few items.
 // If an error occurs, or no results are found, a nil is returned.
 func (b *EmployeeInfoBuilder) Get() (*EmployeeInfo, error) {
-    results, err := b.Load()
-    if err != nil || len(results) == 0 {
-        return nil, err
-    }
-    return results[0], nil
+	results, err := b.Load()
+	if err != nil || len(results) == 0 {
+		return nil, err
+	}
+	return results[0], nil
 }
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
-func (b *EmployeeInfoBuilder)  Where(c query.Node) *EmployeeInfoBuilder {
+func (b *EmployeeInfoBuilder) Where(c query.Node) *EmployeeInfoBuilder {
 	b.builder.Where(c)
 	return b
 }
@@ -440,7 +430,7 @@ func (b *EmployeeInfoBuilder)  Where(c query.Node) *EmployeeInfoBuilder {
 // OrderBy specifies how the resulting data should be sorted.
 // By default, the given nodes are sorted in ascending order.
 // Add Descending() to the node to specify that it should be sorted in descending order.
-func (b *EmployeeInfoBuilder)  OrderBy(nodes... query.Sorter) *EmployeeInfoBuilder {
+func (b *EmployeeInfoBuilder) OrderBy(nodes ...query.Sorter) *EmployeeInfoBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
@@ -449,7 +439,7 @@ func (b *EmployeeInfoBuilder)  OrderBy(nodes... query.Sorter) *EmployeeInfoBuild
 // For large data sets and specific types of queries, this can be slow, because it will perform
 // the entire query before computing the limit.
 // You cannot limit a query that has embedded arrays.
-func (b *EmployeeInfoBuilder)  Limit(maxRowCount int, offset int) *EmployeeInfoBuilder {
+func (b *EmployeeInfoBuilder) Limit(maxRowCount int, offset int) *EmployeeInfoBuilder {
 	b.builder.Limit(maxRowCount, offset)
 	return b
 }
@@ -461,7 +451,7 @@ func (b *EmployeeInfoBuilder)  Limit(maxRowCount int, offset int) *EmployeeInfoB
 // If columns in related tables are specified, then only those columns will be queried and loaded.
 // Depending on the query, additional columns may automatically be added to the query. In particular, primary key columns
 // will be added in most situations. The exception to this would be in distinct queries, group by queries, or subqueries.
-func (b *EmployeeInfoBuilder)  Select(nodes... query.Node) *EmployeeInfoBuilder {
+func (b *EmployeeInfoBuilder) Select(nodes ...query.Node) *EmployeeInfoBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
@@ -475,39 +465,38 @@ func (b *EmployeeInfoBuilder) Calculation(base query.TableNodeI, alias string, o
 
 // Distinct removes duplicates from the results of the query.
 // Adding a Select() is usually required.
-func (b *EmployeeInfoBuilder)  Distinct() *EmployeeInfoBuilder {
+func (b *EmployeeInfoBuilder) Distinct() *EmployeeInfoBuilder {
 	b.builder.Distinct()
 	return b
 }
 
 // GroupBy controls how results are grouped when using aggregate functions with Calculation.
-func (b *EmployeeInfoBuilder)  GroupBy(nodes... query.Node) *EmployeeInfoBuilder {
+func (b *EmployeeInfoBuilder) GroupBy(nodes ...query.Node) *EmployeeInfoBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
 // Having does additional filtering on the results of the query after the query is performed.
-func (b *EmployeeInfoBuilder)  Having(node query.Node)  *EmployeeInfoBuilder {
-	 b.builder.Having(node)
-	 return b
+func (b *EmployeeInfoBuilder) Having(node query.Node) *EmployeeInfoBuilder {
+	b.builder.Having(node)
+	return b
 }
 
 // Count terminates a query and returns just the number of items in the result.
 // If you have Select or Calculation columns in the query, it will count NULL results as well.
 // To not count NULL values, use Where in the builder with a NotNull operation.
 // To count distinct combinations of items, call Distinct() on the builder.
-func (b *EmployeeInfoBuilder)  Count() (int, error) {
+func (b *EmployeeInfoBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd")
 
-    ctx := b.ctx
+	ctx := b.ctx
 	results, err := database.BuilderQuery(ctx, b.builder)
-    if results == nil || err != nil {
-        return 0, err
-    }
+	if results == nil || err != nil {
+		return 0, err
+	}
 	return results.(int), nil
 }
-
 
 // CountEmployeeInfos returns the total number of items in the employee_info table.
 func CountEmployeeInfos(ctx context.Context) (int, error) {
@@ -517,25 +506,21 @@ func CountEmployeeInfos(ctx context.Context) (int, error) {
 // CountEmployeeInfosByPersonID queries the database and returns the number of EmployeeInfo objects that
 // have personID.
 // doc: type=EmployeeInfo
-func CountEmployeeInfosByPersonID(ctx context.Context, personID string ) (int, error) {
-    v_personID := personID
+func CountEmployeeInfosByPersonID(ctx context.Context, personID string) (int, error) {
+	v_personID := personID
 	return QueryEmployeeInfos(ctx).
-	Where(op.Equal(node.EmployeeInfo().PersonID(), v_personID)).
-	Count()
+		Where(op.Equal(node.EmployeeInfo().PersonID(), v_personID)).
+		Count()
 }
 
-
 // unpack recursively transforms data coming from the database into ORM objects.
-func (o *employeeInfoBase) unpack (m map[string]interface{}, objThis *EmployeeInfo) {
-
-	
-        
+func (o *employeeInfoBase) unpack(m map[string]interface{}, objThis *EmployeeInfo) {
 
 	if v, ok := m["id"]; ok && v != nil {
-    	if o.id, ok = v.(string); ok {
+		if o.id, ok = v.(string); ok {
 			o.idIsLoaded = true
 			o.idIsDirty = false
-            o._originalPK = o.id
+			o._originalPK = o.id
 		} else {
 			panic("Wrong type found for id.")
 		}
@@ -545,12 +530,8 @@ func (o *employeeInfoBase) unpack (m map[string]interface{}, objThis *EmployeeIn
 		o.idIsDirty = false
 	}
 
-    
-	
-        
-
 	if v, ok := m["employee_number"]; ok && v != nil {
-    	if o.employeeNumber, ok = v.(int); ok {
+		if o.employeeNumber, ok = v.(int); ok {
 			o.employeeNumberIsLoaded = true
 			o.employeeNumberIsDirty = false
 		} else {
@@ -562,12 +543,8 @@ func (o *employeeInfoBase) unpack (m map[string]interface{}, objThis *EmployeeIn
 		o.employeeNumberIsDirty = false
 	}
 
-    
-	
-        
-
 	if v, ok := m["person_id"]; ok && v != nil {
-    	if o.personID, ok = v.(string); ok {
+		if o.personID, ok = v.(string); ok {
 			o.personIDIsLoaded = true
 			o.personIDIsDirty = false
 		} else {
@@ -578,9 +555,6 @@ func (o *employeeInfoBase) unpack (m map[string]interface{}, objThis *EmployeeIn
 		o.personID = ""
 		o.personIDIsDirty = false
 	}
-
-    
-	
 
 	if v, ok := m["Person"]; ok {
 		if person, ok2 := v.(map[string]any); ok2 {
@@ -595,9 +569,6 @@ func (o *employeeInfoBase) unpack (m map[string]interface{}, objThis *EmployeeIn
 		o.person = nil
 	}
 
-
-
-
 	if v, ok := m["aliases_"]; ok {
 		o._aliases = v.(map[string]any)
 	}
@@ -605,7 +576,6 @@ func (o *employeeInfoBase) unpack (m map[string]interface{}, objThis *EmployeeIn
 	o._restored = true
 
 }
-
 
 // save will update or insert the object, depending on the state of the object.
 func (o *employeeInfoBase) save(ctx context.Context) error {
@@ -619,99 +589,92 @@ func (o *employeeInfoBase) save(ctx context.Context) error {
 // update will update the values in the database, saving any changed values.
 // If the table has auto-generated values, those will be updated automatically.
 func (o *employeeInfoBase) update(ctx context.Context) error {
-    if !o._restored {
-        panic ("cannot update a record that was not originally read from the database.")
-    }
-    if !o.IsDirty() {
-        return nil // nothing to save
-    }
+	if !o._restored {
+		panic("cannot update a record that was not originally read from the database.")
+	}
+	if !o.IsDirty() {
+		return nil // nothing to save
+	}
 
-    var modifiedFields map[string]interface{}
+	var modifiedFields map[string]interface{}
 
-    d := Database()
-    var cancel context.CancelFunc
-    ctx, cancel = context.WithTimeout(ctx, 30 * time.Second)
-    defer cancel()
-    err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
-    // Save loaded Person object to get its new pk and update it here.
-    if o.person != nil {
-        if err := o.person.Save(ctx); err != nil {
-            return err
-        }
-        o.SetPersonID(o.person.PrimaryKey())
-    }
+	d := Database()
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+	err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
+		// Save loaded Person object to get its new pk and update it here.
+		if o.person != nil {
+			if err := o.person.Save(ctx); err != nil {
+				return err
+			}
+			o.SetPersonID(o.person.PrimaryKey())
+		}
 
+		modifiedFields = getEmployeeInfoUpdateFields(o)
+		if len(modifiedFields) != 0 {
+			var err2 error
 
-        modifiedFields = getEmployeeInfoUpdateFields(o)
-        if len(modifiedFields) != 0 {
-            var err2 error
+			_, err2 = d.Update(ctx, "employee_info", "id", o._originalPK, modifiedFields, "", 0)
+			if err2 != nil {
+				return err2
+			}
+		}
 
-            _, err2 = d.Update(ctx, "employee_info", "id", o._originalPK, modifiedFields, "", 0)
-            if err2 != nil {
-                return err2
-            }
-        }
-
-
-
-        return nil
-    }) // transaction
-    if err != nil {
-        return err
-    }
+		return nil
+	}) // transaction
+	if err != nil {
+		return err
+	}
 
 	o.resetDirtyStatus()
 	if len(modifiedFields) != 0 {
-        broadcast.Update(ctx, "goradd", "employee_info", o._originalPK, anyutil.SortedKeys(modifiedFields)...)
+		broadcast.Update(ctx, "goradd", "employee_info", o._originalPK, anyutil.SortedKeys(modifiedFields)...)
 	}
 
 	return nil
 }
 
-
 // insert will insert the object into the database. Related items will be saved.
 func (o *employeeInfoBase) insert(ctx context.Context) (err error) {
-    var insertFields map[string]interface{}
-    d := Database()
+	var insertFields map[string]interface{}
+	d := Database()
 
-    var cancel context.CancelFunc
-    ctx, cancel = context.WithTimeout(ctx, 30 * time.Second)
-    defer cancel()
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
 
 	err = db.WithTransaction(ctx, d, func(context.Context) error {
-    // Save loaded Person object to get its new pk and update it here.
-    if o.person != nil {
-        if err := o.person.Save(ctx); err != nil {
-            return err
-        }
-        o.SetPersonID(o.person.PrimaryKey())
-    }
-    if !o.employeeNumberIsLoaded {
-        panic("a value for EmployeeNumber is required, and there is no default value. Call SetEmployeeNumber() before inserting the record.")
-    }
-    if !o.personIDIsLoaded {
-        panic("a value for PersonID is required, and there is no default value. Call SetPersonID() before inserting the record.")
-    }
-    insertFields = getEmployeeInfoInsertFields(o)
-    var newPK string
-	newPK, err = d.Insert(ctx, "employee_info", "id", insertFields)
-    if err != nil {
-        return err
-    }
-	o.id = newPK
-	o._originalPK = newPK
-    o.idIsLoaded = true
+		// Save loaded Person object to get its new pk and update it here.
+		if o.person != nil {
+			if err := o.person.Save(ctx); err != nil {
+				return err
+			}
+			o.SetPersonID(o.person.PrimaryKey())
+		}
+		if !o.employeeNumberIsLoaded {
+			panic("a value for EmployeeNumber is required, and there is no default value. Call SetEmployeeNumber() before inserting the record.")
+		}
+		if !o.personIDIsLoaded {
+			panic("a value for PersonID is required, and there is no default value. Call SetPersonID() before inserting the record.")
+		}
+		insertFields = getEmployeeInfoInsertFields(o)
+		var newPK string
+		newPK, err = d.Insert(ctx, "employee_info", "id", insertFields)
+		if err != nil {
+			return err
+		}
+		o.id = newPK
+		o._originalPK = newPK
+		o.idIsLoaded = true
 
+		return nil
 
+	}) // transaction
 
-
-        return nil
-
-    }) // transaction
-
-    if err != nil {
-        return
-    }
+	if err != nil {
+		return
+	}
 
 	o.resetDirtyStatus()
 	o._restored = true
@@ -719,20 +682,18 @@ func (o *employeeInfoBase) insert(ctx context.Context) (err error) {
 	return
 }
 
-
-
 // getUpdateFields returns the database columns that will be sent to the update process.
 // This will include timestamp fields only if some other column has changed.
 func (o *employeeInfoBase) getUpdateFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.idIsDirty {
-        fields["id"] = o.id
+		fields["id"] = o.id
 	}
 	if o.employeeNumberIsDirty {
-        fields["employee_number"] = o.employeeNumber
+		fields["employee_number"] = o.employeeNumber
 	}
 	if o.personIDIsDirty {
-        fields["person_id"] = o.personID
+		fields["person_id"] = o.personID
 	}
 	return
 }
@@ -745,27 +706,26 @@ func (o *employeeInfoBase) getUpdateFields() (fields map[string]interface{}) {
 // database driver and updated after the insert.
 func (o *employeeInfoBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-    if o.idIsDirty {
-        fields["id"] = o.id
-    }
- 
-    fields["employee_number"] = o.employeeNumber
+	if o.idIsDirty {
+		fields["id"] = o.id
+	}
+
+	fields["employee_number"] = o.employeeNumber
 	return
 }
 
-
 // Delete deletes the record from the database.
 func (o *employeeInfoBase) Delete(ctx context.Context) (err error) {
-    if o == nil {
-        return // allow deleting of a nil object to be a noop
-    }
+	if o == nil {
+		return // allow deleting of a nil object to be a noop
+	}
 	if !o._restored {
-		panic ("Cannot delete a record that has no primary key value.")
+		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
 	err = d.Delete(ctx, "employee_info", "id", o.id, "", 0)
 	if err != nil {
-	    return err
+		return err
 	}
 	broadcast.Delete(ctx, "goradd", "employee_info", fmt.Sprint(o.id))
 	return
@@ -777,11 +737,12 @@ func deleteEmployeeInfo(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd")
 	err := d.Delete(ctx, "employee_info", "id", pk, "", 0)
 	if err != nil {
-	    return err
+		return err
 	}
 	broadcast.Delete(ctx, "goradd", "employee_info", fmt.Sprint(pk))
-    return err
+	return err
 }
+
 // resetDirtyStatus resets the dirty status of every field in the object.
 func (o *employeeInfoBase) resetDirtyStatus() {
 	o.idIsDirty = false
@@ -792,19 +753,14 @@ func (o *employeeInfoBase) resetDirtyStatus() {
 
 // IsDirty returns true if the object has been changed since it was read from the database or created.
 func (o *employeeInfoBase) IsDirty() (dirty bool) {
-    dirty = o.idIsDirty ||
-o.employeeNumberIsDirty ||
-o.personIDIsDirty
-
-    dirty = dirty ||
-        o.person != nil && o.person.IsDirty())
+	dirty = o.idIsDirty ||
+		o.employeeNumberIsDirty ||
+		o.personIDIsDirty
 
 	dirty = dirty ||
-	    
+		o.person != nil && o.person.IsDirty()
 
-
-
-    return
+	return
 }
 
 // Get returns the value of a field in the object based on the field's name.
@@ -812,109 +768,108 @@ o.personIDIsDirty
 // Invalid fields and objects are returned as nil.
 // Get can be used to retrieve a value by using the Identifier of a node.
 func (o *employeeInfoBase) Get(key string) interface{} {
-    switch key {
-    case "id":
-        if !o.idIsLoaded {
-            return nil
-        }
-        return o.id
-    case "employeeNumber":
-        if !o.employeeNumberIsLoaded {
-            return nil
-        }
-        return o.employeeNumber
-    case "personID":
-        if !o.personIDIsLoaded {
-            return nil
-        }
-        return o.personID
-    case "person":
-        return o.Person()
-    }
-    return nil
+	switch key {
+	case "id":
+		if !o.idIsLoaded {
+			return nil
+		}
+		return o.id
+	case "employeeNumber":
+		if !o.employeeNumberIsLoaded {
+			return nil
+		}
+		return o.employeeNumber
+	case "personID":
+		if !o.personIDIsLoaded {
+			return nil
+		}
+		return o.personID
+	case "person":
+		return o.Person()
+	}
+	return nil
 }
+
 // MarshalBinary serializes the object into a buffer that is deserializable using UnmarshalBinary.
 // It should be used for transmitting database objects over the wire, or for temporary storage. It does not send
 // a version number, so if the data format changes, its up to you to invalidate the old stored objects.
 // The framework uses this to serialize the object when it is stored in a control.
 func (o *employeeInfoBase) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-    enc := gob.NewEncoder(buf)
-    if err := o.encodeTo(enc); err != nil {
-        return nil, err
-    }
+	enc := gob.NewEncoder(buf)
+	if err := o.encodeTo(enc); err != nil {
+		return nil, err
+	}
 	return buf.Bytes(), nil
 }
 
 func (o *employeeInfoBase) encodeTo(enc db.Encoder) error {
 
-    if err := enc.Encode(o.id); err != nil {
-        return fmt.Errorf("error encoding EmployeeInfo.id: %w", err)
-    }
-    if err := enc.Encode(o.idIsLoaded); err != nil {
-        return fmt.Errorf("error encoding EmployeeInfo.idIsLoaded: %w", err)
-    }
-    if err := enc.Encode(o.idIsDirty); err != nil {
-        return fmt.Errorf("error encoding EmployeeInfo.idIsDirty: %w", err)
-    }
+	if err := enc.Encode(o.id); err != nil {
+		return fmt.Errorf("error encoding EmployeeInfo.id: %w", err)
+	}
+	if err := enc.Encode(o.idIsLoaded); err != nil {
+		return fmt.Errorf("error encoding EmployeeInfo.idIsLoaded: %w", err)
+	}
+	if err := enc.Encode(o.idIsDirty); err != nil {
+		return fmt.Errorf("error encoding EmployeeInfo.idIsDirty: %w", err)
+	}
 
+	if err := enc.Encode(o.employeeNumber); err != nil {
+		return fmt.Errorf("error encoding EmployeeInfo.employeeNumber: %w", err)
+	}
+	if err := enc.Encode(o.employeeNumberIsLoaded); err != nil {
+		return fmt.Errorf("error encoding EmployeeInfo.employeeNumberIsLoaded: %w", err)
+	}
+	if err := enc.Encode(o.employeeNumberIsDirty); err != nil {
+		return fmt.Errorf("error encoding EmployeeInfo.employeeNumberIsDirty: %w", err)
+	}
 
-    if err := enc.Encode(o.employeeNumber); err != nil {
-        return fmt.Errorf("error encoding EmployeeInfo.employeeNumber: %w", err)
-    }
-    if err := enc.Encode(o.employeeNumberIsLoaded); err != nil {
-        return fmt.Errorf("error encoding EmployeeInfo.employeeNumberIsLoaded: %w", err)
-    }
-    if err := enc.Encode(o.employeeNumberIsDirty); err != nil {
-        return fmt.Errorf("error encoding EmployeeInfo.employeeNumberIsDirty: %w", err)
-    }
+	if err := enc.Encode(o.personID); err != nil {
+		return fmt.Errorf("error encoding EmployeeInfo.personID: %w", err)
+	}
+	if err := enc.Encode(o.personIDIsLoaded); err != nil {
+		return fmt.Errorf("error encoding EmployeeInfo.personIDIsLoaded: %w", err)
+	}
+	if err := enc.Encode(o.personIDIsDirty); err != nil {
+		return fmt.Errorf("error encoding EmployeeInfo.personIDIsDirty: %w", err)
+	}
 
+	if o.person == nil {
+		if err := enc.Encode(false); err != nil {
+			return err
+		}
+	} else {
+		if err := enc.Encode(true); err != nil {
+			return err
+		}
+		if err := enc.Encode(o.person); err != nil {
+			return fmt.Errorf("error encoding EmployeeInfo.person: %w", err)
+		}
+	}
 
-    if err := enc.Encode(o.personID); err != nil {
-        return fmt.Errorf("error encoding EmployeeInfo.personID: %w", err)
-    }
-    if err := enc.Encode(o.personIDIsLoaded); err != nil {
-        return fmt.Errorf("error encoding EmployeeInfo.personIDIsLoaded: %w", err)
-    }
-    if err := enc.Encode(o.personIDIsDirty); err != nil {
-        return fmt.Errorf("error encoding EmployeeInfo.personIDIsDirty: %w", err)
-    }
+	if o._aliases == nil {
+		if err := enc.Encode(false); err != nil {
+			return err
+		}
+	} else {
+		if err := enc.Encode(true); err != nil {
+			return err
+		}
+		if err := enc.Encode(o._aliases); err != nil {
+			return fmt.Errorf("error encoding EmployeeInfo._aliases: %w", err)
+		}
+	}
 
-
-    if o.person == nil {
-        if err := enc.Encode(false); err != nil {
-            return err
-        }
-    } else {
-        if err := enc.Encode(true); err != nil {
-            return err
-        }
-        if err := enc.Encode(o.person); err != nil {
-            return fmt.Errorf("error encoding EmployeeInfo.person: %w", err)
-        }
-    }
-
-    if o._aliases == nil {
-        if err := enc.Encode(false); err != nil {
-            return err
-        }
-    } else {
-        if err := enc.Encode(true); err != nil {
-            return err
-        }
-        if err := enc.Encode(o._aliases); err != nil {
-            return fmt.Errorf("error encoding EmployeeInfo._aliases: %w", err)
-        }
-    }
-
-    if err := enc.Encode(o._restored); err != nil {
-        return fmt.Errorf("error encoding EmployeeInfo._restored: %w", err)
-    }
-    if err := enc.Encode(o._originalPK); err != nil {
-        return fmt.Errorf("error encoding EmployeeInfo._originalPK: %w", err)
-    }
-    return nil
+	if err := enc.Encode(o._restored); err != nil {
+		return fmt.Errorf("error encoding EmployeeInfo._restored: %w", err)
+	}
+	if err := enc.Encode(o._originalPK); err != nil {
+		return fmt.Errorf("error encoding EmployeeInfo._originalPK: %w", err)
+	}
+	return nil
 }
+
 // UnmarshalBinary converts a structure that was created with MarshalBinary into a EmployeeInfo object.
 func (o *employeeInfoBase) UnmarshalBinary(data []byte) (err error) {
 	buf := bytes.NewReader(data)
@@ -926,101 +881,97 @@ func (o *employeeInfoBase) decodeFrom(dec db.Decoder) (err error) {
 	var isPtr bool
 
 	_ = isPtr
-    if err = dec.Decode(&o.id); err != nil {
-        return fmt.Errorf("error decoding EmployeeInfo.id: %w", err)
-    }
-    if err = dec.Decode(&o.idIsLoaded); err != nil {
-        return fmt.Errorf("error decoding EmployeeInfo.idIsLoaded: %w", err)
-    }
-    if err = dec.Decode(&o.idIsDirty); err != nil {
-        return fmt.Errorf("error decoding EmployeeInfo.idIsDirty: %w", err)
-    }
+	if err = dec.Decode(&o.id); err != nil {
+		return fmt.Errorf("error decoding EmployeeInfo.id: %w", err)
+	}
+	if err = dec.Decode(&o.idIsLoaded); err != nil {
+		return fmt.Errorf("error decoding EmployeeInfo.idIsLoaded: %w", err)
+	}
+	if err = dec.Decode(&o.idIsDirty); err != nil {
+		return fmt.Errorf("error decoding EmployeeInfo.idIsDirty: %w", err)
+	}
 
-    if err = dec.Decode(&o.employeeNumber); err != nil {
-        return fmt.Errorf("error decoding EmployeeInfo.employeeNumber: %w", err)
-    }
-    if err = dec.Decode(&o.employeeNumberIsLoaded); err != nil {
-        return fmt.Errorf("error decoding EmployeeInfo.employeeNumberIsLoaded: %w", err)
-    }
-    if err = dec.Decode(&o.employeeNumberIsDirty); err != nil {
-        return fmt.Errorf("error decoding EmployeeInfo.employeeNumberIsDirty: %w", err)
-    }
+	if err = dec.Decode(&o.employeeNumber); err != nil {
+		return fmt.Errorf("error decoding EmployeeInfo.employeeNumber: %w", err)
+	}
+	if err = dec.Decode(&o.employeeNumberIsLoaded); err != nil {
+		return fmt.Errorf("error decoding EmployeeInfo.employeeNumberIsLoaded: %w", err)
+	}
+	if err = dec.Decode(&o.employeeNumberIsDirty); err != nil {
+		return fmt.Errorf("error decoding EmployeeInfo.employeeNumberIsDirty: %w", err)
+	}
 
-    if err = dec.Decode(&o.personID); err != nil {
-        return fmt.Errorf("error decoding EmployeeInfo.personID: %w", err)
-    }
-    if err = dec.Decode(&o.personIDIsLoaded); err != nil {
-        return fmt.Errorf("error decoding EmployeeInfo.personIDIsLoaded: %w", err)
-    }
-    if err = dec.Decode(&o.personIDIsDirty); err != nil {
-        return fmt.Errorf("error decoding EmployeeInfo.personIDIsDirty: %w", err)
-    }
+	if err = dec.Decode(&o.personID); err != nil {
+		return fmt.Errorf("error decoding EmployeeInfo.personID: %w", err)
+	}
+	if err = dec.Decode(&o.personIDIsLoaded); err != nil {
+		return fmt.Errorf("error decoding EmployeeInfo.personIDIsLoaded: %w", err)
+	}
+	if err = dec.Decode(&o.personIDIsDirty); err != nil {
+		return fmt.Errorf("error decoding EmployeeInfo.personIDIsDirty: %w", err)
+	}
 
+	if err = dec.Decode(&isPtr); err != nil {
+		return fmt.Errorf("error decoding EmployeeInfo.person isPtr: %w", err)
+	}
+	if isPtr {
+		if err = dec.Decode(&o.person); err != nil {
+			return fmt.Errorf("error decoding EmployeeInfo.person: %w", err)
+		}
+	}
+	if err = dec.Decode(&isPtr); err != nil {
+		return fmt.Errorf("error decoding EmployeeInfo._aliases isPtr: %w", err)
+	}
+	if isPtr {
+		if err = dec.Decode(&o._aliases); err != nil {
+			return fmt.Errorf("error decoding EmployeeInfo._aliases: %w", err)
+		}
+	}
 
-    if err = dec.Decode(&isPtr); err != nil {
-        return fmt.Errorf("error decoding EmployeeInfo.person isPtr: %w", err)
-    }
-    if isPtr {
-        if err = dec.Decode(&o.person); err != nil {
-            return fmt.Errorf("error decoding EmployeeInfo.person: %w", err)
-        }
-    }
-    if err = dec.Decode(&isPtr); err != nil {
-        return fmt.Errorf("error decoding EmployeeInfo._aliases isPtr: %w", err)
-    }
-    if isPtr {
-        if err = dec.Decode(&o._aliases); err != nil {
-            return fmt.Errorf("error decoding EmployeeInfo._aliases: %w", err)
-        }
-    }
-
-    if err = dec.Decode(&o._restored); err != nil {
-        return fmt.Errorf("error decoding EmployeeInfo._restored: %w", err)
-    }
-    if err = dec.Decode(&o._originalPK); err != nil {
-        return fmt.Errorf("error decoding EmployeeInfo._originalPK: %w", err)
-    }
+	if err = dec.Decode(&o._restored); err != nil {
+		return fmt.Errorf("error decoding EmployeeInfo._restored: %w", err)
+	}
+	if err = dec.Decode(&o._originalPK); err != nil {
+		return fmt.Errorf("error decoding EmployeeInfo._originalPK: %w", err)
+	}
 	return
 }
+
 // MarshalJSON serializes the object into a JSON object.
 // Only valid data will be serialized, meaning, you can control what gets serialized by using Select to
 // select only the fields you want when you query for the object. Another way to control the output
 // is to call MarshalStringMap, modify the map, then encode the map.
 func (o *employeeInfoBase) MarshalJSON() (data []byte, err error) {
-    v := o.MarshalStringMap()
-    return json.Marshal(v)
+	v := o.MarshalStringMap()
+	return json.Marshal(v)
 }
 
 // MarshalStringMap serializes the object into a string map of interfaces.
 // Only valid data will be serialized, meaning, you can control what gets serialized by using Select to
 // select only the fields you want when you query for the object. The keys are the same as the json keys.
-func (o *employeeInfoBase) MarshalStringMap() (map[string]interface{}) {
-    v := make(map[string]interface{})
+func (o *employeeInfoBase) MarshalStringMap() map[string]interface{} {
+	v := make(map[string]interface{})
 
-    if o.idIsLoaded {
-        v["id"] = o.id
-    }
+	if o.idIsLoaded {
+		v["id"] = o.id
+	}
 
+	if o.employeeNumberIsLoaded {
+		v["employeeNumber"] = o.employeeNumber
+	}
 
-    if o.employeeNumberIsLoaded {
-        v["employeeNumber"] = o.employeeNumber
-    }
+	if o.personIDIsLoaded {
+		v["personID"] = o.personID
+	}
 
-
-    if o.personIDIsLoaded {
-        v["personID"] = o.personID
-    }
-
-
-    if val := o.person; val != nil {
-        v["person"] = val.MarshalStringMap()
-    }
-    for _k,_v := range o._aliases {
-        v[_k] = _v
-    }
-    return v
+	if val := o.person; val != nil {
+		v["person"] = val.MarshalStringMap()
+	}
+	for _k, _v := range o._aliases {
+		v[_k] = _v
+	}
+	return v
 }
-
 
 // UnmarshalJSON unmarshalls the given json data into the EmployeeInfo. The EmployeeInfo can be a
 // newly created object, or one loaded from the database.
@@ -1031,9 +982,10 @@ func (o *employeeInfoBase) MarshalStringMap() (map[string]interface{}) {
 // Unmarshalling of sub-objects, as in objects linked via foreign keys, is not currently supported.
 //
 // The fields it expects are:
-//   "id" - string
-//   "employeeNumber" - int
-func (o *employeeInfoBase) UnmarshalJSON (data []byte) (err error) {
+//
+//	"id" - string
+//	"employeeNumber" - int
+func (o *employeeInfoBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
 	if len(data) == 0 {
 		return
@@ -1050,71 +1002,72 @@ func (o *employeeInfoBase) UnmarshalJSON (data []byte) (err error) {
 //
 // Override this in EmployeeInfo to modify the json before sending it here.
 func (o *employeeInfoBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
-    for k,v := range m {
-        switch k {
+	for k, v := range m {
+		switch k {
 
-        case "id":
-        {
-            if v == nil {
-                return fmt.Errorf("field %s cannot be null", k)
-            }
+		case "id":
+			{
+				if v == nil {
+					return fmt.Errorf("field %s cannot be null", k)
+				}
 
+				if s, ok := v.(string); !ok {
+					return fmt.Errorf("json field %s must be a string", k)
+				} else {
+					o.SetID(s)
+				}
+			}
+		case "employeeNumber":
+			{
+				if v == nil {
+					return fmt.Errorf("field %s cannot be null", k)
+				}
 
-            if s,ok := v.(string); !ok {
-                return fmt.Errorf("json field %s must be a string", k)
-            } else {
-                o.SetID(s)
-            }
-            }
-        case "employeeNumber":
-        {
-            if v == nil {
-                return fmt.Errorf("field %s cannot be null", k)
-            }
+				switch n := v.(type) {
+				case json.Number:
+					n2, err := n.Int64()
+					if err != nil {
+						return err
+					}
+					o.SetEmployeeNumber(int(n2))
+				case int:
+					o.SetEmployeeNumber(n)
+				case float64:
+					o.SetEmployeeNumber(int(n))
+				default:
+					return fmt.Errorf("field %s must be a number", k)
+				}
+			}
+		case "personID":
+			{
+				if v == nil {
+					return fmt.Errorf("field %s cannot be null", k)
+				}
 
+				if _, ok := m["person"]; ok {
+					continue // importing the foreign key will remove the object
+				}
 
-            switch n := v.(type) {
-            case json.Number:
-                n2,err := n.Int64()
-                if err != nil {return err}
-                o.SetEmployeeNumber(int(n2))
-            case int:
-                o.SetEmployeeNumber(n)
-            case float64:
-                o.SetEmployeeNumber(int(n))
-            default:
-                return fmt.Errorf("field %s must be a number", k)
-            }
-            }
-        case "personID":
-        {
-            if v == nil {
-                return fmt.Errorf("field %s cannot be null", k)
-            }
+				if s, ok := v.(string); !ok {
+					return fmt.Errorf("json field %s must be a string", k)
+				} else {
+					o.SetPersonID(s)
+				}
+			}
 
-            if _,ok := m["person"]; ok {
-                continue // importing the foreign key will remove the object
-            }
+		case "person":
+			v2 := NewPerson()
+			m2, ok := v.(map[string]any)
+			if !ok {
+				return fmt.Errorf("json field %s must be a map", k)
+			}
+			err = v2.UnmarshalStringMap(m2)
+			if err != nil {
+				return
+			}
+			o.SetPerson(v2)
 
-            if s,ok := v.(string); !ok {
-                return fmt.Errorf("json field %s must be a string", k)
-            } else {
-                o.SetPersonID(s)
-            }
-            }
-
-            case "person":
-                v2 := NewPerson()
-                m2,ok := v.(map[string]any)
-                if !ok {
-                    return fmt.Errorf("json field %s must be a map", k)
-                }
-                err = v2.UnmarshalStringMap(m2)
-                if err != nil {return}
-                o.SetPerson(v2)
-
-        }
-    }
-    return
+		}
+	}
+	return
 }
-

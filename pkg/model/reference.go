@@ -59,7 +59,21 @@ func (r *Reference) JsonKey() string {
 
 // ReverseJsonKey returns the key that will be used for the reverse referenced object in JSON.
 func (r *Reference) ReverseJsonKey() string {
-	return LowerCaseIdentifier(r.ReverseIdentifier)
+	if r.IsUnique {
+		return LowerCaseIdentifier(r.ReverseIdentifier)
+	} else {
+		return LowerCaseIdentifier(r.ReverseIdentifierPlural)
+	}
+}
+
+// ReverseNodeIdentifier is the identifier to use for reverse nodes.
+// Depending on IsUnique, this will be a singular or plural word.
+func (r *Reference) ReverseNodeIdentifier() string {
+	if r.IsUnique {
+		return r.ReverseIdentifier
+	} else {
+		return r.ReverseIdentifierPlural
+	}
 }
 
 // importReference creates a reference from a schemaRef.

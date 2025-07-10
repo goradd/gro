@@ -21,7 +21,7 @@ func (o *{{= table.DecapIdentifier}}Base) Load{{= rev.ReverseIdentifier }}(ctx c
     var err error
 	if o.{{= rev.ReverseField }} == nil {
 	    pk := o.{{= rev.Table.PrimaryKeyColumn().Identifier }}()
-		o.{{= rev.ReverseField }}, err = Load{{= rev.Table.Identifier }}By{{= rev.Identifier }}(ctx, pk)
+		o.{{= rev.ReverseField }}, err = Load{{= rev.Table.Identifier }}By{{= rev.ForeignKey.Identifier }}(ctx, pk)
 	}
 	return o.{{= rev.ReverseField }}, err
 }
