@@ -782,10 +782,14 @@
   "association_tables": [
     {
       "name": "leaf_nl_assn",
-      "table1": "leaf_nl",
-      "name1": "leaf_1",
-      "table2": "leaf_nl",
-      "name2": "leaf_2"
+      "ref1": {
+        "table": "leaf_nl",
+        "identifier": "Leaf1"
+      },
+      "ref2": {
+        "table": "leaf_nl",
+        "identifier": "Leaf2"
+      }
     }
   ]
 }

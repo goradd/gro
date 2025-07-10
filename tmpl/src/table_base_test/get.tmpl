@@ -26,14 +26,15 @@ func Test{{= table.Identifier }}_Getters(t *testing.T) {
 {{if}}
 {{for}}
 
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
     require.NoError(t, obj.Save(ctx))
     defer deleteSample{{= table.Identifier }}(ctx, obj)
 
     has,_ := Has{{= table.Identifier }}(ctx, obj.PrimaryKey())
     assert.True(t, has)
 
-    obj2, _ := Load{{= table.Identifier }}(ctx, obj.PrimaryKey(), node.{{= table.Identifier }}().PrimaryKey())
+    obj2, _ := Load{{= table.Identifier }}(ctx, obj.PrimaryKey(),
+{{join table.PrimaryKeyColumns(), ", "}}node.{{= table.Identifier }}().{{= _j.Identifier}}(){{join}})
 {{if !table.HasAutoPK() }}
     assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
 {{if}}

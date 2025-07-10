@@ -15,10 +15,12 @@ import (
 )
 
 // Database is the top level struct that contains a description of a database modeled as objects.
-// It is used in code generation and query creation.
+// It is used in code generation.
 type Database struct {
 	// The database key corresponding to its key in the global database cluster
 	Key string
+	// ImportPath is the module path to the output directory.
+	ImportPath string
 	// WriteTimeout is used to wrap write transactions with a timeout on their contexts.
 	// Leaving it as zero will turn off timeout wrapping, allowing you to wrap individual calls as you
 	// see fit.
@@ -79,30 +81,12 @@ func (m *Database) importAssociation(schemaAssn *schema.AssociationTable) {
 		return
 	}
 
-	ref1 := makeManyManyRef(
-		schemaAssn.Table,
-		schemaAssn.Ref1.Column,
-		schemaAssn.Ref2.Column,
-		t1,
-		t2,
-		schemaAssn.Ref2.Label,
-		schemaAssn.Ref2.LabelPlural,
-		schemaAssn.Ref2.Identifier,
-		schemaAssn.Ref2.IdentifierPlural,
-	)
-	ref2 := makeManyManyRef(
-		schemaAssn.Table,
-		schemaAssn.Ref2.Column,
-		schemaAssn.Ref1.Column,
-		t2,
-		t1,
-		schemaAssn.Ref1.Label,
-		schemaAssn.Ref1.LabelPlural,
-		schemaAssn.Ref1.Schema,
-		schemaAssn.Ref1.IdentifierPlural,
-	)
+	ref1 := makeManyManyRef(schemaAssn.Table, schemaAssn.Ref2.Column, t2, schemaAssn.Ref2.Label, schemaAssn.Ref2.LabelPlural, schemaAssn.Ref2.Identifier, schemaAssn.Ref2.IdentifierPlural)
+	ref2 := makeManyManyRef(schemaAssn.Table, schemaAssn.Ref1.Column, t1, schemaAssn.Ref1.Label, schemaAssn.Ref1.LabelPlural, schemaAssn.Ref1.Identifier, schemaAssn.Ref1.IdentifierPlural)
 	ref1.MM = ref2
 	ref2.MM = ref1
+	t1.ManyManyReferences = append(t1.ManyManyReferences, ref1)
+	t2.ManyManyReferences = append(t2.ManyManyReferences, ref2)
 }
 
 // Table returns a Table from the database given the table name.
@@ -284,7 +268,7 @@ func (m *Database) UniqueManyManyReferences() []*ManyManyReference {
 	}
 
 	return slices.SortedFunc(maps2.Values(refs), func(reference *ManyManyReference, reference2 *ManyManyReference) int {
-		return cmp.Compare(reference.SourceColumnName, reference2.SourceColumnName)
+		return cmp.Compare(reference.SourceColumnName(), reference2.SourceColumnName())
 	})
 }
 
@@ -308,6 +292,7 @@ func FromSchema(s *schema.Database) *Database {
 		WriteTimeout:    timeout,
 		EnumTableSuffix: s.EnumTableSuffix,
 		AssnTableSuffix: s.AssnTableSuffix,
+		ImportPath:      s.ImportPath,
 	}
 	d.importSchema(s)
 	return &d

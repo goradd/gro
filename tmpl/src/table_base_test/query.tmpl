@@ -3,13 +3,15 @@
 {{
 func Test{{= table.Identifier }}_QueryLoad(t *testing.T) {
     obj := createMinimalSample{{= table.Identifier }}()
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
 	assert.NoError(t, obj.Save(ctx))
     defer deleteSample{{= table.Identifier }}(ctx, obj)
 
     objs, err := Query{{= table.IdentifierPlural }}(ctx).
-        Where(op.Equal(node.{{= table.Identifier }}().PrimaryKey(), obj.PrimaryKey())).
-        OrderBy(node.{{= table.Identifier }}().PrimaryKey()). // exercise order by
+{{for _,col := range table.PrimaryKeyColumns() }}
+        Where(op.Equal(node.{{= table.Identifier }}().{{= col.Identifier }}(), obj.{{= col.Identifier }}())).
+{{for}}
+        OrderBy({{join table.PrimaryKeyColumns(), ", "}}node.{{= table.Identifier }}().{{= _j.Identifier }}(){{join}}). // exercise order by
         Limit(1,0). // exercise limit
         Calculation(node.{{= table.Identifier }}(), "IsTrue", op.Equal("A","A")).
         Load()
@@ -22,13 +24,15 @@ func Test{{= table.Identifier }}_QueryLoad(t *testing.T) {
 {{
 func Test{{= table.Identifier }}_QueryLoadI(t *testing.T) {
     obj := createMinimalSample{{= table.Identifier }}()
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
     err := obj.Save(ctx)
 	assert.NoError(t, err)
     defer deleteSample{{= table.Identifier }}(ctx, obj)
 
     objs, _ := Query{{= table.IdentifierPlural }}(ctx).
-        Where(op.Equal(node.{{= table.Identifier }}().PrimaryKey(), obj.PrimaryKey())).
+{{for _,col := range table.PrimaryKeyColumns() }}
+        Where(op.Equal(node.{{= table.Identifier }}().{{= col.Identifier }}(), obj.{{= col.Identifier }}())).
+{{for}}
         LoadI()
 
     assert.Equal(t, obj.PrimaryKey(), objs[0].Get("{{= table.PrimaryKeyColumn().Identifier }}"))
@@ -38,12 +42,14 @@ func Test{{= table.Identifier }}_QueryLoadI(t *testing.T) {
 {{
 func Test{{= table.Identifier }}_QueryCursor(t *testing.T) {
     obj := createMinimalSample{{= table.Identifier }}()
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
 	assert.NoError(t, obj.Save(ctx))
     defer deleteSample{{= table.Identifier }}(ctx, obj)
 
     cursor, err := Query{{= table.IdentifierPlural }}(ctx).
-        Where(op.Equal(node.{{= table.Identifier }}().PrimaryKey(), obj.PrimaryKey())).
+{{for _,col := range table.PrimaryKeyColumns() }}
+        Where(op.Equal(node.{{= table.Identifier }}().{{= col.Identifier }}(), obj.{{= col.Identifier }}())).
+{{for}}
         LoadCursor()
     require.NoError(t, err)
     obj2, err2 := cursor.Next()

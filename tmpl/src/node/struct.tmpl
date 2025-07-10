@@ -7,25 +7,29 @@
 // {{= table.Identifier}}Node is the builder interface to the {{= table.Identifier}} nodes.
 type {{= table.Identifier}}Node interface {
     query.TableNodeI
+{{if len(table.PrimaryKeyColumns()) == 1 }}
+    // PrimaryKey returns the column node representing the primary key of the table
     PrimaryKey() *query.ColumnNode
+{{if}}
 {{for _,col := range table.Columns}}
     // {{= col.Identifier }} represents the {{= col.QueryName }} column in the database.
     {{= col.Identifier }}() *query.ColumnNode
 {{for}}
 {{for _,ref := range table.References}}
-    // {{= ref.ForeignKey.Identifier }} represents the {{= ref.ForeignKey.QueryName }} column in the database
+    // {{= ref.ForeignKey.Identifier }} represents the {{= ref.ForeignKey.QueryName }} foreign key column in the database
     // that references the {{= ref.Identifier }} object.
     {{= ref.ForeignKey.Identifier }}() *query.ColumnNode
-    // {{= ref.Identifier }} references a {{= ref.ReferencedTable.Identifier }} object.
+    // {{= ref.Identifier }} references the {{= ref.ReferencedTable.Identifier }} object whose primary key is {{= ref.ForeignKey.Identifier }}.
     {{= ref.Identifier }}() {{= ref.ReferencedTable.Identifier }}Node
 {{for}}
 {{for _,mm := range table.ManyManyReferences}}
-     // {{= mm.IdentifierPlural }} represents a reference to {{= mm.ReferencedTable.Identifier }} objects.
-   {{= mm.IdentifierPlural }}() {{= mm.ReferencedTable.Identifier }}Node
+    // {{= mm.IdentifierPlural }} represents the many-many reference to {{= mm.ReferencedTable.Identifier }} objects.
+    {{= mm.IdentifierPlural }}() {{= mm.ReferencedTable.Identifier }}Node
 {{for}}
 {{for _,rev := range table.ReverseReferences}}
-    // {{= rev.ReverseIdentifier }} represents the {{= rev.ReverseIdentifier }} reference to {{if rev.IsUnique
-}}a {{= rev.Table.Identifier }} object.{{else}}{{= rev.Table.Identifier }} objects.{{if}}
+    // {{= rev.ReverseIdentifier }} represents the {{= rev.ReverseIdentifier }} reverse reference to {{if rev.IsUnique
+}}a {{= rev.Table.Identifier }} object{{else}}{{= rev.Table.Identifier }} objects{{if}}
+    // through the {{= rev.ForeignKey.Identifier }} foreign key there.
     {{= rev.ReverseIdentifier }}() {{= rev.Table.Identifier }}Node
 {{for}}
 }

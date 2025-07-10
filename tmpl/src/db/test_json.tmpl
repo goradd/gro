@@ -12,13 +12,15 @@
 // import the entire database from the buffer. It will then do some sanity checks.
 func TestDbJson(t *testing.T) {
 return
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
 
     // get single comparison objects and data sizes
     // database must be pre-populated for test
 
 {{for _,table := range orderedTables}}
-    v_{{= table.Identifier}}, _ := Query{{= table.IdentifierPlural }}(ctx).OrderBy(node.{{= table.Identifier }}().PrimaryKey()).Get() // gets first record
+    v_{{= table.Identifier}}, _ := Query{{= table.IdentifierPlural }}(ctx).
+    OrderBy({{join table.PrimaryKeyColumns(), ", "}}node.{{= table.Identifier }}().{{= _j.Identifier }}(){{join}}).
+    Get() // gets first record
 {{for}}
 {{for _,table := range orderedTables}}
     v_{{= table.Identifier}}Count, _ := Count{{= table.IdentifierPlural}}(ctx)
@@ -39,7 +41,9 @@ return
 {{for _,table := range orderedTables}}
     if v_{{= table.Identifier}} != nil {
 {{if !table.NoTest}}
-        obj, _ := Query{{= table.IdentifierPlural }}(ctx).OrderBy(node.{{= table.Identifier }}().PrimaryKey()).Get()
+        obj, _ := Query{{= table.IdentifierPlural }}(ctx).
+        OrderBy({{join table.PrimaryKeyColumns(), ", "}}node.{{= table.Identifier }}().{{= _j.Identifier}}(){{join}}).
+        Get()
         assertEqualFields{{= table.Identifier}}(t, v_{{= table.Identifier}}, obj)
 {{if}}
     }

@@ -5,6 +5,7 @@ package goradd
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -44,83 +45,115 @@ func teardown() {
 // import the entire database from the buffer. It will then do some sanity checks.
 func TestDbJson(t *testing.T) {
 	return
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	// get single comparison objects and data sizes
 	// database must be pre-populated for test
 
-	v_Address, _ := QueryAddresses(ctx).OrderBy(node.Address().PrimaryKey()).Get()                     // gets first record
-	v_EmployeeInfo, _ := QueryEmployeeInfos(ctx).OrderBy(node.EmployeeInfo().PrimaryKey()).Get()       // gets first record
-	v_Gift, _ := QueryGifts(ctx).OrderBy(node.Gift().PrimaryKey()).Get()                               // gets first record
-	v_Login, _ := QueryLogins(ctx).OrderBy(node.Login().PrimaryKey()).Get()                            // gets first record
-	v_Milestone, _ := QueryMilestones(ctx).OrderBy(node.Milestone().PrimaryKey()).Get()                // gets first record
-	v_Person, _ := QueryPeople(ctx).OrderBy(node.Person().PrimaryKey()).Get()                          // gets first record
-	v_PersonWithLock, _ := QueryPersonWithLocks(ctx).OrderBy(node.PersonWithLock().PrimaryKey()).Get() // gets first record
-	v_Project, _ := QueryProjects(ctx).OrderBy(node.Project().PrimaryKey()).Get()                      // gets first record
-	v_AddressCount, _ := CountAddresses(ctx)
-	v_EmployeeInfoCount, _ := CountEmployeeInfos(ctx)
+	v_Gift, _ := QueryGifts(ctx).
+		OrderBy(node.Gift().Number()).
+		Get() // gets first record
+	v_Person, _ := QueryPeople(ctx).
+		OrderBy(node.Person().ID()).
+		Get() // gets first record
+	v_PersonWithLock, _ := QueryPersonWithLocks(ctx).
+		OrderBy(node.PersonWithLock().ID()).
+		Get() // gets first record
+	v_Project, _ := QueryProjects(ctx).
+		OrderBy(node.Project().ID()).
+		Get() // gets first record
+	v_Address, _ := QueryAddresses(ctx).
+		OrderBy(node.Address().ID()).
+		Get() // gets first record
+	v_EmployeeInfo, _ := QueryEmployeeInfos(ctx).
+		OrderBy(node.EmployeeInfo().ID()).
+		Get() // gets first record
+	v_Login, _ := QueryLogins(ctx).
+		OrderBy(node.Login().ID()).
+		Get() // gets first record
+	v_Milestone, _ := QueryMilestones(ctx).
+		OrderBy(node.Milestone().ID()).
+		Get() // gets first record
 	v_GiftCount, _ := CountGifts(ctx)
-	v_LoginCount, _ := CountLogins(ctx)
-	v_MilestoneCount, _ := CountMilestones(ctx)
 	v_PersonCount, _ := CountPeople(ctx)
 	v_PersonWithLockCount, _ := CountPersonWithLocks(ctx)
 	v_ProjectCount, _ := CountProjects(ctx)
+	v_AddressCount, _ := CountAddresses(ctx)
+	v_EmployeeInfoCount, _ := CountEmployeeInfos(ctx)
+	v_LoginCount, _ := CountLogins(ctx)
+	v_MilestoneCount, _ := CountMilestones(ctx)
 
 	var b bytes.Buffer
 	w := bufio.NewWriter(&b)
 	assert.NoError(t, JsonEncodeAll(ctx, w))
 
 	ClearAll(ctx)
-	assert.Equal(t, 0, func() int { i, _ := CountAddresses(ctx); return i }())
-	assert.Equal(t, 0, func() int { i, _ := CountEmployeeInfos(ctx); return i }())
 	assert.Equal(t, 0, func() int { i, _ := CountGifts(ctx); return i }())
-	assert.Equal(t, 0, func() int { i, _ := CountLogins(ctx); return i }())
-	assert.Equal(t, 0, func() int { i, _ := CountMilestones(ctx); return i }())
 	assert.Equal(t, 0, func() int { i, _ := CountPeople(ctx); return i }())
 	assert.Equal(t, 0, func() int { i, _ := CountPersonWithLocks(ctx); return i }())
 	assert.Equal(t, 0, func() int { i, _ := CountProjects(ctx); return i }())
+	assert.Equal(t, 0, func() int { i, _ := CountAddresses(ctx); return i }())
+	assert.Equal(t, 0, func() int { i, _ := CountEmployeeInfos(ctx); return i }())
+	assert.Equal(t, 0, func() int { i, _ := CountLogins(ctx); return i }())
+	assert.Equal(t, 0, func() int { i, _ := CountMilestones(ctx); return i }())
 
 	r := bufio.NewReader(&b)
 	assert.NoError(t, JsonDecodeAll(ctx, r))
 
-	if v_Address != nil {
-		obj, _ := QueryAddresses(ctx).OrderBy(node.Address().PrimaryKey()).Get()
-		assertEqualFieldsAddress(t, v_Address, obj)
-	}
-	if v_EmployeeInfo != nil {
-		obj, _ := QueryEmployeeInfos(ctx).OrderBy(node.EmployeeInfo().PrimaryKey()).Get()
-		assertEqualFieldsEmployeeInfo(t, v_EmployeeInfo, obj)
-	}
 	if v_Gift != nil {
-		obj, _ := QueryGifts(ctx).OrderBy(node.Gift().PrimaryKey()).Get()
+		obj, _ := QueryGifts(ctx).
+			OrderBy(node.Gift().Number()).
+			Get()
 		assertEqualFieldsGift(t, v_Gift, obj)
 	}
-	if v_Login != nil {
-		obj, _ := QueryLogins(ctx).OrderBy(node.Login().PrimaryKey()).Get()
-		assertEqualFieldsLogin(t, v_Login, obj)
-	}
-	if v_Milestone != nil {
-		obj, _ := QueryMilestones(ctx).OrderBy(node.Milestone().PrimaryKey()).Get()
-		assertEqualFieldsMilestone(t, v_Milestone, obj)
-	}
 	if v_Person != nil {
-		obj, _ := QueryPeople(ctx).OrderBy(node.Person().PrimaryKey()).Get()
+		obj, _ := QueryPeople(ctx).
+			OrderBy(node.Person().ID()).
+			Get()
 		assertEqualFieldsPerson(t, v_Person, obj)
 	}
 	if v_PersonWithLock != nil {
-		obj, _ := QueryPersonWithLocks(ctx).OrderBy(node.PersonWithLock().PrimaryKey()).Get()
+		obj, _ := QueryPersonWithLocks(ctx).
+			OrderBy(node.PersonWithLock().ID()).
+			Get()
 		assertEqualFieldsPersonWithLock(t, v_PersonWithLock, obj)
 	}
 	if v_Project != nil {
-		obj, _ := QueryProjects(ctx).OrderBy(node.Project().PrimaryKey()).Get()
+		obj, _ := QueryProjects(ctx).
+			OrderBy(node.Project().ID()).
+			Get()
 		assertEqualFieldsProject(t, v_Project, obj)
 	}
-	assert.Equal(t, v_AddressCount, func() int { i, _ := CountAddresses(ctx); return i }())
-	assert.Equal(t, v_EmployeeInfoCount, func() int { i, _ := CountEmployeeInfos(ctx); return i }())
+	if v_Address != nil {
+		obj, _ := QueryAddresses(ctx).
+			OrderBy(node.Address().ID()).
+			Get()
+		assertEqualFieldsAddress(t, v_Address, obj)
+	}
+	if v_EmployeeInfo != nil {
+		obj, _ := QueryEmployeeInfos(ctx).
+			OrderBy(node.EmployeeInfo().ID()).
+			Get()
+		assertEqualFieldsEmployeeInfo(t, v_EmployeeInfo, obj)
+	}
+	if v_Login != nil {
+		obj, _ := QueryLogins(ctx).
+			OrderBy(node.Login().ID()).
+			Get()
+		assertEqualFieldsLogin(t, v_Login, obj)
+	}
+	if v_Milestone != nil {
+		obj, _ := QueryMilestones(ctx).
+			OrderBy(node.Milestone().ID()).
+			Get()
+		assertEqualFieldsMilestone(t, v_Milestone, obj)
+	}
 	assert.Equal(t, v_GiftCount, func() int { i, _ := CountGifts(ctx); return i }())
-	assert.Equal(t, v_LoginCount, func() int { i, _ := CountLogins(ctx); return i }())
-	assert.Equal(t, v_MilestoneCount, func() int { i, _ := CountMilestones(ctx); return i }())
 	assert.Equal(t, v_PersonCount, func() int { i, _ := CountPeople(ctx); return i }())
 	assert.Equal(t, v_PersonWithLockCount, func() int { i, _ := CountPersonWithLocks(ctx); return i }())
 	assert.Equal(t, v_ProjectCount, func() int { i, _ := CountProjects(ctx); return i }())
+	assert.Equal(t, v_AddressCount, func() int { i, _ := CountAddresses(ctx); return i }())
+	assert.Equal(t, v_EmployeeInfoCount, func() int { i, _ := CountEmployeeInfos(ctx); return i }())
+	assert.Equal(t, v_LoginCount, func() int { i, _ := CountLogins(ctx); return i }())
+	assert.Equal(t, v_MilestoneCount, func() int { i, _ := CountMilestones(ctx); return i }())
 }

@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/goradd/anyutil"
+	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
 	"log/slog"
@@ -30,13 +31,10 @@ type Reference struct {
 	// The human-readable label of the object referred to.
 	// Example: Project Manager
 	Label string
-	// ReverseIdentifier is the name we should use to refer to the related object.
-	// Example: Project
-	ReverseIdentifier string
-	// ReverseIdentifierPlural is the name we should use to refer to the plural of the related object.
+	// ReverseIdentifier is the name ReferencedTable should use to refer to the related object(s).
+	// If this is a unique reference, ReverseIdentifier will be singular. Otherwise, it will be plural.
 	// Example: Projects
-	ReverseIdentifierPlural string
-	// IsUnique indicates that this is a one-to-one relationship
+	ReverseIdentifier string
 	// ReverseLabel is the human-readable label of the object of the reverse relationship.
 	// Example: Project
 	ReverseLabel string
@@ -59,32 +57,27 @@ func (r *Reference) JsonKey() string {
 
 // ReverseJsonKey returns the key that will be used for the reverse referenced object in JSON.
 func (r *Reference) ReverseJsonKey() string {
-	if r.IsUnique {
-		return LowerCaseIdentifier(r.ReverseIdentifier)
-	} else {
-		return LowerCaseIdentifier(r.ReverseIdentifierPlural)
-	}
+	return LowerCaseIdentifier(r.ReverseIdentifier)
 }
 
 // importReference creates a reference from a schemaRef.
-func (m *Database) importReference(schemaTable *schema.Table, schemaRef *schema.Reference) *Reference {
-	table := m.Table(schemaTable.Name)
-	if table == nil {
-		slog.Error("Table does not exist",
-			slog.String(schemaRef.Table, schemaTable.Name))
-		return nil
-	}
+func (m *Database) importReference(table *Table, schemaRef *schema.Reference) *Reference {
+	var refTable *Table
 
-	refTable := m.Table(schemaRef.Table)
+	if schemaRef.Table == table.QueryName {
+		refTable = table
+	} else {
+		refTable = m.Table(schemaRef.Table)
+	}
 	if refTable == nil {
 		slog.Error("Referenced table does not exist",
-			slog.String(schemaRef.Table, schemaRef.Table))
+			slog.String(db.LogTable, schemaRef.Table))
 		return nil
 	}
 	pk := refTable.PrimaryKeyColumn()
 	if pk == nil {
 		slog.Warn("Referenced table does not have a single primary key column.",
-			slog.String(schemaRef.Table, schemaRef.Table))
+			slog.String(db.LogTable, schemaRef.Table))
 		return nil
 	}
 
@@ -106,20 +99,26 @@ func (m *Database) importReference(schemaTable *schema.Table, schemaRef *schema.
 		FieldPlural:   strings2.Plural(strings2.Decap(schemaRef.ColumnIdentifier)),
 	}
 
+	isUnique := schemaRef.IndexLevel == schema.IndexLevelPrimaryKey || schemaRef.IndexLevel == schema.IndexLevelUnique
+
+	revID := schemaRef.ReverseIdentifier
+	if !isUnique {
+		revID = schemaRef.ReverseIdentifierPlural
+	}
+
 	ref := &Reference{
-		ForeignKey:              col,
-		Table:                   table,
-		ReferencedTable:         refTable,
-		Identifier:              schemaRef.ObjectIdentifier,
-		Field:                   strings2.Decap(schemaRef.ObjectIdentifier),
-		Label:                   schemaRef.ObjectLabel,
-		ReverseLabel:            schemaRef.ReverseLabel,
-		ReverseLabelPlural:      schemaRef.ReverseLabelPlural,
-		ReverseIdentifier:       schemaRef.ReverseIdentifier,
-		ReverseIdentifierPlural: schemaRef.ReverseIdentifierPlural,
-		ReverseField:            strings2.Decap(schemaRef.ReverseIdentifier),
-		IsUnique:                schemaRef.IndexLevel == schema.IndexLevelPrimaryKey || schemaRef.IndexLevel == schema.IndexLevelUnique,
-		IsNullable:              schemaRef.IsNullable,
+		ForeignKey:         col,
+		Table:              table,
+		ReferencedTable:    refTable,
+		Identifier:         schemaRef.ObjectIdentifier,
+		Field:              strings2.Decap(schemaRef.ObjectIdentifier),
+		Label:              schemaRef.ObjectLabel,
+		ReverseLabel:       schemaRef.ReverseLabel,
+		ReverseLabelPlural: schemaRef.ReverseLabelPlural,
+		ReverseIdentifier:  revID,
+		ReverseField:       strings2.Decap(revID),
+		IsUnique:           isUnique,
+		IsNullable:         schemaRef.IsNullable,
 	}
 
 	refTable.ReverseReferences = append(refTable.ReverseReferences, ref)

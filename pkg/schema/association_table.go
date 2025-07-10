@@ -3,6 +3,7 @@ package schema
 import (
 	"fmt"
 	strings2 "github.com/goradd/strings"
+	"github.com/kenshaw/snaker"
 	"log/slog"
 	"strings"
 )
@@ -130,7 +131,7 @@ func (t *AssociationTable) fillRefDefaults(db *Database, ref *AssociationReferen
 		pks := table.PrimaryKeyColumns()
 		if len(pks) == 1 {
 			objName := strings.TrimSuffix(ref.Column, "_"+pks[0])
-			ref.Identifier = strings2.SnakeToCamel(objName)
+			ref.Identifier = snaker.SnakeToCamelIdentifier(objName)
 		}
 	}
 	if ref.IdentifierPlural == "" {

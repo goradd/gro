@@ -37,7 +37,11 @@ func (o *{{= table.Identifier }}) String() string  {
     if o == nil {
         return ""
     }
-    return fmt.Sprintf("{{= table.Identifier }} %v", o.PrimaryKey())
+    var pk string
+    {{for _,col := range table.PrimaryKeyColumns()}}
+    pk += fmt.Sprintf(" %v", o.{{= col.Identifier }}())
+    {{for}}
+    return "{{= table.Identifier }}" + pk
 }
 
 // Key returns a unique key for the object, among a list of similar objects.

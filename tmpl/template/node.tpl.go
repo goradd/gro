@@ -55,7 +55,7 @@ func (n *NodeTemplate) gen(table *model.Table, _w io.Writer) (err error) {
 	if err = n.genPrivate(table, _w); err != nil {
 		return
 	}
-	if err = n.genPrimaryKey(table, _w); err != nil {
+	if err = n.genPrimaryKeys(table, _w); err != nil {
 		return
 	}
 	if err = n.genColumns(table, _w); err != nil {
@@ -131,9 +131,18 @@ type `); err != nil {
 
 	if _, err = io.WriteString(_w, `Node interface {
     query.TableNodeI
-    PrimaryKey() *query.ColumnNode
 `); err != nil {
 		return
+	}
+
+	if len(table.PrimaryKeyColumns()) == 1 {
+
+		if _, err = io.WriteString(_w, `    // PrimaryKey returns the column node representing the primary key of the table
+    PrimaryKey() *query.ColumnNode
+`); err != nil {
+			return
+		}
+
 	}
 
 	for _, col := range table.Columns {
@@ -188,7 +197,7 @@ type `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ` column in the database
+		if _, err = io.WriteString(_w, ` foreign key column in the database
     // that references the `); err != nil {
 			return
 		}
@@ -215,7 +224,7 @@ type `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ` references a `); err != nil {
+		if _, err = io.WriteString(_w, ` references the `); err != nil {
 			return
 		}
 
@@ -223,7 +232,15 @@ type `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ` object.
+		if _, err = io.WriteString(_w, ` object whose primary key is `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ref.ForeignKey.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `.
     `); err != nil {
 			return
 		}
@@ -249,7 +266,7 @@ type `); err != nil {
 
 	for _, mm := range table.ManyManyReferences {
 
-		if _, err = io.WriteString(_w, `     // `); err != nil {
+		if _, err = io.WriteString(_w, `    // `); err != nil {
 			return
 		}
 
@@ -257,7 +274,7 @@ type `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ` represents a reference to `); err != nil {
+		if _, err = io.WriteString(_w, ` represents the many-many reference to `); err != nil {
 			return
 		}
 
@@ -266,7 +283,7 @@ type `); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, ` objects.
-   `); err != nil {
+    `); err != nil {
 			return
 		}
 
@@ -307,7 +324,7 @@ type `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ` reference to `); err != nil {
+		if _, err = io.WriteString(_w, ` reverse reference to `); err != nil {
 			return
 		}
 
@@ -321,7 +338,7 @@ type `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` object.`); err != nil {
+			if _, err = io.WriteString(_w, ` object`); err != nil {
 				return
 			}
 
@@ -331,13 +348,22 @@ type `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` objects.`); err != nil {
+			if _, err = io.WriteString(_w, ` objects`); err != nil {
 				return
 			}
 
 		}
 
 		if _, err = io.WriteString(_w, `
+    // through the `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, rev.ForeignKey.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` foreign key there.
     `); err != nil {
 			return
 		}
@@ -863,12 +889,12 @@ func (n `); err != nil {
 	return
 }
 
-func (n *NodeTemplate) genPrimaryKey(table *model.Table, _w io.Writer) (err error) {
-	if col := table.PrimaryKeyColumn(); col != nil {
+func (n *NodeTemplate) genPrimaryKeys(table *model.Table, _w io.Writer) (err error) {
+	if len(table.PrimaryKeyColumns()) > 0 {
 
 		//*** pk.tmpl
 
-		if _, err = io.WriteString(_w, `// PrimaryKey returns a node that points to the primary key column.
+		if _, err = io.WriteString(_w, `// PrimaryKeys returns the primary key column nodes to satisfy the PrimaryKeyer interface.
 func (n `); err != nil {
 			return
 		}
@@ -877,25 +903,72 @@ func (n `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `Table) PrimaryKey() *query.ColumnNode {
-    return n.`); err != nil {
+		if _, err = io.WriteString(_w, `Table) PrimaryKeys() []*query.ColumnNode {
+    return []*query.ColumnNode {
+`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, fmt.Sprint(col.Identifier)); err != nil {
-			return
+		for _, col := range table.PrimaryKeyColumns() {
+
+			if _, err = io.WriteString(_w, `        n.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, fmt.Sprint(col.Identifier)); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(),
+`); err != nil {
+				return
+			}
+
 		}
 
-		if _, err = io.WriteString(_w, `()
+		if _, err = io.WriteString(_w, `    }
 }
 
+`); err != nil {
+			return
+		}
+
+		if table.PrimaryKeyColumn() != nil {
+
+			if _, err = io.WriteString(_w, `// PrimaryKey returns the primary key column node.
+func (n `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `Table) PrimaryKey() *query.ColumnNode {
+    return n.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()
+}
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `
 `); err != nil {
 			return
 		}
 
 		if hasReverse {
 
-			if _, err = io.WriteString(_w, `// PrimaryKey returns a node that points to the primary key column.
+			if _, err = io.WriteString(_w, `// PrimaryKeys returns the primary key column nodes.
 func (n *`); err != nil {
 				return
 			}
@@ -904,27 +977,74 @@ func (n *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `Reference) PrimaryKey() *query.ColumnNode {
-    return n.`); err != nil {
+			if _, err = io.WriteString(_w, `Reference) PrimaryKeys() []*query.ColumnNode {
+    return []*query.ColumnNode {
+`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, fmt.Sprint(col.Identifier)); err != nil {
-				return
+			for _, col := range table.PrimaryKeyColumns() {
+
+				if _, err = io.WriteString(_w, `        n.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, fmt.Sprint(col.Identifier)); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(),
+`); err != nil {
+					return
+				}
+
 			}
 
-			if _, err = io.WriteString(_w, `()
+			if _, err = io.WriteString(_w, `    }
 }
 
 `); err != nil {
 				return
 			}
 
+			if table.PrimaryKeyColumn() != nil {
+
+				if _, err = io.WriteString(_w, `// PrimaryKey returns the primary key column nodes.
+func (n `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `Reference) PrimaryKey() *query.ColumnNode {
+    return n.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `()
+}
+`); err != nil {
+					return
+				}
+
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `
+`); err != nil {
+			return
 		}
 
 		if hasReference {
 
-			if _, err = io.WriteString(_w, `// PrimaryKey returns a node that points to the primary key column.
+			if _, err = io.WriteString(_w, `// PrimaryKeys returns the primary key column nodes.
 func (n *`); err != nil {
 				return
 			}
@@ -933,27 +1053,74 @@ func (n *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `Reverse) PrimaryKey() *query.ColumnNode {
-    return n.`); err != nil {
+			if _, err = io.WriteString(_w, `Reverse) PrimaryKeys() []*query.ColumnNode {
+    return []*query.ColumnNode {
+`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, fmt.Sprint(col.Identifier)); err != nil {
-				return
+			for _, col := range table.PrimaryKeyColumns() {
+
+				if _, err = io.WriteString(_w, `        n.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, fmt.Sprint(col.Identifier)); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(),
+`); err != nil {
+					return
+				}
+
 			}
 
-			if _, err = io.WriteString(_w, `()
+			if _, err = io.WriteString(_w, `    }
 }
 
 `); err != nil {
 				return
 			}
 
+			if table.PrimaryKeyColumn() != nil {
+
+				if _, err = io.WriteString(_w, `// PrimaryKey returns the primary key column nodes.
+func (n `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `Reverse) PrimaryKey() *query.ColumnNode {
+    return n.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `()
+}
+`); err != nil {
+					return
+				}
+
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `
+`); err != nil {
+			return
 		}
 
 		if hasAssociation {
 
-			if _, err = io.WriteString(_w, `// PrimaryKey returns a node that points to the primary key column.
+			if _, err = io.WriteString(_w, `// PrimaryKeys returns the primary key column nodes.
 func (n *`); err != nil {
 				return
 			}
@@ -962,16 +1129,30 @@ func (n *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `Association) PrimaryKey() *query.ColumnNode {
-    return n.`); err != nil {
+			if _, err = io.WriteString(_w, `Association) PrimaryKeys() []*query.ColumnNode {
+    return []*query.ColumnNode {
+`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, fmt.Sprint(col.Identifier)); err != nil {
-				return
+			for _, col := range table.PrimaryKeyColumns() {
+
+				if _, err = io.WriteString(_w, `        n.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, fmt.Sprint(col.Identifier)); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(),
+`); err != nil {
+					return
+				}
+
 			}
 
-			if _, err = io.WriteString(_w, `()
+			if _, err = io.WriteString(_w, `    }
 }
 
 `); err != nil {
@@ -1576,7 +1757,7 @@ func (n `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `"
+	if _, err = io.WriteString(_w, `",
             Identifier:      "`); err != nil {
 		return
 	}
@@ -1852,7 +2033,7 @@ func (n `); err != nil {
 
 	if _, err = io.WriteString(_w, ` {
 		ManyManyNode: query.ManyManyNode{
-			AssnTableQueryName:      "`); err != nil {
+			AssnTableQueryName:       "`); err != nil {
 		return
 	}
 
@@ -1861,24 +2042,24 @@ func (n `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `",
-			ParentColumnQueryName:    "`); err != nil {
+			ParentForeignKey:         "`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, mm.SourceColumnName); err != nil {
+	if _, err = io.WriteString(_w, mm.SourceColumnName()); err != nil {
 		return
 	}
 
 	if _, err = io.WriteString(_w, `",
-			ParentColumnReceiverType: query.`); err != nil {
+			ParentPrimaryKey:         "`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, mm.SourceColumnReceiverType.String()); err != nil {
+	if _, err = io.WriteString(_w, mm.SourcePrimaryKeyName()); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `,
+	if _, err = io.WriteString(_w, `",
 			Identifier:               "`); err != nil {
 		return
 	}
@@ -1888,24 +2069,24 @@ func (n `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `",
-			RefColumnQueryName:       "`); err != nil {
+			RefForeignKey:            "`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, mm.DestColumnName); err != nil {
+	if _, err = io.WriteString(_w, mm.ForeignKeyName); err != nil {
 		return
 	}
 
 	if _, err = io.WriteString(_w, `",
-			RefColumnReceiverType:    query.`); err != nil {
+			RefPrimaryKey:            "`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, mm.DestColumnReceiverType.String()); err != nil {
+	if _, err = io.WriteString(_w, mm.PrimaryKeyColumnName()); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `,
+	if _, err = io.WriteString(_w, `",
 		},
 	}
 	query.NodeSetParent(cn, n)

@@ -130,10 +130,7 @@ func (t *Table) HasGetterName(name string) (hasName bool, desc string) {
 
 	for _, rr := range t.ReverseReferences {
 		if rr.ReverseIdentifier == name {
-			return false, "conflicts with reverse reference singular name " + rr.ReverseIdentifier
-		}
-		if rr.ReverseIdentifierPlural == name {
-			return false, "conflicts with reverse reference plural name " + rr.ReverseIdentifierPlural
+			return false, "conflicts with reverse reference name " + rr.ReverseIdentifier
 		}
 	}
 
@@ -255,10 +252,21 @@ func (m *Database) importTable(tableSchema *schema.Table,
 		}
 	}
 
+	var selfRefs []*schema.Reference
+
 	// The following relies on the order of tables being processed
 	// such that the referenced tables exist with primary keys.
 	for _, schemaRef := range tableSchema.References {
-		ref := m.importReference(tableSchema, schemaRef)
+		if schemaRef.Table == t.QueryName {
+			// Handle self references after primary key indexes are processed
+			selfRefs = append(selfRefs, schemaRef)
+			continue
+		}
+
+		ref := m.importReference(t, schemaRef)
+		if ref == nil {
+			return
+		}
 		if _, ok := t.columnMap[ref.ForeignKey.QueryName]; ok {
 			slog.Error("Table skipped. Reference column name already exists in the table.",
 				slog.String(db.LogTable, t.QueryName),
@@ -270,27 +278,61 @@ func (m *Database) importTable(tableSchema *schema.Table,
 		t.References = append(t.References, ref)
 	}
 
+	// Process just the primary keys so that self references can see the primary key
 	for _, idx := range tableSchema.Indexes {
-		var columns []*Column
-		for _, name := range idx.Columns {
-			col := t.ColumnByName(name)
-			if col == nil {
-				slog.Error("Cannot find column in index",
-					slog.String(db.LogTable, t.QueryName),
-					slog.String(db.LogColumn, name))
-				continue
-			} else {
-				columns = append(columns, col)
+		if idx.IndexLevel == schema.IndexLevelPrimaryKey {
+			var columns []*Column
+			for _, name := range idx.Columns {
+				col := t.ColumnByName(name)
+				if col == nil {
+					slog.Error("Cannot find primary key column",
+						slog.String(db.LogTable, t.QueryName),
+						slog.String(db.LogColumn, name))
+					continue
+				} else {
+					columns = append(columns, col)
+				}
 			}
-		}
-		if len(columns) > 0 {
-			if idx.IndexLevel == schema.IndexLevelPrimaryKey {
-				t.primaryKeyColumns = columns
-			} else {
-				t.Indexes = append(t.Indexes, Index{IsUnique: idx.IndexLevel == schema.IndexLevelUnique, Columns: columns})
-			}
+			t.primaryKeyColumns = columns
 		}
 	}
+
+	// Process self references
+	for _, schemaRef := range selfRefs {
+		ref := m.importReference(t, schemaRef)
+		if ref == nil {
+			return
+		}
+		if _, ok := t.columnMap[ref.ForeignKey.QueryName]; ok {
+			slog.Error("Table skipped. Reference column name already exists in the table.",
+				slog.String(db.LogTable, t.QueryName),
+				slog.String(db.LogColumn, ref.ForeignKey.QueryName),
+			)
+			return
+		}
+		t.columnMap[ref.ForeignKey.QueryName] = ref.ForeignKey
+		t.References = append(t.References, ref)
+	}
+
+	// Process the rest of the indexes
+	for _, idx := range tableSchema.Indexes {
+		if idx.IndexLevel != schema.IndexLevelPrimaryKey {
+			var columns []*Column
+			for _, name := range idx.Columns {
+				col := t.ColumnByName(name)
+				if col == nil {
+					slog.Error("Cannot find primary key column",
+						slog.String(db.LogTable, t.QueryName),
+						slog.String(db.LogColumn, name))
+					continue
+				} else {
+					columns = append(columns, col)
+				}
+			}
+			t.Indexes = append(t.Indexes, Index{IsUnique: idx.IndexLevel == schema.IndexLevelUnique, Columns: columns})
+		}
+	}
+
 	m.Tables[t.QueryName] = t
 }
 

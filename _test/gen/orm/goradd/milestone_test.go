@@ -5,6 +5,7 @@ package goradd
 // Your edits to this file will be preserved.
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -40,4 +41,12 @@ func TestMilestone_Label(t *testing.T) {
 }
 
 func TestMilestone_Delete(t *testing.T) {
+	ctx := context.Background()
+	obj := createMinimalSampleMilestone()
+	assert.NoError(t, obj.Save(ctx))
+	defer obj.Project().Delete(ctx)
+	assert.NoError(t, DeleteMilestone(ctx, obj.PrimaryKey()))
+	obj2, err := LoadMilestone(ctx, obj.PrimaryKey())
+	assert.Nil(t, obj2)
+	assert.NoError(t, err)
 }

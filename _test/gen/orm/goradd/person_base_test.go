@@ -51,6 +51,22 @@ func createMaximalSamplePerson(ctx context.Context) *Person {
 func updateMaximalSamplePerson(ctx context.Context, obj *Person) {
 	updateMinimalSamplePerson(obj)
 
+	obj.SetManagerProjects(createMinimalSampleProject())
+	obj.SetPersonAddresses(createMinimalSampleAddress())
+	{
+		obj2, _ := obj.LoadPersonEmployeeInfo(ctx)
+		// only update if not already set, since it can't be changed once set unless the reverse object is deleted first.
+		if obj2 == nil {
+			obj.SetPersonEmployeeInfo(createMinimalSampleEmployeeInfo())
+		}
+	}
+	{
+		obj2, _ := obj.LoadPersonLogin(ctx)
+		// only update if not already set, since it can't be changed once set unless the reverse object is deleted first.
+		if obj2 == nil {
+			obj.SetPersonLogin(createMinimalSampleLogin())
+		}
+	}
 	obj.SetProjects(createMinimalSampleProject())
 }
 
@@ -59,6 +75,15 @@ func deleteSamplePerson(ctx context.Context, obj *Person) {
 	if obj == nil {
 		return
 	}
+
+	for _, item := range obj.ManagerProjects() {
+		deleteSampleProject(ctx, item)
+	}
+	for _, item := range obj.PersonAddresses() {
+		deleteSampleAddress(ctx, item)
+	}
+	deleteSampleEmployeeInfo(ctx, obj.PersonEmployeeInfo())
+	deleteSampleLogin(ctx, obj.PersonLogin())
 
 	for _, item := range obj.Projects() {
 		deleteSampleProject(ctx, item)
@@ -69,8 +94,8 @@ func deleteSamplePerson(ctx context.Context, obj *Person) {
 
 // assertEqualFieldsPerson compares two objects and asserts that the basic fields are equal.
 func assertEqualFieldsPerson(t *testing.T, obj1, obj2 *Person) {
-	if obj1.IdIsLoaded() && obj2.IdIsLoaded() { // only check loaded values
-		assert.EqualValues(t, obj1.Id(), obj2.Id())
+	if obj1.IDIsLoaded() && obj2.IDIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.ID(), obj2.ID())
 	}
 	if obj1.FirstNameIsLoaded() && obj2.FirstNameIsLoaded() { // only check loaded values
 		assert.EqualValues(t, obj1.FirstName(), obj2.FirstName())
@@ -92,23 +117,23 @@ func assertEqualFieldsPerson(t *testing.T, obj1, obj2 *Person) {
 
 }
 
-func TestPerson_SetId(t *testing.T) {
+func TestPerson_SetID(t *testing.T) {
 
 	obj := NewPerson()
 
 	assert.True(t, obj.IsNew())
 	val := test.RandomNumberString()
-	obj.SetId(val)
-	assert.Equal(t, val, obj.Id())
+	obj.SetID(val)
+	assert.Equal(t, val, obj.ID())
 
 	// test default
-	obj.SetId("")
-	assert.EqualValues(t, "", obj.Id(), "set default")
+	obj.SetID("")
+	assert.EqualValues(t, "", obj.ID(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	val = test.RandomValue[string](33)
 	assert.Panics(t, func() {
-		obj.SetId(val)
+		obj.SetID(val)
 	})
 }
 func TestPerson_SetFirstName(t *testing.T) {
@@ -183,7 +208,7 @@ func TestPerson_Copy(t *testing.T) {
 
 func TestPerson_BasicInsert(t *testing.T) {
 	obj := createMinimalSamplePerson()
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSamplePerson(ctx, obj)
 
@@ -194,9 +219,9 @@ func TestPerson_BasicInsert(t *testing.T) {
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
-	assert.True(t, obj2.IdIsLoaded())
+	assert.True(t, obj2.IDIsLoaded())
 	assert.Panics(t, func() {
-		obj2.SetId(obj2.Id())
+		obj2.SetID(obj2.ID())
 	})
 
 	assert.True(t, obj2.FirstNameIsLoaded())
@@ -228,7 +253,7 @@ func TestPerson_BasicInsert(t *testing.T) {
 func TestPerson_InsertPanics(t *testing.T) {
 	obj := createMinimalSamplePerson()
 	_ = obj
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	_ = ctx
 
 	obj.firstNameIsLoaded = false
@@ -243,7 +268,7 @@ func TestPerson_InsertPanics(t *testing.T) {
 
 func TestPerson_BasicUpdate(t *testing.T) {
 	obj := createMinimalSamplePerson()
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSamplePerson(ctx, obj)
 	updateMinimalSamplePerson(obj)
@@ -251,7 +276,7 @@ func TestPerson_BasicUpdate(t *testing.T) {
 	obj2, err := LoadPerson(ctx, obj.PrimaryKey())
 	assert.NoError(t, err)
 
-	assert.Equal(t, obj2.Id(), obj.Id(), "Id did not update")
+	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
 	assert.Equal(t, obj2.FirstName(), obj.FirstName(), "FirstName did not update")
 	assert.Equal(t, obj2.LastName(), obj.LastName(), "LastName did not update")
 	assert.Equal(t, obj2.PersonTypeEnum(), obj.PersonTypeEnum(), "PersonTypeEnum did not update")
@@ -262,7 +287,7 @@ func TestPerson_BasicUpdate(t *testing.T) {
 }
 
 func TestPerson_ReferenceLoad(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	obj := createMaximalSamplePerson(ctx)
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSamplePerson(ctx, obj)
@@ -272,10 +297,30 @@ func TestPerson_ReferenceLoad(t *testing.T) {
 	// Test lazy loading
 	obj2, err := LoadPerson(ctx, obj.PrimaryKey())
 	assert.NoError(t, err)
-	objPkOnly, err2 := LoadPerson(ctx, obj.PrimaryKey(), node.Person().PrimaryKey())
+	objPkOnly, err2 := LoadPerson(ctx, obj.PrimaryKey(),
+		node.Person().ID())
 	assert.NoError(t, err2)
 	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
+
+	assert.Nil(t, obj2.ManagerProjects(), "ManagerProjects is not loaded initially")
+	v_ManagerProjects, _ := obj2.LoadManagerProjects(ctx)
+	assert.NotNil(t, v_ManagerProjects)
+	assert.Len(t, v_ManagerProjects, 1)
+	assert.Nil(t, obj2.PersonAddresses(), "PersonAddresses is not loaded initially")
+	v_PersonAddresses, _ := obj2.LoadPersonAddresses(ctx)
+	assert.NotNil(t, v_PersonAddresses)
+	assert.Len(t, v_PersonAddresses, 1)
+	assert.Nil(t, obj2.PersonEmployeeInfo(), "PersonEmployeeInfo is not loaded initially")
+	v_PersonEmployeeInfo, _ := obj2.LoadPersonEmployeeInfo(ctx)
+	assert.NotNil(t, v_PersonEmployeeInfo)
+	assert.Equal(t, v_PersonEmployeeInfo.PrimaryKey(), obj2.PersonEmployeeInfo().PrimaryKey())
+	assert.Equal(t, obj.PersonEmployeeInfo().PrimaryKey(), obj2.PersonEmployeeInfo().PrimaryKey())
+	assert.Nil(t, obj2.PersonLogin(), "PersonLogin is not loaded initially")
+	v_PersonLogin, _ := obj2.LoadPersonLogin(ctx)
+	assert.NotNil(t, v_PersonLogin)
+	assert.Equal(t, v_PersonLogin.PrimaryKey(), obj2.PersonLogin().PrimaryKey())
+	assert.Equal(t, obj.PersonLogin().PrimaryKey(), obj2.PersonLogin().PrimaryKey())
 
 	assert.Nil(t, obj2.Projects(), "Projects is not loaded initially")
 	v_Projects, _ := obj2.LoadProjects(ctx)
@@ -283,22 +328,30 @@ func TestPerson_ReferenceLoad(t *testing.T) {
 	assert.Len(t, v_Projects, 1)
 
 	// test eager loading
-	obj3, _ := LoadPerson(ctx, obj.PrimaryKey(), node.Person().Id(),
+	obj3, _ := LoadPerson(ctx, obj.PrimaryKey(), node.Person().ID(),
 		node.Person().FirstName(),
 		node.Person().LastName(),
 		node.Person().PersonTypeEnum(),
 		node.Person().Created(),
 		node.Person().Modified(),
+		node.Person().ManagerProjects(),
+		node.Person().PersonAddresses(),
+		node.Person().PersonEmployeeInfo(),
+		node.Person().PersonLogin(),
 		node.Person().Projects(),
 	)
 	_ = obj3 // avoid error if there are no references
 
+	assert.Equal(t, len(obj2.ManagerProjects()), len(obj3.ManagerProjects()))
+	assert.Equal(t, len(obj2.PersonAddresses()), len(obj3.PersonAddresses()))
+	assert.Equal(t, obj2.PersonEmployeeInfo().PrimaryKey(), obj3.PersonEmployeeInfo().PrimaryKey())
+	assert.Equal(t, obj2.PersonLogin().PrimaryKey(), obj3.PersonLogin().PrimaryKey())
 	assert.Equal(t, len(obj2.Projects()), len(obj3.Projects()))
 
 }
 
 func TestPerson_ReferenceUpdateNewObjects(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	obj := createMaximalSamplePerson(ctx)
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSamplePerson(ctx, obj)
@@ -308,39 +361,62 @@ func TestPerson_ReferenceUpdateNewObjects(t *testing.T) {
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSamplePerson(ctx, obj2)
 
-	obj3, _ := LoadPerson(ctx, obj2.PrimaryKey(), node.Person().Projects())
+	obj3, _ := LoadPerson(ctx, obj2.PrimaryKey(), node.Person().ManagerProjects(),
+		node.Person().PersonAddresses(),
+		node.Person().PersonEmployeeInfo(),
+		node.Person().PersonLogin(),
+		node.Person().Projects(),
+	)
 	_ = obj3 // avoid error if there are no references
+
+	assert.Equal(t, len(obj2.ManagerProjects()), len(obj3.ManagerProjects()))
+	assert.Equal(t, len(obj2.PersonAddresses()), len(obj3.PersonAddresses()))
+	assert.Equal(t, obj2.PersonEmployeeInfo().PrimaryKey(), obj3.PersonEmployeeInfo().PrimaryKey())
+	assert.Equal(t, obj2.PersonLogin().PrimaryKey(), obj3.PersonLogin().PrimaryKey())
 
 	assert.Equal(t, len(obj2.Projects()), len(obj3.Projects()))
 
 }
 
 func TestPerson_ReferenceUpdateOldObjects(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	obj := createMaximalSamplePerson(ctx)
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSamplePerson(ctx, obj)
 
+	updateMinimalSampleProject(obj.ManagerProjects()[0])
+	updateMinimalSampleAddress(obj.PersonAddresses()[0])
+	updateMinimalSampleEmployeeInfo(obj.PersonEmployeeInfo())
+	updateMinimalSampleLogin(obj.PersonLogin())
 	updateMinimalSampleProject(obj.Projects()[0])
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadPerson(ctx, obj.PrimaryKey(), node.Person().Id(),
+	obj2, _ := LoadPerson(ctx, obj.PrimaryKey(), node.Person().ID(),
 		node.Person().FirstName(),
 		node.Person().LastName(),
 		node.Person().PersonTypeEnum(),
 		node.Person().Created(),
 		node.Person().Modified(),
+		node.Person().ManagerProjects(),
+		node.Person().PersonAddresses(),
+		node.Person().PersonEmployeeInfo(),
+		node.Person().PersonLogin(),
 		node.Person().Projects(),
 	)
 	_ = obj2 // avoid error if there are no references
+
+	assertEqualFieldsProject(t, obj2.ManagerProjects()[0], obj.ManagerProjects()[0])
+	assertEqualFieldsAddress(t, obj2.PersonAddresses()[0], obj.PersonAddresses()[0])
+	assertEqualFieldsEmployeeInfo(t, obj2.PersonEmployeeInfo(), obj.PersonEmployeeInfo())
+	assertEqualFieldsLogin(t, obj2.PersonLogin(), obj.PersonLogin())
 
 	assertEqualFieldsProject(t, obj2.Projects()[0], obj.Projects()[0])
 }
 func TestPerson_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewPerson()
 
-	i, err := strconv.Atoi(obj.Id())
+	i, err := strconv.Atoi(obj.ID())
 	assert.NoError(t, err)
 	assert.True(t, i < 0)
 }
@@ -348,20 +424,21 @@ func TestPerson_EmptyPrimaryKeyGetter(t *testing.T) {
 func TestPerson_Getters(t *testing.T) {
 	obj := createMinimalSamplePerson()
 
-	i, err := strconv.Atoi(obj.Id())
+	i, err := strconv.Atoi(obj.ID())
 	assert.NoError(t, err)
 	assert.True(t, i < 0)
 
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSamplePerson(ctx, obj)
 
 	has, _ := HasPerson(ctx, obj.PrimaryKey())
 	assert.True(t, has)
 
-	obj2, _ := LoadPerson(ctx, obj.PrimaryKey(), node.Person().PrimaryKey())
+	obj2, _ := LoadPerson(ctx, obj.PrimaryKey(),
+		node.Person().ID())
 
-	assert.Equal(t, obj.Id(), obj.Get(node.Person().Id().Identifier))
+	assert.Equal(t, obj.ID(), obj.Get(node.Person().ID().Identifier))
 	assert.Equal(t, obj.FirstName(), obj.Get(node.Person().FirstName().Identifier))
 	assert.Panics(t, func() { obj2.FirstName() })
 	assert.Nil(t, obj2.Get(node.Person().FirstName().Identifier))
@@ -381,14 +458,14 @@ func TestPerson_Getters(t *testing.T) {
 
 func TestPerson_QueryLoad(t *testing.T) {
 	obj := createMinimalSamplePerson()
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSamplePerson(ctx, obj)
 
 	objs, err := QueryPeople(ctx).
-		Where(op.Equal(node.Person().PrimaryKey(), obj.PrimaryKey())).
-		OrderBy(node.Person().PrimaryKey()). // exercise order by
-		Limit(1, 0).                         // exercise limit
+		Where(op.Equal(node.Person().ID(), obj.ID())).
+		OrderBy(node.Person().ID()). // exercise order by
+		Limit(1, 0).                 // exercise limit
 		Calculation(node.Person(), "IsTrue", op.Equal("A", "A")).
 		Load()
 	assert.NoError(t, err)
@@ -397,25 +474,25 @@ func TestPerson_QueryLoad(t *testing.T) {
 }
 func TestPerson_QueryLoadI(t *testing.T) {
 	obj := createMinimalSamplePerson()
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSamplePerson(ctx, obj)
 
 	objs, _ := QueryPeople(ctx).
-		Where(op.Equal(node.Person().PrimaryKey(), obj.PrimaryKey())).
+		Where(op.Equal(node.Person().ID(), obj.ID())).
 		LoadI()
 
-	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("Id"))
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
 }
 func TestPerson_QueryCursor(t *testing.T) {
 	obj := createMinimalSamplePerson()
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSamplePerson(ctx, obj)
 
 	cursor, err := QueryPeople(ctx).
-		Where(op.Equal(node.Person().PrimaryKey(), obj.PrimaryKey())).
+		Where(op.Equal(node.Person().ID(), obj.ID())).
 		LoadCursor()
 	require.NoError(t, err)
 	obj2, err2 := cursor.Next()
@@ -438,7 +515,7 @@ func TestPerson_QueryCursor(t *testing.T) {
 	assert.NoError(t, cursor.Close())
 }
 func TestPerson_Count(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	obj := createMaximalSamplePerson(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
@@ -486,14 +563,14 @@ func TestPerson_FailingMarshalBinary(t *testing.T) {
 	obj := createMinimalSamplePerson()
 	var err error
 
-	for i := 0; i < 23; i++ {
+	for i := 0; i < 31; i++ {
 		enc := &test.GobEncoder{Count: i}
 		err = obj.encodeTo(enc)
 		assert.Error(t, err)
 	}
 	// do it again with aliases
 	obj._aliases = make(map[string]any)
-	for i := 0; i < 24; i++ {
+	for i := 0; i < 32; i++ {
 		enc := &test.GobEncoder{Count: i}
 		err = obj.encodeTo(enc)
 		assert.Error(t, err)
@@ -505,7 +582,7 @@ func TestPerson_FailingUnmarshalBinary(t *testing.T) {
 	b, err := obj.MarshalBinary()
 	assert.NoError(t, err)
 	obj2 := NewPerson()
-	for i := 0; i < 23; i++ {
+	for i := 0; i < 31; i++ {
 		buf := bytes.NewReader(b)
 		dec := &test.GobDecoder{Decoder: gob.NewDecoder(buf), Count: i}
 		err = obj2.decodeFrom(dec)
@@ -519,7 +596,7 @@ func TestPerson_FailingUnmarshalBinary(t *testing.T) {
 	assert.NoError(t, err)
 
 	obj2 = NewPerson()
-	for i := 0; i < 24; i++ {
+	for i := 0; i < 32; i++ {
 		buf := bytes.NewReader(b)
 		dec := &test.GobDecoder{Decoder: gob.NewDecoder(buf), Count: i}
 		err = obj2.decodeFrom(dec)

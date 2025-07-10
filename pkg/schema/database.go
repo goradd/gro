@@ -21,9 +21,16 @@ type Database struct {
 	// Should be unique among the other databases in use.
 	Key string `json:"key"`
 
-	// Package is the name of the package and directory that will be created to hold the generated code.
-	// Should be all lower case, with no hyphens or underscores. Will be based on Key if omitted.
+	// Package is the name of the root package for top level code sent to the output directory.
+	// Should be all lower case, with no hyphens or underscores.
+	// Will be the name of the output directory if omitted.
 	Package string `json:"package,omitempty"`
+
+	// ImportPath is the import path that refers to the output directory.
+	// This value will be used to refer to files across packages.
+	// If omitted, it will be calculated based on the output directory by looking for the go.mod
+	// file that applies to the output directory.
+	ImportPath string `json:"import_path,omitempty"`
 
 	// WriteTimeout is used to wrap write transactions with a timeout on their contexts.
 	// Leaving it as zero will turn off timeout wrapping, allowing you to wrap individual calls as you
@@ -59,9 +66,6 @@ type Database struct {
 // FillDefaults will fill all the undeclared values in the database structure with default values
 // in preparation for building the model.Database structure.
 func (db *Database) FillDefaults() {
-	if db.Package == "" {
-		db.Package = db.Key
-	}
 	// remove invalid characters
 	s := SanitizePackageName(db.Package)
 	if s != db.Package {
@@ -135,10 +139,10 @@ func (db *Database) FindEnumTable(name string) *EnumTable {
 
 // Clean modifies the structure to prepare it for creating a schema in a database.
 func (db *Database) Clean() error {
-	db.sort()
 	if err := db.infer(); err != nil {
 		return err
 	}
+	db.sort()
 	return nil
 }
 

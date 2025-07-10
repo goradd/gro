@@ -5,6 +5,7 @@ package goradd
 // Your edits to this file will be preserved.
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -40,9 +41,11 @@ func TestProject_Label(t *testing.T) {
 }
 
 func TestProject_Delete(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	obj := createMinimalSampleProject()
 	assert.NoError(t, obj.Save(ctx))
+	defer obj.Manager().Delete(ctx)
+	defer obj.Parent().Delete(ctx)
 	assert.NoError(t, DeleteProject(ctx, obj.PrimaryKey()))
 	obj2, err := LoadProject(ctx, obj.PrimaryKey())
 	assert.Nil(t, obj2)

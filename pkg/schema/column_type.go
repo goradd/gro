@@ -1,6 +1,9 @@
 package schema
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 // ColumnType is a general specifier for the type of column in a database.
 //
@@ -214,6 +217,8 @@ func (ct *ColumnType) UnmarshalJSON(data []byte) error {
 
 	// Match the string representation and assign the corresponding ReceiverType value
 	switch ctStr {
+	case "unknown":
+		*ct = ColTypeUnknown
 	case "bytes":
 		*ct = ColTypeBytes
 	case "string":
@@ -235,7 +240,7 @@ func (ct *ColumnType) UnmarshalJSON(data []byte) error {
 	case "enum":
 		*ct = ColTypeEnum
 	default:
-		*ct = ColTypeUnknown
+		return fmt.Errorf(`unknown column type "%s"`, ctStr)
 	}
 	return nil
 }

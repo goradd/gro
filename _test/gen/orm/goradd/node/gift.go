@@ -12,6 +12,7 @@ import (
 // GiftNode is the builder interface to the Gift nodes.
 type GiftNode interface {
 	query.TableNodeI
+	// PrimaryKey returns the column node representing the primary key of the table
 	PrimaryKey() *query.ColumnNode
 	// Number represents the number column in the database.
 	Number() *query.ColumnNode
@@ -53,7 +54,14 @@ func (n giftTable) ColumnNodes_() (nodes []query.Node) {
 	return nodes
 }
 
-// PrimaryKey returns a node that points to the primary key column.
+// PrimaryKeys returns the primary key column nodes to satisfy the PrimaryKeyer interface.
+func (n giftTable) PrimaryKeys() []*query.ColumnNode {
+	return []*query.ColumnNode{
+		n.Number(),
+	}
+}
+
+// PrimaryKey returns the primary key column node.
 func (n giftTable) PrimaryKey() *query.ColumnNode {
 	return n.Number()
 }

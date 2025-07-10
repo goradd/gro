@@ -9,7 +9,6 @@ func (tmpl *TableBaseTemplate) gen(table *model.Table, _w io.Writer, importPath 
     if err = tmpl.genStruct(table, _w); err != nil { return }
     if err = tmpl.genConst(table, _w); err != nil { return }
     if err = tmpl.genInit(table, _w); err != nil { return }
-    if err = tmpl.genPK(table, _w); err != nil { return }
     if err = tmpl.genCopy(table, _w); err != nil { return }
     if err = tmpl.genAccessors(table, _w); err != nil { return }
     if err = tmpl.genManyManyAccessors(table, _w); err != nil { return }
@@ -46,11 +45,6 @@ func (tmpl *TableBaseTemplate)genConst(table *model.Table, _w io.Writer) (err er
 
 func (tmpl *TableBaseTemplate)genInit(table *model.Table, _w io.Writer) (err error) {
 {{: "init.tmpl" }}
-    return
-}
-
-func (tmpl *TableBaseTemplate)genPK(table *model.Table, _w io.Writer) (err error) {
-{{: "pk.tmpl" }}
     return
 }
 

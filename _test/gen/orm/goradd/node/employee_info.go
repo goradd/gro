@@ -3,6 +3,7 @@
 package node
 
 import (
+	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
@@ -12,13 +13,17 @@ import (
 // EmployeeInfoNode is the builder interface to the EmployeeInfo nodes.
 type EmployeeInfoNode interface {
 	query.TableNodeI
+	// PrimaryKey returns the column node representing the primary key of the table
 	PrimaryKey() *query.ColumnNode
-	// Id represents the id column in the database.
-	Id() *query.ColumnNode
-	// PersonId represents the person_id column in the database.
-	PersonId() *query.ColumnNode
+	// ID represents the id column in the database.
+	ID() *query.ColumnNode
 	// EmployeeNumber represents the employee_number column in the database.
 	EmployeeNumber() *query.ColumnNode
+	// PersonID represents the person_id foreign key column in the database
+	// that references the Person object.
+	PersonID() *query.ColumnNode
+	// Person references the Person object whose primary key is PersonID.
+	Person() PersonNode
 }
 
 // employeeInfoTable represents the employee_info table in a query. It uses a builder pattern to chain
@@ -26,6 +31,11 @@ type EmployeeInfoNode interface {
 //
 // To use the employeeInfoTable, call [EmployeeInfo()] to start a reference chain when querying the employee_info table.
 type employeeInfoTable struct {
+}
+
+type employeeInfoReverse struct {
+	employeeInfoTable
+	query.ReverseNode
 }
 
 // EmployeeInfo returns a table node that starts a node chain that begins with the employee_info table.
@@ -50,21 +60,51 @@ func (n employeeInfoTable) DatabaseKey_() string {
 
 // ColumnNodes_ returns a list of all the column nodes in this node.
 func (n employeeInfoTable) ColumnNodes_() (nodes []query.Node) {
-	nodes = append(nodes, n.Id())
-	nodes = append(nodes, n.PersonId())
+	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.EmployeeNumber())
 	return nodes
 }
 
-// PrimaryKey returns a node that points to the primary key column.
-func (n employeeInfoTable) PrimaryKey() *query.ColumnNode {
-	return n.Id()
+func (n *employeeInfoReverse) ColumnNodes_() (nodes []query.Node) {
+	nodes = n.employeeInfoTable.ColumnNodes_()
+	for _, cn := range nodes {
+		query.NodeSetParent(cn, n)
+	}
+	return
 }
 
-func (n employeeInfoTable) Id() *query.ColumnNode {
+func (n *employeeInfoReverse) NodeType_() query.NodeType {
+	return query.ReverseNodeType
+}
+
+// PrimaryKeys returns the primary key column nodes to satisfy the PrimaryKeyer interface.
+func (n employeeInfoTable) PrimaryKeys() []*query.ColumnNode {
+	return []*query.ColumnNode{
+		n.ID(),
+	}
+}
+
+// PrimaryKey returns the primary key column node.
+func (n employeeInfoTable) PrimaryKey() *query.ColumnNode {
+	return n.ID()
+}
+
+// PrimaryKeys returns the primary key column nodes.
+func (n *employeeInfoReverse) PrimaryKeys() []*query.ColumnNode {
+	return []*query.ColumnNode{
+		n.ID(),
+	}
+}
+
+// PrimaryKey returns the primary key column nodes.
+func (n employeeInfoReverse) PrimaryKey() *query.ColumnNode {
+	return n.ID()
+}
+
+func (n employeeInfoTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "id",
-		Identifier:    "Id",
+		Identifier:    "ID",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeAutoPrimaryKey,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -74,15 +114,8 @@ func (n employeeInfoTable) Id() *query.ColumnNode {
 	return cn
 }
 
-func (n employeeInfoTable) PersonId() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "person_id",
-		Identifier:    "PersonId",
-		ReceiverType:  query.ColTypeUnknown,
-		SchemaType:    schema.ColTypeUnknown,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
+func (n *employeeInfoReverse) ID() *query.ColumnNode {
+	cn := n.employeeInfoTable.ID()
 	query.NodeSetParent(cn, n)
 	return cn
 }
@@ -100,6 +133,50 @@ func (n employeeInfoTable) EmployeeNumber() *query.ColumnNode {
 	return cn
 }
 
+func (n *employeeInfoReverse) EmployeeNumber() *query.ColumnNode {
+	cn := n.employeeInfoTable.EmployeeNumber()
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n employeeInfoTable) PersonID() *query.ColumnNode {
+	cn := &query.ColumnNode{
+		QueryName:     "person_id",
+		Identifier:    "PersonID",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeString,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
+	}
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *employeeInfoReverse) PersonID() *query.ColumnNode {
+	cn := n.employeeInfoTable.PersonID()
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+// Person represents the link to a Person object.
+func (n employeeInfoTable) Person() PersonNode {
+	cn := &employeeInfoReference{
+		ReferenceNode: query.ReferenceNode{
+			ForeignKey: "person_id",
+			PrimaryKey: "id",
+			Identifier: "Person",
+		},
+	}
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *employeeInfoReverse) Person() PersonNode {
+	cn := n.employeeInfoTable.Person().(*employeeInfoReference)
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
 func (n employeeInfoTable) GobEncode() (data []byte, err error) {
 	return
 }
@@ -108,6 +185,28 @@ func (n *employeeInfoTable) GobDecode(data []byte) (err error) {
 	return
 }
 
+func (n *employeeInfoReverse) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(&n.ReverseNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *employeeInfoReverse) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ReverseNode); err != nil {
+		panic(err)
+	}
+	return
+}
+
 func init() {
 	gob.Register(new(employeeInfoTable))
+	gob.Register(new(employeeInfoReverse))
 }

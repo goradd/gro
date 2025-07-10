@@ -33,7 +33,11 @@ func (o *EmployeeInfo) String() string {
 	if o == nil {
 		return ""
 	}
-	return fmt.Sprintf("EmployeeInfo %v", o.PrimaryKey())
+	var pk string
+
+	pk += fmt.Sprintf(" %v", o.ID())
+
+	return "EmployeeInfo" + pk
 }
 
 // Key returns a unique key for the object, among a list of similar objects.

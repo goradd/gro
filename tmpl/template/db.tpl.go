@@ -91,6 +91,8 @@ import (
 	"context"
 	"io"
 	"encoding/json"
+	"fmt"
+	"github.com/goradd/orm/pkg/query"
 )
 
 // Database returns the database object corresponding to "`); err != nil {
@@ -360,7 +362,7 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 					return
 				}
 
-				if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.SourceColumnName)); err != nil {
+				if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.SourceColumnName())); err != nil {
 					return
 				}
 
@@ -368,7 +370,7 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 					return
 				}
 
-				if _, err = io.WriteString(_w, mm.SourceColumnReceiverType.String()); err != nil {
+				if _, err = io.WriteString(_w, mm.SourceColumnReceiverType().String()); err != nil {
 					return
 				}
 
@@ -377,7 +379,7 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 					return
 				}
 
-				if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.DestColumnName)); err != nil {
+				if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.ForeignKeyName)); err != nil {
 					return
 				}
 
@@ -385,7 +387,7 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 					return
 				}
 
-				if _, err = io.WriteString(_w, mm.DestColumnReceiverType.String()); err != nil {
+				if _, err = io.WriteString(_w, mm.ForeignKeyReceiverType.String()); err != nil {
 					return
 				}
 
@@ -469,18 +471,10 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 // JsonDecodeAll imports the entire database from JSON that was created using JsonEncodeAll.
 // This is done within a transaction and with constraints off in case there are circular references.
 func JsonDecodeAll(ctx context.Context,  reader io.Reader) error {
-    database := `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, tmpl.Package); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `.Database()
-    return db.WithConstraintsDisabled(ctx, database, func() error {
-        jsonDecodeAll(ctx, reader)
-    }
+    database := Database()
+    return db.WithConstraintsOff(ctx, database, func(ctx context.Context) error {
+        return jsonDecodeAll(ctx, reader)
+    })
 }
 
 
@@ -734,7 +728,7 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.SourceColumnReceiverType.GoType()); err != nil {
+			if _, err = io.WriteString(_w, mm.SourceColumnReceiverType().GoType()); err != nil {
 				return
 			}
 
@@ -742,7 +736,7 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.SourceColumnName); err != nil {
+			if _, err = io.WriteString(_w, mm.SourceColumnName()); err != nil {
 				return
 			}
 
@@ -751,7 +745,7 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.DestColumnReceiverType.GoType()); err != nil {
+			if _, err = io.WriteString(_w, mm.ForeignKeyReceiverType.GoType()); err != nil {
 				return
 			}
 
@@ -759,7 +753,7 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.DestColumnName); err != nil {
+			if _, err = io.WriteString(_w, mm.ForeignKeyName); err != nil {
 				return
 			}
 
@@ -781,7 +775,7 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 				return
 			}
 
-			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.SourceColumnName)); err != nil {
+			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.SourceColumnName())); err != nil {
 				return
 			}
 
@@ -789,7 +783,7 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 				return
 			}
 
-			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.DestColumnName)); err != nil {
+			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", mm.ForeignKeyName)); err != nil {
 				return
 			}
 

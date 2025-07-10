@@ -23,6 +23,11 @@ func createMinimalSampleLogin() *Login {
 	obj := NewLogin()
 	updateMinimalSampleLogin(obj)
 
+	// A required forward reference will need to be fulfilled just to save the minimal version of this object
+	// If the database is configured so that the referenced object points back here, either directly or through multiple
+	// forward references, it possible this could create an endless loop.
+	obj.SetPerson(createMinimalSamplePerson())
+
 	return obj
 }
 
@@ -49,6 +54,7 @@ func createMaximalSampleLogin(ctx context.Context) *Login {
 // This will set new values for references, so save the old values and delete them.
 func updateMaximalSampleLogin(ctx context.Context, obj *Login) {
 	updateMinimalSampleLogin(obj)
+	obj.SetPerson(createMinimalSamplePerson())
 
 }
 
@@ -59,15 +65,13 @@ func deleteSampleLogin(ctx context.Context, obj *Login) {
 	}
 
 	_ = obj.Delete(ctx)
+	deleteSamplePerson(ctx, obj.Person())
 }
 
 // assertEqualFieldsLogin compares two objects and asserts that the basic fields are equal.
 func assertEqualFieldsLogin(t *testing.T, obj1, obj2 *Login) {
-	if obj1.IdIsLoaded() && obj2.IdIsLoaded() { // only check loaded values
-		assert.EqualValues(t, obj1.Id(), obj2.Id())
-	}
-	if obj1.PersonIdIsLoaded() && obj2.PersonIdIsLoaded() { // only check loaded values
-		assert.EqualValues(t, obj1.PersonId(), obj2.PersonId())
+	if obj1.IDIsLoaded() && obj2.IDIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.ID(), obj2.ID())
 	}
 	if obj1.UsernameIsLoaded() && obj2.UsernameIsLoaded() { // only check loaded values
 		assert.EqualValues(t, obj1.Username(), obj2.Username())
@@ -81,44 +85,24 @@ func assertEqualFieldsLogin(t *testing.T, obj1, obj2 *Login) {
 
 }
 
-func TestLogin_SetId(t *testing.T) {
+func TestLogin_SetID(t *testing.T) {
 
 	obj := NewLogin()
 
 	assert.True(t, obj.IsNew())
 	val := test.RandomNumberString()
-	obj.SetId(val)
-	assert.Equal(t, val, obj.Id())
+	obj.SetID(val)
+	assert.Equal(t, val, obj.ID())
 
 	// test default
-	obj.SetId("")
-	assert.EqualValues(t, "", obj.Id(), "set default")
+	obj.SetID("")
+	assert.EqualValues(t, "", obj.ID(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	val = test.RandomValue[string](33)
 	assert.Panics(t, func() {
-		obj.SetId(val)
+		obj.SetID(val)
 	})
-}
-func TestLogin_SetPersonId(t *testing.T) {
-
-	obj := NewLogin()
-
-	assert.True(t, obj.IsNew())
-	val := test.RandomValue[[]byte](0)
-	obj.SetPersonId(val)
-	assert.Equal(t, val, obj.PersonId())
-	assert.False(t, obj.PersonIdIsNull())
-
-	// Test NULL
-	obj.SetPersonIdToNull()
-	assert.EqualValues(t, []byte{}, obj.PersonId())
-	assert.True(t, obj.PersonIdIsNull())
-
-	// test default
-	obj.SetPersonId([]byte{})
-	assert.EqualValues(t, []byte{}, obj.PersonId(), "set default")
-
 }
 func TestLogin_SetUsername(t *testing.T) {
 
@@ -178,22 +162,41 @@ func TestLogin_SetIsEnabled(t *testing.T) {
 	assert.EqualValues(t, true, obj.IsEnabled(), "set default")
 
 }
+func TestLogin_SetPersonID(t *testing.T) {
+
+	obj := NewLogin()
+
+	assert.True(t, obj.IsNew())
+	val := test.RandomValue[string](32)
+	obj.SetPersonID(val)
+	assert.Equal(t, val, obj.PersonID())
+
+	// test default
+	obj.SetPersonID("")
+	assert.EqualValues(t, "", obj.PersonID(), "set default")
+
+	// test panic on setting value larger than maximum size allowed
+	val = test.RandomValue[string](33)
+	assert.Panics(t, func() {
+		obj.SetPersonID(val)
+	})
+}
 
 func TestLogin_Copy(t *testing.T) {
 	obj := createMinimalSampleLogin()
 
 	obj2 := obj.Copy()
 
-	assert.Equal(t, obj.PersonId(), obj2.PersonId())
 	assert.Equal(t, obj.Username(), obj2.Username())
 	assert.Equal(t, obj.Password(), obj2.Password())
 	assert.Equal(t, obj.IsEnabled(), obj2.IsEnabled())
+	assert.Equal(t, obj.PersonID(), obj2.PersonID())
 
 }
 
 func TestLogin_BasicInsert(t *testing.T) {
 	obj := createMinimalSampleLogin()
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleLogin(ctx, obj)
 
@@ -204,9 +207,9 @@ func TestLogin_BasicInsert(t *testing.T) {
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
-	assert.True(t, obj2.IdIsLoaded())
+	assert.True(t, obj2.IDIsLoaded())
 	assert.Panics(t, func() {
-		obj2.SetId(obj2.Id())
+		obj2.SetID(obj2.ID())
 	})
 
 	assert.True(t, obj2.UsernameIsLoaded())
@@ -233,8 +236,10 @@ func TestLogin_BasicInsert(t *testing.T) {
 func TestLogin_InsertPanics(t *testing.T) {
 	obj := createMinimalSampleLogin()
 	_ = obj
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	_ = ctx
+
+	obj.person = nil
 
 	obj.usernameIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
@@ -244,11 +249,15 @@ func TestLogin_InsertPanics(t *testing.T) {
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.isEnabledIsLoaded = true
 
+	obj.personIDIsLoaded = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.personIDIsLoaded = true
+
 }
 
 func TestLogin_BasicUpdate(t *testing.T) {
 	obj := createMinimalSampleLogin()
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleLogin(ctx, obj)
 	updateMinimalSampleLogin(obj)
@@ -256,42 +265,59 @@ func TestLogin_BasicUpdate(t *testing.T) {
 	obj2, err := LoadLogin(ctx, obj.PrimaryKey())
 	assert.NoError(t, err)
 
-	assert.Equal(t, obj2.Id(), obj.Id(), "Id did not update")
-	assert.Equal(t, obj2.PersonId(), obj.PersonId(), "PersonId did not update")
+	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
 	assert.Equal(t, obj2.Username(), obj.Username(), "Username did not update")
 	assert.Equal(t, obj2.Password(), obj.Password(), "Password did not update")
 	assert.Equal(t, obj2.IsEnabled(), obj.IsEnabled(), "IsEnabled did not update")
 }
 
 func TestLogin_ReferenceLoad(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	obj := createMaximalSampleLogin(ctx)
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleLogin(ctx, obj)
 
 	// Test that referenced objects were saved and assigned ids
+	assert.NotNil(t, obj.Person())
+	assert.NotEqual(t, '-', obj.Person().PrimaryKey()[0])
 
 	// Test lazy loading
 	obj2, err := LoadLogin(ctx, obj.PrimaryKey())
 	assert.NoError(t, err)
-	objPkOnly, err2 := LoadLogin(ctx, obj.PrimaryKey(), node.Login().PrimaryKey())
+	objPkOnly, err2 := LoadLogin(ctx, obj.PrimaryKey(),
+		node.Login().ID())
 	assert.NoError(t, err2)
 	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
 
+	assert.Nil(t, obj2.Person(), "Person is not loaded initially")
+	v_Person, _ := obj2.LoadPerson(ctx)
+	assert.NotNil(t, v_Person)
+	assert.Equal(t, v_Person.PrimaryKey(), obj2.Person().PrimaryKey())
+	assert.Equal(t, obj.Person().PrimaryKey(), obj2.Person().PrimaryKey())
+	assert.True(t, obj2.PersonIDIsLoaded())
+
+	assert.False(t, objPkOnly.PersonIDIsLoaded())
+	assert.Panics(t, func() { _, _ = objPkOnly.LoadPerson(ctx) })
+
+	assert.Panics(t, func() {
+		objPkOnly.SetPerson(nil)
+	})
+
 	// test eager loading
-	obj3, _ := LoadLogin(ctx, obj.PrimaryKey(), node.Login().Id(),
-		node.Login().PersonId(),
+	obj3, _ := LoadLogin(ctx, obj.PrimaryKey(), node.Login().ID(),
 		node.Login().Username(),
 		node.Login().Password(),
 		node.Login().IsEnabled(),
 	)
 	_ = obj3 // avoid error if there are no references
 
+	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())
+
 }
 
 func TestLogin_ReferenceUpdateNewObjects(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	obj := createMaximalSampleLogin(ctx)
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleLogin(ctx, obj)
@@ -301,32 +327,37 @@ func TestLogin_ReferenceUpdateNewObjects(t *testing.T) {
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleLogin(ctx, obj2)
 
-	obj3, _ := LoadLogin(ctx, obj2.PrimaryKey())
+	obj3, _ := LoadLogin(ctx, obj2.PrimaryKey(), node.Login().Person())
 	_ = obj3 // avoid error if there are no references
+
+	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())
 
 }
 
 func TestLogin_ReferenceUpdateOldObjects(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	obj := createMaximalSampleLogin(ctx)
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleLogin(ctx, obj)
 
+	updateMinimalSamplePerson(obj.Person())
+
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadLogin(ctx, obj.PrimaryKey(), node.Login().Id(),
-		node.Login().PersonId(),
+	obj2, _ := LoadLogin(ctx, obj.PrimaryKey(), node.Login().ID(),
 		node.Login().Username(),
 		node.Login().Password(),
 		node.Login().IsEnabled(),
 	)
 	_ = obj2 // avoid error if there are no references
 
+	assertEqualFieldsPerson(t, obj2.Person(), obj.Person())
+
 }
 func TestLogin_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewLogin()
 
-	i, err := strconv.Atoi(obj.Id())
+	i, err := strconv.Atoi(obj.ID())
 	assert.NoError(t, err)
 	assert.True(t, i < 0)
 }
@@ -334,23 +365,21 @@ func TestLogin_EmptyPrimaryKeyGetter(t *testing.T) {
 func TestLogin_Getters(t *testing.T) {
 	obj := createMinimalSampleLogin()
 
-	i, err := strconv.Atoi(obj.Id())
+	i, err := strconv.Atoi(obj.ID())
 	assert.NoError(t, err)
 	assert.True(t, i < 0)
 
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSampleLogin(ctx, obj)
 
 	has, _ := HasLogin(ctx, obj.PrimaryKey())
 	assert.True(t, has)
 
-	obj2, _ := LoadLogin(ctx, obj.PrimaryKey(), node.Login().PrimaryKey())
+	obj2, _ := LoadLogin(ctx, obj.PrimaryKey(),
+		node.Login().ID())
 
-	assert.Equal(t, obj.Id(), obj.Get(node.Login().Id().Identifier))
-	assert.Equal(t, obj.PersonId(), obj.Get(node.Login().PersonId().Identifier))
-	assert.Panics(t, func() { obj2.PersonId() })
-	assert.Nil(t, obj2.Get(node.Login().PersonId().Identifier))
+	assert.Equal(t, obj.ID(), obj.Get(node.Login().ID().Identifier))
 	assert.Equal(t, obj.Username(), obj.Get(node.Login().Username().Identifier))
 	assert.Panics(t, func() { obj2.Username() })
 	assert.Nil(t, obj2.Get(node.Login().Username().Identifier))
@@ -364,14 +393,14 @@ func TestLogin_Getters(t *testing.T) {
 
 func TestLogin_QueryLoad(t *testing.T) {
 	obj := createMinimalSampleLogin()
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleLogin(ctx, obj)
 
 	objs, err := QueryLogins(ctx).
-		Where(op.Equal(node.Login().PrimaryKey(), obj.PrimaryKey())).
-		OrderBy(node.Login().PrimaryKey()). // exercise order by
-		Limit(1, 0).                        // exercise limit
+		Where(op.Equal(node.Login().ID(), obj.ID())).
+		OrderBy(node.Login().ID()). // exercise order by
+		Limit(1, 0).                // exercise limit
 		Calculation(node.Login(), "IsTrue", op.Equal("A", "A")).
 		Load()
 	assert.NoError(t, err)
@@ -380,25 +409,25 @@ func TestLogin_QueryLoad(t *testing.T) {
 }
 func TestLogin_QueryLoadI(t *testing.T) {
 	obj := createMinimalSampleLogin()
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSampleLogin(ctx, obj)
 
 	objs, _ := QueryLogins(ctx).
-		Where(op.Equal(node.Login().PrimaryKey(), obj.PrimaryKey())).
+		Where(op.Equal(node.Login().ID(), obj.ID())).
 		LoadI()
 
-	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("Id"))
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
 }
 func TestLogin_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleLogin()
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleLogin(ctx, obj)
 
 	cursor, err := QueryLogins(ctx).
-		Where(op.Equal(node.Login().PrimaryKey(), obj.PrimaryKey())).
+		Where(op.Equal(node.Login().ID(), obj.ID())).
 		LoadCursor()
 	require.NoError(t, err)
 	obj2, err2 := cursor.Next()
@@ -421,7 +450,7 @@ func TestLogin_QueryCursor(t *testing.T) {
 	assert.NoError(t, cursor.Close())
 }
 func TestLogin_Count(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	obj := createMaximalSampleLogin(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
@@ -432,14 +461,14 @@ func TestLogin_Count(t *testing.T) {
 	obj2, _ := LoadLogin(ctx, obj.PrimaryKey())
 	assert.Positive(t,
 		func() int {
-			i, _ := CountLoginsByPersonId(ctx,
-				obj2.PersonId())
+			i, _ := CountLoginsByUsername(ctx,
+				obj2.Username())
 			return i
 		}())
 	assert.Positive(t,
 		func() int {
-			i, _ := CountLoginsByUsername(ctx,
-				obj2.Username())
+			i, _ := CountLoginsByPersonID(ctx,
+				obj2.PersonID())
 			return i
 		}())
 
@@ -475,14 +504,14 @@ func TestLogin_FailingMarshalBinary(t *testing.T) {
 	obj := createMinimalSampleLogin()
 	var err error
 
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 16; i++ {
 		enc := &test.GobEncoder{Count: i}
 		err = obj.encodeTo(enc)
 		assert.Error(t, err)
 	}
 	// do it again with aliases
 	obj._aliases = make(map[string]any)
-	for i := 0; i < 21; i++ {
+	for i := 0; i < 17; i++ {
 		enc := &test.GobEncoder{Count: i}
 		err = obj.encodeTo(enc)
 		assert.Error(t, err)
@@ -494,7 +523,7 @@ func TestLogin_FailingUnmarshalBinary(t *testing.T) {
 	b, err := obj.MarshalBinary()
 	assert.NoError(t, err)
 	obj2 := NewLogin()
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 16; i++ {
 		buf := bytes.NewReader(b)
 		dec := &test.GobDecoder{Decoder: gob.NewDecoder(buf), Count: i}
 		err = obj2.decodeFrom(dec)
@@ -508,7 +537,7 @@ func TestLogin_FailingUnmarshalBinary(t *testing.T) {
 	assert.NoError(t, err)
 
 	obj2 = NewLogin()
-	for i := 0; i < 21; i++ {
+	for i := 0; i < 17; i++ {
 		buf := bytes.NewReader(b)
 		dec := &test.GobDecoder{Decoder: gob.NewDecoder(buf), Count: i}
 		err = obj2.decodeFrom(dec)
@@ -517,19 +546,19 @@ func TestLogin_FailingUnmarshalBinary(t *testing.T) {
 }
 
 func TestLogin_Indexes(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	obj := createMaximalSampleLogin(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSampleLogin(ctx, obj)
 
 	var obj2 *Login
-	obj2, _ = LoadLoginByPersonId(ctx, obj.PersonId())
-	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
-	assert.True(t, func() bool { h, _ := HasLoginByPersonId(ctx, obj.PersonId()); return h }())
-
 	obj2, _ = LoadLoginByUsername(ctx, obj.Username())
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
 	assert.True(t, func() bool { h, _ := HasLoginByUsername(ctx, obj.Username()); return h }())
+
+	obj2, _ = LoadLoginByPersonID(ctx, obj.PersonID())
+	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
+	assert.True(t, func() bool { h, _ := HasLoginByPersonID(ctx, obj.PersonID()); return h }())
 
 }

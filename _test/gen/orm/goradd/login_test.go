@@ -5,6 +5,7 @@ package goradd
 // Your edits to this file will be preserved.
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -40,9 +41,10 @@ func TestLogin_Label(t *testing.T) {
 }
 
 func TestLogin_Delete(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	obj := createMinimalSampleLogin()
 	assert.NoError(t, obj.Save(ctx))
+	defer obj.Person().Delete(ctx)
 	assert.NoError(t, DeleteLogin(ctx, obj.PrimaryKey()))
 	obj2, err := LoadLogin(ctx, obj.PrimaryKey())
 	assert.Nil(t, obj2)

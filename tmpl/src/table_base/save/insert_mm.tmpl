@@ -18,9 +18,9 @@
             db.Associate(ctx,
                 d,
                 "{{= mm.TableQueryName }}",
-                "{{= mm.SourceColumnName }}",
+                "{{= mm.SourceColumnName() }}",
                 newPK,
-                "{{= mm.DestColumnName }}",
+                "{{= mm.ForeignKeyName }}",
                 obj.PrimaryKey(),
             )
         }
@@ -34,9 +34,9 @@
                 db.Associate(ctx,
                     d,
                     "{{= mm.TableQueryName }}",
-                    "{{= mm.SourceColumnName }}",
+                    "{{= mm.SourceColumnName() }}",
                     newPK,
-                    "{{= mm.DestColumnName }}",
+                    "{{= mm.ForeignKeyName }}",
                     k,
                 )
             }

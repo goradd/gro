@@ -110,15 +110,6 @@
           "index_level": "indexed"
         },
         {
-          "name": "manager_id",
-          "type": "ref",
-          "is_nullable": true,
-          "index_level": "indexed",
-          "reference": {
-            "table": "person"
-          }
-        },
-        {
           "name": "name",
           "type": "string",
           "size": 100
@@ -163,15 +154,20 @@
               "type": "decimal(12,2)"
             }
           }
+        }
+      ],
+      "references": [
+        {
+          "table": "person",
+          "column": "manager_id",
+          "is_nullable": true
         },
         {
-          "name": "parent_project_id",
-          "type": "ref",
+          "table": "project",
+          "column": "parent_id",
+          "identifier": "Parent",
           "is_nullable": true,
-          "index_level": "indexed",
-          "reference": {
-            "table": "project"
-          }
+          "reverse_identifier": "Child"
         }
       ]
     },
@@ -182,10 +178,6 @@
           "name": "id",
           "type": "auto_primary_key",
           "size": 32
-        },
-        {
-          "name": "person_id",
-          "type": "ref"
         },
         {
           "name": "street",
@@ -199,6 +191,11 @@
           "default_value": "BOB",
           "is_nullable": true
         }
+      ],
+      "references": [
+        {
+          "table": "person"
+        }
       ]
     },
     {
@@ -210,14 +207,15 @@
           "size": 32
         },
         {
-          "name": "person_id",
-          "type": "ref",
-          "index_level": "unique"
-        },
-        {
           "name": "employee_number",
           "type": "int",
           "size": 32
+        }
+      ],
+      "references":[
+        {
+          "table": "person",
+          "index_level": "unique"
         }
       ]
     },
@@ -228,12 +226,6 @@
           "name": "id",
           "type": "auto_primary_key",
           "size": 32
-        },
-        {
-          "name": "person_id",
-          "type": "ref",
-          "is_nullable": true,
-          "index_level": "unique"
         },
         {
           "name": "username",
@@ -252,6 +244,13 @@
           "type": "bool",
           "default_value": true
         }
+      ],
+      "references": [
+        {
+          "table": "person",
+          "is_nullable": true,
+          "index_level": "unique"
+        }
       ]
     },
     {
@@ -263,14 +262,14 @@
           "size": 32
         },
         {
-          "name": "project_id",
-          "type": "ref",
-          "index_level": "indexed"
-        },
-        {
           "name": "name",
           "type": "string",
           "size": 50
+        }
+      ],
+      "references": [
+        {
+          "table": "project"
         }
       ]
     }
@@ -377,21 +376,10 @@
   ],
   "association_tables": [
     {
-      "name": "related_project_assn",
-      "ref1": {
-        "table": "project",
-        "identifier": "Parent"
-      },
-      "ref2": {
-        "table": "project",
-        "identifier": "Child"
-      }
-    },
-    {
       "name": "team_member_project_assn",
       "ref1": {
         "table": "person",
-        "identifier": "TeamMember"
+        "column": "team_member_id"
       },
       "ref2": {
         "table": "project"

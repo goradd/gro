@@ -1376,7 +1376,7 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `()
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
 	assert.NoError(t, obj.Save(ctx))
     defer deleteSample`); err != nil {
 			return
@@ -1569,7 +1569,7 @@ func Test`); err != nil {
 
 		if _, err = io.WriteString(_w, `()
     _ = obj
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
     _ = ctx
 
 `); err != nil {
@@ -1650,7 +1650,7 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `()
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
     assert.NoError(t, obj.Save(ctx))
     defer deleteSample`); err != nil {
 			return
@@ -1773,7 +1773,7 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `_ReferenceLoad(t *testing.T) {
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
     obj := createMaximalSample`); err != nil {
 			return
 		}
@@ -1858,15 +1858,41 @@ func Test`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey(), node.`); err != nil {
+		if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey(),
+    `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.Identifier); err != nil {
-			return
-		}
+		for _i, _j := range table.PrimaryKeyColumns() {
+			_ = _j
 
-		if _, err = io.WriteString(_w, `().PrimaryKey())
+			if _, err = io.WriteString(_w, `node.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, _j.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()`); err != nil {
+				return
+			}
+
+			if _i < len(table.PrimaryKeyColumns())-1 {
+				if _, err = io.WriteString(_w, ", "); err != nil {
+					return
+				}
+			}
+		}
+		if _, err = io.WriteString(_w, `)
     assert.NoError(t, err2)
     _ = obj2 // avoid error if there are no references
     _ = objPkOnly
@@ -2417,7 +2443,7 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `_ReferenceUpdateNewObjects(t *testing.T) {
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
     obj := createMaximalSample`); err != nil {
 			return
 		}
@@ -2700,7 +2726,7 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `_ReferenceUpdateOldObjects(t *testing.T) {
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
     obj := createMaximalSample`); err != nil {
 			return
 		}
@@ -3200,7 +3226,7 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
     require.NoError(t, obj.Save(ctx))
     defer deleteSample`); err != nil {
 			return
@@ -3231,15 +3257,41 @@ func Test`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey(), node.`); err != nil {
+		if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey(),
+`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.Identifier); err != nil {
-			return
-		}
+		for _i, _j := range table.PrimaryKeyColumns() {
+			_ = _j
 
-		if _, err = io.WriteString(_w, `().PrimaryKey())
+			if _, err = io.WriteString(_w, `node.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, _j.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()`); err != nil {
+				return
+			}
+
+			if _i < len(table.PrimaryKeyColumns())-1 {
+				if _, err = io.WriteString(_w, ", "); err != nil {
+					return
+				}
+			}
+		}
+		if _, err = io.WriteString(_w, `)
 `); err != nil {
 			return
 		}
@@ -3351,7 +3403,7 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `()
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
 	assert.NoError(t, obj.Save(ctx))
     defer deleteSample`); err != nil {
 			return
@@ -3372,24 +3424,77 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `(ctx).
-        Where(op.Equal(node.`); err != nil {
+`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		for _, col := range table.PrimaryKeyColumns() {
+
+			if _, err = io.WriteString(_w, `        Where(op.Equal(node.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(), obj.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `())).
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `        OrderBy(`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `().PrimaryKey(), obj.PrimaryKey())).
-        OrderBy(node.`); err != nil {
-			return
-		}
+		for _i, _j := range table.PrimaryKeyColumns() {
+			_ = _j
 
-		if _, err = io.WriteString(_w, table.Identifier); err != nil {
-			return
-		}
+			if _, err = io.WriteString(_w, `node.`); err != nil {
+				return
+			}
 
-		if _, err = io.WriteString(_w, `().PrimaryKey()). // exercise order by
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, _j.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()`); err != nil {
+				return
+			}
+
+			if _i < len(table.PrimaryKeyColumns())-1 {
+				if _, err = io.WriteString(_w, ", "); err != nil {
+					return
+				}
+			}
+		}
+		if _, err = io.WriteString(_w, `). // exercise order by
         Limit(1,0). // exercise limit
         Calculation(node.`); err != nil {
 			return
@@ -3427,7 +3532,7 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `()
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
     err := obj.Save(ctx)
 	assert.NoError(t, err)
     defer deleteSample`); err != nil {
@@ -3449,16 +3554,44 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `(ctx).
-        Where(op.Equal(node.`); err != nil {
+`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.Identifier); err != nil {
-			return
+		for _, col := range table.PrimaryKeyColumns() {
+
+			if _, err = io.WriteString(_w, `        Where(op.Equal(node.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(), obj.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `())).
+`); err != nil {
+				return
+			}
+
 		}
 
-		if _, err = io.WriteString(_w, `().PrimaryKey(), obj.PrimaryKey())).
-        LoadI()
+		if _, err = io.WriteString(_w, `        LoadI()
 
     assert.Equal(t, obj.PrimaryKey(), objs[0].Get("`); err != nil {
 			return
@@ -3492,7 +3625,7 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `()
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
 	assert.NoError(t, obj.Save(ctx))
     defer deleteSample`); err != nil {
 			return
@@ -3513,16 +3646,44 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `(ctx).
-        Where(op.Equal(node.`); err != nil {
+`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.Identifier); err != nil {
-			return
+		for _, col := range table.PrimaryKeyColumns() {
+
+			if _, err = io.WriteString(_w, `        Where(op.Equal(node.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(), obj.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `())).
+`); err != nil {
+				return
+			}
+
 		}
 
-		if _, err = io.WriteString(_w, `().PrimaryKey(), obj.PrimaryKey())).
-        LoadCursor()
+		if _, err = io.WriteString(_w, `        LoadCursor()
     require.NoError(t, err)
     obj2, err2 := cursor.Next()
     assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
@@ -3566,7 +3727,7 @@ func Test`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `_Count(t *testing.T) {
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
     obj := createMaximalSample`); err != nil {
 			return
 		}
@@ -3942,7 +4103,7 @@ func Test`); err != nil {
 			}
 
 			if _, err = io.WriteString(_w, `_Indexes(t *testing.T) {
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
     obj := createMaximalSample`); err != nil {
 				return
 			}

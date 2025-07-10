@@ -17,12 +17,12 @@ func (n *NodeTemplate)genAssnTable(table *model.Table, mm *model.ManyManyReferen
 func (n {{= table.DecapIdentifier }}Table) {{= mm.IdentifierPlural }}() {{= mm.ReferencedTable.Identifier }}Node  {
 	cn := &{{= objectType }} {
 		ManyManyNode: query.ManyManyNode{
-			AssnTableQueryName:      "{{= mm.TableQueryName }}",
-			ParentColumnQueryName:    "{{= mm.SourceColumnName }}",
-			ParentColumnReceiverType: query.{{= mm.SourceColumnReceiverType.String() }},
+			AssnTableQueryName:       "{{= mm.TableQueryName }}",
+			ParentForeignKey:         "{{= mm.SourceColumnName() }}",
+			ParentPrimaryKey:         "{{= mm.SourcePrimaryKeyName() }}",
 			Identifier:               "{{= mm.IdentifierPlural }}",
-			RefColumnQueryName:       "{{= mm.DestColumnName }}",
-			RefColumnReceiverType:    query.{{= mm.DestColumnReceiverType.String() }},
+			RefForeignKey:            "{{= mm.ForeignKeyName }}",
+			RefPrimaryKey:            "{{= mm.PrimaryKeyColumnName() }}",
 		},
 	}
 	query.NodeSetParent(cn, n)

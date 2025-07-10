@@ -61,8 +61,8 @@ func deleteSamplePersonWithLock(ctx context.Context, obj *PersonWithLock) {
 
 // assertEqualFieldsPersonWithLock compares two objects and asserts that the basic fields are equal.
 func assertEqualFieldsPersonWithLock(t *testing.T, obj1, obj2 *PersonWithLock) {
-	if obj1.IdIsLoaded() && obj2.IdIsLoaded() { // only check loaded values
-		assert.EqualValues(t, obj1.Id(), obj2.Id())
+	if obj1.IDIsLoaded() && obj2.IDIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.ID(), obj2.ID())
 	}
 	if obj1.FirstNameIsLoaded() && obj2.FirstNameIsLoaded() { // only check loaded values
 		assert.EqualValues(t, obj1.FirstName(), obj2.FirstName())
@@ -79,23 +79,23 @@ func assertEqualFieldsPersonWithLock(t *testing.T, obj1, obj2 *PersonWithLock) {
 
 }
 
-func TestPersonWithLock_SetId(t *testing.T) {
+func TestPersonWithLock_SetID(t *testing.T) {
 
 	obj := NewPersonWithLock()
 
 	assert.True(t, obj.IsNew())
 	val := test.RandomNumberString()
-	obj.SetId(val)
-	assert.Equal(t, val, obj.Id())
+	obj.SetID(val)
+	assert.Equal(t, val, obj.ID())
 
 	// test default
-	obj.SetId("")
-	assert.EqualValues(t, "", obj.Id(), "set default")
+	obj.SetID("")
+	assert.EqualValues(t, "", obj.ID(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	val = test.RandomValue[string](33)
 	assert.Panics(t, func() {
-		obj.SetId(val)
+		obj.SetID(val)
 	})
 }
 func TestPersonWithLock_SetFirstName(t *testing.T) {
@@ -149,7 +149,7 @@ func TestPersonWithLock_Copy(t *testing.T) {
 
 func TestPersonWithLock_BasicInsert(t *testing.T) {
 	obj := createMinimalSamplePersonWithLock()
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSamplePersonWithLock(ctx, obj)
 
@@ -160,9 +160,9 @@ func TestPersonWithLock_BasicInsert(t *testing.T) {
 
 	assert.Equal(t, obj2.PrimaryKey(), obj2.OriginalPrimaryKey())
 
-	assert.True(t, obj2.IdIsLoaded())
+	assert.True(t, obj2.IDIsLoaded())
 	assert.Panics(t, func() {
-		obj2.SetId(obj2.Id())
+		obj2.SetID(obj2.ID())
 	})
 
 	assert.True(t, obj2.FirstNameIsLoaded())
@@ -186,7 +186,7 @@ func TestPersonWithLock_BasicInsert(t *testing.T) {
 func TestPersonWithLock_InsertPanics(t *testing.T) {
 	obj := createMinimalSamplePersonWithLock()
 	_ = obj
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	_ = ctx
 
 	obj.firstNameIsLoaded = false
@@ -201,7 +201,7 @@ func TestPersonWithLock_InsertPanics(t *testing.T) {
 
 func TestPersonWithLock_BasicUpdate(t *testing.T) {
 	obj := createMinimalSamplePersonWithLock()
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSamplePersonWithLock(ctx, obj)
 	updateMinimalSamplePersonWithLock(obj)
@@ -209,7 +209,7 @@ func TestPersonWithLock_BasicUpdate(t *testing.T) {
 	obj2, err := LoadPersonWithLock(ctx, obj.PrimaryKey())
 	assert.NoError(t, err)
 
-	assert.Equal(t, obj2.Id(), obj.Id(), "Id did not update")
+	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
 	assert.Equal(t, obj2.FirstName(), obj.FirstName(), "FirstName did not update")
 	assert.Equal(t, obj2.LastName(), obj.LastName(), "LastName did not update")
 	assert.Equal(t, obj2.GroLock(), obj.GroLock(), "GroLock did not update")
@@ -217,7 +217,7 @@ func TestPersonWithLock_BasicUpdate(t *testing.T) {
 }
 
 func TestPersonWithLock_ReferenceLoad(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	obj := createMaximalSamplePersonWithLock(ctx)
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSamplePersonWithLock(ctx, obj)
@@ -227,13 +227,14 @@ func TestPersonWithLock_ReferenceLoad(t *testing.T) {
 	// Test lazy loading
 	obj2, err := LoadPersonWithLock(ctx, obj.PrimaryKey())
 	assert.NoError(t, err)
-	objPkOnly, err2 := LoadPersonWithLock(ctx, obj.PrimaryKey(), node.PersonWithLock().PrimaryKey())
+	objPkOnly, err2 := LoadPersonWithLock(ctx, obj.PrimaryKey(),
+		node.PersonWithLock().ID())
 	assert.NoError(t, err2)
 	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
 
 	// test eager loading
-	obj3, _ := LoadPersonWithLock(ctx, obj.PrimaryKey(), node.PersonWithLock().Id(),
+	obj3, _ := LoadPersonWithLock(ctx, obj.PrimaryKey(), node.PersonWithLock().ID(),
 		node.PersonWithLock().FirstName(),
 		node.PersonWithLock().LastName(),
 		node.PersonWithLock().GroLock(),
@@ -244,7 +245,7 @@ func TestPersonWithLock_ReferenceLoad(t *testing.T) {
 }
 
 func TestPersonWithLock_ReferenceUpdateNewObjects(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	obj := createMaximalSamplePersonWithLock(ctx)
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSamplePersonWithLock(ctx, obj)
@@ -260,14 +261,14 @@ func TestPersonWithLock_ReferenceUpdateNewObjects(t *testing.T) {
 }
 
 func TestPersonWithLock_ReferenceUpdateOldObjects(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	obj := createMaximalSamplePersonWithLock(ctx)
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSamplePersonWithLock(ctx, obj)
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadPersonWithLock(ctx, obj.PrimaryKey(), node.PersonWithLock().Id(),
+	obj2, _ := LoadPersonWithLock(ctx, obj.PrimaryKey(), node.PersonWithLock().ID(),
 		node.PersonWithLock().FirstName(),
 		node.PersonWithLock().LastName(),
 		node.PersonWithLock().GroLock(),
@@ -279,7 +280,7 @@ func TestPersonWithLock_ReferenceUpdateOldObjects(t *testing.T) {
 func TestPersonWithLock_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewPersonWithLock()
 
-	i, err := strconv.Atoi(obj.Id())
+	i, err := strconv.Atoi(obj.ID())
 	assert.NoError(t, err)
 	assert.True(t, i < 0)
 }
@@ -287,20 +288,21 @@ func TestPersonWithLock_EmptyPrimaryKeyGetter(t *testing.T) {
 func TestPersonWithLock_Getters(t *testing.T) {
 	obj := createMinimalSamplePersonWithLock()
 
-	i, err := strconv.Atoi(obj.Id())
+	i, err := strconv.Atoi(obj.ID())
 	assert.NoError(t, err)
 	assert.True(t, i < 0)
 
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	require.NoError(t, obj.Save(ctx))
 	defer deleteSamplePersonWithLock(ctx, obj)
 
 	has, _ := HasPersonWithLock(ctx, obj.PrimaryKey())
 	assert.True(t, has)
 
-	obj2, _ := LoadPersonWithLock(ctx, obj.PrimaryKey(), node.PersonWithLock().PrimaryKey())
+	obj2, _ := LoadPersonWithLock(ctx, obj.PrimaryKey(),
+		node.PersonWithLock().ID())
 
-	assert.Equal(t, obj.Id(), obj.Get(node.PersonWithLock().Id().Identifier))
+	assert.Equal(t, obj.ID(), obj.Get(node.PersonWithLock().ID().Identifier))
 	assert.Equal(t, obj.FirstName(), obj.Get(node.PersonWithLock().FirstName().Identifier))
 	assert.Panics(t, func() { obj2.FirstName() })
 	assert.Nil(t, obj2.Get(node.PersonWithLock().FirstName().Identifier))
@@ -317,14 +319,14 @@ func TestPersonWithLock_Getters(t *testing.T) {
 
 func TestPersonWithLock_QueryLoad(t *testing.T) {
 	obj := createMinimalSamplePersonWithLock()
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSamplePersonWithLock(ctx, obj)
 
 	objs, err := QueryPersonWithLocks(ctx).
-		Where(op.Equal(node.PersonWithLock().PrimaryKey(), obj.PrimaryKey())).
-		OrderBy(node.PersonWithLock().PrimaryKey()). // exercise order by
-		Limit(1, 0).                                 // exercise limit
+		Where(op.Equal(node.PersonWithLock().ID(), obj.ID())).
+		OrderBy(node.PersonWithLock().ID()). // exercise order by
+		Limit(1, 0).                         // exercise limit
 		Calculation(node.PersonWithLock(), "IsTrue", op.Equal("A", "A")).
 		Load()
 	assert.NoError(t, err)
@@ -333,25 +335,25 @@ func TestPersonWithLock_QueryLoad(t *testing.T) {
 }
 func TestPersonWithLock_QueryLoadI(t *testing.T) {
 	obj := createMinimalSamplePersonWithLock()
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	err := obj.Save(ctx)
 	assert.NoError(t, err)
 	defer deleteSamplePersonWithLock(ctx, obj)
 
 	objs, _ := QueryPersonWithLocks(ctx).
-		Where(op.Equal(node.PersonWithLock().PrimaryKey(), obj.PrimaryKey())).
+		Where(op.Equal(node.PersonWithLock().ID(), obj.ID())).
 		LoadI()
 
-	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("Id"))
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
 }
 func TestPersonWithLock_QueryCursor(t *testing.T) {
 	obj := createMinimalSamplePersonWithLock()
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSamplePersonWithLock(ctx, obj)
 
 	cursor, err := QueryPersonWithLocks(ctx).
-		Where(op.Equal(node.PersonWithLock().PrimaryKey(), obj.PrimaryKey())).
+		Where(op.Equal(node.PersonWithLock().ID(), obj.ID())).
 		LoadCursor()
 	require.NoError(t, err)
 	obj2, err2 := cursor.Next()
@@ -374,7 +376,7 @@ func TestPersonWithLock_QueryCursor(t *testing.T) {
 	assert.NoError(t, cursor.Close())
 }
 func TestPersonWithLock_Count(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	obj := createMaximalSamplePersonWithLock(ctx)
 	err := obj.Save(ctx)
 	assert.NoError(t, err)

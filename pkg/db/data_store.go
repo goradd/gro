@@ -19,10 +19,6 @@ const (
 // The dataStore is the central database collection used in code generation and the orm.
 var datastore maps.SliceMap[string, DatabaseI]
 
-type contextKey string
-
-type TransactionID int
-
 type SchemaExtractor interface {
 	ExtractSchema(options map[string]any) schema.Database
 }

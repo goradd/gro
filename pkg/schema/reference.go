@@ -3,6 +3,7 @@ package schema
 import (
 	"fmt"
 	strings2 "github.com/goradd/strings"
+	"github.com/kenshaw/snaker"
 	"log/slog"
 	"strings"
 )
@@ -129,7 +130,7 @@ func (r *Reference) infer(db *Database, table *Table) error {
 // It expects infer to have already been called.
 func (r *Reference) fillDefaults(db *Database, table *Table) {
 	if r.ColumnIdentifier == "" {
-		r.ColumnIdentifier = strings2.SnakeToCamel(r.Column)
+		r.ColumnIdentifier = snaker.SnakeToCamelIdentifier(r.Column)
 	}
 	if r.ColumnLabel == "" {
 		r.ColumnLabel = strings2.Title(r.ColumnIdentifier)
@@ -139,9 +140,9 @@ func (r *Reference) fillDefaults(db *Database, table *Table) {
 		pks := t.PrimaryKeyColumns()
 		if len(pks) == 1 {
 			objName := strings.TrimSuffix(r.Column, "_"+pks[0])
-			r.ObjectIdentifier = strings2.SnakeToCamel(objName)
+			r.ObjectIdentifier = snaker.SnakeToCamelIdentifier(objName)
 		} else {
-			r.ObjectIdentifier = strings2.SnakeToCamel(r.Table)
+			r.ObjectIdentifier = snaker.SnakeToCamelIdentifier(r.Table)
 		}
 	}
 	if r.ObjectLabel == "" {

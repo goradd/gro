@@ -3,6 +3,7 @@
 package node
 
 import (
+	"bytes"
 	"encoding/gob"
 
 	"github.com/goradd/orm/pkg/query"
@@ -12,17 +13,21 @@ import (
 // LoginNode is the builder interface to the Login nodes.
 type LoginNode interface {
 	query.TableNodeI
+	// PrimaryKey returns the column node representing the primary key of the table
 	PrimaryKey() *query.ColumnNode
-	// Id represents the id column in the database.
-	Id() *query.ColumnNode
-	// PersonId represents the person_id column in the database.
-	PersonId() *query.ColumnNode
+	// ID represents the id column in the database.
+	ID() *query.ColumnNode
 	// Username represents the username column in the database.
 	Username() *query.ColumnNode
 	// Password represents the password column in the database.
 	Password() *query.ColumnNode
 	// IsEnabled represents the is_enabled column in the database.
 	IsEnabled() *query.ColumnNode
+	// PersonID represents the person_id foreign key column in the database
+	// that references the Person object.
+	PersonID() *query.ColumnNode
+	// Person references the Person object whose primary key is PersonID.
+	Person() PersonNode
 }
 
 // loginTable represents the login table in a query. It uses a builder pattern to chain
@@ -30,6 +35,11 @@ type LoginNode interface {
 //
 // To use the loginTable, call [Login()] to start a reference chain when querying the login table.
 type loginTable struct {
+}
+
+type loginReverse struct {
+	loginTable
+	query.ReverseNode
 }
 
 // Login returns a table node that starts a node chain that begins with the login table.
@@ -54,23 +64,53 @@ func (n loginTable) DatabaseKey_() string {
 
 // ColumnNodes_ returns a list of all the column nodes in this node.
 func (n loginTable) ColumnNodes_() (nodes []query.Node) {
-	nodes = append(nodes, n.Id())
-	nodes = append(nodes, n.PersonId())
+	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.Username())
 	nodes = append(nodes, n.Password())
 	nodes = append(nodes, n.IsEnabled())
 	return nodes
 }
 
-// PrimaryKey returns a node that points to the primary key column.
-func (n loginTable) PrimaryKey() *query.ColumnNode {
-	return n.Id()
+func (n *loginReverse) ColumnNodes_() (nodes []query.Node) {
+	nodes = n.loginTable.ColumnNodes_()
+	for _, cn := range nodes {
+		query.NodeSetParent(cn, n)
+	}
+	return
 }
 
-func (n loginTable) Id() *query.ColumnNode {
+func (n *loginReverse) NodeType_() query.NodeType {
+	return query.ReverseNodeType
+}
+
+// PrimaryKeys returns the primary key column nodes to satisfy the PrimaryKeyer interface.
+func (n loginTable) PrimaryKeys() []*query.ColumnNode {
+	return []*query.ColumnNode{
+		n.ID(),
+	}
+}
+
+// PrimaryKey returns the primary key column node.
+func (n loginTable) PrimaryKey() *query.ColumnNode {
+	return n.ID()
+}
+
+// PrimaryKeys returns the primary key column nodes.
+func (n *loginReverse) PrimaryKeys() []*query.ColumnNode {
+	return []*query.ColumnNode{
+		n.ID(),
+	}
+}
+
+// PrimaryKey returns the primary key column nodes.
+func (n loginReverse) PrimaryKey() *query.ColumnNode {
+	return n.ID()
+}
+
+func (n loginTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "id",
-		Identifier:    "Id",
+		Identifier:    "ID",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeAutoPrimaryKey,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -80,15 +120,8 @@ func (n loginTable) Id() *query.ColumnNode {
 	return cn
 }
 
-func (n loginTable) PersonId() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "person_id",
-		Identifier:    "PersonId",
-		ReceiverType:  query.ColTypeUnknown,
-		SchemaType:    schema.ColTypeUnknown,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
+func (n *loginReverse) ID() *query.ColumnNode {
+	cn := n.loginTable.ID()
 	query.NodeSetParent(cn, n)
 	return cn
 }
@@ -106,6 +139,12 @@ func (n loginTable) Username() *query.ColumnNode {
 	return cn
 }
 
+func (n *loginReverse) Username() *query.ColumnNode {
+	cn := n.loginTable.Username()
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
 func (n loginTable) Password() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "password",
@@ -115,6 +154,12 @@ func (n loginTable) Password() *query.ColumnNode {
 		SchemaSubType: schema.ColSubTypeNone,
 		IsPrimaryKey:  false,
 	}
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *loginReverse) Password() *query.ColumnNode {
+	cn := n.loginTable.Password()
 	query.NodeSetParent(cn, n)
 	return cn
 }
@@ -132,6 +177,50 @@ func (n loginTable) IsEnabled() *query.ColumnNode {
 	return cn
 }
 
+func (n *loginReverse) IsEnabled() *query.ColumnNode {
+	cn := n.loginTable.IsEnabled()
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n loginTable) PersonID() *query.ColumnNode {
+	cn := &query.ColumnNode{
+		QueryName:     "person_id",
+		Identifier:    "PersonID",
+		ReceiverType:  query.ColTypeString,
+		SchemaType:    schema.ColTypeString,
+		SchemaSubType: schema.ColSubTypeNone,
+		IsPrimaryKey:  false,
+	}
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *loginReverse) PersonID() *query.ColumnNode {
+	cn := n.loginTable.PersonID()
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+// Person represents the link to a Person object.
+func (n loginTable) Person() PersonNode {
+	cn := &loginReference{
+		ReferenceNode: query.ReferenceNode{
+			ForeignKey: "person_id",
+			PrimaryKey: "id",
+			Identifier: "Person",
+		},
+	}
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
+func (n *loginReverse) Person() PersonNode {
+	cn := n.loginTable.Person().(*loginReference)
+	query.NodeSetParent(cn, n)
+	return cn
+}
+
 func (n loginTable) GobEncode() (data []byte, err error) {
 	return
 }
@@ -140,6 +229,28 @@ func (n *loginTable) GobDecode(data []byte) (err error) {
 	return
 }
 
+func (n *loginReverse) GobEncode() (data []byte, err error) {
+	var buf bytes.Buffer
+	e := gob.NewEncoder(&buf)
+
+	if err = e.Encode(&n.ReverseNode); err != nil {
+		panic(err)
+	}
+	data = buf.Bytes()
+	return
+}
+
+func (n *loginReverse) GobDecode(data []byte) (err error) {
+	buf := bytes.NewBuffer(data)
+	dec := gob.NewDecoder(buf)
+
+	if err = dec.Decode(&n.ReverseNode); err != nil {
+		panic(err)
+	}
+	return
+}
+
 func init() {
 	gob.Register(new(loginTable))
+	gob.Register(new(loginReverse))
 }

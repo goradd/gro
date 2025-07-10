@@ -3,37 +3,38 @@
 package goradd
 
 import (
-	"bytes"
+	"github.com/goradd/orm/pkg/db"
+	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/orm/pkg/broadcast"
 	"context"
-	"encoding/base64"
+	"fmt"
+	"github.com/goradd/orm/pkg/op"
+	"github.com/goradd/anyutil"
+	"bytes"
 	"encoding/gob"
 	"encoding/json"
-	"fmt"
-	"slices"
-	"time"
-	"unicode/utf8"
-
-	"github.com/goradd/anyutil"
-	"github.com/goradd/orm/_test/gen/orm/goradd/node"
-	"github.com/goradd/orm/pkg/broadcast"
-	"github.com/goradd/orm/pkg/db"
-	"github.com/goradd/orm/pkg/op"
-	"github.com/goradd/orm/pkg/query"
+    "github.com/goradd/maps"
+    "github.com/goradd/orm/_test/gen/orm/goradd/node"
 )
+
+
 
 // MilestoneBase is embedded in a Milestone object and provides the ORM access to the database.
 // The member variables of the structure are private and should not normally be accessed by the Milestone embedder.
 // Instead, use the accessor functions.
 type milestoneBase struct {
-	id                string
-	idIsLoaded        bool
-	idIsDirty         bool
-	projectId         []byte
-	projectIdIsLoaded bool
-	projectIdIsDirty  bool
-	name              string
-	nameIsLoaded      bool
-	nameIsDirty       bool
+	id string
+	idIsLoaded bool
+	idIsDirty bool
+	name string
+	nameIsLoaded bool
+	nameIsDirty bool
+	projectID string
+	projectIDIsLoaded bool
+	projectIDIsDirty bool
+
+    // References
+	project *Project
 
 	// Custom aliases, if specified
 	_aliases map[string]any
@@ -41,49 +42,43 @@ type milestoneBase struct {
 	// Indicates whether this is a new object, or one loaded from the database. Used by Save to know whether to Insert or Update.
 	_restored bool
 
-	_originalPK string
+    _originalPK string
 }
+
 
 // IDs used to access the Milestone object fields by name using the Get function.
 // doc: type=Milestone
-const (
-	MilestoneIdField        = `id`
-	MilestoneProjectIdField = `projectId`
-	MilestoneNameField      = `name`
+const  (
+    MilestoneIDField = `id`
+    MilestoneNameField = `name`
+    MilestoneProjectIDField = `projectID`
+    MilestoneProjectField = `project`
 )
 
-const MilestoneIdMaxLength = 32   // The number of runes the column can hold
-const MilestoneNameMaxLength = 50 // The number of runes the column can hold
+    const MilestoneIDMaxLength = 32 // The number of runes the column can hold
+    const MilestoneNameMaxLength = 50 // The number of runes the column can hold
+    const MilestoneProjectIDMaxLength = 32 // The number of runes the column can hold
 
 // Initialize or re-initialize a Milestone database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
 func (o *milestoneBase) Initialize() {
-	o.id = db.TemporaryPrimaryKey()
+    o.id = db.TemporaryPrimaryKey()
 	o.idIsLoaded = true
 	o.idIsDirty = false
-
-	o.projectId = []byte{}
-	o.projectIdIsLoaded = false
-	o.projectIdIsDirty = false
 
 	o.name = ""
 	o.nameIsLoaded = false
 	o.nameIsDirty = false
 
+	o.projectID = ""
+	o.projectIDIsLoaded = false
+	o.projectIDIsDirty = false
+
+
 	o._aliases = nil
 	o._restored = false
 }
 
-// PrimaryKey returns the current value of the primary key.
-func (o *milestoneBase) PrimaryKey() string {
-	return o.id
-}
-
-// OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
-// read from the database.
-func (o *milestoneBase) OriginalPrimaryKey() string {
-	return o._originalPK
-}
 
 // Copy copies most fields to a new Milestone object.
 // Forward reference ids will be copied, but reverse and many-many references will not.
@@ -94,23 +89,29 @@ func (o *milestoneBase) OriginalPrimaryKey() string {
 // Copy might panic if any fields in the database were set to a size larger than the
 // maximum size through a process that accessed the database outside of the ORM.
 func (o *milestoneBase) Copy() (newObject *Milestone) {
-	newObject = NewMilestone()
-	if o.idIsLoaded {
-		newObject.SetId(o.id)
-	}
-	if o.projectIdIsLoaded {
-		newObject.SetProjectId(o.projectId)
-	}
-	if o.nameIsLoaded {
-		newObject.SetName(o.name)
-	}
-	return
+    newObject = NewMilestone()
+    if o.idIsLoaded {
+        newObject.SetID(o.id)
+    }
+    if o.nameIsLoaded {
+        newObject.SetName(o.name)
+    }
+    if o.projectIDIsLoaded {
+        newObject.SetProjectID(o.projectID)
+    }
+    return
+}
+
+// OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
+// read from the database.
+func (o *milestoneBase) OriginalPrimaryKey() string {
+	return o._originalPK
 }
 
 // PrimaryKey returns the value of the primary key of the record.
 func (o *milestoneBase) PrimaryKey() string {
 	if o._restored && !o.idIsLoaded {
-		panic("Id was not selected in the last query and has not been set, and so PrimaryKey is not valid")
+		panic ("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
 	}
 	return o.id
 }
@@ -122,69 +123,42 @@ func (o *milestoneBase) PrimaryKey() string {
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
 func (o *milestoneBase) SetPrimaryKey(v string) {
-	if o._restored {
-		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-	}
-	if utf8.RuneCountInString(v) > MilestoneIdMaxLength {
-		panic("attempted to set Milestone.Id to a value larger than its maximum length in runes")
-	}
+    if o._restored {
+        panic ("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+    }
+    if utf8.RuneCountInString(v) > MilestoneIDMaxLength {
+        panic("attempted to set Milestone.ID to a value larger than its maximum length in runes")
+    }
 	o.idIsLoaded = true
 	o.idIsDirty = true
 	o.id = v
 }
 
-// Id returns the value of Id.
-func (o *milestoneBase) Id() string {
+// ID returns the value of ID.
+func (o *milestoneBase) ID() string {
 	return o.PrimaryKey()
 }
 
-// SetId sets the value of Id in the object, to be saved later in the database using the Save() function.
-// Normally you will not need to call this function, since the Id value is automatically generated by the
+// IDIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *milestoneBase) IDIsLoaded() bool {
+	return o.idIsLoaded
+}
+
+// SetID sets the value of ID in the object, to be saved later in the database using the Save() function.
+// Normally you will not need to call this function, since the ID value is automatically generated by the
 // database driver. Exceptions might include importing data to a new database, or correcting primary key conflicts when
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *milestoneBase) SetId(v string) {
-	o.SetPrimaryKey(v)
+func (o *milestoneBase) SetID(v string) {
+    o.SetPrimaryKey(v)
 }
 
-// ProjectId returns the value of ProjectId.
-func (o *milestoneBase) ProjectId() []byte {
-	if o._restored && !o.projectIdIsLoaded {
-		panic("ProjectId was not selected in the last query and has not been set, and so is not valid")
-	}
-	return o.projectId
-}
-
-// ProjectIdIsLoaded returns true if the value was loaded from the database or has been set.
-func (o *milestoneBase) ProjectIdIsLoaded() bool {
-	return o.projectIdIsLoaded
-}
-
-// SetProjectId copies the value of ProjectId, to be saved later in the database using the Save() function.
-// Passing nil will set project_id to an empty array.
-func (o *milestoneBase) SetProjectId(v []byte) {
-
-	if o._restored &&
-		o.projectIdIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
-		bytes.Equal(o.projectId, v) {
-		// no change
-		return
-	}
-
-	o.projectIdIsLoaded = true
-	if v == nil {
-		o.projectId = []byte{}
-	} else {
-		o.projectId = slices.Clone(v)
-	}
-	o.projectIdIsDirty = true
-}
 
 // Name returns the value of Name.
 func (o *milestoneBase) Name() string {
 	if o._restored && !o.nameIsLoaded {
-		panic("Name was not selected in the last query and has not been set, and so is not valid")
+		panic ("Name was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.name
 }
@@ -196,73 +170,146 @@ func (o *milestoneBase) NameIsLoaded() bool {
 
 // SetName sets the value of Name in the object, to be saved later in the database using the Save() function.
 func (o *milestoneBase) SetName(v string) {
-	if utf8.RuneCountInString(v) > MilestoneNameMaxLength {
-		panic("attempted to set Milestone.Name to a value larger than its maximum length in runes")
-	}
+    if utf8.RuneCountInString(v) > MilestoneNameMaxLength {
+        panic("attempted to set Milestone.Name to a value larger than its maximum length in runes")
+    }
 	if o._restored &&
-		o.nameIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
-		o.name == v {
-		// no change
-		return
-	}
+	    o.nameIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+        o.name == v {
+        // no change
+        return
+    }
 
 	o.nameIsLoaded = true
 	o.name = v
 	o.nameIsDirty = true
 }
 
+// ProjectID returns the value of ProjectID.
+func (o *milestoneBase) ProjectID() string {
+	if o._restored && !o.projectIDIsLoaded {
+		panic ("ProjectID was not selected in the last query and has not been set, and so is not valid")
+	}
+	return o.projectID
+}
+
+// ProjectIDIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *milestoneBase) ProjectIDIsLoaded() bool {
+	return o.projectIDIsLoaded
+}
+
+// SetProjectID sets the value of ProjectID in the object, to be saved later in the database using the Save() function.
+func (o *milestoneBase) SetProjectID(v string) {
+    if utf8.RuneCountInString(v) > MilestoneProjectIDMaxLength {
+        panic("attempted to set Milestone.ProjectID to a value larger than its maximum length in runes")
+    }
+	if o._restored &&
+	    o.projectIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+        o.projectID == v {
+        // no change
+        return
+    }
+
+	o.projectIDIsLoaded = true
+	o.projectID = v
+	o.projectIDIsDirty = true
+	if o.project != nil &&
+	        o.projectID != o.project.PrimaryKey() {
+	    o.project = nil
+	}
+}
+
+
+// Project returns the current value of the loaded Project, and nil if its not loaded.
+func (o *milestoneBase) Project() *Project {
+	return o.project
+}
+
+// LoadProject returns the related Project. If it is not already loaded,
+// it will attempt to load it, provided the ProjectID column has been loaded first.
+func (o *milestoneBase) LoadProject(ctx context.Context) (*Project, error) {
+	var err error
+
+	if o.project == nil {
+	    if !o.projectIDIsLoaded  {
+    		panic("ProjectID must be selected in the previous query")
+    	}
+		// Load and cache
+		o.project, err = LoadProject(ctx, o.projectID)
+    }
+	return o.project, err
+}
+
+// SetProject sets the value of Project in the object, to be saved later using the Save() function.
+func (o *milestoneBase) SetProject(project *Project)  {
+	if project == nil {
+		panic("Cannot set Project to a nil value since ProjectID is not nullable.")
+	} else {
+		o.project = project
+		o.projectIDIsLoaded = true
+		if o.projectID != project.PrimaryKey() {
+			o.projectID = project.PrimaryKey()
+			o.projectIDIsDirty = true
+		}
+	}
+}
+
+
 // GetAlias returns the value for the Alias node aliasKey that was returned in the most
 // recent query.
 func (o *milestoneBase) GetAlias(aliasKey string) query.AliasValue {
-	if a, ok := o._aliases[aliasKey]; ok {
+	if a,ok := o._aliases[aliasKey]; ok {
 		return query.NewAliasValue(a)
 	} else {
-		panic("Alias " + aliasKey + " not found.")
+		panic ("Alias " + aliasKey + " not found.")
 	}
 }
+
 
 // IsNew returns true if the object will create a new record when saved.
 func (o *milestoneBase) IsNew() bool {
 	return !o._restored
 }
 
+
 // LoadMilestone returns a Milestone from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [MilestonesBuilder.Select] for more info.
 func LoadMilestone(ctx context.Context, id string, selectNodes ...query.Node) (*Milestone, error) {
 	return queryMilestones(ctx).
-		Where(op.Equal(node.Milestone().Id(), id)).
-		Select(selectNodes...).
-		Get()
+	    Where(op.Equal(node.Milestone().ID(), id)).
+	    Select(selectNodes...).
+	    Get()
 }
 
 // HasMilestone returns true if a Milestone with the given primary key exists in the database.
 // doc: type=Milestone
 func HasMilestone(ctx context.Context, id string) (bool, error) {
-	v, err := queryMilestones(ctx).
-		Where(op.Equal(node.Milestone().Id(), id)).
-		Count()
-	return v > 0, err
+    v, err := queryMilestones(ctx).
+	     Where(op.Equal(node.Milestone().ID(), id)).
+         Count()
+    return v > 0, err
 }
 
-// LoadMilestonesByProjectId queries Milestone objects by the given index values.
+ 
+// LoadMilestonesByProjectID queries Milestone objects by the given index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [MilestonesBuilder.Select].
 // If you need a more elaborate query, use QueryMilestones() to start a query builder.
-func LoadMilestonesByProjectId(ctx context.Context, projectId []byte, selectNodes ...query.Node) ([]*Milestone, error) {
-	q := queryMilestones(ctx)
-	q = q.Where(op.Equal(node.Milestone().ProjectId(), projectId))
-	return q.Select(selectNodes...).Load()
+func LoadMilestonesByProjectID (ctx context.Context, projectID string, selectNodes ...query.Node) ([]*Milestone, error) {
+    q := queryMilestones(ctx)
+    q = q.Where(op.Equal(node.Milestone().ProjectID(), projectID))
+    return q.Select(selectNodes...).Load()
 }
 
-// HasMilestonesByProjectId returns true if the
+// HasMilestonesByProjectID returns true if the
 // given index values exist in the database.
 // doc: type=Milestone
-func HasMilestonesByProjectId(ctx context.Context, projectId []byte) (bool, error) {
-	q := queryMilestones(ctx)
-	q = q.Where(op.Equal(node.Milestone().ProjectId(), projectId))
-	v, err := q.Count()
-	return v > 0, err
+func HasMilestonesByProjectID (ctx context.Context, projectID string) (bool, error) {
+    q := queryMilestones(ctx)
+    q = q.Where(op.Equal(node.Milestone().ProjectID(), projectID))
+    v, err := q.Count()
+    return v > 0, err
 }
 
 // The MilestoneBuilder uses a builder pattern to create a query on the database.
@@ -274,13 +321,13 @@ func HasMilestonesByProjectId(ctx context.Context, projectId []byte) (bool, erro
 // meant to be a short-lived object. You should not save it for later use.
 type MilestoneBuilder struct {
 	builder *query.Builder
-	ctx     context.Context
+	ctx context.Context
 }
 
 func newMilestoneBuilder(ctx context.Context) *MilestoneBuilder {
 	b := MilestoneBuilder{
 		builder: query.NewBuilder(node.Milestone()),
-		ctx:     ctx,
+		ctx: ctx,
 	}
 	return &b
 }
@@ -293,12 +340,12 @@ func (b *MilestoneBuilder) Load() (milestones []*Milestone, err error) {
 	database := db.GetDatabase("goradd")
 	var results any
 
-	ctx := b.ctx
+    ctx := b.ctx
 	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
-	for _, item := range results.([]map[string]any) {
+	for _,item := range results.([]map[string]any) {
 		o := new(Milestone)
 		o.unpack(item, o)
 		milestones = append(milestones, o)
@@ -315,18 +362,19 @@ func (b *MilestoneBuilder) LoadI() (milestones []query.OrmObj, err error) {
 	database := db.GetDatabase("goradd")
 	var results any
 
-	ctx := b.ctx
+    ctx := b.ctx
 	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
-	for _, item := range results.([]map[string]any) {
+	for _,item := range results.([]map[string]any) {
 		o := new(Milestone)
 		o.unpack(item, o)
 		milestones = append(milestones, o)
 	}
 	return
 }
+
 
 // LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
 //
@@ -336,17 +384,16 @@ func (b *MilestoneBuilder) LoadI() (milestones []query.OrmObj, err error) {
 //
 // Call Next() on the returned cursor object to step through the results. Make sure you call Close
 // on the cursor object when you are done. You should use
-//
-//	defer cursor.Close()
-//
+//   defer cursor.Close()
 // to make sure the cursor gets closed.
+//
 func (b *MilestoneBuilder) LoadCursor() (milestonesCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
 	var cursor query.CursorI
 	if result != nil {
-		cursor = result.(query.CursorI)
+	    cursor = result.(query.CursorI)
 	}
 	return milestonesCursor{cursor}, err
 }
@@ -359,9 +406,9 @@ type milestonesCursor struct {
 //
 // If there are no more records, it returns nil.
 func (c milestonesCursor) Next() (*Milestone, error) {
-	if c.CursorI == nil {
-		return nil, nil
-	}
+    if c.CursorI == nil {
+        return nil, nil
+    }
 
 	row, err := c.CursorI.Next()
 	if row == nil || err != nil {
@@ -377,16 +424,16 @@ func (c milestonesCursor) Next() (*Milestone, error) {
 // you are selecting on one or very few items.
 // If an error occurs, or no results are found, a nil is returned.
 func (b *MilestoneBuilder) Get() (*Milestone, error) {
-	results, err := b.Load()
-	if err != nil || len(results) == 0 {
-		return nil, err
-	}
-	return results[0], nil
+    results, err := b.Load()
+    if err != nil || len(results) == 0 {
+        return nil, err
+    }
+    return results[0], nil
 }
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
-func (b *MilestoneBuilder) Where(c query.Node) *MilestoneBuilder {
+func (b *MilestoneBuilder)  Where(c query.Node) *MilestoneBuilder {
 	b.builder.Where(c)
 	return b
 }
@@ -394,7 +441,7 @@ func (b *MilestoneBuilder) Where(c query.Node) *MilestoneBuilder {
 // OrderBy specifies how the resulting data should be sorted.
 // By default, the given nodes are sorted in ascending order.
 // Add Descending() to the node to specify that it should be sorted in descending order.
-func (b *MilestoneBuilder) OrderBy(nodes ...query.Sorter) *MilestoneBuilder {
+func (b *MilestoneBuilder)  OrderBy(nodes... query.Sorter) *MilestoneBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
@@ -403,7 +450,7 @@ func (b *MilestoneBuilder) OrderBy(nodes ...query.Sorter) *MilestoneBuilder {
 // For large data sets and specific types of queries, this can be slow, because it will perform
 // the entire query before computing the limit.
 // You cannot limit a query that has embedded arrays.
-func (b *MilestoneBuilder) Limit(maxRowCount int, offset int) *MilestoneBuilder {
+func (b *MilestoneBuilder)  Limit(maxRowCount int, offset int) *MilestoneBuilder {
 	b.builder.Limit(maxRowCount, offset)
 	return b
 }
@@ -415,7 +462,7 @@ func (b *MilestoneBuilder) Limit(maxRowCount int, offset int) *MilestoneBuilder 
 // If columns in related tables are specified, then only those columns will be queried and loaded.
 // Depending on the query, additional columns may automatically be added to the query. In particular, primary key columns
 // will be added in most situations. The exception to this would be in distinct queries, group by queries, or subqueries.
-func (b *MilestoneBuilder) Select(nodes ...query.Node) *MilestoneBuilder {
+func (b *MilestoneBuilder)  Select(nodes... query.Node) *MilestoneBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
@@ -429,62 +476,67 @@ func (b *MilestoneBuilder) Calculation(base query.TableNodeI, alias string, oper
 
 // Distinct removes duplicates from the results of the query.
 // Adding a Select() is usually required.
-func (b *MilestoneBuilder) Distinct() *MilestoneBuilder {
+func (b *MilestoneBuilder)  Distinct() *MilestoneBuilder {
 	b.builder.Distinct()
 	return b
 }
 
 // GroupBy controls how results are grouped when using aggregate functions with Calculation.
-func (b *MilestoneBuilder) GroupBy(nodes ...query.Node) *MilestoneBuilder {
+func (b *MilestoneBuilder)  GroupBy(nodes... query.Node) *MilestoneBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
 // Having does additional filtering on the results of the query after the query is performed.
-func (b *MilestoneBuilder) Having(node query.Node) *MilestoneBuilder {
-	b.builder.Having(node)
-	return b
+func (b *MilestoneBuilder)  Having(node query.Node)  *MilestoneBuilder {
+	 b.builder.Having(node)
+	 return b
 }
 
 // Count terminates a query and returns just the number of items in the result.
 // If you have Select or Calculation columns in the query, it will count NULL results as well.
 // To not count NULL values, use Where in the builder with a NotNull operation.
 // To count distinct combinations of items, call Distinct() on the builder.
-func (b *MilestoneBuilder) Count() (int, error) {
+func (b *MilestoneBuilder)  Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd")
 
-	ctx := b.ctx
+    ctx := b.ctx
 	results, err := database.BuilderQuery(ctx, b.builder)
-	if results == nil || err != nil {
-		return 0, err
-	}
+    if results == nil || err != nil {
+        return 0, err
+    }
 	return results.(int), nil
 }
+
 
 // CountMilestones returns the total number of items in the milestone table.
 func CountMilestones(ctx context.Context) (int, error) {
 	return QueryMilestones(ctx).Count()
 }
 
-// CountMilestonesByProjectId queries the database and returns the number of Milestone objects that
-// have projectId.
+// CountMilestonesByProjectID queries the database and returns the number of Milestone objects that
+// have projectID.
 // doc: type=Milestone
-func CountMilestonesByProjectId(ctx context.Context, projectId []byte) (int, error) {
-	v_projectId := projectId
+func CountMilestonesByProjectID(ctx context.Context, projectID string ) (int, error) {
+    v_projectID := projectID
 	return QueryMilestones(ctx).
-		Where(op.Equal(node.Milestone().ProjectId(), v_projectId)).
-		Count()
+	Where(op.Equal(node.Milestone().ProjectID(), v_projectID)).
+	Count()
 }
 
+
 // unpack recursively transforms data coming from the database into ORM objects.
-func (o *milestoneBase) unpack(m map[string]interface{}, objThis *Milestone) {
+func (o *milestoneBase) unpack (m map[string]interface{}, objThis *Milestone) {
+
+	
+        
 
 	if v, ok := m["id"]; ok && v != nil {
-		if o.id, ok = v.(string); ok {
+    	if o.id, ok = v.(string); ok {
 			o.idIsLoaded = true
 			o.idIsDirty = false
-			o._originalPK = o.id
+            o._originalPK = o.id
 		} else {
 			panic("Wrong type found for id.")
 		}
@@ -494,21 +546,12 @@ func (o *milestoneBase) unpack(m map[string]interface{}, objThis *Milestone) {
 		o.idIsDirty = false
 	}
 
-	if v, ok := m["project_id"]; ok && v != nil {
-		if o.projectId, ok = v.([]byte); ok {
-			o.projectIdIsLoaded = true
-			o.projectIdIsDirty = false
-		} else {
-			panic("Wrong type found for project_id.")
-		}
-	} else {
-		o.projectIdIsLoaded = false
-		o.projectId = []byte{}
-		o.projectIdIsDirty = false
-	}
+    
+	
+        
 
 	if v, ok := m["name"]; ok && v != nil {
-		if o.name, ok = v.(string); ok {
+    	if o.name, ok = v.(string); ok {
 			o.nameIsLoaded = true
 			o.nameIsDirty = false
 		} else {
@@ -520,6 +563,42 @@ func (o *milestoneBase) unpack(m map[string]interface{}, objThis *Milestone) {
 		o.nameIsDirty = false
 	}
 
+    
+	
+        
+
+	if v, ok := m["project_id"]; ok && v != nil {
+    	if o.projectID, ok = v.(string); ok {
+			o.projectIDIsLoaded = true
+			o.projectIDIsDirty = false
+		} else {
+			panic("Wrong type found for project_id.")
+		}
+	} else {
+		o.projectIDIsLoaded = false
+		o.projectID = ""
+		o.projectIDIsDirty = false
+	}
+
+    
+	
+
+	if v, ok := m["Project"]; ok {
+		if project, ok2 := v.(map[string]any); ok2 {
+			o.project = new(Project)
+			o.project.unpack(project, o.project)
+			o.projectIDIsLoaded = true
+			o.projectIDIsDirty = false
+		} else {
+			panic("Wrong type found for Project object.")
+		}
+	} else {
+		o.project = nil
+	}
+
+
+
+
 	if v, ok := m["aliases_"]; ok {
 		o._aliases = v.(map[string]any)
 	}
@@ -527,6 +606,7 @@ func (o *milestoneBase) unpack(m map[string]interface{}, objThis *Milestone) {
 	o._restored = true
 
 }
+
 
 // save will update or insert the object, depending on the state of the object.
 func (o *milestoneBase) save(ctx context.Context) error {
@@ -540,78 +620,99 @@ func (o *milestoneBase) save(ctx context.Context) error {
 // update will update the values in the database, saving any changed values.
 // If the table has auto-generated values, those will be updated automatically.
 func (o *milestoneBase) update(ctx context.Context) error {
-	if !o._restored {
-		panic("cannot update a record that was not originally read from the database.")
-	}
-	if !o.IsDirty() {
-		return nil // nothing to save
-	}
+    if !o._restored {
+        panic ("cannot update a record that was not originally read from the database.")
+    }
+    if !o.IsDirty() {
+        return nil // nothing to save
+    }
 
-	var modifiedFields map[string]interface{}
+    var modifiedFields map[string]interface{}
 
-	d := Database()
-	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-	err := db.ExecuteTransaction(ctx, d, func() error {
+    d := Database()
+    var cancel context.CancelFunc
+    ctx, cancel = context.WithTimeout(ctx, 30 * time.Second)
+    defer cancel()
+    err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
+    // Save loaded Project object to get its new pk and update it here.
+    if o.project != nil {
+        if err := o.project.Save(ctx); err != nil {
+            return err
+        }
+        o.SetProjectID(o.project.PrimaryKey())
+    }
 
-		modifiedFields = getMilestoneUpdateFields(o)
-		if len(modifiedFields) != 0 {
-			var err2 error
 
-			_, err2 = d.Update(ctx, "milestone", "id", o._originalPK, modifiedFields, "", 0)
-			if err2 != nil {
-				return err2
-			}
-		}
+        modifiedFields = getMilestoneUpdateFields(o)
+        if len(modifiedFields) != 0 {
+            var err2 error
 
-		return nil
-	}) // transaction
-	if err != nil {
-		return err
-	}
+            _, err2 = d.Update(ctx, "milestone", "id", o._originalPK, modifiedFields, "", 0)
+            if err2 != nil {
+                return err2
+            }
+        }
+
+
+
+        return nil
+    }) // transaction
+    if err != nil {
+        return err
+    }
 
 	o.resetDirtyStatus()
 	if len(modifiedFields) != 0 {
-		broadcast.Update(ctx, "goradd", "milestone", o._originalPK, anyutil.SortedKeys(modifiedFields)...)
+        broadcast.Update(ctx, "goradd", "milestone", o._originalPK, anyutil.SortedKeys(modifiedFields)...)
 	}
 
 	return nil
 }
 
+
 // insert will insert the object into the database. Related items will be saved.
 func (o *milestoneBase) insert(ctx context.Context) (err error) {
-	var insertFields map[string]interface{}
-	d := Database()
+    var insertFields map[string]interface{}
+    d := Database()
 
-	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
+    var cancel context.CancelFunc
+    ctx, cancel = context.WithTimeout(ctx, 30 * time.Second)
+    defer cancel()
 
-	err = db.ExecuteTransaction(ctx, d, func() error {
-		if !o.projectIdIsLoaded {
-			panic("a value for ProjectId is required, and there is no default value. Call SetProjectId() before inserting the record.")
-		}
-		if !o.nameIsLoaded {
-			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
-		}
-		insertFields = getMilestoneInsertFields(o)
-		var newPK string
-		newPK, err = d.Insert(ctx, "milestone", "id", insertFields)
-		if err != nil {
-			return err
-		}
-		o.id = newPK
-		o._originalPK = newPK
-		o.idIsLoaded = true
+	err = db.WithTransaction(ctx, d, func(context.Context) error {
+    // Save loaded Project object to get its new pk and update it here.
+    if o.project != nil {
+        if err := o.project.Save(ctx); err != nil {
+            return err
+        }
+        o.SetProjectID(o.project.PrimaryKey())
+    }
+    if !o.nameIsLoaded {
+        panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
+    }
+    if !o.projectIDIsLoaded {
+        panic("a value for ProjectID is required, and there is no default value. Call SetProjectID() before inserting the record.")
+    }
+    insertFields = getMilestoneInsertFields(o)
+    var newPK string
+	newPK, err = d.Insert(ctx, "milestone", "id", insertFields)
+    if err != nil {
+        return err
+    }
+	o.id = newPK
+	o._originalPK = newPK
+    o.idIsLoaded = true
 
-		return nil
 
-	}) // transaction
 
-	if err != nil {
-		return
-	}
+
+        return nil
+
+    }) // transaction
+
+    if err != nil {
+        return
+    }
 
 	o.resetDirtyStatus()
 	o._restored = true
@@ -619,18 +720,20 @@ func (o *milestoneBase) insert(ctx context.Context) (err error) {
 	return
 }
 
+
+
 // getUpdateFields returns the database columns that will be sent to the update process.
 // This will include timestamp fields only if some other column has changed.
 func (o *milestoneBase) getUpdateFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.idIsDirty {
-		fields["id"] = o.id
-	}
-	if o.projectIdIsDirty {
-		fields["project_id"] = o.projectId
+        fields["id"] = o.id
 	}
 	if o.nameIsDirty {
-		fields["name"] = o.name
+        fields["name"] = o.name
+	}
+	if o.projectIDIsDirty {
+        fields["project_id"] = o.projectID
 	}
 	return
 }
@@ -643,28 +746,27 @@ func (o *milestoneBase) getUpdateFields() (fields map[string]interface{}) {
 // database driver and updated after the insert.
 func (o *milestoneBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-	if o.idIsDirty {
-		fields["id"] = o.id
-	}
-
-	fields["project_id"] = o.projectId
-
-	fields["name"] = o.name
+    if o.idIsDirty {
+        fields["id"] = o.id
+    }
+ 
+    fields["name"] = o.name
 	return
 }
 
+
 // Delete deletes the record from the database.
 func (o *milestoneBase) Delete(ctx context.Context) (err error) {
-	if o == nil {
-		return // allow deleting of a nil object to be a noop
-	}
+    if o == nil {
+        return // allow deleting of a nil object to be a noop
+    }
 	if !o._restored {
-		panic("Cannot delete a record that has no primary key value.")
+		panic ("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
 	err = d.Delete(ctx, "milestone", "id", o.id, "", 0)
 	if err != nil {
-		return err
+	    return err
 	}
 	broadcast.Delete(ctx, "goradd", "milestone", fmt.Sprint(o.id))
 	return
@@ -676,27 +778,34 @@ func deleteMilestone(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd")
 	err := d.Delete(ctx, "milestone", "id", pk, "", 0)
 	if err != nil {
-		return err
+	    return err
 	}
 	broadcast.Delete(ctx, "goradd", "milestone", fmt.Sprint(pk))
-	return err
+    return err
 }
-
 // resetDirtyStatus resets the dirty status of every field in the object.
 func (o *milestoneBase) resetDirtyStatus() {
 	o.idIsDirty = false
-	o.projectIdIsDirty = false
 	o.nameIsDirty = false
+	o.projectIDIsDirty = false
 
 }
 
 // IsDirty returns true if the object has been changed since it was read from the database or created.
 func (o *milestoneBase) IsDirty() (dirty bool) {
-	dirty = o.idIsDirty ||
-		o.projectIdIsDirty ||
-		o.nameIsDirty
+    dirty = o.idIsDirty ||
+o.nameIsDirty ||
+o.projectIDIsDirty
 
-	return
+    dirty = dirty ||
+        o.project != nil && o.project.IsDirty())
+
+	dirty = dirty ||
+	    
+
+
+
+    return
 }
 
 // Get returns the value of a field in the object based on the field's name.
@@ -704,93 +813,109 @@ func (o *milestoneBase) IsDirty() (dirty bool) {
 // Invalid fields and objects are returned as nil.
 // Get can be used to retrieve a value by using the Identifier of a node.
 func (o *milestoneBase) Get(key string) interface{} {
-	switch key {
-	case "id":
-		if !o.idIsLoaded {
-			return nil
-		}
-		return o.id
-	case "projectId":
-		if !o.projectIdIsLoaded {
-			return nil
-		}
-		return o.projectId
-	case "name":
-		if !o.nameIsLoaded {
-			return nil
-		}
-		return o.name
-	}
-	return nil
+    switch key {
+    case "id":
+        if !o.idIsLoaded {
+            return nil
+        }
+        return o.id
+    case "name":
+        if !o.nameIsLoaded {
+            return nil
+        }
+        return o.name
+    case "projectID":
+        if !o.projectIDIsLoaded {
+            return nil
+        }
+        return o.projectID
+    case "project":
+        return o.Project()
+    }
+    return nil
 }
-
 // MarshalBinary serializes the object into a buffer that is deserializable using UnmarshalBinary.
 // It should be used for transmitting database objects over the wire, or for temporary storage. It does not send
 // a version number, so if the data format changes, its up to you to invalidate the old stored objects.
 // The framework uses this to serialize the object when it is stored in a control.
 func (o *milestoneBase) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-	enc := gob.NewEncoder(buf)
-	if err := o.encodeTo(enc); err != nil {
-		return nil, err
-	}
+    enc := gob.NewEncoder(buf)
+    if err := o.encodeTo(enc); err != nil {
+        return nil, err
+    }
 	return buf.Bytes(), nil
 }
 
 func (o *milestoneBase) encodeTo(enc db.Encoder) error {
 
-	if err := enc.Encode(o.id); err != nil {
-		return fmt.Errorf("error encoding Milestone.id: %w", err)
-	}
-	if err := enc.Encode(o.idIsLoaded); err != nil {
-		return fmt.Errorf("error encoding Milestone.idIsLoaded: %w", err)
-	}
-	if err := enc.Encode(o.idIsDirty); err != nil {
-		return fmt.Errorf("error encoding Milestone.idIsDirty: %w", err)
-	}
+    if err := enc.Encode(o.id); err != nil {
+        return fmt.Errorf("error encoding Milestone.id: %w", err)
+    }
+    if err := enc.Encode(o.idIsLoaded); err != nil {
+        return fmt.Errorf("error encoding Milestone.idIsLoaded: %w", err)
+    }
+    if err := enc.Encode(o.idIsDirty); err != nil {
+        return fmt.Errorf("error encoding Milestone.idIsDirty: %w", err)
+    }
 
-	if err := enc.Encode(o.projectId); err != nil {
-		return fmt.Errorf("error encoding Milestone.projectId: %w", err)
-	}
-	if err := enc.Encode(o.projectIdIsLoaded); err != nil {
-		return fmt.Errorf("error encoding Milestone.projectIdIsLoaded: %w", err)
-	}
-	if err := enc.Encode(o.projectIdIsDirty); err != nil {
-		return fmt.Errorf("error encoding Milestone.projectIdIsDirty: %w", err)
-	}
 
-	if err := enc.Encode(o.name); err != nil {
-		return fmt.Errorf("error encoding Milestone.name: %w", err)
-	}
-	if err := enc.Encode(o.nameIsLoaded); err != nil {
-		return fmt.Errorf("error encoding Milestone.nameIsLoaded: %w", err)
-	}
-	if err := enc.Encode(o.nameIsDirty); err != nil {
-		return fmt.Errorf("error encoding Milestone.nameIsDirty: %w", err)
-	}
+    if err := enc.Encode(o.name); err != nil {
+        return fmt.Errorf("error encoding Milestone.name: %w", err)
+    }
+    if err := enc.Encode(o.nameIsLoaded); err != nil {
+        return fmt.Errorf("error encoding Milestone.nameIsLoaded: %w", err)
+    }
+    if err := enc.Encode(o.nameIsDirty); err != nil {
+        return fmt.Errorf("error encoding Milestone.nameIsDirty: %w", err)
+    }
 
-	if o._aliases == nil {
-		if err := enc.Encode(false); err != nil {
-			return err
-		}
-	} else {
-		if err := enc.Encode(true); err != nil {
-			return err
-		}
-		if err := enc.Encode(o._aliases); err != nil {
-			return fmt.Errorf("error encoding Milestone._aliases: %w", err)
-		}
-	}
 
-	if err := enc.Encode(o._restored); err != nil {
-		return fmt.Errorf("error encoding Milestone._restored: %w", err)
-	}
-	if err := enc.Encode(o._originalPK); err != nil {
-		return fmt.Errorf("error encoding Milestone._originalPK: %w", err)
-	}
-	return nil
+    if err := enc.Encode(o.projectID); err != nil {
+        return fmt.Errorf("error encoding Milestone.projectID: %w", err)
+    }
+    if err := enc.Encode(o.projectIDIsLoaded); err != nil {
+        return fmt.Errorf("error encoding Milestone.projectIDIsLoaded: %w", err)
+    }
+    if err := enc.Encode(o.projectIDIsDirty); err != nil {
+        return fmt.Errorf("error encoding Milestone.projectIDIsDirty: %w", err)
+    }
+
+
+    if o.project == nil {
+        if err := enc.Encode(false); err != nil {
+            return err
+        }
+    } else {
+        if err := enc.Encode(true); err != nil {
+            return err
+        }
+        if err := enc.Encode(o.project); err != nil {
+            return fmt.Errorf("error encoding Milestone.project: %w", err)
+        }
+    }
+
+    if o._aliases == nil {
+        if err := enc.Encode(false); err != nil {
+            return err
+        }
+    } else {
+        if err := enc.Encode(true); err != nil {
+            return err
+        }
+        if err := enc.Encode(o._aliases); err != nil {
+            return fmt.Errorf("error encoding Milestone._aliases: %w", err)
+        }
+    }
+
+    if err := enc.Encode(o._restored); err != nil {
+        return fmt.Errorf("error encoding Milestone._restored: %w", err)
+    }
+    if err := enc.Encode(o._originalPK); err != nil {
+        return fmt.Errorf("error encoding Milestone._originalPK: %w", err)
+    }
+    return nil
 }
-
 // UnmarshalBinary converts a structure that was created with MarshalBinary into a Milestone object.
 func (o *milestoneBase) UnmarshalBinary(data []byte) (err error) {
 	buf := bytes.NewReader(data)
@@ -802,86 +927,101 @@ func (o *milestoneBase) decodeFrom(dec db.Decoder) (err error) {
 	var isPtr bool
 
 	_ = isPtr
-	if err = dec.Decode(&o.id); err != nil {
-		return fmt.Errorf("error decoding Milestone.id: %w", err)
-	}
-	if err = dec.Decode(&o.idIsLoaded); err != nil {
-		return fmt.Errorf("error decoding Milestone.idIsLoaded: %w", err)
-	}
-	if err = dec.Decode(&o.idIsDirty); err != nil {
-		return fmt.Errorf("error decoding Milestone.idIsDirty: %w", err)
-	}
+    if err = dec.Decode(&o.id); err != nil {
+        return fmt.Errorf("error decoding Milestone.id: %w", err)
+    }
+    if err = dec.Decode(&o.idIsLoaded); err != nil {
+        return fmt.Errorf("error decoding Milestone.idIsLoaded: %w", err)
+    }
+    if err = dec.Decode(&o.idIsDirty); err != nil {
+        return fmt.Errorf("error decoding Milestone.idIsDirty: %w", err)
+    }
 
-	if err = dec.Decode(&o.projectId); err != nil {
-		return fmt.Errorf("error decoding Milestone.projectId: %w", err)
-	}
-	if err = dec.Decode(&o.projectIdIsLoaded); err != nil {
-		return fmt.Errorf("error decoding Milestone.projectIdIsLoaded: %w", err)
-	}
-	if err = dec.Decode(&o.projectIdIsDirty); err != nil {
-		return fmt.Errorf("error decoding Milestone.projectIdIsDirty: %w", err)
-	}
+    if err = dec.Decode(&o.name); err != nil {
+        return fmt.Errorf("error decoding Milestone.name: %w", err)
+    }
+    if err = dec.Decode(&o.nameIsLoaded); err != nil {
+        return fmt.Errorf("error decoding Milestone.nameIsLoaded: %w", err)
+    }
+    if err = dec.Decode(&o.nameIsDirty); err != nil {
+        return fmt.Errorf("error decoding Milestone.nameIsDirty: %w", err)
+    }
 
-	if err = dec.Decode(&o.name); err != nil {
-		return fmt.Errorf("error decoding Milestone.name: %w", err)
-	}
-	if err = dec.Decode(&o.nameIsLoaded); err != nil {
-		return fmt.Errorf("error decoding Milestone.nameIsLoaded: %w", err)
-	}
-	if err = dec.Decode(&o.nameIsDirty); err != nil {
-		return fmt.Errorf("error decoding Milestone.nameIsDirty: %w", err)
-	}
+    if err = dec.Decode(&o.projectID); err != nil {
+        return fmt.Errorf("error decoding Milestone.projectID: %w", err)
+    }
+    if err = dec.Decode(&o.projectIDIsLoaded); err != nil {
+        return fmt.Errorf("error decoding Milestone.projectIDIsLoaded: %w", err)
+    }
+    if err = dec.Decode(&o.projectIDIsDirty); err != nil {
+        return fmt.Errorf("error decoding Milestone.projectIDIsDirty: %w", err)
+    }
 
-	if err = dec.Decode(&isPtr); err != nil {
-		return fmt.Errorf("error decoding Milestone._aliases isPtr: %w", err)
-	}
-	if isPtr {
-		if err = dec.Decode(&o._aliases); err != nil {
-			return fmt.Errorf("error decoding Milestone._aliases: %w", err)
-		}
-	}
 
-	if err = dec.Decode(&o._restored); err != nil {
-		return fmt.Errorf("error decoding Milestone._restored: %w", err)
-	}
-	if err = dec.Decode(&o._originalPK); err != nil {
-		return fmt.Errorf("error decoding Milestone._originalPK: %w", err)
-	}
+    if err = dec.Decode(&isPtr); err != nil {
+        return fmt.Errorf("error decoding Milestone.project isPtr: %w", err)
+    }
+    if isPtr {
+        if err = dec.Decode(&o.project); err != nil {
+            return fmt.Errorf("error decoding Milestone.project: %w", err)
+        }
+    }
+    if err = dec.Decode(&isPtr); err != nil {
+        return fmt.Errorf("error decoding Milestone._aliases isPtr: %w", err)
+    }
+    if isPtr {
+        if err = dec.Decode(&o._aliases); err != nil {
+            return fmt.Errorf("error decoding Milestone._aliases: %w", err)
+        }
+    }
+
+    if err = dec.Decode(&o._restored); err != nil {
+        return fmt.Errorf("error decoding Milestone._restored: %w", err)
+    }
+    if err = dec.Decode(&o._originalPK); err != nil {
+        return fmt.Errorf("error decoding Milestone._originalPK: %w", err)
+    }
 	return
 }
-
 // MarshalJSON serializes the object into a JSON object.
 // Only valid data will be serialized, meaning, you can control what gets serialized by using Select to
 // select only the fields you want when you query for the object. Another way to control the output
 // is to call MarshalStringMap, modify the map, then encode the map.
 func (o *milestoneBase) MarshalJSON() (data []byte, err error) {
-	v := o.MarshalStringMap()
-	return json.Marshal(v)
+    v := o.MarshalStringMap()
+    return json.Marshal(v)
 }
 
 // MarshalStringMap serializes the object into a string map of interfaces.
 // Only valid data will be serialized, meaning, you can control what gets serialized by using Select to
 // select only the fields you want when you query for the object. The keys are the same as the json keys.
-func (o *milestoneBase) MarshalStringMap() map[string]interface{} {
-	v := make(map[string]interface{})
+func (o *milestoneBase) MarshalStringMap() (map[string]interface{}) {
+    v := make(map[string]interface{})
 
-	if o.idIsLoaded {
-		v["id"] = o.id
-	}
+    if o.idIsLoaded {
+        v["id"] = o.id
+    }
 
-	if o.projectIdIsLoaded {
-		v["projectId"] = o.projectId
-	}
 
-	if o.nameIsLoaded {
-		v["name"] = o.name
-	}
+    if o.nameIsLoaded {
+        v["name"] = o.name
+    }
 
-	for _k, _v := range o._aliases {
-		v[_k] = _v
-	}
-	return v
+
+    if o.projectIDIsLoaded {
+        v["projectID"] = o.projectID
+    }
+
+
+    if val := o.project; val != nil {
+        v["project"] = val.MarshalStringMap()
+    }
+    for _k,_v := range o._aliases {
+        v[_k] = _v
+    }
+    return v
 }
+
 
 // UnmarshalJSON unmarshalls the given json data into the Milestone. The Milestone can be a
 // newly created object, or one loaded from the database.
@@ -892,11 +1032,9 @@ func (o *milestoneBase) MarshalStringMap() map[string]interface{} {
 // Unmarshalling of sub-objects, as in objects linked via foreign keys, is not currently supported.
 //
 // The fields it expects are:
-//
-//	"id" - string
-//	"projectId" - []byte
-//	"name" - string
-func (o *milestoneBase) UnmarshalJSON(data []byte) (err error) {
+//   "id" - string
+//   "name" - string
+func (o *milestoneBase) UnmarshalJSON (data []byte) (err error) {
 	var v map[string]interface{}
 	if len(data) == 0 {
 		return
@@ -913,68 +1051,64 @@ func (o *milestoneBase) UnmarshalJSON(data []byte) (err error) {
 //
 // Override this in Milestone to modify the json before sending it here.
 func (o *milestoneBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
-	for k, v := range m {
-		switch k {
+    for k,v := range m {
+        switch k {
 
-		case "id":
-			{
-				if v == nil {
-					return fmt.Errorf("field %s cannot be null", k)
-				}
+        case "id":
+        {
+            if v == nil {
+                return fmt.Errorf("field %s cannot be null", k)
+            }
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetId(s)
-				}
-			}
-		case "projectId":
-			{
-				if v == nil {
-					return fmt.Errorf("field %s cannot be null", k)
-				}
 
-				switch d := v.(type) {
-				case string:
-					{
-						// A base 64 encoded string
-						if b, err2 := base64.StdEncoding.DecodeString(d); err2 == nil {
-							o.SetProjectId(b)
-						} else {
-							return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
-						}
-					}
-				case []interface{}:
-					{
-						// An array of byte values. Unfortunately, these come through as float64s, and so need to be converted
-						b := make([]byte, len(d), len(d))
-						for i, b1 := range d {
-							if f, ok := b1.(float64); !ok {
-								return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
-							} else {
-								b[i] = uint8(f)
-							}
-						}
-						o.SetProjectId(b)
-					}
-				default:
-					return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
-				}
+            if s,ok := v.(string); !ok {
+                return fmt.Errorf("json field %s must be a string", k)
+            } else {
+                o.SetID(s)
+            }
+            }
+        case "name":
+        {
+            if v == nil {
+                return fmt.Errorf("field %s cannot be null", k)
+            }
 
-			}
-		case "name":
-			{
-				if v == nil {
-					return fmt.Errorf("field %s cannot be null", k)
-				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetName(s)
-				}
-			}
-		}
-	}
-	return
+            if s,ok := v.(string); !ok {
+                return fmt.Errorf("json field %s must be a string", k)
+            } else {
+                o.SetName(s)
+            }
+            }
+        case "projectID":
+        {
+            if v == nil {
+                return fmt.Errorf("field %s cannot be null", k)
+            }
+
+            if _,ok := m["project"]; ok {
+                continue // importing the foreign key will remove the object
+            }
+
+            if s,ok := v.(string); !ok {
+                return fmt.Errorf("json field %s must be a string", k)
+            } else {
+                o.SetProjectID(s)
+            }
+            }
+
+            case "project":
+                v2 := NewProject()
+                m2,ok := v.(map[string]any)
+                if !ok {
+                    return fmt.Errorf("json field %s must be a map", k)
+                }
+                err = v2.UnmarshalStringMap(m2)
+                if err != nil {return}
+                o.SetProject(v2)
+
+        }
+    }
+    return
 }
+

@@ -14,7 +14,7 @@ func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) (err error
     defer cancel()
 
 {{if}}
-	err = db.ExecuteTransaction(ctx, d, func() error {
+	err = db.WithTransaction(ctx, d, func(context.Context) error {
 {{: update_ref.tmpl }}
 {{for _,col := range table.SettableColumns() }}
 {{if !col.IsAutoPK() && !col.IsNullable}}

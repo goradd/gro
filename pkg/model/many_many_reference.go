@@ -13,14 +13,10 @@ import (
 type ManyManyReference struct {
 	// TableQueryName is the database table that links the two associated tables together.
 	TableQueryName string
-	// SourceColumnName is the database name for the column that points at the source table's primary key.
-	SourceColumnName string
-	// SourceColumnReceiverType is the query.ReceiverType of the source column.
-	SourceColumnReceiverType query.ReceiverType
-	// DestColumnName is the database column in the association table that points at the referenced table's primary key.
-	DestColumnName string
-	// DestColumnReceiverType is the query.ReceiverType of the destination column.
-	DestColumnReceiverType query.ReceiverType
+	// ForeignKeyName is the database column in the association table that points at the referenced table's primary key.
+	ForeignKeyName string
+	// ForeignKeyReceiverType is the query.ReceiverType of the destination column.
+	ForeignKeyReceiverType query.ReceiverType
 	// ReferencedTable is the table being linked.
 	ReferencedTable *Table
 
@@ -30,10 +26,10 @@ type ManyManyReference struct {
 	LabelPlural string
 	// Identifier is the name used to refer to an object on the other end of the reference.
 	// It is not the same as the object type. For example TeamMember would refer to a Person type.
-	// This is derived from the DestColumnName but can be overridden.
+	// This is derived from the ForeignKeyName but can be overridden.
 	Identifier string
 	// IdentifierPlural is the name used to refer to the group of objects on the other end of the reference.
-	// For example, TeamMembers. This is derived from the DestColumnName but can be overridden by
+	// For example, TeamMembers. This is derived from the ForeignKeyName but can be overridden by
 	// a comment in the table.
 	IdentifierPlural string
 	// Field is the go identifier that will be used in the Table struct and parameters.
@@ -79,31 +75,31 @@ func (m *ManyManyReference) PkField() string {
 	return m.Field + "Pks"
 }
 
-func makeManyManyRef(
-	assnTable string,
-	column1, column2 string,
-	t1, t2 *Table,
-	label, labels, id, ids string,
-) *ManyManyReference {
-	pk1 := t1.PrimaryKeyColumn()
-	type1 := pk1.ReceiverType
+func (m *ManyManyReference) SourceColumnName() string {
+	return m.MM.ForeignKeyName
+}
 
-	pk2 := t2.PrimaryKeyColumn()
-	type2 := pk2.ReceiverType
+func (m *ManyManyReference) SourceColumnReceiverType() query.ReceiverType {
+	return m.MM.ForeignKeyReceiverType
+}
+
+func (m *ManyManyReference) SourcePrimaryKeyName() string {
+	return m.MM.ReferencedTable.PrimaryKeyColumn().QueryName
+}
+
+func makeManyManyRef(assnTable, fk string, refTable *Table, label, labels, id, ids string) *ManyManyReference {
+	pk := refTable.PrimaryKeyColumn()
 
 	ref := ManyManyReference{
-		TableQueryName:           assnTable,
-		SourceColumnName:         column1,
-		SourceColumnReceiverType: type1,
-		DestColumnName:           column2,
-		DestColumnReceiverType:   type2,
-		ReferencedTable:          t2,
-		Label:                    label,
-		LabelPlural:              labels,
-		Identifier:               id,
-		IdentifierPlural:         ids,
-		Field:                    strings.Decap(ids),
+		TableQueryName:         assnTable,
+		ForeignKeyName:         fk,
+		ForeignKeyReceiverType: pk.ReceiverType,
+		ReferencedTable:        refTable,
+		Label:                  label,
+		LabelPlural:            labels,
+		Identifier:             id,
+		IdentifierPlural:       ids,
+		Field:                  strings.Decap(ids),
 	}
-	t1.ManyManyReferences = append(t1.ManyManyReferences, &ref)
 	return &ref
 }

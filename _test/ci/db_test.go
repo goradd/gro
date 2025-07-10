@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/goradd/orm/_test/config"
 	"github.com/goradd/orm/_test/gen/orm/goradd"
-	"github.com/goradd/orm/pkg/db"
 	"os"
 	"testing"
 )
@@ -24,7 +23,7 @@ func setup(m *testing.M) {
 	fmt.Println("Setting up tests...")
 
 	config.InitDB()
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	goradd.ClearAll(ctx)
 	loadData(ctx)
 }

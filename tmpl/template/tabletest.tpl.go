@@ -222,7 +222,7 @@ func Test`); err != nil {
 
 	if !hasRequiredUnknown {
 
-		if _, err = io.WriteString(_w, `    ctx := db.NewContext(nil)
+		if _, err = io.WriteString(_w, `    ctx := context.Background()
     obj := createMinimalSample`); err != nil {
 			return
 		}

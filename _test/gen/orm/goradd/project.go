@@ -33,7 +33,11 @@ func (o *Project) String() string {
 	if o == nil {
 		return ""
 	}
-	return fmt.Sprintf("Project %v", o.PrimaryKey())
+	var pk string
+
+	pk += fmt.Sprintf(" %v", o.ID())
+
+	return "Project" + pk
 }
 
 // Key returns a unique key for the object, among a list of similar objects.

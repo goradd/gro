@@ -3,6 +3,7 @@ package schema
 import (
 	"fmt"
 	strings2 "github.com/goradd/strings"
+	"github.com/kenshaw/snaker"
 	"strings"
 	"time"
 )
@@ -134,10 +135,9 @@ func (t *Table) Clean(db *Database) error {
 
 	var hasPk bool
 	for _, m := range t.Indexes {
-		if m.IndexLevel == IndexLevelPrimaryKey {
-			if hasPk {
-				return fmt.Errorf("table %s cannot have multiple primary keys", t.QualifiedName())
-			}
+		if m.IndexLevel == IndexLevelPrimaryKey &&
+			len(m.Columns) > 0 {
+
 			hasPk = true
 		}
 	}
@@ -149,7 +149,7 @@ func (t *Table) Clean(db *Database) error {
 
 func (t *Table) fillDefaults(db *Database) {
 	if t.Identifier == "" {
-		t.Identifier = strings2.SnakeToCamel(t.Name)
+		t.Identifier = snaker.SnakeToCamelIdentifier(t.Name)
 	}
 	if t.IdentifierPlural == "" {
 		t.IdentifierPlural = strings2.Plural(t.Identifier)

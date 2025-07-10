@@ -105,7 +105,7 @@ func teardown() {
 // import the entire database from the buffer. It will then do some sanity checks.
 func TestDbJson(t *testing.T) {
 return
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
 
     // get single comparison objects and data sizes
     // database must be pre-populated for test
@@ -132,15 +132,42 @@ return
 			return
 		}
 
-		if _, err = io.WriteString(_w, `(ctx).OrderBy(node.`); err != nil {
+		if _, err = io.WriteString(_w, `(ctx).
+    OrderBy(`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.Identifier); err != nil {
-			return
-		}
+		for _i, _j := range table.PrimaryKeyColumns() {
+			_ = _j
 
-		if _, err = io.WriteString(_w, `().PrimaryKey()).Get() // gets first record
+			if _, err = io.WriteString(_w, `node.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, _j.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `()`); err != nil {
+				return
+			}
+
+			if _i < len(table.PrimaryKeyColumns())-1 {
+				if _, err = io.WriteString(_w, ", "); err != nil {
+					return
+				}
+			}
+		}
+		if _, err = io.WriteString(_w, `).
+    Get() // gets first record
 `); err != nil {
 			return
 		}
@@ -232,15 +259,42 @@ return
 				return
 			}
 
-			if _, err = io.WriteString(_w, `(ctx).OrderBy(node.`); err != nil {
+			if _, err = io.WriteString(_w, `(ctx).
+        OrderBy(`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, table.Identifier); err != nil {
-				return
-			}
+			for _i, _j := range table.PrimaryKeyColumns() {
+				_ = _j
 
-			if _, err = io.WriteString(_w, `().PrimaryKey()).Get()
+				if _, err = io.WriteString(_w, `node.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, table.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `().`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, _j.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `()`); err != nil {
+					return
+				}
+
+				if _i < len(table.PrimaryKeyColumns())-1 {
+					if _, err = io.WriteString(_w, ", "); err != nil {
+						return
+					}
+				}
+			}
+			if _, err = io.WriteString(_w, `).
+        Get()
         assertEqualFields`); err != nil {
 				return
 			}

@@ -32,10 +32,6 @@ type projectBase struct {
 	statusEnum ProjectStatus
 	statusEnumIsLoaded bool
 	statusEnumIsDirty bool
-	managerId []byte
-	managerIdIsNull bool
-	managerIdIsLoaded bool
-	managerIdIsDirty bool
 	name string
 	nameIsLoaded bool
 	nameIsDirty bool
@@ -59,18 +55,24 @@ type projectBase struct {
 	spentIsNull bool
 	spentIsLoaded bool
 	spentIsDirty bool
-	parentProjectId []byte
-	parentProjectIdIsNull bool
-	parentProjectIdIsLoaded bool
-	parentProjectIdIsDirty bool
+	managerID string
+	managerIDIsLoaded bool
+	managerIDIsDirty bool
+	parentID string
+	parentIDIsLoaded bool
+	parentIDIsDirty bool
+
+    // References
+	manager *Person
+	parent *Project
+
+    // Reverse references
+    children maps.SliceMap[string, *Project]  // Objects in the order they were queried
+    childrenIsDirty bool
+    projectMilestones maps.SliceMap[string, *Milestone]  // Objects in the order they were queried
+    projectMilestonesIsDirty bool
 
 // Many-Many references
-    children maps.SliceMap[string, *Project]
-    childrenPks []string                // Primary keys to associate at Save time
-    childrenIsDirty bool
-    parents maps.SliceMap[string, *Project]
-    parentsPks []string                // Primary keys to associate at Save time
-    parentsIsDirty bool
     teamMembers maps.SliceMap[string, *Person]
     teamMembersPks []string                // Primary keys to associate at Save time
     teamMembersIsDirty bool
@@ -88,28 +90,32 @@ type projectBase struct {
 // IDs used to access the Project object fields by name using the Get function.
 // doc: type=Project
 const  (
-    ProjectIdField = `id`
+    ProjectIDField = `id`
     ProjectNumField = `num`
     ProjectStatusEnumField = `statusEnum`
-    ProjectManagerIdField = `managerId`
     ProjectNameField = `name`
     ProjectDescriptionField = `description`
     ProjectStartDateField = `startDate`
     ProjectEndDateField = `endDate`
     ProjectBudgetField = `budget`
     ProjectSpentField = `spent`
-    ProjectParentProjectIdField = `parentProjectId`
+    ProjectManagerIDField = `managerID`
+    ProjectManagerField = `manager`
+    ProjectParentIDField = `parentID`
+    ProjectParentField = `parent`
     ProjectChildrenField = `children`
-    ProjectParentsField = `parents`
+    ProjectProjectMilestonesField = `projectMilestones`
     ProjectTeamMembersField = `teamMembers`
 )
 
-    const ProjectIdMaxLength = 32 // The number of runes the column can hold
+    const ProjectIDMaxLength = 32 // The number of runes the column can hold
     const ProjectNumMax = 2147483647
     const ProjectNumMin = -2147483648
     const ProjectNameMaxLength = 100 // The number of runes the column can hold
     const ProjectBudgetMaxLength = 14 // The number of runes the column can hold
     const ProjectSpentMaxLength = 14 // The number of runes the column can hold
+    const ProjectManagerIDMaxLength = 32 // The number of runes the column can hold
+    const ProjectParentIDMaxLength = 32 // The number of runes the column can hold
 
 // Initialize or re-initialize a Project database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
@@ -125,11 +131,6 @@ func (o *projectBase) Initialize() {
 	o.statusEnum = 0
 	o.statusEnumIsLoaded = false
 	o.statusEnumIsDirty = false
-
-	o.managerId = []byte{}
-	o.managerIdIsNull = true
-	o.managerIdIsLoaded = false
-	o.managerIdIsDirty = false
 
 	o.name = ""
 	o.nameIsLoaded = false
@@ -160,38 +161,32 @@ func (o *projectBase) Initialize() {
 	o.spentIsLoaded = false
 	o.spentIsDirty = false
 
-	o.parentProjectId = []byte{}
-	o.parentProjectIdIsNull = true
-	o.parentProjectIdIsLoaded = false
-	o.parentProjectIdIsDirty = false
+	o.managerID = ""
+	o.managerIDIsLoaded = false
+	o.managerIDIsDirty = false
 
+	o.parentID = ""
+	o.parentIDIsLoaded = false
+	o.parentIDIsDirty = false
+
+
+// Reverse reference objects.
+    
+        o.children.Clear()
+        o.childrenIsDirty = false
+	
+    
+        o.projectMilestones.Clear()
+        o.projectMilestonesIsDirty = false
+	
 
 // Many-Many reference objects.
-    o.children.Clear()
-    o.childrenPks = nil
-    o.childrenIsDirty = false
-    o.parents.Clear()
-    o.parentsPks = nil
-    o.parentsIsDirty = false
     o.teamMembers.Clear()
     o.teamMembersPks = nil
     o.teamMembersIsDirty = false
 
 	o._aliases = nil
 	o._restored = false
-}
-
-
-
-// PrimaryKey returns the current value of the primary key.
-func (o *projectBase) PrimaryKey() string {
-	return o.id
-}
-
-// OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
-// read from the database.
-func (o *projectBase) OriginalPrimaryKey() string {
-	return o._originalPK
 }
 
 
@@ -206,16 +201,13 @@ func (o *projectBase) OriginalPrimaryKey() string {
 func (o *projectBase) Copy() (newObject *Project) {
     newObject = NewProject()
     if o.idIsLoaded {
-        newObject.SetId(o.id)
+        newObject.SetID(o.id)
     }
     if o.numIsLoaded {
         newObject.SetNum(o.num)
     }
     if o.statusEnumIsLoaded {
         newObject.SetStatusEnum(o.statusEnum)
-    }
-    if o.managerIdIsLoaded {
-        newObject.SetManagerId(o.managerId)
     }
     if o.nameIsLoaded {
         newObject.SetName(o.name)
@@ -235,15 +227,25 @@ func (o *projectBase) Copy() (newObject *Project) {
     if o.spentIsLoaded {
         newObject.SetSpent(o.spent)
     }
-    if o.parentProjectIdIsLoaded {
-        newObject.SetParentProjectId(o.parentProjectId)
+    if o.managerIDIsLoaded {
+        newObject.SetManagerID(o.managerID)
+    }
+    if o.parentIDIsLoaded {
+        newObject.SetParentID(o.parentID)
     }
     return
 }
+
+// OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
+// read from the database.
+func (o *projectBase) OriginalPrimaryKey() string {
+	return o._originalPK
+}
+
 // PrimaryKey returns the value of the primary key of the record.
 func (o *projectBase) PrimaryKey() string {
 	if o._restored && !o.idIsLoaded {
-		panic ("Id was not selected in the last query and has not been set, and so PrimaryKey is not valid")
+		panic ("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
 	}
 	return o.id
 }
@@ -258,26 +260,31 @@ func (o *projectBase) SetPrimaryKey(v string) {
     if o._restored {
         panic ("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
     }
-    if utf8.RuneCountInString(v) > ProjectIdMaxLength {
-        panic("attempted to set Project.Id to a value larger than its maximum length in runes")
+    if utf8.RuneCountInString(v) > ProjectIDMaxLength {
+        panic("attempted to set Project.ID to a value larger than its maximum length in runes")
     }
 	o.idIsLoaded = true
 	o.idIsDirty = true
 	o.id = v
 }
 
-// Id returns the value of Id.
-func (o *projectBase) Id() string {
+// ID returns the value of ID.
+func (o *projectBase) ID() string {
 	return o.PrimaryKey()
 }
 
-// SetId sets the value of Id in the object, to be saved later in the database using the Save() function.
-// Normally you will not need to call this function, since the Id value is automatically generated by the
+// IDIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *projectBase) IDIsLoaded() bool {
+	return o.idIsLoaded
+}
+
+// SetID sets the value of ID in the object, to be saved later in the database using the Save() function.
+// Normally you will not need to call this function, since the ID value is automatically generated by the
 // database driver. Exceptions might include importing data to a new database, or correcting primary key conflicts when
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *projectBase) SetId(v string) {
+func (o *projectBase) SetID(v string) {
     o.SetPrimaryKey(v)
 }
 
@@ -336,59 +343,6 @@ func (o *projectBase) SetStatusEnum(v ProjectStatus) {
 	o.statusEnumIsDirty = true
 }
 
-// ManagerId returns the value of ManagerId.
-func (o *projectBase) ManagerId() []byte {
-	if o._restored && !o.managerIdIsLoaded {
-		panic ("ManagerId was not selected in the last query and has not been set, and so is not valid")
-	}
-	return o.managerId
-}
-
-// ManagerIdIsLoaded returns true if the value was loaded from the database or has been set.
-func (o *projectBase) ManagerIdIsLoaded() bool {
-	return o.managerIdIsLoaded
-}
-
-
-// ManagerIdIsNull returns true if the related database value is null.
-func (o *projectBase) ManagerIdIsNull() bool {
-	return o.managerIdIsNull
-}
-
-// SetManagerId copies the value of ManagerId, to be saved later in the database using the Save() function.
-// Pass nil to set manager_id to NULL in the database.
-func (o *projectBase) SetManagerId(v []byte) {
-	if v == nil {
-		o.SetManagerIdToNull()
-   		return
-    }
-
-
-	if o._restored &&
-	    o.managerIdIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
-		!o.managerIdIsNull && // if the db value is null, force a set of value
-        bytes.Equal(o.managerId, v) {
-        // no change
-        return
-    }
-
-	o.managerIdIsLoaded = true
-	o.managerId = slices.Clone(v)
-    o.managerIdIsNull = false
-	o.managerIdIsDirty = true
-}
-
-// SetManagerIdToNull() will set the manager_id value in the database to NULL.
-// ManagerId() will return the column's default value after this.
-func (o *projectBase) SetManagerIdToNull() {
-	if !o.managerIdIsLoaded || !o.managerIdIsNull {
-        // If we know it is null in the database, don't save it
-		o.managerIdIsDirty = true
-	}
-    o.managerIdIsLoaded = true
-    o.managerIdIsNull = true
-    o.managerId = []byte{}
-}
 // Name returns the value of Name.
 func (o *projectBase) Name() string {
 	if o._restored && !o.nameIsLoaded {
@@ -665,59 +619,144 @@ func (o *projectBase) SetSpentToNull() {
     o.spentIsNull = true
     o.spent = ""
 }
-// ParentProjectId returns the value of ParentProjectId.
-func (o *projectBase) ParentProjectId() []byte {
-	if o._restored && !o.parentProjectIdIsLoaded {
-		panic ("ParentProjectId was not selected in the last query and has not been set, and so is not valid")
+// ManagerID returns the value of ManagerID.
+func (o *projectBase) ManagerID() string {
+	if o._restored && !o.managerIDIsLoaded {
+		panic ("ManagerID was not selected in the last query and has not been set, and so is not valid")
 	}
-	return o.parentProjectId
+	return o.managerID
 }
 
-// ParentProjectIdIsLoaded returns true if the value was loaded from the database or has been set.
-func (o *projectBase) ParentProjectIdIsLoaded() bool {
-	return o.parentProjectIdIsLoaded
+// ManagerIDIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *projectBase) ManagerIDIsLoaded() bool {
+	return o.managerIDIsLoaded
 }
 
-
-// ParentProjectIdIsNull returns true if the related database value is null.
-func (o *projectBase) ParentProjectIdIsNull() bool {
-	return o.parentProjectIdIsNull
-}
-
-// SetParentProjectId copies the value of ParentProjectId, to be saved later in the database using the Save() function.
-// Pass nil to set parent_project_id to NULL in the database.
-func (o *projectBase) SetParentProjectId(v []byte) {
-	if v == nil {
-		o.SetParentProjectIdToNull()
-   		return
+// SetManagerID sets the value of ManagerID in the object, to be saved later in the database using the Save() function.
+func (o *projectBase) SetManagerID(v string) {
+    if utf8.RuneCountInString(v) > ProjectManagerIDMaxLength {
+        panic("attempted to set Project.ManagerID to a value larger than its maximum length in runes")
     }
-
-
 	if o._restored &&
-	    o.parentProjectIdIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
-		!o.parentProjectIdIsNull && // if the db value is null, force a set of value
-        bytes.Equal(o.parentProjectId, v) {
+	    o.managerIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+        o.managerID == v {
         // no change
         return
     }
 
-	o.parentProjectIdIsLoaded = true
-	o.parentProjectId = slices.Clone(v)
-    o.parentProjectIdIsNull = false
-	o.parentProjectIdIsDirty = true
+	o.managerIDIsLoaded = true
+	o.managerID = v
+	o.managerIDIsDirty = true
+	if o.manager != nil &&
+	        o.managerID != o.manager.PrimaryKey() {
+	    o.manager = nil
+	}
 }
 
-// SetParentProjectIdToNull() will set the parent_project_id value in the database to NULL.
-// ParentProjectId() will return the column's default value after this.
-func (o *projectBase) SetParentProjectIdToNull() {
-	if !o.parentProjectIdIsLoaded || !o.parentProjectIdIsNull {
-        // If we know it is null in the database, don't save it
-		o.parentProjectIdIsDirty = true
+// ParentID returns the value of ParentID.
+func (o *projectBase) ParentID() string {
+	if o._restored && !o.parentIDIsLoaded {
+		panic ("ParentID was not selected in the last query and has not been set, and so is not valid")
 	}
-    o.parentProjectIdIsLoaded = true
-    o.parentProjectIdIsNull = true
-    o.parentProjectId = []byte{}
+	return o.parentID
 }
+
+// ParentIDIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *projectBase) ParentIDIsLoaded() bool {
+	return o.parentIDIsLoaded
+}
+
+// SetParentID sets the value of ParentID in the object, to be saved later in the database using the Save() function.
+func (o *projectBase) SetParentID(v string) {
+    if utf8.RuneCountInString(v) > ProjectParentIDMaxLength {
+        panic("attempted to set Project.ParentID to a value larger than its maximum length in runes")
+    }
+	if o._restored &&
+	    o.parentIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+        o.parentID == v {
+        // no change
+        return
+    }
+
+	o.parentIDIsLoaded = true
+	o.parentID = v
+	o.parentIDIsDirty = true
+	if o.parent != nil &&
+	        o.parentID != o.parent.PrimaryKey() {
+	    o.parent = nil
+	}
+}
+
+
+// Manager returns the current value of the loaded Manager, and nil if its not loaded.
+func (o *projectBase) Manager() *Person {
+	return o.manager
+}
+
+// LoadManager returns the related Manager. If it is not already loaded,
+// it will attempt to load it, provided the ManagerID column has been loaded first.
+func (o *projectBase) LoadManager(ctx context.Context) (*Person, error) {
+	var err error
+
+	if o.manager == nil {
+	    if !o.managerIDIsLoaded  {
+    		panic("ManagerID must be selected in the previous query")
+    	}
+		// Load and cache
+		o.manager, err = LoadPerson(ctx, o.managerID)
+    }
+	return o.manager, err
+}
+
+// SetManager sets the value of Manager in the object, to be saved later using the Save() function.
+func (o *projectBase) SetManager(manager *Person)  {
+	if manager == nil {
+		panic("Cannot set Manager to a nil value since ManagerID is not nullable.")
+	} else {
+		o.manager = manager
+		o.managerIDIsLoaded = true
+		if o.managerID != manager.PrimaryKey() {
+			o.managerID = manager.PrimaryKey()
+			o.managerIDIsDirty = true
+		}
+	}
+}
+
+
+// Parent returns the current value of the loaded Parent, and nil if its not loaded.
+func (o *projectBase) Parent() *Project {
+	return o.parent
+}
+
+// LoadParent returns the related Parent. If it is not already loaded,
+// it will attempt to load it, provided the ParentID column has been loaded first.
+func (o *projectBase) LoadParent(ctx context.Context) (*Project, error) {
+	var err error
+
+	if o.parent == nil {
+	    if !o.parentIDIsLoaded  {
+    		panic("ParentID must be selected in the previous query")
+    	}
+		// Load and cache
+		o.parent, err = LoadProject(ctx, o.parentID)
+    }
+	return o.parent, err
+}
+
+// SetParent sets the value of Parent in the object, to be saved later using the Save() function.
+func (o *projectBase) SetParent(parent *Project)  {
+	if parent == nil {
+		panic("Cannot set Parent to a nil value since ParentID is not nullable.")
+	} else {
+		o.parent = parent
+		o.parentIDIsLoaded = true
+		if o.parentID != parent.PrimaryKey() {
+			o.parentID = parent.PrimaryKey()
+			o.parentIDIsDirty = true
+		}
+	}
+}
+
 
 // GetAlias returns the value for the Alias node aliasKey that was returned in the most
 // recent query.
@@ -737,167 +776,9 @@ func (o *projectBase) IsNew() bool {
 
     
 
-// Child returns a single Project object by primary key pk, if one was loaded.
+// TeamMember returns a single Person object by primary key pk, if one was loaded.
 // Otherwise, it will return nil.
-func (o *projectBase) Child(pk string) *Project {
-	return o.children.Get(pk)
-}
-
-// Children returns a slice of Project objects if loaded. If not loaded, will return nil.
-// The values will be ordered by the latest query or in the order they were assigned.
-func (o *projectBase) Children() []*Project {
-	return o.children.Values()
-}
-
-// SetChildren sets the associated objects to the given slice of Project objects
-// in preparation for saving. The associations will not be updated until Save() is called.
-// Objects that are modified or are new will be saved before completing the association.
-func (o *projectBase) SetChildren(objs ...*Project) {
-    o.children.Clear()
-	o.childrenIsDirty = true
-	o.childrenPks = nil
-    for _,obj := range objs {
-        o.children.Set(obj.PrimaryKey(), obj)
-    }
-}
-
-// SetChildrenById prepares to associate Project objects by
-// the primary keys in ids.
-// If objects are currently loaded, they will be unloaded.
-// The association does not take place until Save() is called. Calling Load before calling
-// Save will load the items that will be associated in the database after the Save call.
-// After calling Save, the objects will be unloaded, and you must call Load again if you want
-// them loaded.
-func (o *projectBase) SetChildrenById(ids ...string) {
-	o.children.Clear()
-	o.childrenPks = ids
-	o.childrenIsDirty = true
-}
-
-// LoadChildren loads the Project objects associated through the Child- relationship.
-func (o *projectBase) LoadChildren(ctx context.Context) ([]*Project, error) {
-    if o.childrenIsDirty && o.childrenPks == nil {
-        panic("dirty many-many relationships cannot be loaded; call Save() first")
-    }
-    
-    var objs []*Project
-    var err error
-
-    if o.childrenPks != nil {
-        // Load the objects that will be associated after a Save
-        objs, err = QueryProjects(ctx).
-            Where(op.In(node.Project().PrimaryKey(), o.childrenPks...)).
-            Load()
-    } else {
-        objs, err = QueryProjects(ctx).
-            Where(op.Equal(node.Project().Parents(), o.PrimaryKey())).
-            Load()
-    }
-    if err != nil {
-        return nil, err
-    }
-
-    o.children.Clear()
-	for _,obj := range objs {
-	    o.children.Set(obj.PrimaryKey(), obj)
-	}
-	return o.children.Values(), err
-}
-
-// CountChildren counts the number of associated children objects in the database.
-// Note that this returns what is reflected by the database at that instant, and not what
-// is the count of the loaded objects.
-func (o *projectBase) CountChildren(ctx context.Context) (int, error) {
-	return QueryProjects(ctx).
-		Where(op.Equal(node.Project().Parents(), o.PrimaryKey())).
-		Count()
-
-}
-
-    
-
-//  returns a single Project object by primary key pk, if one was loaded.
-// Otherwise, it will return nil.
-func (o *projectBase) (pk string) *Project {
-	return o.parents.Get(pk)
-}
-
-// Parents returns a slice of Project objects if loaded. If not loaded, will return nil.
-// The values will be ordered by the latest query or in the order they were assigned.
-func (o *projectBase) Parents() []*Project {
-	return o.parents.Values()
-}
-
-// SetParents sets the associated objects to the given slice of Project objects
-// in preparation for saving. The associations will not be updated until Save() is called.
-// Objects that are modified or are new will be saved before completing the association.
-func (o *projectBase) SetParents(objs ...*Project) {
-    o.parents.Clear()
-	o.parentsIsDirty = true
-	o.parentsPks = nil
-    for _,obj := range objs {
-        o.parents.Set(obj.PrimaryKey(), obj)
-    }
-}
-
-// SetParentsById prepares to associate Project objects by
-// the primary keys in ids.
-// If objects are currently loaded, they will be unloaded.
-// The association does not take place until Save() is called. Calling Load before calling
-// Save will load the items that will be associated in the database after the Save call.
-// After calling Save, the objects will be unloaded, and you must call Load again if you want
-// them loaded.
-func (o *projectBase) SetParentsById(ids ...string) {
-	o.parents.Clear()
-	o.parentsPks = ids
-	o.parentsIsDirty = true
-}
-
-// LoadParents loads the Project objects associated through the -Child relationship.
-func (o *projectBase) LoadParents(ctx context.Context) ([]*Project, error) {
-    if o.parentsIsDirty && o.parentsPks == nil {
-        panic("dirty many-many relationships cannot be loaded; call Save() first")
-    }
-    
-    var objs []*Project
-    var err error
-
-    if o.parentsPks != nil {
-        // Load the objects that will be associated after a Save
-        objs, err = QueryProjects(ctx).
-            Where(op.In(node.Project().PrimaryKey(), o.parentsPks...)).
-            Load()
-    } else {
-        objs, err = QueryProjects(ctx).
-            Where(op.Equal(node.Project().Children(), o.PrimaryKey())).
-            Load()
-    }
-    if err != nil {
-        return nil, err
-    }
-
-    o.parents.Clear()
-	for _,obj := range objs {
-	    o.parents.Set(obj.PrimaryKey(), obj)
-	}
-	return o.parents.Values(), err
-}
-
-// CountParents counts the number of associated parents objects in the database.
-// Note that this returns what is reflected by the database at that instant, and not what
-// is the count of the loaded objects.
-func (o *projectBase) CountParents(ctx context.Context) (int, error) {
-	return QueryProjects(ctx).
-		Where(op.Equal(node.Project().Children(), o.PrimaryKey())).
-		Count()
-
-}
-
-    
-
-//  returns a single Person object by primary key pk, if one was loaded.
-// Otherwise, it will return nil.
-func (o *projectBase) (pk string) *Person {
+func (o *projectBase) TeamMember(pk string) *Person {
 	return o.teamMembers.Get(pk)
 }
 
@@ -919,20 +800,20 @@ func (o *projectBase) SetTeamMembers(objs ...*Person) {
     }
 }
 
-// SetTeamMembersById prepares to associate Person objects by
+// SetTeamMembersByID prepares to associate Person objects by
 // the primary keys in ids.
 // If objects are currently loaded, they will be unloaded.
 // The association does not take place until Save() is called. Calling Load before calling
 // Save will load the items that will be associated in the database after the Save call.
 // After calling Save, the objects will be unloaded, and you must call Load again if you want
 // them loaded.
-func (o *projectBase) SetTeamMembersById(ids ...string) {
+func (o *projectBase) SetTeamMembersByID(ids ...string) {
 	o.teamMembers.Clear()
 	o.teamMembersPks = ids
 	o.teamMembersIsDirty = true
 }
 
-// LoadTeamMembers loads the Person objects associated through the -Project relationship.
+// LoadTeamMembers loads the Person objects associated through the TeamMember-Project relationship.
 func (o *projectBase) LoadTeamMembers(ctx context.Context) ([]*Person, error) {
     if o.teamMembersIsDirty && o.teamMembersPks == nil {
         panic("dirty many-many relationships cannot be loaded; call Save() first")
@@ -944,7 +825,7 @@ func (o *projectBase) LoadTeamMembers(ctx context.Context) ([]*Person, error) {
     if o.teamMembersPks != nil {
         // Load the objects that will be associated after a Save
         objs, err = QueryPeople(ctx).
-            Where(op.In(node.Person().PrimaryKey(), o.teamMembersPks...)).
+            Where(op.In(node.Person().PrimaryKeys()[0], o.teamMembersPks...)).
             Load()
     } else {
         objs, err = QueryPeople(ctx).
@@ -973,12 +854,140 @@ func (o *projectBase) CountTeamMembers(ctx context.Context) (int, error) {
 }
 
 
+// Children returns a single Project object by primary key, if one was loaded.
+// Otherwise, it will return nil. It will not return Project objects that are not saved.
+func (o *projectBase) Children(pk string) *Project {
+	v := o.children.Get(pk)
+	return v
+}
+
+// Children returns a slice of Project objects if loaded.
+func (o *projectBase) Children() []*Project {
+	return o.children.Values()
+}
+
+// LoadChildren loads a new slice of Project objects and returns it.
+func (o *projectBase) LoadChildren(ctx context.Context) ([]*Project, error) {
+	if o.IsNew() {
+		return nil, nil
+	}
+	for obj := range o.children.ValuesIter() {
+        if obj.IsDirty() {
+            panic("You cannot load over items that have changed but have not been saved.")
+        }
+    }
+
+    objs,err := LoadProjectsByParent(ctx, o.PrimaryKey())
+    if err != nil {
+        return nil, err
+    }
+    o.children.Clear()
+
+    for _,obj := range objs {
+        pk := obj.ID()
+        o.children.Set(pk, obj)
+    }
+
+    if o.children.Len() == 0 {
+        return nil, nil
+    }
+	return o.children.Values(), nil
+}
+
+// CountChildren does a database query and returns the number of Project
+// objects currently in the database connected to this object.
+func (o *projectBase) CountChildren(ctx context.Context) (int, error) {
+    return CountProjectsByParent(ctx, o.PrimaryKey())
+}
+
+// SetChildren associates the objects in objs with the Project.
+// WARNING! If it has Children already associated with it that will not be associated after a save,
+// Save will panic. Be sure to delete those Children or otherwise fix those pointers before calling save.
+func (o *projectBase) SetChildren(objs ...*Project) {
+    for obj := range o.children.ValuesIter() {
+        if obj.IsDirty() {
+            panic("You cannot overwrite items that have changed but have not been saved.")
+        }
+    }
+
+    o.children.Clear()
+    for _,obj := range objs {
+        pk := obj.ID()
+        o.children.Set(pk, obj)
+    }
+	o.childrenIsDirty = true
+}
+
+// ProjectMilestones returns a single Milestone object by primary key, if one was loaded.
+// Otherwise, it will return nil. It will not return Milestone objects that are not saved.
+func (o *projectBase) ProjectMilestones(pk string) *Milestone {
+	v := o.projectMilestones.Get(pk)
+	return v
+}
+
+// ProjectMilestones returns a slice of Milestone objects if loaded.
+func (o *projectBase) ProjectMilestones() []*Milestone {
+	return o.projectMilestones.Values()
+}
+
+// LoadProjectMilestones loads a new slice of Milestone objects and returns it.
+func (o *projectBase) LoadProjectMilestones(ctx context.Context) ([]*Milestone, error) {
+	if o.IsNew() {
+		return nil, nil
+	}
+	for obj := range o.projectMilestones.ValuesIter() {
+        if obj.IsDirty() {
+            panic("You cannot load over items that have changed but have not been saved.")
+        }
+    }
+
+    objs,err := LoadMilestonesByProject(ctx, o.PrimaryKey())
+    if err != nil {
+        return nil, err
+    }
+    o.projectMilestones.Clear()
+
+    for _,obj := range objs {
+        pk := obj.ID()
+        o.projectMilestones.Set(pk, obj)
+    }
+
+    if o.projectMilestones.Len() == 0 {
+        return nil, nil
+    }
+	return o.projectMilestones.Values(), nil
+}
+
+// CountProjectMilestones does a database query and returns the number of Milestone
+// objects currently in the database connected to this object.
+func (o *projectBase) CountProjectMilestones(ctx context.Context) (int, error) {
+    return CountMilestonesByProject(ctx, o.PrimaryKey())
+}
+
+// SetProjectMilestones associates the objects in objs with the Project.
+// WARNING! If it has ProjectMilestones already associated with it that will not be associated after a save,
+// Save will panic. Be sure to delete those ProjectMilestones or otherwise fix those pointers before calling save.
+func (o *projectBase) SetProjectMilestones(objs ...*Milestone) {
+    for obj := range o.projectMilestones.ValuesIter() {
+        if obj.IsDirty() {
+            panic("You cannot overwrite items that have changed but have not been saved.")
+        }
+    }
+
+    o.projectMilestones.Clear()
+    for _,obj := range objs {
+        pk := obj.ID()
+        o.projectMilestones.Set(pk, obj)
+    }
+	o.projectMilestonesIsDirty = true
+}
+
 // LoadProject returns a Project from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [ProjectsBuilder.Select] for more info.
 func LoadProject(ctx context.Context, id string, selectNodes ...query.Node) (*Project, error) {
 	return queryProjects(ctx).
-	    Where(op.Equal(node.Project().Id(), id)).
+	    Where(op.Equal(node.Project().ID(), id)).
 	    Select(selectNodes...).
 	    Get()
 }
@@ -987,7 +996,7 @@ func LoadProject(ctx context.Context, id string, selectNodes ...query.Node) (*Pr
 // doc: type=Project
 func HasProject(ctx context.Context, id string) (bool, error) {
     v, err := queryProjects(ctx).
-	     Where(op.Equal(node.Project().Id(), id)).
+	     Where(op.Equal(node.Project().ID(), id)).
          Count()
     return v > 0, err
 }
@@ -1032,58 +1041,42 @@ func HasProjectsByStatusEnum (ctx context.Context, statusEnum ProjectStatus) (bo
     return v > 0, err
 }
  
-// LoadProjectsByManagerId queries Project objects by the given index values.
+// LoadProjectsByManagerID queries Project objects by the given index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [ProjectsBuilder.Select].
 // If you need a more elaborate query, use QueryProjects() to start a query builder.
-func LoadProjectsByManagerId (ctx context.Context, managerId interface{}, selectNodes ...query.Node) ([]*Project, error) {
+func LoadProjectsByManagerID (ctx context.Context, managerID string, selectNodes ...query.Node) ([]*Project, error) {
     q := queryProjects(ctx)
-    if managerId == nil {
-        q = q.Where(op.IsNull(node.Project().ManagerId()))
-    } else {
-        q = q.Where(op.Equal(node.Project().ManagerId(), managerId))
-    }
+    q = q.Where(op.Equal(node.Project().ManagerID(), managerID))
     return q.Select(selectNodes...).Load()
 }
 
-// HasProjectsByManagerId returns true if the
+// HasProjectsByManagerID returns true if the
 // given index values exist in the database.
 // doc: type=Project
-func HasProjectsByManagerId (ctx context.Context, managerId interface{}) (bool, error) {
+func HasProjectsByManagerID (ctx context.Context, managerID string) (bool, error) {
     q := queryProjects(ctx)
-    if managerId == nil {
-        q = q.Where(op.IsNull(node.Project().ManagerId()))
-    } else {
-        q = q.Where(op.Equal(node.Project().ManagerId(), managerId))
-    }
+    q = q.Where(op.Equal(node.Project().ManagerID(), managerID))
     v, err := q.Count()
     return v > 0, err
 }
  
-// LoadProjectsByParentProjectId queries Project objects by the given index values.
+// LoadProjectsByParentID queries Project objects by the given index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [ProjectsBuilder.Select].
 // If you need a more elaborate query, use QueryProjects() to start a query builder.
-func LoadProjectsByParentProjectId (ctx context.Context, parentProjectId interface{}, selectNodes ...query.Node) ([]*Project, error) {
+func LoadProjectsByParentID (ctx context.Context, parentID string, selectNodes ...query.Node) ([]*Project, error) {
     q := queryProjects(ctx)
-    if parentProjectId == nil {
-        q = q.Where(op.IsNull(node.Project().ParentProjectId()))
-    } else {
-        q = q.Where(op.Equal(node.Project().ParentProjectId(), parentProjectId))
-    }
+    q = q.Where(op.Equal(node.Project().ParentID(), parentID))
     return q.Select(selectNodes...).Load()
 }
 
-// HasProjectsByParentProjectId returns true if the
+// HasProjectsByParentID returns true if the
 // given index values exist in the database.
 // doc: type=Project
-func HasProjectsByParentProjectId (ctx context.Context, parentProjectId interface{}) (bool, error) {
+func HasProjectsByParentID (ctx context.Context, parentID string) (bool, error) {
     q := queryProjects(ctx)
-    if parentProjectId == nil {
-        q = q.Where(op.IsNull(node.Project().ParentProjectId()))
-    } else {
-        q = q.Where(op.Equal(node.Project().ParentProjectId(), parentProjectId))
-    }
+    q = q.Where(op.Equal(node.Project().ParentID(), parentID))
     v, err := q.Count()
     return v > 0, err
 }
@@ -1311,23 +1304,23 @@ func CountProjectsByStatusEnum(ctx context.Context, statusEnum ProjectStatus ) (
 	Count()
 }
 
-// CountProjectsByManagerId queries the database and returns the number of Project objects that
-// have managerId.
+// CountProjectsByManagerID queries the database and returns the number of Project objects that
+// have managerID.
 // doc: type=Project
-func CountProjectsByManagerId(ctx context.Context, managerId []byte ) (int, error) {
-    v_managerId := managerId
+func CountProjectsByManagerID(ctx context.Context, managerID string ) (int, error) {
+    v_managerID := managerID
 	return QueryProjects(ctx).
-	Where(op.Equal(node.Project().ManagerId(), v_managerId)).
+	Where(op.Equal(node.Project().ManagerID(), v_managerID)).
 	Count()
 }
 
-// CountProjectsByParentProjectId queries the database and returns the number of Project objects that
-// have parentProjectId.
+// CountProjectsByParentID queries the database and returns the number of Project objects that
+// have parentID.
 // doc: type=Project
-func CountProjectsByParentProjectId(ctx context.Context, parentProjectId []byte ) (int, error) {
-    v_parentProjectId := parentProjectId
+func CountProjectsByParentID(ctx context.Context, parentID string ) (int, error) {
+    v_parentID := parentID
 	return QueryProjects(ctx).
-	Where(op.Equal(node.Project().ParentProjectId(), v_parentProjectId)).
+	Where(op.Equal(node.Project().ParentID(), v_parentID)).
 	Count()
 }
 
@@ -1388,30 +1381,6 @@ func (o *projectBase) unpack (m map[string]interface{}, objThis *Project) {
 	}
 
     
-	
-	    
-
-	if v, ok := m["manager_id"]; ok {
-		if v == nil {
-			o.managerId = []byte{}
-			o.managerIdIsNull = true
-			o.managerIdIsLoaded = true
-			o.managerIdIsDirty = false
-		} else if o.managerId, ok = v.([]byte); ok {
-			o.managerIdIsNull = false
-			o.managerIdIsLoaded = true
-			o.managerIdIsDirty = false
-		} else {
-			panic("Wrong type found for manager_id.")
-		}
-	} else {
-		o.managerIdIsLoaded = false
-		o.managerIdIsNull = true
-		o.managerId = []byte{}
-		o.managerIdIsDirty = false
-	}
-
-	
 	
         
 
@@ -1550,71 +1519,71 @@ func (o *projectBase) unpack (m map[string]interface{}, objThis *Project) {
 
 	
 	
-	    
+        
 
-	if v, ok := m["parent_project_id"]; ok {
-		if v == nil {
-			o.parentProjectId = []byte{}
-			o.parentProjectIdIsNull = true
-			o.parentProjectIdIsLoaded = true
-			o.parentProjectIdIsDirty = false
-		} else if o.parentProjectId, ok = v.([]byte); ok {
-			o.parentProjectIdIsNull = false
-			o.parentProjectIdIsLoaded = true
-			o.parentProjectIdIsDirty = false
+	if v, ok := m["manager_id"]; ok && v != nil {
+    	if o.managerID, ok = v.(string); ok {
+			o.managerIDIsLoaded = true
+			o.managerIDIsDirty = false
 		} else {
-			panic("Wrong type found for parent_project_id.")
+			panic("Wrong type found for manager_id.")
 		}
 	} else {
-		o.parentProjectIdIsLoaded = false
-		o.parentProjectIdIsNull = true
-		o.parentProjectId = []byte{}
-		o.parentProjectIdIsDirty = false
+		o.managerIDIsLoaded = false
+		o.managerID = ""
+		o.managerIDIsDirty = false
+	}
+
+    
+	
+        
+
+	if v, ok := m["parent_id"]; ok && v != nil {
+    	if o.parentID, ok = v.(string); ok {
+			o.parentIDIsLoaded = true
+			o.parentIDIsDirty = false
+		} else {
+			panic("Wrong type found for parent_id.")
+		}
+	} else {
+		o.parentIDIsLoaded = false
+		o.parentID = ""
+		o.parentIDIsDirty = false
+	}
+
+    
+	
+
+	if v, ok := m["Manager"]; ok {
+		if manager, ok2 := v.(map[string]any); ok2 {
+			o.manager = new(Person)
+			o.manager.unpack(manager, o.manager)
+			o.managerIDIsLoaded = true
+			o.managerIDIsDirty = false
+		} else {
+			panic("Wrong type found for Manager object.")
+		}
+	} else {
+		o.manager = nil
 	}
 
 	
+
+	if v, ok := m["Parent"]; ok {
+		if parent, ok2 := v.(map[string]any); ok2 {
+			o.parent = new(Project)
+			o.parent.unpack(parent, o.parent)
+			o.parentIDIsLoaded = true
+			o.parentIDIsDirty = false
+		} else {
+			panic("Wrong type found for Parent object.")
+		}
+	} else {
+		o.parent = nil
+	}
+
 
 // Many-Many references
-	
-
-	if v, ok := m["Children"]; ok {
-		if v2, ok2 := v.([]map[string]any); ok2 {
-			o.children.Clear()
-
-			for _,v3 := range v2 {
-				obj := new(Project)
-				obj.unpack(v3, obj)
-				o.children.Set(obj.PrimaryKey(), obj)
-			}
-			o.childrenPks = nil
-		} else {
-			panic("Wrong type found for children object.")
-		}
-	} else {
-		o.children.Clear()
-		o.childrenPks = nil
-	}
-
-	
-
-	if v, ok := m["Parents"]; ok {
-		if v2, ok2 := v.([]map[string]any); ok2 {
-			o.parents.Clear()
-
-			for _,v3 := range v2 {
-				obj := new(Project)
-				obj.unpack(v3, obj)
-				o.parents.Set(obj.PrimaryKey(), obj)
-			}
-			o.parentsPks = nil
-		} else {
-			panic("Wrong type found for parents object.")
-		}
-	} else {
-		o.parents.Clear()
-		o.parentsPks = nil
-	}
-
 	
 
 	if v, ok := m["TeamMembers"]; ok {
@@ -1636,6 +1605,53 @@ func (o *projectBase) unpack (m map[string]interface{}, objThis *Project) {
 	}
 
 
+// Reverse references
+	 
+	    
+
+
+	if v, ok := m["Children"]; ok {
+		switch v2 := v.(type) {
+		case []map[string]any: // array expansion
+		    o.children.Clear()
+			o.childrenIsDirty = false
+			for _,v3 := range v2 {
+				obj := new(Project)
+				obj.unpack(v3, obj)
+				o.children.Set(obj.PrimaryKey(), obj)
+			}
+		default:
+			panic("Wrong type found for children object.")
+		}
+	} else {
+		o.children.Clear()
+		o.childrenIsDirty = false
+	}
+
+	
+	 
+	    
+
+
+	if v, ok := m["ProjectMilestones"]; ok {
+		switch v2 := v.(type) {
+		case []map[string]any: // array expansion
+		    o.projectMilestones.Clear()
+			o.projectMilestonesIsDirty = false
+			for _,v3 := range v2 {
+				obj := new(Milestone)
+				obj.unpack(v3, obj)
+				o.projectMilestones.Set(obj.PrimaryKey(), obj)
+			}
+		default:
+			panic("Wrong type found for projectMilestones object.")
+		}
+	} else {
+		o.projectMilestones.Clear()
+		o.projectMilestonesIsDirty = false
+	}
+
+	
 
 	if v, ok := m["aliases_"]; ok {
 		o._aliases = v.(map[string]any)
@@ -1671,7 +1687,21 @@ func (o *projectBase) update(ctx context.Context) error {
     var cancel context.CancelFunc
     ctx, cancel = context.WithTimeout(ctx, 30 * time.Second)
     defer cancel()
-    err := db.ExecuteTransaction(ctx, d, func() error {
+    err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
+    // Save loaded Manager object to get its new pk and update it here.
+    if o.manager != nil {
+        if err := o.manager.Save(ctx); err != nil {
+            return err
+        }
+        o.SetManagerID(o.manager.PrimaryKey())
+    }
+    // Save loaded Parent object to get its new pk and update it here.
+    if o.parent != nil {
+        if err := o.parent.Save(ctx); err != nil {
+            return err
+        }
+        o.SetParentID(o.parent.PrimaryKey())
+    }
 
 
         modifiedFields = getProjectUpdateFields(o)
@@ -1684,83 +1714,107 @@ func (o *projectBase) update(ctx context.Context) error {
             }
         }
 
-
-    
-    {
-        keys := o.children.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
-        for i, k := range keys {
-            obj := o.children.Get(k)
-            if err := obj.Save(ctx); err != nil {
-                return err
-            }
-            if obj.PrimaryKey() != k {
-                // update key in the slice map without changing the order
-                o.children.Delete(k)
-                o.children.SetAt(i, obj.PrimaryKey(), obj)
-            }
-        }
         if o.childrenIsDirty {
-            if (len(o.childrenPks) != 0) {
-                if err := db.AssociateOnly(ctx,
-                        d,
-                        "related_project_assn",
-                        "project_id",
-                        o.PrimaryKey(),
-                        "project_id",
-                        o.childrenPks); err != nil {
-                    return err
-                }
-            } else {
-                if err := db.AssociateOnly(ctx,
-                        d,
-                        "related_project_assn",
-                        "project_id",
-                        o.PrimaryKey(),
-                        "project_id",
-                        o.children.Keys()); err != nil {
-                    return err
-                }
-            }
-        }
-    }
+            // relation connection changed
+     
+        
+            
+                    // Since the other side of the relationship cannot be null, there cannot be objects that will be detached.
+                    if oldObjs, err := QueryProjects(ctx).
+                                Where(op.Equal(node.Project().ParentID(), o.ID())).
+                                Select(node.Project().ParentID()).
+                                Load(); err != nil {
+                        return err
+                    } else {
+                        for _,obj := range oldObjs {
+                            if !o.children.Has(obj.PrimaryKey()) {
+                                err = obj.Delete(ctx) // old object is not in group of new objects, so delete it since it has a non-null reference to o.
+                                if err != nil {
+                                    return err
+                                }
+                            }
+                        }
+                        keys := o.children.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
+                        for i, k := range keys {
+                            obj := o.children.Get(k)
+                            if obj == nil {
+                                // object was deleted during save?
+                                continue
+                            }
+                            obj.SetParentID(o.PrimaryKey())
+                            obj.parentIDIsDirty = true // force a change in case data is stale
+                            if err = obj.Save(ctx); err != nil {
+                                return err
+                            }
+                            if obj.PrimaryKey() != k {
+                                // update slice map key without changing order
+                                o.children.Delete(k)
+                                o.children.SetAt(i, obj.PrimaryKey(), obj)
+                            }
+                        }
+                    }
+        
     
-    {
-        keys := o.parents.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
-        for i, k := range keys {
-            obj := o.parents.Get(k)
-            if err := obj.Save(ctx); err != nil {
-                return err
-            }
-            if obj.PrimaryKey() != k {
-                // update key in the slice map without changing the order
-                o.parents.Delete(k)
-                o.parents.SetAt(i, obj.PrimaryKey(), obj)
-            }
-        }
-        if o.parentsIsDirty {
-            if (len(o.parentsPks) != 0) {
-                if err := db.AssociateOnly(ctx,
-                        d,
-                        "related_project_assn",
-                        "project_id",
-                        o.PrimaryKey(),
-                        "project_id",
-                        o.parentsPks); err != nil {
-                    return err
-                }
-            } else {
-                if err := db.AssociateOnly(ctx,
-                        d,
-                        "related_project_assn",
-                        "project_id",
-                        o.PrimaryKey(),
-                        "project_id",
-                        o.parents.Keys()); err != nil {
+        } else {
+    
+            // save related objects in case internal values changed
+            for obj := range o.children.ValuesIter() {
+                if err := obj.Save(ctx); err != nil {
                     return err
                 }
             }
         }
-    }
+        if o.projectMilestonesIsDirty {
+            // relation connection changed
+     
+        
+            
+                    // Since the other side of the relationship cannot be null, there cannot be objects that will be detached.
+                    if oldObjs, err := QueryMilestones(ctx).
+                                Where(op.Equal(node.Milestone().ProjectID(), o.ID())).
+                                Select(node.Milestone().ProjectID()).
+                                Load(); err != nil {
+                        return err
+                    } else {
+                        for _,obj := range oldObjs {
+                            if !o.projectMilestones.Has(obj.PrimaryKey()) {
+                                err = obj.Delete(ctx) // old object is not in group of new objects, so delete it since it has a non-null reference to o.
+                                if err != nil {
+                                    return err
+                                }
+                            }
+                        }
+                        keys := o.projectMilestones.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
+                        for i, k := range keys {
+                            obj := o.projectMilestones.Get(k)
+                            if obj == nil {
+                                // object was deleted during save?
+                                continue
+                            }
+                            obj.SetProjectID(o.PrimaryKey())
+                            obj.projectIDIsDirty = true // force a change in case data is stale
+                            if err = obj.Save(ctx); err != nil {
+                                return err
+                            }
+                            if obj.PrimaryKey() != k {
+                                // update slice map key without changing order
+                                o.projectMilestones.Delete(k)
+                                o.projectMilestones.SetAt(i, obj.PrimaryKey(), obj)
+                            }
+                        }
+                    }
+        
+    
+        } else {
+    
+            // save related objects in case internal values changed
+            for obj := range o.projectMilestones.ValuesIter() {
+                if err := obj.Save(ctx); err != nil {
+                    return err
+                }
+            }
+        }
+
     
     {
         keys := o.teamMembers.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
@@ -1782,7 +1836,7 @@ func (o *projectBase) update(ctx context.Context) error {
                         "team_member_project_assn",
                         "project_id",
                         o.PrimaryKey(),
-                        "person_id",
+                        "team_member_id",
                         o.teamMembersPks); err != nil {
                     return err
                 }
@@ -1792,7 +1846,7 @@ func (o *projectBase) update(ctx context.Context) error {
                         "team_member_project_assn",
                         "project_id",
                         o.PrimaryKey(),
-                        "person_id",
+                        "team_member_id",
                         o.teamMembers.Keys()); err != nil {
                     return err
                 }
@@ -1824,7 +1878,21 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
     ctx, cancel = context.WithTimeout(ctx, 30 * time.Second)
     defer cancel()
 
-	err = db.ExecuteTransaction(ctx, d, func() error {
+	err = db.WithTransaction(ctx, d, func(context.Context) error {
+    // Save loaded Manager object to get its new pk and update it here.
+    if o.manager != nil {
+        if err := o.manager.Save(ctx); err != nil {
+            return err
+        }
+        o.SetManagerID(o.manager.PrimaryKey())
+    }
+    // Save loaded Parent object to get its new pk and update it here.
+    if o.parent != nil {
+        if err := o.parent.Save(ctx); err != nil {
+            return err
+        }
+        o.SetParentID(o.parent.PrimaryKey())
+    }
     if !o.numIsLoaded {
         panic("a value for Num is required, and there is no default value. Call SetNum() before inserting the record.")
     }
@@ -1833,6 +1901,12 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
     }
     if !o.nameIsLoaded {
         panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
+    }
+    if !o.managerIDIsLoaded {
+        panic("a value for ManagerID is required, and there is no default value. Call SetManagerID() before inserting the record.")
+    }
+    if !o.parentIDIsLoaded {
+        panic("a value for ParentID is required, and there is no default value. Call SetParentID() before inserting the record.")
     }
     insertFields = getProjectInsertFields(o)
     var newPK string
@@ -1845,83 +1919,43 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
     o.idIsLoaded = true
 
 
+     
 
     if o.children.Len() > 0 {
         keys := o.children.Keys()
         for i, k := range keys {
             obj := o.children.Get(k)
+            obj.SetParent(newPK)
             if err = obj.Save(ctx); err != nil {
                 return err
             }
-            if k != obj.PrimaryKey() {
+            if obj.PrimaryKey() != k {
                 o.children.Delete(k)
                 o.children.SetAt(i, obj.PrimaryKey(), obj)
             }
-            db.Associate(ctx,
-                d,
-                "related_project_assn",
-                "project_id",
-                newPK,
-                "project_id",
-                obj.PrimaryKey(),
-            )
-        }
-    } else if len(o.childrenPks) > 0 {
-        for _,k := range o.childrenPks {
-            obj, err2 := LoadProject(ctx, k)
-            if err2 != nil {
-                return err2
-            }
-            if (obj != nil) {
-                db.Associate(ctx,
-                    d,
-                    "related_project_assn",
-                    "project_id",
-                    newPK,
-                    "project_id",
-                    k,
-                )
-            }
         }
     }
-    if o.parents.Len() > 0 {
-        keys := o.parents.Keys()
+    
+
+     
+
+    if o.projectMilestones.Len() > 0 {
+        keys := o.projectMilestones.Keys()
         for i, k := range keys {
-            obj := o.parents.Get(k)
+            obj := o.projectMilestones.Get(k)
+            obj.SetProject(newPK)
             if err = obj.Save(ctx); err != nil {
                 return err
             }
-            if k != obj.PrimaryKey() {
-                o.parents.Delete(k)
-                o.parents.SetAt(i, obj.PrimaryKey(), obj)
-            }
-            db.Associate(ctx,
-                d,
-                "related_project_assn",
-                "project_id",
-                newPK,
-                "project_id",
-                obj.PrimaryKey(),
-            )
-        }
-    } else if len(o.parentsPks) > 0 {
-        for _,k := range o.parentsPks {
-            obj, err2 := LoadProject(ctx, k)
-            if err2 != nil {
-                return err2
-            }
-            if (obj != nil) {
-                db.Associate(ctx,
-                    d,
-                    "related_project_assn",
-                    "project_id",
-                    newPK,
-                    "project_id",
-                    k,
-                )
+            if obj.PrimaryKey() != k {
+                o.projectMilestones.Delete(k)
+                o.projectMilestones.SetAt(i, obj.PrimaryKey(), obj)
             }
         }
     }
+    
+
+
     if o.teamMembers.Len() > 0 {
         keys := o.teamMembers.Keys()
         for i, k := range keys {
@@ -1938,7 +1972,7 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
                 "team_member_project_assn",
                 "project_id",
                 newPK,
-                "person_id",
+                "team_member_id",
                 obj.PrimaryKey(),
             )
         }
@@ -1954,7 +1988,7 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
                     "team_member_project_assn",
                     "project_id",
                     newPK,
-                    "person_id",
+                    "team_member_id",
                     k,
                 )
             }
@@ -1989,13 +2023,6 @@ func (o *projectBase) getUpdateFields() (fields map[string]interface{}) {
 	}
 	if o.statusEnumIsDirty {
         fields["status_enum"] = o.statusEnum
-	}
-	if o.managerIdIsDirty {
-        if 	o.managerIdIsNull {
-            fields["manager_id"] = nil
-        } else {
-  		    fields["manager_id"] = o.managerId
-        }
 	}
 	if o.nameIsDirty {
         fields["name"] = o.name
@@ -2035,12 +2062,11 @@ func (o *projectBase) getUpdateFields() (fields map[string]interface{}) {
   		    fields["spent"] = o.spent
         }
 	}
-	if o.parentProjectIdIsDirty {
-        if 	o.parentProjectIdIsNull {
-            fields["parent_project_id"] = nil
-        } else {
-  		    fields["parent_project_id"] = o.parentProjectId
-        }
+	if o.managerIDIsDirty {
+        fields["manager_id"] = o.managerID
+	}
+	if o.parentIDIsDirty {
+        fields["parent_id"] = o.parentID
 	}
 	return
 }
@@ -2060,11 +2086,6 @@ func (o *projectBase) getInsertFields() (fields map[string]interface{}) {
     fields["num"] = o.num
  
     fields["status_enum"] = o.statusEnum
-    if o.managerIdIsNull {
-        fields["manager_id"] = nil
-    } else {
-        fields["manager_id"] = o.managerId
-    }
  
     fields["name"] = o.name
     if o.descriptionIsNull {
@@ -2092,16 +2113,14 @@ func (o *projectBase) getInsertFields() (fields map[string]interface{}) {
     } else {
         fields["spent"] = o.spent
     }
-    if o.parentProjectIdIsNull {
-        fields["parent_project_id"] = nil
-    } else {
-        fields["parent_project_id"] = o.parentProjectId
-    }
 	return
 }
 
 
 // Delete deletes the record from the database.
+//
+// Associated Children will also be deleted since their Parent fields are not nullable.
+// Associated ProjectMilestones will also be deleted since their Project fields are not nullable.
 func (o *projectBase) Delete(ctx context.Context) (err error) {
     if o == nil {
         return // allow deleting of a nil object to be a noop
@@ -2115,30 +2134,46 @@ func (o *projectBase) Delete(ctx context.Context) (err error) {
     ctx, cancel = context.WithTimeout(ctx, 30 * time.Second)
     defer cancel()
 
-    err = db.ExecuteTransaction(ctx, d, func() error {
+    err = db.WithTransaction(ctx, d, func(context.Context) error {
 	
-
-    
-        if err := db.AssociateOnly(ctx,
-            d,
-            "related_project_assn",
-            "project_id",
-            o.PrimaryKey(),
-            "id",
-            []Project(nil)); err != nil {
-                return err
+         
+            
+            {
+                objs, err := QueryProjects(ctx).
+                          Where(op.Equal(node.Project().Parent(), o.id)).
+                          Load()
+                if err != nil {
+                    return err
+                }
+                for _,obj := range objs {
+                    if err = obj.Delete(ctx); err != nil {
+                        return err
+                    }
+                }
+                o.children.Clear()
             }
-
+            
+        
     
-        if err := db.AssociateOnly(ctx,
-            d,
-            "related_project_assn",
-            "project_id",
-            o.PrimaryKey(),
-            "id",
-            []Project(nil)); err != nil {
-                return err
+         
+            
+            {
+                objs, err := QueryMilestones(ctx).
+                          Where(op.Equal(node.Milestone().Project(), o.id)).
+                          Load()
+                if err != nil {
+                    return err
+                }
+                for _,obj := range objs {
+                    if err = obj.Delete(ctx); err != nil {
+                        return err
+                    }
+                }
+                o.projectMilestones.Clear()
             }
+            
+        
+    
 
     
         if err := db.AssociateOnly(ctx,
@@ -2171,10 +2206,10 @@ func deleteProject(ctx context.Context, pk string) error {
     ctx, cancel = context.WithTimeout(ctx, 30 * time.Second)
     defer cancel()
 
-    err := db.ExecuteTransaction(ctx, d, func() error {
+    err := db.WithTransaction(ctx, d, func(context.Context) error {
         if obj, err := LoadProject(ctx,
                 pk,
-                node.Project().PrimaryKey(),
+                node.Project().ID(),
                 ); err != nil {
             return err
         } else if obj == nil {
@@ -2193,18 +2228,16 @@ func (o *projectBase) resetDirtyStatus() {
 	o.idIsDirty = false
 	o.numIsDirty = false
 	o.statusEnumIsDirty = false
-	o.managerIdIsDirty = false
 	o.nameIsDirty = false
 	o.descriptionIsDirty = false
 	o.startDateIsDirty = false
 	o.endDateIsDirty = false
 	o.budgetIsDirty = false
 	o.spentIsDirty = false
-	o.parentProjectIdIsDirty = false
+	o.managerIDIsDirty = false
+	o.parentIDIsDirty = false
 	o.childrenIsDirty = false
-	o.childrenPks = nil
-	o.parentsIsDirty = false
-	o.parentsPks = nil
+	o.projectMilestonesIsDirty = false
 	o.teamMembersIsDirty = false
 	o.teamMembersPks = nil
 
@@ -2215,32 +2248,33 @@ func (o *projectBase) IsDirty() (dirty bool) {
     dirty = o.idIsDirty ||
 o.numIsDirty ||
 o.statusEnumIsDirty ||
-o.managerIdIsDirty ||
 o.nameIsDirty ||
 o.descriptionIsDirty ||
 o.startDateIsDirty ||
 o.endDateIsDirty ||
 o.budgetIsDirty ||
 o.spentIsDirty ||
-o.parentProjectIdIsDirty
+o.managerIDIsDirty ||
+o.parentIDIsDirty
 
-
+    dirty = dirty ||
+        o.manager != nil && o.manager.IsDirty()) ||
+o.parent != nil && o.parent.IsDirty())
 
 	dirty = dirty ||
 	    o.childrenIsDirty|| 
-o.parentsIsDirty|| 
-o.teamMembersIsDirty
-
-    
+o.projectMilestonesIsDirty
 
     for obj := range o.children.ValuesIter() {
         dirty = dirty || obj.IsDirty()
     }
-    
-
-    for obj := range o.parents.ValuesIter() {
+    for obj := range o.projectMilestones.ValuesIter() {
         dirty = dirty || obj.IsDirty()
     }
+
+	dirty = dirty ||
+	    o.teamMembersIsDirty
+
     
 
     for obj := range o.teamMembers.ValuesIter() {
@@ -2272,11 +2306,6 @@ func (o *projectBase) Get(key string) interface{} {
             return nil
         }
         return o.statusEnum
-    case "managerId":
-        if !o.managerIdIsLoaded {
-            return nil
-        }
-        return o.managerId
     case "name":
         if !o.nameIsLoaded {
             return nil
@@ -2307,15 +2336,24 @@ func (o *projectBase) Get(key string) interface{} {
             return nil
         }
         return o.spent
-    case "parentProjectId":
-        if !o.parentProjectIdIsLoaded {
+    case "managerID":
+        if !o.managerIDIsLoaded {
             return nil
         }
-        return o.parentProjectId
+        return o.managerID
+    case "parentID":
+        if !o.parentIDIsLoaded {
+            return nil
+        }
+        return o.parentID
+    case "manager":
+        return o.Manager()
+    case "parent":
+        return o.Parent()
     case "children":
         return o.children.Values()
-    case "parents":
-        return o.parents.Values()
+    case "projectMilestones":
+        return o.projectMilestones.Values()
     case "teamMembers":
         return o.teamMembers.Values()
     }
@@ -2366,20 +2404,6 @@ func (o *projectBase) encodeTo(enc db.Encoder) error {
     }
     if err := enc.Encode(o.statusEnumIsDirty); err != nil {
         return fmt.Errorf("error encoding Project.statusEnumIsDirty: %w", err)
-    }
-
-
-    if err := enc.Encode(o.managerId); err != nil {
-        return fmt.Errorf("error encoding Project.managerId: %w", err)
-    }
-    if err := enc.Encode(o.managerIdIsNull); err != nil {
-        return fmt.Errorf("error encoding Project.managerIdIsNull: %w", err)
-    }
-    if err := enc.Encode(o.managerIdIsLoaded); err != nil {
-        return fmt.Errorf("error encoding Project.managerIdIsLoaded: %w", err)
-    }
-    if err := enc.Encode(o.managerIdIsDirty); err != nil {
-        return fmt.Errorf("error encoding Project.managerIdIsDirty: %w", err)
     }
 
 
@@ -2464,49 +2488,71 @@ func (o *projectBase) encodeTo(enc db.Encoder) error {
     }
 
 
-    if err := enc.Encode(o.parentProjectId); err != nil {
-        return fmt.Errorf("error encoding Project.parentProjectId: %w", err)
+    if err := enc.Encode(o.managerID); err != nil {
+        return fmt.Errorf("error encoding Project.managerID: %w", err)
     }
-    if err := enc.Encode(o.parentProjectIdIsNull); err != nil {
-        return fmt.Errorf("error encoding Project.parentProjectIdIsNull: %w", err)
+    if err := enc.Encode(o.managerIDIsLoaded); err != nil {
+        return fmt.Errorf("error encoding Project.managerIDIsLoaded: %w", err)
     }
-    if err := enc.Encode(o.parentProjectIdIsLoaded); err != nil {
-        return fmt.Errorf("error encoding Project.parentProjectIdIsLoaded: %w", err)
-    }
-    if err := enc.Encode(o.parentProjectIdIsDirty); err != nil {
-        return fmt.Errorf("error encoding Project.parentProjectIdIsDirty: %w", err)
+    if err := enc.Encode(o.managerIDIsDirty); err != nil {
+        return fmt.Errorf("error encoding Project.managerIDIsDirty: %w", err)
     }
 
-    if err := enc.Encode(&o.children); err != nil {
-        return fmt.Errorf("error encoding Project.children: %w", err)
+
+    if err := enc.Encode(o.parentID); err != nil {
+        return fmt.Errorf("error encoding Project.parentID: %w", err)
     }
+    if err := enc.Encode(o.parentIDIsLoaded); err != nil {
+        return fmt.Errorf("error encoding Project.parentIDIsLoaded: %w", err)
+    }
+    if err := enc.Encode(o.parentIDIsDirty); err != nil {
+        return fmt.Errorf("error encoding Project.parentIDIsDirty: %w", err)
+    }
+
+
+    if o.manager == nil {
+        if err := enc.Encode(false); err != nil {
+            return err
+        }
+    } else {
+        if err := enc.Encode(true); err != nil {
+            return err
+        }
+        if err := enc.Encode(o.manager); err != nil {
+            return fmt.Errorf("error encoding Project.manager: %w", err)
+        }
+    }
+
+    if o.parent == nil {
+        if err := enc.Encode(false); err != nil {
+            return err
+        }
+    } else {
+        if err := enc.Encode(true); err != nil {
+            return err
+        }
+        if err := enc.Encode(o.parent); err != nil {
+            return fmt.Errorf("error encoding Project.parent: %w", err)
+        }
+    }
+    if err := enc.Encode(&o.children ); err != nil {
+        return err
+    }
+
     if err := enc.Encode(o.childrenIsDirty); err != nil {
-        return fmt.Errorf("error encoding Project.childrenIsDirty: %w", err)
-    }
-    if err := enc.Encode(o.childrenPks != nil); err != nil {
         return err
     }
-    if o.childrenPks != nil {
-        if err := enc.Encode(o.childrenPks); err != nil {
-            return fmt.Errorf("error encoding Project.childrenPks: %w", err)
-        }
-    }
 
-    if err := enc.Encode(&o.parents); err != nil {
-        return fmt.Errorf("error encoding Project.parents: %w", err)
-    }
-    if err := enc.Encode(o.parentsIsDirty); err != nil {
-        return fmt.Errorf("error encoding Project.parentsIsDirty: %w", err)
-    }
-    if err := enc.Encode(o.parentsPks != nil); err != nil {
+    
+    if err := enc.Encode(&o.projectMilestones ); err != nil {
         return err
     }
-    if o.parentsPks != nil {
-        if err := enc.Encode(o.parentsPks); err != nil {
-            return fmt.Errorf("error encoding Project.parentsPks: %w", err)
-        }
+
+    if err := enc.Encode(o.projectMilestonesIsDirty); err != nil {
+        return err
     }
 
+    
     if err := enc.Encode(&o.teamMembers); err != nil {
         return fmt.Errorf("error encoding Project.teamMembers: %w", err)
     }
@@ -2585,19 +2631,6 @@ func (o *projectBase) decodeFrom(dec db.Decoder) (err error) {
         return fmt.Errorf("error decoding Project.statusEnumIsDirty: %w", err)
     }
 
-    if err = dec.Decode(&o.managerId); err != nil {
-        return fmt.Errorf("error decoding Project.managerId: %w", err)
-    }
-    if err = dec.Decode(&o.managerIdIsNull); err != nil {
-        return fmt.Errorf("error decoding Project.managerIdIsNull: %w", err)
-    }
-    if err = dec.Decode(&o.managerIdIsLoaded); err != nil {
-        return fmt.Errorf("error decoding Project.managerIdIsLoaded: %w", err)
-    }
-    if err = dec.Decode(&o.managerIdIsDirty); err != nil {
-        return fmt.Errorf("error decoding Project.managerIdIsDirty: %w", err)
-    }
-
     if err = dec.Decode(&o.name); err != nil {
         return fmt.Errorf("error decoding Project.name: %w", err)
     }
@@ -2673,49 +2706,62 @@ func (o *projectBase) decodeFrom(dec db.Decoder) (err error) {
         return fmt.Errorf("error decoding Project.spentIsDirty: %w", err)
     }
 
-    if err = dec.Decode(&o.parentProjectId); err != nil {
-        return fmt.Errorf("error decoding Project.parentProjectId: %w", err)
+    if err = dec.Decode(&o.managerID); err != nil {
+        return fmt.Errorf("error decoding Project.managerID: %w", err)
     }
-    if err = dec.Decode(&o.parentProjectIdIsNull); err != nil {
-        return fmt.Errorf("error decoding Project.parentProjectIdIsNull: %w", err)
+    if err = dec.Decode(&o.managerIDIsLoaded); err != nil {
+        return fmt.Errorf("error decoding Project.managerIDIsLoaded: %w", err)
     }
-    if err = dec.Decode(&o.parentProjectIdIsLoaded); err != nil {
-        return fmt.Errorf("error decoding Project.parentProjectIdIsLoaded: %w", err)
+    if err = dec.Decode(&o.managerIDIsDirty); err != nil {
+        return fmt.Errorf("error decoding Project.managerIDIsDirty: %w", err)
     }
-    if err = dec.Decode(&o.parentProjectIdIsDirty); err != nil {
-        return fmt.Errorf("error decoding Project.parentProjectIdIsDirty: %w", err)
+
+    if err = dec.Decode(&o.parentID); err != nil {
+        return fmt.Errorf("error decoding Project.parentID: %w", err)
+    }
+    if err = dec.Decode(&o.parentIDIsLoaded); err != nil {
+        return fmt.Errorf("error decoding Project.parentIDIsLoaded: %w", err)
+    }
+    if err = dec.Decode(&o.parentIDIsDirty); err != nil {
+        return fmt.Errorf("error decoding Project.parentIDIsDirty: %w", err)
     }
 
 
+    if err = dec.Decode(&isPtr); err != nil {
+        return fmt.Errorf("error decoding Project.manager isPtr: %w", err)
+    }
+    if isPtr {
+        if err = dec.Decode(&o.manager); err != nil {
+            return fmt.Errorf("error decoding Project.manager: %w", err)
+        }
+    }
+
+    if err = dec.Decode(&isPtr); err != nil {
+        return fmt.Errorf("error decoding Project.parent isPtr: %w", err)
+    }
+    if isPtr {
+        if err = dec.Decode(&o.parent); err != nil {
+            return fmt.Errorf("error decoding Project.parent: %w", err)
+        }
+    }
     if err = dec.Decode(&o.children); err != nil {
-        return fmt.Errorf("error decoding Project.childrenPks: %w", err)
+        return fmt.Errorf("error decoding Project.children: %w", err)
     }
+
     if err = dec.Decode(&o.childrenIsDirty); err != nil {
         return fmt.Errorf("error decoding Project.childrenIsDirty: %w", err)
     }
-    if err = dec.Decode(&isPtr); err != nil {
-        return fmt.Errorf("error decoding Project.childrenPks isPtr: %w", err)
-    }
-    if isPtr {
-        if err = dec.Decode(&o.childrenPks); err != nil {
-            return fmt.Errorf("error decoding Project.childrenPks: %w", err)
-        }
+
+    
+    if err = dec.Decode(&o.projectMilestones); err != nil {
+        return fmt.Errorf("error decoding Project.projectMilestones: %w", err)
     }
 
-    if err = dec.Decode(&o.parents); err != nil {
-        return fmt.Errorf("error decoding Project.parentsPks: %w", err)
+    if err = dec.Decode(&o.projectMilestonesIsDirty); err != nil {
+        return fmt.Errorf("error decoding Project.projectMilestonesIsDirty: %w", err)
     }
-    if err = dec.Decode(&o.parentsIsDirty); err != nil {
-        return fmt.Errorf("error decoding Project.parentsIsDirty: %w", err)
-    }
-    if err = dec.Decode(&isPtr); err != nil {
-        return fmt.Errorf("error decoding Project.parentsPks isPtr: %w", err)
-    }
-    if isPtr {
-        if err = dec.Decode(&o.parentsPks); err != nil {
-            return fmt.Errorf("error decoding Project.parentsPks: %w", err)
-        }
-    }
+
+    
 
     if err = dec.Decode(&o.teamMembers); err != nil {
         return fmt.Errorf("error decoding Project.teamMembersPks: %w", err)
@@ -2778,15 +2824,6 @@ func (o *projectBase) MarshalStringMap() (map[string]interface{}) {
     }
 
 
-    if o.managerIdIsLoaded {
-        if o.managerIdIsNull {
-            v["managerId"] = nil
-        } else {
-            v["managerId"] = o.managerId
-        }
-    }
-
-
     if o.nameIsLoaded {
         v["name"] = o.name
     }
@@ -2837,14 +2874,23 @@ func (o *projectBase) MarshalStringMap() (map[string]interface{}) {
     }
 
 
-    if o.parentProjectIdIsLoaded {
-        if o.parentProjectIdIsNull {
-            v["parentProjectId"] = nil
-        } else {
-            v["parentProjectId"] = o.parentProjectId
-        }
+    if o.managerIDIsLoaded {
+        v["managerID"] = o.managerID
     }
 
+
+    if o.parentIDIsLoaded {
+        v["parentID"] = o.parentID
+    }
+
+
+    if val := o.manager; val != nil {
+        v["manager"] = val.MarshalStringMap()
+    }
+
+    if val := o.parent; val != nil {
+        v["parent"] = val.MarshalStringMap()
+    }
     if o.children.Len() != 0 {
         var vals []map[string]interface{}
         for obj := range o.children.ValuesIter() {
@@ -2852,12 +2898,12 @@ func (o *projectBase) MarshalStringMap() (map[string]interface{}) {
         }
         v["children"] = vals
     }
-    if o.parents.Len() != 0 {
+    if o.projectMilestones.Len() != 0 {
         var vals []map[string]interface{}
-        for obj := range o.parents.ValuesIter() {
+        for obj := range o.projectMilestones.ValuesIter() {
             vals = append(vals, obj.MarshalStringMap())
         }
-        v["parents"] = vals
+        v["projectMilestones"] = vals
     }
     if o.teamMembers.Len() != 0 {
         var vals []map[string]interface{}
@@ -2885,14 +2931,12 @@ func (o *projectBase) MarshalStringMap() (map[string]interface{}) {
 //   "id" - string
 //   "num" - int
 //   "statusEnum" - ProjectStatus
-//   "managerId" - []byte, nullable
 //   "name" - string
 //   "description" - string, nullable
 //   "startDate" - time.Time, nullable
 //   "endDate" - time.Time, nullable
 //   "budget" - string, nullable
 //   "spent" - string, nullable
-//   "parentProjectId" - []byte, nullable
 func (o *projectBase) UnmarshalJSON (data []byte) (err error) {
 	var v map[string]interface{}
 	if len(data) == 0 {
@@ -2923,7 +2967,7 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
             if s,ok := v.(string); !ok {
                 return fmt.Errorf("json field %s must be a string", k)
             } else {
-                o.SetId(s)
+                o.SetID(s)
             }
             }
         case "num":
@@ -2956,42 +3000,6 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
             v2, err := ProjectStatusFromInterface(v)
             if err != nil {return err}
             o.SetStatusEnum(v2)
-            }
-        case "managerId":
-        {
-            if v == nil {
-                o.SetManagerIdToNull()
-                continue
-            }
-
-
-            switch d := v.(type) {
-            case string:
-            {
-                // A base 64 encoded string
-                if b,err2 := base64.StdEncoding.DecodeString(d); err2 == nil {
-                    o.SetManagerId(b)
-                } else {
-                    return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
-                }
-            }
-            case []interface{}:
-            {
-                // An array of byte values. Unfortunately, these come through as float64s, and so need to be converted
-                b := make([]byte, len(d), len(d))
-                for i,b1 := range d {
-                    if f,ok := b1.(float64); !ok {
-                        return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
-                    } else {
-                        b[i] = uint8(f)
-                    }
-                }
-                o.SetManagerId(b)
-            }
-            default:
-                return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
-            }
-
             }
         case "name":
         {
@@ -3108,42 +3116,59 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
                 o.SetSpent(s)
             }
             }
-        case "parentProjectId":
+        case "managerID":
         {
             if v == nil {
-                o.SetParentProjectIdToNull()
-                continue
+                return fmt.Errorf("field %s cannot be null", k)
             }
 
+            if _,ok := m["manager"]; ok {
+                continue // importing the foreign key will remove the object
+            }
 
-            switch d := v.(type) {
-            case string:
-            {
-                // A base 64 encoded string
-                if b,err2 := base64.StdEncoding.DecodeString(d); err2 == nil {
-                    o.SetParentProjectId(b)
-                } else {
-                    return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
+            if s,ok := v.(string); !ok {
+                return fmt.Errorf("json field %s must be a string", k)
+            } else {
+                o.SetManagerID(s)
+            }
+            }
+        case "parentID":
+        {
+            if v == nil {
+                return fmt.Errorf("field %s cannot be null", k)
+            }
+
+            if _,ok := m["parent"]; ok {
+                continue // importing the foreign key will remove the object
+            }
+
+            if s,ok := v.(string); !ok {
+                return fmt.Errorf("json field %s must be a string", k)
+            } else {
+                o.SetParentID(s)
+            }
+            }
+
+            case "manager":
+                v2 := NewPerson()
+                m2,ok := v.(map[string]any)
+                if !ok {
+                    return fmt.Errorf("json field %s must be a map", k)
                 }
-            }
-            case []interface{}:
-            {
-                // An array of byte values. Unfortunately, these come through as float64s, and so need to be converted
-                b := make([]byte, len(d), len(d))
-                for i,b1 := range d {
-                    if f,ok := b1.(float64); !ok {
-                        return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
-                    } else {
-                        b[i] = uint8(f)
-                    }
-                }
-                o.SetParentProjectId(b)
-            }
-            default:
-                return fmt.Errorf("json field %s must be either a Base64 encoded string or an array of byte values", k)
-            }
+                err = v2.UnmarshalStringMap(m2)
+                if err != nil {return}
+                o.SetManager(v2)
 
-            }
+
+            case "parent":
+                v2 := NewProject()
+                m2,ok := v.(map[string]any)
+                if !ok {
+                    return fmt.Errorf("json field %s must be a map", k)
+                }
+                err = v2.UnmarshalStringMap(m2)
+                if err != nil {return}
+                o.SetParent(v2)
 
         case "children":
             v2,ok := v.([]any)
@@ -3164,23 +3189,24 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
             o.SetChildren(s...)
 
 
-        case "parents":
+        case "projectMilestones":
             v2,ok := v.([]any)
             if !ok {
                 return fmt.Errorf("json field %s must be an array of maps", k)
             }
-            var s []*Project
+            var s []*Milestone
             for _,i2 := range v2 {
                 m2,ok := i2.(map[string]any)
                 if !ok {
                     return fmt.Errorf("json field %s must be an array of maps", k)
                 }
-                v3 := NewProject()
+                v3 := NewMilestone()
                 err = v3.UnmarshalStringMap(m2)
                 if err != nil {return}
                 s = append(s, v3)
             }
-            o.SetParents(s...)
+            o.SetProjectMilestones(s...)
+
 
 
         case "teamMembers":

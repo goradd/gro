@@ -5,6 +5,7 @@ package goradd
 // Your edits to this file will be preserved.
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -40,7 +41,7 @@ func TestPersonWithLock_Label(t *testing.T) {
 }
 
 func TestPersonWithLock_Delete(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	obj := createMinimalSamplePersonWithLock()
 	assert.NoError(t, obj.Save(ctx))
 	assert.NoError(t, DeletePersonWithLock(ctx, obj.PrimaryKey()))

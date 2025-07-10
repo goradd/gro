@@ -59,7 +59,7 @@ func Test{{= table.Identifier }}_Label(t *testing.T) {
 
 func Test{{= table.Identifier }}_Delete(t *testing.T) {
 {{if !hasRequiredUnknown}}
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
     obj := createMinimalSample{{= table.Identifier }}()
     assert.NoError(t, obj.Save(ctx))
 {{for _,ref := range table.References }}

@@ -3,6 +3,7 @@ package schema
 import (
 	"fmt"
 	strings2 "github.com/goradd/strings"
+	"github.com/kenshaw/snaker"
 	"golang.org/x/exp/slog"
 )
 
@@ -107,8 +108,7 @@ func (c *Column) infer(db *Database, table *Table) error {
 
 func (c *Column) fillDefaults() {
 	if c.Identifier == "" {
-		objName := strings2.SnakeToCamel(c.Name)
-		c.Identifier = SanitizeIdentifier(objName)
+		c.Identifier = snaker.SnakeToCamelIdentifier(c.Name)
 	}
 
 	if c.Label == "" {

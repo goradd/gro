@@ -4,6 +4,20 @@
 }}
 
 {{
+{{if len(table.PrimaryKeyColumns() ) > 1 }}
+type {{= table.PrimaryKeyType() }} struct {
+{{for _,col := range table.PrimaryKeyColumns() }}
+    {{= col.Identifier }} {{= col.Type }}
+{{for}}
+}
+{{if}}
+
+// OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
+// read from the database.
+func (o *{{= table.DecapIdentifier}}Base) OriginalPrimaryKey() {{= table.PrimaryKeyType() }} {
+	return o._originalPK
+}
+
 // PrimaryKey returns the value of the primary key of the record.
 func (o *{{= table.DecapIdentifier}}Base) PrimaryKey() {{= table.PrimaryKeyType() }} {
 {{for _,col := range table.PrimaryKeyColumns() }}
@@ -57,6 +71,11 @@ func (o *{{= table.DecapIdentifier}}Base) SetPrimaryKey(v {{= table.PrimaryKeyTy
 // {{= col.Identifier }} returns the value of {{= col.Identifier }}.
 func (o *{{= table.DecapIdentifier}}Base) {{= col.Identifier }}() {{= col.Type }} {
 	return o.PrimaryKey()
+}
+
+// {{= col.Identifier }}IsLoaded returns true if the value was loaded from the database or has been set.
+func (o *{{= table.DecapIdentifier}}Base) {{= col.Identifier }}IsLoaded() bool {
+	return o.{{= col.Field }}IsLoaded
 }
 
 // Set{{= col.Identifier }} sets the value of {{= col.Identifier }} in the object, to be saved later in the database using the Save() function.

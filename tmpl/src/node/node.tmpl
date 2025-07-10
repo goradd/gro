@@ -18,7 +18,7 @@ func (n *NodeTemplate)gen(table *model.Table, _w io.Writer) (err error) {
     if err = n.genStruct(table, _w); err != nil { return }
     if err = n.genTableNode(table, _w); err != nil { return }
     if err = n.genPrivate(table, _w); err != nil { return }
-    if err = n.genPrimaryKey(table, _w); err != nil { return }
+    if err = n.genPrimaryKeys(table, _w); err != nil { return }
     if err = n.genColumns(table, _w); err != nil { return }
     if err = n.genReferences(table, _w); err != nil { return }
     if err = n.genAssn(table, _w); err != nil { return }
@@ -60,8 +60,8 @@ func (n *NodeTemplate)genPrivate(table *model.Table, _w io.Writer) (err error) {
     return
 }
 
-func (n *NodeTemplate)genPrimaryKey(table *model.Table, _w io.Writer) (err error) {
-    if col := table.PrimaryKeyColumn(); col != nil {
+func (n *NodeTemplate)genPrimaryKeys(table *model.Table, _w io.Writer) (err error) {
+    if len(table.PrimaryKeyColumns()) > 0 {
 {{: "pk.tmpl"}}
     }
     return

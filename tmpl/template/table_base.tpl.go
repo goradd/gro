@@ -53,9 +53,6 @@ func (tmpl *TableBaseTemplate) gen(table *model.Table, _w io.Writer, importPath 
 	if err = tmpl.genInit(table, _w); err != nil {
 		return
 	}
-	if err = tmpl.genPK(table, _w); err != nil {
-		return
-	}
 	if err = tmpl.genCopy(table, _w); err != nil {
 		return
 	}
@@ -1131,178 +1128,6 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 	if _, err = io.WriteString(_w, `
 	o._aliases = nil
 	o._restored = false
-}
-
-`); err != nil {
-		return
-	}
-
-	return
-}
-
-func (tmpl *TableBaseTemplate) genPK(table *model.Table, _w io.Writer) (err error) {
-
-	//*** pk.tmpl
-
-	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
-	}
-
-	if len(table.PrimaryKeyColumns()) > 1 {
-
-		if _, err = io.WriteString(_w, `type `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.PrimaryKeyType()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, ` struct {
-`); err != nil {
-			return
-		}
-
-		for _, col := range table.PrimaryKeyColumns() {
-
-			if _, err = io.WriteString(_w, `    `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Type); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `
-`); err != nil {
-				return
-			}
-
-		}
-
-		if _, err = io.WriteString(_w, `}
-`); err != nil {
-			return
-		}
-
-	}
-
-	if _, err = io.WriteString(_w, `
-// PrimaryKey returns the current value of the primary key.
-func (o *`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `Base) PrimaryKey() `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.PrimaryKeyType()); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, ` {
-`); err != nil {
-		return
-	}
-
-	if len(table.PrimaryKeyColumns()) > 1 {
-
-		if _, err = io.WriteString(_w, `    return `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.PrimaryKeyType()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `{
-`); err != nil {
-			return
-		}
-
-		for _, col := range table.PrimaryKeyColumns() {
-
-			if _, err = io.WriteString(_w, `        `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `: o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Field); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `,
-`); err != nil {
-				return
-			}
-
-		}
-
-		if _, err = io.WriteString(_w, `    }
-`); err != nil {
-			return
-		}
-
-	} else {
-
-		if _, err = io.WriteString(_w, `	return o.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `
-`); err != nil {
-			return
-		}
-
-	}
-
-	if _, err = io.WriteString(_w, `}
-
-// OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
-// read from the database.
-func (o *`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `Base) OriginalPrimaryKey() `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.PrimaryKeyType()); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, ` {
-	return o._originalPK
 }
 
 `); err != nil {
@@ -2520,7 +2345,77 @@ func (tmpl *TableBaseTemplate) genColPrimaryKey(table *model.Table, _w io.Writer
 
 	//*** column_pk.tmpl
 
-	if _, err = io.WriteString(_w, `// PrimaryKey returns the value of the primary key of the record.
+	if len(table.PrimaryKeyColumns()) > 1 {
+
+		if _, err = io.WriteString(_w, `type `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.PrimaryKeyType()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` struct {
+`); err != nil {
+			return
+		}
+
+		for _, col := range table.PrimaryKeyColumns() {
+
+			if _, err = io.WriteString(_w, `    `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Type); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `}
+`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
+// OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
+// read from the database.
+func (o *`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `Base) OriginalPrimaryKey() `); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.PrimaryKeyType()); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, ` {
+	return o._originalPK
+}
+
+// PrimaryKey returns the value of the primary key of the record.
 func (o *`); err != nil {
 		return
 	}
@@ -2833,6 +2728,43 @@ func (o *`); err != nil {
 
 		if _, err = io.WriteString(_w, ` {
 	return o.PrimaryKey()
+}
+
+// `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `IsLoaded returns true if the value was loaded from the database or has been set.
+func (o *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Base) `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `IsLoaded() bool {
+	return o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Field); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `IsLoaded
 }
 
 // Set`); err != nil {
@@ -4207,7 +4139,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `().PrimaryKey(), o.`); err != nil {
+		if _, err = io.WriteString(_w, `().PrimaryKeys()[0], o.`); err != nil {
 			return
 		}
 
@@ -8401,7 +8333,7 @@ func (o *`); err != nil {
 
 	}
 
-	if _, err = io.WriteString(_w, `    err := db.ExecuteTransaction(ctx, d, func() error {
+	if _, err = io.WriteString(_w, `    err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
 `); err != nil {
 		return
 	}
@@ -9701,7 +9633,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.SourceColumnName); err != nil {
+		if _, err = io.WriteString(_w, mm.SourceColumnName()); err != nil {
 			return
 		}
 
@@ -9711,7 +9643,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.DestColumnName); err != nil {
+		if _, err = io.WriteString(_w, mm.ForeignKeyName); err != nil {
 			return
 		}
 
@@ -9743,7 +9675,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.SourceColumnName); err != nil {
+		if _, err = io.WriteString(_w, mm.SourceColumnName()); err != nil {
 			return
 		}
 
@@ -9753,7 +9685,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.DestColumnName); err != nil {
+		if _, err = io.WriteString(_w, mm.ForeignKeyName); err != nil {
 			return
 		}
 
@@ -9936,7 +9868,7 @@ func (o *`); err != nil {
 
 	}
 
-	if _, err = io.WriteString(_w, `	err = db.ExecuteTransaction(ctx, d, func() error {
+	if _, err = io.WriteString(_w, `	err = db.WithTransaction(ctx, d, func(context.Context) error {
 `); err != nil {
 		return
 	}
@@ -10505,7 +10437,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.SourceColumnName); err != nil {
+		if _, err = io.WriteString(_w, mm.SourceColumnName()); err != nil {
 			return
 		}
 
@@ -10515,7 +10447,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.DestColumnName); err != nil {
+		if _, err = io.WriteString(_w, mm.ForeignKeyName); err != nil {
 			return
 		}
 
@@ -10569,7 +10501,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.SourceColumnName); err != nil {
+		if _, err = io.WriteString(_w, mm.SourceColumnName()); err != nil {
 			return
 		}
 
@@ -10579,7 +10511,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.DestColumnName); err != nil {
+		if _, err = io.WriteString(_w, mm.ForeignKeyName); err != nil {
 			return
 		}
 
@@ -11309,7 +11241,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 
 		}
 
-		if _, err = io.WriteString(_w, `    err = db.ExecuteTransaction(ctx, d, func() error {
+		if _, err = io.WriteString(_w, `    err = db.WithTransaction(ctx, d, func(context.Context) error {
 	`); err != nil {
 			return
 		}
@@ -11743,7 +11675,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 				return
 			}
 
-			if _, err = io.WriteString(_w, mm.SourceColumnName); err != nil {
+			if _, err = io.WriteString(_w, mm.SourceColumnName()); err != nil {
 				return
 			}
 
@@ -12014,7 +11946,7 @@ func delete`); err != nil {
 
 		}
 
-		if _, err = io.WriteString(_w, `    err := db.ExecuteTransaction(ctx, d, func() error {
+		if _, err = io.WriteString(_w, `    err := db.WithTransaction(ctx, d, func(context.Context) error {
         if obj, err := Load`); err != nil {
 			return
 		}
@@ -12025,17 +11957,33 @@ func delete`); err != nil {
 
 		if _, err = io.WriteString(_w, `(ctx,
                 pk,
-                node.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `().PrimaryKey(),
 `); err != nil {
 			return
+		}
+
+		for _, col := range table.PrimaryKeyColumns() {
+
+			if _, err = io.WriteString(_w, `                node.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `().`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `(),
+`); err != nil {
+				return
+			}
+
 		}
 
 		if table.LockColumn != nil {

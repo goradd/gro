@@ -24,7 +24,7 @@ func (o *{{= table.DecapIdentifier}}Base) update(ctx context.Context) error {
     ctx, cancel = context.WithTimeout(ctx, {{= table.WriteTimeoutConst() }})
     defer cancel()
 {{if}}
-    err := db.ExecuteTransaction(ctx, d, func() error {
+    err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
 {{: "update_ref.tmpl" }}
 
 {{: unique_check.tmpl }}

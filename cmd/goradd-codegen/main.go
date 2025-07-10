@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/goradd/gofile/pkg/sys"
 	"github.com/goradd/orm/pkg/codegen"
 	"github.com/goradd/orm/pkg/schema"
 	_ "github.com/goradd/orm/tmpl/template"
@@ -12,6 +13,19 @@ import (
 )
 
 func main() {
+	/*
+		f, err := os.Create("cpu.prof")
+		if err != nil {
+			panic(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	*/
+	/*
+		f, _ := os.Create("trace.out")
+		trace.Start(f)
+		defer trace.Stop()
+	*/
 	var schemaFile string
 	var outdir string
 
@@ -52,8 +66,8 @@ func main() {
 			_, _ = fmt.Fprintf(os.Stderr, "cannot change directory to %s: %s", d, err)
 			os.Exit(1)
 		}
+		defer func() { _ = os.Chdir(cwd) }()
 	}
-	defer func() { _ = os.Chdir(cwd) }()
 
 	var schemaDB *schema.Database
 	schemaDB, err = schema.ReadJsonFile(schemaFile)
@@ -70,6 +84,16 @@ func main() {
 	slog.SetDefault(logger)
 
 	base := filepath.Base(outdir)
-	schemaDB.Package = base
+	if schemaDB.Package == "" {
+		schemaDB.Package = base
+	}
+	if schemaDB.ImportPath == "" {
+		ip, err := sys.ImportPath(".") // current dir is the outdir
+		if err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "Could not determine import path: %s", err)
+			os.Exit(1)
+		}
+		schemaDB.ImportPath = ip
+	}
 	codegen.Generate(schemaDB)
 }

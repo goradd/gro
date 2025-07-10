@@ -12,10 +12,10 @@
 // JsonDecodeAll imports the entire database from JSON that was created using JsonEncodeAll.
 // This is done within a transaction and with constraints off in case there are circular references.
 func JsonDecodeAll(ctx context.Context,  reader io.Reader) error {
-    database := {{= tmpl.Package }}.Database()
-    return db.WithConstraintsDisabled(ctx, database, func() error {
-        jsonDecodeAll(ctx, reader)
-    }
+    database := Database()
+    return db.WithConstraintsOff(ctx, database, func(ctx context.Context) error {
+        return jsonDecodeAll(ctx, reader)
+    })
 }
 
 
@@ -162,14 +162,14 @@ func jsonDecode{{= mm.TableIdentifier() }}(ctx context.Context,  decoder *json.D
     database := Database()
 	for decoder.More() {
 	    var imp struct {
-            Src {{= mm.SourceColumnReceiverType.GoType() }} `json:"{{= mm.SourceColumnName }}"`
-            Dest {{= mm.DestColumnReceiverType.GoType() }} `json:"{{= mm.DestColumnName }}"`
+            Src {{= mm.SourceColumnReceiverType().GoType() }} `json:"{{= mm.SourceColumnName() }}"`
+            Dest {{= mm.ForeignKeyReceiverType.GoType() }} `json:"{{= mm.ForeignKeyName }}"`
         }
 
 		if err = decoder.Decode(&imp); err != nil {
 			return err
 		}
-		db.Associate(ctx, database, {{L mm.TableQueryName }}, {{L mm.SourceColumnName }}, imp.Src, {{L mm.DestColumnName }}, imp.Dest)
+		db.Associate(ctx, database, {{L mm.TableQueryName }}, {{L mm.SourceColumnName() }}, imp.Src, {{L mm.ForeignKeyName }}, imp.Dest)
 	}
 
 	// Check if the last token is the end of the array

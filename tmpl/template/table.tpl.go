@@ -184,7 +184,31 @@ func (o *`); err != nil {
     if o == nil {
         return ""
     }
-    return fmt.Sprintf("`); err != nil {
+    var pk string
+    `); err != nil {
+		return
+	}
+
+	for _, col := range table.PrimaryKeyColumns() {
+
+		if _, err = io.WriteString(_w, `
+    pk += fmt.Sprintf(" %v", o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `())
+    `); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `
+    return "`); err != nil {
 		return
 	}
 
@@ -192,7 +216,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, ` %v", o.PrimaryKey())
+	if _, err = io.WriteString(_w, `" + pk
 }
 
 // Key returns a unique key for the object, among a list of similar objects.

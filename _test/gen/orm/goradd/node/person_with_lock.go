@@ -12,9 +12,10 @@ import (
 // PersonWithLockNode is the builder interface to the PersonWithLock nodes.
 type PersonWithLockNode interface {
 	query.TableNodeI
+	// PrimaryKey returns the column node representing the primary key of the table
 	PrimaryKey() *query.ColumnNode
-	// Id represents the id column in the database.
-	Id() *query.ColumnNode
+	// ID represents the id column in the database.
+	ID() *query.ColumnNode
 	// FirstName represents the first_name column in the database.
 	FirstName() *query.ColumnNode
 	// LastName represents the last_name column in the database.
@@ -54,7 +55,7 @@ func (n personWithLockTable) DatabaseKey_() string {
 
 // ColumnNodes_ returns a list of all the column nodes in this node.
 func (n personWithLockTable) ColumnNodes_() (nodes []query.Node) {
-	nodes = append(nodes, n.Id())
+	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.FirstName())
 	nodes = append(nodes, n.LastName())
 	nodes = append(nodes, n.GroLock())
@@ -62,15 +63,22 @@ func (n personWithLockTable) ColumnNodes_() (nodes []query.Node) {
 	return nodes
 }
 
-// PrimaryKey returns a node that points to the primary key column.
-func (n personWithLockTable) PrimaryKey() *query.ColumnNode {
-	return n.Id()
+// PrimaryKeys returns the primary key column nodes to satisfy the PrimaryKeyer interface.
+func (n personWithLockTable) PrimaryKeys() []*query.ColumnNode {
+	return []*query.ColumnNode{
+		n.ID(),
+	}
 }
 
-func (n personWithLockTable) Id() *query.ColumnNode {
+// PrimaryKey returns the primary key column node.
+func (n personWithLockTable) PrimaryKey() *query.ColumnNode {
+	return n.ID()
+}
+
+func (n personWithLockTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "id",
-		Identifier:    "Id",
+		Identifier:    "ID",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeAutoPrimaryKey,
 		SchemaSubType: schema.ColSubTypeNone,

@@ -3,7 +3,7 @@
 {{
 func Test{{= table.Identifier }}_BasicInsert(t *testing.T) {
     obj := createMinimalSample{{= table.Identifier }}()
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
 	assert.NoError(t, obj.Save(ctx))
     defer deleteSample{{= table.Identifier }}(ctx, obj)
 
@@ -46,7 +46,7 @@ func Test{{= table.Identifier }}_BasicInsert(t *testing.T) {
 func Test{{= table.Identifier }}_InsertPanics(t *testing.T) {
     obj := createMinimalSample{{= table.Identifier }}()
     _ = obj
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
     _ = ctx
 
 {{for _,ref := range table.References }}
@@ -65,7 +65,7 @@ func Test{{= table.Identifier }}_InsertPanics(t *testing.T) {
 
 func Test{{= table.Identifier }}_BasicUpdate(t *testing.T) {
     obj := createMinimalSample{{= table.Identifier }}()
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
     assert.NoError(t, obj.Save(ctx))
     defer deleteSample{{= table.Identifier }}(ctx, obj)
     updateMinimalSample{{= table.Identifier }}(obj)
@@ -86,7 +86,7 @@ func Test{{= table.Identifier }}_BasicUpdate(t *testing.T) {
 
 
 func Test{{= table.Identifier }}_ReferenceLoad(t *testing.T) {
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
     obj := createMaximalSample{{= table.Identifier }}(ctx)
     assert.NoError(t, obj.Save(ctx))
     defer deleteSample{{= table.Identifier }}(ctx, obj)
@@ -103,7 +103,8 @@ func Test{{= table.Identifier }}_ReferenceLoad(t *testing.T) {
     // Test lazy loading
     obj2, err := Load{{= table.Identifier }}(ctx, obj.PrimaryKey())
     assert.NoError(t, err)
-    objPkOnly, err2 := Load{{= table.Identifier }}(ctx, obj.PrimaryKey(), node.{{= table.Identifier }}().PrimaryKey())
+    objPkOnly, err2 := Load{{= table.Identifier }}(ctx, obj.PrimaryKey(),
+    {{join table.PrimaryKeyColumns(), ", "}}node.{{= table.Identifier }}().{{= _j.Identifier }}(){{join}})
     assert.NoError(t, err2)
     _ = obj2 // avoid error if there are no references
     _ = objPkOnly
@@ -174,7 +175,7 @@ func Test{{= table.Identifier }}_ReferenceLoad(t *testing.T) {
 }
 
 func Test{{= table.Identifier }}_ReferenceUpdateNewObjects(t *testing.T) {
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
     obj := createMaximalSample{{= table.Identifier }}(ctx)
     assert.NoError(t, obj.Save(ctx))
     defer deleteSample{{= table.Identifier }}(ctx, obj)
@@ -212,7 +213,7 @@ func Test{{= table.Identifier }}_ReferenceUpdateNewObjects(t *testing.T) {
 }
 
 func Test{{= table.Identifier }}_ReferenceUpdateOldObjects(t *testing.T) {
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
     obj := createMaximalSample{{= table.Identifier }}(ctx)
     assert.NoError(t, obj.Save(ctx))
     defer deleteSample{{= table.Identifier }}(ctx, obj)

@@ -8,586 +8,528 @@
 //
 // Some Examples
 //
-//   projects := model.QueryProjects().Load()
+//	projects := model.QueryProjects().Load()
 //
 // Returns all the projects in the database.
 //
-//   projects := model.QueryProjects().
-//       Join(node.Project().Manager()).
-//       Where(op.GreaterOrEqual(node.Project().StartDate(), time.NewDate(2006, 1, 1)).
-//       OrderBy(node.Project().Num()).
-//       Load()
+//	projects := model.QueryProjects().
+//	    Join(node.Project().Manager()).
+//	    Where(op.GreaterOrEqual(node.Project().StartDate(), time.NewDate(2006, 1, 1)).
+//	    OrderBy(node.Project().Num()).
+//	    Load()
 //
 // Returns the projects that started in 2006 or later, with the manager objects attached, and ordered by project number.
 // To get the manager of the first project returned, you can do this:
 //
-//   firstManager := projects[0].Manager()
+//	firstManager := projects[0].Manager()
 //
 // See the goradd-orm documentation for more information.
-//
 package goradd
 
 import (
-	"github.com/goradd/orm/pkg/db"
 	"context"
-	"io"
 	"encoding/json"
+	"fmt"
+	"io"
+
+	"github.com/goradd/orm/pkg/db"
+	"github.com/goradd/orm/pkg/query"
 )
 
 // Database returns the database object corresponding to "goradd" in the global database cluster.
 // Use this to call directly into the database through the DatabaseI interface, or if you want to call functions
 // specific to the database, cast the interface to the driver.
 func Database() db.DatabaseI {
-    return db.GetDatabase("goradd")
+	return db.GetDatabase("goradd")
 }
-
-
 
 // ClearAll deletes all the data in the database, except for data in Enum tables.
 func ClearAll(ctx context.Context) {
-    db := Database()
+	db := Database()
 
-    _ = db.DeleteAll(ctx, "team_member_project_assn")
-    _ = db.DeleteAll(ctx, "related_project_assn")
+	_ = db.DeleteAll(ctx, "team_member_project_assn")
 
-    _ = db.DeleteAll(ctx, "project")
-    _ = db.DeleteAll(ctx, "person_with_lock")
-    _ = db.DeleteAll(ctx, "person")
-    _ = db.DeleteAll(ctx, "milestone")
-    _ = db.DeleteAll(ctx, "login")
-    _ = db.DeleteAll(ctx, "gift")
-    _ = db.DeleteAll(ctx, "employee_info")
-    _ = db.DeleteAll(ctx, "address")
+	_ = db.DeleteAll(ctx, "milestone")
+	_ = db.DeleteAll(ctx, "login")
+	_ = db.DeleteAll(ctx, "employee_info")
+	_ = db.DeleteAll(ctx, "address")
+	_ = db.DeleteAll(ctx, "project")
+	_ = db.DeleteAll(ctx, "person_with_lock")
+	_ = db.DeleteAll(ctx, "person")
+	_ = db.DeleteAll(ctx, "gift")
 
 }
-
-
-
-
 
 // JsonEncodeAll sends the entire database to writer as JSON.
 func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 	encoder := json.NewEncoder(writer)
 	encoder.SetIndent("", "  ")
 
-	if _,err := io.WriteString(writer, "[\n"); err != nil {
-        return fmt.Errorf("writer error: %w", err)
+	if _, err := io.WriteString(writer, "[\n"); err != nil {
+		return fmt.Errorf("writer error: %w", err)
 	}
 
-	{	// Write Addresses
-		if _,err := io.WriteString(writer, "["); err != nil {
-            return fmt.Errorf("writer error: %w", err)
+	{ // Write Gifts
+		if _, err := io.WriteString(writer, "["); err != nil {
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-		if _,err := io.WriteString(writer, `"address"`); err != nil {
-            return fmt.Errorf("writer error: %w", err)
+		if _, err := io.WriteString(writer, `"gift"`); err != nil {
+			return fmt.Errorf("writer error: %w", err)
 		}
-        if _,err := io.WriteString(writer, ",\n["); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-        }
-
-		cursor, err := QueryAddresses(ctx).LoadCursor()
-		if err != nil {
-            return fmt.Errorf("query error: %w", err)
+		if _, err := io.WriteString(writer, ",\n["); err != nil {
+			return fmt.Errorf("writer error: %w", err)
 		}
-		defer cursor.Close()
-		obj, err2 := cursor.Next()
-        if err2 != nil {
-            return fmt.Errorf("database cursor error: %w", err)
-        }
-		if obj != nil {
-			if err := encoder.Encode(obj); err != nil {
-                return fmt.Errorf("encoding error: %w", err)
-			}
-		}
-
-		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
-			if _, err := io.WriteString(writer, ",\n"); err != nil {
-                return fmt.Errorf("writer error: %w", err)
-			}
-			if err := encoder.Encode(obj); err != nil {
-                return fmt.Errorf("encoding error: %w", err)
-			}
-		}
-		if err != nil {
-            return fmt.Errorf("database cursor error: %w", err)
-		}
-
-		if _,err := io.WriteString(writer, "]\n]"); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-		}
-
-        if _,err := io.WriteString(writer, ","); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-        }
-		if _,err := io.WriteString(writer, "\n"); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-		}
-	}
-	{	// Write EmployeeInfos
-		if _,err := io.WriteString(writer, "["); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-		}
-
-		if _,err := io.WriteString(writer, `"employee_info"`); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-		}
-        if _,err := io.WriteString(writer, ",\n["); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-        }
-
-		cursor, err := QueryEmployeeInfos(ctx).LoadCursor()
-		if err != nil {
-            return fmt.Errorf("query error: %w", err)
-		}
-		defer cursor.Close()
-		obj, err2 := cursor.Next()
-        if err2 != nil {
-            return fmt.Errorf("database cursor error: %w", err)
-        }
-		if obj != nil {
-			if err := encoder.Encode(obj); err != nil {
-                return fmt.Errorf("encoding error: %w", err)
-			}
-		}
-
-		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
-			if _, err := io.WriteString(writer, ",\n"); err != nil {
-                return fmt.Errorf("writer error: %w", err)
-			}
-			if err := encoder.Encode(obj); err != nil {
-                return fmt.Errorf("encoding error: %w", err)
-			}
-		}
-		if err != nil {
-            return fmt.Errorf("database cursor error: %w", err)
-		}
-
-		if _,err := io.WriteString(writer, "]\n]"); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-		}
-
-        if _,err := io.WriteString(writer, ","); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-        }
-		if _,err := io.WriteString(writer, "\n"); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-		}
-	}
-	{	// Write Gifts
-		if _,err := io.WriteString(writer, "["); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-		}
-
-		if _,err := io.WriteString(writer, `"gift"`); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-		}
-        if _,err := io.WriteString(writer, ",\n["); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-        }
 
 		cursor, err := QueryGifts(ctx).LoadCursor()
 		if err != nil {
-            return fmt.Errorf("query error: %w", err)
+			return fmt.Errorf("query error: %w", err)
 		}
 		defer cursor.Close()
 		obj, err2 := cursor.Next()
-        if err2 != nil {
-            return fmt.Errorf("database cursor error: %w", err)
-        }
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
 		if obj != nil {
 			if err := encoder.Encode(obj); err != nil {
-                return fmt.Errorf("encoding error: %w", err)
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 
 		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
 			if _, err := io.WriteString(writer, ",\n"); err != nil {
-                return fmt.Errorf("writer error: %w", err)
+				return fmt.Errorf("writer error: %w", err)
 			}
 			if err := encoder.Encode(obj); err != nil {
-                return fmt.Errorf("encoding error: %w", err)
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 		if err != nil {
-            return fmt.Errorf("database cursor error: %w", err)
+			return fmt.Errorf("database cursor error: %w", err)
 		}
 
-		if _,err := io.WriteString(writer, "]\n]"); err != nil {
-            return fmt.Errorf("writer error: %w", err)
+		if _, err := io.WriteString(writer, "]\n]"); err != nil {
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-        if _,err := io.WriteString(writer, ","); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-        }
-		if _,err := io.WriteString(writer, "\n"); err != nil {
-            return fmt.Errorf("writer error: %w", err)
+		if _, err := io.WriteString(writer, ","); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+		if _, err := io.WriteString(writer, "\n"); err != nil {
+			return fmt.Errorf("writer error: %w", err)
 		}
 	}
-	{	// Write Logins
-		if _,err := io.WriteString(writer, "["); err != nil {
-            return fmt.Errorf("writer error: %w", err)
+	{ // Write People
+		if _, err := io.WriteString(writer, "["); err != nil {
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-		if _,err := io.WriteString(writer, `"login"`); err != nil {
-            return fmt.Errorf("writer error: %w", err)
+		if _, err := io.WriteString(writer, `"person"`); err != nil {
+			return fmt.Errorf("writer error: %w", err)
 		}
-        if _,err := io.WriteString(writer, ",\n["); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-        }
-
-		cursor, err := QueryLogins(ctx).LoadCursor()
-		if err != nil {
-            return fmt.Errorf("query error: %w", err)
+		if _, err := io.WriteString(writer, ",\n["); err != nil {
+			return fmt.Errorf("writer error: %w", err)
 		}
-		defer cursor.Close()
-		obj, err2 := cursor.Next()
-        if err2 != nil {
-            return fmt.Errorf("database cursor error: %w", err)
-        }
-		if obj != nil {
-			if err := encoder.Encode(obj); err != nil {
-                return fmt.Errorf("encoding error: %w", err)
-			}
-		}
-
-		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
-			if _, err := io.WriteString(writer, ",\n"); err != nil {
-                return fmt.Errorf("writer error: %w", err)
-			}
-			if err := encoder.Encode(obj); err != nil {
-                return fmt.Errorf("encoding error: %w", err)
-			}
-		}
-		if err != nil {
-            return fmt.Errorf("database cursor error: %w", err)
-		}
-
-		if _,err := io.WriteString(writer, "]\n]"); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-		}
-
-        if _,err := io.WriteString(writer, ","); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-        }
-		if _,err := io.WriteString(writer, "\n"); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-		}
-	}
-	{	// Write Milestones
-		if _,err := io.WriteString(writer, "["); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-		}
-
-		if _,err := io.WriteString(writer, `"milestone"`); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-		}
-        if _,err := io.WriteString(writer, ",\n["); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-        }
-
-		cursor, err := QueryMilestones(ctx).LoadCursor()
-		if err != nil {
-            return fmt.Errorf("query error: %w", err)
-		}
-		defer cursor.Close()
-		obj, err2 := cursor.Next()
-        if err2 != nil {
-            return fmt.Errorf("database cursor error: %w", err)
-        }
-		if obj != nil {
-			if err := encoder.Encode(obj); err != nil {
-                return fmt.Errorf("encoding error: %w", err)
-			}
-		}
-
-		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
-			if _, err := io.WriteString(writer, ",\n"); err != nil {
-                return fmt.Errorf("writer error: %w", err)
-			}
-			if err := encoder.Encode(obj); err != nil {
-                return fmt.Errorf("encoding error: %w", err)
-			}
-		}
-		if err != nil {
-            return fmt.Errorf("database cursor error: %w", err)
-		}
-
-		if _,err := io.WriteString(writer, "]\n]"); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-		}
-
-        if _,err := io.WriteString(writer, ","); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-        }
-		if _,err := io.WriteString(writer, "\n"); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-		}
-	}
-	{	// Write People
-		if _,err := io.WriteString(writer, "["); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-		}
-
-		if _,err := io.WriteString(writer, `"person"`); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-		}
-        if _,err := io.WriteString(writer, ",\n["); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-        }
 
 		cursor, err := QueryPeople(ctx).LoadCursor()
 		if err != nil {
-            return fmt.Errorf("query error: %w", err)
+			return fmt.Errorf("query error: %w", err)
 		}
 		defer cursor.Close()
 		obj, err2 := cursor.Next()
-        if err2 != nil {
-            return fmt.Errorf("database cursor error: %w", err)
-        }
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
 		if obj != nil {
 			if err := encoder.Encode(obj); err != nil {
-                return fmt.Errorf("encoding error: %w", err)
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 
 		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
 			if _, err := io.WriteString(writer, ",\n"); err != nil {
-                return fmt.Errorf("writer error: %w", err)
+				return fmt.Errorf("writer error: %w", err)
 			}
 			if err := encoder.Encode(obj); err != nil {
-                return fmt.Errorf("encoding error: %w", err)
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 		if err != nil {
-            return fmt.Errorf("database cursor error: %w", err)
+			return fmt.Errorf("database cursor error: %w", err)
 		}
 
-		if _,err := io.WriteString(writer, "]\n]"); err != nil {
-            return fmt.Errorf("writer error: %w", err)
+		if _, err := io.WriteString(writer, "]\n]"); err != nil {
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-        if _,err := io.WriteString(writer, ","); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-        }
-		if _,err := io.WriteString(writer, "\n"); err != nil {
-            return fmt.Errorf("writer error: %w", err)
+		if _, err := io.WriteString(writer, ","); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+		if _, err := io.WriteString(writer, "\n"); err != nil {
+			return fmt.Errorf("writer error: %w", err)
 		}
 	}
-	{	// Write PersonWithLocks
-		if _,err := io.WriteString(writer, "["); err != nil {
-            return fmt.Errorf("writer error: %w", err)
+	{ // Write PersonWithLocks
+		if _, err := io.WriteString(writer, "["); err != nil {
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-		if _,err := io.WriteString(writer, `"person_with_lock"`); err != nil {
-            return fmt.Errorf("writer error: %w", err)
+		if _, err := io.WriteString(writer, `"person_with_lock"`); err != nil {
+			return fmt.Errorf("writer error: %w", err)
 		}
-        if _,err := io.WriteString(writer, ",\n["); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-        }
+		if _, err := io.WriteString(writer, ",\n["); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
 
 		cursor, err := QueryPersonWithLocks(ctx).LoadCursor()
 		if err != nil {
-            return fmt.Errorf("query error: %w", err)
+			return fmt.Errorf("query error: %w", err)
 		}
 		defer cursor.Close()
 		obj, err2 := cursor.Next()
-        if err2 != nil {
-            return fmt.Errorf("database cursor error: %w", err)
-        }
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
 		if obj != nil {
 			if err := encoder.Encode(obj); err != nil {
-                return fmt.Errorf("encoding error: %w", err)
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 
 		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
 			if _, err := io.WriteString(writer, ",\n"); err != nil {
-                return fmt.Errorf("writer error: %w", err)
+				return fmt.Errorf("writer error: %w", err)
 			}
 			if err := encoder.Encode(obj); err != nil {
-                return fmt.Errorf("encoding error: %w", err)
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 		if err != nil {
-            return fmt.Errorf("database cursor error: %w", err)
+			return fmt.Errorf("database cursor error: %w", err)
 		}
 
-		if _,err := io.WriteString(writer, "]\n]"); err != nil {
-            return fmt.Errorf("writer error: %w", err)
+		if _, err := io.WriteString(writer, "]\n]"); err != nil {
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-        if _,err := io.WriteString(writer, ","); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-        }
-		if _,err := io.WriteString(writer, "\n"); err != nil {
-            return fmt.Errorf("writer error: %w", err)
+		if _, err := io.WriteString(writer, ","); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+		if _, err := io.WriteString(writer, "\n"); err != nil {
+			return fmt.Errorf("writer error: %w", err)
 		}
 	}
-	{	// Write Projects
-		if _,err := io.WriteString(writer, "["); err != nil {
-            return fmt.Errorf("writer error: %w", err)
+	{ // Write Projects
+		if _, err := io.WriteString(writer, "["); err != nil {
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-		if _,err := io.WriteString(writer, `"project"`); err != nil {
-            return fmt.Errorf("writer error: %w", err)
+		if _, err := io.WriteString(writer, `"project"`); err != nil {
+			return fmt.Errorf("writer error: %w", err)
 		}
-        if _,err := io.WriteString(writer, ",\n["); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-        }
+		if _, err := io.WriteString(writer, ",\n["); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
 
 		cursor, err := QueryProjects(ctx).LoadCursor()
 		if err != nil {
-            return fmt.Errorf("query error: %w", err)
+			return fmt.Errorf("query error: %w", err)
 		}
 		defer cursor.Close()
 		obj, err2 := cursor.Next()
-        if err2 != nil {
-            return fmt.Errorf("database cursor error: %w", err)
-        }
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
 		if obj != nil {
 			if err := encoder.Encode(obj); err != nil {
-                return fmt.Errorf("encoding error: %w", err)
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 
 		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
 			if _, err := io.WriteString(writer, ",\n"); err != nil {
-                return fmt.Errorf("writer error: %w", err)
+				return fmt.Errorf("writer error: %w", err)
 			}
 			if err := encoder.Encode(obj); err != nil {
-                return fmt.Errorf("encoding error: %w", err)
+				return fmt.Errorf("encoding error: %w", err)
 			}
 		}
 		if err != nil {
-            return fmt.Errorf("database cursor error: %w", err)
+			return fmt.Errorf("database cursor error: %w", err)
 		}
 
-		if _,err := io.WriteString(writer, "]\n]"); err != nil {
-            return fmt.Errorf("writer error: %w", err)
+		if _, err := io.WriteString(writer, "]\n]"); err != nil {
+			return fmt.Errorf("writer error: %w", err)
 		}
 
-		if _,err := io.WriteString(writer, "\n"); err != nil {
-            return fmt.Errorf("writer error: %w", err)
+		if _, err := io.WriteString(writer, ","); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+		if _, err := io.WriteString(writer, "\n"); err != nil {
+			return fmt.Errorf("writer error: %w", err)
 		}
 	}
- 
+	{ // Write Addresses
+		if _, err := io.WriteString(writer, "["); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
 
-    db := Database()
-    {
-        if _,err := io.WriteString(writer, ",\n["); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-        }
-        if _,err := io.WriteString(writer, `"team_member_project_assn",[`); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-        }
+		if _, err := io.WriteString(writer, `"address"`); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+		if _, err := io.WriteString(writer, ",\n["); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
 
+		cursor, err := QueryAddresses(ctx).LoadCursor()
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
+		defer cursor.Close()
+		obj, err2 := cursor.Next()
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+		if obj != nil {
+			if err := encoder.Encode(obj); err != nil {
+				return fmt.Errorf("encoding error: %w", err)
+			}
+		}
 
-        cursor, err := db.Query(ctx, "team_member_project_assn",
-            map[string]query.ReceiverType{
-                "project_id": query.ColTypeString,
-                "person_id": query.ColTypeString,
-            },
-            nil,
-            nil)
-        if err != nil {
-            return fmt.Errorf("query error: %w", err)
-        }
-        if rec, err2 := cursor.Next(); err2 != nil {
-            return fmt.Errorf("database cursor error: %w", err2)
-        } else if rec != nil {
-            if err = encoder.Encode(rec); err != nil {
-                return fmt.Errorf("encoding error: %w", err)
-            }
-        }
-        for {
-            rec, err2 := cursor.Next()
-            if err2 != nil {
-                return fmt.Errorf("database cursor error: %w", err2)
-            }
-            if rec == nil {
-                break
-            }
+		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
+			if _, err := io.WriteString(writer, ",\n"); err != nil {
+				return fmt.Errorf("writer error: %w", err)
+			}
+			if err := encoder.Encode(obj); err != nil {
+				return fmt.Errorf("encoding error: %w", err)
+			}
+		}
+		if err != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
 
-            if _, err := io.WriteString(writer, ",\n"); err != nil {
-                return fmt.Errorf("writer error: %w", err)
-            }
-            if err := encoder.Encode(rec); err != nil {
-                return fmt.Errorf("encoding error: %w", err)
-            }
-        }
-        if _,err := io.WriteString(writer, `]]`); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-        }
-    }
-    {
-        if _,err := io.WriteString(writer, ",\n["); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-        }
-        if _,err := io.WriteString(writer, `"related_project_assn",[`); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-        }
+		if _, err := io.WriteString(writer, "]\n]"); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
 
+		if _, err := io.WriteString(writer, ","); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+		if _, err := io.WriteString(writer, "\n"); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+	}
+	{ // Write EmployeeInfos
+		if _, err := io.WriteString(writer, "["); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
 
-        cursor, err := db.Query(ctx, "related_project_assn",
-            map[string]query.ReceiverType{
-                "project_id": query.ColTypeString,
-                "project_id": query.ColTypeString,
-            },
-            nil,
-            nil)
-        if err != nil {
-            return fmt.Errorf("query error: %w", err)
-        }
-        if rec, err2 := cursor.Next(); err2 != nil {
-            return fmt.Errorf("database cursor error: %w", err2)
-        } else if rec != nil {
-            if err = encoder.Encode(rec); err != nil {
-                return fmt.Errorf("encoding error: %w", err)
-            }
-        }
-        for {
-            rec, err2 := cursor.Next()
-            if err2 != nil {
-                return fmt.Errorf("database cursor error: %w", err2)
-            }
-            if rec == nil {
-                break
-            }
+		if _, err := io.WriteString(writer, `"employee_info"`); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+		if _, err := io.WriteString(writer, ",\n["); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
 
-            if _, err := io.WriteString(writer, ",\n"); err != nil {
-                return fmt.Errorf("writer error: %w", err)
-            }
-            if err := encoder.Encode(rec); err != nil {
-                return fmt.Errorf("encoding error: %w", err)
-            }
-        }
-        if _,err := io.WriteString(writer, `]]`); err != nil {
-            return fmt.Errorf("writer error: %w", err)
-        }
-    }
+		cursor, err := QueryEmployeeInfos(ctx).LoadCursor()
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
+		defer cursor.Close()
+		obj, err2 := cursor.Next()
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+		if obj != nil {
+			if err := encoder.Encode(obj); err != nil {
+				return fmt.Errorf("encoding error: %w", err)
+			}
+		}
+
+		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
+			if _, err := io.WriteString(writer, ",\n"); err != nil {
+				return fmt.Errorf("writer error: %w", err)
+			}
+			if err := encoder.Encode(obj); err != nil {
+				return fmt.Errorf("encoding error: %w", err)
+			}
+		}
+		if err != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+
+		if _, err := io.WriteString(writer, "]\n]"); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+
+		if _, err := io.WriteString(writer, ","); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+		if _, err := io.WriteString(writer, "\n"); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+	}
+	{ // Write Logins
+		if _, err := io.WriteString(writer, "["); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+
+		if _, err := io.WriteString(writer, `"login"`); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+		if _, err := io.WriteString(writer, ",\n["); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+
+		cursor, err := QueryLogins(ctx).LoadCursor()
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
+		defer cursor.Close()
+		obj, err2 := cursor.Next()
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+		if obj != nil {
+			if err := encoder.Encode(obj); err != nil {
+				return fmt.Errorf("encoding error: %w", err)
+			}
+		}
+
+		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
+			if _, err := io.WriteString(writer, ",\n"); err != nil {
+				return fmt.Errorf("writer error: %w", err)
+			}
+			if err := encoder.Encode(obj); err != nil {
+				return fmt.Errorf("encoding error: %w", err)
+			}
+		}
+		if err != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+
+		if _, err := io.WriteString(writer, "]\n]"); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+
+		if _, err := io.WriteString(writer, ","); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+		if _, err := io.WriteString(writer, "\n"); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+	}
+	{ // Write Milestones
+		if _, err := io.WriteString(writer, "["); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+
+		if _, err := io.WriteString(writer, `"milestone"`); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+		if _, err := io.WriteString(writer, ",\n["); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+
+		cursor, err := QueryMilestones(ctx).LoadCursor()
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
+		defer cursor.Close()
+		obj, err2 := cursor.Next()
+		if err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+		if obj != nil {
+			if err := encoder.Encode(obj); err != nil {
+				return fmt.Errorf("encoding error: %w", err)
+			}
+		}
+
+		for obj, err = cursor.Next(); obj != nil && err == nil; obj, err = cursor.Next() {
+			if _, err := io.WriteString(writer, ",\n"); err != nil {
+				return fmt.Errorf("writer error: %w", err)
+			}
+			if err := encoder.Encode(obj); err != nil {
+				return fmt.Errorf("encoding error: %w", err)
+			}
+		}
+		if err != nil {
+			return fmt.Errorf("database cursor error: %w", err)
+		}
+
+		if _, err := io.WriteString(writer, "]\n]"); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+
+		if _, err := io.WriteString(writer, "\n"); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+	}
+
+	db := Database()
+	{
+		if _, err := io.WriteString(writer, ",\n["); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+		if _, err := io.WriteString(writer, `"team_member_project_assn",[`); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+
+		cursor, err := db.Query(ctx, "team_member_project_assn",
+			map[string]query.ReceiverType{
+				"project_id":     query.ColTypeString,
+				"team_member_id": query.ColTypeString,
+			},
+			nil,
+			nil)
+		if err != nil {
+			return fmt.Errorf("query error: %w", err)
+		}
+		if rec, err2 := cursor.Next(); err2 != nil {
+			return fmt.Errorf("database cursor error: %w", err2)
+		} else if rec != nil {
+			if err = encoder.Encode(rec); err != nil {
+				return fmt.Errorf("encoding error: %w", err)
+			}
+		}
+		for {
+			rec, err2 := cursor.Next()
+			if err2 != nil {
+				return fmt.Errorf("database cursor error: %w", err2)
+			}
+			if rec == nil {
+				break
+			}
+
+			if _, err := io.WriteString(writer, ",\n"); err != nil {
+				return fmt.Errorf("writer error: %w", err)
+			}
+			if err := encoder.Encode(rec); err != nil {
+				return fmt.Errorf("encoding error: %w", err)
+			}
+		}
+		if _, err := io.WriteString(writer, `]]`); err != nil {
+			return fmt.Errorf("writer error: %w", err)
+		}
+	}
 
 	if _, err := io.WriteString(writer, "]"); err != nil {
-        return fmt.Errorf("writer error: %w", err)
+		return fmt.Errorf("writer error: %w", err)
 	}
 	return nil
 }
 
-
-
-
-
 // JsonDecodeAll imports the entire database from JSON that was created using JsonEncodeAll.
 // This is done within a transaction and with constraints off in case there are circular references.
-func JsonDecodeAll(ctx context.Context,  reader io.Reader) error {
-    database := goradd.Database()
-    return db.WithConstraintsDisabled(ctx, database, func() error {
-        jsonDecodeAll(ctx, reader)
-    }
+func JsonDecodeAll(ctx context.Context, reader io.Reader) error {
+	database := Database()
+	return db.WithConstraintsOff(ctx, database, func(ctx context.Context) error {
+		return jsonDecodeAll(ctx, reader)
+	})
 }
 
-
-func jsonDecodeAll(ctx context.Context,  reader io.Reader) error {
+func jsonDecodeAll(ctx context.Context, reader io.Reader) error {
 	decoder := json.NewDecoder(reader)
 
 	token, err := decoder.Token()
@@ -622,7 +564,7 @@ func jsonDecodeAll(ctx context.Context,  reader io.Reader) error {
 	return nil
 }
 
-func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
+func jsonDecodeTable(ctx context.Context, decoder *json.Decoder) error {
 	token, err := decoder.Token()
 	if err != nil {
 		fmt.Println("Error reading opening token:", err)
@@ -645,24 +587,22 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 		return err
 	} else {
 		switch tableName {
-		case "address":
-			err = jsonDecodeAddresses(ctx, decoder)
-		case "employee_info":
-			err = jsonDecodeEmployeeInfos(ctx, decoder)
 		case "gift":
 			err = jsonDecodeGifts(ctx, decoder)
-		case "login":
-			err = jsonDecodeLogins(ctx, decoder)
-		case "milestone":
-			err = jsonDecodeMilestones(ctx, decoder)
 		case "person":
 			err = jsonDecodePeople(ctx, decoder)
 		case "person_with_lock":
 			err = jsonDecodePersonWithLocks(ctx, decoder)
 		case "project":
 			err = jsonDecodeProjects(ctx, decoder)
-		case "related_project_assn":
-			err = jsonDecodeRelatedProjectAssn(ctx, decoder)
+		case "address":
+			err = jsonDecodeAddresses(ctx, decoder)
+		case "employee_info":
+			err = jsonDecodeEmployeeInfos(ctx, decoder)
+		case "login":
+			err = jsonDecodeLogins(ctx, decoder)
+		case "milestone":
+			err = jsonDecodeMilestones(ctx, decoder)
 		case "team_member_project_assn":
 			err = jsonDecodeTeamMemberProjectAssn(ctx, decoder)
 
@@ -687,79 +627,7 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 	return nil
 }
 
-func jsonDecodeAddresses(ctx context.Context,  decoder *json.Decoder) error {
-	token, err := decoder.Token()
-	if err != nil {
-		fmt.Println("Error reading opening token:", err)
-		return err
-	}
-	// Ensure the first token is a start of an array
-	if delim, ok := token.(json.Delim); !ok || delim != '[' {
-		fmt.Println("Error: Expected the Address list to start with an array")
-		return err
-	}
-
-	for decoder.More() {
-		obj := NewAddress()
-		if err = decoder.Decode(&obj); err != nil {
-			return err
-		}
-		if err = obj.Save(ctx); err != nil {
-		    return err
-		}
-	}
-
-	// Check if the last token is the end of the array
-	token, err = decoder.Token()
-	if err != nil {
-		fmt.Println("Error reading the last token:", err)
-		return err
-	}
-
-	if delim, ok := token.(json.Delim); !ok || delim != ']' {
-		fmt.Println("Error: Expected the JSON to end with a closing array token")
-		return err
-	}
-
-	return nil
-}
-func jsonDecodeEmployeeInfos(ctx context.Context,  decoder *json.Decoder) error {
-	token, err := decoder.Token()
-	if err != nil {
-		fmt.Println("Error reading opening token:", err)
-		return err
-	}
-	// Ensure the first token is a start of an array
-	if delim, ok := token.(json.Delim); !ok || delim != '[' {
-		fmt.Println("Error: Expected the EmployeeInfo list to start with an array")
-		return err
-	}
-
-	for decoder.More() {
-		obj := NewEmployeeInfo()
-		if err = decoder.Decode(&obj); err != nil {
-			return err
-		}
-		if err = obj.Save(ctx); err != nil {
-		    return err
-		}
-	}
-
-	// Check if the last token is the end of the array
-	token, err = decoder.Token()
-	if err != nil {
-		fmt.Println("Error reading the last token:", err)
-		return err
-	}
-
-	if delim, ok := token.(json.Delim); !ok || delim != ']' {
-		fmt.Println("Error: Expected the JSON to end with a closing array token")
-		return err
-	}
-
-	return nil
-}
-func jsonDecodeGifts(ctx context.Context,  decoder *json.Decoder) error {
+func jsonDecodeGifts(ctx context.Context, decoder *json.Decoder) error {
 	token, err := decoder.Token()
 	if err != nil {
 		fmt.Println("Error reading opening token:", err)
@@ -777,44 +645,8 @@ func jsonDecodeGifts(ctx context.Context,  decoder *json.Decoder) error {
 			return err
 		}
 		if err = obj.Save(ctx); err != nil {
-		    return err
-		}
-	}
-
-	// Check if the last token is the end of the array
-	token, err = decoder.Token()
-	if err != nil {
-		fmt.Println("Error reading the last token:", err)
-		return err
-	}
-
-	if delim, ok := token.(json.Delim); !ok || delim != ']' {
-		fmt.Println("Error: Expected the JSON to end with a closing array token")
-		return err
-	}
-
-	return nil
-}
-func jsonDecodeLogins(ctx context.Context,  decoder *json.Decoder) error {
-	token, err := decoder.Token()
-	if err != nil {
-		fmt.Println("Error reading opening token:", err)
-		return err
-	}
-	// Ensure the first token is a start of an array
-	if delim, ok := token.(json.Delim); !ok || delim != '[' {
-		fmt.Println("Error: Expected the Login list to start with an array")
-		return err
-	}
-
-	for decoder.More() {
-		obj := NewLogin()
-		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}
-		if err = obj.Save(ctx); err != nil {
-		    return err
-		}
 	}
 
 	// Check if the last token is the end of the array
@@ -831,43 +663,7 @@ func jsonDecodeLogins(ctx context.Context,  decoder *json.Decoder) error {
 
 	return nil
 }
-func jsonDecodeMilestones(ctx context.Context,  decoder *json.Decoder) error {
-	token, err := decoder.Token()
-	if err != nil {
-		fmt.Println("Error reading opening token:", err)
-		return err
-	}
-	// Ensure the first token is a start of an array
-	if delim, ok := token.(json.Delim); !ok || delim != '[' {
-		fmt.Println("Error: Expected the Milestone list to start with an array")
-		return err
-	}
-
-	for decoder.More() {
-		obj := NewMilestone()
-		if err = decoder.Decode(&obj); err != nil {
-			return err
-		}
-		if err = obj.Save(ctx); err != nil {
-		    return err
-		}
-	}
-
-	// Check if the last token is the end of the array
-	token, err = decoder.Token()
-	if err != nil {
-		fmt.Println("Error reading the last token:", err)
-		return err
-	}
-
-	if delim, ok := token.(json.Delim); !ok || delim != ']' {
-		fmt.Println("Error: Expected the JSON to end with a closing array token")
-		return err
-	}
-
-	return nil
-}
-func jsonDecodePeople(ctx context.Context,  decoder *json.Decoder) error {
+func jsonDecodePeople(ctx context.Context, decoder *json.Decoder) error {
 	token, err := decoder.Token()
 	if err != nil {
 		fmt.Println("Error reading opening token:", err)
@@ -885,7 +681,7 @@ func jsonDecodePeople(ctx context.Context,  decoder *json.Decoder) error {
 			return err
 		}
 		if err = obj.Save(ctx); err != nil {
-		    return err
+			return err
 		}
 	}
 
@@ -903,7 +699,7 @@ func jsonDecodePeople(ctx context.Context,  decoder *json.Decoder) error {
 
 	return nil
 }
-func jsonDecodePersonWithLocks(ctx context.Context,  decoder *json.Decoder) error {
+func jsonDecodePersonWithLocks(ctx context.Context, decoder *json.Decoder) error {
 	token, err := decoder.Token()
 	if err != nil {
 		fmt.Println("Error reading opening token:", err)
@@ -921,7 +717,7 @@ func jsonDecodePersonWithLocks(ctx context.Context,  decoder *json.Decoder) erro
 			return err
 		}
 		if err = obj.Save(ctx); err != nil {
-		    return err
+			return err
 		}
 	}
 
@@ -939,7 +735,7 @@ func jsonDecodePersonWithLocks(ctx context.Context,  decoder *json.Decoder) erro
 
 	return nil
 }
-func jsonDecodeProjects(ctx context.Context,  decoder *json.Decoder) error {
+func jsonDecodeProjects(ctx context.Context, decoder *json.Decoder) error {
 	token, err := decoder.Token()
 	if err != nil {
 		fmt.Println("Error reading opening token:", err)
@@ -957,7 +753,7 @@ func jsonDecodeProjects(ctx context.Context,  decoder *json.Decoder) error {
 			return err
 		}
 		if err = obj.Save(ctx); err != nil {
-		    return err
+			return err
 		}
 	}
 
@@ -975,8 +771,7 @@ func jsonDecodeProjects(ctx context.Context,  decoder *json.Decoder) error {
 
 	return nil
 }
-
-func jsonDecodeRelatedProjectAssn(ctx context.Context,  decoder *json.Decoder) error {
+func jsonDecodeAddresses(ctx context.Context, decoder *json.Decoder) error {
 	token, err := decoder.Token()
 	if err != nil {
 		fmt.Println("Error reading opening token:", err)
@@ -984,21 +779,18 @@ func jsonDecodeRelatedProjectAssn(ctx context.Context,  decoder *json.Decoder) e
 	}
 	// Ensure the first token is a start of an array
 	if delim, ok := token.(json.Delim); !ok || delim != '[' {
-		fmt.Println("Error: Expected the RelatedProjectAssn list to start with an array")
+		fmt.Println("Error: Expected the Address list to start with an array")
 		return err
 	}
 
-    database := Database()
 	for decoder.More() {
-	    var imp struct {
-            Src string `json:"project_id"`
-            Dest string `json:"project_id"`
-        }
-
-		if err = decoder.Decode(&imp); err != nil {
+		obj := NewAddress()
+		if err = decoder.Decode(&obj); err != nil {
 			return err
 		}
-		db.Associate(ctx, database, "related_project_assn", "project_id", imp.Src, "project_id", imp.Dest)
+		if err = obj.Save(ctx); err != nil {
+			return err
+		}
 	}
 
 	// Check if the last token is the end of the array
@@ -1015,7 +807,116 @@ func jsonDecodeRelatedProjectAssn(ctx context.Context,  decoder *json.Decoder) e
 
 	return nil
 }
-func jsonDecodeTeamMemberProjectAssn(ctx context.Context,  decoder *json.Decoder) error {
+func jsonDecodeEmployeeInfos(ctx context.Context, decoder *json.Decoder) error {
+	token, err := decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading opening token:", err)
+		return err
+	}
+	// Ensure the first token is a start of an array
+	if delim, ok := token.(json.Delim); !ok || delim != '[' {
+		fmt.Println("Error: Expected the EmployeeInfo list to start with an array")
+		return err
+	}
+
+	for decoder.More() {
+		obj := NewEmployeeInfo()
+		if err = decoder.Decode(&obj); err != nil {
+			return err
+		}
+		if err = obj.Save(ctx); err != nil {
+			return err
+		}
+	}
+
+	// Check if the last token is the end of the array
+	token, err = decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading the last token:", err)
+		return err
+	}
+
+	if delim, ok := token.(json.Delim); !ok || delim != ']' {
+		fmt.Println("Error: Expected the JSON to end with a closing array token")
+		return err
+	}
+
+	return nil
+}
+func jsonDecodeLogins(ctx context.Context, decoder *json.Decoder) error {
+	token, err := decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading opening token:", err)
+		return err
+	}
+	// Ensure the first token is a start of an array
+	if delim, ok := token.(json.Delim); !ok || delim != '[' {
+		fmt.Println("Error: Expected the Login list to start with an array")
+		return err
+	}
+
+	for decoder.More() {
+		obj := NewLogin()
+		if err = decoder.Decode(&obj); err != nil {
+			return err
+		}
+		if err = obj.Save(ctx); err != nil {
+			return err
+		}
+	}
+
+	// Check if the last token is the end of the array
+	token, err = decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading the last token:", err)
+		return err
+	}
+
+	if delim, ok := token.(json.Delim); !ok || delim != ']' {
+		fmt.Println("Error: Expected the JSON to end with a closing array token")
+		return err
+	}
+
+	return nil
+}
+func jsonDecodeMilestones(ctx context.Context, decoder *json.Decoder) error {
+	token, err := decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading opening token:", err)
+		return err
+	}
+	// Ensure the first token is a start of an array
+	if delim, ok := token.(json.Delim); !ok || delim != '[' {
+		fmt.Println("Error: Expected the Milestone list to start with an array")
+		return err
+	}
+
+	for decoder.More() {
+		obj := NewMilestone()
+		if err = decoder.Decode(&obj); err != nil {
+			return err
+		}
+		if err = obj.Save(ctx); err != nil {
+			return err
+		}
+	}
+
+	// Check if the last token is the end of the array
+	token, err = decoder.Token()
+	if err != nil {
+		fmt.Println("Error reading the last token:", err)
+		return err
+	}
+
+	if delim, ok := token.(json.Delim); !ok || delim != ']' {
+		fmt.Println("Error: Expected the JSON to end with a closing array token")
+		return err
+	}
+
+	return nil
+}
+
+func jsonDecodeTeamMemberProjectAssn(ctx context.Context, decoder *json.Decoder) error {
 	token, err := decoder.Token()
 	if err != nil {
 		fmt.Println("Error reading opening token:", err)
@@ -1027,17 +928,17 @@ func jsonDecodeTeamMemberProjectAssn(ctx context.Context,  decoder *json.Decoder
 		return err
 	}
 
-    database := Database()
+	database := Database()
 	for decoder.More() {
-	    var imp struct {
-            Src string `json:"project_id"`
-            Dest string `json:"person_id"`
-        }
+		var imp struct {
+			Src  string `json:"project_id"`
+			Dest string `json:"team_member_id"`
+		}
 
 		if err = decoder.Decode(&imp); err != nil {
 			return err
 		}
-		db.Associate(ctx, database, "team_member_project_assn", "project_id", imp.Src, "person_id", imp.Dest)
+		db.Associate(ctx, database, "team_member_project_assn", "project_id", imp.Src, "team_member_id", imp.Dest)
 	}
 
 	// Check if the last token is the end of the array
@@ -1054,7 +955,3 @@ func jsonDecodeTeamMemberProjectAssn(ctx context.Context,  decoder *json.Decoder
 
 	return nil
 }
-
-
-
-

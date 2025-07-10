@@ -24,11 +24,11 @@ func gen(db *model.Database) {
 			genDatabaseTemplate(g, db)
 		} else if g, ok := tmpl.(TableGenerator); ok {
 			for _, tbl := range db.Tables {
-				genTableTemplate(g, tbl)
+				genTableTemplate(g, tbl, db.ImportPath)
 			}
 		} else if g, ok := tmpl.(EnumGenerator); ok {
 			for _, tbl := range db.Enums {
-				genEnumTemplate(g, tbl)
+				genEnumTemplate(g, tbl, db.ImportPath)
 			}
 		}
 	}
@@ -47,10 +47,8 @@ func genDatabaseTemplate(g DatabaseGenerator, db *model.Database) {
 		return
 	}
 	defer f.Close()
-	var importPath string
-	importPath, err = sys.ImportPath(filename)
 
-	if err = g.GenerateDatabase(db, f, importPath); err != nil {
+	if err = g.GenerateDatabase(db, f, db.ImportPath); err != nil {
 		slog.Error("Error generating database template file",
 			slog.String(db2.LogFilename, filename),
 			slog.String(db2.LogComponent, "codegen"),
@@ -60,7 +58,7 @@ func genDatabaseTemplate(g DatabaseGenerator, db *model.Database) {
 	runGoImports(filename)
 }
 
-func genTableTemplate(g TableGenerator, table *model.Table) {
+func genTableTemplate(g TableGenerator, table *model.Table, importPath string) {
 	filename := g.FileName(table)
 	if filename == "" {
 		return
@@ -77,8 +75,6 @@ func genTableTemplate(g TableGenerator, table *model.Table) {
 		return
 	}
 	defer f.Close()
-	var importPath string
-	importPath, err = sys.ImportPath(filename)
 
 	if err = g.GenerateTable(table, f, importPath); err != nil {
 		slog.Error("Error generating table template file",
@@ -90,7 +86,7 @@ func genTableTemplate(g TableGenerator, table *model.Table) {
 	runGoImports(filename)
 }
 
-func genEnumTemplate(g EnumGenerator, table *model.Enum) {
+func genEnumTemplate(g EnumGenerator, table *model.Enum, importPath string) {
 	filename := g.FileName(table)
 	if !g.Overwrite() && fileExists(filename) {
 		return
@@ -112,8 +108,6 @@ func genEnumTemplate(g EnumGenerator, table *model.Enum) {
 		return
 	}
 	defer f.Close()
-	var importPath string
-	importPath, err = sys.ImportPath(filename)
 
 	if err = g.GenerateEnum(table, f, importPath); err != nil {
 		slog.Error("Error generating enum template file",
@@ -157,9 +151,12 @@ func runGoImports(fileName string) {
 				slog.Any(db2.LogError, err))
 			return
 		}
-		_ = os.Chdir(filepath.Dir(fileName)) // run it from the file's directory to pick up the correct go.mod file if there is one
+		dir, _ := filepath.Abs(filepath.Dir(fileName))
+		if dir != curDir {
+			_ = os.Chdir(dir) // run it from the file's directory to pick up the correct go.mod file if there is one
+			defer os.Chdir(curDir)
+		}
 		_, err = sys.ExecuteShellCommand("goimports -w " + filepath.Base(fileName))
-		_ = os.Chdir(curDir)
 		if err != nil {
 			var e *exec.Error
 			if errors.As(err, &e) {

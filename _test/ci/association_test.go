@@ -1,9 +1,9 @@
 package ci
 
 import (
+	"context"
 	"github.com/goradd/orm/_test/gen/orm/goradd"
 	"github.com/goradd/orm/_test/gen/orm/goradd/node"
-	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/op"
 	"github.com/stretchr/testify/assert"
 	"strconv"
@@ -11,7 +11,7 @@ import (
 )
 
 func TestManyMany(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	projects, err := goradd.QueryProjects(ctx).
 		Select(node.Project().TeamMembers()).
 		OrderBy(node.Project().ID()).
@@ -26,7 +26,7 @@ func TestManyMany(t *testing.T) {
 
 func TestMany2(t *testing.T) {
 
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	// All People Who Are on a Project Managed by Karen Wolfe (Person ID #7)
 	people, err := goradd.QueryPeople(ctx).
@@ -56,7 +56,7 @@ func TestMany2(t *testing.T) {
 }
 
 func TestManySelect(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	people, err := goradd.QueryPeople(ctx).
 		OrderBy(node.Person().LastName(), node.Person().FirstName(), node.Person().Projects().Name()).
@@ -72,7 +72,7 @@ func TestManySelect(t *testing.T) {
 }
 
 func Test2Nodes(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	milestones, err := goradd.QueryMilestones(ctx).
 		Select(node.Milestone().Project().Manager()).
 		Where(op.Equal(node.Milestone().ID(), 1)). // Filter out people who are not managers
@@ -86,7 +86,7 @@ func Test2Nodes(t *testing.T) {
 }
 
 func TestForwardMany(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	milestones, err := goradd.QueryMilestones(ctx).
 		Select(node.Milestone().Project().TeamMembers()).
 		OrderBy(node.Milestone().Project().TeamMembers().LastName(), node.Milestone().Project().TeamMembers().FirstName()).
@@ -109,7 +109,7 @@ func TestForwardMany(t *testing.T) {
 }
 
 func TestManyForward(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	people, err := goradd.QueryPeople(ctx).
 		OrderBy(node.Person().ID(), node.Person().Projects().Name()).
 		Select(node.Person().Projects().Manager().FirstName(), node.Person().Projects().Manager().LastName()).
@@ -131,7 +131,7 @@ func TestManyForward(t *testing.T) {
 // TODO:
 /*
 func TestConditionalJoin(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	projects := goradd.QueryProjects(ctx).
 		OrderBy(node.Project().Name()).
@@ -175,7 +175,7 @@ func TestConditionalJoin(t *testing.T) {
 */
 
 func Test2ndLoad(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	projects, err := goradd.QueryProjects(ctx).
 		OrderBy(node.Project().Manager().FirstName()).
 		Load()
@@ -187,7 +187,7 @@ func Test2ndLoad(t *testing.T) {
 }
 
 func TestAssociationCalculation(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	projects, err := goradd.QueryProjects(ctx).
 		Calculation(node.Project(), "count", op.Count(node.Project().TeamMembers())).
 		GroupBy(node.Project()).
@@ -198,7 +198,7 @@ func TestAssociationCalculation(t *testing.T) {
 }
 
 func TestAssociationByPrimaryKeys(t *testing.T) {
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 	person := goradd.NewPerson()
 	person.SetFirstName("Fox")
 	person.SetLastName("In Box")

@@ -3,7 +3,7 @@
 {{
 {{if table.HasUniqueIndexes() }}
 func Test{{= table.Identifier }}_Indexes(t *testing.T) {
-    ctx := db.NewContext(nil)
+    ctx := context.Background()
     obj := createMaximalSample{{= table.Identifier }}(ctx)
     err := obj.Save(ctx)
 	assert.NoError(t, err)

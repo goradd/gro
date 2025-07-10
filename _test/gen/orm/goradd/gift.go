@@ -33,7 +33,11 @@ func (o *Gift) String() string {
 	if o == nil {
 		return ""
 	}
-	return fmt.Sprintf("Gift %v", o.PrimaryKey())
+	var pk string
+
+	pk += fmt.Sprintf(" %v", o.Number())
+
+	return "Gift" + pk
 }
 
 // Key returns a unique key for the object, among a list of similar objects.

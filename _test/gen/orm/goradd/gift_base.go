@@ -64,17 +64,6 @@ func (o *giftBase) Initialize() {
 	o._restored = false
 }
 
-// PrimaryKey returns the current value of the primary key.
-func (o *giftBase) PrimaryKey() int {
-	return o.number
-}
-
-// OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
-// read from the database.
-func (o *giftBase) OriginalPrimaryKey() int {
-	return o._originalPK
-}
-
 // Copy copies most fields to a new Gift object.
 // Forward reference ids will be copied, but reverse and many-many references will not.
 // Attached objects will not be included in the copy.
@@ -92,6 +81,12 @@ func (o *giftBase) Copy() (newObject *Gift) {
 		newObject.SetName(o.name)
 	}
 	return
+}
+
+// OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
+// read from the database.
+func (o *giftBase) OriginalPrimaryKey() int {
+	return o._originalPK
 }
 
 // PrimaryKey returns the value of the primary key of the record.
@@ -117,6 +112,11 @@ func (o *giftBase) SetPrimaryKey(v int) {
 // Number returns the value of Number.
 func (o *giftBase) Number() int {
 	return o.PrimaryKey()
+}
+
+// NumberIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *giftBase) NumberIsLoaded() bool {
+	return o.numberIsLoaded
 }
 
 // SetNumber sets the value of Number in the object, to be saved later in the database using the Save() function.
@@ -455,7 +455,7 @@ func (o *giftBase) update(ctx context.Context) error {
 	var cancel context.CancelFunc
 	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
-	err := db.ExecuteTransaction(ctx, d, func() error {
+	err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
 
 		modifiedFields = getGiftUpdateFields(o)
 		if len(modifiedFields) != 0 {
@@ -490,7 +490,7 @@ func (o *giftBase) insert(ctx context.Context) (err error) {
 	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
-	err = db.ExecuteTransaction(ctx, d, func() error {
+	err = db.WithTransaction(ctx, d, func(context.Context) error {
 		if !o.numberIsLoaded {
 			panic("a value for Number is required, and there is no default value. Call SetNumber() before inserting the record.")
 		}

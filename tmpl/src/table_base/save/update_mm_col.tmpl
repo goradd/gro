@@ -22,9 +22,9 @@
                 if err := db.AssociateOnly(ctx,
                         d,
                         "{{= mm.TableQueryName }}",
-                        "{{= mm.SourceColumnName }}",
+                        "{{= mm.SourceColumnName() }}",
                         o.PrimaryKey(),
-                        "{{= mm.DestColumnName }}",
+                        "{{= mm.ForeignKeyName }}",
                         o.{{= mm.PkField() }}); err != nil {
                     return err
                 }
@@ -32,9 +32,9 @@
                 if err := db.AssociateOnly(ctx,
                         d,
                         "{{= mm.TableQueryName }}",
-                        "{{= mm.SourceColumnName }}",
+                        "{{= mm.SourceColumnName() }}",
                         o.PrimaryKey(),
-                        "{{= mm.DestColumnName }}",
+                        "{{= mm.ForeignKeyName }}",
                         o.{{= mm.Field }}.Keys()); err != nil {
                     return err
                 }
