@@ -78,7 +78,7 @@ func (n doubleIndexTable) PrimaryKey() *query.ColumnNode {
 func (n doubleIndexTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "id",
-		Identifier:    "ID",
+		Identifier:    "Value",
 		ReceiverType:  query.ColTypeInteger,
 		SchemaType:    schema.ColTypeInt,
 		SchemaSubType: schema.ColSubTypeNone,

@@ -107,7 +107,7 @@ func (o *leafUnBase) OriginalPrimaryKey() string {
 // PrimaryKey returns the value of the primary key of the record.
 func (o *leafUnBase) PrimaryKey() string {
 	if o._restored && !o.idIsLoaded {
-		panic("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
+		panic("Value was not selected in the last query and has not been set, and so PrimaryKey is not valid")
 	}
 	return o.id
 }
@@ -123,7 +123,7 @@ func (o *leafUnBase) SetPrimaryKey(v string) {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
 	}
 	if utf8.RuneCountInString(v) > LeafUnIDMaxLength {
-		panic("attempted to set LeafUn.ID to a value larger than its maximum length in runes")
+		panic("attempted to set LeafUn.Value to a value larger than its maximum length in runes")
 	}
 	o.idIsLoaded = true
 	o.idIsDirty = true

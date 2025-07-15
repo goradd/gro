@@ -112,6 +112,13 @@ func (db *Database) infer() error {
 			return err
 		}
 	}
+
+	for _, t := range db.EnumTables {
+		if err := t.infer(db); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -139,10 +146,10 @@ func (db *Database) FindEnumTable(name string) *EnumTable {
 
 // Clean modifies the structure to prepare it for creating a schema in a database.
 func (db *Database) Clean() error {
+	db.sort() // required before infer so references work
 	if err := db.infer(); err != nil {
 		return err
 	}
-	db.sort()
 	return nil
 }
 

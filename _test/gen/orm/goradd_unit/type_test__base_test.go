@@ -687,7 +687,7 @@ func TestTypeTest_BasicUpdate(t *testing.T) {
 	obj2, err := LoadTypeTest(ctx, obj.PrimaryKey())
 	assert.NoError(t, err)
 
-	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
+	assert.Equal(t, obj2.ID(), obj.ID(), "Value did not update")
 
 	assert.WithinDuration(t, obj2.Date(), obj.Date(), time.Second, "Date not within one second")
 
@@ -916,7 +916,7 @@ func TestTypeTest_QueryLoadI(t *testing.T) {
 		Where(op.Equal(node.TypeTest().ID(), obj.ID())).
 		LoadI()
 
-	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("Value"))
 }
 func TestTypeTest_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleTypeTest()

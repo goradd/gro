@@ -107,7 +107,7 @@ func (n leafUlReverse) PrimaryKey() *query.ColumnNode {
 func (n leafUlTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "id",
-		Identifier:    "ID",
+		Identifier:    "Value",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeAutoPrimaryKey,
 		SchemaSubType: schema.ColSubTypeNone,

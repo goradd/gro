@@ -133,7 +133,7 @@ func (o *doubleIndexBase) OriginalPrimaryKey() int {
 // PrimaryKey returns the value of the primary key of the record.
 func (o *doubleIndexBase) PrimaryKey() int {
 	if o._restored && !o.idIsLoaded {
-		panic("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
+		panic("Value was not selected in the last query and has not been set, and so PrimaryKey is not valid")
 	}
 	return o.id
 }
@@ -700,7 +700,7 @@ func (o *doubleIndexBase) insert(ctx context.Context) (err error) {
 	d := Database()
 	err = db.WithTransaction(ctx, d, func(context.Context) error {
 		if !o.idIsLoaded {
-			panic("a value for ID is required, and there is no default value. Call SetID() before inserting the record.")
+			panic("a value for Value is required, and there is no default value. Call SetID() before inserting the record.")
 		}
 		if !o.fieldIntIsLoaded {
 			panic("a value for FieldInt is required, and there is no default value. Call SetFieldInt() before inserting the record.")

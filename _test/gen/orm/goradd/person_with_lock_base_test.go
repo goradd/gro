@@ -209,7 +209,7 @@ func TestPersonWithLock_BasicUpdate(t *testing.T) {
 	obj2, err := LoadPersonWithLock(ctx, obj.PrimaryKey())
 	assert.NoError(t, err)
 
-	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
+	assert.Equal(t, obj2.ID(), obj.ID(), "Value did not update")
 	assert.Equal(t, obj2.FirstName(), obj.FirstName(), "FirstName did not update")
 	assert.Equal(t, obj2.LastName(), obj.LastName(), "LastName did not update")
 	assert.Equal(t, obj2.GroLock(), obj.GroLock(), "GroLock did not update")
@@ -344,7 +344,7 @@ func TestPersonWithLock_QueryLoadI(t *testing.T) {
 		Where(op.Equal(node.PersonWithLock().ID(), obj.ID())).
 		LoadI()
 
-	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("Value"))
 }
 func TestPersonWithLock_QueryCursor(t *testing.T) {
 	obj := createMinimalSamplePersonWithLock()

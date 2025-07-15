@@ -350,9 +350,17 @@ func (h *Base) buildEnums(ctx context.Context, d *schema.Database, tables []*sch
 			}
 		}
 
-		fieldKeys := table.FieldKeys()
+		fieldKeys := []string{schema.ValueKey, schema.NameKey}
+		fieldKeys = append(fieldKeys, table.FieldKeys()...)
+		fields := map[string]schema.EnumField{
+			schema.ValueKey: {Type: schema.ColTypeInt},
+			schema.NameKey:  {Type: schema.ColTypeString},
+		}
+		for k, v := range table.Fields {
+			fields[k] = v
+		}
 		for _, v := range table.Values {
-			s, args := h.enumValueSql(table.Name, fieldKeys, table.Fields, v)
+			s, args := h.enumValueSql(table.Name, fieldKeys, fields, v)
 			if _, err = h.dbi.SqlExec(ctx, s, args...); err != nil {
 				slog.Error("SQL error",
 					slog.String("sql", s),
@@ -398,32 +406,47 @@ func (h *Base) tableSql(d *schema.Database, table *schema.Table) []string {
 
 // enumTableSql returns the sql to create an enum table.
 func (h *Base) enumTableSql(d *schema.Database, et *schema.EnumTable) (s []string) {
-	// Build a schema table to create the enum table
+	// Build a table schema to create the enum table using the regular table creator
 	table := &schema.Table{
 		Name:    et.Name,
 		Schema:  et.Schema,
 		Comment: et.Comment,
 	}
 
-	for i, k := range et.FieldKeys() {
-		var size uint64
-		for _, v := range et.Values {
+	table.Columns = []*schema.Column{{
+		Name: schema.ValueKey,
+		Type: schema.ColTypeInt,
+	}}
+	table.Indexes = []schema.Index{{
+		IndexLevel: schema.IndexLevelPrimaryKey,
+		Columns:    []string{schema.ValueKey},
+	}}
+
+	var size uint64
+	for _, vMap := range et.Values {
+		s2 := vMap[schema.NameKey].(string)
+		size = max(size, uint64(len(s2)))
+	}
+	table.Columns = append(table.Columns, &schema.Column{
+		Name: schema.NameKey,
+		Type: schema.ColTypeString,
+		Size: size,
+	})
+	for _, k := range et.FieldKeys() {
+		size = 0
+		for _, vMap := range et.Values {
 			if et.Fields[k].Type == schema.ColTypeString ||
 				et.Fields[k].Type == schema.ColTypeBytes {
-				if s, ok := v[k].(string); ok {
+				if s, ok := vMap[k].(string); ok {
 					size = max(size, uint64(len(s)))
 				}
 			}
 		}
-		// build a column to send to the column builder
 		col := &schema.Column{
 			Name:       k,
 			Type:       et.Fields[k].Type,
 			Size:       size,
 			Identifier: et.Fields[k].Identifier,
-		}
-		if i == 0 {
-			table.Indexes = append(table.Indexes, schema.Index{IndexLevel: schema.IndexLevelPrimaryKey, Columns: []string{col.Name}})
 		}
 		table.Columns = append(table.Columns, col)
 	}
@@ -438,7 +461,7 @@ func (h *Base) enumValueSql(tableName string, fieldKeys []string, fields map[str
 		columns = append(columns, fmt.Sprintf("%s", h.dbi.QuoteIdentifier(k)))
 
 		fieldType := fields[k].Type
-		value := v[k]
+		value, _ := v[k]
 
 		placeholders = append(placeholders, h.dbi.FormatArgument(len(placeholders)+1))
 
@@ -447,9 +470,6 @@ func (h *Base) enumValueSql(tableName string, fieldKeys []string, fields map[str
 			if s, ok := value.(string); ok {
 				args = append(args, s)
 			} else {
-				slog.Error("wrong type for enum value",
-					slog.String(db.LogTable, tableName),
-					slog.String(db.LogColumn, k))
 				args = append(args, "")
 			}
 
@@ -457,9 +477,6 @@ func (h *Base) enumValueSql(tableName string, fieldKeys []string, fields map[str
 			if anyutil.IsInteger(value) {
 				args = append(args, value)
 			} else {
-				slog.Error("wrong type for enum value",
-					slog.String(db.LogTable, tableName),
-					slog.String(db.LogColumn, k))
 				args = append(args, 0)
 			}
 
@@ -467,9 +484,6 @@ func (h *Base) enumValueSql(tableName string, fieldKeys []string, fields map[str
 			if anyutil.IsFloat(value) {
 				args = append(args, value)
 			} else {
-				slog.Error("wrong type for enum value",
-					slog.String(db.LogTable, tableName),
-					slog.String(db.LogColumn, k))
 				args = append(args, 0.0)
 			}
 

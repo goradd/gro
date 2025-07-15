@@ -191,7 +191,7 @@ func (n *projectAssociation) PrimaryKeys() []*query.ColumnNode {
 func (n projectTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "id",
-		Identifier:    "ID",
+		Identifier:    "Value",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeAutoPrimaryKey,
 		SchemaSubType: schema.ColSubTypeNone,

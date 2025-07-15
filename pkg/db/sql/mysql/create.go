@@ -90,7 +90,7 @@ func (m *DB) buildColumnDef(col *schema.Column) (columnClause string, tableClaus
 		fk := fmt.Sprintf(" FOREIGN KEY (%s) REFERENCES %s(%s)",
 			m.QuoteIdentifier(col.Name),
 			m.QuoteIdentifier(col.EnumTable),
-			m.QuoteIdentifier("const"))
+			m.QuoteIdentifier(schema.ValueKey))
 		tableClauses = append(tableClauses, fk)
 		colType = "INT"
 	} else {

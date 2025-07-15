@@ -105,7 +105,7 @@ func (n rootUnlReference) PrimaryKey() *query.ColumnNode {
 func (n rootUnlTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "id",
-		Identifier:    "ID",
+		Identifier:    "Value",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeAutoPrimaryKey,
 		SchemaSubType: schema.ColSubTypeNone,

@@ -2,16 +2,17 @@ package schema
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/goradd/goradd/pkg/stringmap"
 	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
-	"slices"
 	"strings"
+	"time"
 )
 
-const ConstKey = "const"
+const ValueKey = "value"
 const LabelKey = "label"
-const IdentifierKey = "identifier"
+const NameKey = "name"
 
 type EnumField struct {
 	// Identifier is the name used in Go code to access the data.
@@ -24,13 +25,14 @@ type EnumField struct {
 	Type ColumnType `json:"type"`
 }
 
-// EnumTable describes a table that contains enumerated values. The resulting Go code will be a type
-// with constants for each value in the database. An EnumTable is processed with its data at compile time
-// and cannot be modified by the application. The values are stored in the database, but are not accessed
-// by database queries.
+// EnumTable describes a table that contains enumerated values.
+// The resulting Go code will be a named integer type with constants for each value.
+// An EnumTable is processed with its data at compile time and cannot be modified by the application.
+// The values are stored in the database, but are not accessed by database queries.
 type EnumTable struct {
 	// Name is the name of the table in the database.
-	// The name should have the Database.EnumTableSuffix value as a suffix.
+	// By convention, the name should have the Database.EnumTableSuffix value as a suffix.
+	// This suffix will be stripped off for items below that use Name as the basis for a default value.
 	Name string `json:"name"`
 	// For databases that support schemas, this is the name of the schema of the table.
 	// Leave blank for the default schema.
@@ -38,31 +40,33 @@ type EnumTable struct {
 	Schema string `json:"schema,omitempty"`
 
 	// Values are the enum values themselves.
-	// Each entry must have the same key-value pairs.
-	// Each entry must have a "const" key with an integer value. That will become the const value in Go code.
-	// Each entry must have either a "label" key, an "identifier" key, or both. The label is a human-readable
-	// description of the value, and identifier is the value that will be used in JSON and as a key in the database.
-	// If either is missing, it will be generated from the other.
-	// Additional entries will create accessor functions for those values.
-	// The first entry will determine what types are inferred for each value.
+	// At a minimum, each entry must have a "id" field. This should be a CamelCase string that will be
+	// used to build the constant value in the Go code.
+	// By default, numbers for values will be assigned in order. If you set a "value" value, it will override this default.
+	// By default, a "label" value will be assigned based on "id". This should be a Title Case string that will
+	// represent the value to humans. Set "label" to override the default.
+	// Additional entries will create accessor functions for those values. The type and identifiers will be
+	// inferred from the entries, or you can use Fields to specify these values for the additional fields.
 	Values []map[string]any `json:"values"`
 
-	// Fields provides further descriptions for the accessor functions.
+	// Fields provides descriptions for additional values found in Values.
 	// If the entries are omitted, a default will be generated.
 	// Keys are the same as the keys in the Values entries.
+	// "label" field will be generated automatically and should not be included on import.
 	Fields map[string]EnumField `json:"fields,omitempty"`
 
 	// Label is the name of the object when describing it to humans.
 	// If creating a multi-language app, your app would provide translation from this string to the language of choice.
-	// Can be multiple words. Should be lower-case. The app will use github.com/goradd/strings.ReverseLabel() to capitalize this if needed.
+	// Can be multiple words. Should be Title Case.
 	// If left blank, the app will base this on the Name of the table.
 	Label string `json:"label,omitempty"`
 
 	// LabelPlural is the plural form of the Label.
 	LabelPlural string `json:"label_plural,omitempty"`
 
-	// Identifier is the corresponding Go object name. It must obey Go identifier labeling rules. Leave blank
-	// to base it on the Name.
+	// Identifier is the corresponding Go object name. It must obey Go identifier labeling rules.
+	// Should be CamelCase.
+	// Leave blank to base it on the Name.
 	Identifier string `json:"identifier,omitempty"`
 
 	// IdentifierPlural is the plural form of Identifier.
@@ -82,6 +86,90 @@ func (t *EnumTable) QualifiedTableName() string {
 	}
 }
 
+func (t *EnumTable) infer(db *Database) error {
+	if t.Name == "" {
+		return fmt.Errorf("enum table must have a name")
+	}
+	extraFields := make(map[string]EnumField)
+	var i int
+	for _, vMap := range t.Values {
+		var hasValue, hasName bool
+		for k, v := range vMap {
+			switch k {
+			case ValueKey:
+				if v2, okN := v.(json.Number); okN {
+					i2, err := v2.Int64()
+					if err != nil {
+						return fmt.Errorf(`"value" must be an integer: %w`, err)
+					}
+					vMap[ValueKey] = int(i2)
+				} else if _, okI := v.(int); !okI {
+					return fmt.Errorf(`"value" must be an integer: %v`, v)
+				}
+				hasValue = true
+			case NameKey:
+				if _, ok := v.(string); !ok {
+					return fmt.Errorf(`"name" value is not a string: %v`, v)
+				}
+				hasName = true
+			case LabelKey:
+				if _, ok := v.(string); !ok {
+					return fmt.Errorf(`"label" value is not a string: %v`, v)
+				}
+				fallthrough
+			default:
+				identifier := snaker.SnakeToCamelIdentifier(k)
+				t, v2 := inferColumnType(v)
+				extraFields[k] = EnumField{
+					Identifier:       identifier,
+					IdentifierPlural: strings2.Plural(identifier),
+					Type:             t,
+				}
+				vMap[k] = v2
+			}
+		}
+		if !hasValue {
+			i++
+			vMap[ValueKey] = i
+		}
+		if !hasName {
+			return fmt.Errorf(`"name" is a required field for an enum value and must be a string`)
+		}
+		for k, v := range extraFields {
+			if _, ok := t.Fields[k]; !ok {
+				t.Fields[k] = v
+			}
+		}
+	}
+	return nil
+}
+
+func inferColumnType(v any) (ColumnType, any) {
+	if n, ok := v.(json.Number); ok {
+		if i, err := n.Int64(); err != nil {
+			return ColTypeInt, int(i)
+		}
+		if f, err := n.Float64(); err != nil {
+			return ColTypeFloat, f
+		}
+		return ColTypeString, n.String()
+	}
+	if _, ok := v.(int); ok {
+		return ColTypeInt, v
+	}
+	if s, ok := v.(string); ok {
+		t, err := time.Parse(time.RFC3339, s)
+		if err == nil {
+			return ColTypeTime, t
+		}
+		return ColTypeString, s
+	}
+	if _, ok := v.(bool); ok {
+		return ColTypeBool, v
+	}
+	return ColTypeUnknown, v
+}
+
 // fillDefaults will fill in empty values in the EnumTable struct based on the values provided.
 func (t *EnumTable) fillDefaults(suffix string) {
 	name := strings.TrimSuffix(t.QualifiedTableName(), suffix)
@@ -97,70 +185,25 @@ func (t *EnumTable) fillDefaults(suffix string) {
 	if t.IdentifierPlural == "" {
 		t.IdentifierPlural = strings2.Plural(t.Identifier)
 	}
-	if len(t.Values) == 0 {
-		return // this will not generate anything. Assume it is a placeholder to be filled in later by the developer.
+	t.Fields[ValueKey] = EnumField{
+		Identifier:       "Label",
+		IdentifierPlural: "Labels",
+		Type:             ColTypeString,
 	}
-	// Sanity check the values
-	for _, v := range t.Values {
-		if _, ok := v[ConstKey]; !ok {
-			panic("const is required for every value entry")
-		}
-		_, hasId := v[IdentifierKey].(string)
-		_, hasLabel := v[LabelKey].(string)
-		if !(hasId || hasLabel) {
-			panic("A label or identifier of type string is required for every value entry")
-		}
-		if !hasId {
-			v[IdentifierKey] = snaker.CamelToSnakeIdentifier(v[LabelKey].(string))
-		}
-		if !hasLabel {
-			v[LabelKey] = strings2.Title(v[IdentifierKey].(string))
+	for _, vMap := range t.Values {
+		if _, ok := vMap[LabelKey]; !ok {
+			vMap[LabelKey] = strings2.Title(vMap[NameKey].(string))
 		}
 	}
 
-	for _, k := range t.FieldKeys() {
-		f, ok := t.Fields[k]
-		if !ok {
-			f = EnumField{}
-		}
-
-		if f.Identifier == "" {
-			f.Identifier = snaker.SnakeToCamelIdentifier(k)
-		}
-		if f.IdentifierPlural == "" {
-			f.IdentifierPlural = strings2.Plural(f.Identifier)
-		}
-		if f.Type == ColTypeUnknown {
-			switch v := t.Values[0][k].(type) {
-			case string:
-				f.Type = ColTypeString
-			case int:
-			case int64:
-			case int32:
-				f.Type = ColTypeInt
-			case float64:
-			case float32:
-				f.Type = ColTypeFloat
-			case json.Number:
-				if _, err := v.Int64(); err == nil {
-					f.Type = ColTypeInt
-				} else {
-					f.Type = ColTypeFloat
-				}
-			}
-		}
-		t.Fields[k] = f
-	}
 }
 
-// FieldKeys returns the keys of the fields in deterministic order, with const, label and identifier first
+// FieldKeys returns the keys of the fields in deterministic order, with label first
 func (t *EnumTable) FieldKeys() (keys []string) {
-	keys = []string{"const", "label", "identifier"}
-	if len(t.Values) == 0 {
-		return
-	}
-	for _, k := range stringmap.SortedKeys(t.Values[0]) {
-		if !slices.Contains(keys, k) {
+	for _, k := range stringmap.SortedKeys(t.Fields) {
+		if k == "label" {
+			keys = append([]string{LabelKey}, keys...)
+		} else {
 			keys = append(keys, k)
 		}
 	}

@@ -144,14 +144,9 @@ func sampleSchema() schema.Database {
 			// Enum table: post_status
 			{
 				Name: "post_status_enum",
-				Fields: map[string]schema.EnumField{
-					"const":      {Type: schema.ColTypeInt},
-					"label":      {Type: schema.ColTypeString},
-					"identifier": {Type: schema.ColTypeString},
-				},
 				Values: []map[string]any{
-					{"const": 1, "label": "Open", "identifier": "open"},
-					{"const": 2, "label": "Closed", "identifier": "closed"},
+					{"name": "Open"},
+					{"name": "Closed"},
 				},
 			},
 		},

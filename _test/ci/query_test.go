@@ -135,7 +135,7 @@ func TestCursor(t *testing.T) {
 			Alias("c", node.Project().Spent()).
 			Alias("d", node.Project().StartDate()).
 			Alias("e", op.IsNull(node.Project().EndDate())).
-			OrderBy(node.Project().ID()).
+			OrderBy(node.Project().Value()).
 			Load()
 
 		project := projects[0]

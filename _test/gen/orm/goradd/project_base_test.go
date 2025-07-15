@@ -478,7 +478,7 @@ func TestProject_BasicUpdate(t *testing.T) {
 	obj2, err := LoadProject(ctx, obj.PrimaryKey())
 	assert.NoError(t, err)
 
-	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
+	assert.Equal(t, obj2.ID(), obj.ID(), "Value did not update")
 	assert.Equal(t, obj2.Num(), obj.Num(), "Num did not update")
 	assert.Equal(t, obj2.StatusEnum(), obj.StatusEnum(), "StatusEnum did not update")
 	assert.Equal(t, obj2.Name(), obj.Name(), "Name did not update")
@@ -722,7 +722,7 @@ func TestProject_QueryLoadI(t *testing.T) {
 		Where(op.Equal(node.Project().ID(), obj.ID())).
 		LoadI()
 
-	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("Value"))
 }
 func TestProject_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleProject()

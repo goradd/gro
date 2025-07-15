@@ -265,7 +265,7 @@ func TestLogin_BasicUpdate(t *testing.T) {
 	obj2, err := LoadLogin(ctx, obj.PrimaryKey())
 	assert.NoError(t, err)
 
-	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
+	assert.Equal(t, obj2.ID(), obj.ID(), "Value did not update")
 	assert.Equal(t, obj2.Username(), obj.Username(), "Username did not update")
 	assert.Equal(t, obj2.Password(), obj.Password(), "Password did not update")
 	assert.Equal(t, obj2.IsEnabled(), obj.IsEnabled(), "IsEnabled did not update")
@@ -418,7 +418,7 @@ func TestLogin_QueryLoadI(t *testing.T) {
 		Where(op.Equal(node.Login().ID(), obj.ID())).
 		LoadI()
 
-	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("Value"))
 }
 func TestLogin_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleLogin()

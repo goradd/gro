@@ -202,7 +202,7 @@ func TestLeafUnl_BasicUpdate(t *testing.T) {
 	obj2, err := LoadLeafUnl(ctx, obj.PrimaryKey())
 	assert.NoError(t, err)
 
-	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
+	assert.Equal(t, obj2.ID(), obj.ID(), "Value did not update")
 	assert.Equal(t, obj2.Name(), obj.Name(), "Name did not update")
 	assert.Equal(t, obj2.GroLock(), obj.GroLock(), "GroLock did not update")
 }
@@ -349,7 +349,7 @@ func TestLeafUnl_QueryLoadI(t *testing.T) {
 		Where(op.Equal(node.LeafUnl().ID(), obj.ID())).
 		LoadI()
 
-	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("Value"))
 }
 func TestLeafUnl_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleLeafUnl()

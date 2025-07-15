@@ -169,7 +169,7 @@ func TestAliases(t *testing.T) {
 		Where(op.IsNotNull(nConson)).
 		Join(nVoyel, op.In(nVoyel.Name(), "Milestone A", "Milestone E", "Milestone I")).
 		Join(nConson, op.NotIn(nConson.Name(), "Milestone A", "Milestone E", "Milestone I")).
-		GroupBy(node.Person().ID(), node.Person().FirstName(), node.Person().LastName()).
+		GroupBy(node.Person().Value(), node.Person().FirstName(), node.Person().LastName()).
 		Calculation("min_voyel", op.Min(nVoyel.Name())).
 		Calculation("min_conson", op.Min(nConson.Name())).
 		Load()

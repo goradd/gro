@@ -235,7 +235,7 @@ func TestAddress_BasicUpdate(t *testing.T) {
 	obj2, err := LoadAddress(ctx, obj.PrimaryKey())
 	assert.NoError(t, err)
 
-	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
+	assert.Equal(t, obj2.ID(), obj.ID(), "Value did not update")
 	assert.Equal(t, obj2.Street(), obj.Street(), "Street did not update")
 	assert.Equal(t, obj2.City(), obj.City(), "City did not update")
 }
@@ -382,7 +382,7 @@ func TestAddress_QueryLoadI(t *testing.T) {
 		Where(op.Equal(node.Address().ID(), obj.ID())).
 		LoadI()
 
-	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("Value"))
 }
 func TestAddress_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleAddress()

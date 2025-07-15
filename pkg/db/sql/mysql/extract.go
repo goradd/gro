@@ -519,7 +519,6 @@ func (m *DB) processTypeInfo(column mysqlColumn) (
 }
 
 func (m *DB) schemaFromRawTables(rawTables map[string]mysqlTable, options map[string]any) schema.Database {
-
 	dd := schema.Database{
 		EnumTableSuffix: options["enum_table_suffix"].(string),
 		AssnTableSuffix: options["assn_table_suffix"].(string),
@@ -591,7 +590,7 @@ func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema.Table {
 	// Fill the singleIndexes set with all the columns that have a single index,
 	// There might be multiple single indexes on the same column, and if there are
 	// we prioritize by the value of the index level.
-	// We don't support multiple types of indexes yet.
+	// We don't support esoteric types of indexes yet.
 	for _, idx := range indexes {
 		if len(idx.Columns) == 1 {
 			if level, ok := singleIndexes[idx.Columns[0]]; ok {
@@ -670,13 +669,9 @@ func (m *DB) getEnumTableSchema(t mysqlTable) (ed schema.EnumTable, err error) {
 	ed.Name = td.Name
 	ed.Fields = make(map[string]schema.EnumField)
 
-	var hasConst bool
-	var hasLabelOrIdentifier bool
-
-	var rawColumns = make(map[string]mysqlColumn)
-	for _, c := range t.columns {
-		rawColumns[c.name] = c
-	}
+	var hasValue bool
+	var hasName bool
+	var quotedColumns []string
 
 	if td.References != nil {
 		err = fmt.Errorf("cannot have references in an enum table")
@@ -684,17 +679,17 @@ func (m *DB) getEnumTableSchema(t mysqlTable) (ed schema.EnumTable, err error) {
 	}
 
 	for _, c := range td.Columns {
-		if c.Name == schema.ConstKey {
-			hasConst = true
-		} else if c.Name == schema.LabelKey {
-			hasLabelOrIdentifier = true
-		} else if c.Name == schema.IdentifierKey {
-			hasLabelOrIdentifier = true
+		if c.Name == schema.ValueKey {
+			hasValue = true
+		} else if c.Name == schema.NameKey {
+			hasName = true
 		}
 		columnNames = append(columnNames, c.Name)
+		quotedColumns = append(quotedColumns, m.QuoteIdentifier(c.Name))
+
 		recType := ReceiverTypeFromSchema(c.Type, c.Size)
 		typ := c.Type
-		if c.Name == schema.ConstKey && c.Type == schema.ColTypeAutoPrimaryKey {
+		if c.Name == schema.ValueKey && c.Type == schema.ColTypeAutoPrimaryKey {
 			recType = ColTypeInteger
 			typ = schema.ColTypeInt
 		} else if c.Type == schema.ColTypeUnknown {
@@ -709,23 +704,27 @@ func (m *DB) getEnumTableSchema(t mysqlTable) (ed schema.EnumTable, err error) {
 		ed.Fields[c.Name] = ft
 	}
 
-	if !hasConst {
-		err = fmt.Errorf(`error: An enum table must have a "const"" column`)
+	if !hasValue {
+		err = fmt.Errorf(`error: An enum table must have a "value" column`)
 		return
 	}
-	if !hasLabelOrIdentifier {
-		err = fmt.Errorf(`error: An enum table must have a "label" of "identifier" column`)
+	if !hasName {
+		err = fmt.Errorf(`error: An enum table must have a "name" column`)
 		return
 	}
 
 	var result *sql.Rows
-	s := `
-	SELECT ` +
-		"`" + strings.Join(columnNames, "`,`") + "`" +
-		`
-	FROM ` +
-		"`" + td.Name + "`" +
-		` ORDER BY ` + "`" + columnNames[0] + "`"
+	s := fmt.Sprintf(`
+SELECT
+	%s
+FROM
+    %s
+ORDER BY
+    %s
+`, strings.Join(quotedColumns, ","),
+		m.QuoteIdentifier(td.QualifiedName()),
+		quotedColumns[0])
+
 	result, err = m.SqlDb().Query(s)
 	if err != nil {
 		panic(err)
@@ -736,15 +735,27 @@ func (m *DB) getEnumTableSchema(t mysqlTable) (ed schema.EnumTable, err error) {
 	if err != nil {
 		panic(err)
 	}
-	for _, row := range receiver {
+	for i, row := range receiver {
 		values := make(map[string]any)
 		for k := range ed.Fields {
-			values[k] = row[k]
+			if k == schema.ValueKey {
+				i2, _ := row[k]
+				if i+1 != i2 {
+					// only if value is not the default, then include it in the value map
+					values[k] = i2
+				}
+			} else {
+				values[k] = row[k]
+			}
 		}
 		ed.Values = append(ed.Values, values)
 	}
 	ed.Comment = t.comment
-
+	delete(ed.Fields, schema.ValueKey)
+	delete(ed.Fields, schema.NameKey)
+	if len(ed.Fields) == 0 {
+		ed.Fields = nil
+	}
 	return
 }
 

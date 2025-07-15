@@ -69,7 +69,7 @@ func Test`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, con.Const); err != nil {
+		if _, err = io.WriteString(_w, con.Name); err != nil {
 			return
 		}
 
@@ -77,7 +77,7 @@ func Test`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, con.Const); err != nil {
+		if _, err = io.WriteString(_w, con.Name); err != nil {
 			return
 		}
 
@@ -124,7 +124,7 @@ func Test`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, con.Const); err != nil {
+			if _, err = io.WriteString(_w, con.Name); err != nil {
 				return
 			}
 
@@ -229,7 +229,7 @@ func Test`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, con.Const); err != nil {
+			if _, err = io.WriteString(_w, con.Name); err != nil {
 				return
 			}
 
@@ -286,7 +286,7 @@ func Test`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, con.Const); err != nil {
+		if _, err = io.WriteString(_w, con.Name); err != nil {
 			return
 		}
 
@@ -483,7 +483,7 @@ func Test`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.Constants[0].Const); err != nil {
+	if _, err = io.WriteString(_w, table.Constants[0].Name); err != nil {
 		return
 	}
 
@@ -614,7 +614,7 @@ func Test`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.Constants[0].Const); err != nil {
+	if _, err = io.WriteString(_w, table.Constants[0].Name); err != nil {
 		return
 	}
 
@@ -632,7 +632,7 @@ func Test`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.Constants[0].Const); err != nil {
+	if _, err = io.WriteString(_w, table.Constants[0].Name); err != nil {
 		return
 	}
 
@@ -650,7 +650,7 @@ func Test`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.Constants[0].Const); err != nil {
+	if _, err = io.WriteString(_w, table.Constants[0].Name); err != nil {
 		return
 	}
 

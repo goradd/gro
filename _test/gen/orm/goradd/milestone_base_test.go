@@ -197,7 +197,7 @@ func TestMilestone_BasicUpdate(t *testing.T) {
 	obj2, err := LoadMilestone(ctx, obj.PrimaryKey())
 	assert.NoError(t, err)
 
-	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
+	assert.Equal(t, obj2.ID(), obj.ID(), "Value did not update")
 	assert.Equal(t, obj2.Name(), obj.Name(), "Name did not update")
 }
 
@@ -338,7 +338,7 @@ func TestMilestone_QueryLoadI(t *testing.T) {
 		Where(op.Equal(node.Milestone().ID(), obj.ID())).
 		LoadI()
 
-	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("Value"))
 }
 func TestMilestone_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleMilestone()

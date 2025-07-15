@@ -1,11 +1,11 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"github.com/goradd/orm/_test/gen/orm/goradd"
 	"github.com/goradd/orm/pkg/config"
-	"github.com/goradd/orm/pkg/db"
 	"os"
 )
 
@@ -35,7 +35,7 @@ func decode(dbConfigFile, inFile string) {
 	} else if err := config.InitDatastore(databaseConfigs); err != nil {
 		panic(err)
 	}
-	ctx := db.NewContext(nil)
+	ctx := context.Background()
 
 	f, err := os.Open(inFile)
 	if err != nil {

@@ -174,7 +174,7 @@ func TestRootUnl_BasicUpdate(t *testing.T) {
 	obj2, err := LoadRootUnl(ctx, obj.PrimaryKey())
 	assert.NoError(t, err)
 
-	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
+	assert.Equal(t, obj2.ID(), obj.ID(), "Value did not update")
 	assert.Equal(t, obj2.Name(), obj.Name(), "Name did not update")
 	assert.Equal(t, obj2.GroLock(), obj.GroLock(), "GroLock did not update")
 }
@@ -312,7 +312,7 @@ func TestRootUnl_QueryLoadI(t *testing.T) {
 		Where(op.Equal(node.RootUnl().ID(), obj.ID())).
 		LoadI()
 
-	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("Value"))
 }
 func TestRootUnl_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleRootUnl()

@@ -188,7 +188,7 @@ func TestAutoGen_BasicUpdate(t *testing.T) {
 	obj2, err := LoadAutoGen(ctx, obj.PrimaryKey())
 	assert.NoError(t, err)
 
-	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
+	assert.Equal(t, obj2.ID(), obj.ID(), "Value did not update")
 	assert.Equal(t, obj2.GroLock(), obj.GroLock(), "GroLock did not update")
 	assert.Equal(t, obj2.GroTimestamp(), obj.GroTimestamp(), "GroTimestamp did not update")
 
@@ -331,7 +331,7 @@ func TestAutoGen_QueryLoadI(t *testing.T) {
 		Where(op.Equal(node.AutoGen().ID(), obj.ID())).
 		LoadI()
 
-	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("Value"))
 }
 func TestAutoGen_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleAutoGen()

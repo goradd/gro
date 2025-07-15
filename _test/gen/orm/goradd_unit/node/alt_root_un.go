@@ -102,7 +102,7 @@ func (n altRootUnReference) PrimaryKey() *query.ColumnNode {
 func (n altRootUnTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "id",
-		Identifier:    "ID",
+		Identifier:    "Value",
 		ReceiverType:  query.ColTypeFloat32,
 		SchemaType:    schema.ColTypeFloat,
 		SchemaSubType: schema.ColSubTypeNone,

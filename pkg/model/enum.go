@@ -2,7 +2,6 @@ package model
 
 import (
 	"cmp"
-	"fmt"
 	. "github.com/goradd/anyutil"
 	. "github.com/goradd/orm/pkg/query"
 	"github.com/goradd/orm/pkg/schema"
@@ -12,9 +11,10 @@ import (
 	"slices"
 )
 
-type ConstVal struct {
-	Value int
-	Const string
+type ConstValue struct {
+	Value       int
+	Name        string
+	FieldValues map[string]any
 }
 
 // Enum describes a structure that represents a fixed, enumerated type that will
@@ -35,33 +35,16 @@ type Enum struct {
 	IdentifierPlural string
 	// DecapIdentifier is the Identifier with the first letter lower case.
 	DecapIdentifier string
-	// Fields are the names of the fields defined in the table. The first field name MUST be the const field,
-	// the 2nd the Label, and the third the Identifier. There may be additional fields.
+	// Fields are the names of accessor functions associated with the type.
+	// The first field name MUST be "label". There may be additional fields.
 	Fields []EnumField
-	// Values are the go values that will be hardcoded and returned in accessor functions.
-	// The map is keyed by row id, and then by field query name
-	Values map[int]map[string]any
 	// Constants are the constant identifiers that will be used for each enumerated value.
 	// These are in ascending order by keys.
-	Constants []ConstVal
-}
-
-// PkQueryName returns the name of the primary key field as used in database queries.
-func (tt *Enum) PkQueryName() string {
-	return tt.FieldQueryName(0)
+	Constants []ConstValue
 }
 
 func (tt *Enum) FieldQueryName(i int) string {
 	return tt.Fields[i].QueryName
-}
-
-func (tt *Enum) FieldValue(row int, fieldNum int) any {
-	name := tt.FieldQueryName(fieldNum)
-	v := tt.Values[row][name]
-	if IsNil(v) {
-		v = tt.Fields[fieldNum].Type.DefaultValue()
-	}
-	return v
 }
 
 // FieldIdentifier returns the go name corresponding to the given field offset, or an empty string if out of bounds.
@@ -96,7 +79,6 @@ func newEnumTable(dbKey string, enumSchema *schema.EnumTable) *Enum {
 		Identifier:       enumSchema.Identifier,
 		IdentifierPlural: enumSchema.IdentifierPlural,
 		DecapIdentifier:  strings2.Decap(enumSchema.Identifier),
-		Values:           make(map[int]map[string]any),
 	}
 	if len(enumSchema.Values) == 0 {
 		slog.Error("Enum table " + t.QueryName + " has no Values entries. Specify constants by adding entries to this table schema.")
@@ -119,46 +101,36 @@ func newEnumTable(dbKey string, enumSchema *schema.EnumTable) *Enum {
 		t.Fields = append(t.Fields, f)
 	}
 
-	for i, row := range enumSchema.Values {
-		if len(row) != len(t.Fields) {
-			slog.Error(fmt.Sprintf("Enum table %s, Values row %d, does not have the same number of values as Fields.", t.QueryName, i))
-			clear(t.Values)
-			return t
+	for _, valueMap := range enumSchema.Values {
+		c := ConstValue{
+			Value:       valueMap[schema.ValueKey].(int),
+			Name:        valueMap[schema.NameKey].(string),
+			FieldValues: make(map[string]any),
 		}
-
-		valueMap := make(map[string]any)
-		for _, k := range keys {
-			valueMap[k] = row[k]
+		for k, v := range valueMap {
+			switch k {
+			case schema.ValueKey, schema.NameKey: // already extracted above
+			default:
+				c.FieldValues[k] = v // includes label
+			}
 		}
-		t.Constants = append(t.Constants, ConstVal{row[schema.ConstKey].(int), enumValueToConstant(t.Identifier, row[schema.IdentifierKey].(string))})
-		t.Values[row[schema.ConstKey].(int)] = valueMap
+		t.Constants = append(t.Constants, c)
 	}
-	slices.SortFunc(t.Constants, func(a, b ConstVal) int {
+	slices.SortFunc(t.Constants, func(a, b ConstValue) int {
 		return cmp.Compare(a.Value, b.Value)
 	})
 	return t
 }
 
-func enumValueToConstant(prefix string, v string) string {
-	v = snaker.ForceCamelIdentifier(v)
-	return prefix + v
-}
-
 type EnumField struct {
 	// QueryName is the name of the field in the database.
-	// The name of the first field is "const" by convention.
-	// The name of the second field is "label".
-	// The name of the third field is "identifier".
-	// Additional fields are optional.
 	// QueryNames should be lower_snake_case.
 	QueryName string
 	// Identifier is the name used in Go code to access the data.
 	Identifier string
 	// IdentifierPlural is the plural form of Identifier.
 	IdentifierPlural string
-	// Type is the type of the column.
-	// The const column must be type ColTypeInt.
-	// The label and identifier columns must be type ColTypeString.
+	// Type is the ReceiverType of the column.
 	Type ReceiverType
 }
 

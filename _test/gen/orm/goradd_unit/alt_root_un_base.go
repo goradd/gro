@@ -100,7 +100,7 @@ func (o *altRootUnBase) OriginalPrimaryKey() float32 {
 // PrimaryKey returns the value of the primary key of the record.
 func (o *altRootUnBase) PrimaryKey() float32 {
 	if o._restored && !o.idIsLoaded {
-		panic("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
+		panic("Value was not selected in the last query and has not been set, and so PrimaryKey is not valid")
 	}
 	return o.id
 }
@@ -625,7 +625,7 @@ func (o *altRootUnBase) insert(ctx context.Context) (err error) {
 	d := Database()
 	err = db.WithTransaction(ctx, d, func(context.Context) error {
 		if !o.idIsLoaded {
-			panic("a value for ID is required, and there is no default value. Call SetID() before inserting the record.")
+			panic("a value for Value is required, and there is no default value. Call SetID() before inserting the record.")
 		}
 		if !o.nameIsLoaded {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")

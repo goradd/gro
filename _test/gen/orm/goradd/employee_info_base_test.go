@@ -192,7 +192,7 @@ func TestEmployeeInfo_BasicUpdate(t *testing.T) {
 	obj2, err := LoadEmployeeInfo(ctx, obj.PrimaryKey())
 	assert.NoError(t, err)
 
-	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
+	assert.Equal(t, obj2.ID(), obj.ID(), "Value did not update")
 	assert.Equal(t, obj2.EmployeeNumber(), obj.EmployeeNumber(), "EmployeeNumber did not update")
 }
 
@@ -333,7 +333,7 @@ func TestEmployeeInfo_QueryLoadI(t *testing.T) {
 		Where(op.Equal(node.EmployeeInfo().ID(), obj.ID())).
 		LoadI()
 
-	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("Value"))
 }
 func TestEmployeeInfo_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleEmployeeInfo()

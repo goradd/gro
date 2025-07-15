@@ -28,7 +28,7 @@ BEGIN
 
     -- Proceed only if the sequence exists
     IF seq IS NOT NULL THEN
-        -- Get the maximum existing ID or fallback to 1 (not 0!)
+        -- Get the maximum existing Value or fallback to 1 (not 0!)
         EXECUTE format(
             'SELECT COALESCE(MAX(%I), 0) FROM %s',
             columnname, tablename
@@ -143,7 +143,7 @@ func (m *DB) buildColumnDef(col *schema.Column) (columnClause string, tableClaus
 		fk := fmt.Sprintf(" FOREIGN KEY (%s) REFERENCES %s(%s)",
 			m.QuoteIdentifier(col.Name),
 			m.QuoteIdentifier(col.EnumTable),
-			m.QuoteIdentifier("const"))
+			m.QuoteIdentifier(schema.ValueKey))
 		tableClauses = append(tableClauses, fk)
 		colType = "INT"
 	} else {

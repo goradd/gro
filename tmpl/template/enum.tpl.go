@@ -121,7 +121,7 @@ const (
 			return
 		}
 
-		if _, err = io.WriteString(_w, con.Const); err != nil {
+		if _, err = io.WriteString(_w, con.Name); err != nil {
 			return
 		}
 
@@ -359,7 +359,7 @@ func `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, con.Const); err != nil {
+		if _, err = io.WriteString(_w, con.Name); err != nil {
 			return
 		}
 
@@ -510,7 +510,7 @@ func `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, con.Const); err != nil {
+		if _, err = io.WriteString(_w, con.Name); err != nil {
 			return
 		}
 
@@ -570,7 +570,7 @@ func `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, con.Const); err != nil {
+		if _, err = io.WriteString(_w, con.Name); err != nil {
 			return
 		}
 
@@ -651,7 +651,7 @@ func (tmpl *EnumTemplate) genFields(table *model.Enum, _w io.Writer) (err error)
 				return
 			}
 
-			if _, err = io.WriteString(_w, con.Const); err != nil {
+			if _, err = io.WriteString(_w, con.Name); err != nil {
 				return
 			}
 
@@ -1030,7 +1030,7 @@ func `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, con.Const); err != nil {
+		if _, err = io.WriteString(_w, con.Name); err != nil {
 			return
 		}
 

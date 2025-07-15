@@ -28,7 +28,7 @@ func TestMany2(t *testing.T) {
 
 	ctx := context.Background()
 
-	// All People Who Are on a Project Managed by Karen Wolfe (Person ID #7)
+	// All People Who Are on a Project Managed by Karen Wolfe (Person Value #7)
 	people, err := goradd.QueryPeople(ctx).
 		OrderBy(node.Person().LastName(), node.Person().FirstName()).
 		Where(op.Equal(node.Person().Projects().Manager().LastName(), "Wolfe")).

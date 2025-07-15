@@ -3,6 +3,7 @@ package pgsql
 import (
 	"database/sql"
 	"fmt"
+	"github.com/goradd/iter"
 	"github.com/goradd/maps"
 	"github.com/goradd/orm/pkg/db"
 	sql2 "github.com/goradd/orm/pkg/db/sql"
@@ -479,7 +480,7 @@ func (m *DB) schemaFromRawTables(rawTables map[string]pgTable, options map[strin
 		dd.ReadTimeout = v.(string)
 	}
 
-	for tableName, rawTable := range rawTables {
+	for tableName, rawTable := range iter.KeySort(rawTables) {
 		if strings.Contains(rawTable.name, ".") {
 			slog.Warn("Table name "+rawTable.name+"cannot contain a period in its name. Skipping.",
 				slog.String(db.LogTable, tableName))
@@ -608,7 +609,7 @@ func (m *DB) getEnumTableSchema(t pgTable) (ed schema.EnumTable, err error) {
 	td := m.getTableSchema(t, "")
 
 	var columnNames []string
-	var quotedNames []string
+	var quotedColumns []string
 	var receiverTypes []ReceiverType
 
 	if len(td.Columns) < 2 {
@@ -619,38 +620,46 @@ func (m *DB) getEnumTableSchema(t pgTable) (ed schema.EnumTable, err error) {
 	ed.Name = td.Name
 	ed.Fields = make(map[string]schema.EnumField)
 
-	var hasConst bool
-	var hasLabelOrIdentifier bool
+	var hasValue bool
+	var hasName bool
+
+	if td.References != nil {
+		err = fmt.Errorf("cannot have references in an enum table")
+		return
+	}
 
 	for _, c := range td.Columns {
-		if c.Name == schema.ConstKey {
-			hasConst = true
-		} else if c.Name == schema.LabelKey {
-			hasLabelOrIdentifier = true
-		} else if c.Name == schema.IdentifierKey {
-			hasLabelOrIdentifier = true
+		if c.Name == schema.ValueKey {
+			hasValue = true
+		} else if c.Name == schema.NameKey {
+			hasName = true
 		}
+
 		columnNames = append(columnNames, c.Name)
-		quotedNames = append(quotedNames, m.QuoteIdentifier(c.Name))
+		quotedColumns = append(quotedColumns, m.QuoteIdentifier(c.Name))
 		recType := ReceiverTypeFromSchema(c.Type, c.Size)
-		if c.Name == schema.ConstKey && c.Type == schema.ColTypeAutoPrimaryKey {
+		typ := c.Type
+
+		if c.Name == schema.ValueKey && c.Type == schema.ColTypeAutoPrimaryKey {
 			recType = ColTypeInteger
+			typ = schema.ColTypeInt
 		} else if c.Type == schema.ColTypeUnknown {
 			recType = ColTypeBytes
+			typ = schema.ColTypeBytes
 		}
 		receiverTypes = append(receiverTypes, recType)
 		ft := schema.EnumField{
-			Type: c.Type,
+			Type: typ,
 		}
 		ed.Fields[c.Name] = ft
 	}
 
-	if !hasConst {
-		err = fmt.Errorf(`an enum table must have a "const"" column`)
+	if !hasValue {
+		err = fmt.Errorf(`an enum table must have a "value" column`)
 		return
 	}
-	if !hasLabelOrIdentifier {
-		err = fmt.Errorf(`an enum table must have a "label" of "identifier" column`)
+	if !hasName {
+		err = fmt.Errorf(`an enum table must have a "name" `)
 		return
 	}
 
@@ -662,9 +671,9 @@ FROM
 ORDER BY
     %s
 `,
-		strings.Join(quotedNames, `,`),
+		strings.Join(quotedColumns, `,`),
 		m.QuoteIdentifier(td.Name),
-		quotedNames[0])
+		quotedColumns[0])
 
 	result, err := m.SqlDb().Query(stmt)
 	if err != nil {
@@ -676,13 +685,29 @@ ORDER BY
 	if err2 != nil {
 		panic(err2)
 	}
-	for _, row := range receiver {
+	for i, row := range receiver {
 		values := make(map[string]any)
 		for k := range ed.Fields {
-			values[k] = row[k]
+			if k == schema.ValueKey {
+				i2, _ := row[k]
+				if i+1 != i2 {
+					// only if value is not the default, then include it in the value map
+					values[k] = i2
+				}
+			} else {
+				values[k] = row[k]
+			}
 		}
 		ed.Values = append(ed.Values, values)
 	}
+
+	ed.Comment = t.comment
+	delete(ed.Fields, schema.ValueKey)
+	delete(ed.Fields, schema.NameKey)
+	if len(ed.Fields) == 0 {
+		ed.Fields = nil
+	}
+
 	return
 }
 

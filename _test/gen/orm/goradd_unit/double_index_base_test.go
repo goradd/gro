@@ -267,7 +267,7 @@ func TestDoubleIndex_BasicUpdate(t *testing.T) {
 	obj2, err := LoadDoubleIndex(ctx, obj.PrimaryKey())
 	assert.NoError(t, err)
 
-	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
+	assert.Equal(t, obj2.ID(), obj.ID(), "Value did not update")
 	assert.Equal(t, obj2.FieldInt(), obj.FieldInt(), "FieldInt did not update")
 	assert.Equal(t, obj2.FieldString(), obj.FieldString(), "FieldString did not update")
 	assert.Equal(t, obj2.Field2Int(), obj.Field2Int(), "Field2Int did not update")
@@ -397,7 +397,7 @@ func TestDoubleIndex_QueryLoadI(t *testing.T) {
 		Where(op.Equal(node.DoubleIndex().ID(), obj.ID())).
 		LoadI()
 
-	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
+	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("Value"))
 }
 func TestDoubleIndex_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleDoubleIndex()
