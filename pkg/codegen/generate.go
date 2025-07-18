@@ -91,15 +91,6 @@ func genEnumTemplate(g EnumGenerator, table *model.Enum, importPath string) {
 	if !g.Overwrite() && fileExists(filename) {
 		return
 	}
-	if g.Overwrite() && len(table.Values) == 0 {
-		slog.Error("The enum type has no values in the schema",
-			slog.String(db2.LogFilename, filename),
-			slog.String(db2.LogComponent, "codegen"),
-			slog.Any(db2.LogTable, table.QueryName))
-		deleteFile(filename)
-		return
-	}
-
 	f, err := openFile(filename)
 	if err != nil {
 		slog.Error("Error opening file",

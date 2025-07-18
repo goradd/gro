@@ -68,7 +68,7 @@ func (tmpl *EnumTemplate)genUtil(table *model.Enum, _w io.Writer) (err error) {
 func (e {{= table.Identifier }}) String() string {
     switch e {
 {{for _,c := range table.Constants }}
-        case {{= c.ID }}: return "{{= table.Identifier }}{{= c.Name }}"
+        case {{i c.Value }}: return "{{= table.Identifier }}{{= c.Name }}"
 {{for}}
         default: return ""
     }
@@ -91,16 +91,22 @@ func IsValid{{= table.Identifier }}(i int) bool {
 func (tmpl *EnumTemplate)genKey(table *model.Enum, _w io.Writer) (err error) {
 
 {{
-// Key returns a string representation of the primary key and satisfies KeyLabeler interface
+// Key returns a string representation of the primary key and satisfies KeyLabeler interface.
 func (e {{= table.Identifier }}) Key() string {
-	return strconv.Itoa(int(e))
+    // We use string keys so that if the number values change, keys will still relate to to the same conceptual item.
+    switch (e) {
+{{for _,con := range table.Constants }}
+    case {{= table.Identifier}}{{= con.Name }}: return "{{= con.Key }}"
+{{for}}
+    }
+	return ""
 }
 
 // Keys returns all of the items in the enumerated type as string keys.
 func (e {{= table.Identifier }}) Keys() []string {
     return []string {
-{{for _,c := range table.Constants }}
-        "{{i c.ID }}",
+{{for _,con := range table.Constants }}
+        "{{= con.Key }}",
 {{for}}
     }
 }
@@ -110,7 +116,7 @@ func (e {{= table.Identifier }}) Keys() []string {
 func {{= table.Identifier }}FromKey (key string) {{= table.Identifier }} {
 	switch key {
 {{for _,con := range table.Constants }}
-    case `{{i con.Value }}`: return {{= table.Identifier}}{{= con.Name }}
+    case "{{= con.Key }}": return {{= table.Identifier}}{{= con.Name }}
 {{for}}
 	}
 	return {{= table.Identifier }}(0)
@@ -131,7 +137,6 @@ func {{= table.IdentifierPlural }}FromKeys (keys []string) (values []{{= table.I
 }
 
 func (tmpl *EnumTemplate)genPlurals(table *model.Enum, _w io.Writer) (err error) {
-
 {{
 // {{= table.IdentifierPlural }} returns a slice of all the {{= table.Identifier }} values
 // in key order.
@@ -165,16 +170,14 @@ func (tmpl *EnumTemplate)genInterfaces(table *model.Enum, _w io.Writer) (err err
 }
 
 func (tmpl *EnumTemplate)genFields(table *model.Enum, _w io.Writer) (err error) {
-
-    for i,field := range table.Fields {
-        fieldNum := i + 1
 {{
+{{for _, field := range table.Fields }}
 // {{= table.Identifier }}{{= field.Identifier }} returns the {{= field.Identifier }} values associated with {{= table.Identifier }}.
 func (e {{= table.Identifier }}) {{= field.Identifier }}() {{= field.GoType()}} {
 	switch e {
 	case 0: return {{= field.Type.DefaultValueString() }}
 {{for _,con := range table.Constants }}
-	case {{= table.Identifier }}{{= con.Name }}: return {{L table.FieldValue(con.Value, fieldNum) }}
+	case {{= table.Identifier }}{{= con.Name }}: return {{L con.FieldValues[field.QueryName] }}
 {{for}}
 	default: panic("index out of range")
 	}
@@ -187,13 +190,12 @@ func {{= table.Identifier }}{{= field.IdentifierPlural }}() []{{= field.GoType()
 
  }} {
 {{for _,con := range table.Constants }}
-	    {{L table.FieldValue(con.Value, fieldNum) }},
+	    {{L con.FieldValues[field.QueryName] }},
 {{for}}
     }
 }
-
+{{for}}
 }}
-    }
     return
 }
 
@@ -201,7 +203,7 @@ func (tmpl *EnumTemplate)genMarshal(table *model.Enum, _w io.Writer) (err error)
 {{
 // MarshalJSON converts the type to its identifier for JSON output.
 func (e {{= table.Identifier }}) MarshalJSON() (data []byte, err error) {
-	return json.Marshal(e.String()) // wraps it in quotes like "active"
+	return json.Marshal(e.Key()) // wraps it in quotes like "active"
 }
 
 // UnmarshalJSON converts a variety of possible JSON inputs to the enum type.
@@ -236,7 +238,7 @@ func {{= table.Identifier }}FromInterface(i any) ({{= table.Identifier }}, error
     		}
 		}
 		// Otherwise convert from the identifier
-		return {{= table.Identifier }}FromIdentifier(v)
+		return {{= table.Identifier }}FromKey(v)
 	case json.Number:
 		if v2, err := v.Int64(); err == nil {
 	        if IsValid{{= table.Identifier }}(int(v2)) {
@@ -247,15 +249,6 @@ func {{= table.Identifier }}FromInterface(i any) ({{= table.Identifier }}, error
 		return {{= table.Identifier }}(0), fmt.Errorf("unsupported type for {{= table.Identifier }}: %T", v)
 	}
 	return {{= table.Identifier }}(0), errors.New("invalid value for {{= table.Identifier }}")
-}
-
-func {{= table.Identifier }}FromIdentifier(i string) (e {{= table.Identifier }}, err error) {
-    switch i {
-{{for _,con := range table.Constants }}
-        case {{L table.FieldValue(con.Value, 2) }}: return {{= con.Name }}, nil
-{{for}}
-        default: return {{= table.Identifier }}(0), fmt.Errorf("{{= table.Identifier }}  for %s not found", i)
-    }
 }
 
 }}

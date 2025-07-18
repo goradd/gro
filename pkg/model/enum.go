@@ -12,8 +12,14 @@ import (
 )
 
 type ConstValue struct {
-	Value       int
-	Name        string
+	// Value is the integer that will represent the value
+	Value int
+	// Name is the CamelCase name that represents the value (without the table name prefix)
+	Name string
+	// Key is the snake_case key that will represent the value.
+	Key string
+	// FieldValues are the additional values associated with the field. At a minimum, it will have a "label" entry.
+	// This should correspond to the entries in Enum.Fields.
 	FieldValues map[string]any
 }
 
@@ -105,11 +111,12 @@ func newEnumTable(dbKey string, enumSchema *schema.EnumTable) *Enum {
 		c := ConstValue{
 			Value:       valueMap[schema.ValueKey].(int),
 			Name:        valueMap[schema.NameKey].(string),
+			Key:         valueMap[schema.KeyKey].(string),
 			FieldValues: make(map[string]any),
 		}
 		for k, v := range valueMap {
 			switch k {
-			case schema.ValueKey, schema.NameKey: // already extracted above
+			case schema.ValueKey, schema.NameKey, schema.KeyKey: // already extracted above
 			default:
 				c.FieldValues[k] = v // includes label
 			}

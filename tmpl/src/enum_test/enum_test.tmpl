@@ -28,7 +28,7 @@ for i,field := range table.Fields[1:] {
 {{
 func Test{{= table.Identifier }}_{{= field.Identifier }}(t *testing.T) {
 {{for _,con := range table.Constants }}
-    assert.Equal(t, {{= con.Const }}.{{= field.Identifier }}(), {{L table.FieldValue(con.Value, fieldNum) }})
+    assert.Equal(t, {{= con.Const }}.{{= field.Identifier }}(), {{L con.FieldValues[con.QueryName] }})
 {{for}}
     assert.Zero(t, {{= table.Identifier }}(0).{{= field.Identifier }}())
     assert.Panics(t, func() {

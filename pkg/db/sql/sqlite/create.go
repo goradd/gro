@@ -89,9 +89,9 @@ func (m *DB) buildColumnDef(col *schema.Column) (s string, tableClauses []string
 		fk := fmt.Sprintf(" FOREIGN KEY (%s) REFERENCES %s(%s)",
 			m.QuoteIdentifier(col.Name),
 			m.QuoteIdentifier(col.EnumTable),
-			m.QuoteIdentifier("const"))
+			m.QuoteIdentifier(schema.ValueKey))
 		tableClauses = append(tableClauses, fk)
-		colType = "INT"
+		colType = "INTEGER" // NOT INT!
 	} else {
 		colType = sqlType(col.Type, col.Size, col.SubType)
 		if col.Type == schema.ColTypeAutoPrimaryKey {

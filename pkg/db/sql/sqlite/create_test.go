@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-func TestDB_CreateSampleSchema(t *testing.T) {
+func TestDB_CrudSampleSchema(t *testing.T) {
 	d, err := NewDB("test", "") // memory only database will automatically be destroyed after test
 	require.NoError(t, err)
 
@@ -103,14 +103,9 @@ func sampleSchema() schema.Database {
 			// Enum table: post_status
 			{
 				Name: "post_status_enum",
-				Fields: map[string]schema.EnumField{
-					"const":      {Type: schema.ColTypeInt},
-					"label":      {Type: schema.ColTypeString},
-					"identifier": {Type: schema.ColTypeString},
-				},
 				Values: []map[string]any{
-					{"const": 1, "label": "Open", "identifier": "open"},
-					{"const": 2, "label": "Closed", "identifier": "closed"},
+					{"name": "Open"},
+					{"name": "Closed"},
 				},
 			},
 		},
@@ -128,7 +123,6 @@ func sampleSchema() schema.Database {
 			},
 		},
 	}
-
 	if err := db.Clean(); err != nil {
 		panic(err)
 	}
@@ -155,7 +149,7 @@ func sampleSchemaWithCollation() schema.Database {
 						Type:               schema.ColTypeString,
 						Size:               100,
 						IsNullable:         false,
-						DatabaseDefinition: map[string]map[string]interface{}{"postgres": map[string]interface{}{"collation": "en-US-x-icu"}},
+						DatabaseDefinition: map[string]map[string]interface{}{"postgres": {"collation": "en-US-x-icu"}},
 					},
 				},
 			},

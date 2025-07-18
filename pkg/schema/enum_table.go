@@ -13,6 +13,7 @@ import (
 const ValueKey = "value"
 const LabelKey = "label"
 const NameKey = "name"
+const KeyKey = "key"
 
 type EnumField struct {
 	// Identifier is the name used in Go code to access the data.
@@ -40,11 +41,13 @@ type EnumTable struct {
 	Schema string `json:"schema,omitempty"`
 
 	// Values are the enum values themselves.
-	// At a minimum, each entry must have a "id" field. This should be a CamelCase string that will be
+	// At a minimum, each entry must have a "name" field. This should be a CamelCase string that will be
 	// used to build the constant value in the Go code.
 	// By default, numbers for values will be assigned in order. If you set a "value" value, it will override this default.
-	// By default, a "label" value will be assigned based on "id". This should be a Title Case string that will
+	// By default, a "label" value will be assigned based on "name". This should be a Title Case string that will
 	// represent the value to humans. Set "label" to override the default.
+	// Alternatively specify a "key" value to be used as the json key and other appropriate contexts. This
+	// should be a lower_snake_case value and will be generated if missing.
 	// Additional entries will create accessor functions for those values. The type and identifiers will be
 	// inferred from the entries, or you can use Fields to specify these values for the additional fields.
 	Values []map[string]any `json:"values"`
@@ -194,8 +197,10 @@ func (t *EnumTable) fillDefaults(suffix string) {
 		if _, ok := vMap[LabelKey]; !ok {
 			vMap[LabelKey] = strings2.Title(vMap[NameKey].(string))
 		}
+		if _, ok := vMap[KeyKey]; !ok {
+			vMap[KeyKey] = strings2.CamelToSnake(vMap[NameKey].(string))
+		}
 	}
-
 }
 
 // FieldKeys returns the keys of the fields in deterministic order, with label first
