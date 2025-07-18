@@ -17,18 +17,17 @@ import (
 
 func Test{{= table.Identifier }}_String(t *testing.T) {
 {{for _,con := range table.Constants }}
-    assert.Equal(t, {{= con.Const }}.String(), {{= con.Const }}.Identifier())
+    assert.Equal(t, {{= table.Identifier }}{{= con.Name }}.String(), "{{= table.Identifier }}{{= con.Name }}")
 {{for}}
 }
 
 }}
 
-for i,field := range table.Fields[1:] {
-    fieldNum := i + 1
+for _,field := range table.Fields[1:] {
 {{
 func Test{{= table.Identifier }}_{{= field.Identifier }}(t *testing.T) {
 {{for _,con := range table.Constants }}
-    assert.Equal(t, {{= con.Const }}.{{= field.Identifier }}(), {{L con.FieldValues[con.QueryName] }})
+    assert.Equal(t, {{= table.Identifier }}{{= con.Name }}.{{= field.Identifier }}(), {{L con.FieldValues[field.QueryName] }})
 {{for}}
     assert.Zero(t, {{= table.Identifier }}(0).{{= field.Identifier }}())
     assert.Panics(t, func() {
@@ -39,7 +38,7 @@ func Test{{= table.Identifier }}_{{= field.Identifier }}(t *testing.T) {
 func Test{{= table.Identifier }}_{{= field.Identifier }}Slice(t *testing.T) {
     a := {{= table.Identifier }}{{= field.IdentifierPlural }}()
 {{for i,con := range table.Constants }}
-    assert.Equal(t, {{= con.Const }}.{{= field.Identifier }}(), a[{{i i}}])
+    assert.Equal(t, {{= table.Identifier }}{{= con.Name }}.{{= field.Identifier }}(), a[{{i i}}])
 {{for}}
 }
 
@@ -52,7 +51,7 @@ func Test{{= table.Identifier }}_Keys(t *testing.T) {
     var keys []string
 
 {{for _,con := range table.Constants }}
-    keys = append(keys, {{= con.Const }}.Key())
+    keys = append(keys, {{= table.Identifier }}{{= con.Name }}.Key())
 {{for}}
     v := {{= table.IdentifierPlural }}FromKeys(keys)
     assert.Equal(t, {{= table.IdentifierPlural }}(), v)
@@ -82,7 +81,7 @@ func Test{{= table.Identifier }}_FromIdentifier(t *testing.T) {
 }
 
 func Test{{= table.Identifier }}_FromInterface(t *testing.T) {
-    v := {{= table.Constants[0].Const }}
+    v := {{= table.Identifier}}{{= table.Constants[0].Name }}
 
     v2,err := {{= table.Identifier }}FromInterface(int(v))
     assert.NoError(t, err)
@@ -117,11 +116,11 @@ func Test{{= table.Identifier }}_UnmarshalJSON(t *testing.T) {
 		wantErr  bool
 	}{
 		// Integer JSON
-		{input: `{{i table.Constants[0].Value }}`, expected: {{= table.Constants[0].Const }}, wantErr: false},
+		{input: `{{i table.Constants[0].Value }}`, expected: {{= table.Identifier}}{{= table.Constants[0].Name }}, wantErr: false},
 		// Float JSON
-		{input: `{{i table.Constants[0].Value }}.0`, expected: {{= table.Constants[0].Const }}, wantErr: false},
+		{input: `{{i table.Constants[0].Value }}.0`, expected: {{= table.Identifier}}{{= table.Constants[0].Name }}, wantErr: false},
 		// Stringified numbers
-		{input: `"{{i table.Constants[0].Value }}"`, expected: {{= table.Constants[0].Const }}, wantErr: false},
+		{input: `"{{i table.Constants[0].Value }}"`, expected: {{= table.Identifier}}{{= table.Constants[0].Name }}, wantErr: false},
 		// Invalid values
 		{input: `"1.1.1"`, expected: {{= table.Identifier }}(0), wantErr: true},
 	}

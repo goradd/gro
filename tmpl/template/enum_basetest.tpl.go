@@ -69,19 +69,27 @@ func Test`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, con.Const); err != nil {
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `.String(), `); err != nil {
+		if _, err = io.WriteString(_w, con.Name); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, con.Const); err != nil {
+		if _, err = io.WriteString(_w, `.String(), "`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `.Identifier())
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, con.Name); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `")
 `); err != nil {
 			return
 		}
@@ -94,8 +102,7 @@ func Test`); err != nil {
 		return
 	}
 
-	for i, field := range table.Fields[1:] {
-		fieldNum := i + 1
+	for _, field := range table.Fields[1:] {
 
 		if _, err = io.WriteString(_w, `func Test`); err != nil {
 			return
@@ -124,7 +131,11 @@ func Test`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, con.Const); err != nil {
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, con.Name); err != nil {
 				return
 			}
 
@@ -140,7 +151,7 @@ func Test`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", con.FieldValues[con.QueryName])); err != nil {
+			if _, err = io.WriteString(_w, fmt.Sprintf("%#v", con.FieldValues[field.QueryName])); err != nil {
 				return
 			}
 
@@ -229,7 +240,11 @@ func Test`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, con.Const); err != nil {
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, con.Name); err != nil {
 				return
 			}
 
@@ -286,7 +301,11 @@ func Test`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, con.Const); err != nil {
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, con.Name); err != nil {
 			return
 		}
 
@@ -483,7 +502,11 @@ func Test`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.Constants[0].Const); err != nil {
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Constants[0].Name); err != nil {
 		return
 	}
 
@@ -614,7 +637,11 @@ func Test`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.Constants[0].Const); err != nil {
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Constants[0].Name); err != nil {
 		return
 	}
 
@@ -632,7 +659,11 @@ func Test`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.Constants[0].Const); err != nil {
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Constants[0].Name); err != nil {
 		return
 	}
 
@@ -650,7 +681,11 @@ func Test`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.Constants[0].Const); err != nil {
+	if _, err = io.WriteString(_w, table.Identifier); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.Constants[0].Name); err != nil {
 		return
 	}
 

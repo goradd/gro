@@ -188,7 +188,10 @@ func (t *EnumTable) fillDefaults(suffix string) {
 	if t.IdentifierPlural == "" {
 		t.IdentifierPlural = strings2.Plural(t.Identifier)
 	}
-	t.Fields[ValueKey] = EnumField{
+	if t.Fields == nil {
+		t.Fields = make(map[string]EnumField)
+	}
+	t.Fields[LabelKey] = EnumField{
 		Identifier:       "Label",
 		IdentifierPlural: "Labels",
 		Type:             ColTypeString,

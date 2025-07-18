@@ -90,10 +90,6 @@ func newEnumTable(dbKey string, enumSchema *schema.EnumTable) *Enum {
 		slog.Error("Enum table " + t.QueryName + " has no Values entries. Specify constants by adding entries to this table schema.")
 		return t
 	}
-	if len(enumSchema.Fields) < 2 {
-		slog.Error("Enum table " + t.QueryName + " does not have at least 2 Fields entries. Specify fields by adding Fields to this table schema.")
-		return t
-	}
 
 	keys := enumSchema.FieldKeys()
 

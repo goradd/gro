@@ -279,83 +279,66 @@
       "name": "person_type_enum",
       "values": [
         {
-          "const": 1,
-          "identifier": "contractor",
-          "label": "Contractor"
+          "value": 1,
+          "name": "Contractor"
         },
         {
-          "const": 2,
-          "identifier": "manager",
-          "label": "Manager"
+          "value": 2,
+          "name": "Manager"
         },
         {
-          "const": 3,
-          "identifier": "inactive",
-          "label": "Inactive"
+          "value": 3,
+          "name": "Inactive"
         },
         {
-          "const": 4,
-          "identifier": "customer",
-          "label": "Customer"
+          "value": 4,
+          "name": "Customer"
         },
         {
-          "const": 5,
-          "identifier": "vendor",
-          "label": "Vendor"
+          "value": 5,
+          "name": "Vendor"
         }
-      ],
-      "fields": {
-        "const": {
-          "type": "int"
-        },
-        "label": {
-          "type": "string"
-        },
-        "identifier": {
-          "type": "string"
-        }
-      }
+      ]
     },
     {
       "name": "project_status_enum",
       "values": [
         {
-          "const": 1,
+          "value": 1,
           "description": "The project is currently active",
           "guidelines": "All projects that we are working on should be in this state",
           "is_active": true,
+          "name": "Open",
           "label": "Open",
-          "identifier": "open"
+          "key": "o"
         },
         {
-          "const": 2,
+          "value": 2,
           "description": "The project has been canned",
           "guidelines": "",
           "is_active": true,
-          "label": "Cancelled",
-          "identifier": "cancelled"
+          "name": "Cancelled",
+          "key": "cancelled"
         },
         {
-          "const": 3,
+          "value": 3,
           "description": "The project has been completed successfully",
           "guidelines": "Celebrate successes!",
           "is_active": true,
-          "label": "Completed",
-          "identifier": "completed"
+          "name": "Completed",
+          "label": "Done",
+          "key": "comp"
         },
         {
-          "const": 4,
+          "value": 4,
           "description": "Project is in the planning stages and has not been assigned a manager",
           "guidelines": "Get ready",
           "is_active": false,
-          "label": "Planned",
-          "identifier": "planned"
+          "name": "Planned",
+          "key": "p"
         }
       ],
       "fields": {
-        "const": {
-          "type": "int"
-        },
         "description": {
           "type": "string"
         },
@@ -364,12 +347,6 @@
         },
         "is_active": {
           "type": "bool"
-        },
-        "label": {
-          "type": "string"
-        },
-        "identifier": {
-          "type": "string"
         }
       }
     }
