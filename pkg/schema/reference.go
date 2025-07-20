@@ -150,7 +150,7 @@ func (r *Reference) fillDefaults(db *Database, table *Table) {
 	}
 
 	if r.ReverseIdentifier == "" {
-		if r.Column == r.Table {
+		if r.ObjectIdentifier == snaker.SnakeToCamelIdentifier(r.Table) {
 			r.ReverseIdentifier = table.Identifier
 		} else {
 			r.ReverseIdentifier = r.ObjectIdentifier + table.Identifier

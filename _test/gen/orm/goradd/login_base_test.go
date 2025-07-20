@@ -461,13 +461,13 @@ func TestLogin_Count(t *testing.T) {
 	obj2, _ := LoadLogin(ctx, obj.PrimaryKey())
 	assert.Positive(t,
 		func() int {
-			i, _ := CountLoginsByUsername(ctx,
+			i, _ := CountLoginsBy(ctx,
 				obj2.Username())
 			return i
 		}())
 	assert.Positive(t,
 		func() int {
-			i, _ := CountLoginsByPersonID(ctx,
+			i, _ := CountLoginsBy(ctx,
 				obj2.PersonID())
 			return i
 		}())

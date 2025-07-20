@@ -14,7 +14,7 @@ func Test{{= table.Identifier }}_Count(t *testing.T) {
 	obj2, _ := Load{{= table.Identifier }}(ctx, obj.PrimaryKey())
 {{for _,idx := range table.Indexes }}
 	assert.Positive(t,
-	    func() int { i,_ := Count{{= table.IdentifierPlural}}By{{= idx.Name() }}(ctx,
+	    func() int { i,_ := Count{{= table.IdentifierPlural}}By{{= idx.Identifier }}(ctx,
 	        {{join idx.Columns, ",\n"}}obj2.{{= _j.Identifier }}(){{join}})
 	        return i
 	    }() )

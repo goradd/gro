@@ -49,7 +49,7 @@ type Table struct {
 	// generate a single unique primary key.
 	// Composite primary keys with an auto generated primary key is not supported in the orm. To
 	// implement this, you will need to manually generate or assign the primary key columns.
-	Indexes []Index `json:"indexes,omitempty"`
+	Indexes []*Index `json:"indexes,omitempty"`
 
 	// Identifier is the corresponding Go object name.
 	// It must obey Go identifier labeling rules.
@@ -115,7 +115,7 @@ func (t *Table) Clean(db *Database) error {
 			return err
 		}
 		if c.IndexLevel != IndexLevelNone {
-			t.Indexes = append(t.Indexes, Index{IndexLevel: c.IndexLevel, Columns: []string{c.Name}})
+			t.Indexes = append(t.Indexes, &Index{IndexLevel: c.IndexLevel, Columns: []string{c.Name}})
 		}
 	}
 
@@ -129,14 +129,19 @@ func (t *Table) Clean(db *Database) error {
 			}
 		}
 		if ref.IndexLevel != IndexLevelNone {
-			t.Indexes = append(t.Indexes, Index{IndexLevel: ref.IndexLevel, Columns: []string{ref.Column}})
+			t.Indexes = append(t.Indexes,
+				&Index{
+					IndexLevel: ref.IndexLevel,
+					Columns:    []string{ref.Column},
+				})
 		}
 	}
 
 	var hasPk bool
-	for _, m := range t.Indexes {
-		if m.IndexLevel == IndexLevelPrimaryKey &&
-			len(m.Columns) > 0 {
+	for _, i := range t.Indexes {
+		i.infer()
+		if i.IndexLevel == IndexLevelPrimaryKey &&
+			len(i.Columns) > 0 {
 
 			hasPk = true
 		}
@@ -166,6 +171,10 @@ func (t *Table) fillDefaults(db *Database) {
 	for _, r := range t.References {
 		r.fillDefaults(db, t)
 	}
+	for _, i := range t.Indexes {
+		i.fillDefaults()
+	}
+
 }
 
 // PrimaryKeyColumns returns the names of the primary key columns of the table, or nil if not found.

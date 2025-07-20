@@ -263,18 +263,18 @@ func (o *personWithLockBase) IsNew() bool {
 // LoadPersonWithLock returns a PersonWithLock from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [PersonWithLocksBuilder.Select] for more info.
-func LoadPersonWithLock(ctx context.Context, id string, selectNodes ...query.Node) (*PersonWithLock, error) {
+func LoadPersonWithLock(ctx context.Context, pk string, selectNodes ...query.Node) (*PersonWithLock, error) {
 	return queryPersonWithLocks(ctx).
-		Where(op.Equal(node.PersonWithLock().ID(), id)).
+		Where(op.Equal(node.PersonWithLock().ID(), pk.id)).
 		Select(selectNodes...).
 		Get()
 }
 
 // HasPersonWithLock returns true if a PersonWithLock with the given primary key exists in the database.
 // doc: type=PersonWithLock
-func HasPersonWithLock(ctx context.Context, id string) (bool, error) {
+func HasPersonWithLock(ctx context.Context, pk string) (bool, error) {
 	v, err := queryPersonWithLocks(ctx).
-		Where(op.Equal(node.PersonWithLock().ID(), id)).
+		Where(op.Equal(node.PersonWithLock().ID(), pk.id)).
 		Count()
 	return v > 0, err
 }

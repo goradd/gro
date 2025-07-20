@@ -376,7 +376,7 @@ func TestEmployeeInfo_Count(t *testing.T) {
 	obj2, _ := LoadEmployeeInfo(ctx, obj.PrimaryKey())
 	assert.Positive(t,
 		func() int {
-			i, _ := CountEmployeeInfosByPersonID(ctx,
+			i, _ := CountEmployeeInfosBy(ctx,
 				obj2.PersonID())
 			return i
 		}())

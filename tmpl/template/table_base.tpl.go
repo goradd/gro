@@ -5239,15 +5239,7 @@ func Load`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `(ctx context.Context, `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, ` `); err != nil {
+	if _, err = io.WriteString(_w, `(ctx context.Context, pk `); err != nil {
 		return
 	}
 
@@ -5273,32 +5265,44 @@ func Load`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `(ctx).
-	    Where(op.Equal(node.`); err != nil {
+`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
-		return
+	for _, col := range table.PrimaryKeyColumns() {
+
+		if _, err = io.WriteString(_w, `	    Where(op.Equal(node.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(), pk.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Field); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `)).
+`); err != nil {
+			return
+		}
+
 	}
 
-	if _, err = io.WriteString(_w, `().`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `(), `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `)).
-	    Select(selectNodes...).
+	if _, err = io.WriteString(_w, `	    Select(selectNodes...).
 	    Get()
 }
 
@@ -5336,15 +5340,7 @@ func Has`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `(ctx context.Context, `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, ` `); err != nil {
+	if _, err = io.WriteString(_w, `(ctx context.Context, pk `); err != nil {
 		return
 	}
 
@@ -5362,32 +5358,44 @@ func Has`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `(ctx).
-	     Where(op.Equal(node.`); err != nil {
+`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.Identifier); err != nil {
-		return
+	for _, col := range table.PrimaryKeyColumns() {
+
+		if _, err = io.WriteString(_w, `	    Where(op.Equal(node.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `().`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(), pk.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Field); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `)).
+`); err != nil {
+			return
+		}
+
 	}
 
-	if _, err = io.WriteString(_w, `().`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Identifier); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `(), `); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `)).
-         Count()
+	if _, err = io.WriteString(_w, `         Count()
     return v > 0, err
 }
 
@@ -5411,7 +5419,7 @@ func Has`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, idx.Name()); err != nil {
+			if _, err = io.WriteString(_w, idx.Identifier); err != nil {
 				return
 			}
 
@@ -5455,7 +5463,7 @@ func Load`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, idx.Name()); err != nil {
+			if _, err = io.WriteString(_w, idx.Identifier); err != nil {
 				return
 			}
 
@@ -5627,7 +5635,7 @@ func Load`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, idx.Name()); err != nil {
+			if _, err = io.WriteString(_w, idx.Identifier); err != nil {
 				return
 			}
 
@@ -5654,7 +5662,7 @@ func Has`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, idx.Name()); err != nil {
+			if _, err = io.WriteString(_w, idx.Identifier); err != nil {
 				return
 			}
 
@@ -5829,7 +5837,7 @@ func Has`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, idx.Name()); err != nil {
+			if _, err = io.WriteString(_w, idx.Identifier); err != nil {
 				return
 			}
 
@@ -5873,7 +5881,7 @@ func Load`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, idx.Name()); err != nil {
+			if _, err = io.WriteString(_w, idx.Identifier); err != nil {
 				return
 			}
 
@@ -6045,7 +6053,7 @@ func Load`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, idx.Name()); err != nil {
+			if _, err = io.WriteString(_w, idx.Identifier); err != nil {
 				return
 			}
 
@@ -6072,7 +6080,7 @@ func Has`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, idx.Name()); err != nil {
+			if _, err = io.WriteString(_w, idx.Identifier); err != nil {
 				return
 			}
 
@@ -7032,7 +7040,7 @@ func Count`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, idx.Name()); err != nil {
+		if _, err = io.WriteString(_w, idx.Identifier); err != nil {
 			return
 		}
 
@@ -7084,7 +7092,7 @@ func Count`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, idx.Name()); err != nil {
+		if _, err = io.WriteString(_w, idx.Identifier); err != nil {
 			return
 		}
 

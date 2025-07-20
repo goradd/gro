@@ -381,7 +381,7 @@ func TestMilestone_Count(t *testing.T) {
 	obj2, _ := LoadMilestone(ctx, obj.PrimaryKey())
 	assert.Positive(t,
 		func() int {
-			i, _ := CountMilestonesByProjectID(ctx,
+			i, _ := CountMilestonesBy(ctx,
 				obj2.ProjectID())
 			return i
 		}())

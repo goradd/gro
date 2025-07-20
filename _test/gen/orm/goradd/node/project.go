@@ -48,9 +48,9 @@ type ProjectNode interface {
 	// Child represents the Child reverse reference to Project objects
 	// through the ParentID foreign key there.
 	Children() ProjectNode
-	// ProjectMilestone represents the ProjectMilestone reverse reference to Milestone objects
+	// Milestone represents the Milestone reverse reference to Milestone objects
 	// through the ProjectID foreign key there.
-	ProjectMilestones() MilestoneNode
+	Milestones() MilestoneNode
 }
 
 // projectTable represents the project table in a query. It uses a builder pattern to chain
@@ -657,13 +657,13 @@ func (n *projectAssociation) Children() ProjectNode {
 	return cn
 }
 
-// ProjectMilestone represents the many-to-one relationship formed by the reverse reference from the
+// Milestone represents the many-to-one relationship formed by the reverse reference from the
 // project_id column in the milestone table.
-func (n projectTable) ProjectMilestones() MilestoneNode {
+func (n projectTable) Milestones() MilestoneNode {
 	cn := &milestoneReverse{
 		ReverseNode: query.ReverseNode{
 			ForeignKey: "project_id",
-			Identifier: "ProjectMilestones",
+			Identifier: "Milestones",
 			IsUnique:   false,
 		},
 	}
@@ -671,20 +671,20 @@ func (n projectTable) ProjectMilestones() MilestoneNode {
 	return cn
 }
 
-func (n *projectReference) ProjectMilestones() MilestoneNode {
-	cn := n.projectTable.ProjectMilestones().(*milestoneReverse)
+func (n *projectReference) Milestones() MilestoneNode {
+	cn := n.projectTable.Milestones().(*milestoneReverse)
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *projectReverse) ProjectMilestones() MilestoneNode {
-	cn := n.projectTable.ProjectMilestones().(*milestoneReverse)
+func (n *projectReverse) Milestones() MilestoneNode {
+	cn := n.projectTable.Milestones().(*milestoneReverse)
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *projectAssociation) ProjectMilestones() MilestoneNode {
-	cn := n.projectTable.ProjectMilestones().(*milestoneReverse)
+func (n *projectAssociation) Milestones() MilestoneNode {
+	cn := n.projectTable.Milestones().(*milestoneReverse)
 	query.NodeSetParent(cn, n)
 	return cn
 }

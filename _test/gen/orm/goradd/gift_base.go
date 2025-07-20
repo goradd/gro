@@ -174,18 +174,18 @@ func (o *giftBase) IsNew() bool {
 // LoadGift returns a Gift from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [GiftsBuilder.Select] for more info.
-func LoadGift(ctx context.Context, number int, selectNodes ...query.Node) (*Gift, error) {
+func LoadGift(ctx context.Context, pk int, selectNodes ...query.Node) (*Gift, error) {
 	return queryGifts(ctx).
-		Where(op.Equal(node.Gift().Number(), number)).
+		Where(op.Equal(node.Gift().Number(), pk.number)).
 		Select(selectNodes...).
 		Get()
 }
 
 // HasGift returns true if a Gift with the given primary key exists in the database.
 // doc: type=Gift
-func HasGift(ctx context.Context, number int) (bool, error) {
+func HasGift(ctx context.Context, pk int) (bool, error) {
 	v, err := queryGifts(ctx).
-		Where(op.Equal(node.Gift().Number(), number)).
+		Where(op.Equal(node.Gift().Number(), pk.number)).
 		Count()
 	return v > 0, err
 }

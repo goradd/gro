@@ -47,10 +47,10 @@ func (n *ManyManyNode) ParentColumnNames() (string, string) {
 
 func (n *ManyManyNode) equal(n2 Node) bool {
 	if r, ok := n2.(ManyManyNodeI); ok {
-		p1, p2 := r.ParentColumnNames()
-		r1, r2 := r.RefColumnNames()
-		return p1 == n.ParentForeignKey && p2 == n.ParentPrimaryKey &&
-			r1 == n.RefPrimaryKey && r2 == n.RefForeignKey
+		pfk, ppk := r.ParentColumnNames()
+		rfk, rpk := r.RefColumnNames()
+		return pfk == n.ParentForeignKey && ppk == n.ParentPrimaryKey &&
+			rpk == n.RefPrimaryKey && rfk == n.RefForeignKey
 	}
 	return false
 }

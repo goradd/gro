@@ -32,15 +32,15 @@ type PersonNode interface {
 	// ManagerProject represents the ManagerProject reverse reference to Project objects
 	// through the ManagerID foreign key there.
 	ManagerProjects() ProjectNode
-	// PersonAddress represents the PersonAddress reverse reference to Address objects
+	// Address represents the Address reverse reference to Address objects
 	// through the PersonID foreign key there.
-	PersonAddresses() AddressNode
-	// PersonEmployeeInfo represents the PersonEmployeeInfo reverse reference to a EmployeeInfo object
+	Addresses() AddressNode
+	// EmployeeInfo represents the EmployeeInfo reverse reference to a EmployeeInfo object
 	// through the PersonID foreign key there.
-	PersonEmployeeInfo() EmployeeInfoNode
-	// PersonLogin represents the PersonLogin reverse reference to a Login object
+	EmployeeInfo() EmployeeInfoNode
+	// Login represents the Login reverse reference to a Login object
 	// through the PersonID foreign key there.
-	PersonLogin() LoginNode
+	Login() LoginNode
 }
 
 // personTable represents the person table in a query. It uses a builder pattern to chain
@@ -350,13 +350,13 @@ func (n *personAssociation) ManagerProjects() ProjectNode {
 	return cn
 }
 
-// PersonAddress represents the many-to-one relationship formed by the reverse reference from the
+// Address represents the many-to-one relationship formed by the reverse reference from the
 // person_id column in the address table.
-func (n personTable) PersonAddresses() AddressNode {
+func (n personTable) Addresses() AddressNode {
 	cn := &addressReverse{
 		ReverseNode: query.ReverseNode{
 			ForeignKey: "person_id",
-			Identifier: "PersonAddresses",
+			Identifier: "Addresses",
 			IsUnique:   false,
 		},
 	}
@@ -364,26 +364,26 @@ func (n personTable) PersonAddresses() AddressNode {
 	return cn
 }
 
-func (n *personReference) PersonAddresses() AddressNode {
-	cn := n.personTable.PersonAddresses().(*addressReverse)
+func (n *personReference) Addresses() AddressNode {
+	cn := n.personTable.Addresses().(*addressReverse)
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *personAssociation) PersonAddresses() AddressNode {
-	cn := n.personTable.PersonAddresses().(*addressReverse)
+func (n *personAssociation) Addresses() AddressNode {
+	cn := n.personTable.Addresses().(*addressReverse)
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-// PersonEmployeeInfo represents the one-to-one relationship formed by the reverse reference from the
+// EmployeeInfo represents the one-to-one relationship formed by the reverse reference from the
 // person_id column in the employee_info table.
-func (n personTable) PersonEmployeeInfo() EmployeeInfoNode {
+func (n personTable) EmployeeInfo() EmployeeInfoNode {
 	cn := &employeeInfoReverse{
 		ReverseNode: query.ReverseNode{
 			ForeignKey: "person_id",
 			PrimaryKey: "id",
-			Identifier: "PersonEmployeeInfo",
+			Identifier: "EmployeeInfo",
 			IsUnique:   true,
 		},
 	}
@@ -391,26 +391,26 @@ func (n personTable) PersonEmployeeInfo() EmployeeInfoNode {
 	return cn
 }
 
-func (n *personReference) PersonEmployeeInfo() EmployeeInfoNode {
-	cn := n.personTable.PersonEmployeeInfo().(*employeeInfoReverse)
+func (n *personReference) EmployeeInfo() EmployeeInfoNode {
+	cn := n.personTable.EmployeeInfo().(*employeeInfoReverse)
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *personAssociation) PersonEmployeeInfo() EmployeeInfoNode {
-	cn := n.personTable.PersonEmployeeInfo().(*employeeInfoReverse)
+func (n *personAssociation) EmployeeInfo() EmployeeInfoNode {
+	cn := n.personTable.EmployeeInfo().(*employeeInfoReverse)
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-// PersonLogin represents the one-to-one relationship formed by the reverse reference from the
+// Login represents the one-to-one relationship formed by the reverse reference from the
 // person_id column in the login table.
-func (n personTable) PersonLogin() LoginNode {
+func (n personTable) Login() LoginNode {
 	cn := &loginReverse{
 		ReverseNode: query.ReverseNode{
 			ForeignKey: "person_id",
 			PrimaryKey: "id",
-			Identifier: "PersonLogin",
+			Identifier: "Login",
 			IsUnique:   true,
 		},
 	}
@@ -418,14 +418,14 @@ func (n personTable) PersonLogin() LoginNode {
 	return cn
 }
 
-func (n *personReference) PersonLogin() LoginNode {
-	cn := n.personTable.PersonLogin().(*loginReverse)
+func (n *personReference) Login() LoginNode {
+	cn := n.personTable.Login().(*loginReverse)
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *personAssociation) PersonLogin() LoginNode {
-	cn := n.personTable.PersonLogin().(*loginReverse)
+func (n *personAssociation) Login() LoginNode {
+	cn := n.personTable.Login().(*loginReverse)
 	query.NodeSetParent(cn, n)
 	return cn
 }

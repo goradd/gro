@@ -91,6 +91,11 @@ func (t *AssociationTable) infer(db *Database) error {
 		slog.Error("Table name not specified in association table")
 		return fmt.Errorf("table not specified in association table")
 	}
+	if t.Ref1.Column == t.Ref2.Column {
+		slog.Error("Column names are the same")
+		return fmt.Errorf("column names cannot be the same. Specify a column name for each association reference")
+	}
+
 	return nil
 }
 

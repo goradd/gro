@@ -39,7 +39,7 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) (tableS
 	}
 
 	for _, mci := range table.Indexes {
-		tSql, extraSql := m.indexSql(table, mci.IndexLevel, mci.Columns...)
+		tSql, extraSql := m.indexSql(table, mci)
 		if tSql != "" {
 			tableClauses = append(tableClauses, tSql)
 		}
@@ -177,20 +177,20 @@ func sqlType(colType schema.ColumnType, size uint64, subType schema.ColumnSubTyp
 // indexSql returns sql to be included after a table definition that will create an
 // index on the columns. table should NOT include the schema, since index names only need to
 // be unique within the schema in postgres.
-func (m *DB) indexSql(table *schema.Table, level schema.IndexLevel, cols ...string) (tableSql string, extraSql string) {
-	quotedCols := anyutil.MapSliceFunc(cols, func(s string) string {
+func (m *DB) indexSql(table *schema.Table, i *schema.Index) (tableSql string, extraSql string) {
+	quotedCols := anyutil.MapSliceFunc(i.Columns, func(s string) string {
 		return m.QuoteIdentifier(s)
 	})
 
 	var idxType string
-	switch level {
+	switch i.IndexLevel {
 	case schema.IndexLevelPrimaryKey:
 		idxType = "PRIMARY KEY"
 	case schema.IndexLevelUnique:
-		idxType = "UNIQUE INDEX"
+		idxType = "UNIQUE"
 	case schema.IndexLevelIndexed:
 		// regular indexes must be added after the table definition
-		idx_name := "idx_" + table.Name + "_" + strings.Join(cols, "_")
+		idx_name := "idx_" + table.Name + i.Name
 		extraSql = fmt.Sprintf("CREATE INDEX %s ON %s (%s)",
 			m.QuoteIdentifier(idx_name),
 			m.QuoteIdentifier(table.Name),
@@ -201,8 +201,8 @@ func (m *DB) indexSql(table *schema.Table, level schema.IndexLevel, cols ...stri
 	}
 	// handle primary and unique
 	// single column indexes are declared in the table definition
-	if len(cols) == 1 {
-		col2 := table.FindColumn(cols[0])
+	if len(i.Columns) == 1 {
+		col2 := table.FindColumn(i.Columns[0])
 		if col2 != nil {
 			if col2.Type == schema.ColTypeAutoPrimaryKey {
 				return // auto primary keys are dealt with inline in the table

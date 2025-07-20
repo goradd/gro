@@ -265,36 +265,36 @@ func (o *employeeInfoBase) IsNew() bool {
 // LoadEmployeeInfo returns a EmployeeInfo from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [EmployeeInfosBuilder.Select] for more info.
-func LoadEmployeeInfo(ctx context.Context, id string, selectNodes ...query.Node) (*EmployeeInfo, error) {
+func LoadEmployeeInfo(ctx context.Context, pk string, selectNodes ...query.Node) (*EmployeeInfo, error) {
 	return queryEmployeeInfos(ctx).
-		Where(op.Equal(node.EmployeeInfo().ID(), id)).
+		Where(op.Equal(node.EmployeeInfo().ID(), pk.id)).
 		Select(selectNodes...).
 		Get()
 }
 
 // HasEmployeeInfo returns true if a EmployeeInfo with the given primary key exists in the database.
 // doc: type=EmployeeInfo
-func HasEmployeeInfo(ctx context.Context, id string) (bool, error) {
+func HasEmployeeInfo(ctx context.Context, pk string) (bool, error) {
 	v, err := queryEmployeeInfos(ctx).
-		Where(op.Equal(node.EmployeeInfo().ID(), id)).
+		Where(op.Equal(node.EmployeeInfo().ID(), pk.id)).
 		Count()
 	return v > 0, err
 }
 
-// LoadEmployeeInfoByPersonID queries for a single EmployeeInfo object by the given unique index values.
+// LoadEmployeeInfoBy queries for a single EmployeeInfo object by the given unique index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [EmployeeInfosBuilder.Select].
 // If you need a more elaborate query, use QueryEmployeeInfos() to start a query builder.
-func LoadEmployeeInfoByPersonID(ctx context.Context, personID string, selectNodes ...query.Node) (*EmployeeInfo, error) {
+func LoadEmployeeInfoBy(ctx context.Context, personID string, selectNodes ...query.Node) (*EmployeeInfo, error) {
 	q := queryEmployeeInfos(ctx)
 	q = q.Where(op.Equal(node.EmployeeInfo().PersonID(), personID))
 	return q.Select(selectNodes...).Get()
 }
 
-// HasEmployeeInfoByPersonID returns true if the
+// HasEmployeeInfoBy returns true if the
 // given unique index values exist in the database.
 // doc: type=EmployeeInfo
-func HasEmployeeInfoByPersonID(ctx context.Context, personID string) (bool, error) {
+func HasEmployeeInfoBy(ctx context.Context, personID string) (bool, error) {
 	q := queryEmployeeInfos(ctx)
 	q = q.Where(op.Equal(node.EmployeeInfo().PersonID(), personID))
 	v, err := q.Count()
@@ -503,10 +503,10 @@ func CountEmployeeInfos(ctx context.Context) (int, error) {
 	return QueryEmployeeInfos(ctx).Count()
 }
 
-// CountEmployeeInfosByPersonID queries the database and returns the number of EmployeeInfo objects that
+// CountEmployeeInfosBy queries the database and returns the number of EmployeeInfo objects that
 // have personID.
 // doc: type=EmployeeInfo
-func CountEmployeeInfosByPersonID(ctx context.Context, personID string) (int, error) {
+func CountEmployeeInfosBy(ctx context.Context, personID string) (int, error) {
 	v_personID := personID
 	return QueryEmployeeInfos(ctx).
 		Where(op.Equal(node.EmployeeInfo().PersonID(), v_personID)).

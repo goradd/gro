@@ -68,10 +68,10 @@ type projectBase struct {
 	parent  *Project
 
 	// Reverse references
-	children                 maps.SliceMap[string, *Project] // Objects in the order they were queried
-	childrenIsDirty          bool
-	projectMilestones        maps.SliceMap[string, *Milestone] // Objects in the order they were queried
-	projectMilestonesIsDirty bool
+	children          maps.SliceMap[string, *Project] // Objects in the order they were queried
+	childrenIsDirty   bool
+	milestones        maps.SliceMap[string, *Milestone] // Objects in the order they were queried
+	milestonesIsDirty bool
 
 	// Many-Many references
 	teamMembers        maps.SliceMap[string, *Person]
@@ -90,22 +90,22 @@ type projectBase struct {
 // IDs used to access the Project object fields by name using the Get function.
 // doc: type=Project
 const (
-	ProjectIDField               = `id`
-	ProjectNumField              = `num`
-	ProjectStatusEnumField       = `statusEnum`
-	ProjectNameField             = `name`
-	ProjectDescriptionField      = `description`
-	ProjectStartDateField        = `startDate`
-	ProjectEndDateField          = `endDate`
-	ProjectBudgetField           = `budget`
-	ProjectSpentField            = `spent`
-	ProjectManagerIDField        = `managerID`
-	ProjectManagerField          = `manager`
-	ProjectParentIDField         = `parentID`
-	ProjectParentField           = `parent`
-	ProjectChildField            = `children`
-	ProjectProjectMilestoneField = `projectMilestones`
-	ProjectTeamMembersField      = `teamMembers`
+	ProjectIDField          = `id`
+	ProjectNumField         = `num`
+	ProjectStatusEnumField  = `statusEnum`
+	ProjectNameField        = `name`
+	ProjectDescriptionField = `description`
+	ProjectStartDateField   = `startDate`
+	ProjectEndDateField     = `endDate`
+	ProjectBudgetField      = `budget`
+	ProjectSpentField       = `spent`
+	ProjectManagerIDField   = `managerID`
+	ProjectManagerField     = `manager`
+	ProjectParentIDField    = `parentID`
+	ProjectParentField      = `parent`
+	ProjectChildField       = `children`
+	ProjectMilestoneField   = `milestones`
+	ProjectTeamMembersField = `teamMembers`
 )
 
 const ProjectIDMaxLength = 32 // The number of runes the column can hold
@@ -174,8 +174,8 @@ func (o *projectBase) Initialize() {
 	o.children.Clear()
 	o.childrenIsDirty = false
 
-	o.projectMilestones.Clear()
-	o.projectMilestonesIsDirty = false
+	o.milestones.Clear()
+	o.milestonesIsDirty = false
 
 	// Many-Many reference objects.
 	o.teamMembers.Clear()
@@ -907,24 +907,24 @@ func (o *projectBase) SetChildren(objs ...*Project) {
 	o.childrenIsDirty = true
 }
 
-// ProjectMilestone returns a single Milestone object by primary key, if one was loaded.
+// Milestone returns a single Milestone object by primary key, if one was loaded.
 // Otherwise, it will return nil. It will not return Milestone objects that are not saved.
-func (o *projectBase) ProjectMilestone(pk string) *Milestone {
-	v := o.projectMilestones.Get(pk)
+func (o *projectBase) Milestone(pk string) *Milestone {
+	v := o.milestones.Get(pk)
 	return v
 }
 
-// ProjectMilestones returns a slice of Milestone objects if loaded.
-func (o *projectBase) ProjectMilestones() []*Milestone {
-	return o.projectMilestones.Values()
+// Milestones returns a slice of Milestone objects if loaded.
+func (o *projectBase) Milestones() []*Milestone {
+	return o.milestones.Values()
 }
 
-// LoadProjectMilestones loads a new slice of Milestone objects and returns it.
-func (o *projectBase) LoadProjectMilestones(ctx context.Context) ([]*Milestone, error) {
+// LoadMilestones loads a new slice of Milestone objects and returns it.
+func (o *projectBase) LoadMilestones(ctx context.Context) ([]*Milestone, error) {
 	if o.IsNew() {
 		return nil, nil
 	}
-	for obj := range o.projectMilestones.ValuesIter() {
+	for obj := range o.milestones.ValuesIter() {
 		if obj.IsDirty() {
 			panic("You cannot load over items that have changed but have not been saved.")
 		}
@@ -934,137 +934,137 @@ func (o *projectBase) LoadProjectMilestones(ctx context.Context) ([]*Milestone, 
 	if err != nil {
 		return nil, err
 	}
-	o.projectMilestones.Clear()
+	o.milestones.Clear()
 
 	for _, obj := range objs {
 		pk := obj.ID()
-		o.projectMilestones.Set(pk, obj)
+		o.milestones.Set(pk, obj)
 	}
 
-	if o.projectMilestones.Len() == 0 {
+	if o.milestones.Len() == 0 {
 		return nil, nil
 	}
-	return o.projectMilestones.Values(), nil
+	return o.milestones.Values(), nil
 }
 
-// CountProjectMilestones does a database query and returns the number of Milestone
+// CountMilestones does a database query and returns the number of Milestone
 // objects currently in the database that have a ProjectID value that equals this objects primary key.
-func (o *projectBase) CountProjectMilestones(ctx context.Context) (int, error) {
+func (o *projectBase) CountMilestones(ctx context.Context) (int, error) {
 	return CountMilestonesByProjectID(ctx, o.PrimaryKey())
 }
 
-// SetProjectMilestones associates the objects in objs with this Project by setting
+// SetMilestones associates the objects in objs with this Project by setting
 // their ProjectID values to this object's primary key.
-// WARNING! If it has ProjectMilestones already associated with it that will not be associated after a save,
-// Save will panic. Be sure to delete those ProjectMilestones or otherwise fix those pointers before calling save.
-func (o *projectBase) SetProjectMilestones(objs ...*Milestone) {
-	for obj := range o.projectMilestones.ValuesIter() {
+// WARNING! If it has Milestones already associated with it that will not be associated after a save,
+// Save will panic. Be sure to delete those Milestones or otherwise fix those pointers before calling save.
+func (o *projectBase) SetMilestones(objs ...*Milestone) {
+	for obj := range o.milestones.ValuesIter() {
 		if obj.IsDirty() {
 			panic("You cannot overwrite items that have changed but have not been saved.")
 		}
 	}
 
-	o.projectMilestones.Clear()
+	o.milestones.Clear()
 	for _, obj := range objs {
 		pk := obj.ID()
-		o.projectMilestones.Set(pk, obj)
+		o.milestones.Set(pk, obj)
 	}
-	o.projectMilestonesIsDirty = true
+	o.milestonesIsDirty = true
 }
 
 // LoadProject returns a Project from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [ProjectsBuilder.Select] for more info.
-func LoadProject(ctx context.Context, id string, selectNodes ...query.Node) (*Project, error) {
+func LoadProject(ctx context.Context, pk string, selectNodes ...query.Node) (*Project, error) {
 	return queryProjects(ctx).
-		Where(op.Equal(node.Project().ID(), id)).
+		Where(op.Equal(node.Project().ID(), pk.id)).
 		Select(selectNodes...).
 		Get()
 }
 
 // HasProject returns true if a Project with the given primary key exists in the database.
 // doc: type=Project
-func HasProject(ctx context.Context, id string) (bool, error) {
+func HasProject(ctx context.Context, pk string) (bool, error) {
 	v, err := queryProjects(ctx).
-		Where(op.Equal(node.Project().ID(), id)).
+		Where(op.Equal(node.Project().ID(), pk.id)).
 		Count()
 	return v > 0, err
 }
 
-// LoadProjectByNum queries for a single Project object by the given unique index values.
+// LoadProjectBy queries for a single Project object by the given unique index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [ProjectsBuilder.Select].
 // If you need a more elaborate query, use QueryProjects() to start a query builder.
-func LoadProjectByNum(ctx context.Context, num int, selectNodes ...query.Node) (*Project, error) {
+func LoadProjectBy(ctx context.Context, num int, selectNodes ...query.Node) (*Project, error) {
 	q := queryProjects(ctx)
 	q = q.Where(op.Equal(node.Project().Num(), num))
 	return q.Select(selectNodes...).Get()
 }
 
-// HasProjectByNum returns true if the
+// HasProjectBy returns true if the
 // given unique index values exist in the database.
 // doc: type=Project
-func HasProjectByNum(ctx context.Context, num int) (bool, error) {
+func HasProjectBy(ctx context.Context, num int) (bool, error) {
 	q := queryProjects(ctx)
 	q = q.Where(op.Equal(node.Project().Num(), num))
 	v, err := q.Count()
 	return v > 0, err
 }
 
-// LoadProjectsByStatusEnum queries Project objects by the given index values.
+// LoadProjectsBy queries Project objects by the given index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [ProjectsBuilder.Select].
 // If you need a more elaborate query, use QueryProjects() to start a query builder.
-func LoadProjectsByStatusEnum(ctx context.Context, statusEnum ProjectStatus, selectNodes ...query.Node) ([]*Project, error) {
+func LoadProjectsBy(ctx context.Context, statusEnum ProjectStatus, selectNodes ...query.Node) ([]*Project, error) {
 	q := queryProjects(ctx)
 	q = q.Where(op.Equal(node.Project().StatusEnum(), statusEnum))
 	return q.Select(selectNodes...).Load()
 }
 
-// HasProjectsByStatusEnum returns true if the
+// HasProjectsBy returns true if the
 // given index values exist in the database.
 // doc: type=Project
-func HasProjectsByStatusEnum(ctx context.Context, statusEnum ProjectStatus) (bool, error) {
+func HasProjectsBy(ctx context.Context, statusEnum ProjectStatus) (bool, error) {
 	q := queryProjects(ctx)
 	q = q.Where(op.Equal(node.Project().StatusEnum(), statusEnum))
 	v, err := q.Count()
 	return v > 0, err
 }
 
-// LoadProjectsByManagerID queries Project objects by the given index values.
+// LoadProjectsBy queries Project objects by the given index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [ProjectsBuilder.Select].
 // If you need a more elaborate query, use QueryProjects() to start a query builder.
-func LoadProjectsByManagerID(ctx context.Context, managerID string, selectNodes ...query.Node) ([]*Project, error) {
+func LoadProjectsBy(ctx context.Context, managerID string, selectNodes ...query.Node) ([]*Project, error) {
 	q := queryProjects(ctx)
 	q = q.Where(op.Equal(node.Project().ManagerID(), managerID))
 	return q.Select(selectNodes...).Load()
 }
 
-// HasProjectsByManagerID returns true if the
+// HasProjectsBy returns true if the
 // given index values exist in the database.
 // doc: type=Project
-func HasProjectsByManagerID(ctx context.Context, managerID string) (bool, error) {
+func HasProjectsBy(ctx context.Context, managerID string) (bool, error) {
 	q := queryProjects(ctx)
 	q = q.Where(op.Equal(node.Project().ManagerID(), managerID))
 	v, err := q.Count()
 	return v > 0, err
 }
 
-// LoadProjectsByParentID queries Project objects by the given index values.
+// LoadProjectsBy queries Project objects by the given index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [ProjectsBuilder.Select].
 // If you need a more elaborate query, use QueryProjects() to start a query builder.
-func LoadProjectsByParentID(ctx context.Context, parentID string, selectNodes ...query.Node) ([]*Project, error) {
+func LoadProjectsBy(ctx context.Context, parentID string, selectNodes ...query.Node) ([]*Project, error) {
 	q := queryProjects(ctx)
 	q = q.Where(op.Equal(node.Project().ParentID(), parentID))
 	return q.Select(selectNodes...).Load()
 }
 
-// HasProjectsByParentID returns true if the
+// HasProjectsBy returns true if the
 // given index values exist in the database.
 // doc: type=Project
-func HasProjectsByParentID(ctx context.Context, parentID string) (bool, error) {
+func HasProjectsBy(ctx context.Context, parentID string) (bool, error) {
 	q := queryProjects(ctx)
 	q = q.Where(op.Equal(node.Project().ParentID(), parentID))
 	v, err := q.Count()
@@ -1273,40 +1273,40 @@ func CountProjects(ctx context.Context) (int, error) {
 	return QueryProjects(ctx).Count()
 }
 
-// CountProjectsByNum queries the database and returns the number of Project objects that
+// CountProjectsBy queries the database and returns the number of Project objects that
 // have num.
 // doc: type=Project
-func CountProjectsByNum(ctx context.Context, num int) (int, error) {
+func CountProjectsBy(ctx context.Context, num int) (int, error) {
 	v_num := num
 	return QueryProjects(ctx).
 		Where(op.Equal(node.Project().Num(), v_num)).
 		Count()
 }
 
-// CountProjectsByStatusEnum queries the database and returns the number of Project objects that
+// CountProjectsBy queries the database and returns the number of Project objects that
 // have statusEnum.
 // doc: type=Project
-func CountProjectsByStatusEnum(ctx context.Context, statusEnum ProjectStatus) (int, error) {
+func CountProjectsBy(ctx context.Context, statusEnum ProjectStatus) (int, error) {
 	v_statusEnum := statusEnum
 	return QueryProjects(ctx).
 		Where(op.Equal(node.Project().StatusEnum(), v_statusEnum)).
 		Count()
 }
 
-// CountProjectsByManagerID queries the database and returns the number of Project objects that
+// CountProjectsBy queries the database and returns the number of Project objects that
 // have managerID.
 // doc: type=Project
-func CountProjectsByManagerID(ctx context.Context, managerID string) (int, error) {
+func CountProjectsBy(ctx context.Context, managerID string) (int, error) {
 	v_managerID := managerID
 	return QueryProjects(ctx).
 		Where(op.Equal(node.Project().ManagerID(), v_managerID)).
 		Count()
 }
 
-// CountProjectsByParentID queries the database and returns the number of Project objects that
+// CountProjectsBy queries the database and returns the number of Project objects that
 // have parentID.
 // doc: type=Project
-func CountProjectsByParentID(ctx context.Context, parentID string) (int, error) {
+func CountProjectsBy(ctx context.Context, parentID string) (int, error) {
 	v_parentID := parentID
 	return QueryProjects(ctx).
 		Where(op.Equal(node.Project().ParentID(), v_parentID)).
@@ -1562,22 +1562,22 @@ func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 		o.childrenIsDirty = false
 	}
 
-	if v, ok := m["ProjectMilestone"]; ok {
+	if v, ok := m["Milestone"]; ok {
 		switch v2 := v.(type) {
 		case []map[string]any: // array expansion
-			o.projectMilestones.Clear()
-			o.projectMilestonesIsDirty = false
+			o.milestones.Clear()
+			o.milestonesIsDirty = false
 			for _, v3 := range v2 {
 				obj := new(Milestone)
 				obj.unpack(v3, obj)
-				o.projectMilestones.Set(obj.PrimaryKey(), obj)
+				o.milestones.Set(obj.PrimaryKey(), obj)
 			}
 		default:
-			panic("Wrong type found for projectMilestones object.")
+			panic("Wrong type found for milestones object.")
 		}
 	} else {
-		o.projectMilestones.Clear()
-		o.projectMilestonesIsDirty = false
+		o.milestones.Clear()
+		o.milestonesIsDirty = false
 	}
 
 	if v, ok := m["aliases_"]; ok {
@@ -1686,7 +1686,7 @@ func (o *projectBase) update(ctx context.Context) error {
 				}
 			}
 		}
-		if o.projectMilestonesIsDirty {
+		if o.milestonesIsDirty {
 			// relation connection changed
 
 			// Since the other side of the relationship cannot be null, there cannot be objects that will be detached.
@@ -1697,16 +1697,16 @@ func (o *projectBase) update(ctx context.Context) error {
 				return err
 			} else {
 				for _, obj := range oldObjs {
-					if !o.projectMilestones.Has(obj.PrimaryKey()) {
+					if !o.milestones.Has(obj.PrimaryKey()) {
 						err = obj.Delete(ctx) // old object is not in group of new objects, so delete it since it has a non-null reference to o.
 						if err != nil {
 							return err
 						}
 					}
 				}
-				keys := o.projectMilestones.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
+				keys := o.milestones.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
 				for i, k := range keys {
-					obj := o.projectMilestones.Get(k)
+					obj := o.milestones.Get(k)
 					if obj == nil {
 						// object was deleted during save?
 						continue
@@ -1718,8 +1718,8 @@ func (o *projectBase) update(ctx context.Context) error {
 					}
 					if obj.PrimaryKey() != k {
 						// update slice map key without changing order
-						o.projectMilestones.Delete(k)
-						o.projectMilestones.SetAt(i, obj.PrimaryKey(), obj)
+						o.milestones.Delete(k)
+						o.milestones.SetAt(i, obj.PrimaryKey(), obj)
 					}
 				}
 			}
@@ -1727,7 +1727,7 @@ func (o *projectBase) update(ctx context.Context) error {
 		} else {
 
 			// save related objects in case internal values changed
-			for obj := range o.projectMilestones.ValuesIter() {
+			for obj := range o.milestones.ValuesIter() {
 				if err := obj.Save(ctx); err != nil {
 					return err
 				}
@@ -1850,17 +1850,17 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 			}
 		}
 
-		if o.projectMilestones.Len() > 0 {
-			keys := o.projectMilestones.Keys()
+		if o.milestones.Len() > 0 {
+			keys := o.milestones.Keys()
 			for i, k := range keys {
-				obj := o.projectMilestones.Get(k)
+				obj := o.milestones.Get(k)
 				obj.SetProjectID(newPK)
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
 				if obj.PrimaryKey() != k {
-					o.projectMilestones.Delete(k)
-					o.projectMilestones.SetAt(i, obj.PrimaryKey(), obj)
+					o.milestones.Delete(k)
+					o.milestones.SetAt(i, obj.PrimaryKey(), obj)
 				}
 			}
 		}
@@ -2026,7 +2026,7 @@ func (o *projectBase) getInsertFields() (fields map[string]interface{}) {
 // Delete deletes the record from the database.
 //
 // Associated Child will also be deleted since their Parent fields are not nullable.
-// Associated ProjectMilestone will also be deleted since their Project fields are not nullable.
+// Associated Milestone will also be deleted since their Project fields are not nullable.
 func (o *projectBase) Delete(ctx context.Context) (err error) {
 	if o == nil {
 		return // allow deleting of a nil object to be a noop
@@ -2069,7 +2069,7 @@ func (o *projectBase) Delete(ctx context.Context) (err error) {
 					return err
 				}
 			}
-			o.projectMilestones.Clear()
+			o.milestones.Clear()
 		}
 
 		if err := db.AssociateOnly(ctx,
@@ -2133,7 +2133,7 @@ func (o *projectBase) resetDirtyStatus() {
 	o.managerIDIsDirty = false
 	o.parentIDIsDirty = false
 	o.childrenIsDirty = false
-	o.projectMilestonesIsDirty = false
+	o.milestonesIsDirty = false
 	o.teamMembersIsDirty = false
 	o.teamMembersPks = nil
 
@@ -2159,12 +2159,12 @@ func (o *projectBase) IsDirty() (dirty bool) {
 
 	dirty = dirty ||
 		o.childrenIsDirty ||
-		o.projectMilestonesIsDirty
+		o.milestonesIsDirty
 
 	for obj := range o.children.ValuesIter() {
 		dirty = dirty || obj.IsDirty()
 	}
-	for obj := range o.projectMilestones.ValuesIter() {
+	for obj := range o.milestones.ValuesIter() {
 		dirty = dirty || obj.IsDirty()
 	}
 
@@ -2245,8 +2245,8 @@ func (o *projectBase) Get(key string) interface{} {
 		return o.Parent()
 	case "children":
 		return o.children.Values()
-	case "projectMilestones":
-		return o.projectMilestones.Values()
+	case "milestones":
+		return o.milestones.Values()
 	case "teamMembers":
 		return o.teamMembers.Values()
 	}
@@ -2426,11 +2426,11 @@ func (o *projectBase) encodeTo(enc db.Encoder) error {
 		return err
 	}
 
-	if err := enc.Encode(&o.projectMilestones); err != nil {
+	if err := enc.Encode(&o.milestones); err != nil {
 		return err
 	}
 
-	if err := enc.Encode(o.projectMilestonesIsDirty); err != nil {
+	if err := enc.Encode(o.milestonesIsDirty); err != nil {
 		return err
 	}
 
@@ -2632,12 +2632,12 @@ func (o *projectBase) decodeFrom(dec db.Decoder) (err error) {
 		return fmt.Errorf("error decoding Project.childrenIsDirty: %w", err)
 	}
 
-	if err = dec.Decode(&o.projectMilestones); err != nil {
-		return fmt.Errorf("error decoding Project.projectMilestones: %w", err)
+	if err = dec.Decode(&o.milestones); err != nil {
+		return fmt.Errorf("error decoding Project.milestones: %w", err)
 	}
 
-	if err = dec.Decode(&o.projectMilestonesIsDirty); err != nil {
-		return fmt.Errorf("error decoding Project.projectMilestonesIsDirty: %w", err)
+	if err = dec.Decode(&o.milestonesIsDirty); err != nil {
+		return fmt.Errorf("error decoding Project.milestonesIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.teamMembers); err != nil {
@@ -2765,12 +2765,12 @@ func (o *projectBase) MarshalStringMap() map[string]interface{} {
 		}
 		v["children"] = vals
 	}
-	if o.projectMilestones.Len() != 0 {
+	if o.milestones.Len() != 0 {
 		var vals []map[string]interface{}
-		for obj := range o.projectMilestones.ValuesIter() {
+		for obj := range o.milestones.ValuesIter() {
 			vals = append(vals, obj.MarshalStringMap())
 		}
-		v["projectMilestones"] = vals
+		v["milestones"] = vals
 	}
 	if o.teamMembers.Len() != 0 {
 		var vals []map[string]interface{}
@@ -3059,7 +3059,7 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 			}
 			o.SetChildren(s...)
 
-		case "projectMilestones":
+		case "milestones":
 			v2, ok := v.([]any)
 			if !ok {
 				return fmt.Errorf("json field %s must be an array of maps", k)
@@ -3077,7 +3077,7 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 				}
 				s = append(s, v3)
 			}
-			o.SetProjectMilestones(s...)
+			o.SetMilestones(s...)
 
 		case "teamMembers":
 			v2, ok := v.([]any)

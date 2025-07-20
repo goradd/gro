@@ -73,7 +73,7 @@ func updateMaximalSampleProject(ctx context.Context, obj *Project) {
 	obj.SetParent(createMinimalSampleProject())
 
 	obj.SetChildren(createMinimalSampleProject())
-	obj.SetProjectMilestones(createMinimalSampleMilestone())
+	obj.SetMilestones(createMinimalSampleMilestone())
 	obj.SetTeamMembers(createMinimalSamplePerson())
 }
 
@@ -86,7 +86,7 @@ func deleteSampleProject(ctx context.Context, obj *Project) {
 	for _, item := range obj.Children() {
 		deleteSampleProject(ctx, item)
 	}
-	for _, item := range obj.ProjectMilestones() {
+	for _, item := range obj.Milestones() {
 		deleteSampleMilestone(ctx, item)
 	}
 
@@ -543,10 +543,10 @@ func TestProject_ReferenceLoad(t *testing.T) {
 	v_Children, _ := obj2.LoadChildren(ctx)
 	assert.NotNil(t, v_Children)
 	assert.Len(t, v_Children, 1)
-	assert.Nil(t, obj2.ProjectMilestones(), "ProjectMilestone is not loaded initially")
-	v_ProjectMilestones, _ := obj2.LoadProjectMilestones(ctx)
-	assert.NotNil(t, v_ProjectMilestones)
-	assert.Len(t, v_ProjectMilestones, 1)
+	assert.Nil(t, obj2.Milestones(), "Milestone is not loaded initially")
+	v_Milestones, _ := obj2.LoadMilestones(ctx)
+	assert.NotNil(t, v_Milestones)
+	assert.Len(t, v_Milestones, 1)
 
 	assert.Nil(t, obj2.TeamMembers(), "TeamMembers is not loaded initially")
 	v_TeamMembers, _ := obj2.LoadTeamMembers(ctx)
@@ -564,7 +564,7 @@ func TestProject_ReferenceLoad(t *testing.T) {
 		node.Project().Budget(),
 		node.Project().Spent(),
 		node.Project().Children(),
-		node.Project().ProjectMilestones(),
+		node.Project().Milestones(),
 		node.Project().TeamMembers(),
 	)
 	_ = obj3 // avoid error if there are no references
@@ -572,7 +572,7 @@ func TestProject_ReferenceLoad(t *testing.T) {
 	assert.Equal(t, obj2.Manager().PrimaryKey(), obj3.Manager().PrimaryKey())
 	assert.Equal(t, obj2.Parent().PrimaryKey(), obj3.Parent().PrimaryKey())
 	assert.Equal(t, len(obj2.Children()), len(obj3.Children()))
-	assert.Equal(t, len(obj2.ProjectMilestones()), len(obj3.ProjectMilestones()))
+	assert.Equal(t, len(obj2.Milestones()), len(obj3.Milestones()))
 	assert.Equal(t, len(obj2.TeamMembers()), len(obj3.TeamMembers()))
 
 }
@@ -591,7 +591,7 @@ func TestProject_ReferenceUpdateNewObjects(t *testing.T) {
 	obj3, _ := LoadProject(ctx, obj2.PrimaryKey(), node.Project().Manager(),
 		node.Project().Parent(),
 		node.Project().Children(),
-		node.Project().ProjectMilestones(),
+		node.Project().Milestones(),
 		node.Project().TeamMembers(),
 	)
 	_ = obj3 // avoid error if there are no references
@@ -600,7 +600,7 @@ func TestProject_ReferenceUpdateNewObjects(t *testing.T) {
 	assert.Equal(t, obj2.Parent().PrimaryKey(), obj3.Parent().PrimaryKey())
 
 	assert.Equal(t, len(obj2.Children()), len(obj3.Children()))
-	assert.Equal(t, len(obj2.ProjectMilestones()), len(obj3.ProjectMilestones()))
+	assert.Equal(t, len(obj2.Milestones()), len(obj3.Milestones()))
 
 	assert.Equal(t, len(obj2.TeamMembers()), len(obj3.TeamMembers()))
 
@@ -615,7 +615,7 @@ func TestProject_ReferenceUpdateOldObjects(t *testing.T) {
 	updateMinimalSamplePerson(obj.Manager())
 	updateMinimalSampleProject(obj.Parent())
 	updateMinimalSampleProject(obj.Children()[0])
-	updateMinimalSampleMilestone(obj.ProjectMilestones()[0])
+	updateMinimalSampleMilestone(obj.Milestones()[0])
 	updateMinimalSamplePerson(obj.TeamMembers()[0])
 
 	assert.NoError(t, obj.Save(ctx))
@@ -630,7 +630,7 @@ func TestProject_ReferenceUpdateOldObjects(t *testing.T) {
 		node.Project().Budget(),
 		node.Project().Spent(),
 		node.Project().Children(),
-		node.Project().ProjectMilestones(),
+		node.Project().Milestones(),
 		node.Project().TeamMembers(),
 	)
 	_ = obj2 // avoid error if there are no references
@@ -639,7 +639,7 @@ func TestProject_ReferenceUpdateOldObjects(t *testing.T) {
 	assertEqualFieldsProject(t, obj2.Parent(), obj.Parent())
 
 	assertEqualFieldsProject(t, obj2.Children()[0], obj.Children()[0])
-	assertEqualFieldsMilestone(t, obj2.ProjectMilestones()[0], obj.ProjectMilestones()[0])
+	assertEqualFieldsMilestone(t, obj2.Milestones()[0], obj.Milestones()[0])
 
 	assertEqualFieldsPerson(t, obj2.TeamMembers()[0], obj.TeamMembers()[0])
 }
@@ -765,25 +765,25 @@ func TestProject_Count(t *testing.T) {
 	obj2, _ := LoadProject(ctx, obj.PrimaryKey())
 	assert.Positive(t,
 		func() int {
-			i, _ := CountProjectsByNum(ctx,
+			i, _ := CountProjectsBy(ctx,
 				obj2.Num())
 			return i
 		}())
 	assert.Positive(t,
 		func() int {
-			i, _ := CountProjectsByStatusEnum(ctx,
+			i, _ := CountProjectsBy(ctx,
 				obj2.StatusEnum())
 			return i
 		}())
 	assert.Positive(t,
 		func() int {
-			i, _ := CountProjectsByManagerID(ctx,
+			i, _ := CountProjectsBy(ctx,
 				obj2.ManagerID())
 			return i
 		}())
 	assert.Positive(t,
 		func() int {
-			i, _ := CountProjectsByParentID(ctx,
+			i, _ := CountProjectsBy(ctx,
 				obj2.ParentID())
 			return i
 		}())

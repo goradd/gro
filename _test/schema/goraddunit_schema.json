@@ -74,7 +74,7 @@
           "is_nullable": true
         }
       ],
-      "multi_column_indexes": [
+      "indexes": [
         {
           "columns": [
             "field2_int",
@@ -308,21 +308,29 @@
         {
           "name": "server",
           "type": "string",
-          "size": 50,
-          "index_level": "primary"
+          "size": 50
         },
         {
           "name": "directory",
           "type": "string",
-          "size": 50,
-          "index_level": "primary"
+          "size": 50
         },
         {
           "name": "file_name",
           "type": "string",
           "size": 50
         }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "server",
+            "directory"
+          ],
+          "index_level": "primary"
+        }
       ]
+
     },
     {
       "name": "type_test",
@@ -525,7 +533,7 @@
           "size": 50
         }
       ],
-      "multi_column_indexes": [
+      "indexes": [
         {
           "columns": [
             "type_mult_fk1",
@@ -645,7 +653,7 @@
       "references": [
         {
           "table": "root_u",
-          "is_unique": true
+          "index_level": "unique"
         }
       ]
 
@@ -673,7 +681,7 @@
       "references": [
         {
           "table": "root_ul",
-          "is_unique": true
+          "index_level": "unique"
         }
       ]
     },
@@ -695,7 +703,7 @@
         {
           "table": "root_un",
           "is_nullable": true,
-          "is_unique": true
+          "index_level": "unique"
         }
       ]
     },
@@ -723,7 +731,7 @@
         {
           "table": "root_unl",
           "is_nullable": true,
-          "is_unique": true
+          "index_level": "unique"
         }
       ]
     },
@@ -745,7 +753,7 @@
         {
           "table": "alt_root_un",
           "is_nullable": true,
-          "is_unique": true
+          "index_level": "unique"
         }
       ]
     }
@@ -756,11 +764,11 @@
       "name": "leaf_nl_assn",
       "ref1": {
         "table": "leaf_nl",
-        "identifier": "Leaf1"
+        "column": "leaf_1_id"
       },
       "ref2": {
         "table": "leaf_nl",
-        "identifier": "Leaf2"
+        "column": "leaf_2_id"
       }
     }
   ]

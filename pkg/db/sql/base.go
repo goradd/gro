@@ -417,9 +417,10 @@ func (h *Base) enumTableSql(d *schema.Database, et *schema.EnumTable) (s []strin
 		Name: schema.ValueKey,
 		Type: schema.ColTypeInt,
 	}}
-	table.Indexes = []schema.Index{{
+	table.Indexes = []*schema.Index{{
 		IndexLevel: schema.IndexLevelPrimaryKey,
 		Columns:    []string{schema.ValueKey},
+		Name:       schema.ValueKey,
 	}}
 
 	var size uint64
@@ -524,8 +525,11 @@ func (h *Base) associationSql(d *schema.Database, at *schema.AssociationTable) [
 	table.References = append(table.References, ref)
 
 	// composite index for uniqueness and row id
-	table.Indexes = []schema.Index{
-		{[]string{at.Ref1.Column, at.Ref2.Column}, schema.IndexLevelPrimaryKey},
+	table.Indexes = []*schema.Index{
+		{
+			Columns:    []string{at.Ref1.Column, at.Ref2.Column},
+			IndexLevel: schema.IndexLevelPrimaryKey,
+		},
 	}
 	err := table.Clean(d)
 	if err != nil {

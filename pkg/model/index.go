@@ -7,9 +7,11 @@ type Index struct {
 	// IsUnique indicates whether the index is unique
 	IsUnique bool
 	// Columns are the columns that are part of the index
-	Columns []*Column
+	Columns    []*Column
+	Name       string
+	Identifier string
 }
 
-func (i *Index) Name() string {
+func (i *Index) FillDefaults() string {
 	return anyutil.Join(i.Columns, "_")
 }

@@ -85,7 +85,7 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) (tableS
 	}
 
 	for _, mci := range table.Indexes {
-		tSql, extraSql := m.indexSql(table.Name, mci.IndexLevel, mci.Columns...)
+		tSql, extraSql := m.indexSql(table.Name, mci)
 		if tSql != "" {
 			tableClauses = append(tableClauses, tSql)
 		}
@@ -293,20 +293,20 @@ func (m *DB) buildReferenceDef(db *schema.Database, table *schema.Table, ref *sc
 // indexSql returns sql to be included after a table definition that will create an
 // index on the columns. table should NOT include the schema, since index names only need to
 // be unique within the schema in postgres.
-func (m *DB) indexSql(table string, level schema.IndexLevel, cols ...string) (tableSql string, extraSql string) {
-	quotedCols := anyutil.MapSliceFunc(cols, func(s string) string {
+func (m *DB) indexSql(table string, i *schema.Index) (tableSql string, extraSql string) {
+	quotedCols := anyutil.MapSliceFunc(i.Columns, func(s string) string {
 		return m.QuoteIdentifier(s)
 	})
 
 	var idxType string
-	switch level {
+	switch i.IndexLevel {
 	case schema.IndexLevelPrimaryKey:
 		idxType = "PRIMARY KEY"
 	case schema.IndexLevelUnique:
 		idxType = "UNIQUE INDEX"
 	case schema.IndexLevelIndexed:
 		// regular indexes must be added after the table definition
-		idx_name := "idx_" + table + "_" + strings.Join(cols, "_")
+		idx_name := "idx_" + table + "_" + i.Name
 		extraSql = fmt.Sprintf("CREATE INDEX %s ON %s (%s)", m.QuoteIdentifier(idx_name), m.QuoteIdentifier(table), strings.Join(quotedCols, ","))
 		return
 	default:

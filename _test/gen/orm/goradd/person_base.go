@@ -44,14 +44,14 @@ type personBase struct {
 	modifiedIsLoaded       bool
 
 	// Reverse references
-	managerProjects           maps.SliceMap[string, *Project] // Objects in the order they were queried
-	managerProjectsIsDirty    bool
-	personAddresses           maps.SliceMap[string, *Address] // Objects in the order they were queried
-	personAddressesIsDirty    bool
-	personEmployeeInfo        *EmployeeInfo
-	personEmployeeInfoIsDirty bool // is a new one being associated
-	personLogin               *Login
-	personLoginIsDirty        bool // is a new one being associated
+	managerProjects        maps.SliceMap[string, *Project] // Objects in the order they were queried
+	managerProjectsIsDirty bool
+	addresses              maps.SliceMap[string, *Address] // Objects in the order they were queried
+	addressesIsDirty       bool
+	employeeInfo           *EmployeeInfo
+	employeeInfoIsDirty    bool // is a new one being associated
+	login                  *Login
+	loginIsDirty           bool // is a new one being associated
 
 	// Many-Many references
 	projects        maps.SliceMap[string, *Project]
@@ -70,17 +70,17 @@ type personBase struct {
 // IDs used to access the Person object fields by name using the Get function.
 // doc: type=Person
 const (
-	PersonIDField                 = `id`
-	PersonFirstNameField          = `firstName`
-	PersonLastNameField           = `lastName`
-	PersonPersonTypeEnumField     = `personTypeEnum`
-	PersonCreatedField            = `created`
-	PersonModifiedField           = `modified`
-	PersonManagerProjectField     = `managerProjects`
-	PersonPersonAddressField      = `personAddresses`
-	PersonPersonEmployeeInfoField = `personEmployeeInfo`
-	PersonPersonLoginField        = `personLogin`
-	PersonProjectsField           = `projects`
+	PersonIDField             = `id`
+	PersonFirstNameField      = `firstName`
+	PersonLastNameField       = `lastName`
+	PersonPersonTypeEnumField = `personTypeEnum`
+	PersonCreatedField        = `created`
+	PersonModifiedField       = `modified`
+	PersonManagerProjectField = `managerProjects`
+	PersonAddressField        = `addresses`
+	PersonEmployeeInfoField   = `employeeInfo`
+	PersonLoginField          = `login`
+	PersonProjectsField       = `projects`
 )
 
 const PersonIDMaxLength = 32        // The number of runes the column can hold
@@ -119,14 +119,14 @@ func (o *personBase) Initialize() {
 	o.managerProjects.Clear()
 	o.managerProjectsIsDirty = false
 
-	o.personAddresses.Clear()
-	o.personAddressesIsDirty = false
+	o.addresses.Clear()
+	o.addressesIsDirty = false
 
-	o.personEmployeeInfo = nil
-	o.personEmployeeInfoIsDirty = false
+	o.employeeInfo = nil
+	o.employeeInfoIsDirty = false
 
-	o.personLogin = nil
-	o.personLoginIsDirty = false
+	o.login = nil
+	o.loginIsDirty = false
 
 	// Many-Many reference objects.
 	o.projects.Clear()
@@ -508,24 +508,24 @@ func (o *personBase) SetManagerProjects(objs ...*Project) {
 	o.managerProjectsIsDirty = true
 }
 
-// PersonAddress returns a single Address object by primary key, if one was loaded.
+// Address returns a single Address object by primary key, if one was loaded.
 // Otherwise, it will return nil. It will not return Address objects that are not saved.
-func (o *personBase) PersonAddress(pk string) *Address {
-	v := o.personAddresses.Get(pk)
+func (o *personBase) Address(pk string) *Address {
+	v := o.addresses.Get(pk)
 	return v
 }
 
-// PersonAddresses returns a slice of Address objects if loaded.
-func (o *personBase) PersonAddresses() []*Address {
-	return o.personAddresses.Values()
+// Addresses returns a slice of Address objects if loaded.
+func (o *personBase) Addresses() []*Address {
+	return o.addresses.Values()
 }
 
-// LoadPersonAddresses loads a new slice of Address objects and returns it.
-func (o *personBase) LoadPersonAddresses(ctx context.Context) ([]*Address, error) {
+// LoadAddresses loads a new slice of Address objects and returns it.
+func (o *personBase) LoadAddresses(ctx context.Context) ([]*Address, error) {
 	if o.IsNew() {
 		return nil, nil
 	}
-	for obj := range o.personAddresses.ValuesIter() {
+	for obj := range o.addresses.ValuesIter() {
 		if obj.IsDirty() {
 			panic("You cannot load over items that have changed but have not been saved.")
 		}
@@ -535,153 +535,153 @@ func (o *personBase) LoadPersonAddresses(ctx context.Context) ([]*Address, error
 	if err != nil {
 		return nil, err
 	}
-	o.personAddresses.Clear()
+	o.addresses.Clear()
 
 	for _, obj := range objs {
 		pk := obj.ID()
-		o.personAddresses.Set(pk, obj)
+		o.addresses.Set(pk, obj)
 	}
 
-	if o.personAddresses.Len() == 0 {
+	if o.addresses.Len() == 0 {
 		return nil, nil
 	}
-	return o.personAddresses.Values(), nil
+	return o.addresses.Values(), nil
 }
 
-// CountPersonAddresses does a database query and returns the number of Address
+// CountAddresses does a database query and returns the number of Address
 // objects currently in the database that have a PersonID value that equals this objects primary key.
-func (o *personBase) CountPersonAddresses(ctx context.Context) (int, error) {
+func (o *personBase) CountAddresses(ctx context.Context) (int, error) {
 	return CountAddressesByPersonID(ctx, o.PrimaryKey())
 }
 
-// SetPersonAddresses associates the objects in objs with this Person by setting
+// SetAddresses associates the objects in objs with this Person by setting
 // their PersonID values to this object's primary key.
-// WARNING! If it has PersonAddresses already associated with it that will not be associated after a save,
-// Save will panic. Be sure to delete those PersonAddresses or otherwise fix those pointers before calling save.
-func (o *personBase) SetPersonAddresses(objs ...*Address) {
-	for obj := range o.personAddresses.ValuesIter() {
+// WARNING! If it has Addresses already associated with it that will not be associated after a save,
+// Save will panic. Be sure to delete those Addresses or otherwise fix those pointers before calling save.
+func (o *personBase) SetAddresses(objs ...*Address) {
+	for obj := range o.addresses.ValuesIter() {
 		if obj.IsDirty() {
 			panic("You cannot overwrite items that have changed but have not been saved.")
 		}
 	}
 
-	o.personAddresses.Clear()
+	o.addresses.Clear()
 	for _, obj := range objs {
 		pk := obj.ID()
-		o.personAddresses.Set(pk, obj)
+		o.addresses.Set(pk, obj)
 	}
-	o.personAddressesIsDirty = true
+	o.addressesIsDirty = true
 }
 
-// PersonEmployeeInfo returns the connected EmployeeInfo object, if one was loaded.
+// EmployeeInfo returns the connected EmployeeInfo object, if one was loaded.
 // Otherwise, it will return nil.
-func (o *personBase) PersonEmployeeInfo() *EmployeeInfo {
-	if o.personEmployeeInfo == nil {
+func (o *personBase) EmployeeInfo() *EmployeeInfo {
+	if o.employeeInfo == nil {
 		return nil
 	}
-	return o.personEmployeeInfo
+	return o.employeeInfo
 }
 
-// LoadPersonEmployeeInfo returns the connected EmployeeInfo object, if one was loaded.
+// LoadEmployeeInfo returns the connected EmployeeInfo object, if one was loaded.
 // Otherwise, it will load a new one and return it.
-func (o *personBase) LoadPersonEmployeeInfo(ctx context.Context) (*EmployeeInfo, error) {
-	if o.personEmployeeInfo != nil && o.personEmployeeInfo.IsDirty() {
-		panic("The PersonEmployeeInfo has changed. You must save it first before changing to a different one.")
+func (o *personBase) LoadEmployeeInfo(ctx context.Context) (*EmployeeInfo, error) {
+	if o.employeeInfo != nil && o.employeeInfo.IsDirty() {
+		panic("The EmployeeInfo has changed. You must save it first before changing to a different one.")
 	}
 	var err error
-	if o.personEmployeeInfo == nil {
+	if o.employeeInfo == nil {
 		pk := o.ID()
-		o.personEmployeeInfo, err = LoadEmployeeInfoByPersonID(ctx, pk)
+		o.employeeInfo, err = LoadEmployeeInfoByPersonID(ctx, pk)
 	}
-	return o.personEmployeeInfo, err
+	return o.employeeInfo, err
 }
 
-// SetPersonEmployeeInfo associates obj with this Person
+// SetEmployeeInfo associates obj with this Person
 // through the reverse relationship in EmployeeInfo.Person.
 //
 // The association is temporary until you call Save().
 // WARNING! Since this is a non-nullable unique relationship,
 // if a different EmployeeInfo object is currently pointing to this Person,
 // it will be deleted. Pass nil to just delete the old object.
-func (o *personBase) SetPersonEmployeeInfo(obj *EmployeeInfo) {
-	if o.personEmployeeInfo != nil && o.personEmployeeInfo.IsDirty() {
-		panic("The PersonEmployeeInfo has changed. You must save it first before changing to a different one.")
+func (o *personBase) SetEmployeeInfo(obj *EmployeeInfo) {
+	if o.employeeInfo != nil && o.employeeInfo.IsDirty() {
+		panic("The EmployeeInfo has changed. You must save it first before changing to a different one.")
 	}
-	o.personEmployeeInfo = obj
-	o.personEmployeeInfoIsDirty = true
+	o.employeeInfo = obj
+	o.employeeInfoIsDirty = true
 }
 
-// PersonLogin returns the connected Login object, if one was loaded.
+// Login returns the connected Login object, if one was loaded.
 // Otherwise, it will return nil.
-func (o *personBase) PersonLogin() *Login {
-	if o.personLogin == nil {
+func (o *personBase) Login() *Login {
+	if o.login == nil {
 		return nil
 	}
-	return o.personLogin
+	return o.login
 }
 
-// LoadPersonLogin returns the connected Login object, if one was loaded.
+// LoadLogin returns the connected Login object, if one was loaded.
 // Otherwise, it will load a new one and return it.
-func (o *personBase) LoadPersonLogin(ctx context.Context) (*Login, error) {
-	if o.personLogin != nil && o.personLogin.IsDirty() {
-		panic("The PersonLogin has changed. You must save it first before changing to a different one.")
+func (o *personBase) LoadLogin(ctx context.Context) (*Login, error) {
+	if o.login != nil && o.login.IsDirty() {
+		panic("The Login has changed. You must save it first before changing to a different one.")
 	}
 	var err error
-	if o.personLogin == nil {
+	if o.login == nil {
 		pk := o.ID()
-		o.personLogin, err = LoadLoginByPersonID(ctx, pk)
+		o.login, err = LoadLoginByPersonID(ctx, pk)
 	}
-	return o.personLogin, err
+	return o.login, err
 }
 
-// SetPersonLogin associates obj with this Person
+// SetLogin associates obj with this Person
 // through the reverse relationship in Login.Person.
 //
 // The association is temporary until you call Save().
 // WARNING! Since this is a non-nullable unique relationship,
 // if a different Login object is currently pointing to this Person,
 // it will be deleted. Pass nil to just delete the old object.
-func (o *personBase) SetPersonLogin(obj *Login) {
-	if o.personLogin != nil && o.personLogin.IsDirty() {
-		panic("The PersonLogin has changed. You must save it first before changing to a different one.")
+func (o *personBase) SetLogin(obj *Login) {
+	if o.login != nil && o.login.IsDirty() {
+		panic("The Login has changed. You must save it first before changing to a different one.")
 	}
-	o.personLogin = obj
-	o.personLoginIsDirty = true
+	o.login = obj
+	o.loginIsDirty = true
 }
 
 // LoadPerson returns a Person from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [PeopleBuilder.Select] for more info.
-func LoadPerson(ctx context.Context, id string, selectNodes ...query.Node) (*Person, error) {
+func LoadPerson(ctx context.Context, pk string, selectNodes ...query.Node) (*Person, error) {
 	return queryPeople(ctx).
-		Where(op.Equal(node.Person().ID(), id)).
+		Where(op.Equal(node.Person().ID(), pk.id)).
 		Select(selectNodes...).
 		Get()
 }
 
 // HasPerson returns true if a Person with the given primary key exists in the database.
 // doc: type=Person
-func HasPerson(ctx context.Context, id string) (bool, error) {
+func HasPerson(ctx context.Context, pk string) (bool, error) {
 	v, err := queryPeople(ctx).
-		Where(op.Equal(node.Person().ID(), id)).
+		Where(op.Equal(node.Person().ID(), pk.id)).
 		Count()
 	return v > 0, err
 }
 
-// LoadPeopleByLastName queries Person objects by the given index values.
+// LoadPeopleBy queries Person objects by the given index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [PeopleBuilder.Select].
 // If you need a more elaborate query, use QueryPeople() to start a query builder.
-func LoadPeopleByLastName(ctx context.Context, lastName string, selectNodes ...query.Node) ([]*Person, error) {
+func LoadPeopleBy(ctx context.Context, lastName string, selectNodes ...query.Node) ([]*Person, error) {
 	q := queryPeople(ctx)
 	q = q.Where(op.Equal(node.Person().LastName(), lastName))
 	return q.Select(selectNodes...).Load()
 }
 
-// HasPeopleByLastName returns true if the
+// HasPeopleBy returns true if the
 // given index values exist in the database.
 // doc: type=Person
-func HasPeopleByLastName(ctx context.Context, lastName string) (bool, error) {
+func HasPeopleBy(ctx context.Context, lastName string) (bool, error) {
 	q := queryPeople(ctx)
 	q = q.Where(op.Equal(node.Person().LastName(), lastName))
 	v, err := q.Count()
@@ -890,10 +890,10 @@ func CountPeople(ctx context.Context) (int, error) {
 	return QueryPeople(ctx).Count()
 }
 
-// CountPeopleByLastName queries the database and returns the number of Person objects that
+// CountPeopleBy queries the database and returns the number of Person objects that
 // have lastName.
 // doc: type=Person
-func CountPeopleByLastName(ctx context.Context, lastName string) (int, error) {
+func CountPeopleBy(ctx context.Context, lastName string) (int, error) {
 	v_lastName := lastName
 	return QueryPeople(ctx).
 		Where(op.Equal(node.Person().LastName(), v_lastName)).
@@ -1032,48 +1032,48 @@ func (o *personBase) unpack(m map[string]interface{}, objThis *Person) {
 		o.managerProjectsIsDirty = false
 	}
 
-	if v, ok := m["PersonAddress"]; ok {
+	if v, ok := m["Address"]; ok {
 		switch v2 := v.(type) {
 		case []map[string]any: // array expansion
-			o.personAddresses.Clear()
-			o.personAddressesIsDirty = false
+			o.addresses.Clear()
+			o.addressesIsDirty = false
 			for _, v3 := range v2 {
 				obj := new(Address)
 				obj.unpack(v3, obj)
-				o.personAddresses.Set(obj.PrimaryKey(), obj)
+				o.addresses.Set(obj.PrimaryKey(), obj)
 			}
 		default:
-			panic("Wrong type found for personAddresses object.")
+			panic("Wrong type found for addresses object.")
 		}
 	} else {
-		o.personAddresses.Clear()
-		o.personAddressesIsDirty = false
+		o.addresses.Clear()
+		o.addressesIsDirty = false
 	}
 
-	if v, ok := m["PersonEmployeeInfo"]; ok {
+	if v, ok := m["EmployeeInfo"]; ok {
 		if v2, ok2 := v.(map[string]any); ok2 {
-			o.personEmployeeInfo = new(EmployeeInfo)
-			o.personEmployeeInfo.unpack(v2, o.personEmployeeInfo)
-			o.personEmployeeInfoIsDirty = false
+			o.employeeInfo = new(EmployeeInfo)
+			o.employeeInfo.unpack(v2, o.employeeInfo)
+			o.employeeInfoIsDirty = false
 		} else {
-			panic("Wrong type found for personEmployeeInfo object.")
+			panic("Wrong type found for employeeInfo object.")
 		}
 	} else {
-		o.personEmployeeInfo = nil
-		o.personEmployeeInfoIsDirty = false
+		o.employeeInfo = nil
+		o.employeeInfoIsDirty = false
 	}
 
-	if v, ok := m["PersonLogin"]; ok {
+	if v, ok := m["Login"]; ok {
 		if v2, ok2 := v.(map[string]any); ok2 {
-			o.personLogin = new(Login)
-			o.personLogin.unpack(v2, o.personLogin)
-			o.personLoginIsDirty = false
+			o.login = new(Login)
+			o.login.unpack(v2, o.login)
+			o.loginIsDirty = false
 		} else {
-			panic("Wrong type found for personLogin object.")
+			panic("Wrong type found for login object.")
 		}
 	} else {
-		o.personLogin = nil
-		o.personLoginIsDirty = false
+		o.login = nil
+		o.loginIsDirty = false
 	}
 
 	if v, ok := m["aliases_"]; ok {
@@ -1168,7 +1168,7 @@ func (o *personBase) update(ctx context.Context) error {
 				}
 			}
 		}
-		if o.personAddressesIsDirty {
+		if o.addressesIsDirty {
 			// relation connection changed
 
 			// Since the other side of the relationship cannot be null, there cannot be objects that will be detached.
@@ -1179,16 +1179,16 @@ func (o *personBase) update(ctx context.Context) error {
 				return err
 			} else {
 				for _, obj := range oldObjs {
-					if !o.personAddresses.Has(obj.PrimaryKey()) {
+					if !o.addresses.Has(obj.PrimaryKey()) {
 						err = obj.Delete(ctx) // old object is not in group of new objects, so delete it since it has a non-null reference to o.
 						if err != nil {
 							return err
 						}
 					}
 				}
-				keys := o.personAddresses.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
+				keys := o.addresses.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
 				for i, k := range keys {
-					obj := o.personAddresses.Get(k)
+					obj := o.addresses.Get(k)
 					if obj == nil {
 						// object was deleted during save?
 						continue
@@ -1200,8 +1200,8 @@ func (o *personBase) update(ctx context.Context) error {
 					}
 					if obj.PrimaryKey() != k {
 						// update slice map key without changing order
-						o.personAddresses.Delete(k)
-						o.personAddresses.SetAt(i, obj.PrimaryKey(), obj)
+						o.addresses.Delete(k)
+						o.addresses.SetAt(i, obj.PrimaryKey(), obj)
 					}
 				}
 			}
@@ -1209,13 +1209,13 @@ func (o *personBase) update(ctx context.Context) error {
 		} else {
 
 			// save related objects in case internal values changed
-			for obj := range o.personAddresses.ValuesIter() {
+			for obj := range o.addresses.ValuesIter() {
 				if err := obj.Save(ctx); err != nil {
 					return err
 				}
 			}
 		}
-		if o.personEmployeeInfoIsDirty {
+		if o.employeeInfoIsDirty {
 			// relation connection changed
 
 			// Since the other side of the relationship cannot be null, if there is an object already attached
@@ -1226,7 +1226,7 @@ func (o *personBase) update(ctx context.Context) error {
 				Get(); err != nil {
 				return err
 			} else if oldObj != nil {
-				if o.personEmployeeInfo == nil || oldObj.PrimaryKey() != o.personEmployeeInfo.PrimaryKey() {
+				if o.employeeInfo == nil || oldObj.PrimaryKey() != o.employeeInfo.PrimaryKey() {
 					// Delete the old object
 					err = oldObj.Delete(ctx)
 					if err != nil {
@@ -1235,9 +1235,9 @@ func (o *personBase) update(ctx context.Context) error {
 				}
 			}
 			// we are moving the attachment from another object to our object, or attaching an object that is already attached.
-			if o.personEmployeeInfo != nil {
-				o.personEmployeeInfo.SetPersonID(o.PrimaryKey())
-				if err := o.personEmployeeInfo.Save(ctx); err != nil {
+			if o.employeeInfo != nil {
+				o.employeeInfo.SetPersonID(o.PrimaryKey())
+				if err := o.employeeInfo.Save(ctx); err != nil {
 					return err
 				}
 			}
@@ -1245,13 +1245,13 @@ func (o *personBase) update(ctx context.Context) error {
 		} else {
 
 			// save related object in case internal values changed
-			if o.personEmployeeInfo != nil {
-				if err := o.personEmployeeInfo.Save(ctx); err != nil {
+			if o.employeeInfo != nil {
+				if err := o.employeeInfo.Save(ctx); err != nil {
 					return err
 				}
 			}
 		}
-		if o.personLoginIsDirty {
+		if o.loginIsDirty {
 			// relation connection changed
 
 			// Since the other side of the relationship cannot be null, if there is an object already attached
@@ -1262,7 +1262,7 @@ func (o *personBase) update(ctx context.Context) error {
 				Get(); err != nil {
 				return err
 			} else if oldObj != nil {
-				if o.personLogin == nil || oldObj.PrimaryKey() != o.personLogin.PrimaryKey() {
+				if o.login == nil || oldObj.PrimaryKey() != o.login.PrimaryKey() {
 					// Delete the old object
 					err = oldObj.Delete(ctx)
 					if err != nil {
@@ -1271,9 +1271,9 @@ func (o *personBase) update(ctx context.Context) error {
 				}
 			}
 			// we are moving the attachment from another object to our object, or attaching an object that is already attached.
-			if o.personLogin != nil {
-				o.personLogin.SetPersonID(o.PrimaryKey())
-				if err := o.personLogin.Save(ctx); err != nil {
+			if o.login != nil {
+				o.login.SetPersonID(o.PrimaryKey())
+				if err := o.login.Save(ctx); err != nil {
 					return err
 				}
 			}
@@ -1281,8 +1281,8 @@ func (o *personBase) update(ctx context.Context) error {
 		} else {
 
 			// save related object in case internal values changed
-			if o.personLogin != nil {
-				if err := o.personLogin.Save(ctx); err != nil {
+			if o.login != nil {
+				if err := o.login.Save(ctx); err != nil {
 					return err
 				}
 			}
@@ -1385,31 +1385,31 @@ func (o *personBase) insert(ctx context.Context) (err error) {
 			}
 		}
 
-		if o.personAddresses.Len() > 0 {
-			keys := o.personAddresses.Keys()
+		if o.addresses.Len() > 0 {
+			keys := o.addresses.Keys()
 			for i, k := range keys {
-				obj := o.personAddresses.Get(k)
+				obj := o.addresses.Get(k)
 				obj.SetPersonID(newPK)
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
 				if obj.PrimaryKey() != k {
-					o.personAddresses.Delete(k)
-					o.personAddresses.SetAt(i, obj.PrimaryKey(), obj)
+					o.addresses.Delete(k)
+					o.addresses.SetAt(i, obj.PrimaryKey(), obj)
 				}
 			}
 		}
 
-		if o.personEmployeeInfo != nil {
-			o.personEmployeeInfo.SetPersonID(newPK)
-			if err = o.personEmployeeInfo.Save(ctx); err != nil {
+		if o.employeeInfo != nil {
+			o.employeeInfo.SetPersonID(newPK)
+			if err = o.employeeInfo.Save(ctx); err != nil {
 				return err
 			}
 		}
 
-		if o.personLogin != nil {
-			o.personLogin.SetPersonID(newPK)
-			if err = o.personLogin.Save(ctx); err != nil {
+		if o.login != nil {
+			o.login.SetPersonID(newPK)
+			if err = o.login.Save(ctx); err != nil {
 				return err
 			}
 		}
@@ -1529,7 +1529,7 @@ func (o *personBase) getInsertFields() (fields map[string]interface{}) {
 // Delete deletes the record from the database.
 //
 // Associated ManagerProject will also be deleted since their Manager fields are not nullable.
-// Associated PersonAddress will also be deleted since their Person fields are not nullable.
+// Associated Address will also be deleted since their Person fields are not nullable.
 // An associated {= rev.ReverseIdentifier  will also be deleted since its Person field is not nullable.
 // An associated {= rev.ReverseIdentifier  will also be deleted since its Person field is not nullable.
 func (o *personBase) Delete(ctx context.Context) (err error) {
@@ -1574,7 +1574,7 @@ func (o *personBase) Delete(ctx context.Context) (err error) {
 					return err
 				}
 			}
-			o.personAddresses.Clear()
+			o.addresses.Clear()
 		}
 
 		{
@@ -1590,7 +1590,7 @@ func (o *personBase) Delete(ctx context.Context) (err error) {
 				}
 			}
 			// Set this object's pointer to the reverse object to nil to mark that we broke the link
-			o.personEmployeeInfo = nil
+			o.employeeInfo = nil
 		}
 
 		{
@@ -1606,7 +1606,7 @@ func (o *personBase) Delete(ctx context.Context) (err error) {
 				}
 			}
 			// Set this object's pointer to the reverse object to nil to mark that we broke the link
-			o.personLogin = nil
+			o.login = nil
 		}
 
 		if err := db.AssociateOnly(ctx,
@@ -1663,9 +1663,9 @@ func (o *personBase) resetDirtyStatus() {
 	o.lastNameIsDirty = false
 	o.personTypeEnumIsDirty = false
 	o.managerProjectsIsDirty = false
-	o.personAddressesIsDirty = false
-	o.personEmployeeInfoIsDirty = false
-	o.personLoginIsDirty = false
+	o.addressesIsDirty = false
+	o.employeeInfoIsDirty = false
+	o.loginIsDirty = false
 	o.projectsIsDirty = false
 	o.projectsPks = nil
 
@@ -1680,18 +1680,18 @@ func (o *personBase) IsDirty() (dirty bool) {
 
 	dirty = dirty ||
 		o.managerProjectsIsDirty ||
-		o.personAddressesIsDirty ||
-		o.personEmployeeInfoIsDirty ||
-		o.personLoginIsDirty
+		o.addressesIsDirty ||
+		o.employeeInfoIsDirty ||
+		o.loginIsDirty
 
 	for obj := range o.managerProjects.ValuesIter() {
 		dirty = dirty || obj.IsDirty()
 	}
-	for obj := range o.personAddresses.ValuesIter() {
+	for obj := range o.addresses.ValuesIter() {
 		dirty = dirty || obj.IsDirty()
 	}
-	dirty = dirty || (o.personEmployeeInfo != nil && o.personEmployeeInfo.IsDirty())
-	dirty = dirty || (o.personLogin != nil && o.personLogin.IsDirty())
+	dirty = dirty || (o.employeeInfo != nil && o.employeeInfo.IsDirty())
+	dirty = dirty || (o.login != nil && o.login.IsDirty())
 
 	dirty = dirty ||
 		o.projectsIsDirty
@@ -1741,12 +1741,12 @@ func (o *personBase) Get(key string) interface{} {
 		return o.modified
 	case "managerProjects":
 		return o.managerProjects.Values()
-	case "personAddresses":
-		return o.personAddresses.Values()
-	case "personEmployeeInfo":
-		return o.personEmployeeInfo
-	case "personLogin":
-		return o.personLogin
+	case "addresses":
+		return o.addresses.Values()
+	case "employeeInfo":
+		return o.employeeInfo
+	case "login":
+		return o.login
 	case "projects":
 		return o.projects.Values()
 	}
@@ -1836,15 +1836,15 @@ func (o *personBase) encodeTo(enc db.Encoder) error {
 		return err
 	}
 
-	if err := enc.Encode(&o.personAddresses); err != nil {
+	if err := enc.Encode(&o.addresses); err != nil {
 		return err
 	}
 
-	if err := enc.Encode(o.personAddressesIsDirty); err != nil {
+	if err := enc.Encode(o.addressesIsDirty); err != nil {
 		return err
 	}
 
-	if o.personEmployeeInfo == nil {
+	if o.employeeInfo == nil {
 		if err := enc.Encode(false); err != nil {
 			return err
 		}
@@ -1852,15 +1852,15 @@ func (o *personBase) encodeTo(enc db.Encoder) error {
 		if err := enc.Encode(true); err != nil {
 			return err
 		}
-		if err := enc.Encode(o.personEmployeeInfo); err != nil {
-			return fmt.Errorf("error encoding Person.personEmployeeInfo: %w", err)
+		if err := enc.Encode(o.employeeInfo); err != nil {
+			return fmt.Errorf("error encoding Person.employeeInfo: %w", err)
 		}
 	}
 
-	if err := enc.Encode(o.personEmployeeInfoIsDirty); err != nil {
-		return fmt.Errorf("error encoding Person.personEmployeeInfoIsDirty: %w", err)
+	if err := enc.Encode(o.employeeInfoIsDirty); err != nil {
+		return fmt.Errorf("error encoding Person.employeeInfoIsDirty: %w", err)
 	}
-	if o.personLogin == nil {
+	if o.login == nil {
 		if err := enc.Encode(false); err != nil {
 			return err
 		}
@@ -1868,13 +1868,13 @@ func (o *personBase) encodeTo(enc db.Encoder) error {
 		if err := enc.Encode(true); err != nil {
 			return err
 		}
-		if err := enc.Encode(o.personLogin); err != nil {
-			return fmt.Errorf("error encoding Person.personLogin: %w", err)
+		if err := enc.Encode(o.login); err != nil {
+			return fmt.Errorf("error encoding Person.login: %w", err)
 		}
 	}
 
-	if err := enc.Encode(o.personLoginIsDirty); err != nil {
-		return fmt.Errorf("error encoding Person.personLoginIsDirty: %w", err)
+	if err := enc.Encode(o.loginIsDirty); err != nil {
+		return fmt.Errorf("error encoding Person.loginIsDirty: %w", err)
 	}
 	if err := enc.Encode(&o.projects); err != nil {
 		return fmt.Errorf("error encoding Person.projects: %w", err)
@@ -1992,37 +1992,37 @@ func (o *personBase) decodeFrom(dec db.Decoder) (err error) {
 		return fmt.Errorf("error decoding Person.managerProjectsIsDirty: %w", err)
 	}
 
-	if err = dec.Decode(&o.personAddresses); err != nil {
-		return fmt.Errorf("error decoding Person.personAddresses: %w", err)
+	if err = dec.Decode(&o.addresses); err != nil {
+		return fmt.Errorf("error decoding Person.addresses: %w", err)
 	}
 
-	if err = dec.Decode(&o.personAddressesIsDirty); err != nil {
-		return fmt.Errorf("error decoding Person.personAddressesIsDirty: %w", err)
+	if err = dec.Decode(&o.addressesIsDirty); err != nil {
+		return fmt.Errorf("error decoding Person.addressesIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return fmt.Errorf("error decoding Person.personEmployeeInfo isPtr: %w", err)
+		return fmt.Errorf("error decoding Person.employeeInfo isPtr: %w", err)
 	}
 	if isPtr {
-		if err = dec.Decode(&o.personEmployeeInfo); err != nil {
-			return fmt.Errorf("error decoding Person.personEmployeeInfo: %w", err)
+		if err = dec.Decode(&o.employeeInfo); err != nil {
+			return fmt.Errorf("error decoding Person.employeeInfo: %w", err)
 		}
 	}
 
-	if err = dec.Decode(&o.personEmployeeInfoIsDirty); err != nil {
-		return fmt.Errorf("error decoding Person.personEmployeeInfoIsDirty: %w", err)
+	if err = dec.Decode(&o.employeeInfoIsDirty); err != nil {
+		return fmt.Errorf("error decoding Person.employeeInfoIsDirty: %w", err)
 	}
 	if err = dec.Decode(&isPtr); err != nil {
-		return fmt.Errorf("error decoding Person.personLogin isPtr: %w", err)
+		return fmt.Errorf("error decoding Person.login isPtr: %w", err)
 	}
 	if isPtr {
-		if err = dec.Decode(&o.personLogin); err != nil {
-			return fmt.Errorf("error decoding Person.personLogin: %w", err)
+		if err = dec.Decode(&o.login); err != nil {
+			return fmt.Errorf("error decoding Person.login: %w", err)
 		}
 	}
 
-	if err = dec.Decode(&o.personLoginIsDirty); err != nil {
-		return fmt.Errorf("error decoding Person.personLoginIsDirty: %w", err)
+	if err = dec.Decode(&o.loginIsDirty); err != nil {
+		return fmt.Errorf("error decoding Person.loginIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.projects); err != nil {
@@ -2111,18 +2111,18 @@ func (o *personBase) MarshalStringMap() map[string]interface{} {
 		}
 		v["managerProjects"] = vals
 	}
-	if o.personAddresses.Len() != 0 {
+	if o.addresses.Len() != 0 {
 		var vals []map[string]interface{}
-		for obj := range o.personAddresses.ValuesIter() {
+		for obj := range o.addresses.ValuesIter() {
 			vals = append(vals, obj.MarshalStringMap())
 		}
-		v["personAddresses"] = vals
+		v["addresses"] = vals
 	}
-	if obj := o.personEmployeeInfo; obj != nil {
-		v["personEmployeeInfo"] = obj.MarshalStringMap()
+	if obj := o.employeeInfo; obj != nil {
+		v["employeeInfo"] = obj.MarshalStringMap()
 	}
-	if obj := o.personLogin; obj != nil {
-		v["personLogin"] = obj.MarshalStringMap()
+	if obj := o.login; obj != nil {
+		v["login"] = obj.MarshalStringMap()
 	}
 	if o.projects.Len() != 0 {
 		var vals []map[string]interface{}
@@ -2242,7 +2242,7 @@ func (o *personBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 			}
 			o.SetManagerProjects(s...)
 
-		case "personAddresses":
+		case "addresses":
 			v2, ok := v.([]any)
 			if !ok {
 				return fmt.Errorf("json field %s must be an array of maps", k)
@@ -2260,9 +2260,9 @@ func (o *personBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 				}
 				s = append(s, v3)
 			}
-			o.SetPersonAddresses(s...)
+			o.SetAddresses(s...)
 
-		case "personEmployeeInfo":
+		case "employeeInfo":
 			v2 := NewEmployeeInfo()
 			m2, ok := v.(map[string]any)
 			if !ok {
@@ -2272,9 +2272,9 @@ func (o *personBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 			if err != nil {
 				return
 			}
-			o.SetPersonEmployeeInfo(v2)
+			o.SetEmployeeInfo(v2)
 
-		case "personLogin":
+		case "login":
 			v2 := NewLogin()
 			m2, ok := v.(map[string]any)
 			if !ok {
@@ -2284,7 +2284,7 @@ func (o *personBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 			if err != nil {
 				return
 			}
-			o.SetPersonLogin(v2)
+			o.SetLogin(v2)
 
 		case "projects":
 			v2, ok := v.([]any)

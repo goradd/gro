@@ -60,13 +60,13 @@ func TestSerializeReverseReferencesPersonTable(t *testing.T) {
 		assert.True(t, query.NodesMatch(Person().ManagerProjects().ParentID(), n2.(ProjectNode).ParentID()))
 		assert.True(t, query.NodesMatch(Person().ManagerProjects().Parent(), n2.(ProjectNode).Parent()))
 		assert.True(t, query.NodesMatch(Person().ManagerProjects().Children(), n2.(ProjectNode).Children()))
-		assert.True(t, query.NodesMatch(Person().ManagerProjects().ProjectMilestones(), n2.(ProjectNode).ProjectMilestones()))
+		assert.True(t, query.NodesMatch(Person().ManagerProjects().Milestones(), n2.(ProjectNode).Milestones()))
 		assert.True(t, query.NodesMatch(Person().ManagerProjects().TeamMembers(), n2.(ProjectNode).TeamMembers()))
 
 	}
 
 	{
-		n := Person().PersonAddresses()
+		n := Person().Addresses()
 		n2 := serNode(t, n)
 		parentNode := query.NodeParent(n2)
 		assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
@@ -79,16 +79,16 @@ func TestSerializeReverseReferencesPersonTable(t *testing.T) {
 			assert.Equal(t, query.ReverseNodeType, query.NodeParent(cn2).NodeType_())
 		}
 
-		assert.True(t, query.NodesMatch(Person().PersonAddresses().ID(), n2.(AddressNode).ID()))
-		assert.True(t, query.NodesMatch(Person().PersonAddresses().Street(), n2.(AddressNode).Street()))
-		assert.True(t, query.NodesMatch(Person().PersonAddresses().City(), n2.(AddressNode).City()))
-		assert.True(t, query.NodesMatch(Person().PersonAddresses().PersonID(), n2.(AddressNode).PersonID()))
-		assert.True(t, query.NodesMatch(Person().PersonAddresses().Person(), n2.(AddressNode).Person()))
+		assert.True(t, query.NodesMatch(Person().Addresses().ID(), n2.(AddressNode).ID()))
+		assert.True(t, query.NodesMatch(Person().Addresses().Street(), n2.(AddressNode).Street()))
+		assert.True(t, query.NodesMatch(Person().Addresses().City(), n2.(AddressNode).City()))
+		assert.True(t, query.NodesMatch(Person().Addresses().PersonID(), n2.(AddressNode).PersonID()))
+		assert.True(t, query.NodesMatch(Person().Addresses().Person(), n2.(AddressNode).Person()))
 
 	}
 
 	{
-		n := Person().PersonEmployeeInfo()
+		n := Person().EmployeeInfo()
 		n2 := serNode(t, n)
 		parentNode := query.NodeParent(n2)
 		assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
@@ -101,15 +101,15 @@ func TestSerializeReverseReferencesPersonTable(t *testing.T) {
 			assert.Equal(t, query.ReverseNodeType, query.NodeParent(cn2).NodeType_())
 		}
 
-		assert.True(t, query.NodesMatch(Person().PersonEmployeeInfo().ID(), n2.(EmployeeInfoNode).ID()))
-		assert.True(t, query.NodesMatch(Person().PersonEmployeeInfo().EmployeeNumber(), n2.(EmployeeInfoNode).EmployeeNumber()))
-		assert.True(t, query.NodesMatch(Person().PersonEmployeeInfo().PersonID(), n2.(EmployeeInfoNode).PersonID()))
-		assert.True(t, query.NodesMatch(Person().PersonEmployeeInfo().Person(), n2.(EmployeeInfoNode).Person()))
+		assert.True(t, query.NodesMatch(Person().EmployeeInfo().ID(), n2.(EmployeeInfoNode).ID()))
+		assert.True(t, query.NodesMatch(Person().EmployeeInfo().EmployeeNumber(), n2.(EmployeeInfoNode).EmployeeNumber()))
+		assert.True(t, query.NodesMatch(Person().EmployeeInfo().PersonID(), n2.(EmployeeInfoNode).PersonID()))
+		assert.True(t, query.NodesMatch(Person().EmployeeInfo().Person(), n2.(EmployeeInfoNode).Person()))
 
 	}
 
 	{
-		n := Person().PersonLogin()
+		n := Person().Login()
 		n2 := serNode(t, n)
 		parentNode := query.NodeParent(n2)
 		assert.Equal(t, query.TableNodeType, parentNode.NodeType_())
@@ -122,12 +122,12 @@ func TestSerializeReverseReferencesPersonTable(t *testing.T) {
 			assert.Equal(t, query.ReverseNodeType, query.NodeParent(cn2).NodeType_())
 		}
 
-		assert.True(t, query.NodesMatch(Person().PersonLogin().ID(), n2.(LoginNode).ID()))
-		assert.True(t, query.NodesMatch(Person().PersonLogin().Username(), n2.(LoginNode).Username()))
-		assert.True(t, query.NodesMatch(Person().PersonLogin().Password(), n2.(LoginNode).Password()))
-		assert.True(t, query.NodesMatch(Person().PersonLogin().IsEnabled(), n2.(LoginNode).IsEnabled()))
-		assert.True(t, query.NodesMatch(Person().PersonLogin().PersonID(), n2.(LoginNode).PersonID()))
-		assert.True(t, query.NodesMatch(Person().PersonLogin().Person(), n2.(LoginNode).Person()))
+		assert.True(t, query.NodesMatch(Person().Login().ID(), n2.(LoginNode).ID()))
+		assert.True(t, query.NodesMatch(Person().Login().Username(), n2.(LoginNode).Username()))
+		assert.True(t, query.NodesMatch(Person().Login().Password(), n2.(LoginNode).Password()))
+		assert.True(t, query.NodesMatch(Person().Login().IsEnabled(), n2.(LoginNode).IsEnabled()))
+		assert.True(t, query.NodesMatch(Person().Login().PersonID(), n2.(LoginNode).PersonID()))
+		assert.True(t, query.NodesMatch(Person().Login().Person(), n2.(LoginNode).Person()))
 
 	}
 
@@ -165,7 +165,7 @@ func TestSerializeAssociationsPersonTable(t *testing.T) {
 		assert.True(t, query.NodesMatch(Person().Projects().ParentID(), n2.(ProjectNode).ParentID()))
 		assert.True(t, query.NodesMatch(Person().Projects().Parent(), n2.(ProjectNode).Parent()))
 		assert.True(t, query.NodesMatch(Person().Projects().Children(), n2.(ProjectNode).Children()))
-		assert.True(t, query.NodesMatch(Person().Projects().ProjectMilestones(), n2.(ProjectNode).ProjectMilestones()))
+		assert.True(t, query.NodesMatch(Person().Projects().Milestones(), n2.(ProjectNode).Milestones()))
 		assert.True(t, query.NodesMatch(Person().Projects().TeamMembers(), n2.(ProjectNode).TeamMembers()))
 
 	}

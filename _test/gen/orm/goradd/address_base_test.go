@@ -425,7 +425,7 @@ func TestAddress_Count(t *testing.T) {
 	obj2, _ := LoadAddress(ctx, obj.PrimaryKey())
 	assert.Positive(t,
 		func() int {
-			i, _ := CountAddressesByPersonID(ctx,
+			i, _ := CountAddressesBy(ctx,
 				obj2.PersonID())
 			return i
 		}())

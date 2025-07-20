@@ -1,5 +1,7 @@
 package schema
 
+import "strings"
+
 // Index declares that a Get or Load function should be created on the given columns in the table
 // and gives direction to the database to create an index on the columns.
 //
@@ -28,9 +30,29 @@ type Index struct {
 	Columns []string `json:"columns"`
 	// IndexLevel will specify the type of index, and possibly a constraint to put on the columns.
 	IndexLevel IndexLevel `json:"index_level"`
-	// For future expansion. Defines a multi-column foreign key. The reference in those columns
-	// will need to point to a primary key column in the other table. Must use the Index structure
-	// to tell which columns make up a foreign key, since there is a possibility of two separate foreign keys
-	// pointing to the same table. (i.e. Mother and Father pointing to a person table).
-	// IsReference bool
+	// Name is the name given to the index in the database, if the database requires a name.
+	// The name will be concatenated with the name of the table and "idx".
+	// Should be a snake_case word
+	Name string `json:"name,omitempty"`
+	// Identifier is the identifier used to create accessor functions.
+	// Should be CamelCase.
+	// A default will be generated from the column names if none is provided.
+	Identifier string `json:"identifier,omitempty"`
 }
+
+func (i *Index) infer() {
+	if i.Name == "" {
+		i.Name = strings.Join(i.Columns, "_")
+	}
+}
+
+func (i *Index) fillDefaults() {
+	if i.Identifier == "" {
+		i.Identifier = strings.Join(i.Columns, "")
+	}
+}
+
+// For future expansion. Define a multi-column foreign key. The reference in those columns
+// will need to point to a primary key column in the other table. Must use the Index structure
+// to tell which columns make up a foreign key, since there is a possibility of two separate foreign keys
+// pointing to the same table. (i.e. Mother and Father pointing to a person table).

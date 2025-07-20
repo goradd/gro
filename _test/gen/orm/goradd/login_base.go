@@ -368,56 +368,56 @@ func (o *loginBase) IsNew() bool {
 // LoadLogin returns a Login from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [LoginsBuilder.Select] for more info.
-func LoadLogin(ctx context.Context, id string, selectNodes ...query.Node) (*Login, error) {
+func LoadLogin(ctx context.Context, pk string, selectNodes ...query.Node) (*Login, error) {
 	return queryLogins(ctx).
-		Where(op.Equal(node.Login().ID(), id)).
+		Where(op.Equal(node.Login().ID(), pk.id)).
 		Select(selectNodes...).
 		Get()
 }
 
 // HasLogin returns true if a Login with the given primary key exists in the database.
 // doc: type=Login
-func HasLogin(ctx context.Context, id string) (bool, error) {
+func HasLogin(ctx context.Context, pk string) (bool, error) {
 	v, err := queryLogins(ctx).
-		Where(op.Equal(node.Login().ID(), id)).
+		Where(op.Equal(node.Login().ID(), pk.id)).
 		Count()
 	return v > 0, err
 }
 
-// LoadLoginByUsername queries for a single Login object by the given unique index values.
+// LoadLoginBy queries for a single Login object by the given unique index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [LoginsBuilder.Select].
 // If you need a more elaborate query, use QueryLogins() to start a query builder.
-func LoadLoginByUsername(ctx context.Context, username string, selectNodes ...query.Node) (*Login, error) {
+func LoadLoginBy(ctx context.Context, username string, selectNodes ...query.Node) (*Login, error) {
 	q := queryLogins(ctx)
 	q = q.Where(op.Equal(node.Login().Username(), username))
 	return q.Select(selectNodes...).Get()
 }
 
-// HasLoginByUsername returns true if the
+// HasLoginBy returns true if the
 // given unique index values exist in the database.
 // doc: type=Login
-func HasLoginByUsername(ctx context.Context, username string) (bool, error) {
+func HasLoginBy(ctx context.Context, username string) (bool, error) {
 	q := queryLogins(ctx)
 	q = q.Where(op.Equal(node.Login().Username(), username))
 	v, err := q.Count()
 	return v > 0, err
 }
 
-// LoadLoginByPersonID queries for a single Login object by the given unique index values.
+// LoadLoginBy queries for a single Login object by the given unique index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [LoginsBuilder.Select].
 // If you need a more elaborate query, use QueryLogins() to start a query builder.
-func LoadLoginByPersonID(ctx context.Context, personID string, selectNodes ...query.Node) (*Login, error) {
+func LoadLoginBy(ctx context.Context, personID string, selectNodes ...query.Node) (*Login, error) {
 	q := queryLogins(ctx)
 	q = q.Where(op.Equal(node.Login().PersonID(), personID))
 	return q.Select(selectNodes...).Get()
 }
 
-// HasLoginByPersonID returns true if the
+// HasLoginBy returns true if the
 // given unique index values exist in the database.
 // doc: type=Login
-func HasLoginByPersonID(ctx context.Context, personID string) (bool, error) {
+func HasLoginBy(ctx context.Context, personID string) (bool, error) {
 	q := queryLogins(ctx)
 	q = q.Where(op.Equal(node.Login().PersonID(), personID))
 	v, err := q.Count()
@@ -626,20 +626,20 @@ func CountLogins(ctx context.Context) (int, error) {
 	return QueryLogins(ctx).Count()
 }
 
-// CountLoginsByUsername queries the database and returns the number of Login objects that
+// CountLoginsBy queries the database and returns the number of Login objects that
 // have username.
 // doc: type=Login
-func CountLoginsByUsername(ctx context.Context, username string) (int, error) {
+func CountLoginsBy(ctx context.Context, username string) (int, error) {
 	v_username := username
 	return QueryLogins(ctx).
 		Where(op.Equal(node.Login().Username(), v_username)).
 		Count()
 }
 
-// CountLoginsByPersonID queries the database and returns the number of Login objects that
+// CountLoginsBy queries the database and returns the number of Login objects that
 // have personID.
 // doc: type=Login
-func CountLoginsByPersonID(ctx context.Context, personID string) (int, error) {
+func CountLoginsBy(ctx context.Context, personID string) (int, error) {
 	v_personID := personID
 	return QueryLogins(ctx).
 		Where(op.Equal(node.Login().PersonID(), v_personID)).

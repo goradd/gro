@@ -267,36 +267,36 @@ func (o *milestoneBase) IsNew() bool {
 // LoadMilestone returns a Milestone from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [MilestonesBuilder.Select] for more info.
-func LoadMilestone(ctx context.Context, id string, selectNodes ...query.Node) (*Milestone, error) {
+func LoadMilestone(ctx context.Context, pk string, selectNodes ...query.Node) (*Milestone, error) {
 	return queryMilestones(ctx).
-		Where(op.Equal(node.Milestone().ID(), id)).
+		Where(op.Equal(node.Milestone().ID(), pk.id)).
 		Select(selectNodes...).
 		Get()
 }
 
 // HasMilestone returns true if a Milestone with the given primary key exists in the database.
 // doc: type=Milestone
-func HasMilestone(ctx context.Context, id string) (bool, error) {
+func HasMilestone(ctx context.Context, pk string) (bool, error) {
 	v, err := queryMilestones(ctx).
-		Where(op.Equal(node.Milestone().ID(), id)).
+		Where(op.Equal(node.Milestone().ID(), pk.id)).
 		Count()
 	return v > 0, err
 }
 
-// LoadMilestonesByProjectID queries Milestone objects by the given index values.
+// LoadMilestonesBy queries Milestone objects by the given index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [MilestonesBuilder.Select].
 // If you need a more elaborate query, use QueryMilestones() to start a query builder.
-func LoadMilestonesByProjectID(ctx context.Context, projectID string, selectNodes ...query.Node) ([]*Milestone, error) {
+func LoadMilestonesBy(ctx context.Context, projectID string, selectNodes ...query.Node) ([]*Milestone, error) {
 	q := queryMilestones(ctx)
 	q = q.Where(op.Equal(node.Milestone().ProjectID(), projectID))
 	return q.Select(selectNodes...).Load()
 }
 
-// HasMilestonesByProjectID returns true if the
+// HasMilestonesBy returns true if the
 // given index values exist in the database.
 // doc: type=Milestone
-func HasMilestonesByProjectID(ctx context.Context, projectID string) (bool, error) {
+func HasMilestonesBy(ctx context.Context, projectID string) (bool, error) {
 	q := queryMilestones(ctx)
 	q = q.Where(op.Equal(node.Milestone().ProjectID(), projectID))
 	v, err := q.Count()
@@ -505,10 +505,10 @@ func CountMilestones(ctx context.Context) (int, error) {
 	return QueryMilestones(ctx).Count()
 }
 
-// CountMilestonesByProjectID queries the database and returns the number of Milestone objects that
+// CountMilestonesBy queries the database and returns the number of Milestone objects that
 // have projectID.
 // doc: type=Milestone
-func CountMilestonesByProjectID(ctx context.Context, projectID string) (int, error) {
+func CountMilestonesBy(ctx context.Context, projectID string) (int, error) {
 	v_projectID := projectID
 	return QueryMilestones(ctx).
 		Where(op.Equal(node.Milestone().ProjectID(), v_projectID)).

@@ -330,36 +330,36 @@ func (o *addressBase) IsNew() bool {
 // LoadAddress returns a Address from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [AddressesBuilder.Select] for more info.
-func LoadAddress(ctx context.Context, id string, selectNodes ...query.Node) (*Address, error) {
+func LoadAddress(ctx context.Context, pk string, selectNodes ...query.Node) (*Address, error) {
 	return queryAddresses(ctx).
-		Where(op.Equal(node.Address().ID(), id)).
+		Where(op.Equal(node.Address().ID(), pk.id)).
 		Select(selectNodes...).
 		Get()
 }
 
 // HasAddress returns true if a Address with the given primary key exists in the database.
 // doc: type=Address
-func HasAddress(ctx context.Context, id string) (bool, error) {
+func HasAddress(ctx context.Context, pk string) (bool, error) {
 	v, err := queryAddresses(ctx).
-		Where(op.Equal(node.Address().ID(), id)).
+		Where(op.Equal(node.Address().ID(), pk.id)).
 		Count()
 	return v > 0, err
 }
 
-// LoadAddressesByPersonID queries Address objects by the given index values.
+// LoadAddressesBy queries Address objects by the given index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [AddressesBuilder.Select].
 // If you need a more elaborate query, use QueryAddresses() to start a query builder.
-func LoadAddressesByPersonID(ctx context.Context, personID string, selectNodes ...query.Node) ([]*Address, error) {
+func LoadAddressesBy(ctx context.Context, personID string, selectNodes ...query.Node) ([]*Address, error) {
 	q := queryAddresses(ctx)
 	q = q.Where(op.Equal(node.Address().PersonID(), personID))
 	return q.Select(selectNodes...).Load()
 }
 
-// HasAddressesByPersonID returns true if the
+// HasAddressesBy returns true if the
 // given index values exist in the database.
 // doc: type=Address
-func HasAddressesByPersonID(ctx context.Context, personID string) (bool, error) {
+func HasAddressesBy(ctx context.Context, personID string) (bool, error) {
 	q := queryAddresses(ctx)
 	q = q.Where(op.Equal(node.Address().PersonID(), personID))
 	v, err := q.Count()
@@ -568,10 +568,10 @@ func CountAddresses(ctx context.Context) (int, error) {
 	return QueryAddresses(ctx).Count()
 }
 
-// CountAddressesByPersonID queries the database and returns the number of Address objects that
+// CountAddressesBy queries the database and returns the number of Address objects that
 // have personID.
 // doc: type=Address
-func CountAddressesByPersonID(ctx context.Context, personID string) (int, error) {
+func CountAddressesBy(ctx context.Context, personID string) (int, error) {
 	v_personID := personID
 	return QueryAddresses(ctx).
 		Where(op.Equal(node.Address().PersonID(), v_personID)).

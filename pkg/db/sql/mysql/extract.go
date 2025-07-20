@@ -643,12 +643,12 @@ func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema.Table {
 	for _, idx := range indexes {
 		if len(idx.Columns) > 1 {
 			// only do multi-column indexes, since single column indexes should be specified in the column definition
-			td.Indexes = append(td.Indexes, *idx)
+			td.Indexes = append(td.Indexes, idx)
 		}
 	}
 
 	// Keep the Indexes in a predictable order
-	slices.SortFunc(td.Indexes, func(m1 schema.Index, m2 schema.Index) int {
+	slices.SortFunc(td.Indexes, func(m1 *schema.Index, m2 *schema.Index) int {
 		return slices.Compare(m1.Columns, m2.Columns)
 	})
 

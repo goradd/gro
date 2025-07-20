@@ -3898,7 +3898,7 @@ func Test`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, idx.Name()); err != nil {
+				if _, err = io.WriteString(_w, idx.Identifier); err != nil {
 					return
 				}
 
