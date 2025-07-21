@@ -67,8 +67,11 @@ type DatabaseI interface {
 	// Care should be exercised when calling this directly, since linked records are not modified in any way.
 	// If this record has linked records, the database structure may be corrupted.
 	Delete(ctx context.Context, table string, primaryKey map[string]any, optLockFieldName string, optLockFieldValue int64) error
-	// DeleteAll will efficiently delete all the records from a table.
-	DeleteAll(ctx context.Context, table string) error
+	// DeleteWhere will delete records from table with the criteria where.
+	// If where is empty, all records in the table will be deleted.
+	// The values in where are initially AND'd. Maps in where will be OR'd, and maps inside OR'd values will be
+	// AND'd etc.
+	DeleteWhere(ctx context.Context, table string, where map[string]any) error
 	// Query executes a simple query on a single table using fields, where the keys of fields are the names of database fields to select,
 	// and the values are the types of data to return for each field.
 	// If orderBy is not nil, it specifies field names to sort the data on, in ascending order.
@@ -141,7 +144,7 @@ func AssociateOnly[J, K any](ctx context.Context,
 	relatedColumnName string,
 	relatedPks []K) error {
 	err := WithTransaction(ctx, d, func(ctx context.Context) error {
-		if err := d.Delete(ctx, assnTable, srcColumnName, pk, "", 0); err != nil {
+		if err := d.DeleteWhere(ctx, assnTable, map[string]any{srcColumnName: pk}); err != nil {
 			var rErr *RecordNotFoundError
 			if !errors.As(err, &rErr) { // ignore record not found errors
 				return err

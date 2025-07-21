@@ -8654,7 +8654,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if s := table.LockColumnIdentifer(); s == "" {
+	if s := table.LockColumnIdentifier(); s == "" {
 
 		if _, err = io.WriteString(_w, `0`); err != nil {
 			return
@@ -11232,7 +11232,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 			return
 		}
 
-		if s := table.LockColumnIdentifer(); s == "" {
+		if s := table.LockColumnIdentifier(); s == "" {
 
 			if _, err = io.WriteString(_w, `0`); err != nil {
 				return
@@ -11750,7 +11750,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 			return
 		}
 
-		if s := table.LockColumnIdentifer(); s == "" {
+		if s := table.LockColumnIdentifier(); s == "" {
 
 			if _, err = io.WriteString(_w, `0`); err != nil {
 				return

@@ -39,7 +39,7 @@ func (o *{{= table.DecapIdentifier}}Base) update(ctx context.Context) error {
                 },
                 modifiedFields,
                 "{{= table.LockColumnQueryName() }}",
-                {{if s:= table.LockColumnIdentifer(); s == "" }}0{{else}}o.{{= s }}(){{if}},
+                {{if s:= table.LockColumnIdentifier(); s == "" }}0{{else}}o.{{= s }}(){{if}},
             )
             if err2 != nil {
                 return err2

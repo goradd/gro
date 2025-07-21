@@ -38,7 +38,7 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
 {{for}}
         },
         "{{= table.LockColumnQueryName() }}",
-        {{if s:= table.LockColumnIdentifer(); s == "" }}0{{else}}o.{{= s }}(){{if}},
+        {{if s:= table.LockColumnIdentifier(); s == "" }}0{{else}}o.{{= s }}(){{if}},
     )
 {{else}}
 {{# Note: for now we are not supporting references to tables with composite keys, so o._originalPK below should work }}
@@ -146,7 +146,7 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
 	    return d.Delete(ctx, "{{table.QueryName}}",
 	        map[string]any{"{{= table.PrimaryKeyColumn().QueryName }}": o._originalPK},
             "{{= table.LockColumnQueryName() }}",
-            {{if s:= table.LockColumnIdentifer(); s == "" }}0{{else}}o.{{= s }}(){{if}},
+            {{if s:= table.LockColumnIdentifier(); s == "" }}0{{else}}o.{{= s }}(){{if}},
         )
 	})
 

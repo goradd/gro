@@ -1,0 +1,52 @@
+package goradd
+
+// This is the test file for the Login ORM object.
+// Add your tests to this file or modify the one provided.
+// Your edits to this file will be preserved.
+
+import (
+	"context"
+	"fmt"
+	"strings"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
+
+func TestLogin_String(t *testing.T) {
+	var obj *Login
+
+	assert.Equal(t, "", obj.String())
+
+	obj = NewLogin()
+	s := obj.String()
+	assert.True(t, strings.HasPrefix(s, "Login"))
+}
+
+func TestLogin_Key(t *testing.T) {
+	var obj *Login
+	assert.Equal(t, "", obj.Key())
+
+	obj = NewLogin()
+	assert.Equal(t, fmt.Sprintf("%v", obj.PrimaryKey()), obj.Key())
+}
+
+func TestLogin_Label(t *testing.T) {
+	var obj *Login
+	assert.Equal(t, "", obj.Key())
+
+	obj = NewLogin()
+	s := obj.Label()
+	assert.True(t, strings.HasPrefix(s, "Login"))
+}
+
+func TestLogin_Delete(t *testing.T) {
+	ctx := context.Background()
+	obj := createMinimalSampleLogin()
+	assert.NoError(t, obj.Save(ctx))
+	defer obj.Person().Delete(ctx)
+	assert.NoError(t, DeleteLogin(ctx, obj.PrimaryKey()))
+	obj2, err := LoadLogin(ctx, obj.PrimaryKey())
+	assert.Nil(t, obj2)
+	assert.NoError(t, err)
+}

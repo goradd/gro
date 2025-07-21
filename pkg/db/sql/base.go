@@ -170,9 +170,10 @@ func (h *Base) Delete(ctx context.Context, table string, primaryKey map[string]a
 	return nil
 }
 
-// DeleteAll deletes all the records from a table.
-func (h *Base) DeleteAll(ctx context.Context, table string) error {
-	s, args := GenerateDelete(h.dbi, table, nil, false)
+// DeleteWhere deletes the records from the table indicated by the fields in where.
+// If where is empty, all the records will be deleted.
+func (h *Base) DeleteWhere(ctx context.Context, table string, where map[string]any) error {
+	s, args := GenerateDelete(h.dbi, table, where, false)
 	_, e := h.SqlExec(ctx, s, args...)
 	if e != nil {
 		return db.NewQueryError("SqlExec", s, args, e)
