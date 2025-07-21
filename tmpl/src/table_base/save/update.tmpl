@@ -31,32 +31,19 @@ func (o *{{= table.DecapIdentifier}}Base) update(ctx context.Context) error {
 
         modifiedFields = get{{= table.Identifier }}UpdateFields(o)
         if len(modifiedFields) != 0 {
-            var err2 error
-
-{{if c := table.LockColumn; c == nil }}
-            _, err2 = d.Update(ctx, "{{= table.QueryName }}",
+            err2 := d.Update(ctx, "{{= table.QueryName }}",
                 map[string]any{
 {{for _,col := range table.PrimaryKeyColumns()}}
-                    "{{= col.QueryName }}": {{if len(table.PrimaryKeyColumns()) == 1}}o._originalPK{{else}}o._originalPK.{{= col.Field}}{{if}},
+                    "{{= col.QueryName }}": o._originalPK{{if len(table.PrimaryKeyColumns()) > 1}}.{{= col.Field}}{{if}},
 {{for}}
                 },
-                modifiedFields, "", 0)
+                modifiedFields,
+                "{{= table.LockColumnQueryName() }}",
+                {{if s:= table.LockColumnIdentifer(); s == "" }}0{{else}}o.{{= s }}(){{if}},
+            )
             if err2 != nil {
                 return err2
             }
-{{else}}
-            // If this panics with an invalid {{= c.Identifier}} value, then the {{= c.Identifier}} field was not selected in a prior query. Be sure to include it in any Select statements.
-            newLock, err2 = d.Update(ctx, "{{= table.QueryName }}",
-                map[string]any{
-{{for _,col := range table.PrimaryKeyColumns()}}
-                    "{{= col.QueryName }}": {{if len(table.PrimaryKeyColumns()) == 1}}o._originalPK{{else}}o._originalPK.{{= col.Field}}{{if}},
-{{for}}
-                },
-                modifiedFields, "{{= c.QueryName }}", o.{{= c.Identifier}}())
-            if err2 != nil {
-                return err2
-            }
-{{if}}
         }
 
 {{: "update_rev.tmpl" }}
@@ -71,13 +58,15 @@ func (o *{{= table.DecapIdentifier}}Base) update(ctx context.Context) error {
 {{for _,col := range table.Columns }}
 {{if col.SchemaSubType == schema.ColSubTypeTimestamp ||
         col.ReceiverType == query.ColTypeTime && col.DefaultValue == model.ModifiedTime }}
+    // update generated time value
     if t, ok := modifiedFields["{{= col.QueryName }}"]; ok {
         o.{{= col.Field }} = t.({{= col.Type }})
         o.{{= col.Field }}IsLoaded = true
     }
 {{elseif col.SchemaSubType == schema.ColSubTypeLock}}
-    if newLock != 0 {
-        o.{{= col.Field }} = newLock
+    // update generated lock value
+    if l, ok := modifiedFields["{{= col.QueryName }}"]; ok {
+        o.{{= col.Field }} = l
         o.{{= col.Field }}IsLoaded = true
     }
 {{if}}

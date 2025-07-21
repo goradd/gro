@@ -198,6 +198,24 @@ func (t *Table) HasManyManyReferences() bool {
 	return len(t.ManyManyReferences) > 0
 }
 
+// LockColumnQueryName returns the Column.QueryName of the lock column, or an empty string if there is no lock column.
+func (t *Table) LockColumnQueryName() string {
+	if t.LockColumn == nil {
+		return ""
+	} else {
+		return t.LockColumn.QueryName
+	}
+}
+
+// LockColumnIdentifier returns the Column.Identifier of the lock column, or an empty string if there is no lock column.
+func (t *Table) LockColumnIdentifier() string {
+	if t.LockColumn == nil {
+		return ""
+	} else {
+		return t.LockColumn.Identifier
+	}
+}
+
 // importTable will import the table provided by tableSchema.
 // If an error occurs, it is logged and nil is returned.
 // There are a number of dependencies here, so code order is important.

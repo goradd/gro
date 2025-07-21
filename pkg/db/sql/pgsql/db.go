@@ -211,37 +211,37 @@ func (m *DB) insertWithReturning(ctx context.Context, table string, pkName strin
 // will not be altered, and no error will be returned.
 func (m *DB) Update(ctx context.Context,
 	table string,
-	primaryKeys map[string]any,
-	fields map[string]any,
+	primaryKey map[string]any,
+	changes map[string]any,
 	optLockFieldName string,
 	optLockFieldValue int64,
-) (newLock int64, err error) {
-	if len(fields) == 0 {
-		panic("fields must not be empty")
+) (err error) {
+	if len(changes) == 0 {
+		panic("changes must not be empty")
 	}
 	where := make(map[string]any)
-	for k, v := range primaryKeys {
+	for k, v := range primaryKey {
 		where[k] = v
 	}
 	if optLockFieldName != "" {
-		newLock = db.RecordVersion(optLockFieldValue)
+		newLock := db.RecordVersion(optLockFieldValue)
 		where[optLockFieldName] = optLockFieldValue
-		fields[optLockFieldName] = newLock
+		changes[optLockFieldName] = newLock
 	}
-	s, args := sql2.GenerateUpdate(m, table, fields, where, false)
+	s, args := sql2.GenerateUpdate(m, table, changes, where, false)
 	var result sqldb.Result
 	result, err = m.SqlExec(ctx, s, args...)
 	if err != nil {
 		if pgErr, ok := anyutil.As[*pgconn.PgError](err); ok {
 			if pgErr.Code == "23505" {
-				return 0, db.NewUniqueValueError(table, nil, err)
+				return db.NewUniqueValueError(table, nil, err)
 			}
 		}
-		return 0, db.NewQueryError("SqlExec", s, args, err)
+		return db.NewQueryError("SqlExec", s, args, err)
 	}
 	if rows, _ := result.RowsAffected(); rows == 0 {
 		if optLockFieldName != "" {
-			return 0, db.NewOptimisticLockError(table, primaryKeys, nil)
+			return db.NewOptimisticLockError(table, primaryKey, nil)
 		} /*else {
 			Note: We cannot determine that a record was not found, because another possibility is simply that the record
 				  did not change. The above works because the optimistic lock forces a change.

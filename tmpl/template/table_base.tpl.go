@@ -8592,176 +8592,96 @@ func (o *`); err != nil {
 
 	if _, err = io.WriteString(_w, `UpdateFields(o)
         if len(modifiedFields) != 0 {
-            var err2 error
+            err2 := d.Update(ctx, "`); err != nil {
+		return
+	}
 
+	if _, err = io.WriteString(_w, table.QueryName); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `",
+                map[string]any{
 `); err != nil {
 		return
 	}
 
-	if c := table.LockColumn; c == nil {
+	for _, col := range table.PrimaryKeyColumns() {
 
-		if _, err = io.WriteString(_w, `            _, err2 = d.Update(ctx, "`); err != nil {
+		if _, err = io.WriteString(_w, `                    "`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.QueryName); err != nil {
+		if _, err = io.WriteString(_w, col.QueryName); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `",
-                map[string]any{
+		if _, err = io.WriteString(_w, `": o._originalPK`); err != nil {
+			return
+		}
+
+		if len(table.PrimaryKeyColumns()) > 1 {
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Field); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `,
 `); err != nil {
 			return
 		}
 
-		for _, col := range table.PrimaryKeyColumns() {
+	}
 
-			if _, err = io.WriteString(_w, `                    "`); err != nil {
-				return
-			}
+	if _, err = io.WriteString(_w, `                },
+                modifiedFields,
+                "`); err != nil {
+		return
+	}
 
-			if _, err = io.WriteString(_w, col.QueryName); err != nil {
-				return
-			}
+	if _, err = io.WriteString(_w, table.LockColumnQueryName()); err != nil {
+		return
+	}
 
-			if _, err = io.WriteString(_w, `": `); err != nil {
-				return
-			}
+	if _, err = io.WriteString(_w, `",
+                `); err != nil {
+		return
+	}
 
-			if len(table.PrimaryKeyColumns()) == 1 {
+	if s := table.LockColumnIdentifer(); s == "" {
 
-				if _, err = io.WriteString(_w, `o._originalPK`); err != nil {
-					return
-				}
-
-			} else {
-
-				if _, err = io.WriteString(_w, `o._originalPK.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Field); err != nil {
-					return
-				}
-
-			}
-
-			if _, err = io.WriteString(_w, `,
-`); err != nil {
-				return
-			}
-
-		}
-
-		if _, err = io.WriteString(_w, `                },
-                modifiedFields, "", 0)
-            if err2 != nil {
-                return err2
-            }
-`); err != nil {
+		if _, err = io.WriteString(_w, `0`); err != nil {
 			return
 		}
 
 	} else {
 
-		if _, err = io.WriteString(_w, `            // If this panics with an invalid `); err != nil {
+		if _, err = io.WriteString(_w, `o.`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, c.Identifier); err != nil {
+		if _, err = io.WriteString(_w, s); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ` value, then the `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, c.Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, ` field was not selected in a prior query. Be sure to include it in any Select statements.
-            newLock, err2 = d.Update(ctx, "`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.QueryName); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `",
-                map[string]any{
-`); err != nil {
-			return
-		}
-
-		for _, col := range table.PrimaryKeyColumns() {
-
-			if _, err = io.WriteString(_w, `                    "`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.QueryName); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `": `); err != nil {
-				return
-			}
-
-			if len(table.PrimaryKeyColumns()) == 1 {
-
-				if _, err = io.WriteString(_w, `o._originalPK`); err != nil {
-					return
-				}
-
-			} else {
-
-				if _, err = io.WriteString(_w, `o._originalPK.`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Field); err != nil {
-					return
-				}
-
-			}
-
-			if _, err = io.WriteString(_w, `,
-`); err != nil {
-				return
-			}
-
-		}
-
-		if _, err = io.WriteString(_w, `                },
-                modifiedFields, "`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, c.QueryName); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `", o.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, c.Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `())
-            if err2 != nil {
-                return err2
-            }
-`); err != nil {
+		if _, err = io.WriteString(_w, `()`); err != nil {
 			return
 		}
 
 	}
 
-	if _, err = io.WriteString(_w, `        }
+	if _, err = io.WriteString(_w, `,
+            )
+            if err2 != nil {
+                return err2
+            }
+        }
 
 `); err != nil {
 		return
@@ -9828,7 +9748,8 @@ func (o *`); err != nil {
 		if col.SchemaSubType == schema.ColSubTypeTimestamp ||
 			col.ReceiverType == query.ColTypeTime && col.DefaultValue == model.ModifiedTime {
 
-			if _, err = io.WriteString(_w, `    if t, ok := modifiedFields["`); err != nil {
+			if _, err = io.WriteString(_w, `    // update generated time value
+    if t, ok := modifiedFields["`); err != nil {
 				return
 			}
 
@@ -9870,7 +9791,16 @@ func (o *`); err != nil {
 
 		} else if col.SchemaSubType == schema.ColSubTypeLock {
 
-			if _, err = io.WriteString(_w, `    if newLock != 0 {
+			if _, err = io.WriteString(_w, `    // update generated lock value
+    if l, ok := modifiedFields["`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.QueryName); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `"]; ok {
         o.`); err != nil {
 				return
 			}
@@ -9879,7 +9809,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` = newLock
+			if _, err = io.WriteString(_w, ` = l
         o.`); err != nil {
 				return
 			}
@@ -11241,84 +11171,93 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 
 	if len(table.ReverseReferences) == 0 && len(table.ManyManyReferences) == 0 {
 
-		if c := table.LockColumn; c == nil {
+		if _, err = io.WriteString(_w, `    err = d.Delete(ctx, "`); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `	err = d.Delete(ctx, "`); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, fmt.Sprint(table.QueryName)); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, fmt.Sprint(table.QueryName)); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `", "`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().QueryName); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `", o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `, "", 0)
+		if _, err = io.WriteString(_w, `",
+        map[string]any {
 `); err != nil {
+			return
+		}
+
+		for _, col := range table.PrimaryKeyColumns() {
+
+			if _, err = io.WriteString(_w, `            "`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.QueryName); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `": o._originalPK`); err != nil {
+				return
+			}
+
+			if len(table.PrimaryKeyColumns()) > 1 {
+
+				if _, err = io.WriteString(_w, `.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Field); err != nil {
+					return
+				}
+
+			}
+
+			if _, err = io.WriteString(_w, `
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `        },
+        "`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.LockColumnQueryName()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `",
+        `); err != nil {
+			return
+		}
+
+		if s := table.LockColumnIdentifer(); s == "" {
+
+			if _, err = io.WriteString(_w, `0`); err != nil {
 				return
 			}
 
 		} else {
 
-			if _, err = io.WriteString(_w, `	err = d.Delete(ctx, "`); err != nil {
+			if _, err = io.WriteString(_w, `o.`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, fmt.Sprint(table.QueryName)); err != nil {
+			if _, err = io.WriteString(_w, s); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `", "`); err != nil {
+			if _, err = io.WriteString(_w, `()`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().QueryName); err != nil {
-				return
-			}
+		}
 
-			if _, err = io.WriteString(_w, `", o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `, "`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, c.QueryName); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `", o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, c.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `())
+		if _, err = io.WriteString(_w, `,
+    )
 `); err != nil {
-				return
-			}
-
+			return
 		}
 
 	} else {
@@ -11393,15 +11332,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 						return
 					}
 
-					if _, err = io.WriteString(_w, `(), o.`); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, `)).
+					if _, err = io.WriteString(_w, `(), o._originalPK)).
                           Select(node.`); err != nil {
 						return
 					}
@@ -11437,7 +11368,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 							return
 						}
 
-						if _, err = io.WriteString(_w, rev.Table.LockColumn.Identifier); err != nil {
+						if _, err = io.WriteString(_w, rev.Table.LockColumnIdentifier()); err != nil {
 							return
 						}
 
@@ -11510,15 +11441,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 						return
 					}
 
-					if _, err = io.WriteString(_w, `(), o.`); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, `)).
+					if _, err = io.WriteString(_w, `(), o._originalPK)).
                          Get()
                  if err != nil {
                      return err
@@ -11590,15 +11513,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 						return
 					}
 
-					if _, err = io.WriteString(_w, `(), o.`); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, `)).
+					if _, err = io.WriteString(_w, `(), o._originalPK)).
                           Select(node.`); err != nil {
 						return
 					}
@@ -11706,15 +11621,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 						return
 					}
 
-					if _, err = io.WriteString(_w, `(), o.`); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
-						return
-					}
-
-					if _, err = io.WriteString(_w, `)).
+					if _, err = io.WriteString(_w, `(), o._originalPK)).
                           Load()
                 if err != nil {
                     return err
@@ -11783,7 +11690,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 			}
 
 			if _, err = io.WriteString(_w, `",
-            o.PrimaryKey(),
+            o._originalPK,
             "`); err != nil {
 				return
 			}
@@ -11812,91 +11719,62 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 		}
 
 		if _, err = io.WriteString(_w, `
-`); err != nil {
+	    return d.Delete(ctx, "`); err != nil {
 			return
 		}
 
-		if c := table.LockColumn; c == nil {
+		if _, err = io.WriteString(_w, fmt.Sprint(table.QueryName)); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `	    return d.Delete(ctx, "`); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, `",
+	        map[string]any{"`); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, fmt.Sprint(table.QueryName)); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().QueryName); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `", "`); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, `": o._originalPK},
+            "`); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().QueryName); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, table.LockColumnQueryName()); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `", o.`); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, `",
+            `); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
-				return
-			}
+		if s := table.LockColumnIdentifer(); s == "" {
 
-			if _, err = io.WriteString(_w, `, "", 0)
-`); err != nil {
+			if _, err = io.WriteString(_w, `0`); err != nil {
 				return
 			}
 
 		} else {
 
-			if _, err = io.WriteString(_w, `	    return d.Delete(ctx, "`); err != nil {
+			if _, err = io.WriteString(_w, `o.`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, fmt.Sprint(table.QueryName)); err != nil {
+			if _, err = io.WriteString(_w, s); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `", "`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().QueryName); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `", o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `, "`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, c.QueryName); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `", o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, c.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `())
-`); err != nil {
+			if _, err = io.WriteString(_w, `()`); err != nil {
 				return
 			}
 
 		}
 
-		if _, err = io.WriteString(_w, `	})
+		if _, err = io.WriteString(_w, `,
+        )
+	})
 
 `); err != nil {
 			return

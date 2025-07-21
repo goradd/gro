@@ -41,13 +41,17 @@ type SchemaRebuilder interface {
 // If a value is a slice of int or strings, those values will be put in an "IN" test.
 // For example, {"vals":[]int{1,2,3}} will result in SQL of "vals IN (1,2,3)".
 type DatabaseI interface {
-	// Update will put the given values into a single record that already exists in the database.
-	// The fields value should include only fields that have changed.
-	// primaryKey is a map of field names and values for the primary key of the record.
-	// Set pkName to an empty string and pkValue to a map if the table has a composite key.
-	// optLockFieldName and optLockFieldValue points to a version field in the record that helps implement optimistic locking. These can be empty if no optimistic locking is required.
-	// returns a new value of the lock if the update is successful.
-	Update(ctx context.Context, table string, primaryKey map[string]any, fields map[string]any, optLockFieldName string, optLockFieldValue int64) (int64, error)
+	// Update sets specific fields of a single record that exists in the database.
+	// optLockFieldName is the name of a version field that will implement an optimistic locking check while doing the update.
+	// If optLockFieldName is provided:
+	//   - That field will be used to limit the update,
+	//   - That field will be updated with a new version and returned in changes.
+	//   - If the record was previously deleted or updated, an OptimisticLockError will be returned.
+	//     You will need to query further to determine if the record still exists.
+	//
+	// Otherwise, if optLockFieldName is blank, and the record we are attempting to change does not exist, the database
+	// will not be altered, and no error will be returned.
+	Update(ctx context.Context, table string, primaryKey map[string]any, changes map[string]any, optLockFieldName string, optLockFieldValue int64) error
 	// Insert will insert a new record into the database with the given values.
 	// If the primary key is auto generated, then the name of the primary key column should be passed in autoPkName, in which
 	// case the newly generated primary key will be returned.
@@ -56,11 +60,13 @@ type DatabaseI interface {
 	// Otherwise, if the primary key is manually set, autoPkName should be empty.
 	// If fields does not include all the required values in the database, the database may return an error.
 	Insert(ctx context.Context, table string, autoPkName string, fields map[string]any) (string, error)
-	// Delete will delete records from the database that match the column names and values in where.
+	// Delete will delete a single record from the database.
 	// If optLockFieldName is provided, the optLockFieldValue will also constrain Delete, and if no
 	// records are found, it will return an OptimisticLockError. If optLockFieldName is empty, and
 	// no record is found, a NoRecordFound error will be returned.
-	Delete(ctx context.Context, table string, where map[string]any, optLockFieldName string, optLockFieldValue int64) error
+	// Care should be exercised when calling this directly, since linked records are not modified in any way.
+	// If this record has linked records, the database structure may be corrupted.
+	Delete(ctx context.Context, table string, primaryKey map[string]any, optLockFieldName string, optLockFieldValue int64) error
 	// DeleteAll will efficiently delete all the records from a table.
 	DeleteAll(ctx context.Context, table string) error
 	// Query executes a simple query on a single table using fields, where the keys of fields are the names of database fields to select,

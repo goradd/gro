@@ -238,24 +238,29 @@ func (m *DB) Insert(ctx context.Context, table string, _ string, fields map[stri
 // optLockFieldName is the name of a version field that will implement an optimistic locking check while doing the update.
 // If optLockFieldName is provided:
 //   - That field will be used to limit the update,
-//   - That field will be updated with a new version
-//   - If the record was deleted, or if the record was previously updated, an OptimisticLockError will be returned.
+//   - That field will be updated with a new version and returned in changes.
+//   - If the record was previously deleted or updated, an OptimisticLockError will be returned.
 //     You will need to query further to determine if the record still exists.
 //
 // Otherwise, if optLockFieldName is blank, and the record we are attempting to change does not exist, the database
 // will not be altered, and no error will be returned.
 func (m *DB) Update(ctx context.Context,
 	table string,
-	where map[string]any,
+	primaryKey map[string]any,
 	changes map[string]any,
 	optLockFieldName string,
-) (newLock int64, err error) {
+	optLockFieldValue int64,
+) (err error) {
 	if len(changes) == 0 {
 		panic("changes must not be empty")
 	}
+	where := make(map[string]any)
+	for k, v := range changes {
+		where[k] = v
+	}
 	if optLockFieldName != "" {
-		oldLock := changes[optLockFieldName].(int64)
-		newLock = db.RecordVersion(oldLock)
+		where[optLockFieldName] = optLockFieldValue
+		newLock := db.RecordVersion(optLockFieldValue)
 		changes[optLockFieldName] = newLock
 	}
 	s, args := sql2.GenerateUpdate(m, table, changes, where, false)
@@ -268,14 +273,14 @@ func (m *DB) Update(ctx context.Context,
 				// Since it is not possible to completely prevent a unique constraint error, except by implementing a separate
 				// service to track and lock unique values that are in use (which is beyond the scope of the ORM), we need
 				// to see if this is that kind of error and return it, rather than panicking.
-				return 0, db.NewUniqueValueError(table, nil, err)
+				return db.NewUniqueValueError(table, nil, err)
 			}
 		}
-		return 0, db.NewQueryError("SqlExec", s, args, err)
+		return db.NewQueryError("SqlExec", s, args, err)
 	}
 	if rows, _ := result.RowsAffected(); rows == 0 {
 		if optLockFieldName != "" {
-			return 0, db.NewOptimisticLockError(table, primaryKeys, nil)
+			return db.NewOptimisticLockError(table, primaryKey, nil)
 		} /*else {
 			Note: We cannot determine that a record was not found, because another possibility is simply that the record
 				  did not change. The above works because the optimistic lock forces a change.

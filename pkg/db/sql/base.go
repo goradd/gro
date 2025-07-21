@@ -142,11 +142,15 @@ func (h *Base) Query(ctx context.Context, table string, fields map[string]Receiv
 	}
 }
 
-// Delete deletes the indicated records from the database.
+// Delete deletes a single record from the database.
 // Care should be exercised when calling this directly, since linked records are not modified in any way.
 // If this record has linked records, the database structure may be corrupted.
-func (h *Base) Delete(ctx context.Context, table string, colName string, colValue any, optLockFieldName string, optLockFieldValue int64) error {
-	where := map[string]any{colName: colValue}
+func (h *Base) Delete(ctx context.Context, table string, primaryKey map[string]any, optLockFieldName string, optLockFieldValue int64) error {
+
+	where := make(map[string]any)
+	for k, v := range primaryKey {
+		where[k] = v
+	}
 	if optLockFieldName != "" {
 		// push where field down a level so it gets ANDed.
 		where[optLockFieldName] = optLockFieldValue
@@ -158,9 +162,9 @@ func (h *Base) Delete(ctx context.Context, table string, colName string, colValu
 	}
 	if rows, _ := result.RowsAffected(); rows == 0 {
 		if optLockFieldName != "" {
-			return db.NewOptimisticLockError(table, colValue, nil)
+			return db.NewOptimisticLockError(table, primaryKey, nil)
 		} else {
-			return db.NewRecordNotFoundError(table, colValue)
+			return db.NewRecordNotFoundError(table, primaryKey)
 		}
 	}
 	return nil
