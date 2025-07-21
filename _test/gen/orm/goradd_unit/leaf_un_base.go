@@ -613,7 +613,11 @@ func (o *leafUnBase) update(ctx context.Context) error {
 		if len(modifiedFields) != 0 {
 			var err2 error
 
-			_, err2 = d.Update(ctx, "leaf_un", "id", o._originalPK, modifiedFields, "", 0)
+			_, err2 = d.Update(ctx, "leaf_un",
+				map[string]any{
+					"id": o._originalPK,
+				},
+				modifiedFields, "", 0)
 			if err2 != nil {
 				return err2
 			}

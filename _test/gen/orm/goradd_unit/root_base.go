@@ -562,7 +562,11 @@ func (o *rootBase) update(ctx context.Context) error {
 		if len(modifiedFields) != 0 {
 			var err2 error
 
-			_, err2 = d.Update(ctx, "root", "id", o._originalPK, modifiedFields, "", 0)
+			_, err2 = d.Update(ctx, "root",
+				map[string]any{
+					"id": o._originalPK,
+				},
+				modifiedFields, "", 0)
 			if err2 != nil {
 				return err2
 			}

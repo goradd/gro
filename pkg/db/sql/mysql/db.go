@@ -246,22 +246,19 @@ func (m *DB) Insert(ctx context.Context, table string, _ string, fields map[stri
 // will not be altered, and no error will be returned.
 func (m *DB) Update(ctx context.Context,
 	table string,
-	pkName string,
-	pkValue any,
-	fields map[string]any,
+	where map[string]any,
+	changes map[string]any,
 	optLockFieldName string,
-	optLockFieldValue int64,
 ) (newLock int64, err error) {
-	if len(fields) == 0 {
-		panic("fields must not be empty")
+	if len(changes) == 0 {
+		panic("changes must not be empty")
 	}
-	where := map[string]any{pkName: pkValue}
 	if optLockFieldName != "" {
-		newLock = db.RecordVersion(optLockFieldValue)
-		where[optLockFieldName] = optLockFieldValue
-		fields[optLockFieldName] = newLock
+		oldLock := changes[optLockFieldName].(int64)
+		newLock = db.RecordVersion(oldLock)
+		changes[optLockFieldName] = newLock
 	}
-	s, args := sql2.GenerateUpdate(m, table, fields, where, false)
+	s, args := sql2.GenerateUpdate(m, table, changes, where, false)
 	var result sqldb.Result
 	result, err = m.SqlExec(ctx, s, args...)
 	if err != nil {
@@ -278,7 +275,7 @@ func (m *DB) Update(ctx context.Context,
 	}
 	if rows, _ := result.RowsAffected(); rows == 0 {
 		if optLockFieldName != "" {
-			return 0, db.NewOptimisticLockError(table, pkValue, nil)
+			return 0, db.NewOptimisticLockError(table, primaryKeys, nil)
 		} /*else {
 			Note: We cannot determine that a record was not found, because another possibility is simply that the record
 				  did not change. The above works because the optimistic lock forces a change.

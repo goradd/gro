@@ -43,10 +43,11 @@ type SchemaRebuilder interface {
 type DatabaseI interface {
 	// Update will put the given values into a single record that already exists in the database.
 	// The fields value should include only fields that have changed.
-	// pkName is the query name of the primary key field and pkValue its value.
+	// primaryKey is a map of field names and values for the primary key of the record.
+	// Set pkName to an empty string and pkValue to a map if the table has a composite key.
 	// optLockFieldName and optLockFieldValue points to a version field in the record that helps implement optimistic locking. These can be empty if no optimistic locking is required.
 	// returns a new value of the lock if the update is successful.
-	Update(ctx context.Context, table string, pkName string, pkValue any, fields map[string]any, optLockFieldName string, optLockFieldValue int64) (int64, error)
+	Update(ctx context.Context, table string, primaryKey map[string]any, fields map[string]any, optLockFieldName string, optLockFieldValue int64) (int64, error)
 	// Insert will insert a new record into the database with the given values.
 	// If the primary key is auto generated, then the name of the primary key column should be passed in autoPkName, in which
 	// case the newly generated primary key will be returned.
@@ -55,11 +56,11 @@ type DatabaseI interface {
 	// Otherwise, if the primary key is manually set, autoPkName should be empty.
 	// If fields does not include all the required values in the database, the database may return an error.
 	Insert(ctx context.Context, table string, autoPkName string, fields map[string]any) (string, error)
-	// Delete will delete records from the database that match the colName and colValue.
-	// If optLockFieldName is provided, the optLockFieldValue will also constrain the delete, and if no
+	// Delete will delete records from the database that match the column names and values in where.
+	// If optLockFieldName is provided, the optLockFieldValue will also constrain Delete, and if no
 	// records are found, it will return an OptimisticLockError. If optLockFieldName is empty, and
 	// no record is found, a NoRecordFound error will be returned.
-	Delete(ctx context.Context, table string, colName string, colValue any, optLockFieldName string, optLockFieldValue int64) error
+	Delete(ctx context.Context, table string, where map[string]any, optLockFieldName string, optLockFieldValue int64) error
 	// DeleteAll will efficiently delete all the records from a table.
 	DeleteAll(ctx context.Context, table string) error
 	// Query executes a simple query on a single table using fields, where the keys of fields are the names of database fields to select,

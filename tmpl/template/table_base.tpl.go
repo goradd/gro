@@ -8608,15 +8608,53 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `", "`); err != nil {
+		if _, err = io.WriteString(_w, `",
+                map[string]any{
+`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().QueryName); err != nil {
-			return
+		for _, col := range table.PrimaryKeyColumns() {
+
+			if _, err = io.WriteString(_w, `                    "`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.QueryName); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `": `); err != nil {
+				return
+			}
+
+			if len(table.PrimaryKeyColumns()) == 1 {
+
+				if _, err = io.WriteString(_w, `o._originalPK`); err != nil {
+					return
+				}
+
+			} else {
+
+				if _, err = io.WriteString(_w, `o._originalPK.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Field); err != nil {
+					return
+				}
+
+			}
+
+			if _, err = io.WriteString(_w, `,
+`); err != nil {
+				return
+			}
+
 		}
 
-		if _, err = io.WriteString(_w, `", o._originalPK, modifiedFields, "", 0)
+		if _, err = io.WriteString(_w, `                },
+                modifiedFields, "", 0)
             if err2 != nil {
                 return err2
             }
@@ -8651,15 +8689,53 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `", "`); err != nil {
+		if _, err = io.WriteString(_w, `",
+                map[string]any{
+`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().QueryName); err != nil {
-			return
+		for _, col := range table.PrimaryKeyColumns() {
+
+			if _, err = io.WriteString(_w, `                    "`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.QueryName); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `": `); err != nil {
+				return
+			}
+
+			if len(table.PrimaryKeyColumns()) == 1 {
+
+				if _, err = io.WriteString(_w, `o._originalPK`); err != nil {
+					return
+				}
+
+			} else {
+
+				if _, err = io.WriteString(_w, `o._originalPK.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Field); err != nil {
+					return
+				}
+
+			}
+
+			if _, err = io.WriteString(_w, `,
+`); err != nil {
+				return
+			}
+
 		}
 
-		if _, err = io.WriteString(_w, `", o._originalPK, modifiedFields, "`); err != nil {
+		if _, err = io.WriteString(_w, `                },
+                modifiedFields, "`); err != nil {
 			return
 		}
 

@@ -18,20 +18,24 @@ import (
 	"github.com/goradd/orm/pkg/query"
 )
 
-// RootUBase is embedded in a RootU object and provides the ORM access to the database.
-// The member variables of the structure are private and should not normally be accessed by the RootU embedder.
+// LeafLBase is embedded in a LeafL object and provides the ORM access to the database.
+// The member variables of the structure are private and should not normally be accessed by the LeafL embedder.
 // Instead, use the accessor functions.
-type rootUBase struct {
-	id           string
-	idIsLoaded   bool
-	idIsDirty    bool
-	name         string
-	nameIsLoaded bool
-	nameIsDirty  bool
+type leafLBase struct {
+	id              string
+	idIsLoaded      bool
+	idIsDirty       bool
+	name            string
+	nameIsLoaded    bool
+	nameIsDirty     bool
+	groLock         int64
+	groLockIsLoaded bool
+	rootLID         string
+	rootLIDIsLoaded bool
+	rootLIDIsDirty  bool
 
-	// Reverse references
-	leafU        *LeafU
-	leafUIsDirty bool // is a new one being associated
+	// References
+	rootL *RootL
 
 	// Custom aliases, if specified
 	_aliases map[string]any
@@ -42,20 +46,23 @@ type rootUBase struct {
 	_originalPK string
 }
 
-// IDs used to access the RootU object fields by name using the Get function.
-// doc: type=RootU
+// IDs used to access the LeafL object fields by name using the Get function.
+// doc: type=LeafL
 const (
-	RootUIDField    = `id`
-	RootUNameField  = `name`
-	RootULeafUField = `leafU`
+	LeafLIDField      = `id`
+	LeafLNameField    = `name`
+	LeafLGroLockField = `groLock`
+	LeafLRootLIDField = `rootLID`
+	LeafLRootLField   = `rootL`
 )
 
-const RootUIDMaxLength = 32    // The number of runes the column can hold
-const RootUNameMaxLength = 100 // The number of runes the column can hold
+const LeafLIDMaxLength = 32      // The number of runes the column can hold
+const LeafLNameMaxLength = 100   // The number of runes the column can hold
+const LeafLRootLIDMaxLength = 32 // The number of runes the column can hold
 
-// Initialize or re-initialize a RootU database object to default values.
+// Initialize or re-initialize a LeafL database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
-func (o *rootUBase) Initialize() {
+func (o *leafLBase) Initialize() {
 	o.id = db.TemporaryPrimaryKey()
 	o.idIsLoaded = true
 	o.idIsDirty = false
@@ -64,16 +71,18 @@ func (o *rootUBase) Initialize() {
 	o.nameIsLoaded = false
 	o.nameIsDirty = false
 
-	// Reverse reference objects.
+	o.groLock = 0
+	o.groLockIsLoaded = false
 
-	o.leafU = nil
-	o.leafUIsDirty = false
+	o.rootLID = ""
+	o.rootLIDIsLoaded = false
+	o.rootLIDIsDirty = false
 
 	o._aliases = nil
 	o._restored = false
 }
 
-// Copy copies most fields to a new RootU object.
+// Copy copies most fields to a new LeafL object.
 // Forward reference ids will be copied, but reverse and many-many references will not.
 // Attached objects will not be included in the copy.
 // Automatically generated fields will not be included in the copy.
@@ -81,25 +90,28 @@ func (o *rootUBase) Initialize() {
 // Call Save() on the new object to save it into the database.
 // Copy might panic if any fields in the database were set to a size larger than the
 // maximum size through a process that accessed the database outside of the ORM.
-func (o *rootUBase) Copy() (newObject *RootU) {
-	newObject = NewRootU()
+func (o *leafLBase) Copy() (newObject *LeafL) {
+	newObject = NewLeafL()
 	if o.idIsLoaded {
 		newObject.SetID(o.id)
 	}
 	if o.nameIsLoaded {
 		newObject.SetName(o.name)
 	}
+	if o.rootLIDIsLoaded {
+		newObject.SetRootLID(o.rootLID)
+	}
 	return
 }
 
 // OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
 // read from the database.
-func (o *rootUBase) OriginalPrimaryKey() string {
+func (o *leafLBase) OriginalPrimaryKey() string {
 	return o._originalPK
 }
 
 // PrimaryKey returns the value of the primary key of the record.
-func (o *rootUBase) PrimaryKey() string {
+func (o *leafLBase) PrimaryKey() string {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
 	}
@@ -112,12 +124,12 @@ func (o *rootUBase) PrimaryKey() string {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *rootUBase) SetPrimaryKey(v string) {
+func (o *leafLBase) SetPrimaryKey(v string) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
 	}
-	if utf8.RuneCountInString(v) > RootUIDMaxLength {
-		panic("attempted to set RootU.ID to a value larger than its maximum length in runes")
+	if utf8.RuneCountInString(v) > LeafLIDMaxLength {
+		panic("attempted to set LeafL.ID to a value larger than its maximum length in runes")
 	}
 	o.idIsLoaded = true
 	o.idIsDirty = true
@@ -125,12 +137,12 @@ func (o *rootUBase) SetPrimaryKey(v string) {
 }
 
 // ID returns the value of ID.
-func (o *rootUBase) ID() string {
+func (o *leafLBase) ID() string {
 	return o.PrimaryKey()
 }
 
 // IDIsLoaded returns true if the value was loaded from the database or has been set.
-func (o *rootUBase) IDIsLoaded() bool {
+func (o *leafLBase) IDIsLoaded() bool {
 	return o.idIsLoaded
 }
 
@@ -140,12 +152,12 @@ func (o *rootUBase) IDIsLoaded() bool {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *rootUBase) SetID(v string) {
+func (o *leafLBase) SetID(v string) {
 	o.SetPrimaryKey(v)
 }
 
 // Name returns the value of Name.
-func (o *rootUBase) Name() string {
+func (o *leafLBase) Name() string {
 	if o._restored && !o.nameIsLoaded {
 		panic("Name was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -153,14 +165,14 @@ func (o *rootUBase) Name() string {
 }
 
 // NameIsLoaded returns true if the value was loaded from the database or has been set.
-func (o *rootUBase) NameIsLoaded() bool {
+func (o *leafLBase) NameIsLoaded() bool {
 	return o.nameIsLoaded
 }
 
 // SetName sets the value of Name in the object, to be saved later in the database using the Save() function.
-func (o *rootUBase) SetName(v string) {
-	if utf8.RuneCountInString(v) > RootUNameMaxLength {
-		panic("attempted to set RootU.Name to a value larger than its maximum length in runes")
+func (o *leafLBase) SetName(v string) {
+	if utf8.RuneCountInString(v) > LeafLNameMaxLength {
+		panic("attempted to set LeafL.Name to a value larger than its maximum length in runes")
 	}
 	if o._restored &&
 		o.nameIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
@@ -174,9 +186,90 @@ func (o *rootUBase) SetName(v string) {
 	o.nameIsDirty = true
 }
 
+// GroLock returns the value of GroLock.
+func (o *leafLBase) GroLock() int64 {
+	if o._restored && !o.groLockIsLoaded {
+		panic("GroLock was not selected in the last query and has not been set, and so is not valid")
+	}
+	return o.groLock
+}
+
+// GroLockIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *leafLBase) GroLockIsLoaded() bool {
+	return o.groLockIsLoaded
+}
+
+// RootLID returns the value of RootLID.
+func (o *leafLBase) RootLID() string {
+	if o._restored && !o.rootLIDIsLoaded {
+		panic("RootLID was not selected in the last query and has not been set, and so is not valid")
+	}
+	return o.rootLID
+}
+
+// RootLIDIsLoaded returns true if the value was loaded from the database or has been set.
+func (o *leafLBase) RootLIDIsLoaded() bool {
+	return o.rootLIDIsLoaded
+}
+
+// SetRootLID sets the value of RootLID in the object, to be saved later in the database using the Save() function.
+func (o *leafLBase) SetRootLID(v string) {
+	if utf8.RuneCountInString(v) > LeafLRootLIDMaxLength {
+		panic("attempted to set LeafL.RootLID to a value larger than its maximum length in runes")
+	}
+	if o._restored &&
+		o.rootLIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.rootLID == v {
+		// no change
+		return
+	}
+
+	o.rootLIDIsLoaded = true
+	o.rootLID = v
+	o.rootLIDIsDirty = true
+	if o.rootL != nil &&
+		o.rootLID != o.rootL.PrimaryKey() {
+		o.rootL = nil
+	}
+}
+
+// RootL returns the current value of the loaded RootL, and nil if its not loaded.
+func (o *leafLBase) RootL() *RootL {
+	return o.rootL
+}
+
+// LoadRootL returns the related RootL. If it is not already loaded,
+// it will attempt to load it, provided the RootLID column has been loaded first.
+func (o *leafLBase) LoadRootL(ctx context.Context) (*RootL, error) {
+	var err error
+
+	if o.rootL == nil {
+		if !o.rootLIDIsLoaded {
+			panic("RootLID must be selected in the previous query")
+		}
+		// Load and cache
+		o.rootL, err = LoadRootL(ctx, o.rootLID)
+	}
+	return o.rootL, err
+}
+
+// SetRootL sets the value of RootL in the object, to be saved later using the Save() function.
+func (o *leafLBase) SetRootL(rootL *RootL) {
+	if rootL == nil {
+		panic("Cannot set RootL to a nil value since RootLID is not nullable.")
+	} else {
+		o.rootL = rootL
+		o.rootLIDIsLoaded = true
+		if o.rootLID != rootL.PrimaryKey() {
+			o.rootLID = rootL.PrimaryKey()
+			o.rootLIDIsDirty = true
+		}
+	}
+}
+
 // GetAlias returns the value for the Alias node aliasKey that was returned in the most
 // recent query.
-func (o *rootUBase) GetAlias(aliasKey string) query.AliasValue {
+func (o *leafLBase) GetAlias(aliasKey string) query.AliasValue {
 	if a, ok := o._aliases[aliasKey]; ok {
 		return query.NewAliasValue(a)
 	} else {
@@ -185,91 +278,73 @@ func (o *rootUBase) GetAlias(aliasKey string) query.AliasValue {
 }
 
 // IsNew returns true if the object will create a new record when saved.
-func (o *rootUBase) IsNew() bool {
+func (o *leafLBase) IsNew() bool {
 	return !o._restored
 }
 
-// LeafU returns the connected LeafU object, if one was loaded.
-// Otherwise, it will return nil.
-func (o *rootUBase) LeafU() *LeafU {
-	if o.leafU == nil {
-		return nil
-	}
-	return o.leafU
-}
-
-// LoadLeafU returns the connected LeafU object, if one was loaded.
-// Otherwise, it will load a new one and return it.
-func (o *rootUBase) LoadLeafU(ctx context.Context) (*LeafU, error) {
-	if o.leafU != nil && o.leafU.IsDirty() {
-		panic("The LeafU has changed. You must save it first before changing to a different one.")
-	}
-	var err error
-	if o.leafU == nil {
-		pk := o.ID()
-		o.leafU, err = LoadLeafUByRootUID(ctx, pk)
-	}
-	return o.leafU, err
-}
-
-// SetLeafU associates obj with this RootU
-// through the reverse relationship in LeafU.RootU.
-//
-// The association is temporary until you call Save().
-// WARNING! Since this is a non-nullable unique relationship,
-// if a different LeafU object is currently pointing to this RootU,
-// it will be deleted. Pass nil to just delete the old object.
-func (o *rootUBase) SetLeafU(obj *LeafU) {
-	if o.leafU != nil && o.leafU.IsDirty() {
-		panic("The LeafU has changed. You must save it first before changing to a different one.")
-	}
-	o.leafU = obj
-	o.leafUIsDirty = true
-}
-
-// LoadRootU returns a RootU from the database.
+// LoadLeafL returns a LeafL from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
-// See [RootUsBuilder.Select] for more info.
-func LoadRootU(ctx context.Context, pk string, selectNodes ...query.Node) (*RootU, error) {
-	return queryRootUs(ctx).
-		Where(op.Equal(node.RootU().ID(), pk.id)).
+// See [LeafLsBuilder.Select] for more info.
+func LoadLeafL(ctx context.Context, pk string, selectNodes ...query.Node) (*LeafL, error) {
+	return queryLeafLs(ctx).
+		Where(op.Equal(node.LeafL().ID(), pk.id)).
 		Select(selectNodes...).
 		Get()
 }
 
-// HasRootU returns true if a RootU with the given primary key exists in the database.
-// doc: type=RootU
-func HasRootU(ctx context.Context, pk string) (bool, error) {
-	v, err := queryRootUs(ctx).
-		Where(op.Equal(node.RootU().ID(), pk.id)).
+// HasLeafL returns true if a LeafL with the given primary key exists in the database.
+// doc: type=LeafL
+func HasLeafL(ctx context.Context, pk string) (bool, error) {
+	v, err := queryLeafLs(ctx).
+		Where(op.Equal(node.LeafL().ID(), pk.id)).
 		Count()
 	return v > 0, err
 }
 
-// The RootUBuilder uses a builder pattern to create a query on the database.
-// Create a RootUBuilder by calling QueryRootUs, which will select all
-// the RootU object in the database. Then filter and arrange those objects
+// LoadLeafLsBy queries LeafL objects by the given index values.
+// selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
+// See [LeafLsBuilder.Select].
+// If you need a more elaborate query, use QueryLeafLs() to start a query builder.
+func LoadLeafLsBy(ctx context.Context, rootLID string, selectNodes ...query.Node) ([]*LeafL, error) {
+	q := queryLeafLs(ctx)
+	q = q.Where(op.Equal(node.LeafL().RootLID(), rootLID))
+	return q.Select(selectNodes...).Load()
+}
+
+// HasLeafLsBy returns true if the
+// given index values exist in the database.
+// doc: type=LeafL
+func HasLeafLsBy(ctx context.Context, rootLID string) (bool, error) {
+	q := queryLeafLs(ctx)
+	q = q.Where(op.Equal(node.LeafL().RootLID(), rootLID))
+	v, err := q.Count()
+	return v > 0, err
+}
+
+// The LeafLBuilder uses a builder pattern to create a query on the database.
+// Create a LeafLBuilder by calling QueryLeafLs, which will select all
+// the LeafL object in the database. Then filter and arrange those objects
 // by calling Where, Select, etc.
 // End a query by calling either Load, LoadI, LoadCursor, Get, or Count.
-// A RootUBuilder stores the context it will use to perform the query, and thus is
+// A LeafLBuilder stores the context it will use to perform the query, and thus is
 // meant to be a short-lived object. You should not save it for later use.
-type RootUBuilder struct {
+type LeafLBuilder struct {
 	builder *query.Builder
 	ctx     context.Context
 }
 
-func newRootUBuilder(ctx context.Context) *RootUBuilder {
-	b := RootUBuilder{
-		builder: query.NewBuilder(node.RootU()),
+func newLeafLBuilder(ctx context.Context) *LeafLBuilder {
+	b := LeafLBuilder{
+		builder: query.NewBuilder(node.LeafL()),
 		ctx:     ctx,
 	}
 	return &b
 }
 
-// Load terminates the query builder, performs the query, and returns a slice of RootU objects.
+// Load terminates the query builder, performs the query, and returns a slice of LeafL objects.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *RootUBuilder) Load() (rootUs []*RootU, err error) {
+func (b *LeafLBuilder) Load() (leafLs []*LeafL, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
 	var results any
@@ -280,9 +355,9 @@ func (b *RootUBuilder) Load() (rootUs []*RootU, err error) {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
-		o := new(RootU)
+		o := new(LeafL)
 		o.unpack(item, o)
-		rootUs = append(rootUs, o)
+		leafLs = append(leafLs, o)
 	}
 	return
 }
@@ -291,7 +366,7 @@ func (b *RootUBuilder) Load() (rootUs []*RootU, err error) {
 // This can then satisfy a variety of interfaces that load arrays of objects, including KeyLabeler.
 // If there are any errors, nil is returned and the specific error is stored in the context.
 // If no results come back from the query, it will return a non-nil empty slice.
-func (b *RootUBuilder) LoadI() (rootUs []query.OrmObj, err error) {
+func (b *LeafLBuilder) LoadI() (leafLs []query.OrmObj, err error) {
 	b.builder.Command = query.BuilderCommandLoad
 	database := db.GetDatabase("goradd_unit")
 	var results any
@@ -302,9 +377,9 @@ func (b *RootUBuilder) LoadI() (rootUs []query.OrmObj, err error) {
 		return
 	}
 	for _, item := range results.([]map[string]any) {
-		o := new(RootU)
+		o := new(LeafL)
 		o.unpack(item, o)
-		rootUs = append(rootUs, o)
+		leafLs = append(leafLs, o)
 	}
 	return
 }
@@ -321,7 +396,7 @@ func (b *RootUBuilder) LoadI() (rootUs []query.OrmObj, err error) {
 //	defer cursor.Close()
 //
 // to make sure the cursor gets closed.
-func (b *RootUBuilder) LoadCursor() (rootUsCursor, error) {
+func (b *LeafLBuilder) LoadCursor() (leafLsCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd_unit")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
@@ -329,17 +404,17 @@ func (b *RootUBuilder) LoadCursor() (rootUsCursor, error) {
 	if result != nil {
 		cursor = result.(query.CursorI)
 	}
-	return rootUsCursor{cursor}, err
+	return leafLsCursor{cursor}, err
 }
 
-type rootUsCursor struct {
+type leafLsCursor struct {
 	query.CursorI
 }
 
-// Next returns the current RootU object and moves the cursor to the next one.
+// Next returns the current LeafL object and moves the cursor to the next one.
 //
 // If there are no more records, it returns nil.
-func (c rootUsCursor) Next() (*RootU, error) {
+func (c leafLsCursor) Next() (*LeafL, error) {
 	if c.CursorI == nil {
 		return nil, nil
 	}
@@ -348,7 +423,7 @@ func (c rootUsCursor) Next() (*RootU, error) {
 	if row == nil || err != nil {
 		return nil, err
 	}
-	o := new(RootU)
+	o := new(LeafL)
 	o.unpack(row, o)
 	return o, nil
 }
@@ -357,7 +432,7 @@ func (c rootUsCursor) Next() (*RootU, error) {
 // The entire query is performed, so you should generally use this only if you know
 // you are selecting on one or very few items.
 // If an error occurs, or no results are found, a nil is returned.
-func (b *RootUBuilder) Get() (*RootU, error) {
+func (b *LeafLBuilder) Get() (*LeafL, error) {
 	results, err := b.Load()
 	if err != nil || len(results) == 0 {
 		return nil, err
@@ -367,7 +442,7 @@ func (b *RootUBuilder) Get() (*RootU, error) {
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
-func (b *RootUBuilder) Where(c query.Node) *RootUBuilder {
+func (b *LeafLBuilder) Where(c query.Node) *LeafLBuilder {
 	b.builder.Where(c)
 	return b
 }
@@ -375,7 +450,7 @@ func (b *RootUBuilder) Where(c query.Node) *RootUBuilder {
 // OrderBy specifies how the resulting data should be sorted.
 // By default, the given nodes are sorted in ascending order.
 // Add Descending() to the node to specify that it should be sorted in descending order.
-func (b *RootUBuilder) OrderBy(nodes ...query.Sorter) *RootUBuilder {
+func (b *LeafLBuilder) OrderBy(nodes ...query.Sorter) *LeafLBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
@@ -384,45 +459,45 @@ func (b *RootUBuilder) OrderBy(nodes ...query.Sorter) *RootUBuilder {
 // For large data sets and specific types of queries, this can be slow, because it will perform
 // the entire query before computing the limit.
 // You cannot limit a query that has embedded arrays.
-func (b *RootUBuilder) Limit(maxRowCount int, offset int) *RootUBuilder {
+func (b *LeafLBuilder) Limit(maxRowCount int, offset int) *LeafLBuilder {
 	b.builder.Limit(maxRowCount, offset)
 	return b
 }
 
 // Select specifies what specific columns will be loaded with data.
-// By default, all the columns of the root_u table will be queried and loaded.
-// If nodes contains columns from the root_u table, that will limit the columns queried and loaded to only those columns.
+// By default, all the columns of the leaf_l table will be queried and loaded.
+// If nodes contains columns from the leaf_l table, that will limit the columns queried and loaded to only those columns.
 // If related tables are specified, then all the columns from those tables are queried, selected and joined to the result.
 // If columns in related tables are specified, then only those columns will be queried and loaded.
 // Depending on the query, additional columns may automatically be added to the query. In particular, primary key columns
 // will be added in most situations. The exception to this would be in distinct queries, group by queries, or subqueries.
-func (b *RootUBuilder) Select(nodes ...query.Node) *RootUBuilder {
+func (b *LeafLBuilder) Select(nodes ...query.Node) *LeafLBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
 
 // Calculation adds operation as an aliased value onto base.
 // After the query, you can read the data by passing alias to GetAlias on the returned object.
-func (b *RootUBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) *RootUBuilder {
+func (b *LeafLBuilder) Calculation(base query.TableNodeI, alias string, operation query.OperationNodeI) *LeafLBuilder {
 	b.builder.Calculation(base, alias, operation)
 	return b
 }
 
 // Distinct removes duplicates from the results of the query.
 // Adding a Select() is usually required.
-func (b *RootUBuilder) Distinct() *RootUBuilder {
+func (b *LeafLBuilder) Distinct() *LeafLBuilder {
 	b.builder.Distinct()
 	return b
 }
 
 // GroupBy controls how results are grouped when using aggregate functions with Calculation.
-func (b *RootUBuilder) GroupBy(nodes ...query.Node) *RootUBuilder {
+func (b *LeafLBuilder) GroupBy(nodes ...query.Node) *LeafLBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
 // Having does additional filtering on the results of the query after the query is performed.
-func (b *RootUBuilder) Having(node query.Node) *RootUBuilder {
+func (b *LeafLBuilder) Having(node query.Node) *LeafLBuilder {
 	b.builder.Having(node)
 	return b
 }
@@ -431,7 +506,7 @@ func (b *RootUBuilder) Having(node query.Node) *RootUBuilder {
 // If you have Select or Calculation columns in the query, it will count NULL results as well.
 // To not count NULL values, use Where in the builder with a NotNull operation.
 // To count distinct combinations of items, call Distinct() on the builder.
-func (b *RootUBuilder) Count() (int, error) {
+func (b *LeafLBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd_unit")
 
@@ -443,13 +518,23 @@ func (b *RootUBuilder) Count() (int, error) {
 	return results.(int), nil
 }
 
-// CountRootUs returns the total number of items in the root_u table.
-func CountRootUs(ctx context.Context) (int, error) {
-	return QueryRootUs(ctx).Count()
+// CountLeafLs returns the total number of items in the leaf_l table.
+func CountLeafLs(ctx context.Context) (int, error) {
+	return QueryLeafLs(ctx).Count()
+}
+
+// CountLeafLsBy queries the database and returns the number of LeafL objects that
+// have rootLID.
+// doc: type=LeafL
+func CountLeafLsBy(ctx context.Context, rootLID string) (int, error) {
+	v_rootLID := rootLID
+	return QueryLeafLs(ctx).
+		Where(op.Equal(node.LeafL().RootLID(), v_rootLID)).
+		Count()
 }
 
 // unpack recursively transforms data coming from the database into ORM objects.
-func (o *rootUBase) unpack(m map[string]interface{}, objThis *RootU) {
+func (o *leafLBase) unpack(m map[string]interface{}, objThis *LeafL) {
 
 	if v, ok := m["id"]; ok && v != nil {
 		if o.id, ok = v.(string); ok {
@@ -478,19 +563,41 @@ func (o *rootUBase) unpack(m map[string]interface{}, objThis *RootU) {
 		o.nameIsDirty = false
 	}
 
-	// Reverse references
-
-	if v, ok := m["LeafU"]; ok {
-		if v2, ok2 := v.(map[string]any); ok2 {
-			o.leafU = new(LeafU)
-			o.leafU.unpack(v2, o.leafU)
-			o.leafUIsDirty = false
+	if v, ok := m["gro_lock"]; ok && v != nil {
+		if o.groLock, ok = v.(int64); ok {
+			o.groLockIsLoaded = true
 		} else {
-			panic("Wrong type found for leafU object.")
+			panic("Wrong type found for gro_lock.")
 		}
 	} else {
-		o.leafU = nil
-		o.leafUIsDirty = false
+		o.groLockIsLoaded = false
+		o.groLock = 0
+	}
+
+	if v, ok := m["root_l_id"]; ok && v != nil {
+		if o.rootLID, ok = v.(string); ok {
+			o.rootLIDIsLoaded = true
+			o.rootLIDIsDirty = false
+		} else {
+			panic("Wrong type found for root_l_id.")
+		}
+	} else {
+		o.rootLIDIsLoaded = false
+		o.rootLID = ""
+		o.rootLIDIsDirty = false
+	}
+
+	if v, ok := m["RootL"]; ok {
+		if rootL, ok2 := v.(map[string]any); ok2 {
+			o.rootL = new(RootL)
+			o.rootL.unpack(rootL, o.rootL)
+			o.rootLIDIsLoaded = true
+			o.rootLIDIsDirty = false
+		} else {
+			panic("Wrong type found for RootL object.")
+		}
+	} else {
+		o.rootL = nil
 	}
 
 	if v, ok := m["aliases_"]; ok {
@@ -502,7 +609,7 @@ func (o *rootUBase) unpack(m map[string]interface{}, objThis *RootU) {
 }
 
 // save will update or insert the object, depending on the state of the object.
-func (o *rootUBase) save(ctx context.Context) error {
+func (o *leafLBase) save(ctx context.Context) error {
 	if o._restored {
 		return o.update(ctx)
 	} else {
@@ -512,7 +619,7 @@ func (o *rootUBase) save(ctx context.Context) error {
 
 // update will update the values in the database, saving any changed values.
 // If the table has auto-generated values, those will be updated automatically.
-func (o *rootUBase) update(ctx context.Context) error {
+func (o *leafLBase) update(ctx context.Context) error {
 	if !o._restored {
 		panic("cannot update a record that was not originally read from the database.")
 	}
@@ -521,54 +628,30 @@ func (o *rootUBase) update(ctx context.Context) error {
 	}
 
 	var modifiedFields map[string]interface{}
+	var newLock int64
 
 	d := Database()
 	err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
+		// Save loaded RootL object to get its new pk and update it here.
+		if o.rootL != nil {
+			if err := o.rootL.Save(ctx); err != nil {
+				return err
+			}
+			o.SetRootLID(o.rootL.PrimaryKey())
+		}
 
-		modifiedFields = getRootUUpdateFields(o)
+		modifiedFields = getLeafLUpdateFields(o)
 		if len(modifiedFields) != 0 {
 			var err2 error
 
-			_, err2 = d.Update(ctx, "root_u", "id", o._originalPK, modifiedFields, "", 0)
+			// If this panics with an invalid GroLock value, then the GroLock field was not selected in a prior query. Be sure to include it in any Select statements.
+			newLock, err2 = d.Update(ctx, "leaf_l",
+				map[string]any{
+					"id": o._originalPK,
+				},
+				modifiedFields, "gro_lock", o.GroLock())
 			if err2 != nil {
 				return err2
-			}
-		}
-
-		if o.leafUIsDirty {
-			// relation connection changed
-
-			// Since the other side of the relationship cannot be null, if there is an object already attached
-			// that is different than the one we are trying to attach, we will panic to warn the developer.
-			if oldObj, err := QueryLeafUs(ctx).
-				Where(op.Equal(node.LeafU().RootUID(), o.ID())).
-				Select(node.LeafU().RootUID()).
-				Get(); err != nil {
-				return err
-			} else if oldObj != nil {
-				if o.leafU == nil || oldObj.PrimaryKey() != o.leafU.PrimaryKey() {
-					// Delete the old object
-					err = oldObj.Delete(ctx)
-					if err != nil {
-						return err
-					}
-				}
-			}
-			// we are moving the attachment from another object to our object, or attaching an object that is already attached.
-			if o.leafU != nil {
-				o.leafU.SetRootUID(o.PrimaryKey())
-				if err := o.leafU.Save(ctx); err != nil {
-					return err
-				}
-			}
-
-		} else {
-
-			// save related object in case internal values changed
-			if o.leafU != nil {
-				if err := o.leafU.Save(ctx); err != nil {
-					return err
-				}
 			}
 		}
 
@@ -577,39 +660,46 @@ func (o *rootUBase) update(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	if newLock != 0 {
+		o.groLock = newLock
+		o.groLockIsLoaded = true
+	}
 
 	o.resetDirtyStatus()
 	if len(modifiedFields) != 0 {
-		broadcast.Update(ctx, "goradd_unit", "root_u", o._originalPK, anyutil.SortedKeys(modifiedFields)...)
+		broadcast.Update(ctx, "goradd_unit", "leaf_l", o._originalPK, anyutil.SortedKeys(modifiedFields)...)
 	}
 
 	return nil
 }
 
 // insert will insert the object into the database. Related items will be saved.
-func (o *rootUBase) insert(ctx context.Context) (err error) {
+func (o *leafLBase) insert(ctx context.Context) (err error) {
 	var insertFields map[string]interface{}
 	d := Database()
 	err = db.WithTransaction(ctx, d, func(context.Context) error {
+		// Save loaded RootL object to get its new pk and update it here.
+		if o.rootL != nil {
+			if err := o.rootL.Save(ctx); err != nil {
+				return err
+			}
+			o.SetRootLID(o.rootL.PrimaryKey())
+		}
 		if !o.nameIsLoaded {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
-		insertFields = getRootUInsertFields(o)
+		if !o.rootLIDIsLoaded {
+			panic("a value for RootLID is required, and there is no default value. Call SetRootLID() before inserting the record.")
+		}
+		insertFields = getLeafLInsertFields(o)
 		var newPK string
-		newPK, err = d.Insert(ctx, "root_u", "id", insertFields)
+		newPK, err = d.Insert(ctx, "leaf_l", "id", insertFields)
 		if err != nil {
 			return err
 		}
 		o.id = newPK
 		o._originalPK = newPK
 		o.idIsLoaded = true
-
-		if o.leafU != nil {
-			o.leafU.SetRootUID(newPK)
-			if err = o.leafU.Save(ctx); err != nil {
-				return err
-			}
-		}
 
 		return nil
 
@@ -618,22 +708,29 @@ func (o *rootUBase) insert(ctx context.Context) (err error) {
 	if err != nil {
 		return
 	}
+	if t, ok := insertFields["gro_lock"]; ok {
+		o.groLock = t.(int64)
+		o.groLockIsLoaded = true
+	}
 
 	o.resetDirtyStatus()
 	o._restored = true
-	broadcast.Insert(ctx, "goradd_unit", "root_u", o.PrimaryKey())
+	broadcast.Insert(ctx, "goradd_unit", "leaf_l", o.PrimaryKey())
 	return
 }
 
 // getUpdateFields returns the database columns that will be sent to the update process.
 // This will include timestamp fields only if some other column has changed.
-func (o *rootUBase) getUpdateFields() (fields map[string]interface{}) {
+func (o *leafLBase) getUpdateFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.idIsDirty {
 		fields["id"] = o.id
 	}
 	if o.nameIsDirty {
 		fields["name"] = o.name
+	}
+	if o.rootLIDIsDirty {
+		fields["root_l_id"] = o.rootLID
 	}
 	return
 }
@@ -644,20 +741,19 @@ func (o *rootUBase) getUpdateFields() (fields map[string]interface{}) {
 // explicitly setting a NULL value, which would override any database specific default value.
 // Auto-generated fields will be returned with their generated values, except AutoPK fields, which are generated by the
 // database driver and updated after the insert.
-func (o *rootUBase) getInsertFields() (fields map[string]interface{}) {
+func (o *leafLBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.idIsDirty {
 		fields["id"] = o.id
 	}
 
 	fields["name"] = o.name
+	fields["gro_lock"] = db.RecordVersion(0)
 	return
 }
 
 // Delete deletes the record from the database.
-//
-// An associated {= rev.ReverseIdentifier  will also be deleted since its RootU field is not nullable.
-func (o *rootUBase) Delete(ctx context.Context) (err error) {
+func (o *leafLBase) Delete(ctx context.Context) (err error) {
 	if o == nil {
 		return // allow deleting of a nil object to be a noop
 	}
@@ -665,73 +761,42 @@ func (o *rootUBase) Delete(ctx context.Context) (err error) {
 		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-	err = db.WithTransaction(ctx, d, func(context.Context) error {
-
-		{
-			obj, err := QueryLeafUs(ctx).
-				Where(op.Equal(node.LeafU().RootU(), o.id)).
-				Get()
-			if err != nil {
-				return err
-			}
-			if obj != nil {
-				if err = obj.Delete(ctx); err != nil {
-					return err
-				}
-			}
-			// Set this object's pointer to the reverse object to nil to mark that we broke the link
-			o.leafU = nil
-		}
-
-		return d.Delete(ctx, "root_u", "id", o.id, "", 0)
-	})
-
+	err = d.Delete(ctx, "leaf_l", "id", o.id, "gro_lock", o.GroLock())
 	if err != nil {
 		return err
 	}
-	broadcast.Delete(ctx, "goradd_unit", "root_u", fmt.Sprint(o.id))
+	broadcast.Delete(ctx, "goradd_unit", "leaf_l", fmt.Sprint(o.id))
 	return
 }
 
-// deleteRootU deletes the RootU with primary key pk from the database
+// deleteLeafL deletes the LeafL with primary key pk from the database
 // and handles associated records.
-func deleteRootU(ctx context.Context, pk string) error {
+func deleteLeafL(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd_unit")
-	err := db.WithTransaction(ctx, d, func(context.Context) error {
-		if obj, err := LoadRootU(ctx,
-			pk,
-			node.RootU().ID(),
-		); err != nil {
-			return err
-		} else if obj == nil {
-			return db.NewRecordNotFoundError("root_u", pk)
-		} else {
-			if err := obj.Delete(ctx); err != nil {
-				return err
-			}
-		}
-		return nil
-	})
+	err := d.Delete(ctx, "leaf_l", "id", pk, "", 0)
+	if err != nil {
+		return err
+	}
+	broadcast.Delete(ctx, "goradd_unit", "leaf_l", fmt.Sprint(pk))
 	return err
 }
 
 // resetDirtyStatus resets the dirty status of every field in the object.
-func (o *rootUBase) resetDirtyStatus() {
+func (o *leafLBase) resetDirtyStatus() {
 	o.idIsDirty = false
 	o.nameIsDirty = false
-	o.leafUIsDirty = false
+	o.rootLIDIsDirty = false
 
 }
 
 // IsDirty returns true if the object has been changed since it was read from the database or created.
-func (o *rootUBase) IsDirty() (dirty bool) {
+func (o *leafLBase) IsDirty() (dirty bool) {
 	dirty = o.idIsDirty ||
-		o.nameIsDirty
+		o.nameIsDirty ||
+		o.rootLIDIsDirty
 
 	dirty = dirty ||
-		o.leafUIsDirty
-
-	dirty = dirty || (o.leafU != nil && o.leafU.IsDirty())
+		o.rootL != nil && o.rootL.IsDirty()
 
 	return
 }
@@ -740,7 +805,7 @@ func (o *rootUBase) IsDirty() (dirty bool) {
 // It will also get related objects if they are loaded.
 // Invalid fields and objects are returned as nil.
 // Get can be used to retrieve a value by using the Identifier of a node.
-func (o *rootUBase) Get(key string) interface{} {
+func (o *leafLBase) Get(key string) interface{} {
 	switch key {
 	case "id":
 		if !o.idIsLoaded {
@@ -752,8 +817,18 @@ func (o *rootUBase) Get(key string) interface{} {
 			return nil
 		}
 		return o.name
-	case "leafU":
-		return o.leafU
+	case "groLock":
+		if !o.groLockIsLoaded {
+			return nil
+		}
+		return o.groLock
+	case "rootLID":
+		if !o.rootLIDIsLoaded {
+			return nil
+		}
+		return o.rootLID
+	case "rootL":
+		return o.RootL()
 	}
 	return nil
 }
@@ -762,7 +837,7 @@ func (o *rootUBase) Get(key string) interface{} {
 // It should be used for transmitting database objects over the wire, or for temporary storage. It does not send
 // a version number, so if the data format changes, its up to you to invalidate the old stored objects.
 // The framework uses this to serialize the object when it is stored in a control.
-func (o *rootUBase) MarshalBinary() ([]byte, error) {
+func (o *leafLBase) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
 	enc := gob.NewEncoder(buf)
 	if err := o.encodeTo(enc); err != nil {
@@ -771,29 +846,46 @@ func (o *rootUBase) MarshalBinary() ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-func (o *rootUBase) encodeTo(enc db.Encoder) error {
+func (o *leafLBase) encodeTo(enc db.Encoder) error {
 
 	if err := enc.Encode(o.id); err != nil {
-		return fmt.Errorf("error encoding RootU.id: %w", err)
+		return fmt.Errorf("error encoding LeafL.id: %w", err)
 	}
 	if err := enc.Encode(o.idIsLoaded); err != nil {
-		return fmt.Errorf("error encoding RootU.idIsLoaded: %w", err)
+		return fmt.Errorf("error encoding LeafL.idIsLoaded: %w", err)
 	}
 	if err := enc.Encode(o.idIsDirty); err != nil {
-		return fmt.Errorf("error encoding RootU.idIsDirty: %w", err)
+		return fmt.Errorf("error encoding LeafL.idIsDirty: %w", err)
 	}
 
 	if err := enc.Encode(o.name); err != nil {
-		return fmt.Errorf("error encoding RootU.name: %w", err)
+		return fmt.Errorf("error encoding LeafL.name: %w", err)
 	}
 	if err := enc.Encode(o.nameIsLoaded); err != nil {
-		return fmt.Errorf("error encoding RootU.nameIsLoaded: %w", err)
+		return fmt.Errorf("error encoding LeafL.nameIsLoaded: %w", err)
 	}
 	if err := enc.Encode(o.nameIsDirty); err != nil {
-		return fmt.Errorf("error encoding RootU.nameIsDirty: %w", err)
+		return fmt.Errorf("error encoding LeafL.nameIsDirty: %w", err)
 	}
 
-	if o.leafU == nil {
+	if err := enc.Encode(o.groLock); err != nil {
+		return fmt.Errorf("error encoding LeafL.groLock: %w", err)
+	}
+	if err := enc.Encode(o.groLockIsLoaded); err != nil {
+		return fmt.Errorf("error encoding LeafL.groLockIsLoaded: %w", err)
+	}
+
+	if err := enc.Encode(o.rootLID); err != nil {
+		return fmt.Errorf("error encoding LeafL.rootLID: %w", err)
+	}
+	if err := enc.Encode(o.rootLIDIsLoaded); err != nil {
+		return fmt.Errorf("error encoding LeafL.rootLIDIsLoaded: %w", err)
+	}
+	if err := enc.Encode(o.rootLIDIsDirty); err != nil {
+		return fmt.Errorf("error encoding LeafL.rootLIDIsDirty: %w", err)
+	}
+
+	if o.rootL == nil {
 		if err := enc.Encode(false); err != nil {
 			return err
 		}
@@ -801,13 +893,9 @@ func (o *rootUBase) encodeTo(enc db.Encoder) error {
 		if err := enc.Encode(true); err != nil {
 			return err
 		}
-		if err := enc.Encode(o.leafU); err != nil {
-			return fmt.Errorf("error encoding RootU.leafU: %w", err)
+		if err := enc.Encode(o.rootL); err != nil {
+			return fmt.Errorf("error encoding LeafL.rootL: %w", err)
 		}
-	}
-
-	if err := enc.Encode(o.leafUIsDirty); err != nil {
-		return fmt.Errorf("error encoding RootU.leafUIsDirty: %w", err)
 	}
 
 	if o._aliases == nil {
@@ -819,76 +907,89 @@ func (o *rootUBase) encodeTo(enc db.Encoder) error {
 			return err
 		}
 		if err := enc.Encode(o._aliases); err != nil {
-			return fmt.Errorf("error encoding RootU._aliases: %w", err)
+			return fmt.Errorf("error encoding LeafL._aliases: %w", err)
 		}
 	}
 
 	if err := enc.Encode(o._restored); err != nil {
-		return fmt.Errorf("error encoding RootU._restored: %w", err)
+		return fmt.Errorf("error encoding LeafL._restored: %w", err)
 	}
 	if err := enc.Encode(o._originalPK); err != nil {
-		return fmt.Errorf("error encoding RootU._originalPK: %w", err)
+		return fmt.Errorf("error encoding LeafL._originalPK: %w", err)
 	}
 	return nil
 }
 
-// UnmarshalBinary converts a structure that was created with MarshalBinary into a RootU object.
-func (o *rootUBase) UnmarshalBinary(data []byte) (err error) {
+// UnmarshalBinary converts a structure that was created with MarshalBinary into a LeafL object.
+func (o *leafLBase) UnmarshalBinary(data []byte) (err error) {
 	buf := bytes.NewReader(data)
 	dec := gob.NewDecoder(buf)
 	return o.decodeFrom(dec)
 }
 
-func (o *rootUBase) decodeFrom(dec db.Decoder) (err error) {
+func (o *leafLBase) decodeFrom(dec db.Decoder) (err error) {
 	var isPtr bool
 
 	_ = isPtr
 	if err = dec.Decode(&o.id); err != nil {
-		return fmt.Errorf("error decoding RootU.id: %w", err)
+		return fmt.Errorf("error decoding LeafL.id: %w", err)
 	}
 	if err = dec.Decode(&o.idIsLoaded); err != nil {
-		return fmt.Errorf("error decoding RootU.idIsLoaded: %w", err)
+		return fmt.Errorf("error decoding LeafL.idIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.idIsDirty); err != nil {
-		return fmt.Errorf("error decoding RootU.idIsDirty: %w", err)
+		return fmt.Errorf("error decoding LeafL.idIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.name); err != nil {
-		return fmt.Errorf("error decoding RootU.name: %w", err)
+		return fmt.Errorf("error decoding LeafL.name: %w", err)
 	}
 	if err = dec.Decode(&o.nameIsLoaded); err != nil {
-		return fmt.Errorf("error decoding RootU.nameIsLoaded: %w", err)
+		return fmt.Errorf("error decoding LeafL.nameIsLoaded: %w", err)
 	}
 	if err = dec.Decode(&o.nameIsDirty); err != nil {
-		return fmt.Errorf("error decoding RootU.nameIsDirty: %w", err)
+		return fmt.Errorf("error decoding LeafL.nameIsDirty: %w", err)
+	}
+
+	if err = dec.Decode(&o.groLock); err != nil {
+		return fmt.Errorf("error decoding LeafL.groLock: %w", err)
+	}
+	if err = dec.Decode(&o.groLockIsLoaded); err != nil {
+		return fmt.Errorf("error decoding LeafL.groLockIsLoaded: %w", err)
+	}
+
+	if err = dec.Decode(&o.rootLID); err != nil {
+		return fmt.Errorf("error decoding LeafL.rootLID: %w", err)
+	}
+	if err = dec.Decode(&o.rootLIDIsLoaded); err != nil {
+		return fmt.Errorf("error decoding LeafL.rootLIDIsLoaded: %w", err)
+	}
+	if err = dec.Decode(&o.rootLIDIsDirty); err != nil {
+		return fmt.Errorf("error decoding LeafL.rootLIDIsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&isPtr); err != nil {
-		return fmt.Errorf("error decoding RootU.leafU isPtr: %w", err)
+		return fmt.Errorf("error decoding LeafL.rootL isPtr: %w", err)
 	}
 	if isPtr {
-		if err = dec.Decode(&o.leafU); err != nil {
-			return fmt.Errorf("error decoding RootU.leafU: %w", err)
+		if err = dec.Decode(&o.rootL); err != nil {
+			return fmt.Errorf("error decoding LeafL.rootL: %w", err)
 		}
 	}
-
-	if err = dec.Decode(&o.leafUIsDirty); err != nil {
-		return fmt.Errorf("error decoding RootU.leafUIsDirty: %w", err)
-	}
 	if err = dec.Decode(&isPtr); err != nil {
-		return fmt.Errorf("error decoding RootU._aliases isPtr: %w", err)
+		return fmt.Errorf("error decoding LeafL._aliases isPtr: %w", err)
 	}
 	if isPtr {
 		if err = dec.Decode(&o._aliases); err != nil {
-			return fmt.Errorf("error decoding RootU._aliases: %w", err)
+			return fmt.Errorf("error decoding LeafL._aliases: %w", err)
 		}
 	}
 
 	if err = dec.Decode(&o._restored); err != nil {
-		return fmt.Errorf("error decoding RootU._restored: %w", err)
+		return fmt.Errorf("error decoding LeafL._restored: %w", err)
 	}
 	if err = dec.Decode(&o._originalPK); err != nil {
-		return fmt.Errorf("error decoding RootU._originalPK: %w", err)
+		return fmt.Errorf("error decoding LeafL._originalPK: %w", err)
 	}
 	return
 }
@@ -897,7 +998,7 @@ func (o *rootUBase) decodeFrom(dec db.Decoder) (err error) {
 // Only valid data will be serialized, meaning, you can control what gets serialized by using Select to
 // select only the fields you want when you query for the object. Another way to control the output
 // is to call MarshalStringMap, modify the map, then encode the map.
-func (o *rootUBase) MarshalJSON() (data []byte, err error) {
+func (o *leafLBase) MarshalJSON() (data []byte, err error) {
 	v := o.MarshalStringMap()
 	return json.Marshal(v)
 }
@@ -905,7 +1006,7 @@ func (o *rootUBase) MarshalJSON() (data []byte, err error) {
 // MarshalStringMap serializes the object into a string map of interfaces.
 // Only valid data will be serialized, meaning, you can control what gets serialized by using Select to
 // select only the fields you want when you query for the object. The keys are the same as the json keys.
-func (o *rootUBase) MarshalStringMap() map[string]interface{} {
+func (o *leafLBase) MarshalStringMap() map[string]interface{} {
 	v := make(map[string]interface{})
 
 	if o.idIsLoaded {
@@ -916,8 +1017,16 @@ func (o *rootUBase) MarshalStringMap() map[string]interface{} {
 		v["name"] = o.name
 	}
 
-	if obj := o.leafU; obj != nil {
-		v["leafU"] = obj.MarshalStringMap()
+	if o.groLockIsLoaded {
+		v["groLock"] = o.groLock
+	}
+
+	if o.rootLIDIsLoaded {
+		v["rootLID"] = o.rootLID
+	}
+
+	if val := o.rootL; val != nil {
+		v["rootL"] = val.MarshalStringMap()
 	}
 	for _k, _v := range o._aliases {
 		v[_k] = _v
@@ -925,7 +1034,7 @@ func (o *rootUBase) MarshalStringMap() map[string]interface{} {
 	return v
 }
 
-// UnmarshalJSON unmarshalls the given json data into the RootU. The RootU can be a
+// UnmarshalJSON unmarshalls the given json data into the LeafL. The LeafL can be a
 // newly created object, or one loaded from the database.
 //
 // After unmarshalling, the object is not  saved. You must call Save to insert it into the database
@@ -937,7 +1046,8 @@ func (o *rootUBase) MarshalStringMap() map[string]interface{} {
 //
 //	"id" - string
 //	"name" - string
-func (o *rootUBase) UnmarshalJSON(data []byte) (err error) {
+//	"groLock" - int64
+func (o *leafLBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
 	if len(data) == 0 {
 		return
@@ -952,8 +1062,8 @@ func (o *rootUBase) UnmarshalJSON(data []byte) (err error) {
 
 // UnmarshalStringMap will load the values from the stringmap into the object.
 //
-// Override this in RootU to modify the json before sending it here.
-func (o *rootUBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
+// Override this in LeafL to modify the json before sending it here.
+func (o *leafLBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 	for k, v := range m {
 		switch k {
 
@@ -981,8 +1091,25 @@ func (o *rootUBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					o.SetName(s)
 				}
 			}
-		case "leafU":
-			v2 := NewLeafU()
+		case "rootLID":
+			{
+				if v == nil {
+					return fmt.Errorf("field %s cannot be null", k)
+				}
+
+				if _, ok := m["rootL"]; ok {
+					continue // importing the foreign key will remove the object
+				}
+
+				if s, ok := v.(string); !ok {
+					return fmt.Errorf("json field %s must be a string", k)
+				} else {
+					o.SetRootLID(s)
+				}
+			}
+
+		case "rootL":
+			v2 := NewRootL()
 			m2, ok := v.(map[string]any)
 			if !ok {
 				return fmt.Errorf("json field %s must be a map", k)
@@ -991,7 +1118,7 @@ func (o *rootUBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 			if err != nil {
 				return
 			}
-			o.SetLeafU(v2)
+			o.SetRootL(v2)
 
 		}
 	}

@@ -602,7 +602,11 @@ func (o *autoGenBase) update(ctx context.Context) error {
 			var err2 error
 
 			// If this panics with an invalid GroLock value, then the GroLock field was not selected in a prior query. Be sure to include it in any Select statements.
-			newLock, err2 = d.Update(ctx, "auto_gen", "id", o._originalPK, modifiedFields, "gro_lock", o.GroLock())
+			newLock, err2 = d.Update(ctx, "auto_gen",
+				map[string]any{
+					"id": o._originalPK,
+				},
+				modifiedFields, "gro_lock", o.GroLock())
 			if err2 != nil {
 				return err2
 			}
