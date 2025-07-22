@@ -781,7 +781,7 @@ func (o *milestoneBase) Delete(ctx context.Context) (err error) {
 	if err != nil {
 	    return err
 	}
-	broadcast.Delete(ctx, "goradd", "milestone", fmt.Sprint(o.id))
+	broadcast.Delete(ctx, "goradd", "milestone", o._originalPK))
 	return
 }
 
@@ -789,11 +789,16 @@ func (o *milestoneBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteMilestone(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd")
-	err := d.Delete(ctx, "milestone", "id", pk, "", 0)
+    err := d.Delete(ctx, "milestone",
+        map[string]any {
+            "id": pk
+        },
+        "",0)
+
 	if err != nil {
 	    return err
 	}
-	broadcast.Delete(ctx, "goradd", "milestone", fmt.Sprint(pk))
+	broadcast.Delete(ctx, "goradd", "milestone", pk)
     return err
 }
 // resetDirtyStatus resets the dirty status of every field in the object.

@@ -722,7 +722,7 @@ func TestProject_QueryLoadI(t *testing.T) {
 		Where(op.Equal(node.Project().ID(), obj.ID())).
 		LoadI()
 
-	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
+	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
 }
 func TestProject_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleProject()

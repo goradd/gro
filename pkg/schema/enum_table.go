@@ -6,6 +6,7 @@ import (
 	"github.com/goradd/goradd/pkg/stringmap"
 	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
+	"log/slog"
 	"strings"
 	"time"
 )
@@ -115,6 +116,10 @@ func (t *EnumTable) infer(db *Database) error {
 					return fmt.Errorf(`"name" value is not a string: %v`, v)
 				}
 				hasName = true
+			case KeyKey:
+				if _, ok := v.(string); !ok {
+					return fmt.Errorf(`"key" value is not a string: %v`, v)
+				}
 			case LabelKey:
 				if _, ok := v.(string); !ok {
 					return fmt.Errorf(`"label" value is not a string: %v`, v)
@@ -190,6 +195,20 @@ func (t *EnumTable) fillDefaults(suffix string) {
 	}
 	if t.Fields == nil {
 		t.Fields = make(map[string]EnumField)
+	}
+	for k, v := range t.Fields {
+		if v.Identifier == "" {
+			v.Identifier = snaker.SnakeToCamelIdentifier(k)
+		}
+		if v.IdentifierPlural == "" {
+			v.IdentifierPlural = strings2.Plural(v.Identifier)
+		}
+		if v.Identifier == v.IdentifierPlural {
+			slog.Warn("Enum field identifier is plural and should be singular.",
+				slog.String("identifier", v.Identifier))
+		}
+
+		t.Fields[k] = v
 	}
 	t.Fields[LabelKey] = EnumField{
 		Identifier:       "Label",

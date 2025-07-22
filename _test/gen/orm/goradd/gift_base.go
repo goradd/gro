@@ -607,7 +607,7 @@ func (o *giftBase) Delete(ctx context.Context) (err error) {
 	if err != nil {
 	    return err
 	}
-	broadcast.Delete(ctx, "goradd", "gift", fmt.Sprint(o.number))
+	broadcast.Delete(ctx, "goradd", "gift", o._originalPK))
 	return
 }
 
@@ -615,11 +615,16 @@ func (o *giftBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteGift(ctx context.Context, pk int) error {
 	d := db.GetDatabase("goradd")
-	err := d.Delete(ctx, "gift", "number", pk, "", 0)
+    err := d.Delete(ctx, "gift",
+        map[string]any {
+            "number": pk
+        },
+        "",0)
+
 	if err != nil {
 	    return err
 	}
-	broadcast.Delete(ctx, "goradd", "gift", fmt.Sprint(pk))
+	broadcast.Delete(ctx, "goradd", "gift", pk)
     return err
 }
 // resetDirtyStatus resets the dirty status of every field in the object.

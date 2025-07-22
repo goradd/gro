@@ -172,7 +172,7 @@ func (tmpl *EnumTemplate)genInterfaces(table *model.Enum, _w io.Writer) (err err
 func (tmpl *EnumTemplate)genFields(table *model.Enum, _w io.Writer) (err error) {
 {{
 {{for _, field := range table.Fields }}
-// {{= table.Identifier }}{{= field.Identifier }} returns the {{= field.Identifier }} values associated with {{= table.Identifier }}.
+// {{= table.Identifier }}{{= field.Identifier }} returns the {{= field.Identifier }} value associated with {{= table.Identifier }}.
 func (e {{= table.Identifier }}) {{= field.Identifier }}() {{= field.GoType()}} {
 	switch e {
 	case 0: return {{= field.Type.DefaultValueString() }}
@@ -238,7 +238,7 @@ func {{= table.Identifier }}FromInterface(i any) ({{= table.Identifier }}, error
     		}
 		}
 		// Otherwise convert from the identifier
-		return {{= table.Identifier }}FromKey(v)
+		return {{= table.Identifier }}FromKey(v), nil
 	case json.Number:
 		if v2, err := v.Int64(); err == nil {
 	        if IsValid{{= table.Identifier }}(int(v2)) {

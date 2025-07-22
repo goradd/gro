@@ -773,7 +773,7 @@ func (o *personWithLockBase) Delete(ctx context.Context) (err error) {
 	if err != nil {
 	    return err
 	}
-	broadcast.Delete(ctx, "goradd", "person_with_lock", fmt.Sprint(o.id))
+	broadcast.Delete(ctx, "goradd", "person_with_lock", o._originalPK))
 	return
 }
 
@@ -781,11 +781,16 @@ func (o *personWithLockBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deletePersonWithLock(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd")
-	err := d.Delete(ctx, "person_with_lock", "id", pk, "", 0)
+    err := d.Delete(ctx, "person_with_lock",
+        map[string]any {
+            "id": pk
+        },
+        "",0)
+
 	if err != nil {
 	    return err
 	}
-	broadcast.Delete(ctx, "goradd", "person_with_lock", fmt.Sprint(pk))
+	broadcast.Delete(ctx, "goradd", "person_with_lock", pk)
     return err
 }
 // resetDirtyStatus resets the dirty status of every field in the object.

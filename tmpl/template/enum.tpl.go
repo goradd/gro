@@ -741,7 +741,7 @@ func (tmpl *EnumTemplate) genFields(table *model.Enum, _w io.Writer) (err error)
 			return
 		}
 
-		if _, err = io.WriteString(_w, ` values associated with `); err != nil {
+		if _, err = io.WriteString(_w, ` value associated with `); err != nil {
 			return
 		}
 
@@ -1081,7 +1081,7 @@ func `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `FromKey(v)
+	if _, err = io.WriteString(_w, `FromKey(v), nil
 	case json.Number:
 		if v2, err := v.Int64(); err == nil {
 	        if IsValid`); err != nil {

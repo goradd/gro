@@ -3269,7 +3269,7 @@ func Test`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Identifier); err != nil {
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
 					return
 				}
 
@@ -3698,15 +3698,7 @@ func Test`); err != nil {
 
 		if _, err = io.WriteString(_w, `        LoadI()
 
-    assert.Equal(t, obj.PrimaryKey(), objs[0].Get("`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Identifier); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `"))
+    assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
 }
 `); err != nil {
 			return

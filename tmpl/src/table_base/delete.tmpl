@@ -154,7 +154,7 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
 	if err != nil {
 	    return err
 	}
-	broadcast.Delete(ctx, "{{= table.DbKey }}", "{{= table.QueryName }}", fmt.Sprint(o.{{= table.PrimaryKeyColumn().Field }}))
+	broadcast.Delete(ctx, "{{= table.DbKey }}", "{{= table.QueryName }}", o._originalPK))
 	return
 }
 
@@ -163,11 +163,18 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
 func delete{{= table.Identifier }}(ctx context.Context, pk {{= table.PrimaryKeyType() }}) error {
 	d := db.GetDatabase("{{= table.DbKey }}")
 {{if len(table.ReverseReferences) == 0 && len(table.ManyManyReferences) == 0 }}
-	err := d.Delete(ctx, "{{= table.QueryName }}", "{{= table.PrimaryKeyColumn().QueryName }}", pk, "", 0)
+    err := d.Delete(ctx, "{{table.QueryName}}",
+        map[string]any {
+{{for _,col := range table.PrimaryKeyColumns() }}
+            "{{= col.QueryName }}": pk{{if len(table.PrimaryKeyColumns()) > 1}}.{{= col.Field}}{{if}}
+{{for}}
+        },
+        "",0)
+
 	if err != nil {
 	    return err
 	}
-	broadcast.Delete(ctx, "{{= table.DbKey }}", "{{= table.QueryName }}", fmt.Sprint(pk))
+	broadcast.Delete(ctx, "{{= table.DbKey }}", "{{= table.QueryName }}", pk)
 {{else}}
 {{if table.WriteTimeout != 0 }}
 

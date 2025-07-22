@@ -382,7 +382,7 @@ func TestAddress_QueryLoadI(t *testing.T) {
 		Where(op.Equal(node.Address().ID(), obj.ID())).
 		LoadI()
 
-	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("ID"))
+	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
 }
 func TestAddress_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleAddress()

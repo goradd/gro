@@ -10,7 +10,7 @@ func Test{{= table.Identifier }}_EmptyPrimaryKeyGetter(t *testing.T) {
     assert.NoError(t, err)
     assert.True(t, i < 0)
 {{else}}
-    assert.Zero(t, obj.{{= table.PrimaryKeyColumn().Identifier }}())
+    assert.Zero(t, obj.{{= col.Identifier }}())
 {{if}}
 {{for}}
 }

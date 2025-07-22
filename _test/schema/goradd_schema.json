@@ -306,7 +306,7 @@
         {
           "value": 1,
           "description": "The project is currently active",
-          "guidelines": "All projects that we are working on should be in this state",
+          "guideline": "All projects that we are working on should be in this state",
           "is_active": true,
           "name": "Open",
           "label": "Open",
@@ -315,7 +315,7 @@
         {
           "value": 2,
           "description": "The project has been canned",
-          "guidelines": "",
+          "guideline": "",
           "is_active": true,
           "name": "Cancelled",
           "key": "cancelled"
@@ -323,7 +323,7 @@
         {
           "value": 3,
           "description": "The project has been completed successfully",
-          "guidelines": "Celebrate successes!",
+          "guideline": "Celebrate successes!",
           "is_active": true,
           "name": "Completed",
           "label": "Done",
@@ -332,7 +332,7 @@
         {
           "value": 4,
           "description": "Project is in the planning stages and has not been assigned a manager",
-          "guidelines": "Get ready",
+          "guideline": "Get ready",
           "is_active": false,
           "name": "Planned",
           "key": "p"
@@ -342,7 +342,7 @@
         "description": {
           "type": "string"
         },
-        "guidelines": {
+        "guideline": {
           "type": "string"
         },
         "is_active": {

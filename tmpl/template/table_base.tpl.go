@@ -11801,15 +11801,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 		return
 	}
 
-	if _, err = io.WriteString(_w, `", fmt.Sprint(o.`); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `))
+	if _, err = io.WriteString(_w, `", o._originalPK))
 	return
 }
 
@@ -11863,23 +11855,56 @@ func delete`); err != nil {
 
 	if len(table.ReverseReferences) == 0 && len(table.ManyManyReferences) == 0 {
 
-		if _, err = io.WriteString(_w, `	err := d.Delete(ctx, "`); err != nil {
+		if _, err = io.WriteString(_w, `    err := d.Delete(ctx, "`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.QueryName); err != nil {
+		if _, err = io.WriteString(_w, fmt.Sprint(table.QueryName)); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `", "`); err != nil {
+		if _, err = io.WriteString(_w, `",
+        map[string]any {
+`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().QueryName); err != nil {
-			return
+		for _, col := range table.PrimaryKeyColumns() {
+
+			if _, err = io.WriteString(_w, `            "`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.QueryName); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `": pk`); err != nil {
+				return
+			}
+
+			if len(table.PrimaryKeyColumns()) > 1 {
+
+				if _, err = io.WriteString(_w, `.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Field); err != nil {
+					return
+				}
+
+			}
+
+			if _, err = io.WriteString(_w, `
+`); err != nil {
+				return
+			}
+
 		}
 
-		if _, err = io.WriteString(_w, `", pk, "", 0)
+		if _, err = io.WriteString(_w, `        },
+        "",0)
+
 	if err != nil {
 	    return err
 	}
@@ -11899,7 +11924,7 @@ func delete`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `", fmt.Sprint(pk))
+		if _, err = io.WriteString(_w, `", pk)
 `); err != nil {
 			return
 		}

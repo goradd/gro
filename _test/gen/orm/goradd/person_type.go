@@ -142,7 +142,7 @@ func PersonTypesI() (values []any) {
 	}
 }
 
-// PersonTypeLabel returns the Label values associated with PersonType.
+// PersonTypeLabel returns the Label value associated with PersonType.
 func (e PersonType) Label() string {
 	switch e {
 	case 0:
@@ -211,7 +211,7 @@ func PersonTypeFromInterface(i any) (PersonType, error) {
 			}
 		}
 		// Otherwise convert from the identifier
-		return PersonTypeFromKey(v)
+		return PersonTypeFromKey(v), nil
 	case json.Number:
 		if v2, err := v.Int64(); err == nil {
 			if IsValidPersonType(int(v2)) {

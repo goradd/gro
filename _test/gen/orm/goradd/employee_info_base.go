@@ -778,7 +778,7 @@ func (o *employeeInfoBase) Delete(ctx context.Context) (err error) {
 	if err != nil {
 	    return err
 	}
-	broadcast.Delete(ctx, "goradd", "employee_info", fmt.Sprint(o.id))
+	broadcast.Delete(ctx, "goradd", "employee_info", o._originalPK))
 	return
 }
 
@@ -786,11 +786,16 @@ func (o *employeeInfoBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deleteEmployeeInfo(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd")
-	err := d.Delete(ctx, "employee_info", "id", pk, "", 0)
+    err := d.Delete(ctx, "employee_info",
+        map[string]any {
+            "id": pk
+        },
+        "",0)
+
 	if err != nil {
 	    return err
 	}
-	broadcast.Delete(ctx, "goradd", "employee_info", fmt.Sprint(pk))
+	broadcast.Delete(ctx, "goradd", "employee_info", pk)
     return err
 }
 // resetDirtyStatus resets the dirty status of every field in the object.

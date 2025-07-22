@@ -278,7 +278,7 @@ func TestGift_QueryLoadI(t *testing.T) {
 		Where(op.Equal(node.Gift().Number(), obj.Number())).
 		LoadI()
 
-	assert.Equal(t, obj.PrimaryKey(), objs[0].Get("Number"))
+	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
 }
 func TestGift_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleGift()
