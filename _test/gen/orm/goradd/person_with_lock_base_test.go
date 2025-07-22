@@ -344,7 +344,7 @@ func TestPersonWithLock_QueryLoadI(t *testing.T) {
 		Where(op.Equal(node.PersonWithLock().ID(), obj.ID())).
 		LoadI()
 
-	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+	assert.Equal(t, obj.PrimaryKey(), objs[0].(*PersonWithLock).PrimaryKey())
 }
 func TestPersonWithLock_QueryCursor(t *testing.T) {
 	obj := createMinimalSamplePersonWithLock()

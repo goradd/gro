@@ -420,7 +420,7 @@ func Test`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `_FromIdentifier(t *testing.T) {
+	if _, err = io.WriteString(_w, `_FromKey(t *testing.T) {
     var v `); err != nil {
 		return
 	}
@@ -430,7 +430,6 @@ func Test`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `
-    var err error
 
 `); err != nil {
 		return
@@ -438,7 +437,7 @@ func Test`); err != nil {
 
 	for _, con := range table.Constants {
 
-		if _, err = io.WriteString(_w, `    v,err = `); err != nil {
+		if _, err = io.WriteString(_w, `    v = `); err != nil {
 			return
 		}
 
@@ -446,7 +445,7 @@ func Test`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `FromIdentifier(`); err != nil {
+		if _, err = io.WriteString(_w, `FromKey(`); err != nil {
 			return
 		}
 
@@ -462,8 +461,7 @@ func Test`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `).Identifier())
-    assert.NoError(t, err)
+		if _, err = io.WriteString(_w, `).Key())
     assert.Equal(t, `); err != nil {
 			return
 		}

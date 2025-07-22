@@ -19,8 +19,8 @@ type ProjectNode interface {
 	ID() *query.ColumnNode
 	// Num represents the num column in the database.
 	Num() *query.ColumnNode
-	// StatusEnum represents the status_enum column in the database.
-	StatusEnum() *query.ColumnNode
+	// Status represents the status column in the database.
+	Status() *query.ColumnNode
 	// Name represents the name column in the database.
 	Name() *query.ColumnNode
 	// Description represents the description column in the database.
@@ -99,7 +99,7 @@ func (n projectTable) DatabaseKey_() string {
 func (n projectTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.Num())
-	nodes = append(nodes, n.StatusEnum())
+	nodes = append(nodes, n.Status())
 	nodes = append(nodes, n.Name())
 	nodes = append(nodes, n.Description())
 	nodes = append(nodes, n.StartDate())
@@ -250,10 +250,10 @@ func (n *projectAssociation) Num() *query.ColumnNode {
 	return cn
 }
 
-func (n projectTable) StatusEnum() *query.ColumnNode {
+func (n projectTable) Status() *query.ColumnNode {
 	cn := &query.ColumnNode{
-		QueryName:     "status_enum",
-		Identifier:    "StatusEnum",
+		QueryName:     "status",
+		Identifier:    "Status",
 		ReceiverType:  query.ColTypeInteger,
 		SchemaType:    schema.ColTypeEnum,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -263,20 +263,20 @@ func (n projectTable) StatusEnum() *query.ColumnNode {
 	return cn
 }
 
-func (n *projectReference) StatusEnum() *query.ColumnNode {
-	cn := n.projectTable.StatusEnum()
+func (n *projectReference) Status() *query.ColumnNode {
+	cn := n.projectTable.Status()
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *projectReverse) StatusEnum() *query.ColumnNode {
-	cn := n.projectTable.StatusEnum()
+func (n *projectReverse) Status() *query.ColumnNode {
+	cn := n.projectTable.Status()
 	query.NodeSetParent(cn, n)
 	return cn
 }
 
-func (n *projectAssociation) StatusEnum() *query.ColumnNode {
-	cn := n.projectTable.StatusEnum()
+func (n *projectAssociation) Status() *query.ColumnNode {
+	cn := n.projectTable.Status()
 	query.NodeSetParent(cn, n)
 	return cn
 }

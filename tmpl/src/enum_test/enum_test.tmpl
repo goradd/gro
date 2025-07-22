@@ -69,13 +69,11 @@ func Test{{= table.Identifier }}_Values(t *testing.T) {
     assert.False(t, IsValid{{= table.Identifier }}(0))
 }
 
-func Test{{= table.Identifier }}_FromIdentifier(t *testing.T) {
+func Test{{= table.Identifier }}_FromKey(t *testing.T) {
     var v {{= table.Identifier }}
-    var err error
 
 {{for _,con := range table.Constants }}
-    v,err = {{= table.Identifier }}FromIdentifier({{= table.Identifier }}({{i con.Value}}).Identifier())
-    assert.NoError(t, err)
+    v = {{= table.Identifier }}FromKey({{= table.Identifier }}({{i con.Value}}).Key())
     assert.Equal(t, {{= table.Identifier }}({{i con.Value}}), v)
 {{for}}
 }

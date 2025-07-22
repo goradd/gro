@@ -98,21 +98,16 @@ func TestProjectStatus_Values(t *testing.T) {
 	assert.False(t, IsValidProjectStatus(0))
 }
 
-func TestProjectStatus_FromIdentifier(t *testing.T) {
+func TestProjectStatus_FromKey(t *testing.T) {
 	var v ProjectStatus
-	var err error
 
-	v, err = ProjectStatusFromIdentifier(ProjectStatus(1).Identifier())
-	assert.NoError(t, err)
+	v = ProjectStatusFromKey(ProjectStatus(1).Key())
 	assert.Equal(t, ProjectStatus(1), v)
-	v, err = ProjectStatusFromIdentifier(ProjectStatus(2).Identifier())
-	assert.NoError(t, err)
+	v = ProjectStatusFromKey(ProjectStatus(2).Key())
 	assert.Equal(t, ProjectStatus(2), v)
-	v, err = ProjectStatusFromIdentifier(ProjectStatus(3).Identifier())
-	assert.NoError(t, err)
+	v = ProjectStatusFromKey(ProjectStatus(3).Key())
 	assert.Equal(t, ProjectStatus(3), v)
-	v, err = ProjectStatusFromIdentifier(ProjectStatus(4).Identifier())
-	assert.NoError(t, err)
+	v = ProjectStatusFromKey(ProjectStatus(4).Key())
 	assert.Equal(t, ProjectStatus(4), v)
 }
 

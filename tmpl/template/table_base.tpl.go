@@ -5287,12 +5287,20 @@ func Load`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `(), pk.`); err != nil {
+		if _, err = io.WriteString(_w, `(), pk`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.Field); err != nil {
-			return
+		if len(table.PrimaryKeyColumns()) > 1 {
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Field); err != nil {
+				return
+			}
+
 		}
 
 		if _, err = io.WriteString(_w, `)).
@@ -5380,12 +5388,20 @@ func Has`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `(), pk.`); err != nil {
+		if _, err = io.WriteString(_w, `(), pk`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.Field); err != nil {
-			return
+		if len(table.PrimaryKeyColumns()) > 1 {
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Field); err != nil {
+				return
+			}
+
 		}
 
 		if _, err = io.WriteString(_w, `)).
@@ -6045,7 +6061,7 @@ func Load`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
 				return
 			}
 
@@ -6072,7 +6088,7 @@ func Has`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, table.IdentifierPlural); err != nil {
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
 				return
 			}
 
@@ -8322,20 +8338,7 @@ func (o *`); err != nil {
     }
 
     var modifiedFields map[string]interface{}
-`); err != nil {
-		return
-	}
 
-	if c := table.LockColumn; c != nil {
-
-		if _, err = io.WriteString(_w, `    var newLock int64
-`); err != nil {
-			return
-		}
-
-	}
-
-	if _, err = io.WriteString(_w, `
     d := Database()
 `); err != nil {
 		return
@@ -9809,7 +9812,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` = l
+			if _, err = io.WriteString(_w, ` = l.(int64)
         o.`); err != nil {
 				return
 			}
@@ -11211,7 +11214,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 
 			}
 
-			if _, err = io.WriteString(_w, `
+			if _, err = io.WriteString(_w, `,
 `); err != nil {
 				return
 			}
@@ -11801,7 +11804,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 		return
 	}
 
-	if _, err = io.WriteString(_w, `", o._originalPK))
+	if _, err = io.WriteString(_w, `", o._originalPK)
 	return
 }
 
@@ -11895,7 +11898,7 @@ func delete`); err != nil {
 
 			}
 
-			if _, err = io.WriteString(_w, `
+			if _, err = io.WriteString(_w, `,
 `); err != nil {
 				return
 			}

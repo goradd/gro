@@ -9,7 +9,7 @@
 func Load{{= table.Identifier }}(ctx context.Context, pk {{= table.PrimaryKeyType() }}, selectNodes ...query.Node) (*{{= table.Identifier}}, error) {
 	return query{{= table.IdentifierPlural }}(ctx).
 {{for _, col := range table.PrimaryKeyColumns() }}
-	    Where(op.Equal(node.{{= table.Identifier }}().{{= col.Identifier }}(), pk.{{= col.Field }})).
+	    Where(op.Equal(node.{{= table.Identifier }}().{{= col.Identifier }}(), pk{{if len(table.PrimaryKeyColumns()) > 1}}.{{= col.Field }}{{if}})).
 {{for}}
 	    Select(selectNodes...).
 	    Get()
@@ -20,7 +20,7 @@ func Load{{= table.Identifier }}(ctx context.Context, pk {{= table.PrimaryKeyTyp
 func Has{{= table.Identifier }}(ctx context.Context, pk {{= table.PrimaryKeyType() }}) (bool, error) {
     v, err := query{{= table.IdentifierPlural }}(ctx).
 {{for _, col := range table.PrimaryKeyColumns() }}
-	    Where(op.Equal(node.{{= table.Identifier }}().{{= col.Identifier }}(), pk.{{= col.Field }})).
+	    Where(op.Equal(node.{{= table.Identifier }}().{{= col.Identifier }}(), pk{{if len(table.PrimaryKeyColumns()) > 1}}.{{= col.Field }}{{if}})).
 {{for}}
          Count()
     return v > 0, err
@@ -88,10 +88,10 @@ func Load{{= table.IdentifierPlural }}By{{= idx.Identifier}} (ctx context.Contex
     return q.Select(selectNodes...).Load()
 }
 
-// Has{{= table.IdentifierPlural }}By{{= idx.Identifier }} returns true if the
+// Has{{= table.Identifier }}By{{= idx.Identifier }} returns true if the
 // given index values exist in the database.
 // doc: type={{= table.Identifier}}
-func Has{{= table.IdentifierPlural }}By{{= idx.Identifier }} (ctx context.Context, {{join idx.Columns, ", "}}{{= _j.Field }} {{if _j.IsNullable}}interface{}{{else}}{{= _j.Type}}{{if}}{{join}}) (bool, error) {
+func Has{{= table.Identifier }}By{{= idx.Identifier }} (ctx context.Context, {{join idx.Columns, ", "}}{{= _j.Field }} {{if _j.IsNullable}}interface{}{{else}}{{= _j.Type}}{{if}}{{join}}) (bool, error) {
     q := query{{= table.IdentifierPlural }}(ctx)
 {{for _,col := range idx.Columns}}
 {{if col.IsNullable}}

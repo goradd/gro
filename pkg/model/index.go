@@ -1,7 +1,5 @@
 package model
 
-import "github.com/goradd/anyutil"
-
 // Index will create accessor functions related to Columns.
 type Index struct {
 	// IsUnique indicates whether the index is unique
@@ -10,8 +8,4 @@ type Index struct {
 	Columns    []*Column
 	Name       string
 	Identifier string
-}
-
-func (i *Index) FillDefaults() string {
-	return anyutil.Join(i.Columns, "_")
 }

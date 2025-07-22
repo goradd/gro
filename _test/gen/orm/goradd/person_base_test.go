@@ -34,7 +34,7 @@ func updateMinimalSamplePerson(obj *Person) {
 
 	obj.SetLastName(test.RandomValue[string](50))
 
-	obj.SetPersonTypeEnum(test.RandomEnum(PersonTypes()))
+	obj.SetPersonType(test.RandomEnum(PersonTypes()))
 
 }
 
@@ -103,8 +103,8 @@ func assertEqualFieldsPerson(t *testing.T, obj1, obj2 *Person) {
 	if obj1.LastNameIsLoaded() && obj2.LastNameIsLoaded() { // only check loaded values
 		assert.EqualValues(t, obj1.LastName(), obj2.LastName())
 	}
-	if obj1.PersonTypeEnumIsLoaded() && obj2.PersonTypeEnumIsLoaded() { // only check loaded values
-		assert.EqualValues(t, obj1.PersonTypeEnum(), obj2.PersonTypeEnum())
+	if obj1.PersonTypeIsLoaded() && obj2.PersonTypeIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.PersonType(), obj2.PersonType())
 	}
 	if obj1.CreatedIsLoaded() && obj2.CreatedIsLoaded() { // only check loaded values
 		// ignore fractional seconds since some types truncate to the second.
@@ -174,24 +174,24 @@ func TestPerson_SetLastName(t *testing.T) {
 		obj.SetLastName(val)
 	})
 }
-func TestPerson_SetPersonTypeEnum(t *testing.T) {
+func TestPerson_SetPersonType(t *testing.T) {
 
 	obj := NewPerson()
 
 	assert.True(t, obj.IsNew())
 	val := test.RandomEnum(PersonTypes())
-	obj.SetPersonTypeEnum(val)
-	assert.Equal(t, val, obj.PersonTypeEnum())
-	assert.False(t, obj.PersonTypeEnumIsNull())
+	obj.SetPersonType(val)
+	assert.Equal(t, val, obj.PersonType())
+	assert.False(t, obj.PersonTypeIsNull())
 
 	// Test NULL
-	obj.SetPersonTypeEnumToNull()
-	assert.EqualValues(t, 0, obj.PersonTypeEnum())
-	assert.True(t, obj.PersonTypeEnumIsNull())
+	obj.SetPersonTypeToNull()
+	assert.EqualValues(t, 0, obj.PersonType())
+	assert.True(t, obj.PersonTypeIsNull())
 
 	// test default
-	obj.SetPersonTypeEnum(0)
-	assert.EqualValues(t, 0, obj.PersonTypeEnum(), "set default")
+	obj.SetPersonType(0)
+	assert.EqualValues(t, 0, obj.PersonType(), "set default")
 
 }
 
@@ -202,7 +202,7 @@ func TestPerson_Copy(t *testing.T) {
 
 	assert.Equal(t, obj.FirstName(), obj2.FirstName())
 	assert.Equal(t, obj.LastName(), obj2.LastName())
-	assert.Equal(t, obj.PersonTypeEnum(), obj2.PersonTypeEnum())
+	assert.Equal(t, obj.PersonType(), obj2.PersonType())
 
 }
 
@@ -236,12 +236,12 @@ func TestPerson_BasicInsert(t *testing.T) {
 	obj2.SetLastName(obj2.LastName())
 	assert.False(t, obj2.lastNameIsDirty)
 
-	assert.True(t, obj2.PersonTypeEnumIsLoaded())
-	assert.False(t, obj2.PersonTypeEnumIsNull())
+	assert.True(t, obj2.PersonTypeIsLoaded())
+	assert.False(t, obj2.PersonTypeIsNull())
 	// test that setting it to the same value will not change the dirty bit
-	assert.False(t, obj2.personTypeEnumIsDirty)
-	obj2.SetPersonTypeEnum(obj2.PersonTypeEnum())
-	assert.False(t, obj2.personTypeEnumIsDirty)
+	assert.False(t, obj2.personTypeIsDirty)
+	obj2.SetPersonType(obj2.PersonType())
+	assert.False(t, obj2.personTypeIsDirty)
 
 	assert.True(t, obj2.CreatedIsLoaded())
 
@@ -279,7 +279,7 @@ func TestPerson_BasicUpdate(t *testing.T) {
 	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
 	assert.Equal(t, obj2.FirstName(), obj.FirstName(), "FirstName did not update")
 	assert.Equal(t, obj2.LastName(), obj.LastName(), "LastName did not update")
-	assert.Equal(t, obj2.PersonTypeEnum(), obj.PersonTypeEnum(), "PersonTypeEnum did not update")
+	assert.Equal(t, obj2.PersonType(), obj.PersonType(), "PersonType did not update")
 
 	assert.WithinDuration(t, obj2.Created(), obj.Created(), time.Second, "Created not within one second")
 
@@ -331,7 +331,7 @@ func TestPerson_ReferenceLoad(t *testing.T) {
 	obj3, _ := LoadPerson(ctx, obj.PrimaryKey(), node.Person().ID(),
 		node.Person().FirstName(),
 		node.Person().LastName(),
-		node.Person().PersonTypeEnum(),
+		node.Person().PersonType(),
 		node.Person().Created(),
 		node.Person().Modified(),
 		node.Person().ManagerProjects(),
@@ -395,7 +395,7 @@ func TestPerson_ReferenceUpdateOldObjects(t *testing.T) {
 	obj2, _ := LoadPerson(ctx, obj.PrimaryKey(), node.Person().ID(),
 		node.Person().FirstName(),
 		node.Person().LastName(),
-		node.Person().PersonTypeEnum(),
+		node.Person().PersonType(),
 		node.Person().Created(),
 		node.Person().Modified(),
 		node.Person().ManagerProjects(),
@@ -445,9 +445,9 @@ func TestPerson_Getters(t *testing.T) {
 	assert.Equal(t, obj.LastName(), obj.Get(node.Person().LastName().Identifier))
 	assert.Panics(t, func() { obj2.LastName() })
 	assert.Nil(t, obj2.Get(node.Person().LastName().Identifier))
-	assert.Equal(t, obj.PersonTypeEnum(), obj.Get(node.Person().PersonTypeEnum().Identifier))
-	assert.Panics(t, func() { obj2.PersonTypeEnum() })
-	assert.Nil(t, obj2.Get(node.Person().PersonTypeEnum().Identifier))
+	assert.Equal(t, obj.PersonType(), obj.Get(node.Person().PersonType().Identifier))
+	assert.Panics(t, func() { obj2.PersonType() })
+	assert.Nil(t, obj2.Get(node.Person().PersonType().Identifier))
 	assert.Equal(t, obj.Created(), obj.Get(node.Person().Created().Identifier))
 	assert.Panics(t, func() { obj2.Created() })
 	assert.Nil(t, obj2.Get(node.Person().Created().Identifier))
@@ -483,7 +483,7 @@ func TestPerson_QueryLoadI(t *testing.T) {
 		Where(op.Equal(node.Person().ID(), obj.ID())).
 		LoadI()
 
-	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+	assert.Equal(t, obj.PrimaryKey(), objs[0].(*Person).PrimaryKey())
 }
 func TestPerson_QueryCursor(t *testing.T) {
 	obj := createMinimalSamplePerson()
@@ -526,7 +526,7 @@ func TestPerson_Count(t *testing.T) {
 	obj2, _ := LoadPerson(ctx, obj.PrimaryKey())
 	assert.Positive(t,
 		func() int {
-			i, _ := CountPeopleBy(ctx,
+			i, _ := CountPeopleByLastName(ctx,
 				obj2.LastName())
 			return i
 		}())

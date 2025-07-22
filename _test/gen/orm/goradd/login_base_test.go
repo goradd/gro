@@ -418,7 +418,7 @@ func TestLogin_QueryLoadI(t *testing.T) {
 		Where(op.Equal(node.Login().ID(), obj.ID())).
 		LoadI()
 
-	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+	assert.Equal(t, obj.PrimaryKey(), objs[0].(*Login).PrimaryKey())
 }
 func TestLogin_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleLogin()
@@ -461,13 +461,13 @@ func TestLogin_Count(t *testing.T) {
 	obj2, _ := LoadLogin(ctx, obj.PrimaryKey())
 	assert.Positive(t,
 		func() int {
-			i, _ := CountLoginsBy(ctx,
+			i, _ := CountLoginsByUsername(ctx,
 				obj2.Username())
 			return i
 		}())
 	assert.Positive(t,
 		func() int {
-			i, _ := CountLoginsBy(ctx,
+			i, _ := CountLoginsByPersonID(ctx,
 				obj2.PersonID())
 			return i
 		}())

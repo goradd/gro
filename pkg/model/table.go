@@ -347,7 +347,13 @@ func (m *Database) importTable(tableSchema *schema.Table,
 					columns = append(columns, col)
 				}
 			}
-			t.Indexes = append(t.Indexes, Index{IsUnique: idx.IndexLevel == schema.IndexLevelUnique, Columns: columns})
+			t.Indexes = append(t.Indexes,
+				Index{
+					IsUnique:   idx.IndexLevel == schema.IndexLevelUnique,
+					Columns:    columns,
+					Identifier: idx.Identifier,
+					Name:       idx.Name,
+				})
 		}
 	}
 

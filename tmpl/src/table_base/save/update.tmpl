@@ -14,9 +14,6 @@ func (o *{{= table.DecapIdentifier}}Base) update(ctx context.Context) error {
     }
 
     var modifiedFields map[string]interface{}
-{{if c := table.LockColumn; c != nil }}
-    var newLock int64
-{{if}}
 
     d := Database()
 {{if table.WriteTimeout != 0 }}
@@ -66,7 +63,7 @@ func (o *{{= table.DecapIdentifier}}Base) update(ctx context.Context) error {
 {{elseif col.SchemaSubType == schema.ColSubTypeLock}}
     // update generated lock value
     if l, ok := modifiedFields["{{= col.QueryName }}"]; ok {
-        o.{{= col.Field }} = l
+        o.{{= col.Field }} = l.(int64)
         o.{{= col.Field }}IsLoaded = true
     }
 {{if}}

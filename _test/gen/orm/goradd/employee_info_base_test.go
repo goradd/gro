@@ -333,7 +333,7 @@ func TestEmployeeInfo_QueryLoadI(t *testing.T) {
 		Where(op.Equal(node.EmployeeInfo().ID(), obj.ID())).
 		LoadI()
 
-	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+	assert.Equal(t, obj.PrimaryKey(), objs[0].(*EmployeeInfo).PrimaryKey())
 }
 func TestEmployeeInfo_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleEmployeeInfo()
@@ -376,7 +376,7 @@ func TestEmployeeInfo_Count(t *testing.T) {
 	obj2, _ := LoadEmployeeInfo(ctx, obj.PrimaryKey())
 	assert.Positive(t,
 		func() int {
-			i, _ := CountEmployeeInfosBy(ctx,
+			i, _ := CountEmployeeInfosByPersonID(ctx,
 				obj2.PersonID())
 			return i
 		}())

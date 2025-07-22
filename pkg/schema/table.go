@@ -172,7 +172,7 @@ func (t *Table) fillDefaults(db *Database) {
 		r.fillDefaults(db, t)
 	}
 	for _, i := range t.Indexes {
-		i.fillDefaults()
+		i.fillDefaults(t)
 	}
 
 }
@@ -209,4 +209,16 @@ func (t *Table) columnIsIndexed(n string) bool {
 		}
 	}
 	return false
+}
+
+func (t *Table) columnIdentifier(n string) string {
+	if c := t.FindColumn(n); c != nil {
+		return c.Identifier
+	}
+	for _, r := range t.References {
+		if r.Column == n {
+			return r.ColumnIdentifier
+		}
+	}
+	return ""
 }

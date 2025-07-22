@@ -83,7 +83,7 @@ func (c *Column) infer(db *Database, table *Table) error {
 			slog.String("table", table.Name))
 		return fmt.Errorf("missing column name in table %s", table.Name)
 	}
-	if c.Type == ColTypeEnum {
+	if c.Type == ColTypeEnum && c.EnumTable == "" {
 		// Infer the table from the name of the column
 		for _, e := range db.EnumTables {
 			if e.Name == c.Name ||

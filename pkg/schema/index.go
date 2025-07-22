@@ -1,6 +1,9 @@
 package schema
 
-import "strings"
+import (
+	"log/slog"
+	"strings"
+)
 
 // Index declares that a Get or Load function should be created on the given columns in the table
 // and gives direction to the database to create an index on the columns.
@@ -46,9 +49,20 @@ func (i *Index) infer() {
 	}
 }
 
-func (i *Index) fillDefaults() {
+func (i *Index) fillDefaults(t *Table) {
 	if i.Identifier == "" {
-		i.Identifier = strings.Join(i.Columns, "")
+		var colIDs []string
+		for _, colName := range i.Columns {
+			colID := t.columnIdentifier(colName)
+			if colID == "" {
+				slog.Error("Column not found",
+					slog.String("column", colName),
+					slog.String("table", t.Name))
+			} else {
+				colIDs = append(colIDs, colID)
+			}
+		}
+		i.Identifier = strings.Join(colIDs, "")
 	}
 }
 

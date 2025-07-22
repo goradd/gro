@@ -35,7 +35,7 @@ func Test{{= table.Identifier }}_QueryLoadI(t *testing.T) {
 {{for}}
         LoadI()
 
-    assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+    assert.Equal(t, obj.PrimaryKey(), objs[0].(*{{= table.Identifier }}).PrimaryKey())
 }
 }}
 

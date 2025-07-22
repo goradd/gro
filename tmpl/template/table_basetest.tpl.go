@@ -3698,7 +3698,15 @@ func Test`); err != nil {
 
 		if _, err = io.WriteString(_w, `        LoadI()
 
-    assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+    assert.Equal(t, obj.PrimaryKey(), objs[0].(*`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `).PrimaryKey())
 }
 `); err != nil {
 			return

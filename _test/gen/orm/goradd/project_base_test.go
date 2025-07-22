@@ -41,7 +41,7 @@ func updateMinimalSampleProject(obj *Project) {
 
 	obj.SetNum(test.RandomValue[int](32))
 
-	obj.SetStatusEnum(test.RandomEnum(ProjectStatuses()))
+	obj.SetStatus(test.RandomEnum(ProjectStatuses()))
 
 	obj.SetName(test.RandomValue[string](100))
 
@@ -107,8 +107,8 @@ func assertEqualFieldsProject(t *testing.T, obj1, obj2 *Project) {
 	if obj1.NumIsLoaded() && obj2.NumIsLoaded() { // only check loaded values
 		assert.EqualValues(t, obj1.Num(), obj2.Num())
 	}
-	if obj1.StatusEnumIsLoaded() && obj2.StatusEnumIsLoaded() { // only check loaded values
-		assert.EqualValues(t, obj1.StatusEnum(), obj2.StatusEnum())
+	if obj1.StatusIsLoaded() && obj2.StatusIsLoaded() { // only check loaded values
+		assert.EqualValues(t, obj1.Status(), obj2.Status())
 	}
 	if obj1.NameIsLoaded() && obj2.NameIsLoaded() { // only check loaded values
 		assert.EqualValues(t, obj1.Name(), obj2.Name())
@@ -166,18 +166,18 @@ func TestProject_SetNum(t *testing.T) {
 	assert.EqualValues(t, 0, obj.Num(), "set default")
 
 }
-func TestProject_SetStatusEnum(t *testing.T) {
+func TestProject_SetStatus(t *testing.T) {
 
 	obj := NewProject()
 
 	assert.True(t, obj.IsNew())
 	val := test.RandomEnum(ProjectStatuses())
-	obj.SetStatusEnum(val)
-	assert.Equal(t, val, obj.StatusEnum())
+	obj.SetStatus(val)
+	assert.Equal(t, val, obj.Status())
 
 	// test default
-	obj.SetStatusEnum(0)
-	assert.EqualValues(t, 0, obj.StatusEnum(), "set default")
+	obj.SetStatus(0)
+	assert.EqualValues(t, 0, obj.Status(), "set default")
 
 }
 func TestProject_SetName(t *testing.T) {
@@ -350,7 +350,7 @@ func TestProject_Copy(t *testing.T) {
 	obj2 := obj.Copy()
 
 	assert.Equal(t, obj.Num(), obj2.Num())
-	assert.Equal(t, obj.StatusEnum(), obj2.StatusEnum())
+	assert.Equal(t, obj.Status(), obj2.Status())
 	assert.Equal(t, obj.Name(), obj2.Name())
 	assert.Equal(t, obj.Description(), obj2.Description())
 	assert.Equal(t, obj.StartDate(), obj2.StartDate())
@@ -386,11 +386,11 @@ func TestProject_BasicInsert(t *testing.T) {
 	obj2.SetNum(obj2.Num())
 	assert.False(t, obj2.numIsDirty)
 
-	assert.True(t, obj2.StatusEnumIsLoaded())
+	assert.True(t, obj2.StatusIsLoaded())
 	// test that setting it to the same value will not change the dirty bit
-	assert.False(t, obj2.statusEnumIsDirty)
-	obj2.SetStatusEnum(obj2.StatusEnum())
-	assert.False(t, obj2.statusEnumIsDirty)
+	assert.False(t, obj2.statusIsDirty)
+	obj2.SetStatus(obj2.Status())
+	assert.False(t, obj2.statusIsDirty)
 
 	assert.True(t, obj2.NameIsLoaded())
 	// test that setting it to the same value will not change the dirty bit
@@ -450,9 +450,9 @@ func TestProject_InsertPanics(t *testing.T) {
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.numIsLoaded = true
 
-	obj.statusEnumIsLoaded = false
+	obj.statusIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.statusEnumIsLoaded = true
+	obj.statusIsLoaded = true
 
 	obj.nameIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
@@ -480,7 +480,7 @@ func TestProject_BasicUpdate(t *testing.T) {
 
 	assert.Equal(t, obj2.ID(), obj.ID(), "ID did not update")
 	assert.Equal(t, obj2.Num(), obj.Num(), "Num did not update")
-	assert.Equal(t, obj2.StatusEnum(), obj.StatusEnum(), "StatusEnum did not update")
+	assert.Equal(t, obj2.Status(), obj.Status(), "Status did not update")
 	assert.Equal(t, obj2.Name(), obj.Name(), "Name did not update")
 	assert.Equal(t, obj2.Description(), obj.Description(), "Description did not update")
 
@@ -556,7 +556,7 @@ func TestProject_ReferenceLoad(t *testing.T) {
 	// test eager loading
 	obj3, _ := LoadProject(ctx, obj.PrimaryKey(), node.Project().ID(),
 		node.Project().Num(),
-		node.Project().StatusEnum(),
+		node.Project().Status(),
 		node.Project().Name(),
 		node.Project().Description(),
 		node.Project().StartDate(),
@@ -622,7 +622,7 @@ func TestProject_ReferenceUpdateOldObjects(t *testing.T) {
 
 	obj2, _ := LoadProject(ctx, obj.PrimaryKey(), node.Project().ID(),
 		node.Project().Num(),
-		node.Project().StatusEnum(),
+		node.Project().Status(),
 		node.Project().Name(),
 		node.Project().Description(),
 		node.Project().StartDate(),
@@ -672,9 +672,9 @@ func TestProject_Getters(t *testing.T) {
 	assert.Equal(t, obj.Num(), obj.Get(node.Project().Num().Identifier))
 	assert.Panics(t, func() { obj2.Num() })
 	assert.Nil(t, obj2.Get(node.Project().Num().Identifier))
-	assert.Equal(t, obj.StatusEnum(), obj.Get(node.Project().StatusEnum().Identifier))
-	assert.Panics(t, func() { obj2.StatusEnum() })
-	assert.Nil(t, obj2.Get(node.Project().StatusEnum().Identifier))
+	assert.Equal(t, obj.Status(), obj.Get(node.Project().Status().Identifier))
+	assert.Panics(t, func() { obj2.Status() })
+	assert.Nil(t, obj2.Get(node.Project().Status().Identifier))
 	assert.Equal(t, obj.Name(), obj.Get(node.Project().Name().Identifier))
 	assert.Panics(t, func() { obj2.Name() })
 	assert.Nil(t, obj2.Get(node.Project().Name().Identifier))
@@ -722,7 +722,7 @@ func TestProject_QueryLoadI(t *testing.T) {
 		Where(op.Equal(node.Project().ID(), obj.ID())).
 		LoadI()
 
-	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+	assert.Equal(t, obj.PrimaryKey(), objs[0].(*Project).PrimaryKey())
 }
 func TestProject_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleProject()
@@ -765,25 +765,25 @@ func TestProject_Count(t *testing.T) {
 	obj2, _ := LoadProject(ctx, obj.PrimaryKey())
 	assert.Positive(t,
 		func() int {
-			i, _ := CountProjectsBy(ctx,
+			i, _ := CountProjectsByNum(ctx,
 				obj2.Num())
 			return i
 		}())
 	assert.Positive(t,
 		func() int {
-			i, _ := CountProjectsBy(ctx,
-				obj2.StatusEnum())
+			i, _ := CountProjectsByStatus(ctx,
+				obj2.Status())
 			return i
 		}())
 	assert.Positive(t,
 		func() int {
-			i, _ := CountProjectsBy(ctx,
+			i, _ := CountProjectsByManagerID(ctx,
 				obj2.ManagerID())
 			return i
 		}())
 	assert.Positive(t,
 		func() int {
-			i, _ := CountProjectsBy(ctx,
+			i, _ := CountProjectsByParentID(ctx,
 				obj2.ParentID())
 			return i
 		}())

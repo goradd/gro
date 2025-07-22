@@ -41,7 +41,7 @@
           "index_level": "indexed"
         },
         {
-          "name": "person_type_enum",
+          "name": "person_type",
           "type": "enum",
           "is_nullable": true
         },
@@ -105,7 +105,7 @@
           "index_level": "unique"
         },
         {
-          "name": "status_enum",
+          "name": "status",
           "type": "enum",
           "index_level": "indexed"
         },

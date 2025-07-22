@@ -48,7 +48,7 @@ func TestSerializeReverseReferencesPersonTable(t *testing.T) {
 
 		assert.True(t, query.NodesMatch(Person().ManagerProjects().ID(), n2.(ProjectNode).ID()))
 		assert.True(t, query.NodesMatch(Person().ManagerProjects().Num(), n2.(ProjectNode).Num()))
-		assert.True(t, query.NodesMatch(Person().ManagerProjects().StatusEnum(), n2.(ProjectNode).StatusEnum()))
+		assert.True(t, query.NodesMatch(Person().ManagerProjects().Status(), n2.(ProjectNode).Status()))
 		assert.True(t, query.NodesMatch(Person().ManagerProjects().Name(), n2.(ProjectNode).Name()))
 		assert.True(t, query.NodesMatch(Person().ManagerProjects().Description(), n2.(ProjectNode).Description()))
 		assert.True(t, query.NodesMatch(Person().ManagerProjects().StartDate(), n2.(ProjectNode).StartDate()))
@@ -153,7 +153,7 @@ func TestSerializeAssociationsPersonTable(t *testing.T) {
 
 		assert.True(t, query.NodesMatch(Person().Projects().ID(), n2.(ProjectNode).ID()))
 		assert.True(t, query.NodesMatch(Person().Projects().Num(), n2.(ProjectNode).Num()))
-		assert.True(t, query.NodesMatch(Person().Projects().StatusEnum(), n2.(ProjectNode).StatusEnum()))
+		assert.True(t, query.NodesMatch(Person().Projects().Status(), n2.(ProjectNode).Status()))
 		assert.True(t, query.NodesMatch(Person().Projects().Name(), n2.(ProjectNode).Name()))
 		assert.True(t, query.NodesMatch(Person().Projects().Description(), n2.(ProjectNode).Description()))
 		assert.True(t, query.NodesMatch(Person().Projects().StartDate(), n2.(ProjectNode).StartDate()))

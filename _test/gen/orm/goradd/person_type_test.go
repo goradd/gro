@@ -43,24 +43,18 @@ func TestPersonType_Values(t *testing.T) {
 	assert.False(t, IsValidPersonType(0))
 }
 
-func TestPersonType_FromIdentifier(t *testing.T) {
+func TestPersonType_FromKey(t *testing.T) {
 	var v PersonType
-	var err error
 
-	v, err = PersonTypeFromIdentifier(PersonType(1).Identifier())
-	assert.NoError(t, err)
+	v = PersonTypeFromKey(PersonType(1).Key())
 	assert.Equal(t, PersonType(1), v)
-	v, err = PersonTypeFromIdentifier(PersonType(2).Identifier())
-	assert.NoError(t, err)
+	v = PersonTypeFromKey(PersonType(2).Key())
 	assert.Equal(t, PersonType(2), v)
-	v, err = PersonTypeFromIdentifier(PersonType(3).Identifier())
-	assert.NoError(t, err)
+	v = PersonTypeFromKey(PersonType(3).Key())
 	assert.Equal(t, PersonType(3), v)
-	v, err = PersonTypeFromIdentifier(PersonType(4).Identifier())
-	assert.NoError(t, err)
+	v = PersonTypeFromKey(PersonType(4).Key())
 	assert.Equal(t, PersonType(4), v)
-	v, err = PersonTypeFromIdentifier(PersonType(5).Identifier())
-	assert.NoError(t, err)
+	v = PersonTypeFromKey(PersonType(5).Key())
 	assert.Equal(t, PersonType(5), v)
 }
 

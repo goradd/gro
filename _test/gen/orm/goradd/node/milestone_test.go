@@ -45,7 +45,7 @@ func TestSerializeReferencesMilestoneTable(t *testing.T) {
 
 		assert.True(t, query.NodesMatch(Milestone().Project().ID(), n2.(ProjectNode).ID()))
 		assert.True(t, query.NodesMatch(Milestone().Project().Num(), n2.(ProjectNode).Num()))
-		assert.True(t, query.NodesMatch(Milestone().Project().StatusEnum(), n2.(ProjectNode).StatusEnum()))
+		assert.True(t, query.NodesMatch(Milestone().Project().Status(), n2.(ProjectNode).Status()))
 		assert.True(t, query.NodesMatch(Milestone().Project().Name(), n2.(ProjectNode).Name()))
 		assert.True(t, query.NodesMatch(Milestone().Project().Description(), n2.(ProjectNode).Description()))
 		assert.True(t, query.NodesMatch(Milestone().Project().StartDate(), n2.(ProjectNode).StartDate()))

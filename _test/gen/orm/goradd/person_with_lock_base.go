@@ -3,40 +3,38 @@
 package goradd
 
 import (
-	"github.com/goradd/orm/pkg/db"
-	"github.com/goradd/orm/pkg/query"
-	"github.com/goradd/orm/pkg/broadcast"
-	"context"
-	"fmt"
-	"github.com/goradd/orm/pkg/op"
-	"github.com/goradd/anyutil"
 	"bytes"
+	"context"
 	"encoding/gob"
 	"encoding/json"
-    "github.com/goradd/maps"
-    "github.com/goradd/orm/_test/gen/orm/goradd/node"
-    "time"
-    "unicode/utf8"
+	"fmt"
+	"time"
+	"unicode/utf8"
+
+	"github.com/goradd/anyutil"
+	"github.com/goradd/orm/_test/gen/orm/goradd/node"
+	"github.com/goradd/orm/pkg/broadcast"
+	"github.com/goradd/orm/pkg/db"
+	"github.com/goradd/orm/pkg/op"
+	"github.com/goradd/orm/pkg/query"
 )
-
-
 
 // PersonWithLockBase is embedded in a PersonWithLock object and provides the ORM access to the database.
 // The member variables of the structure are private and should not normally be accessed by the PersonWithLock embedder.
 // Instead, use the accessor functions.
 type personWithLockBase struct {
-	id string
-	idIsLoaded bool
-	idIsDirty bool
-	firstName string
-	firstNameIsLoaded bool
-	firstNameIsDirty bool
-	lastName string
-	lastNameIsLoaded bool
-	lastNameIsDirty bool
-	groLock int64
-	groLockIsLoaded bool
-	groTimestamp int64
+	id                   string
+	idIsLoaded           bool
+	idIsDirty            bool
+	firstName            string
+	firstNameIsLoaded    bool
+	firstNameIsDirty     bool
+	lastName             string
+	lastNameIsLoaded     bool
+	lastNameIsDirty      bool
+	groLock              int64
+	groLockIsLoaded      bool
+	groTimestamp         int64
 	groTimestampIsLoaded bool
 
 	// Custom aliases, if specified
@@ -45,28 +43,27 @@ type personWithLockBase struct {
 	// Indicates whether this is a new object, or one loaded from the database. Used by Save to know whether to Insert or Update.
 	_restored bool
 
-    _originalPK string
+	_originalPK string
 }
-
 
 // IDs used to access the PersonWithLock object fields by name using the Get function.
 // doc: type=PersonWithLock
-const  (
-    PersonWithLockIDField = `id`
-    PersonWithLockFirstNameField = `firstName`
-    PersonWithLockLastNameField = `lastName`
-    PersonWithLockGroLockField = `groLock`
-    PersonWithLockGroTimestampField = `groTimestamp`
+const (
+	PersonWithLockIDField           = `id`
+	PersonWithLockFirstNameField    = `firstName`
+	PersonWithLockLastNameField     = `lastName`
+	PersonWithLockGroLockField      = `groLock`
+	PersonWithLockGroTimestampField = `groTimestamp`
 )
 
-    const PersonWithLockIDMaxLength = 32 // The number of runes the column can hold
-    const PersonWithLockFirstNameMaxLength = 50 // The number of runes the column can hold
-    const PersonWithLockLastNameMaxLength = 50 // The number of runes the column can hold
+const PersonWithLockIDMaxLength = 32        // The number of runes the column can hold
+const PersonWithLockFirstNameMaxLength = 50 // The number of runes the column can hold
+const PersonWithLockLastNameMaxLength = 50  // The number of runes the column can hold
 
 // Initialize or re-initialize a PersonWithLock database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
 func (o *personWithLockBase) Initialize() {
-    o.id = db.TemporaryPrimaryKey()
+	o.id = db.TemporaryPrimaryKey()
 	o.idIsLoaded = true
 	o.idIsDirty = false
 
@@ -84,11 +81,9 @@ func (o *personWithLockBase) Initialize() {
 	o.groTimestamp = 0
 	o.groTimestampIsLoaded = false
 
-
 	o._aliases = nil
 	o._restored = false
 }
-
 
 // Copy copies most fields to a new PersonWithLock object.
 // Forward reference ids will be copied, but reverse and many-many references will not.
@@ -99,17 +94,17 @@ func (o *personWithLockBase) Initialize() {
 // Copy might panic if any fields in the database were set to a size larger than the
 // maximum size through a process that accessed the database outside of the ORM.
 func (o *personWithLockBase) Copy() (newObject *PersonWithLock) {
-    newObject = NewPersonWithLock()
-    if o.idIsLoaded {
-        newObject.SetID(o.id)
-    }
-    if o.firstNameIsLoaded {
-        newObject.SetFirstName(o.firstName)
-    }
-    if o.lastNameIsLoaded {
-        newObject.SetLastName(o.lastName)
-    }
-    return
+	newObject = NewPersonWithLock()
+	if o.idIsLoaded {
+		newObject.SetID(o.id)
+	}
+	if o.firstNameIsLoaded {
+		newObject.SetFirstName(o.firstName)
+	}
+	if o.lastNameIsLoaded {
+		newObject.SetLastName(o.lastName)
+	}
+	return
 }
 
 // OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
@@ -121,7 +116,7 @@ func (o *personWithLockBase) OriginalPrimaryKey() string {
 // PrimaryKey returns the value of the primary key of the record.
 func (o *personWithLockBase) PrimaryKey() string {
 	if o._restored && !o.idIsLoaded {
-		panic ("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
+		panic("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
 	}
 	return o.id
 }
@@ -133,12 +128,12 @@ func (o *personWithLockBase) PrimaryKey() string {
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
 func (o *personWithLockBase) SetPrimaryKey(v string) {
-    if o._restored {
-        panic ("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-    }
-    if utf8.RuneCountInString(v) > PersonWithLockIDMaxLength {
-        panic("attempted to set PersonWithLock.ID to a value larger than its maximum length in runes")
-    }
+	if o._restored {
+		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+	}
+	if utf8.RuneCountInString(v) > PersonWithLockIDMaxLength {
+		panic("attempted to set PersonWithLock.ID to a value larger than its maximum length in runes")
+	}
 	o.idIsLoaded = true
 	o.idIsDirty = true
 	o.id = v
@@ -161,14 +156,13 @@ func (o *personWithLockBase) IDIsLoaded() bool {
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
 func (o *personWithLockBase) SetID(v string) {
-    o.SetPrimaryKey(v)
+	o.SetPrimaryKey(v)
 }
-
 
 // FirstName returns the value of FirstName.
 func (o *personWithLockBase) FirstName() string {
 	if o._restored && !o.firstNameIsLoaded {
-		panic ("FirstName was not selected in the last query and has not been set, and so is not valid")
+		panic("FirstName was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.firstName
 }
@@ -180,15 +174,15 @@ func (o *personWithLockBase) FirstNameIsLoaded() bool {
 
 // SetFirstName sets the value of FirstName in the object, to be saved later in the database using the Save() function.
 func (o *personWithLockBase) SetFirstName(v string) {
-    if utf8.RuneCountInString(v) > PersonWithLockFirstNameMaxLength {
-        panic("attempted to set PersonWithLock.FirstName to a value larger than its maximum length in runes")
-    }
+	if utf8.RuneCountInString(v) > PersonWithLockFirstNameMaxLength {
+		panic("attempted to set PersonWithLock.FirstName to a value larger than its maximum length in runes")
+	}
 	if o._restored &&
-	    o.firstNameIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
-        o.firstName == v {
-        // no change
-        return
-    }
+		o.firstNameIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.firstName == v {
+		// no change
+		return
+	}
 
 	o.firstNameIsLoaded = true
 	o.firstName = v
@@ -198,7 +192,7 @@ func (o *personWithLockBase) SetFirstName(v string) {
 // LastName returns the value of LastName.
 func (o *personWithLockBase) LastName() string {
 	if o._restored && !o.lastNameIsLoaded {
-		panic ("LastName was not selected in the last query and has not been set, and so is not valid")
+		panic("LastName was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.lastName
 }
@@ -210,15 +204,15 @@ func (o *personWithLockBase) LastNameIsLoaded() bool {
 
 // SetLastName sets the value of LastName in the object, to be saved later in the database using the Save() function.
 func (o *personWithLockBase) SetLastName(v string) {
-    if utf8.RuneCountInString(v) > PersonWithLockLastNameMaxLength {
-        panic("attempted to set PersonWithLock.LastName to a value larger than its maximum length in runes")
-    }
+	if utf8.RuneCountInString(v) > PersonWithLockLastNameMaxLength {
+		panic("attempted to set PersonWithLock.LastName to a value larger than its maximum length in runes")
+	}
 	if o._restored &&
-	    o.lastNameIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
-        o.lastName == v {
-        // no change
-        return
-    }
+		o.lastNameIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		o.lastName == v {
+		// no change
+		return
+	}
 
 	o.lastNameIsLoaded = true
 	o.lastName = v
@@ -228,7 +222,7 @@ func (o *personWithLockBase) SetLastName(v string) {
 // GroLock returns the value of GroLock.
 func (o *personWithLockBase) GroLock() int64 {
 	if o._restored && !o.groLockIsLoaded {
-		panic ("GroLock was not selected in the last query and has not been set, and so is not valid")
+		panic("GroLock was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.groLock
 }
@@ -241,7 +235,7 @@ func (o *personWithLockBase) GroLockIsLoaded() bool {
 // GroTimestamp returns the value of GroTimestamp.
 func (o *personWithLockBase) GroTimestamp() int64 {
 	if o._restored && !o.groTimestampIsLoaded {
-		panic ("GroTimestamp was not selected in the last query and has not been set, and so is not valid")
+		panic("GroTimestamp was not selected in the last query and has not been set, and so is not valid")
 	}
 	return o.groTimestamp
 }
@@ -251,43 +245,39 @@ func (o *personWithLockBase) GroTimestampIsLoaded() bool {
 	return o.groTimestampIsLoaded
 }
 
-
 // GetAlias returns the value for the Alias node aliasKey that was returned in the most
 // recent query.
 func (o *personWithLockBase) GetAlias(aliasKey string) query.AliasValue {
-	if a,ok := o._aliases[aliasKey]; ok {
+	if a, ok := o._aliases[aliasKey]; ok {
 		return query.NewAliasValue(a)
 	} else {
-		panic ("Alias " + aliasKey + " not found.")
+		panic("Alias " + aliasKey + " not found.")
 	}
 }
-
 
 // IsNew returns true if the object will create a new record when saved.
 func (o *personWithLockBase) IsNew() bool {
 	return !o._restored
 }
 
-
 // LoadPersonWithLock returns a PersonWithLock from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [PersonWithLocksBuilder.Select] for more info.
 func LoadPersonWithLock(ctx context.Context, pk string, selectNodes ...query.Node) (*PersonWithLock, error) {
 	return queryPersonWithLocks(ctx).
-	    Where(op.Equal(node.PersonWithLock().ID(), pk.id)).
-	    Select(selectNodes...).
-	    Get()
+		Where(op.Equal(node.PersonWithLock().ID(), pk)).
+		Select(selectNodes...).
+		Get()
 }
 
 // HasPersonWithLock returns true if a PersonWithLock with the given primary key exists in the database.
 // doc: type=PersonWithLock
 func HasPersonWithLock(ctx context.Context, pk string) (bool, error) {
-    v, err := queryPersonWithLocks(ctx).
-	    Where(op.Equal(node.PersonWithLock().ID(), pk.id)).
-         Count()
-    return v > 0, err
+	v, err := queryPersonWithLocks(ctx).
+		Where(op.Equal(node.PersonWithLock().ID(), pk)).
+		Count()
+	return v > 0, err
 }
-
 
 // The PersonWithLockBuilder uses a builder pattern to create a query on the database.
 // Create a PersonWithLockBuilder by calling QueryPersonWithLocks, which will select all
@@ -298,13 +288,13 @@ func HasPersonWithLock(ctx context.Context, pk string) (bool, error) {
 // meant to be a short-lived object. You should not save it for later use.
 type PersonWithLockBuilder struct {
 	builder *query.Builder
-	ctx context.Context
+	ctx     context.Context
 }
 
 func newPersonWithLockBuilder(ctx context.Context) *PersonWithLockBuilder {
 	b := PersonWithLockBuilder{
 		builder: query.NewBuilder(node.PersonWithLock()),
-		ctx: ctx,
+		ctx:     ctx,
 	}
 	return &b
 }
@@ -317,12 +307,12 @@ func (b *PersonWithLockBuilder) Load() (personWithLocks []*PersonWithLock, err e
 	database := db.GetDatabase("goradd")
 	var results any
 
-    ctx := b.ctx
+	ctx := b.ctx
 	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
-	for _,item := range results.([]map[string]any) {
+	for _, item := range results.([]map[string]any) {
 		o := new(PersonWithLock)
 		o.unpack(item, o)
 		personWithLocks = append(personWithLocks, o)
@@ -339,19 +329,18 @@ func (b *PersonWithLockBuilder) LoadI() (personWithLocks []query.OrmObj, err err
 	database := db.GetDatabase("goradd")
 	var results any
 
-    ctx := b.ctx
+	ctx := b.ctx
 	results, err = database.BuilderQuery(ctx, b.builder)
 	if results == nil || err != nil {
 		return
 	}
-	for _,item := range results.([]map[string]any) {
+	for _, item := range results.([]map[string]any) {
 		o := new(PersonWithLock)
 		o.unpack(item, o)
 		personWithLocks = append(personWithLocks, o)
 	}
 	return
 }
-
 
 // LoadCursor terminates the query builder, performs the query, and returns a cursor to the query.
 //
@@ -361,16 +350,17 @@ func (b *PersonWithLockBuilder) LoadI() (personWithLocks []query.OrmObj, err err
 //
 // Call Next() on the returned cursor object to step through the results. Make sure you call Close
 // on the cursor object when you are done. You should use
-//   defer cursor.Close()
-// to make sure the cursor gets closed.
 //
+//	defer cursor.Close()
+//
+// to make sure the cursor gets closed.
 func (b *PersonWithLockBuilder) LoadCursor() (personWithLocksCursor, error) {
 	b.builder.Command = query.BuilderCommandLoadCursor
 	database := db.GetDatabase("goradd")
 	result, err := database.BuilderQuery(b.ctx, b.builder)
 	var cursor query.CursorI
 	if result != nil {
-	    cursor = result.(query.CursorI)
+		cursor = result.(query.CursorI)
 	}
 	return personWithLocksCursor{cursor}, err
 }
@@ -383,9 +373,9 @@ type personWithLocksCursor struct {
 //
 // If there are no more records, it returns nil.
 func (c personWithLocksCursor) Next() (*PersonWithLock, error) {
-    if c.CursorI == nil {
-        return nil, nil
-    }
+	if c.CursorI == nil {
+		return nil, nil
+	}
 
 	row, err := c.CursorI.Next()
 	if row == nil || err != nil {
@@ -401,16 +391,16 @@ func (c personWithLocksCursor) Next() (*PersonWithLock, error) {
 // you are selecting on one or very few items.
 // If an error occurs, or no results are found, a nil is returned.
 func (b *PersonWithLockBuilder) Get() (*PersonWithLock, error) {
-    results, err := b.Load()
-    if err != nil || len(results) == 0 {
-        return nil, err
-    }
-    return results[0], nil
+	results, err := b.Load()
+	if err != nil || len(results) == 0 {
+		return nil, err
+	}
+	return results[0], nil
 }
 
 // Where adds a condition to filter what gets selected.
 // Calling Where multiple times will AND the conditions together.
-func (b *PersonWithLockBuilder)  Where(c query.Node) *PersonWithLockBuilder {
+func (b *PersonWithLockBuilder) Where(c query.Node) *PersonWithLockBuilder {
 	b.builder.Where(c)
 	return b
 }
@@ -418,7 +408,7 @@ func (b *PersonWithLockBuilder)  Where(c query.Node) *PersonWithLockBuilder {
 // OrderBy specifies how the resulting data should be sorted.
 // By default, the given nodes are sorted in ascending order.
 // Add Descending() to the node to specify that it should be sorted in descending order.
-func (b *PersonWithLockBuilder)  OrderBy(nodes... query.Sorter) *PersonWithLockBuilder {
+func (b *PersonWithLockBuilder) OrderBy(nodes ...query.Sorter) *PersonWithLockBuilder {
 	b.builder.OrderBy(nodes...)
 	return b
 }
@@ -427,7 +417,7 @@ func (b *PersonWithLockBuilder)  OrderBy(nodes... query.Sorter) *PersonWithLockB
 // For large data sets and specific types of queries, this can be slow, because it will perform
 // the entire query before computing the limit.
 // You cannot limit a query that has embedded arrays.
-func (b *PersonWithLockBuilder)  Limit(maxRowCount int, offset int) *PersonWithLockBuilder {
+func (b *PersonWithLockBuilder) Limit(maxRowCount int, offset int) *PersonWithLockBuilder {
 	b.builder.Limit(maxRowCount, offset)
 	return b
 }
@@ -439,7 +429,7 @@ func (b *PersonWithLockBuilder)  Limit(maxRowCount int, offset int) *PersonWithL
 // If columns in related tables are specified, then only those columns will be queried and loaded.
 // Depending on the query, additional columns may automatically be added to the query. In particular, primary key columns
 // will be added in most situations. The exception to this would be in distinct queries, group by queries, or subqueries.
-func (b *PersonWithLockBuilder)  Select(nodes... query.Node) *PersonWithLockBuilder {
+func (b *PersonWithLockBuilder) Select(nodes ...query.Node) *PersonWithLockBuilder {
 	b.builder.Select(nodes...)
 	return b
 }
@@ -453,57 +443,52 @@ func (b *PersonWithLockBuilder) Calculation(base query.TableNodeI, alias string,
 
 // Distinct removes duplicates from the results of the query.
 // Adding a Select() is usually required.
-func (b *PersonWithLockBuilder)  Distinct() *PersonWithLockBuilder {
+func (b *PersonWithLockBuilder) Distinct() *PersonWithLockBuilder {
 	b.builder.Distinct()
 	return b
 }
 
 // GroupBy controls how results are grouped when using aggregate functions with Calculation.
-func (b *PersonWithLockBuilder)  GroupBy(nodes... query.Node) *PersonWithLockBuilder {
+func (b *PersonWithLockBuilder) GroupBy(nodes ...query.Node) *PersonWithLockBuilder {
 	b.builder.GroupBy(nodes...)
 	return b
 }
 
 // Having does additional filtering on the results of the query after the query is performed.
-func (b *PersonWithLockBuilder)  Having(node query.Node)  *PersonWithLockBuilder {
-	 b.builder.Having(node)
-	 return b
+func (b *PersonWithLockBuilder) Having(node query.Node) *PersonWithLockBuilder {
+	b.builder.Having(node)
+	return b
 }
 
 // Count terminates a query and returns just the number of items in the result.
 // If you have Select or Calculation columns in the query, it will count NULL results as well.
 // To not count NULL values, use Where in the builder with a NotNull operation.
 // To count distinct combinations of items, call Distinct() on the builder.
-func (b *PersonWithLockBuilder)  Count() (int, error) {
+func (b *PersonWithLockBuilder) Count() (int, error) {
 	b.builder.Command = query.BuilderCommandCount
 	database := db.GetDatabase("goradd")
 
-    ctx := b.ctx
+	ctx := b.ctx
 	results, err := database.BuilderQuery(ctx, b.builder)
-    if results == nil || err != nil {
-        return 0, err
-    }
+	if results == nil || err != nil {
+		return 0, err
+	}
 	return results.(int), nil
 }
-
 
 // CountPersonWithLocks returns the total number of items in the person_with_lock table.
 func CountPersonWithLocks(ctx context.Context) (int, error) {
 	return QueryPersonWithLocks(ctx).Count()
 }
 
-
 // unpack recursively transforms data coming from the database into ORM objects.
-func (o *personWithLockBase) unpack (m map[string]interface{}, objThis *PersonWithLock) {
-
-	
-        
+func (o *personWithLockBase) unpack(m map[string]interface{}, objThis *PersonWithLock) {
 
 	if v, ok := m["id"]; ok && v != nil {
-    	if o.id, ok = v.(string); ok {
+		if o.id, ok = v.(string); ok {
 			o.idIsLoaded = true
 			o.idIsDirty = false
-            o._originalPK = o.id
+			o._originalPK = o.id
 		} else {
 			panic("Wrong type found for id.")
 		}
@@ -513,12 +498,8 @@ func (o *personWithLockBase) unpack (m map[string]interface{}, objThis *PersonWi
 		o.idIsDirty = false
 	}
 
-    
-	
-        
-
 	if v, ok := m["first_name"]; ok && v != nil {
-    	if o.firstName, ok = v.(string); ok {
+		if o.firstName, ok = v.(string); ok {
 			o.firstNameIsLoaded = true
 			o.firstNameIsDirty = false
 		} else {
@@ -530,12 +511,8 @@ func (o *personWithLockBase) unpack (m map[string]interface{}, objThis *PersonWi
 		o.firstNameIsDirty = false
 	}
 
-    
-	
-        
-
 	if v, ok := m["last_name"]; ok && v != nil {
-    	if o.lastName, ok = v.(string); ok {
+		if o.lastName, ok = v.(string); ok {
 			o.lastNameIsLoaded = true
 			o.lastNameIsDirty = false
 		} else {
@@ -547,12 +524,8 @@ func (o *personWithLockBase) unpack (m map[string]interface{}, objThis *PersonWi
 		o.lastNameIsDirty = false
 	}
 
-    
-	
-        
-
 	if v, ok := m["gro_lock"]; ok && v != nil {
-    	if o.groLock, ok = v.(int64); ok {
+		if o.groLock, ok = v.(int64); ok {
 			o.groLockIsLoaded = true
 		} else {
 			panic("Wrong type found for gro_lock.")
@@ -562,12 +535,8 @@ func (o *personWithLockBase) unpack (m map[string]interface{}, objThis *PersonWi
 		o.groLock = 0
 	}
 
-    
-	
-        
-
 	if v, ok := m["gro_timestamp"]; ok && v != nil {
-    	if o.groTimestamp, ok = v.(int64); ok {
+		if o.groTimestamp, ok = v.(int64); ok {
 			o.groTimestampIsLoaded = true
 		} else {
 			panic("Wrong type found for gro_timestamp.")
@@ -577,10 +546,6 @@ func (o *personWithLockBase) unpack (m map[string]interface{}, objThis *PersonWi
 		o.groTimestamp = 0
 	}
 
-    
-
-
-
 	if v, ok := m["aliases_"]; ok {
 		o._aliases = v.(map[string]any)
 	}
@@ -588,7 +553,6 @@ func (o *personWithLockBase) unpack (m map[string]interface{}, objThis *PersonWi
 	o._restored = true
 
 }
-
 
 // save will update or insert the object, depending on the state of the object.
 func (o *personWithLockBase) save(ctx context.Context) error {
@@ -602,109 +566,101 @@ func (o *personWithLockBase) save(ctx context.Context) error {
 // update will update the values in the database, saving any changed values.
 // If the table has auto-generated values, those will be updated automatically.
 func (o *personWithLockBase) update(ctx context.Context) error {
-    if !o._restored {
-        panic ("cannot update a record that was not originally read from the database.")
-    }
-    if !o.IsDirty() {
-        return nil // nothing to save
-    }
+	if !o._restored {
+		panic("cannot update a record that was not originally read from the database.")
+	}
+	if !o.IsDirty() {
+		return nil // nothing to save
+	}
 
-    var modifiedFields map[string]interface{}
-    var newLock int64
+	var modifiedFields map[string]interface{}
 
-    d := Database()
-    var cancel context.CancelFunc
-    ctx, cancel = context.WithTimeout(ctx, 30 * time.Second)
-    defer cancel()
-    err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
+	d := Database()
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+	err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
 
+		modifiedFields = getPersonWithLockUpdateFields(o)
+		if len(modifiedFields) != 0 {
+			err2 := d.Update(ctx, "person_with_lock",
+				map[string]any{
+					"id": o._originalPK,
+				},
+				modifiedFields,
+				"gro_lock",
+				o.GroLock(),
+			)
+			if err2 != nil {
+				return err2
+			}
+		}
 
-        modifiedFields = getPersonWithLockUpdateFields(o)
-        if len(modifiedFields) != 0 {
-            err2 := d.Update(ctx, "person_with_lock",
-                map[string]any{
-                    "id": o._originalPK,
-                },
-                modifiedFields,
-                "gro_lock",
-                o.GroLock(),
-            )
-            if err2 != nil {
-                return err2
-            }
-        }
-
-
-
-        return nil
-    }) // transaction
-    if err != nil {
-        return err
-    }
-    // update generated lock value
-    if l, ok := modifiedFields["gro_lock"]; ok {
-        o.groLock = l
-        o.groLockIsLoaded = true
-    }
-    // update generated time value
-    if t, ok := modifiedFields["gro_timestamp"]; ok {
-        o.groTimestamp = t.(int64)
-        o.groTimestampIsLoaded = true
-    }
+		return nil
+	}) // transaction
+	if err != nil {
+		return err
+	}
+	// update generated lock value
+	if l, ok := modifiedFields["gro_lock"]; ok {
+		o.groLock = l.(int64)
+		o.groLockIsLoaded = true
+	}
+	// update generated time value
+	if t, ok := modifiedFields["gro_timestamp"]; ok {
+		o.groTimestamp = t.(int64)
+		o.groTimestampIsLoaded = true
+	}
 
 	o.resetDirtyStatus()
 	if len(modifiedFields) != 0 {
-        broadcast.Update(ctx, "goradd", "person_with_lock", o._originalPK, anyutil.SortedKeys(modifiedFields)...)
+		broadcast.Update(ctx, "goradd", "person_with_lock", o._originalPK, anyutil.SortedKeys(modifiedFields)...)
 	}
 
 	return nil
 }
 
-
 // insert will insert the object into the database. Related items will be saved.
 func (o *personWithLockBase) insert(ctx context.Context) (err error) {
-    var insertFields map[string]interface{}
-    d := Database()
+	var insertFields map[string]interface{}
+	d := Database()
 
-    var cancel context.CancelFunc
-    ctx, cancel = context.WithTimeout(ctx, 30 * time.Second)
-    defer cancel()
+	var cancel context.CancelFunc
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
 
 	err = db.WithTransaction(ctx, d, func(context.Context) error {
-    if !o.firstNameIsLoaded {
-        panic("a value for FirstName is required, and there is no default value. Call SetFirstName() before inserting the record.")
-    }
-    if !o.lastNameIsLoaded {
-        panic("a value for LastName is required, and there is no default value. Call SetLastName() before inserting the record.")
-    }
-    insertFields = getPersonWithLockInsertFields(o)
-    var newPK string
-	newPK, err = d.Insert(ctx, "person_with_lock", "id", insertFields)
-    if err != nil {
-        return err
-    }
-	o.id = newPK
-	o._originalPK = newPK
-    o.idIsLoaded = true
+		if !o.firstNameIsLoaded {
+			panic("a value for FirstName is required, and there is no default value. Call SetFirstName() before inserting the record.")
+		}
+		if !o.lastNameIsLoaded {
+			panic("a value for LastName is required, and there is no default value. Call SetLastName() before inserting the record.")
+		}
+		insertFields = getPersonWithLockInsertFields(o)
+		var newPK string
+		newPK, err = d.Insert(ctx, "person_with_lock", "id", insertFields)
+		if err != nil {
+			return err
+		}
+		o.id = newPK
+		o._originalPK = newPK
+		o.idIsLoaded = true
 
+		return nil
 
+	}) // transaction
 
-
-        return nil
-
-    }) // transaction
-
-    if err != nil {
-        return
-    }
-    if t,ok := insertFields["gro_lock"]; ok {
-        o.groLock = t.(int64)
-        o.groLockIsLoaded = true
-    }
-    if t,ok := insertFields["gro_timestamp"]; ok {
-        o.groTimestamp = t.(int64)
-        o.groTimestampIsLoaded = true
-    }
+	if err != nil {
+		return
+	}
+	if t, ok := insertFields["gro_lock"]; ok {
+		o.groLock = t.(int64)
+		o.groLockIsLoaded = true
+	}
+	if t, ok := insertFields["gro_timestamp"]; ok {
+		o.groTimestamp = t.(int64)
+		o.groTimestampIsLoaded = true
+	}
 
 	o.resetDirtyStatus()
 	o._restored = true
@@ -712,24 +668,22 @@ func (o *personWithLockBase) insert(ctx context.Context) (err error) {
 	return
 }
 
-
-
 // getUpdateFields returns the database columns that will be sent to the update process.
 // This will include timestamp fields only if some other column has changed.
 func (o *personWithLockBase) getUpdateFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.idIsDirty {
-        fields["id"] = o.id
+		fields["id"] = o.id
 	}
 	if o.firstNameIsDirty {
-        fields["first_name"] = o.firstName
+		fields["first_name"] = o.firstName
 	}
 	if o.lastNameIsDirty {
-        fields["last_name"] = o.lastName
+		fields["last_name"] = o.lastName
 	}
-    if len(fields) > 0 {
-        fields["gro_timestamp"] = time.Now().UnixMicro()
-    }
+	if len(fields) > 0 {
+		fields["gro_timestamp"] = time.Now().UnixMicro()
+	}
 	return
 }
 
@@ -741,39 +695,38 @@ func (o *personWithLockBase) getUpdateFields() (fields map[string]interface{}) {
 // database driver and updated after the insert.
 func (o *personWithLockBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-    if o.idIsDirty {
-        fields["id"] = o.id
-    }
- 
-    fields["first_name"] = o.firstName
- 
-    fields["last_name"] = o.lastName
-    fields["gro_lock"] = db.RecordVersion(0)
-    fields["gro_timestamp"] = time.Now().UnixMicro()
+	if o.idIsDirty {
+		fields["id"] = o.id
+	}
+
+	fields["first_name"] = o.firstName
+
+	fields["last_name"] = o.lastName
+	fields["gro_lock"] = db.RecordVersion(0)
+	fields["gro_timestamp"] = time.Now().UnixMicro()
 	return
 }
 
-
 // Delete deletes the record from the database.
 func (o *personWithLockBase) Delete(ctx context.Context) (err error) {
-    if o == nil {
-        return // allow deleting of a nil object to be a noop
-    }
+	if o == nil {
+		return // allow deleting of a nil object to be a noop
+	}
 	if !o._restored {
-		panic ("Cannot delete a record that has no primary key value.")
+		panic("Cannot delete a record that has no primary key value.")
 	}
 	d := Database()
-    err = d.Delete(ctx, "person_with_lock",
-        map[string]any {
-            "id": o._originalPK
-        },
-        "gro_lock",
-        o.GroLock(),
-    )
+	err = d.Delete(ctx, "person_with_lock",
+		map[string]any{
+			"id": o._originalPK,
+		},
+		"gro_lock",
+		o.GroLock(),
+	)
 	if err != nil {
-	    return err
+		return err
 	}
-	broadcast.Delete(ctx, "goradd", "person_with_lock", o._originalPK))
+	broadcast.Delete(ctx, "goradd", "person_with_lock", o._originalPK)
 	return
 }
 
@@ -781,18 +734,19 @@ func (o *personWithLockBase) Delete(ctx context.Context) (err error) {
 // and handles associated records.
 func deletePersonWithLock(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd")
-    err := d.Delete(ctx, "person_with_lock",
-        map[string]any {
-            "id": pk
-        },
-        "",0)
+	err := d.Delete(ctx, "person_with_lock",
+		map[string]any{
+			"id": pk,
+		},
+		"", 0)
 
 	if err != nil {
-	    return err
+		return err
 	}
 	broadcast.Delete(ctx, "goradd", "person_with_lock", pk)
-    return err
+	return err
 }
+
 // resetDirtyStatus resets the dirty status of every field in the object.
 func (o *personWithLockBase) resetDirtyStatus() {
 	o.idIsDirty = false
@@ -803,13 +757,11 @@ func (o *personWithLockBase) resetDirtyStatus() {
 
 // IsDirty returns true if the object has been changed since it was read from the database or created.
 func (o *personWithLockBase) IsDirty() (dirty bool) {
-    dirty = o.idIsDirty ||
-o.firstNameIsDirty ||
-o.lastNameIsDirty
+	dirty = o.idIsDirty ||
+		o.firstNameIsDirty ||
+		o.lastNameIsDirty
 
-
-
-    return
+	return
 }
 
 // Get returns the value of a field in the object based on the field's name.
@@ -817,120 +769,117 @@ o.lastNameIsDirty
 // Invalid fields and objects are returned as nil.
 // Get can be used to retrieve a value by using the Identifier of a node.
 func (o *personWithLockBase) Get(key string) interface{} {
-    switch key {
-    case "id":
-        if !o.idIsLoaded {
-            return nil
-        }
-        return o.id
-    case "firstName":
-        if !o.firstNameIsLoaded {
-            return nil
-        }
-        return o.firstName
-    case "lastName":
-        if !o.lastNameIsLoaded {
-            return nil
-        }
-        return o.lastName
-    case "groLock":
-        if !o.groLockIsLoaded {
-            return nil
-        }
-        return o.groLock
-    case "groTimestamp":
-        if !o.groTimestampIsLoaded {
-            return nil
-        }
-        return o.groTimestamp
-    }
-    return nil
+	switch key {
+	case "id":
+		if !o.idIsLoaded {
+			return nil
+		}
+		return o.id
+	case "firstName":
+		if !o.firstNameIsLoaded {
+			return nil
+		}
+		return o.firstName
+	case "lastName":
+		if !o.lastNameIsLoaded {
+			return nil
+		}
+		return o.lastName
+	case "groLock":
+		if !o.groLockIsLoaded {
+			return nil
+		}
+		return o.groLock
+	case "groTimestamp":
+		if !o.groTimestampIsLoaded {
+			return nil
+		}
+		return o.groTimestamp
+	}
+	return nil
 }
+
 // MarshalBinary serializes the object into a buffer that is deserializable using UnmarshalBinary.
 // It should be used for transmitting database objects over the wire, or for temporary storage. It does not send
 // a version number, so if the data format changes, its up to you to invalidate the old stored objects.
 // The framework uses this to serialize the object when it is stored in a control.
 func (o *personWithLockBase) MarshalBinary() ([]byte, error) {
 	buf := new(bytes.Buffer)
-    enc := gob.NewEncoder(buf)
-    if err := o.encodeTo(enc); err != nil {
-        return nil, err
-    }
+	enc := gob.NewEncoder(buf)
+	if err := o.encodeTo(enc); err != nil {
+		return nil, err
+	}
 	return buf.Bytes(), nil
 }
 
 func (o *personWithLockBase) encodeTo(enc db.Encoder) error {
 
-    if err := enc.Encode(o.id); err != nil {
-        return fmt.Errorf("error encoding PersonWithLock.id: %w", err)
-    }
-    if err := enc.Encode(o.idIsLoaded); err != nil {
-        return fmt.Errorf("error encoding PersonWithLock.idIsLoaded: %w", err)
-    }
-    if err := enc.Encode(o.idIsDirty); err != nil {
-        return fmt.Errorf("error encoding PersonWithLock.idIsDirty: %w", err)
-    }
+	if err := enc.Encode(o.id); err != nil {
+		return fmt.Errorf("error encoding PersonWithLock.id: %w", err)
+	}
+	if err := enc.Encode(o.idIsLoaded); err != nil {
+		return fmt.Errorf("error encoding PersonWithLock.idIsLoaded: %w", err)
+	}
+	if err := enc.Encode(o.idIsDirty); err != nil {
+		return fmt.Errorf("error encoding PersonWithLock.idIsDirty: %w", err)
+	}
 
+	if err := enc.Encode(o.firstName); err != nil {
+		return fmt.Errorf("error encoding PersonWithLock.firstName: %w", err)
+	}
+	if err := enc.Encode(o.firstNameIsLoaded); err != nil {
+		return fmt.Errorf("error encoding PersonWithLock.firstNameIsLoaded: %w", err)
+	}
+	if err := enc.Encode(o.firstNameIsDirty); err != nil {
+		return fmt.Errorf("error encoding PersonWithLock.firstNameIsDirty: %w", err)
+	}
 
-    if err := enc.Encode(o.firstName); err != nil {
-        return fmt.Errorf("error encoding PersonWithLock.firstName: %w", err)
-    }
-    if err := enc.Encode(o.firstNameIsLoaded); err != nil {
-        return fmt.Errorf("error encoding PersonWithLock.firstNameIsLoaded: %w", err)
-    }
-    if err := enc.Encode(o.firstNameIsDirty); err != nil {
-        return fmt.Errorf("error encoding PersonWithLock.firstNameIsDirty: %w", err)
-    }
+	if err := enc.Encode(o.lastName); err != nil {
+		return fmt.Errorf("error encoding PersonWithLock.lastName: %w", err)
+	}
+	if err := enc.Encode(o.lastNameIsLoaded); err != nil {
+		return fmt.Errorf("error encoding PersonWithLock.lastNameIsLoaded: %w", err)
+	}
+	if err := enc.Encode(o.lastNameIsDirty); err != nil {
+		return fmt.Errorf("error encoding PersonWithLock.lastNameIsDirty: %w", err)
+	}
 
+	if err := enc.Encode(o.groLock); err != nil {
+		return fmt.Errorf("error encoding PersonWithLock.groLock: %w", err)
+	}
+	if err := enc.Encode(o.groLockIsLoaded); err != nil {
+		return fmt.Errorf("error encoding PersonWithLock.groLockIsLoaded: %w", err)
+	}
 
-    if err := enc.Encode(o.lastName); err != nil {
-        return fmt.Errorf("error encoding PersonWithLock.lastName: %w", err)
-    }
-    if err := enc.Encode(o.lastNameIsLoaded); err != nil {
-        return fmt.Errorf("error encoding PersonWithLock.lastNameIsLoaded: %w", err)
-    }
-    if err := enc.Encode(o.lastNameIsDirty); err != nil {
-        return fmt.Errorf("error encoding PersonWithLock.lastNameIsDirty: %w", err)
-    }
+	if err := enc.Encode(o.groTimestamp); err != nil {
+		return fmt.Errorf("error encoding PersonWithLock.groTimestamp: %w", err)
+	}
+	if err := enc.Encode(o.groTimestampIsLoaded); err != nil {
+		return fmt.Errorf("error encoding PersonWithLock.groTimestampIsLoaded: %w", err)
+	}
 
+	if o._aliases == nil {
+		if err := enc.Encode(false); err != nil {
+			return err
+		}
+	} else {
+		if err := enc.Encode(true); err != nil {
+			return err
+		}
+		if err := enc.Encode(o._aliases); err != nil {
+			return fmt.Errorf("error encoding PersonWithLock._aliases: %w", err)
+		}
+	}
 
-    if err := enc.Encode(o.groLock); err != nil {
-        return fmt.Errorf("error encoding PersonWithLock.groLock: %w", err)
-    }
-    if err := enc.Encode(o.groLockIsLoaded); err != nil {
-        return fmt.Errorf("error encoding PersonWithLock.groLockIsLoaded: %w", err)
-    }
-
-
-    if err := enc.Encode(o.groTimestamp); err != nil {
-        return fmt.Errorf("error encoding PersonWithLock.groTimestamp: %w", err)
-    }
-    if err := enc.Encode(o.groTimestampIsLoaded); err != nil {
-        return fmt.Errorf("error encoding PersonWithLock.groTimestampIsLoaded: %w", err)
-    }
-
-
-    if o._aliases == nil {
-        if err := enc.Encode(false); err != nil {
-            return err
-        }
-    } else {
-        if err := enc.Encode(true); err != nil {
-            return err
-        }
-        if err := enc.Encode(o._aliases); err != nil {
-            return fmt.Errorf("error encoding PersonWithLock._aliases: %w", err)
-        }
-    }
-
-    if err := enc.Encode(o._restored); err != nil {
-        return fmt.Errorf("error encoding PersonWithLock._restored: %w", err)
-    }
-    if err := enc.Encode(o._originalPK); err != nil {
-        return fmt.Errorf("error encoding PersonWithLock._originalPK: %w", err)
-    }
-    return nil
+	if err := enc.Encode(o._restored); err != nil {
+		return fmt.Errorf("error encoding PersonWithLock._restored: %w", err)
+	}
+	if err := enc.Encode(o._originalPK); err != nil {
+		return fmt.Errorf("error encoding PersonWithLock._originalPK: %w", err)
+	}
+	return nil
 }
+
 // UnmarshalBinary converts a structure that was created with MarshalBinary into a PersonWithLock object.
 func (o *personWithLockBase) UnmarshalBinary(data []byte) (err error) {
 	buf := bytes.NewReader(data)
@@ -942,112 +891,108 @@ func (o *personWithLockBase) decodeFrom(dec db.Decoder) (err error) {
 	var isPtr bool
 
 	_ = isPtr
-    if err = dec.Decode(&o.id); err != nil {
-        return fmt.Errorf("error decoding PersonWithLock.id: %w", err)
-    }
-    if err = dec.Decode(&o.idIsLoaded); err != nil {
-        return fmt.Errorf("error decoding PersonWithLock.idIsLoaded: %w", err)
-    }
-    if err = dec.Decode(&o.idIsDirty); err != nil {
-        return fmt.Errorf("error decoding PersonWithLock.idIsDirty: %w", err)
-    }
+	if err = dec.Decode(&o.id); err != nil {
+		return fmt.Errorf("error decoding PersonWithLock.id: %w", err)
+	}
+	if err = dec.Decode(&o.idIsLoaded); err != nil {
+		return fmt.Errorf("error decoding PersonWithLock.idIsLoaded: %w", err)
+	}
+	if err = dec.Decode(&o.idIsDirty); err != nil {
+		return fmt.Errorf("error decoding PersonWithLock.idIsDirty: %w", err)
+	}
 
-    if err = dec.Decode(&o.firstName); err != nil {
-        return fmt.Errorf("error decoding PersonWithLock.firstName: %w", err)
-    }
-    if err = dec.Decode(&o.firstNameIsLoaded); err != nil {
-        return fmt.Errorf("error decoding PersonWithLock.firstNameIsLoaded: %w", err)
-    }
-    if err = dec.Decode(&o.firstNameIsDirty); err != nil {
-        return fmt.Errorf("error decoding PersonWithLock.firstNameIsDirty: %w", err)
-    }
+	if err = dec.Decode(&o.firstName); err != nil {
+		return fmt.Errorf("error decoding PersonWithLock.firstName: %w", err)
+	}
+	if err = dec.Decode(&o.firstNameIsLoaded); err != nil {
+		return fmt.Errorf("error decoding PersonWithLock.firstNameIsLoaded: %w", err)
+	}
+	if err = dec.Decode(&o.firstNameIsDirty); err != nil {
+		return fmt.Errorf("error decoding PersonWithLock.firstNameIsDirty: %w", err)
+	}
 
-    if err = dec.Decode(&o.lastName); err != nil {
-        return fmt.Errorf("error decoding PersonWithLock.lastName: %w", err)
-    }
-    if err = dec.Decode(&o.lastNameIsLoaded); err != nil {
-        return fmt.Errorf("error decoding PersonWithLock.lastNameIsLoaded: %w", err)
-    }
-    if err = dec.Decode(&o.lastNameIsDirty); err != nil {
-        return fmt.Errorf("error decoding PersonWithLock.lastNameIsDirty: %w", err)
-    }
+	if err = dec.Decode(&o.lastName); err != nil {
+		return fmt.Errorf("error decoding PersonWithLock.lastName: %w", err)
+	}
+	if err = dec.Decode(&o.lastNameIsLoaded); err != nil {
+		return fmt.Errorf("error decoding PersonWithLock.lastNameIsLoaded: %w", err)
+	}
+	if err = dec.Decode(&o.lastNameIsDirty); err != nil {
+		return fmt.Errorf("error decoding PersonWithLock.lastNameIsDirty: %w", err)
+	}
 
-    if err = dec.Decode(&o.groLock); err != nil {
-        return fmt.Errorf("error decoding PersonWithLock.groLock: %w", err)
-    }
-    if err = dec.Decode(&o.groLockIsLoaded); err != nil {
-        return fmt.Errorf("error decoding PersonWithLock.groLockIsLoaded: %w", err)
-    }
+	if err = dec.Decode(&o.groLock); err != nil {
+		return fmt.Errorf("error decoding PersonWithLock.groLock: %w", err)
+	}
+	if err = dec.Decode(&o.groLockIsLoaded); err != nil {
+		return fmt.Errorf("error decoding PersonWithLock.groLockIsLoaded: %w", err)
+	}
 
-    if err = dec.Decode(&o.groTimestamp); err != nil {
-        return fmt.Errorf("error decoding PersonWithLock.groTimestamp: %w", err)
-    }
-    if err = dec.Decode(&o.groTimestampIsLoaded); err != nil {
-        return fmt.Errorf("error decoding PersonWithLock.groTimestampIsLoaded: %w", err)
-    }
+	if err = dec.Decode(&o.groTimestamp); err != nil {
+		return fmt.Errorf("error decoding PersonWithLock.groTimestamp: %w", err)
+	}
+	if err = dec.Decode(&o.groTimestampIsLoaded); err != nil {
+		return fmt.Errorf("error decoding PersonWithLock.groTimestampIsLoaded: %w", err)
+	}
 
-    if err = dec.Decode(&isPtr); err != nil {
-        return fmt.Errorf("error decoding PersonWithLock._aliases isPtr: %w", err)
-    }
-    if isPtr {
-        if err = dec.Decode(&o._aliases); err != nil {
-            return fmt.Errorf("error decoding PersonWithLock._aliases: %w", err)
-        }
-    }
+	if err = dec.Decode(&isPtr); err != nil {
+		return fmt.Errorf("error decoding PersonWithLock._aliases isPtr: %w", err)
+	}
+	if isPtr {
+		if err = dec.Decode(&o._aliases); err != nil {
+			return fmt.Errorf("error decoding PersonWithLock._aliases: %w", err)
+		}
+	}
 
-    if err = dec.Decode(&o._restored); err != nil {
-        return fmt.Errorf("error decoding PersonWithLock._restored: %w", err)
-    }
-    if err = dec.Decode(&o._originalPK); err != nil {
-        return fmt.Errorf("error decoding PersonWithLock._originalPK: %w", err)
-    }
+	if err = dec.Decode(&o._restored); err != nil {
+		return fmt.Errorf("error decoding PersonWithLock._restored: %w", err)
+	}
+	if err = dec.Decode(&o._originalPK); err != nil {
+		return fmt.Errorf("error decoding PersonWithLock._originalPK: %w", err)
+	}
 	return
 }
+
 // MarshalJSON serializes the object into a JSON object.
 // Only valid data will be serialized, meaning, you can control what gets serialized by using Select to
 // select only the fields you want when you query for the object. Another way to control the output
 // is to call MarshalStringMap, modify the map, then encode the map.
 func (o *personWithLockBase) MarshalJSON() (data []byte, err error) {
-    v := o.MarshalStringMap()
-    return json.Marshal(v)
+	v := o.MarshalStringMap()
+	return json.Marshal(v)
 }
 
 // MarshalStringMap serializes the object into a string map of interfaces.
 // Only valid data will be serialized, meaning, you can control what gets serialized by using Select to
 // select only the fields you want when you query for the object. The keys are the same as the json keys.
-func (o *personWithLockBase) MarshalStringMap() (map[string]interface{}) {
-    v := make(map[string]interface{})
+func (o *personWithLockBase) MarshalStringMap() map[string]interface{} {
+	v := make(map[string]interface{})
 
-    if o.idIsLoaded {
-        v["id"] = o.id
-    }
+	if o.idIsLoaded {
+		v["id"] = o.id
+	}
 
+	if o.firstNameIsLoaded {
+		v["firstName"] = o.firstName
+	}
 
-    if o.firstNameIsLoaded {
-        v["firstName"] = o.firstName
-    }
+	if o.lastNameIsLoaded {
+		v["lastName"] = o.lastName
+	}
 
+	if o.groLockIsLoaded {
+		v["groLock"] = o.groLock
+	}
 
-    if o.lastNameIsLoaded {
-        v["lastName"] = o.lastName
-    }
+	if o.groTimestampIsLoaded {
+		v["groTimestamp"] = o.groTimestamp
+	}
 
-
-    if o.groLockIsLoaded {
-        v["groLock"] = o.groLock
-    }
-
-
-    if o.groTimestampIsLoaded {
-        v["groTimestamp"] = o.groTimestamp
-    }
-
-    for _k,_v := range o._aliases {
-        v[_k] = _v
-    }
-    return v
+	for _k, _v := range o._aliases {
+		v[_k] = _v
+	}
+	return v
 }
-
 
 // UnmarshalJSON unmarshalls the given json data into the PersonWithLock. The PersonWithLock can be a
 // newly created object, or one loaded from the database.
@@ -1058,12 +1003,13 @@ func (o *personWithLockBase) MarshalStringMap() (map[string]interface{}) {
 // Unmarshalling of sub-objects, as in objects linked via foreign keys, is not currently supported.
 //
 // The fields it expects are:
-//   "id" - string
-//   "firstName" - string
-//   "lastName" - string
-//   "groLock" - int64
-//   "groTimestamp" - int64
-func (o *personWithLockBase) UnmarshalJSON (data []byte) (err error) {
+//
+//	"id" - string
+//	"firstName" - string
+//	"lastName" - string
+//	"groLock" - int64
+//	"groTimestamp" - int64
+func (o *personWithLockBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
 	if len(data) == 0 {
 		return
@@ -1080,50 +1026,46 @@ func (o *personWithLockBase) UnmarshalJSON (data []byte) (err error) {
 //
 // Override this in PersonWithLock to modify the json before sending it here.
 func (o *personWithLockBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
-    for k,v := range m {
-        switch k {
+	for k, v := range m {
+		switch k {
 
-        case "id":
-        {
-            if v == nil {
-                return fmt.Errorf("field %s cannot be null", k)
-            }
+		case "id":
+			{
+				if v == nil {
+					return fmt.Errorf("field %s cannot be null", k)
+				}
 
+				if s, ok := v.(string); !ok {
+					return fmt.Errorf("json field %s must be a string", k)
+				} else {
+					o.SetID(s)
+				}
+			}
+		case "firstName":
+			{
+				if v == nil {
+					return fmt.Errorf("field %s cannot be null", k)
+				}
 
-            if s,ok := v.(string); !ok {
-                return fmt.Errorf("json field %s must be a string", k)
-            } else {
-                o.SetID(s)
-            }
-            }
-        case "firstName":
-        {
-            if v == nil {
-                return fmt.Errorf("field %s cannot be null", k)
-            }
+				if s, ok := v.(string); !ok {
+					return fmt.Errorf("json field %s must be a string", k)
+				} else {
+					o.SetFirstName(s)
+				}
+			}
+		case "lastName":
+			{
+				if v == nil {
+					return fmt.Errorf("field %s cannot be null", k)
+				}
 
-
-            if s,ok := v.(string); !ok {
-                return fmt.Errorf("json field %s must be a string", k)
-            } else {
-                o.SetFirstName(s)
-            }
-            }
-        case "lastName":
-        {
-            if v == nil {
-                return fmt.Errorf("field %s cannot be null", k)
-            }
-
-
-            if s,ok := v.(string); !ok {
-                return fmt.Errorf("json field %s must be a string", k)
-            } else {
-                o.SetLastName(s)
-            }
-            }
-        }
-    }
-    return
+				if s, ok := v.(string); !ok {
+					return fmt.Errorf("json field %s must be a string", k)
+				} else {
+					o.SetLastName(s)
+				}
+			}
+		}
+	}
+	return
 }
-

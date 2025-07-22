@@ -338,7 +338,7 @@ func TestMilestone_QueryLoadI(t *testing.T) {
 		Where(op.Equal(node.Milestone().ID(), obj.ID())).
 		LoadI()
 
-	assert.Equal(t, obj.PrimaryKey(), objs[0].PrimaryKey())
+	assert.Equal(t, obj.PrimaryKey(), objs[0].(*Milestone).PrimaryKey())
 }
 func TestMilestone_QueryCursor(t *testing.T) {
 	obj := createMinimalSampleMilestone()
@@ -381,7 +381,7 @@ func TestMilestone_Count(t *testing.T) {
 	obj2, _ := LoadMilestone(ctx, obj.PrimaryKey())
 	assert.Positive(t,
 		func() int {
-			i, _ := CountMilestonesBy(ctx,
+			i, _ := CountMilestonesByProjectID(ctx,
 				obj2.ProjectID())
 			return i
 		}())
