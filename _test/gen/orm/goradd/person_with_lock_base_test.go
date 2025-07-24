@@ -234,12 +234,7 @@ func TestPersonWithLock_ReferenceLoad(t *testing.T) {
 	_ = objPkOnly
 
 	// test eager loading
-	obj3, _ := LoadPersonWithLock(ctx, obj.PrimaryKey(), node.PersonWithLock().ID(),
-		node.PersonWithLock().FirstName(),
-		node.PersonWithLock().LastName(),
-		node.PersonWithLock().GroLock(),
-		node.PersonWithLock().GroTimestamp(),
-	)
+	obj3, _ := LoadPersonWithLock(ctx, obj.PrimaryKey())
 	_ = obj3 // avoid error if there are no references
 
 }

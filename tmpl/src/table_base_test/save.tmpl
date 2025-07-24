@@ -152,7 +152,7 @@ func Test{{= table.Identifier }}_ReferenceLoad(t *testing.T) {
 {{for}}
 
     // test eager loading
-    obj3, _ := Load{{= table.Identifier }}(ctx, obj.PrimaryKey(), {{join table.Columns, ""}}node.{{= table.Identifier }}().{{= _j.Identifier }}(),
+    obj3, _ := Load{{= table.Identifier }}(ctx, obj.PrimaryKey(), {{join table.References, ""}}node.{{= table.Identifier }}().{{= _j.Identifier }}(),
 {{join}}
 {{for _,rev := range table.ReverseReferences}}
 {{if rev.IsUnique }}

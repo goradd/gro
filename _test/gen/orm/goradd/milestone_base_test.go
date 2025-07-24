@@ -235,9 +235,7 @@ func TestMilestone_ReferenceLoad(t *testing.T) {
 	})
 
 	// test eager loading
-	obj3, _ := LoadMilestone(ctx, obj.PrimaryKey(), node.Milestone().ID(),
-		node.Milestone().Name(),
-	)
+	obj3, _ := LoadMilestone(ctx, obj.PrimaryKey(), node.Milestone().Project())
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Project().PrimaryKey(), obj3.Project().PrimaryKey())

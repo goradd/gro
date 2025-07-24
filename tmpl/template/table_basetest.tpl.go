@@ -2271,7 +2271,7 @@ func Test`); err != nil {
 			return
 		}
 
-		for _i, _j := range table.Columns {
+		for _i, _j := range table.References {
 			_ = _j
 
 			if _, err = io.WriteString(_w, `node.`); err != nil {
@@ -2295,7 +2295,7 @@ func Test`); err != nil {
 				return
 			}
 
-			if _i < len(table.Columns)-1 {
+			if _i < len(table.References)-1 {
 				if _, err = io.WriteString(_w, ""); err != nil {
 					return
 				}

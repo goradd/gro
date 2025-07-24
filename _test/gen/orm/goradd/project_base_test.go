@@ -554,15 +554,8 @@ func TestProject_ReferenceLoad(t *testing.T) {
 	assert.Len(t, v_TeamMembers, 1)
 
 	// test eager loading
-	obj3, _ := LoadProject(ctx, obj.PrimaryKey(), node.Project().ID(),
-		node.Project().Num(),
-		node.Project().Status(),
-		node.Project().Name(),
-		node.Project().Description(),
-		node.Project().StartDate(),
-		node.Project().EndDate(),
-		node.Project().Budget(),
-		node.Project().Spent(),
+	obj3, _ := LoadProject(ctx, obj.PrimaryKey(), node.Project().Manager(),
+		node.Project().Parent(),
 		node.Project().Children(),
 		node.Project().Milestones(),
 		node.Project().TeamMembers(),

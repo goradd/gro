@@ -305,11 +305,7 @@ func TestLogin_ReferenceLoad(t *testing.T) {
 	})
 
 	// test eager loading
-	obj3, _ := LoadLogin(ctx, obj.PrimaryKey(), node.Login().ID(),
-		node.Login().Username(),
-		node.Login().Password(),
-		node.Login().IsEnabled(),
-	)
+	obj3, _ := LoadLogin(ctx, obj.PrimaryKey(), node.Login().Person())
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())

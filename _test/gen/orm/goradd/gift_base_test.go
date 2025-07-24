@@ -188,9 +188,7 @@ func TestGift_ReferenceLoad(t *testing.T) {
 	_ = objPkOnly
 
 	// test eager loading
-	obj3, _ := LoadGift(ctx, obj.PrimaryKey(), node.Gift().Number(),
-		node.Gift().Name(),
-	)
+	obj3, _ := LoadGift(ctx, obj.PrimaryKey())
 	_ = obj3 // avoid error if there are no references
 
 }

@@ -328,13 +328,7 @@ func TestPerson_ReferenceLoad(t *testing.T) {
 	assert.Len(t, v_Projects, 1)
 
 	// test eager loading
-	obj3, _ := LoadPerson(ctx, obj.PrimaryKey(), node.Person().ID(),
-		node.Person().FirstName(),
-		node.Person().LastName(),
-		node.Person().PersonType(),
-		node.Person().Created(),
-		node.Person().Modified(),
-		node.Person().ManagerProjects(),
+	obj3, _ := LoadPerson(ctx, obj.PrimaryKey(), node.Person().ManagerProjects(),
 		node.Person().Addresses(),
 		node.Person().EmployeeInfo(),
 		node.Person().Login(),

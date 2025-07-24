@@ -274,10 +274,7 @@ func TestAddress_ReferenceLoad(t *testing.T) {
 	})
 
 	// test eager loading
-	obj3, _ := LoadAddress(ctx, obj.PrimaryKey(), node.Address().ID(),
-		node.Address().Street(),
-		node.Address().City(),
-	)
+	obj3, _ := LoadAddress(ctx, obj.PrimaryKey(), node.Address().Person())
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())
