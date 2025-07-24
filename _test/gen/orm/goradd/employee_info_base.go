@@ -600,7 +600,7 @@ func (o *employeeInfoBase) update(ctx context.Context) error {
 
 	d := Database()
 	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel = context.WithTimeout(ctx, 500*time.Minute)
 	defer cancel()
 	err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
 		// Save loaded Person object to get its new pk and update it here.
@@ -646,10 +646,10 @@ func (o *employeeInfoBase) insert(ctx context.Context) (err error) {
 	d := Database()
 
 	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel = context.WithTimeout(ctx, 500*time.Minute)
 	defer cancel()
 
-	err = db.WithTransaction(ctx, d, func(context.Context) error {
+	err = db.WithTransaction(ctx, d, func(ctx context.Context) error {
 		// Save loaded Person object to get its new pk and update it here.
 		if o.person != nil {
 			if err := o.person.Save(ctx); err != nil {
@@ -716,6 +716,8 @@ func (o *employeeInfoBase) getInsertFields() (fields map[string]interface{}) {
 	}
 
 	fields["employee_number"] = o.employeeNumber
+
+	fields["person_id"] = o.personID
 	return
 }
 

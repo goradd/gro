@@ -453,7 +453,7 @@ func (o *giftBase) update(ctx context.Context) error {
 
 	d := Database()
 	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel = context.WithTimeout(ctx, 500*time.Minute)
 	defer cancel()
 	err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
 
@@ -492,10 +492,10 @@ func (o *giftBase) insert(ctx context.Context) (err error) {
 	d := Database()
 
 	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel = context.WithTimeout(ctx, 500*time.Minute)
 	defer cancel()
 
-	err = db.WithTransaction(ctx, d, func(context.Context) error {
+	err = db.WithTransaction(ctx, d, func(ctx context.Context) error {
 		if !o.numberIsLoaded {
 			panic("a value for Number is required, and there is no default value. Call SetNumber() before inserting the record.")
 		}

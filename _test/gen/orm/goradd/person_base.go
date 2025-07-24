@@ -1107,7 +1107,7 @@ func (o *personBase) update(ctx context.Context) error {
 
 	d := Database()
 	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel = context.WithTimeout(ctx, 500*time.Minute)
 	defer cancel()
 	err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
 
@@ -1356,10 +1356,10 @@ func (o *personBase) insert(ctx context.Context) (err error) {
 	d := Database()
 
 	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel = context.WithTimeout(ctx, 500*time.Minute)
 	defer cancel()
 
-	err = db.WithTransaction(ctx, d, func(context.Context) error {
+	err = db.WithTransaction(ctx, d, func(ctx context.Context) error {
 		if !o.firstNameIsLoaded {
 			panic("a value for FirstName is required, and there is no default value. Call SetFirstName() before inserting the record.")
 		}
@@ -1548,10 +1548,10 @@ func (o *personBase) Delete(ctx context.Context) (err error) {
 	d := Database()
 
 	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel = context.WithTimeout(ctx, 500*time.Minute)
 	defer cancel()
 
-	err = db.WithTransaction(ctx, d, func(context.Context) error {
+	err = db.WithTransaction(ctx, d, func(ctx context.Context) error {
 
 		{
 			objs, err := QueryProjects(ctx).
@@ -1645,10 +1645,10 @@ func deletePerson(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd")
 
 	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel = context.WithTimeout(ctx, 500*time.Minute)
 	defer cancel()
 
-	err := db.WithTransaction(ctx, d, func(context.Context) error {
+	err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
 		if obj, err := LoadPerson(ctx,
 			pk,
 			node.Person().ID(),

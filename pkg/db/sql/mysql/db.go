@@ -309,8 +309,7 @@ func (m *DB) WithConstraintsOff(ctx context.Context, f func(ctx context.Context)
 	off := m.getConstraintsOff(ctx)
 	if off {
 		// constraints are already off, so just pass through
-		err = f(ctx)
-		return
+		return f(ctx)
 	}
 
 	err = m.WithSameConnection(ctx, func(ctx context.Context) (err error) {

@@ -3,7 +3,7 @@
 
     var hasTimestamp bool
 
-    for _,col := range table.Columns {
+    for _,col := range table.AllColumns() {
         if col.ReceiverType == query.ColTypeTime && col.DefaultValue == model.ModifiedTime ||
             col.SchemaSubType == schema.ColSubTypeTimestamp {
             hasTimestamp = true

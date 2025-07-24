@@ -3,6 +3,7 @@ package sql
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"github.com/goradd/anyutil"
 	"github.com/goradd/orm/pkg/db"
@@ -605,22 +606,23 @@ func (h *Base) getConnection(ctx context.Context) *sql.Conn {
 // Nested calls will operate on the same connection.
 func (h *Base) WithSameConnection(ctx context.Context, f func(ctx context.Context) error) (err error) {
 	con := h.getConnection(ctx)
-	if con == nil {
-		tx := h.getTransaction(ctx)
-		if tx != nil {
-			panic("you cannot call WithSameConnection from within a transaction. Instead, call WithTransaction from within WithSameConnection")
-		}
-		con, err = h.db.Conn(ctx)
-		if con != nil {
-			defer func() {
-				err = con.Close()
-			}()
-		}
-		if err != nil {
-			return err
-		}
-		ctx = context.WithValue(ctx, h.connectionKey(), con)
+	if con != nil {
+		return f(ctx)
 	}
+	tx := h.getTransaction(ctx)
+	if tx != nil {
+		panic("you cannot call WithSameConnection from within a transaction. Instead, call WithTransaction from within WithSameConnection")
+	}
+	con, err = h.db.Conn(ctx)
+	if con != nil {
+		defer func() {
+			err = con.Close()
+		}()
+	}
+	if err != nil {
+		return err
+	}
+	ctx = context.WithValue(ctx, h.connectionKey(), con)
 	err = f(ctx)
 	return
 }
@@ -647,27 +649,32 @@ func (h *Base) getTransaction(ctx context.Context) *sql.Tx {
 // when the transaction is finally committed.
 func (h *Base) WithTransaction(ctx context.Context, f func(ctx context.Context) error) (err error) {
 	tx := h.getTransaction(ctx)
-	if tx == nil { // is not already in a transaction
-		con := h.getConnection(ctx)
-		if con == nil {
-			tx, err = h.db.BeginTx(ctx, nil)
-		} else {
-			tx, err = con.BeginTx(ctx, nil)
-		}
-		if err != nil {
-			return
-		}
-		if tx == nil {
-			return fmt.Errorf("no transaction available")
-		}
-		defer func() {
-			err = tx.Rollback() // will be a no-op if the commit happens first
-		}()
-		ctx = context.WithValue(ctx, h.transactionKey(), tx)
+	if tx != nil {
+		// Already in a transaction, so just execute the function
+		return f(ctx)
 	}
+	con := h.getConnection(ctx)
+	if con == nil {
+		tx, err = h.db.BeginTx(ctx, nil)
+	} else {
+		tx, err = con.BeginTx(ctx, nil)
+	}
+	if err != nil {
+		return
+	}
+	if tx == nil {
+		return fmt.Errorf("no transaction available")
+	}
+	defer func() {
+		err = tx.Rollback() // will be a no-op if the commit happens first
+		if errors.Is(err, sql.ErrTxDone) {
+			err = nil
+		}
+	}()
+	ctx = context.WithValue(ctx, h.transactionKey(), tx)
 	err = f(ctx)
 	if err != nil {
-		return err
+		return
 	}
 	err = tx.Commit()
 	return

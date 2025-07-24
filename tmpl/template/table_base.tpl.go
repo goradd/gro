@@ -9904,7 +9904,7 @@ func (o *`); err != nil {
 
 	}
 
-	if _, err = io.WriteString(_w, `	err = db.WithTransaction(ctx, d, func(context.Context) error {
+	if _, err = io.WriteString(_w, `	err = db.WithTransaction(ctx, d, func(ctx context.Context) error {
 `); err != nil {
 		return
 	}
@@ -10666,7 +10666,7 @@ func (o *`); err != nil {
 
 	var hasTimestamp bool
 
-	for _, col := range table.Columns {
+	for _, col := range table.AllColumns() {
 		if col.ReceiverType == query.ColTypeTime && col.DefaultValue == model.ModifiedTime ||
 			col.SchemaSubType == schema.ColSubTypeTimestamp {
 			hasTimestamp = true
@@ -10858,7 +10858,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	for _, col := range table.Columns {
+	for _, col := range table.AllColumns() {
 
 		if col.IsAutoPK() {
 
@@ -11286,7 +11286,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 
 		}
 
-		if _, err = io.WriteString(_w, `    err = db.WithTransaction(ctx, d, func(context.Context) error {
+		if _, err = io.WriteString(_w, `    err = db.WithTransaction(ctx, d, func(ctx context.Context) error {
 	`); err != nil {
 			return
 		}
@@ -11955,7 +11955,7 @@ func delete`); err != nil {
 
 		}
 
-		if _, err = io.WriteString(_w, `    err := db.WithTransaction(ctx, d, func(context.Context) error {
+		if _, err = io.WriteString(_w, `    err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
         if obj, err := Load`); err != nil {
 			return
 		}

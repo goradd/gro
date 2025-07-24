@@ -30,7 +30,7 @@ func TestDB_CrudSampleSchema(t *testing.T) {
 	assert.NotEmpty(t, postId)
 	require.NoError(t, err)
 
-	_, err = d.Update(ctx, "post", "id", postId, map[string]any{"title": "That"}, "", 0)
+	err = d.Update(ctx, "post", map[string]any{"id": postId}, map[string]any{"title": "That"}, "", 0)
 	require.NoError(t, err)
 
 	var cursor query.CursorI

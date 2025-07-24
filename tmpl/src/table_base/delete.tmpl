@@ -49,7 +49,7 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
     defer cancel()
 
 {{if}}
-    err = db.WithTransaction(ctx, d, func(context.Context) error {
+    err = db.WithTransaction(ctx, d, func(ctx context.Context) error {
 	{{for _,rev := range table.ReverseReferences }}
         {{if rev.IsUnique }}
             {{if rev.IsNullable}}
@@ -183,7 +183,7 @@ func delete{{= table.Identifier }}(ctx context.Context, pk {{= table.PrimaryKeyT
     defer cancel()
 
 {{if}}
-    err := db.WithTransaction(ctx, d, func(context.Context) error {
+    err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
         if obj, err := Load{{= table.Identifier }}(ctx,
                 pk,
 {{for _,col := range table.PrimaryKeyColumns() }}

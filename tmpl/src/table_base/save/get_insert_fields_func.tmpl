@@ -11,7 +11,7 @@
 // database driver and updated after the insert.
 func (o *{{= table.DecapIdentifier}}Base) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
-{{for _,col := range table.Columns}}
+{{for _,col := range table.AllColumns() }}
 {{if col.IsAutoPK() }}
     if o.{{= col.Field }}IsDirty {
         fields["{{= col.QueryName }}"] = o.{{= col.Field }}

@@ -1611,7 +1611,7 @@ func (o *projectBase) update(ctx context.Context) error {
 
 	d := Database()
 	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel = context.WithTimeout(ctx, 500*time.Minute)
 	defer cancel()
 	err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
 		// Save loaded Manager object to get its new pk and update it here.
@@ -1797,10 +1797,10 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 	d := Database()
 
 	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel = context.WithTimeout(ctx, 500*time.Minute)
 	defer cancel()
 
-	err = db.WithTransaction(ctx, d, func(context.Context) error {
+	err = db.WithTransaction(ctx, d, func(ctx context.Context) error {
 		// Save loaded Manager object to get its new pk and update it here.
 		if o.manager != nil {
 			if err := o.manager.Save(ctx); err != nil {
@@ -2025,6 +2025,10 @@ func (o *projectBase) getInsertFields() (fields map[string]interface{}) {
 	} else {
 		fields["spent"] = o.spent
 	}
+
+	fields["manager_id"] = o.managerID
+
+	fields["parent_id"] = o.parentID
 	return
 }
 
@@ -2042,10 +2046,10 @@ func (o *projectBase) Delete(ctx context.Context) (err error) {
 	d := Database()
 
 	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel = context.WithTimeout(ctx, 500*time.Minute)
 	defer cancel()
 
-	err = db.WithTransaction(ctx, d, func(context.Context) error {
+	err = db.WithTransaction(ctx, d, func(ctx context.Context) error {
 
 		{
 			objs, err := QueryProjects(ctx).
@@ -2107,10 +2111,10 @@ func deleteProject(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd")
 
 	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+	ctx, cancel = context.WithTimeout(ctx, 500*time.Minute)
 	defer cancel()
 
-	err := db.WithTransaction(ctx, d, func(context.Context) error {
+	err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
 		if obj, err := LoadProject(ctx,
 			pk,
 			node.Project().ID(),
