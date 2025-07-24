@@ -106,6 +106,8 @@ func (n projectTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.EndDate())
 	nodes = append(nodes, n.Budget())
 	nodes = append(nodes, n.Spent())
+	nodes = append(nodes, n.ManagerID())
+	nodes = append(nodes, n.ParentID())
 	return nodes
 }
 

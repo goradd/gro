@@ -68,6 +68,7 @@ func (n loginTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.Username())
 	nodes = append(nodes, n.Password())
 	nodes = append(nodes, n.IsEnabled())
+	nodes = append(nodes, n.PersonID())
 	return nodes
 }
 

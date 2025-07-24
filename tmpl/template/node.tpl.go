@@ -681,7 +681,7 @@ func (n `); err != nil {
 		return
 	}
 
-	for _, col := range table.Columns {
+	for _, col := range table.AllColumns() {
 
 		if _, err = io.WriteString(_w, `	nodes = append(nodes, n.`); err != nil {
 			return

@@ -62,6 +62,7 @@ func (n employeeInfoTable) DatabaseKey_() string {
 func (n employeeInfoTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.EmployeeNumber())
+	nodes = append(nodes, n.PersonID())
 	return nodes
 }
 

@@ -65,6 +65,7 @@ func (n addressTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.Street())
 	nodes = append(nodes, n.City())
+	nodes = append(nodes, n.PersonID())
 	return nodes
 }
 

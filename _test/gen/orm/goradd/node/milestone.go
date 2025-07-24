@@ -62,6 +62,7 @@ func (n milestoneTable) DatabaseKey_() string {
 func (n milestoneTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.ID())
 	nodes = append(nodes, n.Name())
+	nodes = append(nodes, n.ProjectID())
 	return nodes
 }
 
