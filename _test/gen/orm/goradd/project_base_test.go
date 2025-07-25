@@ -613,15 +613,8 @@ func TestProject_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadProject(ctx, obj.PrimaryKey(), node.Project().ID(),
-		node.Project().Num(),
-		node.Project().Status(),
-		node.Project().Name(),
-		node.Project().Description(),
-		node.Project().StartDate(),
-		node.Project().EndDate(),
-		node.Project().Budget(),
-		node.Project().Spent(),
+	obj2, _ := LoadProject(ctx, obj.PrimaryKey(), node.Project().Manager(),
+		node.Project().Parent(),
 		node.Project().Children(),
 		node.Project().Milestones(),
 		node.Project().TeamMembers(),
@@ -661,31 +654,37 @@ func TestProject_Getters(t *testing.T) {
 	obj2, _ := LoadProject(ctx, obj.PrimaryKey(),
 		node.Project().ID())
 
-	assert.Equal(t, obj.ID(), obj.Get(node.Project().ID().Identifier))
-	assert.Equal(t, obj.Num(), obj.Get(node.Project().Num().Identifier))
+	assert.Equal(t, obj.ID(), obj.Get(ProjectIDField))
+	assert.Equal(t, obj.Num(), obj.Get(ProjectNumField))
 	assert.Panics(t, func() { obj2.Num() })
-	assert.Nil(t, obj2.Get(node.Project().Num().Identifier))
-	assert.Equal(t, obj.Status(), obj.Get(node.Project().Status().Identifier))
+	assert.Nil(t, obj2.Get(ProjectNumField))
+	assert.Equal(t, obj.Status(), obj.Get(ProjectStatusField))
 	assert.Panics(t, func() { obj2.Status() })
-	assert.Nil(t, obj2.Get(node.Project().Status().Identifier))
-	assert.Equal(t, obj.Name(), obj.Get(node.Project().Name().Identifier))
+	assert.Nil(t, obj2.Get(ProjectStatusField))
+	assert.Equal(t, obj.Name(), obj.Get(ProjectNameField))
 	assert.Panics(t, func() { obj2.Name() })
-	assert.Nil(t, obj2.Get(node.Project().Name().Identifier))
-	assert.Equal(t, obj.Description(), obj.Get(node.Project().Description().Identifier))
+	assert.Nil(t, obj2.Get(ProjectNameField))
+	assert.Equal(t, obj.Description(), obj.Get(ProjectDescriptionField))
 	assert.Panics(t, func() { obj2.Description() })
-	assert.Nil(t, obj2.Get(node.Project().Description().Identifier))
-	assert.Equal(t, obj.StartDate(), obj.Get(node.Project().StartDate().Identifier))
+	assert.Nil(t, obj2.Get(ProjectDescriptionField))
+	assert.Equal(t, obj.StartDate(), obj.Get(ProjectStartDateField))
 	assert.Panics(t, func() { obj2.StartDate() })
-	assert.Nil(t, obj2.Get(node.Project().StartDate().Identifier))
-	assert.Equal(t, obj.EndDate(), obj.Get(node.Project().EndDate().Identifier))
+	assert.Nil(t, obj2.Get(ProjectStartDateField))
+	assert.Equal(t, obj.EndDate(), obj.Get(ProjectEndDateField))
 	assert.Panics(t, func() { obj2.EndDate() })
-	assert.Nil(t, obj2.Get(node.Project().EndDate().Identifier))
-	assert.Equal(t, obj.Budget(), obj.Get(node.Project().Budget().Identifier))
+	assert.Nil(t, obj2.Get(ProjectEndDateField))
+	assert.Equal(t, obj.Budget(), obj.Get(ProjectBudgetField))
 	assert.Panics(t, func() { obj2.Budget() })
-	assert.Nil(t, obj2.Get(node.Project().Budget().Identifier))
-	assert.Equal(t, obj.Spent(), obj.Get(node.Project().Spent().Identifier))
+	assert.Nil(t, obj2.Get(ProjectBudgetField))
+	assert.Equal(t, obj.Spent(), obj.Get(ProjectSpentField))
 	assert.Panics(t, func() { obj2.Spent() })
-	assert.Nil(t, obj2.Get(node.Project().Spent().Identifier))
+	assert.Nil(t, obj2.Get(ProjectSpentField))
+	assert.Equal(t, obj.ManagerID(), obj.Get(ProjectManagerIDField))
+	assert.Panics(t, func() { obj2.ManagerID() })
+	assert.Nil(t, obj2.Get(ProjectManagerIDField))
+	assert.Equal(t, obj.ParentID(), obj.Get(ProjectParentIDField))
+	assert.Panics(t, func() { obj2.ParentID() })
+	assert.Nil(t, obj2.Get(ProjectParentIDField))
 }
 
 func TestProject_QueryLoad(t *testing.T) {

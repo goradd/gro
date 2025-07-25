@@ -612,15 +612,15 @@ func (o *giftBase) IsDirty() (dirty bool) {
 // Get returns the value of a field in the object based on the field's name.
 // It will also get related objects if they are loaded.
 // Invalid fields and objects are returned as nil.
-// Get can be used to retrieve a value by using the Identifier of a node.
+// Get can be used to retrieve a value by using the Field() of a node.
 func (o *giftBase) Get(key string) interface{} {
 	switch key {
-	case "number":
+	case GiftNumberField:
 		if !o.numberIsLoaded {
 			return nil
 		}
 		return o.number
-	case "name":
+	case GiftNameField:
 		if !o.nameIsLoaded {
 			return nil
 		}

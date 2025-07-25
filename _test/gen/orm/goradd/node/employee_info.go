@@ -105,7 +105,7 @@ func (n employeeInfoReverse) PrimaryKey() *query.ColumnNode {
 func (n employeeInfoTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "id",
-		Identifier:    "ID",
+		Field:         "id",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeAutoPrimaryKey,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -124,7 +124,7 @@ func (n *employeeInfoReverse) ID() *query.ColumnNode {
 func (n employeeInfoTable) EmployeeNumber() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "employee_number",
-		Identifier:    "EmployeeNumber",
+		Field:         "employeeNumber",
 		ReceiverType:  query.ColTypeInteger,
 		SchemaType:    schema.ColTypeInt,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -143,7 +143,7 @@ func (n *employeeInfoReverse) EmployeeNumber() *query.ColumnNode {
 func (n employeeInfoTable) PersonID() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "person_id",
-		Identifier:    "PersonID",
+		Field:         "personID",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeString,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -165,7 +165,7 @@ func (n employeeInfoTable) Person() PersonNode {
 		ReferenceNode: query.ReferenceNode{
 			ForeignKey: "person_id",
 			PrimaryKey: "id",
-			Identifier: "Person",
+			Field:      "person",
 		},
 	}
 	query.NodeSetParent(cn, n)

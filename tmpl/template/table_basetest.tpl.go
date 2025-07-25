@@ -2951,7 +2951,7 @@ func Test`); err != nil {
 			return
 		}
 
-		for _i, _j := range table.Columns {
+		for _i, _j := range table.References {
 			_ = _j
 
 			if _, err = io.WriteString(_w, `node.`); err != nil {
@@ -2975,7 +2975,7 @@ func Test`); err != nil {
 				return
 			}
 
-			if _i < len(table.Columns)-1 {
+			if _i < len(table.References)-1 {
 				if _, err = io.WriteString(_w, ""); err != nil {
 					return
 				}
@@ -3415,7 +3415,7 @@ func Test`); err != nil {
 			return
 		}
 
-		for _, col := range table.Columns {
+		for _, col := range table.AllColumns() {
 
 			if _, err = io.WriteString(_w, `    assert.Equal(t, obj.`); err != nil {
 				return
@@ -3425,7 +3425,7 @@ func Test`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `(), obj.Get(node.`); err != nil {
+			if _, err = io.WriteString(_w, `(), obj.Get(`); err != nil {
 				return
 			}
 
@@ -3433,15 +3433,11 @@ func Test`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `().`); err != nil {
-				return
-			}
-
 			if _, err = io.WriteString(_w, col.Identifier); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `().Identifier))
+			if _, err = io.WriteString(_w, `Field))
 `); err != nil {
 				return
 			}
@@ -3457,7 +3453,7 @@ func Test`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `() })
-    assert.Nil(t, obj2.Get(node.`); err != nil {
+    assert.Nil(t, obj2.Get(`); err != nil {
 					return
 				}
 
@@ -3465,15 +3461,11 @@ func Test`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `().`); err != nil {
-					return
-				}
-
 				if _, err = io.WriteString(_w, col.Identifier); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `().Identifier))
+				if _, err = io.WriteString(_w, `Field))
 `); err != nil {
 					return
 				}

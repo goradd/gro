@@ -767,30 +767,30 @@ func (o *personWithLockBase) IsDirty() (dirty bool) {
 // Get returns the value of a field in the object based on the field's name.
 // It will also get related objects if they are loaded.
 // Invalid fields and objects are returned as nil.
-// Get can be used to retrieve a value by using the Identifier of a node.
+// Get can be used to retrieve a value by using the Field() of a node.
 func (o *personWithLockBase) Get(key string) interface{} {
 	switch key {
-	case "id":
+	case PersonWithLockIDField:
 		if !o.idIsLoaded {
 			return nil
 		}
 		return o.id
-	case "firstName":
+	case PersonWithLockFirstNameField:
 		if !o.firstNameIsLoaded {
 			return nil
 		}
 		return o.firstName
-	case "lastName":
+	case PersonWithLockLastNameField:
 		if !o.lastNameIsLoaded {
 			return nil
 		}
 		return o.lastName
-	case "groLock":
+	case PersonWithLockGroLockField:
 		if !o.groLockIsLoaded {
 			return nil
 		}
 		return o.groLock
-	case "groTimestamp":
+	case PersonWithLockGroTimestampField:
 		if !o.groTimestampIsLoaded {
 			return nil
 		}

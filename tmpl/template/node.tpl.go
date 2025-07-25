@@ -1485,11 +1485,11 @@ func (n *NodeTemplate) genColumnNode(table *model.Table, col *model.Column, _w i
 	}
 
 	if _, err = io.WriteString(_w, `",
-		Identifier: "`); err != nil {
+		Field: "`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.Identifier); err != nil {
+	if _, err = io.WriteString(_w, col.Field); err != nil {
 		return
 	}
 
@@ -1758,11 +1758,11 @@ func (n `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `",
-            Identifier:      "`); err != nil {
+            Field:           "`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, ref.Identifier); err != nil {
+	if _, err = io.WriteString(_w, ref.Field); err != nil {
 		return
 	}
 
@@ -2060,11 +2060,11 @@ func (n `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `",
-			Identifier:               "`); err != nil {
+			Field:                    "`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
+	if _, err = io.WriteString(_w, mm.Field); err != nil {
 		return
 	}
 
@@ -2389,11 +2389,11 @@ func (n `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `",
-			Identifier: "`); err != nil {
+			Field:      "`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+	if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 		return
 	}
 
@@ -2676,11 +2676,11 @@ func (n `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `",
-			Identifier:     "`); err != nil {
+			Field:          "`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, rev.ReverseIdentifierPlural); err != nil {
+	if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 		return
 	}
 

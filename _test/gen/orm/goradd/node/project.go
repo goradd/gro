@@ -193,7 +193,7 @@ func (n *projectAssociation) PrimaryKeys() []*query.ColumnNode {
 func (n projectTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "id",
-		Identifier:    "ID",
+		Field:         "id",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeAutoPrimaryKey,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -224,7 +224,7 @@ func (n *projectAssociation) ID() *query.ColumnNode {
 func (n projectTable) Num() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "num",
-		Identifier:    "Num",
+		Field:         "num",
 		ReceiverType:  query.ColTypeInteger,
 		SchemaType:    schema.ColTypeInt,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -255,7 +255,7 @@ func (n *projectAssociation) Num() *query.ColumnNode {
 func (n projectTable) Status() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "status",
-		Identifier:    "Status",
+		Field:         "status",
 		ReceiverType:  query.ColTypeInteger,
 		SchemaType:    schema.ColTypeEnum,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -286,7 +286,7 @@ func (n *projectAssociation) Status() *query.ColumnNode {
 func (n projectTable) Name() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "name",
-		Identifier:    "Name",
+		Field:         "name",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeString,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -317,7 +317,7 @@ func (n *projectAssociation) Name() *query.ColumnNode {
 func (n projectTable) Description() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "description",
-		Identifier:    "Description",
+		Field:         "description",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeString,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -348,7 +348,7 @@ func (n *projectAssociation) Description() *query.ColumnNode {
 func (n projectTable) StartDate() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "start_date",
-		Identifier:    "StartDate",
+		Field:         "startDate",
 		ReceiverType:  query.ColTypeTime,
 		SchemaType:    schema.ColTypeTime,
 		SchemaSubType: schema.ColSubTypeDateOnly,
@@ -379,7 +379,7 @@ func (n *projectAssociation) StartDate() *query.ColumnNode {
 func (n projectTable) EndDate() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "end_date",
-		Identifier:    "EndDate",
+		Field:         "endDate",
 		ReceiverType:  query.ColTypeTime,
 		SchemaType:    schema.ColTypeTime,
 		SchemaSubType: schema.ColSubTypeDateOnly,
@@ -410,7 +410,7 @@ func (n *projectAssociation) EndDate() *query.ColumnNode {
 func (n projectTable) Budget() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "budget",
-		Identifier:    "Budget",
+		Field:         "budget",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeString,
 		SchemaSubType: schema.ColSubTypeNumeric,
@@ -441,7 +441,7 @@ func (n *projectAssociation) Budget() *query.ColumnNode {
 func (n projectTable) Spent() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "spent",
-		Identifier:    "Spent",
+		Field:         "spent",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeString,
 		SchemaSubType: schema.ColSubTypeNumeric,
@@ -472,7 +472,7 @@ func (n *projectAssociation) Spent() *query.ColumnNode {
 func (n projectTable) ManagerID() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "manager_id",
-		Identifier:    "ManagerID",
+		Field:         "managerID",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeString,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -506,7 +506,7 @@ func (n projectTable) Manager() PersonNode {
 		ReferenceNode: query.ReferenceNode{
 			ForeignKey: "manager_id",
 			PrimaryKey: "id",
-			Identifier: "Manager",
+			Field:      "manager",
 		},
 	}
 	query.NodeSetParent(cn, n)
@@ -534,7 +534,7 @@ func (n *projectAssociation) Manager() PersonNode {
 func (n projectTable) ParentID() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "parent_id",
-		Identifier:    "ParentID",
+		Field:         "parentID",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeString,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -568,7 +568,7 @@ func (n projectTable) Parent() ProjectNode {
 		ReferenceNode: query.ReferenceNode{
 			ForeignKey: "parent_id",
 			PrimaryKey: "id",
-			Identifier: "Parent",
+			Field:      "parent",
 		},
 	}
 	query.NodeSetParent(cn, n)
@@ -600,7 +600,7 @@ func (n projectTable) TeamMembers() PersonNode {
 			AssnTableQueryName: "team_member_project_assn",
 			ParentForeignKey:   "project_id",
 			ParentPrimaryKey:   "id",
-			Identifier:         "TeamMembers",
+			Field:              "teamMembers",
 			RefForeignKey:      "team_member_id",
 			RefPrimaryKey:      "id",
 		},
@@ -633,7 +633,7 @@ func (n projectTable) Children() ProjectNode {
 	cn := &projectReverse{
 		ReverseNode: query.ReverseNode{
 			ForeignKey: "parent_id",
-			Identifier: "Children",
+			Field:      "children",
 			IsUnique:   false,
 		},
 	}
@@ -665,7 +665,7 @@ func (n projectTable) Milestones() MilestoneNode {
 	cn := &milestoneReverse{
 		ReverseNode: query.ReverseNode{
 			ForeignKey: "project_id",
-			Identifier: "Milestones",
+			Field:      "milestones",
 			IsUnique:   false,
 		},
 	}

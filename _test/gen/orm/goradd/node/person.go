@@ -149,7 +149,7 @@ func (n *personAssociation) PrimaryKeys() []*query.ColumnNode {
 func (n personTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "id",
-		Identifier:    "ID",
+		Field:         "id",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeAutoPrimaryKey,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -174,7 +174,7 @@ func (n *personAssociation) ID() *query.ColumnNode {
 func (n personTable) FirstName() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "first_name",
-		Identifier:    "FirstName",
+		Field:         "firstName",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeString,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -199,7 +199,7 @@ func (n *personAssociation) FirstName() *query.ColumnNode {
 func (n personTable) LastName() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "last_name",
-		Identifier:    "LastName",
+		Field:         "lastName",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeString,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -224,7 +224,7 @@ func (n *personAssociation) LastName() *query.ColumnNode {
 func (n personTable) PersonType() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "person_type",
-		Identifier:    "PersonType",
+		Field:         "personType",
 		ReceiverType:  query.ColTypeInteger,
 		SchemaType:    schema.ColTypeEnum,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -249,7 +249,7 @@ func (n *personAssociation) PersonType() *query.ColumnNode {
 func (n personTable) Created() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "created",
-		Identifier:    "Created",
+		Field:         "created",
 		ReceiverType:  query.ColTypeTime,
 		SchemaType:    schema.ColTypeTime,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -274,7 +274,7 @@ func (n *personAssociation) Created() *query.ColumnNode {
 func (n personTable) Modified() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "modified",
-		Identifier:    "Modified",
+		Field:         "modified",
 		ReceiverType:  query.ColTypeTime,
 		SchemaType:    schema.ColTypeTime,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -303,7 +303,7 @@ func (n personTable) Projects() ProjectNode {
 			AssnTableQueryName: "team_member_project_assn",
 			ParentForeignKey:   "team_member_id",
 			ParentPrimaryKey:   "id",
-			Identifier:         "Projects",
+			Field:              "projects",
 			RefForeignKey:      "project_id",
 			RefPrimaryKey:      "id",
 		},
@@ -330,7 +330,7 @@ func (n personTable) ManagerProjects() ProjectNode {
 	cn := &projectReverse{
 		ReverseNode: query.ReverseNode{
 			ForeignKey: "manager_id",
-			Identifier: "ManagerProjects",
+			Field:      "managerProjects",
 			IsUnique:   false,
 		},
 	}
@@ -356,7 +356,7 @@ func (n personTable) Addresses() AddressNode {
 	cn := &addressReverse{
 		ReverseNode: query.ReverseNode{
 			ForeignKey: "person_id",
-			Identifier: "Addresses",
+			Field:      "addresses",
 			IsUnique:   false,
 		},
 	}
@@ -383,7 +383,7 @@ func (n personTable) EmployeeInfo() EmployeeInfoNode {
 		ReverseNode: query.ReverseNode{
 			ForeignKey: "person_id",
 			PrimaryKey: "id",
-			Identifier: "EmployeeInfo",
+			Field:      "employeeInfo",
 			IsUnique:   true,
 		},
 	}
@@ -410,7 +410,7 @@ func (n personTable) Login() LoginNode {
 		ReverseNode: query.ReverseNode{
 			ForeignKey: "person_id",
 			PrimaryKey: "id",
-			Identifier: "Login",
+			Field:      "login",
 			IsUnique:   true,
 		},
 	}

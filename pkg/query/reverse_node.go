@@ -24,7 +24,7 @@ type ReverseNode struct {
 	PrimaryKey string
 	// The identifier that will be used to identify this object in source code.
 	// Equals the key for the Get() function on an object. Should be plural.
-	Identifier string
+	Field string
 	// IsUnique is true if there is a unique relationship between this node and its parent,
 	// which would create a one-to-one relationship rather than a one-to-many relationship.
 	IsUnique bool
@@ -59,7 +59,7 @@ func (n *ReverseNode) GobEncode() (data []byte, err error) {
 	if err = e.Encode(n.PrimaryKey); err != nil {
 		panic(err)
 	}
-	if err = e.Encode(n.Identifier); err != nil {
+	if err = e.Encode(n.Field); err != nil {
 		panic(err)
 	}
 	if err = e.Encode(n.IsUnique); err != nil {
@@ -81,7 +81,7 @@ func (n *ReverseNode) GobDecode(data []byte) (err error) {
 	if err = dec.Decode(&n.PrimaryKey); err != nil {
 		panic(err)
 	}
-	if err = dec.Decode(&n.Identifier); err != nil {
+	if err = dec.Decode(&n.Field); err != nil {
 		panic(err)
 	}
 	if err = dec.Decode(&n.IsUnique); err != nil {
@@ -98,5 +98,5 @@ func init() {
 }
 
 func (n *ReverseNode) id() string {
-	return n.Identifier
+	return n.Field
 }

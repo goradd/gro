@@ -5,7 +5,7 @@
 
 {{
 
-	if v, ok := m["{{= rev.ReverseIdentifier }}"]; ok {
+	if v, ok := m["{{= rev.ReverseField }}"]; ok {
 		switch v2 := v.(type) {
 		case []map[string]any: // array expansion
 		    o.{{= rev.ReverseField }}.Clear()

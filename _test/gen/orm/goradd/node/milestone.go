@@ -105,7 +105,7 @@ func (n milestoneReverse) PrimaryKey() *query.ColumnNode {
 func (n milestoneTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "id",
-		Identifier:    "ID",
+		Field:         "id",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeAutoPrimaryKey,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -124,7 +124,7 @@ func (n *milestoneReverse) ID() *query.ColumnNode {
 func (n milestoneTable) Name() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "name",
-		Identifier:    "Name",
+		Field:         "name",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeString,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -143,7 +143,7 @@ func (n *milestoneReverse) Name() *query.ColumnNode {
 func (n milestoneTable) ProjectID() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "project_id",
-		Identifier:    "ProjectID",
+		Field:         "projectID",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeString,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -165,7 +165,7 @@ func (n milestoneTable) Project() ProjectNode {
 		ReferenceNode: query.ReferenceNode{
 			ForeignKey: "project_id",
 			PrimaryKey: "id",
-			Identifier: "Project",
+			Field:      "project",
 		},
 	}
 	query.NodeSetParent(cn, n)

@@ -386,13 +386,7 @@ func TestPerson_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadPerson(ctx, obj.PrimaryKey(), node.Person().ID(),
-		node.Person().FirstName(),
-		node.Person().LastName(),
-		node.Person().PersonType(),
-		node.Person().Created(),
-		node.Person().Modified(),
-		node.Person().ManagerProjects(),
+	obj2, _ := LoadPerson(ctx, obj.PrimaryKey(), node.Person().ManagerProjects(),
 		node.Person().Addresses(),
 		node.Person().EmployeeInfo(),
 		node.Person().Login(),
@@ -432,22 +426,22 @@ func TestPerson_Getters(t *testing.T) {
 	obj2, _ := LoadPerson(ctx, obj.PrimaryKey(),
 		node.Person().ID())
 
-	assert.Equal(t, obj.ID(), obj.Get(node.Person().ID().Identifier))
-	assert.Equal(t, obj.FirstName(), obj.Get(node.Person().FirstName().Identifier))
+	assert.Equal(t, obj.ID(), obj.Get(PersonIDField))
+	assert.Equal(t, obj.FirstName(), obj.Get(PersonFirstNameField))
 	assert.Panics(t, func() { obj2.FirstName() })
-	assert.Nil(t, obj2.Get(node.Person().FirstName().Identifier))
-	assert.Equal(t, obj.LastName(), obj.Get(node.Person().LastName().Identifier))
+	assert.Nil(t, obj2.Get(PersonFirstNameField))
+	assert.Equal(t, obj.LastName(), obj.Get(PersonLastNameField))
 	assert.Panics(t, func() { obj2.LastName() })
-	assert.Nil(t, obj2.Get(node.Person().LastName().Identifier))
-	assert.Equal(t, obj.PersonType(), obj.Get(node.Person().PersonType().Identifier))
+	assert.Nil(t, obj2.Get(PersonLastNameField))
+	assert.Equal(t, obj.PersonType(), obj.Get(PersonPersonTypeField))
 	assert.Panics(t, func() { obj2.PersonType() })
-	assert.Nil(t, obj2.Get(node.Person().PersonType().Identifier))
-	assert.Equal(t, obj.Created(), obj.Get(node.Person().Created().Identifier))
+	assert.Nil(t, obj2.Get(PersonPersonTypeField))
+	assert.Equal(t, obj.Created(), obj.Get(PersonCreatedField))
 	assert.Panics(t, func() { obj2.Created() })
-	assert.Nil(t, obj2.Get(node.Person().Created().Identifier))
-	assert.Equal(t, obj.Modified(), obj.Get(node.Person().Modified().Identifier))
+	assert.Nil(t, obj2.Get(PersonCreatedField))
+	assert.Equal(t, obj.Modified(), obj.Get(PersonModifiedField))
 	assert.Panics(t, func() { obj2.Modified() })
-	assert.Nil(t, obj2.Get(node.Person().Modified().Identifier))
+	assert.Nil(t, obj2.Get(PersonModifiedField))
 }
 
 func TestPerson_QueryLoad(t *testing.T) {

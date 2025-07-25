@@ -263,12 +263,7 @@ func TestPersonWithLock_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadPersonWithLock(ctx, obj.PrimaryKey(), node.PersonWithLock().ID(),
-		node.PersonWithLock().FirstName(),
-		node.PersonWithLock().LastName(),
-		node.PersonWithLock().GroLock(),
-		node.PersonWithLock().GroTimestamp(),
-	)
+	obj2, _ := LoadPersonWithLock(ctx, obj.PrimaryKey())
 	_ = obj2 // avoid error if there are no references
 
 }
@@ -297,19 +292,19 @@ func TestPersonWithLock_Getters(t *testing.T) {
 	obj2, _ := LoadPersonWithLock(ctx, obj.PrimaryKey(),
 		node.PersonWithLock().ID())
 
-	assert.Equal(t, obj.ID(), obj.Get(node.PersonWithLock().ID().Identifier))
-	assert.Equal(t, obj.FirstName(), obj.Get(node.PersonWithLock().FirstName().Identifier))
+	assert.Equal(t, obj.ID(), obj.Get(PersonWithLockIDField))
+	assert.Equal(t, obj.FirstName(), obj.Get(PersonWithLockFirstNameField))
 	assert.Panics(t, func() { obj2.FirstName() })
-	assert.Nil(t, obj2.Get(node.PersonWithLock().FirstName().Identifier))
-	assert.Equal(t, obj.LastName(), obj.Get(node.PersonWithLock().LastName().Identifier))
+	assert.Nil(t, obj2.Get(PersonWithLockFirstNameField))
+	assert.Equal(t, obj.LastName(), obj.Get(PersonWithLockLastNameField))
 	assert.Panics(t, func() { obj2.LastName() })
-	assert.Nil(t, obj2.Get(node.PersonWithLock().LastName().Identifier))
-	assert.Equal(t, obj.GroLock(), obj.Get(node.PersonWithLock().GroLock().Identifier))
+	assert.Nil(t, obj2.Get(PersonWithLockLastNameField))
+	assert.Equal(t, obj.GroLock(), obj.Get(PersonWithLockGroLockField))
 	assert.Panics(t, func() { obj2.GroLock() })
-	assert.Nil(t, obj2.Get(node.PersonWithLock().GroLock().Identifier))
-	assert.Equal(t, obj.GroTimestamp(), obj.Get(node.PersonWithLock().GroTimestamp().Identifier))
+	assert.Nil(t, obj2.Get(PersonWithLockGroLockField))
+	assert.Equal(t, obj.GroTimestamp(), obj.Get(PersonWithLockGroTimestampField))
 	assert.Panics(t, func() { obj2.GroTimestamp() })
-	assert.Nil(t, obj2.Get(node.PersonWithLock().GroTimestamp().Identifier))
+	assert.Nil(t, obj2.Get(PersonWithLockGroTimestampField))
 }
 
 func TestPersonWithLock_QueryLoad(t *testing.T) {

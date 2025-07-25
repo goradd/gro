@@ -23,7 +23,7 @@ func (n {{= table.DecapIdentifier}}Table) {{= rev.ReverseIdentifier }}() {{= rev
 		ReverseNode: query.ReverseNode{
 			ForeignKey: "{{= rev.ForeignKey.QueryName }}",
 			PrimaryKey: "{{= table.PrimaryKeyColumn().QueryName }}",
-			Identifier: "{{= rev.ReverseIdentifier }}",
+			Field:      "{{= rev.ReverseField }}",
 			IsUnique:   true,
 		},
 	}
@@ -69,7 +69,7 @@ func (n {{= table.DecapIdentifier }}Table) {{= rev.ReverseIdentifierPlural }}() 
 	cn := &{{= rev.Table.DecapIdentifier }}Reverse{
 		ReverseNode: query.ReverseNode{
 			ForeignKey:     "{{= rev.ForeignKey.QueryName }}",
-			Identifier:     "{{= rev.ReverseIdentifierPlural }}",
+			Field:          "{{= rev.ReverseField }}",
 			IsUnique:       false,
 		},
 	}

@@ -270,9 +270,7 @@ func TestMilestone_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadMilestone(ctx, obj.PrimaryKey(), node.Milestone().ID(),
-		node.Milestone().Name(),
-	)
+	obj2, _ := LoadMilestone(ctx, obj.PrimaryKey(), node.Milestone().Project())
 	_ = obj2 // avoid error if there are no references
 
 	assertEqualFieldsProject(t, obj2.Project(), obj.Project())
@@ -303,10 +301,13 @@ func TestMilestone_Getters(t *testing.T) {
 	obj2, _ := LoadMilestone(ctx, obj.PrimaryKey(),
 		node.Milestone().ID())
 
-	assert.Equal(t, obj.ID(), obj.Get(node.Milestone().ID().Identifier))
-	assert.Equal(t, obj.Name(), obj.Get(node.Milestone().Name().Identifier))
+	assert.Equal(t, obj.ID(), obj.Get(MilestoneIDField))
+	assert.Equal(t, obj.Name(), obj.Get(MilestoneNameField))
 	assert.Panics(t, func() { obj2.Name() })
-	assert.Nil(t, obj2.Get(node.Milestone().Name().Identifier))
+	assert.Nil(t, obj2.Get(MilestoneNameField))
+	assert.Equal(t, obj.ProjectID(), obj.Get(MilestoneProjectIDField))
+	assert.Panics(t, func() { obj2.ProjectID() })
+	assert.Nil(t, obj2.Get(MilestoneProjectIDField))
 }
 
 func TestMilestone_QueryLoad(t *testing.T) {

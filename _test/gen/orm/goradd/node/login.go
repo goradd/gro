@@ -111,7 +111,7 @@ func (n loginReverse) PrimaryKey() *query.ColumnNode {
 func (n loginTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "id",
-		Identifier:    "ID",
+		Field:         "id",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeAutoPrimaryKey,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -130,7 +130,7 @@ func (n *loginReverse) ID() *query.ColumnNode {
 func (n loginTable) Username() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "username",
-		Identifier:    "Username",
+		Field:         "username",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeString,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -149,7 +149,7 @@ func (n *loginReverse) Username() *query.ColumnNode {
 func (n loginTable) Password() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "password",
-		Identifier:    "Password",
+		Field:         "password",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeString,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -168,7 +168,7 @@ func (n *loginReverse) Password() *query.ColumnNode {
 func (n loginTable) IsEnabled() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "is_enabled",
-		Identifier:    "IsEnabled",
+		Field:         "isEnabled",
 		ReceiverType:  query.ColTypeBool,
 		SchemaType:    schema.ColTypeBool,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -187,7 +187,7 @@ func (n *loginReverse) IsEnabled() *query.ColumnNode {
 func (n loginTable) PersonID() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "person_id",
-		Identifier:    "PersonID",
+		Field:         "personID",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeString,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -209,7 +209,7 @@ func (n loginTable) Person() PersonNode {
 		ReferenceNode: query.ReferenceNode{
 			ForeignKey: "person_id",
 			PrimaryKey: "id",
-			Identifier: "Person",
+			Field:      "person",
 		},
 	}
 	query.NodeSetParent(cn, n)

@@ -10,7 +10,7 @@ func TestManyManyNodeInterfaces(t *testing.T) {
 		AssnTableQueryName: "table",
 		ParentForeignKey:   "col1",
 		ParentPrimaryKey:   "col2",
-		Identifier:         "Field1",
+		Field:              "Field1",
 		RefForeignKey:      "col2",
 		RefPrimaryKey:      "col1",
 	}

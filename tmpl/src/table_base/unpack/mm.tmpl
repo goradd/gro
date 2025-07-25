@@ -4,7 +4,7 @@
 }}
 {{
 
-	if v, ok := m["{{= mm.IdentifierPlural }}"]; ok {
+	if v, ok := m["{{= mm.Field }}"]; ok {
 		if v2, ok2 := v.([]map[string]any); ok2 {
 			o.{{= mm.Field }}.Clear()
 

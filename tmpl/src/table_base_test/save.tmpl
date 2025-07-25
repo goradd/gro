@@ -247,7 +247,7 @@ func Test{{= table.Identifier }}_ReferenceUpdateOldObjects(t *testing.T) {
 
     assert.NoError(t, obj.Save(ctx))
 
-    obj2, _ := Load{{= table.Identifier }}(ctx, obj.PrimaryKey(), {{join table.Columns, ""}}node.{{= table.Identifier }}().{{= _j.Identifier }}(),
+    obj2, _ := Load{{= table.Identifier }}(ctx, obj.PrimaryKey(), {{join table.References, ""}}node.{{= table.Identifier }}().{{= _j.Identifier }}(),
 {{join}}
 {{for _,rev := range table.ReverseReferences }}
 {{if rev.IsUnique}}

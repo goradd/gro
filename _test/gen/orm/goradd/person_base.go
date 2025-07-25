@@ -994,7 +994,7 @@ func (o *personBase) unpack(m map[string]interface{}, objThis *Person) {
 
 	// Many-Many references
 
-	if v, ok := m["Projects"]; ok {
+	if v, ok := m["projects"]; ok {
 		if v2, ok2 := v.([]map[string]any); ok2 {
 			o.projects.Clear()
 
@@ -1014,7 +1014,7 @@ func (o *personBase) unpack(m map[string]interface{}, objThis *Person) {
 
 	// Reverse references
 
-	if v, ok := m["ManagerProject"]; ok {
+	if v, ok := m["managerProjects"]; ok {
 		switch v2 := v.(type) {
 		case []map[string]any: // array expansion
 			o.managerProjects.Clear()
@@ -1032,7 +1032,7 @@ func (o *personBase) unpack(m map[string]interface{}, objThis *Person) {
 		o.managerProjectsIsDirty = false
 	}
 
-	if v, ok := m["Address"]; ok {
+	if v, ok := m["addresses"]; ok {
 		switch v2 := v.(type) {
 		case []map[string]any: // array expansion
 			o.addresses.Clear()
@@ -1716,48 +1716,48 @@ func (o *personBase) IsDirty() (dirty bool) {
 // Get returns the value of a field in the object based on the field's name.
 // It will also get related objects if they are loaded.
 // Invalid fields and objects are returned as nil.
-// Get can be used to retrieve a value by using the Identifier of a node.
+// Get can be used to retrieve a value by using the Field() of a node.
 func (o *personBase) Get(key string) interface{} {
 	switch key {
-	case "id":
+	case PersonIDField:
 		if !o.idIsLoaded {
 			return nil
 		}
 		return o.id
-	case "firstName":
+	case PersonFirstNameField:
 		if !o.firstNameIsLoaded {
 			return nil
 		}
 		return o.firstName
-	case "lastName":
+	case PersonLastNameField:
 		if !o.lastNameIsLoaded {
 			return nil
 		}
 		return o.lastName
-	case "personType":
+	case PersonPersonTypeField:
 		if !o.personTypeIsLoaded {
 			return nil
 		}
 		return o.personType
-	case "created":
+	case PersonCreatedField:
 		if !o.createdIsLoaded {
 			return nil
 		}
 		return o.created
-	case "modified":
+	case PersonModifiedField:
 		if !o.modifiedIsLoaded {
 			return nil
 		}
 		return o.modified
-	case "managerProjects":
+	case PersonManagerProjectField:
 		return o.managerProjects.Values()
-	case "addresses":
+	case PersonAddressField:
 		return o.addresses.Values()
-	case "employeeInfo":
+	case PersonEmployeeInfoField:
 		return o.employeeInfo
-	case "login":
+	case PersonLoginField:
 		return o.login
-	case "projects":
+	case PersonProjectsField:
 		return o.projects.Values()
 	}
 	return nil

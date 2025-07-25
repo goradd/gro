@@ -78,7 +78,7 @@ func (n personWithLockTable) PrimaryKey() *query.ColumnNode {
 func (n personWithLockTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "id",
-		Identifier:    "ID",
+		Field:         "id",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeAutoPrimaryKey,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -91,7 +91,7 @@ func (n personWithLockTable) ID() *query.ColumnNode {
 func (n personWithLockTable) FirstName() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "first_name",
-		Identifier:    "FirstName",
+		Field:         "firstName",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeString,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -104,7 +104,7 @@ func (n personWithLockTable) FirstName() *query.ColumnNode {
 func (n personWithLockTable) LastName() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "last_name",
-		Identifier:    "LastName",
+		Field:         "lastName",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeString,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -117,7 +117,7 @@ func (n personWithLockTable) LastName() *query.ColumnNode {
 func (n personWithLockTable) GroLock() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "gro_lock",
-		Identifier:    "GroLock",
+		Field:         "groLock",
 		ReceiverType:  query.ColTypeInteger64,
 		SchemaType:    schema.ColTypeInt,
 		SchemaSubType: schema.ColSubTypeLock,
@@ -130,7 +130,7 @@ func (n personWithLockTable) GroLock() *query.ColumnNode {
 func (n personWithLockTable) GroTimestamp() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "gro_timestamp",
-		Identifier:    "GroTimestamp",
+		Field:         "groTimestamp",
 		ReceiverType:  query.ColTypeInteger64,
 		SchemaType:    schema.ColTypeInt,
 		SchemaSubType: schema.ColSubTypeTimestamp,

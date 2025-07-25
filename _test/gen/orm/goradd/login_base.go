@@ -722,7 +722,7 @@ func (o *loginBase) unpack(m map[string]interface{}, objThis *Login) {
 		o.personIDIsDirty = false
 	}
 
-	if v, ok := m["Person"]; ok {
+	if v, ok := m["person"]; ok {
 		if person, ok2 := v.(map[string]any); ok2 {
 			o.person = new(Person)
 			o.person.unpack(person, o.person)
@@ -974,35 +974,35 @@ func (o *loginBase) IsDirty() (dirty bool) {
 // Get returns the value of a field in the object based on the field's name.
 // It will also get related objects if they are loaded.
 // Invalid fields and objects are returned as nil.
-// Get can be used to retrieve a value by using the Identifier of a node.
+// Get can be used to retrieve a value by using the Field() of a node.
 func (o *loginBase) Get(key string) interface{} {
 	switch key {
-	case "id":
+	case LoginIDField:
 		if !o.idIsLoaded {
 			return nil
 		}
 		return o.id
-	case "username":
+	case LoginUsernameField:
 		if !o.usernameIsLoaded {
 			return nil
 		}
 		return o.username
-	case "password":
+	case LoginPasswordField:
 		if !o.passwordIsLoaded {
 			return nil
 		}
 		return o.password
-	case "isEnabled":
+	case LoginIsEnabledField:
 		if !o.isEnabledIsLoaded {
 			return nil
 		}
 		return o.isEnabled
-	case "personID":
+	case LoginPersonIDField:
 		if !o.personIDIsLoaded {
 			return nil
 		}
 		return o.personID
-	case "person":
+	case LoginPersonField:
 		return o.Person()
 	}
 	return nil

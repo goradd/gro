@@ -12,7 +12,7 @@ func (n *NodeTemplate)genColumnNode(table *model.Table, col *model.Column, _w io
 func (n {{= table.DecapIdentifier}}Table) {{= col.Identifier }}() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName: "{{= col.QueryName }}",
-		Identifier: "{{= col.Identifier }}",
+		Field: "{{= col.Field }}",
 		ReceiverType: query.{{= col.ReceiverType.String() }},
 		SchemaType: schema.{{= col.SchemaType.String() }},
 		SchemaSubType: schema.{{= col.SchemaSubType.String() }},

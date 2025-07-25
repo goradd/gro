@@ -309,10 +309,7 @@ func TestAddress_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadAddress(ctx, obj.PrimaryKey(), node.Address().ID(),
-		node.Address().Street(),
-		node.Address().City(),
-	)
+	obj2, _ := LoadAddress(ctx, obj.PrimaryKey(), node.Address().Person())
 	_ = obj2 // avoid error if there are no references
 
 	assertEqualFieldsPerson(t, obj2.Person(), obj.Person())
@@ -343,13 +340,16 @@ func TestAddress_Getters(t *testing.T) {
 	obj2, _ := LoadAddress(ctx, obj.PrimaryKey(),
 		node.Address().ID())
 
-	assert.Equal(t, obj.ID(), obj.Get(node.Address().ID().Identifier))
-	assert.Equal(t, obj.Street(), obj.Get(node.Address().Street().Identifier))
+	assert.Equal(t, obj.ID(), obj.Get(AddressIDField))
+	assert.Equal(t, obj.Street(), obj.Get(AddressStreetField))
 	assert.Panics(t, func() { obj2.Street() })
-	assert.Nil(t, obj2.Get(node.Address().Street().Identifier))
-	assert.Equal(t, obj.City(), obj.Get(node.Address().City().Identifier))
+	assert.Nil(t, obj2.Get(AddressStreetField))
+	assert.Equal(t, obj.City(), obj.Get(AddressCityField))
 	assert.Panics(t, func() { obj2.City() })
-	assert.Nil(t, obj2.Get(node.Address().City().Identifier))
+	assert.Nil(t, obj2.Get(AddressCityField))
+	assert.Equal(t, obj.PersonID(), obj.Get(AddressPersonIDField))
+	assert.Panics(t, func() { obj2.PersonID() })
+	assert.Nil(t, obj2.Get(AddressPersonIDField))
 }
 
 func TestAddress_QueryLoad(t *testing.T) {

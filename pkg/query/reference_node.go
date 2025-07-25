@@ -18,9 +18,8 @@ type ReferenceNode struct {
 	ForeignKey string
 	// The name of the matching primary key column in the referenced table
 	PrimaryKey string
-	// The identifier that will be used to identify this object in source code.
-	// Equals the key for the Get() function on an object.
-	Identifier string
+	// The field that can be used in Get() calls to get the corresponding value from the table.
+	Field string
 	nodeLink
 }
 
@@ -49,7 +48,7 @@ func (n *ReferenceNode) GobEncode() (data []byte, err error) {
 	if err = e.Encode(n.PrimaryKey); err != nil {
 		panic(err)
 	}
-	if err = e.Encode(n.Identifier); err != nil {
+	if err = e.Encode(n.Field); err != nil {
 		panic(err)
 	}
 	if err = e.Encode(&n.nodeLink.parentNode); err != nil {
@@ -68,7 +67,7 @@ func (n *ReferenceNode) GobDecode(data []byte) (err error) {
 	if err = dec.Decode(&n.PrimaryKey); err != nil {
 		panic(err)
 	}
-	if err = dec.Decode(&n.Identifier); err != nil {
+	if err = dec.Decode(&n.Field); err != nil {
 		panic(err)
 	}
 	if err = dec.Decode(&n.nodeLink.parentNode); err != nil {
@@ -82,5 +81,5 @@ func init() {
 }
 
 func (n *ReferenceNode) id() string {
-	return n.Identifier
+	return n.Field
 }

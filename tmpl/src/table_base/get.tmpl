@@ -6,22 +6,22 @@
 // Get returns the value of a field in the object based on the field's name.
 // It will also get related objects if they are loaded.
 // Invalid fields and objects are returned as nil.
-// Get can be used to retrieve a value by using the Identifier of a node.
+// Get can be used to retrieve a value by using the Field() of a node.
 func (o *{{= table.DecapIdentifier}}Base) Get(key string) interface{} {
     switch key {
 {{for _,col := range table.AllColumns() }}
-    case "{{= col.Field }}":
+    case {{= table.Identifier }}{{= col.Identifier}}Field:
         if !o.{{= col.Field }}IsLoaded {
             return nil
         }
         return o.{{= col.Field }}
 {{for}}
 {{for _,ref := range table.References }}
-    case "{{= ref.Field }}":
+    case {{= table.Identifier }}{{= ref.Identifier }}Field:
         return o.{{= ref.Identifier }}()
 {{for}}
 {{for _,rev := range table.ReverseReferences }}
-    case "{{= rev.ReverseField }}":
+    case {{= table.Identifier }}{{= rev.ReverseIdentifier }}Field:
 {{if rev.IsUnique }}
         return o.{{= rev.ReverseField }}
 {{else}}
@@ -29,7 +29,7 @@ func (o *{{= table.DecapIdentifier}}Base) Get(key string) interface{} {
 {{if}}
 {{for}}
 {{for _,mm := range table.ManyManyReferences}}
-    case "{{= mm.Field }}":
+    case {{= table.Identifier }}{{= mm.IdentifierPlural }}Field:
         return o.{{= mm.Field }}.Values()
 {{for}}
     }

@@ -558,7 +558,7 @@ func (o *milestoneBase) unpack(m map[string]interface{}, objThis *Milestone) {
 		o.projectIDIsDirty = false
 	}
 
-	if v, ok := m["Project"]; ok {
+	if v, ok := m["project"]; ok {
 		if project, ok2 := v.(map[string]any); ok2 {
 			o.project = new(Project)
 			o.project.unpack(project, o.project)
@@ -786,25 +786,25 @@ func (o *milestoneBase) IsDirty() (dirty bool) {
 // Get returns the value of a field in the object based on the field's name.
 // It will also get related objects if they are loaded.
 // Invalid fields and objects are returned as nil.
-// Get can be used to retrieve a value by using the Identifier of a node.
+// Get can be used to retrieve a value by using the Field() of a node.
 func (o *milestoneBase) Get(key string) interface{} {
 	switch key {
-	case "id":
+	case MilestoneIDField:
 		if !o.idIsLoaded {
 			return nil
 		}
 		return o.id
-	case "name":
+	case MilestoneNameField:
 		if !o.nameIsLoaded {
 			return nil
 		}
 		return o.name
-	case "projectID":
+	case MilestoneProjectIDField:
 		if !o.projectIDIsLoaded {
 			return nil
 		}
 		return o.projectID
-	case "project":
+	case MilestoneProjectField:
 		return o.Project()
 	}
 	return nil

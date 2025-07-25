@@ -24,7 +24,7 @@ type ManyManyNode struct {
 	ParentPrimaryKey string
 
 	// Identifier used to refer to the collection of objects. This is a plural name.
-	Identifier string
+	Field string
 	// Column in the association table pointing forwards to the embedding node
 	RefForeignKey string
 	// Primary key column in the child table that matches the RefForeignKey
@@ -68,7 +68,7 @@ func (n *ManyManyNode) GobEncode() (data []byte, err error) {
 	if err = e.Encode(n.ParentPrimaryKey); err != nil {
 		panic(err)
 	}
-	if err = e.Encode(n.Identifier); err != nil {
+	if err = e.Encode(n.Field); err != nil {
 		panic(err)
 	}
 	if err = e.Encode(n.RefForeignKey); err != nil {
@@ -96,7 +96,7 @@ func (n *ManyManyNode) GobDecode(data []byte) (err error) {
 	if err = dec.Decode(&n.ParentPrimaryKey); err != nil {
 		panic(err)
 	}
-	if err = dec.Decode(&n.Identifier); err != nil {
+	if err = dec.Decode(&n.Field); err != nil {
 		panic(err)
 	}
 	if err = dec.Decode(&n.RefForeignKey); err != nil {
@@ -116,5 +116,5 @@ func init() {
 }
 
 func (n *ManyManyNode) id() string {
-	return n.Identifier
+	return n.Field
 }

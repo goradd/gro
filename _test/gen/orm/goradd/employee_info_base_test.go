@@ -265,9 +265,7 @@ func TestEmployeeInfo_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadEmployeeInfo(ctx, obj.PrimaryKey(), node.EmployeeInfo().ID(),
-		node.EmployeeInfo().EmployeeNumber(),
-	)
+	obj2, _ := LoadEmployeeInfo(ctx, obj.PrimaryKey(), node.EmployeeInfo().Person())
 	_ = obj2 // avoid error if there are no references
 
 	assertEqualFieldsPerson(t, obj2.Person(), obj.Person())
@@ -298,10 +296,13 @@ func TestEmployeeInfo_Getters(t *testing.T) {
 	obj2, _ := LoadEmployeeInfo(ctx, obj.PrimaryKey(),
 		node.EmployeeInfo().ID())
 
-	assert.Equal(t, obj.ID(), obj.Get(node.EmployeeInfo().ID().Identifier))
-	assert.Equal(t, obj.EmployeeNumber(), obj.Get(node.EmployeeInfo().EmployeeNumber().Identifier))
+	assert.Equal(t, obj.ID(), obj.Get(EmployeeInfoIDField))
+	assert.Equal(t, obj.EmployeeNumber(), obj.Get(EmployeeInfoEmployeeNumberField))
 	assert.Panics(t, func() { obj2.EmployeeNumber() })
-	assert.Nil(t, obj2.Get(node.EmployeeInfo().EmployeeNumber().Identifier))
+	assert.Nil(t, obj2.Get(EmployeeInfoEmployeeNumberField))
+	assert.Equal(t, obj.PersonID(), obj.Get(EmployeeInfoPersonIDField))
+	assert.Panics(t, func() { obj2.PersonID() })
+	assert.Nil(t, obj2.Get(EmployeeInfoPersonIDField))
 }
 
 func TestEmployeeInfo_QueryLoad(t *testing.T) {

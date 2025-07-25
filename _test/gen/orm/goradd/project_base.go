@@ -1496,7 +1496,7 @@ func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 		o.parentIDIsDirty = false
 	}
 
-	if v, ok := m["Manager"]; ok {
+	if v, ok := m["manager"]; ok {
 		if manager, ok2 := v.(map[string]any); ok2 {
 			o.manager = new(Person)
 			o.manager.unpack(manager, o.manager)
@@ -1509,7 +1509,7 @@ func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 		o.manager = nil
 	}
 
-	if v, ok := m["Parent"]; ok {
+	if v, ok := m["parent"]; ok {
 		if parent, ok2 := v.(map[string]any); ok2 {
 			o.parent = new(Project)
 			o.parent.unpack(parent, o.parent)
@@ -1524,7 +1524,7 @@ func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 
 	// Many-Many references
 
-	if v, ok := m["TeamMembers"]; ok {
+	if v, ok := m["teamMembers"]; ok {
 		if v2, ok2 := v.([]map[string]any); ok2 {
 			o.teamMembers.Clear()
 
@@ -1544,7 +1544,7 @@ func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 
 	// Reverse references
 
-	if v, ok := m["Child"]; ok {
+	if v, ok := m["children"]; ok {
 		switch v2 := v.(type) {
 		case []map[string]any: // array expansion
 			o.children.Clear()
@@ -1562,7 +1562,7 @@ func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 		o.childrenIsDirty = false
 	}
 
-	if v, ok := m["Milestone"]; ok {
+	if v, ok := m["milestones"]; ok {
 		switch v2 := v.(type) {
 		case []map[string]any: // array expansion
 			o.milestones.Clear()
@@ -2194,73 +2194,73 @@ func (o *projectBase) IsDirty() (dirty bool) {
 // Get returns the value of a field in the object based on the field's name.
 // It will also get related objects if they are loaded.
 // Invalid fields and objects are returned as nil.
-// Get can be used to retrieve a value by using the Identifier of a node.
+// Get can be used to retrieve a value by using the Field() of a node.
 func (o *projectBase) Get(key string) interface{} {
 	switch key {
-	case "id":
+	case ProjectIDField:
 		if !o.idIsLoaded {
 			return nil
 		}
 		return o.id
-	case "num":
+	case ProjectNumField:
 		if !o.numIsLoaded {
 			return nil
 		}
 		return o.num
-	case "status":
+	case ProjectStatusField:
 		if !o.statusIsLoaded {
 			return nil
 		}
 		return o.status
-	case "name":
+	case ProjectNameField:
 		if !o.nameIsLoaded {
 			return nil
 		}
 		return o.name
-	case "description":
+	case ProjectDescriptionField:
 		if !o.descriptionIsLoaded {
 			return nil
 		}
 		return o.description
-	case "startDate":
+	case ProjectStartDateField:
 		if !o.startDateIsLoaded {
 			return nil
 		}
 		return o.startDate
-	case "endDate":
+	case ProjectEndDateField:
 		if !o.endDateIsLoaded {
 			return nil
 		}
 		return o.endDate
-	case "budget":
+	case ProjectBudgetField:
 		if !o.budgetIsLoaded {
 			return nil
 		}
 		return o.budget
-	case "spent":
+	case ProjectSpentField:
 		if !o.spentIsLoaded {
 			return nil
 		}
 		return o.spent
-	case "managerID":
+	case ProjectManagerIDField:
 		if !o.managerIDIsLoaded {
 			return nil
 		}
 		return o.managerID
-	case "parentID":
+	case ProjectParentIDField:
 		if !o.parentIDIsLoaded {
 			return nil
 		}
 		return o.parentID
-	case "manager":
+	case ProjectManagerField:
 		return o.Manager()
-	case "parent":
+	case ProjectParentField:
 		return o.Parent()
-	case "children":
+	case ProjectChildField:
 		return o.children.Values()
-	case "milestones":
+	case ProjectMilestoneField:
 		return o.milestones.Values()
-	case "teamMembers":
+	case ProjectTeamMembersField:
 		return o.teamMembers.Values()
 	}
 	return nil

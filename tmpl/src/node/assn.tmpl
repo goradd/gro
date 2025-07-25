@@ -20,7 +20,7 @@ func (n {{= table.DecapIdentifier }}Table) {{= mm.IdentifierPlural }}() {{= mm.R
 			AssnTableQueryName:       "{{= mm.TableQueryName }}",
 			ParentForeignKey:         "{{= mm.SourceColumnName() }}",
 			ParentPrimaryKey:         "{{= mm.SourcePrimaryKeyName() }}",
-			Identifier:               "{{= mm.IdentifierPlural }}",
+			Field:                    "{{= mm.Field }}",
 			RefForeignKey:            "{{= mm.ForeignKeyName }}",
 			RefPrimaryKey:            "{{= mm.PrimaryKeyColumnName() }}",
 		},

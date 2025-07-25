@@ -108,7 +108,7 @@ func (n addressReverse) PrimaryKey() *query.ColumnNode {
 func (n addressTable) ID() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "id",
-		Identifier:    "ID",
+		Field:         "id",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeAutoPrimaryKey,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -127,7 +127,7 @@ func (n *addressReverse) ID() *query.ColumnNode {
 func (n addressTable) Street() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "street",
-		Identifier:    "Street",
+		Field:         "street",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeString,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -146,7 +146,7 @@ func (n *addressReverse) Street() *query.ColumnNode {
 func (n addressTable) City() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "city",
-		Identifier:    "City",
+		Field:         "city",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeString,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -165,7 +165,7 @@ func (n *addressReverse) City() *query.ColumnNode {
 func (n addressTable) PersonID() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "person_id",
-		Identifier:    "PersonID",
+		Field:         "personID",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeString,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -187,7 +187,7 @@ func (n addressTable) Person() PersonNode {
 		ReferenceNode: query.ReferenceNode{
 			ForeignKey: "person_id",
 			PrimaryKey: "id",
-			Identifier: "Person",
+			Field:      "person",
 		},
 	}
 	query.NodeSetParent(cn, n)

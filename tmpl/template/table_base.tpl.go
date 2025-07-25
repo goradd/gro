@@ -7784,7 +7784,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ref.Identifier); err != nil {
+		if _, err = io.WriteString(_w, ref.Field); err != nil {
 			return
 		}
 
@@ -7919,7 +7919,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
+		if _, err = io.WriteString(_w, mm.Field); err != nil {
 			return
 		}
 
@@ -8159,7 +8159,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 
@@ -12390,7 +12390,7 @@ func (tmpl *TableBaseTemplate) genGet(table *model.Table, _w io.Writer) (err err
 	if _, err = io.WriteString(_w, `// Get returns the value of a field in the object based on the field's name.
 // It will also get related objects if they are loaded.
 // Invalid fields and objects are returned as nil.
-// Get can be used to retrieve a value by using the Identifier of a node.
+// Get can be used to retrieve a value by using the Field() of a node.
 func (o *`); err != nil {
 		return
 	}
@@ -12407,15 +12407,19 @@ func (o *`); err != nil {
 
 	for _, col := range table.AllColumns() {
 
-		if _, err = io.WriteString(_w, `    case "`); err != nil {
+		if _, err = io.WriteString(_w, `    case `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.Field); err != nil {
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `":
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Field:
         if !o.`); err != nil {
 			return
 		}
@@ -12444,15 +12448,19 @@ func (o *`); err != nil {
 
 	for _, ref := range table.References {
 
-		if _, err = io.WriteString(_w, `    case "`); err != nil {
+		if _, err = io.WriteString(_w, `    case `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ref.Field); err != nil {
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `":
+		if _, err = io.WriteString(_w, ref.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Field:
         return o.`); err != nil {
 			return
 		}
@@ -12470,15 +12478,19 @@ func (o *`); err != nil {
 
 	for _, rev := range table.ReverseReferences {
 
-		if _, err = io.WriteString(_w, `    case "`); err != nil {
+		if _, err = io.WriteString(_w, `    case `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `":
+		if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Field:
 `); err != nil {
 			return
 		}
@@ -12519,15 +12531,19 @@ func (o *`); err != nil {
 
 	for _, mm := range table.ManyManyReferences {
 
-		if _, err = io.WriteString(_w, `    case "`); err != nil {
+		if _, err = io.WriteString(_w, `    case `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.Field); err != nil {
+		if _, err = io.WriteString(_w, table.Identifier); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `":
+		if _, err = io.WriteString(_w, mm.IdentifierPlural); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Field:
         return o.`); err != nil {
 			return
 		}

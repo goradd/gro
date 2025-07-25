@@ -69,7 +69,7 @@ func (n giftTable) PrimaryKey() *query.ColumnNode {
 func (n giftTable) Number() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "number",
-		Identifier:    "Number",
+		Field:         "number",
 		ReceiverType:  query.ColTypeInteger,
 		SchemaType:    schema.ColTypeInt,
 		SchemaSubType: schema.ColSubTypeNone,
@@ -82,7 +82,7 @@ func (n giftTable) Number() *query.ColumnNode {
 func (n giftTable) Name() *query.ColumnNode {
 	cn := &query.ColumnNode{
 		QueryName:     "name",
-		Identifier:    "Name",
+		Field:         "name",
 		ReceiverType:  query.ColTypeString,
 		SchemaType:    schema.ColTypeString,
 		SchemaSubType: schema.ColSubTypeNone,

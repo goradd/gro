@@ -340,11 +340,7 @@ func TestLogin_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadLogin(ctx, obj.PrimaryKey(), node.Login().ID(),
-		node.Login().Username(),
-		node.Login().Password(),
-		node.Login().IsEnabled(),
-	)
+	obj2, _ := LoadLogin(ctx, obj.PrimaryKey(), node.Login().Person())
 	_ = obj2 // avoid error if there are no references
 
 	assertEqualFieldsPerson(t, obj2.Person(), obj.Person())
@@ -375,16 +371,19 @@ func TestLogin_Getters(t *testing.T) {
 	obj2, _ := LoadLogin(ctx, obj.PrimaryKey(),
 		node.Login().ID())
 
-	assert.Equal(t, obj.ID(), obj.Get(node.Login().ID().Identifier))
-	assert.Equal(t, obj.Username(), obj.Get(node.Login().Username().Identifier))
+	assert.Equal(t, obj.ID(), obj.Get(LoginIDField))
+	assert.Equal(t, obj.Username(), obj.Get(LoginUsernameField))
 	assert.Panics(t, func() { obj2.Username() })
-	assert.Nil(t, obj2.Get(node.Login().Username().Identifier))
-	assert.Equal(t, obj.Password(), obj.Get(node.Login().Password().Identifier))
+	assert.Nil(t, obj2.Get(LoginUsernameField))
+	assert.Equal(t, obj.Password(), obj.Get(LoginPasswordField))
 	assert.Panics(t, func() { obj2.Password() })
-	assert.Nil(t, obj2.Get(node.Login().Password().Identifier))
-	assert.Equal(t, obj.IsEnabled(), obj.Get(node.Login().IsEnabled().Identifier))
+	assert.Nil(t, obj2.Get(LoginPasswordField))
+	assert.Equal(t, obj.IsEnabled(), obj.Get(LoginIsEnabledField))
 	assert.Panics(t, func() { obj2.IsEnabled() })
-	assert.Nil(t, obj2.Get(node.Login().IsEnabled().Identifier))
+	assert.Nil(t, obj2.Get(LoginIsEnabledField))
+	assert.Equal(t, obj.PersonID(), obj.Get(LoginPersonIDField))
+	assert.Panics(t, func() { obj2.PersonID() })
+	assert.Nil(t, obj2.Get(LoginPersonIDField))
 }
 
 func TestLogin_QueryLoad(t *testing.T) {

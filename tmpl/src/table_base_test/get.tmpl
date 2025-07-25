@@ -39,11 +39,11 @@ func Test{{= table.Identifier }}_Getters(t *testing.T) {
     assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
 {{if}}
 
-{{for _, col := range table.Columns }}
-    assert.Equal(t, obj.{{= col.Identifier }}(), obj.Get(node.{{= table.Identifier }}().{{= col.Identifier }}().Identifier))
+{{for _, col := range table.AllColumns() }}
+    assert.Equal(t, obj.{{= col.Identifier }}(), obj.Get({{= table.Identifier }}{{= col.Identifier }}Field))
 {{if !col.IsAPrimaryKey() }}
     assert.Panics(t, func() { obj2.{{= col.Identifier }}() })
-    assert.Nil(t, obj2.Get(node.{{= table.Identifier }}().{{= col.Identifier }}().Identifier))
+    assert.Nil(t, obj2.Get({{= table.Identifier }}{{= col.Identifier }}Field))
 {{if}}
 {{for}}
 }

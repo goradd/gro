@@ -18,7 +18,7 @@ type ColumnNode struct {
 	QueryName string
 	// The identifier of the data in the corresponding object.
 	// Pass this to Get() to retrieve a value.
-	Identifier string
+	Field string
 	// The receiver type for the column
 	ReceiverType ReceiverType
 	// The schema type for the node
@@ -67,7 +67,7 @@ func (n *ColumnNode) GobEncode() (data []byte, err error) {
 	if err = e.Encode(n.QueryName); err != nil {
 		panic(err)
 	}
-	if err = e.Encode(n.Identifier); err != nil {
+	if err = e.Encode(n.Field); err != nil {
 		panic(err)
 	}
 	if err = e.Encode(n.ReceiverType); err != nil {
@@ -92,7 +92,7 @@ func (n *ColumnNode) GobDecode(data []byte) (err error) {
 	if err = dec.Decode(&n.QueryName); err != nil {
 		panic(err)
 	}
-	if err = dec.Decode(&n.Identifier); err != nil {
+	if err = dec.Decode(&n.Field); err != nil {
 		panic(err)
 	}
 	if err = dec.Decode(&n.ReceiverType); err != nil {
@@ -115,7 +115,7 @@ func init() {
 }
 
 func (n *ColumnNode) id() string {
-	return n.Identifier
+	return n.Field
 }
 
 type ider interface {
@@ -128,4 +128,8 @@ func NodeIdentifier(n Node) string {
 		return id.id()
 	}
 	return ""
+}
+
+func NodeField(n Node) string {
+	return NodeIdentifier(n)
 }

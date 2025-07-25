@@ -10,7 +10,7 @@ func (n {{= table.DecapIdentifier}}Table) {{= ref.Identifier }}() {{= ref.Refere
 		ReferenceNode: query.ReferenceNode {
             ForeignKey:      "{{= ref.ForeignKey.QueryName }}",
             PrimaryKey:      "{{= ref.ReferencedTable.PrimaryKeyColumn().QueryName }}",
-            Identifier:      "{{= ref.Identifier }}",
+            Field:           "{{= ref.Field }}",
 		},
 	}
 	query.NodeSetParent(cn, n)

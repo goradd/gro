@@ -217,9 +217,7 @@ func TestGift_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadGift(ctx, obj.PrimaryKey(), node.Gift().Number(),
-		node.Gift().Name(),
-	)
+	obj2, _ := LoadGift(ctx, obj.PrimaryKey())
 	_ = obj2 // avoid error if there are no references
 
 }
@@ -243,10 +241,10 @@ func TestGift_Getters(t *testing.T) {
 		node.Gift().Number())
 	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
 
-	assert.Equal(t, obj.Number(), obj.Get(node.Gift().Number().Identifier))
-	assert.Equal(t, obj.Name(), obj.Get(node.Gift().Name().Identifier))
+	assert.Equal(t, obj.Number(), obj.Get(GiftNumberField))
+	assert.Equal(t, obj.Name(), obj.Get(GiftNameField))
 	assert.Panics(t, func() { obj2.Name() })
-	assert.Nil(t, obj2.Get(node.Gift().Name().Identifier))
+	assert.Nil(t, obj2.Get(GiftNameField))
 }
 
 func TestGift_QueryLoad(t *testing.T) {
