@@ -577,7 +577,7 @@ func (o *personWithLockBase) update(ctx context.Context) error {
 
 	d := Database()
 	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, 500*time.Minute)
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 	err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
 
@@ -626,7 +626,7 @@ func (o *personWithLockBase) insert(ctx context.Context) (err error) {
 	d := Database()
 
 	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, 500*time.Minute)
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	err = db.WithTransaction(ctx, d, func(ctx context.Context) error {

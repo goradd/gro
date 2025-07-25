@@ -1107,7 +1107,7 @@ func (o *personBase) update(ctx context.Context) error {
 
 	d := Database()
 	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, 500*time.Minute)
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 	err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
 
@@ -1356,7 +1356,7 @@ func (o *personBase) insert(ctx context.Context) (err error) {
 	d := Database()
 
 	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, 500*time.Minute)
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	err = db.WithTransaction(ctx, d, func(ctx context.Context) error {
@@ -1548,7 +1548,7 @@ func (o *personBase) Delete(ctx context.Context) (err error) {
 	d := Database()
 
 	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, 500*time.Minute)
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	err = db.WithTransaction(ctx, d, func(ctx context.Context) error {
@@ -1645,7 +1645,7 @@ func deletePerson(ctx context.Context, pk string) error {
 	d := db.GetDatabase("goradd")
 
 	var cancel context.CancelFunc
-	ctx, cancel = context.WithTimeout(ctx, 500*time.Minute)
+	ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 
 	err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
