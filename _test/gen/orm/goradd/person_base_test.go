@@ -442,6 +442,7 @@ func TestPerson_Getters(t *testing.T) {
 	assert.Equal(t, obj.Modified(), obj.Get(PersonModifiedField))
 	assert.Panics(t, func() { obj2.Modified() })
 	assert.Nil(t, obj2.Get(PersonModifiedField))
+
 }
 
 func TestPerson_QueryLoad(t *testing.T) {

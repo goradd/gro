@@ -305,9 +305,12 @@ func TestMilestone_Getters(t *testing.T) {
 	assert.Equal(t, obj.Name(), obj.Get(MilestoneNameField))
 	assert.Panics(t, func() { obj2.Name() })
 	assert.Nil(t, obj2.Get(MilestoneNameField))
-	assert.Equal(t, obj.ProjectID(), obj.Get(MilestoneProjectIDField))
+	// Not loaded
+	assert.Nil(t, obj2.Project())
+	assert.Nil(t, obj2.Get(MilestoneProjectField))
 	assert.Panics(t, func() { obj2.ProjectID() })
 	assert.Nil(t, obj2.Get(MilestoneProjectIDField))
+
 }
 
 func TestMilestone_QueryLoad(t *testing.T) {

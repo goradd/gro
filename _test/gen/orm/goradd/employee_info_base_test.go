@@ -300,9 +300,12 @@ func TestEmployeeInfo_Getters(t *testing.T) {
 	assert.Equal(t, obj.EmployeeNumber(), obj.Get(EmployeeInfoEmployeeNumberField))
 	assert.Panics(t, func() { obj2.EmployeeNumber() })
 	assert.Nil(t, obj2.Get(EmployeeInfoEmployeeNumberField))
-	assert.Equal(t, obj.PersonID(), obj.Get(EmployeeInfoPersonIDField))
+	// Not loaded
+	assert.Nil(t, obj2.Person())
+	assert.Nil(t, obj2.Get(EmployeeInfoPersonField))
 	assert.Panics(t, func() { obj2.PersonID() })
 	assert.Nil(t, obj2.Get(EmployeeInfoPersonIDField))
+
 }
 
 func TestEmployeeInfo_QueryLoad(t *testing.T) {

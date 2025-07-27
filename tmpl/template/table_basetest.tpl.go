@@ -3415,7 +3415,7 @@ func Test`); err != nil {
 			return
 		}
 
-		for _, col := range table.AllColumns() {
+		for _, col := range table.Columns {
 
 			if _, err = io.WriteString(_w, `    assert.Equal(t, obj.`); err != nil {
 				return
@@ -3474,7 +3474,65 @@ func Test`); err != nil {
 
 		}
 
-		if _, err = io.WriteString(_w, `}
+		for _, ref := range table.References {
+
+			if !ref.ForeignKey.IsAPrimaryKey() {
+
+				if _, err = io.WriteString(_w, `    // Not loaded
+    assert.Nil(t, obj2.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ref.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `() )
+    assert.Nil(t, obj2.Get(`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, table.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ref.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `Field))
+    assert.Panics(t, func() { obj2.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ref.ForeignKey.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `() })
+    assert.Nil(t, obj2.Get(`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, table.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ref.ForeignKey.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `Field))
+`); err != nil {
+					return
+				}
+
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `
+}
 
 `); err != nil {
 			return

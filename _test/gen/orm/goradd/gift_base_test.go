@@ -245,6 +245,7 @@ func TestGift_Getters(t *testing.T) {
 	assert.Equal(t, obj.Name(), obj.Get(GiftNameField))
 	assert.Panics(t, func() { obj2.Name() })
 	assert.Nil(t, obj2.Get(GiftNameField))
+
 }
 
 func TestGift_QueryLoad(t *testing.T) {

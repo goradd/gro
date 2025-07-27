@@ -347,9 +347,12 @@ func TestAddress_Getters(t *testing.T) {
 	assert.Equal(t, obj.City(), obj.Get(AddressCityField))
 	assert.Panics(t, func() { obj2.City() })
 	assert.Nil(t, obj2.Get(AddressCityField))
-	assert.Equal(t, obj.PersonID(), obj.Get(AddressPersonIDField))
+	// Not loaded
+	assert.Nil(t, obj2.Person())
+	assert.Nil(t, obj2.Get(AddressPersonField))
 	assert.Panics(t, func() { obj2.PersonID() })
 	assert.Nil(t, obj2.Get(AddressPersonIDField))
+
 }
 
 func TestAddress_QueryLoad(t *testing.T) {

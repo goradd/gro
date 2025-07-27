@@ -374,9 +374,12 @@ func TestLogin_Getters(t *testing.T) {
 	assert.Equal(t, obj.IsEnabled(), obj.Get(LoginIsEnabledField))
 	assert.Panics(t, func() { obj2.IsEnabled() })
 	assert.Nil(t, obj2.Get(LoginIsEnabledField))
-	assert.Equal(t, obj.PersonID(), obj.Get(LoginPersonIDField))
+	// Not loaded
+	assert.Nil(t, obj2.Person())
+	assert.Nil(t, obj2.Get(LoginPersonField))
 	assert.Panics(t, func() { obj2.PersonID() })
 	assert.Nil(t, obj2.Get(LoginPersonIDField))
+
 }
 
 func TestLogin_QueryLoad(t *testing.T) {

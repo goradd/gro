@@ -666,12 +666,17 @@ func TestProject_Getters(t *testing.T) {
 	assert.Equal(t, obj.Spent(), obj.Get(ProjectSpentField))
 	assert.Panics(t, func() { obj2.Spent() })
 	assert.Nil(t, obj2.Get(ProjectSpentField))
-	assert.Equal(t, obj.ManagerID(), obj.Get(ProjectManagerIDField))
+	// Not loaded
+	assert.Nil(t, obj2.Manager())
+	assert.Nil(t, obj2.Get(ProjectManagerField))
 	assert.Panics(t, func() { obj2.ManagerID() })
 	assert.Nil(t, obj2.Get(ProjectManagerIDField))
-	assert.Equal(t, obj.ParentID(), obj.Get(ProjectParentIDField))
+	// Not loaded
+	assert.Nil(t, obj2.Parent())
+	assert.Nil(t, obj2.Get(ProjectParentField))
 	assert.Panics(t, func() { obj2.ParentID() })
 	assert.Nil(t, obj2.Get(ProjectParentIDField))
+
 }
 
 func TestProject_QueryLoad(t *testing.T) {

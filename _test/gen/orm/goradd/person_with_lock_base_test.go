@@ -305,6 +305,7 @@ func TestPersonWithLock_Getters(t *testing.T) {
 	assert.Equal(t, obj.GroTimestamp(), obj.Get(PersonWithLockGroTimestampField))
 	assert.Panics(t, func() { obj2.GroTimestamp() })
 	assert.Nil(t, obj2.Get(PersonWithLockGroTimestampField))
+
 }
 
 func TestPersonWithLock_QueryLoad(t *testing.T) {
