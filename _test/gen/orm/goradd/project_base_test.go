@@ -24,15 +24,6 @@ func createMinimalSampleProject() *Project {
 	obj := NewProject()
 	updateMinimalSampleProject(obj)
 
-	// A required forward reference will need to be fulfilled just to save the minimal version of this object
-	// If the database is configured so that the referenced object points back here, either directly or through multiple
-	// forward references, it possible this could create an endless loop.
-	obj.SetManager(createMinimalSamplePerson())
-	// A required forward reference will need to be fulfilled just to save the minimal version of this object
-	// If the database is configured so that the referenced object points back here, either directly or through multiple
-	// forward references, it possible this could create an endless loop.
-	obj.SetParent(createMinimalSampleProject())
-
 	return obj
 }
 
@@ -313,6 +304,12 @@ func TestProject_SetManagerID(t *testing.T) {
 	val := test.RandomValue[string](32)
 	obj.SetManagerID(val)
 	assert.Equal(t, val, obj.ManagerID())
+	assert.False(t, obj.ManagerIDIsNull())
+
+	// Test NULL
+	obj.SetManagerIDToNull()
+	assert.EqualValues(t, "", obj.ManagerID())
+	assert.True(t, obj.ManagerIDIsNull())
 
 	// test default
 	obj.SetManagerID("")
@@ -332,6 +329,12 @@ func TestProject_SetParentID(t *testing.T) {
 	val := test.RandomValue[string](32)
 	obj.SetParentID(val)
 	assert.Equal(t, val, obj.ParentID())
+	assert.False(t, obj.ParentIDIsNull())
+
+	// Test NULL
+	obj.SetParentIDToNull()
+	assert.EqualValues(t, "", obj.ParentID())
+	assert.True(t, obj.ParentIDIsNull())
 
 	// test default
 	obj.SetParentID("")
@@ -458,14 +461,6 @@ func TestProject_InsertPanics(t *testing.T) {
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.nameIsLoaded = true
 
-	obj.managerIDIsLoaded = false
-	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.managerIDIsLoaded = true
-
-	obj.parentIDIsLoaded = false
-	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.parentIDIsLoaded = true
-
 }
 
 func TestProject_BasicUpdate(t *testing.T) {
@@ -521,10 +516,6 @@ func TestProject_ReferenceLoad(t *testing.T) {
 	assert.False(t, objPkOnly.ManagerIDIsLoaded())
 	assert.Panics(t, func() { _, _ = objPkOnly.LoadManager(ctx) })
 
-	assert.Panics(t, func() {
-		objPkOnly.SetManager(nil)
-	})
-
 	assert.Nil(t, obj2.Parent(), "Parent is not loaded initially")
 	v_Parent, _ := obj2.LoadParent(ctx)
 	assert.NotNil(t, v_Parent)
@@ -534,10 +525,6 @@ func TestProject_ReferenceLoad(t *testing.T) {
 
 	assert.False(t, objPkOnly.ParentIDIsLoaded())
 	assert.Panics(t, func() { _, _ = objPkOnly.LoadParent(ctx) })
-
-	assert.Panics(t, func() {
-		objPkOnly.SetParent(nil)
-	})
 
 	assert.Nil(t, obj2.Children(), "Child is not loaded initially")
 	v_Children, _ := obj2.LoadChildren(ctx)

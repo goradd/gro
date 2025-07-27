@@ -491,8 +491,11 @@ func (o *personBase) CountManagerProjects(ctx context.Context) (int, error) {
 
 // SetManagerProjects associates the objects in objs with this Person by setting
 // their ManagerID values to this object's primary key.
-// WARNING! If it has ManagerProjects already associated with it that will not be associated after a save,
-// Save will panic. Be sure to delete those ManagerProjects or otherwise fix those pointers before calling save.
+// If it has ManagerProjects already associated with it that will not be associated after a save,
+// the foreign keys for those ManagerProjects will be set to null.
+// If you did not use a join to query the items in the first place, used a conditional join,
+// or joined with an expansion, be particularly careful, since you may be changing items
+// that are not currently attached to this Person.
 func (o *personBase) SetManagerProjects(objs ...*Project) {
 	for obj := range o.managerProjects.ValuesIter() {
 		if obj.IsDirty() {
@@ -638,9 +641,11 @@ func (o *personBase) LoadLogin(ctx context.Context) (*Login, error) {
 // through the reverse relationship in Login.Person.
 //
 // The association is temporary until you call Save().
-// WARNING! Since this is a non-nullable unique relationship,
-// if a different Login object is currently pointing to this Person,
-// it will be deleted. Pass nil to just delete the old object.
+// Since this is a unique relationship, if a different Login object is currently pointing to this Person,
+// that Login's Person value will be set to null when Save is called.
+// If you did not use a join to query the attached Login in the first place, used a conditional join,
+// or joined with an expansion, be particularly careful, since you may be inadvertently changing an item
+// that is not currently attached to this Person.
 func (o *personBase) SetLogin(obj *Login) {
 	if o.login != nil && o.login.IsDirty() {
 		panic("The Login has changed. You must save it first before changing to a different one.")
@@ -1129,17 +1134,17 @@ func (o *personBase) update(ctx context.Context) error {
 		if o.managerProjectsIsDirty {
 			// relation connection changed
 
-			// Since the other side of the relationship cannot be null, there cannot be objects that will be detached.
-			if oldObjs, err := QueryProjects(ctx).
+			if currentObjs, err := QueryProjects(ctx).
 				Where(op.Equal(node.Project().ManagerID(), o.ID())).
 				Select(node.Project().ManagerID()).
 				Load(); err != nil {
 				return err
 			} else {
-				for _, obj := range oldObjs {
+				for _, obj := range currentObjs {
 					if !o.managerProjects.Has(obj.PrimaryKey()) {
-						err = obj.Delete(ctx) // old object is not in group of new objects, so delete it since it has a non-null reference to o.
-						if err != nil {
+						// The old object is not in the group of new objects
+						obj.SetManagerIDToNull()
+						if err = obj.Save(ctx); err != nil {
 							return err
 						}
 					}
@@ -1147,10 +1152,6 @@ func (o *personBase) update(ctx context.Context) error {
 				keys := o.managerProjects.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
 				for i, k := range keys {
 					obj := o.managerProjects.Get(k)
-					if obj == nil {
-						// object was deleted during save?
-						continue
-					}
 					obj.SetManagerID(o.PrimaryKey())
 					obj.managerIDIsDirty = true // force a change in case data is stale
 					if err = obj.Save(ctx); err != nil {
@@ -1259,24 +1260,23 @@ func (o *personBase) update(ctx context.Context) error {
 		if o.loginIsDirty {
 			// relation connection changed
 
-			// Since the other side of the relationship cannot be null, if there is an object already attached
-			// that is different than the one we are trying to attach, we will panic to warn the developer.
-			if oldObj, err := QueryLogins(ctx).
+			if obj, err := QueryLogins(ctx).
 				Where(op.Equal(node.Login().PersonID(), o.ID())).
 				Select(node.Login().PersonID()).
 				Get(); err != nil {
 				return err
-			} else if oldObj != nil {
-				if o.login == nil || oldObj.PrimaryKey() != o.login.PrimaryKey() {
-					// Delete the old object
-					err = oldObj.Delete(ctx)
-					if err != nil {
-						return err
-					}
+			} else if obj != nil &&
+				(o.login == nil ||
+					obj.PrimaryKey() != o.login.PrimaryKey()) {
+
+				obj.SetPersonIDToNull()
+				if err = obj.Save(ctx); err != nil {
+					return err
 				}
 			}
-			// we are moving the attachment from another object to our object, or attaching an object that is already attached.
+
 			if o.login != nil {
+				o.login.personIDIsDirty = true // force a change in case data is stale
 				o.login.SetPersonID(o.PrimaryKey())
 				if err := o.login.Save(ctx); err != nil {
 					return err
@@ -1534,10 +1534,10 @@ func (o *personBase) getInsertFields() (fields map[string]interface{}) {
 
 // Delete deletes the record from the database.
 //
-// Associated ManagerProject will also be deleted since their Manager fields are not nullable.
+// Associated ManagerProject will have their Manager field set to NULL.
 // Associated Address will also be deleted since their Person fields are not nullable.
 // An associated {= rev.ReverseIdentifier  will also be deleted since its Person field is not nullable.
-// An associated {= rev.ReverseIdentifier  will also be deleted since its Person field is not nullable.
+// An associated Login will have its Person field set to NULL.
 func (o *personBase) Delete(ctx context.Context) (err error) {
 	if o == nil {
 		return // allow deleting of a nil object to be a noop
@@ -1556,12 +1556,14 @@ func (o *personBase) Delete(ctx context.Context) (err error) {
 		{
 			objs, err := QueryProjects(ctx).
 				Where(op.Equal(node.Project().Manager(), o._originalPK)).
+				Select(node.Project().Manager()).
 				Load()
 			if err != nil {
 				return err
 			}
 			for _, obj := range objs {
-				if err = obj.Delete(ctx); err != nil {
+				obj.SetManager(nil)
+				if err = obj.Save(ctx); err != nil {
 					return err
 				}
 			}
@@ -1600,14 +1602,17 @@ func (o *personBase) Delete(ctx context.Context) (err error) {
 		}
 
 		{
+			// Set the related objects pointer to us to NULL in the database
 			obj, err := QueryLogins(ctx).
 				Where(op.Equal(node.Login().Person(), o._originalPK)).
+				Select(node.Login().Person()).
 				Get()
 			if err != nil {
 				return err
 			}
 			if obj != nil {
-				if err = obj.Delete(ctx); err != nil {
+				obj.SetPerson(nil)
+				if err = obj.Save(ctx); err != nil {
 					return err
 				}
 			}

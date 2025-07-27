@@ -44,7 +44,7 @@ type Column struct {
 	DefaultValue interface{} `json:"default_value,omitempty"`
 
 	// IsNullable is true if the column can be given a NULL value.
-	IsNullable bool `json:"is_nullable,omitempty"`
+	IsNullable bool `json:"nullable,omitempty"`
 
 	// IndexLevel indicates what kind of single-column index is associated with this column.
 	// ColTypeAutoPrimaryKey columns by default will be given a single primary key index.

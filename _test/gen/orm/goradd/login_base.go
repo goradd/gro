@@ -37,6 +37,7 @@ type loginBase struct {
 	isEnabledIsLoaded bool
 	isEnabledIsDirty  bool
 	personID          string
+	personIDIsNull    bool
 	personIDIsLoaded  bool
 	personIDIsDirty   bool
 
@@ -89,6 +90,7 @@ func (o *loginBase) Initialize() {
 	o.isEnabledIsDirty = false
 
 	o.personID = ""
+	o.personIDIsNull = true
 	o.personIDIsLoaded = false
 	o.personIDIsDirty = false
 
@@ -295,6 +297,11 @@ func (o *loginBase) PersonIDIsLoaded() bool {
 	return o.personIDIsLoaded
 }
 
+// PersonIDIsNull returns true if the related database value is null.
+func (o *loginBase) PersonIDIsNull() bool {
+	return o.personIDIsNull
+}
+
 // SetPersonID sets the value of PersonID in the object, to be saved later in the database using the Save() function.
 func (o *loginBase) SetPersonID(v string) {
 	if utf8.RuneCountInString(v) > LoginPersonIDMaxLength {
@@ -302,6 +309,7 @@ func (o *loginBase) SetPersonID(v string) {
 	}
 	if o._restored &&
 		o.personIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		!o.personIDIsNull && // if the db value is null, force a set of value
 		o.personID == v {
 		// no change
 		return
@@ -310,10 +318,25 @@ func (o *loginBase) SetPersonID(v string) {
 	o.personIDIsLoaded = true
 	o.personID = v
 	o.personIDIsDirty = true
+	o.personIDIsNull = false
 	if o.person != nil &&
 		o.personID != o.person.PrimaryKey() {
 		o.person = nil
 	}
+}
+
+// SetPersonIDToNull() will set the person_id value in the database to NULL.
+// PersonID() will return the column's default value after this.
+// Will also set the attached o.Person to nil.
+func (o *loginBase) SetPersonIDToNull() {
+	if !o.personIDIsLoaded || !o.personIDIsNull {
+		// If we know it is null in the database, don't save it
+		o.personIDIsDirty = true
+	}
+	o.personIDIsLoaded = true
+	o.personIDIsNull = true
+	o.personID = ""
+	o.person = nil
 }
 
 // Person returns the current value of the loaded Person, and nil if its not loaded.
@@ -336,14 +359,21 @@ func (o *loginBase) LoadPerson(ctx context.Context) (*Person, error) {
 	return o.person, err
 }
 
-// SetPerson sets the value of Person in the object, to be saved later using the Save() function.
+// SetPerson will set the reference to person. The referenced object
+// will be saved when Login is saved. Pass nil to break the connection.
 func (o *loginBase) SetPerson(person *Person) {
+	o.personIDIsLoaded = true
 	if person == nil {
-		panic("Cannot set Person to a nil value since PersonID is not nullable.")
+		if !o.personIDIsNull || !o._restored {
+			o.personIDIsNull = true
+			o.personIDIsDirty = true
+			o.personID = ""
+			o.person = nil
+		}
 	} else {
 		o.person = person
-		o.personIDIsLoaded = true
-		if o.personID != person.PrimaryKey() {
+		if o.personIDIsNull || !o._restored || o.personID != person.PrimaryKey() {
+			o.personIDIsNull = false
 			o.personID = person.PrimaryKey()
 			o.personIDIsDirty = true
 		}
@@ -408,18 +438,26 @@ func HasLoginByUsername(ctx context.Context, username string) (bool, error) {
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [LoginsBuilder.Select].
 // If you need a more elaborate query, use QueryLogins() to start a query builder.
-func LoadLoginByPersonID(ctx context.Context, personID string, selectNodes ...query.Node) (*Login, error) {
+func LoadLoginByPersonID(ctx context.Context, personID interface{}, selectNodes ...query.Node) (*Login, error) {
 	q := queryLogins(ctx)
-	q = q.Where(op.Equal(node.Login().PersonID(), personID))
+	if personID == nil {
+		q = q.Where(op.IsNull(node.Login().PersonID()))
+	} else {
+		q = q.Where(op.Equal(node.Login().PersonID(), personID))
+	}
 	return q.Select(selectNodes...).Get()
 }
 
 // HasLoginByPersonID returns true if the
 // given unique index values exist in the database.
 // doc: type=Login
-func HasLoginByPersonID(ctx context.Context, personID string) (bool, error) {
+func HasLoginByPersonID(ctx context.Context, personID interface{}) (bool, error) {
 	q := queryLogins(ctx)
-	q = q.Where(op.Equal(node.Login().PersonID(), personID))
+	if personID == nil {
+		q = q.Where(op.IsNull(node.Login().PersonID()))
+	} else {
+		q = q.Where(op.Equal(node.Login().PersonID(), personID))
+	}
 	v, err := q.Count()
 	return v > 0, err
 }
@@ -709,8 +747,14 @@ func (o *loginBase) unpack(m map[string]interface{}, objThis *Login) {
 		o.isEnabledIsDirty = false
 	}
 
-	if v, ok := m["person_id"]; ok && v != nil {
-		if o.personID, ok = v.(string); ok {
+	if v, ok := m["person_id"]; ok {
+		if v == nil {
+			o.personID = ""
+			o.personIDIsNull = true
+			o.personIDIsLoaded = true
+			o.personIDIsDirty = false
+		} else if o.personID, ok = v.(string); ok {
+			o.personIDIsNull = false
 			o.personIDIsLoaded = true
 			o.personIDIsDirty = false
 		} else {
@@ -718,6 +762,7 @@ func (o *loginBase) unpack(m map[string]interface{}, objThis *Login) {
 		}
 	} else {
 		o.personIDIsLoaded = false
+		o.personIDIsNull = true
 		o.personID = ""
 		o.personIDIsDirty = false
 	}
@@ -829,9 +874,6 @@ func (o *loginBase) insert(ctx context.Context) (err error) {
 		if !o.isEnabledIsLoaded {
 			panic("a value for IsEnabled is required, and there is no default value. Call SetIsEnabled() before inserting the record.")
 		}
-		if !o.personIDIsLoaded {
-			panic("a value for PersonID is required, and there is no default value. Call SetPersonID() before inserting the record.")
-		}
 		insertFields = getLoginInsertFields(o)
 		var newPK string
 		newPK, err = d.Insert(ctx, "login", "id", insertFields)
@@ -877,7 +919,11 @@ func (o *loginBase) getUpdateFields() (fields map[string]interface{}) {
 		fields["is_enabled"] = o.isEnabled
 	}
 	if o.personIDIsDirty {
-		fields["person_id"] = o.personID
+		if o.personIDIsNull {
+			fields["person_id"] = nil
+		} else {
+			fields["person_id"] = o.personID
+		}
 	}
 	return
 }
@@ -902,8 +948,11 @@ func (o *loginBase) getInsertFields() (fields map[string]interface{}) {
 	}
 
 	fields["is_enabled"] = o.isEnabled
-
-	fields["person_id"] = o.personID
+	if o.personIDIsNull {
+		fields["person_id"] = nil
+	} else {
+		fields["person_id"] = o.personID
+	}
 	return
 }
 
@@ -1069,6 +1118,9 @@ func (o *loginBase) encodeTo(enc db.Encoder) error {
 	if err := enc.Encode(o.personID); err != nil {
 		return fmt.Errorf("error encoding Login.personID: %w", err)
 	}
+	if err := enc.Encode(o.personIDIsNull); err != nil {
+		return fmt.Errorf("error encoding Login.personIDIsNull: %w", err)
+	}
 	if err := enc.Encode(o.personIDIsLoaded); err != nil {
 		return fmt.Errorf("error encoding Login.personIDIsLoaded: %w", err)
 	}
@@ -1168,6 +1220,9 @@ func (o *loginBase) decodeFrom(dec db.Decoder) (err error) {
 	if err = dec.Decode(&o.personID); err != nil {
 		return fmt.Errorf("error decoding Login.personID: %w", err)
 	}
+	if err = dec.Decode(&o.personIDIsNull); err != nil {
+		return fmt.Errorf("error decoding Login.personIDIsNull: %w", err)
+	}
 	if err = dec.Decode(&o.personIDIsLoaded); err != nil {
 		return fmt.Errorf("error decoding Login.personIDIsLoaded: %w", err)
 	}
@@ -1237,7 +1292,11 @@ func (o *loginBase) MarshalStringMap() map[string]interface{} {
 	}
 
 	if o.personIDIsLoaded {
-		v["personID"] = o.personID
+		if o.personIDIsNull {
+			v["personID"] = nil
+		} else {
+			v["personID"] = o.personID
+		}
 	}
 
 	if val := o.person; val != nil {
@@ -1335,7 +1394,8 @@ func (o *loginBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 		case "personID":
 			{
 				if v == nil {
-					return fmt.Errorf("field %s cannot be null", k)
+					o.SetPersonIDToNull()
+					continue
 				}
 
 				if _, ok := m["person"]; ok {

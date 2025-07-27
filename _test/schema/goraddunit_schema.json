@@ -33,7 +33,7 @@
           "name": "modified",
           "type": "time",
           "default_value": "update",
-          "is_nullable": true
+          "nullable": true
         },
         {
           "name": "name",
@@ -65,13 +65,13 @@
           "name": "field2_int",
           "type": "int",
           "size": 32,
-          "is_nullable": true
+          "nullable": true
         },
         {
           "name": "field2_string",
           "type": "string",
           "size": 100,
-          "is_nullable": true
+          "nullable": true
         }
       ],
       "indexes": [
@@ -103,7 +103,7 @@
           "name": "name",
           "type": "string",
           "size": 100,
-          "is_nullable": true,
+          "nullable": true,
           "database_def": {
             "mysql": {
               "collation": "utf8mb3_bin"
@@ -115,12 +115,12 @@
         {
           "table": "multi_parent",
           "column": "parent_1_id",
-          "is_nullable": true
+          "nullable": true
         },
         {
           "table": "multi_parent",
           "column": "parent_2_id",
-          "is_nullable": true
+          "nullable": true
         }
       ]
     },
@@ -344,18 +344,18 @@
           "name": "date",
           "type": "time",
           "sub_type": "date_only",
-          "is_nullable": true
+          "nullable": true
         },
         {
           "name": "time",
           "type": "time",
           "sub_type": "time_only",
-          "is_nullable": true
+          "nullable": true
         },
         {
           "name": "date_time",
           "type": "time",
-          "is_nullable": true
+          "nullable": true
         },
         {
           "name": "creation_time",
@@ -372,7 +372,7 @@
           "type": "int",
           "size": 32,
           "default_value": 5,
-          "is_nullable": true
+          "nullable": true
         },
         {
           "name": "test_unsigned",
@@ -393,7 +393,7 @@
           "name": "test_float32",
           "type": "float",
           "size": 32,
-          "is_nullable": true
+          "nullable": true
         },
         {
           "name": "test_float64",
@@ -632,7 +632,7 @@
       "references": [
         {
           "table": "root_nl",
-          "is_nullable": true
+          "nullable": true
         }
       ]
     },
@@ -702,7 +702,7 @@
       "references": [
         {
           "table": "root_un",
-          "is_nullable": true,
+          "nullable": true,
           "index_level": "unique"
         }
       ]
@@ -730,7 +730,7 @@
       "references": [
         {
           "table": "root_unl",
-          "is_nullable": true,
+          "nullable": true,
           "index_level": "unique"
         }
       ]
@@ -752,7 +752,7 @@
       "references": [
         {
           "table": "alt_root_un",
-          "is_nullable": true,
+          "nullable": true,
           "index_level": "unique"
         }
       ]

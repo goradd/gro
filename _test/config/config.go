@@ -1,4 +1,4 @@
-// Package ci provides continuous integration tests for goradd-orm.
+// Package config configures the database for tests.
 // By default, the package is set up to provide local execution of the tests for developers
 // of goradd-orm. See InitDB to choose the database that will be used in the tests.
 //

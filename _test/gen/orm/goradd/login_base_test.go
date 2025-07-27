@@ -23,11 +23,6 @@ func createMinimalSampleLogin() *Login {
 	obj := NewLogin()
 	updateMinimalSampleLogin(obj)
 
-	// A required forward reference will need to be fulfilled just to save the minimal version of this object
-	// If the database is configured so that the referenced object points back here, either directly or through multiple
-	// forward references, it possible this could create an endless loop.
-	obj.SetPerson(createMinimalSamplePerson())
-
 	return obj
 }
 
@@ -170,6 +165,12 @@ func TestLogin_SetPersonID(t *testing.T) {
 	val := test.RandomValue[string](32)
 	obj.SetPersonID(val)
 	assert.Equal(t, val, obj.PersonID())
+	assert.False(t, obj.PersonIDIsNull())
+
+	// Test NULL
+	obj.SetPersonIDToNull()
+	assert.EqualValues(t, "", obj.PersonID())
+	assert.True(t, obj.PersonIDIsNull())
 
 	// test default
 	obj.SetPersonID("")
@@ -249,10 +250,6 @@ func TestLogin_InsertPanics(t *testing.T) {
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.isEnabledIsLoaded = true
 
-	obj.personIDIsLoaded = false
-	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.personIDIsLoaded = true
-
 }
 
 func TestLogin_BasicUpdate(t *testing.T) {
@@ -299,10 +296,6 @@ func TestLogin_ReferenceLoad(t *testing.T) {
 
 	assert.False(t, objPkOnly.PersonIDIsLoaded())
 	assert.Panics(t, func() { _, _ = objPkOnly.LoadPerson(ctx) })
-
-	assert.Panics(t, func() {
-		objPkOnly.SetPerson(nil)
-	})
 
 	// test eager loading
 	obj3, _ := LoadLogin(ctx, obj.PrimaryKey(), node.Login().Person())

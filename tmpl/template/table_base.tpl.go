@@ -11395,7 +11395,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 						return
 					}
 
-					if _, err = io.WriteString(_w, `ToNull()
+					if _, err = io.WriteString(_w, `(nil)
                     if err = obj.Save(ctx); err != nil {
                         return err
                     }
@@ -11576,7 +11576,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 						return
 					}
 
-					if _, err = io.WriteString(_w, `ToNull()
+					if _, err = io.WriteString(_w, `(nil)
                     if err = obj.Save(ctx); err != nil {
                         return err
                     }

@@ -44,7 +44,6 @@ func TestLogin_Delete(t *testing.T) {
 	ctx := context.Background()
 	obj := createMinimalSampleLogin()
 	assert.NoError(t, obj.Save(ctx))
-	defer obj.Person().Delete(ctx)
 	assert.NoError(t, DeleteLogin(ctx, obj.PrimaryKey()))
 	obj2, err := LoadLogin(ctx, obj.PrimaryKey())
 	assert.Nil(t, obj2)

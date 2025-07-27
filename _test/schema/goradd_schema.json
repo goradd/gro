@@ -43,7 +43,7 @@
         {
           "name": "person_type",
           "type": "enum",
-          "is_nullable": true
+          "nullable": true
         },
         {
           "name": "created",
@@ -54,7 +54,7 @@
           "name": "modified",
           "type": "time",
           "default_value": "update",
-          "is_nullable": true
+          "nullable": true
         }
       ]
     },
@@ -117,26 +117,26 @@
         {
           "name": "description",
           "type": "string",
-          "is_nullable": true
+          "nullable": true
         },
         {
           "name": "start_date",
           "type": "time",
           "sub_type": "date_only",
-          "is_nullable": true
+          "nullable": true
         },
         {
           "name": "end_date",
           "type": "time",
           "sub_type": "date_only",
-          "is_nullable": true
+          "nullable": true
         },
         {
           "name": "budget",
           "type": "string",
           "sub_type": "numeric",
           "size": 131084,
-          "is_nullable": true,
+          "nullable": true,
           "database_def": {
             "mysql": {
               "type": "decimal(12,2)"
@@ -148,7 +148,7 @@
           "type": "string",
           "sub_type": "numeric",
           "size": 131084,
-          "is_nullable": true,
+          "nullable": true,
           "database_def": {
             "mysql": {
               "type": "decimal(12,2)"
@@ -160,13 +160,13 @@
         {
           "table": "person",
           "column": "manager_id",
-          "is_nullable": true
+          "nullable": true
         },
         {
           "table": "project",
           "column": "parent_id",
           "identifier": "Parent",
-          "is_nullable": true,
+          "nullable": true,
           "reverse_identifier": "Child"
         }
       ]
@@ -189,7 +189,7 @@
           "type": "string",
           "size": 100,
           "default_value": "BOB",
-          "is_nullable": true
+          "nullable": true
         }
       ],
       "references": [
@@ -237,7 +237,7 @@
           "name": "password",
           "type": "string",
           "size": 20,
-          "is_nullable": true
+          "nullable": true
         },
         {
           "name": "is_enabled",
@@ -248,7 +248,7 @@
       "references": [
         {
           "table": "person",
-          "is_nullable": true,
+          "nullable": true,
           "index_level": "unique"
         }
       ]

@@ -57,9 +57,11 @@ type projectBase struct {
 	spentIsLoaded       bool
 	spentIsDirty        bool
 	managerID           string
+	managerIDIsNull     bool
 	managerIDIsLoaded   bool
 	managerIDIsDirty    bool
 	parentID            string
+	parentIDIsNull      bool
 	parentIDIsLoaded    bool
 	parentIDIsDirty     bool
 
@@ -162,10 +164,12 @@ func (o *projectBase) Initialize() {
 	o.spentIsDirty = false
 
 	o.managerID = ""
+	o.managerIDIsNull = true
 	o.managerIDIsLoaded = false
 	o.managerIDIsDirty = false
 
 	o.parentID = ""
+	o.parentIDIsNull = true
 	o.parentIDIsLoaded = false
 	o.parentIDIsDirty = false
 
@@ -627,6 +631,11 @@ func (o *projectBase) ManagerIDIsLoaded() bool {
 	return o.managerIDIsLoaded
 }
 
+// ManagerIDIsNull returns true if the related database value is null.
+func (o *projectBase) ManagerIDIsNull() bool {
+	return o.managerIDIsNull
+}
+
 // SetManagerID sets the value of ManagerID in the object, to be saved later in the database using the Save() function.
 func (o *projectBase) SetManagerID(v string) {
 	if utf8.RuneCountInString(v) > ProjectManagerIDMaxLength {
@@ -634,6 +643,7 @@ func (o *projectBase) SetManagerID(v string) {
 	}
 	if o._restored &&
 		o.managerIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		!o.managerIDIsNull && // if the db value is null, force a set of value
 		o.managerID == v {
 		// no change
 		return
@@ -642,10 +652,25 @@ func (o *projectBase) SetManagerID(v string) {
 	o.managerIDIsLoaded = true
 	o.managerID = v
 	o.managerIDIsDirty = true
+	o.managerIDIsNull = false
 	if o.manager != nil &&
 		o.managerID != o.manager.PrimaryKey() {
 		o.manager = nil
 	}
+}
+
+// SetManagerIDToNull() will set the manager_id value in the database to NULL.
+// ManagerID() will return the column's default value after this.
+// Will also set the attached o.Manager to nil.
+func (o *projectBase) SetManagerIDToNull() {
+	if !o.managerIDIsLoaded || !o.managerIDIsNull {
+		// If we know it is null in the database, don't save it
+		o.managerIDIsDirty = true
+	}
+	o.managerIDIsLoaded = true
+	o.managerIDIsNull = true
+	o.managerID = ""
+	o.manager = nil
 }
 
 // ParentID returns the value of ParentID.
@@ -661,6 +686,11 @@ func (o *projectBase) ParentIDIsLoaded() bool {
 	return o.parentIDIsLoaded
 }
 
+// ParentIDIsNull returns true if the related database value is null.
+func (o *projectBase) ParentIDIsNull() bool {
+	return o.parentIDIsNull
+}
+
 // SetParentID sets the value of ParentID in the object, to be saved later in the database using the Save() function.
 func (o *projectBase) SetParentID(v string) {
 	if utf8.RuneCountInString(v) > ProjectParentIDMaxLength {
@@ -668,6 +698,7 @@ func (o *projectBase) SetParentID(v string) {
 	}
 	if o._restored &&
 		o.parentIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		!o.parentIDIsNull && // if the db value is null, force a set of value
 		o.parentID == v {
 		// no change
 		return
@@ -676,10 +707,25 @@ func (o *projectBase) SetParentID(v string) {
 	o.parentIDIsLoaded = true
 	o.parentID = v
 	o.parentIDIsDirty = true
+	o.parentIDIsNull = false
 	if o.parent != nil &&
 		o.parentID != o.parent.PrimaryKey() {
 		o.parent = nil
 	}
+}
+
+// SetParentIDToNull() will set the parent_id value in the database to NULL.
+// ParentID() will return the column's default value after this.
+// Will also set the attached o.Parent to nil.
+func (o *projectBase) SetParentIDToNull() {
+	if !o.parentIDIsLoaded || !o.parentIDIsNull {
+		// If we know it is null in the database, don't save it
+		o.parentIDIsDirty = true
+	}
+	o.parentIDIsLoaded = true
+	o.parentIDIsNull = true
+	o.parentID = ""
+	o.parent = nil
 }
 
 // Manager returns the current value of the loaded Manager, and nil if its not loaded.
@@ -702,14 +748,21 @@ func (o *projectBase) LoadManager(ctx context.Context) (*Person, error) {
 	return o.manager, err
 }
 
-// SetManager sets the value of Manager in the object, to be saved later using the Save() function.
+// SetManager will set the reference to manager. The referenced object
+// will be saved when Project is saved. Pass nil to break the connection.
 func (o *projectBase) SetManager(manager *Person) {
+	o.managerIDIsLoaded = true
 	if manager == nil {
-		panic("Cannot set Manager to a nil value since ManagerID is not nullable.")
+		if !o.managerIDIsNull || !o._restored {
+			o.managerIDIsNull = true
+			o.managerIDIsDirty = true
+			o.managerID = ""
+			o.manager = nil
+		}
 	} else {
 		o.manager = manager
-		o.managerIDIsLoaded = true
-		if o.managerID != manager.PrimaryKey() {
+		if o.managerIDIsNull || !o._restored || o.managerID != manager.PrimaryKey() {
+			o.managerIDIsNull = false
 			o.managerID = manager.PrimaryKey()
 			o.managerIDIsDirty = true
 		}
@@ -736,14 +789,21 @@ func (o *projectBase) LoadParent(ctx context.Context) (*Project, error) {
 	return o.parent, err
 }
 
-// SetParent sets the value of Parent in the object, to be saved later using the Save() function.
+// SetParent will set the reference to parent. The referenced object
+// will be saved when Project is saved. Pass nil to break the connection.
 func (o *projectBase) SetParent(parent *Project) {
+	o.parentIDIsLoaded = true
 	if parent == nil {
-		panic("Cannot set Parent to a nil value since ParentID is not nullable.")
+		if !o.parentIDIsNull || !o._restored {
+			o.parentIDIsNull = true
+			o.parentIDIsDirty = true
+			o.parentID = ""
+			o.parent = nil
+		}
 	} else {
 		o.parent = parent
-		o.parentIDIsLoaded = true
-		if o.parentID != parent.PrimaryKey() {
+		if o.parentIDIsNull || !o._restored || o.parentID != parent.PrimaryKey() {
+			o.parentIDIsNull = false
 			o.parentID = parent.PrimaryKey()
 			o.parentIDIsDirty = true
 		}
@@ -890,8 +950,11 @@ func (o *projectBase) CountChildren(ctx context.Context) (int, error) {
 
 // SetChildren associates the objects in objs with this Project by setting
 // their ParentID values to this object's primary key.
-// WARNING! If it has Children already associated with it that will not be associated after a save,
-// Save will panic. Be sure to delete those Children or otherwise fix those pointers before calling save.
+// If it has Children already associated with it that will not be associated after a save,
+// the foreign keys for those Children will be set to null.
+// If you did not use a join to query the items in the first place, used a conditional join,
+// or joined with an expansion, be particularly careful, since you may be changing items
+// that are not currently attached to this Project.
 func (o *projectBase) SetChildren(objs ...*Project) {
 	for obj := range o.children.ValuesIter() {
 		if obj.IsDirty() {
@@ -1035,18 +1098,26 @@ func HasProjectByStatus(ctx context.Context, status ProjectStatus) (bool, error)
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [ProjectsBuilder.Select].
 // If you need a more elaborate query, use QueryProjects() to start a query builder.
-func LoadProjectsByManagerID(ctx context.Context, managerID string, selectNodes ...query.Node) ([]*Project, error) {
+func LoadProjectsByManagerID(ctx context.Context, managerID interface{}, selectNodes ...query.Node) ([]*Project, error) {
 	q := queryProjects(ctx)
-	q = q.Where(op.Equal(node.Project().ManagerID(), managerID))
+	if managerID == nil {
+		q = q.Where(op.IsNull(node.Project().ManagerID()))
+	} else {
+		q = q.Where(op.Equal(node.Project().ManagerID(), managerID))
+	}
 	return q.Select(selectNodes...).Load()
 }
 
 // HasProjectByManagerID returns true if the
 // given index values exist in the database.
 // doc: type=Project
-func HasProjectByManagerID(ctx context.Context, managerID string) (bool, error) {
+func HasProjectByManagerID(ctx context.Context, managerID interface{}) (bool, error) {
 	q := queryProjects(ctx)
-	q = q.Where(op.Equal(node.Project().ManagerID(), managerID))
+	if managerID == nil {
+		q = q.Where(op.IsNull(node.Project().ManagerID()))
+	} else {
+		q = q.Where(op.Equal(node.Project().ManagerID(), managerID))
+	}
 	v, err := q.Count()
 	return v > 0, err
 }
@@ -1055,18 +1126,26 @@ func HasProjectByManagerID(ctx context.Context, managerID string) (bool, error) 
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [ProjectsBuilder.Select].
 // If you need a more elaborate query, use QueryProjects() to start a query builder.
-func LoadProjectsByParentID(ctx context.Context, parentID string, selectNodes ...query.Node) ([]*Project, error) {
+func LoadProjectsByParentID(ctx context.Context, parentID interface{}, selectNodes ...query.Node) ([]*Project, error) {
 	q := queryProjects(ctx)
-	q = q.Where(op.Equal(node.Project().ParentID(), parentID))
+	if parentID == nil {
+		q = q.Where(op.IsNull(node.Project().ParentID()))
+	} else {
+		q = q.Where(op.Equal(node.Project().ParentID(), parentID))
+	}
 	return q.Select(selectNodes...).Load()
 }
 
 // HasProjectByParentID returns true if the
 // given index values exist in the database.
 // doc: type=Project
-func HasProjectByParentID(ctx context.Context, parentID string) (bool, error) {
+func HasProjectByParentID(ctx context.Context, parentID interface{}) (bool, error) {
 	q := queryProjects(ctx)
-	q = q.Where(op.Equal(node.Project().ParentID(), parentID))
+	if parentID == nil {
+		q = q.Where(op.IsNull(node.Project().ParentID()))
+	} else {
+		q = q.Where(op.Equal(node.Project().ParentID(), parentID))
+	}
 	v, err := q.Count()
 	return v > 0, err
 }
@@ -1470,8 +1549,14 @@ func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 		o.spentIsDirty = false
 	}
 
-	if v, ok := m["manager_id"]; ok && v != nil {
-		if o.managerID, ok = v.(string); ok {
+	if v, ok := m["manager_id"]; ok {
+		if v == nil {
+			o.managerID = ""
+			o.managerIDIsNull = true
+			o.managerIDIsLoaded = true
+			o.managerIDIsDirty = false
+		} else if o.managerID, ok = v.(string); ok {
+			o.managerIDIsNull = false
 			o.managerIDIsLoaded = true
 			o.managerIDIsDirty = false
 		} else {
@@ -1479,12 +1564,19 @@ func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 		}
 	} else {
 		o.managerIDIsLoaded = false
+		o.managerIDIsNull = true
 		o.managerID = ""
 		o.managerIDIsDirty = false
 	}
 
-	if v, ok := m["parent_id"]; ok && v != nil {
-		if o.parentID, ok = v.(string); ok {
+	if v, ok := m["parent_id"]; ok {
+		if v == nil {
+			o.parentID = ""
+			o.parentIDIsNull = true
+			o.parentIDIsLoaded = true
+			o.parentIDIsDirty = false
+		} else if o.parentID, ok = v.(string); ok {
+			o.parentIDIsNull = false
 			o.parentIDIsLoaded = true
 			o.parentIDIsDirty = false
 		} else {
@@ -1492,6 +1584,7 @@ func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 		}
 	} else {
 		o.parentIDIsLoaded = false
+		o.parentIDIsNull = true
 		o.parentID = ""
 		o.parentIDIsDirty = false
 	}
@@ -1647,17 +1740,17 @@ func (o *projectBase) update(ctx context.Context) error {
 		if o.childrenIsDirty {
 			// relation connection changed
 
-			// Since the other side of the relationship cannot be null, there cannot be objects that will be detached.
-			if oldObjs, err := QueryProjects(ctx).
+			if currentObjs, err := QueryProjects(ctx).
 				Where(op.Equal(node.Project().ParentID(), o.ID())).
 				Select(node.Project().ParentID()).
 				Load(); err != nil {
 				return err
 			} else {
-				for _, obj := range oldObjs {
+				for _, obj := range currentObjs {
 					if !o.children.Has(obj.PrimaryKey()) {
-						err = obj.Delete(ctx) // old object is not in group of new objects, so delete it since it has a non-null reference to o.
-						if err != nil {
+						// The old object is not in the group of new objects
+						obj.SetParentIDToNull()
+						if err = obj.Save(ctx); err != nil {
 							return err
 						}
 					}
@@ -1665,10 +1758,6 @@ func (o *projectBase) update(ctx context.Context) error {
 				keys := o.children.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
 				for i, k := range keys {
 					obj := o.children.Get(k)
-					if obj == nil {
-						// object was deleted during save?
-						continue
-					}
 					obj.SetParentID(o.PrimaryKey())
 					obj.parentIDIsDirty = true // force a change in case data is stale
 					if err = obj.Save(ctx); err != nil {
@@ -1824,12 +1913,6 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 		if !o.nameIsLoaded {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
-		if !o.managerIDIsLoaded {
-			panic("a value for ManagerID is required, and there is no default value. Call SetManagerID() before inserting the record.")
-		}
-		if !o.parentIDIsLoaded {
-			panic("a value for ParentID is required, and there is no default value. Call SetParentID() before inserting the record.")
-		}
 		insertFields = getProjectInsertFields(o)
 		var newPK string
 		newPK, err = d.Insert(ctx, "project", "id", insertFields)
@@ -1975,10 +2058,18 @@ func (o *projectBase) getUpdateFields() (fields map[string]interface{}) {
 		}
 	}
 	if o.managerIDIsDirty {
-		fields["manager_id"] = o.managerID
+		if o.managerIDIsNull {
+			fields["manager_id"] = nil
+		} else {
+			fields["manager_id"] = o.managerID
+		}
 	}
 	if o.parentIDIsDirty {
-		fields["parent_id"] = o.parentID
+		if o.parentIDIsNull {
+			fields["parent_id"] = nil
+		} else {
+			fields["parent_id"] = o.parentID
+		}
 	}
 	return
 }
@@ -2025,16 +2116,22 @@ func (o *projectBase) getInsertFields() (fields map[string]interface{}) {
 	} else {
 		fields["spent"] = o.spent
 	}
-
-	fields["manager_id"] = o.managerID
-
-	fields["parent_id"] = o.parentID
+	if o.managerIDIsNull {
+		fields["manager_id"] = nil
+	} else {
+		fields["manager_id"] = o.managerID
+	}
+	if o.parentIDIsNull {
+		fields["parent_id"] = nil
+	} else {
+		fields["parent_id"] = o.parentID
+	}
 	return
 }
 
 // Delete deletes the record from the database.
 //
-// Associated Child will also be deleted since their Parent fields are not nullable.
+// Associated Child will have their Parent field set to NULL.
 // Associated Milestone will also be deleted since their Project fields are not nullable.
 func (o *projectBase) Delete(ctx context.Context) (err error) {
 	if o == nil {
@@ -2054,12 +2151,14 @@ func (o *projectBase) Delete(ctx context.Context) (err error) {
 		{
 			objs, err := QueryProjects(ctx).
 				Where(op.Equal(node.Project().Parent(), o._originalPK)).
+				Select(node.Project().Parent()).
 				Load()
 			if err != nil {
 				return err
 			}
 			for _, obj := range objs {
-				if err = obj.Delete(ctx); err != nil {
+				obj.SetParent(nil)
+				if err = obj.Save(ctx); err != nil {
 					return err
 				}
 			}
@@ -2389,6 +2488,9 @@ func (o *projectBase) encodeTo(enc db.Encoder) error {
 	if err := enc.Encode(o.managerID); err != nil {
 		return fmt.Errorf("error encoding Project.managerID: %w", err)
 	}
+	if err := enc.Encode(o.managerIDIsNull); err != nil {
+		return fmt.Errorf("error encoding Project.managerIDIsNull: %w", err)
+	}
 	if err := enc.Encode(o.managerIDIsLoaded); err != nil {
 		return fmt.Errorf("error encoding Project.managerIDIsLoaded: %w", err)
 	}
@@ -2398,6 +2500,9 @@ func (o *projectBase) encodeTo(enc db.Encoder) error {
 
 	if err := enc.Encode(o.parentID); err != nil {
 		return fmt.Errorf("error encoding Project.parentID: %w", err)
+	}
+	if err := enc.Encode(o.parentIDIsNull); err != nil {
+		return fmt.Errorf("error encoding Project.parentIDIsNull: %w", err)
 	}
 	if err := enc.Encode(o.parentIDIsLoaded); err != nil {
 		return fmt.Errorf("error encoding Project.parentIDIsLoaded: %w", err)
@@ -2603,6 +2708,9 @@ func (o *projectBase) decodeFrom(dec db.Decoder) (err error) {
 	if err = dec.Decode(&o.managerID); err != nil {
 		return fmt.Errorf("error decoding Project.managerID: %w", err)
 	}
+	if err = dec.Decode(&o.managerIDIsNull); err != nil {
+		return fmt.Errorf("error decoding Project.managerIDIsNull: %w", err)
+	}
 	if err = dec.Decode(&o.managerIDIsLoaded); err != nil {
 		return fmt.Errorf("error decoding Project.managerIDIsLoaded: %w", err)
 	}
@@ -2612,6 +2720,9 @@ func (o *projectBase) decodeFrom(dec db.Decoder) (err error) {
 
 	if err = dec.Decode(&o.parentID); err != nil {
 		return fmt.Errorf("error decoding Project.parentID: %w", err)
+	}
+	if err = dec.Decode(&o.parentIDIsNull); err != nil {
+		return fmt.Errorf("error decoding Project.parentIDIsNull: %w", err)
 	}
 	if err = dec.Decode(&o.parentIDIsLoaded); err != nil {
 		return fmt.Errorf("error decoding Project.parentIDIsLoaded: %w", err)
@@ -2757,11 +2868,19 @@ func (o *projectBase) MarshalStringMap() map[string]interface{} {
 	}
 
 	if o.managerIDIsLoaded {
-		v["managerID"] = o.managerID
+		if o.managerIDIsNull {
+			v["managerID"] = nil
+		} else {
+			v["managerID"] = o.managerID
+		}
 	}
 
 	if o.parentIDIsLoaded {
-		v["parentID"] = o.parentID
+		if o.parentIDIsNull {
+			v["parentID"] = nil
+		} else {
+			v["parentID"] = o.parentID
+		}
 	}
 
 	if val := o.manager; val != nil {
@@ -2998,7 +3117,8 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 		case "managerID":
 			{
 				if v == nil {
-					return fmt.Errorf("field %s cannot be null", k)
+					o.SetManagerIDToNull()
+					continue
 				}
 
 				if _, ok := m["manager"]; ok {
@@ -3014,7 +3134,8 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 		case "parentID":
 			{
 				if v == nil {
-					return fmt.Errorf("field %s cannot be null", k)
+					o.SetParentIDToNull()
+					continue
 				}
 
 				if _, ok := m["parent"]; ok {
