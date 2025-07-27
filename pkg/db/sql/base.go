@@ -666,9 +666,9 @@ func (h *Base) WithTransaction(ctx context.Context, f func(ctx context.Context) 
 		return fmt.Errorf("no transaction available")
 	}
 	defer func() {
-		err = tx.Rollback() // will be a no-op if the commit happens first
-		if errors.Is(err, sql.ErrTxDone) {
-			err = nil
+		rErr := tx.Rollback() // will be a no-op if the commit happens first
+		if err == nil && !errors.Is(rErr, sql.ErrTxDone) {
+			err = rErr
 		}
 	}()
 	ctx = context.WithValue(ctx, h.transactionKey(), tx)
