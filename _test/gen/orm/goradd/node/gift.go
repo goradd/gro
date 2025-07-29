@@ -61,7 +61,7 @@ func (n giftTable) PrimaryKeys() []*query.ColumnNode {
 	}
 }
 
-// PrimaryKey returns the primary key column node.
+// PrimaryKey returns the single primary key column node.
 func (n giftTable) PrimaryKey() *query.ColumnNode {
 	return n.Number()
 }

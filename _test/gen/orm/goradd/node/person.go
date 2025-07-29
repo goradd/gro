@@ -122,7 +122,7 @@ func (n personTable) PrimaryKeys() []*query.ColumnNode {
 	}
 }
 
-// PrimaryKey returns the primary key column node.
+// PrimaryKey returns the single primary key column node.
 func (n personTable) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
@@ -134,7 +134,7 @@ func (n *personReference) PrimaryKeys() []*query.ColumnNode {
 	}
 }
 
-// PrimaryKey returns the primary key column nodes.
+// PrimaryKey returns the single primary key column node.
 func (n personReference) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
@@ -144,6 +144,11 @@ func (n *personAssociation) PrimaryKeys() []*query.ColumnNode {
 	return []*query.ColumnNode{
 		n.ID(),
 	}
+}
+
+// PrimaryKey returns the single primary key column node.
+func (n personAssociation) PrimaryKey() *query.ColumnNode {
+	return n.ID()
 }
 
 func (n personTable) ID() *query.ColumnNode {
@@ -330,6 +335,7 @@ func (n personTable) ManagerProjects() ProjectNode {
 	cn := &projectReverse{
 		ReverseNode: query.ReverseNode{
 			ForeignKey: "manager_id",
+			PrimaryKey: "id",
 			Field:      "managerProjects",
 			IsUnique:   false,
 		},
@@ -356,6 +362,7 @@ func (n personTable) Addresses() AddressNode {
 	cn := &addressReverse{
 		ReverseNode: query.ReverseNode{
 			ForeignKey: "person_id",
+			PrimaryKey: "id",
 			Field:      "addresses",
 			IsUnique:   false,
 		},

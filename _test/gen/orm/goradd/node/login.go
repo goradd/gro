@@ -91,7 +91,7 @@ func (n loginTable) PrimaryKeys() []*query.ColumnNode {
 	}
 }
 
-// PrimaryKey returns the primary key column node.
+// PrimaryKey returns the single primary key column node.
 func (n loginTable) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
@@ -103,7 +103,7 @@ func (n *loginReverse) PrimaryKeys() []*query.ColumnNode {
 	}
 }
 
-// PrimaryKey returns the primary key column nodes.
+// PrimaryKey returns the single primary key column node.
 func (n loginReverse) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }

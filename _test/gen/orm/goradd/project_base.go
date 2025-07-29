@@ -878,7 +878,7 @@ func (o *projectBase) LoadTeamMembers(ctx context.Context) ([]*Person, error) {
 			Load()
 	} else {
 		objs, err = QueryPeople(ctx).
-			Where(op.Equal(node.Person().Projects(), o.PrimaryKey())).
+			Where(op.Equal(node.Person().Projects().PrimaryKey(), o.PrimaryKey())).
 			Load()
 	}
 	if err != nil {

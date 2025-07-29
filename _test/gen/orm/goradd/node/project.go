@@ -154,7 +154,7 @@ func (n projectTable) PrimaryKeys() []*query.ColumnNode {
 	}
 }
 
-// PrimaryKey returns the primary key column node.
+// PrimaryKey returns the single primary key column node.
 func (n projectTable) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
@@ -166,7 +166,7 @@ func (n *projectReference) PrimaryKeys() []*query.ColumnNode {
 	}
 }
 
-// PrimaryKey returns the primary key column nodes.
+// PrimaryKey returns the single primary key column node.
 func (n projectReference) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
@@ -178,7 +178,7 @@ func (n *projectReverse) PrimaryKeys() []*query.ColumnNode {
 	}
 }
 
-// PrimaryKey returns the primary key column nodes.
+// PrimaryKey returns the single primary key column node.
 func (n projectReverse) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
@@ -188,6 +188,11 @@ func (n *projectAssociation) PrimaryKeys() []*query.ColumnNode {
 	return []*query.ColumnNode{
 		n.ID(),
 	}
+}
+
+// PrimaryKey returns the single primary key column node.
+func (n projectAssociation) PrimaryKey() *query.ColumnNode {
+	return n.ID()
 }
 
 func (n projectTable) ID() *query.ColumnNode {
@@ -633,6 +638,7 @@ func (n projectTable) Children() ProjectNode {
 	cn := &projectReverse{
 		ReverseNode: query.ReverseNode{
 			ForeignKey: "parent_id",
+			PrimaryKey: "id",
 			Field:      "children",
 			IsUnique:   false,
 		},
@@ -665,6 +671,7 @@ func (n projectTable) Milestones() MilestoneNode {
 	cn := &milestoneReverse{
 		ReverseNode: query.ReverseNode{
 			ForeignKey: "project_id",
+			PrimaryKey: "id",
 			Field:      "milestones",
 			IsUnique:   false,
 		},

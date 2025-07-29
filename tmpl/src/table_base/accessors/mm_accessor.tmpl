@@ -57,7 +57,7 @@ func (o *{{= table.DecapIdentifier}}Base) Load{{= mm.IdentifierPlural }}(ctx con
             Load()
     } else {
         objs, err = Query{{= mm.TypePlural() }}(ctx).
-            Where(op.Equal(node.{{= mm.Type() }}().{{= mm.MM.IdentifierPlural}}(), o.PrimaryKey())).
+            Where(op.Equal(node.{{= mm.Type() }}().{{= mm.MM.IdentifierPlural}}().PrimaryKey(), o.PrimaryKey())).
             Load()
     }
     if err != nil {

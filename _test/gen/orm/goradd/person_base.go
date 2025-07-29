@@ -419,7 +419,7 @@ func (o *personBase) LoadProjects(ctx context.Context) ([]*Project, error) {
 			Load()
 	} else {
 		objs, err = QueryProjects(ctx).
-			Where(op.Equal(node.Project().TeamMembers(), o.PrimaryKey())).
+			Where(op.Equal(node.Project().TeamMembers().PrimaryKey(), o.PrimaryKey())).
 			Load()
 	}
 	if err != nil {
@@ -1055,7 +1055,7 @@ func (o *personBase) unpack(m map[string]interface{}, objThis *Person) {
 		o.addressesIsDirty = false
 	}
 
-	if v, ok := m["EmployeeInfo"]; ok {
+	if v, ok := m["employeeInfo"]; ok {
 		if v2, ok2 := v.(map[string]any); ok2 {
 			o.employeeInfo = new(EmployeeInfo)
 			o.employeeInfo.unpack(v2, o.employeeInfo)
@@ -1068,7 +1068,7 @@ func (o *personBase) unpack(m map[string]interface{}, objThis *Person) {
 		o.employeeInfoIsDirty = false
 	}
 
-	if v, ok := m["Login"]; ok {
+	if v, ok := m["login"]; ok {
 		if v2, ok2 := v.(map[string]any); ok2 {
 			o.login = new(Login)
 			o.login.unpack(v2, o.login)

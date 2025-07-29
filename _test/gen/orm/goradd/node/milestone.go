@@ -85,7 +85,7 @@ func (n milestoneTable) PrimaryKeys() []*query.ColumnNode {
 	}
 }
 
-// PrimaryKey returns the primary key column node.
+// PrimaryKey returns the single primary key column node.
 func (n milestoneTable) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
@@ -97,7 +97,7 @@ func (n *milestoneReverse) PrimaryKeys() []*query.ColumnNode {
 	}
 }
 
-// PrimaryKey returns the primary key column nodes.
+// PrimaryKey returns the single primary key column node.
 func (n milestoneReverse) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }

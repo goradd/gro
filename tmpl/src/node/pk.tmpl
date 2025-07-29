@@ -13,7 +13,7 @@ func (n {{= table.DecapIdentifier }}Table) PrimaryKeys() []*query.ColumnNode {
 }
 
 {{if table.PrimaryKeyColumn() != nil }}
-// PrimaryKey returns the primary key column node.
+// PrimaryKey returns the single primary key column node.
 func (n {{= table.DecapIdentifier }}Table) PrimaryKey() *query.ColumnNode {
     return n.{{= table.PrimaryKeyColumn().Identifier }}()
 }
@@ -30,7 +30,7 @@ func (n *{{= table.DecapIdentifier}}Reference) PrimaryKeys() []*query.ColumnNode
 }
 
 {{if table.PrimaryKeyColumn() != nil }}
-// PrimaryKey returns the primary key column nodes.
+// PrimaryKey returns the single primary key column node.
 func (n {{= table.DecapIdentifier }}Reference) PrimaryKey() *query.ColumnNode {
     return n.{{= table.PrimaryKeyColumn().Identifier }}()
 }
@@ -48,7 +48,7 @@ func (n *{{= table.DecapIdentifier}}Reverse) PrimaryKeys() []*query.ColumnNode {
 }
 
 {{if table.PrimaryKeyColumn() != nil }}
-// PrimaryKey returns the primary key column nodes.
+// PrimaryKey returns the single primary key column node.
 func (n {{= table.DecapIdentifier }}Reverse) PrimaryKey() *query.ColumnNode {
     return n.{{= table.PrimaryKeyColumn().Identifier }}()
 }
@@ -64,6 +64,14 @@ func (n *{{= table.DecapIdentifier}}Association) PrimaryKeys() []*query.ColumnNo
 {{for}}
     }
 }
+
+{{if table.PrimaryKeyColumn() != nil }}
+// PrimaryKey returns the single primary key column node.
+func (n {{= table.DecapIdentifier }}Association) PrimaryKey() *query.ColumnNode {
+    return n.{{= table.PrimaryKeyColumn().Identifier }}()
+}
+{{if}}
+
 
 {{if}}
 }}

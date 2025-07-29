@@ -4177,7 +4177,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `(), o.PrimaryKey())).
+		if _, err = io.WriteString(_w, `().PrimaryKey(), o.PrimaryKey())).
             Load()
     }
     if err != nil {
@@ -8042,7 +8042,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseIdentifier); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
 				return
 			}
 

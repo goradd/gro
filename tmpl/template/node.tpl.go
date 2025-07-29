@@ -935,7 +935,7 @@ func (n `); err != nil {
 
 		if table.PrimaryKeyColumn() != nil {
 
-			if _, err = io.WriteString(_w, `// PrimaryKey returns the primary key column node.
+			if _, err = io.WriteString(_w, `// PrimaryKey returns the single primary key column node.
 func (n `); err != nil {
 				return
 			}
@@ -1009,7 +1009,7 @@ func (n *`); err != nil {
 
 			if table.PrimaryKeyColumn() != nil {
 
-				if _, err = io.WriteString(_w, `// PrimaryKey returns the primary key column nodes.
+				if _, err = io.WriteString(_w, `// PrimaryKey returns the single primary key column node.
 func (n `); err != nil {
 					return
 				}
@@ -1085,7 +1085,7 @@ func (n *`); err != nil {
 
 			if table.PrimaryKeyColumn() != nil {
 
-				if _, err = io.WriteString(_w, `// PrimaryKey returns the primary key column nodes.
+				if _, err = io.WriteString(_w, `// PrimaryKey returns the single primary key column node.
 func (n `); err != nil {
 					return
 				}
@@ -1154,6 +1154,40 @@ func (n *`); err != nil {
 
 			if _, err = io.WriteString(_w, `    }
 }
+
+`); err != nil {
+				return
+			}
+
+			if table.PrimaryKeyColumn() != nil {
+
+				if _, err = io.WriteString(_w, `// PrimaryKey returns the single primary key column node.
+func (n `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `Association) PrimaryKey() *query.ColumnNode {
+    return n.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `()
+}
+`); err != nil {
+					return
+				}
+
+			}
+
+			if _, err = io.WriteString(_w, `
 
 `); err != nil {
 				return
@@ -2672,6 +2706,15 @@ func (n `); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, rev.ForeignKey.QueryName); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, `",
+			PrimaryKey:     "`); err != nil {
+		return
+	}
+
+	if _, err = io.WriteString(_w, table.PrimaryKeyColumn().QueryName); err != nil {
 		return
 	}
 

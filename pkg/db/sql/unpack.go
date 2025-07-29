@@ -195,7 +195,7 @@ func (u *unpacker) unpackLeaf(j *jointree.Element, row db.ValueMap, obj db.Value
 func (u *unpacker) makeObjectKey(tableElement *jointree.Element, row db.ValueMap) string {
 	pk := tableElement.PrimaryKey()
 
-	if pk == nil || pk.Alias == "" {
+	if pk == nil {
 		// We are not identifying the row by a PK because of one of the following:
 		// 1) This is a distinct select, and we are not selecting pks to avoid affecting the results of the query
 		// 2) This is a groupby clause, which forces us to select only the groupby items and means we cannot add a PK to the row
@@ -204,9 +204,13 @@ func (u *unpacker) makeObjectKey(tableElement *jointree.Element, row db.ValueMap
 		return strconv.Itoa(u.rowId)
 	}
 
+	if pk.Alias == "" {
+		return "" // The object was used only in the where clause or similar clauses
+	}
+
 	v := row[pk.Alias]
 	if v == nil {
-		return "" // the object we are looking for does not exist in the database
+		return "" // the object we are looking for is not in the data
 	}
 
 	return fmt.Sprint(v)

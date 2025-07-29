@@ -70,7 +70,7 @@ func (n personWithLockTable) PrimaryKeys() []*query.ColumnNode {
 	}
 }
 
-// PrimaryKey returns the primary key column node.
+// PrimaryKey returns the single primary key column node.
 func (n personWithLockTable) PrimaryKey() *query.ColumnNode {
 	return n.ID()
 }
