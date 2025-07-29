@@ -653,10 +653,9 @@ func (o *milestoneBase) insert(ctx context.Context) (err error) {
 
 	err = db.WithTransaction(ctx, d, func(ctx context.Context) error {
 		// Save loaded Project object to get its new pk and update it here.
-		var err2 error
 		if o.project != nil {
-			if err2 = o.project.Save(ctx); err2 != nil {
-				return err2
+			if err := o.project.Save(ctx); err != nil {
+				return err
 			}
 			o.SetProjectID(o.project.PrimaryKey())
 		}
@@ -668,9 +667,9 @@ func (o *milestoneBase) insert(ctx context.Context) (err error) {
 		}
 		insertFields = getMilestoneInsertFields(o)
 		var newPK string
-		newPK, err2 = d.Insert(ctx, "milestone", "id", insertFields)
-		if err2 != nil {
-			return err2
+		newPK, err = d.Insert(ctx, "milestone", "id", insertFields)
+		if err != nil {
+			return err
 		}
 		o.id = newPK
 		o._originalPK = newPK
@@ -681,7 +680,7 @@ func (o *milestoneBase) insert(ctx context.Context) (err error) {
 	}) // transaction
 
 	if err != nil {
-		return err
+		return
 	}
 
 	o.resetDirtyStatus()

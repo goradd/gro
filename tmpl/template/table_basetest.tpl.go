@@ -1850,6 +1850,7 @@ func Test`); err != nil {
 
 		if _, err = io.WriteString(_w, `(ctx, obj.PrimaryKey())
     assert.NoError(t, err)
+    assert.NotNil(t, obj2)
     objPkOnly, err2 := Load`); err != nil {
 			return
 		}
@@ -1894,7 +1895,6 @@ func Test`); err != nil {
 		}
 		if _, err = io.WriteString(_w, `)
     assert.NoError(t, err2)
-    _ = obj2 // avoid error if there are no references
     _ = objPkOnly
 
 

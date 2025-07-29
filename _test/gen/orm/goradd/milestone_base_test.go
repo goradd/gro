@@ -214,10 +214,10 @@ func TestMilestone_ReferenceLoad(t *testing.T) {
 	// Test lazy loading
 	obj2, err := LoadMilestone(ctx, obj.PrimaryKey())
 	assert.NoError(t, err)
+	assert.NotNil(t, obj2)
 	objPkOnly, err2 := LoadMilestone(ctx, obj.PrimaryKey(),
 		node.Milestone().ID())
 	assert.NoError(t, err2)
-	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
 
 	assert.Nil(t, obj2.Project(), "Project is not loaded initially")

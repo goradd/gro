@@ -217,6 +217,9 @@ func (u *unpacker) unpackCalculationAliases(calcNodes map[string]query.Node, row
 	// 1) allows us just to pass it through and
 	// 2) signals to later unpacking operations that it is not an object
 
+	if len(calcNodes) == 0 {
+		return
+	}
 	if i := result[query.AliasResults]; i == nil {
 		aliasMap = make(map[string]any)
 		result[query.AliasResults] = aliasMap

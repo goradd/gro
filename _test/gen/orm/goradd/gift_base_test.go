@@ -181,10 +181,10 @@ func TestGift_ReferenceLoad(t *testing.T) {
 	// Test lazy loading
 	obj2, err := LoadGift(ctx, obj.PrimaryKey())
 	assert.NoError(t, err)
+	assert.NotNil(t, obj2)
 	objPkOnly, err2 := LoadGift(ctx, obj.PrimaryKey(),
 		node.Gift().Number())
 	assert.NoError(t, err2)
-	_ = obj2 // avoid error if there are no references
 	_ = objPkOnly
 
 	// test eager loading

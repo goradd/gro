@@ -103,10 +103,10 @@ func Test{{= table.Identifier }}_ReferenceLoad(t *testing.T) {
     // Test lazy loading
     obj2, err := Load{{= table.Identifier }}(ctx, obj.PrimaryKey())
     assert.NoError(t, err)
+    assert.NotNil(t, obj2)
     objPkOnly, err2 := Load{{= table.Identifier }}(ctx, obj.PrimaryKey(),
     {{join table.PrimaryKeyColumns(), ", "}}node.{{= table.Identifier }}().{{= _j.Identifier }}(){{join}})
     assert.NoError(t, err2)
-    _ = obj2 // avoid error if there are no references
     _ = objPkOnly
 
 
