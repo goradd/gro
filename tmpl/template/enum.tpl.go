@@ -1073,7 +1073,7 @@ func `); err != nil {
     		}
 		}
 		// Otherwise convert from the identifier
-		return `); err != nil {
+		v3 := `); err != nil {
 		return
 	}
 
@@ -1081,7 +1081,10 @@ func `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `FromKey(v), nil
+	if _, err = io.WriteString(_w, `FromKey(v)
+		if v3 != 0 {
+		    return v3, nil
+		}
 	case json.Number:
 		if v2, err := v.Int64(); err == nil {
 	        if IsValid`); err != nil {

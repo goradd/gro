@@ -283,7 +283,10 @@ func ProjectStatusFromInterface(i any) (ProjectStatus, error) {
 			}
 		}
 		// Otherwise convert from the identifier
-		return ProjectStatusFromKey(v), nil
+		v3 := ProjectStatusFromKey(v)
+		if v3 != 0 {
+			return v3, nil
+		}
 	case json.Number:
 		if v2, err := v.Int64(); err == nil {
 			if IsValidProjectStatus(int(v2)) {
