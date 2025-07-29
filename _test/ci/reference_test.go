@@ -1,9 +1,9 @@
 package ci
 
 import (
+	"context"
 	"github.com/goradd/orm/_test/gen/orm/goradd"
 	"github.com/goradd/orm/_test/gen/orm/goradd/node"
-	"github.com/goradd/orm/pkg/db"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

@@ -1,10 +1,10 @@
 package ci
 
 import (
+	"context"
 	"github.com/goradd/goradd/pkg/time"
 	"github.com/goradd/orm/_test/gen/orm/goradd"
 	"github.com/goradd/orm/_test/gen/orm/goradd/node"
-	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/op"
 	"github.com/goradd/orm/pkg/query"
 	"github.com/stretchr/testify/assert"
