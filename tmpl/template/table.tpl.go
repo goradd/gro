@@ -486,7 +486,7 @@ func get`); err != nil {
 		return
 	}
 
-	if table.PrimaryKeyColumn() != nil {
+	if len(table.PrimaryKeyColumns()) > 0 {
 
 		if _, err = io.WriteString(_w, `// Delete`); err != nil {
 			return
@@ -537,7 +537,7 @@ func Delete`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Type); err != nil {
+		if _, err = io.WriteString(_w, table.PrimaryKeyType()); err != nil {
 			return
 		}
 

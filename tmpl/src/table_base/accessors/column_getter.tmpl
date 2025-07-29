@@ -5,7 +5,7 @@
 
 }}
 {{
-// {{= col.Identifier }} returns the value of {{= col.Identifier }}.
+// {{= col.Identifier }} returns the value of the loaded {{= col.QueryName }} field in the database.
 func (o *{{= table.DecapIdentifier}}Base) {{= col.Identifier }}() {{= col.Type }} {
 	if o._restored && !o.{{= col.Field }}IsLoaded {
 		panic ("{{= col.Identifier }} was not selected in the last query and has not been set, and so is not valid")

@@ -4,15 +4,6 @@
 }}
 {{
 
-{{if len(table.PrimaryKeyColumns()) > 1 }}
-// {{= table.PrimaryKeyType() }} represents the composite key type of the primary key.
-type {{= table.PrimaryKeyType() }} struct {
-{{for _,col := range table.PrimaryKeyColumns() }}
-    {{= col.Identifier }} {{= col.Type }}
-{{for}}
-}
-{{if}}
-
 // {{= table.Identifier}}Base is embedded in a {{= table.Identifier }} object and provides the ORM access to the database.
 // The member variables of the structure are private and should not normally be accessed by the {{= table.Identifier }} embedder.
 // Instead, use the accessor functions.

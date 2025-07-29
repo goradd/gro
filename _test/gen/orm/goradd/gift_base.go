@@ -101,17 +101,15 @@ func (o *giftBase) PrimaryKey() int {
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
 func (o *giftBase) SetPrimaryKey(v int) {
-	if o._restored {
-		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-	}
-	o.numberIsLoaded = true
-	o.numberIsDirty = true
-	o.number = v
+	o.SetNumber(v)
 }
 
-// Number returns the value of Number.
+// Number returns the loaded value of the number field in the database.
 func (o *giftBase) Number() int {
-	return o.PrimaryKey()
+	if o._restored && !o.numberIsLoaded {
+		panic("Number was not selected in the last query and has not been set, and so is not valid")
+	}
+	return o.number
 }
 
 // NumberIsLoaded returns true if the value was loaded from the database or has been set.
@@ -123,10 +121,15 @@ func (o *giftBase) NumberIsLoaded() bool {
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
 func (o *giftBase) SetNumber(v int) {
-	o.SetPrimaryKey(v)
+	if o._restored {
+		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+	}
+	o.numberIsLoaded = true
+	o.numberIsDirty = true
+	o.number = v
 }
 
-// Name returns the value of Name.
+// Name returns the value of the loaded name field in the database.
 func (o *giftBase) Name() string {
 	if o._restored && !o.nameIsLoaded {
 		panic("Name was not selected in the last query and has not been set, and so is not valid")

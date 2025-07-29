@@ -134,20 +134,15 @@ func (o *addressBase) PrimaryKey() string {
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
 func (o *addressBase) SetPrimaryKey(v string) {
-	if o._restored {
-		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-	}
-	if utf8.RuneCountInString(v) > AddressIDMaxLength {
-		panic("attempted to set Address.ID to a value larger than its maximum length in runes")
-	}
-	o.idIsLoaded = true
-	o.idIsDirty = true
-	o.id = v
+	o.SetID(v)
 }
 
-// ID returns the value of ID.
+// ID returns the loaded value of the id field in the database.
 func (o *addressBase) ID() string {
-	return o.PrimaryKey()
+	if o._restored && !o.idIsLoaded {
+		panic("ID was not selected in the last query and has not been set, and so is not valid")
+	}
+	return o.id
 }
 
 // IDIsLoaded returns true if the value was loaded from the database or has been set.
@@ -162,10 +157,18 @@ func (o *addressBase) IDIsLoaded() bool {
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
 func (o *addressBase) SetID(v string) {
-	o.SetPrimaryKey(v)
+	if o._restored {
+		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+	}
+	if utf8.RuneCountInString(v) > AddressIDMaxLength {
+		panic("attempted to set Address.ID to a value larger than its maximum length in runes")
+	}
+	o.idIsLoaded = true
+	o.idIsDirty = true
+	o.id = v
 }
 
-// Street returns the value of Street.
+// Street returns the value of the loaded street field in the database.
 func (o *addressBase) Street() string {
 	if o._restored && !o.streetIsLoaded {
 		panic("Street was not selected in the last query and has not been set, and so is not valid")
@@ -195,7 +198,7 @@ func (o *addressBase) SetStreet(v string) {
 	o.streetIsDirty = true
 }
 
-// City returns the value of City.
+// City returns the value of the loaded city field in the database.
 func (o *addressBase) City() string {
 	if o._restored && !o.cityIsLoaded {
 		panic("City was not selected in the last query and has not been set, and so is not valid")
@@ -244,7 +247,7 @@ func (o *addressBase) SetCityToNull() {
 	o.city = "BOB"
 }
 
-// PersonID returns the value of PersonID.
+// PersonID returns the value of the loaded person_id field in the database.
 func (o *addressBase) PersonID() string {
 	if o._restored && !o.personIDIsLoaded {
 		panic("PersonID was not selected in the last query and has not been set, and so is not valid")

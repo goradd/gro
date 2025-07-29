@@ -45,32 +45,22 @@ func (o *{{= table.DecapIdentifier}}Base) PrimaryKey() {{= table.PrimaryKeyType(
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
 func (o *{{= table.DecapIdentifier}}Base) SetPrimaryKey(v {{= table.PrimaryKeyType() }}) {
-    if o._restored {
-        panic ("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-    }
 {{for _,col := range table.PrimaryKeyColumns() }}
-{{if col.Size > 0 && col.ReceiverType == query.ColTypeString }}
-    if utf8.RuneCountInString(v) > {{= table.Identifier}}{{= col.Identifier}}MaxLength {
-        panic("attempted to set {{= table.Identifier}}.{{= col.Identifier }} to a value larger than its maximum length in runes")
-    }
-{{if}}
-	o.{{= col.Field }}IsLoaded = true
-	o.{{= col.Field }}IsDirty = true
 {{if len(table.PrimaryKeyColumns()) == 1 }}
-	o.{{= col.Field }} = v
+	o.Set{{= col.Identifier }}(v)
 {{else}}
-    o.{{= col.Field }} = v.{{= col.Identifier }}
+    o.Set{{= col.Identifier }}(v.{{= col.Identifier }})
 {{if}}
 {{for}}
 }
 
-{{if len(table.PrimaryKeyColumns()) == 1 }}
-{{g
-    col := table.PrimaryKeyColumns()[0]
-}}
-// {{= col.Identifier }} returns the value of {{= col.Identifier }}.
+{{for _,col := range table.PrimaryKeyColumns() }}
+// {{= col.Identifier }} returns the loaded value of the {{= col.QueryName }} field in the database.
 func (o *{{= table.DecapIdentifier}}Base) {{= col.Identifier }}() {{= col.Type }} {
-	return o.PrimaryKey()
+	if o._restored && !o.{{= col.Field }}IsLoaded {
+		panic ("{{= col.Identifier }} was not selected in the last query and has not been set, and so is not valid")
+	}
+	return o.{{= col.Field }}
 }
 
 // {{= col.Identifier }}IsLoaded returns true if the value was loaded from the database or has been set.
@@ -87,9 +77,19 @@ func (o *{{= table.DecapIdentifier}}Base) {{= col.Identifier }}IsLoaded() bool {
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
 func (o *{{= table.DecapIdentifier }}Base) Set{{= col.Identifier }}(v {{= col.Type }}) {
-    o.SetPrimaryKey(v)
-}
+    if o._restored {
+        panic ("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+    }
+{{if col.Size > 0 && col.ReceiverType == query.ColTypeString }}
+    if utf8.RuneCountInString(v) > {{= table.Identifier}}{{= col.Identifier}}MaxLength {
+        panic("attempted to set {{= table.Identifier}}.{{= col.Identifier }} to a value larger than its maximum length in runes")
+    }
 {{if}}
+	o.{{= col.Field }}IsLoaded = true
+	o.{{= col.Field }}IsDirty = true
+	o.{{= col.Field }} = v
+}
 
+{{for}}
 
 }}

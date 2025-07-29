@@ -34,7 +34,7 @@ func (o *{{= table.DecapIdentifier}}Base) Delete(ctx context.Context) (err error
     err = d.Delete(ctx, "{{table.QueryName}}",
         map[string]any {
 {{for _,col := range table.PrimaryKeyColumns() }}
-            "{{= col.QueryName }}": o._originalPK{{if len(table.PrimaryKeyColumns()) > 1}}.{{= col.Field}}{{if}},
+            "{{= col.QueryName }}": o._originalPK{{if len(table.PrimaryKeyColumns()) > 1}}.{{= col.Identifier}}{{if}},
 {{for}}
         },
         "{{= table.LockColumnQueryName() }}",
@@ -166,7 +166,7 @@ func delete{{= table.Identifier }}(ctx context.Context, pk {{= table.PrimaryKeyT
     err := d.Delete(ctx, "{{table.QueryName}}",
         map[string]any {
 {{for _,col := range table.PrimaryKeyColumns() }}
-            "{{= col.QueryName }}": pk{{if len(table.PrimaryKeyColumns()) > 1}}.{{= col.Field}}{{if}},
+            "{{= col.QueryName }}": pk{{if len(table.PrimaryKeyColumns()) > 1}}.{{= col.Identifier}}{{if}},
 {{for}}
         },
         "",0)

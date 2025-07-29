@@ -154,67 +154,6 @@ func (tmpl *TableBaseTemplate) genStruct(table *model.Table, _w io.Writer) (err 
 	//*** struct.tmpl
 
 	if _, err = io.WriteString(_w, `
-`); err != nil {
-		return
-	}
-
-	if len(table.PrimaryKeyColumns()) > 1 {
-
-		if _, err = io.WriteString(_w, `// `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.PrimaryKeyType()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, ` represents the composite key type of the primary key.
-type `); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.PrimaryKeyType()); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, ` struct {
-`); err != nil {
-			return
-		}
-
-		for _, col := range table.PrimaryKeyColumns() {
-
-			if _, err = io.WriteString(_w, `    `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Type); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `
-`); err != nil {
-				return
-			}
-
-		}
-
-		if _, err = io.WriteString(_w, `}
-`); err != nil {
-			return
-		}
-
-	}
-
-	if _, err = io.WriteString(_w, `
 // `); err != nil {
 		return
 	}
@@ -1323,15 +1262,15 @@ func (tmpl *TableBaseTemplate) genColGetter(table *model.Table, col *model.Colum
 		return
 	}
 
-	if _, err = io.WriteString(_w, ` returns the value of `); err != nil {
+	if _, err = io.WriteString(_w, ` returns the value of the loaded `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, col.Identifier); err != nil {
+	if _, err = io.WriteString(_w, col.QueryName); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `.
+	if _, err = io.WriteString(_w, ` field in the database.
 func (o *`); err != nil {
 		return
 	}
@@ -2565,102 +2504,30 @@ func (o *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `) {
-    if o._restored {
-        panic ("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-    }
 `); err != nil {
 		return
 	}
 
 	for _, col := range table.PrimaryKeyColumns() {
 
-		if col.Size > 0 && col.ReceiverType == query.ColTypeString {
-
-			if _, err = io.WriteString(_w, `    if utf8.RuneCountInString(v) > `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `MaxLength {
-        panic("attempted to set `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, table.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Identifier); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` to a value larger than its maximum length in runes")
-    }
-`); err != nil {
-				return
-			}
-
-		}
-
-		if _, err = io.WriteString(_w, `	o.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.Field); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `IsLoaded = true
-	o.`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, col.Field); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `IsDirty = true
-`); err != nil {
-			return
-		}
-
 		if len(table.PrimaryKeyColumns()) == 1 {
 
-			if _, err = io.WriteString(_w, `	o.`); err != nil {
+			if _, err = io.WriteString(_w, `	o.Set`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.Field); err != nil {
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` = v
+			if _, err = io.WriteString(_w, `(v)
 `); err != nil {
 				return
 			}
 
 		} else {
 
-			if _, err = io.WriteString(_w, `    o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Field); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` = v.`); err != nil {
+			if _, err = io.WriteString(_w, `    o.Set`); err != nil {
 				return
 			}
 
@@ -2668,7 +2535,15 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `
+			if _, err = io.WriteString(_w, `(v.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `)
 `); err != nil {
 				return
 			}
@@ -2683,9 +2558,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if len(table.PrimaryKeyColumns()) == 1 {
-
-		col := table.PrimaryKeyColumns()[0]
+	for _, col := range table.PrimaryKeyColumns() {
 
 		if _, err = io.WriteString(_w, `// `); err != nil {
 			return
@@ -2695,15 +2568,15 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ` returns the value of `); err != nil {
+		if _, err = io.WriteString(_w, ` returns the loaded value of the `); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+		if _, err = io.WriteString(_w, col.QueryName); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `.
+		if _, err = io.WriteString(_w, ` field in the database.
 func (o *`); err != nil {
 			return
 		}
@@ -2729,7 +2602,34 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, ` {
-	return o.PrimaryKey()
+	if o._restored && !o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Field); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `IsLoaded {
+		panic ("`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` was not selected in the last query and has not been set, and so is not valid")
+	}
+	return o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Field); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `
 }
 
 // `); err != nil {
@@ -2836,8 +2736,81 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `) {
-    o.SetPrimaryKey(v)
+    if o._restored {
+        panic ("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+    }
+`); err != nil {
+			return
+		}
+
+		if col.Size > 0 && col.ReceiverType == query.ColTypeString {
+
+			if _, err = io.WriteString(_w, `    if utf8.RuneCountInString(v) > `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `MaxLength {
+        panic("attempted to set `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, table.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` to a value larger than its maximum length in runes")
+    }
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `	o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Field); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `IsLoaded = true
+	o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Field); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `IsDirty = true
+	o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Field); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` = v
 }
+
 `); err != nil {
 			return
 		}
@@ -2845,7 +2818,6 @@ func (o *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `
-
 `); err != nil {
 		return
 	}
@@ -5297,7 +5269,7 @@ func Load`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.Field); err != nil {
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
 				return
 			}
 
@@ -5398,7 +5370,7 @@ func Has`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.Field); err != nil {
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
 				return
 			}
 
@@ -8629,7 +8601,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.Field); err != nil {
+			if _, err = io.WriteString(_w, col.Identifier); err != nil {
 				return
 			}
 
@@ -11208,7 +11180,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.Field); err != nil {
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
 					return
 				}
 
@@ -11892,7 +11864,7 @@ func delete`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, col.Field); err != nil {
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
 					return
 				}
 

@@ -9,7 +9,7 @@
 func Load{{= table.Identifier }}(ctx context.Context, pk {{= table.PrimaryKeyType() }}, selectNodes ...query.Node) (*{{= table.Identifier}}, error) {
 	return query{{= table.IdentifierPlural }}(ctx).
 {{for _, col := range table.PrimaryKeyColumns() }}
-	    Where(op.Equal(node.{{= table.Identifier }}().{{= col.Identifier }}(), pk{{if len(table.PrimaryKeyColumns()) > 1}}.{{= col.Field }}{{if}})).
+	    Where(op.Equal(node.{{= table.Identifier }}().{{= col.Identifier }}(), pk{{if len(table.PrimaryKeyColumns()) > 1}}.{{= col.Identifier }}{{if}})).
 {{for}}
 	    Select(selectNodes...).
 	    Get()
@@ -20,7 +20,7 @@ func Load{{= table.Identifier }}(ctx context.Context, pk {{= table.PrimaryKeyTyp
 func Has{{= table.Identifier }}(ctx context.Context, pk {{= table.PrimaryKeyType() }}) (bool, error) {
     v, err := query{{= table.IdentifierPlural }}(ctx).
 {{for _, col := range table.PrimaryKeyColumns() }}
-	    Where(op.Equal(node.{{= table.Identifier }}().{{= col.Identifier }}(), pk{{if len(table.PrimaryKeyColumns()) > 1}}.{{= col.Field }}{{if}})).
+	    Where(op.Equal(node.{{= table.Identifier }}().{{= col.Identifier }}(), pk{{if len(table.PrimaryKeyColumns()) > 1}}.{{= col.Identifier }}{{if}})).
 {{for}}
          Count()
     return v > 0, err

@@ -257,20 +257,15 @@ func (o *projectBase) PrimaryKey() string {
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
 func (o *projectBase) SetPrimaryKey(v string) {
-	if o._restored {
-		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-	}
-	if utf8.RuneCountInString(v) > ProjectIDMaxLength {
-		panic("attempted to set Project.ID to a value larger than its maximum length in runes")
-	}
-	o.idIsLoaded = true
-	o.idIsDirty = true
-	o.id = v
+	o.SetID(v)
 }
 
-// ID returns the value of ID.
+// ID returns the loaded value of the id field in the database.
 func (o *projectBase) ID() string {
-	return o.PrimaryKey()
+	if o._restored && !o.idIsLoaded {
+		panic("ID was not selected in the last query and has not been set, and so is not valid")
+	}
+	return o.id
 }
 
 // IDIsLoaded returns true if the value was loaded from the database or has been set.
@@ -285,10 +280,18 @@ func (o *projectBase) IDIsLoaded() bool {
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
 func (o *projectBase) SetID(v string) {
-	o.SetPrimaryKey(v)
+	if o._restored {
+		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+	}
+	if utf8.RuneCountInString(v) > ProjectIDMaxLength {
+		panic("attempted to set Project.ID to a value larger than its maximum length in runes")
+	}
+	o.idIsLoaded = true
+	o.idIsDirty = true
+	o.id = v
 }
 
-// Num returns the value of Num.
+// Num returns the value of the loaded num field in the database.
 func (o *projectBase) Num() int {
 	if o._restored && !o.numIsLoaded {
 		panic("Num was not selected in the last query and has not been set, and so is not valid")
@@ -315,7 +318,7 @@ func (o *projectBase) SetNum(v int) {
 	o.numIsDirty = true
 }
 
-// Status returns the value of Status.
+// Status returns the value of the loaded status field in the database.
 func (o *projectBase) Status() ProjectStatus {
 	if o._restored && !o.statusIsLoaded {
 		panic("Status was not selected in the last query and has not been set, and so is not valid")
@@ -342,7 +345,7 @@ func (o *projectBase) SetStatus(v ProjectStatus) {
 	o.statusIsDirty = true
 }
 
-// Name returns the value of Name.
+// Name returns the value of the loaded name field in the database.
 func (o *projectBase) Name() string {
 	if o._restored && !o.nameIsLoaded {
 		panic("Name was not selected in the last query and has not been set, and so is not valid")
@@ -372,7 +375,7 @@ func (o *projectBase) SetName(v string) {
 	o.nameIsDirty = true
 }
 
-// Description returns the value of Description.
+// Description returns the value of the loaded description field in the database.
 func (o *projectBase) Description() string {
 	if o._restored && !o.descriptionIsLoaded {
 		panic("Description was not selected in the last query and has not been set, and so is not valid")
@@ -418,7 +421,7 @@ func (o *projectBase) SetDescriptionToNull() {
 	o.description = ""
 }
 
-// StartDate returns the value of StartDate.
+// StartDate returns the value of the loaded start_date field in the database.
 func (o *projectBase) StartDate() time.Time {
 	if o._restored && !o.startDateIsLoaded {
 		panic("StartDate was not selected in the last query and has not been set, and so is not valid")
@@ -469,7 +472,7 @@ func (o *projectBase) SetStartDateToNull() {
 	o.startDate = time.Time{}
 }
 
-// EndDate returns the value of EndDate.
+// EndDate returns the value of the loaded end_date field in the database.
 func (o *projectBase) EndDate() time.Time {
 	if o._restored && !o.endDateIsLoaded {
 		panic("EndDate was not selected in the last query and has not been set, and so is not valid")
@@ -520,7 +523,7 @@ func (o *projectBase) SetEndDateToNull() {
 	o.endDate = time.Time{}
 }
 
-// Budget returns the value of Budget.
+// Budget returns the value of the loaded budget field in the database.
 func (o *projectBase) Budget() string {
 	if o._restored && !o.budgetIsLoaded {
 		panic("Budget was not selected in the last query and has not been set, and so is not valid")
@@ -569,7 +572,7 @@ func (o *projectBase) SetBudgetToNull() {
 	o.budget = ""
 }
 
-// Spent returns the value of Spent.
+// Spent returns the value of the loaded spent field in the database.
 func (o *projectBase) Spent() string {
 	if o._restored && !o.spentIsLoaded {
 		panic("Spent was not selected in the last query and has not been set, and so is not valid")
@@ -618,7 +621,7 @@ func (o *projectBase) SetSpentToNull() {
 	o.spent = ""
 }
 
-// ManagerID returns the value of ManagerID.
+// ManagerID returns the value of the loaded manager_id field in the database.
 func (o *projectBase) ManagerID() string {
 	if o._restored && !o.managerIDIsLoaded {
 		panic("ManagerID was not selected in the last query and has not been set, and so is not valid")
@@ -673,7 +676,7 @@ func (o *projectBase) SetManagerIDToNull() {
 	o.manager = nil
 }
 
-// ParentID returns the value of ParentID.
+// ParentID returns the value of the loaded parent_id field in the database.
 func (o *projectBase) ParentID() string {
 	if o._restored && !o.parentIDIsLoaded {
 		panic("ParentID was not selected in the last query and has not been set, and so is not valid")

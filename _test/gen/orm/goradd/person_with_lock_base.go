@@ -128,20 +128,15 @@ func (o *personWithLockBase) PrimaryKey() string {
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
 func (o *personWithLockBase) SetPrimaryKey(v string) {
-	if o._restored {
-		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-	}
-	if utf8.RuneCountInString(v) > PersonWithLockIDMaxLength {
-		panic("attempted to set PersonWithLock.ID to a value larger than its maximum length in runes")
-	}
-	o.idIsLoaded = true
-	o.idIsDirty = true
-	o.id = v
+	o.SetID(v)
 }
 
-// ID returns the value of ID.
+// ID returns the loaded value of the id field in the database.
 func (o *personWithLockBase) ID() string {
-	return o.PrimaryKey()
+	if o._restored && !o.idIsLoaded {
+		panic("ID was not selected in the last query and has not been set, and so is not valid")
+	}
+	return o.id
 }
 
 // IDIsLoaded returns true if the value was loaded from the database or has been set.
@@ -156,10 +151,18 @@ func (o *personWithLockBase) IDIsLoaded() bool {
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
 func (o *personWithLockBase) SetID(v string) {
-	o.SetPrimaryKey(v)
+	if o._restored {
+		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+	}
+	if utf8.RuneCountInString(v) > PersonWithLockIDMaxLength {
+		panic("attempted to set PersonWithLock.ID to a value larger than its maximum length in runes")
+	}
+	o.idIsLoaded = true
+	o.idIsDirty = true
+	o.id = v
 }
 
-// FirstName returns the value of FirstName.
+// FirstName returns the value of the loaded first_name field in the database.
 func (o *personWithLockBase) FirstName() string {
 	if o._restored && !o.firstNameIsLoaded {
 		panic("FirstName was not selected in the last query and has not been set, and so is not valid")
@@ -189,7 +192,7 @@ func (o *personWithLockBase) SetFirstName(v string) {
 	o.firstNameIsDirty = true
 }
 
-// LastName returns the value of LastName.
+// LastName returns the value of the loaded last_name field in the database.
 func (o *personWithLockBase) LastName() string {
 	if o._restored && !o.lastNameIsLoaded {
 		panic("LastName was not selected in the last query and has not been set, and so is not valid")
@@ -219,7 +222,7 @@ func (o *personWithLockBase) SetLastName(v string) {
 	o.lastNameIsDirty = true
 }
 
-// GroLock returns the value of GroLock.
+// GroLock returns the value of the loaded gro_lock field in the database.
 func (o *personWithLockBase) GroLock() int64 {
 	if o._restored && !o.groLockIsLoaded {
 		panic("GroLock was not selected in the last query and has not been set, and so is not valid")
@@ -232,7 +235,7 @@ func (o *personWithLockBase) GroLockIsLoaded() bool {
 	return o.groLockIsLoaded
 }
 
-// GroTimestamp returns the value of GroTimestamp.
+// GroTimestamp returns the value of the loaded gro_timestamp field in the database.
 func (o *personWithLockBase) GroTimestamp() int64 {
 	if o._restored && !o.groTimestampIsLoaded {
 		panic("GroTimestamp was not selected in the last query and has not been set, and so is not valid")

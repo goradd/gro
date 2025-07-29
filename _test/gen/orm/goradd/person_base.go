@@ -183,20 +183,15 @@ func (o *personBase) PrimaryKey() string {
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
 func (o *personBase) SetPrimaryKey(v string) {
-	if o._restored {
-		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-	}
-	if utf8.RuneCountInString(v) > PersonIDMaxLength {
-		panic("attempted to set Person.ID to a value larger than its maximum length in runes")
-	}
-	o.idIsLoaded = true
-	o.idIsDirty = true
-	o.id = v
+	o.SetID(v)
 }
 
-// ID returns the value of ID.
+// ID returns the loaded value of the id field in the database.
 func (o *personBase) ID() string {
-	return o.PrimaryKey()
+	if o._restored && !o.idIsLoaded {
+		panic("ID was not selected in the last query and has not been set, and so is not valid")
+	}
+	return o.id
 }
 
 // IDIsLoaded returns true if the value was loaded from the database or has been set.
@@ -211,10 +206,18 @@ func (o *personBase) IDIsLoaded() bool {
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
 func (o *personBase) SetID(v string) {
-	o.SetPrimaryKey(v)
+	if o._restored {
+		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+	}
+	if utf8.RuneCountInString(v) > PersonIDMaxLength {
+		panic("attempted to set Person.ID to a value larger than its maximum length in runes")
+	}
+	o.idIsLoaded = true
+	o.idIsDirty = true
+	o.id = v
 }
 
-// FirstName returns the value of FirstName.
+// FirstName returns the value of the loaded first_name field in the database.
 func (o *personBase) FirstName() string {
 	if o._restored && !o.firstNameIsLoaded {
 		panic("FirstName was not selected in the last query and has not been set, and so is not valid")
@@ -244,7 +247,7 @@ func (o *personBase) SetFirstName(v string) {
 	o.firstNameIsDirty = true
 }
 
-// LastName returns the value of LastName.
+// LastName returns the value of the loaded last_name field in the database.
 func (o *personBase) LastName() string {
 	if o._restored && !o.lastNameIsLoaded {
 		panic("LastName was not selected in the last query and has not been set, and so is not valid")
@@ -274,7 +277,7 @@ func (o *personBase) SetLastName(v string) {
 	o.lastNameIsDirty = true
 }
 
-// PersonType returns the value of PersonType.
+// PersonType returns the value of the loaded person_type field in the database.
 func (o *personBase) PersonType() PersonType {
 	if o._restored && !o.personTypeIsLoaded {
 		panic("PersonType was not selected in the last query and has not been set, and so is not valid")
@@ -320,7 +323,7 @@ func (o *personBase) SetPersonTypeToNull() {
 	o.personType = 0
 }
 
-// Created returns the value of Created.
+// Created returns the value of the loaded created field in the database.
 func (o *personBase) Created() time.Time {
 	if o._restored && !o.createdIsLoaded {
 		panic("Created was not selected in the last query and has not been set, and so is not valid")
@@ -333,7 +336,7 @@ func (o *personBase) CreatedIsLoaded() bool {
 	return o.createdIsLoaded
 }
 
-// Modified returns the value of Modified.
+// Modified returns the value of the loaded modified field in the database.
 func (o *personBase) Modified() time.Time {
 	if o._restored && !o.modifiedIsLoaded {
 		panic("Modified was not selected in the last query and has not been set, and so is not valid")

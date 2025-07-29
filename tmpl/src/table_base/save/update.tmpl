@@ -31,7 +31,7 @@ func (o *{{= table.DecapIdentifier}}Base) update(ctx context.Context) error {
             err2 := d.Update(ctx, "{{= table.QueryName }}",
                 map[string]any{
 {{for _,col := range table.PrimaryKeyColumns()}}
-                    "{{= col.QueryName }}": o._originalPK{{if len(table.PrimaryKeyColumns()) > 1}}.{{= col.Field}}{{if}},
+                    "{{= col.QueryName }}": o._originalPK{{if len(table.PrimaryKeyColumns()) > 1}}.{{= col.Identifier}}{{if}},
 {{for}}
                 },
                 modifiedFields,
