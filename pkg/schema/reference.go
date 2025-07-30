@@ -58,11 +58,11 @@ type Reference struct {
 	// If left empty, will default to IndexLevelIndexed.
 	IndexLevel IndexLevel `json:"index_level,omitempty"`
 
-	// IsNullable indicates that the reference is not required and can be represented as a null value.
+	// IsNullable indicates that the reference is not required and can be represented as a null value in the database.
 	// If not nullable, then the reference is required to be present and valid when the record is saved.
 	// This would also mean that if the referenced object is deleted, or changes its reverse
 	// relationship, then this object will be deleted.
-	// The foreign key column(s) will be nullable if this is nullable.
+	// The foreign key column will be nullable if this is nullable.
 	IsNullable bool `json:"nullable,omitempty"`
 
 	// The singular Go identifier that will be used for the reverse relationship objects.
@@ -190,6 +190,7 @@ func (r *Reference) ReferenceColumns(db *Database, table *Table) (*Column, *Colu
 	fk.Label = r.ColumnLabel
 	fk.Comment = ""
 	fk.EnumTable = ""
+	fk.IsNullable = r.IsNullable
 
 	return &fk, pk
 }

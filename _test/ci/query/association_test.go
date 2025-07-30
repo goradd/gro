@@ -128,52 +128,6 @@ func TestManyForward(t *testing.T) {
 
 }
 
-// TODO:
-/*
-func TestConditionalJoin(t *testing.T) {
-	ctx := context.Background()
-
-	projects := goradd.QueryProjects(ctx).
-		OrderBy(node.Project().Name()).
-		Select(node.Project().Manager(), op.Equal(node.Project().Manager().LastName(), "Wolfe")).
-		Select(node.Project().TeamMembers(), op.Equal(node.Project().TeamMembers().LastName(), "Smith")).
-		Load()
-
-	// Reverse references
-	people := goradd.QueryPeople(ctx).
-		Select(node.Person().Addresses(), op.Equal(node.Person().Addresses().City(), "New York")).
-		Select(node.Person().ManagerProjects(), op.Equal(node.Person().ManagerProjects().Status(), goradd.ProjectStatusOpen)).
-		Select(node.Person().ManagerProjects().Milestones()).
-		Select(node.Person().Login(), op.Like(node.Person().Login().Username(), "b%")).
-		OrderBy(node.Person().LastName(), node.Person().FirstName(), node.Person().ManagerProjects().Name()).
-		Load()
-
-	assert.Equal(t, "John", people[2].FirstName(), "John Doe is the 3rd Person.")
-	assert.Len(t, people[2].ManagerProjects(), 1, "John Doe manages 1 Project.")
-	assert.Len(t, people[2].ManagerProjects()[0].Milestones(), 1, "John Doe has 1 Milestone")
-
-	// Groups that are not expanded by the conditional join are still created as empty arrays. NoSql databases will need to do this too.
-	// This makes it a little easier to write code that uses it, becuase you don't have to test for nil
-	assert.Len(t, people[0].ManagerProjects(), 0)
-
-	// Check parallel reverse reference with condition
-	assert.Len(t, people[7].Addresses(), 2, "Ben Robinson has 2 Addresses")
-	assert.Len(t, people[2].Addresses(), 0, "John Doe has no Addresses")
-
-	// Reverse reference unique
-	assert.Equal(t, "brobinson", people[7].Login().Username(), "Ben Robinson's Login was selected")
-	assert.Nil(t, people[2].Login(), "John Doe's Login was not selected")
-
-	// Forward reference
-	assert.Nil(t, projects[2].Manager(), "")
-	assert.Equal(t, projects[0].Manager().FirstName(), "Karen")
-
-	// Many-many
-	assert.Len(t, projects[3].TeamMembers(), 2, "Project 4 has 2 team members with last name Smith")
-	assert.Equal(t, "Smith", projects[3].TeamMembers()[0].LastName(), "The first team member from project 4 has a last name of smith")
-}
-*/
-
 func Test2ndLoad(t *testing.T) {
 	ctx := context.Background()
 	projects, err := goradd.QueryProjects(ctx).
