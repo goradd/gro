@@ -320,7 +320,7 @@ func (m *DB) WithConstraintsOff(ctx context.Context, f func(ctx context.Context)
 }
 
 // DestroySchema removes all tables and data from the tables found in the given schema s.
-func (m *DB) DestroySchema(ctx context.Context, s schema.Database) {
+func (m *DB) DestroySchema(ctx context.Context, s schema.Database) error {
 	// gather table names to delete
 	var tables []string
 
@@ -341,4 +341,5 @@ func (m *DB) DestroySchema(ctx context.Context, s schema.Database) {
 			slog.Any(db.LogError, err),
 		)
 	}
+	return err
 }

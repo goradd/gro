@@ -51,9 +51,9 @@ func InitDB() {
 	}
 
 	// pick a database to initialize here if no config file
-	//initMysql()
+	initMysql()
 	//initPostgres()
-	initSQLite()
+	//initSQLite()
 }
 
 func initMysql() {

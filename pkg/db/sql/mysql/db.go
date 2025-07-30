@@ -255,7 +255,7 @@ func (m *DB) Update(ctx context.Context,
 		panic("changes must not be empty")
 	}
 	where := make(map[string]any)
-	for k, v := range changes {
+	for k, v := range primaryKey {
 		where[k] = v
 	}
 	if optLockFieldName != "" {
@@ -333,26 +333,3 @@ func (m *DB) WithConstraintsOff(ctx context.Context, f func(ctx context.Context)
 // cannot be done within a transaction, and is not reversible.
 // It also handles turning off and on constraints, since that is session wide and so
 // the connection must be controlled.
-/*
-func (m *DB) DestroySchema(ctx context.Context, s schema.Database) {
-	// gather table names to delete
-	var tables []string
-
-	for _, table := range s.EnumTables {
-		tables = append(tables, table.QualifiedTableName())
-	}
-	for _, table := range s.Tables {
-		tables = append(tables, table.QualifiedName())
-	}
-	for _, table := range s.AssociationTables {
-		tables = append(tables, table.QualifiedTableName())
-	}
-
-	_ = m.WithConstraintsOff(ctx, func(ctx context.Context) (err error) {
-		for _, table := range tables {
-			_, _ = m.SqlExec(ctx, `DROP TABLE `+m.QuoteIdentifier(table))
-		}
-		return
-	})
-}
-*/

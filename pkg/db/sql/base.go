@@ -545,7 +545,10 @@ func (h *Base) associationSql(d *schema.Database, at *schema.AssociationTable) [
 }
 
 // DestroySchema removes all tables and data from the tables found in the given schema s.
-func (h *Base) DestroySchema(ctx context.Context, s schema.Database) {
+// Some databases automatically commit transactions during the process, so do not do this inside of a transaction.
+// This operation is not reversible.
+// Circular references on certain databases may fail if the data is not destroyed first.
+func (h *Base) DestroySchema(ctx context.Context, s schema.Database) error {
 	// gather table names to delete
 	var tables []string
 
@@ -563,8 +566,7 @@ func (h *Base) DestroySchema(ctx context.Context, s schema.Database) {
 	// Most databases still enforce dependency checking during drop table.
 	// The above sorting of the tables should help, but not for circular dependencies.
 	// Databases may have to implement their own version of this to support circular dependencies.
-	// Deleting all the data before destroying the schema may be required.
-	_ = db.WithConstraintsOff(ctx, h.dbi.(db.DatabaseI), func(ctx2 context.Context) error {
+	err2 := db.WithConstraintsOff(ctx, h.dbi.(db.DatabaseI), func(ctx2 context.Context) error {
 		for _, table := range tables {
 			_, err := h.SqlExec(ctx2, `DROP TABLE IF EXISTS `+h.dbi.QuoteIdentifier(table))
 			if err != nil {
@@ -577,6 +579,7 @@ func (h *Base) DestroySchema(ctx context.Context, s schema.Database) {
 		}
 		return nil
 	})
+	return err2
 }
 
 func (h *Base) connectionKey() contextKey {
