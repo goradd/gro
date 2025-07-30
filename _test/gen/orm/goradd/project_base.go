@@ -1596,6 +1596,9 @@ func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 		if manager, ok2 := v.(map[string]any); ok2 {
 			o.manager = new(Person)
 			o.manager.unpack(manager, o.manager)
+			// mirror foreign key with loaded object
+			o.managerID = o.manager.PrimaryKey()
+			o.managerIDIsNull = false
 			o.managerIDIsLoaded = true
 			o.managerIDIsDirty = false
 		} else {
@@ -1609,6 +1612,9 @@ func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 		if parent, ok2 := v.(map[string]any); ok2 {
 			o.parent = new(Project)
 			o.parent.unpack(parent, o.parent)
+			// mirror foreign key with loaded object
+			o.parentID = o.parent.PrimaryKey()
+			o.parentIDIsNull = false
 			o.parentIDIsLoaded = true
 			o.parentIDIsDirty = false
 		} else {

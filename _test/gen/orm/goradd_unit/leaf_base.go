@@ -564,6 +564,8 @@ func (o *leafBase) unpack(m map[string]interface{}, objThis *Leaf) {
 		if root, ok2 := v.(map[string]any); ok2 {
 			o.root = new(Root)
 			o.root.unpack(root, o.root)
+			// mirror foreign key with loaded object
+			o.rootID = o.root.PrimaryKey()
 			o.rootIDIsLoaded = true
 			o.rootIDIsDirty = false
 		} else {

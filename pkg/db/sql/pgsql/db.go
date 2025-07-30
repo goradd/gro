@@ -278,20 +278,6 @@ func (m *DB) syncIdentity(ctx context.Context, table string, pk string) error {
 	return err
 }
 
-// SetConstraints turns constraints on and off.
-// For postgres, this must be done inside a transaction.
-func (m *DB) SetConstraints(on bool) error {
-	var sqlStr string
-
-	if !on {
-		sqlStr = "SET CONSTRAINTS ALL DEFERRED"
-	} else {
-		sqlStr = "SET CONSTRAINTS ALL IMMEDIATE"
-	}
-	_, err := m.SqlDb().Exec(sqlStr)
-	return err
-}
-
 type contextKey string
 
 func (m *DB) constraintKey() contextKey {
@@ -322,9 +308,12 @@ func (m *DB) WithConstraintsOff(ctx context.Context, f func(ctx context.Context)
 			// Although a transaction will automatically turn constraints back on,
 			// we do this in case the call is embedded in another transaction and the developer
 			// is trying to carefully control transactions
-			_, err = m.SqlExec(ctx, "SET CONSTRAINTS ALL IMMEDIATE")
+			if err == nil {
+				_, err = m.SqlExec(ctx, "SET CONSTRAINTS ALL IMMEDIATE")
+			}
 		}()
-		return f(ctx)
+		err = f(ctx)
+		return err
 	})
 
 	return

@@ -601,6 +601,9 @@ func (o *altLeafUnBase) unpack(m map[string]interface{}, objThis *AltLeafUn) {
 		if altRootUn, ok2 := v.(map[string]any); ok2 {
 			o.altRootUn = new(AltRootUn)
 			o.altRootUn.unpack(altRootUn, o.altRootUn)
+			// mirror foreign key with loaded object
+			o.altRootUnID = o.altRootUn.PrimaryKey()
+			o.altRootUnIDIsNull = false
 			o.altRootUnIDIsLoaded = true
 			o.altRootUnIDIsDirty = false
 		} else {

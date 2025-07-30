@@ -7812,7 +7812,46 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `)
+			// mirror foreign key with loaded object
 			o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ref.ForeignKey.Field); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` = o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ref.Field); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `.PrimaryKey()
+`); err != nil {
+			return
+		}
+
+		if ref.IsNullable {
+
+			if _, err = io.WriteString(_w, `			o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ref.ForeignKey.Field); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsNull = false
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `			o.`); err != nil {
 			return
 		}
 

@@ -8,6 +8,11 @@
 		if {{= ref.Field }}, ok2 := v.(map[string]any); ok2 {
 			o.{{= ref.Field }} = new({{= ref.ReferencedTable.Identifier }})
 			o.{{= ref.Field }}.unpack({{= ref.Field }}, o.{{= ref.Field }})
+			// mirror foreign key with loaded object
+			o.{{= ref.ForeignKey.Field }} = o.{{= ref.Field }}.PrimaryKey()
+{{if ref.IsNullable}}
+			o.{{= ref.ForeignKey.Field }}IsNull = false
+{{if}}
 			o.{{= ref.ForeignKey.Field }}IsLoaded = true
 			o.{{= ref.ForeignKey.Field }}IsDirty = false
 		} else {

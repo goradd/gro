@@ -23,11 +23,6 @@ func createMinimalSampleLeafN() *LeafN {
 	obj := NewLeafN()
 	updateMinimalSampleLeafN(obj)
 
-	// A required forward reference will need to be fulfilled just to save the minimal version of this object
-	// If the database is configured so that the referenced object points back here, either directly or through multiple
-	// forward references, it possible this could create an endless loop.
-	obj.SetRootN(createMinimalSampleRootN())
-
 	return obj
 }
 
@@ -121,6 +116,12 @@ func TestLeafN_SetRootNID(t *testing.T) {
 	val := test.RandomValue[string](32)
 	obj.SetRootNID(val)
 	assert.Equal(t, val, obj.RootNID())
+	assert.False(t, obj.RootNIDIsNull())
+
+	// Test NULL
+	obj.SetRootNIDToNull()
+	assert.EqualValues(t, "", obj.RootNID())
+	assert.True(t, obj.RootNIDIsNull())
 
 	// test default
 	obj.SetRootNID("")
@@ -181,10 +182,6 @@ func TestLeafN_InsertPanics(t *testing.T) {
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.nameIsLoaded = true
 
-	obj.rootNIDIsLoaded = false
-	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.rootNIDIsLoaded = true
-
 }
 
 func TestLeafN_BasicUpdate(t *testing.T) {
@@ -229,10 +226,6 @@ func TestLeafN_ReferenceLoad(t *testing.T) {
 
 	assert.False(t, objPkOnly.RootNIDIsLoaded())
 	assert.Panics(t, func() { _, _ = objPkOnly.LoadRootN(ctx) })
-
-	assert.Panics(t, func() {
-		objPkOnly.SetRootN(nil)
-	})
 
 	// test eager loading
 	obj3, _ := LoadLeafN(ctx, obj.PrimaryKey(), node.LeafN().RootN())

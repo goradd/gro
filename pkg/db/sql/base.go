@@ -563,6 +563,7 @@ func (h *Base) DestroySchema(ctx context.Context, s schema.Database) {
 	// Most databases still enforce dependency checking during drop table.
 	// The above sorting of the tables should help, but not for circular dependencies.
 	// Databases may have to implement their own version of this to support circular dependencies.
+	// Deleting all the data before destroying the schema may be required.
 	_ = db.WithConstraintsOff(ctx, h.dbi.(db.DatabaseI), func(ctx2 context.Context) error {
 		for _, table := range tables {
 			_, err := h.SqlExec(ctx2, `DROP TABLE IF EXISTS `+h.dbi.QuoteIdentifier(table))

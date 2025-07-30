@@ -6,16 +6,18 @@
 
 // ClearAll deletes all the data in the database, except for data in Enum tables.
 func ClearAll(ctx context.Context) {
-    db := Database()
-
+    d := Database()
+	db.WithConstraintsOff(ctx, d, func(ctx context.Context) error {
 {{for _,mm := range database.UniqueManyManyReferences() }}
-    _ = db.DeleteWhere(ctx, {{L mm.TableQueryName }}, nil)
+        _ = d.DeleteWhere(ctx, {{L mm.TableQueryName }}, nil)
 {{for}}
 
 {{for _,table := range slices.Backward(database.MarshalOrder()) }}
-    _ = db.DeleteWhere(ctx, {{L table.QueryName }}, nil)
+        _ = d.DeleteWhere(ctx, {{L table.QueryName }}, nil)
 {{for}}
-
+        // Ignore errors, since one error generated might be that there is no data, which we don't care about.
+        return nil
+    })
 }
 
 }}

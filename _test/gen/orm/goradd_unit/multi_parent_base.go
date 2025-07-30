@@ -960,6 +960,9 @@ func (o *multiParentBase) unpack(m map[string]interface{}, objThis *MultiParent)
 		if parent1, ok2 := v.(map[string]any); ok2 {
 			o.parent1 = new(MultiParent)
 			o.parent1.unpack(parent1, o.parent1)
+			// mirror foreign key with loaded object
+			o.parent1ID = o.parent1.PrimaryKey()
+			o.parent1IDIsNull = false
 			o.parent1IDIsLoaded = true
 			o.parent1IDIsDirty = false
 		} else {
@@ -973,6 +976,9 @@ func (o *multiParentBase) unpack(m map[string]interface{}, objThis *MultiParent)
 		if parent2, ok2 := v.(map[string]any); ok2 {
 			o.parent2 = new(MultiParent)
 			o.parent2.unpack(parent2, o.parent2)
+			// mirror foreign key with loaded object
+			o.parent2ID = o.parent2.PrimaryKey()
+			o.parent2IDIsNull = false
 			o.parent2IDIsLoaded = true
 			o.parent2IDIsDirty = false
 		} else {

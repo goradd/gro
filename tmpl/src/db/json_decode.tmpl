@@ -24,13 +24,11 @@ func jsonDecodeAll(ctx context.Context,  reader io.Reader) error {
 
 	token, err := decoder.Token()
 	if err != nil {
-		fmt.Println("Error reading opening token:", err)
-		return err
+		return fmt.Errorf("error reading opening token: %w", err)
 	}
 	// Ensure the first token is a start of an array
 	if delim, ok := token.(json.Delim); !ok || delim != '[' {
-		fmt.Println("Error: Expected the JSON to start with an array")
-		return err
+		return fmt.Errorf("expected the JSON to start with an array in jsonDecodeAll")
 	}
 
 	for decoder.More() {
@@ -42,12 +40,11 @@ func jsonDecodeAll(ctx context.Context,  reader io.Reader) error {
 	// Check if the last token is the end of the array
 	token, err = decoder.Token()
 	if err != nil {
-		fmt.Println("Error reading the last token:", err)
-		return err
+		return fmt.Errorf("Error reading the last token: %w", err)
 	}
 
 	if delim, ok := token.(json.Delim); !ok || delim != ']' {
-		fmt.Println("Error: Expected the JSON to end with a closing array token")
+		fmt.Errorf("expected the JSON to end with a closing array token in jsonDecodeAll")
 		return err
 	}
 
@@ -57,24 +54,23 @@ func jsonDecodeAll(ctx context.Context,  reader io.Reader) error {
 func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 	token, err := decoder.Token()
 	if err != nil {
-		fmt.Println("Error reading opening token:", err)
-		return err
+		return fmt.Errorf("error reading opening token: %w", err)
 	}
 	// Ensure the first token is a start of an array
 	if delim, ok := token.(json.Delim); !ok || delim != '[' {
-		fmt.Println("Error: Expected the duple to start with an array")
-		return err
+		fmt.Errorf("error: Expected the duple to start with an array in jsonDecodeTable")
 	}
 
 	token, err = decoder.Token()
 	if err != nil {
-		fmt.Println("Error reading name of table:", err)
-		return err
+		return fmt.Errorf("Error reading name of table: %w", err)
 	}
 
-	if tableName, ok := token.(string); !ok {
-		fmt.Println("Error: Expected a name of a table.")
-		return err
+	var tableName string
+	var ok bool
+
+	if tableName, ok = token.(string); !ok {
+		return fmt.Errorf("expected a name of a table.")
 	} else {
 		switch tableName {
 {{for _,table := range orderedTables}}
@@ -85,7 +81,8 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 		case {{L mm.TableQueryName }}:
 			err = jsonDecode{{= mm.TableIdentifier() }}(ctx, decoder)
 {{for}}
-
+        default:
+		    return fmt.Errorf("unknown table: %s", tableName)
 		}
 		if err != nil {
 			return err
@@ -95,13 +92,11 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 	// Check if the last token is the end of the array
 	token, err = decoder.Token()
 	if err != nil {
-		fmt.Println("Error reading the last token:", err)
-		return err
+		return fmt.Errorf("error reading the last token: %w", err)
 	}
 
 	if delim, ok := token.(json.Delim); !ok || delim != ']' {
-		fmt.Println("Error: Expected the JSON to end with a closing array token")
-		return err
+		return fmt.Errorf("expected the JSON to end with a closing array token in jsonDecodeTable for table %s", tableName)
 	}
 
 	return nil
@@ -111,13 +106,11 @@ func jsonDecodeTable(ctx context.Context,  decoder *json.Decoder) error {
 func jsonDecode{{= table.IdentifierPlural}}(ctx context.Context,  decoder *json.Decoder) error {
 	token, err := decoder.Token()
 	if err != nil {
-		fmt.Println("Error reading opening token:", err)
-		return err
+		return fmt.Errorf("error reading opening token: %w", err)
 	}
 	// Ensure the first token is a start of an array
 	if delim, ok := token.(json.Delim); !ok || delim != '[' {
-		fmt.Println("Error: Expected the {{= table.Identifier }} list to start with an array")
-		return err
+		return fmt.Errorf("expected the {{= table.Identifier }} list to start with an array")
 	}
 
 	for decoder.More() {
@@ -133,13 +126,11 @@ func jsonDecode{{= table.IdentifierPlural}}(ctx context.Context,  decoder *json.
 	// Check if the last token is the end of the array
 	token, err = decoder.Token()
 	if err != nil {
-		fmt.Println("Error reading the last token:", err)
-		return err
+		return fmt.Errorf("error reading the last token: %w", err)
 	}
 
 	if delim, ok := token.(json.Delim); !ok || delim != ']' {
-		fmt.Println("Error: Expected the JSON to end with a closing array token")
-		return err
+		return fmt.Errorf("expected the JSON to end with a closing array token in jsonDecode{{= table.IdentifierPlural}}")
 	}
 
 	return nil
@@ -150,13 +141,11 @@ func jsonDecode{{= table.IdentifierPlural}}(ctx context.Context,  decoder *json.
 func jsonDecode{{= mm.TableIdentifier() }}(ctx context.Context,  decoder *json.Decoder) error {
 	token, err := decoder.Token()
 	if err != nil {
-		fmt.Println("Error reading opening token:", err)
-		return err
+		return fmt.Errorf("Error reading opening token: %w", err)
 	}
 	// Ensure the first token is a start of an array
 	if delim, ok := token.(json.Delim); !ok || delim != '[' {
-		fmt.Println("Error: Expected the {{= mm.TableIdentifier() }} list to start with an array")
-		return err
+		return fmt.Errorf("Error: Expected the {{= mm.TableIdentifier() }} list to start with an array")
 	}
 
     database := Database()
@@ -175,13 +164,11 @@ func jsonDecode{{= mm.TableIdentifier() }}(ctx context.Context,  decoder *json.D
 	// Check if the last token is the end of the array
 	token, err = decoder.Token()
 	if err != nil {
-		fmt.Println("Error reading the last token:", err)
-		return err
+		return fmt.Errorf("error reading the last token: %w", err)
 	}
 
 	if delim, ok := token.(json.Delim); !ok || delim != ']' {
-		fmt.Println("Error: Expected the JSON to end with a closing array token")
-		return err
+		return fmt.Errorf ("expected the JSON to end with a closing array token in jsonDecode{{= mm.TableIdentifier() }}")
 	}
 
 	return nil

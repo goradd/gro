@@ -565,6 +565,8 @@ func (o *milestoneBase) unpack(m map[string]interface{}, objThis *Milestone) {
 		if project, ok2 := v.(map[string]any); ok2 {
 			o.project = new(Project)
 			o.project.unpack(project, o.project)
+			// mirror foreign key with loaded object
+			o.projectID = o.project.PrimaryKey()
 			o.projectIDIsLoaded = true
 			o.projectIDIsDirty = false
 		} else {

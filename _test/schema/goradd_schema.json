@@ -310,15 +310,15 @@
           "is_active": true,
           "name": "Open",
           "label": "Open",
-          "key": "o"
+          "key": "open"
         },
         {
           "value": 2,
           "description": "The project has been canned",
           "guideline": "",
           "is_active": true,
-          "name": "Cancelled",
-          "key": "cancelled"
+          "name": "Canceled",
+          "key": "canceled"
         },
         {
           "value": 3,
@@ -327,7 +327,7 @@
           "is_active": true,
           "name": "Completed",
           "label": "Done",
-          "key": "comp"
+          "key": "completed"
         },
         {
           "value": 4,
@@ -335,7 +335,7 @@
           "guideline": "Get ready",
           "is_active": false,
           "name": "Planned",
-          "key": "p"
+          "key": "planned"
         }
       ],
       "fields": {

@@ -42,5 +42,6 @@ func loadData(ctx context.Context) {
 	goradd.ClearAll(ctx)
 	err = goradd.JsonDecodeAll(ctx, f)
 	if err != nil {
+		panic(fmt.Errorf("error loading data: %w", err))
 	}
 }

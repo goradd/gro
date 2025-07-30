@@ -563,6 +563,8 @@ func (o *employeeInfoBase) unpack(m map[string]interface{}, objThis *EmployeeInf
 		if person, ok2 := v.(map[string]any); ok2 {
 			o.person = new(Person)
 			o.person.unpack(person, o.person)
+			// mirror foreign key with loaded object
+			o.personID = o.person.PrimaryKey()
 			o.personIDIsLoaded = true
 			o.personIDIsDirty = false
 		} else {

@@ -16,7 +16,7 @@ type ProjectStatus int
 
 const (
 	ProjectStatusOpen      ProjectStatus = 1
-	ProjectStatusCancelled ProjectStatus = 2
+	ProjectStatusCanceled  ProjectStatus = 2
 	ProjectStatusCompleted ProjectStatus = 3
 	ProjectStatusPlanned   ProjectStatus = 4
 )
@@ -32,7 +32,7 @@ func (e ProjectStatus) String() string {
 	case 1:
 		return "ProjectStatusOpen"
 	case 2:
-		return "ProjectStatusCancelled"
+		return "ProjectStatusCanceled"
 	case 3:
 		return "ProjectStatusCompleted"
 	case 4:
@@ -63,13 +63,13 @@ func (e ProjectStatus) Key() string {
 	// We use string keys so that if the number values change, keys will still relate to to the same conceptual item.
 	switch e {
 	case ProjectStatusOpen:
-		return "o"
-	case ProjectStatusCancelled:
-		return "cancelled"
+		return "open"
+	case ProjectStatusCanceled:
+		return "canceled"
 	case ProjectStatusCompleted:
-		return "comp"
+		return "completed"
 	case ProjectStatusPlanned:
-		return "p"
+		return "planned"
 	}
 	return ""
 }
@@ -77,23 +77,23 @@ func (e ProjectStatus) Key() string {
 // Keys returns all of the items in the enumerated type as string keys.
 func (e ProjectStatus) Keys() []string {
 	return []string{
-		"o",
-		"cancelled",
-		"comp",
-		"p",
+		"open",
+		"canceled",
+		"completed",
+		"planned",
 	}
 }
 
 // ProjectStatusFromKey converts a ProjectStatus Key to a ProjectStatus
 func ProjectStatusFromKey(key string) ProjectStatus {
 	switch key {
-	case "o":
+	case "open":
 		return ProjectStatusOpen
-	case "cancelled":
-		return ProjectStatusCancelled
-	case "comp":
+	case "canceled":
+		return ProjectStatusCanceled
+	case "completed":
 		return ProjectStatusCompleted
-	case "p":
+	case "planned":
 		return ProjectStatusPlanned
 	}
 	return ProjectStatus(0)
@@ -113,7 +113,7 @@ func ProjectStatusesFromKeys(keys []string) (values []ProjectStatus) {
 func ProjectStatuses() []ProjectStatus {
 	return []ProjectStatus{
 		ProjectStatusOpen,
-		ProjectStatusCancelled,
+		ProjectStatusCanceled,
 		ProjectStatusCompleted,
 		ProjectStatusPlanned,
 	}
@@ -124,7 +124,7 @@ func ProjectStatuses() []ProjectStatus {
 func ProjectStatusesI() (values []any) {
 	return []any{
 		ProjectStatusOpen,
-		ProjectStatusCancelled,
+		ProjectStatusCanceled,
 		ProjectStatusCompleted,
 		ProjectStatusPlanned,
 	}
@@ -137,8 +137,8 @@ func (e ProjectStatus) Label() string {
 		return ""
 	case ProjectStatusOpen:
 		return "Open"
-	case ProjectStatusCancelled:
-		return "Cancelled"
+	case ProjectStatusCanceled:
+		return "Canceled"
 	case ProjectStatusCompleted:
 		return "Done"
 	case ProjectStatusPlanned:
@@ -153,7 +153,7 @@ func (e ProjectStatus) Label() string {
 func ProjectStatusLabels() []string {
 	return []string{
 		"Open",
-		"Cancelled",
+		"Canceled",
 		"Done",
 		"Planned",
 	}
@@ -166,7 +166,7 @@ func (e ProjectStatus) Description() string {
 		return ""
 	case ProjectStatusOpen:
 		return "The project is currently active"
-	case ProjectStatusCancelled:
+	case ProjectStatusCanceled:
 		return "The project has been canned"
 	case ProjectStatusCompleted:
 		return "The project has been completed successfully"
@@ -195,7 +195,7 @@ func (e ProjectStatus) Guideline() string {
 		return ""
 	case ProjectStatusOpen:
 		return "All projects that we are working on should be in this state"
-	case ProjectStatusCancelled:
+	case ProjectStatusCanceled:
 		return ""
 	case ProjectStatusCompleted:
 		return "Celebrate successes!"
@@ -224,7 +224,7 @@ func (e ProjectStatus) IsActive() bool {
 		return false
 	case ProjectStatusOpen:
 		return true
-	case ProjectStatusCancelled:
+	case ProjectStatusCanceled:
 		return true
 	case ProjectStatusCompleted:
 		return true

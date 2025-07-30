@@ -44,7 +44,6 @@ func TestLeafN_Delete(t *testing.T) {
 	ctx := context.Background()
 	obj := createMinimalSampleLeafN()
 	assert.NoError(t, obj.Save(ctx))
-	defer obj.RootN().Delete(ctx)
 	assert.NoError(t, DeleteLeafN(ctx, obj.PrimaryKey()))
 	obj2, err := LoadLeafN(ctx, obj.PrimaryKey())
 	assert.Nil(t, obj2)

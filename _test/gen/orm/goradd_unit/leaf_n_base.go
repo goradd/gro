@@ -29,6 +29,7 @@ type leafNBase struct {
 	nameIsLoaded    bool
 	nameIsDirty     bool
 	rootNID         string
+	rootNIDIsNull   bool
 	rootNIDIsLoaded bool
 	rootNIDIsDirty  bool
 
@@ -69,6 +70,7 @@ func (o *leafNBase) Initialize() {
 	o.nameIsDirty = false
 
 	o.rootNID = ""
+	o.rootNIDIsNull = true
 	o.rootNIDIsLoaded = false
 	o.rootNIDIsDirty = false
 
@@ -196,6 +198,11 @@ func (o *leafNBase) RootNIDIsLoaded() bool {
 	return o.rootNIDIsLoaded
 }
 
+// RootNIDIsNull returns true if the related database value is null.
+func (o *leafNBase) RootNIDIsNull() bool {
+	return o.rootNIDIsNull
+}
+
 // SetRootNID sets the value of RootNID in the object, to be saved later in the database using the Save() function.
 func (o *leafNBase) SetRootNID(v string) {
 	if utf8.RuneCountInString(v) > LeafNRootNIDMaxLength {
@@ -203,6 +210,7 @@ func (o *leafNBase) SetRootNID(v string) {
 	}
 	if o._restored &&
 		o.rootNIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+		!o.rootNIDIsNull && // if the db value is null, force a set of value
 		o.rootNID == v {
 		// no change
 		return
@@ -211,10 +219,25 @@ func (o *leafNBase) SetRootNID(v string) {
 	o.rootNIDIsLoaded = true
 	o.rootNID = v
 	o.rootNIDIsDirty = true
+	o.rootNIDIsNull = false
 	if o.rootN != nil &&
 		o.rootNID != o.rootN.PrimaryKey() {
 		o.rootN = nil
 	}
+}
+
+// SetRootNIDToNull() will set the root_n_id value in the database to NULL.
+// RootNID() will return the column's default value after this.
+// Will also set the attached o.RootN to nil.
+func (o *leafNBase) SetRootNIDToNull() {
+	if !o.rootNIDIsLoaded || !o.rootNIDIsNull {
+		// If we know it is null in the database, don't save it
+		o.rootNIDIsDirty = true
+	}
+	o.rootNIDIsLoaded = true
+	o.rootNIDIsNull = true
+	o.rootNID = ""
+	o.rootN = nil
 }
 
 // RootN returns the current value of the loaded RootN, and nil if its not loaded.
@@ -237,14 +260,21 @@ func (o *leafNBase) LoadRootN(ctx context.Context) (*RootN, error) {
 	return o.rootN, err
 }
 
-// SetRootN sets the value of RootN in the object, to be saved later using the Save() function.
+// SetRootN will set the reference to rootN. The referenced object
+// will be saved when LeafN is saved. Pass nil to break the connection.
 func (o *leafNBase) SetRootN(rootN *RootN) {
+	o.rootNIDIsLoaded = true
 	if rootN == nil {
-		panic("Cannot set RootN to a nil value since RootNID is not nullable.")
+		if !o.rootNIDIsNull || !o._restored {
+			o.rootNIDIsNull = true
+			o.rootNIDIsDirty = true
+			o.rootNID = ""
+			o.rootN = nil
+		}
 	} else {
 		o.rootN = rootN
-		o.rootNIDIsLoaded = true
-		if o.rootNID != rootN.PrimaryKey() {
+		if o.rootNIDIsNull || !o._restored || o.rootNID != rootN.PrimaryKey() {
+			o.rootNIDIsNull = false
 			o.rootNID = rootN.PrimaryKey()
 			o.rootNIDIsDirty = true
 		}
@@ -289,18 +319,26 @@ func HasLeafN(ctx context.Context, pk string) (bool, error) {
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [LeafNsBuilder.Select].
 // If you need a more elaborate query, use QueryLeafNs() to start a query builder.
-func LoadLeafNsByRootNID(ctx context.Context, rootNID string, selectNodes ...query.Node) ([]*LeafN, error) {
+func LoadLeafNsByRootNID(ctx context.Context, rootNID interface{}, selectNodes ...query.Node) ([]*LeafN, error) {
 	q := queryLeafNs(ctx)
-	q = q.Where(op.Equal(node.LeafN().RootNID(), rootNID))
+	if rootNID == nil {
+		q = q.Where(op.IsNull(node.LeafN().RootNID()))
+	} else {
+		q = q.Where(op.Equal(node.LeafN().RootNID(), rootNID))
+	}
 	return q.Select(selectNodes...).Load()
 }
 
 // HasLeafNByRootNID returns true if the
 // given index values exist in the database.
 // doc: type=LeafN
-func HasLeafNByRootNID(ctx context.Context, rootNID string) (bool, error) {
+func HasLeafNByRootNID(ctx context.Context, rootNID interface{}) (bool, error) {
 	q := queryLeafNs(ctx)
-	q = q.Where(op.Equal(node.LeafN().RootNID(), rootNID))
+	if rootNID == nil {
+		q = q.Where(op.IsNull(node.LeafN().RootNID()))
+	} else {
+		q = q.Where(op.Equal(node.LeafN().RootNID(), rootNID))
+	}
 	v, err := q.Count()
 	return v > 0, err
 }
@@ -547,8 +585,14 @@ func (o *leafNBase) unpack(m map[string]interface{}, objThis *LeafN) {
 		o.nameIsDirty = false
 	}
 
-	if v, ok := m["root_n_id"]; ok && v != nil {
-		if o.rootNID, ok = v.(string); ok {
+	if v, ok := m["root_n_id"]; ok {
+		if v == nil {
+			o.rootNID = ""
+			o.rootNIDIsNull = true
+			o.rootNIDIsLoaded = true
+			o.rootNIDIsDirty = false
+		} else if o.rootNID, ok = v.(string); ok {
+			o.rootNIDIsNull = false
 			o.rootNIDIsLoaded = true
 			o.rootNIDIsDirty = false
 		} else {
@@ -556,6 +600,7 @@ func (o *leafNBase) unpack(m map[string]interface{}, objThis *LeafN) {
 		}
 	} else {
 		o.rootNIDIsLoaded = false
+		o.rootNIDIsNull = true
 		o.rootNID = ""
 		o.rootNIDIsDirty = false
 	}
@@ -564,6 +609,9 @@ func (o *leafNBase) unpack(m map[string]interface{}, objThis *LeafN) {
 		if rootN, ok2 := v.(map[string]any); ok2 {
 			o.rootN = new(RootN)
 			o.rootN.unpack(rootN, o.rootN)
+			// mirror foreign key with loaded object
+			o.rootNID = o.rootN.PrimaryKey()
+			o.rootNIDIsNull = false
 			o.rootNIDIsLoaded = true
 			o.rootNIDIsDirty = false
 		} else {
@@ -656,9 +704,6 @@ func (o *leafNBase) insert(ctx context.Context) (err error) {
 		if !o.nameIsLoaded {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
-		if !o.rootNIDIsLoaded {
-			panic("a value for RootNID is required, and there is no default value. Call SetRootNID() before inserting the record.")
-		}
 		insertFields = getLeafNInsertFields(o)
 		var newPK string
 		newPK, err = d.Insert(ctx, "leaf_n", "id", insertFields)
@@ -694,7 +739,11 @@ func (o *leafNBase) getUpdateFields() (fields map[string]interface{}) {
 		fields["name"] = o.name
 	}
 	if o.rootNIDIsDirty {
-		fields["root_n_id"] = o.rootNID
+		if o.rootNIDIsNull {
+			fields["root_n_id"] = nil
+		} else {
+			fields["root_n_id"] = o.rootNID
+		}
 	}
 	return
 }
@@ -712,8 +761,11 @@ func (o *leafNBase) getInsertFields() (fields map[string]interface{}) {
 	}
 
 	fields["name"] = o.name
-
-	fields["root_n_id"] = o.rootNID
+	if o.rootNIDIsNull {
+		fields["root_n_id"] = nil
+	} else {
+		fields["root_n_id"] = o.rootNID
+	}
 	return
 }
 
@@ -842,6 +894,9 @@ func (o *leafNBase) encodeTo(enc db.Encoder) error {
 	if err := enc.Encode(o.rootNID); err != nil {
 		return fmt.Errorf("error encoding LeafN.rootNID: %w", err)
 	}
+	if err := enc.Encode(o.rootNIDIsNull); err != nil {
+		return fmt.Errorf("error encoding LeafN.rootNIDIsNull: %w", err)
+	}
 	if err := enc.Encode(o.rootNIDIsLoaded); err != nil {
 		return fmt.Errorf("error encoding LeafN.rootNIDIsLoaded: %w", err)
 	}
@@ -918,6 +973,9 @@ func (o *leafNBase) decodeFrom(dec db.Decoder) (err error) {
 	if err = dec.Decode(&o.rootNID); err != nil {
 		return fmt.Errorf("error decoding LeafN.rootNID: %w", err)
 	}
+	if err = dec.Decode(&o.rootNIDIsNull); err != nil {
+		return fmt.Errorf("error decoding LeafN.rootNIDIsNull: %w", err)
+	}
 	if err = dec.Decode(&o.rootNIDIsLoaded); err != nil {
 		return fmt.Errorf("error decoding LeafN.rootNIDIsLoaded: %w", err)
 	}
@@ -975,7 +1033,11 @@ func (o *leafNBase) MarshalStringMap() map[string]interface{} {
 	}
 
 	if o.rootNIDIsLoaded {
-		v["rootNID"] = o.rootNID
+		if o.rootNIDIsNull {
+			v["rootNID"] = nil
+		} else {
+			v["rootNID"] = o.rootNID
+		}
 	}
 
 	if val := o.rootN; val != nil {
@@ -1046,7 +1108,8 @@ func (o *leafNBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 		case "rootNID":
 			{
 				if v == nil {
-					return fmt.Errorf("field %s cannot be null", k)
+					o.SetRootNIDToNull()
+					continue
 				}
 
 				if _, ok := m["rootN"]; ok {

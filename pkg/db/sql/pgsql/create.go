@@ -280,7 +280,7 @@ func (m *DB) buildReferenceDef(db *schema.Database, table *schema.Table, ref *sc
 	constraintName := table.Name + "_" + ref.Column + "_fk"
 
 	// We use alter table after all tables are created in case of cyclic foreign keys.
-	s := fmt.Sprintf("ALTER TABLE %s ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s(%s)",
+	s := fmt.Sprintf("ALTER TABLE %s ADD CONSTRAINT %s FOREIGN KEY (%s) REFERENCES %s(%s) DEFERRABLE INITIALLY IMMEDIATE",
 		m.QuoteIdentifier(table.Name),
 		m.QuoteIdentifier(constraintName),
 		m.QuoteIdentifier(fk.Name),

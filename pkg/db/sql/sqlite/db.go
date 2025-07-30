@@ -231,15 +231,40 @@ func (m *DB) SupportsForUpdate() bool {
 	return true
 }
 
-// SetConstraints turns constraints on and off.
-func (m *DB) SetConstraints(on bool) error {
-	var sqlStr string
+type contextKey string
 
-	if on {
-		sqlStr = "PRAGMA foreign_keys = ON"
-	} else {
-		sqlStr = "PRAGMA foreign_keys = OFF"
+func (m *DB) constraintKey() contextKey {
+	return contextKey("SqlliteConstraint-" + m.DbKey())
+}
+
+func (m *DB) getConstraintsOff(ctx context.Context) bool {
+	i := ctx.Value(m.constraintKey())
+	return i != nil
+}
+
+// WithConstraintsOff makes sure operations in f occur with foreign key constraints turned off.
+// As a byproduct of this, the operations will happen on the same pinned connection, meaning the
+// operations should not be long-running so that the connection pool will not run dry.
+// Nested calls will continue to operate with checks off, and the outermost call will turn them on.
+// For sqlite, this must be done before starting a transaction.
+func (m *DB) WithConstraintsOff(ctx context.Context, f func(ctx context.Context) error) (err error) {
+	off := m.getConstraintsOff(ctx)
+	if off {
+		// constraints are already off, so just pass through
+		return f(ctx)
 	}
-	_, err := m.SqlDb().Exec(sqlStr)
-	return err
+
+	err = m.WithSameConnection(ctx, func(ctx context.Context) (err error) {
+		ctx = context.WithValue(ctx, m.constraintKey(), true)
+		_, err = m.SqlExec(ctx, "PRAGMA foreign_keys = OFF")
+		if err != nil {
+			return
+		}
+		defer func() {
+			_, err = m.SqlExec(ctx, "PRAGMA foreign_keys = ON")
+		}()
+		return f(ctx)
+	})
+
+	return
 }

@@ -241,8 +241,11 @@ func (o *rootNBase) CountLeafNs(ctx context.Context) (int, error) {
 
 // SetLeafNs associates the objects in objs with this RootN by setting
 // their RootNID values to this object's primary key.
-// WARNING! If it has LeafNs already associated with it that will not be associated after a save,
-// Save will panic. Be sure to delete those LeafNs or otherwise fix those pointers before calling save.
+// If it has LeafNs already associated with it that will not be associated after a save,
+// the foreign keys for those LeafNs will be set to null.
+// If you did not use a join to query the items in the first place, used a conditional join,
+// or joined with an expansion, be particularly careful, since you may be changing items
+// that are not currently attached to this RootN.
 func (o *rootNBase) SetLeafNs(objs ...*LeafN) {
 	for obj := range o.leafNs.ValuesIter() {
 		if obj.IsDirty() {
@@ -579,17 +582,17 @@ func (o *rootNBase) update(ctx context.Context) error {
 		if o.leafNsIsDirty {
 			// relation connection changed
 
-			// Since the other side of the relationship cannot be null, there cannot be objects that will be detached.
-			if oldObjs, err := QueryLeafNs(ctx).
+			if currentObjs, err := QueryLeafNs(ctx).
 				Where(op.Equal(node.LeafN().RootNID(), o.ID())).
 				Select(node.LeafN().RootNID()).
 				Load(); err != nil {
 				return err
 			} else {
-				for _, obj := range oldObjs {
+				for _, obj := range currentObjs {
 					if !o.leafNs.Has(obj.PrimaryKey()) {
-						err = obj.Delete(ctx) // old object is not in group of new objects, so delete it since it has a non-null reference to o.
-						if err != nil {
+						// The old object is not in the group of new objects
+						obj.SetRootNIDToNull()
+						if err = obj.Save(ctx); err != nil {
 							return err
 						}
 					}
@@ -597,10 +600,6 @@ func (o *rootNBase) update(ctx context.Context) error {
 				keys := o.leafNs.Keys() // Make a copy of the keys, since we will change the slicemap while iterating
 				for i, k := range keys {
 					obj := o.leafNs.Get(k)
-					if obj == nil {
-						// object was deleted during save?
-						continue
-					}
 					obj.SetRootNID(o.PrimaryKey())
 					obj.rootNIDIsDirty = true // force a change in case data is stale
 					if err = obj.Save(ctx); err != nil {
@@ -716,7 +715,7 @@ func (o *rootNBase) getInsertFields() (fields map[string]interface{}) {
 
 // Delete deletes the record from the database.
 //
-// Associated LeafN will also be deleted since their RootN fields are not nullable.
+// Associated LeafN will have their RootN field set to NULL.
 func (o *rootNBase) Delete(ctx context.Context) (err error) {
 	if o == nil {
 		return // allow deleting of a nil object to be a noop
@@ -730,12 +729,14 @@ func (o *rootNBase) Delete(ctx context.Context) (err error) {
 		{
 			objs, err := QueryLeafNs(ctx).
 				Where(op.Equal(node.LeafN().RootN(), o._originalPK)).
+				Select(node.LeafN().RootN()).
 				Load()
 			if err != nil {
 				return err
 			}
 			for _, obj := range objs {
-				if err = obj.Delete(ctx); err != nil {
+				obj.SetRootN(nil)
+				if err = obj.Save(ctx); err != nil {
 					return err
 				}
 			}

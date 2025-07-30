@@ -774,6 +774,9 @@ func (o *loginBase) unpack(m map[string]interface{}, objThis *Login) {
 		if person, ok2 := v.(map[string]any); ok2 {
 			o.person = new(Person)
 			o.person.unpack(person, o.person)
+			// mirror foreign key with loaded object
+			o.personID = o.person.PrimaryKey()
+			o.personIDIsNull = false
 			o.personIDIsLoaded = true
 			o.personIDIsDirty = false
 		} else {

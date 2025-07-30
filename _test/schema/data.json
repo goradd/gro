@@ -278,7 +278,7 @@
   "parentProjectID": null,
   "spent": "5175.30",
   "startDate": "2005-08-15T00:00:00Z",
-  "status": "cancelled"
+  "status": "canceled"
 }
 ]
 ],
@@ -439,21 +439,6 @@
 ]
 ]
 ,
-["related_project_assn",[{
-  "child_id": "1",
-  "parent_id": "4"
-}
-,
-{
-  "child_id": "3",
-  "parent_id": "1"
-}
-,
-{
-  "child_id": "4",
-  "parent_id": "1"
-}
-]],
 ["team_member_project_assn",[{
   "project_id": "1",
   "team_member_id": "2"

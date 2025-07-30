@@ -605,7 +605,8 @@
       ],
       "references": [
         {
-          "table": "root_n"
+          "table": "root_n",
+          "nullable": true
         }
       ]
     },

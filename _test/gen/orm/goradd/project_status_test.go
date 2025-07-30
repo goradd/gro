@@ -13,14 +13,14 @@ import (
 
 func TestProjectStatus_String(t *testing.T) {
 	assert.Equal(t, ProjectStatusOpen.String(), "ProjectStatusOpen")
-	assert.Equal(t, ProjectStatusCancelled.String(), "ProjectStatusCancelled")
+	assert.Equal(t, ProjectStatusCanceled.String(), "ProjectStatusCanceled")
 	assert.Equal(t, ProjectStatusCompleted.String(), "ProjectStatusCompleted")
 	assert.Equal(t, ProjectStatusPlanned.String(), "ProjectStatusPlanned")
 }
 
 func TestProjectStatus_Description(t *testing.T) {
 	assert.Equal(t, ProjectStatusOpen.Description(), "The project is currently active")
-	assert.Equal(t, ProjectStatusCancelled.Description(), "The project has been canned")
+	assert.Equal(t, ProjectStatusCanceled.Description(), "The project has been canned")
 	assert.Equal(t, ProjectStatusCompleted.Description(), "The project has been completed successfully")
 	assert.Equal(t, ProjectStatusPlanned.Description(), "Project is in the planning stages and has not been assigned a manager")
 	assert.Zero(t, ProjectStatus(0).Description())
@@ -32,14 +32,14 @@ func TestProjectStatus_Description(t *testing.T) {
 func TestProjectStatus_DescriptionSlice(t *testing.T) {
 	a := ProjectStatusDescriptions()
 	assert.Equal(t, ProjectStatusOpen.Description(), a[0])
-	assert.Equal(t, ProjectStatusCancelled.Description(), a[1])
+	assert.Equal(t, ProjectStatusCanceled.Description(), a[1])
 	assert.Equal(t, ProjectStatusCompleted.Description(), a[2])
 	assert.Equal(t, ProjectStatusPlanned.Description(), a[3])
 }
 
 func TestProjectStatus_Guideline(t *testing.T) {
 	assert.Equal(t, ProjectStatusOpen.Guideline(), "All projects that we are working on should be in this state")
-	assert.Equal(t, ProjectStatusCancelled.Guideline(), "")
+	assert.Equal(t, ProjectStatusCanceled.Guideline(), "")
 	assert.Equal(t, ProjectStatusCompleted.Guideline(), "Celebrate successes!")
 	assert.Equal(t, ProjectStatusPlanned.Guideline(), "Get ready")
 	assert.Zero(t, ProjectStatus(0).Guideline())
@@ -51,14 +51,14 @@ func TestProjectStatus_Guideline(t *testing.T) {
 func TestProjectStatus_GuidelineSlice(t *testing.T) {
 	a := ProjectStatusGuidelines()
 	assert.Equal(t, ProjectStatusOpen.Guideline(), a[0])
-	assert.Equal(t, ProjectStatusCancelled.Guideline(), a[1])
+	assert.Equal(t, ProjectStatusCanceled.Guideline(), a[1])
 	assert.Equal(t, ProjectStatusCompleted.Guideline(), a[2])
 	assert.Equal(t, ProjectStatusPlanned.Guideline(), a[3])
 }
 
 func TestProjectStatus_IsActive(t *testing.T) {
 	assert.Equal(t, ProjectStatusOpen.IsActive(), true)
-	assert.Equal(t, ProjectStatusCancelled.IsActive(), true)
+	assert.Equal(t, ProjectStatusCanceled.IsActive(), true)
 	assert.Equal(t, ProjectStatusCompleted.IsActive(), true)
 	assert.Equal(t, ProjectStatusPlanned.IsActive(), false)
 	assert.Zero(t, ProjectStatus(0).IsActive())
@@ -70,7 +70,7 @@ func TestProjectStatus_IsActive(t *testing.T) {
 func TestProjectStatus_IsActiveSlice(t *testing.T) {
 	a := ProjectStatusIsActives()
 	assert.Equal(t, ProjectStatusOpen.IsActive(), a[0])
-	assert.Equal(t, ProjectStatusCancelled.IsActive(), a[1])
+	assert.Equal(t, ProjectStatusCanceled.IsActive(), a[1])
 	assert.Equal(t, ProjectStatusCompleted.IsActive(), a[2])
 	assert.Equal(t, ProjectStatusPlanned.IsActive(), a[3])
 }
@@ -79,7 +79,7 @@ func TestProjectStatus_Keys(t *testing.T) {
 	var keys []string
 
 	keys = append(keys, ProjectStatusOpen.Key())
-	keys = append(keys, ProjectStatusCancelled.Key())
+	keys = append(keys, ProjectStatusCanceled.Key())
 	keys = append(keys, ProjectStatusCompleted.Key())
 	keys = append(keys, ProjectStatusPlanned.Key())
 	v := ProjectStatusesFromKeys(keys)
