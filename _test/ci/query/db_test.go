@@ -1,4 +1,4 @@
-package ci
+package query
 
 import (
 	"context"
@@ -34,7 +34,7 @@ func teardown() {
 }
 
 func loadData(ctx context.Context) {
-	f, err := os.Open("./../schema/data.json")
+	f, err := os.Open("./../../schema/data.json")
 	if err != nil {
 		panic(err)
 	}

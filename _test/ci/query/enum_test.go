@@ -1,4 +1,4 @@
-package ci
+package query
 
 import (
 	"context"

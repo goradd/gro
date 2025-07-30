@@ -127,7 +127,7 @@ func (u *unpacker) unpackObject(el *jointree.Element, row db.ValueMap, object db
 		isNew = true
 	}
 
-	for _, childElement := range el.References {
+	for _, childElement := range el.SelectedReferences() {
 		key := query.NodeIdentifier(childElement.QueryNode)
 
 		i := object[key]

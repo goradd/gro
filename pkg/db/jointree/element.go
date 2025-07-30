@@ -15,10 +15,9 @@ type Element struct {
 	References      []*Element              // TableNodeI objects
 	Columns         []*Element              // All columns that will be used to build the query, including those in Where, OrderBy and other clauses
 	SelectedColumns maps.SliceSet[*Element] // Pointers to elements in Columns that will be returned in the query. Using a SliceSet to iterate in the order given.
-	//JoinCondition   query.Node
-	Alias        string                // computed or assigned alias
-	Calculations map[string]query.Node // calculations attached to this node by alias
-	IsPK         bool
+	Alias           string                  // computed or assigned alias
+	Calculations    map[string]query.Node   // calculations attached to this node by alias
+	IsPK            bool
 }
 
 func newElement(node query.Node) *Element {
@@ -134,4 +133,16 @@ func (j *Element) FindCalculation(alias string) query.Node {
 		}
 	}
 	return nil
+}
+
+// SelectedReferences returns just the references that have selected columns.
+// This helps filter out references that are just used for where clauses and the like.
+func (j *Element) SelectedReferences() (refs []*Element) {
+	for _, ref := range j.References {
+		if ref.SelectedColumns.Len() > 0 ||
+			len(ref.SelectedReferences()) > 0 {
+			refs = append(refs, ref)
+		}
+	}
+	return
 }

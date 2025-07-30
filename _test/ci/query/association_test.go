@@ -1,4 +1,4 @@
-package ci
+package query
 
 import (
 	"context"
@@ -180,10 +180,12 @@ func Test2ndLoad(t *testing.T) {
 		OrderBy(node.Project().Manager().FirstName()).
 		Load()
 	assert.NoError(t, err)
+	assert.Nil(t, projects[0].Manager())
 	mgr, err2 := projects[0].LoadManager(ctx)
 	assert.NoError(t, err2)
-	// 2nd level objects must be specifically selected
-	assert.False(t, mgr.LastNameIsLoaded())
+	assert.NotNil(t, mgr)
+	assert.NotNil(t, projects[0].Manager(), "Manager object was added to project by LoadManager")
+	assert.True(t, mgr.LastNameIsLoaded())
 }
 
 func TestAssociationCalculation(t *testing.T) {
