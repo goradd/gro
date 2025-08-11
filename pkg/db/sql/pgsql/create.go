@@ -2,11 +2,12 @@ package pgsql
 
 import (
 	"fmt"
+	"log/slog"
+	"strings"
+
 	"github.com/goradd/anyutil"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/schema"
-	"log/slog"
-	"strings"
 )
 
 // addSyncFunc adds the sync function to the given sql. It can be called multiple times for the
@@ -301,9 +302,9 @@ func (m *DB) indexSql(table string, i *schema.Index) (tableSql string, extraSql 
 	var idxType string
 	switch i.IndexLevel {
 	case schema.IndexLevelPrimaryKey:
-		idxType = "PRIMARY KEY"
+		idxType = "PRIMARY KEY" // technically a constraint that also automatically creates an index
 	case schema.IndexLevelUnique:
-		idxType = "UNIQUE INDEX"
+		idxType = "UNIQUE" // technically a constraint that also automatically creates an index
 	case schema.IndexLevelIndexed:
 		// regular indexes must be added after the table definition
 		idx_name := "idx_" + table + "_" + i.Name
@@ -313,6 +314,12 @@ func (m *DB) indexSql(table string, i *schema.Index) (tableSql string, extraSql 
 		return
 	}
 	// handle primary and unique
-	tableSql = fmt.Sprintf("%s (%s)", idxType, strings.Join(quotedCols, ","))
+
+	// if a name is provided, use it. Otherwise, allow Postgres to pick a name.
+	var name string
+	if i.Name != "" {
+		name = "CONSTRAINT " + m.QuoteIdentifier(i.Name)
+	}
+	tableSql = fmt.Sprintf("%s %s (%s)", name, idxType, strings.Join(quotedCols, ","))
 	return
 }

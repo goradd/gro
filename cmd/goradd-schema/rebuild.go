@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
+	"log/slog"
+
 	"github.com/goradd/orm/pkg/config"
 	db2 "github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/schema"
-	"log/slog"
 )
 
 func build(dbConfigFile, inFile, dbKey string) {
@@ -34,10 +35,9 @@ func build(dbConfigFile, inFile, dbKey string) {
 						}
 						err2 = s.Clean()
 						if err2 != nil {
-							panic(err2)
+							return err2
 						}
-						_ = e.CreateSchema(ctx, *s)
-						return nil
+						return e.CreateSchema(ctx, *s)
 					})
 					if err != nil {
 						panic(err)

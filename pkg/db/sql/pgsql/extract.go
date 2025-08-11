@@ -3,6 +3,11 @@ package pgsql
 import (
 	"database/sql"
 	"fmt"
+	"log"
+	"log/slog"
+	"slices"
+	"strings"
+
 	"github.com/goradd/iter"
 	"github.com/goradd/maps"
 	"github.com/goradd/orm/pkg/db"
@@ -10,10 +15,6 @@ import (
 	. "github.com/goradd/orm/pkg/query"
 	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
-	"log"
-	"log/slog"
-	"slices"
-	"strings"
 )
 
 /*
@@ -288,7 +289,9 @@ from pg_index pgi
   join pg_attribute a on a.attrelid = idx.oid
 where
   tnsp.nspname IN ('%s')
-	`, strings.Join(schemas, "','"))
+order by 
+  a.attnum
+`, strings.Join(schemas, "','"))
 
 	rows, err := m.SqlDb().Query(s)
 

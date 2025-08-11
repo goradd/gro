@@ -1,6 +1,5 @@
 {
   "key": "goradd",
-  "reference_suffix": "_id",
   "enum_table_suffix": "_enum",
   "assn_table_suffix": "_assn",
   "tables": [
@@ -11,7 +10,7 @@
           "name": "number",
           "type": "int",
           "size": 32,
-          "index_level": "Primary"
+          "index_level": "primary"
         },
         {
           "name": "name",
@@ -25,8 +24,7 @@
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key",
-          "size": 32
+          "type": "auto_primary_key"
         },
         {
           "name": "first_name",
@@ -36,16 +34,14 @@
         {
           "name": "last_name",
           "type": "string",
-          "size": 50,
-          "index_level": "Indexed"
+          "size": 50
         },
         {
-          "name": "type_enum",
-          "type": "enum_array",
-          "is_nullable": true,
-          "reference": {
-            "table": "person_type_enum"
-          }
+          "name": "person_type",
+          "type": "enum",
+          "nullable": true,
+          "index_level": "indexed",
+          "enum_table": "person_type_enum"
         },
         {
           "name": "created",
@@ -56,7 +52,17 @@
           "name": "modified",
           "type": "time",
           "default_value": "update",
-          "is_nullable": true
+          "nullable": true
+        }
+      ],
+      "indexes": [
+        {
+          "columns": [
+            "last_name",
+            "first_name"
+          ],
+          "index_level": "indexed",
+          "name": "last_name_first_name_idx"
         }
       ]
     },
@@ -65,8 +71,7 @@
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key",
-          "size": 32
+          "type": "auto_primary_key"
         },
         {
           "name": "first_name",
@@ -97,31 +102,19 @@
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key",
-          "size": 32
+          "type": "auto_primary_key"
         },
         {
           "name": "num",
           "type": "int",
           "size": 32,
-          "index_level": "Unique"
+          "index_level": "unique"
         },
         {
-          "name": "status_enum",
+          "name": "status",
           "type": "enum",
-          "index_level": "Indexed",
-          "reference": {
-            "table": "project_status_enum"
-          }
-        },
-        {
-          "name": "manager_id",
-          "type": "ref",
-          "is_nullable": true,
-          "index_level": "Indexed",
-          "reference": {
-            "table": "person"
-          }
+          "index_level": "indexed",
+          "enum_table": "project_status_enum"
         },
         {
           "name": "name",
@@ -131,42 +124,45 @@
         {
           "name": "description",
           "type": "string",
-          "is_nullable": true
+          "nullable": true
         },
         {
           "name": "start_date",
           "type": "time",
           "sub_type": "date_only",
-          "is_nullable": true
+          "nullable": true
         },
         {
           "name": "end_date",
           "type": "time",
           "sub_type": "date_only",
-          "is_nullable": true
+          "nullable": true
         },
         {
           "name": "budget",
           "type": "string",
           "sub_type": "numeric",
           "size": 131084,
-          "is_nullable": true
+          "nullable": true
         },
         {
           "name": "spent",
           "type": "string",
           "sub_type": "numeric",
           "size": 131084,
-          "is_nullable": true
+          "nullable": true
+        }
+      ],
+      "references": [
+        {
+          "table": "person",
+          "column": "manager_id",
+          "nullable": true
         },
         {
-          "name": "parent_project_id",
-          "type": "ref",
-          "is_nullable": true,
-          "index_level": "Indexed",
-          "reference": {
-            "table": "project"
-          }
+          "table": "project",
+          "column": "parent_id",
+          "nullable": true
         }
       ]
     },
@@ -175,16 +171,7 @@
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key",
-          "size": 32
-        },
-        {
-          "name": "person_id",
-          "type": "ref",
-          "index_level": "Indexed",
-          "reference": {
-            "table": "person"
-          }
+          "type": "auto_primary_key"
         },
         {
           "name": "street",
@@ -196,7 +183,13 @@
           "type": "string",
           "size": 100,
           "default_value": "BOB",
-          "is_nullable": true
+          "nullable": true
+        }
+      ],
+      "references": [
+        {
+          "table": "person",
+          "column": "person_id"
         }
       ]
     },
@@ -205,21 +198,19 @@
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key",
-          "size": 32
-        },
-        {
-          "name": "person_id",
-          "type": "ref",
-          "index_level": "Unique",
-          "reference": {
-            "table": "person"
-          }
+          "type": "auto_primary_key"
         },
         {
           "name": "employee_number",
           "type": "int",
           "size": 32
+        }
+      ],
+      "references": [
+        {
+          "table": "person",
+          "column": "person_id",
+          "index_level": "unique"
         }
       ]
     },
@@ -228,34 +219,32 @@
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key",
-          "size": 32
-        },
-        {
-          "name": "person_id",
-          "type": "ref",
-          "is_nullable": true,
-          "index_level": "Unique",
-          "reference": {
-            "table": "person"
-          }
+          "type": "auto_primary_key"
         },
         {
           "name": "username",
           "type": "string",
           "size": 20,
-          "index_level": "Unique"
+          "index_level": "unique"
         },
         {
           "name": "password",
           "type": "string",
           "size": 20,
-          "is_nullable": true
+          "nullable": true
         },
         {
           "name": "is_enabled",
           "type": "bool",
           "default_value": true
+        }
+      ],
+      "references": [
+        {
+          "table": "person",
+          "column": "person_id",
+          "index_level": "unique",
+          "nullable": true
         }
       ]
     },
@@ -264,21 +253,18 @@
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key",
-          "size": 32
-        },
-        {
-          "name": "project_id",
-          "type": "ref",
-          "index_level": "Indexed",
-          "reference": {
-            "table": "project"
-          }
+          "type": "auto_primary_key"
         },
         {
           "name": "name",
           "type": "string",
           "size": 50
+        }
+      ],
+      "references": [
+        {
+          "table": "project",
+          "column": "project_id"
         }
       ]
     }
@@ -288,90 +274,59 @@
       "name": "person_type_enum",
       "values": [
         {
-          "const": 1,
-          "identifier": "contractor",
-          "label": "Contractor"
+          "name": "Contractor"
         },
         {
-          "const": 2,
-          "identifier": "manager",
-          "label": "Manager"
+          "name": "Manager"
         },
         {
-          "const": 3,
-          "identifier": "inactive",
-          "label": "Inactive"
+          "name": "Inactive"
         },
         {
-          "const": 4,
-          "identifier": "company_car",
-          "label": "Company Car"
+          "name": "Customer"
         },
         {
-          "const": 5,
-          "identifier": "works_from_home",
-          "label": "Works From Home"
+          "name": "Vendor"
         }
-      ],
-      "fields": {
-        "const": {
-          "type": "int"
-        },
-        "identifier": {
-          "type": "string"
-        },
-        "label": {
-          "type": "string"
-        }
-      }
+      ]
     },
     {
       "name": "project_status_enum",
       "values": [
         {
-          "const": 1,
           "description": "The project is currently active",
-          "guidelines": "All projects that we are working on should be in this state",
-          "identifier": "open",
+          "guideline": "All projects that we are working on should be in this state",
           "is_active": true,
-          "label": "Open"
+          "label": "Open",
+          "name": "Open"
         },
         {
-          "const": 2,
           "description": "The project has been canned",
-          "guidelines": "",
-          "identifier": "cancelled",
+          "guideline": "",
           "is_active": true,
-          "label": "Cancelled"
+          "label": "",
+          "name": "Canceled"
         },
         {
-          "const": 3,
           "description": "The project has been completed successfully",
-          "guidelines": "Celebrate successes!",
-          "identifier": "completed",
+          "guideline": "Celebrate successes!",
           "is_active": true,
-          "label": "Completed"
+          "label": "Done",
+          "name": "Completed"
         },
         {
-          "const": 4,
           "description": "Project is in the planning stages and has not been assigned a manager",
-          "guidelines": "Get ready",
-          "identifier": "planned",
+          "guideline": "Get ready",
           "is_active": false,
-          "label": "Planned"
+          "label": "",
+          "name": "Planned"
         }
       ],
       "fields": {
-        "const": {
-          "type": "int"
-        },
         "description": {
           "type": "string"
         },
-        "guidelines": {
-          "type": "string"
-        },
-        "identifier": {
+        "guideline": {
           "type": "string"
         },
         "is_active": {
@@ -386,17 +341,25 @@
   "association_tables": [
     {
       "name": "related_project_assn",
-      "table1": "project",
-      "column1": "parent_id",
-      "table2": "project",
-      "column2": "child_id"
+      "ref1": {
+        "table": "project",
+        "column": "parent_id"
+      },
+      "ref2": {
+        "table": "project",
+        "column": "child_id"
+      }
     },
     {
       "name": "team_member_project_assn",
-      "table1": "person",
-      "column1": "team_member_id",
-      "table2": "project",
-      "column2": "project_id"
+      "ref1": {
+        "table": "person",
+        "column": "team_member_id"
+      },
+      "ref2": {
+        "table": "project",
+        "column": "project_id"
+      }
     }
   ]
 }

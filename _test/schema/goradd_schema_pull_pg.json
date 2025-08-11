@@ -1,7 +1,5 @@
 {
   "key": "goradd",
-  "write_timeout": "30s",
-  "read_timeout": "5s",
   "enum_table_suffix": "_enum",
   "assn_table_suffix": "_assn",
   "tables": [
@@ -41,7 +39,8 @@
         {
           "name": "person_type",
           "type": "enum",
-          "nullable": true
+          "nullable": true,
+          "enum_table": "person_type_enum"
         },
         {
           "name": "created",
@@ -51,7 +50,6 @@
         {
           "name": "modified",
           "type": "time",
-          "default_value": "update",
           "nullable": true
         }
       ],
@@ -61,8 +59,7 @@
             "last_name",
             "first_name"
           ],
-          "index_level": "indexed",
-          "name": "last_name_first_name_idx"
+          "index_level": "indexed"
         }
       ]
     },
@@ -86,13 +83,11 @@
         {
           "name": "gro_lock",
           "type": "int",
-          "sub_type": "gro_lock",
           "size": 64
         },
         {
           "name": "gro_timestamp",
           "type": "int",
-          "sub_type": "gro_timestamp",
           "size": 64
         }
       ]
@@ -113,7 +108,8 @@
         {
           "name": "status",
           "type": "enum",
-          "index_level": "indexed"
+          "index_level": "indexed",
+          "enum_table": "project_status_enum"
         },
         {
           "name": "name",
@@ -128,38 +124,24 @@
         {
           "name": "start_date",
           "type": "time",
-          "sub_type": "date_only",
           "nullable": true
         },
         {
           "name": "end_date",
           "type": "time",
-          "sub_type": "date_only",
           "nullable": true
         },
         {
           "name": "budget",
-          "type": "string",
-          "sub_type": "numeric",
-          "size": 131084,
-          "nullable": true,
-          "database_def": {
-            "mysql": {
-              "type": "decimal(12,2)"
-            }
-          }
+          "type": "unknown",
+          "size": 3,
+          "nullable": true
         },
         {
           "name": "spent",
-          "type": "string",
-          "sub_type": "numeric",
-          "size": 131084,
-          "nullable": true,
-          "database_def": {
-            "mysql": {
-              "type": "decimal(12,2)"
-            }
-          }
+          "type": "unknown",
+          "size": 3,
+          "nullable": true
         }
       ],
       "references": [
@@ -171,9 +153,7 @@
         {
           "table": "project",
           "column": "parent_id",
-          "identifier": "Parent",
-          "nullable": true,
-          "reverse_identifier": "Child"
+          "nullable": true
         }
       ]
     },
@@ -182,8 +162,7 @@
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key",
-          "size": 32
+          "type": "auto_primary_key"
         },
         {
           "name": "street",
@@ -200,7 +179,8 @@
       ],
       "references": [
         {
-          "table": "person"
+          "table": "person",
+          "column": "person_id"
         }
       ]
     },
@@ -209,8 +189,7 @@
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key",
-          "size": 32
+          "type": "auto_primary_key"
         },
         {
           "name": "employee_number",
@@ -218,9 +197,10 @@
           "size": 32
         }
       ],
-      "references":[
+      "references": [
         {
           "table": "person",
+          "column": "person_id",
           "index_level": "unique"
         }
       ]
@@ -230,8 +210,7 @@
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key",
-          "size": 32
+          "type": "auto_primary_key"
         },
         {
           "name": "username",
@@ -254,8 +233,9 @@
       "references": [
         {
           "table": "person",
-          "nullable": true,
-          "index_level": "unique"
+          "column": "person_id",
+          "index_level": "unique",
+          "nullable": true
         }
       ]
     },
@@ -264,8 +244,7 @@
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key",
-          "size": 32
+          "type": "auto_primary_key"
         },
         {
           "name": "name",
@@ -275,7 +254,8 @@
       ],
       "references": [
         {
-          "table": "project"
+          "table": "project",
+          "column": "project_id"
         }
       ]
     }
@@ -285,23 +265,18 @@
       "name": "person_type_enum",
       "values": [
         {
-          "value": 1,
           "name": "Contractor"
         },
         {
-          "value": 2,
           "name": "Manager"
         },
         {
-          "value": 3,
           "name": "Inactive"
         },
         {
-          "value": 4,
           "name": "Customer"
         },
         {
-          "value": 5,
           "name": "Vendor"
         }
       ]
@@ -310,38 +285,32 @@
       "name": "project_status_enum",
       "values": [
         {
-          "value": 1,
           "description": "The project is currently active",
           "guideline": "All projects that we are working on should be in this state",
           "is_active": true,
-          "name": "Open",
           "label": "Open",
-          "key": "open"
+          "name": "Open"
         },
         {
-          "value": 2,
           "description": "The project has been canned",
           "guideline": "",
           "is_active": true,
-          "name": "Canceled",
-          "key": "canceled"
+          "label": "",
+          "name": "Canceled"
         },
         {
-          "value": 3,
           "description": "The project has been completed successfully",
           "guideline": "Celebrate successes!",
           "is_active": true,
-          "name": "Completed",
           "label": "Done",
-          "key": "completed"
+          "name": "Completed"
         },
         {
-          "value": 4,
           "description": "Project is in the planning stages and has not been assigned a manager",
           "guideline": "Get ready",
           "is_active": false,
-          "name": "Planned",
-          "key": "planned"
+          "label": "",
+          "name": "Planned"
         }
       ],
       "fields": {
@@ -353,6 +322,9 @@
         },
         "is_active": {
           "type": "bool"
+        },
+        "label": {
+          "type": "string"
         }
       }
     }
@@ -365,7 +337,8 @@
         "column": "team_member_id"
       },
       "ref2": {
-        "table": "project"
+        "table": "project",
+        "column": "project_id"
       }
     }
   ]

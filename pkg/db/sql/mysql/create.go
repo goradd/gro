@@ -2,11 +2,12 @@ package mysql
 
 import (
 	"fmt"
+	"log/slog"
+	"strings"
+
 	"github.com/goradd/anyutil"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/schema"
-	"log/slog"
-	"strings"
 )
 
 // TableDefinitionSql will return the sql needed to create the table.
@@ -42,7 +43,7 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) (tableS
 	}
 
 	for _, mci := range table.Indexes {
-		def := m.indexSql(mci.IndexLevel, mci.Columns...)
+		def := m.indexSql(mci)
 		tableClauses = append(tableClauses, def)
 	}
 	columnDefs = append(columnDefs, tableClauses...)
@@ -133,23 +134,23 @@ func (m *DB) buildColumnDef(col *schema.Column) (columnClause string, tableClaus
 	return
 }
 
-func (m *DB) indexSql(level schema.IndexLevel, cols ...string) string {
+func (m *DB) indexSql(idx *schema.Index) string {
 	var idxType string
-	switch level {
+	switch idx.IndexLevel {
 	case schema.IndexLevelPrimaryKey:
 		idxType = "PRIMARY KEY"
 	case schema.IndexLevelUnique:
-		idxType = "UNIQUE INDEX"
+		idxType = "UNIQUE"
 	case schema.IndexLevelIndexed:
 		idxType = "INDEX"
 	default:
 		return ""
 	}
-	cols = anyutil.MapSliceFunc(cols, func(s string) string {
+	cols := anyutil.MapSliceFunc(idx.Columns, func(s string) string {
 		return m.QuoteIdentifier(s)
 	})
 	idxCols := strings.Join(cols, ", ")
-	def := fmt.Sprintf("%s (%s)", idxType, idxCols)
+	def := fmt.Sprintf("%s %s (%s)", idxType, idx.Name, idxCols)
 	return def
 }
 

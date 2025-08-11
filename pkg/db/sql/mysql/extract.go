@@ -3,16 +3,17 @@ package mysql
 import (
 	"database/sql"
 	"fmt"
+	"log/slog"
+	"math"
+	"slices"
+	"strings"
+
 	"github.com/goradd/iter"
 	"github.com/goradd/orm/pkg/db"
 	sql2 "github.com/goradd/orm/pkg/db/sql"
 	. "github.com/goradd/orm/pkg/query"
 	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
-	"log/slog"
-	"math"
-	"slices"
-	"strings"
 )
 
 /*
@@ -236,7 +237,9 @@ func (m *DB) getIndexes() (indexes map[string][]mysqlIndex, err error) {
 	FROM
 	information_schema.statistics
 	WHERE
-	table_schema = '%s';
+	table_schema = '%s'
+	ORDER BY
+	seq_in_index
 	`, dbName))
 
 	if err != nil {
@@ -565,8 +568,8 @@ func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema.Table {
 	var multiColumnPK *schema.Index
 
 	// Build the indexes
+	// Only works if t.indexes is sorted in seq order
 	indexes := make(map[string]*schema.Index)
-	singleIndexes := make(map[string]schema.IndexLevel)
 
 	for _, idx := range t.indexes {
 		if i, ok := indexes[idx.name]; ok {
@@ -582,23 +585,29 @@ func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema.Table {
 			} else {
 				level = schema.IndexLevelUnique
 			}
-			mci := &schema.Index{Columns: []string{idx.columnName}, IndexLevel: level}
+			mci := &schema.Index{
+				Columns:    []string{idx.columnName},
+				IndexLevel: level,
+				Name:       idx.name,
+			}
 			indexes[idx.name] = mci
 		}
 	}
 
-	// Fill the singleIndexes set with all the columns that have a single index,
+	// Fill the singleIndexes set with preferred single indexes,
 	// There might be multiple single indexes on the same column, and if there are
 	// we prioritize by the value of the index level.
 	// We don't support esoteric types of indexes yet.
+	singleIndexes := make(map[string]*schema.Index) // mapped by column name
+
 	for _, idx := range indexes {
 		if len(idx.Columns) == 1 {
-			if level, ok := singleIndexes[idx.Columns[0]]; ok {
-				if idx.IndexLevel > level {
-					singleIndexes[idx.Columns[0]] = idx.IndexLevel
+			if singleIdx, ok := singleIndexes[idx.Columns[0]]; ok {
+				if idx.IndexLevel > singleIdx.IndexLevel {
+					singleIndexes[idx.Columns[0]] = idx
 				}
 			} else {
-				singleIndexes[idx.Columns[0]] = idx.IndexLevel
+				singleIndexes[idx.Columns[0]] = idx
 			}
 		} else if idx.IndexLevel == schema.IndexLevelPrimaryKey {
 			// We have a multi-column primary key
@@ -606,10 +615,18 @@ func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema.Table {
 		}
 	}
 
+	for _, singleIdx := range singleIndexes {
+		delete(indexes, singleIdx.Name)
+	}
+
 	var pkCount int
 
 	for _, col := range t.columns {
-		cd, rd := m.getColumnSchema(t, col, singleIndexes[col.name], enumTableSuffix)
+		var level schema.IndexLevel
+		if idx, ok := singleIndexes[col.name]; ok {
+			level = idx.IndexLevel
+		}
+		cd, rd := m.getColumnSchema(t, col, level, enumTableSuffix)
 
 		if rd != nil {
 			referenceSchemas = append(referenceSchemas, rd)
@@ -641,10 +658,7 @@ func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema.Table {
 
 	// Create the index array
 	for _, idx := range indexes {
-		if len(idx.Columns) > 1 {
-			// only do multi-column indexes, since single column indexes should be specified in the column definition
-			td.Indexes = append(td.Indexes, idx)
-		}
+		td.Indexes = append(td.Indexes, idx)
 	}
 
 	// Keep the Indexes in a predictable order

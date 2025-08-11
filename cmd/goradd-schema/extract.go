@@ -21,7 +21,7 @@ func extract(dbConfigFile, outFile, dbKey string) {
 				}
 				if e, ok := db.(db2.SchemaExtractor); ok {
 					s := e.ExtractSchema(c)
-					s.Clean()
+					s.Sort()
 					schema.WriteJsonFile(&s, outFile)
 					return
 				}

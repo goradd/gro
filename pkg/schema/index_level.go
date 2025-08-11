@@ -52,7 +52,7 @@ func (il IndexLevel) String() string {
 
 // MarshalJSON implements custom JSON serialization for IndexLevel
 func (il IndexLevel) MarshalJSON() ([]byte, error) {
-	return json.Marshal(il.String())
+	return json.Marshal(il.jsonRep())
 }
 
 func (il IndexLevel) jsonRep() string {

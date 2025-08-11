@@ -146,19 +146,16 @@ func (db *Database) FindEnumTable(name string) *EnumTable {
 
 // Clean modifies the structure to prepare it for creating a schema in a database.
 func (db *Database) Clean() error {
-	db.sort() // required before infer so references work
+	db.Sort() // required before infer so references work
 	if err := db.infer(); err != nil {
 		return err
 	}
 	return nil
 }
 
-// To deal with the special case of a reference being a primary key, and referring to another
-// table that has the same thing, and so the additional possibility of a circular reference,
-// we create a sorted list of tables.
-// sort will sort the Tables, EnumTables and AssociationTables into a predictable order that also
+// Sort will Sort the Tables, EnumTables and AssociationTables into a predictable order that also
 // orders the tables so that earlier tables do not reference later tables.
-func (db *Database) sort() {
+func (db *Database) Sort() {
 	var unusedTables maps.SliceSet[*Table]
 
 	unusedTables.SetSortFunc(func(a, b *Table) bool {

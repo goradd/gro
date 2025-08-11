@@ -2,11 +2,12 @@ package sqlite
 
 import (
 	"fmt"
+	"log/slog"
+	"strings"
+
 	"github.com/goradd/anyutil"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/schema"
-	"log/slog"
-	"strings"
 )
 
 // TableDefinitionSql will return the sql needed to create the table.
@@ -185,12 +186,12 @@ func (m *DB) indexSql(table *schema.Table, i *schema.Index) (tableSql string, ex
 	var idxType string
 	switch i.IndexLevel {
 	case schema.IndexLevelPrimaryKey:
-		idxType = "PRIMARY KEY"
+		idxType = "PRIMARY KEY" // constraint with auto generated index
 	case schema.IndexLevelUnique:
-		idxType = "UNIQUE"
+		idxType = "UNIQUE" // constraint with auto generated index
 	case schema.IndexLevelIndexed:
 		// regular indexes must be added after the table definition
-		idx_name := "idx_" + table.Name + i.Name
+		idx_name := i.Name
 		extraSql = fmt.Sprintf("CREATE INDEX %s ON %s (%s)",
 			m.QuoteIdentifier(idx_name),
 			m.QuoteIdentifier(table.Name),

@@ -43,9 +43,9 @@ type Index struct {
 	Identifier string `json:"identifier,omitempty"`
 }
 
-func (i *Index) infer() {
+func (i *Index) infer(t *Table) {
 	if i.Name == "" {
-		i.Name = strings.Join(i.Columns, "_")
+		i.Name = t.Name + "_" + strings.Join(i.Columns, "_") + "_idx"
 	}
 }
 

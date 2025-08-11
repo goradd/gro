@@ -5,15 +5,16 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log/slog"
+	"slices"
+	"strings"
+	"time"
+
 	"github.com/goradd/anyutil"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/db/jointree"
 	. "github.com/goradd/orm/pkg/query"
 	"github.com/goradd/orm/pkg/schema"
-	"log/slog"
-	"slices"
-	"strings"
-	"time"
 )
 
 // Base is a mixin for SQL database drivers that implement the standard Go database/sql interface.
@@ -426,7 +427,7 @@ func (h *Base) enumTableSql(d *schema.Database, et *schema.EnumTable) (s []strin
 	table.Indexes = []*schema.Index{{
 		IndexLevel: schema.IndexLevelPrimaryKey,
 		Columns:    []string{schema.ValueKey},
-		Name:       schema.ValueKey,
+		//Name:       schema.ValueKey,
 	}}
 
 	var size uint64

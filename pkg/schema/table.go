@@ -2,10 +2,11 @@ package schema
 
 import (
 	"fmt"
-	strings2 "github.com/goradd/strings"
-	"github.com/kenshaw/snaker"
 	"strings"
 	"time"
+
+	strings2 "github.com/goradd/strings"
+	"github.com/kenshaw/snaker"
 )
 
 // Table represents the metadata for a table in the database.
@@ -139,7 +140,7 @@ func (t *Table) Clean(db *Database) error {
 
 	var hasPk bool
 	for _, i := range t.Indexes {
-		i.infer()
+		i.infer(t)
 		if i.IndexLevel == IndexLevelPrimaryKey &&
 			len(i.Columns) > 0 {
 
