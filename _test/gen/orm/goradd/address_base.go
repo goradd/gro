@@ -59,10 +59,9 @@ const (
 	AddressPersonField   = `person`
 )
 
-const AddressIDMaxLength = 32       // The number of runes the column can hold
-const AddressStreetMaxLength = 100  // The number of runes the column can hold
-const AddressCityMaxLength = 100    // The number of runes the column can hold
-const AddressPersonIDMaxLength = 32 // The number of runes the column can hold
+const AddressIDMaxLength = 32      // The number of runes the column can hold
+const AddressStreetMaxLength = 100 // The number of runes the column can hold
+const AddressCityMaxLength = 100   // The number of runes the column can hold
 
 // Initialize or re-initialize a Address database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
@@ -262,9 +261,6 @@ func (o *addressBase) PersonIDIsLoaded() bool {
 
 // SetPersonID sets the value of PersonID in the object, to be saved later in the database using the Save() function.
 func (o *addressBase) SetPersonID(v string) {
-	if utf8.RuneCountInString(v) > AddressPersonIDMaxLength {
-		panic("attempted to set Address.PersonID to a value larger than its maximum length in runes")
-	}
 	if o._restored &&
 		o.personIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.personID == v {
@@ -631,12 +627,12 @@ func (o *addressBase) unpack(m map[string]interface{}, objThis *Address) {
 		o.cityIsDirty = false
 	}
 
-	if v, ok := m["person_id"]; ok && v != nil {
+	if v, ok := m["personID"]; ok && v != nil {
 		if o.personID, ok = v.(string); ok {
 			o.personIDIsLoaded = true
 			o.personIDIsDirty = false
 		} else {
-			panic("Wrong type found for person_id.")
+			panic("Wrong type found for personID.")
 		}
 	} else {
 		o.personIDIsLoaded = false

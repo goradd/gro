@@ -916,7 +916,7 @@ func (o *multiParentBase) unpack(m map[string]interface{}, objThis *MultiParent)
 		o.nameIsDirty = false
 	}
 
-	if v, ok := m["parent_1_id"]; ok {
+	if v, ok := m["parent1ID"]; ok {
 		if v == nil {
 			o.parent1ID = ""
 			o.parent1IDIsNull = true
@@ -927,7 +927,7 @@ func (o *multiParentBase) unpack(m map[string]interface{}, objThis *MultiParent)
 			o.parent1IDIsLoaded = true
 			o.parent1IDIsDirty = false
 		} else {
-			panic("Wrong type found for parent_1_id.")
+			panic("Wrong type found for parent1ID.")
 		}
 	} else {
 		o.parent1IDIsLoaded = false
@@ -936,7 +936,7 @@ func (o *multiParentBase) unpack(m map[string]interface{}, objThis *MultiParent)
 		o.parent1IDIsDirty = false
 	}
 
-	if v, ok := m["parent_2_id"]; ok {
+	if v, ok := m["parent2ID"]; ok {
 		if v == nil {
 			o.parent2ID = ""
 			o.parent2IDIsNull = true
@@ -947,7 +947,7 @@ func (o *multiParentBase) unpack(m map[string]interface{}, objThis *MultiParent)
 			o.parent2IDIsLoaded = true
 			o.parent2IDIsDirty = false
 		} else {
-			panic("Wrong type found for parent_2_id.")
+			panic("Wrong type found for parent2ID.")
 		}
 	} else {
 		o.parent2IDIsLoaded = false
@@ -1337,7 +1337,7 @@ func (o *multiParentBase) Delete(ctx context.Context) (err error) {
 
 		{
 			objs, err := QueryMultiParents(ctx).
-				Where(op.Equal(node.MultiParent().Parent1(), o._originalPK)).
+				Where(op.Equal(node.MultiParent().Parent1().PrimaryKey(), o._originalPK)).
 				Select(node.MultiParent().Parent1()).
 				Load()
 			if err != nil {
@@ -1354,7 +1354,7 @@ func (o *multiParentBase) Delete(ctx context.Context) (err error) {
 
 		{
 			objs, err := QueryMultiParents(ctx).
-				Where(op.Equal(node.MultiParent().Parent2(), o._originalPK)).
+				Where(op.Equal(node.MultiParent().Parent2().PrimaryKey(), o._originalPK)).
 				Select(node.MultiParent().Parent2()).
 				Load()
 			if err != nil {

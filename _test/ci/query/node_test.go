@@ -2,11 +2,16 @@ package query
 
 import (
 	"bytes"
+	"context"
 	"encoding/gob"
+	"testing"
+
 	"github.com/goradd/orm/_test/gen/orm/goradd/node"
+	"github.com/goradd/orm/_test/gen/orm/goradd_unit"
+	unit_node "github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
+	"github.com/goradd/orm/pkg/op"
 	"github.com/goradd/orm/pkg/query"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestNodeSerialize(t *testing.T) {
@@ -22,4 +27,17 @@ func TestNodeSerialize(t *testing.T) {
 	dec := gob.NewDecoder(&buf)
 	err = dec.Decode(&n2)
 	assert.NoError(t, err)
+}
+
+func TestNodeRejectTableNodes(t *testing.T) {
+	ctx := context.Background()
+
+	// Make sure we panic when a table node is being used as a primary key
+
+	assert.Panics(t, func() {
+		_, _ = goradd_unit.QueryTwoKeys(ctx).
+			Where(op.Equal(unit_node.TwoKey(), 2)).
+			Load()
+	})
+	
 }

@@ -728,7 +728,7 @@ func (o *rootNBase) Delete(ctx context.Context) (err error) {
 
 		{
 			objs, err := QueryLeafNs(ctx).
-				Where(op.Equal(node.LeafN().RootN(), o._originalPK)).
+				Where(op.Equal(node.LeafN().RootN().PrimaryKey(), o._originalPK)).
 				Select(node.LeafN().RootN()).
 				Load()
 			if err != nil {

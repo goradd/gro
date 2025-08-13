@@ -547,12 +547,12 @@ func (o *leafUBase) unpack(m map[string]interface{}, objThis *LeafU) {
 		o.nameIsDirty = false
 	}
 
-	if v, ok := m["root_u_id"]; ok && v != nil {
+	if v, ok := m["rootUID"]; ok && v != nil {
 		if o.rootUID, ok = v.(string); ok {
 			o.rootUIDIsLoaded = true
 			o.rootUIDIsDirty = false
 		} else {
-			panic("Wrong type found for root_u_id.")
+			panic("Wrong type found for rootUID.")
 		}
 	} else {
 		o.rootUIDIsLoaded = false

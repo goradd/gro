@@ -577,7 +577,7 @@ func (o *altLeafUnBase) unpack(m map[string]interface{}, objThis *AltLeafUn) {
 		o.nameIsDirty = false
 	}
 
-	if v, ok := m["alt_root_un_id"]; ok {
+	if v, ok := m["altRootUnID"]; ok {
 		if v == nil {
 			o.altRootUnID = 0
 			o.altRootUnIDIsNull = true
@@ -588,7 +588,7 @@ func (o *altLeafUnBase) unpack(m map[string]interface{}, objThis *AltLeafUn) {
 			o.altRootUnIDIsLoaded = true
 			o.altRootUnIDIsDirty = false
 		} else {
-			panic("Wrong type found for alt_root_un_id.")
+			panic("Wrong type found for altRootUnID.")
 		}
 	} else {
 		o.altRootUnIDIsLoaded = false

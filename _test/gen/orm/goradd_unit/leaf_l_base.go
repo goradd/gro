@@ -566,23 +566,23 @@ func (o *leafLBase) unpack(m map[string]interface{}, objThis *LeafL) {
 		o.nameIsDirty = false
 	}
 
-	if v, ok := m["gro_lock"]; ok && v != nil {
+	if v, ok := m["groLock"]; ok && v != nil {
 		if o.groLock, ok = v.(int64); ok {
 			o.groLockIsLoaded = true
 		} else {
-			panic("Wrong type found for gro_lock.")
+			panic("Wrong type found for groLock.")
 		}
 	} else {
 		o.groLockIsLoaded = false
 		o.groLock = 0
 	}
 
-	if v, ok := m["root_l_id"]; ok && v != nil {
+	if v, ok := m["rootLID"]; ok && v != nil {
 		if o.rootLID, ok = v.(string); ok {
 			o.rootLIDIsLoaded = true
 			o.rootLIDIsDirty = false
 		} else {
-			panic("Wrong type found for root_l_id.")
+			panic("Wrong type found for rootLID.")
 		}
 	} else {
 		o.rootLIDIsLoaded = false

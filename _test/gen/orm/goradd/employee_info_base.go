@@ -57,7 +57,6 @@ const (
 const EmployeeInfoIDMaxLength = 32 // The number of runes the column can hold
 const EmployeeInfoEmployeeNumberMax = 2147483647
 const EmployeeInfoEmployeeNumberMin = -2147483648
-const EmployeeInfoPersonIDMaxLength = 32 // The number of runes the column can hold
 
 // Initialize or re-initialize a EmployeeInfo database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
@@ -197,9 +196,6 @@ func (o *employeeInfoBase) PersonIDIsLoaded() bool {
 
 // SetPersonID sets the value of PersonID in the object, to be saved later in the database using the Save() function.
 func (o *employeeInfoBase) SetPersonID(v string) {
-	if utf8.RuneCountInString(v) > EmployeeInfoPersonIDMaxLength {
-		panic("attempted to set EmployeeInfo.PersonID to a value larger than its maximum length in runes")
-	}
 	if o._restored &&
 		o.personIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.personID == v {
@@ -533,12 +529,12 @@ func (o *employeeInfoBase) unpack(m map[string]interface{}, objThis *EmployeeInf
 		o.idIsDirty = false
 	}
 
-	if v, ok := m["employee_number"]; ok && v != nil {
+	if v, ok := m["employeeNumber"]; ok && v != nil {
 		if o.employeeNumber, ok = v.(int); ok {
 			o.employeeNumberIsLoaded = true
 			o.employeeNumberIsDirty = false
 		} else {
-			panic("Wrong type found for employee_number.")
+			panic("Wrong type found for employeeNumber.")
 		}
 	} else {
 		o.employeeNumberIsLoaded = false
@@ -546,12 +542,12 @@ func (o *employeeInfoBase) unpack(m map[string]interface{}, objThis *EmployeeInf
 		o.employeeNumberIsDirty = false
 	}
 
-	if v, ok := m["person_id"]; ok && v != nil {
+	if v, ok := m["personID"]; ok && v != nil {
 		if o.personID, ok = v.(string); ok {
 			o.personIDIsLoaded = true
 			o.personIDIsDirty = false
 		} else {
-			panic("Wrong type found for person_id.")
+			panic("Wrong type found for personID.")
 		}
 	} else {
 		o.personIDIsLoaded = false

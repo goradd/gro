@@ -670,7 +670,7 @@ func (o *altRootUnBase) Delete(ctx context.Context) (err error) {
 		{
 			// Set the related objects pointer to us to NULL in the database
 			obj, err := QueryAltLeafUns(ctx).
-				Where(op.Equal(node.AltLeafUn().AltRootUn(), o._originalPK)).
+				Where(op.Equal(node.AltLeafUn().AltRootUn().PrimaryKey(), o._originalPK)).
 				Select(node.AltLeafUn().AltRootUn()).
 				Get()
 			if err != nil {

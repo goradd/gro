@@ -7281,7 +7281,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.QueryName); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -7436,7 +7436,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.QueryName); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -7528,7 +7528,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.QueryName); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -7665,7 +7665,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.QueryName); err != nil {
+			if _, err = io.WriteString(_w, col.Field); err != nil {
 				return
 			}
 
@@ -11346,7 +11346,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 						return
 					}
 
-					if _, err = io.WriteString(_w, `(), o._originalPK)).
+					if _, err = io.WriteString(_w, `().PrimaryKey(), o._originalPK)).
                           Select(node.`); err != nil {
 						return
 					}
@@ -11455,7 +11455,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 						return
 					}
 
-					if _, err = io.WriteString(_w, `(), o._originalPK)).
+					if _, err = io.WriteString(_w, `().PrimaryKey(), o._originalPK)).
                          Get()
                  if err != nil {
                      return err
@@ -11527,7 +11527,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 						return
 					}
 
-					if _, err = io.WriteString(_w, `(), o._originalPK)).
+					if _, err = io.WriteString(_w, `().PrimaryKey(), o._originalPK)).
                           Select(node.`); err != nil {
 						return
 					}
@@ -11635,7 +11635,7 @@ func (tmpl *TableBaseTemplate) genDelete(table *model.Table, _w io.Writer) (err 
 						return
 					}
 
-					if _, err = io.WriteString(_w, `(), o._originalPK)).
+					if _, err = io.WriteString(_w, `().PrimaryKey(), o._originalPK)).
                           Load()
                 if err != nil {
                     return err

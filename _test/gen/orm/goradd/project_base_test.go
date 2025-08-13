@@ -137,11 +137,6 @@ func TestProject_SetID(t *testing.T) {
 	obj.SetID("")
 	assert.EqualValues(t, "", obj.ID(), "set default")
 
-	// test panic on setting value larger than maximum size allowed
-	val = test.RandomValue[string](33)
-	assert.Panics(t, func() {
-		obj.SetID(val)
-	})
 }
 func TestProject_SetNum(t *testing.T) {
 
@@ -301,7 +296,7 @@ func TestProject_SetManagerID(t *testing.T) {
 	obj := NewProject()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[string](32)
+	val := test.RandomValue[string](0)
 	obj.SetManagerID(val)
 	assert.Equal(t, val, obj.ManagerID())
 	assert.False(t, obj.ManagerIDIsNull())
@@ -315,18 +310,13 @@ func TestProject_SetManagerID(t *testing.T) {
 	obj.SetManagerID("")
 	assert.EqualValues(t, "", obj.ManagerID(), "set default")
 
-	// test panic on setting value larger than maximum size allowed
-	val = test.RandomValue[string](33)
-	assert.Panics(t, func() {
-		obj.SetManagerID(val)
-	})
 }
 func TestProject_SetParentID(t *testing.T) {
 
 	obj := NewProject()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[string](32)
+	val := test.RandomValue[string](0)
 	obj.SetParentID(val)
 	assert.Equal(t, val, obj.ParentID())
 	assert.False(t, obj.ParentIDIsNull())
@@ -340,11 +330,6 @@ func TestProject_SetParentID(t *testing.T) {
 	obj.SetParentID("")
 	assert.EqualValues(t, "", obj.ParentID(), "set default")
 
-	// test panic on setting value larger than maximum size allowed
-	val = test.RandomValue[string](33)
-	assert.Panics(t, func() {
-		obj.SetParentID(val)
-	})
 }
 
 func TestProject_Copy(t *testing.T) {

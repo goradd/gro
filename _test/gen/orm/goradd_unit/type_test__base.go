@@ -1267,7 +1267,7 @@ func (o *typeTestBase) unpack(m map[string]interface{}, objThis *TypeTest) {
 		o.timeIsDirty = false
 	}
 
-	if v, ok := m["date_time"]; ok {
+	if v, ok := m["dateTime"]; ok {
 		if v == nil {
 			o.dateTime = time.Time{}
 			o.dateTimeIsNull = true
@@ -1278,7 +1278,7 @@ func (o *typeTestBase) unpack(m map[string]interface{}, objThis *TypeTest) {
 			o.dateTimeIsLoaded = true
 			o.dateTimeIsDirty = false
 		} else {
-			panic("Wrong type found for date_time.")
+			panic("Wrong type found for dateTime.")
 		}
 	} else {
 		o.dateTimeIsLoaded = false
@@ -1287,29 +1287,29 @@ func (o *typeTestBase) unpack(m map[string]interface{}, objThis *TypeTest) {
 		o.dateTimeIsDirty = false
 	}
 
-	if v, ok := m["creation_time"]; ok && v != nil {
+	if v, ok := m["creationTime"]; ok && v != nil {
 		if o.creationTime, ok = v.(time.Time); ok {
 			o.creationTimeIsLoaded = true
 		} else {
-			panic("Wrong type found for creation_time.")
+			panic("Wrong type found for creationTime.")
 		}
 	} else {
 		o.creationTimeIsLoaded = false
 		o.creationTime = time.Time{}
 	}
 
-	if v, ok := m["modified_time"]; ok && v != nil {
+	if v, ok := m["modifiedTime"]; ok && v != nil {
 		if o.modifiedTime, ok = v.(time.Time); ok {
 			o.modifiedTimeIsLoaded = true
 		} else {
-			panic("Wrong type found for modified_time.")
+			panic("Wrong type found for modifiedTime.")
 		}
 	} else {
 		o.modifiedTimeIsLoaded = false
 		o.modifiedTime = time.Time{}
 	}
 
-	if v, ok := m["test_int"]; ok {
+	if v, ok := m["testInt"]; ok {
 		if v == nil {
 			o.testInt = 5
 			o.testIntIsNull = true
@@ -1320,7 +1320,7 @@ func (o *typeTestBase) unpack(m map[string]interface{}, objThis *TypeTest) {
 			o.testIntIsLoaded = true
 			o.testIntIsDirty = false
 		} else {
-			panic("Wrong type found for test_int.")
+			panic("Wrong type found for testInt.")
 		}
 	} else {
 		o.testIntIsLoaded = false
@@ -1329,12 +1329,12 @@ func (o *typeTestBase) unpack(m map[string]interface{}, objThis *TypeTest) {
 		o.testIntIsDirty = false
 	}
 
-	if v, ok := m["test_unsigned"]; ok && v != nil {
+	if v, ok := m["testUnsigned"]; ok && v != nil {
 		if o.testUnsigned, ok = v.(uint); ok {
 			o.testUnsignedIsLoaded = true
 			o.testUnsignedIsDirty = false
 		} else {
-			panic("Wrong type found for test_unsigned.")
+			panic("Wrong type found for testUnsigned.")
 		}
 	} else {
 		o.testUnsignedIsLoaded = false
@@ -1342,12 +1342,12 @@ func (o *typeTestBase) unpack(m map[string]interface{}, objThis *TypeTest) {
 		o.testUnsignedIsDirty = false
 	}
 
-	if v, ok := m["test_int64"]; ok && v != nil {
+	if v, ok := m["testInt64"]; ok && v != nil {
 		if o.testInt64, ok = v.(int64); ok {
 			o.testInt64IsLoaded = true
 			o.testInt64IsDirty = false
 		} else {
-			panic("Wrong type found for test_int64.")
+			panic("Wrong type found for testInt64.")
 		}
 	} else {
 		o.testInt64IsLoaded = false
@@ -1355,12 +1355,12 @@ func (o *typeTestBase) unpack(m map[string]interface{}, objThis *TypeTest) {
 		o.testInt64IsDirty = false
 	}
 
-	if v, ok := m["test_uint64"]; ok && v != nil {
+	if v, ok := m["testUint64"]; ok && v != nil {
 		if o.testUint64, ok = v.(uint64); ok {
 			o.testUint64IsLoaded = true
 			o.testUint64IsDirty = false
 		} else {
-			panic("Wrong type found for test_uint64.")
+			panic("Wrong type found for testUint64.")
 		}
 	} else {
 		o.testUint64IsLoaded = false
@@ -1368,7 +1368,7 @@ func (o *typeTestBase) unpack(m map[string]interface{}, objThis *TypeTest) {
 		o.testUint64IsDirty = false
 	}
 
-	if v, ok := m["test_float32"]; ok {
+	if v, ok := m["testFloat32"]; ok {
 		if v == nil {
 			o.testFloat32 = 0
 			o.testFloat32IsNull = true
@@ -1379,7 +1379,7 @@ func (o *typeTestBase) unpack(m map[string]interface{}, objThis *TypeTest) {
 			o.testFloat32IsLoaded = true
 			o.testFloat32IsDirty = false
 		} else {
-			panic("Wrong type found for test_float32.")
+			panic("Wrong type found for testFloat32.")
 		}
 	} else {
 		o.testFloat32IsLoaded = false
@@ -1388,12 +1388,12 @@ func (o *typeTestBase) unpack(m map[string]interface{}, objThis *TypeTest) {
 		o.testFloat32IsDirty = false
 	}
 
-	if v, ok := m["test_float64"]; ok && v != nil {
+	if v, ok := m["testFloat64"]; ok && v != nil {
 		if o.testFloat64, ok = v.(float64); ok {
 			o.testFloat64IsLoaded = true
 			o.testFloat64IsDirty = false
 		} else {
-			panic("Wrong type found for test_float64.")
+			panic("Wrong type found for testFloat64.")
 		}
 	} else {
 		o.testFloat64IsLoaded = false
@@ -1401,12 +1401,12 @@ func (o *typeTestBase) unpack(m map[string]interface{}, objThis *TypeTest) {
 		o.testFloat64IsDirty = false
 	}
 
-	if v, ok := m["test_numeric"]; ok && v != nil {
+	if v, ok := m["testNumeric"]; ok && v != nil {
 		if o.testNumeric, ok = v.(string); ok {
 			o.testNumericIsLoaded = true
 			o.testNumericIsDirty = false
 		} else {
-			panic("Wrong type found for test_numeric.")
+			panic("Wrong type found for testNumeric.")
 		}
 	} else {
 		o.testNumericIsLoaded = false
@@ -1414,12 +1414,12 @@ func (o *typeTestBase) unpack(m map[string]interface{}, objThis *TypeTest) {
 		o.testNumericIsDirty = false
 	}
 
-	if v, ok := m["test_bool"]; ok && v != nil {
+	if v, ok := m["testBool"]; ok && v != nil {
 		if o.testBool, ok = v.(bool); ok {
 			o.testBoolIsLoaded = true
 			o.testBoolIsDirty = false
 		} else {
-			panic("Wrong type found for test_bool.")
+			panic("Wrong type found for testBool.")
 		}
 	} else {
 		o.testBoolIsLoaded = false
@@ -1427,12 +1427,12 @@ func (o *typeTestBase) unpack(m map[string]interface{}, objThis *TypeTest) {
 		o.testBoolIsDirty = false
 	}
 
-	if v, ok := m["test_unlimited_string"]; ok && v != nil {
+	if v, ok := m["testUnlimitedString"]; ok && v != nil {
 		if o.testUnlimitedString, ok = v.(string); ok {
 			o.testUnlimitedStringIsLoaded = true
 			o.testUnlimitedStringIsDirty = false
 		} else {
-			panic("Wrong type found for test_unlimited_string.")
+			panic("Wrong type found for testUnlimitedString.")
 		}
 	} else {
 		o.testUnlimitedStringIsLoaded = false
@@ -1440,12 +1440,12 @@ func (o *typeTestBase) unpack(m map[string]interface{}, objThis *TypeTest) {
 		o.testUnlimitedStringIsDirty = false
 	}
 
-	if v, ok := m["test_limited_string"]; ok && v != nil {
+	if v, ok := m["testLimitedString"]; ok && v != nil {
 		if o.testLimitedString, ok = v.(string); ok {
 			o.testLimitedStringIsLoaded = true
 			o.testLimitedStringIsDirty = false
 		} else {
-			panic("Wrong type found for test_limited_string.")
+			panic("Wrong type found for testLimitedString.")
 		}
 	} else {
 		o.testLimitedStringIsLoaded = false
@@ -1453,12 +1453,12 @@ func (o *typeTestBase) unpack(m map[string]interface{}, objThis *TypeTest) {
 		o.testLimitedStringIsDirty = false
 	}
 
-	if v, ok := m["test_longstring"]; ok && v != nil {
+	if v, ok := m["testLongstring"]; ok && v != nil {
 		if o.testLongstring, ok = v.(string); ok {
 			o.testLongstringIsLoaded = true
 			o.testLongstringIsDirty = false
 		} else {
-			panic("Wrong type found for test_longstring.")
+			panic("Wrong type found for testLongstring.")
 		}
 	} else {
 		o.testLongstringIsLoaded = false
@@ -1466,12 +1466,12 @@ func (o *typeTestBase) unpack(m map[string]interface{}, objThis *TypeTest) {
 		o.testLongstringIsDirty = false
 	}
 
-	if v, ok := m["test_unlimited_bytes"]; ok && v != nil {
+	if v, ok := m["testUnlimitedBytes"]; ok && v != nil {
 		if o.testUnlimitedBytes, ok = v.([]byte); ok {
 			o.testUnlimitedBytesIsLoaded = true
 			o.testUnlimitedBytesIsDirty = false
 		} else {
-			panic("Wrong type found for test_unlimited_bytes.")
+			panic("Wrong type found for testUnlimitedBytes.")
 		}
 	} else {
 		o.testUnlimitedBytesIsLoaded = false
@@ -1479,12 +1479,12 @@ func (o *typeTestBase) unpack(m map[string]interface{}, objThis *TypeTest) {
 		o.testUnlimitedBytesIsDirty = false
 	}
 
-	if v, ok := m["test_limited_bytes"]; ok && v != nil {
+	if v, ok := m["testLimitedBytes"]; ok && v != nil {
 		if o.testLimitedBytes, ok = v.([]byte); ok {
 			o.testLimitedBytesIsLoaded = true
 			o.testLimitedBytesIsDirty = false
 		} else {
-			panic("Wrong type found for test_limited_bytes.")
+			panic("Wrong type found for testLimitedBytes.")
 		}
 	} else {
 		o.testLimitedBytesIsLoaded = false
@@ -1492,12 +1492,12 @@ func (o *typeTestBase) unpack(m map[string]interface{}, objThis *TypeTest) {
 		o.testLimitedBytesIsDirty = false
 	}
 
-	if v, ok := m["type_long_bytes"]; ok && v != nil {
+	if v, ok := m["typeLongBytes"]; ok && v != nil {
 		if o.typeLongBytes, ok = v.([]byte); ok {
 			o.typeLongBytesIsLoaded = true
 			o.typeLongBytesIsDirty = false
 		} else {
-			panic("Wrong type found for type_long_bytes.")
+			panic("Wrong type found for typeLongBytes.")
 		}
 	} else {
 		o.typeLongBytesIsLoaded = false

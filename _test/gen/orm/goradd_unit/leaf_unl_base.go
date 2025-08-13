@@ -604,18 +604,18 @@ func (o *leafUnlBase) unpack(m map[string]interface{}, objThis *LeafUnl) {
 		o.nameIsDirty = false
 	}
 
-	if v, ok := m["gro_lock"]; ok && v != nil {
+	if v, ok := m["groLock"]; ok && v != nil {
 		if o.groLock, ok = v.(int64); ok {
 			o.groLockIsLoaded = true
 		} else {
-			panic("Wrong type found for gro_lock.")
+			panic("Wrong type found for groLock.")
 		}
 	} else {
 		o.groLockIsLoaded = false
 		o.groLock = 0
 	}
 
-	if v, ok := m["root_unl_id"]; ok {
+	if v, ok := m["rootUnlID"]; ok {
 		if v == nil {
 			o.rootUnlID = ""
 			o.rootUnlIDIsNull = true
@@ -626,7 +626,7 @@ func (o *leafUnlBase) unpack(m map[string]interface{}, objThis *LeafUnl) {
 			o.rootUnlIDIsLoaded = true
 			o.rootUnlIDIsDirty = false
 		} else {
-			panic("Wrong type found for root_unl_id.")
+			panic("Wrong type found for rootUnlID.")
 		}
 	} else {
 		o.rootUnlIDIsLoaded = false

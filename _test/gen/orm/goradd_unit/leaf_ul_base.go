@@ -566,23 +566,23 @@ func (o *leafUlBase) unpack(m map[string]interface{}, objThis *LeafUl) {
 		o.nameIsDirty = false
 	}
 
-	if v, ok := m["gro_lock"]; ok && v != nil {
+	if v, ok := m["groLock"]; ok && v != nil {
 		if o.groLock, ok = v.(int64); ok {
 			o.groLockIsLoaded = true
 		} else {
-			panic("Wrong type found for gro_lock.")
+			panic("Wrong type found for groLock.")
 		}
 	} else {
 		o.groLockIsLoaded = false
 		o.groLock = 0
 	}
 
-	if v, ok := m["root_ul_id"]; ok && v != nil {
+	if v, ok := m["rootUlID"]; ok && v != nil {
 		if o.rootUlID, ok = v.(string); ok {
 			o.rootUlIDIsLoaded = true
 			o.rootUlIDIsDirty = false
 		} else {
-			panic("Wrong type found for root_ul_id.")
+			panic("Wrong type found for rootUlID.")
 		}
 	} else {
 		o.rootUlIDIsLoaded = false

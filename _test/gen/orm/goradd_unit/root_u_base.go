@@ -677,7 +677,7 @@ func (o *rootUBase) Delete(ctx context.Context) (err error) {
 
 		{
 			obj, err := QueryLeafUs(ctx).
-				Where(op.Equal(node.LeafU().RootU(), o._originalPK)).
+				Where(op.Equal(node.LeafU().RootU().PrimaryKey(), o._originalPK)).
 				Get()
 			if err != nil {
 				return err

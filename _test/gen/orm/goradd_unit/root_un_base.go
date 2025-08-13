@@ -679,7 +679,7 @@ func (o *rootUnBase) Delete(ctx context.Context) (err error) {
 		{
 			// Set the related objects pointer to us to NULL in the database
 			obj, err := QueryLeafUns(ctx).
-				Where(op.Equal(node.LeafUn().RootUn(), o._originalPK)).
+				Where(op.Equal(node.LeafUn().RootUn().PrimaryKey(), o._originalPK)).
 				Select(node.LeafUn().RootUn()).
 				Get()
 			if err != nil {

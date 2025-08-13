@@ -2,10 +2,11 @@ package query
 
 import (
 	"context"
+	"testing"
+
 	"github.com/goradd/orm/_test/gen/orm/goradd"
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestUniquePrimaryKey(t *testing.T) {
@@ -30,6 +31,14 @@ func TestUniqueValue(t *testing.T) {
 	err = login.Save(ctx)
 	assert.Error(t, err)
 }
+
+/*
+func TestAlot(t *testing.T) {
+	for i := 0; i < 1000; i++ {
+		TestUnique2Value(t)
+
+	}
+}*/
 
 func TestUnique2Value(t *testing.T) {
 	ctx := context.Background()

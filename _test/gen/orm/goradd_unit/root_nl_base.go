@@ -531,11 +531,11 @@ func (o *rootNlBase) unpack(m map[string]interface{}, objThis *RootNl) {
 		o.nameIsDirty = false
 	}
 
-	if v, ok := m["gro_lock"]; ok && v != nil {
+	if v, ok := m["groLock"]; ok && v != nil {
 		if o.groLock, ok = v.(int64); ok {
 			o.groLockIsLoaded = true
 		} else {
-			panic("Wrong type found for gro_lock.")
+			panic("Wrong type found for groLock.")
 		}
 	} else {
 		o.groLockIsLoaded = false
@@ -769,7 +769,7 @@ func (o *rootNlBase) Delete(ctx context.Context) (err error) {
 
 		{
 			objs, err := QueryLeafNls(ctx).
-				Where(op.Equal(node.LeafNl().RootNl(), o._originalPK)).
+				Where(op.Equal(node.LeafNl().RootNl().PrimaryKey(), o._originalPK)).
 				Select(node.LeafNl().RootNl()).
 				Select(node.LeafNl().GroLock()).
 				Load()

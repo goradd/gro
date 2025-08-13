@@ -4,7 +4,7 @@
 }}
 {{
 
-	if v, ok := m["{{= col.QueryName }}"]; ok {
+	if v, ok := m["{{= col.Field }}"]; ok {
 		if v == nil {
 			o.{{= col.Field }} = {{= col.DefaultValueAsValue() }}
 			o.{{= col.Field }}IsNull = true
@@ -24,7 +24,7 @@
 			o.{{= col.Field }}IsDirty = false
 {{if}}
 		} else {
-			panic("Wrong type found for {{= col.QueryName }}.")
+			panic("Wrong type found for {{= col.Field }}.")
 		}
 	} else {
 		o.{{= col.Field }}IsLoaded = false

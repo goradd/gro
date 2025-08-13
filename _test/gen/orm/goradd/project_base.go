@@ -110,14 +110,11 @@ const (
 	ProjectTeamMembersField = `teamMembers`
 )
 
-const ProjectIDMaxLength = 32 // The number of runes the column can hold
 const ProjectNumMax = 2147483647
 const ProjectNumMin = -2147483648
-const ProjectNameMaxLength = 100     // The number of runes the column can hold
-const ProjectBudgetMaxLength = 14    // The number of runes the column can hold
-const ProjectSpentMaxLength = 14     // The number of runes the column can hold
-const ProjectManagerIDMaxLength = 32 // The number of runes the column can hold
-const ProjectParentIDMaxLength = 32  // The number of runes the column can hold
+const ProjectNameMaxLength = 100  // The number of runes the column can hold
+const ProjectBudgetMaxLength = 14 // The number of runes the column can hold
+const ProjectSpentMaxLength = 14  // The number of runes the column can hold
 
 // Initialize or re-initialize a Project database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
@@ -282,9 +279,6 @@ func (o *projectBase) IDIsLoaded() bool {
 func (o *projectBase) SetID(v string) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-	}
-	if utf8.RuneCountInString(v) > ProjectIDMaxLength {
-		panic("attempted to set Project.ID to a value larger than its maximum length in runes")
 	}
 	o.idIsLoaded = true
 	o.idIsDirty = true
@@ -641,9 +635,6 @@ func (o *projectBase) ManagerIDIsNull() bool {
 
 // SetManagerID sets the value of ManagerID in the object, to be saved later in the database using the Save() function.
 func (o *projectBase) SetManagerID(v string) {
-	if utf8.RuneCountInString(v) > ProjectManagerIDMaxLength {
-		panic("attempted to set Project.ManagerID to a value larger than its maximum length in runes")
-	}
 	if o._restored &&
 		o.managerIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.managerIDIsNull && // if the db value is null, force a set of value
@@ -696,9 +687,6 @@ func (o *projectBase) ParentIDIsNull() bool {
 
 // SetParentID sets the value of ParentID in the object, to be saved later in the database using the Save() function.
 func (o *projectBase) SetParentID(v string) {
-	if utf8.RuneCountInString(v) > ProjectParentIDMaxLength {
-		panic("attempted to set Project.ParentID to a value larger than its maximum length in runes")
-	}
 	if o._restored &&
 		o.parentIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.parentIDIsNull && // if the db value is null, force a set of value
@@ -1472,7 +1460,7 @@ func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 		o.descriptionIsDirty = false
 	}
 
-	if v, ok := m["start_date"]; ok {
+	if v, ok := m["startDate"]; ok {
 		if v == nil {
 			o.startDate = time.Time{}
 			o.startDateIsNull = true
@@ -1483,7 +1471,7 @@ func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 			o.startDateIsLoaded = true
 			o.startDateIsDirty = false
 		} else {
-			panic("Wrong type found for start_date.")
+			panic("Wrong type found for startDate.")
 		}
 	} else {
 		o.startDateIsLoaded = false
@@ -1492,7 +1480,7 @@ func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 		o.startDateIsDirty = false
 	}
 
-	if v, ok := m["end_date"]; ok {
+	if v, ok := m["endDate"]; ok {
 		if v == nil {
 			o.endDate = time.Time{}
 			o.endDateIsNull = true
@@ -1503,7 +1491,7 @@ func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 			o.endDateIsLoaded = true
 			o.endDateIsDirty = false
 		} else {
-			panic("Wrong type found for end_date.")
+			panic("Wrong type found for endDate.")
 		}
 	} else {
 		o.endDateIsLoaded = false
@@ -1552,7 +1540,7 @@ func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 		o.spentIsDirty = false
 	}
 
-	if v, ok := m["manager_id"]; ok {
+	if v, ok := m["managerID"]; ok {
 		if v == nil {
 			o.managerID = ""
 			o.managerIDIsNull = true
@@ -1563,7 +1551,7 @@ func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 			o.managerIDIsLoaded = true
 			o.managerIDIsDirty = false
 		} else {
-			panic("Wrong type found for manager_id.")
+			panic("Wrong type found for managerID.")
 		}
 	} else {
 		o.managerIDIsLoaded = false
@@ -1572,7 +1560,7 @@ func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 		o.managerIDIsDirty = false
 	}
 
-	if v, ok := m["parent_id"]; ok {
+	if v, ok := m["parentID"]; ok {
 		if v == nil {
 			o.parentID = ""
 			o.parentIDIsNull = true
@@ -1583,7 +1571,7 @@ func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 			o.parentIDIsLoaded = true
 			o.parentIDIsDirty = false
 		} else {
-			panic("Wrong type found for parent_id.")
+			panic("Wrong type found for parentID.")
 		}
 	} else {
 		o.parentIDIsLoaded = false
@@ -2159,7 +2147,7 @@ func (o *projectBase) Delete(ctx context.Context) (err error) {
 
 		{
 			objs, err := QueryProjects(ctx).
-				Where(op.Equal(node.Project().Parent(), o._originalPK)).
+				Where(op.Equal(node.Project().Parent().PrimaryKey(), o._originalPK)).
 				Select(node.Project().Parent()).
 				Load()
 			if err != nil {
@@ -2176,7 +2164,7 @@ func (o *projectBase) Delete(ctx context.Context) (err error) {
 
 		{
 			objs, err := QueryMilestones(ctx).
-				Where(op.Equal(node.Milestone().Project(), o._originalPK)).
+				Where(op.Equal(node.Milestone().Project().PrimaryKey(), o._originalPK)).
 				Load()
 			if err != nil {
 				return err

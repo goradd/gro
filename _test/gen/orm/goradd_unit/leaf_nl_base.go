@@ -777,18 +777,18 @@ func (o *leafNlBase) unpack(m map[string]interface{}, objThis *LeafNl) {
 		o.nameIsDirty = false
 	}
 
-	if v, ok := m["gro_lock"]; ok && v != nil {
+	if v, ok := m["groLock"]; ok && v != nil {
 		if o.groLock, ok = v.(int64); ok {
 			o.groLockIsLoaded = true
 		} else {
-			panic("Wrong type found for gro_lock.")
+			panic("Wrong type found for groLock.")
 		}
 	} else {
 		o.groLockIsLoaded = false
 		o.groLock = 0
 	}
 
-	if v, ok := m["root_nl_id"]; ok {
+	if v, ok := m["rootNlID"]; ok {
 		if v == nil {
 			o.rootNlID = ""
 			o.rootNlIDIsNull = true
@@ -799,7 +799,7 @@ func (o *leafNlBase) unpack(m map[string]interface{}, objThis *LeafNl) {
 			o.rootNlIDIsLoaded = true
 			o.rootNlIDIsDirty = false
 		} else {
-			panic("Wrong type found for root_nl_id.")
+			panic("Wrong type found for rootNlID.")
 		}
 	} else {
 		o.rootNlIDIsLoaded = false

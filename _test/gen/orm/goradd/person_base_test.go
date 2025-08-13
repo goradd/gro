@@ -130,11 +130,6 @@ func TestPerson_SetID(t *testing.T) {
 	obj.SetID("")
 	assert.EqualValues(t, "", obj.ID(), "set default")
 
-	// test panic on setting value larger than maximum size allowed
-	val = test.RandomValue[string](33)
-	assert.Panics(t, func() {
-		obj.SetID(val)
-	})
 }
 func TestPerson_SetFirstName(t *testing.T) {
 
@@ -515,8 +510,9 @@ func TestPerson_Count(t *testing.T) {
 	obj2, _ := LoadPerson(ctx, obj.PrimaryKey())
 	assert.Positive(t,
 		func() int {
-			i, _ := CountPeopleByLastName(ctx,
-				obj2.LastName())
+			i, _ := CountPeopleByLastNameFirstName(ctx,
+				obj2.LastName(),
+				obj2.FirstName())
 			return i
 		}())
 

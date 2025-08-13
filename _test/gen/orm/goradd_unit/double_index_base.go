@@ -659,12 +659,12 @@ func (o *doubleIndexBase) unpack(m map[string]interface{}, objThis *DoubleIndex)
 		o.idIsDirty = false
 	}
 
-	if v, ok := m["field_int"]; ok && v != nil {
+	if v, ok := m["fieldInt"]; ok && v != nil {
 		if o.fieldInt, ok = v.(int); ok {
 			o.fieldIntIsLoaded = true
 			o.fieldIntIsDirty = false
 		} else {
-			panic("Wrong type found for field_int.")
+			panic("Wrong type found for fieldInt.")
 		}
 	} else {
 		o.fieldIntIsLoaded = false
@@ -672,12 +672,12 @@ func (o *doubleIndexBase) unpack(m map[string]interface{}, objThis *DoubleIndex)
 		o.fieldIntIsDirty = false
 	}
 
-	if v, ok := m["field_string"]; ok && v != nil {
+	if v, ok := m["fieldString"]; ok && v != nil {
 		if o.fieldString, ok = v.(string); ok {
 			o.fieldStringIsLoaded = true
 			o.fieldStringIsDirty = false
 		} else {
-			panic("Wrong type found for field_string.")
+			panic("Wrong type found for fieldString.")
 		}
 	} else {
 		o.fieldStringIsLoaded = false
@@ -685,7 +685,7 @@ func (o *doubleIndexBase) unpack(m map[string]interface{}, objThis *DoubleIndex)
 		o.fieldStringIsDirty = false
 	}
 
-	if v, ok := m["field2_int"]; ok {
+	if v, ok := m["field2Int"]; ok {
 		if v == nil {
 			o.field2Int = 0
 			o.field2IntIsNull = true
@@ -696,7 +696,7 @@ func (o *doubleIndexBase) unpack(m map[string]interface{}, objThis *DoubleIndex)
 			o.field2IntIsLoaded = true
 			o.field2IntIsDirty = false
 		} else {
-			panic("Wrong type found for field2_int.")
+			panic("Wrong type found for field2Int.")
 		}
 	} else {
 		o.field2IntIsLoaded = false
@@ -705,7 +705,7 @@ func (o *doubleIndexBase) unpack(m map[string]interface{}, objThis *DoubleIndex)
 		o.field2IntIsDirty = false
 	}
 
-	if v, ok := m["field2_string"]; ok {
+	if v, ok := m["field2String"]; ok {
 		if v == nil {
 			o.field2String = ""
 			o.field2StringIsNull = true
@@ -716,7 +716,7 @@ func (o *doubleIndexBase) unpack(m map[string]interface{}, objThis *DoubleIndex)
 			o.field2StringIsLoaded = true
 			o.field2StringIsDirty = false
 		} else {
-			panic("Wrong type found for field2_string.")
+			panic("Wrong type found for field2String.")
 		}
 	} else {
 		o.field2StringIsLoaded = false

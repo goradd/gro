@@ -83,7 +83,6 @@ const (
 	PersonProjectsField       = `projects`
 )
 
-const PersonIDMaxLength = 32        // The number of runes the column can hold
 const PersonFirstNameMaxLength = 50 // The number of runes the column can hold
 const PersonLastNameMaxLength = 50  // The number of runes the column can hold
 
@@ -208,9 +207,6 @@ func (o *personBase) IDIsLoaded() bool {
 func (o *personBase) SetID(v string) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-	}
-	if utf8.RuneCountInString(v) > PersonIDMaxLength {
-		panic("attempted to set Person.ID to a value larger than its maximum length in runes")
 	}
 	o.idIsLoaded = true
 	o.idIsDirty = true
@@ -676,22 +672,24 @@ func HasPerson(ctx context.Context, pk string) (bool, error) {
 	return v > 0, err
 }
 
-// LoadPeopleByLastName queries Person objects by the given index values.
+// LoadPeopleByLastNameFirstName queries Person objects by the given index values.
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [PeopleBuilder.Select].
 // If you need a more elaborate query, use QueryPeople() to start a query builder.
-func LoadPeopleByLastName(ctx context.Context, lastName string, selectNodes ...query.Node) ([]*Person, error) {
+func LoadPeopleByLastNameFirstName(ctx context.Context, lastName string, firstName string, selectNodes ...query.Node) ([]*Person, error) {
 	q := queryPeople(ctx)
 	q = q.Where(op.Equal(node.Person().LastName(), lastName))
+	q = q.Where(op.Equal(node.Person().FirstName(), firstName))
 	return q.Select(selectNodes...).Load()
 }
 
-// HasPersonByLastName returns true if the
+// HasPersonByLastNameFirstName returns true if the
 // given index values exist in the database.
 // doc: type=Person
-func HasPersonByLastName(ctx context.Context, lastName string) (bool, error) {
+func HasPersonByLastNameFirstName(ctx context.Context, lastName string, firstName string) (bool, error) {
 	q := queryPeople(ctx)
 	q = q.Where(op.Equal(node.Person().LastName(), lastName))
+	q = q.Where(op.Equal(node.Person().FirstName(), firstName))
 	v, err := q.Count()
 	return v > 0, err
 }
@@ -898,13 +896,15 @@ func CountPeople(ctx context.Context) (int, error) {
 	return QueryPeople(ctx).Count()
 }
 
-// CountPeopleByLastName queries the database and returns the number of Person objects that
-// have lastName.
+// CountPeopleByLastNameFirstName queries the database and returns the number of Person objects that
+// have lastName and firstName.
 // doc: type=Person
-func CountPeopleByLastName(ctx context.Context, lastName string) (int, error) {
+func CountPeopleByLastNameFirstName(ctx context.Context, lastName string, firstName string) (int, error) {
 	v_lastName := lastName
+	v_firstName := firstName
 	return QueryPeople(ctx).
 		Where(op.Equal(node.Person().LastName(), v_lastName)).
+		Where(op.Equal(node.Person().FirstName(), v_firstName)).
 		Count()
 }
 
@@ -925,12 +925,12 @@ func (o *personBase) unpack(m map[string]interface{}, objThis *Person) {
 		o.idIsDirty = false
 	}
 
-	if v, ok := m["first_name"]; ok && v != nil {
+	if v, ok := m["firstName"]; ok && v != nil {
 		if o.firstName, ok = v.(string); ok {
 			o.firstNameIsLoaded = true
 			o.firstNameIsDirty = false
 		} else {
-			panic("Wrong type found for first_name.")
+			panic("Wrong type found for firstName.")
 		}
 	} else {
 		o.firstNameIsLoaded = false
@@ -938,12 +938,12 @@ func (o *personBase) unpack(m map[string]interface{}, objThis *Person) {
 		o.firstNameIsDirty = false
 	}
 
-	if v, ok := m["last_name"]; ok && v != nil {
+	if v, ok := m["lastName"]; ok && v != nil {
 		if o.lastName, ok = v.(string); ok {
 			o.lastNameIsLoaded = true
 			o.lastNameIsDirty = false
 		} else {
-			panic("Wrong type found for last_name.")
+			panic("Wrong type found for lastName.")
 		}
 	} else {
 		o.lastNameIsLoaded = false
@@ -951,7 +951,7 @@ func (o *personBase) unpack(m map[string]interface{}, objThis *Person) {
 		o.lastNameIsDirty = false
 	}
 
-	if v, ok := m["person_type"]; ok {
+	if v, ok := m["personType"]; ok {
 		if v == nil {
 			o.personType = 0
 			o.personTypeIsNull = true
@@ -963,7 +963,7 @@ func (o *personBase) unpack(m map[string]interface{}, objThis *Person) {
 			o.personTypeIsLoaded = true
 			o.personTypeIsDirty = false
 		} else {
-			panic("Wrong type found for person_type.")
+			panic("Wrong type found for personType.")
 		}
 	} else {
 		o.personTypeIsLoaded = false
@@ -1558,7 +1558,7 @@ func (o *personBase) Delete(ctx context.Context) (err error) {
 
 		{
 			objs, err := QueryProjects(ctx).
-				Where(op.Equal(node.Project().Manager(), o._originalPK)).
+				Where(op.Equal(node.Project().Manager().PrimaryKey(), o._originalPK)).
 				Select(node.Project().Manager()).
 				Load()
 			if err != nil {
@@ -1575,7 +1575,7 @@ func (o *personBase) Delete(ctx context.Context) (err error) {
 
 		{
 			objs, err := QueryAddresses(ctx).
-				Where(op.Equal(node.Address().Person(), o._originalPK)).
+				Where(op.Equal(node.Address().Person().PrimaryKey(), o._originalPK)).
 				Load()
 			if err != nil {
 				return err
@@ -1590,7 +1590,7 @@ func (o *personBase) Delete(ctx context.Context) (err error) {
 
 		{
 			obj, err := QueryEmployeeInfos(ctx).
-				Where(op.Equal(node.EmployeeInfo().Person(), o._originalPK)).
+				Where(op.Equal(node.EmployeeInfo().Person().PrimaryKey(), o._originalPK)).
 				Get()
 			if err != nil {
 				return err
@@ -1607,7 +1607,7 @@ func (o *personBase) Delete(ctx context.Context) (err error) {
 		{
 			// Set the related objects pointer to us to NULL in the database
 			obj, err := QueryLogins(ctx).
-				Where(op.Equal(node.Login().Person(), o._originalPK)).
+				Where(op.Equal(node.Login().Person().PrimaryKey(), o._originalPK)).
 				Select(node.Login().Person()).
 				Get()
 			if err != nil {

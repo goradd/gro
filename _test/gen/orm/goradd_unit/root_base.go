@@ -729,7 +729,7 @@ func (o *rootBase) Delete(ctx context.Context) (err error) {
 
 		{
 			objs, err := QueryLeafs(ctx).
-				Where(op.Equal(node.Leaf().Root(), o._originalPK)).
+				Where(op.Equal(node.Leaf().Root().PrimaryKey(), o._originalPK)).
 				Load()
 			if err != nil {
 				return err

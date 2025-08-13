@@ -56,7 +56,6 @@ const (
 	PersonWithLockGroTimestampField = `groTimestamp`
 )
 
-const PersonWithLockIDMaxLength = 32        // The number of runes the column can hold
 const PersonWithLockFirstNameMaxLength = 50 // The number of runes the column can hold
 const PersonWithLockLastNameMaxLength = 50  // The number of runes the column can hold
 
@@ -153,9 +152,6 @@ func (o *personWithLockBase) IDIsLoaded() bool {
 func (o *personWithLockBase) SetID(v string) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-	}
-	if utf8.RuneCountInString(v) > PersonWithLockIDMaxLength {
-		panic("attempted to set PersonWithLock.ID to a value larger than its maximum length in runes")
 	}
 	o.idIsLoaded = true
 	o.idIsDirty = true
@@ -501,12 +497,12 @@ func (o *personWithLockBase) unpack(m map[string]interface{}, objThis *PersonWit
 		o.idIsDirty = false
 	}
 
-	if v, ok := m["first_name"]; ok && v != nil {
+	if v, ok := m["firstName"]; ok && v != nil {
 		if o.firstName, ok = v.(string); ok {
 			o.firstNameIsLoaded = true
 			o.firstNameIsDirty = false
 		} else {
-			panic("Wrong type found for first_name.")
+			panic("Wrong type found for firstName.")
 		}
 	} else {
 		o.firstNameIsLoaded = false
@@ -514,12 +510,12 @@ func (o *personWithLockBase) unpack(m map[string]interface{}, objThis *PersonWit
 		o.firstNameIsDirty = false
 	}
 
-	if v, ok := m["last_name"]; ok && v != nil {
+	if v, ok := m["lastName"]; ok && v != nil {
 		if o.lastName, ok = v.(string); ok {
 			o.lastNameIsLoaded = true
 			o.lastNameIsDirty = false
 		} else {
-			panic("Wrong type found for last_name.")
+			panic("Wrong type found for lastName.")
 		}
 	} else {
 		o.lastNameIsLoaded = false
@@ -527,22 +523,22 @@ func (o *personWithLockBase) unpack(m map[string]interface{}, objThis *PersonWit
 		o.lastNameIsDirty = false
 	}
 
-	if v, ok := m["gro_lock"]; ok && v != nil {
+	if v, ok := m["groLock"]; ok && v != nil {
 		if o.groLock, ok = v.(int64); ok {
 			o.groLockIsLoaded = true
 		} else {
-			panic("Wrong type found for gro_lock.")
+			panic("Wrong type found for groLock.")
 		}
 	} else {
 		o.groLockIsLoaded = false
 		o.groLock = 0
 	}
 
-	if v, ok := m["gro_timestamp"]; ok && v != nil {
+	if v, ok := m["groTimestamp"]; ok && v != nil {
 		if o.groTimestamp, ok = v.(int64); ok {
 			o.groTimestampIsLoaded = true
 		} else {
-			panic("Wrong type found for gro_timestamp.")
+			panic("Wrong type found for groTimestamp.")
 		}
 	} else {
 		o.groTimestampIsLoaded = false

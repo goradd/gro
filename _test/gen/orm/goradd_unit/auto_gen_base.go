@@ -504,22 +504,22 @@ func (o *autoGenBase) unpack(m map[string]interface{}, objThis *AutoGen) {
 		o.idIsDirty = false
 	}
 
-	if v, ok := m["gro_lock"]; ok && v != nil {
+	if v, ok := m["groLock"]; ok && v != nil {
 		if o.groLock, ok = v.(int64); ok {
 			o.groLockIsLoaded = true
 		} else {
-			panic("Wrong type found for gro_lock.")
+			panic("Wrong type found for groLock.")
 		}
 	} else {
 		o.groLockIsLoaded = false
 		o.groLock = 0
 	}
 
-	if v, ok := m["gro_timestamp"]; ok && v != nil {
+	if v, ok := m["groTimestamp"]; ok && v != nil {
 		if o.groTimestamp, ok = v.(int64); ok {
 			o.groTimestampIsLoaded = true
 		} else {
-			panic("Wrong type found for gro_timestamp.")
+			panic("Wrong type found for groTimestamp.")
 		}
 	} else {
 		o.groTimestampIsLoaded = false

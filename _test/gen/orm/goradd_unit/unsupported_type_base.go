@@ -832,13 +832,13 @@ func CountUnsupportedTypesByTypeMultFk1TypeMultiFk2(ctx context.Context, typeMul
 // unpack recursively transforms data coming from the database into ORM objects.
 func (o *unsupportedTypeBase) unpack(m map[string]interface{}, objThis *UnsupportedType) {
 
-	if v, ok := m["type_serial"]; ok && v != nil {
+	if v, ok := m["typeSerial"]; ok && v != nil {
 		if o.typeSerial, ok = v.(uint64); ok {
 			o.typeSerialIsLoaded = true
 			o.typeSerialIsDirty = false
 			o._originalPK = o.typeSerial
 		} else {
-			panic("Wrong type found for type_serial.")
+			panic("Wrong type found for typeSerial.")
 		}
 	} else {
 		o.typeSerialIsLoaded = false
@@ -846,12 +846,12 @@ func (o *unsupportedTypeBase) unpack(m map[string]interface{}, objThis *Unsuppor
 		o.typeSerialIsDirty = false
 	}
 
-	if v, ok := m["type_set"]; ok && v != nil {
+	if v, ok := m["typeSet"]; ok && v != nil {
 		if o.typeSet, ok = v.([]byte); ok {
 			o.typeSetIsLoaded = true
 			o.typeSetIsDirty = false
 		} else {
-			panic("Wrong type found for type_set.")
+			panic("Wrong type found for typeSet.")
 		}
 	} else {
 		o.typeSetIsLoaded = false
@@ -859,12 +859,12 @@ func (o *unsupportedTypeBase) unpack(m map[string]interface{}, objThis *Unsuppor
 		o.typeSetIsDirty = false
 	}
 
-	if v, ok := m["type_enumerated"]; ok && v != nil {
+	if v, ok := m["typeEnumerated"]; ok && v != nil {
 		if o.typeEnumerated, ok = v.([]byte); ok {
 			o.typeEnumeratedIsLoaded = true
 			o.typeEnumeratedIsDirty = false
 		} else {
-			panic("Wrong type found for type_enumerated.")
+			panic("Wrong type found for typeEnumerated.")
 		}
 	} else {
 		o.typeEnumeratedIsLoaded = false
@@ -872,12 +872,12 @@ func (o *unsupportedTypeBase) unpack(m map[string]interface{}, objThis *Unsuppor
 		o.typeEnumeratedIsDirty = false
 	}
 
-	if v, ok := m["type_geo"]; ok && v != nil {
+	if v, ok := m["typeGeo"]; ok && v != nil {
 		if o.typeGeo, ok = v.([]byte); ok {
 			o.typeGeoIsLoaded = true
 			o.typeGeoIsDirty = false
 		} else {
-			panic("Wrong type found for type_geo.")
+			panic("Wrong type found for typeGeo.")
 		}
 	} else {
 		o.typeGeoIsLoaded = false
@@ -885,12 +885,12 @@ func (o *unsupportedTypeBase) unpack(m map[string]interface{}, objThis *Unsuppor
 		o.typeGeoIsDirty = false
 	}
 
-	if v, ok := m["type_tinyblob"]; ok && v != nil {
+	if v, ok := m["typeTinyblob"]; ok && v != nil {
 		if o.typeTinyblob, ok = v.([]byte); ok {
 			o.typeTinyblobIsLoaded = true
 			o.typeTinyblobIsDirty = false
 		} else {
-			panic("Wrong type found for type_tinyblob.")
+			panic("Wrong type found for typeTinyblob.")
 		}
 	} else {
 		o.typeTinyblobIsLoaded = false
@@ -898,12 +898,12 @@ func (o *unsupportedTypeBase) unpack(m map[string]interface{}, objThis *Unsuppor
 		o.typeTinyblobIsDirty = false
 	}
 
-	if v, ok := m["type_binary"]; ok && v != nil {
+	if v, ok := m["typeBinary"]; ok && v != nil {
 		if o.typeBinary, ok = v.([]byte); ok {
 			o.typeBinaryIsLoaded = true
 			o.typeBinaryIsDirty = false
 		} else {
-			panic("Wrong type found for type_binary.")
+			panic("Wrong type found for typeBinary.")
 		}
 	} else {
 		o.typeBinaryIsLoaded = false
@@ -911,12 +911,12 @@ func (o *unsupportedTypeBase) unpack(m map[string]interface{}, objThis *Unsuppor
 		o.typeBinaryIsDirty = false
 	}
 
-	if v, ok := m["type_small"]; ok && v != nil {
+	if v, ok := m["typeSmall"]; ok && v != nil {
 		if o.typeSmall, ok = v.(int); ok {
 			o.typeSmallIsLoaded = true
 			o.typeSmallIsDirty = false
 		} else {
-			panic("Wrong type found for type_small.")
+			panic("Wrong type found for typeSmall.")
 		}
 	} else {
 		o.typeSmallIsLoaded = false
@@ -924,12 +924,12 @@ func (o *unsupportedTypeBase) unpack(m map[string]interface{}, objThis *Unsuppor
 		o.typeSmallIsDirty = false
 	}
 
-	if v, ok := m["type_medium"]; ok && v != nil {
+	if v, ok := m["typeMedium"]; ok && v != nil {
 		if o.typeMedium, ok = v.(int); ok {
 			o.typeMediumIsLoaded = true
 			o.typeMediumIsDirty = false
 		} else {
-			panic("Wrong type found for type_medium.")
+			panic("Wrong type found for typeMedium.")
 		}
 	} else {
 		o.typeMediumIsLoaded = false
@@ -937,12 +937,12 @@ func (o *unsupportedTypeBase) unpack(m map[string]interface{}, objThis *Unsuppor
 		o.typeMediumIsDirty = false
 	}
 
-	if v, ok := m["type_polygon"]; ok && v != nil {
+	if v, ok := m["typePolygon"]; ok && v != nil {
 		if o.typePolygon, ok = v.([]byte); ok {
 			o.typePolygonIsLoaded = true
 			o.typePolygonIsDirty = false
 		} else {
-			panic("Wrong type found for type_polygon.")
+			panic("Wrong type found for typePolygon.")
 		}
 	} else {
 		o.typePolygonIsLoaded = false
@@ -950,12 +950,12 @@ func (o *unsupportedTypeBase) unpack(m map[string]interface{}, objThis *Unsuppor
 		o.typePolygonIsDirty = false
 	}
 
-	if v, ok := m["type_mult_fk1"]; ok && v != nil {
+	if v, ok := m["typeMultFk1"]; ok && v != nil {
 		if o.typeMultFk1, ok = v.(string); ok {
 			o.typeMultFk1IsLoaded = true
 			o.typeMultFk1IsDirty = false
 		} else {
-			panic("Wrong type found for type_mult_fk1.")
+			panic("Wrong type found for typeMultFk1.")
 		}
 	} else {
 		o.typeMultFk1IsLoaded = false
@@ -963,12 +963,12 @@ func (o *unsupportedTypeBase) unpack(m map[string]interface{}, objThis *Unsuppor
 		o.typeMultFk1IsDirty = false
 	}
 
-	if v, ok := m["type_multi_fk2"]; ok && v != nil {
+	if v, ok := m["typeMultiFk2"]; ok && v != nil {
 		if o.typeMultiFk2, ok = v.(string); ok {
 			o.typeMultiFk2IsLoaded = true
 			o.typeMultiFk2IsDirty = false
 		} else {
-			panic("Wrong type found for type_multi_fk2.")
+			panic("Wrong type found for typeMultiFk2.")
 		}
 	} else {
 		o.typeMultiFk2IsLoaded = false

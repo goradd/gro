@@ -502,11 +502,11 @@ func (o *rootUnlBase) unpack(m map[string]interface{}, objThis *RootUnl) {
 		o.nameIsDirty = false
 	}
 
-	if v, ok := m["gro_lock"]; ok && v != nil {
+	if v, ok := m["groLock"]; ok && v != nil {
 		if o.groLock, ok = v.(int64); ok {
 			o.groLockIsLoaded = true
 		} else {
-			panic("Wrong type found for gro_lock.")
+			panic("Wrong type found for groLock.")
 		}
 	} else {
 		o.groLockIsLoaded = false
@@ -720,7 +720,7 @@ func (o *rootUnlBase) Delete(ctx context.Context) (err error) {
 		{
 			// Set the related objects pointer to us to NULL in the database
 			obj, err := QueryLeafUnls(ctx).
-				Where(op.Equal(node.LeafUnl().RootUnl(), o._originalPK)).
+				Where(op.Equal(node.LeafUnl().RootUnl().PrimaryKey(), o._originalPK)).
 				Select(node.LeafUnl().RootUnl()).
 				Select(node.LeafUnl().GroLock()).
 				Get()

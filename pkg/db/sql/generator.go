@@ -2,11 +2,12 @@ package sql
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/goradd/anyutil"
 	"github.com/goradd/iter"
 	"github.com/goradd/orm/pkg/db/jointree"
 	. "github.com/goradd/orm/pkg/query"
-	"strings"
 )
 
 type operationSqler interface {
@@ -139,12 +140,12 @@ func (g *sqlGenerator) generateNodeSql(n Node, useAlias bool) (sql string) {
 	case *SubqueryNode:
 		//sql = g.generateSubquerySql(node)
 	case TableNodeI:
-		tj := g.jt.FindElement(node)
-		var l []string
-		for _, pk := range node.PrimaryKeys() {
-			l = append(l, g.generateColumnNodeSql(tj.Alias, pk))
+		if len(node.PrimaryKeys()) > 1 {
+			panic("cannot use a table node for a table with a composite key as a value")
 		}
-		sql = strings.Join(l, ",")
+		tj := g.jt.FindElement(node)
+		pkNode := node.PrimaryKeys()[0]
+		sql = g.generateColumnNodeSql(tj.Alias, pkNode)
 	default:
 		panic("Can't generate sql from node type.")
 	}

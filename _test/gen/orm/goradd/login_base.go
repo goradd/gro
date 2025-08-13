@@ -67,7 +67,6 @@ const (
 const LoginIDMaxLength = 32       // The number of runes the column can hold
 const LoginUsernameMaxLength = 20 // The number of runes the column can hold
 const LoginPasswordMaxLength = 20 // The number of runes the column can hold
-const LoginPersonIDMaxLength = 32 // The number of runes the column can hold
 
 // Initialize or re-initialize a Login database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
@@ -307,9 +306,6 @@ func (o *loginBase) PersonIDIsNull() bool {
 
 // SetPersonID sets the value of PersonID in the object, to be saved later in the database using the Save() function.
 func (o *loginBase) SetPersonID(v string) {
-	if utf8.RuneCountInString(v) > LoginPersonIDMaxLength {
-		panic("attempted to set Login.PersonID to a value larger than its maximum length in runes")
-	}
 	if o._restored &&
 		o.personIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.personIDIsNull && // if the db value is null, force a set of value
@@ -737,12 +733,12 @@ func (o *loginBase) unpack(m map[string]interface{}, objThis *Login) {
 		o.passwordIsDirty = false
 	}
 
-	if v, ok := m["is_enabled"]; ok && v != nil {
+	if v, ok := m["isEnabled"]; ok && v != nil {
 		if o.isEnabled, ok = v.(bool); ok {
 			o.isEnabledIsLoaded = true
 			o.isEnabledIsDirty = false
 		} else {
-			panic("Wrong type found for is_enabled.")
+			panic("Wrong type found for isEnabled.")
 		}
 	} else {
 		o.isEnabledIsLoaded = false
@@ -750,7 +746,7 @@ func (o *loginBase) unpack(m map[string]interface{}, objThis *Login) {
 		o.isEnabledIsDirty = false
 	}
 
-	if v, ok := m["person_id"]; ok {
+	if v, ok := m["personID"]; ok {
 		if v == nil {
 			o.personID = ""
 			o.personIDIsNull = true
@@ -761,7 +757,7 @@ func (o *loginBase) unpack(m map[string]interface{}, objThis *Login) {
 			o.personIDIsLoaded = true
 			o.personIDIsDirty = false
 		} else {
-			panic("Wrong type found for person_id.")
+			panic("Wrong type found for personID.")
 		}
 	} else {
 		o.personIDIsLoaded = false

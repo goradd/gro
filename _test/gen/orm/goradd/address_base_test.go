@@ -148,7 +148,7 @@ func TestAddress_SetPersonID(t *testing.T) {
 	obj := NewAddress()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[string](32)
+	val := test.RandomValue[string](0)
 	obj.SetPersonID(val)
 	assert.Equal(t, val, obj.PersonID())
 
@@ -156,11 +156,6 @@ func TestAddress_SetPersonID(t *testing.T) {
 	obj.SetPersonID("")
 	assert.EqualValues(t, "", obj.PersonID(), "set default")
 
-	// test panic on setting value larger than maximum size allowed
-	val = test.RandomValue[string](33)
-	assert.Panics(t, func() {
-		obj.SetPersonID(val)
-	})
 }
 
 func TestAddress_Copy(t *testing.T) {

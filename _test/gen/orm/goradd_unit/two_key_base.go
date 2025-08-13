@@ -481,12 +481,12 @@ func (o *twoKeyBase) unpack(m map[string]interface{}, objThis *TwoKey) {
 		o.directoryIsDirty = false
 	}
 
-	if v, ok := m["file_name"]; ok && v != nil {
+	if v, ok := m["fileName"]; ok && v != nil {
 		if o.fileName, ok = v.(string); ok {
 			o.fileNameIsLoaded = true
 			o.fileNameIsDirty = false
 		} else {
-			panic("Wrong type found for file_name.")
+			panic("Wrong type found for fileName.")
 		}
 	} else {
 		o.fileNameIsLoaded = false

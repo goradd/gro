@@ -500,11 +500,11 @@ func (o *rootUlBase) unpack(m map[string]interface{}, objThis *RootUl) {
 		o.nameIsDirty = false
 	}
 
-	if v, ok := m["gro_lock"]; ok && v != nil {
+	if v, ok := m["groLock"]; ok && v != nil {
 		if o.groLock, ok = v.(int64); ok {
 			o.groLockIsLoaded = true
 		} else {
-			panic("Wrong type found for gro_lock.")
+			panic("Wrong type found for groLock.")
 		}
 	} else {
 		o.groLockIsLoaded = false
@@ -718,7 +718,7 @@ func (o *rootUlBase) Delete(ctx context.Context) (err error) {
 
 		{
 			obj, err := QueryLeafUls(ctx).
-				Where(op.Equal(node.LeafUl().RootUl(), o._originalPK)).
+				Where(op.Equal(node.LeafUl().RootUl().PrimaryKey(), o._originalPK)).
 				Get()
 			if err != nil {
 				return err

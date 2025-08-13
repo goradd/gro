@@ -54,9 +54,8 @@ const (
 	MilestoneProjectField   = `project`
 )
 
-const MilestoneIDMaxLength = 32        // The number of runes the column can hold
-const MilestoneNameMaxLength = 50      // The number of runes the column can hold
-const MilestoneProjectIDMaxLength = 32 // The number of runes the column can hold
+const MilestoneIDMaxLength = 32   // The number of runes the column can hold
+const MilestoneNameMaxLength = 50 // The number of runes the column can hold
 
 // Initialize or re-initialize a Milestone database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
@@ -199,9 +198,6 @@ func (o *milestoneBase) ProjectIDIsLoaded() bool {
 
 // SetProjectID sets the value of ProjectID in the object, to be saved later in the database using the Save() function.
 func (o *milestoneBase) SetProjectID(v string) {
-	if utf8.RuneCountInString(v) > MilestoneProjectIDMaxLength {
-		panic("attempted to set Milestone.ProjectID to a value larger than its maximum length in runes")
-	}
 	if o._restored &&
 		o.projectIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.projectID == v {
@@ -548,12 +544,12 @@ func (o *milestoneBase) unpack(m map[string]interface{}, objThis *Milestone) {
 		o.nameIsDirty = false
 	}
 
-	if v, ok := m["project_id"]; ok && v != nil {
+	if v, ok := m["projectID"]; ok && v != nil {
 		if o.projectID, ok = v.(string); ok {
 			o.projectIDIsLoaded = true
 			o.projectIDIsDirty = false
 		} else {
-			panic("Wrong type found for project_id.")
+			panic("Wrong type found for projectID.")
 		}
 	} else {
 		o.projectIDIsLoaded = false

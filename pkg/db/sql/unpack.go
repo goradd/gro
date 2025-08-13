@@ -3,11 +3,12 @@ package sql
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
+
 	"github.com/goradd/maps"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/db/jointree"
 	"github.com/goradd/orm/pkg/query"
-	"strconv"
 )
 
 // ReceiveRows gets data from a sql result set and returns it as a slice of maps.
@@ -181,7 +182,7 @@ func (u *unpacker) unpackLeaf(j *jointree.Element, row db.ValueMap, obj db.Value
 			return true
 		}
 
-		fieldName := node.QueryName
+		fieldName := node.Field
 		obj[fieldName] = row[key]
 	} else {
 		panic("Unexpected node type.") // this is a framework error, should not happen
@@ -193,7 +194,7 @@ func (u *unpacker) unpackLeaf(j *jointree.Element, row db.ValueMap, obj db.Value
 // in the result set, they can be grouped together within the parent object.
 // The key is used in subsequent calls to determine what row joined data belongs to.
 func (u *unpacker) makeObjectKey(tableElement *jointree.Element, row db.ValueMap) string {
-	pk := tableElement.PrimaryKey()
+	pk := tableElement.PrimaryKey() // Currently we do not support joining tables with composite keys, so this should work.
 
 	if pk == nil {
 		// We are not identifying the row by a PK because of one of the following:

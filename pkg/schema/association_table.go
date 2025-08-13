@@ -2,10 +2,11 @@ package schema
 
 import (
 	"fmt"
-	strings2 "github.com/goradd/strings"
-	"github.com/kenshaw/snaker"
 	"log/slog"
 	"strings"
+
+	strings2 "github.com/goradd/strings"
+	"github.com/kenshaw/snaker"
 )
 
 // AssociationReference describes a link from an association table.
@@ -128,6 +129,7 @@ func (t *AssociationTable) inferRef(db *Database, ref *AssociationReference) err
 func (t *AssociationTable) fillDefaults(db *Database) {
 	t.fillRefDefaults(db, &t.Ref1)
 	t.fillRefDefaults(db, &t.Ref2)
+
 }
 
 func (t *AssociationTable) fillRefDefaults(db *Database, ref *AssociationReference) {

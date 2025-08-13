@@ -162,7 +162,7 @@ func TestLogin_SetPersonID(t *testing.T) {
 	obj := NewLogin()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[string](32)
+	val := test.RandomValue[string](0)
 	obj.SetPersonID(val)
 	assert.Equal(t, val, obj.PersonID())
 	assert.False(t, obj.PersonIDIsNull())
@@ -176,11 +176,6 @@ func TestLogin_SetPersonID(t *testing.T) {
 	obj.SetPersonID("")
 	assert.EqualValues(t, "", obj.PersonID(), "set default")
 
-	// test panic on setting value larger than maximum size allowed
-	val = test.RandomValue[string](33)
-	assert.Panics(t, func() {
-		obj.SetPersonID(val)
-	})
 }
 
 func TestLogin_Copy(t *testing.T) {

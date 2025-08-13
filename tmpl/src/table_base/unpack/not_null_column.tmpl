@@ -4,7 +4,7 @@
 }}
 {{
 
-	if v, ok := m["{{= col.QueryName }}"]; ok && v != nil {
+	if v, ok := m["{{= col.Field }}"]; ok && v != nil {
 {{if col.IsEnum()}}
      	if i, ok2 := v.(int); ok2 {
            o.{{= col.Field }} = {{= col.Type }}(i)
@@ -23,7 +23,7 @@
 {{if}}
 {{if}}{{# IsAPrimaryKey }}
 		} else {
-			panic("Wrong type found for {{= col.QueryName }}.")
+			panic("Wrong type found for {{= col.Field }}.")
 		}
 	} else {
 		o.{{= col.Field }}IsLoaded = false

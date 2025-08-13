@@ -1,10 +1,11 @@
 package jointree
 
 import (
+	"iter"
+
 	iter2 "github.com/goradd/iter"
 	"github.com/goradd/maps"
 	"github.com/goradd/orm/pkg/query"
-	"iter"
 )
 
 // Element is used to build the join tree. The join tree creates a hierarchy of joined nodes that let us
@@ -106,7 +107,7 @@ func (j *Element) String() string {
 		s += ":" + tn
 	}
 	if c, ok := j.QueryNode.(*query.ColumnNode); ok {
-		s += ":" + c.QueryName
+		s += ":" + c.Field
 	}
 	if j.Alias != "" {
 		s += ":" + j.Alias

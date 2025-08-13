@@ -118,7 +118,7 @@ func TestMilestone_SetProjectID(t *testing.T) {
 	obj := NewMilestone()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[string](32)
+	val := test.RandomValue[string](0)
 	obj.SetProjectID(val)
 	assert.Equal(t, val, obj.ProjectID())
 
@@ -126,11 +126,6 @@ func TestMilestone_SetProjectID(t *testing.T) {
 	obj.SetProjectID("")
 	assert.EqualValues(t, "", obj.ProjectID(), "set default")
 
-	// test panic on setting value larger than maximum size allowed
-	val = test.RandomValue[string](33)
-	assert.Panics(t, func() {
-		obj.SetProjectID(val)
-	})
 }
 
 func TestMilestone_Copy(t *testing.T) {

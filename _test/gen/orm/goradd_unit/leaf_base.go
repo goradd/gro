@@ -547,12 +547,12 @@ func (o *leafBase) unpack(m map[string]interface{}, objThis *Leaf) {
 		o.nameIsDirty = false
 	}
 
-	if v, ok := m["root_id"]; ok && v != nil {
+	if v, ok := m["rootID"]; ok && v != nil {
 		if o.rootID, ok = v.(string); ok {
 			o.rootIDIsLoaded = true
 			o.rootIDIsDirty = false
 		} else {
-			panic("Wrong type found for root_id.")
+			panic("Wrong type found for rootID.")
 		}
 	} else {
 		o.rootIDIsLoaded = false
