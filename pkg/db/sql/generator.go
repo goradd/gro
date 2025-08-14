@@ -98,7 +98,7 @@ func (g *sqlGenerator) generateColumnNodeSql(parentAlias string, node Node) (sql
 
 	sb.WriteString(g.iq(parentAlias))
 	sb.WriteString(".")
-	sb.WriteString(g.iq(node.(*ColumnNode).QueryName))
+	sb.WriteString(g.iq(ColumnNodeQueryName(node)))
 
 	return sb.String()
 }
@@ -327,12 +327,6 @@ func (g *sqlGenerator) generateJoinSql(j *jointree.Element) (sql string) {
 		sb.WriteString(g.iq(j.Alias))
 		sb.WriteString(".")
 		sb.WriteString(g.iq(pk))
-		/*
-			if j.JoinCondition != nil {
-				s := g.generateNodeSql(j.JoinCondition, false)
-				sb.WriteString(" AND ")
-				sb.WriteString(s)
-			}*/
 	case ReverseNodeType:
 		rev := tn.(ReverseNodeI)
 		fk, pk := rev.ColumnNames()
@@ -353,12 +347,6 @@ func (g *sqlGenerator) generateJoinSql(j *jointree.Element) (sql string) {
 		sb.WriteString(g.iq(j.Alias))
 		sb.WriteString(".")
 		sb.WriteString(g.iq(fk))
-		/*
-			if j.JoinCondition != nil {
-				s := g.generateNodeSql(j.JoinCondition, false)
-				sb.WriteString(" AND ")
-				sb.WriteString(s)
-			}*/
 	case ManyManyNodeType:
 		mm := tn.(ManyManyNodeI)
 		fkp, pkp := mm.ParentColumnNames()
@@ -394,12 +382,6 @@ func (g *sqlGenerator) generateJoinSql(j *jointree.Element) (sql string) {
 		sb.WriteString(g.iq(j.Alias))
 		sb.WriteString(".")
 		sb.WriteString(g.iq(pkr))
-		/*
-			if j.JoinCondition != nil {
-				s := g.generateNodeSql(j.JoinCondition, false)
-				sb.WriteString(" AND ")
-				sb.WriteString(s)
-			}*/
 	default:
 		return
 	}

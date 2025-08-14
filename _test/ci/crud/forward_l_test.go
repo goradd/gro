@@ -3,12 +3,13 @@ package crud
 import (
 	"context"
 	"encoding/json"
+	"testing"
+
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit"
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 // TestForwardLock tests insert and update of two linked records that have an optimistic lock.
@@ -166,7 +167,8 @@ func TestForwardLockDelete(t *testing.T) {
 
 	// Collision on deep Delete
 	l2, err = goradd_unit.LoadLeafL(ctx, l.ID())
-	require.NoError(t, err)
+	assert.NoError(t, err)
+	require.NotNil(t, l2)
 	err = l.RootL().Delete(ctx)
 	require.NoError(t, err)
 	err = l2.Delete(ctx)

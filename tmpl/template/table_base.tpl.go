@@ -7281,7 +7281,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.Field); err != nil {
+			if _, err = io.WriteString(_w, col.QueryKey()); err != nil {
 				return
 			}
 
@@ -7528,7 +7528,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.Field); err != nil {
+			if _, err = io.WriteString(_w, col.QueryKey()); err != nil {
 				return
 			}
 
@@ -7756,7 +7756,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ref.Field); err != nil {
+		if _, err = io.WriteString(_w, ref.QueryKey()); err != nil {
 			return
 		}
 
@@ -7930,7 +7930,7 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, mm.Field); err != nil {
+		if _, err = io.WriteString(_w, mm.QueryKey()); err != nil {
 			return
 		}
 
@@ -8053,7 +8053,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseQueryKey()); err != nil {
 				return
 			}
 
@@ -8170,7 +8170,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, rev.ReverseField); err != nil {
+			if _, err = io.WriteString(_w, rev.ReverseQueryKey()); err != nil {
 				return
 			}
 
@@ -8276,7 +8276,7 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, fmt.Sprint(query.AliasResults)); err != nil {
+	if _, err = io.WriteString(_w, query.AliasResults); err != nil {
 		return
 	}
 

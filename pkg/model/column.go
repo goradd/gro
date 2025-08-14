@@ -2,13 +2,14 @@ package model
 
 import (
 	"fmt"
+	"log/slog"
+	"slices"
+	"time"
+
 	"github.com/goradd/orm/pkg/db"
 	. "github.com/goradd/orm/pkg/query"
 	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
-	"log/slog"
-	"slices"
-	"time"
 )
 
 const (
@@ -253,6 +254,11 @@ func (c *Column) DecimalScale() uint64 {
 // IsAutoPK returns true of the column is an auto-generated primary key.
 func (c *Column) IsAutoPK() bool {
 	return c.SchemaType == schema.ColTypeAutoPrimaryKey
+}
+
+// QueryKey returns the key used in query result sets that corresponds to this node.
+func (c *Column) QueryKey() string {
+	return c.Field
 }
 
 func (m *Database) importColumn(schemaCol *schema.Column) *Column {

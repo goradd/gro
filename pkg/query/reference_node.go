@@ -80,6 +80,6 @@ func init() {
 	gob.Register(&ReferenceNode{})
 }
 
-func (n *ReferenceNode) id() string {
+func (n *ReferenceNode) queryKey() string {
 	return n.Field
 }

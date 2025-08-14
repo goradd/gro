@@ -10,6 +10,9 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"path/filepath"
+	"runtime"
+
 	"github.com/go-sql-driver/mysql"
 	"github.com/goradd/orm/pkg/config"
 	"github.com/goradd/orm/pkg/db"
@@ -18,8 +21,6 @@ import (
 	"github.com/goradd/orm/pkg/db/sql/sqlite"
 	"github.com/goradd/orm/pkg/schema"
 	"github.com/jackc/pgx/v5"
-	"path/filepath"
-	"runtime"
 )
 
 // Default credentials for purposes of local development.
@@ -51,8 +52,8 @@ func InitDB() {
 	}
 
 	// pick a database to initialize here if no config file
-	initMysql()
-	//initPostgres()
+	//initMysql()
+	initPostgres()
 	//initSQLite()
 }
 

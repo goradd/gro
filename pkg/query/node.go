@@ -48,16 +48,20 @@ type container interface {
 	containedNodes() (nodes []Node)
 }
 
-// Node is the interface that all nodes must satisfy. A node is a representation of an object or a relationship
-// between objects in a database that we use to create a query. It lets us abstract the structure of a database
-// to be able to query any kind of database. Obviously, this doesn't work for all possible database structures, but
-// it generally works well enough to solve most of the situations that you will come across.
+// Node is a representation of an object or a relationship between objects in a database.
+//
+// The ORM will create Node types during code generation. The develpoper chains these Nodes to
+// indicate a specific table or column in a query. A developer typically would not create a Node directly.
+//
+// For example, a developer might use node.Project().TeamMembers().FirstName() to get the node pointing
+// to the first name of a team member in a project.
 type Node interface {
 	// NodeType_ returns the type of the node
 	NodeType_() NodeType
-	// TableName_ returns the query name of the table the node is associated with. Not all nodes support this.
+	// TableName_ returns the query name of the table the node is associated with.
+	// Nodes that are not table specific will return an empty string.
 	TableName_() string
-	// DatabaseKey_ is the database key of the database the node is associated with.
+	// DatabaseKey_ is the key of the database the node is associated with.
 	DatabaseKey_() string
 }
 
@@ -72,7 +76,7 @@ functions for the db package without broadcasting them to the world.
 
 */
 
-// ContainedNodes is used internally by the framework to return the contained nodes.
+// ContainedNodes is used internally by the ORM to return the contained nodes.
 func ContainedNodes(n Node) (nodes []Node) {
 	if nc, ok := n.(container); ok {
 		return nc.containedNodes()
@@ -81,6 +85,7 @@ func ContainedNodes(n Node) (nodes []Node) {
 	}
 }
 
+// NodesMatch is used internally by the ORM to indicate whether two nodes point to the same database item.
 func NodesMatch(node1, node2 Node) bool {
 	if node1.NodeType_() != node2.NodeType_() {
 		return false
@@ -97,9 +102,7 @@ func NodesMatch(node1, node2 Node) bool {
 	case AliasNodeType:
 		return node1.(AliasNodeI).Alias() == node2.(AliasNodeI).Alias()
 	case ColumnNodeType:
-		c1 := node1.(*ColumnNode)
-		c2 := node2.(*ColumnNode)
-		return c1.QueryName == c2.QueryName
+		return ColumnNodeQueryName(node1) == ColumnNodeQueryName(node2)
 	case TableNodeType:
 		return true // already know table names are equal
 	case ReferenceNodeType:
@@ -118,10 +121,23 @@ func NodesMatch(node1, node2 Node) bool {
 
 // NodeIsArray returns true if the node is an array connection, like a ManyMany relationship or one-to-many Reverse node.
 func NodeIsArray(n Node) bool {
-	if n.NodeType_() == ManyManyNodeType {
+	t := n.NodeType_()
+	if t == ManyManyNodeType {
 		return true
-	} else if n.NodeType_() == ReverseNodeType {
+	} else if t == ReverseNodeType {
 		return n.(ReverseNodeI).IsArray()
 	}
 	return false
+}
+
+type queryKeyer interface {
+	queryKey() string
+}
+
+// NodeQueryKey is used by the ORM as the key used in query result sets to refer to the data corresponding to the node.
+func NodeQueryKey(n Node) string {
+	if id, ok := n.(queryKeyer); ok {
+		return id.queryKey()
+	}
+	return ""
 }

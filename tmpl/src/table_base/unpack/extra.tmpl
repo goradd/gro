@@ -3,7 +3,7 @@
 //*** {{includeName}}
 }}
 {{
-	if v, ok := m["{{query.AliasResults}}"]; ok {
+	if v, ok := m["{{= query.AliasResults}}"]; ok {
 		o._aliases = v.(map[string]any)
 	}
 

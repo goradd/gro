@@ -87,6 +87,10 @@ func (m *ManyManyReference) SourcePrimaryKeyName() string {
 	return m.MM.ReferencedTable.PrimaryKeyColumn().QueryName
 }
 
+func (m *ManyManyReference) QueryKey() string {
+	return m.Field
+}
+
 func makeManyManyRef(assnTable, fk string, refTable *Table, label, labels, id, ids string) *ManyManyReference {
 	pk := refTable.PrimaryKeyColumn()
 

@@ -4,7 +4,7 @@
 }}
 {{
 
-	if v, ok := m["{{= ref.Field }}"]; ok {
+	if v, ok := m["{{= ref.QueryKey() }}"]; ok {
 		if {{= ref.Field }}, ok2 := v.(map[string]any); ok2 {
 			o.{{= ref.Field }} = new({{= ref.ReferencedTable.Identifier }})
 			o.{{= ref.Field }}.unpack({{= ref.Field }}, o.{{= ref.Field }})

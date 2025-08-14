@@ -4,7 +4,7 @@
 }}
 {{
 
-	if v, ok := m["{{= col.Field }}"]; ok {
+	if v, ok := m["{{= col.QueryKey() }}"]; ok {
 		if v == nil {
 			o.{{= col.Field }} = {{= col.DefaultValueAsValue() }}
 			o.{{= col.Field }}IsNull = true

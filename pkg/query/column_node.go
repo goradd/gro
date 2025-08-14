@@ -18,7 +18,7 @@ type ColumnNodeI interface {
 // You would not normally create a column node directly. Use the code generated functions to create column nodes.
 type ColumnNode struct {
 	// The query name of the column in the database.
-	QueryName string
+	queryName string
 	// The identifier of the data in the corresponding object.
 	// Pass this to Get() to retrieve a value.
 	Field string
@@ -46,7 +46,7 @@ func NewColumnNode(
 	parent Node,
 ) *ColumnNode {
 	n := &ColumnNode{
-		QueryName:     queryName,
+		queryName:     queryName,
 		Field:         field,
 		ReceiverType:  receiverType,
 		SchemaType:    schemaType,
@@ -91,7 +91,7 @@ func (n *ColumnNode) GobEncode() (data []byte, err error) {
 	var buf bytes.Buffer
 	e := gob.NewEncoder(&buf)
 
-	if err = e.Encode(n.QueryName); err != nil {
+	if err = e.Encode(n.queryName); err != nil {
 		panic(err)
 	}
 	if err = e.Encode(n.Field); err != nil {
@@ -116,7 +116,7 @@ func (n *ColumnNode) GobEncode() (data []byte, err error) {
 func (n *ColumnNode) GobDecode(data []byte) (err error) {
 	buf := bytes.NewBuffer(data)
 	dec := gob.NewDecoder(buf)
-	if err = dec.Decode(&n.QueryName); err != nil {
+	if err = dec.Decode(&n.queryName); err != nil {
 		panic(err)
 	}
 	if err = dec.Decode(&n.Field); err != nil {
@@ -141,22 +141,11 @@ func init() {
 	gob.Register(&ColumnNode{})
 }
 
-func (n *ColumnNode) id() string {
+func (n *ColumnNode) queryKey() string {
 	return n.Field
 }
 
-type ider interface {
-	id() string
-}
-
-// NodeIdentifier returns the Go identifier related to the node.
-func NodeIdentifier(n Node) string {
-	if id, ok := n.(ider); ok {
-		return id.id()
-	}
-	return ""
-}
-
-func NodeField(n Node) string {
-	return NodeIdentifier(n)
+// ColumnNodeQueryName returns the name used in the database of the column that corresponds to the node.
+func ColumnNodeQueryName(n Node) string {
+	return n.(*ColumnNode).queryName
 }

@@ -1,11 +1,12 @@
 package model
 
 import (
+	"log/slog"
+
 	"github.com/goradd/anyutil"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/goradd/orm/pkg/schema"
 	strings2 "github.com/goradd/strings"
-	"log/slog"
 )
 
 // Reference describes a forward relationship to a related Table.
@@ -25,7 +26,7 @@ type Reference struct {
 	// Example: ProjectManager
 	Identifier string
 	// Field is the name used in the struct representing a pointer to the referenced object.
-	// Also used as a function parameter name.
+	// Also used as a function parameter name and the query identifier.
 	// Example: projectManager
 	Field string
 	// The human-readable label of the object referred to.
@@ -74,6 +75,14 @@ func (r *Reference) ReverseNodeIdentifier() string {
 	} else {
 		return r.ReverseIdentifierPlural
 	}
+}
+
+func (r *Reference) QueryKey() string {
+	return r.Field
+}
+
+func (r *Reference) ReverseQueryKey() string {
+	return r.ReverseField
 }
 
 // importReference creates a reference from a schemaRef.

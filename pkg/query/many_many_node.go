@@ -115,6 +115,6 @@ func init() {
 	gob.Register(&ManyManyNode{})
 }
 
-func (n *ManyManyNode) id() string {
+func (n *ManyManyNode) queryKey() string {
 	return n.Field
 }

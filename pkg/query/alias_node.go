@@ -60,7 +60,7 @@ func init() {
 	gob.Register(&AliasNode{})
 }
 
-// id is a unique identifier within the parent namespace and satisfies the ider interface
-func (n *AliasNode) id() string {
+// id is a unique identifier within the parent namespace and satisfies the queryKeyer interface
+func (n *AliasNode) queryKey() string {
 	return n.alias
 }

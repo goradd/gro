@@ -3,11 +3,12 @@ package crud
 import (
 	"context"
 	"encoding/json"
+	"testing"
+
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit"
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 // TestForward tests insert and update of two linked records.
@@ -60,7 +61,8 @@ func TestForward(t *testing.T) {
 	err = l.Save(ctx)
 	require.NoError(t, err)
 	l2, err = goradd_unit.LoadLeaf(ctx, l.ID(), node.Leaf().Root())
-	require.NoError(t, err)
+	assert.NoError(t, err)
+	require.NotNil(t, l2)
 	assert.Equal(t, "leaf4", l2.Name())
 	assert.Equal(t, "root4", l2.Root().Name())
 }

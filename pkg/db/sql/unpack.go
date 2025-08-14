@@ -129,7 +129,7 @@ func (u *unpacker) unpackObject(el *jointree.Element, row db.ValueMap, object db
 	}
 
 	for _, childElement := range el.SelectedReferences() {
-		key := query.NodeIdentifier(childElement.QueryNode)
+		key := query.NodeQueryKey(childElement.QueryNode)
 
 		i := object[key]
 		if childElement.IsArray() {
@@ -182,7 +182,7 @@ func (u *unpacker) unpackLeaf(j *jointree.Element, row db.ValueMap, obj db.Value
 			return true
 		}
 
-		fieldName := node.Field
+		fieldName := query.NodeQueryKey(node)
 		obj[fieldName] = row[key]
 	} else {
 		panic("Unexpected node type.") // this is a framework error, should not happen

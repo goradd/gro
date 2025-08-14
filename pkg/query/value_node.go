@@ -8,13 +8,8 @@ import (
 )
 
 // ValueNode represents a value for a built-in type that is to be used in a query.
-// For example,
 type ValueNode struct {
-	value interface{}
-}
-
-type Identifierer interface {
-	Identifier() string
+	value any
 }
 
 // Value is a shortcut for converting a constant value to a node

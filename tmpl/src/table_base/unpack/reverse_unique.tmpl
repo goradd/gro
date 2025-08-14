@@ -4,7 +4,7 @@
 }}
 {{
 
-	if v, ok := m["{{= rev.ReverseField }}"]; ok {
+	if v, ok := m["{{= rev.ReverseQueryKey() }}"]; ok {
 		if v2, ok2 := v.(map[string]any); ok2 {
 			o.{{= rev.ReverseField }} = new({{= rev.Table.Identifier }})
 			o.{{= rev.ReverseField }}.unpack(v2, o.{{= rev.ReverseField }})

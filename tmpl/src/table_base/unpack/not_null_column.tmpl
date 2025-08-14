@@ -4,7 +4,7 @@
 }}
 {{
 
-	if v, ok := m["{{= col.Field }}"]; ok && v != nil {
+	if v, ok := m["{{= col.QueryKey() }}"]; ok && v != nil {
 {{if col.IsEnum()}}
      	if i, ok2 := v.(int); ok2 {
            o.{{= col.Field }} = {{= col.Type }}(i)

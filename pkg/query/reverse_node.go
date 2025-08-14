@@ -97,6 +97,6 @@ func init() {
 	gob.Register(&ReverseNode{})
 }
 
-func (n *ReverseNode) id() string {
+func (n *ReverseNode) queryKey() string {
 	return n.Field
 }

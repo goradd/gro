@@ -4,18 +4,11 @@ type PrimaryKeyer interface {
 	PrimaryKeys() []*ColumnNode
 }
 
-// TableNodeI is the interface that all table-like nodes must adhere to
+// TableNodeI is the interface that all table-like nodes must satisfy
 type TableNodeI interface {
 	Node
 	PrimaryKeyer
 	ColumnNodes_() []Node
-}
-
-// NodeIsTable returns true if n is a table-like node.
-// This includes top level table nodes, forward and reverse references and many-many references.
-func NodeIsTable(n Node) bool {
-	_, ok := n.(TableNodeI)
-	return ok
 }
 
 // NodePrimaryKeys returns the primary key nodes of a table type node.
