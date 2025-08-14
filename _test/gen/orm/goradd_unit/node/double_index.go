@@ -76,67 +76,67 @@ func (n doubleIndexTable) PrimaryKey() *query.ColumnNode {
 }
 
 func (n doubleIndexTable) ID() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "id",
-		Field:         "id",
-		ReceiverType:  query.ColTypeInteger,
-		SchemaType:    schema.ColTypeInt,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  true,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"id",
+		"id",
+		query.ColTypeInteger,
+		schema.ColTypeInt,
+		schema.ColSubTypeNone,
+		true,
+		n,
+	)
 	return cn
 }
 
 func (n doubleIndexTable) FieldInt() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "field_int",
-		Field:         "fieldInt",
-		ReceiverType:  query.ColTypeInteger,
-		SchemaType:    schema.ColTypeInt,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"field_int",
+		"fieldInt",
+		query.ColTypeInteger,
+		schema.ColTypeInt,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n doubleIndexTable) FieldString() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "field_string",
-		Field:         "fieldString",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"field_string",
+		"fieldString",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n doubleIndexTable) Field2Int() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "field2_int",
-		Field:         "field2Int",
-		ReceiverType:  query.ColTypeInteger,
-		SchemaType:    schema.ColTypeInt,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"field2_int",
+		"field2Int",
+		query.ColTypeInteger,
+		schema.ColTypeInt,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n doubleIndexTable) Field2String() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "field2_string",
-		Field:         "field2String",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"field2_string",
+		"field2String",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 

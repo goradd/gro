@@ -1509,8 +1509,8 @@ func (n *NodeTemplate) genColumnNode(table *model.Table, col *model.Column, _w i
 	}
 
 	if _, err = io.WriteString(_w, `() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName: "`); err != nil {
+	cn := query.NewColumnNode(
+		"`); err != nil {
 		return
 	}
 
@@ -1519,7 +1519,7 @@ func (n *NodeTemplate) genColumnNode(table *model.Table, col *model.Column, _w i
 	}
 
 	if _, err = io.WriteString(_w, `",
-		Field: "`); err != nil {
+		"`); err != nil {
 		return
 	}
 
@@ -1528,7 +1528,7 @@ func (n *NodeTemplate) genColumnNode(table *model.Table, col *model.Column, _w i
 	}
 
 	if _, err = io.WriteString(_w, `",
-		ReceiverType: query.`); err != nil {
+		query.`); err != nil {
 		return
 	}
 
@@ -1537,7 +1537,7 @@ func (n *NodeTemplate) genColumnNode(table *model.Table, col *model.Column, _w i
 	}
 
 	if _, err = io.WriteString(_w, `,
-		SchemaType: schema.`); err != nil {
+		schema.`); err != nil {
 		return
 	}
 
@@ -1546,7 +1546,7 @@ func (n *NodeTemplate) genColumnNode(table *model.Table, col *model.Column, _w i
 	}
 
 	if _, err = io.WriteString(_w, `,
-		SchemaSubType: schema.`); err != nil {
+		schema.`); err != nil {
 		return
 	}
 
@@ -1555,7 +1555,7 @@ func (n *NodeTemplate) genColumnNode(table *model.Table, col *model.Column, _w i
 	}
 
 	if _, err = io.WriteString(_w, `,
-		IsPrimaryKey: `); err != nil {
+		`); err != nil {
 		return
 	}
 
@@ -1564,8 +1564,8 @@ func (n *NodeTemplate) genColumnNode(table *model.Table, col *model.Column, _w i
 	}
 
 	if _, err = io.WriteString(_w, `,
-	}
-	query.NodeSetParent(cn, n)
+		n,
+	)
 	return cn
 }
 

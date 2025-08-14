@@ -109,15 +109,15 @@ func (n loginReverse) PrimaryKey() *query.ColumnNode {
 }
 
 func (n loginTable) ID() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "id",
-		Field:         "id",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeAutoPrimaryKey,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  true,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"id",
+		"id",
+		query.ColTypeString,
+		schema.ColTypeAutoPrimaryKey,
+		schema.ColSubTypeNone,
+		true,
+		n,
+	)
 	return cn
 }
 
@@ -128,15 +128,15 @@ func (n *loginReverse) ID() *query.ColumnNode {
 }
 
 func (n loginTable) Username() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "username",
-		Field:         "username",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"username",
+		"username",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
@@ -147,15 +147,15 @@ func (n *loginReverse) Username() *query.ColumnNode {
 }
 
 func (n loginTable) Password() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "password",
-		Field:         "password",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"password",
+		"password",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
@@ -166,15 +166,15 @@ func (n *loginReverse) Password() *query.ColumnNode {
 }
 
 func (n loginTable) IsEnabled() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "is_enabled",
-		Field:         "isEnabled",
-		ReceiverType:  query.ColTypeBool,
-		SchemaType:    schema.ColTypeBool,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"is_enabled",
+		"isEnabled",
+		query.ColTypeBool,
+		schema.ColTypeBool,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
@@ -185,15 +185,15 @@ func (n *loginReverse) IsEnabled() *query.ColumnNode {
 }
 
 func (n loginTable) PersonID() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "person_id",
-		Field:         "personID",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"person_id",
+		"personID",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 

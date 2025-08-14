@@ -64,41 +64,41 @@ func (n twoKeyTable) PrimaryKeys() []*query.ColumnNode {
 }
 
 func (n twoKeyTable) Server() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "server",
-		Field:         "server",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"server",
+		"server",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n twoKeyTable) Directory() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "directory",
-		Field:         "directory",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"directory",
+		"directory",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n twoKeyTable) FileName() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "file_name",
-		Field:         "fileName",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"file_name",
+		"fileName",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 

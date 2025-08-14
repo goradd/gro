@@ -67,28 +67,28 @@ func (n giftTable) PrimaryKey() *query.ColumnNode {
 }
 
 func (n giftTable) Number() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "number",
-		Field:         "number",
-		ReceiverType:  query.ColTypeInteger,
-		SchemaType:    schema.ColTypeInt,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  true,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"number",
+		"number",
+		query.ColTypeInteger,
+		schema.ColTypeInt,
+		schema.ColSubTypeNone,
+		true,
+		n,
+	)
 	return cn
 }
 
 func (n giftTable) Name() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "name",
-		Field:         "name",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"name",
+		"name",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 

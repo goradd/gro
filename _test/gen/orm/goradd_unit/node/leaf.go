@@ -103,15 +103,15 @@ func (n leafReverse) PrimaryKey() *query.ColumnNode {
 }
 
 func (n leafTable) ID() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "id",
-		Field:         "id",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeAutoPrimaryKey,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  true,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"id",
+		"id",
+		query.ColTypeString,
+		schema.ColTypeAutoPrimaryKey,
+		schema.ColSubTypeNone,
+		true,
+		n,
+	)
 	return cn
 }
 
@@ -122,15 +122,15 @@ func (n *leafReverse) ID() *query.ColumnNode {
 }
 
 func (n leafTable) Name() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "name",
-		Field:         "name",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"name",
+		"name",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
@@ -141,15 +141,15 @@ func (n *leafReverse) Name() *query.ColumnNode {
 }
 
 func (n leafTable) RootID() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "root_id",
-		Field:         "rootID",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"root_id",
+		"rootID",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 

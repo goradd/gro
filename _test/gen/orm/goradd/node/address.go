@@ -106,15 +106,15 @@ func (n addressReverse) PrimaryKey() *query.ColumnNode {
 }
 
 func (n addressTable) ID() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "id",
-		Field:         "id",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeAutoPrimaryKey,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  true,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"id",
+		"id",
+		query.ColTypeString,
+		schema.ColTypeAutoPrimaryKey,
+		schema.ColSubTypeNone,
+		true,
+		n,
+	)
 	return cn
 }
 
@@ -125,15 +125,15 @@ func (n *addressReverse) ID() *query.ColumnNode {
 }
 
 func (n addressTable) Street() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "street",
-		Field:         "street",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"street",
+		"street",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
@@ -144,15 +144,15 @@ func (n *addressReverse) Street() *query.ColumnNode {
 }
 
 func (n addressTable) City() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "city",
-		Field:         "city",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"city",
+		"city",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
@@ -163,15 +163,15 @@ func (n *addressReverse) City() *query.ColumnNode {
 }
 
 func (n addressTable) PersonID() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "person_id",
-		Field:         "personID",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"person_id",
+		"personID",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 

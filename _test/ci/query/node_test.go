@@ -32,12 +32,10 @@ func TestNodeSerialize(t *testing.T) {
 func TestNodeRejectTableNodes(t *testing.T) {
 	ctx := context.Background()
 
-	// Make sure we panic when a table node is being used as a primary key
-
+	// Make sure we panic when a table node is being used as a primary key for a composite key table
 	assert.Panics(t, func() {
 		_, _ = goradd_unit.QueryTwoKeys(ctx).
 			Where(op.Equal(unit_node.TwoKey(), 2)).
 			Load()
 	})
-	
 }

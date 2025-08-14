@@ -152,15 +152,15 @@ func (n personAssociation) PrimaryKey() *query.ColumnNode {
 }
 
 func (n personTable) ID() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "id",
-		Field:         "id",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeAutoPrimaryKey,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  true,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"id",
+		"id",
+		query.ColTypeString,
+		schema.ColTypeAutoPrimaryKey,
+		schema.ColSubTypeNone,
+		true,
+		n,
+	)
 	return cn
 }
 
@@ -177,15 +177,15 @@ func (n *personAssociation) ID() *query.ColumnNode {
 }
 
 func (n personTable) FirstName() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "first_name",
-		Field:         "firstName",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"first_name",
+		"firstName",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
@@ -202,15 +202,15 @@ func (n *personAssociation) FirstName() *query.ColumnNode {
 }
 
 func (n personTable) LastName() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "last_name",
-		Field:         "lastName",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"last_name",
+		"lastName",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
@@ -227,15 +227,15 @@ func (n *personAssociation) LastName() *query.ColumnNode {
 }
 
 func (n personTable) PersonType() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "person_type",
-		Field:         "personType",
-		ReceiverType:  query.ColTypeInteger,
-		SchemaType:    schema.ColTypeEnum,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"person_type",
+		"personType",
+		query.ColTypeInteger,
+		schema.ColTypeEnum,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
@@ -252,15 +252,15 @@ func (n *personAssociation) PersonType() *query.ColumnNode {
 }
 
 func (n personTable) Created() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "created",
-		Field:         "created",
-		ReceiverType:  query.ColTypeTime,
-		SchemaType:    schema.ColTypeTime,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"created",
+		"created",
+		query.ColTypeTime,
+		schema.ColTypeTime,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
@@ -277,15 +277,15 @@ func (n *personAssociation) Created() *query.ColumnNode {
 }
 
 func (n personTable) Modified() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "modified",
-		Field:         "modified",
-		ReceiverType:  query.ColTypeTime,
-		SchemaType:    schema.ColTypeTime,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"modified",
+		"modified",
+		query.ColTypeTime,
+		schema.ColTypeTime,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 

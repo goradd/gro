@@ -121,262 +121,262 @@ func (n typeTestTable) PrimaryKey() *query.ColumnNode {
 }
 
 func (n typeTestTable) ID() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "id",
-		Field:         "id",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeAutoPrimaryKey,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  true,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"id",
+		"id",
+		query.ColTypeString,
+		schema.ColTypeAutoPrimaryKey,
+		schema.ColSubTypeNone,
+		true,
+		n,
+	)
 	return cn
 }
 
 func (n typeTestTable) Date() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "date",
-		Field:         "date",
-		ReceiverType:  query.ColTypeTime,
-		SchemaType:    schema.ColTypeTime,
-		SchemaSubType: schema.ColSubTypeDateOnly,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"date",
+		"date",
+		query.ColTypeTime,
+		schema.ColTypeTime,
+		schema.ColSubTypeDateOnly,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n typeTestTable) Time() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "time",
-		Field:         "time",
-		ReceiverType:  query.ColTypeTime,
-		SchemaType:    schema.ColTypeTime,
-		SchemaSubType: schema.ColSubTypeTimeOnly,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"time",
+		"time",
+		query.ColTypeTime,
+		schema.ColTypeTime,
+		schema.ColSubTypeTimeOnly,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n typeTestTable) DateTime() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "date_time",
-		Field:         "dateTime",
-		ReceiverType:  query.ColTypeTime,
-		SchemaType:    schema.ColTypeTime,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"date_time",
+		"dateTime",
+		query.ColTypeTime,
+		schema.ColTypeTime,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n typeTestTable) CreationTime() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "creation_time",
-		Field:         "creationTime",
-		ReceiverType:  query.ColTypeTime,
-		SchemaType:    schema.ColTypeTime,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"creation_time",
+		"creationTime",
+		query.ColTypeTime,
+		schema.ColTypeTime,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n typeTestTable) ModifiedTime() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "modified_time",
-		Field:         "modifiedTime",
-		ReceiverType:  query.ColTypeTime,
-		SchemaType:    schema.ColTypeTime,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"modified_time",
+		"modifiedTime",
+		query.ColTypeTime,
+		schema.ColTypeTime,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n typeTestTable) TestInt() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "test_int",
-		Field:         "testInt",
-		ReceiverType:  query.ColTypeInteger,
-		SchemaType:    schema.ColTypeInt,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"test_int",
+		"testInt",
+		query.ColTypeInteger,
+		schema.ColTypeInt,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n typeTestTable) TestUnsigned() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "test_unsigned",
-		Field:         "testUnsigned",
-		ReceiverType:  query.ColTypeUnsigned,
-		SchemaType:    schema.ColTypeUint,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"test_unsigned",
+		"testUnsigned",
+		query.ColTypeUnsigned,
+		schema.ColTypeUint,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n typeTestTable) TestInt64() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "test_int64",
-		Field:         "testInt64",
-		ReceiverType:  query.ColTypeInteger64,
-		SchemaType:    schema.ColTypeInt,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"test_int64",
+		"testInt64",
+		query.ColTypeInteger64,
+		schema.ColTypeInt,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n typeTestTable) TestUint64() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "test_uint64",
-		Field:         "testUint64",
-		ReceiverType:  query.ColTypeUnsigned64,
-		SchemaType:    schema.ColTypeUint,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"test_uint64",
+		"testUint64",
+		query.ColTypeUnsigned64,
+		schema.ColTypeUint,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n typeTestTable) TestFloat32() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "test_float32",
-		Field:         "testFloat32",
-		ReceiverType:  query.ColTypeFloat32,
-		SchemaType:    schema.ColTypeFloat,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"test_float32",
+		"testFloat32",
+		query.ColTypeFloat32,
+		schema.ColTypeFloat,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n typeTestTable) TestFloat64() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "test_float64",
-		Field:         "testFloat64",
-		ReceiverType:  query.ColTypeFloat64,
-		SchemaType:    schema.ColTypeFloat,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"test_float64",
+		"testFloat64",
+		query.ColTypeFloat64,
+		schema.ColTypeFloat,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n typeTestTable) TestNumeric() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "test_numeric",
-		Field:         "testNumeric",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNumeric,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"test_numeric",
+		"testNumeric",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNumeric,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n typeTestTable) TestBool() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "test_bool",
-		Field:         "testBool",
-		ReceiverType:  query.ColTypeBool,
-		SchemaType:    schema.ColTypeBool,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"test_bool",
+		"testBool",
+		query.ColTypeBool,
+		schema.ColTypeBool,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n typeTestTable) TestUnlimitedString() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "test_unlimited_string",
-		Field:         "testUnlimitedString",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"test_unlimited_string",
+		"testUnlimitedString",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n typeTestTable) TestLimitedString() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "test_limited_string",
-		Field:         "testLimitedString",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"test_limited_string",
+		"testLimitedString",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n typeTestTable) TestLongstring() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "test_longstring",
-		Field:         "testLongstring",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"test_longstring",
+		"testLongstring",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n typeTestTable) TestUnlimitedBytes() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "test_unlimited_bytes",
-		Field:         "testUnlimitedBytes",
-		ReceiverType:  query.ColTypeBytes,
-		SchemaType:    schema.ColTypeBytes,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"test_unlimited_bytes",
+		"testUnlimitedBytes",
+		query.ColTypeBytes,
+		schema.ColTypeBytes,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n typeTestTable) TestLimitedBytes() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "test_limited_bytes",
-		Field:         "testLimitedBytes",
-		ReceiverType:  query.ColTypeBytes,
-		SchemaType:    schema.ColTypeBytes,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"test_limited_bytes",
+		"testLimitedBytes",
+		query.ColTypeBytes,
+		schema.ColTypeBytes,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n typeTestTable) TypeLongBytes() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "type_long_bytes",
-		Field:         "typeLongBytes",
-		ReceiverType:  query.ColTypeBytes,
-		SchemaType:    schema.ColTypeBytes,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"type_long_bytes",
+		"typeLongBytes",
+		query.ColTypeBytes,
+		schema.ColTypeBytes,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 

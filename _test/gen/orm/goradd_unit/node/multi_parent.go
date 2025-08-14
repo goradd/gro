@@ -144,15 +144,15 @@ func (n multiParentReverse) PrimaryKey() *query.ColumnNode {
 }
 
 func (n multiParentTable) ID() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "id",
-		Field:         "id",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeAutoPrimaryKey,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  true,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"id",
+		"id",
+		query.ColTypeString,
+		schema.ColTypeAutoPrimaryKey,
+		schema.ColSubTypeNone,
+		true,
+		n,
+	)
 	return cn
 }
 
@@ -169,15 +169,15 @@ func (n *multiParentReverse) ID() *query.ColumnNode {
 }
 
 func (n multiParentTable) Name() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "name",
-		Field:         "name",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"name",
+		"name",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
@@ -194,15 +194,15 @@ func (n *multiParentReverse) Name() *query.ColumnNode {
 }
 
 func (n multiParentTable) Parent1ID() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "parent_1_id",
-		Field:         "parent1ID",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"parent_1_id",
+		"parent1ID",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
@@ -244,15 +244,15 @@ func (n *multiParentReverse) Parent1() MultiParentNode {
 }
 
 func (n multiParentTable) Parent2ID() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "parent_2_id",
-		Field:         "parent2ID",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"parent_2_id",
+		"parent2ID",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 

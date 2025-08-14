@@ -103,15 +103,15 @@ func (n milestoneReverse) PrimaryKey() *query.ColumnNode {
 }
 
 func (n milestoneTable) ID() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "id",
-		Field:         "id",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeAutoPrimaryKey,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  true,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"id",
+		"id",
+		query.ColTypeString,
+		schema.ColTypeAutoPrimaryKey,
+		schema.ColSubTypeNone,
+		true,
+		n,
+	)
 	return cn
 }
 
@@ -122,15 +122,15 @@ func (n *milestoneReverse) ID() *query.ColumnNode {
 }
 
 func (n milestoneTable) Name() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "name",
-		Field:         "name",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"name",
+		"name",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
@@ -141,15 +141,15 @@ func (n *milestoneReverse) Name() *query.ColumnNode {
 }
 
 func (n milestoneTable) ProjectID() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "project_id",
-		Field:         "projectID",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"project_id",
+		"projectID",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 

@@ -103,15 +103,15 @@ func (n rootUnlReference) PrimaryKey() *query.ColumnNode {
 }
 
 func (n rootUnlTable) ID() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "id",
-		Field:         "id",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeAutoPrimaryKey,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  true,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"id",
+		"id",
+		query.ColTypeString,
+		schema.ColTypeAutoPrimaryKey,
+		schema.ColSubTypeNone,
+		true,
+		n,
+	)
 	return cn
 }
 
@@ -122,15 +122,15 @@ func (n *rootUnlReference) ID() *query.ColumnNode {
 }
 
 func (n rootUnlTable) Name() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "name",
-		Field:         "name",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"name",
+		"name",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
@@ -141,15 +141,15 @@ func (n *rootUnlReference) Name() *query.ColumnNode {
 }
 
 func (n rootUnlTable) GroLock() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "gro_lock",
-		Field:         "groLock",
-		ReceiverType:  query.ColTypeInteger64,
-		SchemaType:    schema.ColTypeInt,
-		SchemaSubType: schema.ColSubTypeLock,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"gro_lock",
+		"groLock",
+		query.ColTypeInteger64,
+		schema.ColTypeInt,
+		schema.ColSubTypeLock,
+		false,
+		n,
+	)
 	return cn
 }
 

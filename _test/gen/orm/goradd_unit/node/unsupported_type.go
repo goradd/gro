@@ -94,145 +94,145 @@ func (n unsupportedTypeTable) PrimaryKey() *query.ColumnNode {
 }
 
 func (n unsupportedTypeTable) TypeSerial() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "type_serial",
-		Field:         "typeSerial",
-		ReceiverType:  query.ColTypeUnsigned64,
-		SchemaType:    schema.ColTypeUint,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  true,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"type_serial",
+		"typeSerial",
+		query.ColTypeUnsigned64,
+		schema.ColTypeUint,
+		schema.ColSubTypeNone,
+		true,
+		n,
+	)
 	return cn
 }
 
 func (n unsupportedTypeTable) TypeSet() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "type_set",
-		Field:         "typeSet",
-		ReceiverType:  query.ColTypeUnknown,
-		SchemaType:    schema.ColTypeUnknown,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"type_set",
+		"typeSet",
+		query.ColTypeUnknown,
+		schema.ColTypeUnknown,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n unsupportedTypeTable) TypeEnumerated() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "type_enumerated",
-		Field:         "typeEnumerated",
-		ReceiverType:  query.ColTypeUnknown,
-		SchemaType:    schema.ColTypeUnknown,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"type_enumerated",
+		"typeEnumerated",
+		query.ColTypeUnknown,
+		schema.ColTypeUnknown,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n unsupportedTypeTable) TypeGeo() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "type_geo",
-		Field:         "typeGeo",
-		ReceiverType:  query.ColTypeUnknown,
-		SchemaType:    schema.ColTypeUnknown,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"type_geo",
+		"typeGeo",
+		query.ColTypeUnknown,
+		schema.ColTypeUnknown,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n unsupportedTypeTable) TypeTinyblob() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "type_tinyblob",
-		Field:         "typeTinyblob",
-		ReceiverType:  query.ColTypeBytes,
-		SchemaType:    schema.ColTypeBytes,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"type_tinyblob",
+		"typeTinyblob",
+		query.ColTypeBytes,
+		schema.ColTypeBytes,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n unsupportedTypeTable) TypeBinary() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "type_binary",
-		Field:         "typeBinary",
-		ReceiverType:  query.ColTypeUnknown,
-		SchemaType:    schema.ColTypeUnknown,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"type_binary",
+		"typeBinary",
+		query.ColTypeUnknown,
+		schema.ColTypeUnknown,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n unsupportedTypeTable) TypeSmall() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "type_small",
-		Field:         "typeSmall",
-		ReceiverType:  query.ColTypeInteger,
-		SchemaType:    schema.ColTypeInt,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"type_small",
+		"typeSmall",
+		query.ColTypeInteger,
+		schema.ColTypeInt,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n unsupportedTypeTable) TypeMedium() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "type_medium",
-		Field:         "typeMedium",
-		ReceiverType:  query.ColTypeInteger,
-		SchemaType:    schema.ColTypeInt,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"type_medium",
+		"typeMedium",
+		query.ColTypeInteger,
+		schema.ColTypeInt,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n unsupportedTypeTable) TypePolygon() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "type_polygon",
-		Field:         "typePolygon",
-		ReceiverType:  query.ColTypeUnknown,
-		SchemaType:    schema.ColTypeUnknown,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"type_polygon",
+		"typePolygon",
+		query.ColTypeUnknown,
+		schema.ColTypeUnknown,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n unsupportedTypeTable) TypeMultFk1() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "type_mult_fk1",
-		Field:         "typeMultFk1",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"type_mult_fk1",
+		"typeMultFk1",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
 func (n unsupportedTypeTable) TypeMultiFk2() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "type_multi_fk2",
-		Field:         "typeMultiFk2",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"type_multi_fk2",
+		"typeMultiFk2",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 

@@ -196,15 +196,15 @@ func (n projectAssociation) PrimaryKey() *query.ColumnNode {
 }
 
 func (n projectTable) ID() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "id",
-		Field:         "id",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeAutoPrimaryKey,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  true,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"id",
+		"id",
+		query.ColTypeString,
+		schema.ColTypeAutoPrimaryKey,
+		schema.ColSubTypeNone,
+		true,
+		n,
+	)
 	return cn
 }
 
@@ -227,15 +227,15 @@ func (n *projectAssociation) ID() *query.ColumnNode {
 }
 
 func (n projectTable) Num() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "num",
-		Field:         "num",
-		ReceiverType:  query.ColTypeInteger,
-		SchemaType:    schema.ColTypeInt,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"num",
+		"num",
+		query.ColTypeInteger,
+		schema.ColTypeInt,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
@@ -258,15 +258,15 @@ func (n *projectAssociation) Num() *query.ColumnNode {
 }
 
 func (n projectTable) Status() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "status",
-		Field:         "status",
-		ReceiverType:  query.ColTypeInteger,
-		SchemaType:    schema.ColTypeEnum,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"status",
+		"status",
+		query.ColTypeInteger,
+		schema.ColTypeEnum,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
@@ -289,15 +289,15 @@ func (n *projectAssociation) Status() *query.ColumnNode {
 }
 
 func (n projectTable) Name() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "name",
-		Field:         "name",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"name",
+		"name",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
@@ -320,15 +320,15 @@ func (n *projectAssociation) Name() *query.ColumnNode {
 }
 
 func (n projectTable) Description() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "description",
-		Field:         "description",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"description",
+		"description",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
@@ -351,15 +351,15 @@ func (n *projectAssociation) Description() *query.ColumnNode {
 }
 
 func (n projectTable) StartDate() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "start_date",
-		Field:         "startDate",
-		ReceiverType:  query.ColTypeTime,
-		SchemaType:    schema.ColTypeTime,
-		SchemaSubType: schema.ColSubTypeDateOnly,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"start_date",
+		"startDate",
+		query.ColTypeTime,
+		schema.ColTypeTime,
+		schema.ColSubTypeDateOnly,
+		false,
+		n,
+	)
 	return cn
 }
 
@@ -382,15 +382,15 @@ func (n *projectAssociation) StartDate() *query.ColumnNode {
 }
 
 func (n projectTable) EndDate() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "end_date",
-		Field:         "endDate",
-		ReceiverType:  query.ColTypeTime,
-		SchemaType:    schema.ColTypeTime,
-		SchemaSubType: schema.ColSubTypeDateOnly,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"end_date",
+		"endDate",
+		query.ColTypeTime,
+		schema.ColTypeTime,
+		schema.ColSubTypeDateOnly,
+		false,
+		n,
+	)
 	return cn
 }
 
@@ -413,15 +413,15 @@ func (n *projectAssociation) EndDate() *query.ColumnNode {
 }
 
 func (n projectTable) Budget() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "budget",
-		Field:         "budget",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNumeric,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"budget",
+		"budget",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNumeric,
+		false,
+		n,
+	)
 	return cn
 }
 
@@ -444,15 +444,15 @@ func (n *projectAssociation) Budget() *query.ColumnNode {
 }
 
 func (n projectTable) Spent() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "spent",
-		Field:         "spent",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNumeric,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"spent",
+		"spent",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNumeric,
+		false,
+		n,
+	)
 	return cn
 }
 
@@ -475,15 +475,15 @@ func (n *projectAssociation) Spent() *query.ColumnNode {
 }
 
 func (n projectTable) ManagerID() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "manager_id",
-		Field:         "managerID",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"manager_id",
+		"managerID",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
@@ -537,15 +537,15 @@ func (n *projectAssociation) Manager() PersonNode {
 }
 
 func (n projectTable) ParentID() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "parent_id",
-		Field:         "parentID",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"parent_id",
+		"parentID",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 

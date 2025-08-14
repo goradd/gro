@@ -103,15 +103,15 @@ func (n altLeafUnReverse) PrimaryKey() *query.ColumnNode {
 }
 
 func (n altLeafUnTable) ID() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "id",
-		Field:         "id",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeAutoPrimaryKey,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  true,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"id",
+		"id",
+		query.ColTypeString,
+		schema.ColTypeAutoPrimaryKey,
+		schema.ColSubTypeNone,
+		true,
+		n,
+	)
 	return cn
 }
 
@@ -122,15 +122,15 @@ func (n *altLeafUnReverse) ID() *query.ColumnNode {
 }
 
 func (n altLeafUnTable) Name() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "name",
-		Field:         "name",
-		ReceiverType:  query.ColTypeString,
-		SchemaType:    schema.ColTypeString,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"name",
+		"name",
+		query.ColTypeString,
+		schema.ColTypeString,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 
@@ -141,15 +141,15 @@ func (n *altLeafUnReverse) Name() *query.ColumnNode {
 }
 
 func (n altLeafUnTable) AltRootUnID() *query.ColumnNode {
-	cn := &query.ColumnNode{
-		QueryName:     "alt_root_un_id",
-		Field:         "altRootUnID",
-		ReceiverType:  query.ColTypeFloat32,
-		SchemaType:    schema.ColTypeFloat,
-		SchemaSubType: schema.ColSubTypeNone,
-		IsPrimaryKey:  false,
-	}
-	query.NodeSetParent(cn, n)
+	cn := query.NewColumnNode(
+		"alt_root_un_id",
+		"altRootUnID",
+		query.ColTypeFloat32,
+		schema.ColTypeFloat,
+		schema.ColSubTypeNone,
+		false,
+		n,
+	)
 	return cn
 }
 

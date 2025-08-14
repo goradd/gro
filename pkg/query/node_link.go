@@ -30,7 +30,7 @@ func NodeParent(n Node) Node {
 	return nil
 }
 
-// NodeSetParent returns the parent of the node, or nil if the node has no parent.
+// NodeSetParent sets the parent of the node.
 func NodeSetParent(n Node, parent Node) {
 	if cn, ok := n.(linker); ok {
 		cn.setParent_(parent)

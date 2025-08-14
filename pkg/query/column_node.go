@@ -3,6 +3,7 @@ package query
 import (
 	"bytes"
 	"encoding/gob"
+
 	"github.com/goradd/orm/pkg/schema"
 )
 
@@ -13,6 +14,8 @@ type ColumnNodeI interface {
 }
 
 // ColumnNode represents a table or field in a database structure, and is the leaf of a node tree or chain.
+//
+// You would not normally create a column node directly. Use the code generated functions to create column nodes.
 type ColumnNode struct {
 	// The query name of the column in the database.
 	QueryName string
@@ -31,6 +34,30 @@ type ColumnNode struct {
 	nodeLink
 }
 
+// NewColumnNode is used by the code generated framework to create a new column node that refers to a
+// specific column in a table. You would not normally call this function directly.
+func NewColumnNode(
+	queryName string,
+	field string,
+	receiverType ReceiverType,
+	schemaType schema.ColumnType,
+	schemaSubType schema.ColumnSubType,
+	isPrimaryKey bool,
+	parent Node,
+) *ColumnNode {
+	n := &ColumnNode{
+		QueryName:     queryName,
+		Field:         field,
+		ReceiverType:  receiverType,
+		SchemaType:    schemaType,
+		SchemaSubType: schemaSubType,
+		IsPrimaryKey:  isPrimaryKey,
+	}
+	n.parentNode = parent
+	return n
+}
+
+// NodeType_ is used by the framework to return the type of node this is.
 func (n *ColumnNode) NodeType_() NodeType {
 	return ColumnNodeType
 }
