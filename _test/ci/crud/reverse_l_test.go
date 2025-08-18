@@ -2,12 +2,13 @@ package crud
 
 import (
 	"context"
+	"testing"
+
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit"
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 // TestReverseLock tests insert and update of two linked records that use an optimistic lock.
@@ -27,6 +28,7 @@ func TestReverseLock(t *testing.T) {
 	var r2 *goradd_unit.RootL
 	r2, err = goradd_unit.LoadRootL(ctx, r.ID(), node.RootL().LeafLs())
 	require.NoError(t, err)
+	require.NotNilf(t, r2, "Object was nil based on ID %s", r.ID())
 	assert.Equal(t, "root", r2.Name())
 	assert.Equal(t, "leaf", r2.LeafLs()[0].Name())
 
@@ -37,6 +39,7 @@ func TestReverseLock(t *testing.T) {
 	assert.NoError(t, err)
 	r2, err = goradd_unit.LoadRootL(ctx, r.ID(), node.RootL().LeafLs())
 	require.NoError(t, err)
+	require.NotNilf(t, r2, "Object was nil based on ID %s", r.ID())
 	assert.Equal(t, "root2", r2.Name())
 	assert.Equal(t, "leaf2", r2.LeafLs()[0].Name())
 
@@ -49,6 +52,7 @@ func TestReverseLock(t *testing.T) {
 	require.NoError(t, err)
 	r2, err = goradd_unit.LoadRootL(ctx, r3.ID(), node.RootL().LeafLs())
 	require.NoError(t, err)
+	require.NotNilf(t, r2, "Object was nil based on ID %s", r3.ID())
 	assert.Equal(t, "root3", r2.Name())
 	assert.Equal(t, "leaf3", r2.LeafLs()[0].Name())
 
@@ -61,6 +65,7 @@ func TestReverseLock(t *testing.T) {
 	require.NoError(t, err)
 	r2, err = goradd_unit.LoadRootL(ctx, r.ID(), node.RootL().LeafLs())
 	require.NoError(t, err)
+	require.NotNilf(t, r2, "Object was nil based on ID %s", r.ID())
 	assert.Equal(t, "root4", r2.Name())
 	assert.Equal(t, "leaf4", r2.LeafLs()[0].Name())
 

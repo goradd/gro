@@ -2,12 +2,13 @@ package crud
 
 import (
 	"context"
+	"testing"
+
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit"
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 // TestForwardAltUniqueNullable tests insert and update of two linked records where the link is nullable
@@ -28,6 +29,7 @@ func TestForwardAltUniqueNullable(t *testing.T) {
 	// loading back
 	l1b, err := goradd_unit.LoadAltLeafUn(ctx, l1.ID(), node.AltLeafUn().AltRootUn())
 	require.NoError(t, err)
+	require.NotNilf(t, l1b, "Object was nil based on ID %s", l1.ID())
 	assert.Equal(t, "leaf", l1b.Name())
 	assert.Equal(t, "root", l1b.AltRootUn().Name())
 
@@ -38,6 +40,7 @@ func TestForwardAltUniqueNullable(t *testing.T) {
 	assert.NoError(t, err)
 	l1b, err = goradd_unit.LoadAltLeafUn(ctx, l1.ID(), node.AltLeafUn().AltRootUn())
 	require.NoError(t, err)
+	require.NotNilf(t, l1b, "Object was nil based on ID %s", l1.ID())
 	assert.Equal(t, "leaf2", l1b.Name())
 	assert.Equal(t, "root2", l1b.AltRootUn().Name())
 
@@ -60,6 +63,7 @@ func TestForwardAltUniqueNullable(t *testing.T) {
 	require.NoError(t, err)
 	l1b, err = goradd_unit.LoadAltLeafUn(ctx, l1.ID(), node.AltLeafUn().AltRootUn())
 	require.NoError(t, err)
+	require.NotNilf(t, l1b, "Object was nil based on ID %s", l1.ID())
 	assert.Equal(t, "leaf4", l1b.Name())
 	assert.Equal(t, "root4", l1b.AltRootUn().Name())
 }

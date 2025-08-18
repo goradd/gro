@@ -106,8 +106,8 @@ func (j *Element) String() string {
 	if tn := j.QueryNode.TableName_(); tn != "" {
 		s += ":" + tn
 	}
-	if c, ok := j.QueryNode.(*query.ColumnNode); ok {
-		s += ":" + c.Field
+	if _, ok := j.QueryNode.(*query.ColumnNode); ok {
+		s += ":" + query.ColumnNodeQueryName(j.QueryNode)
 	}
 	if j.Alias != "" {
 		s += ":" + j.Alias

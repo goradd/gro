@@ -28,6 +28,7 @@ func TestForward(t *testing.T) {
 	var l2 *goradd_unit.Leaf
 	l2, err = goradd_unit.LoadLeaf(ctx, l.ID(), node.Leaf().Root())
 	require.NoError(t, err)
+	require.NotNilf(t, l2, "Object was nil based on ID %s", l.ID())
 	assert.Equal(t, "leaf", l2.Name())
 	assert.Equal(t, "root", l2.Root().Name())
 
@@ -38,6 +39,7 @@ func TestForward(t *testing.T) {
 	assert.NoError(t, err)
 	l2, err = goradd_unit.LoadLeaf(ctx, l.ID(), node.Leaf().Root())
 	require.NoError(t, err)
+	require.NotNilf(t, l2, "Object was nil based on ID %s", l.ID())
 	assert.Equal(t, "leaf2", l2.Name())
 	assert.Equal(t, "root2", l2.Root().Name())
 
@@ -50,6 +52,7 @@ func TestForward(t *testing.T) {
 	require.NoError(t, err)
 	l2, err = goradd_unit.LoadLeaf(ctx, l3.ID(), node.Leaf().Root())
 	require.NoError(t, err)
+	require.NotNilf(t, l2, "Object was nil based on ID %s", l3.ID())
 	assert.Equal(t, "leaf3", l2.Name())
 	assert.Equal(t, "root3", l2.Root().Name())
 
@@ -62,7 +65,7 @@ func TestForward(t *testing.T) {
 	require.NoError(t, err)
 	l2, err = goradd_unit.LoadLeaf(ctx, l.ID(), node.Leaf().Root())
 	assert.NoError(t, err)
-	require.NotNil(t, l2)
+	require.NotNilf(t, l2, "Object was nil based on ID %s", l.ID())
 	assert.Equal(t, "leaf4", l2.Name())
 	assert.Equal(t, "root4", l2.Root().Name())
 }

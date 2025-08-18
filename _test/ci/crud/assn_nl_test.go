@@ -3,12 +3,13 @@ package crud
 import (
 	"context"
 	"encoding/json"
+	"testing"
+
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit"
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 // TestForwardLock tests insert and update of two linked records that have an optimistic lock.
@@ -28,6 +29,7 @@ func TestAssociationLock(t *testing.T) {
 	var l3 *goradd_unit.LeafNl
 	l3, err = goradd_unit.LoadLeafNl(ctx, l1.ID(), node.LeafNl().Leaf2s())
 	require.NoError(t, err)
+	require.NotNilf(t, l3, "Object was nil based on ID %s", l1.ID())
 	assert.Equal(t, "leaf1", l3.Name())
 	assert.Equal(t, "leaf2", l3.Leaf2s()[0].Name())
 
@@ -38,6 +40,7 @@ func TestAssociationLock(t *testing.T) {
 	assert.NoError(t, err)
 	l3, err = goradd_unit.LoadLeafNl(ctx, l1.ID(), node.LeafNl().Leaf2s())
 	require.NoError(t, err)
+	require.NotNilf(t, l3, "Object was nil based on ID %s", l1.ID())
 	assert.Equal(t, "leaf11", l3.Name())
 	assert.Equal(t, "leaf22", l3.Leaf2s()[0].Name())
 
@@ -50,6 +53,7 @@ func TestAssociationLock(t *testing.T) {
 	require.NoError(t, err)
 	l3, err = goradd_unit.LoadLeafNl(ctx, l4.ID(), node.LeafNl().Leaf2s())
 	require.NoError(t, err)
+	require.NotNilf(t, l3, "Object was nil based on ID %s", l4.ID())
 	assert.Equal(t, "leaf4", l3.Name())
 	assert.Equal(t, "leaf111", l3.Leaf2s()[0].Name())
 
@@ -62,6 +66,7 @@ func TestAssociationLock(t *testing.T) {
 	require.NoError(t, err)
 	l3, err = goradd_unit.LoadLeafNl(ctx, l4.ID(), node.LeafNl().Leaf2s())
 	require.NoError(t, err)
+	require.NotNilf(t, l3, "Object was nil based on ID %s", l4.ID())
 	assert.Equal(t, "leaf44", l3.Name())
 	assert.Equal(t, "leaf5", l3.Leaf2s()[0].Name())
 }

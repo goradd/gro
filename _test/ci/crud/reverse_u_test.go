@@ -2,11 +2,12 @@ package crud
 
 import (
 	"context"
+	"testing"
+
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit"
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 // TestReverseUnique tests insert and update of two linked records.
@@ -26,6 +27,7 @@ func TestReverseUnique(t *testing.T) {
 	var r2 *goradd_unit.RootU
 	r2, err = goradd_unit.LoadRootU(ctx, r.ID(), node.RootU().LeafU())
 	require.NoError(t, err)
+	require.NotNilf(t, r2, "Object was nil based on ID %s", r.ID())
 	assert.Equal(t, "root", r2.Name())
 	assert.Equal(t, "leaf", r2.LeafU().Name())
 
@@ -36,6 +38,7 @@ func TestReverseUnique(t *testing.T) {
 	assert.NoError(t, err)
 	r2, err = goradd_unit.LoadRootU(ctx, r.ID(), node.RootU().LeafU())
 	require.NoError(t, err)
+	require.NotNilf(t, r2, "Object was nil based on ID %s", r.ID())
 	assert.Equal(t, "root2", r2.Name())
 	assert.Equal(t, "leaf2", r2.LeafU().Name())
 
@@ -48,6 +51,7 @@ func TestReverseUnique(t *testing.T) {
 	require.NoError(t, err)
 	r2, err = goradd_unit.LoadRootU(ctx, r3.ID(), node.RootU().LeafU())
 	require.NoError(t, err)
+	require.NotNilf(t, r2, "Object was nil based on ID %s", r3.ID())
 	assert.Equal(t, "root3", r2.Name())
 	assert.Equal(t, "leaf3", r2.LeafU().Name())
 
@@ -60,6 +64,7 @@ func TestReverseUnique(t *testing.T) {
 	require.NoError(t, err)
 	r2, err = goradd_unit.LoadRootU(ctx, r.ID(), node.RootU().LeafU())
 	require.NoError(t, err)
+	require.NotNilf(t, r2, "Object was nil based on ID %s", r.ID())
 	assert.Equal(t, "root4", r2.Name())
 	assert.Equal(t, "leaf4", r2.LeafU().Name())
 

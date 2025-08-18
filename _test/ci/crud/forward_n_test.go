@@ -2,11 +2,12 @@ package crud
 
 import (
 	"context"
+	"testing"
+
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit"
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 // TestForwardNullable tests insert and update of two linked records where the link is nullable.
@@ -26,6 +27,7 @@ func TestForwardNullable(t *testing.T) {
 	var l2 *goradd_unit.LeafN
 	l2, err = goradd_unit.LoadLeafN(ctx, l.ID(), node.LeafN().RootN())
 	require.NoError(t, err)
+	require.NotNilf(t, l2, "Object was nil based on ID %s", l.ID())
 	assert.Equal(t, "leaf", l2.Name())
 	assert.Equal(t, "root", l2.RootN().Name())
 
@@ -36,6 +38,7 @@ func TestForwardNullable(t *testing.T) {
 	assert.NoError(t, err)
 	l2, err = goradd_unit.LoadLeafN(ctx, l.ID(), node.LeafN().RootN())
 	require.NoError(t, err)
+	require.NotNilf(t, l2, "Object was nil based on ID %s", l.ID())
 	assert.Equal(t, "leaf2", l2.Name())
 	assert.Equal(t, "root2", l2.RootN().Name())
 
@@ -48,6 +51,7 @@ func TestForwardNullable(t *testing.T) {
 	require.NoError(t, err)
 	l2, err = goradd_unit.LoadLeafN(ctx, l3.ID(), node.LeafN().RootN())
 	require.NoError(t, err)
+	require.NotNilf(t, l2, "Object was nil based on ID %s", l3.ID())
 	assert.Equal(t, "leaf3", l2.Name())
 	assert.Equal(t, "root3", l2.RootN().Name())
 
@@ -60,6 +64,7 @@ func TestForwardNullable(t *testing.T) {
 	require.NoError(t, err)
 	l2, err = goradd_unit.LoadLeafN(ctx, l.ID(), node.LeafN().RootN())
 	require.NoError(t, err)
+	require.NotNilf(t, l2, "Object was nil based on ID %s", l.ID())
 	assert.Equal(t, "leaf4", l2.Name())
 	assert.Equal(t, "root4", l2.RootN().Name())
 }

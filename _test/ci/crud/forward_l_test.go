@@ -29,6 +29,7 @@ func TestForwardLock(t *testing.T) {
 	var l2 *goradd_unit.LeafL
 	l2, err = goradd_unit.LoadLeafL(ctx, l.ID(), node.LeafL().RootL())
 	require.NoError(t, err)
+	require.NotNilf(t, l2, "Object was nil based on ID %s", l.ID())
 	assert.Equal(t, "leaf", l2.Name())
 	assert.Equal(t, "root", l2.RootL().Name())
 
@@ -39,6 +40,7 @@ func TestForwardLock(t *testing.T) {
 	assert.NoError(t, err)
 	l2, err = goradd_unit.LoadLeafL(ctx, l.ID(), node.LeafL().RootL())
 	require.NoError(t, err)
+	require.NotNilf(t, l2, "Object was nil based on ID %s", l.ID())
 	assert.Equal(t, "leaf2", l2.Name())
 	assert.Equal(t, "root2", l2.RootL().Name())
 
@@ -51,6 +53,7 @@ func TestForwardLock(t *testing.T) {
 	require.NoError(t, err)
 	l2, err = goradd_unit.LoadLeafL(ctx, l3.ID(), node.LeafL().RootL())
 	require.NoError(t, err)
+	require.NotNilf(t, l2, "Object was nil based on ID %s", l3.ID())
 	assert.Equal(t, "leaf3", l2.Name())
 	assert.Equal(t, "root3", l2.RootL().Name())
 
@@ -63,6 +66,7 @@ func TestForwardLock(t *testing.T) {
 	require.NoError(t, err)
 	l2, err = goradd_unit.LoadLeafL(ctx, l.ID(), node.LeafL().RootL())
 	require.NoError(t, err)
+	require.NotNilf(t, l2, "Object was nil based on ID %s", l.ID())
 	assert.Equal(t, "leaf4", l2.Name())
 	assert.Equal(t, "root4", l2.RootL().Name())
 }

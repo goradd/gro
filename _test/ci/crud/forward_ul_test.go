@@ -2,12 +2,13 @@ package crud
 
 import (
 	"context"
+	"testing"
+
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit"
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
 	"github.com/goradd/orm/pkg/db"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 // TestForwardUnique covers insert/update flows and enforces that only one LeafUl may point to a given RootUl.
@@ -26,6 +27,7 @@ func TestForwardUniqueLock(t *testing.T) {
 	// loading back
 	l1b, err := goradd_unit.LoadLeafUl(ctx, l1.ID(), node.LeafUl().RootUl())
 	require.NoError(t, err)
+	require.NotNilf(t, l1b, "Object was nil based on ID %s", l1.ID())
 	assert.Equal(t, "leaf", l1b.Name())
 	assert.Equal(t, "root", l1b.RootUl().Name())
 
@@ -36,6 +38,7 @@ func TestForwardUniqueLock(t *testing.T) {
 	assert.NoError(t, err)
 	l1b, err = goradd_unit.LoadLeafUl(ctx, l1.ID(), node.LeafUl().RootUl())
 	require.NoError(t, err)
+	require.NotNilf(t, l1b, "Object was nil based on ID %s", l1.ID())
 	assert.Equal(t, "leaf2", l1b.Name())
 	assert.Equal(t, "root2", l1b.RootUl().Name())
 
@@ -57,6 +60,7 @@ func TestForwardUniqueLock(t *testing.T) {
 	require.NoError(t, err)
 	l1b, err = goradd_unit.LoadLeafUl(ctx, l1.ID(), node.LeafUl().RootUl())
 	require.NoError(t, err)
+	require.NotNilf(t, l1b, "Object was nil based on ID %s", l1.ID())
 	assert.Equal(t, "leaf4", l1b.Name())
 	assert.Equal(t, "root4", l1b.RootUl().Name())
 }

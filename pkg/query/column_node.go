@@ -15,10 +15,10 @@ type ColumnNodeI interface {
 
 // ColumnNode represents a table or field in a database structure, and is the leaf of a node tree or chain.
 //
-// You would not normally create a column node directly. Use the code generated functions to create column nodes.
+// You would not normally create a column node directly. Use the code generated node functions to create column nodes.
 type ColumnNode struct {
 	// The query name of the column in the database.
-	queryName string
+	QueryName string
 	// The identifier of the data in the corresponding object.
 	// Pass this to Get() to retrieve a value.
 	Field string
@@ -46,7 +46,7 @@ func NewColumnNode(
 	parent Node,
 ) *ColumnNode {
 	n := &ColumnNode{
-		queryName:     queryName,
+		QueryName:     queryName,
 		Field:         field,
 		ReceiverType:  receiverType,
 		SchemaType:    schemaType,
@@ -91,7 +91,7 @@ func (n *ColumnNode) GobEncode() (data []byte, err error) {
 	var buf bytes.Buffer
 	e := gob.NewEncoder(&buf)
 
-	if err = e.Encode(n.queryName); err != nil {
+	if err = e.Encode(n.QueryName); err != nil {
 		panic(err)
 	}
 	if err = e.Encode(n.Field); err != nil {
@@ -116,7 +116,7 @@ func (n *ColumnNode) GobEncode() (data []byte, err error) {
 func (n *ColumnNode) GobDecode(data []byte) (err error) {
 	buf := bytes.NewBuffer(data)
 	dec := gob.NewDecoder(buf)
-	if err = dec.Decode(&n.queryName); err != nil {
+	if err = dec.Decode(&n.QueryName); err != nil {
 		panic(err)
 	}
 	if err = dec.Decode(&n.Field); err != nil {
@@ -147,5 +147,5 @@ func (n *ColumnNode) queryKey() string {
 
 // ColumnNodeQueryName returns the name used in the database of the column that corresponds to the node.
 func ColumnNodeQueryName(n Node) string {
-	return n.(*ColumnNode).queryName
+	return n.(*ColumnNode).QueryName
 }
