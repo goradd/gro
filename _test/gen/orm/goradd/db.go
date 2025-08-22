@@ -470,7 +470,7 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 	}
 
 	db := Database()
-	{
+	{ // Write team_member_project_assn
 		if _, err := io.WriteString(writer, ",\n["); err != nil {
 			return fmt.Errorf("writer error: %w", err)
 		}
@@ -484,7 +484,7 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 				"team_member_id": query.ColTypeString,
 			},
 			nil,
-			nil)
+			[]string{"project_id", "team_member_id"})
 		if err != nil {
 			return fmt.Errorf("query error: %w", err)
 		}

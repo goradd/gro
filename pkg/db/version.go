@@ -9,13 +9,15 @@ import (
 var tempPk = atomic.Int64{}
 var recordVersion = atomic.Int64{}
 
+const recordVersionMask uint64 = 0x03ffffff
+
 // InstanceId is an id used to identify the current instance of the application. It is important when multiple instances
 // of the same application that uses the ORM are accessing the same database.
 //
 // The value is assigned automatically as the microsecond that the application starts at, in an 8-year interval.
 // If your application is running behind a load balancer that can assign instance ids that are unique and sequential,
 // you might consider setting InstanceId to that value.
-var InstanceId = time.Now().UnixMicro() & 0x03fffffffff
+var InstanceId = time.Now().UnixMicro() & int64(^(recordVersionMask << 38))
 
 // RecordVersionFunc is a function that will return a new record version value given a previous value.
 // Only set this one if the default behavior does not work for you. See RecordVersion.
@@ -41,7 +43,7 @@ func TemporaryPrimaryKey() string {
 // A suitable default method is used that will guarantee uniqueness provided that:
 //  1. Instances are restarted at least every 8 years,
 //  2. Multiple instances are not cold started at the same microsecond, and
-//  3. Individual instances do not create more than 64 million records before being restarted.
+//  3. Individual instances do not create more than 67 million records before being restarted.
 //
 // Even if these parameters cannot be guaranteed, it is still extremely unlikely that a collision will occur.
 // You can replace the default method by setting the RecordVersionFunction value.

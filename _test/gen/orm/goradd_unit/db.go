@@ -1337,7 +1337,7 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 	}
 
 	db := Database()
-	{
+	{ // Write leaf_nl_assn
 		if _, err := io.WriteString(writer, ",\n["); err != nil {
 			return fmt.Errorf("writer error: %w", err)
 		}
@@ -1351,7 +1351,7 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 				"leaf_1_id": query.ColTypeString,
 			},
 			nil,
-			nil)
+			[]string{"leaf_2_id", "leaf_1_id"})
 		if err != nil {
 			return fmt.Errorf("query error: %w", err)
 		}

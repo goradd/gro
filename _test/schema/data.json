@@ -233,7 +233,7 @@
   "managerID": "7",
   "name": "ACME Website Redesign",
   "num": 1,
-  "parentProjectID": null,
+  "parentID": null,
   "spent": "10250.75",
   "startDate": "2004-03-01T00:00:00Z",
   "status": "completed"
@@ -247,7 +247,7 @@
   "managerID": "4",
   "name": "State College HR System",
   "num": 2,
-  "parentProjectID": null,
+  "parentID": null,
   "spent": "73200.00",
   "startDate": "2006-02-15T00:00:00Z",
   "status": "open"
@@ -261,7 +261,7 @@
   "managerID": "1",
   "name": "Blueman Industrial Site Architecture",
   "num": 3,
-  "parentProjectID": null,
+  "parentID": null,
   "spent": "4200.50",
   "startDate": "2006-03-01T00:00:00Z",
   "status": "open"
@@ -275,7 +275,7 @@
   "managerID": "7",
   "name": "ACME Payment System",
   "num": 4,
-  "parentProjectID": null,
+  "parentID": "1",
   "spent": "5175.30",
   "startDate": "2005-08-15T00:00:00Z",
   "status": "canceled"

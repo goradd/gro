@@ -3,10 +3,11 @@ package query
 import (
 	"context"
 	"fmt"
-	"github.com/goradd/orm/_test/config"
-	"github.com/goradd/orm/_test/gen/orm/goradd"
 	"os"
 	"testing"
+
+	"github.com/goradd/orm/_test/config"
+	"github.com/goradd/orm/_test/gen/orm/goradd"
 )
 
 func TestMain(m *testing.M) {
@@ -39,7 +40,6 @@ func loadData(ctx context.Context) {
 		panic(err)
 	}
 	defer f.Close()
-	goradd.ClearAll(ctx)
 	err = goradd.JsonDecodeAll(ctx, f)
 	if err != nil {
 		panic(fmt.Errorf("error loading data: %w", err))

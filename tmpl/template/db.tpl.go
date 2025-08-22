@@ -333,7 +333,15 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 
 			for _, mm := range assnTables {
 
-				if _, err = io.WriteString(_w, `    {
+				if _, err = io.WriteString(_w, `    {	// Write `); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, mm.TableQueryName); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `
         if _,err := io.WriteString(writer, ",\n["); err != nil {
             return fmt.Errorf("writer error: %w", err)
         }
@@ -348,7 +356,6 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 				if _, err = io.WriteString(_w, `,[`+"`"+`); err != nil {
             return fmt.Errorf("writer error: %w", err)
         }
-
 
         cursor, err := db.Query(ctx, `); err != nil {
 					return
@@ -396,7 +403,23 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 				if _, err = io.WriteString(_w, `,
             },
             nil,
-            nil)
+            []string{"`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, mm.SourceColumnName()); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `", "`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, mm.ForeignKeyName); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `"})
         if err != nil {
             return fmt.Errorf("query error: %w", err)
         }

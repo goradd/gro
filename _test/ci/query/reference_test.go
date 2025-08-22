@@ -2,10 +2,11 @@ package query
 
 import (
 	"context"
+	"testing"
+
 	"github.com/goradd/orm/_test/gen/orm/goradd"
 	"github.com/goradd/orm/_test/gen/orm/goradd/node"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestReference(t *testing.T) {
@@ -18,6 +19,16 @@ func TestReference(t *testing.T) {
 	if projects[0].Manager().FirstName() != "Karen" {
 		t.Error("Person found not Karen, found " + projects[0].Manager().FirstName())
 	}
+}
+
+func TestParentReference(t *testing.T) {
+	ctx := context.Background()
+	projects, err := goradd.QueryProjects(ctx).
+		Select(node.Project().Parent()).
+		OrderBy(node.Project().ID()).
+		Load()
+	assert.NoError(t, err)
+	assert.Equal(t, "1", projects[3].Parent().ID())
 }
 
 func TestReferenceUpdate(t *testing.T) {

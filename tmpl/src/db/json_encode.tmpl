@@ -80,7 +80,7 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 {{if len(assnTables) > 0 }}
     db := Database()
 {{for _, mm := range assnTables}}
-    {
+    {	// Write {{= mm.TableQueryName }}
         if _,err := io.WriteString(writer, ",\n["); err != nil {
             return fmt.Errorf("writer error: %w", err)
         }
@@ -88,14 +88,13 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
             return fmt.Errorf("writer error: %w", err)
         }
 
-
         cursor, err := db.Query(ctx, {{L mm.TableQueryName}},
             map[string]query.ReceiverType{
                 {{L mm.SourceColumnName()}}: query.{{= mm.SourceColumnReceiverType().String() }},
                 {{L mm.ForeignKeyName}}: query.{{= mm.ForeignKeyReceiverType.String() }},
             },
             nil,
-            nil)
+            []string{"{{= mm.SourceColumnName() }}", "{{= mm.ForeignKeyName }}"})
         if err != nil {
             return fmt.Errorf("query error: %w", err)
         }
