@@ -4,13 +4,14 @@ import (
 	"context"
 	sqldb "database/sql"
 	"fmt"
+	"strings"
+	"time"
+
 	"github.com/go-sql-driver/mysql"
 	"github.com/goradd/anyutil"
 	"github.com/goradd/orm/pkg/db"
 	sql2 "github.com/goradd/orm/pkg/db/sql"
 	. "github.com/goradd/orm/pkg/query"
-	"strings"
-	"time"
 )
 
 // DB is the goradd driver for mysql databases. It works through the excellent go-sql-driver driver,
@@ -278,9 +279,12 @@ func (m *DB) Update(ctx context.Context,
 		}
 		return db.NewQueryError("SqlExec", s, args, err)
 	}
-	if rows, _ := result.RowsAffected(); rows == 0 {
+	if rows, err2 := result.RowsAffected(); rows == 0 {
+		if err2 != nil {
+			return db.NewQueryError("RowsAffected", s, args, err2)
+		}
 		if optLockFieldName != "" {
-			return db.NewOptimisticLockError(table, primaryKey, nil)
+			return db.NewOptimisticLockError(table, primaryKey, db.NewQueryError("SqlExec", s, args, nil))
 		} /*else {
 			Note: We cannot determine that a record was not found, because another possibility is simply that the record
 				  did not change. The above works because the optimistic lock forces a change.

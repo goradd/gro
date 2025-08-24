@@ -3,13 +3,15 @@ package query
 import (
 	"context"
 	"encoding/json"
+	"testing"
+
 	"github.com/goradd/orm/_test/gen/orm/goradd"
 	"github.com/goradd/orm/_test/gen/orm/goradd/node"
 	"github.com/goradd/orm/_test/gen/orm/goradd_unit"
 	node2 "github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
 	"github.com/goradd/orm/pkg/op"
 	"github.com/stretchr/testify/assert"
-	"testing"
+	"github.com/stretchr/testify/require"
 )
 
 func TestBasic(t *testing.T) {
@@ -319,6 +321,7 @@ func TestMultiParent(t *testing.T) {
 
 	mom2, err := goradd_unit.LoadMultiParent(ctx, mom.ID(), node2.MultiParent().Parent1MultiParents())
 	assert.NoError(t, err)
+	require.NotNil(t, mom2, "Multi parent should exist %s", mom.ID())
 	assert.Equal(t, mom2.Parent1MultiParents()[0].ID(), baby.ID())
 
 	b, errw := json.Marshal(baby)

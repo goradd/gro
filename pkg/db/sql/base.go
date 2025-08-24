@@ -54,7 +54,7 @@ func (h *Base) SqlExec(ctx context.Context, sql string, args ...interface{}) (r 
 	if h.profiling {
 		endTime = time.Now()
 
-		slog.Debug("SqlExec: ",
+		slog.Info("SqlExec: ",
 			slog.String(db.LogSql, sql),
 			slog.Any(db.LogArgs, args),
 			slog.Any(db.LogStartTime, beginTime),
@@ -660,8 +660,14 @@ func (h *Base) WithTransaction(ctx context.Context, f func(ctx context.Context) 
 	}
 	con := h.getConnection(ctx)
 	if con == nil {
+		if h.profiling {
+			slog.Info("Begin TX")
+		}
 		tx, err = h.db.BeginTx(ctx, nil)
 	} else {
+		if h.profiling {
+			slog.Info("Begin Con TX")
+		}
 		tx, err = con.BeginTx(ctx, nil)
 	}
 	if err != nil {
@@ -671,6 +677,10 @@ func (h *Base) WithTransaction(ctx context.Context, f func(ctx context.Context) 
 		return fmt.Errorf("no transaction available")
 	}
 	defer func() {
+		if h.profiling {
+			slog.Info("Rollback TX")
+		}
+
 		rErr := tx.Rollback() // will be a no-op if the commit happens first
 		if err == nil && !errors.Is(rErr, sql.ErrTxDone) {
 			err = rErr
@@ -680,6 +690,9 @@ func (h *Base) WithTransaction(ctx context.Context, f func(ctx context.Context) 
 	err = f(ctx)
 	if err != nil {
 		return
+	}
+	if h.profiling {
+		slog.Info("Commit TX")
 	}
 	err = tx.Commit()
 	return

@@ -52,8 +52,8 @@ func InitDB() {
 	}
 
 	// pick a database to initialize here if no config file
-	initMysql()
-	//initPostgres()
+	//initMysql()
+	initPostgres()
 	//initSQLite()
 }
 
@@ -70,6 +70,7 @@ func initMysql() {
 	if err != nil {
 		panic(err)
 	}
+	database.StartProfiling()
 
 	db.AddDatabase(database, goraddKey)
 
@@ -93,6 +94,9 @@ func initPostgres() {
 	if err != nil {
 		panic(err)
 	}
+	
+	database.StartProfiling()
+
 	db.AddDatabase(database, goraddKey)
 
 	cfg.Database = goraddUnitDatabaseName
