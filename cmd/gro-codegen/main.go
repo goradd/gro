@@ -14,19 +14,6 @@ import (
 )
 
 func main() {
-	/*
-		f, err := os.Create("cpu.prof")
-		if err != nil {
-			panic(err)
-		}
-		pprof.StartCPUProfile(f)
-		defer pprof.StopCPUProfile()
-	*/
-	/*
-		f, _ := os.Create("trace.out")
-		trace.Start(f)
-		defer trace.Stop()
-	*/
 	var schemaFile string
 	var outdir string
 
