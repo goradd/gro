@@ -9,9 +9,9 @@ import (
 	"io"
 	"slices"
 
+	"github.com/goradd/gro/pkg/codegen"
+	"github.com/goradd/gro/pkg/model"
 	"github.com/goradd/maps"
-	"github.com/goradd/orm/pkg/codegen"
-	"github.com/goradd/orm/pkg/model"
 )
 
 func init() {
@@ -87,12 +87,12 @@ package `); err != nil {
 	if _, err = io.WriteString(_w, `
 
 import (
-	"github.com/goradd/orm/pkg/db"
+	"github.com/goradd/gro/pkg/db"
 	"context"
 	"io"
 	"encoding/json"
 	"fmt"
-	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/gro/pkg/query"
 )
 
 // Database returns the database object corresponding to "`); err != nil {

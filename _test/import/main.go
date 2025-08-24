@@ -4,8 +4,8 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/goradd/orm/_test/gen/orm/goradd"
-	"github.com/goradd/orm/pkg/config"
+	"github.com/goradd/gro/_test/gen/orm/goradd"
+	"github.com/goradd/gro/pkg/config"
 	"os"
 )
 

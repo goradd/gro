@@ -14,12 +14,12 @@ import (
 	"runtime"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/goradd/orm/pkg/config"
-	"github.com/goradd/orm/pkg/db"
-	mysql2 "github.com/goradd/orm/pkg/db/sql/mysql"
-	"github.com/goradd/orm/pkg/db/sql/pgsql"
-	"github.com/goradd/orm/pkg/db/sql/sqlite"
-	"github.com/goradd/orm/pkg/schema"
+	"github.com/goradd/gro/pkg/config"
+	"github.com/goradd/gro/pkg/db"
+	mysql2 "github.com/goradd/gro/pkg/db/sql/mysql"
+	"github.com/goradd/gro/pkg/db/sql/pgsql"
+	"github.com/goradd/gro/pkg/db/sql/sqlite"
+	"github.com/goradd/gro/pkg/schema"
 	"github.com/jackc/pgx/v5"
 )
 
@@ -94,7 +94,7 @@ func initPostgres() {
 	if err != nil {
 		panic(err)
 	}
-	
+
 	database.StartProfiling()
 
 	db.AddDatabase(database, goraddKey)

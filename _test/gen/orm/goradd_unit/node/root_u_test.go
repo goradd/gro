@@ -3,7 +3,7 @@ package node
 import (
 	"testing"
 
-	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/gro/pkg/query"
 	"github.com/stretchr/testify/assert"
 )
 

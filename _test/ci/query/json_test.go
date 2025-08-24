@@ -3,8 +3,8 @@ package query
 import (
 	"context"
 	"encoding/json"
-	"github.com/goradd/orm/_test/gen/orm/goradd"
-	"github.com/goradd/orm/_test/gen/orm/goradd/node"
+	"github.com/goradd/gro/_test/gen/orm/goradd"
+	"github.com/goradd/gro/_test/gen/orm/goradd/node"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

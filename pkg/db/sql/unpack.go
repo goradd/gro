@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/goradd/gro/pkg/db"
+	"github.com/goradd/gro/pkg/db/jointree"
+	"github.com/goradd/gro/pkg/query"
 	"github.com/goradd/maps"
-	"github.com/goradd/orm/pkg/db"
-	"github.com/goradd/orm/pkg/db/jointree"
-	"github.com/goradd/orm/pkg/query"
 )
 
 // ReceiveRows gets data from a sql result set and returns it as a slice of maps.

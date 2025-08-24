@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/goradd/orm/_test/gen/orm/goradd"
-	"github.com/goradd/orm/pkg/config"
-	_ "github.com/goradd/orm/tmpl/template"
+	"github.com/goradd/gro/_test/gen/orm/goradd"
+	"github.com/goradd/gro/pkg/config"
+	_ "github.com/goradd/gro/tmpl/template"
 )
 
 func main() {

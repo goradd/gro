@@ -3,8 +3,8 @@ package model
 import (
 	"cmp"
 	. "github.com/goradd/anyutil"
-	. "github.com/goradd/orm/pkg/query"
-	"github.com/goradd/orm/pkg/schema"
+	. "github.com/goradd/gro/pkg/query"
+	"github.com/goradd/gro/pkg/schema"
 	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
 	"log/slog"

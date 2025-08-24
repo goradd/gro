@@ -6,8 +6,8 @@ import (
 	"bytes"
 	"encoding/gob"
 
-	"github.com/goradd/orm/pkg/query"
-	"github.com/goradd/orm/pkg/schema"
+	"github.com/goradd/gro/pkg/query"
+	"github.com/goradd/gro/pkg/schema"
 )
 
 // RootNlNode is the builder interface to the RootNl nodes.

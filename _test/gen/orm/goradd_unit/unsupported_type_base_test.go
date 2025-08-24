@@ -6,7 +6,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/goradd/orm/pkg/test"
+	"github.com/goradd/gro/pkg/test"
 	"github.com/stretchr/testify/assert"
 )
 

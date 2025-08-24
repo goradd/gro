@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/gro/pkg/query"
 	"github.com/goradd/strings"
 )
 

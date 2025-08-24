@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/goradd/anyutil"
-	"github.com/goradd/orm/pkg/db"
-	"github.com/goradd/orm/pkg/schema"
+	"github.com/goradd/gro/pkg/db"
+	"github.com/goradd/gro/pkg/schema"
 )
 
 // addSyncFunc adds the sync function to the given sql. It can be called multiple times for the

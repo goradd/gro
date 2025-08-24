@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/goradd/orm/_test/gen/orm/goradd"
-	"github.com/goradd/orm/_test/gen/orm/goradd_unit"
+	"github.com/goradd/gro/_test/gen/orm/goradd"
+	"github.com/goradd/gro/_test/gen/orm/goradd_unit"
 	"github.com/stretchr/testify/assert"
 )
 

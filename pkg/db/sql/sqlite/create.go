@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/goradd/anyutil"
-	"github.com/goradd/orm/pkg/db"
-	"github.com/goradd/orm/pkg/schema"
+	"github.com/goradd/gro/pkg/db"
+	"github.com/goradd/gro/pkg/schema"
 )
 
 // TableDefinitionSql will return the sql needed to create the table.

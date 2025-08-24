@@ -2,8 +2,8 @@ package model
 
 import (
 	"fmt"
-	"github.com/goradd/orm/pkg/db"
-	"github.com/goradd/orm/pkg/schema"
+	"github.com/goradd/gro/pkg/db"
+	"github.com/goradd/gro/pkg/schema"
 	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
 	"log/slog"

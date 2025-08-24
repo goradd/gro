@@ -4,8 +4,8 @@ package jointree
 import (
 	"fmt"
 	"github.com/goradd/anyutil"
-	"github.com/goradd/orm/pkg/op"
-	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/gro/pkg/op"
+	"github.com/goradd/gro/pkg/query"
 	"iter"
 	"slices"
 	"strconv"

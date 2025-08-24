@@ -3,13 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/goradd/gofile/pkg/sys"
-	"github.com/goradd/orm/pkg/codegen"
-	"github.com/goradd/orm/pkg/schema"
-	_ "github.com/goradd/orm/tmpl/template"
 	"log/slog"
 	"os"
 	"path/filepath"
+
+	"github.com/goradd/gofile/pkg/sys"
+	"github.com/goradd/gro/pkg/codegen"
+	"github.com/goradd/gro/pkg/schema"
+	_ "github.com/goradd/gro/tmpl/template"
 )
 
 func main() {

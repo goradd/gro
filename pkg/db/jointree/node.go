@@ -1,6 +1,6 @@
 package jointree
 
-import "github.com/goradd/orm/pkg/query"
+import "github.com/goradd/gro/pkg/query"
 
 type reverseNode struct {
 	node  query.Node

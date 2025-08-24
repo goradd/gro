@@ -6,8 +6,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/goradd/orm/_test/config"
-	"github.com/goradd/orm/_test/gen/orm/goradd"
+	"github.com/goradd/gro/_test/config"
+	"github.com/goradd/gro/_test/gen/orm/goradd"
 )
 
 func TestMain(m *testing.M) {

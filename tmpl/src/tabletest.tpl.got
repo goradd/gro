@@ -1,7 +1,7 @@
 package template
 
 import (
-	"github.com/goradd/orm/pkg/codegen"
+	"github.com/goradd/gro/pkg/codegen"
 )
 
 func init() {

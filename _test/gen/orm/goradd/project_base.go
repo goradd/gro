@@ -13,11 +13,11 @@ import (
 
 	"github.com/goradd/anyutil"
 	"github.com/goradd/maps"
-	"github.com/goradd/orm/_test/gen/orm/goradd/node"
-	"github.com/goradd/orm/pkg/broadcast"
-	"github.com/goradd/orm/pkg/db"
-	"github.com/goradd/orm/pkg/op"
-	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/gro/_test/gen/orm/goradd/node"
+	"github.com/goradd/gro/pkg/broadcast"
+	"github.com/goradd/gro/pkg/db"
+	"github.com/goradd/gro/pkg/op"
+	"github.com/goradd/gro/pkg/query"
 )
 
 // ProjectBase is embedded in a Project object and provides the ORM access to the database.

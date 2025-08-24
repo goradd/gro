@@ -4,8 +4,8 @@ package template
 // This template generates a got template for the db.go file in the orm directory
 
 import (
-	"github.com/goradd/orm/pkg/codegen"
-	"github.com/goradd/orm/pkg/model"
+	"github.com/goradd/gro/pkg/codegen"
+	"github.com/goradd/gro/pkg/model"
 	"io"
 	"path/filepath"
 )

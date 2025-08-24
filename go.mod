@@ -1,4 +1,4 @@
-module github.com/goradd/orm
+module github.com/goradd/gro
 
 require (
 	github.com/go-sql-driver/mysql v1.8.1

@@ -7,8 +7,8 @@ package template
 import (
 	"io"
 
-	"github.com/goradd/orm/pkg/codegen"
-	"github.com/goradd/orm/pkg/model"
+	"github.com/goradd/gro/pkg/codegen"
+	"github.com/goradd/gro/pkg/model"
 )
 
 func init() {
@@ -45,7 +45,7 @@ package `); err != nil {
 // Feel free to modify this file to suit your database configuration needs.
 
 import (
-	"github.com/goradd/orm/_test/config" // replace with the directory containing your InitDB function for tests.
+	"github.com/goradd/gro/_test/config" // replace with the directory containing your InitDB function for tests.
 )
 
 

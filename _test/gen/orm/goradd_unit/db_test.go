@@ -10,8 +10,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
-	"github.com/goradd/orm/pkg/test"
+	"github.com/goradd/gro/_test/gen/orm/goradd_unit/node"
+	"github.com/goradd/gro/pkg/test"
 	"github.com/stretchr/testify/assert"
 )
 

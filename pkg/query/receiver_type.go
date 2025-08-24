@@ -2,7 +2,7 @@ package query
 
 import (
 	"fmt"
-	"github.com/goradd/orm/pkg/schema"
+	"github.com/goradd/gro/pkg/schema"
 	"time"
 )
 

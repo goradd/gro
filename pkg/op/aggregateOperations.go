@@ -1,6 +1,6 @@
 package op
 
-import . "github.com/goradd/orm/pkg/query"
+import . "github.com/goradd/gro/pkg/query"
 
 // Aggregates require a group by clause if aggregating over particular columns.
 

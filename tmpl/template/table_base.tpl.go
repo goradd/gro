@@ -7,10 +7,10 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/goradd/orm/pkg/codegen"
-	"github.com/goradd/orm/pkg/model"
-	"github.com/goradd/orm/pkg/query"
-	"github.com/goradd/orm/pkg/schema"
+	"github.com/goradd/gro/pkg/codegen"
+	"github.com/goradd/gro/pkg/model"
+	"github.com/goradd/gro/pkg/query"
+	"github.com/goradd/gro/pkg/schema"
 )
 
 func init() {
@@ -118,12 +118,12 @@ package `); err != nil {
 	if _, err = io.WriteString(_w, `
 
 import (
-	"github.com/goradd/orm/pkg/db"
-	"github.com/goradd/orm/pkg/query"
-	"github.com/goradd/orm/pkg/broadcast"
+	"github.com/goradd/gro/pkg/db"
+	"github.com/goradd/gro/pkg/query"
+	"github.com/goradd/gro/pkg/broadcast"
 	"context"
 	"fmt"
-	"github.com/goradd/orm/pkg/op"
+	"github.com/goradd/gro/pkg/op"
 	"github.com/goradd/anyutil"
 	"bytes"
 	"encoding/gob"

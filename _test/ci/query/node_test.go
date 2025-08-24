@@ -6,11 +6,11 @@ import (
 	"encoding/gob"
 	"testing"
 
-	"github.com/goradd/orm/_test/gen/orm/goradd/node"
-	"github.com/goradd/orm/_test/gen/orm/goradd_unit"
-	unit_node "github.com/goradd/orm/_test/gen/orm/goradd_unit/node"
-	"github.com/goradd/orm/pkg/op"
-	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/gro/_test/gen/orm/goradd/node"
+	"github.com/goradd/gro/_test/gen/orm/goradd_unit"
+	unit_node "github.com/goradd/gro/_test/gen/orm/goradd_unit/node"
+	"github.com/goradd/gro/pkg/op"
+	"github.com/goradd/gro/pkg/query"
 	"github.com/stretchr/testify/assert"
 )
 

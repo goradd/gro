@@ -6,8 +6,8 @@ import (
 	"io"
 	"path/filepath"
 
-	"github.com/goradd/orm/pkg/codegen"
-	"github.com/goradd/orm/pkg/model"
+	"github.com/goradd/gro/pkg/codegen"
+	"github.com/goradd/gro/pkg/model"
 )
 
 func init() {
@@ -42,7 +42,7 @@ func (n NodeDocTemplate) GenerateDatabase(database *model.Database, _w io.Writer
 // See the goradd-orm documentation for more information.
 package node
 
-import "github.com/goradd/orm/pkg/query"
+import "github.com/goradd/gro/pkg/query"
 
 func Alias(alias string) query.AliasNodeI {
 	return query.NewAliasNode(alias)

@@ -32,8 +32,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/goradd/orm/pkg/db"
-	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/gro/pkg/db"
+	"github.com/goradd/gro/pkg/query"
 )
 
 // Database returns the database object corresponding to "goradd_unit" in the global database cluster.

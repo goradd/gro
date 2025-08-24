@@ -1,8 +1,8 @@
 package template
 
 import (
-	"github.com/goradd/orm/pkg/codegen"
-	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/gro/pkg/codegen"
+	"github.com/goradd/gro/pkg/query"
 )
 
 func init() {

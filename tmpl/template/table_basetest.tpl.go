@@ -6,10 +6,10 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/goradd/orm/pkg/codegen"
-	"github.com/goradd/orm/pkg/model"
-	"github.com/goradd/orm/pkg/query"
-	"github.com/goradd/orm/pkg/schema"
+	"github.com/goradd/gro/pkg/codegen"
+	"github.com/goradd/gro/pkg/model"
+	"github.com/goradd/gro/pkg/query"
+	"github.com/goradd/gro/pkg/schema"
 )
 
 func init() {
@@ -50,7 +50,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	strings2 "github.com/goradd/strings"
-	"github.com/goradd/orm/pkg/test"
+	"github.com/goradd/gro/pkg/test"
 	"testing"
 )
 `); err != nil {

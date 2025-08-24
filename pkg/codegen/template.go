@@ -1,7 +1,7 @@
 package codegen
 
 import (
-	"github.com/goradd/orm/pkg/model"
+	"github.com/goradd/gro/pkg/model"
 	"io"
 )
 

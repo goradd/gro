@@ -10,9 +10,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/goradd/orm/_test/gen/orm/goradd/node"
-	"github.com/goradd/orm/pkg/op"
-	"github.com/goradd/orm/pkg/test"
+	"github.com/goradd/gro/_test/gen/orm/goradd/node"
+	"github.com/goradd/gro/pkg/op"
+	"github.com/goradd/gro/pkg/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

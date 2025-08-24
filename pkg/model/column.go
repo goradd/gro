@@ -6,9 +6,9 @@ import (
 	"slices"
 	"time"
 
-	"github.com/goradd/orm/pkg/db"
-	. "github.com/goradd/orm/pkg/query"
-	"github.com/goradd/orm/pkg/schema"
+	"github.com/goradd/gro/pkg/db"
+	. "github.com/goradd/gro/pkg/query"
+	"github.com/goradd/gro/pkg/schema"
 	strings2 "github.com/goradd/strings"
 )
 

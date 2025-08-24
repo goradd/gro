@@ -3,9 +3,9 @@ package sql
 import (
 	"database/sql"
 	"fmt"
-	"github.com/goradd/orm/pkg/db"
-	"github.com/goradd/orm/pkg/db/jointree"
-	"github.com/goradd/orm/pkg/query"
+	"github.com/goradd/gro/pkg/db"
+	"github.com/goradd/gro/pkg/db/jointree"
+	"github.com/goradd/gro/pkg/query"
 )
 
 type sqlCursor struct {

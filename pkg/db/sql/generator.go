@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/goradd/anyutil"
+	"github.com/goradd/gro/pkg/db/jointree"
+	. "github.com/goradd/gro/pkg/query"
 	"github.com/goradd/iter"
-	"github.com/goradd/orm/pkg/db/jointree"
-	. "github.com/goradd/orm/pkg/query"
 )
 
 type operationSqler interface {

@@ -4,9 +4,9 @@ import (
 	"context"
 	"log/slog"
 
-	"github.com/goradd/orm/pkg/config"
-	db2 "github.com/goradd/orm/pkg/db"
-	"github.com/goradd/orm/pkg/schema"
+	"github.com/goradd/gro/pkg/config"
+	db2 "github.com/goradd/gro/pkg/db"
+	"github.com/goradd/gro/pkg/schema"
 )
 
 func build(dbConfigFile, inFile, dbKey string) {

@@ -3,9 +3,9 @@ package codegen
 import (
 	"errors"
 	"github.com/goradd/gofile/pkg/sys"
-	db2 "github.com/goradd/orm/pkg/db"
-	"github.com/goradd/orm/pkg/model"
-	"github.com/goradd/orm/pkg/schema"
+	db2 "github.com/goradd/gro/pkg/db"
+	"github.com/goradd/gro/pkg/model"
+	"github.com/goradd/gro/pkg/schema"
 	"log/slog"
 	"os"
 	"os/exec"

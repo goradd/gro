@@ -1,6 +1,6 @@
 package op
 
-import . "github.com/goradd/orm/pkg/query"
+import . "github.com/goradd/gro/pkg/query"
 
 func Add(args ...interface{}) *OperationNode {
 	return NewOperationNode(OpAdd, args...)

@@ -3,8 +3,8 @@ package crud
 import (
 	"context"
 	"fmt"
-	"github.com/goradd/orm/_test/config"
-	"github.com/goradd/orm/_test/gen/orm/goradd_unit"
+	"github.com/goradd/gro/_test/config"
+	"github.com/goradd/gro/_test/gen/orm/goradd_unit"
 	"os"
 	"testing"
 )

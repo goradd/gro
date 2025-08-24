@@ -8,8 +8,8 @@ package sql
 import (
 	"context"
 	"database/sql"
-	"github.com/goradd/orm/pkg/db"
-	"github.com/goradd/orm/pkg/schema"
+	"github.com/goradd/gro/pkg/db"
+	"github.com/goradd/gro/pkg/schema"
 	"io"
 	"log/slog"
 )

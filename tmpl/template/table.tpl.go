@@ -5,8 +5,8 @@ package template
 import (
 	"io"
 
-	"github.com/goradd/orm/pkg/codegen"
-	"github.com/goradd/orm/pkg/model"
+	"github.com/goradd/gro/pkg/codegen"
+	"github.com/goradd/gro/pkg/model"
 )
 
 func init() {

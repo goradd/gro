@@ -11,10 +11,10 @@ import (
 	"time"
 
 	"github.com/goradd/anyutil"
-	"github.com/goradd/orm/pkg/db"
-	"github.com/goradd/orm/pkg/db/jointree"
-	. "github.com/goradd/orm/pkg/query"
-	"github.com/goradd/orm/pkg/schema"
+	"github.com/goradd/gro/pkg/db"
+	"github.com/goradd/gro/pkg/db/jointree"
+	. "github.com/goradd/gro/pkg/query"
+	"github.com/goradd/gro/pkg/schema"
 )
 
 // Base is a mixin for SQL database drivers that implement the standard Go database/sql interface.

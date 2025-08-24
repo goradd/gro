@@ -9,9 +9,9 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/goradd/anyutil"
-	"github.com/goradd/orm/pkg/db"
-	sql2 "github.com/goradd/orm/pkg/db/sql"
-	. "github.com/goradd/orm/pkg/query"
+	"github.com/goradd/gro/pkg/db"
+	sql2 "github.com/goradd/gro/pkg/db/sql"
+	. "github.com/goradd/gro/pkg/query"
 )
 
 // DB is the goradd driver for mysql databases. It works through the excellent go-sql-driver driver,

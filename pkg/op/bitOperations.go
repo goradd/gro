@@ -1,6 +1,6 @@
 package op
 
-import . "github.com/goradd/orm/pkg/query"
+import . "github.com/goradd/gro/pkg/query"
 
 func BitAnd(arg1, arg2 interface{}) *OperationNode {
 	return NewOperationNode(OpBitAnd, arg1, arg2)

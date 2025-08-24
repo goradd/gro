@@ -3,9 +3,9 @@ package model
 import (
 	"cmp"
 	"github.com/goradd/anyutil"
+	"github.com/goradd/gro/pkg/db"
+	"github.com/goradd/gro/pkg/schema"
 	"github.com/goradd/maps"
-	"github.com/goradd/orm/pkg/db"
-	"github.com/goradd/orm/pkg/schema"
 	"github.com/kenshaw/snaker"
 	"log/slog"
 	maps2 "maps"

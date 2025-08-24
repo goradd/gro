@@ -2,7 +2,7 @@ package query
 
 import (
 	"context"
-	"github.com/goradd/orm/_test/gen/orm/goradd_unit"
+	"github.com/goradd/gro/_test/gen/orm/goradd_unit"
 	"github.com/goradd/strings"
 	"github.com/stretchr/testify/assert"
 	"testing"

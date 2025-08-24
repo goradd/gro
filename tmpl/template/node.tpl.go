@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/goradd/orm/pkg/codegen"
-	"github.com/goradd/orm/pkg/model"
+	"github.com/goradd/gro/pkg/codegen"
+	"github.com/goradd/gro/pkg/model"
 )
 
 func init() {
@@ -89,8 +89,8 @@ package node
 import (
     "bytes"
     "encoding/gob"
-	"github.com/goradd/orm/pkg/query"
-	"github.com/goradd/orm/pkg/schema"
+	"github.com/goradd/gro/pkg/query"
+	"github.com/goradd/gro/pkg/schema"
 )
 `); err != nil {
 		return

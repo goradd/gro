@@ -1,6 +1,6 @@
 package op
 
-import . "github.com/goradd/orm/pkg/query"
+import . "github.com/goradd/gro/pkg/query"
 
 func StartsWith(arg1 any, arg2 string) *OperationNode {
 	return NewOperationNode(OpStartsWith, arg1, arg2)

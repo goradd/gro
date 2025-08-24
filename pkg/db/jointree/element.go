@@ -3,9 +3,9 @@ package jointree
 import (
 	"iter"
 
+	"github.com/goradd/gro/pkg/query"
 	iter2 "github.com/goradd/iter"
 	"github.com/goradd/maps"
-	"github.com/goradd/orm/pkg/query"
 )
 
 // Element is used to build the join tree. The join tree creates a hierarchy of joined nodes that let us

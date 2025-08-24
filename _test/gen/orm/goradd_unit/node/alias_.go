@@ -15,7 +15,7 @@
 // See the goradd-orm documentation for more information.
 package node
 
-import "github.com/goradd/orm/pkg/query"
+import "github.com/goradd/gro/pkg/query"
 
 func Alias(alias string) query.AliasNodeI {
 	return query.NewAliasNode(alias)

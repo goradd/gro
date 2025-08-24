@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/gob"
 
-	"github.com/goradd/orm/pkg/schema"
+	"github.com/goradd/gro/pkg/schema"
 )
 
 type ColumnNodeI interface {
