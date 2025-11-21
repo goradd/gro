@@ -1,15 +1,14 @@
 package db
 
 import (
-	"strconv"
+	"math/rand"
 	"sync/atomic"
 	"time"
 )
 
-var tempPk = atomic.Int64{}
 var recordVersion = atomic.Int64{}
 
-const recordVersionMask uint64 = 0x03ffffff
+const recordVersionMask int64 = 0x03ffffff
 
 // InstanceId is an id used to identify the current instance of the application. It is important when multiple instances
 // of the same application that uses the ORM are accessing the same database.
@@ -17,23 +16,16 @@ const recordVersionMask uint64 = 0x03ffffff
 // The value is assigned automatically as the microsecond that the application starts at, in an 8-year interval.
 // If your application is running behind a load balancer that can assign instance ids that are unique and sequential,
 // you might consider setting InstanceId to that value.
-var InstanceId = time.Now().UnixMicro() & int64(^(recordVersionMask << 38))
+var InstanceId = time.Now().UnixMicro() & int64(^(uint64(recordVersionMask) << 38))
 
 // RecordVersionFunc is a function that will return a new record version value given a previous value.
 // Only set this one if the default behavior does not work for you. See RecordVersion.
 var RecordVersionFunc func(prev int64) int64
 
-// TemporaryPrimaryKey returns an atomically unique negative value to be used as a temporary primary key for new records.
-// This aids in accessing individual records from a group by id.
-func TemporaryPrimaryKey() string {
-	i := tempPk.Add(-1)
-	return strconv.FormatInt(i, 10)
-}
-
 // RecordVersion produces an atomically unique record version value that is different from prev.
 // The value returned can be used to determine when a record has changed for optimistic locking.
 // Many database implementations provide a mechanism to do row-level locking, and in those cases a basic incrementer
-// would work. This only needs to be unique within a record and previous versions of that sinclge record.
+// would work. This only needs to be unique within a record and previous versions of that single record.
 //
 // However, some NoSQL databases (DynamoDB for one) do not have a mechanism to lock rows ahead of changes, but rather expect
 // a condition to be given to the database to check whether a value (like a version number) remains constant throughout
@@ -54,11 +46,35 @@ func RecordVersion(prev int64) (v int64) {
 
 	for { // repeat to make sure we come up with a number different from prev
 		v = recordVersion.Add(1)
-		v = v & 0x03ffffff
+		v = v & recordVersionMask
 		v = v | (InstanceId << 26)
 		if v != prev {
 			break
 		}
 	}
 	return
+}
+
+var prevKey = atomic.Int64{}
+
+var IntPrimaryKeyFunc func() int64
+
+// NewIntPrimaryKey returns a 64-bit generated primary key, similar to a Snowflake key.
+// Such keys are quick to generate, are quick to sort in the database, and
+// provide reasonable assurances of uniqueness even when multiple instances are generatiung keys.
+// However, they are not suitable for external use, since the keys may be easily guessed based on
+// previous keys.
+// The default is based on the current time stamp plus 8 bits of entropy, giving a means
+// to ensure the multiple instances of the app are unlikely to generate the same key.
+// Keys will not repeat in this scenario for 2 years, and even then will be onlikely to collide.
+// If the default doesn't work for you, set the InPrimaryKeyFunc variable to a function that generates
+// keys. There are many Snowflake and Snowflake like libraries that you can use for this purpose.
+func NewIntPrimaryKey() int64 {
+	if IntPrimaryKeyFunc != nil {
+		return IntPrimaryKeyFunc()
+	}
+	v := time.Now().UnixNano()
+	v <<= 8
+	v |= int64(rand.Int() & 0x00ff)
+	return v
 }

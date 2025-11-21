@@ -8,6 +8,8 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+
+	"github.com/goradd/gro/pkg/query"
 )
 
 // LeafNl represents an item in the leaf_nl table in the database.
@@ -115,7 +117,7 @@ func getLeafNlUpdateFields(o *leafNlBase) (fields map[string]interface{}) {
 // Returns an error only if there was a problem with the database during the delete.
 // If the record was not found, no error will be returned.
 // doc: type=LeafNl
-func DeleteLeafNl(ctx context.Context, pk string) error {
+func DeleteLeafNl(ctx context.Context, pk query.AutoPrimaryKey) error {
 	return deleteLeafNl(ctx, pk)
 }
 

@@ -22,7 +22,7 @@ import (
 // The member variables of the structure are private and should not normally be accessed by the RootUn embedder.
 // Instead, use the accessor functions.
 type rootUnBase struct {
-	id           string
+	id           query.AutoPrimaryKey
 	idIsLoaded   bool
 	idIsDirty    bool
 	name         string
@@ -39,7 +39,7 @@ type rootUnBase struct {
 	// Indicates whether this is a new object, or one loaded from the database. Used by Save to know whether to Insert or Update.
 	_restored bool
 
-	_originalPK string
+	_originalPK query.AutoPrimaryKey
 }
 
 // IDs used to access the RootUn object fields by name using the Get function.
@@ -50,13 +50,12 @@ const (
 	RootUnLeafUnField = `leafUn`
 )
 
-const RootUnIDMaxLength = 32    // The number of runes the column can hold
 const RootUnNameMaxLength = 100 // The number of runes the column can hold
 
 // Initialize or re-initialize a RootUn database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
 func (o *rootUnBase) Initialize() {
-	o.id = db.TemporaryPrimaryKey()
+	o.id = query.TempAutoPrimaryKey()
 	o.idIsLoaded = true
 	o.idIsDirty = false
 
@@ -94,12 +93,12 @@ func (o *rootUnBase) Copy() (newObject *RootUn) {
 
 // OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
 // read from the database.
-func (o *rootUnBase) OriginalPrimaryKey() string {
+func (o *rootUnBase) OriginalPrimaryKey() query.AutoPrimaryKey {
 	return o._originalPK
 }
 
 // PrimaryKey returns the value of the primary key of the record.
-func (o *rootUnBase) PrimaryKey() string {
+func (o *rootUnBase) PrimaryKey() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
 	}
@@ -112,12 +111,12 @@ func (o *rootUnBase) PrimaryKey() string {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *rootUnBase) SetPrimaryKey(v string) {
+func (o *rootUnBase) SetPrimaryKey(v query.AutoPrimaryKey) {
 	o.SetID(v)
 }
 
 // ID returns the loaded value of the id field in the database.
-func (o *rootUnBase) ID() string {
+func (o *rootUnBase) ID() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -135,12 +134,9 @@ func (o *rootUnBase) IDIsLoaded() bool {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *rootUnBase) SetID(v string) {
+func (o *rootUnBase) SetID(v query.AutoPrimaryKey) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-	}
-	if utf8.RuneCountInString(v) > RootUnIDMaxLength {
-		panic("attempted to set RootUn.ID to a value larger than its maximum length in runes")
 	}
 	o.idIsLoaded = true
 	o.idIsDirty = true
@@ -235,7 +231,7 @@ func (o *rootUnBase) SetLeafUn(obj *LeafUn) {
 // LoadRootUn returns a RootUn from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [RootUnsBuilder.Select] for more info.
-func LoadRootUn(ctx context.Context, pk string, selectNodes ...query.Node) (*RootUn, error) {
+func LoadRootUn(ctx context.Context, pk query.AutoPrimaryKey, selectNodes ...query.Node) (*RootUn, error) {
 	return queryRootUns(ctx).
 		Where(op.Equal(node.RootUn().ID(), pk)).
 		Select(selectNodes...).
@@ -244,7 +240,7 @@ func LoadRootUn(ctx context.Context, pk string, selectNodes ...query.Node) (*Roo
 
 // HasRootUn returns true if a RootUn with the given primary key exists in the database.
 // doc: type=RootUn
-func HasRootUn(ctx context.Context, pk string) (bool, error) {
+func HasRootUn(ctx context.Context, pk query.AutoPrimaryKey) (bool, error) {
 	v, err := queryRootUns(ctx).
 		Where(op.Equal(node.RootUn().ID(), pk)).
 		Count()
@@ -457,7 +453,7 @@ func CountRootUns(ctx context.Context) (int, error) {
 func (o *rootUnBase) unpack(m map[string]interface{}, objThis *RootUn) {
 
 	if v, ok := m["id"]; ok && v != nil {
-		if o.id, ok = v.(string); ok {
+		if o.id, ok = v.(query.AutoPrimaryKey); ok {
 			o.idIsLoaded = true
 			o.idIsDirty = false
 			o._originalPK = o.id
@@ -466,7 +462,7 @@ func (o *rootUnBase) unpack(m map[string]interface{}, objThis *RootUn) {
 		}
 	} else {
 		o.idIsLoaded = false
-		o.id = ""
+		o.id = query.TempAutoPrimaryKey()
 		o.idIsDirty = false
 	}
 
@@ -604,17 +600,16 @@ func (o *rootUnBase) insert(ctx context.Context) (err error) {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
 		insertFields = getRootUnInsertFields(o)
-		var newPK string
-		newPK, err = d.Insert(ctx, "root_un", "id", insertFields)
+		err = d.Insert(ctx, "root_un", insertFields, "id")
 		if err != nil {
 			return err
 		}
-		o.id = newPK
-		o._originalPK = newPK
+		o.id = insertFields["id"].(query.AutoPrimaryKey)
+		o._originalPK = o.id
 		o.idIsLoaded = true
 
 		if o.leafUn != nil {
-			o.leafUn.SetRootUnID(newPK)
+			o.leafUn.SetRootUnID(o.PrimaryKey())
 			if err = o.leafUn.Save(ctx); err != nil {
 				return err
 			}
@@ -651,8 +646,8 @@ func (o *rootUnBase) getUpdateFields() (fields map[string]interface{}) {
 // Optional fields that have not been set and have no default will be returned as nil.
 // NoSql databases should interpret this as no value. Sql databases should interpret this as
 // explicitly setting a NULL value, which would override any database specific default value.
-// Auto-generated fields will be returned with their generated values, except AutoPK fields, which are generated by the
-// database driver and updated after the insert.
+// Auto-generated fields will be returned here with their generated values, except AutoPK fields, which are returned
+// as a new AutoPrimaryKey to indicate that the driver will fill this in after the insert.
 func (o *rootUnBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.idIsDirty {
@@ -711,7 +706,7 @@ func (o *rootUnBase) Delete(ctx context.Context) (err error) {
 
 // deleteRootUn deletes the RootUn with primary key pk from the database
 // and handles associated records.
-func deleteRootUn(ctx context.Context, pk string) error {
+func deleteRootUn(ctx context.Context, pk query.AutoPrimaryKey) error {
 	d := db.GetDatabase("goradd_unit")
 	err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
 		if obj, err := LoadRootUn(ctx,
@@ -951,7 +946,7 @@ func (o *rootUnBase) MarshalStringMap() map[string]interface{} {
 //
 // The fields it expects are:
 //
-//	"id" - string
+//	"id" - query.AutoPrimaryKey
 //	"name" - string
 func (o *rootUnBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
@@ -979,11 +974,6 @@ func (o *rootUnBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetID(s)
-				}
 			}
 		case "name":
 			{

@@ -2,8 +2,9 @@ package query
 
 import (
 	"fmt"
-	"github.com/goradd/gro/pkg/schema"
 	"time"
+
+	"github.com/goradd/gro/pkg/schema"
 )
 
 // ReceiverType represents the Go type that a query will be received as.
@@ -21,6 +22,9 @@ const (
 	ColTypeFloat32
 	ColTypeFloat64
 	ColTypeBool
+	ColTypeAutoPrimaryKey
+	ColTypeUUID
+	ColTypeULID
 )
 
 // String returns the constant type name as a string
@@ -48,6 +52,12 @@ func (g ReceiverType) String() string {
 		return "ColTypeFloat64"
 	case ColTypeBool:
 		return "ColTypeBool"
+	case ColTypeAutoPrimaryKey:
+		return "ColTypeAutoPrimaryKey"
+	case ColTypeUUID:
+		return "ColTypeUUID"
+	case ColTypeULID:
+		return "ColTypeULID"
 	}
 	return ""
 }
@@ -77,6 +87,13 @@ func (g ReceiverType) DefaultValue() any {
 		return float64(0.0)
 	case ColTypeBool:
 		return false
+	case ColTypeAutoPrimaryKey:
+		// For references. Actual primary keys handled earlier.
+		return ZeroAutoPrimaryKey()
+	case ColTypeUUID:
+		return NewUUID()
+	case ColTypeULID:
+		return NewULID()
 	}
 	return nil
 }
@@ -85,6 +102,12 @@ func (g ReceiverType) DefaultValue() any {
 func (g ReceiverType) GoType() string {
 	if g == ColTypeUnknown || g == ColTypeBytes {
 		return "[]byte" // otherwise we get a []unit8
+	} else if g == ColTypeAutoPrimaryKey {
+		return "query.AutoPrimaryKey"
+	} else if g == ColTypeUUID {
+		return "query.UUID"
+	} else if g == ColTypeULID {
+		return "query.ULID"
 	}
 	t := g.DefaultValue()
 	if t != nil {
@@ -97,6 +120,12 @@ func (g ReceiverType) GoType() string {
 // DefaultValueString returns a string that represents the GO default value for the corresponding type
 func (g ReceiverType) DefaultValueString() string {
 	switch g {
+	case ColTypeAutoPrimaryKey:
+		return "query.AutoPrimaryKey{}"
+	case ColTypeUUID:
+		return "query.UUID{}"
+	case ColTypeULID:
+		return "query.ULID{}"
 	case ColTypeTime:
 		return "time.Time{}"
 	default:
@@ -139,11 +168,15 @@ func ReceiverTypeFromSchema(columnType schema.ColumnType, maxLength uint64) Rece
 	case schema.ColTypeBool:
 		return ColTypeBool
 	case schema.ColTypeAutoPrimaryKey:
-		return ColTypeString
+		return ColTypeAutoPrimaryKey
 	case schema.ColTypeJSON:
 		return ColTypeString
 	case schema.ColTypeEnum:
 		return ColTypeInteger
+	case schema.ColTypeUUID:
+		return ColTypeUUID
+	case schema.ColTypeULID:
+		return ColTypeULID
 	}
 	return ColTypeUnknown
 }

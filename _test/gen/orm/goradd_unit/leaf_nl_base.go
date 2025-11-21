@@ -11,19 +11,19 @@ import (
 	"unicode/utf8"
 
 	"github.com/goradd/anyutil"
-	"github.com/goradd/maps"
 	"github.com/goradd/gro/_test/gen/orm/goradd_unit/node"
 	"github.com/goradd/gro/pkg/broadcast"
 	"github.com/goradd/gro/pkg/db"
 	"github.com/goradd/gro/pkg/op"
 	"github.com/goradd/gro/pkg/query"
+	"github.com/goradd/maps"
 )
 
 // LeafNlBase is embedded in a LeafNl object and provides the ORM access to the database.
 // The member variables of the structure are private and should not normally be accessed by the LeafNl embedder.
 // Instead, use the accessor functions.
 type leafNlBase struct {
-	id               string
+	id               query.AutoPrimaryKey
 	idIsLoaded       bool
 	idIsDirty        bool
 	name             string
@@ -31,7 +31,7 @@ type leafNlBase struct {
 	nameIsDirty      bool
 	groLock          int64
 	groLockIsLoaded  bool
-	rootNlID         string
+	rootNlID         query.AutoPrimaryKey
 	rootNlIDIsNull   bool
 	rootNlIDIsLoaded bool
 	rootNlIDIsDirty  bool
@@ -40,11 +40,11 @@ type leafNlBase struct {
 	rootNl *RootNl
 
 	// Many-Many references
-	leaf2s        maps.SliceMap[string, *LeafNl]
-	leaf2sPks     []string // Primary keys to associate at Save time
+	leaf2s        maps.SliceMap[query.AutoPrimaryKey, *LeafNl]
+	leaf2sPks     []query.AutoPrimaryKey // Primary keys to associate at Save time
 	leaf2sIsDirty bool
-	leaf1s        maps.SliceMap[string, *LeafNl]
-	leaf1sPks     []string // Primary keys to associate at Save time
+	leaf1s        maps.SliceMap[query.AutoPrimaryKey, *LeafNl]
+	leaf1sPks     []query.AutoPrimaryKey // Primary keys to associate at Save time
 	leaf1sIsDirty bool
 
 	// Custom aliases, if specified
@@ -53,7 +53,7 @@ type leafNlBase struct {
 	// Indicates whether this is a new object, or one loaded from the database. Used by Save to know whether to Insert or Update.
 	_restored bool
 
-	_originalPK string
+	_originalPK query.AutoPrimaryKey
 }
 
 // IDs used to access the LeafNl object fields by name using the Get function.
@@ -68,14 +68,12 @@ const (
 	LeafNlLeaf1sField   = `leaf1s`
 )
 
-const LeafNlIDMaxLength = 32       // The number of runes the column can hold
-const LeafNlNameMaxLength = 100    // The number of runes the column can hold
-const LeafNlRootNlIDMaxLength = 32 // The number of runes the column can hold
+const LeafNlNameMaxLength = 100 // The number of runes the column can hold
 
 // Initialize or re-initialize a LeafNl database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
 func (o *leafNlBase) Initialize() {
-	o.id = db.TemporaryPrimaryKey()
+	o.id = query.TempAutoPrimaryKey()
 	o.idIsLoaded = true
 	o.idIsDirty = false
 
@@ -86,7 +84,7 @@ func (o *leafNlBase) Initialize() {
 	o.groLock = 0
 	o.groLockIsLoaded = false
 
-	o.rootNlID = ""
+	o.rootNlID = query.AutoPrimaryKey{}
 	o.rootNlIDIsNull = true
 	o.rootNlIDIsLoaded = false
 	o.rootNlIDIsDirty = false
@@ -127,12 +125,12 @@ func (o *leafNlBase) Copy() (newObject *LeafNl) {
 
 // OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
 // read from the database.
-func (o *leafNlBase) OriginalPrimaryKey() string {
+func (o *leafNlBase) OriginalPrimaryKey() query.AutoPrimaryKey {
 	return o._originalPK
 }
 
 // PrimaryKey returns the value of the primary key of the record.
-func (o *leafNlBase) PrimaryKey() string {
+func (o *leafNlBase) PrimaryKey() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
 	}
@@ -145,12 +143,12 @@ func (o *leafNlBase) PrimaryKey() string {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *leafNlBase) SetPrimaryKey(v string) {
+func (o *leafNlBase) SetPrimaryKey(v query.AutoPrimaryKey) {
 	o.SetID(v)
 }
 
 // ID returns the loaded value of the id field in the database.
-func (o *leafNlBase) ID() string {
+func (o *leafNlBase) ID() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -168,12 +166,9 @@ func (o *leafNlBase) IDIsLoaded() bool {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *leafNlBase) SetID(v string) {
+func (o *leafNlBase) SetID(v query.AutoPrimaryKey) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-	}
-	if utf8.RuneCountInString(v) > LeafNlIDMaxLength {
-		panic("attempted to set LeafNl.ID to a value larger than its maximum length in runes")
 	}
 	o.idIsLoaded = true
 	o.idIsDirty = true
@@ -224,7 +219,7 @@ func (o *leafNlBase) GroLockIsLoaded() bool {
 }
 
 // RootNlID returns the value of the loaded root_nl_id field in the database.
-func (o *leafNlBase) RootNlID() string {
+func (o *leafNlBase) RootNlID() query.AutoPrimaryKey {
 	if o._restored && !o.rootNlIDIsLoaded {
 		panic("RootNlID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -242,10 +237,7 @@ func (o *leafNlBase) RootNlIDIsNull() bool {
 }
 
 // SetRootNlID sets the value of RootNlID in the object, to be saved later in the database using the Save() function.
-func (o *leafNlBase) SetRootNlID(v string) {
-	if utf8.RuneCountInString(v) > LeafNlRootNlIDMaxLength {
-		panic("attempted to set LeafNl.RootNlID to a value larger than its maximum length in runes")
-	}
+func (o *leafNlBase) SetRootNlID(v query.AutoPrimaryKey) {
 	if o._restored &&
 		o.rootNlIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.rootNlIDIsNull && // if the db value is null, force a set of value
@@ -274,7 +266,7 @@ func (o *leafNlBase) SetRootNlIDToNull() {
 	}
 	o.rootNlIDIsLoaded = true
 	o.rootNlIDIsNull = true
-	o.rootNlID = ""
+	o.rootNlID = query.AutoPrimaryKey{}
 	o.rootNl = nil
 }
 
@@ -306,7 +298,7 @@ func (o *leafNlBase) SetRootNl(rootNl *RootNl) {
 		if !o.rootNlIDIsNull || !o._restored {
 			o.rootNlIDIsNull = true
 			o.rootNlIDIsDirty = true
-			o.rootNlID = ""
+			o.rootNlID = query.AutoPrimaryKey{}
 			o.rootNl = nil
 		}
 	} else {
@@ -336,7 +328,7 @@ func (o *leafNlBase) IsNew() bool {
 
 // Leaf2 returns a single LeafNl object by primary key pk, if one was loaded.
 // Otherwise, it will return nil.
-func (o *leafNlBase) Leaf2(pk string) *LeafNl {
+func (o *leafNlBase) Leaf2(pk query.AutoPrimaryKey) *LeafNl {
 	return o.leaf2s.Get(pk)
 }
 
@@ -365,7 +357,7 @@ func (o *leafNlBase) SetLeaf2s(objs ...*LeafNl) {
 // Save will load the items that will be associated in the database after the Save call.
 // After calling Save, the objects will be unloaded, and you must call Load again if you want
 // them loaded.
-func (o *leafNlBase) SetLeaf2sByID(ids ...string) {
+func (o *leafNlBase) SetLeaf2sByID(ids ...query.AutoPrimaryKey) {
 	o.leaf2s.Clear()
 	o.leaf2sPks = ids
 	o.leaf2sIsDirty = true
@@ -413,7 +405,7 @@ func (o *leafNlBase) CountLeaf2s(ctx context.Context) (int, error) {
 
 // Leaf1 returns a single LeafNl object by primary key pk, if one was loaded.
 // Otherwise, it will return nil.
-func (o *leafNlBase) Leaf1(pk string) *LeafNl {
+func (o *leafNlBase) Leaf1(pk query.AutoPrimaryKey) *LeafNl {
 	return o.leaf1s.Get(pk)
 }
 
@@ -442,7 +434,7 @@ func (o *leafNlBase) SetLeaf1s(objs ...*LeafNl) {
 // Save will load the items that will be associated in the database after the Save call.
 // After calling Save, the objects will be unloaded, and you must call Load again if you want
 // them loaded.
-func (o *leafNlBase) SetLeaf1sByID(ids ...string) {
+func (o *leafNlBase) SetLeaf1sByID(ids ...query.AutoPrimaryKey) {
 	o.leaf1s.Clear()
 	o.leaf1sPks = ids
 	o.leaf1sIsDirty = true
@@ -491,7 +483,7 @@ func (o *leafNlBase) CountLeaf1s(ctx context.Context) (int, error) {
 // LoadLeafNl returns a LeafNl from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [LeafNlsBuilder.Select] for more info.
-func LoadLeafNl(ctx context.Context, pk string, selectNodes ...query.Node) (*LeafNl, error) {
+func LoadLeafNl(ctx context.Context, pk query.AutoPrimaryKey, selectNodes ...query.Node) (*LeafNl, error) {
 	return queryLeafNls(ctx).
 		Where(op.Equal(node.LeafNl().ID(), pk)).
 		Select(selectNodes...).
@@ -500,7 +492,7 @@ func LoadLeafNl(ctx context.Context, pk string, selectNodes ...query.Node) (*Lea
 
 // HasLeafNl returns true if a LeafNl with the given primary key exists in the database.
 // doc: type=LeafNl
-func HasLeafNl(ctx context.Context, pk string) (bool, error) {
+func HasLeafNl(ctx context.Context, pk query.AutoPrimaryKey) (bool, error) {
 	v, err := queryLeafNls(ctx).
 		Where(op.Equal(node.LeafNl().ID(), pk)).
 		Count()
@@ -740,7 +732,7 @@ func CountLeafNls(ctx context.Context) (int, error) {
 // CountLeafNlsByRootNlID queries the database and returns the number of LeafNl objects that
 // have rootNlID.
 // doc: type=LeafNl
-func CountLeafNlsByRootNlID(ctx context.Context, rootNlID string) (int, error) {
+func CountLeafNlsByRootNlID(ctx context.Context, rootNlID query.AutoPrimaryKey) (int, error) {
 	v_rootNlID := rootNlID
 	return QueryLeafNls(ctx).
 		Where(op.Equal(node.LeafNl().RootNlID(), v_rootNlID)).
@@ -751,7 +743,7 @@ func CountLeafNlsByRootNlID(ctx context.Context, rootNlID string) (int, error) {
 func (o *leafNlBase) unpack(m map[string]interface{}, objThis *LeafNl) {
 
 	if v, ok := m["id"]; ok && v != nil {
-		if o.id, ok = v.(string); ok {
+		if o.id, ok = v.(query.AutoPrimaryKey); ok {
 			o.idIsLoaded = true
 			o.idIsDirty = false
 			o._originalPK = o.id
@@ -760,7 +752,7 @@ func (o *leafNlBase) unpack(m map[string]interface{}, objThis *LeafNl) {
 		}
 	} else {
 		o.idIsLoaded = false
-		o.id = ""
+		o.id = query.TempAutoPrimaryKey()
 		o.idIsDirty = false
 	}
 
@@ -790,11 +782,11 @@ func (o *leafNlBase) unpack(m map[string]interface{}, objThis *LeafNl) {
 
 	if v, ok := m["rootNlID"]; ok {
 		if v == nil {
-			o.rootNlID = ""
+			o.rootNlID = query.AutoPrimaryKey{}
 			o.rootNlIDIsNull = true
 			o.rootNlIDIsLoaded = true
 			o.rootNlIDIsDirty = false
-		} else if o.rootNlID, ok = v.(string); ok {
+		} else if o.rootNlID, ok = v.(query.AutoPrimaryKey); ok {
 			o.rootNlIDIsNull = false
 			o.rootNlIDIsLoaded = true
 			o.rootNlIDIsDirty = false
@@ -804,7 +796,7 @@ func (o *leafNlBase) unpack(m map[string]interface{}, objThis *LeafNl) {
 	} else {
 		o.rootNlIDIsLoaded = false
 		o.rootNlIDIsNull = true
-		o.rootNlID = ""
+		o.rootNlID = query.AutoPrimaryKey{}
 		o.rootNlIDIsDirty = false
 	}
 
@@ -1027,13 +1019,12 @@ func (o *leafNlBase) insert(ctx context.Context) (err error) {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
 		insertFields = getLeafNlInsertFields(o)
-		var newPK string
-		newPK, err = d.Insert(ctx, "leaf_nl", "id", insertFields)
+		err = d.Insert(ctx, "leaf_nl", insertFields, "id")
 		if err != nil {
 			return err
 		}
-		o.id = newPK
-		o._originalPK = newPK
+		o.id = insertFields["id"].(query.AutoPrimaryKey)
+		o._originalPK = o.id
 		o.idIsLoaded = true
 
 		if o.leaf2s.Len() > 0 {
@@ -1051,7 +1042,7 @@ func (o *leafNlBase) insert(ctx context.Context) (err error) {
 					d,
 					"leaf_nl_assn",
 					"leaf_1_id",
-					newPK,
+					o.PrimaryKey(),
 					"leaf_2_id",
 					obj.PrimaryKey(),
 				)
@@ -1067,7 +1058,7 @@ func (o *leafNlBase) insert(ctx context.Context) (err error) {
 						d,
 						"leaf_nl_assn",
 						"leaf_1_id",
-						newPK,
+						o.PrimaryKey(),
 						"leaf_2_id",
 						k,
 					)
@@ -1089,7 +1080,7 @@ func (o *leafNlBase) insert(ctx context.Context) (err error) {
 					d,
 					"leaf_nl_assn",
 					"leaf_2_id",
-					newPK,
+					o.PrimaryKey(),
 					"leaf_1_id",
 					obj.PrimaryKey(),
 				)
@@ -1105,7 +1096,7 @@ func (o *leafNlBase) insert(ctx context.Context) (err error) {
 						d,
 						"leaf_nl_assn",
 						"leaf_2_id",
-						newPK,
+						o.PrimaryKey(),
 						"leaf_1_id",
 						k,
 					)
@@ -1155,8 +1146,8 @@ func (o *leafNlBase) getUpdateFields() (fields map[string]interface{}) {
 // Optional fields that have not been set and have no default will be returned as nil.
 // NoSql databases should interpret this as no value. Sql databases should interpret this as
 // explicitly setting a NULL value, which would override any database specific default value.
-// Auto-generated fields will be returned with their generated values, except AutoPK fields, which are generated by the
-// database driver and updated after the insert.
+// Auto-generated fields will be returned here with their generated values, except AutoPK fields, which are returned
+// as a new AutoPrimaryKey to indicate that the driver will fill this in after the insert.
 func (o *leafNlBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.idIsDirty {
@@ -1220,7 +1211,7 @@ func (o *leafNlBase) Delete(ctx context.Context) (err error) {
 
 // deleteLeafNl deletes the LeafNl with primary key pk from the database
 // and handles associated records.
-func deleteLeafNl(ctx context.Context, pk string) error {
+func deleteLeafNl(ctx context.Context, pk query.AutoPrimaryKey) error {
 	d := db.GetDatabase("goradd_unit")
 	err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
 		if obj, err := LoadLeafNl(ctx,
@@ -1607,7 +1598,7 @@ func (o *leafNlBase) MarshalStringMap() map[string]interface{} {
 //
 // The fields it expects are:
 //
-//	"id" - string
+//	"id" - query.AutoPrimaryKey
 //	"name" - string
 //	"groLock" - int64
 func (o *leafNlBase) UnmarshalJSON(data []byte) (err error) {
@@ -1636,11 +1627,6 @@ func (o *leafNlBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetID(s)
-				}
 			}
 		case "name":
 			{
@@ -1665,11 +1651,6 @@ func (o *leafNlBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					continue // importing the foreign key will remove the object
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetRootNlID(s)
-				}
 			}
 
 		case "rootNl":

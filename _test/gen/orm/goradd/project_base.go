@@ -12,19 +12,19 @@ import (
 	"unicode/utf8"
 
 	"github.com/goradd/anyutil"
-	"github.com/goradd/maps"
 	"github.com/goradd/gro/_test/gen/orm/goradd/node"
 	"github.com/goradd/gro/pkg/broadcast"
 	"github.com/goradd/gro/pkg/db"
 	"github.com/goradd/gro/pkg/op"
 	"github.com/goradd/gro/pkg/query"
+	"github.com/goradd/maps"
 )
 
 // ProjectBase is embedded in a Project object and provides the ORM access to the database.
 // The member variables of the structure are private and should not normally be accessed by the Project embedder.
 // Instead, use the accessor functions.
 type projectBase struct {
-	id                  string
+	id                  query.AutoPrimaryKey
 	idIsLoaded          bool
 	idIsDirty           bool
 	num                 int
@@ -56,11 +56,11 @@ type projectBase struct {
 	spentIsNull         bool
 	spentIsLoaded       bool
 	spentIsDirty        bool
-	managerID           string
+	managerID           query.AutoPrimaryKey
 	managerIDIsNull     bool
 	managerIDIsLoaded   bool
 	managerIDIsDirty    bool
-	parentID            string
+	parentID            query.AutoPrimaryKey
 	parentIDIsNull      bool
 	parentIDIsLoaded    bool
 	parentIDIsDirty     bool
@@ -70,14 +70,14 @@ type projectBase struct {
 	parent  *Project
 
 	// Reverse references
-	children          maps.SliceMap[string, *Project] // Objects in the order they were queried
+	children          maps.SliceMap[query.AutoPrimaryKey, *Project] // Objects in the order they were queried
 	childrenIsDirty   bool
-	milestones        maps.SliceMap[string, *Milestone] // Objects in the order they were queried
+	milestones        maps.SliceMap[query.AutoPrimaryKey, *Milestone] // Objects in the order they were queried
 	milestonesIsDirty bool
 
 	// Many-Many references
-	teamMembers        maps.SliceMap[string, *Person]
-	teamMembersPks     []string // Primary keys to associate at Save time
+	teamMembers        maps.SliceMap[query.AutoPrimaryKey, *Person]
+	teamMembersPks     []query.AutoPrimaryKey // Primary keys to associate at Save time
 	teamMembersIsDirty bool
 
 	// Custom aliases, if specified
@@ -86,7 +86,7 @@ type projectBase struct {
 	// Indicates whether this is a new object, or one loaded from the database. Used by Save to know whether to Insert or Update.
 	_restored bool
 
-	_originalPK string
+	_originalPK query.AutoPrimaryKey
 }
 
 // IDs used to access the Project object fields by name using the Get function.
@@ -119,7 +119,7 @@ const ProjectSpentMaxLength = 14  // The number of runes the column can hold
 // Initialize or re-initialize a Project database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
 func (o *projectBase) Initialize() {
-	o.id = db.TemporaryPrimaryKey()
+	o.id = query.TempAutoPrimaryKey()
 	o.idIsLoaded = true
 	o.idIsDirty = false
 
@@ -160,12 +160,12 @@ func (o *projectBase) Initialize() {
 	o.spentIsLoaded = false
 	o.spentIsDirty = false
 
-	o.managerID = ""
+	o.managerID = query.AutoPrimaryKey{}
 	o.managerIDIsNull = true
 	o.managerIDIsLoaded = false
 	o.managerIDIsDirty = false
 
-	o.parentID = ""
+	o.parentID = query.AutoPrimaryKey{}
 	o.parentIDIsNull = true
 	o.parentIDIsLoaded = false
 	o.parentIDIsDirty = false
@@ -235,12 +235,12 @@ func (o *projectBase) Copy() (newObject *Project) {
 
 // OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
 // read from the database.
-func (o *projectBase) OriginalPrimaryKey() string {
+func (o *projectBase) OriginalPrimaryKey() query.AutoPrimaryKey {
 	return o._originalPK
 }
 
 // PrimaryKey returns the value of the primary key of the record.
-func (o *projectBase) PrimaryKey() string {
+func (o *projectBase) PrimaryKey() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
 	}
@@ -253,12 +253,12 @@ func (o *projectBase) PrimaryKey() string {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *projectBase) SetPrimaryKey(v string) {
+func (o *projectBase) SetPrimaryKey(v query.AutoPrimaryKey) {
 	o.SetID(v)
 }
 
 // ID returns the loaded value of the id field in the database.
-func (o *projectBase) ID() string {
+func (o *projectBase) ID() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -276,7 +276,7 @@ func (o *projectBase) IDIsLoaded() bool {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *projectBase) SetID(v string) {
+func (o *projectBase) SetID(v query.AutoPrimaryKey) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
 	}
@@ -616,7 +616,7 @@ func (o *projectBase) SetSpentToNull() {
 }
 
 // ManagerID returns the value of the loaded manager_id field in the database.
-func (o *projectBase) ManagerID() string {
+func (o *projectBase) ManagerID() query.AutoPrimaryKey {
 	if o._restored && !o.managerIDIsLoaded {
 		panic("ManagerID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -634,7 +634,7 @@ func (o *projectBase) ManagerIDIsNull() bool {
 }
 
 // SetManagerID sets the value of ManagerID in the object, to be saved later in the database using the Save() function.
-func (o *projectBase) SetManagerID(v string) {
+func (o *projectBase) SetManagerID(v query.AutoPrimaryKey) {
 	if o._restored &&
 		o.managerIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.managerIDIsNull && // if the db value is null, force a set of value
@@ -663,12 +663,12 @@ func (o *projectBase) SetManagerIDToNull() {
 	}
 	o.managerIDIsLoaded = true
 	o.managerIDIsNull = true
-	o.managerID = ""
+	o.managerID = query.AutoPrimaryKey{}
 	o.manager = nil
 }
 
 // ParentID returns the value of the loaded parent_id field in the database.
-func (o *projectBase) ParentID() string {
+func (o *projectBase) ParentID() query.AutoPrimaryKey {
 	if o._restored && !o.parentIDIsLoaded {
 		panic("ParentID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -686,7 +686,7 @@ func (o *projectBase) ParentIDIsNull() bool {
 }
 
 // SetParentID sets the value of ParentID in the object, to be saved later in the database using the Save() function.
-func (o *projectBase) SetParentID(v string) {
+func (o *projectBase) SetParentID(v query.AutoPrimaryKey) {
 	if o._restored &&
 		o.parentIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.parentIDIsNull && // if the db value is null, force a set of value
@@ -715,7 +715,7 @@ func (o *projectBase) SetParentIDToNull() {
 	}
 	o.parentIDIsLoaded = true
 	o.parentIDIsNull = true
-	o.parentID = ""
+	o.parentID = query.AutoPrimaryKey{}
 	o.parent = nil
 }
 
@@ -747,7 +747,7 @@ func (o *projectBase) SetManager(manager *Person) {
 		if !o.managerIDIsNull || !o._restored {
 			o.managerIDIsNull = true
 			o.managerIDIsDirty = true
-			o.managerID = ""
+			o.managerID = query.AutoPrimaryKey{}
 			o.manager = nil
 		}
 	} else {
@@ -788,7 +788,7 @@ func (o *projectBase) SetParent(parent *Project) {
 		if !o.parentIDIsNull || !o._restored {
 			o.parentIDIsNull = true
 			o.parentIDIsDirty = true
-			o.parentID = ""
+			o.parentID = query.AutoPrimaryKey{}
 			o.parent = nil
 		}
 	} else {
@@ -818,7 +818,7 @@ func (o *projectBase) IsNew() bool {
 
 // TeamMember returns a single Person object by primary key pk, if one was loaded.
 // Otherwise, it will return nil.
-func (o *projectBase) TeamMember(pk string) *Person {
+func (o *projectBase) TeamMember(pk query.AutoPrimaryKey) *Person {
 	return o.teamMembers.Get(pk)
 }
 
@@ -847,7 +847,7 @@ func (o *projectBase) SetTeamMembers(objs ...*Person) {
 // Save will load the items that will be associated in the database after the Save call.
 // After calling Save, the objects will be unloaded, and you must call Load again if you want
 // them loaded.
-func (o *projectBase) SetTeamMembersByID(ids ...string) {
+func (o *projectBase) SetTeamMembersByID(ids ...query.AutoPrimaryKey) {
 	o.teamMembers.Clear()
 	o.teamMembersPks = ids
 	o.teamMembersIsDirty = true
@@ -895,7 +895,7 @@ func (o *projectBase) CountTeamMembers(ctx context.Context) (int, error) {
 
 // Child returns a single Project object by primary key, if one was loaded.
 // Otherwise, it will return nil. It will not return Project objects that are not saved.
-func (o *projectBase) Child(pk string) *Project {
+func (o *projectBase) Child(pk query.AutoPrimaryKey) *Project {
 	v := o.children.Get(pk)
 	return v
 }
@@ -963,7 +963,7 @@ func (o *projectBase) SetChildren(objs ...*Project) {
 
 // Milestone returns a single Milestone object by primary key, if one was loaded.
 // Otherwise, it will return nil. It will not return Milestone objects that are not saved.
-func (o *projectBase) Milestone(pk string) *Milestone {
+func (o *projectBase) Milestone(pk query.AutoPrimaryKey) *Milestone {
 	v := o.milestones.Get(pk)
 	return v
 }
@@ -1029,7 +1029,7 @@ func (o *projectBase) SetMilestones(objs ...*Milestone) {
 // LoadProject returns a Project from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [ProjectsBuilder.Select] for more info.
-func LoadProject(ctx context.Context, pk string, selectNodes ...query.Node) (*Project, error) {
+func LoadProject(ctx context.Context, pk query.AutoPrimaryKey, selectNodes ...query.Node) (*Project, error) {
 	return queryProjects(ctx).
 		Where(op.Equal(node.Project().ID(), pk)).
 		Select(selectNodes...).
@@ -1038,7 +1038,7 @@ func LoadProject(ctx context.Context, pk string, selectNodes ...query.Node) (*Pr
 
 // HasProject returns true if a Project with the given primary key exists in the database.
 // doc: type=Project
-func HasProject(ctx context.Context, pk string) (bool, error) {
+func HasProject(ctx context.Context, pk query.AutoPrimaryKey) (bool, error) {
 	v, err := queryProjects(ctx).
 		Where(op.Equal(node.Project().ID(), pk)).
 		Count()
@@ -1366,7 +1366,7 @@ func CountProjectsByStatus(ctx context.Context, status ProjectStatus) (int, erro
 // CountProjectsByManagerID queries the database and returns the number of Project objects that
 // have managerID.
 // doc: type=Project
-func CountProjectsByManagerID(ctx context.Context, managerID string) (int, error) {
+func CountProjectsByManagerID(ctx context.Context, managerID query.AutoPrimaryKey) (int, error) {
 	v_managerID := managerID
 	return QueryProjects(ctx).
 		Where(op.Equal(node.Project().ManagerID(), v_managerID)).
@@ -1376,7 +1376,7 @@ func CountProjectsByManagerID(ctx context.Context, managerID string) (int, error
 // CountProjectsByParentID queries the database and returns the number of Project objects that
 // have parentID.
 // doc: type=Project
-func CountProjectsByParentID(ctx context.Context, parentID string) (int, error) {
+func CountProjectsByParentID(ctx context.Context, parentID query.AutoPrimaryKey) (int, error) {
 	v_parentID := parentID
 	return QueryProjects(ctx).
 		Where(op.Equal(node.Project().ParentID(), v_parentID)).
@@ -1387,7 +1387,7 @@ func CountProjectsByParentID(ctx context.Context, parentID string) (int, error) 
 func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 
 	if v, ok := m["id"]; ok && v != nil {
-		if o.id, ok = v.(string); ok {
+		if o.id, ok = v.(query.AutoPrimaryKey); ok {
 			o.idIsLoaded = true
 			o.idIsDirty = false
 			o._originalPK = o.id
@@ -1396,7 +1396,7 @@ func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 		}
 	} else {
 		o.idIsLoaded = false
-		o.id = ""
+		o.id = query.TempAutoPrimaryKey()
 		o.idIsDirty = false
 	}
 
@@ -1542,11 +1542,11 @@ func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 
 	if v, ok := m["managerID"]; ok {
 		if v == nil {
-			o.managerID = ""
+			o.managerID = query.AutoPrimaryKey{}
 			o.managerIDIsNull = true
 			o.managerIDIsLoaded = true
 			o.managerIDIsDirty = false
-		} else if o.managerID, ok = v.(string); ok {
+		} else if o.managerID, ok = v.(query.AutoPrimaryKey); ok {
 			o.managerIDIsNull = false
 			o.managerIDIsLoaded = true
 			o.managerIDIsDirty = false
@@ -1556,17 +1556,17 @@ func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 	} else {
 		o.managerIDIsLoaded = false
 		o.managerIDIsNull = true
-		o.managerID = ""
+		o.managerID = query.AutoPrimaryKey{}
 		o.managerIDIsDirty = false
 	}
 
 	if v, ok := m["parentID"]; ok {
 		if v == nil {
-			o.parentID = ""
+			o.parentID = query.AutoPrimaryKey{}
 			o.parentIDIsNull = true
 			o.parentIDIsLoaded = true
 			o.parentIDIsDirty = false
-		} else if o.parentID, ok = v.(string); ok {
+		} else if o.parentID, ok = v.(query.AutoPrimaryKey); ok {
 			o.parentIDIsNull = false
 			o.parentIDIsLoaded = true
 			o.parentIDIsDirty = false
@@ -1576,7 +1576,7 @@ func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 	} else {
 		o.parentIDIsLoaded = false
 		o.parentIDIsNull = true
-		o.parentID = ""
+		o.parentID = query.AutoPrimaryKey{}
 		o.parentIDIsDirty = false
 	}
 
@@ -1911,20 +1911,19 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
 		insertFields = getProjectInsertFields(o)
-		var newPK string
-		newPK, err = d.Insert(ctx, "project", "id", insertFields)
+		err = d.Insert(ctx, "project", insertFields, "id")
 		if err != nil {
 			return err
 		}
-		o.id = newPK
-		o._originalPK = newPK
+		o.id = insertFields["id"].(query.AutoPrimaryKey)
+		o._originalPK = o.id
 		o.idIsLoaded = true
 
 		if o.children.Len() > 0 {
 			keys := o.children.Keys()
 			for i, k := range keys {
 				obj := o.children.Get(k)
-				obj.SetParentID(newPK)
+				obj.SetParentID(o.PrimaryKey())
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
@@ -1939,7 +1938,7 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 			keys := o.milestones.Keys()
 			for i, k := range keys {
 				obj := o.milestones.Get(k)
-				obj.SetProjectID(newPK)
+				obj.SetProjectID(o.PrimaryKey())
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
@@ -1965,7 +1964,7 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 					d,
 					"team_member_project_assn",
 					"project_id",
-					newPK,
+					o.PrimaryKey(),
 					"team_member_id",
 					obj.PrimaryKey(),
 				)
@@ -1981,7 +1980,7 @@ func (o *projectBase) insert(ctx context.Context) (err error) {
 						d,
 						"team_member_project_assn",
 						"project_id",
-						newPK,
+						o.PrimaryKey(),
 						"team_member_id",
 						k,
 					)
@@ -2075,8 +2074,8 @@ func (o *projectBase) getUpdateFields() (fields map[string]interface{}) {
 // Optional fields that have not been set and have no default will be returned as nil.
 // NoSql databases should interpret this as no value. Sql databases should interpret this as
 // explicitly setting a NULL value, which would override any database specific default value.
-// Auto-generated fields will be returned with their generated values, except AutoPK fields, which are generated by the
-// database driver and updated after the insert.
+// Auto-generated fields will be returned here with their generated values, except AutoPK fields, which are returned
+// as a new AutoPrimaryKey to indicate that the driver will fill this in after the insert.
 func (o *projectBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.idIsDirty {
@@ -2203,7 +2202,7 @@ func (o *projectBase) Delete(ctx context.Context) (err error) {
 
 // deleteProject deletes the Project with primary key pk from the database
 // and handles associated records.
-func deleteProject(ctx context.Context, pk string) error {
+func deleteProject(ctx context.Context, pk query.AutoPrimaryKey) error {
 	d := db.GetDatabase("goradd")
 
 	var cancel context.CancelFunc
@@ -2924,7 +2923,7 @@ func (o *projectBase) MarshalStringMap() map[string]interface{} {
 //
 // The fields it expects are:
 //
-//	"id" - string
+//	"id" - query.AutoPrimaryKey
 //	"num" - int
 //	"status" - ProjectStatus
 //	"name" - string
@@ -2959,11 +2958,6 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetID(s)
-				}
 			}
 		case "num":
 			{
@@ -3122,11 +3116,6 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					continue // importing the foreign key will remove the object
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetManagerID(s)
-				}
 			}
 		case "parentID":
 			{
@@ -3139,11 +3128,6 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					continue // importing the foreign key will remove the object
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetParentID(s)
-				}
 			}
 
 		case "manager":

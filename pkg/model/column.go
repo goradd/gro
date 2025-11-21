@@ -73,7 +73,7 @@ func (c *Column) DefaultConstantName() string {
 func (c *Column) DefaultValueAsValue() string {
 	if c.DefaultValue == nil {
 		if c.SchemaType == schema.ColTypeAutoPrimaryKey {
-			return `""`
+			return `query.TempAutoPrimaryKey()`
 		} else if c.IsEnum() {
 			return "0"
 		}
@@ -165,7 +165,7 @@ func (c *Column) IsAPrimaryKey() bool {
 }
 
 // HasSetter returns true if the column should be allowed to be set by the programmer. Some columns should not be alterable,
-// including AutoID columns, and time based columns that automatically set or update their times.
+// including time based columns that automatically set or update their times.
 func (c *Column) HasSetter() bool {
 	if c.ReceiverType == ColTypeTime {
 		if c.DefaultValue == CreatedTime || c.DefaultValue == ModifiedTime {

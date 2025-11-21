@@ -8,6 +8,8 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+
+	"github.com/goradd/gro/pkg/query"
 )
 
 // RootUl represents an item in the root_ul table in the database.
@@ -115,7 +117,7 @@ func getRootUlUpdateFields(o *rootUlBase) (fields map[string]interface{}) {
 // Returns an error only if there was a problem with the database during the delete.
 // If the record was not found, no error will be returned.
 // doc: type=RootUl
-func DeleteRootUl(ctx context.Context, pk string) error {
+func DeleteRootUl(ctx context.Context, pk query.AutoPrimaryKey) error {
 	return deleteRootUl(ctx, pk)
 }
 

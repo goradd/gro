@@ -12,6 +12,7 @@ import (
 
 	"github.com/goradd/gro/_test/gen/orm/goradd_unit/node"
 	"github.com/goradd/gro/pkg/op"
+	"github.com/goradd/gro/pkg/query"
 	"github.com/goradd/gro/pkg/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -88,14 +89,9 @@ func TestLeafL_SetID(t *testing.T) {
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	obj.SetID("")
-	assert.EqualValues(t, "", obj.ID(), "set default")
+	obj.SetID(query.TempAutoPrimaryKey())
+	assert.EqualValues(t, query.TempAutoPrimaryKey(), obj.ID(), "set default")
 
-	// test panic on setting value larger than maximum size allowed
-	val = test.RandomValue[string](33)
-	assert.Panics(t, func() {
-		obj.SetID(val)
-	})
 }
 func TestLeafL_SetName(t *testing.T) {
 
@@ -121,19 +117,14 @@ func TestLeafL_SetRootLID(t *testing.T) {
 	obj := NewLeafL()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[string](32)
+	val := test.RandomValue[query.AutoPrimaryKey](32)
 	obj.SetRootLID(val)
 	assert.Equal(t, val, obj.RootLID())
 
 	// test default
-	obj.SetRootLID("")
-	assert.EqualValues(t, "", obj.RootLID(), "set default")
+	obj.SetRootLID(query.AutoPrimaryKey{})
+	assert.EqualValues(t, query.AutoPrimaryKey{}, obj.RootLID(), "set default")
 
-	// test panic on setting value larger than maximum size allowed
-	val = test.RandomValue[string](33)
-	assert.Panics(t, func() {
-		obj.SetRootLID(val)
-	})
 }
 
 func TestLeafL_Copy(t *testing.T) {

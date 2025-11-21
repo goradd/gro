@@ -13,6 +13,7 @@ import (
 
 	"github.com/goradd/gro/_test/gen/orm/goradd/node"
 	"github.com/goradd/gro/pkg/op"
+	"github.com/goradd/gro/pkg/query"
 	"github.com/goradd/gro/pkg/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -134,8 +135,8 @@ func TestProject_SetID(t *testing.T) {
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	obj.SetID("")
-	assert.EqualValues(t, "", obj.ID(), "set default")
+	obj.SetID(query.TempAutoPrimaryKey())
+	assert.EqualValues(t, query.TempAutoPrimaryKey(), obj.ID(), "set default")
 
 }
 func TestProject_SetNum(t *testing.T) {
@@ -296,19 +297,19 @@ func TestProject_SetManagerID(t *testing.T) {
 	obj := NewProject()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[string](0)
+	val := test.RandomValue[query.AutoPrimaryKey](0)
 	obj.SetManagerID(val)
 	assert.Equal(t, val, obj.ManagerID())
 	assert.False(t, obj.ManagerIDIsNull())
 
 	// Test NULL
 	obj.SetManagerIDToNull()
-	assert.EqualValues(t, "", obj.ManagerID())
+	assert.EqualValues(t, query.AutoPrimaryKey{}, obj.ManagerID())
 	assert.True(t, obj.ManagerIDIsNull())
 
 	// test default
-	obj.SetManagerID("")
-	assert.EqualValues(t, "", obj.ManagerID(), "set default")
+	obj.SetManagerID(query.AutoPrimaryKey{})
+	assert.EqualValues(t, query.AutoPrimaryKey{}, obj.ManagerID(), "set default")
 
 }
 func TestProject_SetParentID(t *testing.T) {
@@ -316,19 +317,19 @@ func TestProject_SetParentID(t *testing.T) {
 	obj := NewProject()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[string](0)
+	val := test.RandomValue[query.AutoPrimaryKey](0)
 	obj.SetParentID(val)
 	assert.Equal(t, val, obj.ParentID())
 	assert.False(t, obj.ParentIDIsNull())
 
 	// Test NULL
 	obj.SetParentIDToNull()
-	assert.EqualValues(t, "", obj.ParentID())
+	assert.EqualValues(t, query.AutoPrimaryKey{}, obj.ParentID())
 	assert.True(t, obj.ParentIDIsNull())
 
 	// test default
-	obj.SetParentID("")
-	assert.EqualValues(t, "", obj.ParentID(), "set default")
+	obj.SetParentID(query.AutoPrimaryKey{})
+	assert.EqualValues(t, query.AutoPrimaryKey{}, obj.ParentID(), "set default")
 
 }
 

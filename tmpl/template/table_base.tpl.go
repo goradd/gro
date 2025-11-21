@@ -815,44 +815,25 @@ func (tmpl *TableBaseTemplate) genInit(table *model.Table, _w io.Writer) (err er
 
 	for _, col := range table.AllColumns() {
 
-		if col.IsAutoPK() {
+		if _, err = io.WriteString(_w, `	o.`); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, `    o.`); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, col.Field); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, col.Field); err != nil {
-				return
-			}
+		if _, err = io.WriteString(_w, ` = `); err != nil {
+			return
+		}
 
-			if _, err = io.WriteString(_w, ` = db.TemporaryPrimaryKey()
+		if _, err = io.WriteString(_w, col.DefaultValueAsValue()); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `
 `); err != nil {
-				return
-			}
-
-		} else {
-
-			if _, err = io.WriteString(_w, `	o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Field); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, ` = `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.DefaultValueAsValue()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `
-`); err != nil {
-				return
-			}
-
+			return
 		}
 
 		if col.IsNullable {
@@ -2028,6 +2009,223 @@ func (tmpl *TableBaseTemplate) genColSetter(table *model.Table, col *model.Colum
 		}
 
 		if _, err = io.WriteString(_w, `
+	o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Field); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `IsLoaded = true
+	o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Field); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` = v
+	o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Field); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `IsDirty = true
+`); err != nil {
+			return
+		}
+
+		if col.IsNullable {
+
+			if _, err = io.WriteString(_w, `    o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Field); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsNull = false
+`); err != nil {
+				return
+			}
+
+		}
+
+		if col.Reference != nil {
+
+			if _, err = io.WriteString(_w, `	if o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Reference.Field); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` != nil &&
+	        o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Field); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` != o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Reference.Field); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `.PrimaryKey() {
+	    o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Reference.Field); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` = nil
+	}
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `}
+
+`); err != nil {
+			return
+		}
+
+	case query.ColTypeAutoPrimaryKey:
+
+		//*** column_setter_autopk.tmpl
+
+		if _, err = io.WriteString(_w, `// Set`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` sets the value of `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` in the object, to be saved later in the database using the Save() function.
+`); err != nil {
+			return
+		}
+
+		if col.IsAPrimaryKey() {
+
+			if _, err = io.WriteString(_w, `// You cannot change a primary key for a record that has been written to the database. While SQL databases will
+// allow it, NoSql databases will not. Save a copy and delete this one instead.
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `func (o *`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.DecapIdentifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `Base) Set`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Identifier); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `(v `); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Type); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `) {
+`); err != nil {
+			return
+		}
+
+		if col.IsAPrimaryKey() {
+
+			if _, err = io.WriteString(_w, `    if o._restored {
+        panic ("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+    }
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `	if o._restored &&
+	    o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Field); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `IsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
+`); err != nil {
+			return
+		}
+
+		if col.IsNullable {
+
+			if _, err = io.WriteString(_w, `		!o.`); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Field); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `IsNull && // if the db value is null, force a set of value
+`); err != nil {
+				return
+			}
+
+		}
+
+		if _, err = io.WriteString(_w, `        o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, col.Field); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, ` == v {
+        // no change
+        return
+    }
+
 	o.`); err != nil {
 			return
 		}
@@ -10179,30 +10377,21 @@ func (o *`); err != nil {
 	}
 
 	if _, err = io.WriteString(_w, `InsertFields(o)
-    var newPK `); err != nil {
+	err = d.Insert(ctx, "`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, table.PrimaryKeyType()); err != nil {
+	if _, err = io.WriteString(_w, table.QueryName); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `
-`); err != nil {
+	if _, err = io.WriteString(_w, `", insertFields, `); err != nil {
 		return
 	}
 
 	if table.HasAutoPK() {
 
-		if _, err = io.WriteString(_w, `	newPK, err = d.Insert(ctx, "`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.QueryName); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `", "`); err != nil {
+		if _, err = io.WriteString(_w, `"`); err != nil {
 			return
 		}
 
@@ -10210,11 +10399,29 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, `", insertFields)
+		if _, err = io.WriteString(_w, `"`); err != nil {
+			return
+		}
+
+	} else {
+
+		if _, err = io.WriteString(_w, `""`); err != nil {
+			return
+		}
+
+	}
+
+	if _, err = io.WriteString(_w, `)
     if err != nil {
         return err
     }
-	o.`); err != nil {
+`); err != nil {
+		return
+	}
+
+	if table.HasAutoPK() {
+
+		if _, err = io.WriteString(_w, `	o.`); err != nil {
 			return
 		}
 
@@ -10222,8 +10429,24 @@ func (o *`); err != nil {
 			return
 		}
 
-		if _, err = io.WriteString(_w, ` = newPK
-	o._originalPK = newPK
+		if _, err = io.WriteString(_w, ` = insertFields["`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().QueryName); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `"].(query.AutoPrimaryKey)
+	o._originalPK = o.`); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, table.PrimaryKeyColumn().Field); err != nil {
+			return
+		}
+
+		if _, err = io.WriteString(_w, `
     o.`); err != nil {
 			return
 		}
@@ -10239,21 +10462,7 @@ func (o *`); err != nil {
 
 	} else {
 
-		if _, err = io.WriteString(_w, `	_, err = d.Insert(ctx, "`); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, table.QueryName); err != nil {
-			return
-		}
-
-		if _, err = io.WriteString(_w, `", "", insertFields)
-    if err != nil {
-        return err
-    }
-	o._originalPK = o.PrimaryKey()
-	newPK = o.PrimaryKey()
-	_ = newPK
+		if _, err = io.WriteString(_w, `	o._originalPK = o.PrimaryKey()
 `); err != nil {
 			return
 		}
@@ -10307,7 +10516,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `(newPK)
+			if _, err = io.WriteString(_w, `(o.PrimaryKey())
         if err = o.`); err != nil {
 				return
 			}
@@ -10369,7 +10578,7 @@ func (o *`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `(newPK)
+			if _, err = io.WriteString(_w, `(o.PrimaryKey())
             if err = obj.Save(ctx); err != nil {
                 return err
             }
@@ -10489,7 +10698,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `",
-                newPK,
+                o.PrimaryKey(),
                 "`); err != nil {
 			return
 		}
@@ -10553,7 +10762,7 @@ func (o *`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, `",
-                    newPK,
+                    o.PrimaryKey(),
                     "`); err != nil {
 			return
 		}
@@ -10853,8 +11062,8 @@ func (o *`); err != nil {
 // Optional fields that have not been set and have no default will be returned as nil.
 // NoSql databases should interpret this as no value. Sql databases should interpret this as
 // explicitly setting a NULL value, which would override any database specific default value.
-// Auto-generated fields will be returned with their generated values, except AutoPK fields, which are generated by the
-// database driver and updated after the insert.
+// Auto-generated fields will be returned here with their generated values, except AutoPK fields, which are returned
+// as a new AutoPrimaryKey to indicate that the driver will fill this in after the insert.
 func (o *`); err != nil {
 		return
 	}

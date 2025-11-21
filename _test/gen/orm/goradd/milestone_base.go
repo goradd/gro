@@ -23,13 +23,13 @@ import (
 // The member variables of the structure are private and should not normally be accessed by the Milestone embedder.
 // Instead, use the accessor functions.
 type milestoneBase struct {
-	id                string
+	id                query.AutoPrimaryKey
 	idIsLoaded        bool
 	idIsDirty         bool
 	name              string
 	nameIsLoaded      bool
 	nameIsDirty       bool
-	projectID         string
+	projectID         query.AutoPrimaryKey
 	projectIDIsLoaded bool
 	projectIDIsDirty  bool
 
@@ -42,7 +42,7 @@ type milestoneBase struct {
 	// Indicates whether this is a new object, or one loaded from the database. Used by Save to know whether to Insert or Update.
 	_restored bool
 
-	_originalPK string
+	_originalPK query.AutoPrimaryKey
 }
 
 // IDs used to access the Milestone object fields by name using the Get function.
@@ -54,13 +54,12 @@ const (
 	MilestoneProjectField   = `project`
 )
 
-const MilestoneIDMaxLength = 32   // The number of runes the column can hold
 const MilestoneNameMaxLength = 50 // The number of runes the column can hold
 
 // Initialize or re-initialize a Milestone database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
 func (o *milestoneBase) Initialize() {
-	o.id = db.TemporaryPrimaryKey()
+	o.id = query.TempAutoPrimaryKey()
 	o.idIsLoaded = true
 	o.idIsDirty = false
 
@@ -68,7 +67,7 @@ func (o *milestoneBase) Initialize() {
 	o.nameIsLoaded = false
 	o.nameIsDirty = false
 
-	o.projectID = ""
+	o.projectID = query.AutoPrimaryKey{}
 	o.projectIDIsLoaded = false
 	o.projectIDIsDirty = false
 
@@ -100,12 +99,12 @@ func (o *milestoneBase) Copy() (newObject *Milestone) {
 
 // OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
 // read from the database.
-func (o *milestoneBase) OriginalPrimaryKey() string {
+func (o *milestoneBase) OriginalPrimaryKey() query.AutoPrimaryKey {
 	return o._originalPK
 }
 
 // PrimaryKey returns the value of the primary key of the record.
-func (o *milestoneBase) PrimaryKey() string {
+func (o *milestoneBase) PrimaryKey() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
 	}
@@ -118,12 +117,12 @@ func (o *milestoneBase) PrimaryKey() string {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *milestoneBase) SetPrimaryKey(v string) {
+func (o *milestoneBase) SetPrimaryKey(v query.AutoPrimaryKey) {
 	o.SetID(v)
 }
 
 // ID returns the loaded value of the id field in the database.
-func (o *milestoneBase) ID() string {
+func (o *milestoneBase) ID() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -141,12 +140,9 @@ func (o *milestoneBase) IDIsLoaded() bool {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *milestoneBase) SetID(v string) {
+func (o *milestoneBase) SetID(v query.AutoPrimaryKey) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-	}
-	if utf8.RuneCountInString(v) > MilestoneIDMaxLength {
-		panic("attempted to set Milestone.ID to a value larger than its maximum length in runes")
 	}
 	o.idIsLoaded = true
 	o.idIsDirty = true
@@ -184,7 +180,7 @@ func (o *milestoneBase) SetName(v string) {
 }
 
 // ProjectID returns the value of the loaded project_id field in the database.
-func (o *milestoneBase) ProjectID() string {
+func (o *milestoneBase) ProjectID() query.AutoPrimaryKey {
 	if o._restored && !o.projectIDIsLoaded {
 		panic("ProjectID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -197,7 +193,7 @@ func (o *milestoneBase) ProjectIDIsLoaded() bool {
 }
 
 // SetProjectID sets the value of ProjectID in the object, to be saved later in the database using the Save() function.
-func (o *milestoneBase) SetProjectID(v string) {
+func (o *milestoneBase) SetProjectID(v query.AutoPrimaryKey) {
 	if o._restored &&
 		o.projectIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.projectID == v {
@@ -266,7 +262,7 @@ func (o *milestoneBase) IsNew() bool {
 // LoadMilestone returns a Milestone from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [MilestonesBuilder.Select] for more info.
-func LoadMilestone(ctx context.Context, pk string, selectNodes ...query.Node) (*Milestone, error) {
+func LoadMilestone(ctx context.Context, pk query.AutoPrimaryKey, selectNodes ...query.Node) (*Milestone, error) {
 	return queryMilestones(ctx).
 		Where(op.Equal(node.Milestone().ID(), pk)).
 		Select(selectNodes...).
@@ -275,7 +271,7 @@ func LoadMilestone(ctx context.Context, pk string, selectNodes ...query.Node) (*
 
 // HasMilestone returns true if a Milestone with the given primary key exists in the database.
 // doc: type=Milestone
-func HasMilestone(ctx context.Context, pk string) (bool, error) {
+func HasMilestone(ctx context.Context, pk query.AutoPrimaryKey) (bool, error) {
 	v, err := queryMilestones(ctx).
 		Where(op.Equal(node.Milestone().ID(), pk)).
 		Count()
@@ -286,7 +282,7 @@ func HasMilestone(ctx context.Context, pk string) (bool, error) {
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [MilestonesBuilder.Select].
 // If you need a more elaborate query, use QueryMilestones() to start a query builder.
-func LoadMilestonesByProjectID(ctx context.Context, projectID string, selectNodes ...query.Node) ([]*Milestone, error) {
+func LoadMilestonesByProjectID(ctx context.Context, projectID query.AutoPrimaryKey, selectNodes ...query.Node) ([]*Milestone, error) {
 	q := queryMilestones(ctx)
 	q = q.Where(op.Equal(node.Milestone().ProjectID(), projectID))
 	return q.Select(selectNodes...).Load()
@@ -295,7 +291,7 @@ func LoadMilestonesByProjectID(ctx context.Context, projectID string, selectNode
 // HasMilestoneByProjectID returns true if the
 // given index values exist in the database.
 // doc: type=Milestone
-func HasMilestoneByProjectID(ctx context.Context, projectID string) (bool, error) {
+func HasMilestoneByProjectID(ctx context.Context, projectID query.AutoPrimaryKey) (bool, error) {
 	q := queryMilestones(ctx)
 	q = q.Where(op.Equal(node.Milestone().ProjectID(), projectID))
 	v, err := q.Count()
@@ -507,7 +503,7 @@ func CountMilestones(ctx context.Context) (int, error) {
 // CountMilestonesByProjectID queries the database and returns the number of Milestone objects that
 // have projectID.
 // doc: type=Milestone
-func CountMilestonesByProjectID(ctx context.Context, projectID string) (int, error) {
+func CountMilestonesByProjectID(ctx context.Context, projectID query.AutoPrimaryKey) (int, error) {
 	v_projectID := projectID
 	return QueryMilestones(ctx).
 		Where(op.Equal(node.Milestone().ProjectID(), v_projectID)).
@@ -518,7 +514,7 @@ func CountMilestonesByProjectID(ctx context.Context, projectID string) (int, err
 func (o *milestoneBase) unpack(m map[string]interface{}, objThis *Milestone) {
 
 	if v, ok := m["id"]; ok && v != nil {
-		if o.id, ok = v.(string); ok {
+		if o.id, ok = v.(query.AutoPrimaryKey); ok {
 			o.idIsLoaded = true
 			o.idIsDirty = false
 			o._originalPK = o.id
@@ -527,7 +523,7 @@ func (o *milestoneBase) unpack(m map[string]interface{}, objThis *Milestone) {
 		}
 	} else {
 		o.idIsLoaded = false
-		o.id = ""
+		o.id = query.TempAutoPrimaryKey()
 		o.idIsDirty = false
 	}
 
@@ -545,7 +541,7 @@ func (o *milestoneBase) unpack(m map[string]interface{}, objThis *Milestone) {
 	}
 
 	if v, ok := m["projectID"]; ok && v != nil {
-		if o.projectID, ok = v.(string); ok {
+		if o.projectID, ok = v.(query.AutoPrimaryKey); ok {
 			o.projectIDIsLoaded = true
 			o.projectIDIsDirty = false
 		} else {
@@ -553,7 +549,7 @@ func (o *milestoneBase) unpack(m map[string]interface{}, objThis *Milestone) {
 		}
 	} else {
 		o.projectIDIsLoaded = false
-		o.projectID = ""
+		o.projectID = query.AutoPrimaryKey{}
 		o.projectIDIsDirty = false
 	}
 
@@ -667,13 +663,12 @@ func (o *milestoneBase) insert(ctx context.Context) (err error) {
 			panic("a value for ProjectID is required, and there is no default value. Call SetProjectID() before inserting the record.")
 		}
 		insertFields = getMilestoneInsertFields(o)
-		var newPK string
-		newPK, err = d.Insert(ctx, "milestone", "id", insertFields)
+		err = d.Insert(ctx, "milestone", insertFields, "id")
 		if err != nil {
 			return err
 		}
-		o.id = newPK
-		o._originalPK = newPK
+		o.id = insertFields["id"].(query.AutoPrimaryKey)
+		o._originalPK = o.id
 		o.idIsLoaded = true
 
 		return nil
@@ -710,8 +705,8 @@ func (o *milestoneBase) getUpdateFields() (fields map[string]interface{}) {
 // Optional fields that have not been set and have no default will be returned as nil.
 // NoSql databases should interpret this as no value. Sql databases should interpret this as
 // explicitly setting a NULL value, which would override any database specific default value.
-// Auto-generated fields will be returned with their generated values, except AutoPK fields, which are generated by the
-// database driver and updated after the insert.
+// Auto-generated fields will be returned here with their generated values, except AutoPK fields, which are returned
+// as a new AutoPrimaryKey to indicate that the driver will fill this in after the insert.
 func (o *milestoneBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.idIsDirty {
@@ -749,7 +744,7 @@ func (o *milestoneBase) Delete(ctx context.Context) (err error) {
 
 // deleteMilestone deletes the Milestone with primary key pk from the database
 // and handles associated records.
-func deleteMilestone(ctx context.Context, pk string) error {
+func deleteMilestone(ctx context.Context, pk query.AutoPrimaryKey) error {
 	d := db.GetDatabase("goradd")
 	err := d.Delete(ctx, "milestone",
 		map[string]any{
@@ -1004,7 +999,7 @@ func (o *milestoneBase) MarshalStringMap() map[string]interface{} {
 //
 // The fields it expects are:
 //
-//	"id" - string
+//	"id" - query.AutoPrimaryKey
 //	"name" - string
 func (o *milestoneBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
@@ -1032,11 +1027,6 @@ func (o *milestoneBase) UnmarshalStringMap(m map[string]interface{}) (err error)
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetID(s)
-				}
 			}
 		case "name":
 			{
@@ -1060,11 +1050,6 @@ func (o *milestoneBase) UnmarshalStringMap(m map[string]interface{}) (err error)
 					continue // importing the foreign key will remove the object
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetProjectID(s)
-				}
 			}
 
 		case "project":

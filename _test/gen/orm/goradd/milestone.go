@@ -8,6 +8,8 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+
+	"github.com/goradd/gro/pkg/query"
 )
 
 // Milestone represents an item in the milestone table in the database.
@@ -115,7 +117,7 @@ func getMilestoneUpdateFields(o *milestoneBase) (fields map[string]interface{}) 
 // Returns an error only if there was a problem with the database during the delete.
 // If the record was not found, no error will be returned.
 // doc: type=Milestone
-func DeleteMilestone(ctx context.Context, pk string) error {
+func DeleteMilestone(ctx context.Context, pk query.AutoPrimaryKey) error {
 	return deleteMilestone(ctx, pk)
 }
 

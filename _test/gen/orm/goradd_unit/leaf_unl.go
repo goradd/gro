@@ -8,6 +8,8 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+
+	"github.com/goradd/gro/pkg/query"
 )
 
 // LeafUnl represents an item in the leaf_unl table in the database.
@@ -115,7 +117,7 @@ func getLeafUnlUpdateFields(o *leafUnlBase) (fields map[string]interface{}) {
 // Returns an error only if there was a problem with the database during the delete.
 // If the record was not found, no error will be returned.
 // doc: type=LeafUnl
-func DeleteLeafUnl(ctx context.Context, pk string) error {
+func DeleteLeafUnl(ctx context.Context, pk query.AutoPrimaryKey) error {
 	return deleteLeafUnl(ctx, pk)
 }
 

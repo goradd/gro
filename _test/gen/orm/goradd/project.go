@@ -8,6 +8,8 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+
+	"github.com/goradd/gro/pkg/query"
 )
 
 // Project represents an item in the project table in the database.
@@ -115,7 +117,7 @@ func getProjectUpdateFields(o *projectBase) (fields map[string]interface{}) {
 // Returns an error only if there was a problem with the database during the delete.
 // If the record was not found, no error will be returned.
 // doc: type=Project
-func DeleteProject(ctx context.Context, pk string) error {
+func DeleteProject(ctx context.Context, pk query.AutoPrimaryKey) error {
 	return deleteProject(ctx, pk)
 }
 

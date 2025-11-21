@@ -409,7 +409,7 @@ func (m *DB) processTypeInfo(column mysqlColumn) (
 			extra["collation"] = column.collation.String
 		}
 
-	case "varbinary":
+	case "varbinary", "binary":
 		typ = schema.ColTypeBytes
 		maxLength = uint64(dataLen)
 	case "blob":

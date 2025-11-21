@@ -8,6 +8,8 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+
+	"github.com/goradd/gro/pkg/query"
 )
 
 // TypeTest represents an item in the type_test table in the database.
@@ -115,7 +117,7 @@ func getTypeTestUpdateFields(o *typeTestBase) (fields map[string]interface{}) {
 // Returns an error only if there was a problem with the database during the delete.
 // If the record was not found, no error will be returned.
 // doc: type=TypeTest
-func DeleteTypeTest(ctx context.Context, pk string) error {
+func DeleteTypeTest(ctx context.Context, pk query.AutoPrimaryKey) error {
 	return deleteTypeTest(ctx, pk)
 }
 

@@ -106,7 +106,7 @@ func (n rootLTable) ID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"id",
 		"id",
-		query.ColTypeString,
+		query.ColTypeAutoPrimaryKey,
 		schema.ColTypeAutoPrimaryKey,
 		schema.ColSubTypeNone,
 		true,

@@ -23,7 +23,7 @@ import (
 // The member variables of the structure are private and should not normally be accessed by the Login embedder.
 // Instead, use the accessor functions.
 type loginBase struct {
-	id                string
+	id                query.AutoPrimaryKey
 	idIsLoaded        bool
 	idIsDirty         bool
 	username          string
@@ -36,7 +36,7 @@ type loginBase struct {
 	isEnabled         bool
 	isEnabledIsLoaded bool
 	isEnabledIsDirty  bool
-	personID          string
+	personID          query.AutoPrimaryKey
 	personIDIsNull    bool
 	personIDIsLoaded  bool
 	personIDIsDirty   bool
@@ -50,7 +50,7 @@ type loginBase struct {
 	// Indicates whether this is a new object, or one loaded from the database. Used by Save to know whether to Insert or Update.
 	_restored bool
 
-	_originalPK string
+	_originalPK query.AutoPrimaryKey
 }
 
 // IDs used to access the Login object fields by name using the Get function.
@@ -64,14 +64,13 @@ const (
 	LoginPersonField    = `person`
 )
 
-const LoginIDMaxLength = 32       // The number of runes the column can hold
 const LoginUsernameMaxLength = 20 // The number of runes the column can hold
 const LoginPasswordMaxLength = 20 // The number of runes the column can hold
 
 // Initialize or re-initialize a Login database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
 func (o *loginBase) Initialize() {
-	o.id = db.TemporaryPrimaryKey()
+	o.id = query.TempAutoPrimaryKey()
 	o.idIsLoaded = true
 	o.idIsDirty = false
 
@@ -88,7 +87,7 @@ func (o *loginBase) Initialize() {
 	o.isEnabledIsLoaded = true
 	o.isEnabledIsDirty = false
 
-	o.personID = ""
+	o.personID = query.AutoPrimaryKey{}
 	o.personIDIsNull = true
 	o.personIDIsLoaded = false
 	o.personIDIsDirty = false
@@ -127,12 +126,12 @@ func (o *loginBase) Copy() (newObject *Login) {
 
 // OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
 // read from the database.
-func (o *loginBase) OriginalPrimaryKey() string {
+func (o *loginBase) OriginalPrimaryKey() query.AutoPrimaryKey {
 	return o._originalPK
 }
 
 // PrimaryKey returns the value of the primary key of the record.
-func (o *loginBase) PrimaryKey() string {
+func (o *loginBase) PrimaryKey() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
 	}
@@ -145,12 +144,12 @@ func (o *loginBase) PrimaryKey() string {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *loginBase) SetPrimaryKey(v string) {
+func (o *loginBase) SetPrimaryKey(v query.AutoPrimaryKey) {
 	o.SetID(v)
 }
 
 // ID returns the loaded value of the id field in the database.
-func (o *loginBase) ID() string {
+func (o *loginBase) ID() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -168,12 +167,9 @@ func (o *loginBase) IDIsLoaded() bool {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *loginBase) SetID(v string) {
+func (o *loginBase) SetID(v query.AutoPrimaryKey) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-	}
-	if utf8.RuneCountInString(v) > LoginIDMaxLength {
-		panic("attempted to set Login.ID to a value larger than its maximum length in runes")
 	}
 	o.idIsLoaded = true
 	o.idIsDirty = true
@@ -287,7 +283,7 @@ func (o *loginBase) SetIsEnabled(v bool) {
 }
 
 // PersonID returns the value of the loaded person_id field in the database.
-func (o *loginBase) PersonID() string {
+func (o *loginBase) PersonID() query.AutoPrimaryKey {
 	if o._restored && !o.personIDIsLoaded {
 		panic("PersonID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -305,7 +301,7 @@ func (o *loginBase) PersonIDIsNull() bool {
 }
 
 // SetPersonID sets the value of PersonID in the object, to be saved later in the database using the Save() function.
-func (o *loginBase) SetPersonID(v string) {
+func (o *loginBase) SetPersonID(v query.AutoPrimaryKey) {
 	if o._restored &&
 		o.personIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.personIDIsNull && // if the db value is null, force a set of value
@@ -334,7 +330,7 @@ func (o *loginBase) SetPersonIDToNull() {
 	}
 	o.personIDIsLoaded = true
 	o.personIDIsNull = true
-	o.personID = ""
+	o.personID = query.AutoPrimaryKey{}
 	o.person = nil
 }
 
@@ -366,7 +362,7 @@ func (o *loginBase) SetPerson(person *Person) {
 		if !o.personIDIsNull || !o._restored {
 			o.personIDIsNull = true
 			o.personIDIsDirty = true
-			o.personID = ""
+			o.personID = query.AutoPrimaryKey{}
 			o.person = nil
 		}
 	} else {
@@ -397,7 +393,7 @@ func (o *loginBase) IsNew() bool {
 // LoadLogin returns a Login from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [LoginsBuilder.Select] for more info.
-func LoadLogin(ctx context.Context, pk string, selectNodes ...query.Node) (*Login, error) {
+func LoadLogin(ctx context.Context, pk query.AutoPrimaryKey, selectNodes ...query.Node) (*Login, error) {
 	return queryLogins(ctx).
 		Where(op.Equal(node.Login().ID(), pk)).
 		Select(selectNodes...).
@@ -406,7 +402,7 @@ func LoadLogin(ctx context.Context, pk string, selectNodes ...query.Node) (*Logi
 
 // HasLogin returns true if a Login with the given primary key exists in the database.
 // doc: type=Login
-func HasLogin(ctx context.Context, pk string) (bool, error) {
+func HasLogin(ctx context.Context, pk query.AutoPrimaryKey) (bool, error) {
 	v, err := queryLogins(ctx).
 		Where(op.Equal(node.Login().ID(), pk)).
 		Count()
@@ -676,7 +672,7 @@ func CountLoginsByUsername(ctx context.Context, username string) (int, error) {
 // CountLoginsByPersonID queries the database and returns the number of Login objects that
 // have personID.
 // doc: type=Login
-func CountLoginsByPersonID(ctx context.Context, personID string) (int, error) {
+func CountLoginsByPersonID(ctx context.Context, personID query.AutoPrimaryKey) (int, error) {
 	v_personID := personID
 	return QueryLogins(ctx).
 		Where(op.Equal(node.Login().PersonID(), v_personID)).
@@ -687,7 +683,7 @@ func CountLoginsByPersonID(ctx context.Context, personID string) (int, error) {
 func (o *loginBase) unpack(m map[string]interface{}, objThis *Login) {
 
 	if v, ok := m["id"]; ok && v != nil {
-		if o.id, ok = v.(string); ok {
+		if o.id, ok = v.(query.AutoPrimaryKey); ok {
 			o.idIsLoaded = true
 			o.idIsDirty = false
 			o._originalPK = o.id
@@ -696,7 +692,7 @@ func (o *loginBase) unpack(m map[string]interface{}, objThis *Login) {
 		}
 	} else {
 		o.idIsLoaded = false
-		o.id = ""
+		o.id = query.TempAutoPrimaryKey()
 		o.idIsDirty = false
 	}
 
@@ -748,11 +744,11 @@ func (o *loginBase) unpack(m map[string]interface{}, objThis *Login) {
 
 	if v, ok := m["personID"]; ok {
 		if v == nil {
-			o.personID = ""
+			o.personID = query.AutoPrimaryKey{}
 			o.personIDIsNull = true
 			o.personIDIsLoaded = true
 			o.personIDIsDirty = false
-		} else if o.personID, ok = v.(string); ok {
+		} else if o.personID, ok = v.(query.AutoPrimaryKey); ok {
 			o.personIDIsNull = false
 			o.personIDIsLoaded = true
 			o.personIDIsDirty = false
@@ -762,7 +758,7 @@ func (o *loginBase) unpack(m map[string]interface{}, objThis *Login) {
 	} else {
 		o.personIDIsLoaded = false
 		o.personIDIsNull = true
-		o.personID = ""
+		o.personID = query.AutoPrimaryKey{}
 		o.personIDIsDirty = false
 	}
 
@@ -877,13 +873,12 @@ func (o *loginBase) insert(ctx context.Context) (err error) {
 			panic("a value for IsEnabled is required, and there is no default value. Call SetIsEnabled() before inserting the record.")
 		}
 		insertFields = getLoginInsertFields(o)
-		var newPK string
-		newPK, err = d.Insert(ctx, "login", "id", insertFields)
+		err = d.Insert(ctx, "login", insertFields, "id")
 		if err != nil {
 			return err
 		}
-		o.id = newPK
-		o._originalPK = newPK
+		o.id = insertFields["id"].(query.AutoPrimaryKey)
+		o._originalPK = o.id
 		o.idIsLoaded = true
 
 		return nil
@@ -934,8 +929,8 @@ func (o *loginBase) getUpdateFields() (fields map[string]interface{}) {
 // Optional fields that have not been set and have no default will be returned as nil.
 // NoSql databases should interpret this as no value. Sql databases should interpret this as
 // explicitly setting a NULL value, which would override any database specific default value.
-// Auto-generated fields will be returned with their generated values, except AutoPK fields, which are generated by the
-// database driver and updated after the insert.
+// Auto-generated fields will be returned here with their generated values, except AutoPK fields, which are returned
+// as a new AutoPrimaryKey to indicate that the driver will fill this in after the insert.
 func (o *loginBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.idIsDirty {
@@ -983,7 +978,7 @@ func (o *loginBase) Delete(ctx context.Context) (err error) {
 
 // deleteLogin deletes the Login with primary key pk from the database
 // and handles associated records.
-func deleteLogin(ctx context.Context, pk string) error {
+func deleteLogin(ctx context.Context, pk query.AutoPrimaryKey) error {
 	d := db.GetDatabase("goradd")
 	err := d.Delete(ctx, "login",
 		map[string]any{
@@ -1320,7 +1315,7 @@ func (o *loginBase) MarshalStringMap() map[string]interface{} {
 //
 // The fields it expects are:
 //
-//	"id" - string
+//	"id" - query.AutoPrimaryKey
 //	"username" - string
 //	"password" - string, nullable
 //	"isEnabled" - bool
@@ -1350,11 +1345,6 @@ func (o *loginBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetID(s)
-				}
 			}
 		case "username":
 			{
@@ -1404,11 +1394,6 @@ func (o *loginBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					continue // importing the foreign key will remove the object
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetPersonID(s)
-				}
 			}
 
 		case "person":

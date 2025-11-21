@@ -28,23 +28,16 @@ func (o *{{= table.DecapIdentifier}}Base) insert(ctx context.Context) (err error
 {{for}}
 {{: unique_check.tmpl }}
     insertFields = get{{= table.Identifier }}InsertFields(o)
-    var newPK {{= table.PrimaryKeyType() }}
-{{if table.HasAutoPK() }}
-	newPK, err = d.Insert(ctx, "{{= table.QueryName }}", "{{= table.PrimaryKeyColumn().QueryName }}", insertFields)
+	err = d.Insert(ctx, "{{= table.QueryName }}", insertFields, {{if table.HasAutoPK() }}"{{= table.PrimaryKeyColumn().QueryName }}"{{else}}""{{if}})
     if err != nil {
         return err
     }
-	o.{{= table.PrimaryKeyColumn().Field }} = newPK
-	o._originalPK = newPK
+{{if table.HasAutoPK() }}
+	o.{{= table.PrimaryKeyColumn().Field }} = insertFields["{{= table.PrimaryKeyColumn().QueryName }}"].(query.AutoPrimaryKey)
+	o._originalPK = o.{{= table.PrimaryKeyColumn().Field }}
     o.{{= table.PrimaryKeyColumn().Field }}IsLoaded = true
 {{else}}
-	_, err = d.Insert(ctx, "{{= table.QueryName }}", "", insertFields)
-    if err != nil {
-        return err
-    }
 	o._originalPK = o.PrimaryKey()
-	newPK = o.PrimaryKey()
-	_ = newPK
 {{if}}
 
 {{g

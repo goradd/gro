@@ -2,15 +2,16 @@ package sql
 
 import (
 	"fmt"
-	"github.com/goradd/gro/pkg/db"
-	. "github.com/goradd/gro/pkg/query"
-	"github.com/goradd/gro/pkg/schema"
-	strings2 "github.com/goradd/strings"
 	"log"
 	"log/slog"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/goradd/gro/pkg/db"
+	. "github.com/goradd/gro/pkg/query"
+	"github.com/goradd/gro/pkg/schema"
+	strings2 "github.com/goradd/strings"
 )
 
 // SqlReceiver is an encapsulation of a way of receiving data from sql queries as interface{} pointers. This allows you
@@ -397,9 +398,8 @@ func (r SqlReceiver) Unpack(typ ReceiverType) interface{} {
 // to a type corresponding to typ.
 func (r SqlReceiver) UnpackDefaultValue(typ schema.ColumnType, size int) interface{} {
 	switch typ {
-	case schema.ColTypeBytes:
-		fallthrough
-	case schema.ColTypeUnknown:
+	case schema.ColTypeBytes,
+		schema.ColTypeUnknown:
 		b := r.ByteI()
 		if b == nil {
 			return b

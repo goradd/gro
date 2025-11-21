@@ -8,6 +8,8 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+
+	"github.com/goradd/gro/pkg/query"
 )
 
 // RootNl represents an item in the root_nl table in the database.
@@ -115,7 +117,7 @@ func getRootNlUpdateFields(o *rootNlBase) (fields map[string]interface{}) {
 // Returns an error only if there was a problem with the database during the delete.
 // If the record was not found, no error will be returned.
 // doc: type=RootNl
-func DeleteRootNl(ctx context.Context, pk string) error {
+func DeleteRootNl(ctx context.Context, pk query.AutoPrimaryKey) error {
 	return deleteRootNl(ctx, pk)
 }
 

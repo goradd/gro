@@ -199,7 +199,7 @@ func (n projectTable) ID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"id",
 		"id",
-		query.ColTypeString,
+		query.ColTypeAutoPrimaryKey,
 		schema.ColTypeAutoPrimaryKey,
 		schema.ColSubTypeNone,
 		true,
@@ -478,7 +478,7 @@ func (n projectTable) ManagerID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"manager_id",
 		"managerID",
-		query.ColTypeString,
+		query.ColTypeAutoPrimaryKey,
 		schema.ColTypeString,
 		schema.ColSubTypeNone,
 		false,
@@ -540,7 +540,7 @@ func (n projectTable) ParentID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"parent_id",
 		"parentID",
-		query.ColTypeString,
+		query.ColTypeAutoPrimaryKey,
 		schema.ColTypeString,
 		schema.ColSubTypeNone,
 		false,

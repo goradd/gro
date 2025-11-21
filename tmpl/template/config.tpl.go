@@ -2,7 +2,7 @@
 
 package template
 
-// This template generates a got template for the db.go file in the orm directory
+// This template generates a got template for the config.go file in the orm directory
 
 import (
 	"io"
@@ -16,7 +16,7 @@ func init() {
 	codegen.RegisterTemplate(&t)
 }
 
-// ConfigTemplate generates the db.go file
+// ConfigTemplate generates the config.go file
 type ConfigTemplate struct {
 	Package string
 }

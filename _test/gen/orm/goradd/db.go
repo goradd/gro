@@ -480,8 +480,8 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 
 		cursor, err := db.Query(ctx, "team_member_project_assn",
 			map[string]query.ReceiverType{
-				"project_id":     query.ColTypeString,
-				"team_member_id": query.ColTypeString,
+				"project_id":     query.ColTypeAutoPrimaryKey,
+				"team_member_id": query.ColTypeAutoPrimaryKey,
 			},
 			nil,
 			[]string{"project_id", "team_member_id"})
@@ -894,8 +894,8 @@ func jsonDecodeTeamMemberProjectAssn(ctx context.Context, decoder *json.Decoder)
 	database := Database()
 	for decoder.More() {
 		var imp struct {
-			Src  string `json:"project_id"`
-			Dest string `json:"team_member_id"`
+			Src  query.AutoPrimaryKey `json:"project_id"`
+			Dest query.AutoPrimaryKey `json:"team_member_id"`
 		}
 
 		if err = decoder.Decode(&imp); err != nil {

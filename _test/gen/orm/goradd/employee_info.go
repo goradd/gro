@@ -8,6 +8,8 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+
+	"github.com/goradd/gro/pkg/query"
 )
 
 // EmployeeInfo represents an item in the employee_info table in the database.
@@ -115,7 +117,7 @@ func getEmployeeInfoUpdateFields(o *employeeInfoBase) (fields map[string]interfa
 // Returns an error only if there was a problem with the database during the delete.
 // If the record was not found, no error will be returned.
 // doc: type=EmployeeInfo
-func DeleteEmployeeInfo(ctx context.Context, pk string) error {
+func DeleteEmployeeInfo(ctx context.Context, pk query.AutoPrimaryKey) error {
 	return deleteEmployeeInfo(ctx, pk)
 }
 

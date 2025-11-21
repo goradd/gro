@@ -4,14 +4,15 @@ import (
 	"context"
 	sqldb "database/sql"
 	"fmt"
+	"log/slog"
+	"strings"
+	"time"
+
 	"github.com/goradd/gro/pkg/db"
 	sql2 "github.com/goradd/gro/pkg/db/sql"
 	. "github.com/goradd/gro/pkg/query"
 	"github.com/goradd/gro/pkg/schema"
-	"log/slog"
 	"modernc.org/sqlite"
-	"strings"
-	"time"
 )
 
 // DB is the goradd driver for a modernc SQLite database.
@@ -111,36 +112,29 @@ func (m *DB) OperationSql(op Operator, operands []Node, operandStrings []string)
 }
 
 // Insert inserts the given data as a new record in the database.
-// If the table has an auto-generated primary key, pass the name of that field to pkName.
-// Insert will then return the new auto-generated primary key.
-// If fields contains the auto-generated primary key, Insert will also synchronize postgres to make
-// sure it will not auto generate another key that matches the manually set primary key.
-// Set pkName to empty if the table has a manually set primary key.
 // Table can include a schema name separated with a period.
-func (m *DB) Insert(ctx context.Context, table string, pkName string, fields map[string]interface{}) (string, error) {
+func (m *DB) Insert(ctx context.Context, table string, fields map[string]interface{}, autoPkKey string) error {
 	sql, args := sql2.GenerateInsert(m, table, fields)
-	if pkName == "" {
+
+	if autoPkKey == "" || fields[autoPkKey] != nil { // manually set primary key or setting an auto gen primary key to a specific value on insert
 		if _, err := m.SqlExec(ctx, sql, args...); err != nil {
 			if sqliteErr, ok := err.(interface{ Code() int }); ok {
 				if sqliteErr.Code() == 2067 {
-					return "", db.NewUniqueValueError(table, nil, err)
+					return db.NewUniqueValueError(table, nil, err)
 				}
 			}
-			return "", db.NewQueryError("SqlQuery", sql, args, err)
+			return db.NewQueryError("SqlQuery", sql, args, err)
 		}
-		return "", nil // success
+		return nil // success
 	}
 
-	id, err := m.insertWithReturning(ctx, table, pkName, sql, args)
+	id, err := m.insertWithReturning(ctx, table, autoPkKey, sql, args)
+	fields[autoPkKey] = GeneratedAutoPrimaryKey(id)
 
-	if err != nil {
-		return "", err
-	}
-
-	return id, err
+	return err
 }
 
-func (m *DB) insertWithReturning(ctx context.Context, table string, pkName string, sql string, args []interface{}) (string, error) {
+func (m *DB) insertWithReturning(ctx context.Context, table string, pkName string, sql string, args []interface{}) (int, error) {
 	sql += fmt.Sprintf(" RETURNING %s", m.QuoteIdentifier(pkName))
 	rows, err := m.SqlQuery(ctx, sql, args...)
 
@@ -151,24 +145,24 @@ func (m *DB) insertWithReturning(ctx context.Context, table string, pkName strin
 	if err != nil {
 		if sqliteErr, ok := err.(interface{ Code() int }); ok {
 			if sqliteErr.Code() == 2067 {
-				return "", db.NewUniqueValueError(table, nil, err)
+				return 0, db.NewUniqueValueError(table, nil, err)
 			}
 		}
-		return "", db.NewQueryError("SqlQuery", sql, args, err)
+		return 0, db.NewQueryError("SqlQuery", sql, args, err)
 	} else {
-		var id string
+		var id int
 		// get id
 		if rows == nil || !rows.Next() {
 			// Theoretically this should not happen.
-			return "", fmt.Errorf("primary key column not found")
+			return 0, fmt.Errorf("primary key column not found")
 		}
 		err = rows.Scan(&id)
 		if err != nil {
-			return "", db.NewQueryError("Scan", sql, args, err)
+			return 0, db.NewQueryError("Scan", sql, args, err)
 		}
 
 		if err = rows.Err(); err != nil {
-			return "", db.NewQueryError("rows.Err", sql, args, err)
+			return 0, db.NewQueryError("rows.Err", sql, args, err)
 		}
 
 		return id, err

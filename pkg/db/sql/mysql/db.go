@@ -212,8 +212,7 @@ func (m *DB) SupportsForUpdate() bool {
 }
 
 // Insert inserts the given data as a new record in the database.
-// It returns the record id of the new record.
-func (m *DB) Insert(ctx context.Context, table string, _ string, fields map[string]interface{}) (string, error) {
+func (m *DB) Insert(ctx context.Context, table string, fields map[string]any, autoPkKey string) error {
 	s, args := sql2.GenerateInsert(m, table, fields)
 	if r, err := m.SqlExec(ctx, s, args...); err != nil {
 		if me, ok := anyutil.As[*mysql.MySQLError](err); ok {
@@ -222,16 +221,20 @@ func (m *DB) Insert(ctx context.Context, table string, _ string, fields map[stri
 				// Since it is not possible to completely prevent a unique constraint error, except by implementing a separate
 				// service to track and lock unique values that are in use (which is beyond the scope of the ORM), we need
 				// to see if this is that kind of error and return it.
-				return "", db.NewUniqueValueError(table, nil, err)
+				return db.NewUniqueValueError(table, nil, err)
 			}
 		}
-		return "", db.NewQueryError("SqlExec", s, args, err)
+		return db.NewQueryError("SqlExec", s, args, err)
 	} else {
-		if id, err2 := r.LastInsertId(); err2 != nil {
-			return "", db.NewQueryError("LastInsertId", s, args, err2)
-		} else {
-			return fmt.Sprint(id), nil
+		if autoPkKey != "" && fields[autoPkKey] == nil {
+			if id, err2 := r.LastInsertId(); err2 != nil {
+				return db.NewQueryError("LastInsertId", s, args, err2)
+			} else {
+				// we generated a new primary key, so send it back
+				fields[autoPkKey] = GeneratedAutoPrimaryKey(id)
+			}
 		}
+		return nil
 	}
 }
 

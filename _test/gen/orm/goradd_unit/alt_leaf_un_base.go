@@ -22,7 +22,7 @@ import (
 // The member variables of the structure are private and should not normally be accessed by the AltLeafUn embedder.
 // Instead, use the accessor functions.
 type altLeafUnBase struct {
-	id                  string
+	id                  query.AutoPrimaryKey
 	idIsLoaded          bool
 	idIsDirty           bool
 	name                string
@@ -42,7 +42,7 @@ type altLeafUnBase struct {
 	// Indicates whether this is a new object, or one loaded from the database. Used by Save to know whether to Insert or Update.
 	_restored bool
 
-	_originalPK string
+	_originalPK query.AutoPrimaryKey
 }
 
 // IDs used to access the AltLeafUn object fields by name using the Get function.
@@ -54,13 +54,12 @@ const (
 	AltLeafUnAltRootUnField   = `altRootUn`
 )
 
-const AltLeafUnIDMaxLength = 32    // The number of runes the column can hold
 const AltLeafUnNameMaxLength = 100 // The number of runes the column can hold
 
 // Initialize or re-initialize a AltLeafUn database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
 func (o *altLeafUnBase) Initialize() {
-	o.id = db.TemporaryPrimaryKey()
+	o.id = query.TempAutoPrimaryKey()
 	o.idIsLoaded = true
 	o.idIsDirty = false
 
@@ -101,12 +100,12 @@ func (o *altLeafUnBase) Copy() (newObject *AltLeafUn) {
 
 // OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
 // read from the database.
-func (o *altLeafUnBase) OriginalPrimaryKey() string {
+func (o *altLeafUnBase) OriginalPrimaryKey() query.AutoPrimaryKey {
 	return o._originalPK
 }
 
 // PrimaryKey returns the value of the primary key of the record.
-func (o *altLeafUnBase) PrimaryKey() string {
+func (o *altLeafUnBase) PrimaryKey() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
 	}
@@ -119,12 +118,12 @@ func (o *altLeafUnBase) PrimaryKey() string {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *altLeafUnBase) SetPrimaryKey(v string) {
+func (o *altLeafUnBase) SetPrimaryKey(v query.AutoPrimaryKey) {
 	o.SetID(v)
 }
 
 // ID returns the loaded value of the id field in the database.
-func (o *altLeafUnBase) ID() string {
+func (o *altLeafUnBase) ID() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -142,12 +141,9 @@ func (o *altLeafUnBase) IDIsLoaded() bool {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *altLeafUnBase) SetID(v string) {
+func (o *altLeafUnBase) SetID(v query.AutoPrimaryKey) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-	}
-	if utf8.RuneCountInString(v) > AltLeafUnIDMaxLength {
-		panic("attempted to set AltLeafUn.ID to a value larger than its maximum length in runes")
 	}
 	o.idIsLoaded = true
 	o.idIsDirty = true
@@ -291,7 +287,7 @@ func (o *altLeafUnBase) IsNew() bool {
 // LoadAltLeafUn returns a AltLeafUn from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [AltLeafUnsBuilder.Select] for more info.
-func LoadAltLeafUn(ctx context.Context, pk string, selectNodes ...query.Node) (*AltLeafUn, error) {
+func LoadAltLeafUn(ctx context.Context, pk query.AutoPrimaryKey, selectNodes ...query.Node) (*AltLeafUn, error) {
 	return queryAltLeafUns(ctx).
 		Where(op.Equal(node.AltLeafUn().ID(), pk)).
 		Select(selectNodes...).
@@ -300,7 +296,7 @@ func LoadAltLeafUn(ctx context.Context, pk string, selectNodes ...query.Node) (*
 
 // HasAltLeafUn returns true if a AltLeafUn with the given primary key exists in the database.
 // doc: type=AltLeafUn
-func HasAltLeafUn(ctx context.Context, pk string) (bool, error) {
+func HasAltLeafUn(ctx context.Context, pk query.AutoPrimaryKey) (bool, error) {
 	v, err := queryAltLeafUns(ctx).
 		Where(op.Equal(node.AltLeafUn().ID(), pk)).
 		Count()
@@ -551,7 +547,7 @@ func CountAltLeafUnsByAltRootUnID(ctx context.Context, altRootUnID float32) (int
 func (o *altLeafUnBase) unpack(m map[string]interface{}, objThis *AltLeafUn) {
 
 	if v, ok := m["id"]; ok && v != nil {
-		if o.id, ok = v.(string); ok {
+		if o.id, ok = v.(query.AutoPrimaryKey); ok {
 			o.idIsLoaded = true
 			o.idIsDirty = false
 			o._originalPK = o.id
@@ -560,7 +556,7 @@ func (o *altLeafUnBase) unpack(m map[string]interface{}, objThis *AltLeafUn) {
 		}
 	} else {
 		o.idIsLoaded = false
-		o.id = ""
+		o.id = query.TempAutoPrimaryKey()
 		o.idIsDirty = false
 	}
 
@@ -697,13 +693,12 @@ func (o *altLeafUnBase) insert(ctx context.Context) (err error) {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
 		insertFields = getAltLeafUnInsertFields(o)
-		var newPK string
-		newPK, err = d.Insert(ctx, "alt_leaf_un", "id", insertFields)
+		err = d.Insert(ctx, "alt_leaf_un", insertFields, "id")
 		if err != nil {
 			return err
 		}
-		o.id = newPK
-		o._originalPK = newPK
+		o.id = insertFields["id"].(query.AutoPrimaryKey)
+		o._originalPK = o.id
 		o.idIsLoaded = true
 
 		return nil
@@ -744,8 +739,8 @@ func (o *altLeafUnBase) getUpdateFields() (fields map[string]interface{}) {
 // Optional fields that have not been set and have no default will be returned as nil.
 // NoSql databases should interpret this as no value. Sql databases should interpret this as
 // explicitly setting a NULL value, which would override any database specific default value.
-// Auto-generated fields will be returned with their generated values, except AutoPK fields, which are generated by the
-// database driver and updated after the insert.
+// Auto-generated fields will be returned here with their generated values, except AutoPK fields, which are returned
+// as a new AutoPrimaryKey to indicate that the driver will fill this in after the insert.
 func (o *altLeafUnBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.idIsDirty {
@@ -786,7 +781,7 @@ func (o *altLeafUnBase) Delete(ctx context.Context) (err error) {
 
 // deleteAltLeafUn deletes the AltLeafUn with primary key pk from the database
 // and handles associated records.
-func deleteAltLeafUn(ctx context.Context, pk string) error {
+func deleteAltLeafUn(ctx context.Context, pk query.AutoPrimaryKey) error {
 	d := db.GetDatabase("goradd_unit")
 	err := d.Delete(ctx, "alt_leaf_un",
 		map[string]any{
@@ -1051,7 +1046,7 @@ func (o *altLeafUnBase) MarshalStringMap() map[string]interface{} {
 //
 // The fields it expects are:
 //
-//	"id" - string
+//	"id" - query.AutoPrimaryKey
 //	"name" - string
 func (o *altLeafUnBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
@@ -1079,11 +1074,6 @@ func (o *altLeafUnBase) UnmarshalStringMap(m map[string]interface{}) (err error)
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetID(s)
-				}
 			}
 		case "name":
 			{

@@ -22,7 +22,7 @@ import (
 // The member variables of the structure are private and should not normally be accessed by the LeafUl embedder.
 // Instead, use the accessor functions.
 type leafUlBase struct {
-	id               string
+	id               query.AutoPrimaryKey
 	idIsLoaded       bool
 	idIsDirty        bool
 	name             string
@@ -30,7 +30,7 @@ type leafUlBase struct {
 	nameIsDirty      bool
 	groLock          int64
 	groLockIsLoaded  bool
-	rootUlID         string
+	rootUlID         query.AutoPrimaryKey
 	rootUlIDIsLoaded bool
 	rootUlIDIsDirty  bool
 
@@ -43,7 +43,7 @@ type leafUlBase struct {
 	// Indicates whether this is a new object, or one loaded from the database. Used by Save to know whether to Insert or Update.
 	_restored bool
 
-	_originalPK string
+	_originalPK query.AutoPrimaryKey
 }
 
 // IDs used to access the LeafUl object fields by name using the Get function.
@@ -56,14 +56,12 @@ const (
 	LeafUlRootUlField   = `rootUl`
 )
 
-const LeafUlIDMaxLength = 32       // The number of runes the column can hold
-const LeafUlNameMaxLength = 100    // The number of runes the column can hold
-const LeafUlRootUlIDMaxLength = 32 // The number of runes the column can hold
+const LeafUlNameMaxLength = 100 // The number of runes the column can hold
 
 // Initialize or re-initialize a LeafUl database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
 func (o *leafUlBase) Initialize() {
-	o.id = db.TemporaryPrimaryKey()
+	o.id = query.TempAutoPrimaryKey()
 	o.idIsLoaded = true
 	o.idIsDirty = false
 
@@ -74,7 +72,7 @@ func (o *leafUlBase) Initialize() {
 	o.groLock = 0
 	o.groLockIsLoaded = false
 
-	o.rootUlID = ""
+	o.rootUlID = query.AutoPrimaryKey{}
 	o.rootUlIDIsLoaded = false
 	o.rootUlIDIsDirty = false
 
@@ -106,12 +104,12 @@ func (o *leafUlBase) Copy() (newObject *LeafUl) {
 
 // OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
 // read from the database.
-func (o *leafUlBase) OriginalPrimaryKey() string {
+func (o *leafUlBase) OriginalPrimaryKey() query.AutoPrimaryKey {
 	return o._originalPK
 }
 
 // PrimaryKey returns the value of the primary key of the record.
-func (o *leafUlBase) PrimaryKey() string {
+func (o *leafUlBase) PrimaryKey() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
 	}
@@ -124,12 +122,12 @@ func (o *leafUlBase) PrimaryKey() string {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *leafUlBase) SetPrimaryKey(v string) {
+func (o *leafUlBase) SetPrimaryKey(v query.AutoPrimaryKey) {
 	o.SetID(v)
 }
 
 // ID returns the loaded value of the id field in the database.
-func (o *leafUlBase) ID() string {
+func (o *leafUlBase) ID() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -147,12 +145,9 @@ func (o *leafUlBase) IDIsLoaded() bool {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *leafUlBase) SetID(v string) {
+func (o *leafUlBase) SetID(v query.AutoPrimaryKey) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-	}
-	if utf8.RuneCountInString(v) > LeafUlIDMaxLength {
-		panic("attempted to set LeafUl.ID to a value larger than its maximum length in runes")
 	}
 	o.idIsLoaded = true
 	o.idIsDirty = true
@@ -203,7 +198,7 @@ func (o *leafUlBase) GroLockIsLoaded() bool {
 }
 
 // RootUlID returns the value of the loaded root_ul_id field in the database.
-func (o *leafUlBase) RootUlID() string {
+func (o *leafUlBase) RootUlID() query.AutoPrimaryKey {
 	if o._restored && !o.rootUlIDIsLoaded {
 		panic("RootUlID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -216,10 +211,7 @@ func (o *leafUlBase) RootUlIDIsLoaded() bool {
 }
 
 // SetRootUlID sets the value of RootUlID in the object, to be saved later in the database using the Save() function.
-func (o *leafUlBase) SetRootUlID(v string) {
-	if utf8.RuneCountInString(v) > LeafUlRootUlIDMaxLength {
-		panic("attempted to set LeafUl.RootUlID to a value larger than its maximum length in runes")
-	}
+func (o *leafUlBase) SetRootUlID(v query.AutoPrimaryKey) {
 	if o._restored &&
 		o.rootUlIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.rootUlID == v {
@@ -288,7 +280,7 @@ func (o *leafUlBase) IsNew() bool {
 // LoadLeafUl returns a LeafUl from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [LeafUlsBuilder.Select] for more info.
-func LoadLeafUl(ctx context.Context, pk string, selectNodes ...query.Node) (*LeafUl, error) {
+func LoadLeafUl(ctx context.Context, pk query.AutoPrimaryKey, selectNodes ...query.Node) (*LeafUl, error) {
 	return queryLeafUls(ctx).
 		Where(op.Equal(node.LeafUl().ID(), pk)).
 		Select(selectNodes...).
@@ -297,7 +289,7 @@ func LoadLeafUl(ctx context.Context, pk string, selectNodes ...query.Node) (*Lea
 
 // HasLeafUl returns true if a LeafUl with the given primary key exists in the database.
 // doc: type=LeafUl
-func HasLeafUl(ctx context.Context, pk string) (bool, error) {
+func HasLeafUl(ctx context.Context, pk query.AutoPrimaryKey) (bool, error) {
 	v, err := queryLeafUls(ctx).
 		Where(op.Equal(node.LeafUl().ID(), pk)).
 		Count()
@@ -308,7 +300,7 @@ func HasLeafUl(ctx context.Context, pk string) (bool, error) {
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [LeafUlsBuilder.Select].
 // If you need a more elaborate query, use QueryLeafUls() to start a query builder.
-func LoadLeafUlByRootUlID(ctx context.Context, rootUlID string, selectNodes ...query.Node) (*LeafUl, error) {
+func LoadLeafUlByRootUlID(ctx context.Context, rootUlID query.AutoPrimaryKey, selectNodes ...query.Node) (*LeafUl, error) {
 	q := queryLeafUls(ctx)
 	q = q.Where(op.Equal(node.LeafUl().RootUlID(), rootUlID))
 	return q.Select(selectNodes...).Get()
@@ -317,7 +309,7 @@ func LoadLeafUlByRootUlID(ctx context.Context, rootUlID string, selectNodes ...q
 // HasLeafUlByRootUlID returns true if the
 // given unique index values exist in the database.
 // doc: type=LeafUl
-func HasLeafUlByRootUlID(ctx context.Context, rootUlID string) (bool, error) {
+func HasLeafUlByRootUlID(ctx context.Context, rootUlID query.AutoPrimaryKey) (bool, error) {
 	q := queryLeafUls(ctx)
 	q = q.Where(op.Equal(node.LeafUl().RootUlID(), rootUlID))
 	v, err := q.Count()
@@ -529,7 +521,7 @@ func CountLeafUls(ctx context.Context) (int, error) {
 // CountLeafUlsByRootUlID queries the database and returns the number of LeafUl objects that
 // have rootUlID.
 // doc: type=LeafUl
-func CountLeafUlsByRootUlID(ctx context.Context, rootUlID string) (int, error) {
+func CountLeafUlsByRootUlID(ctx context.Context, rootUlID query.AutoPrimaryKey) (int, error) {
 	v_rootUlID := rootUlID
 	return QueryLeafUls(ctx).
 		Where(op.Equal(node.LeafUl().RootUlID(), v_rootUlID)).
@@ -540,7 +532,7 @@ func CountLeafUlsByRootUlID(ctx context.Context, rootUlID string) (int, error) {
 func (o *leafUlBase) unpack(m map[string]interface{}, objThis *LeafUl) {
 
 	if v, ok := m["id"]; ok && v != nil {
-		if o.id, ok = v.(string); ok {
+		if o.id, ok = v.(query.AutoPrimaryKey); ok {
 			o.idIsLoaded = true
 			o.idIsDirty = false
 			o._originalPK = o.id
@@ -549,7 +541,7 @@ func (o *leafUlBase) unpack(m map[string]interface{}, objThis *LeafUl) {
 		}
 	} else {
 		o.idIsLoaded = false
-		o.id = ""
+		o.id = query.TempAutoPrimaryKey()
 		o.idIsDirty = false
 	}
 
@@ -578,7 +570,7 @@ func (o *leafUlBase) unpack(m map[string]interface{}, objThis *LeafUl) {
 	}
 
 	if v, ok := m["rootUlID"]; ok && v != nil {
-		if o.rootUlID, ok = v.(string); ok {
+		if o.rootUlID, ok = v.(query.AutoPrimaryKey); ok {
 			o.rootUlIDIsLoaded = true
 			o.rootUlIDIsDirty = false
 		} else {
@@ -586,7 +578,7 @@ func (o *leafUlBase) unpack(m map[string]interface{}, objThis *LeafUl) {
 		}
 	} else {
 		o.rootUlIDIsLoaded = false
-		o.rootUlID = ""
+		o.rootUlID = query.AutoPrimaryKey{}
 		o.rootUlIDIsDirty = false
 	}
 
@@ -697,13 +689,12 @@ func (o *leafUlBase) insert(ctx context.Context) (err error) {
 			panic("a value for RootUlID is required, and there is no default value. Call SetRootUlID() before inserting the record.")
 		}
 		insertFields = getLeafUlInsertFields(o)
-		var newPK string
-		newPK, err = d.Insert(ctx, "leaf_ul", "id", insertFields)
+		err = d.Insert(ctx, "leaf_ul", insertFields, "id")
 		if err != nil {
 			return err
 		}
-		o.id = newPK
-		o._originalPK = newPK
+		o.id = insertFields["id"].(query.AutoPrimaryKey)
+		o._originalPK = o.id
 		o.idIsLoaded = true
 
 		return nil
@@ -744,8 +735,8 @@ func (o *leafUlBase) getUpdateFields() (fields map[string]interface{}) {
 // Optional fields that have not been set and have no default will be returned as nil.
 // NoSql databases should interpret this as no value. Sql databases should interpret this as
 // explicitly setting a NULL value, which would override any database specific default value.
-// Auto-generated fields will be returned with their generated values, except AutoPK fields, which are generated by the
-// database driver and updated after the insert.
+// Auto-generated fields will be returned here with their generated values, except AutoPK fields, which are returned
+// as a new AutoPrimaryKey to indicate that the driver will fill this in after the insert.
 func (o *leafUlBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.idIsDirty {
@@ -784,7 +775,7 @@ func (o *leafUlBase) Delete(ctx context.Context) (err error) {
 
 // deleteLeafUl deletes the LeafUl with primary key pk from the database
 // and handles associated records.
-func deleteLeafUl(ctx context.Context, pk string) error {
+func deleteLeafUl(ctx context.Context, pk query.AutoPrimaryKey) error {
 	d := db.GetDatabase("goradd_unit")
 	err := d.Delete(ctx, "leaf_ul",
 		map[string]any{
@@ -1062,7 +1053,7 @@ func (o *leafUlBase) MarshalStringMap() map[string]interface{} {
 //
 // The fields it expects are:
 //
-//	"id" - string
+//	"id" - query.AutoPrimaryKey
 //	"name" - string
 //	"groLock" - int64
 func (o *leafUlBase) UnmarshalJSON(data []byte) (err error) {
@@ -1091,11 +1082,6 @@ func (o *leafUlBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetID(s)
-				}
 			}
 		case "name":
 			{
@@ -1119,11 +1105,6 @@ func (o *leafUlBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					continue // importing the foreign key will remove the object
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetRootUlID(s)
-				}
 			}
 
 		case "rootUl":

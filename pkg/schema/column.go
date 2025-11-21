@@ -2,9 +2,19 @@ package schema
 
 import (
 	"fmt"
+
 	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
 	"golang.org/x/exp/slog"
+)
+
+const (
+	ColumnDefaultNow    = "now"
+	ColumnDefaultUpdate = "update"
+	ColumnDefaultUUIDV1 = "uuidv1"
+	ColumnDefaultUUIDV4 = "uuidv4"
+	ColumnDefaultUUIDV7 = "uuidv7"
+	ColumnDefaultRecordId
 )
 
 // Column represents a database column with its attributes and associated metadata.

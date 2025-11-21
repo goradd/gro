@@ -11,30 +11,30 @@ import (
 	"unicode/utf8"
 
 	"github.com/goradd/anyutil"
-	"github.com/goradd/maps"
 	"github.com/goradd/gro/_test/gen/orm/goradd_unit/node"
 	"github.com/goradd/gro/pkg/broadcast"
 	"github.com/goradd/gro/pkg/db"
 	"github.com/goradd/gro/pkg/op"
 	"github.com/goradd/gro/pkg/query"
+	"github.com/goradd/maps"
 )
 
 // MultiParentBase is embedded in a MultiParent object and provides the ORM access to the database.
 // The member variables of the structure are private and should not normally be accessed by the MultiParent embedder.
 // Instead, use the accessor functions.
 type multiParentBase struct {
-	id                string
+	id                query.AutoPrimaryKey
 	idIsLoaded        bool
 	idIsDirty         bool
 	name              string
 	nameIsNull        bool
 	nameIsLoaded      bool
 	nameIsDirty       bool
-	parent1ID         string
+	parent1ID         query.AutoPrimaryKey
 	parent1IDIsNull   bool
 	parent1IDIsLoaded bool
 	parent1IDIsDirty  bool
-	parent2ID         string
+	parent2ID         query.AutoPrimaryKey
 	parent2IDIsNull   bool
 	parent2IDIsLoaded bool
 	parent2IDIsDirty  bool
@@ -44,9 +44,9 @@ type multiParentBase struct {
 	parent2 *MultiParent
 
 	// Reverse references
-	parent1MultiParents        maps.SliceMap[string, *MultiParent] // Objects in the order they were queried
+	parent1MultiParents        maps.SliceMap[query.AutoPrimaryKey, *MultiParent] // Objects in the order they were queried
 	parent1MultiParentsIsDirty bool
-	parent2MultiParents        maps.SliceMap[string, *MultiParent] // Objects in the order they were queried
+	parent2MultiParents        maps.SliceMap[query.AutoPrimaryKey, *MultiParent] // Objects in the order they were queried
 	parent2MultiParentsIsDirty bool
 
 	// Custom aliases, if specified
@@ -55,7 +55,7 @@ type multiParentBase struct {
 	// Indicates whether this is a new object, or one loaded from the database. Used by Save to know whether to Insert or Update.
 	_restored bool
 
-	_originalPK string
+	_originalPK query.AutoPrimaryKey
 }
 
 // IDs used to access the MultiParent object fields by name using the Get function.
@@ -71,15 +71,12 @@ const (
 	MultiParentParent2MultiParentField = `parent2MultiParents`
 )
 
-const MultiParentIDMaxLength = 32        // The number of runes the column can hold
-const MultiParentNameMaxLength = 100     // The number of runes the column can hold
-const MultiParentParent1IDMaxLength = 32 // The number of runes the column can hold
-const MultiParentParent2IDMaxLength = 32 // The number of runes the column can hold
+const MultiParentNameMaxLength = 100 // The number of runes the column can hold
 
 // Initialize or re-initialize a MultiParent database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
 func (o *multiParentBase) Initialize() {
-	o.id = db.TemporaryPrimaryKey()
+	o.id = query.TempAutoPrimaryKey()
 	o.idIsLoaded = true
 	o.idIsDirty = false
 
@@ -88,12 +85,12 @@ func (o *multiParentBase) Initialize() {
 	o.nameIsLoaded = false
 	o.nameIsDirty = false
 
-	o.parent1ID = ""
+	o.parent1ID = query.AutoPrimaryKey{}
 	o.parent1IDIsNull = true
 	o.parent1IDIsLoaded = false
 	o.parent1IDIsDirty = false
 
-	o.parent2ID = ""
+	o.parent2ID = query.AutoPrimaryKey{}
 	o.parent2IDIsNull = true
 	o.parent2IDIsLoaded = false
 	o.parent2IDIsDirty = false
@@ -137,12 +134,12 @@ func (o *multiParentBase) Copy() (newObject *MultiParent) {
 
 // OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
 // read from the database.
-func (o *multiParentBase) OriginalPrimaryKey() string {
+func (o *multiParentBase) OriginalPrimaryKey() query.AutoPrimaryKey {
 	return o._originalPK
 }
 
 // PrimaryKey returns the value of the primary key of the record.
-func (o *multiParentBase) PrimaryKey() string {
+func (o *multiParentBase) PrimaryKey() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
 	}
@@ -155,12 +152,12 @@ func (o *multiParentBase) PrimaryKey() string {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *multiParentBase) SetPrimaryKey(v string) {
+func (o *multiParentBase) SetPrimaryKey(v query.AutoPrimaryKey) {
 	o.SetID(v)
 }
 
 // ID returns the loaded value of the id field in the database.
-func (o *multiParentBase) ID() string {
+func (o *multiParentBase) ID() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -178,12 +175,9 @@ func (o *multiParentBase) IDIsLoaded() bool {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *multiParentBase) SetID(v string) {
+func (o *multiParentBase) SetID(v query.AutoPrimaryKey) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-	}
-	if utf8.RuneCountInString(v) > MultiParentIDMaxLength {
-		panic("attempted to set MultiParent.ID to a value larger than its maximum length in runes")
 	}
 	o.idIsLoaded = true
 	o.idIsDirty = true
@@ -240,7 +234,7 @@ func (o *multiParentBase) SetNameToNull() {
 }
 
 // Parent1ID returns the value of the loaded parent_1_id field in the database.
-func (o *multiParentBase) Parent1ID() string {
+func (o *multiParentBase) Parent1ID() query.AutoPrimaryKey {
 	if o._restored && !o.parent1IDIsLoaded {
 		panic("Parent1ID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -258,10 +252,7 @@ func (o *multiParentBase) Parent1IDIsNull() bool {
 }
 
 // SetParent1ID sets the value of Parent1ID in the object, to be saved later in the database using the Save() function.
-func (o *multiParentBase) SetParent1ID(v string) {
-	if utf8.RuneCountInString(v) > MultiParentParent1IDMaxLength {
-		panic("attempted to set MultiParent.Parent1ID to a value larger than its maximum length in runes")
-	}
+func (o *multiParentBase) SetParent1ID(v query.AutoPrimaryKey) {
 	if o._restored &&
 		o.parent1IDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.parent1IDIsNull && // if the db value is null, force a set of value
@@ -290,12 +281,12 @@ func (o *multiParentBase) SetParent1IDToNull() {
 	}
 	o.parent1IDIsLoaded = true
 	o.parent1IDIsNull = true
-	o.parent1ID = ""
+	o.parent1ID = query.AutoPrimaryKey{}
 	o.parent1 = nil
 }
 
 // Parent2ID returns the value of the loaded parent_2_id field in the database.
-func (o *multiParentBase) Parent2ID() string {
+func (o *multiParentBase) Parent2ID() query.AutoPrimaryKey {
 	if o._restored && !o.parent2IDIsLoaded {
 		panic("Parent2ID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -313,10 +304,7 @@ func (o *multiParentBase) Parent2IDIsNull() bool {
 }
 
 // SetParent2ID sets the value of Parent2ID in the object, to be saved later in the database using the Save() function.
-func (o *multiParentBase) SetParent2ID(v string) {
-	if utf8.RuneCountInString(v) > MultiParentParent2IDMaxLength {
-		panic("attempted to set MultiParent.Parent2ID to a value larger than its maximum length in runes")
-	}
+func (o *multiParentBase) SetParent2ID(v query.AutoPrimaryKey) {
 	if o._restored &&
 		o.parent2IDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.parent2IDIsNull && // if the db value is null, force a set of value
@@ -345,7 +333,7 @@ func (o *multiParentBase) SetParent2IDToNull() {
 	}
 	o.parent2IDIsLoaded = true
 	o.parent2IDIsNull = true
-	o.parent2ID = ""
+	o.parent2ID = query.AutoPrimaryKey{}
 	o.parent2 = nil
 }
 
@@ -377,7 +365,7 @@ func (o *multiParentBase) SetParent1(parent1 *MultiParent) {
 		if !o.parent1IDIsNull || !o._restored {
 			o.parent1IDIsNull = true
 			o.parent1IDIsDirty = true
-			o.parent1ID = ""
+			o.parent1ID = query.AutoPrimaryKey{}
 			o.parent1 = nil
 		}
 	} else {
@@ -418,7 +406,7 @@ func (o *multiParentBase) SetParent2(parent2 *MultiParent) {
 		if !o.parent2IDIsNull || !o._restored {
 			o.parent2IDIsNull = true
 			o.parent2IDIsDirty = true
-			o.parent2ID = ""
+			o.parent2ID = query.AutoPrimaryKey{}
 			o.parent2 = nil
 		}
 	} else {
@@ -448,7 +436,7 @@ func (o *multiParentBase) IsNew() bool {
 
 // Parent1MultiParent returns a single MultiParent object by primary key, if one was loaded.
 // Otherwise, it will return nil. It will not return MultiParent objects that are not saved.
-func (o *multiParentBase) Parent1MultiParent(pk string) *MultiParent {
+func (o *multiParentBase) Parent1MultiParent(pk query.AutoPrimaryKey) *MultiParent {
 	v := o.parent1MultiParents.Get(pk)
 	return v
 }
@@ -516,7 +504,7 @@ func (o *multiParentBase) SetParent1MultiParents(objs ...*MultiParent) {
 
 // Parent2MultiParent returns a single MultiParent object by primary key, if one was loaded.
 // Otherwise, it will return nil. It will not return MultiParent objects that are not saved.
-func (o *multiParentBase) Parent2MultiParent(pk string) *MultiParent {
+func (o *multiParentBase) Parent2MultiParent(pk query.AutoPrimaryKey) *MultiParent {
 	v := o.parent2MultiParents.Get(pk)
 	return v
 }
@@ -585,7 +573,7 @@ func (o *multiParentBase) SetParent2MultiParents(objs ...*MultiParent) {
 // LoadMultiParent returns a MultiParent from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [MultiParentsBuilder.Select] for more info.
-func LoadMultiParent(ctx context.Context, pk string, selectNodes ...query.Node) (*MultiParent, error) {
+func LoadMultiParent(ctx context.Context, pk query.AutoPrimaryKey, selectNodes ...query.Node) (*MultiParent, error) {
 	return queryMultiParents(ctx).
 		Where(op.Equal(node.MultiParent().ID(), pk)).
 		Select(selectNodes...).
@@ -594,7 +582,7 @@ func LoadMultiParent(ctx context.Context, pk string, selectNodes ...query.Node) 
 
 // HasMultiParent returns true if a MultiParent with the given primary key exists in the database.
 // doc: type=MultiParent
-func HasMultiParent(ctx context.Context, pk string) (bool, error) {
+func HasMultiParent(ctx context.Context, pk query.AutoPrimaryKey) (bool, error) {
 	v, err := queryMultiParents(ctx).
 		Where(op.Equal(node.MultiParent().ID(), pk)).
 		Count()
@@ -862,7 +850,7 @@ func CountMultiParents(ctx context.Context) (int, error) {
 // CountMultiParentsByParent1ID queries the database and returns the number of MultiParent objects that
 // have parent1ID.
 // doc: type=MultiParent
-func CountMultiParentsByParent1ID(ctx context.Context, parent1ID string) (int, error) {
+func CountMultiParentsByParent1ID(ctx context.Context, parent1ID query.AutoPrimaryKey) (int, error) {
 	v_parent1ID := parent1ID
 	return QueryMultiParents(ctx).
 		Where(op.Equal(node.MultiParent().Parent1ID(), v_parent1ID)).
@@ -872,7 +860,7 @@ func CountMultiParentsByParent1ID(ctx context.Context, parent1ID string) (int, e
 // CountMultiParentsByParent2ID queries the database and returns the number of MultiParent objects that
 // have parent2ID.
 // doc: type=MultiParent
-func CountMultiParentsByParent2ID(ctx context.Context, parent2ID string) (int, error) {
+func CountMultiParentsByParent2ID(ctx context.Context, parent2ID query.AutoPrimaryKey) (int, error) {
 	v_parent2ID := parent2ID
 	return QueryMultiParents(ctx).
 		Where(op.Equal(node.MultiParent().Parent2ID(), v_parent2ID)).
@@ -883,7 +871,7 @@ func CountMultiParentsByParent2ID(ctx context.Context, parent2ID string) (int, e
 func (o *multiParentBase) unpack(m map[string]interface{}, objThis *MultiParent) {
 
 	if v, ok := m["id"]; ok && v != nil {
-		if o.id, ok = v.(string); ok {
+		if o.id, ok = v.(query.AutoPrimaryKey); ok {
 			o.idIsLoaded = true
 			o.idIsDirty = false
 			o._originalPK = o.id
@@ -892,7 +880,7 @@ func (o *multiParentBase) unpack(m map[string]interface{}, objThis *MultiParent)
 		}
 	} else {
 		o.idIsLoaded = false
-		o.id = ""
+		o.id = query.TempAutoPrimaryKey()
 		o.idIsDirty = false
 	}
 
@@ -918,11 +906,11 @@ func (o *multiParentBase) unpack(m map[string]interface{}, objThis *MultiParent)
 
 	if v, ok := m["parent1ID"]; ok {
 		if v == nil {
-			o.parent1ID = ""
+			o.parent1ID = query.AutoPrimaryKey{}
 			o.parent1IDIsNull = true
 			o.parent1IDIsLoaded = true
 			o.parent1IDIsDirty = false
-		} else if o.parent1ID, ok = v.(string); ok {
+		} else if o.parent1ID, ok = v.(query.AutoPrimaryKey); ok {
 			o.parent1IDIsNull = false
 			o.parent1IDIsLoaded = true
 			o.parent1IDIsDirty = false
@@ -932,17 +920,17 @@ func (o *multiParentBase) unpack(m map[string]interface{}, objThis *MultiParent)
 	} else {
 		o.parent1IDIsLoaded = false
 		o.parent1IDIsNull = true
-		o.parent1ID = ""
+		o.parent1ID = query.AutoPrimaryKey{}
 		o.parent1IDIsDirty = false
 	}
 
 	if v, ok := m["parent2ID"]; ok {
 		if v == nil {
-			o.parent2ID = ""
+			o.parent2ID = query.AutoPrimaryKey{}
 			o.parent2IDIsNull = true
 			o.parent2IDIsLoaded = true
 			o.parent2IDIsDirty = false
-		} else if o.parent2ID, ok = v.(string); ok {
+		} else if o.parent2ID, ok = v.(query.AutoPrimaryKey); ok {
 			o.parent2IDIsNull = false
 			o.parent2IDIsLoaded = true
 			o.parent2IDIsDirty = false
@@ -952,7 +940,7 @@ func (o *multiParentBase) unpack(m map[string]interface{}, objThis *MultiParent)
 	} else {
 		o.parent2IDIsLoaded = false
 		o.parent2IDIsNull = true
-		o.parent2ID = ""
+		o.parent2ID = query.AutoPrimaryKey{}
 		o.parent2IDIsDirty = false
 	}
 
@@ -1208,20 +1196,19 @@ func (o *multiParentBase) insert(ctx context.Context) (err error) {
 			o.SetParent2ID(o.parent2.PrimaryKey())
 		}
 		insertFields = getMultiParentInsertFields(o)
-		var newPK string
-		newPK, err = d.Insert(ctx, "multi_parent", "id", insertFields)
+		err = d.Insert(ctx, "multi_parent", insertFields, "id")
 		if err != nil {
 			return err
 		}
-		o.id = newPK
-		o._originalPK = newPK
+		o.id = insertFields["id"].(query.AutoPrimaryKey)
+		o._originalPK = o.id
 		o.idIsLoaded = true
 
 		if o.parent1MultiParents.Len() > 0 {
 			keys := o.parent1MultiParents.Keys()
 			for i, k := range keys {
 				obj := o.parent1MultiParents.Get(k)
-				obj.SetParent1ID(newPK)
+				obj.SetParent1ID(o.PrimaryKey())
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
@@ -1236,7 +1223,7 @@ func (o *multiParentBase) insert(ctx context.Context) (err error) {
 			keys := o.parent2MultiParents.Keys()
 			for i, k := range keys {
 				obj := o.parent2MultiParents.Get(k)
-				obj.SetParent2ID(newPK)
+				obj.SetParent2ID(o.PrimaryKey())
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
@@ -1296,8 +1283,8 @@ func (o *multiParentBase) getUpdateFields() (fields map[string]interface{}) {
 // Optional fields that have not been set and have no default will be returned as nil.
 // NoSql databases should interpret this as no value. Sql databases should interpret this as
 // explicitly setting a NULL value, which would override any database specific default value.
-// Auto-generated fields will be returned with their generated values, except AutoPK fields, which are generated by the
-// database driver and updated after the insert.
+// Auto-generated fields will be returned here with their generated values, except AutoPK fields, which are returned
+// as a new AutoPrimaryKey to indicate that the driver will fill this in after the insert.
 func (o *multiParentBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.idIsDirty {
@@ -1385,7 +1372,7 @@ func (o *multiParentBase) Delete(ctx context.Context) (err error) {
 
 // deleteMultiParent deletes the MultiParent with primary key pk from the database
 // and handles associated records.
-func deleteMultiParent(ctx context.Context, pk string) error {
+func deleteMultiParent(ctx context.Context, pk query.AutoPrimaryKey) error {
 	d := db.GetDatabase("goradd_unit")
 	err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
 		if obj, err := LoadMultiParent(ctx,
@@ -1797,7 +1784,7 @@ func (o *multiParentBase) MarshalStringMap() map[string]interface{} {
 //
 // The fields it expects are:
 //
-//	"id" - string
+//	"id" - query.AutoPrimaryKey
 //	"name" - string, nullable
 func (o *multiParentBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
@@ -1825,11 +1812,6 @@ func (o *multiParentBase) UnmarshalStringMap(m map[string]interface{}) (err erro
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetID(s)
-				}
 			}
 		case "name":
 			{
@@ -1855,11 +1837,6 @@ func (o *multiParentBase) UnmarshalStringMap(m map[string]interface{}) (err erro
 					continue // importing the foreign key will remove the object
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetParent1ID(s)
-				}
 			}
 		case "parent2ID":
 			{
@@ -1872,11 +1849,6 @@ func (o *multiParentBase) UnmarshalStringMap(m map[string]interface{}) (err erro
 					continue // importing the foreign key will remove the object
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetParent2ID(s)
-				}
 			}
 
 		case "parent1":

@@ -8,6 +8,8 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+
+	"github.com/goradd/gro/pkg/query"
 )
 
 // LeafU represents an item in the leaf_u table in the database.
@@ -115,7 +117,7 @@ func getLeafUUpdateFields(o *leafUBase) (fields map[string]interface{}) {
 // Returns an error only if there was a problem with the database during the delete.
 // If the record was not found, no error will be returned.
 // doc: type=LeafU
-func DeleteLeafU(ctx context.Context, pk string) error {
+func DeleteLeafU(ctx context.Context, pk query.AutoPrimaryKey) error {
 	return deleteLeafU(ctx, pk)
 }
 

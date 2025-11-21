@@ -9,7 +9,7 @@
     {{if rev.IsUnique }}
 
     if o.{{= rev.ReverseField }} != nil {
-        o.{{= rev.ReverseField }}.Set{{= rev.ForeignKey.Identifier }}(newPK)
+        o.{{= rev.ReverseField }}.Set{{= rev.ForeignKey.Identifier }}(o.PrimaryKey())
         if err = o.{{= rev.ReverseField }}.Save(ctx); err != nil {
             return err
         }
@@ -21,7 +21,7 @@
         keys := o.{{= rev.ReverseField }}.Keys()
         for i, k := range keys {
             obj := o.{{= rev.ReverseField }}.Get(k)
-            obj.Set{{= rev.ForeignKey.Identifier }}(newPK)
+            obj.Set{{= rev.ForeignKey.Identifier }}(o.PrimaryKey())
             if err = obj.Save(ctx); err != nil {
                 return err
             }

@@ -23,7 +23,7 @@ import (
 // The member variables of the structure are private and should not normally be accessed by the Address embedder.
 // Instead, use the accessor functions.
 type addressBase struct {
-	id               string
+	id               query.AutoPrimaryKey
 	idIsLoaded       bool
 	idIsDirty        bool
 	street           string
@@ -33,7 +33,7 @@ type addressBase struct {
 	cityIsNull       bool
 	cityIsLoaded     bool
 	cityIsDirty      bool
-	personID         string
+	personID         query.AutoPrimaryKey
 	personIDIsLoaded bool
 	personIDIsDirty  bool
 
@@ -46,7 +46,7 @@ type addressBase struct {
 	// Indicates whether this is a new object, or one loaded from the database. Used by Save to know whether to Insert or Update.
 	_restored bool
 
-	_originalPK string
+	_originalPK query.AutoPrimaryKey
 }
 
 // IDs used to access the Address object fields by name using the Get function.
@@ -59,14 +59,13 @@ const (
 	AddressPersonField   = `person`
 )
 
-const AddressIDMaxLength = 32      // The number of runes the column can hold
 const AddressStreetMaxLength = 100 // The number of runes the column can hold
 const AddressCityMaxLength = 100   // The number of runes the column can hold
 
 // Initialize or re-initialize a Address database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
 func (o *addressBase) Initialize() {
-	o.id = db.TemporaryPrimaryKey()
+	o.id = query.TempAutoPrimaryKey()
 	o.idIsLoaded = true
 	o.idIsDirty = false
 
@@ -79,7 +78,7 @@ func (o *addressBase) Initialize() {
 	o.cityIsLoaded = true
 	o.cityIsDirty = false
 
-	o.personID = ""
+	o.personID = query.AutoPrimaryKey{}
 	o.personIDIsLoaded = false
 	o.personIDIsDirty = false
 
@@ -114,12 +113,12 @@ func (o *addressBase) Copy() (newObject *Address) {
 
 // OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
 // read from the database.
-func (o *addressBase) OriginalPrimaryKey() string {
+func (o *addressBase) OriginalPrimaryKey() query.AutoPrimaryKey {
 	return o._originalPK
 }
 
 // PrimaryKey returns the value of the primary key of the record.
-func (o *addressBase) PrimaryKey() string {
+func (o *addressBase) PrimaryKey() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
 	}
@@ -132,12 +131,12 @@ func (o *addressBase) PrimaryKey() string {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *addressBase) SetPrimaryKey(v string) {
+func (o *addressBase) SetPrimaryKey(v query.AutoPrimaryKey) {
 	o.SetID(v)
 }
 
 // ID returns the loaded value of the id field in the database.
-func (o *addressBase) ID() string {
+func (o *addressBase) ID() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -155,12 +154,9 @@ func (o *addressBase) IDIsLoaded() bool {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *addressBase) SetID(v string) {
+func (o *addressBase) SetID(v query.AutoPrimaryKey) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-	}
-	if utf8.RuneCountInString(v) > AddressIDMaxLength {
-		panic("attempted to set Address.ID to a value larger than its maximum length in runes")
 	}
 	o.idIsLoaded = true
 	o.idIsDirty = true
@@ -247,7 +243,7 @@ func (o *addressBase) SetCityToNull() {
 }
 
 // PersonID returns the value of the loaded person_id field in the database.
-func (o *addressBase) PersonID() string {
+func (o *addressBase) PersonID() query.AutoPrimaryKey {
 	if o._restored && !o.personIDIsLoaded {
 		panic("PersonID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -260,7 +256,7 @@ func (o *addressBase) PersonIDIsLoaded() bool {
 }
 
 // SetPersonID sets the value of PersonID in the object, to be saved later in the database using the Save() function.
-func (o *addressBase) SetPersonID(v string) {
+func (o *addressBase) SetPersonID(v query.AutoPrimaryKey) {
 	if o._restored &&
 		o.personIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.personID == v {
@@ -329,7 +325,7 @@ func (o *addressBase) IsNew() bool {
 // LoadAddress returns a Address from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [AddressesBuilder.Select] for more info.
-func LoadAddress(ctx context.Context, pk string, selectNodes ...query.Node) (*Address, error) {
+func LoadAddress(ctx context.Context, pk query.AutoPrimaryKey, selectNodes ...query.Node) (*Address, error) {
 	return queryAddresses(ctx).
 		Where(op.Equal(node.Address().ID(), pk)).
 		Select(selectNodes...).
@@ -338,7 +334,7 @@ func LoadAddress(ctx context.Context, pk string, selectNodes ...query.Node) (*Ad
 
 // HasAddress returns true if a Address with the given primary key exists in the database.
 // doc: type=Address
-func HasAddress(ctx context.Context, pk string) (bool, error) {
+func HasAddress(ctx context.Context, pk query.AutoPrimaryKey) (bool, error) {
 	v, err := queryAddresses(ctx).
 		Where(op.Equal(node.Address().ID(), pk)).
 		Count()
@@ -349,7 +345,7 @@ func HasAddress(ctx context.Context, pk string) (bool, error) {
 // selectNodes optionally let you provide nodes for joining to other tables or selecting specific fields.
 // See [AddressesBuilder.Select].
 // If you need a more elaborate query, use QueryAddresses() to start a query builder.
-func LoadAddressesByPersonID(ctx context.Context, personID string, selectNodes ...query.Node) ([]*Address, error) {
+func LoadAddressesByPersonID(ctx context.Context, personID query.AutoPrimaryKey, selectNodes ...query.Node) ([]*Address, error) {
 	q := queryAddresses(ctx)
 	q = q.Where(op.Equal(node.Address().PersonID(), personID))
 	return q.Select(selectNodes...).Load()
@@ -358,7 +354,7 @@ func LoadAddressesByPersonID(ctx context.Context, personID string, selectNodes .
 // HasAddressByPersonID returns true if the
 // given index values exist in the database.
 // doc: type=Address
-func HasAddressByPersonID(ctx context.Context, personID string) (bool, error) {
+func HasAddressByPersonID(ctx context.Context, personID query.AutoPrimaryKey) (bool, error) {
 	q := queryAddresses(ctx)
 	q = q.Where(op.Equal(node.Address().PersonID(), personID))
 	v, err := q.Count()
@@ -570,7 +566,7 @@ func CountAddresses(ctx context.Context) (int, error) {
 // CountAddressesByPersonID queries the database and returns the number of Address objects that
 // have personID.
 // doc: type=Address
-func CountAddressesByPersonID(ctx context.Context, personID string) (int, error) {
+func CountAddressesByPersonID(ctx context.Context, personID query.AutoPrimaryKey) (int, error) {
 	v_personID := personID
 	return QueryAddresses(ctx).
 		Where(op.Equal(node.Address().PersonID(), v_personID)).
@@ -581,7 +577,7 @@ func CountAddressesByPersonID(ctx context.Context, personID string) (int, error)
 func (o *addressBase) unpack(m map[string]interface{}, objThis *Address) {
 
 	if v, ok := m["id"]; ok && v != nil {
-		if o.id, ok = v.(string); ok {
+		if o.id, ok = v.(query.AutoPrimaryKey); ok {
 			o.idIsLoaded = true
 			o.idIsDirty = false
 			o._originalPK = o.id
@@ -590,7 +586,7 @@ func (o *addressBase) unpack(m map[string]interface{}, objThis *Address) {
 		}
 	} else {
 		o.idIsLoaded = false
-		o.id = ""
+		o.id = query.TempAutoPrimaryKey()
 		o.idIsDirty = false
 	}
 
@@ -628,7 +624,7 @@ func (o *addressBase) unpack(m map[string]interface{}, objThis *Address) {
 	}
 
 	if v, ok := m["personID"]; ok && v != nil {
-		if o.personID, ok = v.(string); ok {
+		if o.personID, ok = v.(query.AutoPrimaryKey); ok {
 			o.personIDIsLoaded = true
 			o.personIDIsDirty = false
 		} else {
@@ -636,7 +632,7 @@ func (o *addressBase) unpack(m map[string]interface{}, objThis *Address) {
 		}
 	} else {
 		o.personIDIsLoaded = false
-		o.personID = ""
+		o.personID = query.AutoPrimaryKey{}
 		o.personIDIsDirty = false
 	}
 
@@ -750,13 +746,12 @@ func (o *addressBase) insert(ctx context.Context) (err error) {
 			panic("a value for PersonID is required, and there is no default value. Call SetPersonID() before inserting the record.")
 		}
 		insertFields = getAddressInsertFields(o)
-		var newPK string
-		newPK, err = d.Insert(ctx, "address", "id", insertFields)
+		err = d.Insert(ctx, "address", insertFields, "id")
 		if err != nil {
 			return err
 		}
-		o.id = newPK
-		o._originalPK = newPK
+		o.id = insertFields["id"].(query.AutoPrimaryKey)
+		o._originalPK = o.id
 		o.idIsLoaded = true
 
 		return nil
@@ -800,8 +795,8 @@ func (o *addressBase) getUpdateFields() (fields map[string]interface{}) {
 // Optional fields that have not been set and have no default will be returned as nil.
 // NoSql databases should interpret this as no value. Sql databases should interpret this as
 // explicitly setting a NULL value, which would override any database specific default value.
-// Auto-generated fields will be returned with their generated values, except AutoPK fields, which are generated by the
-// database driver and updated after the insert.
+// Auto-generated fields will be returned here with their generated values, except AutoPK fields, which are returned
+// as a new AutoPrimaryKey to indicate that the driver will fill this in after the insert.
 func (o *addressBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.idIsDirty {
@@ -844,7 +839,7 @@ func (o *addressBase) Delete(ctx context.Context) (err error) {
 
 // deleteAddress deletes the Address with primary key pk from the database
 // and handles associated records.
-func deleteAddress(ctx context.Context, pk string) error {
+func deleteAddress(ctx context.Context, pk query.AutoPrimaryKey) error {
 	d := db.GetDatabase("goradd")
 	err := d.Delete(ctx, "address",
 		map[string]any{
@@ -1140,7 +1135,7 @@ func (o *addressBase) MarshalStringMap() map[string]interface{} {
 //
 // The fields it expects are:
 //
-//	"id" - string
+//	"id" - query.AutoPrimaryKey
 //	"street" - string
 //	"city" - string, nullable
 func (o *addressBase) UnmarshalJSON(data []byte) (err error) {
@@ -1169,11 +1164,6 @@ func (o *addressBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetID(s)
-				}
 			}
 		case "street":
 			{
@@ -1210,11 +1200,6 @@ func (o *addressBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					continue // importing the foreign key will remove the object
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetPersonID(s)
-				}
 			}
 
 		case "person":

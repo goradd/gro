@@ -142,7 +142,7 @@ func (n leafNlTable) ID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"id",
 		"id",
-		query.ColTypeString,
+		query.ColTypeAutoPrimaryKey,
 		schema.ColTypeAutoPrimaryKey,
 		schema.ColSubTypeNone,
 		true,
@@ -217,7 +217,7 @@ func (n leafNlTable) RootNlID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"root_nl_id",
 		"rootNlID",
-		query.ColTypeString,
+		query.ColTypeAutoPrimaryKey,
 		schema.ColTypeString,
 		schema.ColSubTypeNone,
 		false,

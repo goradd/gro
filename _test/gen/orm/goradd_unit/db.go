@@ -1347,8 +1347,8 @@ func JsonEncodeAll(ctx context.Context, writer io.Writer) error {
 
 		cursor, err := db.Query(ctx, "leaf_nl_assn",
 			map[string]query.ReceiverType{
-				"leaf_2_id": query.ColTypeString,
-				"leaf_1_id": query.ColTypeString,
+				"leaf_2_id": query.ColTypeAutoPrimaryKey,
+				"leaf_1_id": query.ColTypeAutoPrimaryKey,
 			},
 			nil,
 			[]string{"leaf_2_id", "leaf_1_id"})
@@ -2339,8 +2339,8 @@ func jsonDecodeLeafNlAssn(ctx context.Context, decoder *json.Decoder) error {
 	database := Database()
 	for decoder.More() {
 		var imp struct {
-			Src  string `json:"leaf_2_id"`
-			Dest string `json:"leaf_1_id"`
+			Src  query.AutoPrimaryKey `json:"leaf_2_id"`
+			Dest query.AutoPrimaryKey `json:"leaf_1_id"`
 		}
 
 		if err = decoder.Decode(&imp); err != nil {

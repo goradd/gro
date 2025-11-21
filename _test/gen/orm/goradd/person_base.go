@@ -12,19 +12,19 @@ import (
 	"unicode/utf8"
 
 	"github.com/goradd/anyutil"
-	"github.com/goradd/maps"
 	"github.com/goradd/gro/_test/gen/orm/goradd/node"
 	"github.com/goradd/gro/pkg/broadcast"
 	"github.com/goradd/gro/pkg/db"
 	"github.com/goradd/gro/pkg/op"
 	"github.com/goradd/gro/pkg/query"
+	"github.com/goradd/maps"
 )
 
 // PersonBase is embedded in a Person object and provides the ORM access to the database.
 // The member variables of the structure are private and should not normally be accessed by the Person embedder.
 // Instead, use the accessor functions.
 type personBase struct {
-	id                 string
+	id                 query.AutoPrimaryKey
 	idIsLoaded         bool
 	idIsDirty          bool
 	firstName          string
@@ -44,9 +44,9 @@ type personBase struct {
 	modifiedIsLoaded   bool
 
 	// Reverse references
-	managerProjects        maps.SliceMap[string, *Project] // Objects in the order they were queried
+	managerProjects        maps.SliceMap[query.AutoPrimaryKey, *Project] // Objects in the order they were queried
 	managerProjectsIsDirty bool
-	addresses              maps.SliceMap[string, *Address] // Objects in the order they were queried
+	addresses              maps.SliceMap[query.AutoPrimaryKey, *Address] // Objects in the order they were queried
 	addressesIsDirty       bool
 	employeeInfo           *EmployeeInfo
 	employeeInfoIsDirty    bool // is a new one being associated
@@ -54,8 +54,8 @@ type personBase struct {
 	loginIsDirty           bool // is a new one being associated
 
 	// Many-Many references
-	projects        maps.SliceMap[string, *Project]
-	projectsPks     []string // Primary keys to associate at Save time
+	projects        maps.SliceMap[query.AutoPrimaryKey, *Project]
+	projectsPks     []query.AutoPrimaryKey // Primary keys to associate at Save time
 	projectsIsDirty bool
 
 	// Custom aliases, if specified
@@ -64,7 +64,7 @@ type personBase struct {
 	// Indicates whether this is a new object, or one loaded from the database. Used by Save to know whether to Insert or Update.
 	_restored bool
 
-	_originalPK string
+	_originalPK query.AutoPrimaryKey
 }
 
 // IDs used to access the Person object fields by name using the Get function.
@@ -89,7 +89,7 @@ const PersonLastNameMaxLength = 50  // The number of runes the column can hold
 // Initialize or re-initialize a Person database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
 func (o *personBase) Initialize() {
-	o.id = db.TemporaryPrimaryKey()
+	o.id = query.TempAutoPrimaryKey()
 	o.idIsLoaded = true
 	o.idIsDirty = false
 
@@ -163,12 +163,12 @@ func (o *personBase) Copy() (newObject *Person) {
 
 // OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
 // read from the database.
-func (o *personBase) OriginalPrimaryKey() string {
+func (o *personBase) OriginalPrimaryKey() query.AutoPrimaryKey {
 	return o._originalPK
 }
 
 // PrimaryKey returns the value of the primary key of the record.
-func (o *personBase) PrimaryKey() string {
+func (o *personBase) PrimaryKey() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
 	}
@@ -181,12 +181,12 @@ func (o *personBase) PrimaryKey() string {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *personBase) SetPrimaryKey(v string) {
+func (o *personBase) SetPrimaryKey(v query.AutoPrimaryKey) {
 	o.SetID(v)
 }
 
 // ID returns the loaded value of the id field in the database.
-func (o *personBase) ID() string {
+func (o *personBase) ID() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -204,7 +204,7 @@ func (o *personBase) IDIsLoaded() bool {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *personBase) SetID(v string) {
+func (o *personBase) SetID(v query.AutoPrimaryKey) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
 	}
@@ -367,7 +367,7 @@ func (o *personBase) IsNew() bool {
 
 // Project returns a single Project object by primary key pk, if one was loaded.
 // Otherwise, it will return nil.
-func (o *personBase) Project(pk string) *Project {
+func (o *personBase) Project(pk query.AutoPrimaryKey) *Project {
 	return o.projects.Get(pk)
 }
 
@@ -396,7 +396,7 @@ func (o *personBase) SetProjects(objs ...*Project) {
 // Save will load the items that will be associated in the database after the Save call.
 // After calling Save, the objects will be unloaded, and you must call Load again if you want
 // them loaded.
-func (o *personBase) SetProjectsByID(ids ...string) {
+func (o *personBase) SetProjectsByID(ids ...query.AutoPrimaryKey) {
 	o.projects.Clear()
 	o.projectsPks = ids
 	o.projectsIsDirty = true
@@ -444,7 +444,7 @@ func (o *personBase) CountProjects(ctx context.Context) (int, error) {
 
 // ManagerProject returns a single Project object by primary key, if one was loaded.
 // Otherwise, it will return nil. It will not return Project objects that are not saved.
-func (o *personBase) ManagerProject(pk string) *Project {
+func (o *personBase) ManagerProject(pk query.AutoPrimaryKey) *Project {
 	v := o.managerProjects.Get(pk)
 	return v
 }
@@ -512,7 +512,7 @@ func (o *personBase) SetManagerProjects(objs ...*Project) {
 
 // Address returns a single Address object by primary key, if one was loaded.
 // Otherwise, it will return nil. It will not return Address objects that are not saved.
-func (o *personBase) Address(pk string) *Address {
+func (o *personBase) Address(pk query.AutoPrimaryKey) *Address {
 	v := o.addresses.Get(pk)
 	return v
 }
@@ -656,7 +656,7 @@ func (o *personBase) SetLogin(obj *Login) {
 // LoadPerson returns a Person from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [PeopleBuilder.Select] for more info.
-func LoadPerson(ctx context.Context, pk string, selectNodes ...query.Node) (*Person, error) {
+func LoadPerson(ctx context.Context, pk query.AutoPrimaryKey, selectNodes ...query.Node) (*Person, error) {
 	return queryPeople(ctx).
 		Where(op.Equal(node.Person().ID(), pk)).
 		Select(selectNodes...).
@@ -665,7 +665,7 @@ func LoadPerson(ctx context.Context, pk string, selectNodes ...query.Node) (*Per
 
 // HasPerson returns true if a Person with the given primary key exists in the database.
 // doc: type=Person
-func HasPerson(ctx context.Context, pk string) (bool, error) {
+func HasPerson(ctx context.Context, pk query.AutoPrimaryKey) (bool, error) {
 	v, err := queryPeople(ctx).
 		Where(op.Equal(node.Person().ID(), pk)).
 		Count()
@@ -912,7 +912,7 @@ func CountPeopleByLastNameFirstName(ctx context.Context, lastName string, firstN
 func (o *personBase) unpack(m map[string]interface{}, objThis *Person) {
 
 	if v, ok := m["id"]; ok && v != nil {
-		if o.id, ok = v.(string); ok {
+		if o.id, ok = v.(query.AutoPrimaryKey); ok {
 			o.idIsLoaded = true
 			o.idIsDirty = false
 			o._originalPK = o.id
@@ -921,7 +921,7 @@ func (o *personBase) unpack(m map[string]interface{}, objThis *Person) {
 		}
 	} else {
 		o.idIsLoaded = false
-		o.id = ""
+		o.id = query.TempAutoPrimaryKey()
 		o.idIsDirty = false
 	}
 
@@ -1370,20 +1370,19 @@ func (o *personBase) insert(ctx context.Context) (err error) {
 			panic("a value for LastName is required, and there is no default value. Call SetLastName() before inserting the record.")
 		}
 		insertFields = getPersonInsertFields(o)
-		var newPK string
-		newPK, err = d.Insert(ctx, "person", "id", insertFields)
+		err = d.Insert(ctx, "person", insertFields, "id")
 		if err != nil {
 			return err
 		}
-		o.id = newPK
-		o._originalPK = newPK
+		o.id = insertFields["id"].(query.AutoPrimaryKey)
+		o._originalPK = o.id
 		o.idIsLoaded = true
 
 		if o.managerProjects.Len() > 0 {
 			keys := o.managerProjects.Keys()
 			for i, k := range keys {
 				obj := o.managerProjects.Get(k)
-				obj.SetManagerID(newPK)
+				obj.SetManagerID(o.PrimaryKey())
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
@@ -1398,7 +1397,7 @@ func (o *personBase) insert(ctx context.Context) (err error) {
 			keys := o.addresses.Keys()
 			for i, k := range keys {
 				obj := o.addresses.Get(k)
-				obj.SetPersonID(newPK)
+				obj.SetPersonID(o.PrimaryKey())
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
@@ -1410,14 +1409,14 @@ func (o *personBase) insert(ctx context.Context) (err error) {
 		}
 
 		if o.employeeInfo != nil {
-			o.employeeInfo.SetPersonID(newPK)
+			o.employeeInfo.SetPersonID(o.PrimaryKey())
 			if err = o.employeeInfo.Save(ctx); err != nil {
 				return err
 			}
 		}
 
 		if o.login != nil {
-			o.login.SetPersonID(newPK)
+			o.login.SetPersonID(o.PrimaryKey())
 			if err = o.login.Save(ctx); err != nil {
 				return err
 			}
@@ -1438,7 +1437,7 @@ func (o *personBase) insert(ctx context.Context) (err error) {
 					d,
 					"team_member_project_assn",
 					"team_member_id",
-					newPK,
+					o.PrimaryKey(),
 					"project_id",
 					obj.PrimaryKey(),
 				)
@@ -1454,7 +1453,7 @@ func (o *personBase) insert(ctx context.Context) (err error) {
 						d,
 						"team_member_project_assn",
 						"team_member_id",
-						newPK,
+						o.PrimaryKey(),
 						"project_id",
 						k,
 					)
@@ -1514,8 +1513,8 @@ func (o *personBase) getUpdateFields() (fields map[string]interface{}) {
 // Optional fields that have not been set and have no default will be returned as nil.
 // NoSql databases should interpret this as no value. Sql databases should interpret this as
 // explicitly setting a NULL value, which would override any database specific default value.
-// Auto-generated fields will be returned with their generated values, except AutoPK fields, which are generated by the
-// database driver and updated after the insert.
+// Auto-generated fields will be returned here with their generated values, except AutoPK fields, which are returned
+// as a new AutoPrimaryKey to indicate that the driver will fill this in after the insert.
 func (o *personBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.idIsDirty {
@@ -1649,7 +1648,7 @@ func (o *personBase) Delete(ctx context.Context) (err error) {
 
 // deletePerson deletes the Person with primary key pk from the database
 // and handles associated records.
-func deletePerson(ctx context.Context, pk string) error {
+func deletePerson(ctx context.Context, pk query.AutoPrimaryKey) error {
 	d := db.GetDatabase("goradd")
 
 	var cancel context.CancelFunc
@@ -2165,7 +2164,7 @@ func (o *personBase) MarshalStringMap() map[string]interface{} {
 //
 // The fields it expects are:
 //
-//	"id" - string
+//	"id" - query.AutoPrimaryKey
 //	"firstName" - string
 //	"lastName" - string
 //	"personType" - PersonType, nullable
@@ -2197,11 +2196,6 @@ func (o *personBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetID(s)
-				}
 			}
 		case "firstName":
 			{

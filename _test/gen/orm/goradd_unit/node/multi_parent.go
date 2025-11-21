@@ -147,7 +147,7 @@ func (n multiParentTable) ID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"id",
 		"id",
-		query.ColTypeString,
+		query.ColTypeAutoPrimaryKey,
 		schema.ColTypeAutoPrimaryKey,
 		schema.ColSubTypeNone,
 		true,
@@ -197,7 +197,7 @@ func (n multiParentTable) Parent1ID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"parent_1_id",
 		"parent1ID",
-		query.ColTypeString,
+		query.ColTypeAutoPrimaryKey,
 		schema.ColTypeString,
 		schema.ColSubTypeNone,
 		false,
@@ -247,7 +247,7 @@ func (n multiParentTable) Parent2ID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"parent_2_id",
 		"parent2ID",
-		query.ColTypeString,
+		query.ColTypeAutoPrimaryKey,
 		schema.ColTypeString,
 		schema.ColSubTypeNone,
 		false,

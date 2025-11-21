@@ -19,7 +19,7 @@
                 d,
                 "{{= mm.TableQueryName }}",
                 "{{= mm.SourceColumnName() }}",
-                newPK,
+                o.PrimaryKey(),
                 "{{= mm.ForeignKeyName }}",
                 obj.PrimaryKey(),
             )
@@ -35,7 +35,7 @@
                     d,
                     "{{= mm.TableQueryName }}",
                     "{{= mm.SourceColumnName() }}",
-                    newPK,
+                    o.PrimaryKey(),
                     "{{= mm.ForeignKeyName }}",
                     k,
                 )

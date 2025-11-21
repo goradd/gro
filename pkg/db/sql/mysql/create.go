@@ -22,7 +22,7 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) (tableS
 	var tableClauses []string
 
 	for _, col := range table.Columns {
-		cc, tc, xc := m.buildColumnDef(col)
+		cc, tc, xc := m.buildColumnDef(col, false)
 		if cc == "" {
 			continue // error, already reported
 		}
@@ -63,7 +63,7 @@ func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) (tableS
 // columnClause is the column definition.
 // tableClauses will be included within the Create Table definition after the column clauses.
 // extraClauses will be executed outside the table definition after all tables and their columns have been created.
-func (m *DB) buildColumnDef(col *schema.Column) (columnClause string, tableClauses []string, extraClauses []string) {
+func (m *DB) buildColumnDef(col *schema.Column, isFkToAuto bool) (columnClause string, tableClauses []string, extraClauses []string) {
 	var colType string
 	var collation string
 	var defaultStr string
@@ -80,7 +80,9 @@ func (m *DB) buildColumnDef(col *schema.Column) (columnClause string, tableClaus
 			defaultStr = " DEFAULT " + d
 		}
 	}
-	if col.Type == schema.ColTypeEnum {
+	if isFkToAuto {
+		colType = "BINARY(16)"
+	} else if col.Type == schema.ColTypeEnum {
 		if col.EnumTable == "" {
 			slog.Error("Column skipped, Enum not specified for an enum value.",
 				slog.String(db.LogColumn, col.Name))
@@ -97,7 +99,8 @@ func (m *DB) buildColumnDef(col *schema.Column) (columnClause string, tableClaus
 	} else {
 		colType = sqlType(col.Type, col.Size, col.SubType)
 		if col.Type == schema.ColTypeAutoPrimaryKey {
-			extraStr += "AUTO_INCREMENT"
+			//extraStr += "AUTO_INCREMENT"
+			extraStr += "DEFAULT (UUID_TO_BIN(UUID(), 1))"
 		}
 	}
 
@@ -158,10 +161,12 @@ func (m *DB) buildReferenceDef(db *schema.Database, table *schema.Table, ref *sc
 	fk, pk := ref.ReferenceColumns(db, table)
 
 	if fk.Type == schema.ColTypeAutoPrimaryKey {
-		fk.Type = schema.ColTypeInt // auto columns internally are integers
+		//fk.Type = schema.ColTypeInt // auto columns internally are integers
+		fk.Type = schema.ColTypeBytes // auto columns internally are binary UUIDs
+		fk.Size = 16
 	}
 
-	columnClause, tableClauses, extraClauses = m.buildColumnDef(fk)
+	columnClause, tableClauses, extraClauses = m.buildColumnDef(fk, fk.Type == schema.ColTypeAutoPrimaryKey)
 	if columnClause == "" {
 		return // error, already logged
 	}
@@ -186,7 +191,8 @@ func (m *DB) buildReferenceDef(db *schema.Database, table *schema.Table, ref *sc
 func sqlType(colType schema.ColumnType, size uint64, subType schema.ColumnSubType) string {
 	switch colType {
 	case schema.ColTypeAutoPrimaryKey:
-		typ := intType(size, false)
+		//typ := intType(size, false)
+		typ := "BINARY(16)"
 		return typ
 	case schema.ColTypeString:
 		if subType == schema.ColSubTypeNumeric {

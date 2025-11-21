@@ -526,6 +526,9 @@ func GenerateInsert(db DbI, table string, fields map[string]any) (sql string, ar
 	// We range on sorted keys to give SQL optimizers a chance to use a prepared
 	// statement by making sure the same fields show up in the same order.
 	for k, v := range iter.KeySort(fields) {
+		if apk, ok := v.(AutoPrimaryKey); ok {
+			v = apk.Val()
+		}
 		keys = append(keys, db.QuoteIdentifier(k))
 		args = append(args, v)
 		values = append(values, db.FormatArgument(len(args)))
@@ -639,6 +642,7 @@ func generateWhereClause(db DbI, where map[string]any, connectWithOr bool, argsI
 			s2 += ")"
 			clauses = append(clauses, s2)
 		} else {
+			// TODO: Convert value of custom types to database type here
 			argsOut = append(argsOut, value)
 			var sb strings.Builder
 			sb.WriteString(db.QuoteIdentifier(key))

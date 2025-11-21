@@ -25,7 +25,7 @@ import (
 // The member variables of the structure are private and should not normally be accessed by the TypeTest embedder.
 // Instead, use the accessor functions.
 type typeTestBase struct {
-	id                          string
+	id                          query.AutoPrimaryKey
 	idIsLoaded                  bool
 	idIsDirty                   bool
 	date                        time.Time
@@ -95,7 +95,7 @@ type typeTestBase struct {
 	// Indicates whether this is a new object, or one loaded from the database. Used by Save to know whether to Insert or Update.
 	_restored bool
 
-	_originalPK string
+	_originalPK query.AutoPrimaryKey
 }
 
 // IDs used to access the TypeTest object fields by name using the Get function.
@@ -123,7 +123,6 @@ const (
 	TypeTestTypeLongBytesField       = `typeLongBytes`
 )
 
-const TypeTestIDMaxLength = 64 // The number of runes the column can hold
 const TypeTestTestIntMax = 2147483647
 const TypeTestTestIntMin = -2147483648
 const TypeTestTestUnsignedMax = 4294967295
@@ -137,7 +136,7 @@ const TypeTestTypeLongBytesMaxLength = 4294967295  // The number of bytes the co
 // Initialize or re-initialize a TypeTest database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
 func (o *typeTestBase) Initialize() {
-	o.id = db.TemporaryPrimaryKey()
+	o.id = query.TempAutoPrimaryKey()
 	o.idIsLoaded = true
 	o.idIsDirty = false
 
@@ -293,12 +292,12 @@ func (o *typeTestBase) Copy() (newObject *TypeTest) {
 
 // OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
 // read from the database.
-func (o *typeTestBase) OriginalPrimaryKey() string {
+func (o *typeTestBase) OriginalPrimaryKey() query.AutoPrimaryKey {
 	return o._originalPK
 }
 
 // PrimaryKey returns the value of the primary key of the record.
-func (o *typeTestBase) PrimaryKey() string {
+func (o *typeTestBase) PrimaryKey() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
 	}
@@ -311,12 +310,12 @@ func (o *typeTestBase) PrimaryKey() string {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *typeTestBase) SetPrimaryKey(v string) {
+func (o *typeTestBase) SetPrimaryKey(v query.AutoPrimaryKey) {
 	o.SetID(v)
 }
 
 // ID returns the loaded value of the id field in the database.
-func (o *typeTestBase) ID() string {
+func (o *typeTestBase) ID() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -334,12 +333,9 @@ func (o *typeTestBase) IDIsLoaded() bool {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *typeTestBase) SetID(v string) {
+func (o *typeTestBase) SetID(v query.AutoPrimaryKey) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-	}
-	if utf8.RuneCountInString(v) > TypeTestIDMaxLength {
-		panic("attempted to set TypeTest.ID to a value larger than its maximum length in runes")
 	}
 	o.idIsLoaded = true
 	o.idIsDirty = true
@@ -992,7 +988,7 @@ func (o *typeTestBase) IsNew() bool {
 // LoadTypeTest returns a TypeTest from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [TypeTestsBuilder.Select] for more info.
-func LoadTypeTest(ctx context.Context, pk string, selectNodes ...query.Node) (*TypeTest, error) {
+func LoadTypeTest(ctx context.Context, pk query.AutoPrimaryKey, selectNodes ...query.Node) (*TypeTest, error) {
 	return queryTypeTests(ctx).
 		Where(op.Equal(node.TypeTest().ID(), pk)).
 		Select(selectNodes...).
@@ -1001,7 +997,7 @@ func LoadTypeTest(ctx context.Context, pk string, selectNodes ...query.Node) (*T
 
 // HasTypeTest returns true if a TypeTest with the given primary key exists in the database.
 // doc: type=TypeTest
-func HasTypeTest(ctx context.Context, pk string) (bool, error) {
+func HasTypeTest(ctx context.Context, pk query.AutoPrimaryKey) (bool, error) {
 	v, err := queryTypeTests(ctx).
 		Where(op.Equal(node.TypeTest().ID(), pk)).
 		Count()
@@ -1214,7 +1210,7 @@ func CountTypeTests(ctx context.Context) (int, error) {
 func (o *typeTestBase) unpack(m map[string]interface{}, objThis *TypeTest) {
 
 	if v, ok := m["id"]; ok && v != nil {
-		if o.id, ok = v.(string); ok {
+		if o.id, ok = v.(query.AutoPrimaryKey); ok {
 			o.idIsLoaded = true
 			o.idIsDirty = false
 			o._originalPK = o.id
@@ -1223,7 +1219,7 @@ func (o *typeTestBase) unpack(m map[string]interface{}, objThis *TypeTest) {
 		}
 	} else {
 		o.idIsLoaded = false
-		o.id = ""
+		o.id = query.TempAutoPrimaryKey()
 		o.idIsDirty = false
 	}
 
@@ -1613,13 +1609,12 @@ func (o *typeTestBase) insert(ctx context.Context) (err error) {
 			panic("a value for TypeLongBytes is required, and there is no default value. Call SetTypeLongBytes() before inserting the record.")
 		}
 		insertFields = getTypeTestInsertFields(o)
-		var newPK string
-		newPK, err = d.Insert(ctx, "type_test", "id", insertFields)
+		err = d.Insert(ctx, "type_test", insertFields, "id")
 		if err != nil {
 			return err
 		}
-		o.id = newPK
-		o._originalPK = newPK
+		o.id = insertFields["id"].(query.AutoPrimaryKey)
+		o._originalPK = o.id
 		o.idIsLoaded = true
 
 		return nil
@@ -1732,8 +1727,8 @@ func (o *typeTestBase) getUpdateFields() (fields map[string]interface{}) {
 // Optional fields that have not been set and have no default will be returned as nil.
 // NoSql databases should interpret this as no value. Sql databases should interpret this as
 // explicitly setting a NULL value, which would override any database specific default value.
-// Auto-generated fields will be returned with their generated values, except AutoPK fields, which are generated by the
-// database driver and updated after the insert.
+// Auto-generated fields will be returned here with their generated values, except AutoPK fields, which are returned
+// as a new AutoPrimaryKey to indicate that the driver will fill this in after the insert.
 func (o *typeTestBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.idIsDirty {
@@ -1818,7 +1813,7 @@ func (o *typeTestBase) Delete(ctx context.Context) (err error) {
 
 // deleteTypeTest deletes the TypeTest with primary key pk from the database
 // and handles associated records.
-func deleteTypeTest(ctx context.Context, pk string) error {
+func deleteTypeTest(ctx context.Context, pk query.AutoPrimaryKey) error {
 	d := db.GetDatabase("goradd_unit")
 	err := d.Delete(ctx, "type_test",
 		map[string]any{
@@ -2605,7 +2600,7 @@ func (o *typeTestBase) MarshalStringMap() map[string]interface{} {
 //
 // The fields it expects are:
 //
-//	"id" - string
+//	"id" - query.AutoPrimaryKey
 //	"date" - time.Time, nullable
 //	"time" - time.Time, nullable
 //	"dateTime" - time.Time, nullable
@@ -2651,11 +2646,6 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetID(s)
-				}
 			}
 		case "date":
 			{

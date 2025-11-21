@@ -22,13 +22,13 @@ import (
 // The member variables of the structure are private and should not normally be accessed by the LeafUn embedder.
 // Instead, use the accessor functions.
 type leafUnBase struct {
-	id               string
+	id               query.AutoPrimaryKey
 	idIsLoaded       bool
 	idIsDirty        bool
 	name             string
 	nameIsLoaded     bool
 	nameIsDirty      bool
-	rootUnID         string
+	rootUnID         query.AutoPrimaryKey
 	rootUnIDIsNull   bool
 	rootUnIDIsLoaded bool
 	rootUnIDIsDirty  bool
@@ -42,7 +42,7 @@ type leafUnBase struct {
 	// Indicates whether this is a new object, or one loaded from the database. Used by Save to know whether to Insert or Update.
 	_restored bool
 
-	_originalPK string
+	_originalPK query.AutoPrimaryKey
 }
 
 // IDs used to access the LeafUn object fields by name using the Get function.
@@ -54,14 +54,12 @@ const (
 	LeafUnRootUnField   = `rootUn`
 )
 
-const LeafUnIDMaxLength = 32       // The number of runes the column can hold
-const LeafUnNameMaxLength = 100    // The number of runes the column can hold
-const LeafUnRootUnIDMaxLength = 32 // The number of runes the column can hold
+const LeafUnNameMaxLength = 100 // The number of runes the column can hold
 
 // Initialize or re-initialize a LeafUn database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
 func (o *leafUnBase) Initialize() {
-	o.id = db.TemporaryPrimaryKey()
+	o.id = query.TempAutoPrimaryKey()
 	o.idIsLoaded = true
 	o.idIsDirty = false
 
@@ -69,7 +67,7 @@ func (o *leafUnBase) Initialize() {
 	o.nameIsLoaded = false
 	o.nameIsDirty = false
 
-	o.rootUnID = ""
+	o.rootUnID = query.AutoPrimaryKey{}
 	o.rootUnIDIsNull = true
 	o.rootUnIDIsLoaded = false
 	o.rootUnIDIsDirty = false
@@ -102,12 +100,12 @@ func (o *leafUnBase) Copy() (newObject *LeafUn) {
 
 // OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
 // read from the database.
-func (o *leafUnBase) OriginalPrimaryKey() string {
+func (o *leafUnBase) OriginalPrimaryKey() query.AutoPrimaryKey {
 	return o._originalPK
 }
 
 // PrimaryKey returns the value of the primary key of the record.
-func (o *leafUnBase) PrimaryKey() string {
+func (o *leafUnBase) PrimaryKey() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
 	}
@@ -120,12 +118,12 @@ func (o *leafUnBase) PrimaryKey() string {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *leafUnBase) SetPrimaryKey(v string) {
+func (o *leafUnBase) SetPrimaryKey(v query.AutoPrimaryKey) {
 	o.SetID(v)
 }
 
 // ID returns the loaded value of the id field in the database.
-func (o *leafUnBase) ID() string {
+func (o *leafUnBase) ID() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -143,12 +141,9 @@ func (o *leafUnBase) IDIsLoaded() bool {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *leafUnBase) SetID(v string) {
+func (o *leafUnBase) SetID(v query.AutoPrimaryKey) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-	}
-	if utf8.RuneCountInString(v) > LeafUnIDMaxLength {
-		panic("attempted to set LeafUn.ID to a value larger than its maximum length in runes")
 	}
 	o.idIsLoaded = true
 	o.idIsDirty = true
@@ -186,7 +181,7 @@ func (o *leafUnBase) SetName(v string) {
 }
 
 // RootUnID returns the value of the loaded root_un_id field in the database.
-func (o *leafUnBase) RootUnID() string {
+func (o *leafUnBase) RootUnID() query.AutoPrimaryKey {
 	if o._restored && !o.rootUnIDIsLoaded {
 		panic("RootUnID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -204,10 +199,7 @@ func (o *leafUnBase) RootUnIDIsNull() bool {
 }
 
 // SetRootUnID sets the value of RootUnID in the object, to be saved later in the database using the Save() function.
-func (o *leafUnBase) SetRootUnID(v string) {
-	if utf8.RuneCountInString(v) > LeafUnRootUnIDMaxLength {
-		panic("attempted to set LeafUn.RootUnID to a value larger than its maximum length in runes")
-	}
+func (o *leafUnBase) SetRootUnID(v query.AutoPrimaryKey) {
 	if o._restored &&
 		o.rootUnIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.rootUnIDIsNull && // if the db value is null, force a set of value
@@ -236,7 +228,7 @@ func (o *leafUnBase) SetRootUnIDToNull() {
 	}
 	o.rootUnIDIsLoaded = true
 	o.rootUnIDIsNull = true
-	o.rootUnID = ""
+	o.rootUnID = query.AutoPrimaryKey{}
 	o.rootUn = nil
 }
 
@@ -268,7 +260,7 @@ func (o *leafUnBase) SetRootUn(rootUn *RootUn) {
 		if !o.rootUnIDIsNull || !o._restored {
 			o.rootUnIDIsNull = true
 			o.rootUnIDIsDirty = true
-			o.rootUnID = ""
+			o.rootUnID = query.AutoPrimaryKey{}
 			o.rootUn = nil
 		}
 	} else {
@@ -299,7 +291,7 @@ func (o *leafUnBase) IsNew() bool {
 // LoadLeafUn returns a LeafUn from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [LeafUnsBuilder.Select] for more info.
-func LoadLeafUn(ctx context.Context, pk string, selectNodes ...query.Node) (*LeafUn, error) {
+func LoadLeafUn(ctx context.Context, pk query.AutoPrimaryKey, selectNodes ...query.Node) (*LeafUn, error) {
 	return queryLeafUns(ctx).
 		Where(op.Equal(node.LeafUn().ID(), pk)).
 		Select(selectNodes...).
@@ -308,7 +300,7 @@ func LoadLeafUn(ctx context.Context, pk string, selectNodes ...query.Node) (*Lea
 
 // HasLeafUn returns true if a LeafUn with the given primary key exists in the database.
 // doc: type=LeafUn
-func HasLeafUn(ctx context.Context, pk string) (bool, error) {
+func HasLeafUn(ctx context.Context, pk query.AutoPrimaryKey) (bool, error) {
 	v, err := queryLeafUns(ctx).
 		Where(op.Equal(node.LeafUn().ID(), pk)).
 		Count()
@@ -548,7 +540,7 @@ func CountLeafUns(ctx context.Context) (int, error) {
 // CountLeafUnsByRootUnID queries the database and returns the number of LeafUn objects that
 // have rootUnID.
 // doc: type=LeafUn
-func CountLeafUnsByRootUnID(ctx context.Context, rootUnID string) (int, error) {
+func CountLeafUnsByRootUnID(ctx context.Context, rootUnID query.AutoPrimaryKey) (int, error) {
 	v_rootUnID := rootUnID
 	return QueryLeafUns(ctx).
 		Where(op.Equal(node.LeafUn().RootUnID(), v_rootUnID)).
@@ -559,7 +551,7 @@ func CountLeafUnsByRootUnID(ctx context.Context, rootUnID string) (int, error) {
 func (o *leafUnBase) unpack(m map[string]interface{}, objThis *LeafUn) {
 
 	if v, ok := m["id"]; ok && v != nil {
-		if o.id, ok = v.(string); ok {
+		if o.id, ok = v.(query.AutoPrimaryKey); ok {
 			o.idIsLoaded = true
 			o.idIsDirty = false
 			o._originalPK = o.id
@@ -568,7 +560,7 @@ func (o *leafUnBase) unpack(m map[string]interface{}, objThis *LeafUn) {
 		}
 	} else {
 		o.idIsLoaded = false
-		o.id = ""
+		o.id = query.TempAutoPrimaryKey()
 		o.idIsDirty = false
 	}
 
@@ -587,11 +579,11 @@ func (o *leafUnBase) unpack(m map[string]interface{}, objThis *LeafUn) {
 
 	if v, ok := m["rootUnID"]; ok {
 		if v == nil {
-			o.rootUnID = ""
+			o.rootUnID = query.AutoPrimaryKey{}
 			o.rootUnIDIsNull = true
 			o.rootUnIDIsLoaded = true
 			o.rootUnIDIsDirty = false
-		} else if o.rootUnID, ok = v.(string); ok {
+		} else if o.rootUnID, ok = v.(query.AutoPrimaryKey); ok {
 			o.rootUnIDIsNull = false
 			o.rootUnIDIsLoaded = true
 			o.rootUnIDIsDirty = false
@@ -601,7 +593,7 @@ func (o *leafUnBase) unpack(m map[string]interface{}, objThis *LeafUn) {
 	} else {
 		o.rootUnIDIsLoaded = false
 		o.rootUnIDIsNull = true
-		o.rootUnID = ""
+		o.rootUnID = query.AutoPrimaryKey{}
 		o.rootUnIDIsDirty = false
 	}
 
@@ -705,13 +697,12 @@ func (o *leafUnBase) insert(ctx context.Context) (err error) {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
 		insertFields = getLeafUnInsertFields(o)
-		var newPK string
-		newPK, err = d.Insert(ctx, "leaf_un", "id", insertFields)
+		err = d.Insert(ctx, "leaf_un", insertFields, "id")
 		if err != nil {
 			return err
 		}
-		o.id = newPK
-		o._originalPK = newPK
+		o.id = insertFields["id"].(query.AutoPrimaryKey)
+		o._originalPK = o.id
 		o.idIsLoaded = true
 
 		return nil
@@ -752,8 +743,8 @@ func (o *leafUnBase) getUpdateFields() (fields map[string]interface{}) {
 // Optional fields that have not been set and have no default will be returned as nil.
 // NoSql databases should interpret this as no value. Sql databases should interpret this as
 // explicitly setting a NULL value, which would override any database specific default value.
-// Auto-generated fields will be returned with their generated values, except AutoPK fields, which are generated by the
-// database driver and updated after the insert.
+// Auto-generated fields will be returned here with their generated values, except AutoPK fields, which are returned
+// as a new AutoPrimaryKey to indicate that the driver will fill this in after the insert.
 func (o *leafUnBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.idIsDirty {
@@ -794,7 +785,7 @@ func (o *leafUnBase) Delete(ctx context.Context) (err error) {
 
 // deleteLeafUn deletes the LeafUn with primary key pk from the database
 // and handles associated records.
-func deleteLeafUn(ctx context.Context, pk string) error {
+func deleteLeafUn(ctx context.Context, pk query.AutoPrimaryKey) error {
 	d := db.GetDatabase("goradd_unit")
 	err := d.Delete(ctx, "leaf_un",
 		map[string]any{
@@ -1059,7 +1050,7 @@ func (o *leafUnBase) MarshalStringMap() map[string]interface{} {
 //
 // The fields it expects are:
 //
-//	"id" - string
+//	"id" - query.AutoPrimaryKey
 //	"name" - string
 func (o *leafUnBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
@@ -1087,11 +1078,6 @@ func (o *leafUnBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetID(s)
-				}
 			}
 		case "name":
 			{
@@ -1116,11 +1102,6 @@ func (o *leafUnBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					continue // importing the foreign key will remove the object
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetRootUnID(s)
-				}
 			}
 
 		case "rootUn":

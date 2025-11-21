@@ -9,11 +9,7 @@
 {{if}}
 func (o *{{= table.DecapIdentifier}}Base) Initialize() {
 {{for _,col := range table.AllColumns() }}
-{{if col.IsAutoPK()}}
-    o.{{= col.Field }} = db.TemporaryPrimaryKey()
-{{else}}
 	o.{{= col.Field }} = {{= col.DefaultValueAsValue() }}
-{{if}}
 {{if col.IsNullable }}
 {{if col.HasDefaultValue() }}
 	o.{{= col.Field }}IsNull = false

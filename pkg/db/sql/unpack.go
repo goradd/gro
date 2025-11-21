@@ -16,6 +16,8 @@ import (
 // Each column is mapped to its column name.
 // If you provide columnNames, those will be used in the map. Otherwise, it will get the column names out of the
 // result set provided.
+//
+// If joinTree is provided, it will be used to unpack the result into a hierarchy.
 func ReceiveRows(rows *sql.Rows,
 	columnTypes []query.ReceiverType,
 	columnNames []string,

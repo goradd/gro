@@ -112,7 +112,7 @@ func (n loginTable) ID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"id",
 		"id",
-		query.ColTypeString,
+		query.ColTypeAutoPrimaryKey,
 		schema.ColTypeAutoPrimaryKey,
 		schema.ColSubTypeNone,
 		true,
@@ -188,7 +188,7 @@ func (n loginTable) PersonID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"person_id",
 		"personID",
-		query.ColTypeString,
+		query.ColTypeAutoPrimaryKey,
 		schema.ColTypeString,
 		schema.ColSubTypeNone,
 		false,

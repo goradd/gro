@@ -11,19 +11,19 @@ import (
 	"unicode/utf8"
 
 	"github.com/goradd/anyutil"
-	"github.com/goradd/maps"
 	"github.com/goradd/gro/_test/gen/orm/goradd_unit/node"
 	"github.com/goradd/gro/pkg/broadcast"
 	"github.com/goradd/gro/pkg/db"
 	"github.com/goradd/gro/pkg/op"
 	"github.com/goradd/gro/pkg/query"
+	"github.com/goradd/maps"
 )
 
 // RootNBase is embedded in a RootN object and provides the ORM access to the database.
 // The member variables of the structure are private and should not normally be accessed by the RootN embedder.
 // Instead, use the accessor functions.
 type rootNBase struct {
-	id           string
+	id           query.AutoPrimaryKey
 	idIsLoaded   bool
 	idIsDirty    bool
 	name         string
@@ -31,7 +31,7 @@ type rootNBase struct {
 	nameIsDirty  bool
 
 	// Reverse references
-	leafNs        maps.SliceMap[string, *LeafN] // Objects in the order they were queried
+	leafNs        maps.SliceMap[query.AutoPrimaryKey, *LeafN] // Objects in the order they were queried
 	leafNsIsDirty bool
 
 	// Custom aliases, if specified
@@ -40,7 +40,7 @@ type rootNBase struct {
 	// Indicates whether this is a new object, or one loaded from the database. Used by Save to know whether to Insert or Update.
 	_restored bool
 
-	_originalPK string
+	_originalPK query.AutoPrimaryKey
 }
 
 // IDs used to access the RootN object fields by name using the Get function.
@@ -51,13 +51,12 @@ const (
 	RootNLeafNField = `leafNs`
 )
 
-const RootNIDMaxLength = 32    // The number of runes the column can hold
 const RootNNameMaxLength = 100 // The number of runes the column can hold
 
 // Initialize or re-initialize a RootN database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
 func (o *rootNBase) Initialize() {
-	o.id = db.TemporaryPrimaryKey()
+	o.id = query.TempAutoPrimaryKey()
 	o.idIsLoaded = true
 	o.idIsDirty = false
 
@@ -95,12 +94,12 @@ func (o *rootNBase) Copy() (newObject *RootN) {
 
 // OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
 // read from the database.
-func (o *rootNBase) OriginalPrimaryKey() string {
+func (o *rootNBase) OriginalPrimaryKey() query.AutoPrimaryKey {
 	return o._originalPK
 }
 
 // PrimaryKey returns the value of the primary key of the record.
-func (o *rootNBase) PrimaryKey() string {
+func (o *rootNBase) PrimaryKey() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
 	}
@@ -113,12 +112,12 @@ func (o *rootNBase) PrimaryKey() string {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *rootNBase) SetPrimaryKey(v string) {
+func (o *rootNBase) SetPrimaryKey(v query.AutoPrimaryKey) {
 	o.SetID(v)
 }
 
 // ID returns the loaded value of the id field in the database.
-func (o *rootNBase) ID() string {
+func (o *rootNBase) ID() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -136,12 +135,9 @@ func (o *rootNBase) IDIsLoaded() bool {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *rootNBase) SetID(v string) {
+func (o *rootNBase) SetID(v query.AutoPrimaryKey) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-	}
-	if utf8.RuneCountInString(v) > RootNIDMaxLength {
-		panic("attempted to set RootN.ID to a value larger than its maximum length in runes")
 	}
 	o.idIsLoaded = true
 	o.idIsDirty = true
@@ -195,7 +191,7 @@ func (o *rootNBase) IsNew() bool {
 
 // LeafN returns a single LeafN object by primary key, if one was loaded.
 // Otherwise, it will return nil. It will not return LeafN objects that are not saved.
-func (o *rootNBase) LeafN(pk string) *LeafN {
+func (o *rootNBase) LeafN(pk query.AutoPrimaryKey) *LeafN {
 	v := o.leafNs.Get(pk)
 	return v
 }
@@ -264,7 +260,7 @@ func (o *rootNBase) SetLeafNs(objs ...*LeafN) {
 // LoadRootN returns a RootN from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [RootNsBuilder.Select] for more info.
-func LoadRootN(ctx context.Context, pk string, selectNodes ...query.Node) (*RootN, error) {
+func LoadRootN(ctx context.Context, pk query.AutoPrimaryKey, selectNodes ...query.Node) (*RootN, error) {
 	return queryRootNs(ctx).
 		Where(op.Equal(node.RootN().ID(), pk)).
 		Select(selectNodes...).
@@ -273,7 +269,7 @@ func LoadRootN(ctx context.Context, pk string, selectNodes ...query.Node) (*Root
 
 // HasRootN returns true if a RootN with the given primary key exists in the database.
 // doc: type=RootN
-func HasRootN(ctx context.Context, pk string) (bool, error) {
+func HasRootN(ctx context.Context, pk query.AutoPrimaryKey) (bool, error) {
 	v, err := queryRootNs(ctx).
 		Where(op.Equal(node.RootN().ID(), pk)).
 		Count()
@@ -486,7 +482,7 @@ func CountRootNs(ctx context.Context) (int, error) {
 func (o *rootNBase) unpack(m map[string]interface{}, objThis *RootN) {
 
 	if v, ok := m["id"]; ok && v != nil {
-		if o.id, ok = v.(string); ok {
+		if o.id, ok = v.(query.AutoPrimaryKey); ok {
 			o.idIsLoaded = true
 			o.idIsDirty = false
 			o._originalPK = o.id
@@ -495,7 +491,7 @@ func (o *rootNBase) unpack(m map[string]interface{}, objThis *RootN) {
 		}
 	} else {
 		o.idIsLoaded = false
-		o.id = ""
+		o.id = query.TempAutoPrimaryKey()
 		o.idIsDirty = false
 	}
 
@@ -646,20 +642,19 @@ func (o *rootNBase) insert(ctx context.Context) (err error) {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
 		insertFields = getRootNInsertFields(o)
-		var newPK string
-		newPK, err = d.Insert(ctx, "root_n", "id", insertFields)
+		err = d.Insert(ctx, "root_n", insertFields, "id")
 		if err != nil {
 			return err
 		}
-		o.id = newPK
-		o._originalPK = newPK
+		o.id = insertFields["id"].(query.AutoPrimaryKey)
+		o._originalPK = o.id
 		o.idIsLoaded = true
 
 		if o.leafNs.Len() > 0 {
 			keys := o.leafNs.Keys()
 			for i, k := range keys {
 				obj := o.leafNs.Get(k)
-				obj.SetRootNID(newPK)
+				obj.SetRootNID(o.PrimaryKey())
 				if err = obj.Save(ctx); err != nil {
 					return err
 				}
@@ -701,8 +696,8 @@ func (o *rootNBase) getUpdateFields() (fields map[string]interface{}) {
 // Optional fields that have not been set and have no default will be returned as nil.
 // NoSql databases should interpret this as no value. Sql databases should interpret this as
 // explicitly setting a NULL value, which would override any database specific default value.
-// Auto-generated fields will be returned with their generated values, except AutoPK fields, which are generated by the
-// database driver and updated after the insert.
+// Auto-generated fields will be returned here with their generated values, except AutoPK fields, which are returned
+// as a new AutoPrimaryKey to indicate that the driver will fill this in after the insert.
 func (o *rootNBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.idIsDirty {
@@ -759,7 +754,7 @@ func (o *rootNBase) Delete(ctx context.Context) (err error) {
 
 // deleteRootN deletes the RootN with primary key pk from the database
 // and handles associated records.
-func deleteRootN(ctx context.Context, pk string) error {
+func deleteRootN(ctx context.Context, pk query.AutoPrimaryKey) error {
 	d := db.GetDatabase("goradd_unit")
 	err := db.WithTransaction(ctx, d, func(ctx context.Context) error {
 		if obj, err := LoadRootN(ctx,
@@ -992,7 +987,7 @@ func (o *rootNBase) MarshalStringMap() map[string]interface{} {
 //
 // The fields it expects are:
 //
-//	"id" - string
+//	"id" - query.AutoPrimaryKey
 //	"name" - string
 func (o *rootNBase) UnmarshalJSON(data []byte) (err error) {
 	var v map[string]interface{}
@@ -1020,11 +1015,6 @@ func (o *rootNBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetID(s)
-				}
 			}
 		case "name":
 			{

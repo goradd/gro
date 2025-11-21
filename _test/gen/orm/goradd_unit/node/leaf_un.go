@@ -106,7 +106,7 @@ func (n leafUnTable) ID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"id",
 		"id",
-		query.ColTypeString,
+		query.ColTypeAutoPrimaryKey,
 		schema.ColTypeAutoPrimaryKey,
 		schema.ColSubTypeNone,
 		true,
@@ -144,7 +144,7 @@ func (n leafUnTable) RootUnID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"root_un_id",
 		"rootUnID",
-		query.ColTypeString,
+		query.ColTypeAutoPrimaryKey,
 		schema.ColTypeString,
 		schema.ColSubTypeNone,
 		false,

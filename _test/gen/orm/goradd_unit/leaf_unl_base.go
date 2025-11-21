@@ -22,7 +22,7 @@ import (
 // The member variables of the structure are private and should not normally be accessed by the LeafUnl embedder.
 // Instead, use the accessor functions.
 type leafUnlBase struct {
-	id                string
+	id                query.AutoPrimaryKey
 	idIsLoaded        bool
 	idIsDirty         bool
 	name              string
@@ -30,7 +30,7 @@ type leafUnlBase struct {
 	nameIsDirty       bool
 	groLock           int64
 	groLockIsLoaded   bool
-	rootUnlID         string
+	rootUnlID         query.AutoPrimaryKey
 	rootUnlIDIsNull   bool
 	rootUnlIDIsLoaded bool
 	rootUnlIDIsDirty  bool
@@ -44,7 +44,7 @@ type leafUnlBase struct {
 	// Indicates whether this is a new object, or one loaded from the database. Used by Save to know whether to Insert or Update.
 	_restored bool
 
-	_originalPK string
+	_originalPK query.AutoPrimaryKey
 }
 
 // IDs used to access the LeafUnl object fields by name using the Get function.
@@ -57,14 +57,12 @@ const (
 	LeafUnlRootUnlField   = `rootUnl`
 )
 
-const LeafUnlIDMaxLength = 32        // The number of runes the column can hold
-const LeafUnlNameMaxLength = 100     // The number of runes the column can hold
-const LeafUnlRootUnlIDMaxLength = 32 // The number of runes the column can hold
+const LeafUnlNameMaxLength = 100 // The number of runes the column can hold
 
 // Initialize or re-initialize a LeafUnl database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.
 func (o *leafUnlBase) Initialize() {
-	o.id = db.TemporaryPrimaryKey()
+	o.id = query.TempAutoPrimaryKey()
 	o.idIsLoaded = true
 	o.idIsDirty = false
 
@@ -75,7 +73,7 @@ func (o *leafUnlBase) Initialize() {
 	o.groLock = 0
 	o.groLockIsLoaded = false
 
-	o.rootUnlID = ""
+	o.rootUnlID = query.AutoPrimaryKey{}
 	o.rootUnlIDIsNull = true
 	o.rootUnlIDIsLoaded = false
 	o.rootUnlIDIsDirty = false
@@ -108,12 +106,12 @@ func (o *leafUnlBase) Copy() (newObject *LeafUnl) {
 
 // OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
 // read from the database.
-func (o *leafUnlBase) OriginalPrimaryKey() string {
+func (o *leafUnlBase) OriginalPrimaryKey() query.AutoPrimaryKey {
 	return o._originalPK
 }
 
 // PrimaryKey returns the value of the primary key of the record.
-func (o *leafUnlBase) PrimaryKey() string {
+func (o *leafUnlBase) PrimaryKey() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so PrimaryKey is not valid")
 	}
@@ -126,12 +124,12 @@ func (o *leafUnlBase) PrimaryKey() string {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *leafUnlBase) SetPrimaryKey(v string) {
+func (o *leafUnlBase) SetPrimaryKey(v query.AutoPrimaryKey) {
 	o.SetID(v)
 }
 
 // ID returns the loaded value of the id field in the database.
-func (o *leafUnlBase) ID() string {
+func (o *leafUnlBase) ID() query.AutoPrimaryKey {
 	if o._restored && !o.idIsLoaded {
 		panic("ID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -149,12 +147,9 @@ func (o *leafUnlBase) IDIsLoaded() bool {
 // merging data.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *leafUnlBase) SetID(v string) {
+func (o *leafUnlBase) SetID(v query.AutoPrimaryKey) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
-	}
-	if utf8.RuneCountInString(v) > LeafUnlIDMaxLength {
-		panic("attempted to set LeafUnl.ID to a value larger than its maximum length in runes")
 	}
 	o.idIsLoaded = true
 	o.idIsDirty = true
@@ -205,7 +200,7 @@ func (o *leafUnlBase) GroLockIsLoaded() bool {
 }
 
 // RootUnlID returns the value of the loaded root_unl_id field in the database.
-func (o *leafUnlBase) RootUnlID() string {
+func (o *leafUnlBase) RootUnlID() query.AutoPrimaryKey {
 	if o._restored && !o.rootUnlIDIsLoaded {
 		panic("RootUnlID was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -223,10 +218,7 @@ func (o *leafUnlBase) RootUnlIDIsNull() bool {
 }
 
 // SetRootUnlID sets the value of RootUnlID in the object, to be saved later in the database using the Save() function.
-func (o *leafUnlBase) SetRootUnlID(v string) {
-	if utf8.RuneCountInString(v) > LeafUnlRootUnlIDMaxLength {
-		panic("attempted to set LeafUnl.RootUnlID to a value larger than its maximum length in runes")
-	}
+func (o *leafUnlBase) SetRootUnlID(v query.AutoPrimaryKey) {
 	if o._restored &&
 		o.rootUnlIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.rootUnlIDIsNull && // if the db value is null, force a set of value
@@ -255,7 +247,7 @@ func (o *leafUnlBase) SetRootUnlIDToNull() {
 	}
 	o.rootUnlIDIsLoaded = true
 	o.rootUnlIDIsNull = true
-	o.rootUnlID = ""
+	o.rootUnlID = query.AutoPrimaryKey{}
 	o.rootUnl = nil
 }
 
@@ -287,7 +279,7 @@ func (o *leafUnlBase) SetRootUnl(rootUnl *RootUnl) {
 		if !o.rootUnlIDIsNull || !o._restored {
 			o.rootUnlIDIsNull = true
 			o.rootUnlIDIsDirty = true
-			o.rootUnlID = ""
+			o.rootUnlID = query.AutoPrimaryKey{}
 			o.rootUnl = nil
 		}
 	} else {
@@ -318,7 +310,7 @@ func (o *leafUnlBase) IsNew() bool {
 // LoadLeafUnl returns a LeafUnl from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [LeafUnlsBuilder.Select] for more info.
-func LoadLeafUnl(ctx context.Context, pk string, selectNodes ...query.Node) (*LeafUnl, error) {
+func LoadLeafUnl(ctx context.Context, pk query.AutoPrimaryKey, selectNodes ...query.Node) (*LeafUnl, error) {
 	return queryLeafUnls(ctx).
 		Where(op.Equal(node.LeafUnl().ID(), pk)).
 		Select(selectNodes...).
@@ -327,7 +319,7 @@ func LoadLeafUnl(ctx context.Context, pk string, selectNodes ...query.Node) (*Le
 
 // HasLeafUnl returns true if a LeafUnl with the given primary key exists in the database.
 // doc: type=LeafUnl
-func HasLeafUnl(ctx context.Context, pk string) (bool, error) {
+func HasLeafUnl(ctx context.Context, pk query.AutoPrimaryKey) (bool, error) {
 	v, err := queryLeafUnls(ctx).
 		Where(op.Equal(node.LeafUnl().ID(), pk)).
 		Count()
@@ -567,7 +559,7 @@ func CountLeafUnls(ctx context.Context) (int, error) {
 // CountLeafUnlsByRootUnlID queries the database and returns the number of LeafUnl objects that
 // have rootUnlID.
 // doc: type=LeafUnl
-func CountLeafUnlsByRootUnlID(ctx context.Context, rootUnlID string) (int, error) {
+func CountLeafUnlsByRootUnlID(ctx context.Context, rootUnlID query.AutoPrimaryKey) (int, error) {
 	v_rootUnlID := rootUnlID
 	return QueryLeafUnls(ctx).
 		Where(op.Equal(node.LeafUnl().RootUnlID(), v_rootUnlID)).
@@ -578,7 +570,7 @@ func CountLeafUnlsByRootUnlID(ctx context.Context, rootUnlID string) (int, error
 func (o *leafUnlBase) unpack(m map[string]interface{}, objThis *LeafUnl) {
 
 	if v, ok := m["id"]; ok && v != nil {
-		if o.id, ok = v.(string); ok {
+		if o.id, ok = v.(query.AutoPrimaryKey); ok {
 			o.idIsLoaded = true
 			o.idIsDirty = false
 			o._originalPK = o.id
@@ -587,7 +579,7 @@ func (o *leafUnlBase) unpack(m map[string]interface{}, objThis *LeafUnl) {
 		}
 	} else {
 		o.idIsLoaded = false
-		o.id = ""
+		o.id = query.TempAutoPrimaryKey()
 		o.idIsDirty = false
 	}
 
@@ -617,11 +609,11 @@ func (o *leafUnlBase) unpack(m map[string]interface{}, objThis *LeafUnl) {
 
 	if v, ok := m["rootUnlID"]; ok {
 		if v == nil {
-			o.rootUnlID = ""
+			o.rootUnlID = query.AutoPrimaryKey{}
 			o.rootUnlIDIsNull = true
 			o.rootUnlIDIsLoaded = true
 			o.rootUnlIDIsDirty = false
-		} else if o.rootUnlID, ok = v.(string); ok {
+		} else if o.rootUnlID, ok = v.(query.AutoPrimaryKey); ok {
 			o.rootUnlIDIsNull = false
 			o.rootUnlIDIsLoaded = true
 			o.rootUnlIDIsDirty = false
@@ -631,7 +623,7 @@ func (o *leafUnlBase) unpack(m map[string]interface{}, objThis *LeafUnl) {
 	} else {
 		o.rootUnlIDIsLoaded = false
 		o.rootUnlIDIsNull = true
-		o.rootUnlID = ""
+		o.rootUnlID = query.AutoPrimaryKey{}
 		o.rootUnlIDIsDirty = false
 	}
 
@@ -740,13 +732,12 @@ func (o *leafUnlBase) insert(ctx context.Context) (err error) {
 			panic("a value for Name is required, and there is no default value. Call SetName() before inserting the record.")
 		}
 		insertFields = getLeafUnlInsertFields(o)
-		var newPK string
-		newPK, err = d.Insert(ctx, "leaf_unl", "id", insertFields)
+		err = d.Insert(ctx, "leaf_unl", insertFields, "id")
 		if err != nil {
 			return err
 		}
-		o.id = newPK
-		o._originalPK = newPK
+		o.id = insertFields["id"].(query.AutoPrimaryKey)
+		o._originalPK = o.id
 		o.idIsLoaded = true
 
 		return nil
@@ -791,8 +782,8 @@ func (o *leafUnlBase) getUpdateFields() (fields map[string]interface{}) {
 // Optional fields that have not been set and have no default will be returned as nil.
 // NoSql databases should interpret this as no value. Sql databases should interpret this as
 // explicitly setting a NULL value, which would override any database specific default value.
-// Auto-generated fields will be returned with their generated values, except AutoPK fields, which are generated by the
-// database driver and updated after the insert.
+// Auto-generated fields will be returned here with their generated values, except AutoPK fields, which are returned
+// as a new AutoPrimaryKey to indicate that the driver will fill this in after the insert.
 func (o *leafUnlBase) getInsertFields() (fields map[string]interface{}) {
 	fields = map[string]interface{}{}
 	if o.idIsDirty {
@@ -834,7 +825,7 @@ func (o *leafUnlBase) Delete(ctx context.Context) (err error) {
 
 // deleteLeafUnl deletes the LeafUnl with primary key pk from the database
 // and handles associated records.
-func deleteLeafUnl(ctx context.Context, pk string) error {
+func deleteLeafUnl(ctx context.Context, pk query.AutoPrimaryKey) error {
 	d := db.GetDatabase("goradd_unit")
 	err := d.Delete(ctx, "leaf_unl",
 		map[string]any{
@@ -1122,7 +1113,7 @@ func (o *leafUnlBase) MarshalStringMap() map[string]interface{} {
 //
 // The fields it expects are:
 //
-//	"id" - string
+//	"id" - query.AutoPrimaryKey
 //	"name" - string
 //	"groLock" - int64
 func (o *leafUnlBase) UnmarshalJSON(data []byte) (err error) {
@@ -1151,11 +1142,6 @@ func (o *leafUnlBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetID(s)
-				}
 			}
 		case "name":
 			{
@@ -1180,11 +1166,6 @@ func (o *leafUnlBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					continue // importing the foreign key will remove the object
 				}
 
-				if s, ok := v.(string); !ok {
-					return fmt.Errorf("json field %s must be a string", k)
-				} else {
-					o.SetRootUnlID(s)
-				}
 			}
 
 		case "rootUnl":

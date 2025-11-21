@@ -8,6 +8,8 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
+
+	"github.com/goradd/gro/pkg/query"
 )
 
 // Root represents an item in the root table in the database.
@@ -115,7 +117,7 @@ func getRootUpdateFields(o *rootBase) (fields map[string]interface{}) {
 // Returns an error only if there was a problem with the database during the delete.
 // If the record was not found, no error will be returned.
 // doc: type=Root
-func DeleteRoot(ctx context.Context, pk string) error {
+func DeleteRoot(ctx context.Context, pk query.AutoPrimaryKey) error {
 	return deleteRoot(ctx, pk)
 }
 
