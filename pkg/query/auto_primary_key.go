@@ -40,9 +40,9 @@ func ZeroAutoPrimaryKey() AutoPrimaryKey {
 	return AutoPrimaryKey{}
 }
 
-// GeneratedAutoPrimaryKey wraps the given value with the AutoPrimaryKey type, specifying that it is
+// NewAutoPrimaryKey wraps the given value with the AutoPrimaryKey type, specifying that it is
 // a generated value.
-func GeneratedAutoPrimaryKey(v any) AutoPrimaryKey {
+func NewAutoPrimaryKey(v any) AutoPrimaryKey {
 	return AutoPrimaryKey{val: v}
 }
 
@@ -68,7 +68,7 @@ func (a AutoPrimaryKey) IsTemp() bool {
 	if a.val == nil {
 		return false
 	}
-	if v, ok := a.val.(int); !ok {
+	if v, ok := a.val.(int64); !ok {
 		return false
 	} else {
 		return v <= 0
@@ -99,7 +99,13 @@ func (a AutoPrimaryKey) MarshalJSON() ([]byte, error) {
 }
 
 func (a *AutoPrimaryKey) UnmarshalJSON(b []byte) error {
-	return json.Unmarshal(b, &a.val)
+	err := json.Unmarshal(b, &a.val)
+	if err != nil {
+		if f, ok := a.val.(float64); !ok {
+			a.val = int64(f)
+		}
+	}
+	return err
 }
 
 // TemporaryPrimaryKey returns an atomically unique negative value to be used as a

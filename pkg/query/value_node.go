@@ -34,7 +34,8 @@ func NewValueNode(i interface{}) Node {
 	case float32:
 	case time.Time:
 
-		// casts
+	case AutoPrimaryKey:
+		n.value = v.Val()
 	case []byte:
 		n.value = string(v[:])
 	case nil:

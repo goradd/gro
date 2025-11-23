@@ -95,7 +95,8 @@ func Test{{= table.Identifier }}_ReferenceLoad(t *testing.T) {
 {{for _,ref := range table.References }}
     assert.NotNil(t, obj.{{= ref.Identifier }}())
 {{if ref.ReferencedTable.PrimaryKeyColumn().IsAutoPK() }}
-    assert.NotEqual(t, '-', obj.{{= ref.Identifier }}().PrimaryKey()[0])
+    assert.False(t, obj.{{= ref.Identifier }}().PrimaryKey().IsTemp())
+    assert.False(t, obj.{{= ref.Identifier }}().PrimaryKey().IsZero())
 {{if}}
 
 {{for}}

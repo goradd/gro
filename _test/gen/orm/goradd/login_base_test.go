@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/gob"
 	"encoding/json"
-	"strconv"
 	"testing"
 
 	"github.com/goradd/gro/_test/gen/orm/goradd/node"
@@ -86,13 +85,14 @@ func TestLogin_SetID(t *testing.T) {
 	obj := NewLogin()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomNumberString()
+	val := query.NewAutoPrimaryKey(test.RandomNumberString())
 	obj.SetID(val)
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	obj.SetID(query.TempAutoPrimaryKey())
-	assert.EqualValues(t, query.TempAutoPrimaryKey(), obj.ID(), "set default")
+	d := query.TempAutoPrimaryKey()
+	obj.SetID(d)
+	assert.EqualValues(t, d, obj.ID(), "set default")
 
 }
 func TestLogin_SetUsername(t *testing.T) {
@@ -105,8 +105,9 @@ func TestLogin_SetUsername(t *testing.T) {
 	assert.Equal(t, val, obj.Username())
 
 	// test default
-	obj.SetUsername("")
-	assert.EqualValues(t, "", obj.Username(), "set default")
+	d := ""
+	obj.SetUsername(d)
+	assert.EqualValues(t, d, obj.Username(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	val = test.RandomValue[string](21)
@@ -130,8 +131,9 @@ func TestLogin_SetPassword(t *testing.T) {
 	assert.True(t, obj.PasswordIsNull())
 
 	// test default
-	obj.SetPassword("")
-	assert.EqualValues(t, "", obj.Password(), "set default")
+	d := ""
+	obj.SetPassword(d)
+	assert.EqualValues(t, d, obj.Password(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	val = test.RandomValue[string](21)
@@ -149,8 +151,9 @@ func TestLogin_SetIsEnabled(t *testing.T) {
 	assert.Equal(t, val, obj.IsEnabled())
 
 	// test default
-	obj.SetIsEnabled(true)
-	assert.EqualValues(t, true, obj.IsEnabled(), "set default")
+	d := true
+	obj.SetIsEnabled(d)
+	assert.EqualValues(t, d, obj.IsEnabled(), "set default")
 
 }
 func TestLogin_SetPersonID(t *testing.T) {
@@ -169,8 +172,9 @@ func TestLogin_SetPersonID(t *testing.T) {
 	assert.True(t, obj.PersonIDIsNull())
 
 	// test default
-	obj.SetPersonID(query.AutoPrimaryKey{})
-	assert.EqualValues(t, query.AutoPrimaryKey{}, obj.PersonID(), "set default")
+	d := query.AutoPrimaryKey{}
+	obj.SetPersonID(d)
+	assert.EqualValues(t, d, obj.PersonID(), "set default")
 
 }
 
@@ -267,7 +271,8 @@ func TestLogin_ReferenceLoad(t *testing.T) {
 
 	// Test that referenced objects were saved and assigned ids
 	assert.NotNil(t, obj.Person())
-	assert.NotEqual(t, '-', obj.Person().PrimaryKey()[0])
+	assert.False(t, obj.Person().PrimaryKey().IsTemp())
+	assert.False(t, obj.Person().PrimaryKey().IsZero())
 
 	// Test lazy loading
 	obj2, err := LoadLogin(ctx, obj.PrimaryKey())
@@ -333,17 +338,13 @@ func TestLogin_ReferenceUpdateOldObjects(t *testing.T) {
 func TestLogin_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewLogin()
 
-	i, err := strconv.Atoi(obj.ID())
-	assert.NoError(t, err)
-	assert.True(t, i < 0)
+	assert.True(t, obj.ID().IsTemp())
 }
 
 func TestLogin_Getters(t *testing.T) {
 	obj := createMinimalSampleLogin()
 
-	i, err := strconv.Atoi(obj.ID())
-	assert.NoError(t, err)
-	assert.True(t, i < 0)
+	assert.True(t, obj.ID().IsTemp())
 
 	ctx := context.Background()
 	require.NoError(t, obj.Save(ctx))

@@ -389,6 +389,8 @@ func (r SqlReceiver) Unpack(typ ReceiverType) interface{} {
 		return r.DoubleI()
 	case ColTypeBool:
 		return r.BoolI()
+	case ColTypeAutoPrimaryKey:
+		return NewAutoPrimaryKey(r.R)
 	default:
 		return r.R
 	}
@@ -441,6 +443,8 @@ func (r SqlReceiver) UnpackDefaultValue(typ schema.ColumnType, size int) interfa
 		return r.DoubleI()
 	case schema.ColTypeBool:
 		return r.BoolI()
+	case schema.ColTypeAutoPrimaryKey:
+		return NewAutoPrimaryKey(r.R)
 	default:
 		return r.R
 	}

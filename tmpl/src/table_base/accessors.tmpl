@@ -56,10 +56,6 @@ func (tmpl *TableBaseTemplate)genColSetter(table *model.Table, col *model.Column
 {{: "accessors/column_setter_bytes.tmpl" }}
     case query.ColTypeTime:
 {{: "accessors/column_setter_time.tmpl" }}
-    case query.ColTypeString:
-{{: "accessors/column_setter_string.tmpl" }}
-    case query.ColTypeAutoPrimaryKey:
-{{: "accessors/column_setter_autopk.tmpl" }}
     default:
 {{: "accessors/column_setter_other.tmpl" }}
     }

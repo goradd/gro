@@ -89,8 +89,9 @@ func TestAltRootUn_SetID(t *testing.T) {
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	obj.SetID(0)
-	assert.EqualValues(t, 0, obj.ID(), "set default")
+	d := 0
+	obj.SetID(d)
+	assert.EqualValues(t, d, obj.ID(), "set default")
 
 }
 func TestAltRootUn_SetName(t *testing.T) {
@@ -103,8 +104,9 @@ func TestAltRootUn_SetName(t *testing.T) {
 	assert.Equal(t, val, obj.Name())
 
 	// test default
-	obj.SetName("")
-	assert.EqualValues(t, "", obj.Name(), "set default")
+	d := ""
+	obj.SetName(d)
+	assert.EqualValues(t, d, obj.Name(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	val = test.RandomValue[string](101)

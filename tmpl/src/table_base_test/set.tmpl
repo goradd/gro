@@ -13,7 +13,7 @@ func Test{{= table.Identifier }}_Set{{= col.Identifier }}(t *testing.T) {
     obj.Set{{= col.Identifier }}(val)
 {{else}}
 {{if col.IsAutoPK() }}
-    val := 	test.RandomNumberString()
+    val := 	query.GeneratedAutoPrimaryKey(test.RandomNumberString())
 {{elseif col.SchemaSubType == schema.ColSubTypeNumeric }}
     val := 	test.RandomDecimal({{u col.DecimalPrecision()}}, {{u col.DecimalScale()}} )
 {{else}}
@@ -50,8 +50,9 @@ func Test{{= table.Identifier }}_Set{{= col.Identifier }}(t *testing.T) {
 {{if}}
 
     // test default
-    obj.Set{{= col.Identifier }}({{= col.DefaultValueAsValue() }})
-    assert.EqualValues(t, {{= col.DefaultValueAsValue() }}, obj.{{= col.Identifier }}(), "set default")
+    d := {{= col.DefaultValueAsValue() }}
+    obj.Set{{= col.Identifier }}(d)
+    assert.EqualValues(t, d, obj.{{= col.Identifier }}(), "set default")
 
 {{if col.Size > 0 &&
         col.Size == testSize &&

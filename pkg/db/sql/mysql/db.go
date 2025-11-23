@@ -231,7 +231,7 @@ func (m *DB) Insert(ctx context.Context, table string, fields map[string]any, au
 				return db.NewQueryError("LastInsertId", s, args, err2)
 			} else {
 				// we generated a new primary key, so send it back
-				fields[autoPkKey] = GeneratedAutoPrimaryKey(id)
+				fields[autoPkKey] = NewAutoPrimaryKey(id)
 			}
 		}
 		return nil

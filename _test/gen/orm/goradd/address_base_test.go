@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/gob"
 	"encoding/json"
-	"strconv"
 	"testing"
 
 	"github.com/goradd/gro/_test/gen/orm/goradd/node"
@@ -86,13 +85,14 @@ func TestAddress_SetID(t *testing.T) {
 	obj := NewAddress()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomNumberString()
+	val := query.NewAutoPrimaryKey(test.RandomNumberString())
 	obj.SetID(val)
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	obj.SetID(query.TempAutoPrimaryKey())
-	assert.EqualValues(t, query.TempAutoPrimaryKey(), obj.ID(), "set default")
+	d := query.TempAutoPrimaryKey()
+	obj.SetID(d)
+	assert.EqualValues(t, d, obj.ID(), "set default")
 
 }
 func TestAddress_SetStreet(t *testing.T) {
@@ -105,8 +105,9 @@ func TestAddress_SetStreet(t *testing.T) {
 	assert.Equal(t, val, obj.Street())
 
 	// test default
-	obj.SetStreet("")
-	assert.EqualValues(t, "", obj.Street(), "set default")
+	d := ""
+	obj.SetStreet(d)
+	assert.EqualValues(t, d, obj.Street(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	val = test.RandomValue[string](101)
@@ -130,8 +131,9 @@ func TestAddress_SetCity(t *testing.T) {
 	assert.True(t, obj.CityIsNull())
 
 	// test default
-	obj.SetCity("BOB")
-	assert.EqualValues(t, "BOB", obj.City(), "set default")
+	d := "BOB"
+	obj.SetCity(d)
+	assert.EqualValues(t, d, obj.City(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	val = test.RandomValue[string](101)
@@ -149,8 +151,9 @@ func TestAddress_SetPersonID(t *testing.T) {
 	assert.Equal(t, val, obj.PersonID())
 
 	// test default
-	obj.SetPersonID(query.AutoPrimaryKey{})
-	assert.EqualValues(t, query.AutoPrimaryKey{}, obj.PersonID(), "set default")
+	d := query.AutoPrimaryKey{}
+	obj.SetPersonID(d)
+	assert.EqualValues(t, d, obj.PersonID(), "set default")
 
 }
 
@@ -239,7 +242,8 @@ func TestAddress_ReferenceLoad(t *testing.T) {
 
 	// Test that referenced objects were saved and assigned ids
 	assert.NotNil(t, obj.Person())
-	assert.NotEqual(t, '-', obj.Person().PrimaryKey()[0])
+	assert.False(t, obj.Person().PrimaryKey().IsTemp())
+	assert.False(t, obj.Person().PrimaryKey().IsZero())
 
 	// Test lazy loading
 	obj2, err := LoadAddress(ctx, obj.PrimaryKey())
@@ -309,17 +313,13 @@ func TestAddress_ReferenceUpdateOldObjects(t *testing.T) {
 func TestAddress_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewAddress()
 
-	i, err := strconv.Atoi(obj.ID())
-	assert.NoError(t, err)
-	assert.True(t, i < 0)
+	assert.True(t, obj.ID().IsTemp())
 }
 
 func TestAddress_Getters(t *testing.T) {
 	obj := createMinimalSampleAddress()
 
-	i, err := strconv.Atoi(obj.ID())
-	assert.NoError(t, err)
-	assert.True(t, i < 0)
+	assert.True(t, obj.ID().IsTemp())
 
 	ctx := context.Background()
 	require.NoError(t, obj.Save(ctx))

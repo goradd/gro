@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/gob"
 	"encoding/json"
-	"strconv"
 	"testing"
 
 	"github.com/goradd/gro/_test/gen/orm/goradd_unit/node"
@@ -82,13 +81,14 @@ func TestRootL_SetID(t *testing.T) {
 	obj := NewRootL()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomNumberString()
+	val := query.NewAutoPrimaryKey(test.RandomNumberString())
 	obj.SetID(val)
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	obj.SetID(query.TempAutoPrimaryKey())
-	assert.EqualValues(t, query.TempAutoPrimaryKey(), obj.ID(), "set default")
+	d := query.TempAutoPrimaryKey()
+	obj.SetID(d)
+	assert.EqualValues(t, d, obj.ID(), "set default")
 
 }
 func TestRootL_SetName(t *testing.T) {
@@ -101,8 +101,9 @@ func TestRootL_SetName(t *testing.T) {
 	assert.Equal(t, val, obj.Name())
 
 	// test default
-	obj.SetName("")
-	assert.EqualValues(t, "", obj.Name(), "set default")
+	d := ""
+	obj.SetName(d)
+	assert.EqualValues(t, d, obj.Name(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	val = test.RandomValue[string](101)
@@ -242,17 +243,13 @@ func TestRootL_ReferenceUpdateOldObjects(t *testing.T) {
 func TestRootL_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewRootL()
 
-	i, err := strconv.Atoi(obj.ID())
-	assert.NoError(t, err)
-	assert.True(t, i < 0)
+	assert.True(t, obj.ID().IsTemp())
 }
 
 func TestRootL_Getters(t *testing.T) {
 	obj := createMinimalSampleRootL()
 
-	i, err := strconv.Atoi(obj.ID())
-	assert.NoError(t, err)
-	assert.True(t, i < 0)
+	assert.True(t, obj.ID().IsTemp())
 
 	ctx := context.Background()
 	require.NoError(t, obj.Save(ctx))

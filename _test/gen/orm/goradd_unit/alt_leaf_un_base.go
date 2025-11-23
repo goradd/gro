@@ -212,6 +212,10 @@ func (o *altLeafUnBase) SetAltRootUnID(v float32) {
 	o.altRootUnID = v
 	o.altRootUnIDIsDirty = true
 	o.altRootUnIDIsNull = false
+	if o.altRootUn != nil &&
+		o.altRootUnID != o.altRootUn.PrimaryKey() {
+		o.altRootUn = nil
+	}
 }
 
 // SetAltRootUnIDToNull() will set the alt_root_un_id value in the database to NULL.

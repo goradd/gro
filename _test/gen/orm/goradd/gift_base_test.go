@@ -80,8 +80,9 @@ func TestGift_SetNumber(t *testing.T) {
 	assert.Equal(t, val, obj.Number())
 
 	// test default
-	obj.SetNumber(0)
-	assert.EqualValues(t, 0, obj.Number(), "set default")
+	d := 0
+	obj.SetNumber(d)
+	assert.EqualValues(t, d, obj.Number(), "set default")
 
 }
 func TestGift_SetName(t *testing.T) {
@@ -94,8 +95,9 @@ func TestGift_SetName(t *testing.T) {
 	assert.Equal(t, val, obj.Name())
 
 	// test default
-	obj.SetName("")
-	assert.EqualValues(t, "", obj.Name(), "set default")
+	d := ""
+	obj.SetName(d)
+	assert.EqualValues(t, d, obj.Name(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	val = test.RandomValue[string](51)

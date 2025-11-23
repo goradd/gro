@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/gob"
 	"encoding/json"
-	"strconv"
 	"testing"
 	"time"
 
@@ -130,13 +129,14 @@ func TestProject_SetID(t *testing.T) {
 	obj := NewProject()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomNumberString()
+	val := query.NewAutoPrimaryKey(test.RandomNumberString())
 	obj.SetID(val)
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	obj.SetID(query.TempAutoPrimaryKey())
-	assert.EqualValues(t, query.TempAutoPrimaryKey(), obj.ID(), "set default")
+	d := query.TempAutoPrimaryKey()
+	obj.SetID(d)
+	assert.EqualValues(t, d, obj.ID(), "set default")
 
 }
 func TestProject_SetNum(t *testing.T) {
@@ -149,8 +149,9 @@ func TestProject_SetNum(t *testing.T) {
 	assert.Equal(t, val, obj.Num())
 
 	// test default
-	obj.SetNum(0)
-	assert.EqualValues(t, 0, obj.Num(), "set default")
+	d := 0
+	obj.SetNum(d)
+	assert.EqualValues(t, d, obj.Num(), "set default")
 
 }
 func TestProject_SetStatus(t *testing.T) {
@@ -163,8 +164,9 @@ func TestProject_SetStatus(t *testing.T) {
 	assert.Equal(t, val, obj.Status())
 
 	// test default
-	obj.SetStatus(0)
-	assert.EqualValues(t, 0, obj.Status(), "set default")
+	d := ProjectStatus(0)
+	obj.SetStatus(d)
+	assert.EqualValues(t, d, obj.Status(), "set default")
 
 }
 func TestProject_SetName(t *testing.T) {
@@ -177,8 +179,9 @@ func TestProject_SetName(t *testing.T) {
 	assert.Equal(t, val, obj.Name())
 
 	// test default
-	obj.SetName("")
-	assert.EqualValues(t, "", obj.Name(), "set default")
+	d := ""
+	obj.SetName(d)
+	assert.EqualValues(t, d, obj.Name(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	val = test.RandomValue[string](101)
@@ -202,8 +205,9 @@ func TestProject_SetDescription(t *testing.T) {
 	assert.True(t, obj.DescriptionIsNull())
 
 	// test default
-	obj.SetDescription("")
-	assert.EqualValues(t, "", obj.Description(), "set default")
+	d := ""
+	obj.SetDescription(d)
+	assert.EqualValues(t, d, obj.Description(), "set default")
 
 }
 func TestProject_SetStartDate(t *testing.T) {
@@ -225,8 +229,9 @@ func TestProject_SetStartDate(t *testing.T) {
 	assert.True(t, obj.StartDateIsNull())
 
 	// test default
-	obj.SetStartDate(time.Time{})
-	assert.EqualValues(t, time.Time{}, obj.StartDate(), "set default")
+	d := time.Time{}
+	obj.SetStartDate(d)
+	assert.EqualValues(t, d, obj.StartDate(), "set default")
 
 }
 func TestProject_SetEndDate(t *testing.T) {
@@ -248,8 +253,9 @@ func TestProject_SetEndDate(t *testing.T) {
 	assert.True(t, obj.EndDateIsNull())
 
 	// test default
-	obj.SetEndDate(time.Time{})
-	assert.EqualValues(t, time.Time{}, obj.EndDate(), "set default")
+	d := time.Time{}
+	obj.SetEndDate(d)
+	assert.EqualValues(t, d, obj.EndDate(), "set default")
 
 }
 func TestProject_SetBudget(t *testing.T) {
@@ -268,8 +274,9 @@ func TestProject_SetBudget(t *testing.T) {
 	assert.True(t, obj.BudgetIsNull())
 
 	// test default
-	obj.SetBudget("")
-	assert.EqualValues(t, "", obj.Budget(), "set default")
+	d := ""
+	obj.SetBudget(d)
+	assert.EqualValues(t, d, obj.Budget(), "set default")
 
 }
 func TestProject_SetSpent(t *testing.T) {
@@ -288,8 +295,9 @@ func TestProject_SetSpent(t *testing.T) {
 	assert.True(t, obj.SpentIsNull())
 
 	// test default
-	obj.SetSpent("")
-	assert.EqualValues(t, "", obj.Spent(), "set default")
+	d := ""
+	obj.SetSpent(d)
+	assert.EqualValues(t, d, obj.Spent(), "set default")
 
 }
 func TestProject_SetManagerID(t *testing.T) {
@@ -308,8 +316,9 @@ func TestProject_SetManagerID(t *testing.T) {
 	assert.True(t, obj.ManagerIDIsNull())
 
 	// test default
-	obj.SetManagerID(query.AutoPrimaryKey{})
-	assert.EqualValues(t, query.AutoPrimaryKey{}, obj.ManagerID(), "set default")
+	d := query.AutoPrimaryKey{}
+	obj.SetManagerID(d)
+	assert.EqualValues(t, d, obj.ManagerID(), "set default")
 
 }
 func TestProject_SetParentID(t *testing.T) {
@@ -328,8 +337,9 @@ func TestProject_SetParentID(t *testing.T) {
 	assert.True(t, obj.ParentIDIsNull())
 
 	// test default
-	obj.SetParentID(query.AutoPrimaryKey{})
-	assert.EqualValues(t, query.AutoPrimaryKey{}, obj.ParentID(), "set default")
+	d := query.AutoPrimaryKey{}
+	obj.SetParentID(d)
+	assert.EqualValues(t, d, obj.ParentID(), "set default")
 
 }
 
@@ -478,10 +488,12 @@ func TestProject_ReferenceLoad(t *testing.T) {
 
 	// Test that referenced objects were saved and assigned ids
 	assert.NotNil(t, obj.Manager())
-	assert.NotEqual(t, '-', obj.Manager().PrimaryKey()[0])
+	assert.False(t, obj.Manager().PrimaryKey().IsTemp())
+	assert.False(t, obj.Manager().PrimaryKey().IsZero())
 
 	assert.NotNil(t, obj.Parent())
-	assert.NotEqual(t, '-', obj.Parent().PrimaryKey()[0])
+	assert.False(t, obj.Parent().PrimaryKey().IsTemp())
+	assert.False(t, obj.Parent().PrimaryKey().IsZero())
 
 	// Test lazy loading
 	obj2, err := LoadProject(ctx, obj.PrimaryKey())
@@ -605,17 +617,13 @@ func TestProject_ReferenceUpdateOldObjects(t *testing.T) {
 func TestProject_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewProject()
 
-	i, err := strconv.Atoi(obj.ID())
-	assert.NoError(t, err)
-	assert.True(t, i < 0)
+	assert.True(t, obj.ID().IsTemp())
 }
 
 func TestProject_Getters(t *testing.T) {
 	obj := createMinimalSampleProject()
 
-	i, err := strconv.Atoi(obj.ID())
-	assert.NoError(t, err)
-	assert.True(t, i < 0)
+	assert.True(t, obj.ID().IsTemp())
 
 	ctx := context.Background()
 	require.NoError(t, obj.Save(ctx))

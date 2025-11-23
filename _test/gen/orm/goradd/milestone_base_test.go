@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/gob"
 	"encoding/json"
-	"strconv"
 	"testing"
 
 	"github.com/goradd/gro/_test/gen/orm/goradd/node"
@@ -81,13 +80,14 @@ func TestMilestone_SetID(t *testing.T) {
 	obj := NewMilestone()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomNumberString()
+	val := query.NewAutoPrimaryKey(test.RandomNumberString())
 	obj.SetID(val)
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	obj.SetID(query.TempAutoPrimaryKey())
-	assert.EqualValues(t, query.TempAutoPrimaryKey(), obj.ID(), "set default")
+	d := query.TempAutoPrimaryKey()
+	obj.SetID(d)
+	assert.EqualValues(t, d, obj.ID(), "set default")
 
 }
 func TestMilestone_SetName(t *testing.T) {
@@ -100,8 +100,9 @@ func TestMilestone_SetName(t *testing.T) {
 	assert.Equal(t, val, obj.Name())
 
 	// test default
-	obj.SetName("")
-	assert.EqualValues(t, "", obj.Name(), "set default")
+	d := ""
+	obj.SetName(d)
+	assert.EqualValues(t, d, obj.Name(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	val = test.RandomValue[string](51)
@@ -119,8 +120,9 @@ func TestMilestone_SetProjectID(t *testing.T) {
 	assert.Equal(t, val, obj.ProjectID())
 
 	// test default
-	obj.SetProjectID(query.AutoPrimaryKey{})
-	assert.EqualValues(t, query.AutoPrimaryKey{}, obj.ProjectID(), "set default")
+	d := query.AutoPrimaryKey{}
+	obj.SetProjectID(d)
+	assert.EqualValues(t, d, obj.ProjectID(), "set default")
 
 }
 
@@ -200,7 +202,8 @@ func TestMilestone_ReferenceLoad(t *testing.T) {
 
 	// Test that referenced objects were saved and assigned ids
 	assert.NotNil(t, obj.Project())
-	assert.NotEqual(t, '-', obj.Project().PrimaryKey()[0])
+	assert.False(t, obj.Project().PrimaryKey().IsTemp())
+	assert.False(t, obj.Project().PrimaryKey().IsZero())
 
 	// Test lazy loading
 	obj2, err := LoadMilestone(ctx, obj.PrimaryKey())
@@ -270,17 +273,13 @@ func TestMilestone_ReferenceUpdateOldObjects(t *testing.T) {
 func TestMilestone_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewMilestone()
 
-	i, err := strconv.Atoi(obj.ID())
-	assert.NoError(t, err)
-	assert.True(t, i < 0)
+	assert.True(t, obj.ID().IsTemp())
 }
 
 func TestMilestone_Getters(t *testing.T) {
 	obj := createMinimalSampleMilestone()
 
-	i, err := strconv.Atoi(obj.ID())
-	assert.NoError(t, err)
-	assert.True(t, i < 0)
+	assert.True(t, obj.ID().IsTemp())
 
 	ctx := context.Background()
 	require.NoError(t, obj.Save(ctx))

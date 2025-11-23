@@ -95,8 +95,9 @@ func TestDoubleIndex_SetID(t *testing.T) {
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	obj.SetID(0)
-	assert.EqualValues(t, 0, obj.ID(), "set default")
+	d := 0
+	obj.SetID(d)
+	assert.EqualValues(t, d, obj.ID(), "set default")
 
 }
 func TestDoubleIndex_SetFieldInt(t *testing.T) {
@@ -109,8 +110,9 @@ func TestDoubleIndex_SetFieldInt(t *testing.T) {
 	assert.Equal(t, val, obj.FieldInt())
 
 	// test default
-	obj.SetFieldInt(0)
-	assert.EqualValues(t, 0, obj.FieldInt(), "set default")
+	d := 0
+	obj.SetFieldInt(d)
+	assert.EqualValues(t, d, obj.FieldInt(), "set default")
 
 }
 func TestDoubleIndex_SetFieldString(t *testing.T) {
@@ -123,8 +125,9 @@ func TestDoubleIndex_SetFieldString(t *testing.T) {
 	assert.Equal(t, val, obj.FieldString())
 
 	// test default
-	obj.SetFieldString("")
-	assert.EqualValues(t, "", obj.FieldString(), "set default")
+	d := ""
+	obj.SetFieldString(d)
+	assert.EqualValues(t, d, obj.FieldString(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	val = test.RandomValue[string](51)
@@ -148,8 +151,9 @@ func TestDoubleIndex_SetField2Int(t *testing.T) {
 	assert.True(t, obj.Field2IntIsNull())
 
 	// test default
-	obj.SetField2Int(0)
-	assert.EqualValues(t, 0, obj.Field2Int(), "set default")
+	d := 0
+	obj.SetField2Int(d)
+	assert.EqualValues(t, d, obj.Field2Int(), "set default")
 
 }
 func TestDoubleIndex_SetField2String(t *testing.T) {
@@ -168,8 +172,9 @@ func TestDoubleIndex_SetField2String(t *testing.T) {
 	assert.True(t, obj.Field2StringIsNull())
 
 	// test default
-	obj.SetField2String("")
-	assert.EqualValues(t, "", obj.Field2String(), "set default")
+	d := ""
+	obj.SetField2String(d)
+	assert.EqualValues(t, d, obj.Field2String(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	val = test.RandomValue[string](101)

@@ -101,7 +101,7 @@ func (o *personBase) Initialize() {
 	o.lastNameIsLoaded = false
 	o.lastNameIsDirty = false
 
-	o.personType = 0
+	o.personType = PersonType(0)
 	o.personTypeIsNull = true
 	o.personTypeIsLoaded = false
 	o.personTypeIsDirty = false
@@ -316,7 +316,7 @@ func (o *personBase) SetPersonTypeToNull() {
 	}
 	o.personTypeIsLoaded = true
 	o.personTypeIsNull = true
-	o.personType = 0
+	o.personType = PersonType(0)
 }
 
 // Created returns the value of the loaded created field in the database.
@@ -953,7 +953,7 @@ func (o *personBase) unpack(m map[string]interface{}, objThis *Person) {
 
 	if v, ok := m["personType"]; ok {
 		if v == nil {
-			o.personType = 0
+			o.personType = PersonType(0)
 			o.personTypeIsNull = true
 			o.personTypeIsLoaded = true
 			o.personTypeIsDirty = false
@@ -968,7 +968,7 @@ func (o *personBase) unpack(m map[string]interface{}, objThis *Person) {
 	} else {
 		o.personTypeIsLoaded = false
 		o.personTypeIsNull = true
-		o.personType = 0
+		o.personType = PersonType(0)
 		o.personTypeIsDirty = false
 	}
 

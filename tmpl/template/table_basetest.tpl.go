@@ -992,7 +992,7 @@ func assertEqualFields`); err != nil {
 
 				if col.IsAutoPK() {
 
-					if _, err = io.WriteString(_w, `    val := 	test.RandomNumberString()
+					if _, err = io.WriteString(_w, `    val := 	query.NewAutoPrimaryKey(test.RandomNumberString())
 `); err != nil {
 						return
 					}
@@ -1208,6 +1208,15 @@ func assertEqualFields`); err != nil {
 
 			if _, err = io.WriteString(_w, `
     // test default
+    d := `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.DefaultValueAsValue()); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, `
     obj.Set`); err != nil {
 				return
 			}
@@ -1216,24 +1225,8 @@ func assertEqualFields`); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, `(`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.DefaultValueAsValue()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `)
-    assert.EqualValues(t, `); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.DefaultValueAsValue()); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `, obj.`); err != nil {
+			if _, err = io.WriteString(_w, `(d)
+    assert.EqualValues(t, d, obj.`); err != nil {
 				return
 			}
 
@@ -1816,7 +1809,7 @@ func Test`); err != nil {
 
 			if ref.ReferencedTable.PrimaryKeyColumn().IsAutoPK() {
 
-				if _, err = io.WriteString(_w, `    assert.NotEqual(t, '-', obj.`); err != nil {
+				if _, err = io.WriteString(_w, `    assert.False(t, obj.`); err != nil {
 					return
 				}
 
@@ -1824,7 +1817,16 @@ func Test`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `().PrimaryKey()[0])
+				if _, err = io.WriteString(_w, `().PrimaryKey().IsTemp())
+    assert.False(t, obj.`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, ref.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `().PrimaryKey().IsZero())
 `); err != nil {
 					return
 				}
@@ -3248,7 +3250,7 @@ func Test`); err != nil {
 
 			if col.IsAutoPK() {
 
-				if _, err = io.WriteString(_w, `    i,err := strconv.Atoi(obj.`); err != nil {
+				if _, err = io.WriteString(_w, `    assert.True(t, obj.`); err != nil {
 					return
 				}
 
@@ -3256,9 +3258,7 @@ func Test`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `())
-    assert.NoError(t, err)
-    assert.True(t, i < 0)
+				if _, err = io.WriteString(_w, `().IsTemp())
 `); err != nil {
 					return
 				}
@@ -3311,7 +3311,7 @@ func Test`); err != nil {
 
 			if col.IsAutoPK() {
 
-				if _, err = io.WriteString(_w, `    i,err := strconv.Atoi(obj.`); err != nil {
+				if _, err = io.WriteString(_w, `    assert.True(t, obj.`); err != nil {
 					return
 				}
 
@@ -3319,9 +3319,7 @@ func Test`); err != nil {
 					return
 				}
 
-				if _, err = io.WriteString(_w, `())
-    assert.NoError(t, err)
-    assert.True(t, i < 0)
+				if _, err = io.WriteString(_w, `().IsTemp())
 `); err != nil {
 					return
 				}

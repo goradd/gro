@@ -6,9 +6,7 @@ func Test{{= table.Identifier }}_EmptyPrimaryKeyGetter(t *testing.T) {
 
 {{for _, col := range table.PrimaryKeyColumns() }}
 {{if col.IsAutoPK()}}
-    i,err := strconv.Atoi(obj.{{= col.Identifier }}())
-    assert.NoError(t, err)
-    assert.True(t, i < 0)
+    assert.True(t, obj.{{= col.Identifier }}().IsTemp())
 {{else}}
     assert.Zero(t, obj.{{= col.Identifier }}())
 {{if}}
@@ -20,9 +18,7 @@ func Test{{= table.Identifier }}_Getters(t *testing.T) {
 
 {{for _, col := range table.PrimaryKeyColumns() }}
 {{if col.IsAutoPK()}}
-    i,err := strconv.Atoi(obj.{{= col.Identifier }}())
-    assert.NoError(t, err)
-    assert.True(t, i < 0)
+    assert.True(t, obj.{{= col.Identifier }}().IsTemp())
 {{if}}
 {{for}}
 

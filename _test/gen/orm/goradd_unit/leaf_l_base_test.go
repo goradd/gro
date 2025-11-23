@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/gob"
 	"encoding/json"
-	"strconv"
 	"testing"
 
 	"github.com/goradd/gro/_test/gen/orm/goradd_unit/node"
@@ -84,13 +83,14 @@ func TestLeafL_SetID(t *testing.T) {
 	obj := NewLeafL()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomNumberString()
+	val := query.NewAutoPrimaryKey(test.RandomNumberString())
 	obj.SetID(val)
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	obj.SetID(query.TempAutoPrimaryKey())
-	assert.EqualValues(t, query.TempAutoPrimaryKey(), obj.ID(), "set default")
+	d := query.TempAutoPrimaryKey()
+	obj.SetID(d)
+	assert.EqualValues(t, d, obj.ID(), "set default")
 
 }
 func TestLeafL_SetName(t *testing.T) {
@@ -103,8 +103,9 @@ func TestLeafL_SetName(t *testing.T) {
 	assert.Equal(t, val, obj.Name())
 
 	// test default
-	obj.SetName("")
-	assert.EqualValues(t, "", obj.Name(), "set default")
+	d := ""
+	obj.SetName(d)
+	assert.EqualValues(t, d, obj.Name(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	val = test.RandomValue[string](101)
@@ -122,8 +123,9 @@ func TestLeafL_SetRootLID(t *testing.T) {
 	assert.Equal(t, val, obj.RootLID())
 
 	// test default
-	obj.SetRootLID(query.AutoPrimaryKey{})
-	assert.EqualValues(t, query.AutoPrimaryKey{}, obj.RootLID(), "set default")
+	d := query.AutoPrimaryKey{}
+	obj.SetRootLID(d)
+	assert.EqualValues(t, d, obj.RootLID(), "set default")
 
 }
 
@@ -206,7 +208,8 @@ func TestLeafL_ReferenceLoad(t *testing.T) {
 
 	// Test that referenced objects were saved and assigned ids
 	assert.NotNil(t, obj.RootL())
-	assert.NotEqual(t, '-', obj.RootL().PrimaryKey()[0])
+	assert.False(t, obj.RootL().PrimaryKey().IsTemp())
+	assert.False(t, obj.RootL().PrimaryKey().IsZero())
 
 	// Test lazy loading
 	obj2, err := LoadLeafL(ctx, obj.PrimaryKey())
@@ -276,17 +279,13 @@ func TestLeafL_ReferenceUpdateOldObjects(t *testing.T) {
 func TestLeafL_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewLeafL()
 
-	i, err := strconv.Atoi(obj.ID())
-	assert.NoError(t, err)
-	assert.True(t, i < 0)
+	assert.True(t, obj.ID().IsTemp())
 }
 
 func TestLeafL_Getters(t *testing.T) {
 	obj := createMinimalSampleLeafL()
 
-	i, err := strconv.Atoi(obj.ID())
-	assert.NoError(t, err)
-	assert.True(t, i < 0)
+	assert.True(t, obj.ID().IsTemp())
 
 	ctx := context.Background()
 	require.NoError(t, obj.Save(ctx))

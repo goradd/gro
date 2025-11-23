@@ -42,7 +42,7 @@ func (g *sqlGenerator) iq(v string) string {
 }
 
 func (g *sqlGenerator) addArg(v any) string {
-	g.argList = append(g.argList, v)
+	g.argList = append(g.argList, sqlArg(g.dbi, v))
 	return g.dbi.FormatArgument(len(g.argList))
 }
 
@@ -486,7 +486,7 @@ func GenerateUpdate(db DbI, table string, fields map[string]any, where map[strin
 	// We range on sorted keys to give SQL optimizers a chance to use a prepared
 	// statement by making sure the same fields show up in the same order.
 	for k, v := range iter.KeySort(fields) {
-		args = append(args, v)
+		args = append(args, sqlArg(db, v))
 		sb.WriteString(db.QuoteIdentifier(k))
 		sb.WriteString("=")
 		sb.WriteString(db.FormatArgument(len(args)))
@@ -526,11 +526,8 @@ func GenerateInsert(db DbI, table string, fields map[string]any) (sql string, ar
 	// We range on sorted keys to give SQL optimizers a chance to use a prepared
 	// statement by making sure the same fields show up in the same order.
 	for k, v := range iter.KeySort(fields) {
-		if apk, ok := v.(AutoPrimaryKey); ok {
-			v = apk.Val()
-		}
 		keys = append(keys, db.QuoteIdentifier(k))
-		args = append(args, v)
+		args = append(args, sqlArg(db, v))
 		values = append(values, db.FormatArgument(len(args)))
 	}
 
@@ -642,8 +639,7 @@ func generateWhereClause(db DbI, where map[string]any, connectWithOr bool, argsI
 			s2 += ")"
 			clauses = append(clauses, s2)
 		} else {
-			// TODO: Convert value of custom types to database type here
-			argsOut = append(argsOut, value)
+			argsOut = append(argsOut, sqlArg(db, value))
 			var sb strings.Builder
 			sb.WriteString(db.QuoteIdentifier(key))
 			sb.WriteString("=")
@@ -659,4 +655,15 @@ func generateWhereClause(db DbI, where map[string]any, connectWithOr bool, argsI
 	}
 	sql = "(" + strings.Join(clauses, sep) + ")"
 	return
+}
+
+// sqlArg converts a non-standard SQL type into a standard SQL type for use as an argument in
+// a SQL query. Standard types are returned unchanged.
+func sqlArg(db DbI, v any) any {
+	switch v2 := v.(type) {
+	case AutoPrimaryKey:
+		return v2.Val()
+	default:
+		return v
+	}
 }

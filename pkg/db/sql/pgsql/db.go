@@ -157,11 +157,11 @@ func (m *DB) Insert(ctx context.Context, table string, fields map[string]any, au
 	}
 
 	id, err := m.insertWithReturning(ctx, table, autoPkKey, sql, args)
-	fields[autoPkKey] = GeneratedAutoPrimaryKey(id)
+	fields[autoPkKey] = NewAutoPrimaryKey(id)
 	return err
 }
 
-func (m *DB) insertWithReturning(ctx context.Context, table string, pkName string, sql string, args []interface{}) (int, error) {
+func (m *DB) insertWithReturning(ctx context.Context, table string, pkName string, sql string, args []interface{}) (int64, error) {
 	sql += fmt.Sprintf(" RETURNING %s", m.QuoteIdentifier(pkName))
 	rows, err := m.SqlQuery(ctx, sql, args...)
 
@@ -177,7 +177,7 @@ func (m *DB) insertWithReturning(ctx context.Context, table string, pkName strin
 		}
 		return 0, db.NewQueryError("SqlQuery", sql, args, err)
 	} else {
-		var id int
+		var id int64
 		if rows == nil || !rows.Next() {
 			// Theoretically this should not happen.
 			return 0, fmt.Errorf("primary key column not found")

@@ -85,8 +85,9 @@ func TestTwoKey_SetServer(t *testing.T) {
 	assert.Equal(t, val, obj.Server())
 
 	// test default
-	obj.SetServer("")
-	assert.EqualValues(t, "", obj.Server(), "set default")
+	d := ""
+	obj.SetServer(d)
+	assert.EqualValues(t, d, obj.Server(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	val = test.RandomValue[string](51)
@@ -104,8 +105,9 @@ func TestTwoKey_SetDirectory(t *testing.T) {
 	assert.Equal(t, val, obj.Directory())
 
 	// test default
-	obj.SetDirectory("")
-	assert.EqualValues(t, "", obj.Directory(), "set default")
+	d := ""
+	obj.SetDirectory(d)
+	assert.EqualValues(t, d, obj.Directory(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	val = test.RandomValue[string](51)
@@ -123,8 +125,9 @@ func TestTwoKey_SetFileName(t *testing.T) {
 	assert.Equal(t, val, obj.FileName())
 
 	// test default
-	obj.SetFileName("")
-	assert.EqualValues(t, "", obj.FileName(), "set default")
+	d := ""
+	obj.SetFileName(d)
+	assert.EqualValues(t, d, obj.FileName(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	val = test.RandomValue[string](51)

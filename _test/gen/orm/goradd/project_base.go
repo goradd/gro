@@ -127,7 +127,7 @@ func (o *projectBase) Initialize() {
 	o.numIsLoaded = false
 	o.numIsDirty = false
 
-	o.status = 0
+	o.status = ProjectStatus(0)
 	o.statusIsLoaded = false
 	o.statusIsDirty = false
 
@@ -1423,7 +1423,7 @@ func (o *projectBase) unpack(m map[string]interface{}, objThis *Project) {
 		}
 	} else {
 		o.statusIsLoaded = false
-		o.status = 0
+		o.status = ProjectStatus(0)
 		o.statusIsDirty = false
 	}
 

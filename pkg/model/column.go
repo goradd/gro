@@ -75,7 +75,7 @@ func (c *Column) DefaultValueAsValue() string {
 		if c.SchemaType == schema.ColTypeAutoPrimaryKey {
 			return `query.TempAutoPrimaryKey()`
 		} else if c.IsEnum() {
-			return "0"
+			return fmt.Sprintf("%s(0)", c.Enum.Identifier)
 		}
 		return c.ReceiverType.DefaultValueString()
 	}

@@ -7,7 +7,6 @@ import (
 	"context"
 	"encoding/gob"
 	"encoding/json"
-	"strconv"
 	"testing"
 
 	"github.com/goradd/gro/_test/gen/orm/goradd_unit/node"
@@ -87,13 +86,14 @@ func TestMultiParent_SetID(t *testing.T) {
 	obj := NewMultiParent()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomNumberString()
+	val := query.NewAutoPrimaryKey(test.RandomNumberString())
 	obj.SetID(val)
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	obj.SetID(query.TempAutoPrimaryKey())
-	assert.EqualValues(t, query.TempAutoPrimaryKey(), obj.ID(), "set default")
+	d := query.TempAutoPrimaryKey()
+	obj.SetID(d)
+	assert.EqualValues(t, d, obj.ID(), "set default")
 
 }
 func TestMultiParent_SetName(t *testing.T) {
@@ -112,8 +112,9 @@ func TestMultiParent_SetName(t *testing.T) {
 	assert.True(t, obj.NameIsNull())
 
 	// test default
-	obj.SetName("")
-	assert.EqualValues(t, "", obj.Name(), "set default")
+	d := ""
+	obj.SetName(d)
+	assert.EqualValues(t, d, obj.Name(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
 	val = test.RandomValue[string](101)
@@ -137,8 +138,9 @@ func TestMultiParent_SetParent1ID(t *testing.T) {
 	assert.True(t, obj.Parent1IDIsNull())
 
 	// test default
-	obj.SetParent1ID(query.AutoPrimaryKey{})
-	assert.EqualValues(t, query.AutoPrimaryKey{}, obj.Parent1ID(), "set default")
+	d := query.AutoPrimaryKey{}
+	obj.SetParent1ID(d)
+	assert.EqualValues(t, d, obj.Parent1ID(), "set default")
 
 }
 func TestMultiParent_SetParent2ID(t *testing.T) {
@@ -157,8 +159,9 @@ func TestMultiParent_SetParent2ID(t *testing.T) {
 	assert.True(t, obj.Parent2IDIsNull())
 
 	// test default
-	obj.SetParent2ID(query.AutoPrimaryKey{})
-	assert.EqualValues(t, query.AutoPrimaryKey{}, obj.Parent2ID(), "set default")
+	d := query.AutoPrimaryKey{}
+	obj.SetParent2ID(d)
+	assert.EqualValues(t, d, obj.Parent2ID(), "set default")
 
 }
 
@@ -233,10 +236,12 @@ func TestMultiParent_ReferenceLoad(t *testing.T) {
 
 	// Test that referenced objects were saved and assigned ids
 	assert.NotNil(t, obj.Parent1())
-	assert.NotEqual(t, '-', obj.Parent1().PrimaryKey()[0])
+	assert.False(t, obj.Parent1().PrimaryKey().IsTemp())
+	assert.False(t, obj.Parent1().PrimaryKey().IsZero())
 
 	assert.NotNil(t, obj.Parent2())
-	assert.NotEqual(t, '-', obj.Parent2().PrimaryKey()[0])
+	assert.False(t, obj.Parent2().PrimaryKey().IsTemp())
+	assert.False(t, obj.Parent2().PrimaryKey().IsZero())
 
 	// Test lazy loading
 	obj2, err := LoadMultiParent(ctx, obj.PrimaryKey())
@@ -347,17 +352,13 @@ func TestMultiParent_ReferenceUpdateOldObjects(t *testing.T) {
 func TestMultiParent_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewMultiParent()
 
-	i, err := strconv.Atoi(obj.ID())
-	assert.NoError(t, err)
-	assert.True(t, i < 0)
+	assert.True(t, obj.ID().IsTemp())
 }
 
 func TestMultiParent_Getters(t *testing.T) {
 	obj := createMinimalSampleMultiParent()
 
-	i, err := strconv.Atoi(obj.ID())
-	assert.NoError(t, err)
-	assert.True(t, i < 0)
+	assert.True(t, obj.ID().IsTemp())
 
 	ctx := context.Background()
 	require.NoError(t, obj.Save(ctx))
