@@ -91,7 +91,7 @@ func TestMultiParent_SetID(t *testing.T) {
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	d := query.TempAutoPrimaryKey()
+	var d query.AutoPrimaryKey = query.TempAutoPrimaryKey()
 	obj.SetID(d)
 	assert.EqualValues(t, d, obj.ID(), "set default")
 
@@ -112,7 +112,7 @@ func TestMultiParent_SetName(t *testing.T) {
 	assert.True(t, obj.NameIsNull())
 
 	// test default
-	d := ""
+	var d string = ""
 	obj.SetName(d)
 	assert.EqualValues(t, d, obj.Name(), "set default")
 
@@ -138,7 +138,7 @@ func TestMultiParent_SetParent1ID(t *testing.T) {
 	assert.True(t, obj.Parent1IDIsNull())
 
 	// test default
-	d := query.AutoPrimaryKey{}
+	var d query.AutoPrimaryKey = query.AutoPrimaryKey{}
 	obj.SetParent1ID(d)
 	assert.EqualValues(t, d, obj.Parent1ID(), "set default")
 
@@ -159,7 +159,7 @@ func TestMultiParent_SetParent2ID(t *testing.T) {
 	assert.True(t, obj.Parent2IDIsNull())
 
 	// test default
-	d := query.AutoPrimaryKey{}
+	var d query.AutoPrimaryKey = query.AutoPrimaryKey{}
 	obj.SetParent2ID(d)
 	assert.EqualValues(t, d, obj.Parent2ID(), "set default")
 

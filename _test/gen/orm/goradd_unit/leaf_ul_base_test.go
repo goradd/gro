@@ -88,7 +88,7 @@ func TestLeafUl_SetID(t *testing.T) {
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	d := query.TempAutoPrimaryKey()
+	var d query.AutoPrimaryKey = query.TempAutoPrimaryKey()
 	obj.SetID(d)
 	assert.EqualValues(t, d, obj.ID(), "set default")
 
@@ -103,7 +103,7 @@ func TestLeafUl_SetName(t *testing.T) {
 	assert.Equal(t, val, obj.Name())
 
 	// test default
-	d := ""
+	var d string = ""
 	obj.SetName(d)
 	assert.EqualValues(t, d, obj.Name(), "set default")
 
@@ -123,7 +123,7 @@ func TestLeafUl_SetRootUlID(t *testing.T) {
 	assert.Equal(t, val, obj.RootUlID())
 
 	// test default
-	d := query.AutoPrimaryKey{}
+	var d query.AutoPrimaryKey = query.AutoPrimaryKey{}
 	obj.SetRootUlID(d)
 	assert.EqualValues(t, d, obj.RootUlID(), "set default")
 

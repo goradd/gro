@@ -92,7 +92,7 @@ func TestLeafNl_SetID(t *testing.T) {
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	d := query.TempAutoPrimaryKey()
+	var d query.AutoPrimaryKey = query.TempAutoPrimaryKey()
 	obj.SetID(d)
 	assert.EqualValues(t, d, obj.ID(), "set default")
 
@@ -107,7 +107,7 @@ func TestLeafNl_SetName(t *testing.T) {
 	assert.Equal(t, val, obj.Name())
 
 	// test default
-	d := ""
+	var d string = ""
 	obj.SetName(d)
 	assert.EqualValues(t, d, obj.Name(), "set default")
 
@@ -133,7 +133,7 @@ func TestLeafNl_SetRootNlID(t *testing.T) {
 	assert.True(t, obj.RootNlIDIsNull())
 
 	// test default
-	d := query.AutoPrimaryKey{}
+	var d query.AutoPrimaryKey = query.AutoPrimaryKey{}
 	obj.SetRootNlID(d)
 	assert.EqualValues(t, d, obj.RootNlID(), "set default")
 

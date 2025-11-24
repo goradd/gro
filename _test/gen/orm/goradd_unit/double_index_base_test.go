@@ -95,7 +95,7 @@ func TestDoubleIndex_SetID(t *testing.T) {
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	d := 0
+	var d int = 0
 	obj.SetID(d)
 	assert.EqualValues(t, d, obj.ID(), "set default")
 
@@ -110,7 +110,7 @@ func TestDoubleIndex_SetFieldInt(t *testing.T) {
 	assert.Equal(t, val, obj.FieldInt())
 
 	// test default
-	d := 0
+	var d int = 0
 	obj.SetFieldInt(d)
 	assert.EqualValues(t, d, obj.FieldInt(), "set default")
 
@@ -125,7 +125,7 @@ func TestDoubleIndex_SetFieldString(t *testing.T) {
 	assert.Equal(t, val, obj.FieldString())
 
 	// test default
-	d := ""
+	var d string = ""
 	obj.SetFieldString(d)
 	assert.EqualValues(t, d, obj.FieldString(), "set default")
 
@@ -151,7 +151,7 @@ func TestDoubleIndex_SetField2Int(t *testing.T) {
 	assert.True(t, obj.Field2IntIsNull())
 
 	// test default
-	d := 0
+	var d int = 0
 	obj.SetField2Int(d)
 	assert.EqualValues(t, d, obj.Field2Int(), "set default")
 
@@ -172,7 +172,7 @@ func TestDoubleIndex_SetField2String(t *testing.T) {
 	assert.True(t, obj.Field2StringIsNull())
 
 	// test default
-	d := ""
+	var d string = ""
 	obj.SetField2String(d)
 	assert.EqualValues(t, d, obj.Field2String(), "set default")
 

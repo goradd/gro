@@ -1208,7 +1208,15 @@ func assertEqualFields`); err != nil {
 
 			if _, err = io.WriteString(_w, `
     // test default
-    d := `); err != nil {
+    var d `); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, col.Type); err != nil {
+				return
+			}
+
+			if _, err = io.WriteString(_w, ` = `); err != nil {
 				return
 			}
 

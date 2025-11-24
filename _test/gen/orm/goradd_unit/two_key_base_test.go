@@ -85,7 +85,7 @@ func TestTwoKey_SetServer(t *testing.T) {
 	assert.Equal(t, val, obj.Server())
 
 	// test default
-	d := ""
+	var d string = ""
 	obj.SetServer(d)
 	assert.EqualValues(t, d, obj.Server(), "set default")
 
@@ -105,7 +105,7 @@ func TestTwoKey_SetDirectory(t *testing.T) {
 	assert.Equal(t, val, obj.Directory())
 
 	// test default
-	d := ""
+	var d string = ""
 	obj.SetDirectory(d)
 	assert.EqualValues(t, d, obj.Directory(), "set default")
 
@@ -125,7 +125,7 @@ func TestTwoKey_SetFileName(t *testing.T) {
 	assert.Equal(t, val, obj.FileName())
 
 	// test default
-	d := ""
+	var d string = ""
 	obj.SetFileName(d)
 	assert.EqualValues(t, d, obj.FileName(), "set default")
 

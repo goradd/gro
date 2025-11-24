@@ -80,7 +80,7 @@ func TestAltLeafUn_SetID(t *testing.T) {
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	d := query.TempAutoPrimaryKey()
+	var d query.AutoPrimaryKey = query.TempAutoPrimaryKey()
 	obj.SetID(d)
 	assert.EqualValues(t, d, obj.ID(), "set default")
 
@@ -95,7 +95,7 @@ func TestAltLeafUn_SetName(t *testing.T) {
 	assert.Equal(t, val, obj.Name())
 
 	// test default
-	d := ""
+	var d string = ""
 	obj.SetName(d)
 	assert.EqualValues(t, d, obj.Name(), "set default")
 
@@ -121,7 +121,7 @@ func TestAltLeafUn_SetAltRootUnID(t *testing.T) {
 	assert.True(t, obj.AltRootUnIDIsNull())
 
 	// test default
-	d := 0
+	var d float32 = 0
 	obj.SetAltRootUnID(d)
 	assert.EqualValues(t, d, obj.AltRootUnID(), "set default")
 

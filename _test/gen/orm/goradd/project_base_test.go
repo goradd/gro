@@ -134,7 +134,7 @@ func TestProject_SetID(t *testing.T) {
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	d := query.TempAutoPrimaryKey()
+	var d query.AutoPrimaryKey = query.TempAutoPrimaryKey()
 	obj.SetID(d)
 	assert.EqualValues(t, d, obj.ID(), "set default")
 
@@ -149,7 +149,7 @@ func TestProject_SetNum(t *testing.T) {
 	assert.Equal(t, val, obj.Num())
 
 	// test default
-	d := 0
+	var d int = 0
 	obj.SetNum(d)
 	assert.EqualValues(t, d, obj.Num(), "set default")
 
@@ -164,7 +164,7 @@ func TestProject_SetStatus(t *testing.T) {
 	assert.Equal(t, val, obj.Status())
 
 	// test default
-	d := ProjectStatus(0)
+	var d ProjectStatus = ProjectStatus(0)
 	obj.SetStatus(d)
 	assert.EqualValues(t, d, obj.Status(), "set default")
 
@@ -179,7 +179,7 @@ func TestProject_SetName(t *testing.T) {
 	assert.Equal(t, val, obj.Name())
 
 	// test default
-	d := ""
+	var d string = ""
 	obj.SetName(d)
 	assert.EqualValues(t, d, obj.Name(), "set default")
 
@@ -205,7 +205,7 @@ func TestProject_SetDescription(t *testing.T) {
 	assert.True(t, obj.DescriptionIsNull())
 
 	// test default
-	d := ""
+	var d string = ""
 	obj.SetDescription(d)
 	assert.EqualValues(t, d, obj.Description(), "set default")
 
@@ -229,7 +229,7 @@ func TestProject_SetStartDate(t *testing.T) {
 	assert.True(t, obj.StartDateIsNull())
 
 	// test default
-	d := time.Time{}
+	var d time.Time = time.Time{}
 	obj.SetStartDate(d)
 	assert.EqualValues(t, d, obj.StartDate(), "set default")
 
@@ -253,7 +253,7 @@ func TestProject_SetEndDate(t *testing.T) {
 	assert.True(t, obj.EndDateIsNull())
 
 	// test default
-	d := time.Time{}
+	var d time.Time = time.Time{}
 	obj.SetEndDate(d)
 	assert.EqualValues(t, d, obj.EndDate(), "set default")
 
@@ -274,7 +274,7 @@ func TestProject_SetBudget(t *testing.T) {
 	assert.True(t, obj.BudgetIsNull())
 
 	// test default
-	d := ""
+	var d string = ""
 	obj.SetBudget(d)
 	assert.EqualValues(t, d, obj.Budget(), "set default")
 
@@ -295,7 +295,7 @@ func TestProject_SetSpent(t *testing.T) {
 	assert.True(t, obj.SpentIsNull())
 
 	// test default
-	d := ""
+	var d string = ""
 	obj.SetSpent(d)
 	assert.EqualValues(t, d, obj.Spent(), "set default")
 
@@ -316,7 +316,7 @@ func TestProject_SetManagerID(t *testing.T) {
 	assert.True(t, obj.ManagerIDIsNull())
 
 	// test default
-	d := query.AutoPrimaryKey{}
+	var d query.AutoPrimaryKey = query.AutoPrimaryKey{}
 	obj.SetManagerID(d)
 	assert.EqualValues(t, d, obj.ManagerID(), "set default")
 
@@ -337,7 +337,7 @@ func TestProject_SetParentID(t *testing.T) {
 	assert.True(t, obj.ParentIDIsNull())
 
 	// test default
-	d := query.AutoPrimaryKey{}
+	var d query.AutoPrimaryKey = query.AutoPrimaryKey{}
 	obj.SetParentID(d)
 	assert.EqualValues(t, d, obj.ParentID(), "set default")
 

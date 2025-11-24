@@ -90,7 +90,7 @@ func TestAddress_SetID(t *testing.T) {
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	d := query.TempAutoPrimaryKey()
+	var d query.AutoPrimaryKey = query.TempAutoPrimaryKey()
 	obj.SetID(d)
 	assert.EqualValues(t, d, obj.ID(), "set default")
 
@@ -105,7 +105,7 @@ func TestAddress_SetStreet(t *testing.T) {
 	assert.Equal(t, val, obj.Street())
 
 	// test default
-	d := ""
+	var d string = ""
 	obj.SetStreet(d)
 	assert.EqualValues(t, d, obj.Street(), "set default")
 
@@ -131,7 +131,7 @@ func TestAddress_SetCity(t *testing.T) {
 	assert.True(t, obj.CityIsNull())
 
 	// test default
-	d := "BOB"
+	var d string = "BOB"
 	obj.SetCity(d)
 	assert.EqualValues(t, d, obj.City(), "set default")
 
@@ -151,7 +151,7 @@ func TestAddress_SetPersonID(t *testing.T) {
 	assert.Equal(t, val, obj.PersonID())
 
 	// test default
-	d := query.AutoPrimaryKey{}
+	var d query.AutoPrimaryKey = query.AutoPrimaryKey{}
 	obj.SetPersonID(d)
 	assert.EqualValues(t, d, obj.PersonID(), "set default")
 

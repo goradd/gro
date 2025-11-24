@@ -80,7 +80,7 @@ func TestGift_SetNumber(t *testing.T) {
 	assert.Equal(t, val, obj.Number())
 
 	// test default
-	d := 0
+	var d int = 0
 	obj.SetNumber(d)
 	assert.EqualValues(t, d, obj.Number(), "set default")
 
@@ -95,7 +95,7 @@ func TestGift_SetName(t *testing.T) {
 	assert.Equal(t, val, obj.Name())
 
 	// test default
-	d := ""
+	var d string = ""
 	obj.SetName(d)
 	assert.EqualValues(t, d, obj.Name(), "set default")
 

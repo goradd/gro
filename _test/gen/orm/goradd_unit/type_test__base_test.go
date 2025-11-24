@@ -170,7 +170,7 @@ func TestTypeTest_SetID(t *testing.T) {
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	d := query.TempAutoPrimaryKey()
+	var d query.AutoPrimaryKey = query.TempAutoPrimaryKey()
 	obj.SetID(d)
 	assert.EqualValues(t, d, obj.ID(), "set default")
 
@@ -194,7 +194,7 @@ func TestTypeTest_SetDate(t *testing.T) {
 	assert.True(t, obj.DateIsNull())
 
 	// test default
-	d := time.Time{}
+	var d time.Time = time.Time{}
 	obj.SetDate(d)
 	assert.EqualValues(t, d, obj.Date(), "set default")
 
@@ -218,7 +218,7 @@ func TestTypeTest_SetTime(t *testing.T) {
 	assert.True(t, obj.TimeIsNull())
 
 	// test default
-	d := time.Time{}
+	var d time.Time = time.Time{}
 	obj.SetTime(d)
 	assert.EqualValues(t, d, obj.Time(), "set default")
 
@@ -239,7 +239,7 @@ func TestTypeTest_SetDateTime(t *testing.T) {
 	assert.True(t, obj.DateTimeIsNull())
 
 	// test default
-	d := time.Time{}
+	var d time.Time = time.Time{}
 	obj.SetDateTime(d)
 	assert.EqualValues(t, d, obj.DateTime(), "set default")
 
@@ -260,7 +260,7 @@ func TestTypeTest_SetTestInt(t *testing.T) {
 	assert.True(t, obj.TestIntIsNull())
 
 	// test default
-	d := 5
+	var d int = 5
 	obj.SetTestInt(d)
 	assert.EqualValues(t, d, obj.TestInt(), "set default")
 
@@ -275,7 +275,7 @@ func TestTypeTest_SetTestUnsigned(t *testing.T) {
 	assert.Equal(t, val, obj.TestUnsigned())
 
 	// test default
-	d := 0x0
+	var d uint = 0x0
 	obj.SetTestUnsigned(d)
 	assert.EqualValues(t, d, obj.TestUnsigned(), "set default")
 
@@ -290,7 +290,7 @@ func TestTypeTest_SetTestInt64(t *testing.T) {
 	assert.Equal(t, val, obj.TestInt64())
 
 	// test default
-	d := 0
+	var d int64 = 0
 	obj.SetTestInt64(d)
 	assert.EqualValues(t, d, obj.TestInt64(), "set default")
 
@@ -305,7 +305,7 @@ func TestTypeTest_SetTestUint64(t *testing.T) {
 	assert.Equal(t, val, obj.TestUint64())
 
 	// test default
-	d := 0x0
+	var d uint64 = 0x0
 	obj.SetTestUint64(d)
 	assert.EqualValues(t, d, obj.TestUint64(), "set default")
 
@@ -326,7 +326,7 @@ func TestTypeTest_SetTestFloat32(t *testing.T) {
 	assert.True(t, obj.TestFloat32IsNull())
 
 	// test default
-	d := 0
+	var d float32 = 0
 	obj.SetTestFloat32(d)
 	assert.EqualValues(t, d, obj.TestFloat32(), "set default")
 
@@ -341,7 +341,7 @@ func TestTypeTest_SetTestFloat64(t *testing.T) {
 	assert.Equal(t, val, obj.TestFloat64())
 
 	// test default
-	d := 0
+	var d float64 = 0
 	obj.SetTestFloat64(d)
 	assert.EqualValues(t, d, obj.TestFloat64(), "set default")
 
@@ -356,7 +356,7 @@ func TestTypeTest_SetTestNumeric(t *testing.T) {
 	assert.Equal(t, val, obj.TestNumeric())
 
 	// test default
-	d := ""
+	var d string = ""
 	obj.SetTestNumeric(d)
 	assert.EqualValues(t, d, obj.TestNumeric(), "set default")
 
@@ -371,7 +371,7 @@ func TestTypeTest_SetTestBool(t *testing.T) {
 	assert.Equal(t, val, obj.TestBool())
 
 	// test default
-	d := true
+	var d bool = true
 	obj.SetTestBool(d)
 	assert.EqualValues(t, d, obj.TestBool(), "set default")
 
@@ -386,7 +386,7 @@ func TestTypeTest_SetTestUnlimitedString(t *testing.T) {
 	assert.Equal(t, val, obj.TestUnlimitedString())
 
 	// test default
-	d := ""
+	var d string = ""
 	obj.SetTestUnlimitedString(d)
 	assert.EqualValues(t, d, obj.TestUnlimitedString(), "set default")
 
@@ -401,7 +401,7 @@ func TestTypeTest_SetTestLimitedString(t *testing.T) {
 	assert.Equal(t, val, obj.TestLimitedString())
 
 	// test default
-	d := ""
+	var d string = ""
 	obj.SetTestLimitedString(d)
 	assert.EqualValues(t, d, obj.TestLimitedString(), "set default")
 
@@ -421,7 +421,7 @@ func TestTypeTest_SetTestLongstring(t *testing.T) {
 	assert.Equal(t, val, obj.TestLongstring())
 
 	// test default
-	d := ""
+	var d string = ""
 	obj.SetTestLongstring(d)
 	assert.EqualValues(t, d, obj.TestLongstring(), "set default")
 
@@ -436,7 +436,7 @@ func TestTypeTest_SetTestUnlimitedBytes(t *testing.T) {
 	assert.Equal(t, val, obj.TestUnlimitedBytes())
 
 	// test default
-	d := []byte{}
+	var d []byte = []byte{}
 	obj.SetTestUnlimitedBytes(d)
 	assert.EqualValues(t, d, obj.TestUnlimitedBytes(), "set default")
 
@@ -451,7 +451,7 @@ func TestTypeTest_SetTestLimitedBytes(t *testing.T) {
 	assert.Equal(t, val, obj.TestLimitedBytes())
 
 	// test default
-	d := []byte{}
+	var d []byte = []byte{}
 	obj.SetTestLimitedBytes(d)
 	assert.EqualValues(t, d, obj.TestLimitedBytes(), "set default")
 
@@ -471,7 +471,7 @@ func TestTypeTest_SetTypeLongBytes(t *testing.T) {
 	assert.Equal(t, val, obj.TypeLongBytes())
 
 	// test default
-	d := []byte{}
+	var d []byte = []byte{}
 	obj.SetTypeLongBytes(d)
 	assert.EqualValues(t, d, obj.TypeLongBytes(), "set default")
 

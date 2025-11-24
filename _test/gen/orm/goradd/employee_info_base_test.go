@@ -85,7 +85,7 @@ func TestEmployeeInfo_SetID(t *testing.T) {
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	d := query.TempAutoPrimaryKey()
+	var d query.AutoPrimaryKey = query.TempAutoPrimaryKey()
 	obj.SetID(d)
 	assert.EqualValues(t, d, obj.ID(), "set default")
 
@@ -100,7 +100,7 @@ func TestEmployeeInfo_SetEmployeeNumber(t *testing.T) {
 	assert.Equal(t, val, obj.EmployeeNumber())
 
 	// test default
-	d := 0
+	var d int = 0
 	obj.SetEmployeeNumber(d)
 	assert.EqualValues(t, d, obj.EmployeeNumber(), "set default")
 
@@ -115,7 +115,7 @@ func TestEmployeeInfo_SetPersonID(t *testing.T) {
 	assert.Equal(t, val, obj.PersonID())
 
 	// test default
-	d := query.AutoPrimaryKey{}
+	var d query.AutoPrimaryKey = query.AutoPrimaryKey{}
 	obj.SetPersonID(d)
 	assert.EqualValues(t, d, obj.PersonID(), "set default")
 

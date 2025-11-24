@@ -89,7 +89,7 @@ func TestPersonWithLock_SetID(t *testing.T) {
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	d := query.TempAutoPrimaryKey()
+	var d query.AutoPrimaryKey = query.TempAutoPrimaryKey()
 	obj.SetID(d)
 	assert.EqualValues(t, d, obj.ID(), "set default")
 
@@ -104,7 +104,7 @@ func TestPersonWithLock_SetFirstName(t *testing.T) {
 	assert.Equal(t, val, obj.FirstName())
 
 	// test default
-	d := ""
+	var d string = ""
 	obj.SetFirstName(d)
 	assert.EqualValues(t, d, obj.FirstName(), "set default")
 
@@ -124,7 +124,7 @@ func TestPersonWithLock_SetLastName(t *testing.T) {
 	assert.Equal(t, val, obj.LastName())
 
 	// test default
-	d := ""
+	var d string = ""
 	obj.SetLastName(d)
 	assert.EqualValues(t, d, obj.LastName(), "set default")
 

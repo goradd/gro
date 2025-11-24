@@ -85,7 +85,7 @@ func TestMilestone_SetID(t *testing.T) {
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	d := query.TempAutoPrimaryKey()
+	var d query.AutoPrimaryKey = query.TempAutoPrimaryKey()
 	obj.SetID(d)
 	assert.EqualValues(t, d, obj.ID(), "set default")
 
@@ -100,7 +100,7 @@ func TestMilestone_SetName(t *testing.T) {
 	assert.Equal(t, val, obj.Name())
 
 	// test default
-	d := ""
+	var d string = ""
 	obj.SetName(d)
 	assert.EqualValues(t, d, obj.Name(), "set default")
 
@@ -120,7 +120,7 @@ func TestMilestone_SetProjectID(t *testing.T) {
 	assert.Equal(t, val, obj.ProjectID())
 
 	// test default
-	d := query.AutoPrimaryKey{}
+	var d query.AutoPrimaryKey = query.AutoPrimaryKey{}
 	obj.SetProjectID(d)
 	assert.EqualValues(t, d, obj.ProjectID(), "set default")
 

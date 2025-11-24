@@ -90,7 +90,7 @@ func TestLogin_SetID(t *testing.T) {
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	d := query.TempAutoPrimaryKey()
+	var d query.AutoPrimaryKey = query.TempAutoPrimaryKey()
 	obj.SetID(d)
 	assert.EqualValues(t, d, obj.ID(), "set default")
 
@@ -105,7 +105,7 @@ func TestLogin_SetUsername(t *testing.T) {
 	assert.Equal(t, val, obj.Username())
 
 	// test default
-	d := ""
+	var d string = ""
 	obj.SetUsername(d)
 	assert.EqualValues(t, d, obj.Username(), "set default")
 
@@ -131,7 +131,7 @@ func TestLogin_SetPassword(t *testing.T) {
 	assert.True(t, obj.PasswordIsNull())
 
 	// test default
-	d := ""
+	var d string = ""
 	obj.SetPassword(d)
 	assert.EqualValues(t, d, obj.Password(), "set default")
 
@@ -151,7 +151,7 @@ func TestLogin_SetIsEnabled(t *testing.T) {
 	assert.Equal(t, val, obj.IsEnabled())
 
 	// test default
-	d := true
+	var d bool = true
 	obj.SetIsEnabled(d)
 	assert.EqualValues(t, d, obj.IsEnabled(), "set default")
 
@@ -172,7 +172,7 @@ func TestLogin_SetPersonID(t *testing.T) {
 	assert.True(t, obj.PersonIDIsNull())
 
 	// test default
-	d := query.AutoPrimaryKey{}
+	var d query.AutoPrimaryKey = query.AutoPrimaryKey{}
 	obj.SetPersonID(d)
 	assert.EqualValues(t, d, obj.PersonID(), "set default")
 
