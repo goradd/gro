@@ -1812,6 +1812,20 @@ func (o *multiParentBase) UnmarshalStringMap(m map[string]interface{}) (err erro
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
+				if u, ok := Database().(db.AutoPrimaryKeyJsonUnmarshaller); ok {
+					u.AutoPrimaryKeyJsonUnmarshal(v)
+				} else {
+					switch n := v.(type) {
+					case json.Number:
+						n2, err := n.Int64()
+						if err != nil {
+							return err
+						}
+						o.SetID(query.NewAutoPrimaryKey(n2))
+					default:
+						o.SetID(query.NewAutoPrimaryKey(v))
+					}
+				}
 			}
 		case "name":
 			{
@@ -1837,6 +1851,20 @@ func (o *multiParentBase) UnmarshalStringMap(m map[string]interface{}) (err erro
 					continue // importing the foreign key will remove the object
 				}
 
+				if u, ok := Database().(db.AutoPrimaryKeyJsonUnmarshaller); ok {
+					u.AutoPrimaryKeyJsonUnmarshal(v)
+				} else {
+					switch n := v.(type) {
+					case json.Number:
+						n2, err := n.Int64()
+						if err != nil {
+							return err
+						}
+						o.SetParent1ID(query.NewAutoPrimaryKey(n2))
+					default:
+						o.SetParent1ID(query.NewAutoPrimaryKey(v))
+					}
+				}
 			}
 		case "parent2ID":
 			{
@@ -1849,6 +1877,20 @@ func (o *multiParentBase) UnmarshalStringMap(m map[string]interface{}) (err erro
 					continue // importing the foreign key will remove the object
 				}
 
+				if u, ok := Database().(db.AutoPrimaryKeyJsonUnmarshaller); ok {
+					u.AutoPrimaryKeyJsonUnmarshal(v)
+				} else {
+					switch n := v.(type) {
+					case json.Number:
+						n2, err := n.Int64()
+						if err != nil {
+							return err
+						}
+						o.SetParent2ID(query.NewAutoPrimaryKey(n2))
+					default:
+						o.SetParent2ID(query.NewAutoPrimaryKey(v))
+					}
+				}
 			}
 
 		case "parent1":

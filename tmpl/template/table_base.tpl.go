@@ -14017,6 +14017,39 @@ func (o *`); err != nil {
 		} else {
 
 			switch col.ReceiverType {
+			case query.ColTypeAutoPrimaryKey:
+
+				if _, err = io.WriteString(_w, `            if u,ok := Database().(db.AutoPrimaryKeyJsonUnmarshaller); ok {
+                u.AutoPrimaryKeyJsonUnmarshal(v)
+            } else {
+                switch n := v.(type) {
+                case json.Number:
+                    n2,err := n.Int64()
+                    if err != nil {return err}
+                    o.Set`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(query.NewAutoPrimaryKey(n2))
+                default:
+                    o.Set`); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, col.Identifier); err != nil {
+					return
+				}
+
+				if _, err = io.WriteString(_w, `(query.NewAutoPrimaryKey(v))
+                }
+            }
+`); err != nil {
+					return
+				}
 
 			case query.ColTypeInteger:
 

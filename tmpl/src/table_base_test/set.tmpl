@@ -13,7 +13,7 @@ func Test{{= table.Identifier }}_Set{{= col.Identifier }}(t *testing.T) {
     obj.Set{{= col.Identifier }}(val)
 {{else}}
 {{if col.IsAutoPK() }}
-    val := 	query.GeneratedAutoPrimaryKey(test.RandomNumberString())
+    val := 	query.NewAutoPrimaryKey(test.RandomNumberString())
 {{elseif col.SchemaSubType == schema.ColSubTypeNumeric }}
     val := 	test.RandomDecimal({{u col.DecimalPrecision()}}, {{u col.DecimalScale()}} )
 {{else}}

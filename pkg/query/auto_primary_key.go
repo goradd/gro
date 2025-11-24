@@ -2,6 +2,7 @@ package query
 
 import (
 	"bytes"
+	"database/sql/driver"
 	"encoding/gob"
 	"encoding/json"
 	"sync/atomic"
@@ -94,18 +95,18 @@ func (a *AutoPrimaryKey) UnmarshalBinary(b []byte) error {
 	return nil
 }
 
+// MarshalJSON exports the underlying value as JSON.
+// There is no matching UnmarshalJSON since some database implementations will need to do
+// a special conversion from what gets marshalled.
 func (a AutoPrimaryKey) MarshalJSON() ([]byte, error) {
 	return json.Marshal(a.val)
 }
 
-func (a *AutoPrimaryKey) UnmarshalJSON(b []byte) error {
-	err := json.Unmarshal(b, &a.val)
-	if err != nil {
-		if f, ok := a.val.(float64); !ok {
-			a.val = int64(f)
-		}
-	}
-	return err
+// Value returns the value of the content as a primitive value suitable for use in a SQL
+// clause. This satisfies the Valuer interface found in the standard Go SQL driver base,
+// making it possible to use an AutoPrimaryKey as an argument in any SQL statement.
+func (a AutoPrimaryKey) Value() (driver.Value, error) {
+	return a.val, nil
 }
 
 // TemporaryPrimaryKey returns an atomically unique negative value to be used as a

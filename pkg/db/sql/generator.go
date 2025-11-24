@@ -660,10 +660,12 @@ func generateWhereClause(db DbI, where map[string]any, connectWithOr bool, argsI
 // sqlArg converts a non-standard SQL type into a standard SQL type for use as an argument in
 // a SQL query. Standard types are returned unchanged.
 func sqlArg(db DbI, v any) any {
-	switch v2 := v.(type) {
-	case AutoPrimaryKey:
-		return v2.Val()
-	default:
-		return v
-	}
+	return v
+	/*
+		switch v2 := v.(type) {
+		default:
+			return v
+		}
+
+	*/
 }

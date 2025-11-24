@@ -1027,6 +1027,20 @@ func (o *milestoneBase) UnmarshalStringMap(m map[string]interface{}) (err error)
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
+				if u, ok := Database().(db.AutoPrimaryKeyJsonUnmarshaller); ok {
+					u.AutoPrimaryKeyJsonUnmarshal(v)
+				} else {
+					switch n := v.(type) {
+					case json.Number:
+						n2, err := n.Int64()
+						if err != nil {
+							return err
+						}
+						o.SetID(query.NewAutoPrimaryKey(n2))
+					default:
+						o.SetID(query.NewAutoPrimaryKey(v))
+					}
+				}
 			}
 		case "name":
 			{
@@ -1050,6 +1064,20 @@ func (o *milestoneBase) UnmarshalStringMap(m map[string]interface{}) (err error)
 					continue // importing the foreign key will remove the object
 				}
 
+				if u, ok := Database().(db.AutoPrimaryKeyJsonUnmarshaller); ok {
+					u.AutoPrimaryKeyJsonUnmarshal(v)
+				} else {
+					switch n := v.(type) {
+					case json.Number:
+						n2, err := n.Int64()
+						if err != nil {
+							return err
+						}
+						o.SetProjectID(query.NewAutoPrimaryKey(n2))
+					default:
+						o.SetProjectID(query.NewAutoPrimaryKey(v))
+					}
+				}
 			}
 
 		case "project":

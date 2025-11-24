@@ -29,6 +29,13 @@ type SchemaRebuilder interface {
 	CreateSchema(ctx context.Context, s schema.Database) error
 }
 
+// AutoPrimaryKeyJsonUnmarshaller is the interface for database implementations that need to
+// specially handle the process of unmarshalling a json value for an AutoPrimaryKey.
+// For example, MongoDB exports this as a hex string, but cannot import that without a helper.
+type AutoPrimaryKeyJsonUnmarshaller interface {
+	AutoPrimaryKeyJsonUnmarshal(any) AutoPrimaryKey
+}
+
 // DatabaseI is the interface that describes the behaviors required for a database implementation.
 //
 // Time values are converted to whatever time format the database prefers.

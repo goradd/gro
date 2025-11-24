@@ -2958,6 +2958,20 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					return fmt.Errorf("field %s cannot be null", k)
 				}
 
+				if u, ok := Database().(db.AutoPrimaryKeyJsonUnmarshaller); ok {
+					u.AutoPrimaryKeyJsonUnmarshal(v)
+				} else {
+					switch n := v.(type) {
+					case json.Number:
+						n2, err := n.Int64()
+						if err != nil {
+							return err
+						}
+						o.SetID(query.NewAutoPrimaryKey(n2))
+					default:
+						o.SetID(query.NewAutoPrimaryKey(v))
+					}
+				}
 			}
 		case "num":
 			{
@@ -3116,6 +3130,20 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					continue // importing the foreign key will remove the object
 				}
 
+				if u, ok := Database().(db.AutoPrimaryKeyJsonUnmarshaller); ok {
+					u.AutoPrimaryKeyJsonUnmarshal(v)
+				} else {
+					switch n := v.(type) {
+					case json.Number:
+						n2, err := n.Int64()
+						if err != nil {
+							return err
+						}
+						o.SetManagerID(query.NewAutoPrimaryKey(n2))
+					default:
+						o.SetManagerID(query.NewAutoPrimaryKey(v))
+					}
+				}
 			}
 		case "parentID":
 			{
@@ -3128,6 +3156,20 @@ func (o *projectBase) UnmarshalStringMap(m map[string]interface{}) (err error) {
 					continue // importing the foreign key will remove the object
 				}
 
+				if u, ok := Database().(db.AutoPrimaryKeyJsonUnmarshaller); ok {
+					u.AutoPrimaryKeyJsonUnmarshal(v)
+				} else {
+					switch n := v.(type) {
+					case json.Number:
+						n2, err := n.Int64()
+						if err != nil {
+							return err
+						}
+						o.SetParentID(query.NewAutoPrimaryKey(n2))
+					default:
+						o.SetParentID(query.NewAutoPrimaryKey(v))
+					}
+				}
 			}
 
 		case "manager":
