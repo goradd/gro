@@ -80,16 +80,28 @@ func (a AutoPrimaryKey) MarshalBinary() ([]byte, error) {
 	var b bytes.Buffer
 
 	enc := gob.NewEncoder(&b)
-	if err := enc.Encode(a.val); err != nil {
+	if err := enc.Encode(a.val == nil); err != nil {
 		return nil, err
+	}
+	if a.val != nil {
+		if err := enc.Encode(&a.val); err != nil {
+			return nil, err
+		}
 	}
 
 	return b.Bytes(), nil
 }
 
 func (a *AutoPrimaryKey) UnmarshalBinary(b []byte) error {
+	var isNil bool
+
 	dec := gob.NewDecoder(bytes.NewReader(b))
-	if err := dec.Decode(&a.val); err != nil {
+	if err := dec.Decode(&isNil); err != nil {
+		return err
+	}
+	if isNil {
+		a.val = nil
+	} else if err := dec.Decode(&a.val); err != nil {
 		return err
 	}
 	return nil
