@@ -203,6 +203,7 @@ func TestSaveAndDelete(t *testing.T) {
 	person := goradd.NewPerson()
 	person.SetFirstName("Test1")
 	person.SetLastName("Last1")
+	person.SetID("101")
 	person.Save(ctx)
 
 	people, err := goradd.QueryPeople(ctx).

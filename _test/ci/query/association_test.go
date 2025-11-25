@@ -2,12 +2,13 @@ package query
 
 import (
 	"context"
+	"strconv"
+	"testing"
+
 	"github.com/goradd/gro/_test/gen/orm/goradd"
 	"github.com/goradd/gro/_test/gen/orm/goradd/node"
 	"github.com/goradd/gro/pkg/op"
 	"github.com/stretchr/testify/assert"
-	"strconv"
-	"testing"
 )
 
 func TestManyMany(t *testing.T) {
@@ -156,6 +157,7 @@ func TestAssociationCalculation(t *testing.T) {
 func TestAssociationByPrimaryKeys(t *testing.T) {
 	ctx := context.Background()
 	person := goradd.NewPerson()
+	person.SetID("100")
 	person.SetFirstName("Fox")
 	person.SetLastName("In Box")
 	person.SetProjectsByID("1", "2", "3")

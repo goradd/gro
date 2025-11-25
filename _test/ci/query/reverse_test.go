@@ -2,12 +2,13 @@ package query
 
 import (
 	"context"
+	"testing"
+
 	"github.com/goradd/gro/_test/gen/orm/goradd"
 	"github.com/goradd/gro/_test/gen/orm/goradd/node"
 	"github.com/goradd/gro/pkg/op"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestReverseReference(t *testing.T) {
@@ -113,16 +114,19 @@ func TestReverseUniqueInsert(t *testing.T) {
 
 	// Test insert
 	person := goradd.NewPerson()
+	person.SetID("106")
 	person.SetFirstName("Sam")
 	person.SetLastName("I Am")
 
 	// Not null reverse unique
 	empInfo := goradd.NewEmployeeInfo()
+	empInfo.SetID("107")
 	empInfo.SetEmployeeNumber(55)
 	person.SetEmployeeInfo(empInfo)
 
 	// Nullable reverse unique
 	login := goradd.NewLogin()
+	login.SetID("105")
 	login.SetUsername("sammy")
 	person.SetLogin(login)
 
@@ -142,6 +146,7 @@ func TestReverseUniqueInsert(t *testing.T) {
 	assert.Equal(t, person.ID(), login.PersonID())
 
 	person2 := goradd.NewPerson()
+	person2.SetID("109")
 	person2.SetFirstName("Yertle")
 	person2.SetLastName("The Turtle")
 	person2.SetLogin(person.Login())
@@ -176,14 +181,17 @@ func TestReverseManyNotNullInsert(t *testing.T) {
 	ctx := context.Background()
 	// Test insert
 	person := goradd.NewPerson()
+	person.SetID("110")
 	person.SetFirstName("Sam")
 	person.SetLastName("I Am")
 
 	addr1 := goradd.NewAddress()
+	addr1.SetID("111")
 	addr1.SetCity("Here")
 	addr1.SetStreet("There")
 
 	addr2 := goradd.NewAddress()
+	addr2.SetID("112")
 	addr2.SetCity("Near")
 	addr2.SetStreet("Far")
 
@@ -221,11 +229,13 @@ func TestReverseManyNullInsertNewObject(t *testing.T) {
 	ctx := context.Background()
 	// Test insert
 	project := goradd.NewProject()
+	project.SetID("200")
 	project.SetName("Big project")
 	project.SetNum(100)
 	project.SetStatus(goradd.ProjectStatusOpen)
 
 	person := goradd.NewPerson()
+	person.SetID("201")
 	person.SetFirstName("Cat")
 	person.SetLastName("In the Hat")
 

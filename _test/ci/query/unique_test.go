@@ -21,6 +21,7 @@ func TestUniquePrimaryKey(t *testing.T) {
 func TestUniqueValue(t *testing.T) {
 	ctx := context.Background()
 	login := goradd.NewLogin()
+	login.SetID("300")
 	login.SetUsername("system")
 	err := login.Save(ctx)
 	assert.Error(t, err)

@@ -51,12 +51,15 @@ func TestReferenceUpdate(t *testing.T) {
 
 	// Create a newly linked object
 	addr := goradd.NewAddress()
+	addr.SetID("102")
 	addr.SetCity("Panama City")
 	addr.SetStreet("1 El Camino")
 	addr.SetPersonID("1")
+
 	assert.NoError(t, addr.Save(ctx))
 	defer addr.Delete(ctx)
 	person := goradd.NewPerson()
+	person.SetID("103")
 	person.SetFirstName("Jorge")
 	person.SetLastName("Gonzales")
 	addr.SetPerson(person)
