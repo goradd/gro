@@ -12,7 +12,6 @@ import (
 
 	"github.com/goradd/gro/_test/gen/orm/goradd/node"
 	"github.com/goradd/gro/pkg/op"
-	"github.com/goradd/gro/pkg/query"
 	"github.com/goradd/gro/pkg/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,6 +22,8 @@ import (
 func createMinimalSamplePerson() *Person {
 	obj := NewPerson()
 	updateMinimalSamplePerson(obj)
+
+	obj.SetID(test.RandomValue[string](0))
 
 	return obj
 }
@@ -42,6 +43,7 @@ func updateMinimalSamplePerson(obj *Person) {
 // for testing that includes references to minimal objects.
 func createMaximalSamplePerson(ctx context.Context) *Person {
 	obj := NewPerson()
+	obj.SetID(test.RandomValue[string](0))
 	updateMaximalSamplePerson(ctx, obj)
 	return obj
 }
@@ -122,12 +124,12 @@ func TestPerson_SetID(t *testing.T) {
 	obj := NewPerson()
 
 	assert.True(t, obj.IsNew())
-	val := query.NewAutoPrimaryKey(test.RandomNumberString())
+	val := test.RandomValue[string](0)
 	obj.SetID(val)
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	var d query.AutoPrimaryKey = query.TempAutoPrimaryKey()
+	var d string = ""
 	obj.SetID(d)
 	assert.EqualValues(t, d, obj.ID(), "set default")
 
@@ -199,6 +201,7 @@ func TestPerson_Copy(t *testing.T) {
 
 	obj2 := obj.Copy()
 
+	assert.Equal(t, obj.ID(), obj2.ID())
 	assert.Equal(t, obj.FirstName(), obj2.FirstName())
 	assert.Equal(t, obj.LastName(), obj2.LastName())
 	assert.Equal(t, obj.PersonType(), obj2.PersonType())
@@ -254,6 +257,10 @@ func TestPerson_InsertPanics(t *testing.T) {
 	_ = obj
 	ctx := context.Background()
 	_ = ctx
+
+	obj.idIsLoaded = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.idIsLoaded = true
 
 	obj.firstNameIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
@@ -403,13 +410,11 @@ func TestPerson_ReferenceUpdateOldObjects(t *testing.T) {
 func TestPerson_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewPerson()
 
-	assert.True(t, obj.ID().IsTemp())
+	assert.Zero(t, obj.ID())
 }
 
 func TestPerson_Getters(t *testing.T) {
 	obj := createMinimalSamplePerson()
-
-	assert.True(t, obj.ID().IsTemp())
 
 	ctx := context.Background()
 	require.NoError(t, obj.Save(ctx))
@@ -420,6 +425,7 @@ func TestPerson_Getters(t *testing.T) {
 
 	obj2, _ := LoadPerson(ctx, obj.PrimaryKey(),
 		node.Person().ID())
+	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
 
 	assert.Equal(t, obj.ID(), obj.Get(PersonIDField))
 	assert.Equal(t, obj.FirstName(), obj.Get(PersonFirstNameField))

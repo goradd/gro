@@ -106,8 +106,8 @@ func (n milestoneTable) ID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"id",
 		"id",
-		query.ColTypeAutoPrimaryKey,
-		schema.ColTypeAutoPrimaryKey,
+		query.ColTypeString,
+		schema.ColTypeString,
 		schema.ColSubTypeNone,
 		true,
 		n,
@@ -144,7 +144,7 @@ func (n milestoneTable) ProjectID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"project_id",
 		"projectID",
-		query.ColTypeAutoPrimaryKey,
+		query.ColTypeString,
 		schema.ColTypeString,
 		schema.ColSubTypeNone,
 		false,

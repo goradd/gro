@@ -8,8 +8,6 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
-
-	"github.com/goradd/gro/pkg/query"
 )
 
 // Address represents an item in the address table in the database.
@@ -117,7 +115,7 @@ func getAddressUpdateFields(o *addressBase) (fields map[string]interface{}) {
 // Returns an error only if there was a problem with the database during the delete.
 // If the record was not found, no error will be returned.
 // doc: type=Address
-func DeleteAddress(ctx context.Context, pk query.AutoPrimaryKey) error {
+func DeleteAddress(ctx context.Context, pk string) error {
 	return deleteAddress(ctx, pk)
 }
 

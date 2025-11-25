@@ -12,7 +12,6 @@ import (
 
 	"github.com/goradd/gro/_test/gen/orm/goradd/node"
 	"github.com/goradd/gro/pkg/op"
-	"github.com/goradd/gro/pkg/query"
 	"github.com/goradd/gro/pkg/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -23,6 +22,8 @@ import (
 func createMinimalSampleProject() *Project {
 	obj := NewProject()
 	updateMinimalSampleProject(obj)
+
+	obj.SetID(test.RandomValue[string](0))
 
 	return obj
 }
@@ -52,6 +53,7 @@ func updateMinimalSampleProject(obj *Project) {
 // for testing that includes references to minimal objects.
 func createMaximalSampleProject(ctx context.Context) *Project {
 	obj := NewProject()
+	obj.SetID(test.RandomValue[string](0))
 	updateMaximalSampleProject(ctx, obj)
 	return obj
 }
@@ -129,12 +131,12 @@ func TestProject_SetID(t *testing.T) {
 	obj := NewProject()
 
 	assert.True(t, obj.IsNew())
-	val := query.NewAutoPrimaryKey(test.RandomNumberString())
+	val := test.RandomValue[string](0)
 	obj.SetID(val)
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	var d query.AutoPrimaryKey = query.TempAutoPrimaryKey()
+	var d string = ""
 	obj.SetID(d)
 	assert.EqualValues(t, d, obj.ID(), "set default")
 
@@ -305,18 +307,18 @@ func TestProject_SetManagerID(t *testing.T) {
 	obj := NewProject()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[query.AutoPrimaryKey](0)
+	val := test.RandomValue[string](0)
 	obj.SetManagerID(val)
 	assert.Equal(t, val, obj.ManagerID())
 	assert.False(t, obj.ManagerIDIsNull())
 
 	// Test NULL
 	obj.SetManagerIDToNull()
-	assert.EqualValues(t, query.AutoPrimaryKey{}, obj.ManagerID())
+	assert.EqualValues(t, "", obj.ManagerID())
 	assert.True(t, obj.ManagerIDIsNull())
 
 	// test default
-	var d query.AutoPrimaryKey = query.AutoPrimaryKey{}
+	var d string = ""
 	obj.SetManagerID(d)
 	assert.EqualValues(t, d, obj.ManagerID(), "set default")
 
@@ -326,18 +328,18 @@ func TestProject_SetParentID(t *testing.T) {
 	obj := NewProject()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[query.AutoPrimaryKey](0)
+	val := test.RandomValue[string](0)
 	obj.SetParentID(val)
 	assert.Equal(t, val, obj.ParentID())
 	assert.False(t, obj.ParentIDIsNull())
 
 	// Test NULL
 	obj.SetParentIDToNull()
-	assert.EqualValues(t, query.AutoPrimaryKey{}, obj.ParentID())
+	assert.EqualValues(t, "", obj.ParentID())
 	assert.True(t, obj.ParentIDIsNull())
 
 	// test default
-	var d query.AutoPrimaryKey = query.AutoPrimaryKey{}
+	var d string = ""
 	obj.SetParentID(d)
 	assert.EqualValues(t, d, obj.ParentID(), "set default")
 
@@ -348,6 +350,7 @@ func TestProject_Copy(t *testing.T) {
 
 	obj2 := obj.Copy()
 
+	assert.Equal(t, obj.ID(), obj2.ID())
 	assert.Equal(t, obj.Num(), obj2.Num())
 	assert.Equal(t, obj.Status(), obj2.Status())
 	assert.Equal(t, obj.Name(), obj2.Name())
@@ -445,6 +448,10 @@ func TestProject_InsertPanics(t *testing.T) {
 	obj.manager = nil
 	obj.parent = nil
 
+	obj.idIsLoaded = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.idIsLoaded = true
+
 	obj.numIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.numIsLoaded = true
@@ -488,12 +495,8 @@ func TestProject_ReferenceLoad(t *testing.T) {
 
 	// Test that referenced objects were saved and assigned ids
 	assert.NotNil(t, obj.Manager())
-	assert.False(t, obj.Manager().PrimaryKey().IsTemp())
-	assert.False(t, obj.Manager().PrimaryKey().IsZero())
 
 	assert.NotNil(t, obj.Parent())
-	assert.False(t, obj.Parent().PrimaryKey().IsTemp())
-	assert.False(t, obj.Parent().PrimaryKey().IsZero())
 
 	// Test lazy loading
 	obj2, err := LoadProject(ctx, obj.PrimaryKey())
@@ -617,13 +620,11 @@ func TestProject_ReferenceUpdateOldObjects(t *testing.T) {
 func TestProject_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewProject()
 
-	assert.True(t, obj.ID().IsTemp())
+	assert.Zero(t, obj.ID())
 }
 
 func TestProject_Getters(t *testing.T) {
 	obj := createMinimalSampleProject()
-
-	assert.True(t, obj.ID().IsTemp())
 
 	ctx := context.Background()
 	require.NoError(t, obj.Save(ctx))
@@ -634,6 +635,7 @@ func TestProject_Getters(t *testing.T) {
 
 	obj2, _ := LoadProject(ctx, obj.PrimaryKey(),
 		node.Project().ID())
+	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
 
 	assert.Equal(t, obj.ID(), obj.Get(ProjectIDField))
 	assert.Equal(t, obj.Num(), obj.Get(ProjectNumField))

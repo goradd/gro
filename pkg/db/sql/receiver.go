@@ -329,6 +329,12 @@ func (r SqlReceiver) DoubleI() interface{} {
 		return nil
 	}
 }
+func (r SqlReceiver) AutoPK() interface{} {
+	if r.R == nil {
+		return nil
+	}
+	return NewAutoPrimaryKey(r.R)
+}
 
 // TimeI returns the value as a time.Time value in UTC, or in the case of CURRENT_TIME, a string "now".
 func (r SqlReceiver) TimeI() interface{} {
@@ -390,7 +396,7 @@ func (r SqlReceiver) Unpack(typ ReceiverType) interface{} {
 	case ColTypeBool:
 		return r.BoolI()
 	case ColTypeAutoPrimaryKey:
-		return NewAutoPrimaryKey(r.R)
+		return r.AutoPK()
 	default:
 		return r.R
 	}

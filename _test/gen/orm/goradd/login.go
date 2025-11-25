@@ -8,8 +8,6 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
-
-	"github.com/goradd/gro/pkg/query"
 )
 
 // Login represents an item in the login table in the database.
@@ -117,7 +115,7 @@ func getLoginUpdateFields(o *loginBase) (fields map[string]interface{}) {
 // Returns an error only if there was a problem with the database during the delete.
 // If the record was not found, no error will be returned.
 // doc: type=Login
-func DeleteLogin(ctx context.Context, pk query.AutoPrimaryKey) error {
+func DeleteLogin(ctx context.Context, pk string) error {
 	return deleteLogin(ctx, pk)
 }
 

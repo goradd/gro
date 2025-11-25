@@ -26,7 +26,8 @@
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key"
+          "type": "string",
+          "index_level": "primary"
         },
         {
           "name": "first_name",
@@ -71,7 +72,8 @@
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key"
+          "type": "string",
+          "index_level": "primary"
         },
         {
           "name": "first_name",
@@ -102,7 +104,8 @@
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key"
+          "type": "string",
+          "index_level": "primary"
         },
         {
           "name": "num",
@@ -182,8 +185,8 @@
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key",
-          "size": 32
+          "type": "string",
+          "index_level": "primary"
         },
         {
           "name": "street",
@@ -209,8 +212,8 @@
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key",
-          "size": 32
+          "type": "string",
+          "index_level": "primary"
         },
         {
           "name": "employee_number",
@@ -230,8 +233,8 @@
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key",
-          "size": 32
+          "type": "string",
+          "index_level": "primary"
         },
         {
           "name": "username",
@@ -264,8 +267,8 @@
       "columns": [
         {
           "name": "id",
-          "type": "auto_primary_key",
-          "size": 32
+          "type": "string",
+          "index_level": "primary"
         },
         {
           "name": "name",

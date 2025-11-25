@@ -11,7 +11,6 @@ import (
 
 	"github.com/goradd/gro/_test/gen/orm/goradd/node"
 	"github.com/goradd/gro/pkg/op"
-	"github.com/goradd/gro/pkg/query"
 	"github.com/goradd/gro/pkg/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -22,6 +21,8 @@ import (
 func createMinimalSamplePersonWithLock() *PersonWithLock {
 	obj := NewPersonWithLock()
 	updateMinimalSamplePersonWithLock(obj)
+
+	obj.SetID(test.RandomValue[string](0))
 
 	return obj
 }
@@ -39,6 +40,7 @@ func updateMinimalSamplePersonWithLock(obj *PersonWithLock) {
 // for testing that includes references to minimal objects.
 func createMaximalSamplePersonWithLock(ctx context.Context) *PersonWithLock {
 	obj := NewPersonWithLock()
+	obj.SetID(test.RandomValue[string](0))
 	updateMaximalSamplePersonWithLock(ctx, obj)
 	return obj
 }
@@ -84,12 +86,12 @@ func TestPersonWithLock_SetID(t *testing.T) {
 	obj := NewPersonWithLock()
 
 	assert.True(t, obj.IsNew())
-	val := query.NewAutoPrimaryKey(test.RandomNumberString())
+	val := test.RandomValue[string](0)
 	obj.SetID(val)
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	var d query.AutoPrimaryKey = query.TempAutoPrimaryKey()
+	var d string = ""
 	obj.SetID(d)
 	assert.EqualValues(t, d, obj.ID(), "set default")
 
@@ -140,6 +142,7 @@ func TestPersonWithLock_Copy(t *testing.T) {
 
 	obj2 := obj.Copy()
 
+	assert.Equal(t, obj.ID(), obj2.ID())
 	assert.Equal(t, obj.FirstName(), obj2.FirstName())
 	assert.Equal(t, obj.LastName(), obj2.LastName())
 
@@ -186,6 +189,10 @@ func TestPersonWithLock_InsertPanics(t *testing.T) {
 	_ = obj
 	ctx := context.Background()
 	_ = ctx
+
+	obj.idIsLoaded = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.idIsLoaded = true
 
 	obj.firstNameIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
@@ -268,13 +275,11 @@ func TestPersonWithLock_ReferenceUpdateOldObjects(t *testing.T) {
 func TestPersonWithLock_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewPersonWithLock()
 
-	assert.True(t, obj.ID().IsTemp())
+	assert.Zero(t, obj.ID())
 }
 
 func TestPersonWithLock_Getters(t *testing.T) {
 	obj := createMinimalSamplePersonWithLock()
-
-	assert.True(t, obj.ID().IsTemp())
 
 	ctx := context.Background()
 	require.NoError(t, obj.Save(ctx))
@@ -285,6 +290,7 @@ func TestPersonWithLock_Getters(t *testing.T) {
 
 	obj2, _ := LoadPersonWithLock(ctx, obj.PrimaryKey(),
 		node.PersonWithLock().ID())
+	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
 
 	assert.Equal(t, obj.ID(), obj.Get(PersonWithLockIDField))
 	assert.Equal(t, obj.FirstName(), obj.Get(PersonWithLockFirstNameField))

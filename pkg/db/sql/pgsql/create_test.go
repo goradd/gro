@@ -137,20 +137,18 @@ func TestDB_CrudSampleSchema(t *testing.T) {
 	assert.NotEmpty(t, fields["id"])
 	assert.NoError(t, err)
 
-	var postId string
 	fields = map[string]interface{}{"title": "This", "user_id": fields["id"], "status_enum": 1}
 	err = d.Insert(ctx, "post", fields, "id")
-	assert.NotEmpty(t, postId)
 	require.NoError(t, err)
 
-	err = d.Update(ctx, "post", map[string]any{"id": postId}, map[string]any{"title": "That"}, "", 0)
+	err = d.Update(ctx, "post", map[string]any{"id": fields["id"]}, map[string]any{"title": "That"}, "", 0)
 	require.NoError(t, err)
 
 	var cursor query.CursorI
 	cursor, err = d.Query(ctx,
 		"post",
 		map[string]query.ReceiverType{"title": query.ColTypeString},
-		map[string]any{"id": postId},
+		map[string]any{"id": fields["id"]},
 		nil)
 	require.NoError(t, err)
 

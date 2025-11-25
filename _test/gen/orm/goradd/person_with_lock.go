@@ -8,8 +8,6 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
-
-	"github.com/goradd/gro/pkg/query"
 )
 
 // PersonWithLock represents an item in the person_with_lock table in the database.
@@ -117,7 +115,7 @@ func getPersonWithLockUpdateFields(o *personWithLockBase) (fields map[string]int
 // Returns an error only if there was a problem with the database during the delete.
 // If the record was not found, no error will be returned.
 // doc: type=PersonWithLock
-func DeletePersonWithLock(ctx context.Context, pk query.AutoPrimaryKey) error {
+func DeletePersonWithLock(ctx context.Context, pk string) error {
 	return deletePersonWithLock(ctx, pk)
 }
 

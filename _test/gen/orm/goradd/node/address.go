@@ -109,8 +109,8 @@ func (n addressTable) ID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"id",
 		"id",
-		query.ColTypeAutoPrimaryKey,
-		schema.ColTypeAutoPrimaryKey,
+		query.ColTypeString,
+		schema.ColTypeString,
 		schema.ColSubTypeNone,
 		true,
 		n,
@@ -166,7 +166,7 @@ func (n addressTable) PersonID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"person_id",
 		"personID",
-		query.ColTypeAutoPrimaryKey,
+		query.ColTypeString,
 		schema.ColTypeString,
 		schema.ColSubTypeNone,
 		false,

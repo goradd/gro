@@ -2,11 +2,12 @@ package sqlite
 
 import (
 	"context"
+	"testing"
+
 	"github.com/goradd/gro/pkg/query"
 	"github.com/goradd/gro/pkg/schema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestDB_CrudSampleSchema(t *testing.T) {
@@ -20,24 +21,24 @@ func TestDB_CrudSampleSchema(t *testing.T) {
 	err = d.CreateSchema(ctx, s1)
 
 	// insert, update, delete
-	var userId string
-	userId, err = d.Insert(ctx, "user", "id", map[string]interface{}{"name": "Bob"})
-	assert.NotEmpty(t, userId)
+	fields := map[string]interface{}{"name": "Bob"}
+	err = d.Insert(ctx, "user", fields, "id")
+	assert.NotEmpty(t, fields["id"])
 	assert.NoError(t, err)
 
-	var postId string
-	postId, err = d.Insert(ctx, "post", "id", map[string]interface{}{"title": "This", "user_id": userId, "status_enum": 1})
-	assert.NotEmpty(t, postId)
+	fields = map[string]interface{}{"title": "This", "user_id": fields["id"], "status_enum": 1}
+	err = d.Insert(ctx, "post", fields, "id")
+	assert.NotEmpty(t, fields["id"])
 	require.NoError(t, err)
 
-	err = d.Update(ctx, "post", map[string]any{"id": postId}, map[string]any{"title": "That"}, "", 0)
+	err = d.Update(ctx, "post", map[string]any{"id": fields["id"]}, map[string]any{"title": "That"}, "", 0)
 	require.NoError(t, err)
 
 	var cursor query.CursorI
 	cursor, err = d.Query(ctx,
 		"post",
 		map[string]query.ReceiverType{"title": query.ColTypeString},
-		map[string]any{"id": postId},
+		map[string]any{"id": fields["id"]},
 		nil)
 	require.NoError(t, err)
 

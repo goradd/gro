@@ -222,7 +222,7 @@ func (h *Base) CheckLock(ctx context.Context,
 
 // BuilderQuery performs a complex query using a query builder.
 // The data returned will depend on the command inside the builder.
-// Be sure when using BuilderCommandLoadCursor you close the returned cursor, probably with a defer command.
+// Be sure when using BuilderCommandLoadCursor you close the returned cursor, probably with a defer.
 func (h *Base) BuilderQuery(ctx context.Context, builder *Builder) (ret any, err error) {
 	joinTree := jointree.NewJoinTree(builder)
 	switch joinTree.Command {

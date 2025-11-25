@@ -155,8 +155,8 @@ func (n personTable) ID() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"id",
 		"id",
-		query.ColTypeAutoPrimaryKey,
-		schema.ColTypeAutoPrimaryKey,
+		query.ColTypeString,
+		schema.ColTypeString,
 		schema.ColSubTypeNone,
 		true,
 		n,

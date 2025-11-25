@@ -11,7 +11,6 @@ import (
 
 	"github.com/goradd/gro/_test/gen/orm/goradd/node"
 	"github.com/goradd/gro/pkg/op"
-	"github.com/goradd/gro/pkg/query"
 	"github.com/goradd/gro/pkg/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -22,6 +21,8 @@ import (
 func createMinimalSampleEmployeeInfo() *EmployeeInfo {
 	obj := NewEmployeeInfo()
 	updateMinimalSampleEmployeeInfo(obj)
+
+	obj.SetID(test.RandomValue[string](0))
 
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
 	// If the database is configured so that the referenced object points back here, either directly or through multiple
@@ -42,6 +43,7 @@ func updateMinimalSampleEmployeeInfo(obj *EmployeeInfo) {
 // for testing that includes references to minimal objects.
 func createMaximalSampleEmployeeInfo(ctx context.Context) *EmployeeInfo {
 	obj := NewEmployeeInfo()
+	obj.SetID(test.RandomValue[string](0))
 	updateMaximalSampleEmployeeInfo(ctx, obj)
 	return obj
 }
@@ -80,12 +82,12 @@ func TestEmployeeInfo_SetID(t *testing.T) {
 	obj := NewEmployeeInfo()
 
 	assert.True(t, obj.IsNew())
-	val := query.NewAutoPrimaryKey(test.RandomNumberString())
+	val := test.RandomValue[string](0)
 	obj.SetID(val)
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	var d query.AutoPrimaryKey = query.TempAutoPrimaryKey()
+	var d string = ""
 	obj.SetID(d)
 	assert.EqualValues(t, d, obj.ID(), "set default")
 
@@ -110,12 +112,12 @@ func TestEmployeeInfo_SetPersonID(t *testing.T) {
 	obj := NewEmployeeInfo()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[query.AutoPrimaryKey](0)
+	val := test.RandomValue[string](0)
 	obj.SetPersonID(val)
 	assert.Equal(t, val, obj.PersonID())
 
 	// test default
-	var d query.AutoPrimaryKey = query.AutoPrimaryKey{}
+	var d string = ""
 	obj.SetPersonID(d)
 	assert.EqualValues(t, d, obj.PersonID(), "set default")
 
@@ -126,6 +128,7 @@ func TestEmployeeInfo_Copy(t *testing.T) {
 
 	obj2 := obj.Copy()
 
+	assert.Equal(t, obj.ID(), obj2.ID())
 	assert.Equal(t, obj.EmployeeNumber(), obj2.EmployeeNumber())
 	assert.Equal(t, obj.PersonID(), obj2.PersonID())
 
@@ -165,6 +168,10 @@ func TestEmployeeInfo_InsertPanics(t *testing.T) {
 
 	obj.person = nil
 
+	obj.idIsLoaded = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.idIsLoaded = true
+
 	obj.employeeNumberIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.employeeNumberIsLoaded = true
@@ -197,8 +204,6 @@ func TestEmployeeInfo_ReferenceLoad(t *testing.T) {
 
 	// Test that referenced objects were saved and assigned ids
 	assert.NotNil(t, obj.Person())
-	assert.False(t, obj.Person().PrimaryKey().IsTemp())
-	assert.False(t, obj.Person().PrimaryKey().IsZero())
 
 	// Test lazy loading
 	obj2, err := LoadEmployeeInfo(ctx, obj.PrimaryKey())
@@ -268,13 +273,11 @@ func TestEmployeeInfo_ReferenceUpdateOldObjects(t *testing.T) {
 func TestEmployeeInfo_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewEmployeeInfo()
 
-	assert.True(t, obj.ID().IsTemp())
+	assert.Zero(t, obj.ID())
 }
 
 func TestEmployeeInfo_Getters(t *testing.T) {
 	obj := createMinimalSampleEmployeeInfo()
-
-	assert.True(t, obj.ID().IsTemp())
 
 	ctx := context.Background()
 	require.NoError(t, obj.Save(ctx))
@@ -285,6 +288,7 @@ func TestEmployeeInfo_Getters(t *testing.T) {
 
 	obj2, _ := LoadEmployeeInfo(ctx, obj.PrimaryKey(),
 		node.EmployeeInfo().ID())
+	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
 
 	assert.Equal(t, obj.ID(), obj.Get(EmployeeInfoIDField))
 	assert.Equal(t, obj.EmployeeNumber(), obj.Get(EmployeeInfoEmployeeNumberField))

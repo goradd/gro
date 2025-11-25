@@ -11,7 +11,6 @@ import (
 
 	"github.com/goradd/gro/_test/gen/orm/goradd/node"
 	"github.com/goradd/gro/pkg/op"
-	"github.com/goradd/gro/pkg/query"
 	"github.com/goradd/gro/pkg/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -22,6 +21,8 @@ import (
 func createMinimalSampleMilestone() *Milestone {
 	obj := NewMilestone()
 	updateMinimalSampleMilestone(obj)
+
+	obj.SetID(test.RandomValue[string](0))
 
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
 	// If the database is configured so that the referenced object points back here, either directly or through multiple
@@ -42,6 +43,7 @@ func updateMinimalSampleMilestone(obj *Milestone) {
 // for testing that includes references to minimal objects.
 func createMaximalSampleMilestone(ctx context.Context) *Milestone {
 	obj := NewMilestone()
+	obj.SetID(test.RandomValue[string](0))
 	updateMaximalSampleMilestone(ctx, obj)
 	return obj
 }
@@ -80,12 +82,12 @@ func TestMilestone_SetID(t *testing.T) {
 	obj := NewMilestone()
 
 	assert.True(t, obj.IsNew())
-	val := query.NewAutoPrimaryKey(test.RandomNumberString())
+	val := test.RandomValue[string](0)
 	obj.SetID(val)
 	assert.Equal(t, val, obj.ID())
 
 	// test default
-	var d query.AutoPrimaryKey = query.TempAutoPrimaryKey()
+	var d string = ""
 	obj.SetID(d)
 	assert.EqualValues(t, d, obj.ID(), "set default")
 
@@ -115,12 +117,12 @@ func TestMilestone_SetProjectID(t *testing.T) {
 	obj := NewMilestone()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[query.AutoPrimaryKey](0)
+	val := test.RandomValue[string](0)
 	obj.SetProjectID(val)
 	assert.Equal(t, val, obj.ProjectID())
 
 	// test default
-	var d query.AutoPrimaryKey = query.AutoPrimaryKey{}
+	var d string = ""
 	obj.SetProjectID(d)
 	assert.EqualValues(t, d, obj.ProjectID(), "set default")
 
@@ -131,6 +133,7 @@ func TestMilestone_Copy(t *testing.T) {
 
 	obj2 := obj.Copy()
 
+	assert.Equal(t, obj.ID(), obj2.ID())
 	assert.Equal(t, obj.Name(), obj2.Name())
 	assert.Equal(t, obj.ProjectID(), obj2.ProjectID())
 
@@ -170,6 +173,10 @@ func TestMilestone_InsertPanics(t *testing.T) {
 
 	obj.project = nil
 
+	obj.idIsLoaded = false
+	assert.Panics(t, func() { obj.Save(ctx) })
+	obj.idIsLoaded = true
+
 	obj.nameIsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.nameIsLoaded = true
@@ -202,8 +209,6 @@ func TestMilestone_ReferenceLoad(t *testing.T) {
 
 	// Test that referenced objects were saved and assigned ids
 	assert.NotNil(t, obj.Project())
-	assert.False(t, obj.Project().PrimaryKey().IsTemp())
-	assert.False(t, obj.Project().PrimaryKey().IsZero())
 
 	// Test lazy loading
 	obj2, err := LoadMilestone(ctx, obj.PrimaryKey())
@@ -273,13 +278,11 @@ func TestMilestone_ReferenceUpdateOldObjects(t *testing.T) {
 func TestMilestone_EmptyPrimaryKeyGetter(t *testing.T) {
 	obj := NewMilestone()
 
-	assert.True(t, obj.ID().IsTemp())
+	assert.Zero(t, obj.ID())
 }
 
 func TestMilestone_Getters(t *testing.T) {
 	obj := createMinimalSampleMilestone()
-
-	assert.True(t, obj.ID().IsTemp())
 
 	ctx := context.Background()
 	require.NoError(t, obj.Save(ctx))
@@ -290,6 +293,7 @@ func TestMilestone_Getters(t *testing.T) {
 
 	obj2, _ := LoadMilestone(ctx, obj.PrimaryKey(),
 		node.Milestone().ID())
+	assert.Equal(t, obj.PrimaryKey(), obj2.PrimaryKey())
 
 	assert.Equal(t, obj.ID(), obj.Get(MilestoneIDField))
 	assert.Equal(t, obj.Name(), obj.Get(MilestoneNameField))
