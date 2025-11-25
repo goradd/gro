@@ -794,7 +794,6 @@ func (m *DB) getColumnSchema(table mysqlTable,
 	if isAuto {
 		// Note that unsigned auto increment primary keys are not supported
 		columnSchema.Type = schema.ColTypeAutoPrimaryKey
-		columnSchema.Size = 0 // hide details of auto id generation from schema file. If int size is needed, it should go in DatabaseDefinition
 		// primary key index is implied, so does not need to be specified in the schema file.
 	} else {
 		columnSchema.IndexLevel = indexLevel

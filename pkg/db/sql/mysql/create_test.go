@@ -3,12 +3,13 @@ package mysql
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"testing"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/goradd/gro/pkg/schema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"reflect"
-	"testing"
 )
 
 const mysqlConnectionString = "root:12345@tcp(127.0.0.1:3306)/goradd_test?parseTime=true&charset=utf8mb4&loc=Local"
@@ -102,6 +103,7 @@ func sampleSchema() schema.Database {
 					{
 						Name: "id",
 						Type: schema.ColTypeAutoPrimaryKey,
+						Size: 32,
 					},
 					{
 						Name:       "name",
@@ -119,6 +121,7 @@ func sampleSchema() schema.Database {
 					{
 						Name: "id",
 						Type: schema.ColTypeAutoPrimaryKey,
+						Size: 32,
 					},
 					{
 						Name: "title",
@@ -185,6 +188,7 @@ func sampleSchemaWithCollation() schema.Database {
 					{
 						Name: "id",
 						Type: schema.ColTypeAutoPrimaryKey,
+						Size: 32,
 					},
 					{
 						Name:               "name",
@@ -216,6 +220,7 @@ func sampleSchemaTypes() schema.Database {
 					{
 						Name: "id",
 						Type: schema.ColTypeAutoPrimaryKey,
+						Size: 32,
 					},
 					{
 						Name:       "username",

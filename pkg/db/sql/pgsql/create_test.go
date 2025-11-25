@@ -3,13 +3,14 @@ package pgsql
 import (
 	"context"
 	"fmt"
+	"reflect"
+	"testing"
+
 	"github.com/google/go-cmp/cmp"
 	"github.com/goradd/gro/pkg/query"
 	"github.com/goradd/gro/pkg/schema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"reflect"
-	"testing"
 )
 
 const postgresConnectionString = "host=127.0.0.1 port=5432 user=root password=12345 dbname=goradd_test sslmode=disable"
@@ -94,19 +95,21 @@ func TestDB_AutoGen(t *testing.T) {
 	defer d.DestroySchema(ctx, s1)
 
 	// manual id
-	id, err := d.Insert(ctx, "test.user", "id", map[string]interface{}{
+	fields := map[string]interface{}{
 		"id":   1,
 		"name": "Bob",
-	})
-	assert.Equal(t, "1", id)
+	}
+	err = d.Insert(ctx, "test.user", fields, "id")
+	assert.Equal(t, 1, fields["id"])
 	assert.NoError(t, err)
 
 	// auto id
-	id, err = d.Insert(ctx, "test.user", "id", map[string]interface{}{
+	fields = map[string]interface{}{
 		"name": "Sue",
-	})
+	}
+	err = d.Insert(ctx, "test.user", fields, "id")
 	assert.NoError(t, err)
-	assert.Equal(t, "2", id)
+	assert.Equal(t, query.NewAutoPrimaryKey(int64(2)), fields["id"])
 }
 
 // zero out items that we will not be comparing
@@ -129,13 +132,14 @@ func TestDB_CrudSampleSchema(t *testing.T) {
 	err = d.CreateSchema(ctx, s1)
 
 	// insert, update, delete
-	var userId string
-	userId, err = d.Insert(ctx, "user", "id", map[string]interface{}{"name": "Bob"})
-	assert.NotEmpty(t, userId)
+	fields := map[string]interface{}{"name": "Bob"}
+	err = d.Insert(ctx, "user", fields, "id")
+	assert.NotEmpty(t, fields["id"])
 	assert.NoError(t, err)
 
 	var postId string
-	postId, err = d.Insert(ctx, "post", "id", map[string]interface{}{"title": "This", "user_id": userId, "status_enum": 1})
+	fields = map[string]interface{}{"title": "This", "user_id": fields["id"], "status_enum": 1}
+	err = d.Insert(ctx, "post", fields, "id")
 	assert.NotEmpty(t, postId)
 	require.NoError(t, err)
 

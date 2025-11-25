@@ -99,8 +99,7 @@ func (m *DB) buildColumnDef(col *schema.Column, isFkToAuto bool) (columnClause s
 	} else {
 		colType = sqlType(col.Type, col.Size, col.SubType)
 		if col.Type == schema.ColTypeAutoPrimaryKey {
-			//extraStr += "AUTO_INCREMENT"
-			extraStr += "DEFAULT (UUID_TO_BIN(UUID(), 1))"
+			extraStr += "AUTO_INCREMENT"
 		}
 	}
 
@@ -161,9 +160,8 @@ func (m *DB) buildReferenceDef(db *schema.Database, table *schema.Table, ref *sc
 	fk, pk := ref.ReferenceColumns(db, table)
 
 	if fk.Type == schema.ColTypeAutoPrimaryKey {
-		//fk.Type = schema.ColTypeInt // auto columns internally are integers
-		fk.Type = schema.ColTypeBytes // auto columns internally are binary UUIDs
-		fk.Size = 16
+		fk.Type = schema.ColTypeInt // auto columns internally are integers
+		fk.Size = 32
 	}
 
 	columnClause, tableClauses, extraClauses = m.buildColumnDef(fk, fk.Type == schema.ColTypeAutoPrimaryKey)
@@ -191,8 +189,7 @@ func (m *DB) buildReferenceDef(db *schema.Database, table *schema.Table, ref *sc
 func sqlType(colType schema.ColumnType, size uint64, subType schema.ColumnSubType) string {
 	switch colType {
 	case schema.ColTypeAutoPrimaryKey:
-		//typ := intType(size, false)
-		typ := "BINARY(16)"
+		typ := intType(size, false)
 		return typ
 	case schema.ColTypeString:
 		if subType == schema.ColSubTypeNumeric {
