@@ -15,15 +15,15 @@ func TestReverseReference(t *testing.T) {
 	ctx := context.Background()
 	people, err := goradd.QueryPeople(ctx).
 		Select(node.Person().ManagerProjects()).
-		OrderBy(node.Person().ID()).
+		OrderBy(node.Person().LastName()).
 		Load()
 	assert.NoError(t, err)
-	if people[0].FirstName() != "John" {
-		t.Error("Did not find person 0.")
+	if people[2].FirstName() != "John" {
+		t.Error("Did not find John.")
 	}
 
-	if len(people[6].ManagerProjects()) != 2 {
-		t.Error("Did not find 2 ManagerProjects.")
+	if len(people[2].ManagerProjects()) != 1 {
+		t.Error("Did not find 1 ManagerProjects.")
 	}
 
 }
@@ -50,12 +50,12 @@ func TestReverseConditionalSelect(t *testing.T) {
 func TestReverseManyLoad(t *testing.T) {
 	ctx := context.Background()
 	people, err := goradd.QueryPeople(ctx).
-		OrderBy(node.Person().ID(), node.Person().ManagerProjects().TeamMembers().LastName(), node.Person().ManagerProjects().TeamMembers().FirstName()).
+		OrderBy(node.Person().LastName(), node.Person().ManagerProjects().TeamMembers().LastName(), node.Person().ManagerProjects().TeamMembers().FirstName()).
 		Select(node.Person().ManagerProjects().TeamMembers().FirstName(), node.Person().ManagerProjects().TeamMembers().LastName()).
 		Load()
 	assert.NoError(t, err)
 	var names []string
-	for _, p := range people[0].ManagerProjects()[0].TeamMembers() {
+	for _, p := range people[2].ManagerProjects()[0].TeamMembers() {
 		names = append(names, p.FirstName()+" "+p.LastName())
 	}
 	names2 := []string{
@@ -68,7 +68,8 @@ func TestReverseManyLoad(t *testing.T) {
 	assert.Equal(t, names2, names)
 
 	names = []string{}
-	for _, pr := range people[6].ManagerProjects() {
+	person := people[11]
+	for _, pr := range person.ManagerProjects() {
 		for _, p := range pr.TeamMembers() {
 			names = append(names, p.FirstName()+" "+p.LastName())
 		}
@@ -76,12 +77,13 @@ func TestReverseManyLoad(t *testing.T) {
 	assert.Len(t, names, 12) // Includes duplicates. If we ever get Distinct to manually remove duplicates, we should fix this.
 
 	// Test deep IsDirty and Save
-	assert.False(t, people[6].IsDirty())
-	id := people[6].ManagerProjects()[0].TeamMembers()[0].ID()
-	fn := people[6].ManagerProjects()[0].TeamMembers()[0].FirstName()
-	people[6].ManagerProjects()[0].TeamMembers()[0].SetFirstName("A")
-	assert.True(t, people[6].IsDirty())
-	assert.NoError(t, people[6].Save(ctx))
+
+	assert.False(t, person.IsDirty())
+	id := person.ManagerProjects()[0].TeamMembers()[0].ID()
+	fn := person.ManagerProjects()[0].TeamMembers()[0].FirstName()
+	person.ManagerProjects()[0].TeamMembers()[0].SetFirstName("A")
+	assert.True(t, person.IsDirty())
+	assert.NoError(t, person.Save(ctx))
 	p, err2 := goradd.LoadPerson(ctx, id)
 	assert.NoError(t, err2)
 	assert.Equal(t, "A", p.FirstName())

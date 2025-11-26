@@ -27,8 +27,8 @@ type SqlReceiver struct {
 	R interface{}
 }
 
-// IntI returns the receiver as an interface to an int.
-func (r SqlReceiver) IntI() interface{} {
+// intI returns the receiver as an interface to an int.
+func (r SqlReceiver) intI() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -65,11 +65,11 @@ func (r SqlReceiver) IntI() interface{} {
 	}
 }
 
-// UintI converts the value to an interface to a GO uint.
+// uintI converts the value to an interface to a GO uint.
 //
 // Some drivers (like MySQL) return all integers as Int64. Its up to you to make sure
 // you only use this on 32-bit uints or smaller.
-func (r SqlReceiver) UintI() interface{} {
+func (r SqlReceiver) uintI() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -106,8 +106,8 @@ func (r SqlReceiver) UintI() interface{} {
 	}
 }
 
-// Int64I returns the given value as an interface to an Int64
-func (r SqlReceiver) Int64I() interface{} {
+// int64I returns the given value as an interface to an Int64
+func (r SqlReceiver) int64I() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -142,11 +142,11 @@ func (r SqlReceiver) Int64I() interface{} {
 	}
 }
 
-// Uint64I returns a value as an interface to a UInt64.
+// uint64I returns a value as an interface to a UInt64.
 //
 // Some drivers (like MySQL) return all integers as Int64. This converts to uint64. Its up to you to make sure
 // you only use this on 64-bit uints or smaller.
-func (r SqlReceiver) Uint64I() interface{} {
+func (r SqlReceiver) uint64I() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -183,8 +183,8 @@ func (r SqlReceiver) Uint64I() interface{} {
 	}
 }
 
-// BoolI returns the value as an interface to a boolean
-func (r SqlReceiver) BoolI() interface{} {
+// boolI returns the value as an interface to a boolean
+func (r SqlReceiver) boolI() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -227,8 +227,8 @@ func (r SqlReceiver) BoolI() interface{} {
 	}
 }
 
-// StringI returns the value as an interface to a string
-func (r SqlReceiver) StringI() interface{} {
+// stringI returns the value as an interface to a string
+func (r SqlReceiver) stringI() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -243,8 +243,8 @@ func (r SqlReceiver) StringI() interface{} {
 	}
 }
 
-// ByteI returns the value as an interface to a byte array
-func (r SqlReceiver) ByteI() interface{} {
+// byteI returns the value as an interface to a byte array
+func (r SqlReceiver) byteI() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -258,8 +258,8 @@ func (r SqlReceiver) ByteI() interface{} {
 	}
 }
 
-// FloatI returns the value as an interface to a float32 value.
-func (r SqlReceiver) FloatI() interface{} {
+// floatI returns the value as an interface to a float32 value.
+func (r SqlReceiver) floatI() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -295,8 +295,8 @@ func (r SqlReceiver) FloatI() interface{} {
 	}
 }
 
-// DoubleI returns the value as a float64 interface
-func (r SqlReceiver) DoubleI() interface{} {
+// doubleI returns the value as a float64 interface
+func (r SqlReceiver) doubleI() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -329,15 +329,15 @@ func (r SqlReceiver) DoubleI() interface{} {
 		return nil
 	}
 }
-func (r SqlReceiver) AutoPK() interface{} {
+func (r SqlReceiver) autoPK() interface{} {
 	if r.R == nil {
 		return nil
 	}
 	return NewAutoPrimaryKey(r.R)
 }
 
-// TimeI returns the value as a time.Time value in UTC, or in the case of CURRENT_TIME, a string "now".
-func (r SqlReceiver) TimeI() interface{} {
+// timeI returns the value as a time.Time value in UTC, or in the case of CURRENT_TIME, a string "now".
+func (r SqlReceiver) timeI() interface{} {
 	if r.R == nil {
 		return nil
 	}
@@ -378,25 +378,25 @@ func (r SqlReceiver) Unpack(typ ReceiverType) interface{} {
 	case ColTypeBytes:
 		return r.R
 	case ColTypeString:
-		return r.StringI()
+		return r.stringI()
 	case ColTypeInteger:
-		return r.IntI()
+		return r.intI()
 	case ColTypeUnsigned:
-		return r.UintI()
+		return r.uintI()
 	case ColTypeInteger64:
-		return r.Int64I()
+		return r.int64I()
 	case ColTypeUnsigned64:
-		return r.Uint64I()
+		return r.uint64I()
 	case ColTypeTime:
-		return r.TimeI()
+		return r.timeI()
 	case ColTypeFloat32:
-		return r.FloatI()
+		return r.floatI()
 	case ColTypeFloat64:
-		return r.DoubleI()
+		return r.doubleI()
 	case ColTypeBool:
-		return r.BoolI()
+		return r.boolI()
 	case ColTypeAutoPrimaryKey:
-		return r.AutoPK()
+		return r.autoPK()
 	default:
 		return r.R
 	}
@@ -408,7 +408,7 @@ func (r SqlReceiver) UnpackDefaultValue(typ schema.ColumnType, size int) interfa
 	switch typ {
 	case schema.ColTypeBytes,
 		schema.ColTypeUnknown:
-		b := r.ByteI()
+		b := r.byteI()
 		if b == nil {
 			return b
 		}
@@ -417,7 +417,7 @@ func (r SqlReceiver) UnpackDefaultValue(typ schema.ColumnType, size int) interfa
 		}
 		return b
 	case schema.ColTypeString:
-		s := r.StringI()
+		s := r.stringI()
 		if s == nil {
 			return s
 		}
@@ -432,23 +432,23 @@ func (r SqlReceiver) UnpackDefaultValue(typ schema.ColumnType, size int) interfa
 		fallthrough
 	case schema.ColTypeInt:
 		if size == 64 {
-			return r.Int64I()
+			return r.int64I()
 		}
-		return r.IntI()
+		return r.intI()
 	case schema.ColTypeUint:
 		if size == 64 {
-			return r.Uint64I()
+			return r.uint64I()
 		}
-		return r.UintI()
+		return r.uintI()
 	case schema.ColTypeTime:
-		return r.TimeI()
+		return r.timeI()
 	case schema.ColTypeFloat:
 		if size == 32 {
-			return r.FloatI()
+			return r.floatI()
 		}
-		return r.DoubleI()
+		return r.doubleI()
 	case schema.ColTypeBool:
-		return r.BoolI()
+		return r.boolI()
 	case schema.ColTypeAutoPrimaryKey:
 		return NewAutoPrimaryKey(r.R)
 	default:

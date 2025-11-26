@@ -59,8 +59,10 @@ const (
 	AddressPersonField   = `person`
 )
 
+const AddressIDMaxLength = 5       // The number of runes the column can hold
 const AddressStreetMaxLength = 100 // The number of runes the column can hold
 const AddressCityMaxLength = 100   // The number of runes the column can hold
+const AddressPersonIDMaxLength = 5 // The number of runes the column can hold
 
 // Initialize or re-initialize a Address database object to default values.
 func (o *addressBase) Initialize() {
@@ -150,6 +152,9 @@ func (o *addressBase) IDIsLoaded() bool {
 func (o *addressBase) SetID(v string) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+	}
+	if utf8.RuneCountInString(v) > AddressIDMaxLength {
+		panic("attempted to set Address.ID to a value larger than its maximum length in runes")
 	}
 	o.idIsLoaded = true
 	o.idIsDirty = true
@@ -250,6 +255,9 @@ func (o *addressBase) PersonIDIsLoaded() bool {
 
 // SetPersonID sets the value of PersonID in the object, to be saved later in the database using the Save() function.
 func (o *addressBase) SetPersonID(v string) {
+	if utf8.RuneCountInString(v) > AddressPersonIDMaxLength {
+		panic("attempted to set Address.PersonID to a value larger than its maximum length in runes")
+	}
 	if o._restored &&
 		o.personIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.personID == v {

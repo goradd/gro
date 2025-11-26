@@ -23,7 +23,7 @@ func createMinimalSampleProject() *Project {
 	obj := NewProject()
 	updateMinimalSampleProject(obj)
 
-	obj.SetID(test.RandomValue[string](0))
+	obj.SetID(test.RandomValue[string](5))
 
 	return obj
 }
@@ -53,7 +53,7 @@ func updateMinimalSampleProject(obj *Project) {
 // for testing that includes references to minimal objects.
 func createMaximalSampleProject(ctx context.Context) *Project {
 	obj := NewProject()
-	obj.SetID(test.RandomValue[string](0))
+	obj.SetID(test.RandomValue[string](5))
 	updateMaximalSampleProject(ctx, obj)
 	return obj
 }
@@ -131,7 +131,7 @@ func TestProject_SetID(t *testing.T) {
 	obj := NewProject()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[string](0)
+	val := test.RandomValue[string](5)
 	obj.SetID(val)
 	assert.Equal(t, val, obj.ID())
 
@@ -140,6 +140,11 @@ func TestProject_SetID(t *testing.T) {
 	obj.SetID(d)
 	assert.EqualValues(t, d, obj.ID(), "set default")
 
+	// test panic on setting value larger than maximum size allowed
+	val = test.RandomValue[string](6)
+	assert.Panics(t, func() {
+		obj.SetID(val)
+	})
 }
 func TestProject_SetNum(t *testing.T) {
 
@@ -307,7 +312,7 @@ func TestProject_SetManagerID(t *testing.T) {
 	obj := NewProject()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[string](0)
+	val := test.RandomValue[string](5)
 	obj.SetManagerID(val)
 	assert.Equal(t, val, obj.ManagerID())
 	assert.False(t, obj.ManagerIDIsNull())
@@ -322,13 +327,18 @@ func TestProject_SetManagerID(t *testing.T) {
 	obj.SetManagerID(d)
 	assert.EqualValues(t, d, obj.ManagerID(), "set default")
 
+	// test panic on setting value larger than maximum size allowed
+	val = test.RandomValue[string](6)
+	assert.Panics(t, func() {
+		obj.SetManagerID(val)
+	})
 }
 func TestProject_SetParentID(t *testing.T) {
 
 	obj := NewProject()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[string](0)
+	val := test.RandomValue[string](5)
 	obj.SetParentID(val)
 	assert.Equal(t, val, obj.ParentID())
 	assert.False(t, obj.ParentIDIsNull())
@@ -343,6 +353,11 @@ func TestProject_SetParentID(t *testing.T) {
 	obj.SetParentID(d)
 	assert.EqualValues(t, d, obj.ParentID(), "set default")
 
+	// test panic on setting value larger than maximum size allowed
+	val = test.RandomValue[string](6)
+	assert.Panics(t, func() {
+		obj.SetParentID(val)
+	})
 }
 
 func TestProject_Copy(t *testing.T) {

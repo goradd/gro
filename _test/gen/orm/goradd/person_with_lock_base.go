@@ -56,6 +56,7 @@ const (
 	PersonWithLockGroTimestampField = `groTimestamp`
 )
 
+const PersonWithLockIDMaxLength = 5         // The number of runes the column can hold
 const PersonWithLockFirstNameMaxLength = 50 // The number of runes the column can hold
 const PersonWithLockLastNameMaxLength = 50  // The number of runes the column can hold
 
@@ -145,6 +146,9 @@ func (o *personWithLockBase) IDIsLoaded() bool {
 func (o *personWithLockBase) SetID(v string) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+	}
+	if utf8.RuneCountInString(v) > PersonWithLockIDMaxLength {
+		panic("attempted to set PersonWithLock.ID to a value larger than its maximum length in runes")
 	}
 	o.idIsLoaded = true
 	o.idIsDirty = true

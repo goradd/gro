@@ -22,7 +22,7 @@ func createMinimalSampleEmployeeInfo() *EmployeeInfo {
 	obj := NewEmployeeInfo()
 	updateMinimalSampleEmployeeInfo(obj)
 
-	obj.SetID(test.RandomValue[string](0))
+	obj.SetID(test.RandomValue[string](5))
 
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
 	// If the database is configured so that the referenced object points back here, either directly or through multiple
@@ -43,7 +43,7 @@ func updateMinimalSampleEmployeeInfo(obj *EmployeeInfo) {
 // for testing that includes references to minimal objects.
 func createMaximalSampleEmployeeInfo(ctx context.Context) *EmployeeInfo {
 	obj := NewEmployeeInfo()
-	obj.SetID(test.RandomValue[string](0))
+	obj.SetID(test.RandomValue[string](5))
 	updateMaximalSampleEmployeeInfo(ctx, obj)
 	return obj
 }
@@ -82,7 +82,7 @@ func TestEmployeeInfo_SetID(t *testing.T) {
 	obj := NewEmployeeInfo()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[string](0)
+	val := test.RandomValue[string](5)
 	obj.SetID(val)
 	assert.Equal(t, val, obj.ID())
 
@@ -91,6 +91,11 @@ func TestEmployeeInfo_SetID(t *testing.T) {
 	obj.SetID(d)
 	assert.EqualValues(t, d, obj.ID(), "set default")
 
+	// test panic on setting value larger than maximum size allowed
+	val = test.RandomValue[string](6)
+	assert.Panics(t, func() {
+		obj.SetID(val)
+	})
 }
 func TestEmployeeInfo_SetEmployeeNumber(t *testing.T) {
 
@@ -112,7 +117,7 @@ func TestEmployeeInfo_SetPersonID(t *testing.T) {
 	obj := NewEmployeeInfo()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[string](0)
+	val := test.RandomValue[string](5)
 	obj.SetPersonID(val)
 	assert.Equal(t, val, obj.PersonID())
 
@@ -121,6 +126,11 @@ func TestEmployeeInfo_SetPersonID(t *testing.T) {
 	obj.SetPersonID(d)
 	assert.EqualValues(t, d, obj.PersonID(), "set default")
 
+	// test panic on setting value larger than maximum size allowed
+	val = test.RandomValue[string](6)
+	assert.Panics(t, func() {
+		obj.SetPersonID(val)
+	})
 }
 
 func TestEmployeeInfo_Copy(t *testing.T) {

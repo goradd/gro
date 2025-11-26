@@ -491,22 +491,21 @@ func (m *DB) processTypeInfo(column mysqlColumn) (
 		extra = map[string]interface{}{"type": column.columnType}
 	}
 
-	si := column.defaultValue.StringI()
+	s, _ := column.defaultValue.Unpack(ColTypeString).(string)
 
 	if typ == schema.ColTypeTime {
 		if strings.Contains(strings.ToUpper(column.extra), "ON UPDATE") {
 			defaultValue = "update"
-		} else if si != nil && strings.Contains(strings.ToUpper(si.(string)), "CURRENT_TIMESTAMP") {
+		} else if strings.Contains(strings.ToUpper(s), "CURRENT_TIMESTAMP") {
 			defaultValue = "now"
 		}
-	} else if si != nil &&
-		si.(string) != "" &&
-		si.(string) != "NULL" && // null is automatically assigned as a default for null columns, and cannot be assigned as a default for non-null columns
+	} else if s != "" &&
+		s != "NULL" && // null is automatically assigned as a default for null columns, and cannot be assigned as a default for non-null columns
 		strings.Contains(strings.ToUpper(column.extra), "DEFAULT_GENERATED") {
 		if extra == nil {
 			extra = make(map[string]interface{})
 		}
-		extra["default"] = si.(string) // some kind of generated value that we should remember for recreating the column
+		extra["default"] = s // some kind of generated value that we should remember for recreating the column
 	}
 
 	if strings.Contains(strings.ToUpper(column.extra), "DEFAULT_GENERATED") {

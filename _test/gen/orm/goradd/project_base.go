@@ -110,11 +110,14 @@ const (
 	ProjectTeamMembersField = `teamMembers`
 )
 
+const ProjectIDMaxLength = 5 // The number of runes the column can hold
 const ProjectNumMax = 2147483647
 const ProjectNumMin = -2147483648
-const ProjectNameMaxLength = 100  // The number of runes the column can hold
-const ProjectBudgetMaxLength = 14 // The number of runes the column can hold
-const ProjectSpentMaxLength = 14  // The number of runes the column can hold
+const ProjectNameMaxLength = 100    // The number of runes the column can hold
+const ProjectBudgetMaxLength = 14   // The number of runes the column can hold
+const ProjectSpentMaxLength = 14    // The number of runes the column can hold
+const ProjectManagerIDMaxLength = 5 // The number of runes the column can hold
+const ProjectParentIDMaxLength = 5  // The number of runes the column can hold
 
 // Initialize or re-initialize a Project database object to default values.
 func (o *projectBase) Initialize() {
@@ -272,6 +275,9 @@ func (o *projectBase) IDIsLoaded() bool {
 func (o *projectBase) SetID(v string) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+	}
+	if utf8.RuneCountInString(v) > ProjectIDMaxLength {
+		panic("attempted to set Project.ID to a value larger than its maximum length in runes")
 	}
 	o.idIsLoaded = true
 	o.idIsDirty = true
@@ -628,6 +634,9 @@ func (o *projectBase) ManagerIDIsNull() bool {
 
 // SetManagerID sets the value of ManagerID in the object, to be saved later in the database using the Save() function.
 func (o *projectBase) SetManagerID(v string) {
+	if utf8.RuneCountInString(v) > ProjectManagerIDMaxLength {
+		panic("attempted to set Project.ManagerID to a value larger than its maximum length in runes")
+	}
 	if o._restored &&
 		o.managerIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.managerIDIsNull && // if the db value is null, force a set of value
@@ -680,6 +689,9 @@ func (o *projectBase) ParentIDIsNull() bool {
 
 // SetParentID sets the value of ParentID in the object, to be saved later in the database using the Save() function.
 func (o *projectBase) SetParentID(v string) {
+	if utf8.RuneCountInString(v) > ProjectParentIDMaxLength {
+		panic("attempted to set Project.ParentID to a value larger than its maximum length in runes")
+	}
 	if o._restored &&
 		o.parentIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.parentIDIsNull && // if the db value is null, force a set of value

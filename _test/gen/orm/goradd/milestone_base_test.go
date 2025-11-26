@@ -22,7 +22,7 @@ func createMinimalSampleMilestone() *Milestone {
 	obj := NewMilestone()
 	updateMinimalSampleMilestone(obj)
 
-	obj.SetID(test.RandomValue[string](0))
+	obj.SetID(test.RandomValue[string](5))
 
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
 	// If the database is configured so that the referenced object points back here, either directly or through multiple
@@ -43,7 +43,7 @@ func updateMinimalSampleMilestone(obj *Milestone) {
 // for testing that includes references to minimal objects.
 func createMaximalSampleMilestone(ctx context.Context) *Milestone {
 	obj := NewMilestone()
-	obj.SetID(test.RandomValue[string](0))
+	obj.SetID(test.RandomValue[string](5))
 	updateMaximalSampleMilestone(ctx, obj)
 	return obj
 }
@@ -82,7 +82,7 @@ func TestMilestone_SetID(t *testing.T) {
 	obj := NewMilestone()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[string](0)
+	val := test.RandomValue[string](5)
 	obj.SetID(val)
 	assert.Equal(t, val, obj.ID())
 
@@ -91,6 +91,11 @@ func TestMilestone_SetID(t *testing.T) {
 	obj.SetID(d)
 	assert.EqualValues(t, d, obj.ID(), "set default")
 
+	// test panic on setting value larger than maximum size allowed
+	val = test.RandomValue[string](6)
+	assert.Panics(t, func() {
+		obj.SetID(val)
+	})
 }
 func TestMilestone_SetName(t *testing.T) {
 
@@ -117,7 +122,7 @@ func TestMilestone_SetProjectID(t *testing.T) {
 	obj := NewMilestone()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[string](0)
+	val := test.RandomValue[string](5)
 	obj.SetProjectID(val)
 	assert.Equal(t, val, obj.ProjectID())
 
@@ -126,6 +131,11 @@ func TestMilestone_SetProjectID(t *testing.T) {
 	obj.SetProjectID(d)
 	assert.EqualValues(t, d, obj.ProjectID(), "set default")
 
+	// test panic on setting value larger than maximum size allowed
+	val = test.RandomValue[string](6)
+	assert.Panics(t, func() {
+		obj.SetProjectID(val)
+	})
 }
 
 func TestMilestone_Copy(t *testing.T) {

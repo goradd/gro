@@ -83,6 +83,7 @@ const (
 	PersonProjectsField       = `projects`
 )
 
+const PersonIDMaxLength = 5         // The number of runes the column can hold
 const PersonFirstNameMaxLength = 50 // The number of runes the column can hold
 const PersonLastNameMaxLength = 50  // The number of runes the column can hold
 
@@ -200,6 +201,9 @@ func (o *personBase) IDIsLoaded() bool {
 func (o *personBase) SetID(v string) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+	}
+	if utf8.RuneCountInString(v) > PersonIDMaxLength {
+		panic("attempted to set Person.ID to a value larger than its maximum length in runes")
 	}
 	o.idIsLoaded = true
 	o.idIsDirty = true

@@ -76,7 +76,7 @@ func Test2Nodes(t *testing.T) {
 	ctx := context.Background()
 	milestones, err := goradd.QueryMilestones(ctx).
 		Select(node.Milestone().Project().Manager()).
-		Where(op.Equal(node.Milestone().ID(), 1)). // Filter out people who are not managers
+		Where(op.Equal(node.Milestone().ID(), "1")). // Filter out people who are not managers
 		Load()
 	assert.NoError(t, err)
 	assert.True(t, milestones[0].NameIsLoaded(), "Milestone 1 has a name")
@@ -91,7 +91,7 @@ func TestForwardMany(t *testing.T) {
 	milestones, err := goradd.QueryMilestones(ctx).
 		Select(node.Milestone().Project().TeamMembers()).
 		OrderBy(node.Milestone().Project().TeamMembers().LastName(), node.Milestone().Project().TeamMembers().FirstName()).
-		Where(op.Equal(node.Milestone().ID(), 1)). // Filter out people who are not managers
+		Where(op.Equal(node.Milestone().ID(), "1")). // Filter out people who are not managers
 		Load()
 	assert.NoError(t, err)
 	names := []string{}

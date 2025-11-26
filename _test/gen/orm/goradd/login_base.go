@@ -64,8 +64,10 @@ const (
 	LoginPersonField    = `person`
 )
 
+const LoginIDMaxLength = 5        // The number of runes the column can hold
 const LoginUsernameMaxLength = 20 // The number of runes the column can hold
 const LoginPasswordMaxLength = 20 // The number of runes the column can hold
+const LoginPersonIDMaxLength = 5  // The number of runes the column can hold
 
 // Initialize or re-initialize a Login database object to default values.
 func (o *loginBase) Initialize() {
@@ -163,6 +165,9 @@ func (o *loginBase) IDIsLoaded() bool {
 func (o *loginBase) SetID(v string) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
+	}
+	if utf8.RuneCountInString(v) > LoginIDMaxLength {
+		panic("attempted to set Login.ID to a value larger than its maximum length in runes")
 	}
 	o.idIsLoaded = true
 	o.idIsDirty = true
@@ -295,6 +300,9 @@ func (o *loginBase) PersonIDIsNull() bool {
 
 // SetPersonID sets the value of PersonID in the object, to be saved later in the database using the Save() function.
 func (o *loginBase) SetPersonID(v string) {
+	if utf8.RuneCountInString(v) > LoginPersonIDMaxLength {
+		panic("attempted to set Login.PersonID to a value larger than its maximum length in runes")
+	}
 	if o._restored &&
 		o.personIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		!o.personIDIsNull && // if the db value is null, force a set of value

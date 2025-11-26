@@ -22,7 +22,7 @@ func createMinimalSampleAddress() *Address {
 	obj := NewAddress()
 	updateMinimalSampleAddress(obj)
 
-	obj.SetID(test.RandomValue[string](0))
+	obj.SetID(test.RandomValue[string](5))
 
 	// A required forward reference will need to be fulfilled just to save the minimal version of this object
 	// If the database is configured so that the referenced object points back here, either directly or through multiple
@@ -45,7 +45,7 @@ func updateMinimalSampleAddress(obj *Address) {
 // for testing that includes references to minimal objects.
 func createMaximalSampleAddress(ctx context.Context) *Address {
 	obj := NewAddress()
-	obj.SetID(test.RandomValue[string](0))
+	obj.SetID(test.RandomValue[string](5))
 	updateMaximalSampleAddress(ctx, obj)
 	return obj
 }
@@ -87,7 +87,7 @@ func TestAddress_SetID(t *testing.T) {
 	obj := NewAddress()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[string](0)
+	val := test.RandomValue[string](5)
 	obj.SetID(val)
 	assert.Equal(t, val, obj.ID())
 
@@ -96,6 +96,11 @@ func TestAddress_SetID(t *testing.T) {
 	obj.SetID(d)
 	assert.EqualValues(t, d, obj.ID(), "set default")
 
+	// test panic on setting value larger than maximum size allowed
+	val = test.RandomValue[string](6)
+	assert.Panics(t, func() {
+		obj.SetID(val)
+	})
 }
 func TestAddress_SetStreet(t *testing.T) {
 
@@ -148,7 +153,7 @@ func TestAddress_SetPersonID(t *testing.T) {
 	obj := NewAddress()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[string](0)
+	val := test.RandomValue[string](5)
 	obj.SetPersonID(val)
 	assert.Equal(t, val, obj.PersonID())
 
@@ -157,6 +162,11 @@ func TestAddress_SetPersonID(t *testing.T) {
 	obj.SetPersonID(d)
 	assert.EqualValues(t, d, obj.PersonID(), "set default")
 
+	// test panic on setting value larger than maximum size allowed
+	val = test.RandomValue[string](6)
+	assert.Panics(t, func() {
+		obj.SetPersonID(val)
+	})
 }
 
 func TestAddress_Copy(t *testing.T) {

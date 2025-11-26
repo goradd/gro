@@ -102,7 +102,7 @@ func TestWhere(t *testing.T) {
 func TestAlias(t *testing.T) {
 	ctx := context.Background()
 	projects, err := goradd.QueryProjects(ctx).
-		Where(op.Equal(node.Project().ID(), 1)).
+		Where(op.Equal(node.Project().ID(), "1")).
 		Calculation(node.Project(), "Difference", op.Subtract(node.Project().Budget(), node.Project().Spent())).
 		Load()
 	assert.NoError(t, err)
@@ -193,7 +193,7 @@ func TestLimit(t *testing.T) {
 		Limit(2, 3).
 		Load()
 	assert.NoError(t, err)
-	assert.EqualValues(t, "Mike", people[0].FirstName())
+	assert.EqualValues(t, "Jacob", people[0].FirstName())
 	assert.Len(t, people, 2)
 }
 
@@ -235,7 +235,7 @@ func TestSingleEmpty(t *testing.T) {
 	ctx := context.Background()
 
 	people, err := goradd.QueryPeople(ctx).
-		Where(op.Equal(node.Person().ID(), 12345)).
+		Where(op.Equal(node.Person().ID(), "12345")).
 		Load()
 	assert.NoError(t, err)
 	assert.Len(t, people, 0)
@@ -246,7 +246,7 @@ func TestLazyLoad(t *testing.T) {
 	ctx := context.Background()
 
 	projects, err := goradd.QueryProjects(ctx).
-		Where(op.Equal(node.Project().ID(), 1)).
+		Where(op.Equal(node.Project().ID(), "1")).
 		Load()
 	assert.NoError(t, err)
 	var mId string = projects[0].ID() // foreign keys are treated as strings for cross-database compatibility

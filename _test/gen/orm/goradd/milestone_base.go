@@ -54,7 +54,9 @@ const (
 	MilestoneProjectField   = `project`
 )
 
-const MilestoneNameMaxLength = 50 // The number of runes the column can hold
+const MilestoneIDMaxLength = 5        // The number of runes the column can hold
+const MilestoneNameMaxLength = 50     // The number of runes the column can hold
+const MilestoneProjectIDMaxLength = 5 // The number of runes the column can hold
 
 // Initialize or re-initialize a Milestone database object to default values.
 func (o *milestoneBase) Initialize() {
@@ -137,6 +139,9 @@ func (o *milestoneBase) SetID(v string) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
 	}
+	if utf8.RuneCountInString(v) > MilestoneIDMaxLength {
+		panic("attempted to set Milestone.ID to a value larger than its maximum length in runes")
+	}
 	o.idIsLoaded = true
 	o.idIsDirty = true
 	o.id = v
@@ -187,6 +192,9 @@ func (o *milestoneBase) ProjectIDIsLoaded() bool {
 
 // SetProjectID sets the value of ProjectID in the object, to be saved later in the database using the Save() function.
 func (o *milestoneBase) SetProjectID(v string) {
+	if utf8.RuneCountInString(v) > MilestoneProjectIDMaxLength {
+		panic("attempted to set Milestone.ProjectID to a value larger than its maximum length in runes")
+	}
 	if o._restored &&
 		o.projectIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.projectID == v {

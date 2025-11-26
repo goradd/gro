@@ -27,6 +27,7 @@
         {
           "name": "id",
           "type": "string",
+          "size": 5,
           "index_level": "primary"
         },
         {
@@ -73,6 +74,7 @@
         {
           "name": "id",
           "type": "string",
+          "size": 5,
           "index_level": "primary"
         },
         {
@@ -105,6 +107,7 @@
         {
           "name": "id",
           "type": "string",
+          "size": 5,
           "index_level": "primary"
         },
         {
@@ -186,6 +189,7 @@
         {
           "name": "id",
           "type": "string",
+          "size": 5,
           "index_level": "primary"
         },
         {
@@ -213,6 +217,7 @@
         {
           "name": "id",
           "type": "string",
+          "size": 5,
           "index_level": "primary"
         },
         {
@@ -234,6 +239,7 @@
         {
           "name": "id",
           "type": "string",
+          "size": 5,
           "index_level": "primary"
         },
         {
@@ -268,6 +274,7 @@
         {
           "name": "id",
           "type": "string",
+          "size": 5,
           "index_level": "primary"
         },
         {

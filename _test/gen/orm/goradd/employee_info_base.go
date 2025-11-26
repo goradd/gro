@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+	"unicode/utf8"
 
 	"github.com/goradd/anyutil"
 	"github.com/goradd/gro/_test/gen/orm/goradd/node"
@@ -53,8 +54,10 @@ const (
 	EmployeeInfoPersonField         = `person`
 )
 
+const EmployeeInfoIDMaxLength = 5 // The number of runes the column can hold
 const EmployeeInfoEmployeeNumberMax = 2147483647
 const EmployeeInfoEmployeeNumberMin = -2147483648
+const EmployeeInfoPersonIDMaxLength = 5 // The number of runes the column can hold
 
 // Initialize or re-initialize a EmployeeInfo database object to default values.
 func (o *employeeInfoBase) Initialize() {
@@ -137,6 +140,9 @@ func (o *employeeInfoBase) SetID(v string) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
 	}
+	if utf8.RuneCountInString(v) > EmployeeInfoIDMaxLength {
+		panic("attempted to set EmployeeInfo.ID to a value larger than its maximum length in runes")
+	}
 	o.idIsLoaded = true
 	o.idIsDirty = true
 	o.id = v
@@ -184,6 +190,9 @@ func (o *employeeInfoBase) PersonIDIsLoaded() bool {
 
 // SetPersonID sets the value of PersonID in the object, to be saved later in the database using the Save() function.
 func (o *employeeInfoBase) SetPersonID(v string) {
+	if utf8.RuneCountInString(v) > EmployeeInfoPersonIDMaxLength {
+		panic("attempted to set EmployeeInfo.PersonID to a value larger than its maximum length in runes")
+	}
 	if o._restored &&
 		o.personIDIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
 		o.personID == v {

@@ -22,7 +22,7 @@ func createMinimalSamplePersonWithLock() *PersonWithLock {
 	obj := NewPersonWithLock()
 	updateMinimalSamplePersonWithLock(obj)
 
-	obj.SetID(test.RandomValue[string](0))
+	obj.SetID(test.RandomValue[string](5))
 
 	return obj
 }
@@ -40,7 +40,7 @@ func updateMinimalSamplePersonWithLock(obj *PersonWithLock) {
 // for testing that includes references to minimal objects.
 func createMaximalSamplePersonWithLock(ctx context.Context) *PersonWithLock {
 	obj := NewPersonWithLock()
-	obj.SetID(test.RandomValue[string](0))
+	obj.SetID(test.RandomValue[string](5))
 	updateMaximalSamplePersonWithLock(ctx, obj)
 	return obj
 }
@@ -86,7 +86,7 @@ func TestPersonWithLock_SetID(t *testing.T) {
 	obj := NewPersonWithLock()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[string](0)
+	val := test.RandomValue[string](5)
 	obj.SetID(val)
 	assert.Equal(t, val, obj.ID())
 
@@ -95,6 +95,11 @@ func TestPersonWithLock_SetID(t *testing.T) {
 	obj.SetID(d)
 	assert.EqualValues(t, d, obj.ID(), "set default")
 
+	// test panic on setting value larger than maximum size allowed
+	val = test.RandomValue[string](6)
+	assert.Panics(t, func() {
+		obj.SetID(val)
+	})
 }
 func TestPersonWithLock_SetFirstName(t *testing.T) {
 

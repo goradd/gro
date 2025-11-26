@@ -22,7 +22,7 @@ func createMinimalSampleLogin() *Login {
 	obj := NewLogin()
 	updateMinimalSampleLogin(obj)
 
-	obj.SetID(test.RandomValue[string](0))
+	obj.SetID(test.RandomValue[string](5))
 
 	return obj
 }
@@ -42,7 +42,7 @@ func updateMinimalSampleLogin(obj *Login) {
 // for testing that includes references to minimal objects.
 func createMaximalSampleLogin(ctx context.Context) *Login {
 	obj := NewLogin()
-	obj.SetID(test.RandomValue[string](0))
+	obj.SetID(test.RandomValue[string](5))
 	updateMaximalSampleLogin(ctx, obj)
 	return obj
 }
@@ -87,7 +87,7 @@ func TestLogin_SetID(t *testing.T) {
 	obj := NewLogin()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[string](0)
+	val := test.RandomValue[string](5)
 	obj.SetID(val)
 	assert.Equal(t, val, obj.ID())
 
@@ -96,6 +96,11 @@ func TestLogin_SetID(t *testing.T) {
 	obj.SetID(d)
 	assert.EqualValues(t, d, obj.ID(), "set default")
 
+	// test panic on setting value larger than maximum size allowed
+	val = test.RandomValue[string](6)
+	assert.Panics(t, func() {
+		obj.SetID(val)
+	})
 }
 func TestLogin_SetUsername(t *testing.T) {
 
@@ -163,7 +168,7 @@ func TestLogin_SetPersonID(t *testing.T) {
 	obj := NewLogin()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[string](0)
+	val := test.RandomValue[string](5)
 	obj.SetPersonID(val)
 	assert.Equal(t, val, obj.PersonID())
 	assert.False(t, obj.PersonIDIsNull())
@@ -178,6 +183,11 @@ func TestLogin_SetPersonID(t *testing.T) {
 	obj.SetPersonID(d)
 	assert.EqualValues(t, d, obj.PersonID(), "set default")
 
+	// test panic on setting value larger than maximum size allowed
+	val = test.RandomValue[string](6)
+	assert.Panics(t, func() {
+		obj.SetPersonID(val)
+	})
 }
 
 func TestLogin_Copy(t *testing.T) {
