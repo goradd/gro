@@ -59,6 +59,8 @@ func NewDB(dbKey string,
 		return nil, fmt.Errorf("could not ping database: %w", err)
 	}
 
+	db3.SetMaxOpenConns(1)
+	db3.SetMaxIdleConns(1)
 	m := new(DB)
 	m.Base = sql2.NewBase(dbKey, db3, m)
 	return m, nil

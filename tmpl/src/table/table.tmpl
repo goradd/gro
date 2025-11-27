@@ -125,8 +125,6 @@ func get{{= table.Identifier}}UpdateFields(o *{{= table.DecapIdentifier}}Base) (
 {{if len(table.PrimaryKeyColumns()) > 0 }}
 // Delete{{= table.Identifier }} deletes the {{= table.QueryName }} record with primary key pk from the database.
 // Note that you can also delete loaded {{= table.Identifier }} objects by calling Delete on them.
-// Returns an error only if there was a problem with the database during the delete.
-// If the record was not found, no error will be returned.
 // doc: type={{= table.Identifier }}
 func Delete{{= table.Identifier }}(ctx context.Context, pk {{= table.PrimaryKeyType() }}) error {
 	return delete{{= table.Identifier }}(ctx, pk)

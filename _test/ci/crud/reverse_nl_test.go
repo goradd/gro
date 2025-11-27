@@ -14,13 +14,12 @@ import (
 // TestReverseNullableLock tests insert and update of two linked records.
 func TestReverseNullableLock(t *testing.T) {
 	ctx := context.Background()
-	defer goradd_unit.ClearAll(ctx)
 
 	// Insert-insert
 	r := goradd_unit.NewRootNl()
 	l := goradd_unit.NewLeafNl()
-	r.SetName("root")
-	l.SetName("leaf")
+	r.SetName("rootReverseNullableLock")
+	l.SetName("leafReverseNullableLock")
 	r.SetLeafNls(l)
 	err := r.Save(ctx)
 	require.NoError(t, err)
@@ -29,57 +28,56 @@ func TestReverseNullableLock(t *testing.T) {
 	r2, err = goradd_unit.LoadRootNl(ctx, r.ID(), node.RootNl().LeafNls())
 	require.NoError(t, err)
 	require.NotNilf(t, r2, "Object was nil based on ID %s", r.ID())
-	assert.Equal(t, "root", r2.Name())
-	assert.Equal(t, "leaf", r2.LeafNls()[0].Name())
+	assert.Equal(t, "rootReverseNullableLock", r2.Name())
+	assert.Equal(t, "leafReverseNullableLock", r2.LeafNls()[0].Name())
 
 	// Update-update
-	r.SetName("root2")
-	r.LeafNls()[0].SetName("leaf2")
+	r.SetName("rootReverseNullableLock2")
+	r.LeafNls()[0].SetName("leafReverseNullableLock2")
 	err = r.Save(ctx)
 	assert.NoError(t, err)
 	r2, err = goradd_unit.LoadRootNl(ctx, r.ID(), node.RootNl().LeafNls())
 	require.NoError(t, err)
 	require.NotNilf(t, r2, "Object was nil based on ID %s", r.ID())
-	assert.Equal(t, "root2", r2.Name())
-	assert.Equal(t, "leaf2", r2.LeafNls()[0].Name())
+	assert.Equal(t, "rootReverseNullableLock2", r2.Name())
+	assert.Equal(t, "leafReverseNullableLock2", r2.LeafNls()[0].Name())
 
 	// Insert-update
 	r3 := goradd_unit.NewRootNl()
-	r3.SetName("root3")
-	l.SetName("leaf3")
+	r3.SetName("rootReverseNullableLock3")
+	l.SetName("leafReverseNullableLock3")
 	r3.SetLeafNls(l)
 	err = r3.Save(ctx)
 	require.NoError(t, err)
 	r2, err = goradd_unit.LoadRootNl(ctx, r3.ID(), node.RootNl().LeafNls())
 	require.NoError(t, err)
 	require.NotNilf(t, r2, "Object was nil based on ID %s", r3.ID())
-	assert.Equal(t, "root3", r2.Name())
-	assert.Equal(t, "leaf3", r2.LeafNls()[0].Name())
+	assert.Equal(t, "rootReverseNullableLock3", r2.Name())
+	assert.Equal(t, "leafReverseNullableLock3", r2.LeafNls()[0].Name())
 
 	// Update-insert
 	l4 := goradd_unit.NewLeafNl()
-	r.SetName("root4")
-	l4.SetName("leaf4")
+	r.SetName("rootReverseNullableLock4")
+	l4.SetName("leafReverseNullableLock4")
 	r.SetLeafNls(l4)
 	err = r.Save(ctx)
 	require.NoError(t, err)
 	r2, err = goradd_unit.LoadRootNl(ctx, r.ID(), node.RootNl().LeafNls())
 	require.NoError(t, err)
 	require.NotNilf(t, r2, "Object was nil based on ID %s", r.ID())
-	assert.Equal(t, "root4", r2.Name())
-	assert.Equal(t, "leaf4", r2.LeafNls()[0].Name())
+	assert.Equal(t, "rootReverseNullableLock4", r2.Name())
+	assert.Equal(t, "leafReverseNullableLock4", r2.LeafNls()[0].Name())
 
 }
 
 // TestReverseNullableLockCollision tests saving two records that are changed at the same time.
 func TestReverseNullableLockCollision(t *testing.T) {
 	ctx := context.Background()
-	defer goradd_unit.ClearAll(ctx)
 
 	r := goradd_unit.NewRootNl()
 	l := goradd_unit.NewLeafNl()
-	r.SetName("root")
-	l.SetName("leaf")
+	r.SetName("rootReverseNullableLockCollision")
+	l.SetName("leafReverseNullableLockCollision")
 	r.SetLeafNls(l)
 	err := r.Save(ctx)
 	require.NoError(t, err)
@@ -88,8 +86,8 @@ func TestReverseNullableLockCollision(t *testing.T) {
 	r2, err = goradd_unit.LoadRootNl(ctx, r.ID(), node.RootNl().LeafNls())
 	require.NoError(t, err)
 
-	r.SetName("root2")
-	r2.SetName("root3")
+	r.SetName("rootReverseNullableLockCollision2")
+	r2.SetName("rootReverseNullableLockCollision3")
 
 	err = r.Save(ctx)
 	err2 := r2.Save(ctx)
@@ -99,8 +97,8 @@ func TestReverseNullableLockCollision(t *testing.T) {
 
 	// Level 2
 	r2, _ = goradd_unit.LoadRootNl(ctx, r.ID(), node.RootNl().LeafNls())
-	r.LeafNls()[0].SetName("leaf2")
-	r2.LeafNls()[0].SetName("leaf3")
+	r.LeafNls()[0].SetName("leafReverseNullableLockCollision2")
+	r2.LeafNls()[0].SetName("leafReverseNullableLockCollision3")
 	err = r.Save(ctx)
 	err2 = r2.Save(ctx)
 	assert.NoError(t, err)
@@ -110,7 +108,7 @@ func TestReverseNullableLockCollision(t *testing.T) {
 	// Delete
 	r2, _ = goradd_unit.LoadRootNl(ctx, r.ID(), node.RootNl().LeafNls())
 	assert.NoError(t, r.Delete(ctx))
-	r2.SetName("root4")
+	r2.SetName("rootReverseNullableLockCollision4")
 	err2 = r2.Save(ctx)
 	assert.IsType(t, &db.OptimisticLockError{}, err2)
 
@@ -118,12 +116,11 @@ func TestReverseNullableLockCollision(t *testing.T) {
 
 func TestReverseNullableLockNull(t *testing.T) {
 	ctx := context.Background()
-	defer goradd_unit.ClearAll(ctx)
 
 	r := goradd_unit.NewRootNl()
-	r.SetName("root")
+	r.SetName("rootReverseNullableLockNull")
 	l := goradd_unit.NewLeafNl()
-	l.SetName("leaf")
+	l.SetName("leafReverseNullableLockNull")
 	r.SetLeafNls(l)
 	require.NoError(t, r.Save(ctx))
 
@@ -142,16 +139,15 @@ func TestReverseNullableLockNull(t *testing.T) {
 
 func TestReverseNullableLockTwo(t *testing.T) {
 	ctx := context.Background()
-	defer goradd_unit.ClearAll(ctx)
 	r := goradd_unit.NewRootNl()
 	l := goradd_unit.NewLeafNl()
-	r.SetName("root")
-	l.SetName("leaf")
+	r.SetName("rootReverseNullableLockTwo")
+	l.SetName("leafReverseNullableLockTwo")
 	r.SetLeafNls(l)
 	require.NoError(t, r.Save(ctx))
 
 	l2 := goradd_unit.NewLeafNl()
-	l2.SetName("leaf2")
+	l2.SetName("leafReverseNullableLockTwo2")
 	r.SetLeafNls(l, l2)
 	require.NoError(t, r.Save(ctx))
 
@@ -168,18 +164,17 @@ func TestReverseNullableLockTwo(t *testing.T) {
 
 func TestReverseNullableLockDelete(t *testing.T) {
 	ctx := context.Background()
-	defer goradd_unit.ClearAll(ctx)
 	l := goradd_unit.NewLeafNl()
 	r := goradd_unit.NewRootNl()
-	l.SetName("leaf")
-	r.SetName("root")
+	l.SetName("leafReverseNullableLockDelete")
+	r.SetName("rootReverseNullableLockDelete")
 	r.SetLeafNls(l)
 	require.NoError(t, r.Save(ctx))
 
 	// Collision on shallow change
 	r2, err := goradd_unit.LoadRootNl(ctx, r.ID(), node.RootNl().LeafNls())
 	require.NoError(t, err)
-	r.SetName("root2")
+	r.SetName("rootReverseNullableLockDelete2")
 	_ = r.Save(ctx)
 	err = r2.Delete(ctx)
 	require.Error(t, err)

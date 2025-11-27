@@ -114,8 +114,6 @@ func getRootUnUpdateFields(o *rootUnBase) (fields map[string]interface{}) {
 
 // DeleteRootUn deletes the root_un record with primary key pk from the database.
 // Note that you can also delete loaded RootUn objects by calling Delete on them.
-// Returns an error only if there was a problem with the database during the delete.
-// If the record was not found, no error will be returned.
 // doc: type=RootUn
 func DeleteRootUn(ctx context.Context, pk query.AutoPrimaryKey) error {
 	return deleteRootUn(ctx, pk)

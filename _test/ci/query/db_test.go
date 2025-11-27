@@ -39,7 +39,12 @@ func loadData(ctx context.Context) {
 	if err != nil {
 		panic(err)
 	}
-	defer f.Close()
+	defer func(f *os.File) {
+		err := f.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(f)
 	err = goradd.JsonDecodeAll(ctx, f)
 	if err != nil {
 		panic(fmt.Errorf("error loading data: %w", err))

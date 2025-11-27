@@ -114,8 +114,6 @@ func getRootUUpdateFields(o *rootUBase) (fields map[string]interface{}) {
 
 // DeleteRootU deletes the root_u record with primary key pk from the database.
 // Note that you can also delete loaded RootU objects by calling Delete on them.
-// Returns an error only if there was a problem with the database during the delete.
-// If the record was not found, no error will be returned.
 // doc: type=RootU
 func DeleteRootU(ctx context.Context, pk query.AutoPrimaryKey) error {
 	return deleteRootU(ctx, pk)

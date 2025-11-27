@@ -231,7 +231,8 @@ func TestTwoKey_ReferenceLoad(t *testing.T) {
 	_ = objPkOnly
 
 	// test eager loading
-	obj3, _ := LoadTwoKey(ctx, obj.PrimaryKey())
+	obj3, err3 := LoadTwoKey(ctx, obj.PrimaryKey())
+	assert.NoError(t, err3)
 	_ = obj3 // avoid error if there are no references
 
 }
@@ -242,12 +243,14 @@ func TestTwoKey_ReferenceUpdateNewObjects(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleTwoKey(ctx, obj)
 
-	obj2, _ := LoadTwoKey(ctx, obj.PrimaryKey())
+	obj2, err := LoadTwoKey(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 	updateMaximalSampleTwoKey(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleTwoKey(ctx, obj2)
 
-	obj3, _ := LoadTwoKey(ctx, obj2.PrimaryKey())
+	obj3, err2 := LoadTwoKey(ctx, obj2.PrimaryKey())
+	assert.NoError(t, err2)
 	_ = obj3 // avoid error if there are no references
 
 }
@@ -260,7 +263,8 @@ func TestTwoKey_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadTwoKey(ctx, obj.PrimaryKey())
+	obj2, err := LoadTwoKey(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 	_ = obj2 // avoid error if there are no references
 
 }

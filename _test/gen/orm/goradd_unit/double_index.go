@@ -112,8 +112,6 @@ func getDoubleIndexUpdateFields(o *doubleIndexBase) (fields map[string]interface
 
 // DeleteDoubleIndex deletes the double_index record with primary key pk from the database.
 // Note that you can also delete loaded DoubleIndex objects by calling Delete on them.
-// Returns an error only if there was a problem with the database during the delete.
-// If the record was not found, no error will be returned.
 // doc: type=DoubleIndex
 func DeleteDoubleIndex(ctx context.Context, pk int) error {
 	return deleteDoubleIndex(ctx, pk)

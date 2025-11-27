@@ -2,8 +2,10 @@ package query
 
 import (
 	"context"
+	"os"
 	"testing"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/goradd/gro/_test/gen/orm/goradd"
 	"github.com/goradd/gro/_test/gen/orm/goradd/node"
 	"github.com/goradd/gro/pkg/op"
@@ -75,7 +77,10 @@ func TestReverseManyLoad(t *testing.T) {
 		}
 	}
 	assert.Len(t, names, 12) // Includes duplicates. If we ever get Distinct to manually remove duplicates, we should fix this.
-
+	if len(names) == 0 {
+		spew.Dump(people)
+		os.Exit(1)
+	}
 	// Test deep IsDirty and Save
 
 	assert.False(t, person.IsDirty())

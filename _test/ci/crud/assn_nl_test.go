@@ -15,13 +15,12 @@ import (
 // TestForwardLock tests insert and update of two linked records that have an optimistic lock.
 func TestAssociationLock(t *testing.T) {
 	ctx := context.Background()
-	defer goradd_unit.ClearAll(ctx)
 
 	// Insert-insert
 	l1 := goradd_unit.NewLeafNl()
 	l2 := goradd_unit.NewLeafNl()
-	l1.SetName("leaf1")
-	l2.SetName("leaf2")
+	l1.SetName("leafAssociationLock1")
+	l2.SetName("leafAssociationLock2")
 	l1.SetLeaf2s(l2)
 	err := l1.Save(ctx)
 	require.NoError(t, err)
@@ -30,55 +29,54 @@ func TestAssociationLock(t *testing.T) {
 	l3, err = goradd_unit.LoadLeafNl(ctx, l1.ID(), node.LeafNl().Leaf2s())
 	require.NoError(t, err)
 	require.NotNilf(t, l3, "Object was nil based on ID %s", l1.ID())
-	assert.Equal(t, "leaf1", l3.Name())
-	assert.Equal(t, "leaf2", l3.Leaf2s()[0].Name())
+	assert.Equal(t, "leafAssociationLock1", l3.Name())
+	assert.Equal(t, "leafAssociationLock2", l3.Leaf2s()[0].Name())
 
 	// Update-update
-	l3.SetName("leaf11")
-	l3.Leaf2s()[0].SetName("leaf22")
+	l3.SetName("leafAssociationLock11")
+	l3.Leaf2s()[0].SetName("leafAssociationLock22")
 	err = l3.Save(ctx)
 	assert.NoError(t, err)
 	l3, err = goradd_unit.LoadLeafNl(ctx, l1.ID(), node.LeafNl().Leaf2s())
 	require.NoError(t, err)
 	require.NotNilf(t, l3, "Object was nil based on ID %s", l1.ID())
-	assert.Equal(t, "leaf11", l3.Name())
-	assert.Equal(t, "leaf22", l3.Leaf2s()[0].Name())
+	assert.Equal(t, "leafAssociationLock11", l3.Name())
+	assert.Equal(t, "leafAssociationLock22", l3.Leaf2s()[0].Name())
 
 	// Insert-update
 	l4 := goradd_unit.NewLeafNl()
-	l4.SetName("leaf4")
-	l3.SetName("leaf111")
+	l4.SetName("leafAssociationLock4")
+	l3.SetName("leafAssociationLock111")
 	l4.SetLeaf2s(l3)
 	err = l4.Save(ctx)
 	require.NoError(t, err)
 	l3, err = goradd_unit.LoadLeafNl(ctx, l4.ID(), node.LeafNl().Leaf2s())
 	require.NoError(t, err)
 	require.NotNilf(t, l3, "Object was nil based on ID %s", l4.ID())
-	assert.Equal(t, "leaf4", l3.Name())
-	assert.Equal(t, "leaf111", l3.Leaf2s()[0].Name())
+	assert.Equal(t, "leafAssociationLock4", l3.Name())
+	assert.Equal(t, "leafAssociationLock111", l3.Leaf2s()[0].Name())
 
 	// Update-insert
 	l5 := goradd_unit.NewLeafNl()
-	l4.SetName("leaf44")
-	l5.SetName("leaf5")
+	l4.SetName("leafAssociationLock44")
+	l5.SetName("leafAssociationLock5")
 	l4.SetLeaf2s(l5)
 	err = l4.Save(ctx)
 	require.NoError(t, err)
 	l3, err = goradd_unit.LoadLeafNl(ctx, l4.ID(), node.LeafNl().Leaf2s())
 	require.NoError(t, err)
 	require.NotNilf(t, l3, "Object was nil based on ID %s", l4.ID())
-	assert.Equal(t, "leaf44", l3.Name())
-	assert.Equal(t, "leaf5", l3.Leaf2s()[0].Name())
+	assert.Equal(t, "leafAssociationLock44", l3.Name())
+	assert.Equal(t, "leafAssociationLock5", l3.Leaf2s()[0].Name())
 }
 
 func TestAssociationLockCollision(t *testing.T) {
 	ctx := context.Background()
-	defer goradd_unit.ClearAll(ctx)
 
 	l1 := goradd_unit.NewLeafNl()
 	l2 := goradd_unit.NewLeafNl()
-	l1.SetName("leaf1")
-	l2.SetName("leaf2")
+	l1.SetName("leafAssociationLockCollision1")
+	l2.SetName("leafAssociationLockCollision2")
 	l1.SetLeaf2s(l2)
 	err := l1.Save(ctx)
 	require.NoError(t, err)
@@ -88,8 +86,8 @@ func TestAssociationLockCollision(t *testing.T) {
 	require.NoError(t, err)
 
 	// Update both
-	l1.SetName("leaf11")
-	l3.SetName("leaf12")
+	l1.SetName("leafAssociationLockCollision11")
+	l3.SetName("leafAssociationLockCollision12")
 
 	err = l1.Save(ctx)
 	err2 := l3.Save(ctx)
@@ -99,8 +97,8 @@ func TestAssociationLockCollision(t *testing.T) {
 
 	// 2nd level
 	l3, _ = goradd_unit.LoadLeafNl(ctx, l1.ID(), node.LeafNl().Leaf2s())
-	l1.Leaf2s()[0].SetName("leaf21")
-	l3.Leaf2s()[0].SetName("leaf22")
+	l1.Leaf2s()[0].SetName("leafAssociationLockCollision21")
+	l3.Leaf2s()[0].SetName("leafAssociationLockCollision22")
 
 	err = l1.Save(ctx)
 	err2 = l3.Save(ctx)
@@ -111,12 +109,11 @@ func TestAssociationLockCollision(t *testing.T) {
 
 func TestAssociationLockNull(t *testing.T) {
 	ctx := context.Background()
-	defer goradd_unit.ClearAll(ctx)
 
 	l1 := goradd_unit.NewLeafNl()
 	l2 := goradd_unit.NewLeafNl()
-	l1.SetName("leaf1")
-	l2.SetName("leaf2")
+	l1.SetName("leafAssociationLockNull1")
+	l2.SetName("leafAssociationLockNull2")
 	l1.SetLeaf2s(l2)
 	err := l1.Save(ctx)
 	require.NoError(t, err)
@@ -134,15 +131,14 @@ func TestAssociationLockNull(t *testing.T) {
 
 func TestAssociationLockTwo(t *testing.T) {
 	ctx := context.Background()
-	defer goradd_unit.ClearAll(ctx)
 
 	l1 := goradd_unit.NewLeafNl()
 	l2 := goradd_unit.NewLeafNl()
 	l3 := goradd_unit.NewLeafNl()
 
-	l1.SetName("leaf1")
-	l2.SetName("leaf2")
-	l3.SetName("leaf3")
+	l1.SetName("leafAssociationLockTwo1")
+	l2.SetName("leafAssociationLockTwo2")
+	l3.SetName("leafAssociationLockTwo3")
 	l1.SetLeaf2s(l2, l3)
 	err := l1.Save(ctx)
 	require.NoError(t, err)
@@ -154,15 +150,14 @@ func TestAssociationLockTwo(t *testing.T) {
 
 func TestAssociationLockDelete(t *testing.T) {
 	ctx := context.Background()
-	defer goradd_unit.ClearAll(ctx)
 
 	l1 := goradd_unit.NewLeafNl()
 	l2 := goradd_unit.NewLeafNl()
 	l3 := goradd_unit.NewLeafNl()
 
-	l1.SetName("leaf1")
-	l2.SetName("leaf2")
-	l3.SetName("leaf3")
+	l1.SetName("leafAssociationLockDelete1")
+	l2.SetName("leafAssociationLockDelete2")
+	l3.SetName("leafAssociationLockDelete3")
 	l1.SetLeaf2s(l2, l3)
 	err := l1.Save(ctx)
 	require.NoError(t, err)
@@ -176,15 +171,14 @@ func TestAssociationLockDelete(t *testing.T) {
 
 func TestAssociationLockJson(t *testing.T) {
 	ctx := context.Background()
-	defer goradd_unit.ClearAll(ctx)
 
 	l1 := goradd_unit.NewLeafNl()
 	l2 := goradd_unit.NewLeafNl()
 	l3 := goradd_unit.NewLeafNl()
 
-	l1.SetName("leaf1")
-	l2.SetName("leaf2")
-	l3.SetName("leaf3")
+	l1.SetName("leafAssociationLockJson1")
+	l2.SetName("leafAssociationLockJson2")
+	l3.SetName("leafAssociationLockJson3")
 	l1.SetLeaf2s(l2, l3)
 	require.NoError(t, l1.Save(ctx))
 
@@ -198,11 +192,11 @@ func TestAssociationLockJson(t *testing.T) {
 	v, ok := m["leaf2s"]
 	assert.True(t, ok)
 	v2 := v.([]any)
-	assert.Equal(t, "leaf2", v2[0].(map[string]any)["name"].(string))
+	assert.Equal(t, "leafAssociationLockJson2", v2[0].(map[string]any)["name"].(string))
 
 	var leaf goradd_unit.LeafNl
 	err = json.Unmarshal(j, &leaf)
 	require.NoError(t, err)
-	assert.Equal(t, "leaf1", leaf.Name())
-	assert.Equal(t, "leaf2", leaf.Leaf2s()[0].Name())
+	assert.Equal(t, "leafAssociationLockJson1", leaf.Name())
+	assert.Equal(t, "leafAssociationLockJson2", leaf.Leaf2s()[0].Name())
 }

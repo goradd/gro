@@ -114,8 +114,6 @@ func getMultiParentUpdateFields(o *multiParentBase) (fields map[string]interface
 
 // DeleteMultiParent deletes the multi_parent record with primary key pk from the database.
 // Note that you can also delete loaded MultiParent objects by calling Delete on them.
-// Returns an error only if there was a problem with the database during the delete.
-// If the record was not found, no error will be returned.
 // doc: type=MultiParent
 func DeleteMultiParent(ctx context.Context, pk query.AutoPrimaryKey) error {
 	return deleteMultiParent(ctx, pk)

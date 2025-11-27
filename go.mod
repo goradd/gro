@@ -10,7 +10,7 @@ require (
 	github.com/goradd/strings v0.2.0
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/kenshaw/snaker v0.3.0
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.11.1
 	golang.org/x/exp v0.0.0-20250408133849-7e4ce0ab07d0
 )
 

@@ -193,7 +193,8 @@ func TestRootN_ReferenceLoad(t *testing.T) {
 	assert.Len(t, v_LeafNs, 1)
 
 	// test eager loading
-	obj3, _ := LoadRootN(ctx, obj.PrimaryKey(), node.RootN().LeafNs())
+	obj3, err3 := LoadRootN(ctx, obj.PrimaryKey(), node.RootN().LeafNs())
+	assert.NoError(t, err3)
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, len(obj2.LeafNs()), len(obj3.LeafNs()))
@@ -206,12 +207,14 @@ func TestRootN_ReferenceUpdateNewObjects(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleRootN(ctx, obj)
 
-	obj2, _ := LoadRootN(ctx, obj.PrimaryKey())
+	obj2, err := LoadRootN(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 	updateMaximalSampleRootN(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleRootN(ctx, obj2)
 
-	obj3, _ := LoadRootN(ctx, obj2.PrimaryKey(), node.RootN().LeafNs())
+	obj3, err2 := LoadRootN(ctx, obj2.PrimaryKey(), node.RootN().LeafNs())
+	assert.NoError(t, err2)
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, len(obj2.LeafNs()), len(obj3.LeafNs()))
@@ -228,7 +231,8 @@ func TestRootN_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadRootN(ctx, obj.PrimaryKey(), node.RootN().LeafNs())
+	obj2, err := LoadRootN(ctx, obj.PrimaryKey(), node.RootN().LeafNs())
+	assert.NoError(t, err)
 	_ = obj2 // avoid error if there are no references
 
 	assertEqualFieldsLeafN(t, obj2.LeafNs()[0], obj.LeafNs()[0])

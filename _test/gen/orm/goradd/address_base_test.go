@@ -284,7 +284,8 @@ func TestAddress_ReferenceLoad(t *testing.T) {
 	})
 
 	// test eager loading
-	obj3, _ := LoadAddress(ctx, obj.PrimaryKey(), node.Address().Person())
+	obj3, err3 := LoadAddress(ctx, obj.PrimaryKey(), node.Address().Person())
+	assert.NoError(t, err3)
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())
@@ -297,12 +298,14 @@ func TestAddress_ReferenceUpdateNewObjects(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleAddress(ctx, obj)
 
-	obj2, _ := LoadAddress(ctx, obj.PrimaryKey())
+	obj2, err := LoadAddress(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 	updateMaximalSampleAddress(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleAddress(ctx, obj2)
 
-	obj3, _ := LoadAddress(ctx, obj2.PrimaryKey(), node.Address().Person())
+	obj3, err2 := LoadAddress(ctx, obj2.PrimaryKey(), node.Address().Person())
+	assert.NoError(t, err2)
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())
@@ -319,7 +322,8 @@ func TestAddress_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadAddress(ctx, obj.PrimaryKey(), node.Address().Person())
+	obj2, err := LoadAddress(ctx, obj.PrimaryKey(), node.Address().Person())
+	assert.NoError(t, err)
 	_ = obj2 // avoid error if there are no references
 
 	assertEqualFieldsPerson(t, obj2.Person(), obj.Person())

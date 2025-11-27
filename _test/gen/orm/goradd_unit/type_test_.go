@@ -114,8 +114,6 @@ func getTypeTestUpdateFields(o *typeTestBase) (fields map[string]interface{}) {
 
 // DeleteTypeTest deletes the type_test record with primary key pk from the database.
 // Note that you can also delete loaded TypeTest objects by calling Delete on them.
-// Returns an error only if there was a problem with the database during the delete.
-// If the record was not found, no error will be returned.
 // doc: type=TypeTest
 func DeleteTypeTest(ctx context.Context, pk query.AutoPrimaryKey) error {
 	return deleteTypeTest(ctx, pk)

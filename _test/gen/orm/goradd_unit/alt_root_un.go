@@ -112,8 +112,6 @@ func getAltRootUnUpdateFields(o *altRootUnBase) (fields map[string]interface{}) 
 
 // DeleteAltRootUn deletes the alt_root_un record with primary key pk from the database.
 // Note that you can also delete loaded AltRootUn objects by calling Delete on them.
-// Returns an error only if there was a problem with the database during the delete.
-// If the record was not found, no error will be returned.
 // doc: type=AltRootUn
 func DeleteAltRootUn(ctx context.Context, pk float32) error {
 	return deleteAltRootUn(ctx, pk)

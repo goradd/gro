@@ -84,7 +84,6 @@ func NewDB(dbKey string,
 	if err != nil {
 		return nil, fmt.Errorf("could not ping database: %w", err)
 	}
-
 	m := new(DB)
 	m.Base = sql2.NewBase(dbKey, db3, m)
 	if config != nil {

@@ -204,7 +204,8 @@ func TestRootUnl_ReferenceLoad(t *testing.T) {
 	assert.Equal(t, obj.LeafUnl().PrimaryKey(), obj2.LeafUnl().PrimaryKey())
 
 	// test eager loading
-	obj3, _ := LoadRootUnl(ctx, obj.PrimaryKey(), node.RootUnl().LeafUnl())
+	obj3, err3 := LoadRootUnl(ctx, obj.PrimaryKey(), node.RootUnl().LeafUnl())
+	assert.NoError(t, err3)
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.LeafUnl().PrimaryKey(), obj3.LeafUnl().PrimaryKey())
@@ -217,12 +218,14 @@ func TestRootUnl_ReferenceUpdateNewObjects(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleRootUnl(ctx, obj)
 
-	obj2, _ := LoadRootUnl(ctx, obj.PrimaryKey())
+	obj2, err := LoadRootUnl(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 	updateMaximalSampleRootUnl(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleRootUnl(ctx, obj2)
 
-	obj3, _ := LoadRootUnl(ctx, obj2.PrimaryKey(), node.RootUnl().LeafUnl())
+	obj3, err2 := LoadRootUnl(ctx, obj2.PrimaryKey(), node.RootUnl().LeafUnl())
+	assert.NoError(t, err2)
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.LeafUnl().PrimaryKey(), obj3.LeafUnl().PrimaryKey())
@@ -239,7 +242,8 @@ func TestRootUnl_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadRootUnl(ctx, obj.PrimaryKey(), node.RootUnl().LeafUnl())
+	obj2, err := LoadRootUnl(ctx, obj.PrimaryKey(), node.RootUnl().LeafUnl())
+	assert.NoError(t, err)
 	_ = obj2 // avoid error if there are no references
 
 	assertEqualFieldsLeafUnl(t, obj2.LeafUnl(), obj.LeafUnl())

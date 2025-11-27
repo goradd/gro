@@ -21,12 +21,8 @@ func TestBasic(t *testing.T) {
 		OrderBy(node.Person().ID()).
 		Load()
 	assert.NoError(t, err)
-	if len(people) != 12 {
-		t.Error("12 people not found")
-	}
-	if people[0].FirstName() != "John" {
-		t.Error("First person is not John")
-	}
+	assert.Len(t, people, 12)
+	assert.Equal(t, "John", people[0].FirstName())
 }
 
 func TestLoad(t *testing.T) {

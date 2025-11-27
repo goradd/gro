@@ -557,12 +557,13 @@ func TestProject_ReferenceLoad(t *testing.T) {
 	assert.Len(t, v_TeamMembers, 1)
 
 	// test eager loading
-	obj3, _ := LoadProject(ctx, obj.PrimaryKey(), node.Project().Manager(),
+	obj3, err3 := LoadProject(ctx, obj.PrimaryKey(), node.Project().Manager(),
 		node.Project().Parent(),
 		node.Project().Children(),
 		node.Project().Milestones(),
 		node.Project().TeamMembers(),
 	)
+	assert.NoError(t, err3)
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Manager().PrimaryKey(), obj3.Manager().PrimaryKey())
@@ -579,17 +580,19 @@ func TestProject_ReferenceUpdateNewObjects(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleProject(ctx, obj)
 
-	obj2, _ := LoadProject(ctx, obj.PrimaryKey())
+	obj2, err := LoadProject(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 	updateMaximalSampleProject(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleProject(ctx, obj2)
 
-	obj3, _ := LoadProject(ctx, obj2.PrimaryKey(), node.Project().Manager(),
+	obj3, err2 := LoadProject(ctx, obj2.PrimaryKey(), node.Project().Manager(),
 		node.Project().Parent(),
 		node.Project().Children(),
 		node.Project().Milestones(),
 		node.Project().TeamMembers(),
 	)
+	assert.NoError(t, err2)
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Manager().PrimaryKey(), obj3.Manager().PrimaryKey())
@@ -616,12 +619,13 @@ func TestProject_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadProject(ctx, obj.PrimaryKey(), node.Project().Manager(),
+	obj2, err := LoadProject(ctx, obj.PrimaryKey(), node.Project().Manager(),
 		node.Project().Parent(),
 		node.Project().Children(),
 		node.Project().Milestones(),
 		node.Project().TeamMembers(),
 	)
+	assert.NoError(t, err)
 	_ = obj2 // avoid error if there are no references
 
 	assertEqualFieldsPerson(t, obj2.Manager(), obj.Manager())

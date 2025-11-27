@@ -190,7 +190,8 @@ func TestGift_ReferenceLoad(t *testing.T) {
 	_ = objPkOnly
 
 	// test eager loading
-	obj3, _ := LoadGift(ctx, obj.PrimaryKey())
+	obj3, err3 := LoadGift(ctx, obj.PrimaryKey())
+	assert.NoError(t, err3)
 	_ = obj3 // avoid error if there are no references
 
 }
@@ -201,12 +202,14 @@ func TestGift_ReferenceUpdateNewObjects(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleGift(ctx, obj)
 
-	obj2, _ := LoadGift(ctx, obj.PrimaryKey())
+	obj2, err := LoadGift(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 	updateMaximalSampleGift(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleGift(ctx, obj2)
 
-	obj3, _ := LoadGift(ctx, obj2.PrimaryKey())
+	obj3, err2 := LoadGift(ctx, obj2.PrimaryKey())
+	assert.NoError(t, err2)
 	_ = obj3 // avoid error if there are no references
 
 }
@@ -219,7 +222,8 @@ func TestGift_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadGift(ctx, obj.PrimaryKey())
+	obj2, err := LoadGift(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 	_ = obj2 // avoid error if there are no references
 
 }

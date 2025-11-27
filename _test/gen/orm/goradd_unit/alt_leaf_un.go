@@ -114,8 +114,6 @@ func getAltLeafUnUpdateFields(o *altLeafUnBase) (fields map[string]interface{}) 
 
 // DeleteAltLeafUn deletes the alt_leaf_un record with primary key pk from the database.
 // Note that you can also delete loaded AltLeafUn objects by calling Delete on them.
-// Returns an error only if there was a problem with the database during the delete.
-// If the record was not found, no error will be returned.
 // doc: type=AltLeafUn
 func DeleteAltLeafUn(ctx context.Context, pk query.AutoPrimaryKey) error {
 	return deleteAltLeafUn(ctx, pk)

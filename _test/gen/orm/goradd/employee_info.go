@@ -112,8 +112,6 @@ func getEmployeeInfoUpdateFields(o *employeeInfoBase) (fields map[string]interfa
 
 // DeleteEmployeeInfo deletes the employee_info record with primary key pk from the database.
 // Note that you can also delete loaded EmployeeInfo objects by calling Delete on them.
-// Returns an error only if there was a problem with the database during the delete.
-// If the record was not found, no error will be returned.
 // doc: type=EmployeeInfo
 func DeleteEmployeeInfo(ctx context.Context, pk string) error {
 	return deleteEmployeeInfo(ctx, pk)

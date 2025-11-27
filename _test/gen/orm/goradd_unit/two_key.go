@@ -114,8 +114,6 @@ func getTwoKeyUpdateFields(o *twoKeyBase) (fields map[string]interface{}) {
 
 // DeleteTwoKey deletes the two_key record with primary key pk from the database.
 // Note that you can also delete loaded TwoKey objects by calling Delete on them.
-// Returns an error only if there was a problem with the database during the delete.
-// If the record was not found, no error will be returned.
 // doc: type=TwoKey
 func DeleteTwoKey(ctx context.Context, pk TwoKeyPrimaryKey) error {
 	return deleteTwoKey(ctx, pk)

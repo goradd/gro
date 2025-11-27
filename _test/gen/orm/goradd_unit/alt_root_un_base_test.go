@@ -205,7 +205,8 @@ func TestAltRootUn_ReferenceLoad(t *testing.T) {
 	assert.Equal(t, obj.AltLeafUn().PrimaryKey(), obj2.AltLeafUn().PrimaryKey())
 
 	// test eager loading
-	obj3, _ := LoadAltRootUn(ctx, obj.PrimaryKey(), node.AltRootUn().AltLeafUn())
+	obj3, err3 := LoadAltRootUn(ctx, obj.PrimaryKey(), node.AltRootUn().AltLeafUn())
+	assert.NoError(t, err3)
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.AltLeafUn().PrimaryKey(), obj3.AltLeafUn().PrimaryKey())
@@ -218,12 +219,14 @@ func TestAltRootUn_ReferenceUpdateNewObjects(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleAltRootUn(ctx, obj)
 
-	obj2, _ := LoadAltRootUn(ctx, obj.PrimaryKey())
+	obj2, err := LoadAltRootUn(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 	updateMaximalSampleAltRootUn(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleAltRootUn(ctx, obj2)
 
-	obj3, _ := LoadAltRootUn(ctx, obj2.PrimaryKey(), node.AltRootUn().AltLeafUn())
+	obj3, err2 := LoadAltRootUn(ctx, obj2.PrimaryKey(), node.AltRootUn().AltLeafUn())
+	assert.NoError(t, err2)
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.AltLeafUn().PrimaryKey(), obj3.AltLeafUn().PrimaryKey())
@@ -240,7 +243,8 @@ func TestAltRootUn_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadAltRootUn(ctx, obj.PrimaryKey(), node.AltRootUn().AltLeafUn())
+	obj2, err := LoadAltRootUn(ctx, obj.PrimaryKey(), node.AltRootUn().AltLeafUn())
+	assert.NoError(t, err)
 	_ = obj2 // avoid error if there are no references
 
 	assertEqualFieldsAltLeafUn(t, obj2.AltLeafUn(), obj.AltLeafUn())

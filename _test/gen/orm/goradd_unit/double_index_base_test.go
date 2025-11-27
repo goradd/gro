@@ -297,7 +297,8 @@ func TestDoubleIndex_ReferenceLoad(t *testing.T) {
 	_ = objPkOnly
 
 	// test eager loading
-	obj3, _ := LoadDoubleIndex(ctx, obj.PrimaryKey())
+	obj3, err3 := LoadDoubleIndex(ctx, obj.PrimaryKey())
+	assert.NoError(t, err3)
 	_ = obj3 // avoid error if there are no references
 
 }
@@ -308,12 +309,14 @@ func TestDoubleIndex_ReferenceUpdateNewObjects(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleDoubleIndex(ctx, obj)
 
-	obj2, _ := LoadDoubleIndex(ctx, obj.PrimaryKey())
+	obj2, err := LoadDoubleIndex(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 	updateMaximalSampleDoubleIndex(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleDoubleIndex(ctx, obj2)
 
-	obj3, _ := LoadDoubleIndex(ctx, obj2.PrimaryKey())
+	obj3, err2 := LoadDoubleIndex(ctx, obj2.PrimaryKey())
+	assert.NoError(t, err2)
 	_ = obj3 // avoid error if there are no references
 
 }
@@ -326,7 +329,8 @@ func TestDoubleIndex_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadDoubleIndex(ctx, obj.PrimaryKey())
+	obj2, err := LoadDoubleIndex(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 	_ = obj2 // avoid error if there are no references
 
 }

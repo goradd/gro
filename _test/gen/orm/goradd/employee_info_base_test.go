@@ -239,7 +239,8 @@ func TestEmployeeInfo_ReferenceLoad(t *testing.T) {
 	})
 
 	// test eager loading
-	obj3, _ := LoadEmployeeInfo(ctx, obj.PrimaryKey(), node.EmployeeInfo().Person())
+	obj3, err3 := LoadEmployeeInfo(ctx, obj.PrimaryKey(), node.EmployeeInfo().Person())
+	assert.NoError(t, err3)
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())
@@ -252,12 +253,14 @@ func TestEmployeeInfo_ReferenceUpdateNewObjects(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleEmployeeInfo(ctx, obj)
 
-	obj2, _ := LoadEmployeeInfo(ctx, obj.PrimaryKey())
+	obj2, err := LoadEmployeeInfo(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 	updateMaximalSampleEmployeeInfo(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleEmployeeInfo(ctx, obj2)
 
-	obj3, _ := LoadEmployeeInfo(ctx, obj2.PrimaryKey(), node.EmployeeInfo().Person())
+	obj3, err2 := LoadEmployeeInfo(ctx, obj2.PrimaryKey(), node.EmployeeInfo().Person())
+	assert.NoError(t, err2)
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())
@@ -274,7 +277,8 @@ func TestEmployeeInfo_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadEmployeeInfo(ctx, obj.PrimaryKey(), node.EmployeeInfo().Person())
+	obj2, err := LoadEmployeeInfo(ctx, obj.PrimaryKey(), node.EmployeeInfo().Person())
+	assert.NoError(t, err)
 	_ = obj2 // avoid error if there are no references
 
 	assertEqualFieldsPerson(t, obj2.Person(), obj.Person())

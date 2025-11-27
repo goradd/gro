@@ -514,8 +514,6 @@ func get`); err != nil {
 		}
 
 		if _, err = io.WriteString(_w, ` objects by calling Delete on them.
-// Returns an error only if there was a problem with the database during the delete.
-// If the record was not found, no error will be returned.
 // doc: type=`); err != nil {
 			return
 		}

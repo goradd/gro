@@ -112,8 +112,6 @@ func getMilestoneUpdateFields(o *milestoneBase) (fields map[string]interface{}) 
 
 // DeleteMilestone deletes the milestone record with primary key pk from the database.
 // Note that you can also delete loaded Milestone objects by calling Delete on them.
-// Returns an error only if there was a problem with the database during the delete.
-// If the record was not found, no error will be returned.
 // doc: type=Milestone
 func DeleteMilestone(ctx context.Context, pk string) error {
 	return deleteMilestone(ctx, pk)

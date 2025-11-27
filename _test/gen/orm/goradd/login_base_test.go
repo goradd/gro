@@ -309,7 +309,8 @@ func TestLogin_ReferenceLoad(t *testing.T) {
 	assert.Panics(t, func() { _, _ = objPkOnly.LoadPerson(ctx) })
 
 	// test eager loading
-	obj3, _ := LoadLogin(ctx, obj.PrimaryKey(), node.Login().Person())
+	obj3, err3 := LoadLogin(ctx, obj.PrimaryKey(), node.Login().Person())
+	assert.NoError(t, err3)
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())
@@ -322,12 +323,14 @@ func TestLogin_ReferenceUpdateNewObjects(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleLogin(ctx, obj)
 
-	obj2, _ := LoadLogin(ctx, obj.PrimaryKey())
+	obj2, err := LoadLogin(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 	updateMaximalSampleLogin(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleLogin(ctx, obj2)
 
-	obj3, _ := LoadLogin(ctx, obj2.PrimaryKey(), node.Login().Person())
+	obj3, err2 := LoadLogin(ctx, obj2.PrimaryKey(), node.Login().Person())
+	assert.NoError(t, err2)
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Person().PrimaryKey(), obj3.Person().PrimaryKey())
@@ -344,7 +347,8 @@ func TestLogin_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadLogin(ctx, obj.PrimaryKey(), node.Login().Person())
+	obj2, err := LoadLogin(ctx, obj.PrimaryKey(), node.Login().Person())
+	assert.NoError(t, err)
 	_ = obj2 // avoid error if there are no references
 
 	assertEqualFieldsPerson(t, obj2.Person(), obj.Person())

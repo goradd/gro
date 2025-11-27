@@ -70,8 +70,6 @@ func initMysql() {
 	if err != nil {
 		panic(err)
 	}
-	database.StartProfiling()
-
 	db.AddDatabase(database, goraddKey)
 
 	cfg.DBName = goraddUnitDatabaseName
@@ -80,6 +78,7 @@ func initMysql() {
 		panic(err)
 	}
 	db.AddDatabase(database, goraddUnitKey)
+	database.StartProfiling()
 }
 
 func initPostgres() {

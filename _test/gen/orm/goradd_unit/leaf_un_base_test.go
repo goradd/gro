@@ -222,7 +222,8 @@ func TestLeafUn_ReferenceLoad(t *testing.T) {
 	assert.Panics(t, func() { _, _ = objPkOnly.LoadRootUn(ctx) })
 
 	// test eager loading
-	obj3, _ := LoadLeafUn(ctx, obj.PrimaryKey(), node.LeafUn().RootUn())
+	obj3, err3 := LoadLeafUn(ctx, obj.PrimaryKey(), node.LeafUn().RootUn())
+	assert.NoError(t, err3)
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.RootUn().PrimaryKey(), obj3.RootUn().PrimaryKey())
@@ -235,12 +236,14 @@ func TestLeafUn_ReferenceUpdateNewObjects(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleLeafUn(ctx, obj)
 
-	obj2, _ := LoadLeafUn(ctx, obj.PrimaryKey())
+	obj2, err := LoadLeafUn(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 	updateMaximalSampleLeafUn(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleLeafUn(ctx, obj2)
 
-	obj3, _ := LoadLeafUn(ctx, obj2.PrimaryKey(), node.LeafUn().RootUn())
+	obj3, err2 := LoadLeafUn(ctx, obj2.PrimaryKey(), node.LeafUn().RootUn())
+	assert.NoError(t, err2)
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.RootUn().PrimaryKey(), obj3.RootUn().PrimaryKey())
@@ -257,7 +260,8 @@ func TestLeafUn_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadLeafUn(ctx, obj.PrimaryKey(), node.LeafUn().RootUn())
+	obj2, err := LoadLeafUn(ctx, obj.PrimaryKey(), node.LeafUn().RootUn())
+	assert.NoError(t, err)
 	_ = obj2 // avoid error if there are no references
 
 	assertEqualFieldsRootUn(t, obj2.RootUn(), obj.RootUn())

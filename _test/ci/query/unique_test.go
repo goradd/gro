@@ -7,6 +7,7 @@ import (
 	"github.com/goradd/gro/_test/gen/orm/goradd"
 	"github.com/goradd/gro/_test/gen/orm/goradd_unit"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUniquePrimaryKey(t *testing.T) {
@@ -46,24 +47,28 @@ func TestUnique2Value(t *testing.T) {
 	i := goradd_unit.NewDoubleIndex()
 	i.SetID(1)
 	i.SetFieldInt(1)
-	i.SetFieldString("blah")
+	i.SetFieldString("test")
 	err := i.Save(ctx)
 	assert.NoError(t, err)
-	defer i.Delete(ctx)
+
 	i2 := i.Copy()
 	i2.SetID(2)
 	err = i2.Save(ctx)
-	assert.Error(t, err, "error on collision of insert with unique index on 2 columns")
+	return
+	require.Error(t, err, "error on collision of insert with unique index on 2 columns")
 
 	i3 := goradd_unit.NewDoubleIndex()
 	i3.SetID(2)
 	i3.SetFieldInt(2)
-	i3.SetFieldString("blah2")
+	i3.SetFieldString("test2")
 	err = i3.Save(ctx)
 	assert.NoError(t, err)
-	defer i3.Delete(ctx)
 	i3.SetFieldInt(1)
-	i3.SetFieldString("blah")
+	i3.SetFieldString("test")
 	err = i3.Save(ctx)
-	assert.Error(t, err, "updating double-unique index detects collision")
+	require.Error(t, err, "updating double-unique index detects collision")
+
+	// Cleanup only if not failing so we can see error in db
+	i.Delete(ctx)
+	i3.Delete(ctx)
 }

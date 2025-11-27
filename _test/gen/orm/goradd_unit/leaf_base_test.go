@@ -229,7 +229,8 @@ func TestLeaf_ReferenceLoad(t *testing.T) {
 	})
 
 	// test eager loading
-	obj3, _ := LoadLeaf(ctx, obj.PrimaryKey(), node.Leaf().Root())
+	obj3, err3 := LoadLeaf(ctx, obj.PrimaryKey(), node.Leaf().Root())
+	assert.NoError(t, err3)
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Root().PrimaryKey(), obj3.Root().PrimaryKey())
@@ -242,12 +243,14 @@ func TestLeaf_ReferenceUpdateNewObjects(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleLeaf(ctx, obj)
 
-	obj2, _ := LoadLeaf(ctx, obj.PrimaryKey())
+	obj2, err := LoadLeaf(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 	updateMaximalSampleLeaf(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleLeaf(ctx, obj2)
 
-	obj3, _ := LoadLeaf(ctx, obj2.PrimaryKey(), node.Leaf().Root())
+	obj3, err2 := LoadLeaf(ctx, obj2.PrimaryKey(), node.Leaf().Root())
+	assert.NoError(t, err2)
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Root().PrimaryKey(), obj3.Root().PrimaryKey())
@@ -264,7 +267,8 @@ func TestLeaf_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadLeaf(ctx, obj.PrimaryKey(), node.Leaf().Root())
+	obj2, err := LoadLeaf(ctx, obj.PrimaryKey(), node.Leaf().Root())
+	assert.NoError(t, err)
 	_ = obj2 // avoid error if there are no references
 
 	assertEqualFieldsRoot(t, obj2.Root(), obj.Root())

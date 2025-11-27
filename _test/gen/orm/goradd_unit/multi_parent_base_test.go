@@ -282,11 +282,12 @@ func TestMultiParent_ReferenceLoad(t *testing.T) {
 	assert.Len(t, v_Parent2MultiParents, 1)
 
 	// test eager loading
-	obj3, _ := LoadMultiParent(ctx, obj.PrimaryKey(), node.MultiParent().Parent1(),
+	obj3, err3 := LoadMultiParent(ctx, obj.PrimaryKey(), node.MultiParent().Parent1(),
 		node.MultiParent().Parent2(),
 		node.MultiParent().Parent1MultiParents(),
 		node.MultiParent().Parent2MultiParents(),
 	)
+	assert.NoError(t, err3)
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Parent1().PrimaryKey(), obj3.Parent1().PrimaryKey())
@@ -302,16 +303,18 @@ func TestMultiParent_ReferenceUpdateNewObjects(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleMultiParent(ctx, obj)
 
-	obj2, _ := LoadMultiParent(ctx, obj.PrimaryKey())
+	obj2, err := LoadMultiParent(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 	updateMaximalSampleMultiParent(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleMultiParent(ctx, obj2)
 
-	obj3, _ := LoadMultiParent(ctx, obj2.PrimaryKey(), node.MultiParent().Parent1(),
+	obj3, err2 := LoadMultiParent(ctx, obj2.PrimaryKey(), node.MultiParent().Parent1(),
 		node.MultiParent().Parent2(),
 		node.MultiParent().Parent1MultiParents(),
 		node.MultiParent().Parent2MultiParents(),
 	)
+	assert.NoError(t, err2)
 	_ = obj3 // avoid error if there are no references
 
 	assert.Equal(t, obj2.Parent1().PrimaryKey(), obj3.Parent1().PrimaryKey())
@@ -335,11 +338,12 @@ func TestMultiParent_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadMultiParent(ctx, obj.PrimaryKey(), node.MultiParent().Parent1(),
+	obj2, err := LoadMultiParent(ctx, obj.PrimaryKey(), node.MultiParent().Parent1(),
 		node.MultiParent().Parent2(),
 		node.MultiParent().Parent1MultiParents(),
 		node.MultiParent().Parent2MultiParents(),
 	)
+	assert.NoError(t, err)
 	_ = obj2 // avoid error if there are no references
 
 	assertEqualFieldsMultiParent(t, obj2.Parent1(), obj.Parent1())

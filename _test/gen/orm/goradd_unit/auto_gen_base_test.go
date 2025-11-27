@@ -213,7 +213,8 @@ func TestAutoGen_ReferenceLoad(t *testing.T) {
 	_ = objPkOnly
 
 	// test eager loading
-	obj3, _ := LoadAutoGen(ctx, obj.PrimaryKey())
+	obj3, err3 := LoadAutoGen(ctx, obj.PrimaryKey())
+	assert.NoError(t, err3)
 	_ = obj3 // avoid error if there are no references
 
 }
@@ -224,12 +225,14 @@ func TestAutoGen_ReferenceUpdateNewObjects(t *testing.T) {
 	assert.NoError(t, obj.Save(ctx))
 	defer deleteSampleAutoGen(ctx, obj)
 
-	obj2, _ := LoadAutoGen(ctx, obj.PrimaryKey())
+	obj2, err := LoadAutoGen(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 	updateMaximalSampleAutoGen(ctx, obj2)
 	assert.NoError(t, obj2.Save(ctx))
 	defer deleteSampleAutoGen(ctx, obj2)
 
-	obj3, _ := LoadAutoGen(ctx, obj2.PrimaryKey())
+	obj3, err2 := LoadAutoGen(ctx, obj2.PrimaryKey())
+	assert.NoError(t, err2)
 	_ = obj3 // avoid error if there are no references
 
 }
@@ -242,7 +245,8 @@ func TestAutoGen_ReferenceUpdateOldObjects(t *testing.T) {
 
 	assert.NoError(t, obj.Save(ctx))
 
-	obj2, _ := LoadAutoGen(ctx, obj.PrimaryKey())
+	obj2, err := LoadAutoGen(ctx, obj.PrimaryKey())
+	assert.NoError(t, err)
 	_ = obj2 // avoid error if there are no references
 
 }
