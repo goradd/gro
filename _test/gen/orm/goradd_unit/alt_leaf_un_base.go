@@ -265,7 +265,10 @@ func (o *altLeafUnBase) SetAltRootUn(altRootUn *AltRootUn) {
 		}
 	} else {
 		o.altRootUn = altRootUn
-		if o.altRootUnIDIsNull || !o._restored || o.altRootUnID != altRootUn.PrimaryKey() {
+		if o.altRootUnIDIsNull ||
+			!o._restored ||
+			o.altRootUnID != altRootUn.PrimaryKey() {
+
 			o.altRootUnIDIsNull = false
 			o.altRootUnID = altRootUn.PrimaryKey()
 			o.altRootUnIDIsDirty = true

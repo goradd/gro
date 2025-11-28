@@ -99,6 +99,29 @@ func (c *Column) DefaultValueAsValue() string {
 	return fmt.Sprintf("%#v", c.DefaultValue)
 }
 
+// CompareGen will treat a and b as variables of the same type as the column's schema type, and
+// will generate code that will compare them for equality (if equal), or inequality (if equal is false)
+func (c *Column) CompareGen(a, b string, equal bool) string {
+	switch c.SchemaType {
+	case schema.ColTypeTime, schema.ColTypeAutoPrimaryKey, schema.ColTypeUUID, schema.ColTypeULID:
+		if equal {
+			return fmt.Sprintf("%s.Equal(%s)", a, b)
+		}
+		return fmt.Sprintf("!%s.Equal(%s)", a, b)
+	case schema.ColTypeBytes:
+		if equal {
+			return fmt.Sprintf("bytes.Equal(%s, %s)", a, b)
+		}
+		return fmt.Sprintf("!bytes.Equal(%s, %s)", a, b)
+
+	default:
+		if equal {
+			return fmt.Sprintf("%s == %s", a, b)
+		}
+		return fmt.Sprintf("%s != %s", a, b)
+	}
+}
+
 /*
 // DefaultValueAsConstant returns the default value of the column as a Go constant
 func (cd *Column) DefaultValueAsConstant() string {

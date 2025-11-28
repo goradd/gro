@@ -368,7 +368,10 @@ func (o *loginBase) SetPerson(person *Person) {
 		}
 	} else {
 		o.person = person
-		if o.personIDIsNull || !o._restored || o.personID != person.PrimaryKey() {
+		if o.personIDIsNull ||
+			!o._restored ||
+			o.personID != person.PrimaryKey() {
+
 			o.personIDIsNull = false
 			o.personID = person.PrimaryKey()
 			o.personIDIsDirty = true

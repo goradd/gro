@@ -1367,9 +1367,7 @@ func (tmpl *TableBaseTemplate) genColSetter(table *model.Table, col *model.Colum
 		return
 	}
 	switch col.ReceiverType {
-	case query.ColTypeUnknown:
-		fallthrough
-	case query.ColTypeBytes:
+	case query.ColTypeUnknown, query.ColTypeBytes:
 
 		//*** column_setter_bytes.tmpl
 
@@ -1971,15 +1969,15 @@ func (tmpl *TableBaseTemplate) genColSetter(table *model.Table, col *model.Colum
 
 			}
 
-			if _, err = io.WriteString(_w, `        o.`); err != nil {
+			if _, err = io.WriteString(_w, `        `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.Field); err != nil {
+			if _, err = io.WriteString(_w, col.CompareGen("o."+col.Field, "v", true)); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` == v {
+			if _, err = io.WriteString(_w, ` {
         // no change
         return
     }
@@ -2057,23 +2055,15 @@ func (tmpl *TableBaseTemplate) genColSetter(table *model.Table, col *model.Colum
 			}
 
 			if _, err = io.WriteString(_w, ` != nil &&
-	        o.`); err != nil {
+	        `); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, col.Field); err != nil {
+			if _, err = io.WriteString(_w, col.CompareGen("o."+col.Field, "o."+col.Reference.Field+".PrimaryKey()", false)); err != nil {
 				return
 			}
 
-			if _, err = io.WriteString(_w, ` != o.`); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, col.Reference.Field); err != nil {
-				return
-			}
-
-			if _, err = io.WriteString(_w, `.PrimaryKey() {
+			if _, err = io.WriteString(_w, ` {
 	    o.`); err != nil {
 				return
 			}
@@ -3201,23 +3191,18 @@ func (o *`); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, `IsNull || !o._restored || o.`); err != nil {
+	if _, err = io.WriteString(_w, `IsNull ||
+		        !o._restored ||
+		        `); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, ref.ForeignKey.Field); err != nil {
+	if _, err = io.WriteString(_w, ref.ForeignKey.CompareGen("o."+ref.ForeignKey.Field, ref.Field+".PrimaryKey()", false)); err != nil {
 		return
 	}
 
-	if _, err = io.WriteString(_w, ` != `); err != nil {
-		return
-	}
+	if _, err = io.WriteString(_w, ` {
 
-	if _, err = io.WriteString(_w, ref.Field); err != nil {
-		return
-	}
-
-	if _, err = io.WriteString(_w, `.PrimaryKey() {
 			o.`); err != nil {
 		return
 	}

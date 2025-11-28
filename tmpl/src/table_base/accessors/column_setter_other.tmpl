@@ -26,7 +26,7 @@ func (o *{{= table.DecapIdentifier }}Base) Set{{= col.Identifier }}(v {{= col.Ty
 {{if col.IsNullable }}
 		!o.{{= col.Field }}IsNull && // if the db value is null, force a set of value
 {{if}}
-        o.{{= col.Field }} == v {
+        {{= col.CompareGen("o." + col.Field, "v", true) }} {
         // no change
         return
     }
@@ -42,7 +42,7 @@ func (o *{{= table.DecapIdentifier }}Base) Set{{= col.Identifier }}(v {{= col.Ty
 {{if}}
 {{if col.Reference != nil }}
 	if o.{{= col.Reference.Field }} != nil &&
-	        o.{{= col.Field }} != o.{{= col.Reference.Field }}.PrimaryKey() {
+	        {{= col.CompareGen("o." + col.Field, "o." + col.Reference.Field + ".PrimaryKey()", false) }} {
 	    o.{{= col.Reference.Field }} = nil
 	}
 {{if}}

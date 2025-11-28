@@ -17,7 +17,10 @@ func (o *{{= table.DecapIdentifier}}Base) Set{{= ref.Identifier }}({{= ref.Field
 		}
 	} else {
 		o.{{= ref.Field }}  = {{= ref.Field }}
-		if o.{{= ref.ForeignKey.Field }}IsNull || !o._restored || o.{{= ref.ForeignKey.Field }} != {{= ref.Field }}.PrimaryKey() {
+		if o.{{= ref.ForeignKey.Field }}IsNull ||
+		        !o._restored ||
+		        {{= ref.ForeignKey.CompareGen("o." + ref.ForeignKey.Field, ref.Field + ".PrimaryKey()", false) }} {
+
 			o.{{= ref.ForeignKey.Field }}IsNull = false
 			o.{{= ref.ForeignKey.Field }} = {{= ref.Field }}.PrimaryKey()
 			o.{{= ref.ForeignKey.Field }}IsDirty = true

@@ -284,7 +284,10 @@ func (o *leafUnlBase) SetRootUnl(rootUnl *RootUnl) {
 		}
 	} else {
 		o.rootUnl = rootUnl
-		if o.rootUnlIDIsNull || !o._restored || o.rootUnlID != rootUnl.PrimaryKey() {
+		if o.rootUnlIDIsNull ||
+			!o._restored ||
+			o.rootUnlID != rootUnl.PrimaryKey() {
+
 			o.rootUnlIDIsNull = false
 			o.rootUnlID = rootUnl.PrimaryKey()
 			o.rootUnlIDIsDirty = true

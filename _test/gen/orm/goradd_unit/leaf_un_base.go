@@ -265,7 +265,10 @@ func (o *leafUnBase) SetRootUn(rootUn *RootUn) {
 		}
 	} else {
 		o.rootUn = rootUn
-		if o.rootUnIDIsNull || !o._restored || o.rootUnID != rootUn.PrimaryKey() {
+		if o.rootUnIDIsNull ||
+			!o._restored ||
+			o.rootUnID != rootUn.PrimaryKey() {
+
 			o.rootUnIDIsNull = false
 			o.rootUnID = rootUn.PrimaryKey()
 			o.rootUnIDIsDirty = true

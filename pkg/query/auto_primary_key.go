@@ -5,6 +5,7 @@ import (
 	"database/sql/driver"
 	"encoding/gob"
 	"encoding/json"
+	"reflect"
 	"sync/atomic"
 )
 
@@ -119,6 +120,11 @@ func (a AutoPrimaryKey) MarshalJSON() ([]byte, error) {
 // making it possible to use an AutoPrimaryKey as an argument in any SQL statement.
 func (a AutoPrimaryKey) Value() (driver.Value, error) {
 	return a.val, nil
+}
+
+// Equal returns true if the AutoPrimaryKey is equal to the given AutoPrimaryKey.
+func (a AutoPrimaryKey) Equal(v AutoPrimaryKey) bool {
+	return reflect.DeepEqual(a.val, v.val)
 }
 
 // TemporaryPrimaryKey returns an atomically unique negative value to be used as a

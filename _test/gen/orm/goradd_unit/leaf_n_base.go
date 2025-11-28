@@ -265,7 +265,10 @@ func (o *leafNBase) SetRootN(rootN *RootN) {
 		}
 	} else {
 		o.rootN = rootN
-		if o.rootNIDIsNull || !o._restored || o.rootNID != rootN.PrimaryKey() {
+		if o.rootNIDIsNull ||
+			!o._restored ||
+			o.rootNID != rootN.PrimaryKey() {
+
 			o.rootNIDIsNull = false
 			o.rootNID = rootN.PrimaryKey()
 			o.rootNIDIsDirty = true

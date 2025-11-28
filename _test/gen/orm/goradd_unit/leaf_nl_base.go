@@ -303,7 +303,10 @@ func (o *leafNlBase) SetRootNl(rootNl *RootNl) {
 		}
 	} else {
 		o.rootNl = rootNl
-		if o.rootNlIDIsNull || !o._restored || o.rootNlID != rootNl.PrimaryKey() {
+		if o.rootNlIDIsNull ||
+			!o._restored ||
+			o.rootNlID != rootNl.PrimaryKey() {
+
 			o.rootNlIDIsNull = false
 			o.rootNlID = rootNl.PrimaryKey()
 			o.rootNlIDIsDirty = true

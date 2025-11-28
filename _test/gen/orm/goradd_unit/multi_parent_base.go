@@ -370,7 +370,10 @@ func (o *multiParentBase) SetParent1(parent1 *MultiParent) {
 		}
 	} else {
 		o.parent1 = parent1
-		if o.parent1IDIsNull || !o._restored || o.parent1ID != parent1.PrimaryKey() {
+		if o.parent1IDIsNull ||
+			!o._restored ||
+			o.parent1ID != parent1.PrimaryKey() {
+
 			o.parent1IDIsNull = false
 			o.parent1ID = parent1.PrimaryKey()
 			o.parent1IDIsDirty = true
@@ -411,7 +414,10 @@ func (o *multiParentBase) SetParent2(parent2 *MultiParent) {
 		}
 	} else {
 		o.parent2 = parent2
-		if o.parent2IDIsNull || !o._restored || o.parent2ID != parent2.PrimaryKey() {
+		if o.parent2IDIsNull ||
+			!o._restored ||
+			o.parent2ID != parent2.PrimaryKey() {
+
 			o.parent2IDIsNull = false
 			o.parent2ID = parent2.PrimaryKey()
 			o.parent2IDIsDirty = true

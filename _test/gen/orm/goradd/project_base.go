@@ -757,7 +757,10 @@ func (o *projectBase) SetManager(manager *Person) {
 		}
 	} else {
 		o.manager = manager
-		if o.managerIDIsNull || !o._restored || o.managerID != manager.PrimaryKey() {
+		if o.managerIDIsNull ||
+			!o._restored ||
+			o.managerID != manager.PrimaryKey() {
+
 			o.managerIDIsNull = false
 			o.managerID = manager.PrimaryKey()
 			o.managerIDIsDirty = true
@@ -798,7 +801,10 @@ func (o *projectBase) SetParent(parent *Project) {
 		}
 	} else {
 		o.parent = parent
-		if o.parentIDIsNull || !o._restored || o.parentID != parent.PrimaryKey() {
+		if o.parentIDIsNull ||
+			!o._restored ||
+			o.parentID != parent.PrimaryKey() {
+
 			o.parentIDIsNull = false
 			o.parentID = parent.PrimaryKey()
 			o.parentIDIsDirty = true

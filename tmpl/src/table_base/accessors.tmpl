@@ -51,8 +51,7 @@ func (tmpl *TableBaseTemplate)genColSetter(table *model.Table, col *model.Column
         return
     }
     switch col.ReceiverType {
-    case query.ColTypeUnknown: fallthrough
-    case query.ColTypeBytes:
+    case query.ColTypeUnknown, query.ColTypeBytes:
 {{: "accessors/column_setter_bytes.tmpl" }}
     case query.ColTypeTime:
 {{: "accessors/column_setter_time.tmpl" }}
