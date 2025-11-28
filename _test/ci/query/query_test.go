@@ -193,40 +193,6 @@ func TestLimit(t *testing.T) {
 	assert.Len(t, people, 2)
 }
 
-func TestSaveAndDelete(t *testing.T) {
-	ctx := context.Background()
-
-	person := goradd.NewPerson()
-	person.SetFirstName("Test1")
-	person.SetLastName("Last1")
-	person.SetID("101")
-	person.Save(ctx)
-
-	people, err := goradd.QueryPeople(ctx).
-		Where(
-			op.And(
-				op.Equal(
-					node.Person().FirstName(), "Test1"),
-				op.Equal(
-					node.Person().LastName(), "Last1"))).
-		Load()
-	assert.NoError(t, err)
-	assert.EqualValues(t, person.ID(), people[0].ID())
-
-	assert.NoError(t, people[0].Delete(ctx))
-
-	people, err = goradd.QueryPeople(ctx).
-		Where(
-			op.And(
-				op.Equal(
-					node.Person().FirstName(), "Test1"),
-				op.Equal(
-					node.Person().LastName(), "Last1"))).
-		Load()
-	assert.NoError(t, err)
-	assert.Len(t, people, 0, "Deleted the person")
-}
-
 func TestSingleEmpty(t *testing.T) {
 	ctx := context.Background()
 

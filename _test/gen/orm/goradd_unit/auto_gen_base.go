@@ -59,7 +59,7 @@ const (
 	AutoGenNameField         = `name`
 )
 
-const AutoGenNameMaxLength = 10 // The number of runes the column can hold
+const AutoGenNameMaxLength = 30 // The number of runes the column can hold
 
 // Initialize or re-initialize a AutoGen database object to default values.
 // The primary key will get a temporary unique value which will be replaced when the object is saved.

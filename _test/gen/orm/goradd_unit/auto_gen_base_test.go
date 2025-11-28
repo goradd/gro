@@ -30,7 +30,7 @@ func createMinimalSampleAutoGen() *AutoGen {
 // updateMinimalSampleAutoGen sets the values of a minimal sample to new, random values.
 func updateMinimalSampleAutoGen(obj *AutoGen) {
 
-	obj.SetName(test.RandomValue[string](10))
+	obj.SetName(test.RandomValue[string](30))
 
 }
 
@@ -103,7 +103,7 @@ func TestAutoGen_SetName(t *testing.T) {
 	obj := NewAutoGen()
 
 	assert.True(t, obj.IsNew())
-	val := test.RandomValue[string](10)
+	val := test.RandomValue[string](30)
 	obj.SetName(val)
 	assert.Equal(t, val, obj.Name())
 
@@ -113,7 +113,7 @@ func TestAutoGen_SetName(t *testing.T) {
 	assert.EqualValues(t, d, obj.Name(), "set default")
 
 	// test panic on setting value larger than maximum size allowed
-	val = test.RandomValue[string](11)
+	val = test.RandomValue[string](31)
 	assert.Panics(t, func() {
 		obj.SetName(val)
 	})

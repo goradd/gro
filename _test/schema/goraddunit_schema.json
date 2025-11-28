@@ -38,7 +38,7 @@
         {
           "name": "name",
           "type": "string",
-          "size": 10
+          "size": 30
         }
       ]
     },
