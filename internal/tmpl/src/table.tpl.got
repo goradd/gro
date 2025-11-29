@@ -1,0 +1,31 @@
+package template
+
+import (
+	"github.com/goradd/gro/internal/codegen"
+)
+
+func init() {
+    t := TableTemplate{}
+	codegen.RegisterTemplate(&t)
+}
+
+// TableTemplate generates the code for tables.
+// This is one-time generated and allows the programmer to edit it to override the base table code.
+type TableTemplate struct {
+    Package string
+}
+
+func (tmpl *TableTemplate) FileName(table *model.Table) string {
+    return table.FileName() + ".go"
+}
+
+func (tmpl *TableTemplate) GenerateTable(table *model.Table, _w io.Writer, importPath string) (err error) {
+    tmpl.Package = table.DbKey
+    {{: "table/table.tmpl" }}
+    return
+}
+
+func (tmpl *TableTemplate) Overwrite() bool {
+	return false
+}
+

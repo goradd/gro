@@ -1,9 +1,0 @@
-[
-    {
-      "type": "mysql",
-      "database": "goradd_test",
-      "key": "goradd_unit",
-      "user": "root",
-      "password": "12345"
-    }
-]

@@ -1,0 +1,860 @@
+package mysql
+
+import (
+	"database/sql"
+	"fmt"
+	"log/slog"
+	"math"
+	"slices"
+	"strings"
+
+	"github.com/goradd/gro/db"
+	sql2 "github.com/goradd/gro/db/sql"
+	schema2 "github.com/goradd/gro/internal/schema"
+	. "github.com/goradd/gro/query"
+	"github.com/goradd/iter"
+	strings2 "github.com/goradd/strings"
+)
+
+/*
+This file contains the code that parses the data structure found in a MySQL database into
+our own cross-platform internal database description object.
+*/
+
+type mysqlTable struct {
+	name                string
+	columns             []mysqlColumn
+	indexes             []mysqlIndex
+	fkMap               map[string][]mysqlForeignKey
+	comment             string
+	supportsForeignKeys bool
+}
+
+type mysqlColumn struct {
+	name            string
+	defaultValue    sql2.SqlReceiver
+	isNullable      string
+	dataType        string
+	dataLen         int
+	characterMaxLen sql.NullInt64
+	columnType      string
+	collation       sql.NullString
+	key             string
+	extra           string
+	comment         string
+}
+
+type mysqlIndex struct {
+	name       string
+	nonUnique  bool
+	tableName  string
+	columnName string
+}
+
+type mysqlForeignKey struct {
+	constraintName       string
+	tableName            string
+	columnName           string
+	referencedTableName  sql.NullString
+	referencedColumnName sql.NullString
+}
+
+func (m *mysqlTable) findForeignKeyGroupByColumn(col string) []mysqlForeignKey {
+	for _, group := range m.fkMap {
+		for _, fk := range group {
+			if fk.columnName == col {
+				return group
+			}
+		}
+	}
+	return nil
+}
+
+func (m *DB) ExtractSchema(options map[string]any) schema2.Database {
+	rawTables := m.getRawTables()
+	return m.schemaFromRawTables(rawTables, options)
+}
+
+func (m *DB) getRawTables() map[string]mysqlTable {
+	var tableMap = make(map[string]mysqlTable)
+
+	indexes, err := m.getIndexes()
+	if err != nil {
+		return nil
+	}
+
+	foreignKeys, err := m.getForeignKeys()
+	if err != nil {
+		return nil
+	}
+
+	tables := m.getTables()
+
+	for _, table := range tables {
+		// Place foreign keys by table, since they are database wide
+		for fkName, fkGroup := range foreignKeys {
+			if len(fkGroup) > 1 {
+				slog.Warn("Multi-column foreign key skipped.",
+					slog.String(db.LogTable, table.name),
+					slog.String("name", fkName),
+					slog.String(db.LogComponent, "extract"))
+				continue
+			}
+			if fkGroup[0].tableName == table.name &&
+				fkGroup[0].referencedColumnName.Valid &&
+				fkGroup[0].referencedTableName.Valid {
+				table.fkMap[fkName] = fkGroup
+			}
+		}
+
+		columns, err2 := m.getColumns(table.name)
+		if err2 != nil {
+			return nil
+		}
+
+		table.indexes = indexes[table.name]
+		table.columns = columns
+		tableMap[table.name] = table
+	}
+
+	return tableMap
+
+}
+
+// Gets information for a table
+func (m *DB) getTables() []mysqlTable {
+	var tableName, tableComment, tableEngine string
+	var tables []mysqlTable
+
+	// Use the MySQL5 Information Schema to get a list of all the tables in this database
+	// (excluding views, etc.)
+	dbName := m.databaseName
+
+	rows, err := m.SqlDb().Query(fmt.Sprintf(`
+	SELECT
+	table_name,
+	table_comment,
+	engine
+	FROM
+	information_schema.tables
+	WHERE
+	table_type <> 'VIEW' AND
+	table_schema = '%s';
+	`, dbName))
+
+	if err != nil {
+		panic(err)
+	}
+	defer sql2.RowClose(rows)
+	for rows.Next() {
+		var supportsForeignKeys bool
+
+		err = rows.Scan(&tableName, &tableComment, &tableEngine)
+		if err != nil {
+			panic(err)
+		}
+		if tableEngine == "InnoDB" {
+			supportsForeignKeys = true
+		}
+		slog.Info("Importing schema",
+			slog.String(db.LogTable, tableName))
+		table := mysqlTable{
+			name:                tableName,
+			comment:             tableComment,
+			columns:             []mysqlColumn{},
+			fkMap:               make(map[string][]mysqlForeignKey),
+			indexes:             []mysqlIndex{},
+			supportsForeignKeys: supportsForeignKeys,
+		}
+		tables = append(tables, table)
+	}
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+	return tables
+}
+
+func (m *DB) getColumns(table string) (columns []mysqlColumn, err error) {
+	dbName := m.databaseName
+
+	rows, err := m.SqlDb().Query(fmt.Sprintf(`
+	SELECT
+	column_name,
+	column_default,
+	is_nullable,
+	data_type,
+	character_maximum_length,
+	column_type,
+	column_key,
+	extra,
+	column_comment,
+	collation_name
+	FROM
+	information_schema.columns
+	WHERE
+	table_name = '%s' AND
+	table_schema = '%s'
+	ORDER BY
+	ordinal_position;
+	`, table, dbName))
+
+	if err != nil {
+		panic(err)
+	}
+	defer sql2.RowClose(rows)
+	var col mysqlColumn
+
+	for rows.Next() {
+		col = mysqlColumn{}
+		err = rows.Scan(&col.name, &col.defaultValue.R, &col.isNullable, &col.dataType, &col.characterMaxLen, &col.columnType, &col.key, &col.extra, &col.comment, &col.collation)
+		if err != nil {
+			panic(err)
+		}
+
+		columns = append(columns, col)
+	}
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+	return columns, err
+}
+
+func (m *DB) getIndexes() (indexes map[string][]mysqlIndex, err error) {
+
+	dbName := m.databaseName
+	indexes = make(map[string][]mysqlIndex)
+
+	rows, err := m.SqlDb().Query(fmt.Sprintf(`
+	SELECT
+	index_name,
+	non_unique,
+	table_name,
+	column_name
+	FROM
+	information_schema.statistics
+	WHERE
+	table_schema = '%s'
+	ORDER BY
+	seq_in_index
+	`, dbName))
+
+	if err != nil {
+		panic(err)
+	}
+	defer sql2.RowClose(rows)
+	var index mysqlIndex
+
+	for rows.Next() {
+		index = mysqlIndex{}
+		err = rows.Scan(&index.name, &index.nonUnique, &index.tableName, &index.columnName)
+		if err != nil {
+			panic(err)
+		}
+		tableIndexes := indexes[index.tableName]
+		tableIndexes = append(tableIndexes, index)
+		indexes[index.tableName] = tableIndexes
+	}
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+
+	return indexes, err
+}
+
+// getForeignKeys gets information on the foreign keys.
+//
+// Note that querying the information_schema database is SLOW, so we want to do it as few times as possible.
+func (m *DB) getForeignKeys() (foreignKeys map[string][]mysqlForeignKey, err error) {
+	dbName := m.databaseName
+	foreignKeys = make(map[string][]mysqlForeignKey)
+
+	rows, err := m.SqlDb().Query(fmt.Sprintf(`
+SELECT
+    rc.CONSTRAINT_NAME,
+    rc.TABLE_NAME,
+    kcu.COLUMN_NAME,
+    rc.REFERENCED_TABLE_NAME,
+    kcu.REFERENCED_COLUMN_NAME
+FROM
+    information_schema.REFERENTIAL_CONSTRAINTS rc
+JOIN
+    information_schema.KEY_COLUMN_USAGE kcu
+    ON rc.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME
+    AND rc.CONSTRAINT_SCHEMA = kcu.CONSTRAINT_SCHEMA
+WHERE
+    rc.constraint_schema = '%s'
+ORDER BY
+    kcu.ordinal_position
+`, dbName))
+
+	defer sql2.RowClose(rows)
+	if err != nil {
+		panic(err)
+	}
+
+	for rows.Next() {
+		fk := mysqlForeignKey{}
+		err = rows.Scan(&fk.constraintName, &fk.tableName, &fk.columnName, &fk.referencedTableName, &fk.referencedColumnName)
+		if err != nil {
+			panic(err)
+		}
+		fks := foreignKeys[fk.constraintName]
+		fks = append(fks, fk)
+		foreignKeys[fk.constraintName] = fks
+	}
+	err = rows.Err()
+	if err != nil {
+		panic(err)
+	}
+	return foreignKeys, err
+}
+
+// Convert the database native type to a more generic sql type, and a go table type.
+func (m *DB) processTypeInfo(column mysqlColumn) (
+	typ schema2.ColumnType,
+	subType schema2.ColumnSubType,
+	maxLength uint64,
+	defaultValue interface{},
+	extra map[string]interface{}) {
+	dataLen, dataSubLen := sql2.GetDataDefLength(column.columnType)
+	isUnsigned := strings.Contains(column.columnType, "unsigned")
+
+	switch column.dataType {
+	case "time":
+		typ = schema2.ColTypeTime
+		subType = schema2.ColSubTypeTimeOnly
+	case "date":
+		typ = schema2.ColTypeTime
+		subType = schema2.ColSubTypeDateOnly
+	case "timestamp":
+		typ = schema2.ColTypeTime
+	case "datetime":
+		typ = schema2.ColTypeTime
+	case "tinyint":
+		if dataLen == 1 {
+			typ = schema2.ColTypeBool
+		} else {
+			maxLength = 8
+			if isUnsigned {
+				typ = schema2.ColTypeUint
+			} else {
+				typ = schema2.ColTypeInt
+			}
+		}
+
+	case "int":
+		maxLength = 32 // mysql standard int has a 32-bit limit even in 64-bit implementations
+		if isUnsigned {
+			typ = schema2.ColTypeUint
+		} else {
+			typ = schema2.ColTypeInt
+		}
+
+	case "smallint":
+		maxLength = 16
+		if isUnsigned {
+			typ = schema2.ColTypeUint
+		} else {
+			typ = schema2.ColTypeInt
+		}
+		extra = map[string]interface{}{"type": column.columnType}
+
+	case "mediumint":
+		maxLength = 24
+		if isUnsigned {
+			typ = schema2.ColTypeUint
+		} else {
+			typ = schema2.ColTypeInt
+		}
+		extra = map[string]interface{}{"type": column.columnType}
+
+	case "bigint":
+		maxLength = 64
+		if isUnsigned {
+			typ = schema2.ColTypeUint
+		} else {
+			typ = schema2.ColTypeInt
+			if column.name == schema2.GroTimestampColumnName {
+				subType = schema2.ColSubTypeTimestamp
+			} else if column.name == schema2.GroLockColumnName {
+				subType = schema2.ColSubTypeLock
+			}
+		}
+
+	case "float":
+		typ = schema2.ColTypeFloat
+		maxLength = 32
+	case "double":
+		typ = schema2.ColTypeFloat
+		maxLength = 64
+
+	case "varchar":
+		typ = schema2.ColTypeString
+		maxLength = uint64(dataLen)
+		if column.collation.String != m.defaultCollation {
+			extra = map[string]interface{}{"collation": column.collation.String}
+		}
+
+	case "char":
+		typ = schema2.ColTypeString
+		maxLength = uint64(dataLen)
+		// default is a varchar, so capture the type to preserve the mysql type
+		extra = map[string]interface{}{"type": column.columnType}
+		if column.collation.String != m.defaultCollation {
+			extra["collation"] = column.collation.String
+		}
+
+	case "varbinary", "binary":
+		typ = schema2.ColTypeBytes
+		maxLength = uint64(dataLen)
+	case "blob":
+		typ = schema2.ColTypeBytes
+		maxLength = 0 // default
+	case "tinyblob":
+		typ = schema2.ColTypeBytes
+		maxLength = 255
+	case "mediumblob":
+		typ = schema2.ColTypeBytes
+		maxLength = 16777215
+	case "longblob":
+		typ = schema2.ColTypeBytes
+		maxLength = math.MaxUint32
+
+	case "text":
+		typ = schema2.ColTypeString
+		maxLength = 0 // text type is unsized. The limit is 65535 bytes (not characters) and so the limit on chars depends on the charset and what is actually being stored.
+		if column.collation.String != m.defaultCollation {
+			extra = map[string]interface{}{"collation": column.collation.String}
+		}
+
+	case "tinytext":
+		typ = schema2.ColTypeString
+		maxLength = 255
+		extra = map[string]interface{}{"type": column.columnType}
+		if column.collation.String != m.defaultCollation {
+			extra["collation"] = column.collation.String
+		}
+
+	case "mediumtext":
+		typ = schema2.ColTypeString
+		maxLength = 16777215
+		extra = map[string]interface{}{"type": column.columnType}
+		if column.collation.String != m.defaultCollation {
+			extra["collation"] = column.collation.String
+		}
+
+	case "longtext":
+		typ = schema2.ColTypeString
+		maxLength = 1073741823
+		if column.collation.String != m.defaultCollation {
+			extra = map[string]interface{}{"collation": column.collation.String}
+		}
+
+	case "decimal":
+		// No native equivalent in Go.
+		// See the shopspring/decimal or math/big packages for possible support.
+		typ = schema2.ColTypeString
+		// pack the two length values to be unpacked in Go
+		maxLength = uint64(dataLen) + uint64(dataSubLen<<16)
+		subType = schema2.ColSubTypeNumeric
+
+	case "year":
+		typ = schema2.ColTypeInt
+		extra = map[string]interface{}{"type": column.columnType}
+
+	case "set":
+		typ = schema2.ColTypeUnknown
+		maxLength = uint64(column.characterMaxLen.Int64)
+		extra = map[string]interface{}{"type": column.columnType}
+		if column.collation.String != m.defaultCollation {
+			extra["collation"] = column.collation.String
+		}
+
+	case "enum":
+		typ = schema2.ColTypeUnknown
+		maxLength = uint64(column.characterMaxLen.Int64)
+		extra = map[string]interface{}{"type": column.columnType}
+		if column.collation.String != m.defaultCollation {
+			extra["collation"] = column.collation.String
+		}
+
+	case "json":
+		typ = schema2.ColTypeJSON
+
+	default:
+		typ = schema2.ColTypeUnknown
+		extra = map[string]interface{}{"type": column.columnType}
+	}
+
+	s, _ := column.defaultValue.Unpack(ColTypeString).(string)
+
+	if typ == schema2.ColTypeTime {
+		if strings.Contains(strings.ToUpper(column.extra), "ON UPDATE") {
+			defaultValue = "update"
+		} else if strings.Contains(strings.ToUpper(s), "CURRENT_TIMESTAMP") {
+			defaultValue = "now"
+		}
+	} else if s != "" &&
+		s != "NULL" && // null is automatically assigned as a default for null columns, and cannot be assigned as a default for non-null columns
+		strings.Contains(strings.ToUpper(column.extra), "DEFAULT_GENERATED") {
+		if extra == nil {
+			extra = make(map[string]interface{})
+		}
+		extra["default"] = s // some kind of generated value that we should remember for recreating the column
+	}
+
+	if strings.Contains(strings.ToUpper(column.extra), "DEFAULT_GENERATED") {
+		// The default value is generated by mysql, so we capture it for purposes of recreating the column,
+		// but we need to ignore it for purposes of actually using it as a default in Go.
+		// This is mysql only, and not in mariadb as of now
+
+	} else if defaultValue == nil {
+		defaultValue = column.defaultValue.UnpackDefaultValue(typ, int(maxLength))
+	}
+
+	return
+}
+
+func (m *DB) schemaFromRawTables(rawTables map[string]mysqlTable, options map[string]any) schema2.Database {
+	dd := schema2.Database{
+		EnumTableSuffix: options["enum_table_suffix"].(string),
+		AssnTableSuffix: options["assn_table_suffix"].(string),
+		Key:             m.DbKey(),
+	}
+	// Database wide setting to limit database write times through a context timeout in generated code
+	if v, ok := options["context_write_timeout"]; ok {
+		dd.WriteTimeout = v.(string)
+	}
+	// Database wide setting to limit database read times through a context timeout in generated code
+	if v, ok := options["context_read_timeout"]; ok {
+		dd.ReadTimeout = v.(string)
+	}
+
+	for tableName, rawTable := range iter.KeySort(rawTables) {
+
+		if strings2.EndsWith(tableName, dd.EnumTableSuffix) {
+			if t, err := m.getEnumTableSchema(rawTable); err != nil {
+				slog.Error("Enum rawTable skipped",
+					slog.String(db.LogTable, tableName),
+					slog.Any(db.LogError, err))
+			} else {
+				dd.EnumTables = append(dd.EnumTables, &t)
+			}
+		} else if strings2.EndsWith(tableName, dd.AssnTableSuffix) {
+			if mm, err := m.getAssociationSchema(rawTable, dd.EnumTableSuffix); err != nil {
+				slog.Error("Association rawTable skipped",
+					slog.String(db.LogTable, tableName),
+					slog.Any(db.LogError, err))
+			} else {
+				dd.AssociationTables = append(dd.AssociationTables, &mm)
+			}
+		} else {
+			t := m.getTableSchema(rawTable, dd.EnumTableSuffix)
+			dd.Tables = append(dd.Tables, &t)
+		}
+	}
+	return dd
+}
+
+func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema2.Table {
+	var columnSchemas []*schema2.Column
+	var referenceSchemas []*schema2.Reference
+	var multiColumnPK *schema2.Index
+
+	// Build the indexes
+	// Only works if t.indexes is sorted in seq order
+	indexes := make(map[string]*schema2.Index)
+
+	for _, idx := range t.indexes {
+		if i, ok := indexes[idx.name]; ok {
+			// add a column to the previously found index
+			i.Columns = append(i.Columns, idx.columnName)
+		} else {
+			// create a new index
+			var level schema2.IndexLevel
+			if idx.name == "PRIMARY" {
+				level = schema2.IndexLevelPrimaryKey
+			} else if idx.nonUnique {
+				level = schema2.IndexLevelIndexed
+			} else {
+				level = schema2.IndexLevelUnique
+			}
+			mci := &schema2.Index{
+				Columns:    []string{idx.columnName},
+				IndexLevel: level,
+				Name:       idx.name,
+			}
+			indexes[idx.name] = mci
+		}
+	}
+
+	// Fill the singleIndexes set with preferred single indexes,
+	// There might be multiple single indexes on the same column, and if there are
+	// we prioritize by the value of the index level.
+	// We don't support esoteric types of indexes yet.
+	singleIndexes := make(map[string]*schema2.Index) // mapped by column name
+
+	for _, idx := range indexes {
+		if len(idx.Columns) == 1 {
+			if singleIdx, ok := singleIndexes[idx.Columns[0]]; ok {
+				if idx.IndexLevel > singleIdx.IndexLevel {
+					singleIndexes[idx.Columns[0]] = idx
+				}
+			} else {
+				singleIndexes[idx.Columns[0]] = idx
+			}
+		} else if idx.IndexLevel == schema2.IndexLevelPrimaryKey {
+			// We have a multi-column primary key
+			multiColumnPK = idx
+		}
+	}
+
+	for _, singleIdx := range singleIndexes {
+		delete(indexes, singleIdx.Name)
+	}
+
+	var pkCount int
+
+	for _, col := range t.columns {
+		var level schema2.IndexLevel
+		if idx, ok := singleIndexes[col.name]; ok {
+			level = idx.IndexLevel
+		}
+		cd, rd := m.getColumnSchema(t, col, level, enumTableSuffix)
+
+		if rd != nil {
+			referenceSchemas = append(referenceSchemas, rd)
+		} else if cd.Type == schema2.ColTypeAutoPrimaryKey ||
+			cd.IndexLevel == schema2.IndexLevelPrimaryKey ||
+			multiColumnPK != nil && slices.Contains(multiColumnPK.Columns, col.name) {
+			// private keys go first
+			columnSchemas = slices.Insert(columnSchemas, pkCount, cd)
+			pkCount++
+		} else {
+			columnSchemas = append(columnSchemas, cd)
+		}
+	}
+
+	schem := ""
+	tableName := t.name
+	parts := strings.Split(t.name, ".")
+	if len(parts) == 2 {
+		schem = parts[0]
+		tableName = parts[1]
+	}
+	td := schema2.Table{
+		Name:       tableName,
+		Schema:     schem,
+		Columns:    columnSchemas,
+		Comment:    t.comment,
+		References: referenceSchemas,
+	}
+
+	// Create the index array
+	for _, idx := range indexes {
+		td.Indexes = append(td.Indexes, idx)
+	}
+
+	// Keep the Indexes in a predictable order
+	slices.SortFunc(td.Indexes, func(m1 *schema2.Index, m2 *schema2.Index) int {
+		return slices.Compare(m1.Columns, m2.Columns)
+	})
+
+	return td
+}
+
+func (m *DB) getEnumTableSchema(t mysqlTable) (ed schema2.EnumTable, err error) {
+	td := m.getTableSchema(t, "")
+
+	var columnNames []string
+	var receiverTypes []ReceiverType
+
+	if len(td.Columns) < 2 {
+		err = fmt.Errorf("error: An enum table must have at least 2 columns")
+		return
+	}
+
+	ed.Name = td.Name
+	ed.Fields = make(map[string]schema2.EnumField)
+
+	var hasValue bool
+	var hasName bool
+	var quotedColumns []string
+
+	if td.References != nil {
+		err = fmt.Errorf("cannot have references in an enum table")
+		return
+	}
+
+	for _, c := range td.Columns {
+		if c.Name == schema2.ValueKey {
+			hasValue = true
+		} else if c.Name == schema2.NameKey {
+			hasName = true
+		}
+		columnNames = append(columnNames, c.Name)
+		quotedColumns = append(quotedColumns, m.QuoteIdentifier(c.Name))
+
+		recType := ReceiverTypeFromSchema(c.Type, c.Size)
+		typ := c.Type
+		if c.Name == schema2.ValueKey && c.Type == schema2.ColTypeAutoPrimaryKey {
+			recType = ColTypeInteger
+			typ = schema2.ColTypeInt
+		} else if c.Type == schema2.ColTypeUnknown {
+			recType = ColTypeBytes
+			typ = schema2.ColTypeBytes
+		}
+
+		receiverTypes = append(receiverTypes, recType)
+		ft := schema2.EnumField{
+			Type: typ,
+		}
+		ed.Fields[c.Name] = ft
+	}
+
+	if !hasValue {
+		err = fmt.Errorf(`error: An enum table must have a "value" column`)
+		return
+	}
+	if !hasName {
+		err = fmt.Errorf(`error: An enum table must have a "name" column`)
+		return
+	}
+
+	var result *sql.Rows
+	s := fmt.Sprintf(`
+SELECT
+	%s
+FROM
+    %s
+ORDER BY
+    %s
+`, strings.Join(quotedColumns, ","),
+		m.QuoteIdentifier(td.QualifiedName()),
+		quotedColumns[0])
+
+	result, err = m.SqlDb().Query(s)
+	if err != nil {
+		panic(err)
+	}
+
+	var receiver []map[string]any
+	receiver, err = sql2.ReceiveRows(result, receiverTypes, columnNames, nil, s, nil)
+	if err != nil {
+		panic(err)
+	}
+	for i, row := range receiver {
+		values := make(map[string]any)
+		for k := range ed.Fields {
+			if k == schema2.ValueKey {
+				i2, _ := row[k]
+				if i+1 != i2 {
+					// only if value is not the default, then include it in the value map
+					values[k] = i2
+				}
+			} else {
+				values[k] = row[k]
+			}
+		}
+		ed.Values = append(ed.Values, values)
+	}
+	ed.Comment = t.comment
+	delete(ed.Fields, schema2.ValueKey)
+	delete(ed.Fields, schema2.NameKey)
+	if len(ed.Fields) == 0 {
+		ed.Fields = nil
+	}
+	return
+}
+
+func (m *DB) getColumnSchema(table mysqlTable,
+	column mysqlColumn,
+	indexLevel schema2.IndexLevel,
+	enumTableSuffix string) (columnSchema *schema2.Column, refSchema *schema2.Reference) {
+
+	columnSchema = &schema2.Column{
+		Name: column.name,
+	}
+	var extra map[string]any
+	columnSchema.Type, columnSchema.SubType, columnSchema.Size, columnSchema.DefaultValue, extra = m.processTypeInfo(column)
+	if extra != nil {
+		if columnSchema.DatabaseDefinition == nil {
+			columnSchema.DatabaseDefinition = make(map[string]map[string]interface{})
+		}
+		columnSchema.DatabaseDefinition[db.DriverTypeMysql] = extra
+	}
+
+	isAuto := strings.Contains(column.extra, "auto_increment")
+	if isAuto {
+		// Note that unsigned auto increment primary keys are not supported
+		columnSchema.Type = schema2.ColTypeAutoPrimaryKey
+		// primary key index is implied, so does not need to be specified in the schema file.
+	} else {
+		columnSchema.IndexLevel = indexLevel
+	}
+
+	columnSchema.IsNullable = column.isNullable == "YES"
+
+	fkGroup := table.findForeignKeyGroupByColumn(columnSchema.Name)
+	if len(fkGroup) > 1 {
+		slog.Warn("Multi-column foreign keys are not currently supported.",
+			slog.String("Constraint", fkGroup[0].constraintName))
+	} else if len(fkGroup) == 1 {
+		fk := fkGroup[0]
+		if fk.referencedTableName.String == "" {
+			slog.Error("Foreign key reference is empty.",
+				slog.String("Constraint", fkGroup[0].constraintName))
+		} else {
+			if enumTableSuffix != "" && strings.HasSuffix(fk.referencedTableName.String, enumTableSuffix) {
+				// assume enum table table exists
+				columnSchema.Type = schema2.ColTypeEnum
+				columnSchema.Size = 0
+				columnSchema.EnumTable = fk.referencedTableName.String
+			} else {
+				if indexLevel != schema2.IndexLevelUnique {
+					// IndexLevelIndexed is default for references, so setting to None will preserve that, but also simplify schema file.
+					indexLevel = schema2.IndexLevelNone
+				}
+				refSchema = &schema2.Reference{
+					Table:      fk.referencedTableName.String,
+					Column:     fk.columnName,
+					IndexLevel: indexLevel,
+					IsNullable: columnSchema.IsNullable,
+				}
+				columnSchema = nil
+			}
+		}
+	}
+
+	if columnSchema != nil {
+		columnSchema.Comment = column.comment
+	}
+
+	return
+}
+
+func (m *DB) getAssociationSchema(t mysqlTable, enumTableSuffix string) (mm schema2.AssociationTable, err error) {
+	td := m.getTableSchema(t, enumTableSuffix)
+	if len(td.References) != 2 {
+		err = fmt.Errorf("association table must have 2 foreign keys")
+		return
+	}
+	for _, ref := range td.References {
+		if ref.IsNullable {
+			err = fmt.Errorf("column " + ref.Column + " cannot be nullable.")
+			return
+		}
+	}
+	mm.Table = td.Name
+	mm.Ref1.Table = td.References[0].Table
+	mm.Ref1.Column = td.References[0].Column
+	mm.Ref2.Table = td.References[1].Table
+	mm.Ref2.Column = td.References[1].Column
+	mm.Comment = t.comment
+	return
+}

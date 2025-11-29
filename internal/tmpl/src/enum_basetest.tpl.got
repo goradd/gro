@@ -1,0 +1,31 @@
+package template
+
+import (
+	"github.com/goradd/gro/internal/codegen"
+	"github.com/goradd/gro/query"
+)
+
+func init() {
+    t := EnumTestTemplate{}
+	codegen.RegisterTemplate(&t)
+}
+
+// EnumTestTemplate generates code for the base table tests.
+type EnumTestTemplate struct {
+    Package string
+}
+
+func (tmpl *EnumTestTemplate) FileName(table *model.Enum) string {
+    return table.FileName() + "_test.go"
+}
+
+func (tmpl *EnumTestTemplate) GenerateEnum(table *model.Enum, _w io.Writer, importPath string) (err error) {
+    tmpl.Package = table.DbKey
+{{: "enum_test/enum_test.tmpl" }}
+    return
+}
+
+func (tmpl *EnumTestTemplate) Overwrite() bool {
+	return true
+}
+

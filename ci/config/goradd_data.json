@@ -1,0 +1,556 @@
+[
+["gift",
+[{
+  "name": "Partridge in a pear tree",
+  "number": 1
+}
+,
+{
+  "name": "Turtle doves",
+  "number": 2
+}
+,
+{
+  "name": "French hens",
+  "number": 3
+}
+]
+],
+["person",
+[{
+  "created": "2025-04-03T01:44:04Z",
+  "firstName": "John",
+  "id": "1",
+  "lastName": "Doe",
+  "modified": null,
+  "personType": "inactive"
+}
+,
+{
+  "created": "2025-04-03T01:44:04Z",
+  "firstName": "Kendall",
+  "id": "2",
+  "lastName": "Public",
+  "modified": null,
+  "personType": null
+}
+,
+{
+  "created": "2025-04-03T01:44:04Z",
+  "firstName": "Ben",
+  "id": "3",
+  "lastName": "Robinson",
+  "modified": null,
+  "personType": "contractor"
+}
+,
+{
+  "created": "2025-04-03T01:44:04Z",
+  "firstName": "Mike",
+  "id": "4",
+  "lastName": "Ho",
+  "modified": null,
+  "personType": null
+}
+,
+{
+  "created": "2025-04-03T01:44:04Z",
+  "firstName": "Alex",
+  "id": "5",
+  "lastName": "Smith",
+  "modified": null,
+  "personType": "vendor"
+}
+,
+{
+  "created": "2025-04-03T01:44:04Z",
+  "firstName": "Wendy",
+  "id": "6",
+  "lastName": "Smith",
+  "modified": null,
+  "personType": null
+}
+,
+{
+  "created": "2025-04-03T01:44:04Z",
+  "firstName": "Karen",
+  "id": "7",
+  "lastName": "Wolfe",
+  "modified": "2025-04-21T16:47:52Z",
+  "personType": "manager"
+}
+,
+{
+  "created": "2025-04-03T01:44:04Z",
+  "firstName": "Samantha",
+  "id": "8",
+  "lastName": "Jones",
+  "modified": null,
+  "personType": null
+}
+,
+{
+  "created": "2025-04-03T01:44:04Z",
+  "firstName": "Linda",
+  "id": "9",
+  "lastName": "Brady",
+  "modified": null,
+  "personType": "inactive"
+}
+,
+{
+  "created": "2025-04-03T01:44:04Z",
+  "firstName": "Jennifer",
+  "id": "10",
+  "lastName": "Smith",
+  "modified": null,
+  "personType": "contractor"
+}
+,
+{
+  "created": "2025-04-03T01:44:04Z",
+  "firstName": "Brett",
+  "id": "11",
+  "lastName": "Carlisle",
+  "modified": "2025-04-21T16:47:52Z",
+  "personType": null
+}
+,
+{
+  "created": "2025-04-03T01:44:04Z",
+  "firstName": "Jacob",
+  "id": "12",
+  "lastName": "Pratt",
+  "modified": null,
+  "personType": null
+}
+]
+],
+["person_with_lock",
+[{
+  "firstName": "John",
+  "groLock": 0,
+  "groTimestamp": 0,
+  "id": "1",
+  "lastName": "Doe"
+}
+,
+{
+  "firstName": "Kendall",
+  "groLock": 0,
+  "groTimestamp": 0,
+  "id": "2",
+  "lastName": "Public"
+}
+,
+{
+  "firstName": "Ben",
+  "groLock": 0,
+  "groTimestamp": 0,
+  "id": "3",
+  "lastName": "Robinson"
+}
+,
+{
+  "firstName": "Mike",
+  "groLock": 0,
+  "groTimestamp": 0,
+  "id": "4",
+  "lastName": "Ho"
+}
+,
+{
+  "firstName": "Alfred",
+  "groLock": 0,
+  "groTimestamp": 0,
+  "id": "5",
+  "lastName": "Newman"
+}
+,
+{
+  "firstName": "Wendy",
+  "groLock": 0,
+  "groTimestamp": 0,
+  "id": "6",
+  "lastName": "Johnson"
+}
+,
+{
+  "firstName": "Karen",
+  "groLock": 0,
+  "groTimestamp": 0,
+  "id": "7",
+  "lastName": "Wolfe"
+}
+,
+{
+  "firstName": "Samantha",
+  "groLock": 0,
+  "groTimestamp": 0,
+  "id": "8",
+  "lastName": "Jones"
+}
+,
+{
+  "firstName": "Linda",
+  "groLock": 0,
+  "groTimestamp": 0,
+  "id": "9",
+  "lastName": "Brady"
+}
+,
+{
+  "firstName": "Jennifer",
+  "groLock": 0,
+  "groTimestamp": 0,
+  "id": "10",
+  "lastName": "Smith"
+}
+,
+{
+  "firstName": "Brett",
+  "groLock": 0,
+  "groTimestamp": 0,
+  "id": "11",
+  "lastName": "Carlisle"
+}
+,
+{
+  "firstName": "Jacob",
+  "groLock": 0,
+  "groTimestamp": 0,
+  "id": "12",
+  "lastName": "Pratt"
+}
+]
+],
+["project",
+[{
+  "budget": "9560.25",
+  "description": "The redesign of the main website for ACME Incorporated",
+  "endDate": "2004-07-01T00:00:00Z",
+  "id": "1",
+  "managerID": "7",
+  "name": "ACME Website Redesign",
+  "num": 1,
+  "parentID": null,
+  "spent": "10250.75",
+  "startDate": "2004-03-01T00:00:00Z",
+  "status": "completed"
+}
+,
+{
+  "budget": "80500.00",
+  "description": "Implementation of a back-office Human Resources system for State College",
+  "endDate": null,
+  "id": "2",
+  "managerID": "4",
+  "name": "State College HR System",
+  "num": 2,
+  "parentID": null,
+  "spent": "73200.00",
+  "startDate": "2006-02-15T00:00:00Z",
+  "status": "open"
+}
+,
+{
+  "budget": "2500.00",
+  "description": "Main website architecture for the Blueman Industrial Group",
+  "endDate": "2006-04-15T00:00:00Z",
+  "id": "3",
+  "managerID": "1",
+  "name": "Blueman Industrial Site Architecture",
+  "num": 3,
+  "parentID": null,
+  "spent": "4200.50",
+  "startDate": "2006-03-01T00:00:00Z",
+  "status": "open"
+}
+,
+{
+  "budget": "5124.67",
+  "description": "Accounts Payable payment system for ACME Incorporated",
+  "endDate": "2005-10-20T00:00:00Z",
+  "id": "4",
+  "managerID": "7",
+  "name": "ACME Payment System",
+  "num": 4,
+  "parentID": "1",
+  "spent": "5175.30",
+  "startDate": "2005-08-15T00:00:00Z",
+  "status": "canceled"
+}
+]
+],
+["address",
+[{
+  "city": "Dallas",
+  "id": "2",
+  "personID": "2",
+  "street": "2 Doves and a Pine Cone Dr."
+}
+,
+{
+  "city": "New York",
+  "id": "3",
+  "personID": "3",
+  "street": "3 Gold Fish Pl."
+}
+,
+{
+  "city": "New York",
+  "id": "4",
+  "personID": "3",
+  "street": "323 W QCubed"
+}
+,
+{
+  "city": "Palo Alto",
+  "id": "5",
+  "personID": "5",
+  "street": "22 Elm St"
+}
+,
+{
+  "city": "San Jose",
+  "id": "6",
+  "personID": "7",
+  "street": "1 Pine St"
+}
+,
+{
+  "city": "Mountain View",
+  "id": "7",
+  "personID": "7",
+  "street": "421 Central Expw"
+}
+]
+],
+["employee_info",
+[{
+  "employeeNumber": 123,
+  "id": "1",
+  "personID": "7"
+}
+]
+],
+["login",
+[{
+  "id": "1",
+  "isEnabled": false,
+  "password": "p@$$.w0rd",
+  "personID": "1",
+  "username": "jdoe"
+}
+,
+{
+  "id": "2",
+  "isEnabled": true,
+  "password": "p@$$.w0rd",
+  "personID": "3",
+  "username": "brobinson"
+}
+,
+{
+  "id": "3",
+  "isEnabled": true,
+  "password": "p@$$.w0rd",
+  "personID": "4",
+  "username": "mho"
+}
+,
+{
+  "id": "4",
+  "isEnabled": false,
+  "password": "p@$$.w0rd",
+  "personID": "7",
+  "username": "kwolfe"
+}
+,
+{
+  "id": "5",
+  "isEnabled": true,
+  "password": "p@$$.w0rd",
+  "personID": null,
+  "username": "system"
+}
+]
+],
+["milestone",
+[{
+  "id": "1",
+  "name": "Milestone A",
+  "projectID": "1"
+}
+,
+{
+  "id": "2",
+  "name": "Milestone B",
+  "projectID": "1"
+}
+,
+{
+  "id": "3",
+  "name": "Milestone C",
+  "projectID": "1"
+}
+,
+{
+  "id": "4",
+  "name": "Milestone D",
+  "projectID": "2"
+}
+,
+{
+  "id": "5",
+  "name": "Milestone E",
+  "projectID": "2"
+}
+,
+{
+  "id": "6",
+  "name": "Milestone F",
+  "projectID": "3"
+}
+,
+{
+  "id": "7",
+  "name": "Milestone G",
+  "projectID": "4"
+}
+,
+{
+  "id": "8",
+  "name": "Milestone H",
+  "projectID": "4"
+}
+,
+{
+  "id": "9",
+  "name": "Milestone I",
+  "projectID": "4"
+}
+,
+{
+  "id": "10",
+  "name": "Milestone J",
+  "projectID": "4"
+}
+]
+]
+,
+["team_member_project_assn",[{
+  "project_id": "1",
+  "team_member_id": "2"
+}
+,
+{
+  "project_id": "1",
+  "team_member_id": "5"
+}
+,
+{
+  "project_id": "1",
+  "team_member_id": "6"
+}
+,
+{
+  "project_id": "1",
+  "team_member_id": "7"
+}
+,
+{
+  "project_id": "1",
+  "team_member_id": "8"
+}
+,
+{
+  "project_id": "2",
+  "team_member_id": "2"
+}
+,
+{
+  "project_id": "2",
+  "team_member_id": "4"
+}
+,
+{
+  "project_id": "2",
+  "team_member_id": "5"
+}
+,
+{
+  "project_id": "2",
+  "team_member_id": "7"
+}
+,
+{
+  "project_id": "2",
+  "team_member_id": "9"
+}
+,
+{
+  "project_id": "2",
+  "team_member_id": "10"
+}
+,
+{
+  "project_id": "3",
+  "team_member_id": "1"
+}
+,
+{
+  "project_id": "3",
+  "team_member_id": "4"
+}
+,
+{
+  "project_id": "3",
+  "team_member_id": "6"
+}
+,
+{
+  "project_id": "3",
+  "team_member_id": "8"
+}
+,
+{
+  "project_id": "3",
+  "team_member_id": "10"
+}
+,
+{
+  "project_id": "4",
+  "team_member_id": "1"
+}
+,
+{
+  "project_id": "4",
+  "team_member_id": "2"
+}
+,
+{
+  "project_id": "4",
+  "team_member_id": "3"
+}
+,
+{
+  "project_id": "4",
+  "team_member_id": "5"
+}
+,
+{
+  "project_id": "4",
+  "team_member_id": "8"
+}
+,
+{
+  "project_id": "4",
+  "team_member_id": "11"
+}
+,
+{
+  "project_id": "4",
+  "team_member_id": "12"
+}
+]]]

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/goradd/gro/pkg/config"
-	db2 "github.com/goradd/gro/pkg/db"
-	"github.com/goradd/gro/pkg/schema"
+	db2 "github.com/goradd/gro/db"
+	"github.com/goradd/gro/internal/config"
+	"github.com/goradd/gro/internal/schema"
 )
 
 func extract(dbConfigFile, outFile, dbKey string) {
