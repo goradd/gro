@@ -375,18 +375,8 @@
           "nullable": true
         },
         {
-          "name": "test_unsigned",
-          "type": "uint",
-          "size": 32
-        },
-        {
           "name": "test_int64",
           "type": "int",
-          "size": 64
-        },
-        {
-          "name": "test_uint64",
-          "type": "uint",
           "size": 64
         },
         {
@@ -446,7 +436,7 @@
       "columns": [
         {
           "name": "type_serial",
-          "type": "uint",
+          "type": "int",
           "size": 64,
           "index_level": "primary"
         },

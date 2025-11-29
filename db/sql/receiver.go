@@ -24,7 +24,7 @@ import (
 // because there are some idiosyncrasies with
 // how Go treats return values that prevents returning an address of R from a function
 type SqlReceiver struct {
-	R interface{}
+	R any
 }
 
 // intI returns the receiver as an interface to an int.
@@ -58,47 +58,6 @@ func (r SqlReceiver) intI() interface{} {
 		}
 		return i
 
-	default:
-		slog.Error("Unknown type returned from sql driver",
-			slog.String(db.LogComponent, "SQL receiver"))
-		return nil
-	}
-}
-
-// uintI converts the value to an interface to a GO uint.
-//
-// Some drivers (like MySQL) return all integers as Int64. Its up to you to make sure
-// you only use this on 32-bit uints or smaller.
-func (r SqlReceiver) uintI() interface{} {
-	if r.R == nil {
-		return nil
-	}
-	switch r.R.(type) {
-	case int64:
-		return uint(r.R.(int64))
-	case int:
-		return uint(r.R.(int))
-	case uint:
-		return r.R
-	case string:
-		i, err := strconv.ParseUint(r.R.(string), 10, 32)
-		if err != nil {
-			// Note that some databases allow formulas for default integers, and we do not want to panic for those.
-			i = 0
-		}
-		return uint(i)
-	case []byte:
-		v := string(r.R.([]byte)[:])
-		if v == "NULL" {
-			return nil
-		} // MariaDB does this for default values
-		i, err := strconv.ParseUint(v, 10, 32)
-		if err != nil {
-			slog.Error("Attempting to scan a non-integer column into an unisgned integer",
-				slog.String(db.LogComponent, "SQL receiver"),
-				slog.Any(db.LogError, err))
-		}
-		return uint(i)
 	default:
 		slog.Error("Unknown type returned from sql driver",
 			slog.String(db.LogComponent, "SQL receiver"))
@@ -381,12 +340,8 @@ func (r SqlReceiver) Unpack(typ ReceiverType) interface{} {
 		return r.stringI()
 	case ColTypeInteger:
 		return r.intI()
-	case ColTypeUnsigned:
-		return r.uintI()
 	case ColTypeInteger64:
 		return r.int64I()
-	case ColTypeUnsigned64:
-		return r.uint64I()
 	case ColTypeTime:
 		return r.timeI()
 	case ColTypeFloat32:
@@ -435,11 +390,6 @@ func (r SqlReceiver) UnpackDefaultValue(typ schema.ColumnType, size int) interfa
 			return r.int64I()
 		}
 		return r.intI()
-	case schema.ColTypeUint:
-		if size == 64 {
-			return r.uint64I()
-		}
-		return r.uintI()
 	case schema.ColTypeTime:
 		return r.timeI()
 	case schema.ColTypeFloat:

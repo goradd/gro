@@ -712,7 +712,7 @@ const  (
 					return
 				}
 
-			} else if col.ReceiverType == query.ColTypeInteger || col.ReceiverType == query.ColTypeUnsigned {
+			} else if col.ReceiverType == query.ColTypeInteger {
 
 				if _, err = io.WriteString(_w, `    const `); err != nil {
 					return
@@ -14078,58 +14078,6 @@ func (o *`); err != nil {
 					return
 				}
 
-			case query.ColTypeUnsigned:
-
-				if _, err = io.WriteString(_w, `            switch n := v.(type) {
-            case json.Number:
-                n2,err := n.Int64()
-                if err != nil {return err}
-                o.Set`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(uint(n2))
-            case int:
-                o.Set`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(uint(n))
-            case uint:
-                o.Set`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(n)
-            case float64:
-                o.Set`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(uint(n))
-            default:
-                return fmt.Errorf("field %s must be a number", k)
-            }
-`); err != nil {
-					return
-				}
-
 			case query.ColTypeInteger64:
 
 				if _, err = io.WriteString(_w, `            switch n := v.(type) {
@@ -14165,58 +14113,6 @@ func (o *`); err != nil {
 				}
 
 				if _, err = io.WriteString(_w, `(int64(n))
-            default:
-                return fmt.Errorf("field %s must be a number", k)
-            }
-`); err != nil {
-					return
-				}
-
-			case query.ColTypeUnsigned64:
-
-				if _, err = io.WriteString(_w, `            switch n := v.(type) {
-            case json.Number:
-                n2,err := n.Int64()
-                if err != nil {return err}
-                o.Set`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(uint64(n2))
-            case uint64:
-                o.Set`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(n)
-            case int:
-                o.Set`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(uint64(n))
-            case float64:
-                o.Set`); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, col.Identifier); err != nil {
-					return
-				}
-
-				if _, err = io.WriteString(_w, `(uint64(n))
             default:
                 return fmt.Errorf("field %s must be a number", k)
             }

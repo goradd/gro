@@ -16,7 +16,7 @@ func createMinimalSampleUnsupportedType() *UnsupportedType {
 	obj := NewUnsupportedType()
 	updateMinimalSampleUnsupportedType(obj)
 
-	obj.SetTypeSerial(test.RandomValue[uint64](64))
+	obj.SetTypeSerial(test.RandomValue[int64](64))
 
 	return obj
 }
@@ -40,7 +40,7 @@ func updateMinimalSampleUnsupportedType(obj *UnsupportedType) {
 // for testing that includes references to minimal objects.
 func createMaximalSampleUnsupportedType(ctx context.Context) *UnsupportedType {
 	obj := NewUnsupportedType()
-	obj.SetTypeSerial(test.RandomValue[uint64](64))
+	obj.SetTypeSerial(test.RandomValue[int64](64))
 	updateMaximalSampleUnsupportedType(ctx, obj)
 	return obj
 }

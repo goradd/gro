@@ -113,7 +113,7 @@ func getUnsupportedTypeUpdateFields(o *unsupportedTypeBase) (fields map[string]i
 // DeleteUnsupportedType deletes the unsupported_type record with primary key pk from the database.
 // Note that you can also delete loaded UnsupportedType objects by calling Delete on them.
 // doc: type=UnsupportedType
-func DeleteUnsupportedType(ctx context.Context, pk uint64) error {
+func DeleteUnsupportedType(ctx context.Context, pk int64) error {
 	return deleteUnsupportedType(ctx, pk)
 }
 

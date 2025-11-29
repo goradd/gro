@@ -48,15 +48,9 @@ type typeTestBase struct {
 	testIntIsNull               bool
 	testIntIsLoaded             bool
 	testIntIsDirty              bool
-	testUnsigned                uint
-	testUnsignedIsLoaded        bool
-	testUnsignedIsDirty         bool
 	testInt64                   int64
 	testInt64IsLoaded           bool
 	testInt64IsDirty            bool
-	testUint64                  uint64
-	testUint64IsLoaded          bool
-	testUint64IsDirty           bool
 	testFloat32                 float32
 	testFloat32IsNull           bool
 	testFloat32IsLoaded         bool
@@ -108,9 +102,7 @@ const (
 	TypeTestCreationTimeField        = `creationTime`
 	TypeTestModifiedTimeField        = `modifiedTime`
 	TypeTestTestIntField             = `testInt`
-	TypeTestTestUnsignedField        = `testUnsigned`
 	TypeTestTestInt64Field           = `testInt64`
-	TypeTestTestUint64Field          = `testUint64`
 	TypeTestTestFloat32Field         = `testFloat32`
 	TypeTestTestFloat64Field         = `testFloat64`
 	TypeTestTestNumericField         = `testNumeric`
@@ -125,8 +117,6 @@ const (
 
 const TypeTestTestIntMax = 2147483647
 const TypeTestTestIntMin = -2147483648
-const TypeTestTestUnsignedMax = 4294967295
-const TypeTestTestUnsignedMin = 0
 const TypeTestTestNumericMaxLength = 12            // The number of runes the column can hold
 const TypeTestTestLimitedStringMaxLength = 10      // The number of runes the column can hold
 const TypeTestTestLongstringMaxLength = 1000000000 // The number of runes the column can hold
@@ -166,17 +156,9 @@ func (o *typeTestBase) Initialize() {
 	o.testIntIsLoaded = true
 	o.testIntIsDirty = false
 
-	o.testUnsigned = 0x0
-	o.testUnsignedIsLoaded = false
-	o.testUnsignedIsDirty = false
-
 	o.testInt64 = 0
 	o.testInt64IsLoaded = false
 	o.testInt64IsDirty = false
-
-	o.testUint64 = 0x0
-	o.testUint64IsLoaded = false
-	o.testUint64IsDirty = false
 
 	o.testFloat32 = 0
 	o.testFloat32IsNull = true
@@ -248,14 +230,8 @@ func (o *typeTestBase) Copy() (newObject *TypeTest) {
 	if o.testIntIsLoaded {
 		newObject.SetTestInt(o.testInt)
 	}
-	if o.testUnsignedIsLoaded {
-		newObject.SetTestUnsigned(o.testUnsigned)
-	}
 	if o.testInt64IsLoaded {
 		newObject.SetTestInt64(o.testInt64)
-	}
-	if o.testUint64IsLoaded {
-		newObject.SetTestUint64(o.testUint64)
 	}
 	if o.testFloat32IsLoaded {
 		newObject.SetTestFloat32(o.testFloat32)
@@ -565,33 +541,6 @@ func (o *typeTestBase) SetTestIntToNull() {
 	o.testInt = 5
 }
 
-// TestUnsigned returns the value of the loaded test_unsigned field in the database.
-func (o *typeTestBase) TestUnsigned() uint {
-	if o._restored && !o.testUnsignedIsLoaded {
-		panic("TestUnsigned was not selected in the last query and has not been set, and so is not valid")
-	}
-	return o.testUnsigned
-}
-
-// TestUnsignedIsLoaded returns true if the value was loaded from the database or has been set.
-func (o *typeTestBase) TestUnsignedIsLoaded() bool {
-	return o.testUnsignedIsLoaded
-}
-
-// SetTestUnsigned sets the value of TestUnsigned in the object, to be saved later in the database using the Save() function.
-func (o *typeTestBase) SetTestUnsigned(v uint) {
-	if o._restored &&
-		o.testUnsignedIsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
-		o.testUnsigned == v {
-		// no change
-		return
-	}
-
-	o.testUnsignedIsLoaded = true
-	o.testUnsigned = v
-	o.testUnsignedIsDirty = true
-}
-
 // TestInt64 returns the value of the loaded test_int64 field in the database.
 func (o *typeTestBase) TestInt64() int64 {
 	if o._restored && !o.testInt64IsLoaded {
@@ -617,33 +566,6 @@ func (o *typeTestBase) SetTestInt64(v int64) {
 	o.testInt64IsLoaded = true
 	o.testInt64 = v
 	o.testInt64IsDirty = true
-}
-
-// TestUint64 returns the value of the loaded test_uint64 field in the database.
-func (o *typeTestBase) TestUint64() uint64 {
-	if o._restored && !o.testUint64IsLoaded {
-		panic("TestUint64 was not selected in the last query and has not been set, and so is not valid")
-	}
-	return o.testUint64
-}
-
-// TestUint64IsLoaded returns true if the value was loaded from the database or has been set.
-func (o *typeTestBase) TestUint64IsLoaded() bool {
-	return o.testUint64IsLoaded
-}
-
-// SetTestUint64 sets the value of TestUint64 in the object, to be saved later in the database using the Save() function.
-func (o *typeTestBase) SetTestUint64(v uint64) {
-	if o._restored &&
-		o.testUint64IsLoaded && // if it was not selected, then make sure it gets set, since our end comparison won't be valid
-		o.testUint64 == v {
-		// no change
-		return
-	}
-
-	o.testUint64IsLoaded = true
-	o.testUint64 = v
-	o.testUint64IsDirty = true
 }
 
 // TestFloat32 returns the value of the loaded test_float32 field in the database.
@@ -1325,19 +1247,6 @@ func (o *typeTestBase) unpack(m map[string]interface{}, objThis *TypeTest) {
 		o.testIntIsDirty = false
 	}
 
-	if v, ok := m["testUnsigned"]; ok && v != nil {
-		if o.testUnsigned, ok = v.(uint); ok {
-			o.testUnsignedIsLoaded = true
-			o.testUnsignedIsDirty = false
-		} else {
-			panic("Wrong type found for testUnsigned.")
-		}
-	} else {
-		o.testUnsignedIsLoaded = false
-		o.testUnsigned = 0x0
-		o.testUnsignedIsDirty = false
-	}
-
 	if v, ok := m["testInt64"]; ok && v != nil {
 		if o.testInt64, ok = v.(int64); ok {
 			o.testInt64IsLoaded = true
@@ -1349,19 +1258,6 @@ func (o *typeTestBase) unpack(m map[string]interface{}, objThis *TypeTest) {
 		o.testInt64IsLoaded = false
 		o.testInt64 = 0
 		o.testInt64IsDirty = false
-	}
-
-	if v, ok := m["testUint64"]; ok && v != nil {
-		if o.testUint64, ok = v.(uint64); ok {
-			o.testUint64IsLoaded = true
-			o.testUint64IsDirty = false
-		} else {
-			panic("Wrong type found for testUint64.")
-		}
-	} else {
-		o.testUint64IsLoaded = false
-		o.testUint64 = 0x0
-		o.testUint64IsDirty = false
 	}
 
 	if v, ok := m["testFloat32"]; ok {
@@ -1572,14 +1468,8 @@ func (o *typeTestBase) insert(ctx context.Context) (err error) {
 	var insertFields map[string]interface{}
 	d := Database()
 	err = db.WithTransaction(ctx, d, func(ctx context.Context) error {
-		if !o.testUnsignedIsLoaded {
-			panic("a value for TestUnsigned is required, and there is no default value. Call SetTestUnsigned() before inserting the record.")
-		}
 		if !o.testInt64IsLoaded {
 			panic("a value for TestInt64 is required, and there is no default value. Call SetTestInt64() before inserting the record.")
-		}
-		if !o.testUint64IsLoaded {
-			panic("a value for TestUint64 is required, and there is no default value. Call SetTestUint64() before inserting the record.")
 		}
 		if !o.testFloat64IsLoaded {
 			panic("a value for TestFloat64 is required, and there is no default value. Call SetTestFloat64() before inserting the record.")
@@ -1674,14 +1564,8 @@ func (o *typeTestBase) getUpdateFields() (fields map[string]interface{}) {
 			fields["test_int"] = o.testInt
 		}
 	}
-	if o.testUnsignedIsDirty {
-		fields["test_unsigned"] = o.testUnsigned
-	}
 	if o.testInt64IsDirty {
 		fields["test_int64"] = o.testInt64
-	}
-	if o.testUint64IsDirty {
-		fields["test_uint64"] = o.testUint64
 	}
 	if o.testFloat32IsDirty {
 		if o.testFloat32IsNull {
@@ -1757,11 +1641,7 @@ func (o *typeTestBase) getInsertFields() (fields map[string]interface{}) {
 		fields["test_int"] = o.testInt
 	}
 
-	fields["test_unsigned"] = o.testUnsigned
-
 	fields["test_int64"] = o.testInt64
-
-	fields["test_uint64"] = o.testUint64
 	if o.testFloat32IsNull {
 		fields["test_float32"] = nil
 	} else {
@@ -1835,9 +1715,7 @@ func (o *typeTestBase) resetDirtyStatus() {
 	o.timeIsDirty = false
 	o.dateTimeIsDirty = false
 	o.testIntIsDirty = false
-	o.testUnsignedIsDirty = false
 	o.testInt64IsDirty = false
-	o.testUint64IsDirty = false
 	o.testFloat32IsDirty = false
 	o.testFloat64IsDirty = false
 	o.testNumericIsDirty = false
@@ -1858,9 +1736,7 @@ func (o *typeTestBase) IsDirty() (dirty bool) {
 		o.timeIsDirty ||
 		o.dateTimeIsDirty ||
 		o.testIntIsDirty ||
-		o.testUnsignedIsDirty ||
 		o.testInt64IsDirty ||
-		o.testUint64IsDirty ||
 		o.testFloat32IsDirty ||
 		o.testFloat64IsDirty ||
 		o.testNumericIsDirty ||
@@ -1916,21 +1792,11 @@ func (o *typeTestBase) Get(key string) interface{} {
 			return nil
 		}
 		return o.testInt
-	case TypeTestTestUnsignedField:
-		if !o.testUnsignedIsLoaded {
-			return nil
-		}
-		return o.testUnsigned
 	case TypeTestTestInt64Field:
 		if !o.testInt64IsLoaded {
 			return nil
 		}
 		return o.testInt64
-	case TypeTestTestUint64Field:
-		if !o.testUint64IsLoaded {
-			return nil
-		}
-		return o.testUint64
 	case TypeTestTestFloat32Field:
 		if !o.testFloat32IsLoaded {
 			return nil
@@ -2076,16 +1942,6 @@ func (o *typeTestBase) encodeTo(enc db.Encoder) error {
 		return fmt.Errorf("error encoding TypeTest.testIntIsDirty: %w", err)
 	}
 
-	if err := enc.Encode(o.testUnsigned); err != nil {
-		return fmt.Errorf("error encoding TypeTest.testUnsigned: %w", err)
-	}
-	if err := enc.Encode(o.testUnsignedIsLoaded); err != nil {
-		return fmt.Errorf("error encoding TypeTest.testUnsignedIsLoaded: %w", err)
-	}
-	if err := enc.Encode(o.testUnsignedIsDirty); err != nil {
-		return fmt.Errorf("error encoding TypeTest.testUnsignedIsDirty: %w", err)
-	}
-
 	if err := enc.Encode(o.testInt64); err != nil {
 		return fmt.Errorf("error encoding TypeTest.testInt64: %w", err)
 	}
@@ -2094,16 +1950,6 @@ func (o *typeTestBase) encodeTo(enc db.Encoder) error {
 	}
 	if err := enc.Encode(o.testInt64IsDirty); err != nil {
 		return fmt.Errorf("error encoding TypeTest.testInt64IsDirty: %w", err)
-	}
-
-	if err := enc.Encode(o.testUint64); err != nil {
-		return fmt.Errorf("error encoding TypeTest.testUint64: %w", err)
-	}
-	if err := enc.Encode(o.testUint64IsLoaded); err != nil {
-		return fmt.Errorf("error encoding TypeTest.testUint64IsLoaded: %w", err)
-	}
-	if err := enc.Encode(o.testUint64IsDirty); err != nil {
-		return fmt.Errorf("error encoding TypeTest.testUint64IsDirty: %w", err)
 	}
 
 	if err := enc.Encode(o.testFloat32); err != nil {
@@ -2318,16 +2164,6 @@ func (o *typeTestBase) decodeFrom(dec db.Decoder) (err error) {
 		return fmt.Errorf("error decoding TypeTest.testIntIsDirty: %w", err)
 	}
 
-	if err = dec.Decode(&o.testUnsigned); err != nil {
-		return fmt.Errorf("error decoding TypeTest.testUnsigned: %w", err)
-	}
-	if err = dec.Decode(&o.testUnsignedIsLoaded); err != nil {
-		return fmt.Errorf("error decoding TypeTest.testUnsignedIsLoaded: %w", err)
-	}
-	if err = dec.Decode(&o.testUnsignedIsDirty); err != nil {
-		return fmt.Errorf("error decoding TypeTest.testUnsignedIsDirty: %w", err)
-	}
-
 	if err = dec.Decode(&o.testInt64); err != nil {
 		return fmt.Errorf("error decoding TypeTest.testInt64: %w", err)
 	}
@@ -2336,16 +2172,6 @@ func (o *typeTestBase) decodeFrom(dec db.Decoder) (err error) {
 	}
 	if err = dec.Decode(&o.testInt64IsDirty); err != nil {
 		return fmt.Errorf("error decoding TypeTest.testInt64IsDirty: %w", err)
-	}
-
-	if err = dec.Decode(&o.testUint64); err != nil {
-		return fmt.Errorf("error decoding TypeTest.testUint64: %w", err)
-	}
-	if err = dec.Decode(&o.testUint64IsLoaded); err != nil {
-		return fmt.Errorf("error decoding TypeTest.testUint64IsLoaded: %w", err)
-	}
-	if err = dec.Decode(&o.testUint64IsDirty); err != nil {
-		return fmt.Errorf("error decoding TypeTest.testUint64IsDirty: %w", err)
 	}
 
 	if err = dec.Decode(&o.testFloat32); err != nil {
@@ -2528,16 +2354,8 @@ func (o *typeTestBase) MarshalStringMap() map[string]interface{} {
 		}
 	}
 
-	if o.testUnsignedIsLoaded {
-		v["testUnsigned"] = o.testUnsigned
-	}
-
 	if o.testInt64IsLoaded {
 		v["testInt64"] = o.testInt64
-	}
-
-	if o.testUint64IsLoaded {
-		v["testUint64"] = o.testUint64
 	}
 
 	if o.testFloat32IsLoaded {
@@ -2607,9 +2425,7 @@ func (o *typeTestBase) MarshalStringMap() map[string]interface{} {
 //	"creationTime" - time.Time
 //	"modifiedTime" - time.Time
 //	"testInt" - int, nullable
-//	"testUnsigned" - uint
 //	"testInt64" - int64
-//	"testUint64" - uint64
 //	"testFloat32" - float32, nullable
 //	"testFloat64" - float64
 //	"testNumeric" - string
@@ -2776,29 +2592,6 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 					return fmt.Errorf("field %s must be a number", k)
 				}
 			}
-		case "testUnsigned":
-			{
-				if v == nil {
-					return fmt.Errorf("field %s cannot be null", k)
-				}
-
-				switch n := v.(type) {
-				case json.Number:
-					n2, err := n.Int64()
-					if err != nil {
-						return err
-					}
-					o.SetTestUnsigned(uint(n2))
-				case int:
-					o.SetTestUnsigned(uint(n))
-				case uint:
-					o.SetTestUnsigned(n)
-				case float64:
-					o.SetTestUnsigned(uint(n))
-				default:
-					return fmt.Errorf("field %s must be a number", k)
-				}
-			}
 		case "testInt64":
 			{
 				if v == nil {
@@ -2816,29 +2609,6 @@ func (o *typeTestBase) UnmarshalStringMap(m map[string]interface{}) (err error) 
 					o.SetTestInt64(int64(n))
 				case float64:
 					o.SetTestInt64(int64(n))
-				default:
-					return fmt.Errorf("field %s must be a number", k)
-				}
-			}
-		case "testUint64":
-			{
-				if v == nil {
-					return fmt.Errorf("field %s cannot be null", k)
-				}
-
-				switch n := v.(type) {
-				case json.Number:
-					n2, err := n.Int64()
-					if err != nil {
-						return err
-					}
-					o.SetTestUint64(uint64(n2))
-				case uint64:
-					o.SetTestUint64(n)
-				case int:
-					o.SetTestUint64(uint64(n))
-				case float64:
-					o.SetTestUint64(uint64(n))
 				default:
 					return fmt.Errorf("field %s must be a number", k)
 				}

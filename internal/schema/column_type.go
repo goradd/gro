@@ -147,7 +147,6 @@ const (
 	ColTypeBytes
 	ColTypeString
 	ColTypeInt
-	ColTypeUint
 	ColTypeTime
 	ColTypeFloat
 	ColTypeBool
@@ -175,8 +174,6 @@ func (ct ColumnType) String() string {
 		return "ColTypeString"
 	case ColTypeInt:
 		return "ColTypeInt"
-	case ColTypeUint:
-		return "ColTypeUint"
 	case ColTypeTime:
 		return "ColTypeTime"
 	case ColTypeFloat:
@@ -211,8 +208,6 @@ func (ct ColumnType) jsonRep() string {
 		return "string"
 	case ColTypeInt:
 		return "int"
-	case ColTypeUint:
-		return "uint"
 	case ColTypeTime:
 		return "time"
 	case ColTypeFloat:
@@ -251,8 +246,6 @@ func (ct *ColumnType) UnmarshalJSON(data []byte) error {
 		*ct = ColTypeString
 	case "int":
 		*ct = ColTypeInt
-	case "uint":
-		*ct = ColTypeUint
 	case "time":
 		*ct = ColTypeTime
 	case "float":

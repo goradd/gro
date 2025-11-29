@@ -38,11 +38,7 @@ func updateMinimalSampleTypeTest(obj *TypeTest) {
 
 	obj.SetTestInt(test.RandomValue[int](32))
 
-	obj.SetTestUnsigned(test.RandomValue[uint](32))
-
 	obj.SetTestInt64(test.RandomValue[int64](64))
-
-	obj.SetTestUint64(test.RandomValue[uint64](64))
 
 	obj.SetTestFloat32(test.RandomValue[float32](32))
 
@@ -118,14 +114,8 @@ func assertEqualFieldsTypeTest(t *testing.T, obj1, obj2 *TypeTest) {
 	if obj1.TestIntIsLoaded() && obj2.TestIntIsLoaded() { // only check loaded values
 		assert.EqualValues(t, obj1.TestInt(), obj2.TestInt())
 	}
-	if obj1.TestUnsignedIsLoaded() && obj2.TestUnsignedIsLoaded() { // only check loaded values
-		assert.EqualValues(t, obj1.TestUnsigned(), obj2.TestUnsigned())
-	}
 	if obj1.TestInt64IsLoaded() && obj2.TestInt64IsLoaded() { // only check loaded values
 		assert.EqualValues(t, obj1.TestInt64(), obj2.TestInt64())
-	}
-	if obj1.TestUint64IsLoaded() && obj2.TestUint64IsLoaded() { // only check loaded values
-		assert.EqualValues(t, obj1.TestUint64(), obj2.TestUint64())
 	}
 	if obj1.TestFloat32IsLoaded() && obj2.TestFloat32IsLoaded() { // only check loaded values
 		assert.EqualValues(t, obj1.TestFloat32(), obj2.TestFloat32())
@@ -265,21 +255,6 @@ func TestTypeTest_SetTestInt(t *testing.T) {
 	assert.EqualValues(t, d, obj.TestInt(), "set default")
 
 }
-func TestTypeTest_SetTestUnsigned(t *testing.T) {
-
-	obj := NewTypeTest()
-
-	assert.True(t, obj.IsNew())
-	val := test.RandomValue[uint](32)
-	obj.SetTestUnsigned(val)
-	assert.Equal(t, val, obj.TestUnsigned())
-
-	// test default
-	var d uint = 0x0
-	obj.SetTestUnsigned(d)
-	assert.EqualValues(t, d, obj.TestUnsigned(), "set default")
-
-}
 func TestTypeTest_SetTestInt64(t *testing.T) {
 
 	obj := NewTypeTest()
@@ -293,21 +268,6 @@ func TestTypeTest_SetTestInt64(t *testing.T) {
 	var d int64 = 0
 	obj.SetTestInt64(d)
 	assert.EqualValues(t, d, obj.TestInt64(), "set default")
-
-}
-func TestTypeTest_SetTestUint64(t *testing.T) {
-
-	obj := NewTypeTest()
-
-	assert.True(t, obj.IsNew())
-	val := test.RandomValue[uint64](64)
-	obj.SetTestUint64(val)
-	assert.Equal(t, val, obj.TestUint64())
-
-	// test default
-	var d uint64 = 0x0
-	obj.SetTestUint64(d)
-	assert.EqualValues(t, d, obj.TestUint64(), "set default")
 
 }
 func TestTypeTest_SetTestFloat32(t *testing.T) {
@@ -486,9 +446,7 @@ func TestTypeTest_Copy(t *testing.T) {
 	assert.Equal(t, obj.Time(), obj2.Time())
 	assert.Equal(t, obj.DateTime(), obj2.DateTime())
 	assert.Equal(t, obj.TestInt(), obj2.TestInt())
-	assert.Equal(t, obj.TestUnsigned(), obj2.TestUnsigned())
 	assert.Equal(t, obj.TestInt64(), obj2.TestInt64())
-	assert.Equal(t, obj.TestUint64(), obj2.TestUint64())
 	assert.Equal(t, obj.TestFloat32(), obj2.TestFloat32())
 	assert.Equal(t, obj.TestFloat64(), obj2.TestFloat64())
 	assert.Equal(t, obj.TestNumeric(), obj2.TestNumeric())
@@ -552,23 +510,11 @@ func TestTypeTest_BasicInsert(t *testing.T) {
 	obj2.SetTestInt(obj2.TestInt())
 	assert.False(t, obj2.testIntIsDirty)
 
-	assert.True(t, obj2.TestUnsignedIsLoaded())
-	// test that setting it to the same value will not change the dirty bit
-	assert.False(t, obj2.testUnsignedIsDirty)
-	obj2.SetTestUnsigned(obj2.TestUnsigned())
-	assert.False(t, obj2.testUnsignedIsDirty)
-
 	assert.True(t, obj2.TestInt64IsLoaded())
 	// test that setting it to the same value will not change the dirty bit
 	assert.False(t, obj2.testInt64IsDirty)
 	obj2.SetTestInt64(obj2.TestInt64())
 	assert.False(t, obj2.testInt64IsDirty)
-
-	assert.True(t, obj2.TestUint64IsLoaded())
-	// test that setting it to the same value will not change the dirty bit
-	assert.False(t, obj2.testUint64IsDirty)
-	obj2.SetTestUint64(obj2.TestUint64())
-	assert.False(t, obj2.testUint64IsDirty)
 
 	assert.True(t, obj2.TestFloat32IsLoaded())
 	assert.False(t, obj2.TestFloat32IsNull())
@@ -640,17 +586,9 @@ func TestTypeTest_InsertPanics(t *testing.T) {
 	ctx := context.Background()
 	_ = ctx
 
-	obj.testUnsignedIsLoaded = false
-	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.testUnsignedIsLoaded = true
-
 	obj.testInt64IsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
 	obj.testInt64IsLoaded = true
-
-	obj.testUint64IsLoaded = false
-	assert.Panics(t, func() { obj.Save(ctx) })
-	obj.testUint64IsLoaded = true
 
 	obj.testFloat64IsLoaded = false
 	assert.Panics(t, func() { obj.Save(ctx) })
@@ -712,9 +650,7 @@ func TestTypeTest_BasicUpdate(t *testing.T) {
 
 	assert.WithinDuration(t, obj2.ModifiedTime(), obj.ModifiedTime(), time.Second, "ModifiedTime not within one second")
 	assert.Equal(t, obj2.TestInt(), obj.TestInt(), "TestInt did not update")
-	assert.Equal(t, obj2.TestUnsigned(), obj.TestUnsigned(), "TestUnsigned did not update")
 	assert.Equal(t, obj2.TestInt64(), obj.TestInt64(), "TestInt64 did not update")
-	assert.Equal(t, obj2.TestUint64(), obj.TestUint64(), "TestUint64 did not update")
 	assert.Equal(t, obj2.TestFloat32(), obj.TestFloat32(), "TestFloat32 did not update")
 	assert.Equal(t, obj2.TestFloat64(), obj.TestFloat64(), "TestFloat64 did not update")
 	assert.Equal(t, obj2.TestBool(), obj.TestBool(), "TestBool did not update")
@@ -821,15 +757,9 @@ func TestTypeTest_Getters(t *testing.T) {
 	assert.Equal(t, obj.TestInt(), obj.Get(TypeTestTestIntField))
 	assert.Panics(t, func() { obj2.TestInt() })
 	assert.Nil(t, obj2.Get(TypeTestTestIntField))
-	assert.Equal(t, obj.TestUnsigned(), obj.Get(TypeTestTestUnsignedField))
-	assert.Panics(t, func() { obj2.TestUnsigned() })
-	assert.Nil(t, obj2.Get(TypeTestTestUnsignedField))
 	assert.Equal(t, obj.TestInt64(), obj.Get(TypeTestTestInt64Field))
 	assert.Panics(t, func() { obj2.TestInt64() })
 	assert.Nil(t, obj2.Get(TypeTestTestInt64Field))
-	assert.Equal(t, obj.TestUint64(), obj.Get(TypeTestTestUint64Field))
-	assert.Panics(t, func() { obj2.TestUint64() })
-	assert.Nil(t, obj2.Get(TypeTestTestUint64Field))
 	assert.Equal(t, obj.TestFloat32(), obj.Get(TypeTestTestFloat32Field))
 	assert.Panics(t, func() { obj2.TestFloat32() })
 	assert.Nil(t, obj2.Get(TypeTestTestFloat32Field))
@@ -961,14 +891,14 @@ func TestTypeTest_FailingMarshalBinary(t *testing.T) {
 	obj := createMinimalSampleTypeTest()
 	var err error
 
-	for i := 0; i < 66; i++ {
+	for i := 0; i < 60; i++ {
 		enc := &test.GobEncoder{Count: i}
 		err = obj.encodeTo(enc)
 		assert.Error(t, err)
 	}
 	// do it again with aliases
 	obj._aliases = make(map[string]any)
-	for i := 0; i < 67; i++ {
+	for i := 0; i < 61; i++ {
 		enc := &test.GobEncoder{Count: i}
 		err = obj.encodeTo(enc)
 		assert.Error(t, err)
@@ -980,7 +910,7 @@ func TestTypeTest_FailingUnmarshalBinary(t *testing.T) {
 	b, err := obj.MarshalBinary()
 	assert.NoError(t, err)
 	obj2 := NewTypeTest()
-	for i := 0; i < 66; i++ {
+	for i := 0; i < 60; i++ {
 		buf := bytes.NewReader(b)
 		dec := &test.GobDecoder{Decoder: gob.NewDecoder(buf), Count: i}
 		err = obj2.decodeFrom(dec)
@@ -994,7 +924,7 @@ func TestTypeTest_FailingUnmarshalBinary(t *testing.T) {
 	assert.NoError(t, err)
 
 	obj2 = NewTypeTest()
-	for i := 0; i < 67; i++ {
+	for i := 0; i < 61; i++ {
 		buf := bytes.NewReader(b)
 		dec := &test.GobDecoder{Decoder: gob.NewDecoder(buf), Count: i}
 		err = obj2.decodeFrom(dec)

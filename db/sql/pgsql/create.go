@@ -191,7 +191,7 @@ func (m *DB) buildColumnDef(col *schema2.Column) (columnClause string, tableClau
 func sqlType(colType schema2.ColumnType, size uint64, subType schema2.ColumnSubType) string {
 	switch colType {
 	case schema2.ColTypeAutoPrimaryKey:
-		return intType(size, false)
+		return intType(size)
 	case schema2.ColTypeString:
 		if subType == schema2.ColSubTypeNumeric {
 			precision := size & 0x0000FFFF
@@ -211,9 +211,7 @@ func sqlType(colType schema2.ColumnType, size uint64, subType schema2.ColumnSubT
 	case schema2.ColTypeBytes:
 		return "BYTEA"
 	case schema2.ColTypeInt:
-		return intType(size, false)
-	case schema2.ColTypeUint:
-		return intType(size, true)
+		return intType(size)
 	case schema2.ColTypeFloat:
 		if size == 32 {
 			return "FLOAT4"
@@ -243,13 +241,9 @@ func sqlType(colType schema2.ColumnType, size uint64, subType schema2.ColumnSubT
 	}
 }
 
-func intType(size uint64, unsigned bool) string {
+func intType(size uint64) string {
 	var t string
 
-	if unsigned {
-		size += 1 // postgres does not support unsigned values, so we need to make sure we pick a type
-		// that covers Go's possible matching unsigned values.
-	}
 	switch {
 	case size == 0:
 		t = "INT"

@@ -60,23 +60,6 @@ case query.ColTypeInteger:
                 return fmt.Errorf("field %s must be a number", k)
             }
 }}
-case query.ColTypeUnsigned:
-{{
-            switch n := v.(type) {
-            case json.Number:
-                n2,err := n.Int64()
-                if err != nil {return err}
-                o.Set{{= col.Identifier }}(uint(n2))
-            case int:
-                o.Set{{= col.Identifier }}(uint(n))
-            case uint:
-                o.Set{{= col.Identifier }}(n)
-            case float64:
-                o.Set{{= col.Identifier }}(uint(n))
-            default:
-                return fmt.Errorf("field %s must be a number", k)
-            }
-}}
 case query.ColTypeInteger64:
 {{
             switch n := v.(type) {
@@ -88,23 +71,6 @@ case query.ColTypeInteger64:
                 o.Set{{= col.Identifier }}(int64(n))
             case float64:
                 o.Set{{= col.Identifier }}(int64(n))
-            default:
-                return fmt.Errorf("field %s must be a number", k)
-            }
-}}
-case query.ColTypeUnsigned64:
-{{
-            switch n := v.(type) {
-            case json.Number:
-                n2,err := n.Int64()
-                if err != nil {return err}
-                o.Set{{= col.Identifier }}(uint64(n2))
-            case uint64:
-                o.Set{{= col.Identifier }}(n)
-            case int:
-                o.Set{{= col.Identifier }}(uint64(n))
-            case float64:
-                o.Set{{= col.Identifier }}(uint64(n))
             default:
                 return fmt.Errorf("field %s must be a number", k)
             }

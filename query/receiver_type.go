@@ -2,9 +2,8 @@ package query
 
 import (
 	"fmt"
-	"time"
-
 	"github.com/goradd/gro/internal/schema"
+	"time"
 )
 
 // ReceiverType represents the Go type that a query will be received as.
@@ -15,9 +14,7 @@ const (
 	ColTypeBytes
 	ColTypeString
 	ColTypeInteger
-	ColTypeUnsigned
 	ColTypeInteger64
-	ColTypeUnsigned64
 	ColTypeTime
 	ColTypeFloat32
 	ColTypeFloat64
@@ -38,12 +35,8 @@ func (g ReceiverType) String() string {
 		return "ColTypeString"
 	case ColTypeInteger:
 		return "ColTypeInteger"
-	case ColTypeUnsigned:
-		return "ColTypeUnsigned"
 	case ColTypeInteger64:
 		return "ColTypeInteger64"
-	case ColTypeUnsigned64:
-		return "ColTypeUnsigned64"
 	case ColTypeTime:
 		return "ColTypeTime"
 	case ColTypeFloat32:
@@ -72,13 +65,9 @@ func (g ReceiverType) DefaultValue() any {
 	case ColTypeString:
 		return ""
 	case ColTypeInteger:
-		return int(0)
-	case ColTypeUnsigned:
-		return uint(0)
+		return 0
 	case ColTypeInteger64:
 		return int64(0)
-	case ColTypeUnsigned64:
-		return uint64(0)
 	case ColTypeTime:
 		return time.Time{}
 	case ColTypeFloat32:
@@ -153,11 +142,6 @@ func ReceiverTypeFromSchema(columnType schema.ColumnType, maxLength uint64) Rece
 			return ColTypeInteger64
 		}
 		return ColTypeInteger
-	case schema.ColTypeUint:
-		if maxLength == 64 {
-			return ColTypeUnsigned64
-		}
-		return ColTypeUnsigned
 	case schema.ColTypeTime:
 		return ColTypeTime
 	case schema.ColTypeFloat:

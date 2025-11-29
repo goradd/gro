@@ -322,7 +322,6 @@ func (m *DB) processTypeInfo(column mysqlColumn) (
 	defaultValue interface{},
 	extra map[string]interface{}) {
 	dataLen, dataSubLen := sql2.GetDataDefLength(column.columnType)
-	isUnsigned := strings.Contains(column.columnType, "unsigned")
 
 	switch column.dataType {
 	case "time":
@@ -340,52 +339,32 @@ func (m *DB) processTypeInfo(column mysqlColumn) (
 			typ = schema2.ColTypeBool
 		} else {
 			maxLength = 8
-			if isUnsigned {
-				typ = schema2.ColTypeUint
-			} else {
-				typ = schema2.ColTypeInt
-			}
+			typ = schema2.ColTypeInt
 		}
 
 	case "int":
 		maxLength = 32 // mysql standard int has a 32-bit limit even in 64-bit implementations
-		if isUnsigned {
-			typ = schema2.ColTypeUint
-		} else {
-			typ = schema2.ColTypeInt
-		}
+		typ = schema2.ColTypeInt
 
 	case "smallint":
 		maxLength = 16
-		if isUnsigned {
-			typ = schema2.ColTypeUint
-		} else {
-			typ = schema2.ColTypeInt
-		}
+		typ = schema2.ColTypeInt
 		extra = map[string]interface{}{"type": column.columnType}
 
 	case "mediumint":
 		maxLength = 24
-		if isUnsigned {
-			typ = schema2.ColTypeUint
-		} else {
-			typ = schema2.ColTypeInt
-		}
+		typ = schema2.ColTypeInt
 		extra = map[string]interface{}{"type": column.columnType}
 
 	case "bigint":
 		maxLength = 64
-		if isUnsigned {
-			typ = schema2.ColTypeUint
-		} else {
-			typ = schema2.ColTypeInt
-			if column.name == schema2.GroTimestampColumnName {
-				subType = schema2.ColSubTypeTimestamp
-			} else if column.name == schema2.GroLockColumnName {
-				subType = schema2.ColSubTypeLock
-			}
+		typ = schema2.ColTypeInt
+		if column.name == schema2.GroTimestampColumnName {
+			subType = schema2.ColSubTypeTimestamp
+		} else if column.name == schema2.GroLockColumnName {
+			subType = schema2.ColSubTypeLock
 		}
-
+		
 	case "float":
 		typ = schema2.ColTypeFloat
 		maxLength = 32

@@ -24,7 +24,7 @@ import (
 // The member variables of the structure are private and should not normally be accessed by the UnsupportedType embedder.
 // Instead, use the accessor functions.
 type unsupportedTypeBase struct {
-	typeSerial             uint64
+	typeSerial             int64
 	typeSerialIsLoaded     bool
 	typeSerialIsDirty      bool
 	typeSet                []byte
@@ -64,7 +64,7 @@ type unsupportedTypeBase struct {
 	// Indicates whether this is a new object, or one loaded from the database. Used by Save to know whether to Insert or Update.
 	_restored bool
 
-	_originalPK uint64
+	_originalPK int64
 }
 
 // IDs used to access the UnsupportedType object fields by name using the Get function.
@@ -95,7 +95,7 @@ const UnsupportedTypeTypeMultiFk2MaxLength = 50 // The number of runes the colum
 
 // Initialize or re-initialize a UnsupportedType database object to default values.
 func (o *unsupportedTypeBase) Initialize() {
-	o.typeSerial = 0x0
+	o.typeSerial = 0
 	o.typeSerialIsLoaded = false
 	o.typeSerialIsDirty = false
 
@@ -191,12 +191,12 @@ func (o *unsupportedTypeBase) Copy() (newObject *UnsupportedType) {
 
 // OriginalPrimaryKey returns the value of the primary key that was originally loaded into the object when it was
 // read from the database.
-func (o *unsupportedTypeBase) OriginalPrimaryKey() uint64 {
+func (o *unsupportedTypeBase) OriginalPrimaryKey() int64 {
 	return o._originalPK
 }
 
 // PrimaryKey returns the value of the primary key of the record.
-func (o *unsupportedTypeBase) PrimaryKey() uint64 {
+func (o *unsupportedTypeBase) PrimaryKey() int64 {
 	if o._restored && !o.typeSerialIsLoaded {
 		panic("TypeSerial was not selected in the last query and has not been set, and so PrimaryKey is not valid")
 	}
@@ -206,12 +206,12 @@ func (o *unsupportedTypeBase) PrimaryKey() uint64 {
 // SetPrimaryKey sets the value of the primary key in the object, to be saved later in the database using the Save() function.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *unsupportedTypeBase) SetPrimaryKey(v uint64) {
+func (o *unsupportedTypeBase) SetPrimaryKey(v int64) {
 	o.SetTypeSerial(v)
 }
 
 // TypeSerial returns the loaded value of the type_serial field in the database.
-func (o *unsupportedTypeBase) TypeSerial() uint64 {
+func (o *unsupportedTypeBase) TypeSerial() int64 {
 	if o._restored && !o.typeSerialIsLoaded {
 		panic("TypeSerial was not selected in the last query and has not been set, and so is not valid")
 	}
@@ -226,7 +226,7 @@ func (o *unsupportedTypeBase) TypeSerialIsLoaded() bool {
 // SetTypeSerial sets the value of TypeSerial in the object, to be saved later in the database using the Save() function.
 // You cannot change a primary key for a record that has been written to the database. While SQL databases will
 // allow it, NoSql databases will not. Save a copy and delete this one instead.
-func (o *unsupportedTypeBase) SetTypeSerial(v uint64) {
+func (o *unsupportedTypeBase) SetTypeSerial(v int64) {
 	if o._restored {
 		panic("error: Do not change a primary key for a record that has been saved. Instead, save a copy and delete the original.")
 	}
@@ -577,7 +577,7 @@ func (o *unsupportedTypeBase) IsNew() bool {
 // LoadUnsupportedType returns a UnsupportedType from the database.
 // selectNodes lets you provide nodes for selecting specific fields or additional fields from related tables.
 // See [UnsupportedTypesBuilder.Select] for more info.
-func LoadUnsupportedType(ctx context.Context, pk uint64, selectNodes ...query.Node) (*UnsupportedType, error) {
+func LoadUnsupportedType(ctx context.Context, pk int64, selectNodes ...query.Node) (*UnsupportedType, error) {
 	return queryUnsupportedTypes(ctx).
 		Where(op.Equal(node.UnsupportedType().TypeSerial(), pk)).
 		Select(selectNodes...).
@@ -586,7 +586,7 @@ func LoadUnsupportedType(ctx context.Context, pk uint64, selectNodes ...query.No
 
 // HasUnsupportedType returns true if a UnsupportedType with the given primary key exists in the database.
 // doc: type=UnsupportedType
-func HasUnsupportedType(ctx context.Context, pk uint64) (bool, error) {
+func HasUnsupportedType(ctx context.Context, pk int64) (bool, error) {
 	v, err := queryUnsupportedTypes(ctx).
 		Where(op.Equal(node.UnsupportedType().TypeSerial(), pk)).
 		Count()
@@ -833,7 +833,7 @@ func CountUnsupportedTypesByTypeMultFk1TypeMultiFk2(ctx context.Context, typeMul
 func (o *unsupportedTypeBase) unpack(m map[string]interface{}, objThis *UnsupportedType) {
 
 	if v, ok := m["typeSerial"]; ok && v != nil {
-		if o.typeSerial, ok = v.(uint64); ok {
+		if o.typeSerial, ok = v.(int64); ok {
 			o.typeSerialIsLoaded = true
 			o.typeSerialIsDirty = false
 			o._originalPK = o.typeSerial
@@ -842,7 +842,7 @@ func (o *unsupportedTypeBase) unpack(m map[string]interface{}, objThis *Unsuppor
 		}
 	} else {
 		o.typeSerialIsLoaded = false
-		o.typeSerial = 0x0
+		o.typeSerial = 0
 		o.typeSerialIsDirty = false
 	}
 
@@ -1194,7 +1194,7 @@ func (o *unsupportedTypeBase) Delete(ctx context.Context) (err error) {
 
 // deleteUnsupportedType deletes the UnsupportedType with primary key pk from the database
 // and handles associated records.
-func deleteUnsupportedType(ctx context.Context, pk uint64) error {
+func deleteUnsupportedType(ctx context.Context, pk int64) error {
 	d := db.GetDatabase("goradd_unit")
 	err := d.Delete(ctx, "unsupported_type",
 		map[string]any{
@@ -1668,7 +1668,7 @@ func (o *unsupportedTypeBase) MarshalStringMap() map[string]interface{} {
 //
 // The fields it expects are:
 //
-//	"typeSerial" - uint64
+//	"typeSerial" - int64
 //	"typeSet" - []byte
 //	"typeEnumerated" - []byte
 //	"typeGeo" - []byte
@@ -1711,13 +1711,11 @@ func (o *unsupportedTypeBase) UnmarshalStringMap(m map[string]interface{}) (err 
 					if err != nil {
 						return err
 					}
-					o.SetTypeSerial(uint64(n2))
-				case uint64:
-					o.SetTypeSerial(n)
+					o.SetTypeSerial(n2)
 				case int:
-					o.SetTypeSerial(uint64(n))
+					o.SetTypeSerial(int64(n))
 				case float64:
-					o.SetTypeSerial(uint64(n))
+					o.SetTypeSerial(int64(n))
 				default:
 					return fmt.Errorf("field %s must be a number", k)
 				}

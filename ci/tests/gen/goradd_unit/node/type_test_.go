@@ -28,12 +28,8 @@ type TypeTestNode interface {
 	ModifiedTime() *query.ColumnNode
 	// TestInt represents the test_int column in the database.
 	TestInt() *query.ColumnNode
-	// TestUnsigned represents the test_unsigned column in the database.
-	TestUnsigned() *query.ColumnNode
 	// TestInt64 represents the test_int64 column in the database.
 	TestInt64() *query.ColumnNode
-	// TestUint64 represents the test_uint64 column in the database.
-	TestUint64() *query.ColumnNode
 	// TestFloat32 represents the test_float32 column in the database.
 	TestFloat32() *query.ColumnNode
 	// TestFloat64 represents the test_float64 column in the database.
@@ -92,9 +88,7 @@ func (n typeTestTable) ColumnNodes_() (nodes []query.Node) {
 	nodes = append(nodes, n.CreationTime())
 	nodes = append(nodes, n.ModifiedTime())
 	nodes = append(nodes, n.TestInt())
-	nodes = append(nodes, n.TestUnsigned())
 	nodes = append(nodes, n.TestInt64())
-	nodes = append(nodes, n.TestUint64())
 	nodes = append(nodes, n.TestFloat32())
 	nodes = append(nodes, n.TestFloat64())
 	nodes = append(nodes, n.TestNumeric())
@@ -211,38 +205,12 @@ func (n typeTestTable) TestInt() *query.ColumnNode {
 	return cn
 }
 
-func (n typeTestTable) TestUnsigned() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"test_unsigned",
-		"testUnsigned",
-		query.ColTypeUnsigned,
-		schema.ColTypeUint,
-		schema.ColSubTypeNone,
-		false,
-		n,
-	)
-	return cn
-}
-
 func (n typeTestTable) TestInt64() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"test_int64",
 		"testInt64",
 		query.ColTypeInteger64,
 		schema.ColTypeInt,
-		schema.ColSubTypeNone,
-		false,
-		n,
-	)
-	return cn
-}
-
-func (n typeTestTable) TestUint64() *query.ColumnNode {
-	cn := query.NewColumnNode(
-		"test_uint64",
-		"testUint64",
-		query.ColTypeUnsigned64,
-		schema.ColTypeUint,
 		schema.ColSubTypeNone,
 		false,
 		n,

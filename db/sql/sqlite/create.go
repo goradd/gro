@@ -147,7 +147,7 @@ func sqlType(colType schema2.ColumnType, size uint64, subType schema2.ColumnSubT
 		}
 	case schema2.ColTypeBytes:
 		return "BLOB"
-	case schema2.ColTypeInt, schema2.ColTypeUint:
+	case schema2.ColTypeInt:
 		return "INTEGER"
 	case schema2.ColTypeFloat:
 		return "REAL"

@@ -216,17 +216,6 @@ func (c *Column) MaxInt() int64 {
 		case 32:
 			return 2147483647
 		}
-	} else if c.ReceiverType == ColTypeUnsigned {
-		switch c.Size {
-		case 8:
-			return 255
-		case 16:
-			return 65535
-		case 24:
-			return 16777215
-		case 32:
-			return 4294967295
-		}
 	}
 	return 0
 }

@@ -97,8 +97,8 @@ func (n unsupportedTypeTable) TypeSerial() *query.ColumnNode {
 	cn := query.NewColumnNode(
 		"type_serial",
 		"typeSerial",
-		query.ColTypeUnsigned64,
-		schema.ColTypeUint,
+		query.ColTypeInteger64,
+		schema.ColTypeInt,
 		schema.ColSubTypeNone,
 		true,
 		n,

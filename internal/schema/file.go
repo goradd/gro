@@ -80,15 +80,6 @@ func fixVal(i interface{}, t ColumnType, size uint64) interface{} {
 				i = v
 			}
 			return i
-		case ColTypeUint:
-			u, _ := n.Int64()
-			if size < 64 {
-				i = uint(u)
-			} else {
-				i = uint64(u)
-			}
-
-			return i
 		}
 	}
 	return i

@@ -189,7 +189,7 @@ func (m *DB) buildReferenceDef(db *schema2.Database, table *schema2.Table, ref *
 func sqlType(colType schema2.ColumnType, size uint64, subType schema2.ColumnSubType) string {
 	switch colType {
 	case schema2.ColTypeAutoPrimaryKey:
-		typ := intType(size, false)
+		typ := intType(size)
 		return typ
 	case schema2.ColTypeString:
 		if subType == schema2.ColSubTypeNumeric {
@@ -220,9 +220,7 @@ func sqlType(colType schema2.ColumnType, size uint64, subType schema2.ColumnSubT
 			return "LONGBLOB"
 		}
 	case schema2.ColTypeInt:
-		return intType(size, false)
-	case schema2.ColTypeUint:
-		return intType(size, true)
+		return intType(size)
 	case schema2.ColTypeFloat:
 		if size == 32 {
 			return "FLOAT"
@@ -252,7 +250,7 @@ func sqlType(colType schema2.ColumnType, size uint64, subType schema2.ColumnSubT
 	}
 }
 
-func intType(size uint64, unsigned bool) string {
+func intType(size uint64) string {
 	var t string
 	switch size {
 	case 8:
@@ -265,9 +263,6 @@ func intType(size uint64, unsigned bool) string {
 		t = "BIGINT"
 	default:
 		t = "INT"
-	}
-	if unsigned {
-		t += " UNSIGNED"
 	}
 	return t
 }
