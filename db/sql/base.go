@@ -13,8 +13,8 @@ import (
 	"github.com/goradd/anyutil"
 	"github.com/goradd/gro/db"
 	"github.com/goradd/gro/db/jointree"
-	schema2 "github.com/goradd/gro/internal/schema"
 	. "github.com/goradd/gro/query"
+	"github.com/goradd/gro/schema"
 )
 
 // Base is a mixin for SQL database drivers that implement the standard Go database/sql interface.
@@ -308,7 +308,7 @@ func (h *Base) joinTreeCount(ctx context.Context, joinTree *jointree.JoinTree) (
 	return ret, nil
 }
 
-func (h *Base) CreateSchema(ctx context.Context, s schema2.Database) error {
+func (h *Base) CreateSchema(ctx context.Context, s schema.Database) error {
 	if err := h.buildEnums(ctx, &s, s.EnumTables); err != nil {
 		return err
 	}
@@ -322,7 +322,7 @@ func (h *Base) CreateSchema(ctx context.Context, s schema2.Database) error {
 	return nil
 }
 
-func (h *Base) buildTables(ctx context.Context, d *schema2.Database, tables []*schema2.Table) (err error) {
+func (h *Base) buildTables(ctx context.Context, d *schema.Database, tables []*schema.Table) (err error) {
 	for _, table := range tables {
 		statements := h.tableSql(d, table)
 		if statements == nil {
@@ -341,7 +341,7 @@ func (h *Base) buildTables(ctx context.Context, d *schema2.Database, tables []*s
 	return nil
 }
 
-func (h *Base) buildEnums(ctx context.Context, d *schema2.Database, tables []*schema2.EnumTable) (err error) {
+func (h *Base) buildEnums(ctx context.Context, d *schema.Database, tables []*schema.EnumTable) (err error) {
 	for _, table := range tables {
 		statements := h.enumTableSql(d, table)
 		if statements == nil {
@@ -357,11 +357,11 @@ func (h *Base) buildEnums(ctx context.Context, d *schema2.Database, tables []*sc
 			}
 		}
 
-		fieldKeys := []string{schema2.ValueKey, schema2.NameKey}
+		fieldKeys := []string{schema.ValueKey, schema.NameKey}
 		fieldKeys = append(fieldKeys, table.FieldKeys()...)
-		fields := map[string]schema2.EnumField{
-			schema2.ValueKey: {Type: schema2.ColTypeInt},
-			schema2.NameKey:  {Type: schema2.ColTypeString},
+		fields := map[string]schema.EnumField{
+			schema.ValueKey: {Type: schema.ColTypeInt},
+			schema.NameKey:  {Type: schema.ColTypeString},
 		}
 		for k, v := range table.Fields {
 			fields[k] = v
@@ -381,7 +381,7 @@ func (h *Base) buildEnums(ctx context.Context, d *schema2.Database, tables []*sc
 	return nil
 }
 
-func (h *Base) buildAssociations(ctx context.Context, d *schema2.Database, table []*schema2.AssociationTable) (err error) {
+func (h *Base) buildAssociations(ctx context.Context, d *schema.Database, table []*schema.AssociationTable) (err error) {
 	for _, table := range table {
 		statements := h.associationSql(d, table)
 		if statements == nil {
@@ -403,7 +403,7 @@ func (h *Base) buildAssociations(ctx context.Context, d *schema2.Database, table
 // tableSql returns sql statements to create a table.
 // Multiple statements are returned because some drivers do not allow the execution of
 // multiple statements by default.
-func (h *Base) tableSql(d *schema2.Database, table *schema2.Table) []string {
+func (h *Base) tableSql(d *schema.Database, table *schema.Table) []string {
 	s, e := h.dbi.TableDefinitionSql(d, table)
 	if s == "" {
 		return nil
@@ -412,45 +412,45 @@ func (h *Base) tableSql(d *schema2.Database, table *schema2.Table) []string {
 }
 
 // enumTableSql returns the sql to create an enum table.
-func (h *Base) enumTableSql(d *schema2.Database, et *schema2.EnumTable) (s []string) {
+func (h *Base) enumTableSql(d *schema.Database, et *schema.EnumTable) (s []string) {
 	// Build a table schema to create the enum table using the regular table creator
-	table := &schema2.Table{
+	table := &schema.Table{
 		Name:    et.Name,
 		Schema:  et.Schema,
 		Comment: et.Comment,
 	}
 
-	table.Columns = []*schema2.Column{{
-		Name: schema2.ValueKey,
-		Type: schema2.ColTypeInt,
+	table.Columns = []*schema.Column{{
+		Name: schema.ValueKey,
+		Type: schema.ColTypeInt,
 	}}
-	table.Indexes = []*schema2.Index{{
-		IndexLevel: schema2.IndexLevelPrimaryKey,
-		Columns:    []string{schema2.ValueKey},
+	table.Indexes = []*schema.Index{{
+		IndexLevel: schema.IndexLevelPrimaryKey,
+		Columns:    []string{schema.ValueKey},
 		//Name:       schema.ValueKey,
 	}}
 
 	var size uint64
 	for _, vMap := range et.Values {
-		s2 := vMap[schema2.NameKey].(string)
+		s2 := vMap[schema.NameKey].(string)
 		size = max(size, uint64(len(s2)))
 	}
-	table.Columns = append(table.Columns, &schema2.Column{
-		Name: schema2.NameKey,
-		Type: schema2.ColTypeString,
+	table.Columns = append(table.Columns, &schema.Column{
+		Name: schema.NameKey,
+		Type: schema.ColTypeString,
 		Size: size,
 	})
 	for _, k := range et.FieldKeys() {
 		size = 0
 		for _, vMap := range et.Values {
-			if et.Fields[k].Type == schema2.ColTypeString ||
-				et.Fields[k].Type == schema2.ColTypeBytes {
+			if et.Fields[k].Type == schema.ColTypeString ||
+				et.Fields[k].Type == schema.ColTypeBytes {
 				if s, ok := vMap[k].(string); ok {
 					size = max(size, uint64(len(s)))
 				}
 			}
 		}
-		col := &schema2.Column{
+		col := &schema.Column{
 			Name:       k,
 			Type:       et.Fields[k].Type,
 			Size:       size,
@@ -462,7 +462,7 @@ func (h *Base) enumTableSql(d *schema2.Database, et *schema2.EnumTable) (s []str
 	return h.tableSql(d, table)
 }
 
-func (h *Base) enumValueSql(tableName string, fieldKeys []string, fields map[string]schema2.EnumField, v map[string]any) (sql string, args []any) {
+func (h *Base) enumValueSql(tableName string, fieldKeys []string, fields map[string]schema.EnumField, v map[string]any) (sql string, args []any) {
 	var columns []string
 	var placeholders []string
 	for _, k := range fieldKeys {
@@ -474,21 +474,21 @@ func (h *Base) enumValueSql(tableName string, fieldKeys []string, fields map[str
 		placeholders = append(placeholders, h.dbi.FormatArgument(len(placeholders)+1))
 
 		switch fieldType {
-		case schema2.ColTypeString:
+		case schema.ColTypeString:
 			if s, ok := value.(string); ok {
 				args = append(args, s)
 			} else {
 				args = append(args, "")
 			}
 
-		case schema2.ColTypeInt:
+		case schema.ColTypeInt:
 			if anyutil.IsInteger(value) {
 				args = append(args, value)
 			} else {
 				args = append(args, 0)
 			}
 
-		case schema2.ColTypeFloat:
+		case schema.ColTypeFloat:
 			if anyutil.IsFloat(value) {
 				args = append(args, value)
 			} else {
@@ -508,34 +508,34 @@ func (h *Base) enumValueSql(tableName string, fieldKeys []string, fields map[str
 	), args
 }
 
-func (h *Base) associationSql(d *schema2.Database, at *schema2.AssociationTable) []string {
+func (h *Base) associationSql(d *schema.Database, at *schema.AssociationTable) []string {
 	// Build a schema table to create the association table
-	table := &schema2.Table{
+	table := &schema.Table{
 		Name:    at.Table,
 		Schema:  at.Schema,
 		Comment: at.Comment,
 	}
 
 	// Make columns to send to the column builder
-	ref := &schema2.Reference{
+	ref := &schema.Reference{
 		Table:      at.Ref1.Table,
 		Column:     at.Ref1.Column,
-		IndexLevel: schema2.IndexLevelIndexed, // individual indexes on columns, though it is a composite primary key
+		IndexLevel: schema.IndexLevelIndexed, // individual indexes on columns, though it is a composite primary key
 	}
 	table.References = append(table.References, ref)
 
-	ref = &schema2.Reference{
+	ref = &schema.Reference{
 		Table:      at.Ref2.Table,
 		Column:     at.Ref2.Column,
-		IndexLevel: schema2.IndexLevelIndexed, // individual indexes on columns, though it is a composite primary key
+		IndexLevel: schema.IndexLevelIndexed, // individual indexes on columns, though it is a composite primary key
 	}
 	table.References = append(table.References, ref)
 
 	// composite index for uniqueness and row id
-	table.Indexes = []*schema2.Index{
+	table.Indexes = []*schema.Index{
 		{
 			Columns:    []string{at.Ref1.Column, at.Ref2.Column},
-			IndexLevel: schema2.IndexLevelPrimaryKey,
+			IndexLevel: schema.IndexLevelPrimaryKey,
 		},
 	}
 	err := table.Clean(d)
@@ -549,7 +549,7 @@ func (h *Base) associationSql(d *schema2.Database, at *schema2.AssociationTable)
 // Some databases automatically commit transactions during the process, so do not do this inside of a transaction.
 // This operation is not reversible.
 // Circular references on certain databases may fail if the data is not destroyed first.
-func (h *Base) DestroySchema(ctx context.Context, s schema2.Database) error {
+func (h *Base) DestroySchema(ctx context.Context, s schema.Database) error {
 	// gather table names to delete
 	var tables []string
 

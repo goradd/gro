@@ -3,7 +3,7 @@ package main
 import (
 	db2 "github.com/goradd/gro/db"
 	"github.com/goradd/gro/internal/config"
-	"github.com/goradd/gro/internal/schema"
+	"github.com/goradd/gro/schema"
 )
 
 func extract(dbConfigFile, outFile, dbKey string) {

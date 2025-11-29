@@ -3,7 +3,7 @@ package query
 import (
 	"testing"
 
-	"github.com/goradd/gro/internal/schema"
+	"github.com/goradd/gro/schema"
 	"github.com/stretchr/testify/assert"
 )
 

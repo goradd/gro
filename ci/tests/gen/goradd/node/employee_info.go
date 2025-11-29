@@ -6,8 +6,8 @@ import (
 	"bytes"
 	"encoding/gob"
 
-	"github.com/goradd/gro/internal/schema"
 	"github.com/goradd/gro/query"
+	"github.com/goradd/gro/schema"
 )
 
 // EmployeeInfoNode is the builder interface to the EmployeeInfo nodes.

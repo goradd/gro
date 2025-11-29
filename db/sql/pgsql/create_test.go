@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	schema2 "github.com/goradd/gro/internal/schema"
 	"github.com/goradd/gro/query"
+	"github.com/goradd/gro/schema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -18,7 +18,7 @@ const postgresConnectionString = "host=127.0.0.1 port=5432 user=root password=12
 func TestDB_CreateSchema(t *testing.T) {
 	sampleSchemas := []struct {
 		name        string
-		schema      func() schema2.Database // assume schema.Database is your top-level object
+		schema      func() schema.Database // assume schema.Database is your top-level object
 		zeroNonComp bool
 	}{
 		{
@@ -113,7 +113,7 @@ func TestDB_AutoGen(t *testing.T) {
 }
 
 // zero out items that we will not be comparing
-func zeroNonCmp(db *schema2.Database) {
+func zeroNonCmp(db *schema.Database) {
 	for _, t := range db.Tables {
 		for _, c := range t.Columns {
 			c.DatabaseDefinition = nil
@@ -158,24 +158,24 @@ func TestDB_CrudSampleSchema(t *testing.T) {
 	assert.Equal(t, "That", data["title"].(string))
 }
 
-func sampleSchema() schema2.Database {
-	db := schema2.Database{
+func sampleSchema() schema.Database {
+	db := schema.Database{
 		Key:             "test",
 		EnumTableSuffix: "_enum",
 		AssnTableSuffix: "_assn",
 
-		Tables: []*schema2.Table{
+		Tables: []*schema.Table{
 			// User table
 			{
 				Name: "user",
-				Columns: []*schema2.Column{
+				Columns: []*schema.Column{
 					{
 						Name: "id",
-						Type: schema2.ColTypeAutoPrimaryKey,
+						Type: schema.ColTypeAutoPrimaryKey,
 					},
 					{
 						Name:       "name",
-						Type:       schema2.ColTypeString,
+						Type:       schema.ColTypeString,
 						Size:       100,
 						IsNullable: false,
 					},
@@ -185,32 +185,32 @@ func sampleSchema() schema2.Database {
 			// Post table, references user
 			{
 				Name: "post",
-				Columns: []*schema2.Column{
+				Columns: []*schema.Column{
 					{
 						Name: "id",
-						Type: schema2.ColTypeAutoPrimaryKey,
+						Type: schema.ColTypeAutoPrimaryKey,
 					},
 					{
 						Name: "title",
-						Type: schema2.ColTypeString,
+						Type: schema.ColTypeString,
 						Size: 200,
 					},
 					{
 						Name:       "status_enum",
-						Type:       schema2.ColTypeEnum,
+						Type:       schema.ColTypeEnum,
 						IsNullable: false,
-						IndexLevel: schema2.IndexLevelIndexed, // foreign keys are always indexed
+						IndexLevel: schema.IndexLevelIndexed, // foreign keys are always indexed
 						EnumTable:  "post_status_enum",
 					},
 				},
-				References: []*schema2.Reference{
+				References: []*schema.Reference{
 					{
 						Table: "user",
 					},
 				},
 			},
 		},
-		EnumTables: []*schema2.EnumTable{
+		EnumTables: []*schema.EnumTable{
 			// Enum table: post_status
 			{
 				Name: "post_status_enum",
@@ -220,14 +220,14 @@ func sampleSchema() schema2.Database {
 				},
 			},
 		},
-		AssociationTables: []*schema2.AssociationTable{
+		AssociationTables: []*schema.AssociationTable{
 			{
 				Table: "user_post_assn",
-				Ref1: schema2.AssociationReference{
+				Ref1: schema.AssociationReference{
 					Table:  "user",
 					Column: "user_id",
 				},
-				Ref2: schema2.AssociationReference{
+				Ref2: schema.AssociationReference{
 					Table:  "post",
 					Column: "post_id",
 				},
@@ -240,24 +240,24 @@ func sampleSchema() schema2.Database {
 	return db
 }
 
-func sampleSchemaWithCollation() schema2.Database {
-	db := schema2.Database{
+func sampleSchemaWithCollation() schema.Database {
+	db := schema.Database{
 		Key:             "test",
 		EnumTableSuffix: "_enum",
 		AssnTableSuffix: "_assn",
 
-		Tables: []*schema2.Table{
+		Tables: []*schema.Table{
 			// User table
 			{
 				Name: "user",
-				Columns: []*schema2.Column{
+				Columns: []*schema.Column{
 					{
 						Name: "id",
-						Type: schema2.ColTypeAutoPrimaryKey,
+						Type: schema.ColTypeAutoPrimaryKey,
 					},
 					{
 						Name:               "name",
-						Type:               schema2.ColTypeString,
+						Type:               schema.ColTypeString,
 						Size:               100,
 						IsNullable:         false,
 						DatabaseDefinition: map[string]map[string]interface{}{"postgres": {"collation": "en-US-x-icu"}},
@@ -272,51 +272,51 @@ func sampleSchemaWithCollation() schema2.Database {
 	return db
 }
 
-func sampleSchemaTypes() schema2.Database {
-	db := schema2.Database{
+func sampleSchemaTypes() schema.Database {
+	db := schema.Database{
 		Key:             "test",
 		EnumTableSuffix: "_enum",
 		AssnTableSuffix: "_assn",
 
-		Tables: []*schema2.Table{
+		Tables: []*schema.Table{
 			{
 				Name: "sample_types",
-				Columns: []*schema2.Column{
+				Columns: []*schema.Column{
 					{
 						Name: "id",
-						Type: schema2.ColTypeAutoPrimaryKey,
+						Type: schema.ColTypeAutoPrimaryKey,
 					},
 					{
 						Name:       "username",
-						Type:       schema2.ColTypeString,
+						Type:       schema.ColTypeString,
 						Size:       100,
 						IsNullable: false,
 					},
 					{
 						Name:       "age",
 						Size:       32,
-						Type:       schema2.ColTypeInt,
+						Type:       schema.ColTypeInt,
 						IsNullable: false,
 					},
 					{
 						Name:       "balance",
-						Type:       schema2.ColTypeFloat,
+						Type:       schema.ColTypeFloat,
 						Size:       32,
 						IsNullable: false,
 					},
 					{
 						Name:       "is_active",
-						Type:       schema2.ColTypeBool,
+						Type:       schema.ColTypeBool,
 						IsNullable: false,
 					},
 					{
 						Name:       "profile_picture",
-						Type:       schema2.ColTypeBytes,
+						Type:       schema.ColTypeBytes,
 						IsNullable: true,
 					},
 					{
 						Name:       "created_date",
-						Type:       schema2.ColTypeTime,
+						Type:       schema.ColTypeTime,
 						IsNullable: true,
 					},
 				},
@@ -330,25 +330,25 @@ func sampleSchemaTypes() schema2.Database {
 	return db
 }
 
-func sampleSchemaWithSchemaName() schema2.Database {
-	db := schema2.Database{
+func sampleSchemaWithSchemaName() schema.Database {
+	db := schema.Database{
 		Key:             "test",
 		EnumTableSuffix: "_enum",
 		AssnTableSuffix: "_assn",
 
-		Tables: []*schema2.Table{
+		Tables: []*schema.Table{
 			// User table
 			{
 				Name:   "user",
 				Schema: "test",
-				Columns: []*schema2.Column{
+				Columns: []*schema.Column{
 					{
 						Name: "id",
-						Type: schema2.ColTypeAutoPrimaryKey,
+						Type: schema.ColTypeAutoPrimaryKey,
 					},
 					{
 						Name:       "name",
-						Type:       schema2.ColTypeString,
+						Type:       schema.ColTypeString,
 						Size:       100,
 						IsNullable: false,
 					},

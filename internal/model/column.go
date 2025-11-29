@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/goradd/gro/db"
-	schema2 "github.com/goradd/gro/internal/schema"
 	. "github.com/goradd/gro/query"
+	"github.com/goradd/gro/schema"
 	strings2 "github.com/goradd/strings"
 )
 
@@ -36,9 +36,9 @@ type Column struct {
 	// Type is the Go type that the column represents to the rest of the Go application.
 	Type string
 	// SchemaType is the type info specified in the schema description
-	SchemaType schema2.ColumnType
+	SchemaType schema.ColumnType
 	// SchemaSubType further describes the schema type.
-	SchemaSubType schema2.ColumnSubType
+	SchemaSubType schema.ColumnSubType
 	//  ReceiverType is the Go type that will be received from the database.
 	ReceiverType ReceiverType
 	// Size is the maximum length of runes to allow in the column if a string type column.
@@ -72,7 +72,7 @@ func (c *Column) DefaultConstantName() string {
 // DefaultValueAsValue returns the default value of the column as a GO value
 func (c *Column) DefaultValueAsValue() string {
 	if c.DefaultValue == nil {
-		if c.SchemaType == schema2.ColTypeAutoPrimaryKey {
+		if c.SchemaType == schema.ColTypeAutoPrimaryKey {
 			return `query.TempAutoPrimaryKey()`
 		} else if c.IsEnum() {
 			return fmt.Sprintf("%s(0)", c.Enum.Identifier)
@@ -103,12 +103,12 @@ func (c *Column) DefaultValueAsValue() string {
 // will generate code that will compare them for equality (if equal), or inequality (if equal is false)
 func (c *Column) CompareGen(a, b string, equal bool) string {
 	switch c.SchemaType {
-	case schema2.ColTypeTime, schema2.ColTypeAutoPrimaryKey, schema2.ColTypeUUID, schema2.ColTypeULID:
+	case schema.ColTypeTime, schema.ColTypeAutoPrimaryKey, schema.ColTypeUUID, schema.ColTypeULID:
 		if equal {
 			return fmt.Sprintf("%s.Equal(%s)", a, b)
 		}
 		return fmt.Sprintf("!%s.Equal(%s)", a, b)
-	case schema2.ColTypeBytes:
+	case schema.ColTypeBytes:
 		if equal {
 			return fmt.Sprintf("bytes.Equal(%s, %s)", a, b)
 		}
@@ -163,18 +163,18 @@ func (c *Column) IsReference() bool {
 
 // IsEnum returns true if the column contains a type defined by an enum table.
 func (c *Column) IsEnum() bool {
-	return c.SchemaType == schema2.ColTypeEnum
+	return c.SchemaType == schema.ColTypeEnum
 }
 
 // IsDecimal returns true if the column is a Decimal (Numeric) string value, meaning
 // is a variable precision decimal number.
 func (c *Column) IsDecimal() bool {
-	return c.SchemaSubType == schema2.ColSubTypeNumeric
+	return c.SchemaSubType == schema.ColSubTypeNumeric
 }
 
 // HasDefaultValue returns true if the column has a default value.
 func (c *Column) HasDefaultValue() bool {
-	return c.SchemaType == schema2.ColTypeAutoPrimaryKey || c.DefaultValue != nil
+	return c.SchemaType == schema.ColTypeAutoPrimaryKey || c.DefaultValue != nil
 }
 
 // IsThePrimaryKey returns true if this is the single primary key of its table.
@@ -195,8 +195,8 @@ func (c *Column) HasSetter() bool {
 			return false
 		}
 	}
-	if c.SchemaSubType == schema2.ColSubTypeTimestamp ||
-		c.SchemaSubType == schema2.ColSubTypeLock {
+	if c.SchemaSubType == schema.ColSubTypeTimestamp ||
+		c.SchemaSubType == schema.ColSubTypeLock {
 		return false
 	}
 	return true
@@ -241,7 +241,7 @@ func (c *Column) MinInt() int64 {
 // MaxLength returns the maximum length of the column, which normally is Column.Size, but
 // in certain situations might be something else.
 func (c *Column) MaxLength() uint64 {
-	if c.SchemaSubType == schema2.ColSubTypeNumeric {
+	if c.SchemaSubType == schema.ColSubTypeNumeric {
 		return c.Size&0x0000ffff + 2 // allow for +/- and decimal point
 	}
 	return c.Size
@@ -249,7 +249,7 @@ func (c *Column) MaxLength() uint64 {
 
 // DecimalPrecision returns the precision value of a decimal number that is packed into the Size value.
 func (c *Column) DecimalPrecision() uint64 {
-	if c.SchemaSubType == schema2.ColSubTypeNumeric {
+	if c.SchemaSubType == schema.ColSubTypeNumeric {
 		return c.Size & 0x0000ffff
 	}
 	return 0
@@ -257,7 +257,7 @@ func (c *Column) DecimalPrecision() uint64 {
 
 // DecimalScale returns the scale value of a decimal number when it is packed into the Size value.
 func (c *Column) DecimalScale() uint64 {
-	if c.SchemaSubType == schema2.ColSubTypeNumeric {
+	if c.SchemaSubType == schema.ColSubTypeNumeric {
 		return c.Size >> 16
 	}
 	return 0
@@ -265,7 +265,7 @@ func (c *Column) DecimalScale() uint64 {
 
 // IsAutoPK returns true of the column is an auto-generated primary key.
 func (c *Column) IsAutoPK() bool {
-	return c.SchemaType == schema2.ColTypeAutoPrimaryKey
+	return c.SchemaType == schema.ColTypeAutoPrimaryKey
 }
 
 // QueryKey returns the key used in query result sets that corresponds to this node.
@@ -273,7 +273,7 @@ func (c *Column) QueryKey() string {
 	return c.Field
 }
 
-func (m *Database) importColumn(schemaCol *schema2.Column) *Column {
+func (m *Database) importColumn(schemaCol *schema.Column) *Column {
 	col := &Column{
 		QueryName:     schemaCol.Name,
 		Identifier:    schemaCol.Identifier,
@@ -288,14 +288,14 @@ func (m *Database) importColumn(schemaCol *schema2.Column) *Column {
 		IsNullable:    schemaCol.IsNullable,
 	}
 
-	if schemaCol.Type == schema2.ColTypeEnum {
+	if schemaCol.Type == schema.ColTypeEnum {
 		col.Enum = m.Enum(schemaCol.EnumTable)
 		col.Type = col.Enum.Identifier
 	} else {
 		col.Type = col.ReceiverType.GoType()
 	}
 
-	if (col.SchemaSubType == schema2.ColSubTypeTimestamp || col.SchemaSubType == schema2.ColSubTypeLock) &&
+	if (col.SchemaSubType == schema.ColSubTypeTimestamp || col.SchemaSubType == schema.ColSubTypeLock) &&
 		col.IsNullable {
 		slog.Warn("Column should not be nullable. Nullable status will be ignored.",
 			slog.String(db.LogColumn, col.QueryName))

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/goradd/gro/db"
-	schema2 "github.com/goradd/gro/internal/schema"
+	"github.com/goradd/gro/schema"
 	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
 )
@@ -149,7 +149,7 @@ func (t *Table) HasGetterName(name string) (hasName bool, desc string) {
 // HasAutoPK returns true if the table has an automatically generated primary key
 func (t *Table) HasAutoPK() bool {
 	pk := t.PrimaryKeyColumn()
-	return pk != nil && pk.SchemaType == schema2.ColTypeAutoPrimaryKey
+	return pk != nil && pk.SchemaType == schema.ColTypeAutoPrimaryKey
 }
 
 // AllColumns returns all the columns in the table, including foreign keys
@@ -220,7 +220,7 @@ func (t *Table) LockColumnIdentifier() string {
 // importTable will import the table provided by tableSchema.
 // If an error occurs, it is logged and nil is returned.
 // There are a number of dependencies here, so code order is important.
-func (m *Database) importTable(tableSchema *schema2.Table,
+func (m *Database) importTable(tableSchema *schema.Table,
 	writeTimeout time.Duration,
 	readTimeout time.Duration,
 ) {
@@ -266,12 +266,12 @@ func (m *Database) importTable(tableSchema *schema2.Table,
 			return
 		}
 		t.columnMap[newCol.QueryName] = newCol
-		if schemaCol.SubType == schema2.ColSubTypeLock {
+		if schemaCol.SubType == schema.ColSubTypeLock {
 			t.LockColumn = newCol
 		}
 	}
 
-	var selfRefs []*schema2.Reference
+	var selfRefs []*schema.Reference
 
 	// The following relies on the order of tables being processed
 	// such that the referenced tables exist with primary keys.
@@ -299,7 +299,7 @@ func (m *Database) importTable(tableSchema *schema2.Table,
 
 	// Process just the primary keys so that self references can see the primary key
 	for _, idx := range tableSchema.Indexes {
-		if idx.IndexLevel == schema2.IndexLevelPrimaryKey {
+		if idx.IndexLevel == schema.IndexLevelPrimaryKey {
 			var columns []*Column
 			for _, name := range idx.Columns {
 				col := t.ColumnByName(name)
@@ -335,7 +335,7 @@ func (m *Database) importTable(tableSchema *schema2.Table,
 
 	// Process the rest of the indexes
 	for _, idx := range tableSchema.Indexes {
-		if idx.IndexLevel != schema2.IndexLevelPrimaryKey {
+		if idx.IndexLevel != schema.IndexLevelPrimaryKey {
 			var columns []*Column
 			for _, name := range idx.Columns {
 				col := t.ColumnByName(name)
@@ -350,7 +350,7 @@ func (m *Database) importTable(tableSchema *schema2.Table,
 			}
 			t.Indexes = append(t.Indexes,
 				Index{
-					IsUnique:   idx.IndexLevel == schema2.IndexLevelUnique,
+					IsUnique:   idx.IndexLevel == schema.IndexLevelUnique,
 					Columns:    columns,
 					Identifier: idx.Identifier,
 					Name:       idx.Name,

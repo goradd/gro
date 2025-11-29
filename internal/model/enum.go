@@ -6,8 +6,8 @@ import (
 	"slices"
 
 	. "github.com/goradd/anyutil"
-	"github.com/goradd/gro/internal/schema"
 	. "github.com/goradd/gro/query"
+	"github.com/goradd/gro/schema"
 	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
 )

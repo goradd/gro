@@ -10,7 +10,7 @@ import (
 
 	"github.com/goradd/anyutil"
 	"github.com/goradd/gro/db"
-	schema2 "github.com/goradd/gro/internal/schema"
+	"github.com/goradd/gro/schema"
 	"github.com/goradd/maps"
 	"github.com/kenshaw/snaker"
 )
@@ -45,7 +45,7 @@ type Database struct {
 // importSchema will convert a database description to a model which generally treats
 // tables as objects and columns as member variables.
 // schema must be Clean() first.
-func (m *Database) importSchema(schema *schema2.Database) {
+func (m *Database) importSchema(schema *schema.Database) {
 	m.Enums = make(map[string]*Enum)
 	m.Tables = make(map[string]*Table)
 
@@ -68,7 +68,7 @@ func (m *Database) importSchema(schema *schema2.Database) {
 // Analyzes an association table and creates special virtual columns in the corresponding tables it points to.
 // Association tables are used by SQL databases to create many-many relationships. NoSQL databases can define their
 // association columns directly and store an array of records on either end of the association.
-func (m *Database) importAssociation(schemaAssn *schema2.AssociationTable) {
+func (m *Database) importAssociation(schemaAssn *schema.AssociationTable) {
 	t1 := m.Table(schemaAssn.Ref1.QualifiedTableName())
 	if t1 == nil {
 		slog.Error("Missing associated table from association "+schemaAssn.Table,
@@ -273,7 +273,7 @@ func (m *Database) UniqueManyManyReferences() []*ManyManyReference {
 	})
 }
 
-func FromSchema(s *schema2.Database) *Database {
+func FromSchema(s *schema.Database) *Database {
 	if err := s.Clean(); err != nil {
 		panic(err)
 	}

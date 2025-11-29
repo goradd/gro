@@ -7,12 +7,12 @@ import (
 
 	"github.com/goradd/anyutil"
 	"github.com/goradd/gro/db"
-	schema2 "github.com/goradd/gro/internal/schema"
+	"github.com/goradd/gro/schema"
 )
 
 // TableDefinitionSql will return the sql needed to create the table.
 // This can include clauses separated by semicolons that add additional capabilities to the table.
-func (m *DB) TableDefinitionSql(d *schema2.Database, table *schema2.Table) (tableSql string, extraClauses []string) {
+func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) (tableSql string, extraClauses []string) {
 	var sb strings.Builder
 
 	var columnDefs []string
@@ -65,7 +65,7 @@ func (m *DB) TableDefinitionSql(d *schema2.Database, table *schema2.Table) (tabl
 // ColumnDefinitionSql returns the sql that will create the column col.
 // This will include single-column foreign key references.
 // This will not include a primary key designation.
-func (m *DB) buildColumnDef(col *schema2.Column) (s string, tableClauses []string, extraClauses []string) {
+func (m *DB) buildColumnDef(col *schema.Column) (s string, tableClauses []string, extraClauses []string) {
 	var colType string
 	var collation string
 	var defaultStr string
@@ -80,7 +80,7 @@ func (m *DB) buildColumnDef(col *schema2.Column) (s string, tableClauses []strin
 		}
 
 	}
-	if col.Type == schema2.ColTypeEnum {
+	if col.Type == schema.ColTypeEnum {
 		if col.EnumTable == "" {
 			slog.Error("Column skipped, Enum not specified for an enum value.",
 				slog.String(db.LogColumn, col.Name))
@@ -90,12 +90,12 @@ func (m *DB) buildColumnDef(col *schema2.Column) (s string, tableClauses []strin
 		fk := fmt.Sprintf(" FOREIGN KEY (%s) REFERENCES %s(%s)",
 			m.QuoteIdentifier(col.Name),
 			m.QuoteIdentifier(col.EnumTable),
-			m.QuoteIdentifier(schema2.ValueKey))
+			m.QuoteIdentifier(schema.ValueKey))
 		tableClauses = append(tableClauses, fk)
 		colType = "INTEGER" // NOT INT!
 	} else {
 		colType = sqlType(col.Type, col.Size, col.SubType)
-		if col.Type == schema2.ColTypeAutoPrimaryKey {
+		if col.Type == schema.ColTypeAutoPrimaryKey {
 			extraStr += "PRIMARY KEY AUTOINCREMENT"
 		}
 	}
@@ -107,7 +107,7 @@ func (m *DB) buildColumnDef(col *schema2.Column) (s string, tableClauses []strin
 	if col.DefaultValue != nil && defaultStr == "" {
 		switch val := col.DefaultValue.(type) {
 		case string:
-			if col.Type == schema2.ColTypeTime {
+			if col.Type == schema.ColTypeTime {
 				if val == "now" {
 					defaultStr = "DEFAULT CURRENT_TIMESTAMP"
 				} else if val == "update" {
@@ -135,40 +135,40 @@ func (m *DB) buildColumnDef(col *schema2.Column) (s string, tableClauses []strin
 // SqlType is used by the builder to return the SQL corresponding to the given colType that will create
 // the column.
 // If forReference is true, then it returns the SQL for creating a reference to the column.
-func sqlType(colType schema2.ColumnType, size uint64, subType schema2.ColumnSubType) string {
+func sqlType(colType schema.ColumnType, size uint64, subType schema.ColumnSubType) string {
 	switch colType {
-	case schema2.ColTypeAutoPrimaryKey:
+	case schema.ColTypeAutoPrimaryKey:
 		return "INTEGER"
-	case schema2.ColTypeString:
-		if subType == schema2.ColSubTypeNumeric {
+	case schema.ColTypeString:
+		if subType == schema.ColSubTypeNumeric {
 			return "TEXT" // NUMERIC is not infinite precision, just allows sqlite to convert to int or real as needed.
 		} else {
 			return "TEXT"
 		}
-	case schema2.ColTypeBytes:
+	case schema.ColTypeBytes:
 		return "BLOB"
-	case schema2.ColTypeInt:
+	case schema.ColTypeInt:
 		return "INTEGER"
-	case schema2.ColTypeFloat:
+	case schema.ColTypeFloat:
 		return "REAL"
-	case schema2.ColTypeBool:
+	case schema.ColTypeBool:
 		return "INTEGER"
-	case schema2.ColTypeTime:
+	case schema.ColTypeTime:
 		switch subType {
-		case schema2.ColSubTypeDateOnly:
+		case schema.ColSubTypeDateOnly:
 			return "TEXT"
-		case schema2.ColSubTypeTimeOnly:
+		case schema.ColSubTypeTimeOnly:
 			return "TEXT"
-		case schema2.ColSubTypeNone:
+		case schema.ColSubTypeNone:
 			return "INTEGER"
 		default:
 			slog.Warn("Wrong subtype for time column",
 				slog.String("subtype", subType.String()))
 		}
 		return "INTEGER"
-	case schema2.ColTypeEnum:
+	case schema.ColTypeEnum:
 		return "INTEGER"
-	case schema2.ColTypeJSON:
+	case schema.ColTypeJSON:
 		return "BLOB" // use new jsonb format
 	default:
 		return "TEXT"
@@ -178,18 +178,18 @@ func sqlType(colType schema2.ColumnType, size uint64, subType schema2.ColumnSubT
 // indexSql returns sql to be included after a table definition that will create an
 // index on the columns. table should NOT include the schema, since index names only need to
 // be unique within the schema in postgres.
-func (m *DB) indexSql(table *schema2.Table, i *schema2.Index) (tableSql string, extraSql string) {
+func (m *DB) indexSql(table *schema.Table, i *schema.Index) (tableSql string, extraSql string) {
 	quotedCols := anyutil.MapSliceFunc(i.Columns, func(s string) string {
 		return m.QuoteIdentifier(s)
 	})
 
 	var idxType string
 	switch i.IndexLevel {
-	case schema2.IndexLevelPrimaryKey:
+	case schema.IndexLevelPrimaryKey:
 		idxType = "PRIMARY KEY" // constraint with auto generated index
-	case schema2.IndexLevelUnique:
+	case schema.IndexLevelUnique:
 		idxType = "UNIQUE" // constraint with auto generated index
-	case schema2.IndexLevelIndexed:
+	case schema.IndexLevelIndexed:
 		// regular indexes must be added after the table definition
 		idx_name := i.Name
 		extraSql = fmt.Sprintf("CREATE INDEX %s ON %s (%s)",
@@ -205,7 +205,7 @@ func (m *DB) indexSql(table *schema2.Table, i *schema2.Index) (tableSql string, 
 	if len(i.Columns) == 1 {
 		col2 := table.FindColumn(i.Columns[0])
 		if col2 != nil {
-			if col2.Type == schema2.ColTypeAutoPrimaryKey {
+			if col2.Type == schema.ColTypeAutoPrimaryKey {
 				return // auto primary keys are dealt with inline in the table
 			}
 		}
@@ -216,11 +216,11 @@ func (m *DB) indexSql(table *schema2.Table, i *schema2.Index) (tableSql string, 
 	return
 }
 
-func (m *DB) buildReferenceDef(db *schema2.Database, table *schema2.Table, ref *schema2.Reference) (columnClause string, tableClauses, extraClauses []string) {
+func (m *DB) buildReferenceDef(db *schema.Database, table *schema.Table, ref *schema.Reference) (columnClause string, tableClauses, extraClauses []string) {
 	fk, pk := ref.ReferenceColumns(db, table)
 
-	if fk.Type == schema2.ColTypeAutoPrimaryKey {
-		fk.Type = schema2.ColTypeInt // auto columns internally are integers
+	if fk.Type == schema.ColTypeAutoPrimaryKey {
+		fk.Type = schema.ColTypeInt // auto columns internally are integers
 	}
 
 	columnClause, tableClauses, extraClauses = m.buildColumnDef(fk)

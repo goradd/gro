@@ -12,7 +12,7 @@ import (
 	"log/slog"
 
 	"github.com/goradd/gro/db"
-	schema2 "github.com/goradd/gro/internal/schema"
+	"github.com/goradd/gro/schema"
 )
 
 // The DbI interface describes the interface that a sql database needs to implement so that
@@ -35,7 +35,7 @@ type DbI interface {
 	// SupportsForUpdate will return true if it supports SELECT ... FOR UPDATE clauses for row level locking in a transaction
 	SupportsForUpdate() bool
 	// TableDefinitionSql returns the sql that will create table.
-	TableDefinitionSql(d *schema2.Database, table *schema2.Table) (tableSql string, extraSql []string)
+	TableDefinitionSql(d *schema.Database, table *schema.Table) (tableSql string, extraSql []string)
 }
 
 type contextKey string

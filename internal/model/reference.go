@@ -5,7 +5,7 @@ import (
 
 	"github.com/goradd/anyutil"
 	"github.com/goradd/gro/db"
-	schema2 "github.com/goradd/gro/internal/schema"
+	"github.com/goradd/gro/schema"
 	strings2 "github.com/goradd/strings"
 )
 
@@ -86,7 +86,7 @@ func (r *Reference) ReverseQueryKey() string {
 }
 
 // importReference creates a reference from a schemaRef.
-func (m *Database) importReference(table *Table, schemaRef *schema2.Reference) *Reference {
+func (m *Database) importReference(table *Table, schemaRef *schema.Reference) *Reference {
 	var refTable *Table
 
 	if schemaRef.Table == table.QueryName {
@@ -111,8 +111,8 @@ func (m *Database) importReference(table *Table, schemaRef *schema2.Reference) *
 		QueryName:  schemaRef.Column,
 		Identifier: schemaRef.ColumnIdentifier,
 		Label:      schemaRef.ColumnLabel,
-		SchemaType: anyutil.If(pk.SchemaType == schema2.ColTypeAutoPrimaryKey,
-			schema2.ColTypeString,
+		SchemaType: anyutil.If(pk.SchemaType == schema.ColTypeAutoPrimaryKey,
+			schema.ColTypeString,
 			pk.SchemaType),
 		SchemaSubType: pk.SchemaSubType,
 		ReceiverType:  pk.ReceiverType,
@@ -124,7 +124,7 @@ func (m *Database) importReference(table *Table, schemaRef *schema2.Reference) *
 		FieldPlural:   strings2.Plural(strings2.Decap(schemaRef.ColumnIdentifier)),
 	}
 
-	isUnique := schemaRef.IndexLevel == schema2.IndexLevelPrimaryKey || schemaRef.IndexLevel == schema2.IndexLevelUnique
+	isUnique := schemaRef.IndexLevel == schema.IndexLevelPrimaryKey || schemaRef.IndexLevel == schema.IndexLevelUnique
 
 	revID := schemaRef.ReverseIdentifier
 	if !isUnique {

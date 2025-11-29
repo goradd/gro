@@ -5,8 +5,8 @@ package node
 import (
 	"encoding/gob"
 
-	"github.com/goradd/gro/internal/schema"
 	"github.com/goradd/gro/query"
+	"github.com/goradd/gro/schema"
 )
 
 // TimeoutTestNode is the builder interface to the TimeoutTest nodes.

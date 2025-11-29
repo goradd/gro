@@ -7,7 +7,7 @@ import (
 
 	"github.com/goradd/anyutil"
 	"github.com/goradd/gro/db"
-	schema2 "github.com/goradd/gro/internal/schema"
+	"github.com/goradd/gro/schema"
 )
 
 // TableDefinitionSql will return the sql needed to create the table.
@@ -15,7 +15,7 @@ import (
 // All the returned tableSql items will be executed for all tables before extraSql will be executed.
 // This allows extraSql to refer to other tables in the schema that might not have been created yet,
 // and is particularly useful for handling cyclic foreign key references.
-func (m *DB) TableDefinitionSql(d *schema2.Database, table *schema2.Table) (tableSql string, extraClauses []string) {
+func (m *DB) TableDefinitionSql(d *schema.Database, table *schema.Table) (tableSql string, extraClauses []string) {
 	var sb strings.Builder
 
 	var columnDefs []string
@@ -63,7 +63,7 @@ func (m *DB) TableDefinitionSql(d *schema2.Database, table *schema2.Table) (tabl
 // columnClause is the column definition.
 // tableClauses will be included within the Create Table definition after the column clauses.
 // extraClauses will be executed outside the table definition after all tables and their columns have been created.
-func (m *DB) buildColumnDef(col *schema2.Column, isFkToAuto bool) (columnClause string, tableClauses []string, extraClauses []string) {
+func (m *DB) buildColumnDef(col *schema.Column, isFkToAuto bool) (columnClause string, tableClauses []string, extraClauses []string) {
 	var colType string
 	var collation string
 	var defaultStr string
@@ -82,7 +82,7 @@ func (m *DB) buildColumnDef(col *schema2.Column, isFkToAuto bool) (columnClause 
 	}
 	if isFkToAuto {
 		colType = "BINARY(16)"
-	} else if col.Type == schema2.ColTypeEnum {
+	} else if col.Type == schema.ColTypeEnum {
 		if col.EnumTable == "" {
 			slog.Error("Column skipped, Enum not specified for an enum value.",
 				slog.String(db.LogColumn, col.Name))
@@ -93,12 +93,12 @@ func (m *DB) buildColumnDef(col *schema2.Column, isFkToAuto bool) (columnClause 
 		fk := fmt.Sprintf(" FOREIGN KEY (%s) REFERENCES %s(%s)",
 			m.QuoteIdentifier(col.Name),
 			m.QuoteIdentifier(col.EnumTable),
-			m.QuoteIdentifier(schema2.ValueKey))
+			m.QuoteIdentifier(schema.ValueKey))
 		tableClauses = append(tableClauses, fk)
 		colType = "INT"
 	} else {
 		colType = sqlType(col.Type, col.Size, col.SubType)
-		if col.Type == schema2.ColTypeAutoPrimaryKey {
+		if col.Type == schema.ColTypeAutoPrimaryKey {
 			extraStr += "AUTO_INCREMENT"
 		}
 	}
@@ -110,7 +110,7 @@ func (m *DB) buildColumnDef(col *schema2.Column, isFkToAuto bool) (columnClause 
 	if col.DefaultValue != nil && defaultStr == "" {
 		switch val := col.DefaultValue.(type) {
 		case string:
-			if col.Type == schema2.ColTypeTime {
+			if col.Type == schema.ColTypeTime {
 				if val == "now" {
 					defaultStr = " DEFAULT CURRENT_TIMESTAMP"
 				} else if val == "update" {
@@ -136,14 +136,14 @@ func (m *DB) buildColumnDef(col *schema2.Column, isFkToAuto bool) (columnClause 
 	return
 }
 
-func (m *DB) indexSql(idx *schema2.Index) string {
+func (m *DB) indexSql(idx *schema.Index) string {
 	var idxType string
 	switch idx.IndexLevel {
-	case schema2.IndexLevelPrimaryKey:
+	case schema.IndexLevelPrimaryKey:
 		idxType = "PRIMARY KEY"
-	case schema2.IndexLevelUnique:
+	case schema.IndexLevelUnique:
 		idxType = "UNIQUE"
-	case schema2.IndexLevelIndexed:
+	case schema.IndexLevelIndexed:
 		idxType = "INDEX"
 	default:
 		return ""
@@ -156,15 +156,15 @@ func (m *DB) indexSql(idx *schema2.Index) string {
 	return def
 }
 
-func (m *DB) buildReferenceDef(db *schema2.Database, table *schema2.Table, ref *schema2.Reference) (columnClause string, tableClauses, extraClauses []string) {
+func (m *DB) buildReferenceDef(db *schema.Database, table *schema.Table, ref *schema.Reference) (columnClause string, tableClauses, extraClauses []string) {
 	fk, pk := ref.ReferenceColumns(db, table)
 
-	if fk.Type == schema2.ColTypeAutoPrimaryKey {
-		fk.Type = schema2.ColTypeInt // auto columns internally are integers
+	if fk.Type == schema.ColTypeAutoPrimaryKey {
+		fk.Type = schema.ColTypeInt // auto columns internally are integers
 		fk.Size = 32
 	}
 
-	columnClause, tableClauses, extraClauses = m.buildColumnDef(fk, fk.Type == schema2.ColTypeAutoPrimaryKey)
+	columnClause, tableClauses, extraClauses = m.buildColumnDef(fk, fk.Type == schema.ColTypeAutoPrimaryKey)
 	if columnClause == "" {
 		return // error, already logged
 	}
@@ -186,13 +186,13 @@ func (m *DB) buildReferenceDef(db *schema2.Database, table *schema2.Table, ref *
 // SqlType is used by the builder to return the SQL corresponding to the given colType that will create
 // the column.
 // If forReference is true, then it returns the SQL for creating a reference to the column.
-func sqlType(colType schema2.ColumnType, size uint64, subType schema2.ColumnSubType) string {
+func sqlType(colType schema.ColumnType, size uint64, subType schema.ColumnSubType) string {
 	switch colType {
-	case schema2.ColTypeAutoPrimaryKey:
+	case schema.ColTypeAutoPrimaryKey:
 		typ := intType(size)
 		return typ
-	case schema2.ColTypeString:
-		if subType == schema2.ColSubTypeNumeric {
+	case schema.ColTypeString:
+		if subType == schema.ColSubTypeNumeric {
 			precision := size & 0x0000FFFF
 			scale := size >> 16
 			if precision != 0 && scale != 0 {
@@ -209,7 +209,7 @@ func sqlType(colType schema2.ColumnType, size uint64, subType schema2.ColumnSubT
 		} else {
 			return "LONGTEXT"
 		}
-	case schema2.ColTypeBytes:
+	case schema.ColTypeBytes:
 		if size == 0 {
 			return "BLOB"
 		} else if size < 65532 {
@@ -219,31 +219,31 @@ func sqlType(colType schema2.ColumnType, size uint64, subType schema2.ColumnSubT
 		} else {
 			return "LONGBLOB"
 		}
-	case schema2.ColTypeInt:
+	case schema.ColTypeInt:
 		return intType(size)
-	case schema2.ColTypeFloat:
+	case schema.ColTypeFloat:
 		if size == 32 {
 			return "FLOAT"
 		}
 		return "DOUBLE"
-	case schema2.ColTypeBool:
+	case schema.ColTypeBool:
 		return "BOOLEAN"
-	case schema2.ColTypeTime:
+	case schema.ColTypeTime:
 		switch subType {
-		case schema2.ColSubTypeDateOnly:
+		case schema.ColSubTypeDateOnly:
 			return "DATE"
-		case schema2.ColSubTypeTimeOnly:
+		case schema.ColSubTypeTimeOnly:
 			return "TIME"
-		case schema2.ColSubTypeNone:
+		case schema.ColSubTypeNone:
 			return "DATETIME"
 		default:
 			slog.Warn("Wrong subtype for time column",
 				slog.String("subtype", subType.String()))
 		}
 		return "DATETIME"
-	case schema2.ColTypeEnum:
+	case schema.ColTypeEnum:
 		return "INT"
-	case schema2.ColTypeJSON:
+	case schema.ColTypeJSON:
 		fallthrough
 	default:
 		return "TEXT"

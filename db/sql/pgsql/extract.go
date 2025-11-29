@@ -10,8 +10,8 @@ import (
 
 	"github.com/goradd/gro/db"
 	sql2 "github.com/goradd/gro/db/sql"
-	schema2 "github.com/goradd/gro/internal/schema"
 	. "github.com/goradd/gro/query"
+	"github.com/goradd/gro/schema"
 	"github.com/goradd/iter"
 	"github.com/goradd/maps"
 	strings2 "github.com/goradd/strings"
@@ -74,7 +74,7 @@ func (m *pgTable) findForeignKeyGroupByColumn(col string) []pgForeignKey {
 	return nil
 }
 
-func (m *DB) ExtractSchema(options map[string]any) schema2.Database {
+func (m *DB) ExtractSchema(options map[string]any) schema.Database {
 	rawTables := m.getRawTables(options)
 	return m.schemaFromRawTables(rawTables, options)
 }
@@ -408,7 +408,7 @@ WHERE
 
 // Convert the database native type to a more generic sql type, and a go table type.
 func processTypeInfo(column pgColumn) (
-	typ schema2.ColumnType,
+	typ schema.ColumnType,
 	maxLength uint64,
 	defaultValue interface{}) {
 
@@ -416,59 +416,59 @@ func processTypeInfo(column pgColumn) (
 	case "time without time zone",
 		"time", "timestamp", "timestamp with time zone",
 		"datetime", "timestamp without time zone", "date":
-		typ = schema2.ColTypeTime
+		typ = schema.ColTypeTime
 
 	case "boolean":
-		typ = schema2.ColTypeBool
+		typ = schema.ColTypeBool
 
 	case "integer", "int":
-		typ = schema2.ColTypeInt
+		typ = schema.ColTypeInt
 		maxLength = 32
 	case "smallint":
-		typ = schema2.ColTypeInt
+		typ = schema.ColTypeInt
 		maxLength = 16
 	case "bigint":
-		typ = schema2.ColTypeInt
+		typ = schema.ColTypeInt
 		maxLength = 64
 	case "real":
-		typ = schema2.ColTypeFloat
+		typ = schema.ColTypeFloat
 		maxLength = 32
 	case "double precision":
-		typ = schema2.ColTypeFloat
+		typ = schema.ColTypeFloat
 		maxLength = 64
 	case "character varying":
-		typ = schema2.ColTypeString
+		typ = schema.ColTypeString
 		maxLength = uint64(column.characterMaxLen.Int64)
 	case "char":
-		typ = schema2.ColTypeString
+		typ = schema.ColTypeString
 		maxLength = uint64(column.characterMaxLen.Int64)
 	case "bytea":
-		typ = schema2.ColTypeBytes
+		typ = schema.ColTypeBytes
 		// no max length
 
 	case "text":
-		typ = schema2.ColTypeString
+		typ = schema.ColTypeString
 		// no max length
 
 	case "numeric":
 		// No native equivalent in Go.
 		// See the shopspring/decimal package for support.
 		// You will need to shepherd numbers into and out of []byte format to move data to the database.
-		typ = schema2.ColTypeUnknown
+		typ = schema.ColTypeUnknown
 		maxLength = uint64(column.characterMaxLen.Int64) + 3
 
 	case "year":
-		typ = schema2.ColTypeInt
+		typ = schema.ColTypeInt
 
 	default:
-		typ = schema2.ColTypeUnknown
+		typ = schema.ColTypeUnknown
 	}
 	defaultValue = column.defaultValue.UnpackDefaultValue(typ, int(maxLength))
 	return
 }
 
-func (m *DB) schemaFromRawTables(rawTables map[string]pgTable, options map[string]any) schema2.Database {
-	dd := schema2.Database{
+func (m *DB) schemaFromRawTables(rawTables map[string]pgTable, options map[string]any) schema.Database {
+	dd := schema.Database{
 		EnumTableSuffix: options["enum_table_suffix"].(string),
 		AssnTableSuffix: options["assn_table_suffix"].(string),
 		Key:             m.DbKey(),
@@ -519,14 +519,14 @@ func (m *DB) schemaFromRawTables(rawTables map[string]pgTable, options map[strin
 	return dd
 }
 
-func (m *DB) getTableSchema(t pgTable, enumTableSuffix string) schema2.Table {
-	var columnSchemas []*schema2.Column
-	var referenceSchemas []*schema2.Reference
-	var multiColumnPK *schema2.Index
+func (m *DB) getTableSchema(t pgTable, enumTableSuffix string) schema.Table {
+	var columnSchemas []*schema.Column
+	var referenceSchemas []*schema.Reference
+	var multiColumnPK *schema.Index
 
 	// Build the indexes
-	indexes := make(map[string]*schema2.Index)
-	singleIndexes := make(map[string]schema2.IndexLevel)
+	indexes := make(map[string]*schema.Index)
+	singleIndexes := make(map[string]schema.IndexLevel)
 
 	for _, idx := range t.indexes {
 		if i, ok := indexes[idx.name]; ok {
@@ -534,15 +534,15 @@ func (m *DB) getTableSchema(t pgTable, enumTableSuffix string) schema2.Table {
 			i.Columns = append(i.Columns, idx.columnName)
 		} else {
 			// create a new index
-			var level schema2.IndexLevel
+			var level schema.IndexLevel
 			if idx.primary {
-				level = schema2.IndexLevelPrimaryKey
+				level = schema.IndexLevelPrimaryKey
 			} else if idx.unique {
-				level = schema2.IndexLevelUnique
+				level = schema.IndexLevelUnique
 			} else {
-				level = schema2.IndexLevelIndexed
+				level = schema.IndexLevelIndexed
 			}
-			mci := &schema2.Index{Columns: []string{idx.columnName}, IndexLevel: level}
+			mci := &schema.Index{Columns: []string{idx.columnName}, IndexLevel: level}
 			indexes[idx.name] = mci
 		}
 	}
@@ -560,7 +560,7 @@ func (m *DB) getTableSchema(t pgTable, enumTableSuffix string) schema2.Table {
 			} else {
 				singleIndexes[idx.Columns[0]] = idx.IndexLevel
 			}
-		} else if idx.IndexLevel == schema2.IndexLevelPrimaryKey {
+		} else if idx.IndexLevel == schema.IndexLevelPrimaryKey {
 			// We have a multi-column primary key
 			multiColumnPK = idx
 		}
@@ -573,8 +573,8 @@ func (m *DB) getTableSchema(t pgTable, enumTableSuffix string) schema2.Table {
 
 		if rd != nil {
 			referenceSchemas = append(referenceSchemas, rd)
-		} else if cd.Type == schema2.ColTypeAutoPrimaryKey ||
-			cd.IndexLevel == schema2.IndexLevelPrimaryKey ||
+		} else if cd.Type == schema.ColTypeAutoPrimaryKey ||
+			cd.IndexLevel == schema.IndexLevelPrimaryKey ||
 			multiColumnPK != nil && slices.Contains(multiColumnPK.Columns, col.name) {
 			// private keys go first
 			columnSchemas = slices.Insert(columnSchemas, pkCount, cd)
@@ -584,7 +584,7 @@ func (m *DB) getTableSchema(t pgTable, enumTableSuffix string) schema2.Table {
 		}
 	}
 
-	td := schema2.Table{
+	td := schema.Table{
 		Name:       t.name,
 		Schema:     t.schema,
 		Columns:    columnSchemas,
@@ -601,14 +601,14 @@ func (m *DB) getTableSchema(t pgTable, enumTableSuffix string) schema2.Table {
 	}
 
 	// Keep the Indexes in a predictable order
-	slices.SortFunc(td.Indexes, func(m1 *schema2.Index, m2 *schema2.Index) int {
+	slices.SortFunc(td.Indexes, func(m1 *schema.Index, m2 *schema.Index) int {
 		return slices.Compare(m1.Columns, m2.Columns)
 	})
 
 	return td
 }
 
-func (m *DB) getEnumTableSchema(t pgTable) (ed schema2.EnumTable, err error) {
+func (m *DB) getEnumTableSchema(t pgTable) (ed schema.EnumTable, err error) {
 	td := m.getTableSchema(t, "")
 
 	var columnNames []string
@@ -621,7 +621,7 @@ func (m *DB) getEnumTableSchema(t pgTable) (ed schema2.EnumTable, err error) {
 	}
 
 	ed.Name = td.Name
-	ed.Fields = make(map[string]schema2.EnumField)
+	ed.Fields = make(map[string]schema.EnumField)
 
 	var hasValue bool
 	var hasName bool
@@ -632,9 +632,9 @@ func (m *DB) getEnumTableSchema(t pgTable) (ed schema2.EnumTable, err error) {
 	}
 
 	for _, c := range td.Columns {
-		if c.Name == schema2.ValueKey {
+		if c.Name == schema.ValueKey {
 			hasValue = true
-		} else if c.Name == schema2.NameKey {
+		} else if c.Name == schema.NameKey {
 			hasName = true
 		}
 
@@ -643,15 +643,15 @@ func (m *DB) getEnumTableSchema(t pgTable) (ed schema2.EnumTable, err error) {
 		recType := ReceiverTypeFromSchema(c.Type, c.Size)
 		typ := c.Type
 
-		if c.Name == schema2.ValueKey && c.Type == schema2.ColTypeAutoPrimaryKey {
+		if c.Name == schema.ValueKey && c.Type == schema.ColTypeAutoPrimaryKey {
 			recType = ColTypeInteger
-			typ = schema2.ColTypeInt
-		} else if c.Type == schema2.ColTypeUnknown {
+			typ = schema.ColTypeInt
+		} else if c.Type == schema.ColTypeUnknown {
 			recType = ColTypeBytes
-			typ = schema2.ColTypeBytes
+			typ = schema.ColTypeBytes
 		}
 		receiverTypes = append(receiverTypes, recType)
-		ft := schema2.EnumField{
+		ft := schema.EnumField{
 			Type: typ,
 		}
 		ed.Fields[c.Name] = ft
@@ -691,7 +691,7 @@ ORDER BY
 	for i, row := range receiver {
 		values := make(map[string]any)
 		for k := range ed.Fields {
-			if k == schema2.ValueKey {
+			if k == schema.ValueKey {
 				i2, _ := row[k]
 				if i+1 != i2 {
 					// only if value is not the default, then include it in the value map
@@ -705,8 +705,8 @@ ORDER BY
 	}
 
 	ed.Comment = t.comment
-	delete(ed.Fields, schema2.ValueKey)
-	delete(ed.Fields, schema2.NameKey)
+	delete(ed.Fields, schema.ValueKey)
+	delete(ed.Fields, schema.NameKey)
 	if len(ed.Fields) == 0 {
 		ed.Fields = nil
 	}
@@ -716,17 +716,17 @@ ORDER BY
 
 func (m *DB) getColumnSchema(table pgTable,
 	column pgColumn,
-	indexLevel schema2.IndexLevel,
-	enumTableSuffix string) (columnSchema *schema2.Column, refSchema *schema2.Reference) {
+	indexLevel schema.IndexLevel,
+	enumTableSuffix string) (columnSchema *schema.Column, refSchema *schema.Reference) {
 
-	columnSchema = &schema2.Column{
+	columnSchema = &schema.Column{
 		Name: column.name,
 	}
 	columnSchema.Type, columnSchema.Size, columnSchema.DefaultValue = processTypeInfo(column)
 
 	// treat auto incrementing values as id values
 	if column.isAutoIncrement && column.isIdentity {
-		columnSchema.Type = schema2.ColTypeAutoPrimaryKey
+		columnSchema.Type = schema.ColTypeAutoPrimaryKey
 		columnSchema.Size = 0
 	} else {
 		columnSchema.IndexLevel = indexLevel
@@ -746,15 +746,15 @@ func (m *DB) getColumnSchema(table pgTable,
 		} else {
 			if enumTableSuffix != "" && strings.HasSuffix(fk.referencedTableName, enumTableSuffix) {
 				// assume enum table table exists
-				columnSchema.Type = schema2.ColTypeEnum
+				columnSchema.Type = schema.ColTypeEnum
 				columnSchema.Size = 0
 				columnSchema.EnumTable = fk.referencedTableName
 			} else {
-				if indexLevel != schema2.IndexLevelUnique {
+				if indexLevel != schema.IndexLevelUnique {
 					// IndexLevelIndexed is default for references, so setting to None will preserve that, but also simplify schema file.
-					indexLevel = schema2.IndexLevelNone
+					indexLevel = schema.IndexLevelNone
 				}
-				refSchema = &schema2.Reference{
+				refSchema = &schema.Reference{
 					Table:      fk.referencedTableName,
 					Column:     fk.columnName,
 					IndexLevel: indexLevel,
@@ -775,7 +775,7 @@ func (m *DB) getColumnSchema(table pgTable,
 	return
 }
 
-func (m *DB) getAssociationSchema(t pgTable, enumTableSuffix string) (mm schema2.AssociationTable, err error) {
+func (m *DB) getAssociationSchema(t pgTable, enumTableSuffix string) (mm schema.AssociationTable, err error) {
 	td := m.getTableSchema(t, enumTableSuffix)
 	if len(td.References) != 2 {
 		err = fmt.Errorf("association table must have 2 foreign keys")

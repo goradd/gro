@@ -9,8 +9,8 @@ import (
 
 	"github.com/goradd/gofile/pkg/sys"
 	"github.com/goradd/gro/internal/codegen"
-	schema2 "github.com/goradd/gro/internal/schema"
 	_ "github.com/goradd/gro/internal/tmpl/template"
+	"github.com/goradd/gro/schema"
 )
 
 func main() {
@@ -57,8 +57,8 @@ func main() {
 		defer func() { _ = os.Chdir(cwd) }()
 	}
 
-	var schemaDB *schema2.Database
-	schemaDB, err = schema2.ReadJsonFile(schemaFile)
+	var schemaDB *schema.Database
+	schemaDB, err = schema.ReadJsonFile(schemaFile)
 	if err != nil {
 		_, _ = fmt.Fprintf(os.Stderr, "error opening or reading schema file %s: %s", schemaFile, err)
 		os.Exit(1)

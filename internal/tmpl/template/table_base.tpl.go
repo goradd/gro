@@ -9,8 +9,8 @@ import (
 
 	"github.com/goradd/gro/internal/codegen"
 	"github.com/goradd/gro/internal/model"
-	"github.com/goradd/gro/internal/schema"
 	"github.com/goradd/gro/query"
+	"github.com/goradd/gro/schema"
 )
 
 func init() {

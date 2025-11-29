@@ -10,8 +10,8 @@ import (
 
 	"github.com/goradd/gro/db"
 	sql2 "github.com/goradd/gro/db/sql"
-	"github.com/goradd/gro/internal/schema"
 	. "github.com/goradd/gro/query"
+	"github.com/goradd/gro/schema"
 	"modernc.org/sqlite"
 )
 

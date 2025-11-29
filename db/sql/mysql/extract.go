@@ -10,8 +10,8 @@ import (
 
 	"github.com/goradd/gro/db"
 	sql2 "github.com/goradd/gro/db/sql"
-	schema2 "github.com/goradd/gro/internal/schema"
 	. "github.com/goradd/gro/query"
+	"github.com/goradd/gro/schema"
 	"github.com/goradd/iter"
 	strings2 "github.com/goradd/strings"
 )
@@ -70,7 +70,7 @@ func (m *mysqlTable) findForeignKeyGroupByColumn(col string) []mysqlForeignKey {
 	return nil
 }
 
-func (m *DB) ExtractSchema(options map[string]any) schema2.Database {
+func (m *DB) ExtractSchema(options map[string]any) schema.Database {
 	rawTables := m.getRawTables()
 	return m.schemaFromRawTables(rawTables, options)
 }
@@ -316,8 +316,8 @@ ORDER BY
 
 // Convert the database native type to a more generic sql type, and a go table type.
 func (m *DB) processTypeInfo(column mysqlColumn) (
-	typ schema2.ColumnType,
-	subType schema2.ColumnSubType,
+	typ schema.ColumnType,
+	subType schema.ColumnSubType,
 	maxLength uint64,
 	defaultValue interface{},
 	extra map[string]interface{}) {
@@ -325,62 +325,62 @@ func (m *DB) processTypeInfo(column mysqlColumn) (
 
 	switch column.dataType {
 	case "time":
-		typ = schema2.ColTypeTime
-		subType = schema2.ColSubTypeTimeOnly
+		typ = schema.ColTypeTime
+		subType = schema.ColSubTypeTimeOnly
 	case "date":
-		typ = schema2.ColTypeTime
-		subType = schema2.ColSubTypeDateOnly
+		typ = schema.ColTypeTime
+		subType = schema.ColSubTypeDateOnly
 	case "timestamp":
-		typ = schema2.ColTypeTime
+		typ = schema.ColTypeTime
 	case "datetime":
-		typ = schema2.ColTypeTime
+		typ = schema.ColTypeTime
 	case "tinyint":
 		if dataLen == 1 {
-			typ = schema2.ColTypeBool
+			typ = schema.ColTypeBool
 		} else {
 			maxLength = 8
-			typ = schema2.ColTypeInt
+			typ = schema.ColTypeInt
 		}
 
 	case "int":
 		maxLength = 32 // mysql standard int has a 32-bit limit even in 64-bit implementations
-		typ = schema2.ColTypeInt
+		typ = schema.ColTypeInt
 
 	case "smallint":
 		maxLength = 16
-		typ = schema2.ColTypeInt
+		typ = schema.ColTypeInt
 		extra = map[string]interface{}{"type": column.columnType}
 
 	case "mediumint":
 		maxLength = 24
-		typ = schema2.ColTypeInt
+		typ = schema.ColTypeInt
 		extra = map[string]interface{}{"type": column.columnType}
 
 	case "bigint":
 		maxLength = 64
-		typ = schema2.ColTypeInt
-		if column.name == schema2.GroTimestampColumnName {
-			subType = schema2.ColSubTypeTimestamp
-		} else if column.name == schema2.GroLockColumnName {
-			subType = schema2.ColSubTypeLock
+		typ = schema.ColTypeInt
+		if column.name == schema.GroTimestampColumnName {
+			subType = schema.ColSubTypeTimestamp
+		} else if column.name == schema.GroLockColumnName {
+			subType = schema.ColSubTypeLock
 		}
-		
+
 	case "float":
-		typ = schema2.ColTypeFloat
+		typ = schema.ColTypeFloat
 		maxLength = 32
 	case "double":
-		typ = schema2.ColTypeFloat
+		typ = schema.ColTypeFloat
 		maxLength = 64
 
 	case "varchar":
-		typ = schema2.ColTypeString
+		typ = schema.ColTypeString
 		maxLength = uint64(dataLen)
 		if column.collation.String != m.defaultCollation {
 			extra = map[string]interface{}{"collation": column.collation.String}
 		}
 
 	case "char":
-		typ = schema2.ColTypeString
+		typ = schema.ColTypeString
 		maxLength = uint64(dataLen)
 		// default is a varchar, so capture the type to preserve the mysql type
 		extra = map[string]interface{}{"type": column.columnType}
@@ -389,30 +389,30 @@ func (m *DB) processTypeInfo(column mysqlColumn) (
 		}
 
 	case "varbinary", "binary":
-		typ = schema2.ColTypeBytes
+		typ = schema.ColTypeBytes
 		maxLength = uint64(dataLen)
 	case "blob":
-		typ = schema2.ColTypeBytes
+		typ = schema.ColTypeBytes
 		maxLength = 0 // default
 	case "tinyblob":
-		typ = schema2.ColTypeBytes
+		typ = schema.ColTypeBytes
 		maxLength = 255
 	case "mediumblob":
-		typ = schema2.ColTypeBytes
+		typ = schema.ColTypeBytes
 		maxLength = 16777215
 	case "longblob":
-		typ = schema2.ColTypeBytes
+		typ = schema.ColTypeBytes
 		maxLength = math.MaxUint32
 
 	case "text":
-		typ = schema2.ColTypeString
+		typ = schema.ColTypeString
 		maxLength = 0 // text type is unsized. The limit is 65535 bytes (not characters) and so the limit on chars depends on the charset and what is actually being stored.
 		if column.collation.String != m.defaultCollation {
 			extra = map[string]interface{}{"collation": column.collation.String}
 		}
 
 	case "tinytext":
-		typ = schema2.ColTypeString
+		typ = schema.ColTypeString
 		maxLength = 255
 		extra = map[string]interface{}{"type": column.columnType}
 		if column.collation.String != m.defaultCollation {
@@ -420,7 +420,7 @@ func (m *DB) processTypeInfo(column mysqlColumn) (
 		}
 
 	case "mediumtext":
-		typ = schema2.ColTypeString
+		typ = schema.ColTypeString
 		maxLength = 16777215
 		extra = map[string]interface{}{"type": column.columnType}
 		if column.collation.String != m.defaultCollation {
@@ -428,7 +428,7 @@ func (m *DB) processTypeInfo(column mysqlColumn) (
 		}
 
 	case "longtext":
-		typ = schema2.ColTypeString
+		typ = schema.ColTypeString
 		maxLength = 1073741823
 		if column.collation.String != m.defaultCollation {
 			extra = map[string]interface{}{"collation": column.collation.String}
@@ -437,17 +437,17 @@ func (m *DB) processTypeInfo(column mysqlColumn) (
 	case "decimal":
 		// No native equivalent in Go.
 		// See the shopspring/decimal or math/big packages for possible support.
-		typ = schema2.ColTypeString
+		typ = schema.ColTypeString
 		// pack the two length values to be unpacked in Go
 		maxLength = uint64(dataLen) + uint64(dataSubLen<<16)
-		subType = schema2.ColSubTypeNumeric
+		subType = schema.ColSubTypeNumeric
 
 	case "year":
-		typ = schema2.ColTypeInt
+		typ = schema.ColTypeInt
 		extra = map[string]interface{}{"type": column.columnType}
 
 	case "set":
-		typ = schema2.ColTypeUnknown
+		typ = schema.ColTypeUnknown
 		maxLength = uint64(column.characterMaxLen.Int64)
 		extra = map[string]interface{}{"type": column.columnType}
 		if column.collation.String != m.defaultCollation {
@@ -455,7 +455,7 @@ func (m *DB) processTypeInfo(column mysqlColumn) (
 		}
 
 	case "enum":
-		typ = schema2.ColTypeUnknown
+		typ = schema.ColTypeUnknown
 		maxLength = uint64(column.characterMaxLen.Int64)
 		extra = map[string]interface{}{"type": column.columnType}
 		if column.collation.String != m.defaultCollation {
@@ -463,16 +463,16 @@ func (m *DB) processTypeInfo(column mysqlColumn) (
 		}
 
 	case "json":
-		typ = schema2.ColTypeJSON
+		typ = schema.ColTypeJSON
 
 	default:
-		typ = schema2.ColTypeUnknown
+		typ = schema.ColTypeUnknown
 		extra = map[string]interface{}{"type": column.columnType}
 	}
 
 	s, _ := column.defaultValue.Unpack(ColTypeString).(string)
 
-	if typ == schema2.ColTypeTime {
+	if typ == schema.ColTypeTime {
 		if strings.Contains(strings.ToUpper(column.extra), "ON UPDATE") {
 			defaultValue = "update"
 		} else if strings.Contains(strings.ToUpper(s), "CURRENT_TIMESTAMP") {
@@ -499,8 +499,8 @@ func (m *DB) processTypeInfo(column mysqlColumn) (
 	return
 }
 
-func (m *DB) schemaFromRawTables(rawTables map[string]mysqlTable, options map[string]any) schema2.Database {
-	dd := schema2.Database{
+func (m *DB) schemaFromRawTables(rawTables map[string]mysqlTable, options map[string]any) schema.Database {
+	dd := schema.Database{
 		EnumTableSuffix: options["enum_table_suffix"].(string),
 		AssnTableSuffix: options["assn_table_suffix"].(string),
 		Key:             m.DbKey(),
@@ -540,14 +540,14 @@ func (m *DB) schemaFromRawTables(rawTables map[string]mysqlTable, options map[st
 	return dd
 }
 
-func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema2.Table {
-	var columnSchemas []*schema2.Column
-	var referenceSchemas []*schema2.Reference
-	var multiColumnPK *schema2.Index
+func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema.Table {
+	var columnSchemas []*schema.Column
+	var referenceSchemas []*schema.Reference
+	var multiColumnPK *schema.Index
 
 	// Build the indexes
 	// Only works if t.indexes is sorted in seq order
-	indexes := make(map[string]*schema2.Index)
+	indexes := make(map[string]*schema.Index)
 
 	for _, idx := range t.indexes {
 		if i, ok := indexes[idx.name]; ok {
@@ -555,15 +555,15 @@ func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema2.Table 
 			i.Columns = append(i.Columns, idx.columnName)
 		} else {
 			// create a new index
-			var level schema2.IndexLevel
+			var level schema.IndexLevel
 			if idx.name == "PRIMARY" {
-				level = schema2.IndexLevelPrimaryKey
+				level = schema.IndexLevelPrimaryKey
 			} else if idx.nonUnique {
-				level = schema2.IndexLevelIndexed
+				level = schema.IndexLevelIndexed
 			} else {
-				level = schema2.IndexLevelUnique
+				level = schema.IndexLevelUnique
 			}
-			mci := &schema2.Index{
+			mci := &schema.Index{
 				Columns:    []string{idx.columnName},
 				IndexLevel: level,
 				Name:       idx.name,
@@ -576,7 +576,7 @@ func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema2.Table 
 	// There might be multiple single indexes on the same column, and if there are
 	// we prioritize by the value of the index level.
 	// We don't support esoteric types of indexes yet.
-	singleIndexes := make(map[string]*schema2.Index) // mapped by column name
+	singleIndexes := make(map[string]*schema.Index) // mapped by column name
 
 	for _, idx := range indexes {
 		if len(idx.Columns) == 1 {
@@ -587,7 +587,7 @@ func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema2.Table 
 			} else {
 				singleIndexes[idx.Columns[0]] = idx
 			}
-		} else if idx.IndexLevel == schema2.IndexLevelPrimaryKey {
+		} else if idx.IndexLevel == schema.IndexLevelPrimaryKey {
 			// We have a multi-column primary key
 			multiColumnPK = idx
 		}
@@ -600,7 +600,7 @@ func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema2.Table 
 	var pkCount int
 
 	for _, col := range t.columns {
-		var level schema2.IndexLevel
+		var level schema.IndexLevel
 		if idx, ok := singleIndexes[col.name]; ok {
 			level = idx.IndexLevel
 		}
@@ -608,8 +608,8 @@ func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema2.Table 
 
 		if rd != nil {
 			referenceSchemas = append(referenceSchemas, rd)
-		} else if cd.Type == schema2.ColTypeAutoPrimaryKey ||
-			cd.IndexLevel == schema2.IndexLevelPrimaryKey ||
+		} else if cd.Type == schema.ColTypeAutoPrimaryKey ||
+			cd.IndexLevel == schema.IndexLevelPrimaryKey ||
 			multiColumnPK != nil && slices.Contains(multiColumnPK.Columns, col.name) {
 			// private keys go first
 			columnSchemas = slices.Insert(columnSchemas, pkCount, cd)
@@ -626,7 +626,7 @@ func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema2.Table 
 		schem = parts[0]
 		tableName = parts[1]
 	}
-	td := schema2.Table{
+	td := schema.Table{
 		Name:       tableName,
 		Schema:     schem,
 		Columns:    columnSchemas,
@@ -640,14 +640,14 @@ func (m *DB) getTableSchema(t mysqlTable, enumTableSuffix string) schema2.Table 
 	}
 
 	// Keep the Indexes in a predictable order
-	slices.SortFunc(td.Indexes, func(m1 *schema2.Index, m2 *schema2.Index) int {
+	slices.SortFunc(td.Indexes, func(m1 *schema.Index, m2 *schema.Index) int {
 		return slices.Compare(m1.Columns, m2.Columns)
 	})
 
 	return td
 }
 
-func (m *DB) getEnumTableSchema(t mysqlTable) (ed schema2.EnumTable, err error) {
+func (m *DB) getEnumTableSchema(t mysqlTable) (ed schema.EnumTable, err error) {
 	td := m.getTableSchema(t, "")
 
 	var columnNames []string
@@ -659,7 +659,7 @@ func (m *DB) getEnumTableSchema(t mysqlTable) (ed schema2.EnumTable, err error) 
 	}
 
 	ed.Name = td.Name
-	ed.Fields = make(map[string]schema2.EnumField)
+	ed.Fields = make(map[string]schema.EnumField)
 
 	var hasValue bool
 	var hasName bool
@@ -671,9 +671,9 @@ func (m *DB) getEnumTableSchema(t mysqlTable) (ed schema2.EnumTable, err error) 
 	}
 
 	for _, c := range td.Columns {
-		if c.Name == schema2.ValueKey {
+		if c.Name == schema.ValueKey {
 			hasValue = true
-		} else if c.Name == schema2.NameKey {
+		} else if c.Name == schema.NameKey {
 			hasName = true
 		}
 		columnNames = append(columnNames, c.Name)
@@ -681,16 +681,16 @@ func (m *DB) getEnumTableSchema(t mysqlTable) (ed schema2.EnumTable, err error) 
 
 		recType := ReceiverTypeFromSchema(c.Type, c.Size)
 		typ := c.Type
-		if c.Name == schema2.ValueKey && c.Type == schema2.ColTypeAutoPrimaryKey {
+		if c.Name == schema.ValueKey && c.Type == schema.ColTypeAutoPrimaryKey {
 			recType = ColTypeInteger
-			typ = schema2.ColTypeInt
-		} else if c.Type == schema2.ColTypeUnknown {
+			typ = schema.ColTypeInt
+		} else if c.Type == schema.ColTypeUnknown {
 			recType = ColTypeBytes
-			typ = schema2.ColTypeBytes
+			typ = schema.ColTypeBytes
 		}
 
 		receiverTypes = append(receiverTypes, recType)
-		ft := schema2.EnumField{
+		ft := schema.EnumField{
 			Type: typ,
 		}
 		ed.Fields[c.Name] = ft
@@ -730,7 +730,7 @@ ORDER BY
 	for i, row := range receiver {
 		values := make(map[string]any)
 		for k := range ed.Fields {
-			if k == schema2.ValueKey {
+			if k == schema.ValueKey {
 				i2, _ := row[k]
 				if i+1 != i2 {
 					// only if value is not the default, then include it in the value map
@@ -743,8 +743,8 @@ ORDER BY
 		ed.Values = append(ed.Values, values)
 	}
 	ed.Comment = t.comment
-	delete(ed.Fields, schema2.ValueKey)
-	delete(ed.Fields, schema2.NameKey)
+	delete(ed.Fields, schema.ValueKey)
+	delete(ed.Fields, schema.NameKey)
 	if len(ed.Fields) == 0 {
 		ed.Fields = nil
 	}
@@ -753,10 +753,10 @@ ORDER BY
 
 func (m *DB) getColumnSchema(table mysqlTable,
 	column mysqlColumn,
-	indexLevel schema2.IndexLevel,
-	enumTableSuffix string) (columnSchema *schema2.Column, refSchema *schema2.Reference) {
+	indexLevel schema.IndexLevel,
+	enumTableSuffix string) (columnSchema *schema.Column, refSchema *schema.Reference) {
 
-	columnSchema = &schema2.Column{
+	columnSchema = &schema.Column{
 		Name: column.name,
 	}
 	var extra map[string]any
@@ -771,7 +771,7 @@ func (m *DB) getColumnSchema(table mysqlTable,
 	isAuto := strings.Contains(column.extra, "auto_increment")
 	if isAuto {
 		// Note that unsigned auto increment primary keys are not supported
-		columnSchema.Type = schema2.ColTypeAutoPrimaryKey
+		columnSchema.Type = schema.ColTypeAutoPrimaryKey
 		// primary key index is implied, so does not need to be specified in the schema file.
 	} else {
 		columnSchema.IndexLevel = indexLevel
@@ -791,15 +791,15 @@ func (m *DB) getColumnSchema(table mysqlTable,
 		} else {
 			if enumTableSuffix != "" && strings.HasSuffix(fk.referencedTableName.String, enumTableSuffix) {
 				// assume enum table table exists
-				columnSchema.Type = schema2.ColTypeEnum
+				columnSchema.Type = schema.ColTypeEnum
 				columnSchema.Size = 0
 				columnSchema.EnumTable = fk.referencedTableName.String
 			} else {
-				if indexLevel != schema2.IndexLevelUnique {
+				if indexLevel != schema.IndexLevelUnique {
 					// IndexLevelIndexed is default for references, so setting to None will preserve that, but also simplify schema file.
-					indexLevel = schema2.IndexLevelNone
+					indexLevel = schema.IndexLevelNone
 				}
-				refSchema = &schema2.Reference{
+				refSchema = &schema.Reference{
 					Table:      fk.referencedTableName.String,
 					Column:     fk.columnName,
 					IndexLevel: indexLevel,
@@ -817,7 +817,7 @@ func (m *DB) getColumnSchema(table mysqlTable,
 	return
 }
 
-func (m *DB) getAssociationSchema(t mysqlTable, enumTableSuffix string) (mm schema2.AssociationTable, err error) {
+func (m *DB) getAssociationSchema(t mysqlTable, enumTableSuffix string) (mm schema.AssociationTable, err error) {
 	td := m.getTableSchema(t, enumTableSuffix)
 	if len(td.References) != 2 {
 		err = fmt.Errorf("association table must have 2 foreign keys")

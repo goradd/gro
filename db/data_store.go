@@ -5,8 +5,8 @@ import (
 	"errors"
 	"iter"
 
-	"github.com/goradd/gro/internal/schema"
 	. "github.com/goradd/gro/query"
+	"github.com/goradd/gro/schema"
 	"github.com/goradd/maps"
 )
 

@@ -19,7 +19,7 @@ import (
 	"github.com/goradd/gro/db/sql/pgsql"
 	"github.com/goradd/gro/db/sql/sqlite"
 	"github.com/goradd/gro/internal/config"
-	"github.com/goradd/gro/internal/schema"
+	"github.com/goradd/gro/schema"
 	"github.com/jackc/pgx/v5"
 )
 

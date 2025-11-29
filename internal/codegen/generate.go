@@ -11,7 +11,7 @@ import (
 	"github.com/goradd/gofile/pkg/sys"
 	db2 "github.com/goradd/gro/db"
 	model2 "github.com/goradd/gro/internal/model"
-	"github.com/goradd/gro/internal/schema"
+	"github.com/goradd/gro/schema"
 )
 
 func Generate(schemaDB *schema.Database) {
