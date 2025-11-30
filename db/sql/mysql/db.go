@@ -111,10 +111,35 @@ func NewDB(dbKey string,
 	return m, nil
 }
 
-// OverrideConfigSettings will use a map read in from a json file to modify
-// the given config settings
-func OverrideConfigSettings(config *mysql.Config, jsonContent map[string]interface{}) {
-	for k, v := range jsonContent {
+// OverrideConfigSettings applies configuration overrides from a map (typically
+// loaded from a JSON file) to a mysql.Config struct. The keys in the overrides
+// map correspond to fields in mysql.Config as follows:
+//
+//	"database"                  → config.DBName
+//	"user"                      → config.User
+//	"password"                  → config.Passwd
+//	"net"                       → config.Net
+//	                              (e.g. "tcp" or "unix")
+//	"address"                   → config.Addr
+//	                              NOTE: if "address" is set, "net" must also be set.
+//	"params"                    → config.Params
+//	                              (from map[string]interface{} → map[string]string)
+//	"collation"                 → config.Collation
+//	"max_allowed_packet"        → config.MaxAllowedPacket (float64 → int)
+//	"server_pub_key"            → config.ServerPubKey
+//	"tls_config"                → config.TLSConfig
+//	"timeout"                   → config.Timeout (string duration → time.Duration)
+//	"read_timeout"              → config.ReadTimeout (string duration → time.Duration)
+//	"write_timeout"             → config.WriteTimeout (string duration → time.Duration)
+//	"allow_all_files"           → config.AllowAllFiles
+//	"allow_cleartext_passwords" → config.AllowCleartextPasswords
+//	"allow_native_passwords"    → config.AllowNativePasswords
+//	"allow_old_passwords"       → config.AllowOldPasswords
+//
+// Only keys present in the overrides map are modified. Unsupported keys are ignored.
+// Duration fields expect strings parsable by time.ParseDuration (e.g. "5s", "200ms").
+func OverrideConfigSettings(config *mysql.Config, overrides map[string]interface{}) {
+	for k, v := range overrides {
 		switch k {
 		case "database":
 			config.DBName = v.(string)
