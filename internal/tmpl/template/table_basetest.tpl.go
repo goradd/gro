@@ -6,7 +6,7 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/goradd/gro/internal/cmd"
+	"github.com/goradd/gro/codegen"
 	"github.com/goradd/gro/internal/model"
 	"github.com/goradd/gro/query"
 	"github.com/goradd/gro/schema"
@@ -14,7 +14,7 @@ import (
 
 func init() {
 	t := TableBaseTestTemplate{}
-	cmd.RegisterTemplate(&t)
+	codegen.RegisterTemplate(&t)
 }
 
 // TableBaseTestTemplate generates code for the base table tests.

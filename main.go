@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/goradd/gro/codegen"
 	cmdpkg "github.com/goradd/gro/internal/cmd"
 	"github.com/spf13/cobra"
 
@@ -56,7 +57,7 @@ func initGen() {
 			if schemaPath == "" {
 				return fmt.Errorf("missing required flag: -s/--schema")
 			}
-			return cmdpkg.Generate(schemaPath, outputPath)
+			return codegen.Generate(schemaPath, outputPath)
 		},
 	}
 

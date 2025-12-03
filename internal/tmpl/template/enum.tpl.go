@@ -7,13 +7,13 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/goradd/gro/internal/cmd"
+	"github.com/goradd/gro/codegen"
 	"github.com/goradd/gro/internal/model"
 )
 
 func init() {
 	t := EnumTemplate{}
-	cmd.RegisterTemplate(&t)
+	codegen.RegisterTemplate(&t)
 }
 
 // EnumTemplate generates code for enumerated types.

@@ -8,12 +8,12 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/goradd/gro/internal/cmd"
+	"github.com/goradd/gro/codegen"
 	"github.com/goradd/gro/internal/model"
 )
 
 func init() {
-	cmd.RegisterTemplate(new(NodeTemplate))
+	codegen.RegisterTemplate(new(NodeTemplate))
 }
 
 // NodeTemplate generates the code for table nodes.

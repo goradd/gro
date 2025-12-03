@@ -6,12 +6,12 @@ import (
 	"io"
 	"path/filepath"
 
-	"github.com/goradd/gro/internal/cmd"
+	"github.com/goradd/gro/codegen"
 	"github.com/goradd/gro/internal/model"
 )
 
 func init() {
-	cmd.RegisterTemplate(new(NodeDocTemplate))
+	codegen.RegisterTemplate(new(NodeDocTemplate))
 }
 
 // NodeDocTemplate generates the code for the node package documentation

@@ -7,13 +7,13 @@ import (
 	"io"
 	"path/filepath"
 
-	"github.com/goradd/gro/internal/cmd"
+	"github.com/goradd/gro/codegen"
 	"github.com/goradd/gro/internal/model"
 )
 
 func init() {
-	cmd.RegisterTemplate(new(NodeTestTemplate))
-	cmd.RegisterTemplate(new(NodeTestUtilsTemplate))
+	codegen.RegisterTemplate(new(NodeTestTemplate))
+	codegen.RegisterTemplate(new(NodeTestUtilsTemplate))
 }
 
 // NodeTestUtilsTemplate generates test code for the node package.

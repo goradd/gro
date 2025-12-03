@@ -1,4 +1,4 @@
-package cmd
+package codegen
 
 import (
 	"errors"
@@ -15,14 +15,12 @@ import (
 	"github.com/goradd/gro/schema"
 )
 
+// Generate will generate the ORM using the schema found in schemaPath, putting the files
+// into the outdir directory.
 func Generate(schemaPath string, outdir string) (err error) {
 	if !fileExists(schemaPath) {
 		err = fmt.Errorf("cannot find schema file %s", schemaPath)
 		return
-	}
-
-	if outdir == "" {
-		return fmt.Errorf("missing required flag: -o/--outdir")
 	}
 
 	outdir, err = filepath.Abs(outdir)
@@ -76,6 +74,7 @@ func Generate(schemaPath string, outdir string) (err error) {
 
 // gen will generate each template file.
 // Errors are logged, and then processing continues to the next file.
+// Template files must be pre-registered, likely in init() functions.
 func gen(db *model2.Database) {
 	for _, tmpl := range templates {
 		if g, ok := tmpl.(DatabaseGenerator); ok {

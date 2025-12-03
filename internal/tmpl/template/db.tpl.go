@@ -9,14 +9,14 @@ import (
 	"io"
 	"slices"
 
-	"github.com/goradd/gro/internal/cmd"
+	"github.com/goradd/gro/codegen"
 	"github.com/goradd/gro/internal/model"
 	"github.com/goradd/maps"
 )
 
 func init() {
 	t := DbTemplate{}
-	cmd.RegisterTemplate(&t)
+	codegen.RegisterTemplate(&t)
 }
 
 // DbTemplate generates the db.go file
