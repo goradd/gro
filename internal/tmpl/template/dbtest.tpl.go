@@ -7,13 +7,13 @@ package template
 import (
 	"io"
 
-	"github.com/goradd/gro/internal/codegen"
+	"github.com/goradd/gro/internal/cmd"
 	"github.com/goradd/gro/internal/model"
 )
 
 func init() {
 	t := DbTestTemplate{}
-	codegen.RegisterTemplate(&t)
+	cmd.RegisterTemplate(&t)
 }
 
 // DbTestTemplate generates the db_test.go file

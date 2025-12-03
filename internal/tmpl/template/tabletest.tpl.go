@@ -5,14 +5,14 @@ package template
 import (
 	"io"
 
-	"github.com/goradd/gro/internal/codegen"
+	"github.com/goradd/gro/internal/cmd"
 	"github.com/goradd/gro/internal/model"
 	"github.com/goradd/gro/query"
 )
 
 func init() {
 	t := TableTestTemplate{}
-	codegen.RegisterTemplate(&t)
+	cmd.RegisterTemplate(&t)
 }
 
 // TableTestTemplate generates the code for tables.

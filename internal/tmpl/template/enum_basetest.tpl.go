@@ -7,13 +7,13 @@ import (
 	"io"
 	"strconv"
 
-	"github.com/goradd/gro/internal/codegen"
+	"github.com/goradd/gro/internal/cmd"
 	"github.com/goradd/gro/internal/model"
 )
 
 func init() {
 	t := EnumTestTemplate{}
-	codegen.RegisterTemplate(&t)
+	cmd.RegisterTemplate(&t)
 }
 
 // EnumTestTemplate generates code for the base table tests.

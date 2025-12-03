@@ -1,4 +1,4 @@
-package codegen
+package cmd
 
 import (
 	"io"

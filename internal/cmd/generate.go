@@ -1,7 +1,8 @@
-package codegen
+package cmd
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
 	"os"
 	"os/exec"
@@ -14,11 +15,67 @@ import (
 	"github.com/goradd/gro/schema"
 )
 
-func Generate(schemaDB *schema.Database) {
+func Generate(schemaPath string, outdir string) (err error) {
+	if !fileExists(schemaPath) {
+		err = fmt.Errorf("cannot find schema file %s", schemaPath)
+		return
+	}
+
+	if outdir == "" {
+		return fmt.Errorf("missing required flag: -o/--outdir")
+	}
+
+	outdir, err = filepath.Abs(outdir)
+	if err != nil {
+		err = fmt.Errorf("error with output directory path: %w", err)
+		return
+	}
+	if err = os.MkdirAll(outdir, 0777); err != nil {
+		err = fmt.Errorf("could not create output directory: %w", err)
+		return
+	}
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		err = fmt.Errorf("could not get current working directory: %w", err)
+		return
+	}
+
+	var schemaDB *schema.Database
+	schemaDB, err = schema.ReadJsonFile(schemaPath)
+	if err != nil {
+		err = fmt.Errorf("error opening or reading schema file %s: %w", schemaPath, err)
+		return
+	}
+
+	err = os.Chdir(outdir)
+	if err != nil {
+		err = fmt.Errorf("cannot change directory to %s: %w", outdir, err)
+		return
+	}
+	defer func() { _ = os.Chdir(cwd) }()
+
+	base := filepath.Base(outdir)
+	if schemaDB.Package == "" {
+		schemaDB.Package = base
+	}
+	if schemaDB.ImportPath == "" {
+		ip, err2 := sys.ImportPath(".") // current dir is the outdir
+		if err2 != nil {
+			err = fmt.Errorf("could not determine import path: %w", err2)
+			return
+		}
+		schemaDB.ImportPath = ip
+	}
+
 	m := model2.FromSchema(schemaDB)
+
 	gen(m)
+	return
 }
 
+// gen will generate each template file.
+// Errors are logged, and then processing continues to the next file.
 func gen(db *model2.Database) {
 	for _, tmpl := range templates {
 		if g, ok := tmpl.(DatabaseGenerator); ok {

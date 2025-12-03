@@ -1,33 +1,37 @@
-package main
+package cmd
 
 import (
+	"fmt"
+
 	db2 "github.com/goradd/gro/db"
 	"github.com/goradd/gro/internal/config"
 	"github.com/goradd/gro/schema"
 )
 
-func extract(dbConfigFile, outFile, dbKey string) {
+func Extract(dbConfigFile, schemaFile, dbKey string) error {
 	if databaseConfigs, err := config.OpenConfigFile(dbConfigFile); err != nil {
-		panic(err)
-	} else if err := config.InitDatastore(databaseConfigs); err != nil {
-		panic(err)
+		return err
+	} else if err = config.InitDatastore(databaseConfigs); err != nil {
+		return err
 	} else {
 		for _, c := range databaseConfigs {
 			if c["key"].(string) == dbKey {
 				setDefaultConfigSettings(c)
-				db := db2.GetDatabase(c["key"].(string))
+				db := db2.GetDatabase(dbKey)
 				if db == nil {
-					panic("database not found")
+					return fmt.Errorf("database for key %s not found", dbKey)
 				}
-				if e, ok := db.(db2.SchemaExtractor); ok {
+				if e, ok := db.(db2.SchemaExtractor); !ok {
+					return fmt.Errorf("database for key %s is not a SchemaExtractor", dbKey)
+				} else {
 					s := e.ExtractSchema(c)
 					s.Sort()
-					schema.WriteJsonFile(&s, outFile)
-					return
+					return schema.WriteJsonFile(&s, schemaFile)
 				}
 			}
 		}
 	}
+	return nil
 }
 
 func setDefaultConfigSettings(c map[string]interface{}) {

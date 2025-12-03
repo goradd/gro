@@ -4,32 +4,29 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 )
 
-func WriteJsonFile(schema *Database, outFile string) {
+func WriteJsonFile(schema *Database, outFile string) error {
 	// Serialize the struct to JSON with indentation for readability
 	jsonData, err := json.MarshalIndent(schema, "", "  ")
 	if err != nil {
-		log.Fatal("Error marshaling JSON:", err)
-		return
+		return fmt.Errorf("error marshaling JSON: %w", err)
 	}
 
 	// Create or open a file for writing
-	file, err := os.Create(outFile)
-	if err != nil {
-		log.Fatal("Error creating file:", err)
-		return
+	file, err2 := os.Create(outFile)
+	if err2 != nil {
+		return fmt.Errorf("error creating file %s: %w", outFile, err)
 	}
 	defer file.Close()
 
 	// Write the JSON data to the file
 	_, err = file.Write(jsonData)
 	if err != nil {
-		fmt.Println("Error writing to file:", err)
-		return
+		return fmt.Errorf("error writing to file %s: %w", outFile, err)
 	}
+	return nil
 }
 
 func ReadJsonFile(infile string) (schema *Database, err error) {
