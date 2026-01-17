@@ -38,8 +38,6 @@ type DbI interface {
 	TableDefinitionSql(d *schema.Database, table *schema.Table) (tableSql string, extraSql []string)
 }
 
-type contextKey string
-
 func RowClose(c io.Closer) {
 	if err := c.Close(); err != nil {
 		slog.Warn("Error closing sql row cursor", slog.Any(db.LogError, err))

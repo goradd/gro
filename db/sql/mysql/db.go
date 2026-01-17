@@ -321,10 +321,12 @@ func (m *DB) Update(ctx context.Context,
 	return
 }
 
-type contextKey string
+type dbConstraintKey struct {
+	dbID *DB
+}
 
-func (m *DB) constraintKey() contextKey {
-	return contextKey("MysqlConstraint-" + m.DbKey())
+func (m *DB) constraintKey() dbConstraintKey {
+	return dbConstraintKey{dbID: m}
 }
 
 func (m *DB) getConstraintsOff(ctx context.Context) bool {

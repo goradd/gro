@@ -583,8 +583,12 @@ func (h *Base) DestroySchema(ctx context.Context, s schema.Database) error {
 	return err2
 }
 
-func (h *Base) connectionKey() contextKey {
-	return contextKey("DbCon-" + h.DbKey())
+type dbConnectionKey struct {
+	id *Base
+}
+
+func (h *Base) connectionKey() dbConnectionKey {
+	return dbConnectionKey{h}
 }
 
 func (h *Base) getConnection(ctx context.Context) *sql.Conn {
@@ -632,8 +636,12 @@ func (h *Base) WithSameConnection(ctx context.Context, f func(ctx context.Contex
 	return
 }
 
-func (h *Base) transactionKey() contextKey {
-	return contextKey("DbTx-" + h.DbKey())
+type dbTransactionKey struct {
+	id *Base
+}
+
+func (h *Base) transactionKey() dbTransactionKey {
+	return dbTransactionKey{h}
 }
 
 func (h *Base) getTransaction(ctx context.Context) *sql.Tx {
