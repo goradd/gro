@@ -9,6 +9,7 @@ import (
 	node3 "github.com/goradd/gro/ci/tests/gen/goradd/node"
 	goradd_unit2 "github.com/goradd/gro/ci/tests/gen/goradd_unit"
 	node2 "github.com/goradd/gro/ci/tests/gen/goradd_unit/node"
+	"github.com/goradd/gro/query"
 	"github.com/goradd/gro/query/op"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -231,7 +232,7 @@ func TestHaving(t *testing.T) {
 		GroupBy(node3.Project().ID(), node3.Project().Name()).
 		OrderBy(node3.Project().ID()).
 		Calculation(node3.Project(), "team_member_count", op.Count(node3.Project().TeamMembers())).
-		Having(op.GreaterThan(node3.Alias("team_member_count"), 5)).
+		Having(op.GreaterThan(query.Alias("team_member_count"), 5)).
 		Load()
 	assert.NoError(t, err)
 	assert.Len(t, projects, 2)

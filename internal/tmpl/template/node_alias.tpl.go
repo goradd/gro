@@ -44,9 +44,6 @@ package node
 
 import "github.com/goradd/gro/query"
 
-func Alias(alias string) query.AliasNodeI {
-	return query.NewAliasNode(alias)
-}
 
 `); err != nil {
 		return

@@ -16,7 +16,9 @@ type AliasNode struct {
 	alias string
 }
 
-func NewAliasNode(alias string) AliasNodeI {
+// Alias returns an alias node for the given labeled alias that was
+// previously defined in a query.
+func Alias(alias string) AliasNodeI {
 	return &AliasNode{alias: alias}
 }
 
