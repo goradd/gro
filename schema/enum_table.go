@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/goradd/goradd/pkg/stringmap"
+	"github.com/goradd/iter"
 	strings2 "github.com/goradd/strings"
 	"github.com/kenshaw/snaker"
 )
@@ -228,7 +228,7 @@ func (t *EnumTable) fillDefaults(suffix string) {
 
 // FieldKeys returns the keys of the fields in deterministic order, with label first
 func (t *EnumTable) FieldKeys() (keys []string) {
-	for _, k := range stringmap.SortedKeys(t.Fields) {
+	for k := range iter.KeySort(t.Fields) {
 		if k == "label" {
 			keys = append([]string{LabelKey}, keys...)
 		} else {

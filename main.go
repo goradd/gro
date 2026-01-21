@@ -50,7 +50,6 @@ func initGen() {
 		Use:   "gen",
 		Short: "Generate ORM code from the schema",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Required for gen: config, schema
 			if outputPath == "" {
 				return fmt.Errorf("missing required flag: -o/--output")
 			}

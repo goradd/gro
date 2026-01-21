@@ -141,3 +141,11 @@ func NodeQueryKey(n Node) string {
 	}
 	return ""
 }
+
+// NodeField returns the item name to use in Get() calls to retrieve a value or object using
+// a string label.
+func NodeField(n Node) string {
+	// reusing NodeQueryKey. If this changes in the future, we will have to get it another way.
+	// Assumes an alias can be used in a Get call.
+	return NodeQueryKey(n)
+}

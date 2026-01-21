@@ -3,10 +3,10 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/goradd/goradd/pkg/log"
 	"github.com/goradd/gro/db"
 	mysql2 "github.com/goradd/gro/db/sql/mysql"
 	"github.com/goradd/gro/db/sql/pgsql"
@@ -22,11 +22,11 @@ type ConfigFormat struct {
 func NewDatabase(config map[string]any) (database db.DatabaseI, err error) {
 	typ := config["type"].(string)
 	if typ == "" {
-		log.Error(`missing "type" value for database `)
+		slog.Error(`missing "type" value for database `)
 	}
 	key := config["key"].(string)
 	if key == "" {
-		log.Error(`missing "key" value for database `)
+		slog.Error(`missing "key" value for database `)
 	}
 
 	switch typ {

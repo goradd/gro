@@ -4,7 +4,6 @@ require (
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/goradd/anyutil v0.1.2
 	github.com/goradd/gofile v1.2.1
-	github.com/goradd/goradd v0.31.10
 	github.com/goradd/iter v0.0.0-20241219175333-9ab52add20e3
 	github.com/goradd/maps v1.2.0
 	github.com/goradd/strings v0.2.0

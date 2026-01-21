@@ -3,8 +3,8 @@ package query
 import (
 	"context"
 	"testing"
+	"time"
 
-	"github.com/goradd/goradd/pkg/time"
 	goradd2 "github.com/goradd/gro/ci/tests/gen/goradd"
 	node2 "github.com/goradd/gro/ci/tests/gen/goradd/node"
 	"github.com/goradd/gro/query"
@@ -43,15 +43,15 @@ func TestLogical(t *testing.T) {
 	}
 	tests := []testCase{
 		{op.GreaterThan(node2.Project().Num(), 3), 0, 4, 1, "Greater than uint test"},
-		{op.GreaterThan(node2.Project().StartDate(), time.NewDate(2006, 1, 1)), 0, 2, 2, "Greater than datetime test"},
+		{op.GreaterThan(node2.Project().StartDate(), time.Date(2006, 1, 1, 0, 0, 0, 0, time.UTC)), 0, 2, 2, "Greater than datetime test"},
 		// SQLite does not have arbitrary precision number support
 		//		{op.GreaterThan(node.Project().Spent(), 10000), 1, 2, 2, "Greater than float test"},
 		{op.LessThan(node2.Project().Num(), 3), 1, 2, 2, "Less than uint test"},
-		{op.LessThan(node2.Project().EndDate(), time.NewDate(2006, 1, 1)), 1, 4, 2, "Less than date test"},
+		{op.LessThan(node2.Project().EndDate(), time.Date(2006, 1, 1, 0, 0, 0, 0, time.UTC)), 1, 4, 2, "Less than date test"},
 		{op.IsNull(node2.Project().EndDate()), 0, 2, 1, "Is Null test"},
 		{op.IsNotNull(node2.Project().EndDate()), 0, 1, 3, "Is Not Null test"},
 		{op.GreaterOrEqual(node2.Project().Status(), 2), 1, 4, 2, "Greater or Equal test"},
-		{op.LessOrEqual(node2.Project().StartDate(), time.NewDate(2006, 2, 15)), 2, 4, 3, "Less or equal date test"},
+		{op.LessOrEqual(node2.Project().StartDate(), time.Date(2006, 2, 15, 0, 0, 0, 0, time.UTC)), 2, 4, 3, "Less or equal date test"},
 		{op.Or(op.Equal(node2.Project().Num(), 1), op.Equal(node2.Project().Num(), 4)), 1, 4, 2, "Or test"},
 		{op.Xor(op.Equal(node2.Project().Num(), 3), op.Equal(node2.Project().Status(), 1)), 0, 2, 1, "Xor test"},
 		{op.Not(op.Xor(op.Equal(node2.Project().Num(), 3), op.Equal(node2.Project().Status(), 1))), 0, 1, 3, "Not test"},

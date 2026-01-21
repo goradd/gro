@@ -18,8 +18,6 @@ github.com/goradd/anyutil v0.1.2/go.mod h1:FyV/Lkw/UEvwAA7/Kq46iHWwYxOe5ftf92k4I
 github.com/goradd/gofile v1.2.0 h1:sCHG3icAFGO8gwl5Yy8llvhlIl8k5uaYa6uE23Z56MA=
 github.com/goradd/gofile v1.2.0/go.mod h1:ZjSvnGak2csGsJgEu8AgQc06eaoonhg2MzbqXON9o1M=
 github.com/goradd/gofile v1.2.1/go.mod h1:ZjSvnGak2csGsJgEu8AgQc06eaoonhg2MzbqXON9o1M=
-github.com/goradd/goradd v0.31.10 h1:WuROBZrd16CDAoNWGF0X/XCtoYTNSpEvNOSbUYoxvv8=
-github.com/goradd/goradd v0.31.10/go.mod h1:Wic8IkwctqcNd+IK1cq0ofTHvJpn0iM4xudJvHickus=
 github.com/goradd/iter v0.0.0-20241219175333-9ab52add20e3 h1:aZPCJtLHLE/V/cW4S6EMDYN2mXXSCktp1Ssv1S+idCo=
 github.com/goradd/iter v0.0.0-20241219175333-9ab52add20e3/go.mod h1:sfgDEDR30MCX/9SOOQzpifHMSIS1JN8HEA7S/k2n+Kk=
 github.com/goradd/maps v1.2.0 h1:oYGfDONzuRYpy4i+Ct1YMFR+eiI0VkNwghDu1KF03OQ=
